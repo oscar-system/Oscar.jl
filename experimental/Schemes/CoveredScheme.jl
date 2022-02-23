@@ -4,7 +4,7 @@ export fill_transitions!
 export affine_patch_type, glueing_type
 
 export CoveringMorphism
-export morphism_type
+export morphism_type, morphisms
 
 export CoveredScheme
 export empty_covered_scheme
@@ -13,6 +13,7 @@ export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_
 
 import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
 
+export CoveredSchemeMorphism, domain, codomain, covering_morphism
 
 @Markdown.doc """
     Covering{SpecType<:Spec, GlueingType<:Glueing}
@@ -226,8 +227,8 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
   end
   #fill_transitions!(result)
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :covered_projection_to_base, covered_projection)
   set_attribute!(X, :standard_covering, result)
+  set_attribute!(X, :covered_projection_to_base, covered_projection)
   return result
 end
 
@@ -332,9 +333,9 @@ mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorT
                                          # patch Y of the codomain covering. 
 
   function CoveringMorphism(
-      domain::CoveringType, 
-      codomain::CoveringType, 
-      morphisms::Dict{SpecType, SpecMorType}; 
+      dom::CoveringType, 
+      cod::CoveringType, 
+      mor::Dict{SpecType, SpecMorType}; 
       check::Bool=true
     ) where {
              SpecType<:Spec, 
@@ -343,7 +344,11 @@ mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorT
             }
     # TODO: check domain/codomain compatibility
     # TODO: if check is true, check that all morphisms glue.
-    return new{SpecType, CoveringType, SpecMorType}(domain, codomain, morphisms)
+    for U in keys(mor)
+      U in patches(dom) || error("domain patch not found")
+      codomain(mor[U]) in patches(cod) || error("codomain patch not found")
+    end
+    return new{SpecType, CoveringType, SpecMorType}(dom, cod, mor)
   end
 end
 
@@ -359,6 +364,7 @@ morphism_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, Gl
 domain(f::CoveringMorphism) = f.domain
 codomain(f::CoveringMorphism) = f.codomain
 getindex(f::CoveringMorphism, U::Spec) = f.morphisms[U]
+morphisms(f::CoveringMorphism) = f.morphisms
 
 function compose(f::T, g::T) where {T<:CoveringMorphism}
   domain(g) == codomain(f) || error("morphisms can not be composed")
@@ -595,5 +601,37 @@ function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
   return (C_new, f, g)
 end
 
+
+@attributes mutable struct CoveredSchemeMorphism{
+    DomainType<:CoveredScheme, 
+    CodomainType<:CoveredScheme, 
+    CoveringMorphismType<:CoveringMorphism
+  }
+  X::DomainType
+  Y::CodomainType
+  f::CoveringMorphismType
+
+  function CoveredSchemeMorphism(
+      X::DomainType, 
+      Y::CodomainType, 
+      f::CoveringMorphismType;
+      check::Bool=true
+    ) where {
+             DomainType<:CoveredScheme, 
+             CodomainType<:CoveredScheme, 
+             CoveringMorphismType<:CoveringMorphism
+            }
+    domain(f) in coverings(X) || error("covering not found in domain")
+    codomain(f) in coverings(Y) || error("covering not found in codomain")
+    return new{DomainType, CodomainType, CoveringMorphismType}(X, Y, f)
+  end
+end
+
+domain(f::CoveredSchemeMorphism) = f.X
+codomain(f::CoveredSchemeMorphism) = f.Y
+covering_morphism(f::CoveredSchemeMorphism) = f.f
+domain_covering(f::CoveredSchemeMorphism) = domain(covering_morphism(f))
+codomain_covering(f::CoveredSchemeMorphism) = codomain(covering_morphism(f))
+getindex(f::CoveredSchemeMorphism, U::Spec) = covering_morphism(f)[U]
 
 

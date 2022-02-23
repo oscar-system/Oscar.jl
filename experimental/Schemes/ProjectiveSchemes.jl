@@ -704,20 +704,18 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:AbstractAlgebra.
 end
 
 function as_covered_scheme(P::ProjectiveScheme)
-  if has_attribute(P, :as_covered_scheme) 
-    return get_attribute(P, :as_covered_scheme)
+  if !has_attribute(P, :as_covered_scheme) 
+    C = standard_covering(P) 
+    X = CoveredScheme(C)
+    set_attribute!(P, :as_covered_scheme, X)
   end
-  C = standard_covering(P) 
-  X = CoveredScheme(C)
-  set_attribute!(P, :as_covered_scheme, X)
-  return X
+  return get_attribute(P, :as_covered_scheme)
 end
 
 function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuoLocalizedRing})
-  if has_attribute(X, :covered_projection_to_base) 
-    return get_attribute(X, :covered_projection_to_base)
+  if !has_attribute(X, :covered_projection_to_base) 
+    C = standard_covering(X)
   end
-  C = standard_covering(X)
   return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
 end
 

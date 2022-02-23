@@ -1,6 +1,6 @@
 export IdealSheaf
 
-export scheme, covering, getindex, subscheme, covered_patches, extend!
+export scheme, covering, getindex, subscheme, covered_patches, extend!, ideal_dict
 
 export ideal_sheaf_type
 
@@ -28,12 +28,26 @@ export ideal_sheaf_type
       SpecType<:Spec,
       RingElemType<:MPolyElem
     }
+    C in coverings(X) || error("reference covering not found")
+    for X in keys(I)
+      X in patches(C) || error("affine patch not found")
+      for f in I[X]
+        parent(f) == base_ring(OO(X)) || error("element does not belong to the correct ring")
+      end
+    end
     if check
-      C in coverings(X) || error("reference covering not found")
-      for X in keys(I)
-        X in patches(C) || error("affine patch not found")
-        for f in I[X]
-          parent(f) == base_ring(OO(X)) || error("element does not belong to the correct ring")
+      for ((X, Y), G) in glueings(C)
+        (U, V) = glueing_domains(G)
+        (f, g) = glueing_morphisms(G)
+        for i in 1:npatches(U)
+          inc = inclusion_map(U[i], X)
+          pullback(inc)(ideal(OO(X), I[X])) == pullback(f[i])(ideal(OO(Y), I[Y])) || error("ideals do not coincide on the glueing of $X and $Y")
+        end
+        for j in 1:npatches(V)
+          inc = inclusion_map(V[j], Y)
+          I1 = pullback(inc)(ideal(OO(Y), I[Y])) 
+          I2 = pullback(g[j])(ideal(OO(X), I[X]))
+          pullback(inc)(ideal(OO(Y), I[Y])) == pullback(g[j])(ideal(OO(X), I[X])) || error("ideals do not coincide on the glueing of $X and $Y")
         end
       end
     end
@@ -47,6 +61,7 @@ scheme(I::IdealSheaf) = I.X
 covering(I::IdealSheaf) = I.C
 covered_patches(I::IdealSheaf) = [U for U in keys(I.ideal_gens)]
 getindex(I::IdealSheaf, U::Spec) = I.ideal_gens[U]
+ideal_dict(I::IdealSheaf) = I.ideal_gens
 
 set_name!(X::IdealSheaf, name::String) = set_attribute!(X, :name, name)
 name_of(X::IdealSheaf) = get_attribute(X, :name)::String

@@ -6,6 +6,8 @@ export base_scheme, base_covering, projective_patches, as_covered_scheme
 
 export blow_up, empty_covered_projective_scheme
 
+export strict_transform, total_transform, weak_transform, controlled_transform
+
 mutable struct ProjectiveGlueing{
                                  GlueingType<:Glueing,
                                  ProjectiveSchemeType<:ProjectiveScheme,
@@ -108,7 +110,7 @@ glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_
 # covered schemes along arbitrary centers, as well as 
 # projective bundles. 
 
-mutable struct CoveredProjectiveScheme{
+@attributes mutable struct CoveredProjectiveScheme{
     BaseSchemeType<:CoveredScheme, 
     CoveringType<:Covering,
     SpecType<:Spec,
@@ -198,8 +200,16 @@ function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyEle
   #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
   SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
 
-
-  return subscheme(Pw, SIWpre), [S(A(g)) for g in I]
+  projective_version = subscheme(Pw, SIWpre)
+  covered_version = as_covered_scheme(projective_version)
+  projection_map = get_attribute(projective_version, :covered_projection_to_base)
+  E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
+  for i in 1:length(I)
+    U = default_covering(covered_version)[i]
+    E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
+  end
+  exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict)
+  return projective_version, covered_version, projection_map, exc_div
 end
 
 function blow_up(I::IdealSheaf)
@@ -264,23 +274,152 @@ function blow_up(I::IdealSheaf)
   for U in patches(C)
     tmp[U] = local_blowups[C[U]][1]
   end
-  # TODO: Also return the exceptional divisor as an ideal sheaf.
-  return CoveredProjectiveScheme(X, C, tmp, projective_glueings)
+  projective_version = CoveredProjectiveScheme(X, C, tmp, projective_glueings)
+
+  ### At this point we're done with the projective version of the blowup.
+  # It remains to construct the associated CoveredScheme and the ideal sheaf 
+  # of the exceptional divisor.
+  covered_version = as_covered_scheme(projective_version)
+  projection_map = covered_projection_to_base(projective_version)
+  SpecType = affine_patch_type(covered_version)
+  E_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+  for i in 1:length(local_blowups)
+    merge!(E_dict, ideal_dict(local_blowups[i][4]))
+  end
+  exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict)
+
+  # Manually construct the ideal sheaf in each one of the charts of the blowup. 
+  return projective_version, covered_version, projection_map, exc_div
 end
 
 function as_covered_scheme(P::CoveredProjectiveScheme)
-  X = base_scheme(P)
-  C = base_covering(P)
-  SpecType = affine_patch_type(X)
-  new_patches = Vector{SpecType}()
-  new_glueings = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
-  for U in patches(C)
-    PU = as_covered_scheme(P[U])
-    new_patches = vcat(new_patches, patches(coverings(PU)[1]))
-    merge!(new_glueings, glueings(PU))
+  if !has_attribute(P, :as_covered_scheme) 
+    X = base_scheme(P)
+    C = base_covering(P)
+    SpecType = affine_patch_type(X)
+    new_patches = Vector{SpecType}()
+    new_glueings = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
+    projection_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}() 
+    for U in patches(C)
+      PU = as_covered_scheme(P[U])
+      new_patches = vcat(new_patches, patches(coverings(PU)[1]))
+      merge!(new_glueings, glueings(PU))
+      PU_projection = get_attribute(P[U], :covered_projection_to_base)
+      merge!(projection_dict, morphisms(PU_projection))
+    end
+    #TODO: extend the remaining glueings
+    new_covering = Covering(new_patches, new_glueings, check=false)
+    covered_scheme = CoveredScheme(new_covering)
+    covered_map = CoveringMorphism(new_covering, C, projection_dict) 
+    projection_map = CoveredSchemeMorphism(covered_scheme, X, covered_map)
+    set_attribute!(P, :as_covered_scheme, covered_scheme)
+    set_attribute!(P, :covered_projection_to_base, projection_map)
   end
-  #TODO: extend the remaining glueings
-  return CoveredScheme(Covering(new_patches, new_glueings, check=false))
+  return get_attribute(P, :as_covered_scheme)
 end
 
+function covered_projection_to_base(P::CoveredProjectiveScheme) 
+  if !has_attribute(P, :covered_projection_to_base)
+    as_covered_scheme(P)
+  end
+  return get_attribute(P, :covered_projection_to_base)
+end
+
+
+
+function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
+	#(IOw: Exc Div ^\infty)
+	
+        X = domain(f)
+        Y = codomain(f)
+        R = base_ring(OO(X))
+	Excdiv = ideal(h)
+
+	Pf = pullback(f)
+        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+	
+	while true
+          Inew = quotient(Iold, Excdiv)
+          Iold == Inew && break
+          Iold = Inew
+	end
+        return gens(Iold)
+end
+
+
+
+function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
+	#IOw
+	
+        X = domain(f)
+        Y = codomain(f)
+        R = base_ring(OO(X))
+	Excdiv = ideal(h)
+
+	Pf = pullback(f)
+        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+        return gens(Iold)
+end
+
+
+### NOT TESTED YET
+function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
+
+	Pf = pullback(f)
+	Iold = ideal(Pf.(g))
+	Excdiv = ideal(h)	
+
+	while true
+		Inew = quotient(Iold, Excdiv)
+		!(Iold == Excdiv * Inew) || break
+		Iold = Inew 
+	end
+	return Iold
+	#(IOw : Exc Div ^k), k maximal
+end
+
+### NOT TESTED YET
+function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyElem}
+	#(IOw : Exc Div ^i)
+
+	Pf = pullback(f)
+	Iold = ideal(Pf.(g))
+	Excdiv = ideal(h)	
+
+	for j in 1:i
+		Inew = quotient(Iold,Excdiv)
+		Inew == 1 || break
+		Iold = Inew
+	end
+	
+	return Iold
+
+end
+
+function strict_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf)
+  X = domain(f)
+  Y = codomain(f)
+  CX = domain_covering(f)
+  CY = codomain_covering(f)
+  SpecType = affine_patch_type(X)
+  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+  for U in patches(CX)
+    trans_dict[U] = strict_transform(f[U], E[U], I[codomain(f[U])])
+  end
+  return IdealSheaf(X, CX, trans_dict, check=true)
+  #return IdealSheaf(X, CX, trans_dict, check=false)
+end
+
+function total_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf)
+  X = domain(f)
+  Y = codomain(f)
+  CX = domain_covering(f)
+  CY = codomain_covering(f)
+  SpecType = affine_patch_type(X)
+  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+  for U in patches(CX)
+    trans_dict[U] = total_transform(f[U], E[U], I[codomain(f[U])])
+  end
+  return IdealSheaf(X, CX, trans_dict, check=true)
+end
 

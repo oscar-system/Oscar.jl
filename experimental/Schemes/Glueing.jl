@@ -1,5 +1,5 @@
 export Glueing
-export glueing_morphism, patches, glueing_domains, inverse_glueing_morphism, inverse
+export glueing_morphisms, patches, glueing_domains, inverse_glueing_morphism, inverse
 export glueing_type
 
 export compose, maximal_extension, restriction
@@ -28,13 +28,13 @@ mutable struct Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
     ambient(codomain(f)) == Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
     (canonically_isomorphic(domain(f), codomain(g)) && 
      canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
-    return new{SpecType, open_subset_type(X), MorType}(X, Y, domain(f), codomain(f), f, g)
+    return new{SpecType, open_subset_type(X), MorType}(X, Y, domain(f), domain(g), f, g)
   end
 end
 
 patches(G::Glueing) = G.X, G.Y
 glueing_morphisms(G::Glueing) = G.f, G.g
-glueing_domains(G::Glueing) = domain(G.f), codomain(G.f)
+glueing_domains(G::Glueing) = domain(G.f), domain(G.g)
 inverse(G::Glueing) = Glueing(G.Y, G.X, G.g, G.f)
 
 function Base.show(io::IO, G::Glueing)
