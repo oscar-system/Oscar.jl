@@ -182,11 +182,12 @@ function valuation(A::fmpq_mat, p)
 end
 
 """
-  det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
+    det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
 
 Return approximations for `(det_p, spin_p)` of the approximate isometry ``T``.
 
-The algorithm is by Shimada.
+The algorithm is by Shimada [Shim2018](@cite)
+
 We follow the conventions of Miranda and Morrison that the quadratic form is defined by
 Q(x) = (x G x.T)/2. Then the spinor norm of the reflection in x is Q(x).
 
@@ -382,7 +383,8 @@ function det_spin_homomorphism(L::ZLat; signed=false)
     u = reduce(vcat,[b.data.coeff for b in gens(Tp)])
     Op = orthogonal_group(Tpn)
     q = gram_matrix_quadratic(Tpn)
-    # Shimada 5.2 Step 2 page 25
+    # Shimada, Connected Components of the Moduli of Elliptic K3 Surfaces
+    # 5.2 Step 2 page 539
     # The discriminant group has full length and a term 1/2 || 3/2
     # to determine the lattice one needs to know the determinant
     tmp = (det(q)*det(L))
@@ -446,7 +448,7 @@ end
 
 
 """
-image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism
+    image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism
 
 Return the image of `O(L) \to O(L^\vee / L)`.
 
