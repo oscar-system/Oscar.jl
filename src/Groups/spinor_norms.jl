@@ -182,7 +182,7 @@ function valuation(A::fmpq_mat, p)
 end
 
 """
-  det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
+    det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
 
 Return approximations for `(det_p, spin_p)` of the approximate isometry ``T``.
 
