@@ -1,11 +1,11 @@
 export image_in_Oq
 
 @doc Markdown.doc"""
-  sigma_sharp(L::ZLat, p) -> Vector{Tuple{fmpz, fmpq}}
+    sigma_sharp(L::ZLat, p) -> Vector{Tuple{fmpz, fmpq}}
 
 Return generators for `\Sigma^\#(L\otimes \ZZ_p)` of a lattice `L`.
 
-- a list of tuples `(det_p,spin_p)` with `det = \pm 1`.
+- a list of tuples `(det_p, spin_p)` with `det = \pm 1`.
 """
 function sigma_sharp(L::ZLat, p)
   T = primary_part(discriminant_group(L), p)[1]
@@ -186,7 +186,7 @@ end
 
 Return approximations for `(det_p, spin_p)` of the approximate isometry ``T``.
 
-The algorithm is due to Shimada.
+The algorithm is by Shimada.
 We follow the conventions of Miranda and Morrison that the quadratic form is defined by
 Q(x) = (x G x.T)/2. Then the spinor norm of the reflection in x is Q(x).
 
@@ -329,26 +329,9 @@ end
 """
     det_spin_homomorphism(L::ZLat) -> GAPGroupHomomorphism
 
-Return the det spin homomorphism
-
-This has only sense if ``L`` is the orthogonal group of a
-discriminant group of a lattice.
-
-Input:
-
-- ``L`` -- an integral lattice
-- ``sign`` -- (Default: ``False``)
-
-EXAMPLES::
-
-    sage: from sage.groups.fqf_orthogonal_spin import det_spin_homomorphism
-    sage: L = IntegralLattice("A2").twist(5)
-    sage: L = L.direct_sum(L.twist(-1))
-    sage: Oq = L.discriminant_group().orthogonal_group()
-    sage: det_spin_homomorphism(L).image(Oq).order()
-    8
+Return the det spin homomorphism.
 """
-function det_spin_homomorphism(L::ZLat, signed=false)
+function det_spin_homomorphism(L::ZLat; signed=false)
   T = discriminant_group(L)
   Oq = orthogonal_group(T)
   S = prime_divisors(2 * order(domain(Oq)))
@@ -377,7 +360,7 @@ function det_spin_homomorphism(L::ZLat, signed=false)
   =#
   GammaS = [diagonal(s) for s in S]
   if signed
-    push!(GammaS, embed_diagonal(-1,-1))
+    push!(GammaS, diagonal(-1)+sum([det_hom[p](-1) for p in S]))
   else
     push!(GammaS, sum([det_hom[p](-1) for p in S]))
     push!(GammaS, diagonal(-1))
@@ -498,14 +481,22 @@ julia> order(Oq)
 ```
 """
 @attr function image_in_Oq(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}
-  Hecke.@req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
+  @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
   if rank(L) > 2 && !isdefinite(L)
     # use strong approximation
-    f = det_spin_homomorphism(L)
+    f = det_spin_homomorphism(L,signed=false)
     return kernel(f)
   end
   # we can compute the orthogonal group of L
   Oq = orthogonal_group(discriminant_group(L))
   G = orthogonal_group(L)
   return sub(Oq, [Oq(g, check=false) for g in gens(G)])
+end
+
+@attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}
+  @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
+  @req rank(L) > 2 && !isdefinite(L) "L must be indefinite of rank at least 3"
+  # use strong approximation
+  f = det_spin_homomorphism(L,signed=true)
+  return kernel(f)
 end
