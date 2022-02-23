@@ -122,7 +122,7 @@ julia> ambient_dim(SOP)
 3
 ```
 """
-ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM - 1
+ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM::Int - 1
 
 
 @doc Markdown.doc"""
@@ -140,7 +140,7 @@ julia> npoints(SOP)
 6
 ```
 """
-npoints(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS
+npoints(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
 
 
 
@@ -232,4 +232,4 @@ julia> isregular(SOP)
 true
 ```
 """
-isregular(SOP::SubdivisionOfPoints) = pm_object(SOP).REGULAR
+isregular(SOP::SubdivisionOfPoints) = pm_object(SOP).REGULAR::Bool

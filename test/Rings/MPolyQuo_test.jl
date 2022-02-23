@@ -38,6 +38,13 @@ end
   @test divides(x, x) == (true, one(A))
   @test divides(zero(A), x) == (true, zero(A))
 
+  # promote rule
+  K = GF(2)
+  Kx, (x, y) = K["x", "y"]
+  I = ideal(Kx, elem_type(Kx)[])
+  Kx, = quo(Kx, I)
+  x = Kx(x)
+  @test K(2) * x == Kx(2) * x
 end
 
 @testset "MPolyQuo.ideals" begin

@@ -16,6 +16,7 @@
      "Groups/autgroup.md",
      "Groups/grouplib.md",
      "Hecke/abelian/introduction.md",
+     "Groups/group_characters.md",
   ],
 
   "Rings" => [
@@ -137,6 +138,7 @@
         "ToricVarieties/NormalToricVarieties.md",
         "ToricVarieties/CyclicQuotientSingularities.md",
         "ToricVarieties/ToricDivisors.md",
+        "ToricVarieties/ToricDivisorClasses.md",
         "ToricVarieties/ToricLineBundles.md",
      ],
      "Schemes" => [

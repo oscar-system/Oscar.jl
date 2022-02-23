@@ -1048,3 +1048,17 @@ function minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem,
   end
   return result
 end
+
+################################################################################
+#
+#  Promote rule
+#
+################################################################################
+
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where {S, T <: RingElem}
+  if AbstractAlgebra.promote_rule(S, T) === S
+    return MPolyQuoElem{S}
+  else
+    return Union{}
+  end
+end

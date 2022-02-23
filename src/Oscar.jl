@@ -240,8 +240,15 @@ include("Rings/groebner.jl")
 include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")
+
 include("Rings/affine-algebra-homs.jl")
 include("Rings/mpoly-affine-algebras.jl")
+
+include("Rings/MPolyMap/MPolyAnyMap.jl")
+include("Rings/MPolyMap/MPolyRing.jl")
+include("Rings/MPolyMap/MPolyQuo.jl")
+include("Rings/MPolyMap/AffineAlgebras.jl")
+
 include("Rings/mpoly-local.jl")
 include("Rings/localization_interface.jl")
 include("Rings/mpoly-localizations.jl")

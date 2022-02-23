@@ -83,15 +83,15 @@ affine_open_covering( v::AbstractNormalToricVariety )
 ### Characters, Weil Divisors, Cartier Divisors, Class Group and Picard Group
 
 ```@docs
-cartier_divisor_group(v::AbstractNormalToricVariety)
+torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
 character_lattice(v::AbstractNormalToricVariety)
 class_group(v::AbstractNormalToricVariety)
-map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
-map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
-map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
+map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
 picard_group(v::AbstractNormalToricVariety)
-torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ```
 
@@ -143,15 +143,24 @@ If no choice is made, we invoke the following default values:
 
 ```@docs
 cox_ring(v::AbstractNormalToricVariety)
+cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
 irrelevant_ideal(v::AbstractNormalToricVariety)
+irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 stanley_reisner_ideal(v::AbstractNormalToricVariety)
+stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
+toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 ```
 
+### Sheaves
+
+```@docs
+StructureSheaf(v::AbstractNormalToricVariety)
+```
 
 ## Auxillary Methods
 
 ```@docs
-binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat}, coefficient_ring::AbstractAlgebra.Ring)
-toric_ideal(pts::fmpz_mat, coefficient_ring::AbstractAlgebra.Ring)
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(pts::fmpz_mat)
 ```

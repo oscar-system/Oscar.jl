@@ -94,14 +94,6 @@ vertexindices(K::SimplicialComplex) = _vertexindices(pm_object(K))
 # currently unused
 _reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x] for x in M ]
 
-function _characteristic_vector(M::Set{Int}, n::Int)
-    chi = zeros(Int, n)
-    for x in M
-        chi[x] = 1
-    end
-    return chi
-end
-
 function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
     vec = ones(Int, Polymake.betti_number(A))
     torsion_i = Polymake.torsion(A)
@@ -255,9 +247,15 @@ julia> minimal_nonfaces(K)
  Set([4, 1])
 ```
 """
-function minimal_nonfaces(K::SimplicialComplex)
-    I = pm_object(K).MINIMAL_NON_FACES
+minimal_nonfaces(K::SimplicialComplex) = minimal_nonfaces(Vector{Set{Int}}, K)
+function minimal_nonfaces(::Type{Vector{Set{Int}}}, K::SimplicialComplex)
+    I = minimal_nonfaces(IncidenceMatrix, K)
     return Vector{Set{Int}}([Polymake.row(I,i) for i in 1:Polymake.nrows(I)])
+end
+function minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex)
+    # the following line must stay to ensure polymake uses the correct algorithm for the non-faces
+    nvertices(K)
+    return pm_object(K).MINIMAL_NON_FACES
 end
 
 @doc Markdown.doc"""
@@ -306,8 +304,8 @@ ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
 ```
 """
 function stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
-    n = nvertices(K)
-    return ideal([ R([1], [_characteristic_vector(f,n)]) for f in minimal_nonfaces(K) ])
+    mnf = minimal_nonfaces(IncidenceMatrix, K)
+    return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
 end
 
 @doc Markdown.doc"""

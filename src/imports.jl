@@ -19,6 +19,7 @@ import Base:
     *,
     ^,
     ==,
+    conj,
     convert,
     eltype,
     exponent,
@@ -40,6 +41,7 @@ import Base:
     zero
 
 import AbstractAlgebra:
+    @attr,
     @attributes,
     @show_name,
     @show_special,
@@ -176,6 +178,7 @@ import Hecke:
     FinFieldElem,
     FqNmodFiniteField,
     free_abelian_group,
+    gens,
     gram_matrix,
     gram_matrix_quadratic,
     haspreimage,
@@ -220,9 +223,12 @@ import Hecke:
     representative,
     small_group,
     sub,
+    subsets,
     subgroups,
     TorQuadMod,
     TorQuadModElem,
     TorQuadModMor,
     tr,
     trace
+
+import cohomCalg_jll

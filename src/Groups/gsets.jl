@@ -213,19 +213,16 @@ end
 ##
 ##  `:orbits` a vector of G-sets
 
-function orbits(Omega::GSetByElements{<:GAPGroup})
-    orbs = get_attribute(Omega, :orbits)
-    if orbs == nothing
-      G = Omega.group
-      orbs = []
-      for p in Omega.seeds
-        if all(o -> !(p in o), orbs)
-          push!(orbs, Hecke.orbit(Omega, p))
-        end
-      end
-      set_attribute!(Omega, :orbits => orbs)
+@attr Vector{Any} function orbits(Omega::GSetByElements{<:GAPGroup})
+  G = Omega.group
+  # TODO: tighten the return type
+  orbs = []
+  for p in Omega.seeds
+    if all(o -> !(p in o), orbs)
+      push!(orbs, Hecke.orbit(Omega, p))
     end
-    return orbs
+  end
+  return orbs
 end
 
 
@@ -233,14 +230,10 @@ end
 ##
 ##  `:elements` a vector of points
 
-function elements(Omega::GSetByElements)
-    elms = get_attribute(Omega, :elements)
-    if elms == nothing
-      orbs = orbits(Omega)
-      elms = union(map(elements, orbs)...)
-      set_attribute!(Omega, :elements => elms)
-    end
-    return elms
+@attr Any function elements(Omega::GSetByElements)
+  orbs = orbits(Omega)
+  elms = union(map(elements, orbs)...)
+  return elms
 end
 
 
@@ -256,10 +249,8 @@ function permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<
     # whether the given group element 'g' is a group element.
     pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
 
-    sym = get_attribute(Omega, :action_range)
-    if sym == nothing
-      sym = symmetric_group(length(Omega))
-      set_attribute!(Omega, :action_range => sym )
+    sym = get_attribute!(Omega, :action_range) do
+      return symmetric_group(length(Omega))
     end
     return group_element(sym, pi)
 end
@@ -286,44 +277,37 @@ end );
     end
 end
 
-function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
-    acthom = get_attribute(Omega, :action_homomorphism)
-    if acthom == nothing
-      G = Omega.group
-      omega_list = GAP.julia_to_gap(elements(Omega))
-      gap_gens = map(x -> x.X, gens(G))
-      gfun = GAP.julia_to_gap(Omega.action_function)
+@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
+  G = Omega.group
+  omega_list = GAP.julia_to_gap(elements(Omega))
+  gap_gens = map(x -> x.X, gens(G))
+  gfun = GAP.julia_to_gap(Omega.action_function)
 
-      # The following works only because GAP does not check
-      # whether the given generators in GAP and Julia fit together.
-      acthom = GAP.Globals.ActionHomomorphism(G.X, omega_list, GAP.julia_to_gap(gap_gens), GAP.julia_to_gap(gens(G)), gfun)
+  # The following works only because GAP does not check
+  # whether the given generators in GAP and Julia fit together.
+  acthom = GAP.Globals.ActionHomomorphism(G.X, omega_list, GAP.julia_to_gap(gap_gens), GAP.julia_to_gap(gens(G)), gfun)
 
-      # The first difficulty on the GAP side is `ImagesRepresentative`
-      # (which is the easy direction of the action homomorphism):
-      # In the method in question, GAP does not really know how to compute
-      # the group element that actually acts from the given group element;
-      # there is only a rudimentary `FunctionAction` inside the
-      # `UnderlyingExternalSet` of the GAP homomorphism object `acthom`.
-      # We could replace this function here,
-      # but this would introduce overhead for mapping each point.
-      # Thus we install a special `ImagesRepresentative` method in GAP;
-      # note that we know how to get the Julia "actor" from the GAP group
-      # element, by wrapping it into the corresponding Julia group element.
-      # (Yes, this is also overhead.
-      # The alternative would be to create a new type of Oscar homomorphism,
-      # which uses `permutation` or something better for mapping elements.)
-      __init_JuliaData()
-      GAP.Globals.SetJuliaData(acthom, GAP.julia_to_gap([Omega, G]))
+  # The first difficulty on the GAP side is `ImagesRepresentative`
+  # (which is the easy direction of the action homomorphism):
+  # In the method in question, GAP does not really know how to compute
+  # the group element that actually acts from the given group element;
+  # there is only a rudimentary `FunctionAction` inside the
+  # `UnderlyingExternalSet` of the GAP homomorphism object `acthom`.
+  # We could replace this function here,
+  # but this would introduce overhead for mapping each point.
+  # Thus we install a special `ImagesRepresentative` method in GAP;
+  # note that we know how to get the Julia "actor" from the GAP group
+  # element, by wrapping it into the corresponding Julia group element.
+  # (Yes, this is also overhead.
+  # The alternative would be to create a new type of Oscar homomorphism,
+  # which uses `permutation` or something better for mapping elements.)
+  __init_JuliaData()
+  GAP.Globals.SetJuliaData(acthom, GAP.julia_to_gap([Omega, G]))
 
-      sym = get_attribute(Omega, :action_range)
-      if sym == nothing
-        sym = symmetric_group(length(Omega))
-        set_attribute!(Omega, :action_range => sym )
-      end
-      acthom = GAPGroupHomomorphism(G, sym, acthom)
-      set_attribute!(Omega, :action_homomorphism => acthom )
-    end
-    return acthom
+  sym = get_attribute!(Omega, :action_range) do
+    return symmetric_group(length(Omega))
+  end
+  return GAPGroupHomomorphism(G, sym, acthom)
 end
 
 

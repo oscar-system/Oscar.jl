@@ -284,7 +284,7 @@ end
 
 lineality_space(PC::PolyhedralComplex) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PC), _lineality_polyhedron, lineality_dim(PC))
 
-lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM
+lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM::Int
 
 
 @doc Markdown.doc"""

@@ -1,4 +1,4 @@
-export invariant_ring, secondary_invariants, irreducible_secondary_invariants, fundamental_invariants, affine_algebra
+export invariant_ring, fundamental_invariants, affine_algebra
 export coefficient_ring, polynomial_ring, action, group
 export ismodular
 export reynolds_operator, molien_series
@@ -355,122 +355,7 @@ basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo)
 #
 ################################################################################
 
-function secondary_invariants_via_singular(IR::InvRing)
-  if !isdefined(IR, :secondary)
-    rey, mol = reynolds_molien_via_singular(IR)
-    primary_invariants_via_successive_algo(IR)
-    P = IR.primary_singular
-    if iszero(characteristic(coefficient_ring(IR)))
-      S, IS = Singular.LibFinvar.secondary_char0(P[1], rey, mol)
-    else
-      S, IS = Singular.LibFinvar.secondary_charp(P...)
-    end
-    R = polynomial_ring(IR)
-    s = Vector{elem_type(R)}()
-    for i = 1:ncols(S)
-      push!(s, R(S[1, i]))
-    end
-    is = Vector{elem_type(R)}()
-    for i = 1:ncols(IS)
-      push!(is, R(IS[1, i]))
-    end
-    IR.secondary = s
-    IR.irreducible_secondary = is
-  end
-  return IR.secondary
-end
-
-@doc Markdown.doc"""
-    secondary_invariants(IR::InvRing)
-
-Return a system of secondary invariants for `IR` with respect to the currently
-cached system of primary invariants for `IR` (if no system of primary invariants
-for `IR` is cached, compute and cache such a system first).
-
-If a system of secondary invariants is already cached, return the cached system.
-Otherwise, compute and cache such a system first.
-
-NOTE: The secondary invariants are sorted by increasing degree.
-
-# Examples
-```jldoctest
-julia> K, a = CyclotomicField(3, "a");
-
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
-
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
-
-julia> G = MatrixGroup(3, K, [M1, M2]);
-
-julia> IR = invariant_ring(G);
-
-julia> secondary_invariants(IR)
-2-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- 1
- x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
-```
-"""
-function secondary_invariants(IR::InvRing)
-  if !isdefined(IR, :secondary)
-    secondary_invariants_via_singular(IR)
-  end
-  return copy(IR.secondary)
-end
-
-@doc Markdown.doc"""
-    irreducible_secondary_invariants(IR::InvRing)
-
-Return a system of irreducible secondary invariants for `IR` with respect to the
-currently cached system of primary invariants for `IR` (if no system of primary
-invariants for `IR` is cached, compute and cache such a system first).
-
-If a system of irreducible secondary invariants is already cached, return the
-cached system.
-Otherwise, compute and cache such a system first.
-
-NOTE: The irreducible secondary invariants are sorted by increasing degree.
-
-# Examples
-```jldoctest
-julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
-
-julia> G = MatrixGroup(5, QQ, [M]);
-
-julia> IR = invariant_ring(G);
-
-julia> secondary_invariants(IR)
-12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- 1
- x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
- x[1]^2 - x[1]*x[2] + x[2]^2
- x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
- x[3]^3 + x[4]^3 + x[5]^3
- x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
- x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
- x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
- x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
- x[1]^3*x[3] - x[1]^3*x[5] - 2*x[1]^2*x[2]*x[3] + x[1]^2*x[2]*x[4] + x[1]^2*x[2]*x[5] + 2*x[1]*x[2]^2*x[3] - x[1]*x[2]^2*x[4] - x[1]*x[2]^2*x[5] - x[2]^3*x[3] + x[2]^3*x[4]
- x[1]^4 - 2*x[1]^3*x[2] + 3*x[1]^2*x[2]^2 - 2*x[1]*x[2]^3 + x[2]^4
- x[1]^5*x[3] - x[1]^5*x[5] - 3*x[1]^4*x[2]*x[3] + x[1]^4*x[2]*x[4] + 2*x[1]^4*x[2]*x[5] + 5*x[1]^3*x[2]^2*x[3] - 2*x[1]^3*x[2]^2*x[4] - 3*x[1]^3*x[2]^2*x[5] - 5*x[1]^2*x[2]^3*x[3] + 3*x[1]^2*x[2]^3*x[4] + 2*x[1]^2*x[2]^3*x[5] + 3*x[1]*x[2]^4*x[3] - 2*x[1]*x[2]^4*x[4] - x[1]*x[2]^4*x[5] - x[2]^5*x[3] + x[2]^5*x[4]
-
-julia> irreducible_secondary_invariants(IR)
-8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
- x[1]^2 - x[1]*x[2] + x[2]^2
- x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
- x[3]^3 + x[4]^3 + x[5]^3
- x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
- x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
- x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
- x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
-```
-"""
-function irreducible_secondary_invariants(IR::InvRing)
-  if !isdefined(IR, :irreducible_secondary)
-    secondary_invariants_via_singular(IR)
-  end
-  return copy(IR.irreducible_secondary)
-end
+# See secondary_invariants.jl
 
 ################################################################################
 #
@@ -701,21 +586,20 @@ julia> affine_algebra(IR)
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
-  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Algebra homomorphism with
-
-domain: Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
+  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
   y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2)
-
-codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Codomain:
+=========
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
-  x[3] -> [1]
-
-defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]^3 + x[2]^3 + x[3]^3, x[1]*x[2]*x[3], x[1]^6 + x[2]^6 + x[3]^6, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
-)
+  x[3] -> [1])
 ```
 """
 function affine_algebra(IR::InvRing)

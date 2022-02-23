@@ -37,11 +37,7 @@ julia> isfeasible(polyhedron(td2))
 false
 ```
 """
-function polyhedron(td::ToricDivisor)
-    return get_attribute!(td, :polyhedron) do
-        return Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
-    end
-end
+@attr Polyhedron polyhedron(td::ToricDivisor) = Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
 export polyhedron
 
 

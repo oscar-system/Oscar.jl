@@ -46,7 +46,20 @@ include("ToricDivisors/constructors.jl")
 include("ToricDivisors/properties.jl")
 include("ToricDivisors/attributes.jl")
 
-include("LineBundles/constructors.jl")
-include("LineBundles/properties.jl")
-include("LineBundles/attributes.jl")
+include("ToricDivisorClasses/constructors.jl")
+include("ToricDivisorClasses/properties.jl")
+include("ToricDivisorClasses/attributes.jl")
 
+include("ToricLineBundles/constructors.jl")
+include("ToricLineBundles/properties.jl")
+include("ToricLineBundles/attributes.jl")
+
+include("cohomCalg.jl")
+
+# deprecated functions
+@deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
+@deprecate map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety) map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+@deprecate map_from_cartier_divisor_group_to_torusinvariant_divisor_group(v::AbstractNormalToricVariety) map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
+@deprecate map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety) map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
+@deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
+@deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)

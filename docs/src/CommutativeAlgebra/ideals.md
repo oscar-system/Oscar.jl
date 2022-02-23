@@ -386,7 +386,14 @@ eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
 
 ```@docs
 iszero(I::MPolyIdeal)
+```
+
+```@docs
 isone(I::MPolyIdeal)
+```
+
+```@docs
+ismonomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals
@@ -481,6 +488,12 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
 ## Homogenization and Dehomogenization
 
+Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
+
+```@docs
+homogenization(f::MPolyElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+```
+
 ```@docs
 homogenization(f::MPolyElem, var::String, pos::Int=1)
 ```
@@ -488,7 +501,5 @@ homogenization(f::MPolyElem, var::String, pos::Int=1)
 ```@docs
 dehomogenization(F::MPolyElem_dec, pos::Int)
 ```
-
-	
 
 

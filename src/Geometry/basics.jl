@@ -9,7 +9,7 @@ import Oscar: weights
 import AbstractAlgebra, Nemo
 import Base: ==, show, hash
 
-export projective_space, normalize!, coordinate_ring
+export proj_space, normalize!, coordinate_ring
 
 struct ProjSpc{T}  <: Oscar.ProjSpc{T}
   R::AbstractAlgebra.Ring
@@ -26,13 +26,13 @@ function Base.show(io::IO, P::ProjSpc)
   end
 end
 
-function projective_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
+function proj_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
   Sx = PolynomialRing(R, name => 0:n)[1]
   Rx = grade(Sx, [1 for i=0:n])[1]
   return ProjSpc(R, n, Rx), gens(Rx)
 end
 
-function projective_space(R::AbstractAlgebra.Ring, n::Vector{<:Integer}, name::Symbol = :x)
+function proj_space(R::AbstractAlgebra.Ring, n::Vector{<:Integer}, name::Symbol = :x)
   Sx = PolynomialRing(R, name => 0:length(n)-1)[1]
   Rx = grade(Sx, n)[1]
   return ProjSpc(R, length(n)-1, Rx), gens(Rx)
@@ -188,4 +188,4 @@ end
 end # module Geometry
 
 using .Geometry
-export projective_space
+export proj_space

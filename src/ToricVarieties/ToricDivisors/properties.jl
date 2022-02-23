@@ -15,11 +15,7 @@ julia> iscartier(td)
 true
 ```
 """
-function iscartier(td::ToricDivisor)
-    return get_attribute!(td, :iscartier) do
-        return pm_tdivisor(td).CARTIER
-    end::Bool
-end
+@attr Bool iscartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
 export iscartier
 
 
@@ -39,11 +35,7 @@ julia> isprincipal(td)
 false
 ```
 """
-function isprincipal(td::ToricDivisor)
-    return get_attribute!(td, :isprincipal) do
-        return pm_tdivisor(td).PRINCIPAL
-    end::Bool
-end
+@attr Bool isprincipal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
 export isprincipal
 
 
@@ -63,11 +55,7 @@ julia> is_basepoint_free(td)
 true
 ```
 """
-function is_basepoint_free(td::ToricDivisor)
-    return get_attribute!(td, :is_basepoint_free) do
-        return pm_tdivisor(td).BASEPOINT_FREE::Bool
-    end
-end
+@attr Bool is_basepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE
 export is_basepoint_free
 
 
@@ -87,11 +75,7 @@ julia> iseffective(td)
 true
 ```
 """
-function iseffective(td::ToricDivisor)
-    return get_attribute!(td, :iseffective) do
-        return pm_tdivisor(td).EFFECTIVE
-    end::Bool
-end
+@attr Bool iseffective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE
 export iseffective
 
 
@@ -111,11 +95,7 @@ julia> isintegral(td)
 true
 ```
 """
-function isintegral(td::ToricDivisor)
-    return get_attribute!(td, :isintegral) do
-        return pm_tdivisor(td).INTEGRAL
-    end::Bool
-end
+@attr Bool isintegral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
 export isintegral
 
 
@@ -135,11 +115,7 @@ julia> isample(td)
 false
 ```
 """
-function isample(td::ToricDivisor)
-    return get_attribute!(td, :isample) do
-        return pm_tdivisor(td).AMPLE
-    end::Bool
-end
+@attr Bool isample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
 export isample
 
 
@@ -159,11 +135,7 @@ julia> is_very_ample(td)
 false
 ```
 """
-function is_very_ample(td::ToricDivisor)
-    return get_attribute!(td, :is_very_ample) do
-        return pm_tdivisor(td).VERY_AMPLE::Bool
-    end
-end
+@attr Bool is_very_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE
 export is_very_ample
 
 
@@ -183,11 +155,7 @@ julia> isnef(td)
 true
 ```
 """
-function isnef(td::ToricDivisor)
-    return get_attribute!(td, :isnef) do
-        return pm_tdivisor(td).NEF
-    end::Bool
-end
+@attr Bool isnef(td::ToricDivisor) = pm_tdivisor(td).NEF
 export isnef
 
 
@@ -207,11 +175,7 @@ julia> is_q_cartier(td)
 true
 ```
 """
-function is_q_cartier(td::ToricDivisor)
-    return get_attribute!(td, :is_q_cartier) do
-        return pm_tdivisor(td).Q_CARTIER::Bool
-    end
-end
+@attr Bool is_q_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER
 export is_q_cartier
 
 
@@ -232,13 +196,11 @@ julia> isprime(td)
 true
 ```
 """
-function isprime(td::ToricDivisor)
-    return get_attribute!(td, :isprime) do    
-        if sum(coefficients(td)) != 1
-            return false
-        else
-            return all(y -> (y == 1 || y == 0), coefficients(td))
-        end
-    end::Bool
+@attr Bool function isprime(td::ToricDivisor)
+    if sum(coefficients(td)) != 1
+        return false
+    else
+        return all(y -> (y == 1 || y == 0), coefficients(td))
+    end
 end
 export isprime

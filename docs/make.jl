@@ -11,5 +11,6 @@ deploydocs(
    target = "build",
    push_preview = true,
 #  make = () -> run(`mkdocs build`),
-   make = nothing
+   make = nothing,
+   forcepush = true
 )

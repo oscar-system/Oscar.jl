@@ -8,6 +8,7 @@ export
     conjugacy_classes_maximal_subgroups,
     conjugacy_classes_subgroups,
     conjugacy_classes,
+    conjugate_group,
     core,
     coset_decomposition,
     cperm,
@@ -66,6 +67,36 @@ export
 
 
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
+
+
+#TODO: document `check_parent`!
+# If `check_parent(a, b)` yields `false` then `a` and `b` do not fit
+# together.
+# A `true` result does *not* imply that the objects will fit together,
+# since we check only the Julia side of the data.
+#
+# The current situation is that GAP knows whether an operation for two
+# group elements or for a group and a group element makes sense;
+# for example, think about an element and a subgroup of some f.p. group.
+#
+# The Oscar objects may contain additional information:
+# Oscar permutation groups have a degree, and conjugating a permutation group
+# by an element of another permutation group shall be allowed only if
+# both have the same degree, in order to assign this degree to the result.
+# Analogously, Oscar matrix groups have `deg` and `ring`.
+
+check_parent(g::GAPGroupElem, h::GAPGroupElem) = (parent(g) === parent(h))
+#TODO: Insert such checks in the code, check for failures!
+
+# default: compare only types
+check_parent(G::T, g::GAPGroupElem) where T <: GAPGroup = (T === typeof(g.parent))
+
+# `PermGroup`: compare types and degrees
+check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
+
+# `MatrixGroup`: compare types, dimensions, and coefficient rings
+# (This cannot be defined here because `MatrixGroup` is not yet defined.)
+
 
 function elements(G::T) where T <: GAPGroup
   els = Vector{GapObj}(GAP.Globals.Elements(G.X)::GapObj)
@@ -480,7 +511,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return T(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC))
+   return _oscar_group(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), C.X)
 end
 
 """
@@ -503,11 +534,22 @@ function conjugacy_classes_maximal_subgroups(G::GAPGroup)
   return [GroupConjClass(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)), cc) for cc in L]
 end
 
-Base.:^(H::GAPGroup, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)
+"""
+    conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
 
-function conjugate_subgroup(G::T, x::GAPGroupElem) where T<:GAPGroup
-  return T(GAP.Globals.ConjugateSubgroup(G.X,x.X))
+Return the group `G^x` that consists of the elements `g^x`, for `g` in `G`.
+"""
+function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
+  check_parent(G, x) || error("G and x are not compatible")
+  return _oscar_group(GAP.Globals.ConjugateSubgroup(G.X, x.X), G)
 end
+
+Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
+
+# This function was never exported but may have been used somewhere.
+# (The name is confusing because it is not clear *of which group* the result
+# shall be a subgroup.)
+@deprecate conjugate_subgroup(G::GAPGroup, x::GAPGroupElem) conjugate_group(G, x)
 
 """
     isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)

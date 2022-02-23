@@ -22,11 +22,7 @@ end
 ###############################################################
 #TODO: consolidate with Hecke: isprimitive_root?
 
-function factored_order(K::FinField)
-  return get_attribute!(K, :factored_order) do
-    return factor(size(K)-1)
-  end
-end
+@attr Fac{fmpz} factored_order(K::FinField) = factor(size(K)-1)
 
 function Oscar.isprimitive(a::FinFieldElem, f::Fac{fmpz} = factored_order(parent(a)))
   iszero(a) && return false
@@ -39,15 +35,13 @@ function Oscar.isprimitive(a::FinFieldElem, f::Fac{fmpz} = factored_order(parent
   return true
 end
 
-function generator(K::FinField)
-  return get_attribute!(K, :generator) do
-    #if isconway use gen(K)
+@attr elem_type(T) function generator(K::T) where {T <: FinField}
+  #if isconway use gen(K)
+  a = rand(K)
+  while !isprimitive(a)
     a = rand(K)
-    while !isprimitive(a)
-      a = rand(K)
-    end
-    return a
   end
+  return a
 end
 
 function disc_log(a::FinFieldElem, b::FinFieldElem)

@@ -169,7 +169,8 @@ function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:IntegerUnion}})
   @assert size(W, 2) == ngens(R)
   A = abelian_group(zeros(Int, size(W, 1)))
   set_attribute!(A, :show_elem => show_special_elem_grad) 
-  S = MPolyRing_dec(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
+  ###S = MPolyRing_dec(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
+  S = MPolyRing_dec(R, [A(W[:, i]) for i = 1:size(W, 2)])
   return S, map(S, gens(R))
 end
 
@@ -528,6 +529,10 @@ mutable struct MPolyElem_dec{T, S} <: MPolyElem{T}
   end
 end
 
+function Base.deepcopy_internal(f::MPolyElem_dec{T, S}, dict::IdDict) where {T, S}
+  return MPolyElem_dec(Base.deepcopy_internal(f.f, dict), f.parent)
+end
+
 function show(io::IO, w::MPolyElem_dec)
   show(io, w.f)
 end
@@ -875,11 +880,29 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
   y -> [2]
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> f = x^2+y+z
-x^2 + y + z
+julia> f = x^2+y*z
+x^2 + y*z
 
 julia> ishomogeneous(f)
 false
+
+julia> W = [1 2 1 0; 3 4 0 1]
+2×4 Matrix{Int64}:
+ 1  2  1  0
+ 3  4  0  1
+
+julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1 3]
+  x -> [2 4]
+  y -> [1 0]
+  z -> [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[w, x, y, z])
+
+julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+
+julia> ishomogeneous(F)
+true
 ```
 """
 function ishomogeneous(F::MPolyElem_dec)
@@ -1486,6 +1509,10 @@ end
 ### Homogenization and Dehomogenization
 ############################################################################
 
+
+###old: special and to be applied with care
+### needed for: AffinePlaneCurve.jl
+### TODO: make adjustments there and omitt fuction below
 function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
   d = total_degree(f)
   B = MPolyBuildCtx(S)
@@ -1494,6 +1521,153 @@ function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
     push_term!(B, c, e)
   end
   return finish(B)
+end
+
+function _homogenization(f::MPolyElem, S::MPolyRing_dec, start_pos::Int = 1)
+   len_gg  = ngens(S.D)
+      #= get exponent vectors and enlarge them for S =#
+   exps = Vector{Int}[]
+   for e in exponent_vectors(f)
+       for j in 1:len_gg
+           insert!(e, start_pos+j-1, 0)
+       end
+       push!(exps, e)
+   end
+
+   #= compute degrees in S =#
+   if is_z_graded(S) == true
+       degs    = Int[]
+       gens_gg = [Int(S.d[i][1])  for i in 1:ngens(S)]
+   else
+       degs    = Vector{Int}[]
+       gens_gg = [[Int(S.d[i][j]) for j in 1:ngens(S.D)] for i in 1:ngens(S)]
+   end
+
+   for e in exps
+       push!(degs, sum((e.*gens_gg)))
+   end
+   # get top degrees
+   tdeg  = vcat(maximum(hcat(degs...), dims=2)...)
+       #= finally generate homogeneous version of f in S, called F =#
+   F  = MPolyBuildCtx(S)
+
+   for (i, (c, e)) = enumerate(zip(coefficients(f), exps))
+       for j in 1:len_gg
+           e[start_pos+j-1] = tdeg[j]-degs[i][j]
+       end
+       push_term!(F, c, e)
+   end
+
+   return finish(F)
+end
+
+function _homogenization(f::MPolyElem, W::fmpz_mat, var::String, pos::Int = 1)
+  R = parent(f)
+  A = String.(symbols(R))
+  l = length(A)
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  if size(W, 1) == 1
+     insert!(A, pos, var)
+  else
+     for i = 1:(size(W, 1))
+       insert!(A, pos-1+i, _make_variable(var, i))
+     end
+  end
+  L, _ = PolynomialRing(R.base_ring, A)
+  Lgens = gens(L)
+  ###ff = evaluate(f, vcat(Lgens[1:pos-1], Lgens[pos + size(W, 1):end]))
+  G = abelian_group(zeros(Int, size(W, 1)))
+  WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
+  S, _ = grade(L, [G(WH[:, i]) for i = 1:size(WH, 2)])
+  ###return _homogenization(ff, S, pos)
+  return _homogenization(f, S, pos)
+end
+
+function _homogenization(f::MPolyElem, W::Matrix{<:IntegerUnion}, var::String, pos::Int = 1)
+   W = matrix(ZZ, W)
+   return _homogenization(f, W, var, pos)
+end
+
+@doc Markdown.doc"""
+    homogenization(f::MPolyElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+
+If $m$ is the number of rows of `W`, extend the parent polynomial ring of `f` by inserting $m$ extra variables, starting at position `pos`.
+Correspondingly, extend the integer matrix `W` by inserting the standard unit vectors of size $m$ as new columns, starting at column `pos`.
+Grade the extended ring by converting the columns of the extended matrix to elements of the group $\mathbb Z^m$ and assigning these
+as weights to the variables. Homogenize `f` with respect to the induced $\mathbb Z^m$-grading on the original ring, using the extra variables as homogenizing
+variables. Return the result as an element of the extended ring with its $\mathbb Z^m$-grading. If $m=1$, the extra variable prints as `var`. Otherwise,
+the extra variables print as `var[`$i$`]`, for $i = 1 \dots m$.
+
+    homogenization(V::Vector{T},  W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyElem}
+
+Given a vector `V` of elements in a common polynomial ring, create an extended ring with $\mathbb Z^m$-grading as above.
+Homogenize the elements of `V` correspondingly,  and return the vector of homogenized elements.
+
+    homogenization(I::MPolyIdeal{T},  W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
+
+Return the homogenization of `I` in an extended ring with $\mathbb Z^m$-grading as above.
+
+!!! note
+    Applied to an ideal `I`, the function first homogenizes the generators of `I` in the extended ring.
+    It then creates the ideal generated by these homogenizations, and saturates this ideal
+    with respect to the ideal which is generated by the homogenizing variables.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> f = x^3+x^2*y+x*y^2+y^3
+x^3 + x^2*y + x*y^2 + y^3
+
+julia> W = [1 2; 3 4]
+2×2 Matrix{Int64}:
+ 1  2
+ 3  4
+
+julia> F = homogenization(f, W, "z", 3)
+x^3*z[1]^3*z[2]^3 + x^2*y*z[1]^2*z[2]^2 + x*y^2*z[1]*z[2] + y^3
+
+julia> parent(F)
+Multivariate Polynomial Ring in x, y, z[1], z[2] over Rational Field graded by
+  x -> [1 3]
+  y -> [2 4]
+  z[1] -> [1 0]
+  z[2] -> [0 1]
+```
+"""
+function homogenization(f::MPolyElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
+   return _homogenization(f, W, var, pos)
+end
+
+function homogenization(V::Vector{T},  W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyElem}
+  @assert all(x->parent(x) == parent(V[1]), V)
+  R = parent(V[1])
+  A = String.(symbols(R))
+  l = length(A)
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
+  if size(W, 1) == 1
+     insert!(A, pos, var)
+  else
+     for i = 1:(size(W, 1))
+       insert!(A, pos-1+i, _make_variable(var, i))
+     end
+  end
+  L, _ = PolynomialRing(R.base_ring, A)
+  G = abelian_group(zeros(Int, size(W, 1)))
+  WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
+  S, _ = grade(L, [G(WH[:, i]) for i = 1:size(WH, 2)])
+  l = length(V)
+  return [_homogenization(V[i], S, pos) for i=1:l]
+end
+
+function homogenization(I::MPolyIdeal{T},  W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1) where {T <: MPolyElem}
+  # TODO: Adjust for ZZ-gradings as soon as weighted orderings are available
+  V = homogenization(gens(I), W, var, pos)
+  R = parent(V[1])
+  IH = ideal(R, V)
+  Y = ideal(R, [gens(R)[i] for i = pos:(pos+size(W, 1)-1)])
+  return saturation(IH, Y)
 end
 
 @doc Markdown.doc"""
@@ -1506,10 +1680,11 @@ end
 Homogenize `f`, `V`, or `I` with respect to the standard $\mathbb Z$-grading using a homogenizing variable printing as `var`.
 Return the result as an element of a graded polynomial ring with the homogenizing variable at position `pos`.
 
-!!! warning
-    Homogenizing an ideal `I` means to homogenize the elements of a Gröbner basis of `I` with respect to a degree compatible monomial ordering such as `degrevlex` (default).
-    If a Gröbner basis with respect to the specified ordering has not yet been computed and, thus, not yet been cached, executing the `homogenization` function with argument `I` may take some time.
-    Note that the degree compatibility of the specified ordering is not checked by the function.
+!!! note
+    Applied to an ideal `I`, the function proceeds by homogenizing the elements of a Gröbner basis of `I` with respect to a degree compatible
+    monomial ordering such as `degrevlex` (default).  If a Gröbner basis with respect to the specified ordering has not yet been computed and,
+    thus, not yet been cached, executing the `homogenization` function with argument `I` may take some time.
+    The degree compatibility of the specified ordering is not checked by the function.
 
 # Examples
 ```jldoctest
@@ -1560,32 +1735,31 @@ function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   R = parent(f)
   A = String.(symbols(R))
   l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
   insert!(A, pos, var)
   L, _ = PolynomialRing(R.base_ring, A)
   S, = grade(L)
-  return homogenization(f, S, pos)
+  return _homogenization(f, S, pos)
 end
 function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyElem}
   @assert all(x->parent(x) == parent(V[1]), V)
   R = parent(V[1])
   A = String.(symbols(R))
   l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
   insert!(A, pos, var)
   L, _ = PolynomialRing(R.base_ring, A)
   S, = grade(L)
   l = length(V)
-  return [homogenization(V[i], S, pos) for i=1:l]
+  return [_homogenization(V[i], S, pos) for i=1:l]
 end
 function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
+  # TODO: Adjust as soon as new GB concept is implemented
   return ideal(homogenization(groebner_basis(I, ordering=ordering), var, pos))
 end
 
+### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
+### TODO: make adjustments there and omitt fuction below
 function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
   B = MPolyBuildCtx(R)
   for (c,e) = zip(coefficients(F), exponent_vectors(F))
@@ -1595,15 +1769,35 @@ function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
   return finish(B)
 end
 
+
+
+function _dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int, m::Int)
+  B = MPolyBuildCtx(R)
+  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+    deleteat!(e, pos:pos+m-1)
+    push_term!(B, c, e)
+  end
+  return finish(B)
+end
+
+
 @doc Markdown.doc"""
     dehomogenization(F::MPolyElem_dec, pos::Int)
 
+Given an element `F` of a $\mathbb Z^m$-graded ring, where the generators of $\mathbb Z^m$
+are the assigned weights to the variables at positions `pos`, $\dots$, `pos` $-1+m$, dehomogenize
+`F` using the variables at these positions. Return the result as an element of a polynomial ring not
+depending on the variables at these positions.
+
     dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
+
+Given a vector `V` of elements in a common graded polynomial ring, create a polynomial ring not
+depending on the variables at positions `pos`, $\dots$, `pos` $-1+m$. Dehomogenize the elements 
+of `V` correspondingly,  and return the vector of dehomogenized elements.  
 
     dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
 
-Dehomogenize `F`, `V`, or `I` with respect to the standard $\mathbb Z$-grading using the variable at position `pos`. 
-Return the result as an element of a polynomial ring not depending on the variable at position `pos`.
+Return the dehomogenization of `I` in a polynomial ring as above.
 
 # Examples
 ```jldoctest
@@ -1637,31 +1831,57 @@ ideal(x*y - z^2, -x^3 + x^2*z)
 
 julia> dehomogenization(I, 3)
 ideal(x*y - 1, -x^3 + x^2)
+
+julia> W = [1 2 1 0; 3 4 0 1]
+2×4 Matrix{Int64}:
+ 1  2  1  0
+ 3  4  0  1
+
+julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1 3]
+  x -> [2 4]
+  y -> [1 0]
+  z -> [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[w, x, y, z])
+
+julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+
+julia> dehomogenization(F, 3)
+w^3 + w^2*x + w*x^2 + x^3
 ```
 """
 function dehomogenization(F::MPolyElem_dec, pos::Int)
   S = parent(F)
-  A = String.(symbols(S))
-  l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
+  @assert is_zm_graded(S)
+  l = ngens(S)
+  G = grading_group(S)
+  m = ngens(G)
+  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
+  for i = 1:m
+      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
-  deleteat!(A, pos)
+  A = String.(symbols(S))
+  deleteat!(A, pos:pos+m-1)
   R, _ = PolynomialRing(base_ring(S), A)
-  return dehomogenization(F, R, pos)
+  return _dehomogenization(F, R, pos, m)
 end
 function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
   @assert all(x->parent(x) == parent(V[1]), V)
   S = parent(V[1])
-  A = String.(symbols(S))
-  l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
+  @assert is_zm_graded(S)
+  l = ngens(S)
+  G = grading_group(S)
+  m = ngens(G)
+  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
+  for i = 1:m
+      @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
-  deleteat!(A, pos)
+  A = String.(symbols(S))
+  deleteat!(A, pos:pos+m-1)
   R, _ = PolynomialRing(base_ring(S), A)
   l = length(V)
-  return [dehomogenization(V[i], R, pos) for i=1:l]
+  return [_dehomogenization(V[i], R, pos, m) for i=1:l]
 end
 function dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
   return ideal(dehomogenization(gens(I), pos))

@@ -1,3 +1,14 @@
+mutable struct PrimaryInvarsCache{T}
+  invars::Vector{T}
+  ideal::MPolyIdeal{T}
+
+  function PrimaryInvarsCache{T}() where {T <: MPolyElem}
+    z = new{T}()
+    z.invars = T[]
+    return z
+  end
+end
+
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
   field::FldT
   poly_ring::PolyRingT
@@ -8,7 +19,7 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
 
   modular::Bool
 
-  primary::Vector{PolyElemT}
+  primary::PrimaryInvarsCache{PolyElemT}
   secondary::Vector{PolyElemT}
   irreducible_secondary::Vector{PolyElemT}
   fundamental::Vector{PolyElemT}
@@ -21,7 +32,6 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
   # (possibly removed at some point)
   reynolds_singular::Singular.smatrix
   molien_singular::Singular.smatrix
-  primary_singular # the type is different depending on the characteristic...
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
@@ -166,5 +176,94 @@ mutable struct MSetPartitionsState
     l = 1
 
     return new(f, c, u, v, a, b, l)
+  end
+end
+
+# Handle vector spaces of multivariate polynomials by writing them in the basis
+# of the monomials.
+mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
+  R::PolyRingT
+
+  # Number the basis monomials
+  monomial_to_column::Dict{PolyElemT, Int}
+
+  # Write the polynomials coefficient-wise in the rows of a sparse matrix. The
+  # column i contains the coefficients corresponding to the monomial m with
+  # monomial_to_column[m] == i.
+  M::SMat{FieldElemT}
+
+  function BasisOfPolynomials(R::MPolyRing)
+    K = coefficient_ring(R)
+    B = new{elem_type(R), typeof(R), elem_type(K)}()
+    B.R = R
+    B.monomial_to_column = Dict{elem_type(R), Int}()
+    B.M = sparse_matrix(K)
+    return B
+  end
+
+  function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
+    if isempty(polys)
+      return BasisOfPolynomials(R)
+    end
+
+    K = coefficient_ring(R)
+    B = new{elem_type(R), typeof(R), elem_type(K)}()
+    B.R = R
+
+    monomial_to_column = Dict{elem_type(R), Int}()
+    c = 0
+    for f in polys
+      for m in monomials(f)
+        if !haskey(monomial_to_column, m)
+          c += 1
+          monomial_to_column[m] = c
+        end
+      end
+    end
+    B.monomial_to_column = monomial_to_column
+
+    M = sparse_matrix(K)
+    for i = 1:length(polys)
+      srow = sparse_row(K)
+      for (a, m) in zip(coefficients(polys[i]), monomials(polys[i]))
+        col = monomial_to_column[m]
+        k = searchsortedfirst(srow.pos, col)
+        insert!(srow.pos, k, col)
+        insert!(srow.values, k, deepcopy(a))
+      end
+      Hecke.push_row!(M, srow)
+    end
+    rref!(M, truncate = true)
+    B.M = M
+
+    return B
+  end
+end
+
+# Cache power products (= monomials) of elements in `base` of certain degrees.
+mutable struct PowerProductCache{RingType, T}
+  # The base ring (needed for empty `base`)
+  ring::RingType
+
+  base::Vector{T}
+
+  # Store all power products of degree d
+  power_products::Dict{Int, Vector{T}}
+
+  # The exponent vector of a power product w.r.t. `base`
+  exponent_vectors::Dict{T, Vector{Int}}
+
+  # Whether the exponent vectors for a certain degree were computed
+  exponent_vectors_known::Dict{Int, Bool}
+
+  # The last entry of `base` involved in the power product
+  last_factor::Dict{T, Int}
+
+  function PowerProductCache(R::S, base::Vector{T}) where {S <: Ring, T <: RingElem}
+    power_products = Dict{Int, Vector{T}}()
+    exponent_vectors = Dict{T, Vector{Int}}()
+    exponent_vectors_known = Dict{Int, Bool}()
+    last_factor = Dict{T, Int}()
+    return new{typeof(R), T}(R, copy(base), power_products, exponent_vectors, exponent_vectors_known, last_factor)
   end
 end

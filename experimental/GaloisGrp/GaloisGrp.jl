@@ -1244,9 +1244,15 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
     #code from Max...
 
     #TODO: wrap this properly
-    tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-    G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(G.X), tmp))))[1]
-    #@show G = intersect([stabilizer(G, sort(o), on_sets_sets)[1] for o=O]...)[1]
+    if hasproperty(GAP.Globals, :ConStabilize)
+      tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
+      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(G.X), tmp)))
+      G = Oscar._as_subgroup(G, H)[1]
+    else
+      #TODO: fallback if ferret wasn't loaded for some reason; this should be removed
+      # once we have GAP_pkg_ferret
+      G = intersect([stabilizer(G, sort(o), on_sets_sets)[1] for o=O]...)[1]
+    end
   end
 
   si = G(si)

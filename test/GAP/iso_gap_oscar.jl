@@ -16,6 +16,10 @@
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    p2 = next_prime(p)
+    @test_throws ErrorException iso(GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException preimage(iso, GF(p2)(1))
   end
 end
 
@@ -44,23 +48,33 @@ end
         @test oxi == ox^i
         @test oxi + oy == iso(xi + y)
       end
+      p2 = next_prime(p)
+      o = GAP.Globals.One(GAP.Globals.GF(GAP.Obj(p2)))
+      @test_throws ErrorException iso(o)
+      @test_throws ErrorException image(iso, o)
+      @test_throws ErrorException preimage(iso, GF(p2)(1))
     end
   end
 end
 
-@testset "field of rationals" begin
-  F = GAP.Globals.Rationals
-  iso = Oscar.iso_gap_oscar(F)
-  x = GAP.GapObj(2//3)
-  y = 1
-  ox = iso(x)
-  oy = iso(y)
-  for i in 1:10
-    xi = x^i
-    oxi = iso(xi)
-    @test preimage(iso, oxi) == xi
-    @test oxi == ox^i
-    @test oxi + oy == iso(xi + y)
+@testset "field of rationals, ring of integers" begin
+  for (R, x, y) in [(GAP.Globals.Rationals, GAP.GapObj(2//3), 1),
+                    (GAP.Globals.Integers, 2, 3),
+                   ]
+    iso = Oscar.iso_gap_oscar(R)
+    ox = iso(x)
+    oy = iso(y)
+    for i in 1:10
+      xi = x^i
+      oxi = iso(xi)
+      @test preimage(iso, oxi) == xi
+      @test oxi == ox^i
+      @test oxi + oy == iso(xi + y)
+    end
+    @test_throws ErrorException preimage(iso, 1)
+    @test_throws ErrorException iso(GAP.Globals.Z(2))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, GF(2)(1))
   end
 end
 
@@ -79,5 +93,28 @@ end
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    @test_throws ErrorException iso(GAP.Globals.Z(2))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
   end
+end
+
+@testset "univariate polynomial rings" begin
+   baserings = [GAP.Globals.Rationals,
+                GAP.Globals.Integers,
+                GAP.Globals.GF(2),
+                GAP.Globals.GF(2, 3),
+               ]
+   @testset for R in baserings
+      PR = GAP.Globals.PolynomialRing(R)
+      x = GAP.Globals.Indeterminate(R)
+      iso = Oscar.iso_gap_oscar(PR)
+      for pol in [zero(x), one(x), x, x^3+x+1]
+         img = iso(pol)
+         @test preimage(iso, img) == pol
+      end
+      @test_throws ErrorException iso(GAP.Globals.Z(2))
+      @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
+   end
 end
