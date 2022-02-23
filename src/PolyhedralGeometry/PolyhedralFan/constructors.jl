@@ -4,11 +4,12 @@
 ###############################################################################
 ###############################################################################
 
+
 # We introduce this abstract (hidden) type to allow for other objects to be
 # used like polyhedral fans without duplicating too much code, concretely we
 # want to be able to directly access rays, maximal_cones, etc for
 # NormalToricVariety's.
-abstract type _FanLikeType end
+abstract type _FanLikeType{T} end
 
 @doc Markdown.doc"""
     PolyhedralFan(Rays::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}, [LS::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator},] Cones::IncidenceMatrix)
@@ -39,15 +40,21 @@ A polyhedral fan in ambient dimension 2
 julia> iscomplete(PF)
 true
 """
-struct PolyhedralFan <: _FanLikeType
+struct PolyhedralFan{T} <:_FanLikeType{T}
    pm_fan::Polymake.BigObject
-   function PolyhedralFan(pm::Polymake.BigObject)
-      return new(pm)
-   end
+   
+   PolyhedralFan{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
+# default scalar type: `fmpq`
+PolyhedralFan(x...) = PolyhedralFan{fmpq}(x...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+PolyhedralFan(p::Polymake.BigObject) = PolyhedralFan{detect_scalar_type(PolyhedralFan, p)}(p)
+
 @doc Markdown.doc"""
-    PolyhedralFan(Rays, Cones)
+    PolyhedralFan{T}(Rays, Cones) where T<:scalar_types
 
 # Arguments
 - `R::Matrix`: Rays generating the cones of the fan; encoded row-wise as representative vectors.
@@ -68,14 +75,14 @@ julia> PF=PolyhedralFan(R,IM)
 A polyhedral fan in ambient dimension 2
 ```
 """
-function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
+function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
+   PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
       INPUT_RAYS = Rays,
       INPUT_CONES = Incidence,
    ))
 end
-function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
+function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
+   PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
       INPUT_RAYS = Rays,
       INPUT_LINEALITY = LS,
       INPUT_CONES = Incidence,
@@ -89,20 +96,20 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 """
 pm_object(PF::PolyhedralFan) = PF.pm_fan
 
-PolyhedralFan(itr::AbstractVector{Cone}) = PolyhedralFan(Polymake.fan.check_fan_objects(pm_object.(itr)...))
+PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, LS::Union{Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool})
+function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, LS::Union{Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool}) where T<:scalar_types
    PolyhedralFan(Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
-function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool})
+function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool}) where T<:scalar_types
    PolyhedralFan(Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
 
 
-function PolyhedralFan(C::Cone)
+function PolyhedralFan(C::Cone{T}) where T<:scalar_types
     pmfan = Polymake.fan.check_fan_objects(pm_object(C))
-    return PolyhedralFan(pmfan)
+    return PolyhedralFan{T}(pmfan)
 end
 
 ###############################################################################
@@ -110,6 +117,7 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, PF::PolyhedralFan)
+function Base.show(io::IO, PF::PolyhedralFan{T}) where T<:scalar_types
     print(io, "A polyhedral fan in ambient dimension $(ambient_dim(PF))")
+    T != fmpq && print(io, " with $T type coefficients")
 end
