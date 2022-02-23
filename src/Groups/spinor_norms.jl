@@ -446,7 +446,7 @@ end
 
 
 """
-image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism
+    image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism
 
 Return the image of `O(L) \to O(L^\vee / L)`.
 
