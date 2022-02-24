@@ -144,11 +144,11 @@ end
 ###
 
 function is_valuation_p_adic(val::ValuationMap)
-  return typeof(val.valued_field)==FlintRationalField && typeof(val.uniformizer_field)==fmpq
+  return val.valued_field isa FlintRationalField && val.uniformizer_field isa fmpq
 end
 
 function is_valuation_t_adic(val::ValuationMap)
-  return typeof(val.valued_field)==AbstractAlgebra.Generic.RationalFunctionField{fmpq} && typeof(val.uniformizer_field)==AbstractAlgebra.Generic.Rat{fmpq}
+  return val.valued_field isa AbstractAlgebra.Generic.RationalFunctionField && val.uniformizer_field isa AbstractAlgebra.Generic.Rat
 end
 
 function is_valuation_trivial(val::ValuationMap)
