@@ -31,10 +31,10 @@ The packages are integrated into the julia package manager and will be
 installed automatically as dependencies of Oscar. They can be accessed directly
 by their names once Oscar is loaded.
 
-The current versions of these packages can be inspected with the `oscar_versioninfo` command:
+The current versions of these packages can be inspected with the `Oscar.versioninfo` command:
 
 ```@repl oscar
-oscar_versioninfo()
+Oscar.versioninfo()
 ```
 
 ## Binary packages for non-julia libraries
@@ -56,11 +56,11 @@ together with the corresponding `libcxxwrap-julia` library as an intermediate la
 julia packages and the C / C++ libraries.
 
 
-The `oscar_versioninfo` function can also include the versions of all binary packages that are
+The `Oscar.versioninfo` function can also include the versions of all binary packages that are
 maintained by the Oscar developers:
 
 ```@repl oscar
-oscar_versioninfo(jll=true)
+Oscar.versioninfo(jll=true)
 ```
 
 For a full list of all dependencies of the current project please use
@@ -68,5 +68,5 @@ For a full list of all dependencies of the current project please use
 
 
 ```@docs
-oscar_versioninfo
+versioninfo
 ```

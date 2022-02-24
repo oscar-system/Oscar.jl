@@ -65,7 +65,7 @@ function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString
 end
 
 @doc Markdown.doc"""
-    oscar_versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+    Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
 
 Print the versions of all Oscar-related dependencies.
 
@@ -74,7 +74,7 @@ Print the versions of all Oscar-related dependencies.
 - `jll::Bool=false`   : include binary packages (jll) in the output
 - `julia::Bool=false` : include julia `versioninfo` output
 """
-function oscar_versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
    print(io, "OSCAR version $(VERSION_NUMBER)")
    println(io, branch ? _lookup_git_branch(dirname(@__DIR__)) : "")
    println(io, "  combining:")
@@ -89,8 +89,6 @@ function oscar_versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
       Main.InteractiveUtils.versioninfo(io)
    end
 end
-
-export oscar_versioninfo
 
 # More helpful error message for users on Windows.
 windows_error() = error("""
