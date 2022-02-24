@@ -201,19 +201,19 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
   # Step 0: simulate valuation and change coefficient ring to valued field
   ###
   vG = simulate_valuation(G,val,coefficient_field=true)
-  Rtx = parent(vG[1])
+  Ktx = parent(vG[1])
   if isempty(pertubation)
     vw = simulate_valuation(w,val)
     S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
-                                  map(string, Nemo.symbols(Rtx)),
+                                  map(string, Nemo.symbols(Ktx)),
                                   ordering = Singular.ordering_a(vw)*Singular.ordering_dp())
   else
     vw,vu = simulate_valuation(w,pertubation,val)
     S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
-                                  map(string, Nemo.symbols(Rtx)),
+                                  map(string, Nemo.symbols(Ktx)),
                                   ordering = Singular.ordering_a(vw)*Singular.ordering_a(vu)*Singular.ordering_dp())
   end
-  sG = [S(change_base_ring(val.valued_field,g)) for g in vG] # todo: remove workaround when fixed
+  sG = [S(g) for g in vG] # todo: remove workaround when fixed
 
 
   ###
@@ -258,7 +258,8 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
     # first pass, remove leading x-monomial of H[i] from H[j] for i<j
     for i in 1:length(H)-1
       for j in i+1:length(H)
-          H[j] = Singular.reduce(H[j],Singular.std(Singular.Ideal(S,H[i])))
+        H[j] = Singular.reduce(H[j],Singular.std(Singular.Ideal(S,H[i])))
+        H[j] = S(tighten_simulation(Ktx(H[j]),val))
       end
     end
 
@@ -268,7 +269,8 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
     # second pass, remove leading x-monomial of H[j] from H[i] for i<j
     for i in 1:length(H)-1
       for j in i+1:length(H)
-          H[i] = Singular.reduce(H[i],Singular.std(Singular.Ideal(S,H[j])))
+        H[i] = Singular.reduce(H[i],Singular.std(Singular.Ideal(S,H[j])))
+        H[i] = S(tighten_simulation(Ktx(H[i]),val))
       end
     end
 
@@ -354,12 +356,14 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
       for i in 1:length(H)-1
         for j in max(new_reducer_position,i+1):length(H)
           H[j] = Singular.reduce(H[j],Singular.std(Singular.Ideal(S,H[i])))
+          H[j] = S(tighten_simulation(Ktx(H[j]),val))
         end
       end
       # second pass, remove leading x-monomial of H[j] from H[i] for i<j when new_reducer_position<=j
       for i in 1:length(H)-1
         for j in max(new_reducer_position,i+1):length(H)
           H[i] = Singular.reduce(H[i],Singular.std(Singular.Ideal(S,H[j])))
+          H[i] = S(tighten_simulation(Ktx(H[i]),val))
         end
       end
 
@@ -380,7 +384,7 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
   ###
   # Step 4: return reduced GB
   ###
-  vG = [Rtx(sg) for sg in sG_reduced]
+  vG = [Ktx(sg) for sg in sG_reduced]
   return desimulate_valuation(vG,val)
 
   ###
