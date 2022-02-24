@@ -2,7 +2,8 @@ export  groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
-    groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering; complete_reduction::Bool = false)
+    groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
+    groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -14,7 +15,7 @@ accessing `I.gb.S`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"], ordering=:degrevlex)
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
@@ -26,7 +27,7 @@ julia> Oscar.groebner_assure(I, degrevlex(gens(R)))
  y^3 - 6*x^2
  x^3 - 9//2*x
 
-julia> I.gb
+julia> I.gb[degrevlex(gens(R)]
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, false)
 ```
 """
@@ -49,14 +50,6 @@ function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering,  complete_re
 
     return G
 end
-#= 
- = function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
- =     if get(I.gb, ordering, -1) == -1
- =         I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
- =     end
- =
- =     return I.gb[ordering]
- = end =#
 
 @doc Markdown.doc"""
     _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -70,13 +63,13 @@ returned in `B.S`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, Multivariate Polynomial Ring in x, y over Rational Field, #undef, false, #undef, true)
 
-julia> B = groebner_basis(A, degrevlex(gens(R)))
+julia> B = _compute_groebner_basis(A, degrevlex(gens(R)))
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
@@ -97,25 +90,24 @@ end
 
 @doc Markdown.doc"""
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
-    groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering, complete_reduction::Bool=false)
 
 Given an ideal `I` and optional parameters monomial ordering `ordering` and `complete_reduction`,
 compute a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of `I`
-    w.r.t. the given monomial ordering `ordering` (as default `:degrevlex`).
+    w.r.t. the given monomial ordering `ordering` (as default `degree reverse lexicographical`).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> H = groebner_basis(I; ordering=:lex(gens(R)))
+julia> H = groebner_basis(I, ordering=lex(gens(R)))
 3-element Vector{fmpq_mpoly}:
  y^4 - 3*y^3
  x*y - 3*x
- -y^3 + 6*x^2
+ 6*x^2 - y^3
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
@@ -124,7 +116,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(ge
 end
 
 @doc Markdown.doc"""
-    groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering; complete_reduction::Bool = false)
+    groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -144,7 +136,7 @@ julia> B,m = Oscar.groebner_basis_with_transform(A)
 (Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
-function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering; complete_reduction::Bool = false)
+function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
    if !isdefined(B, :ordering)
       singular_assure(B, ordering)
    elseif ordering != B.ordering
@@ -163,11 +155,11 @@ function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrderin
  end
 
 @doc Markdown.doc"""
-    groebner_basis_with_transformation_matrix(I::MPolyIdeal, ordering::MonomialOrdering; complete_reduction::Bool=false)
+    groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
 
 Return a pair `G, m` where `G` is a Groebner basis of the ideal `I` with respect to the
-monomial ordering `ordering`, and `m` is a transformation matrix from `gens(I)` to `G`. If
-`complete_reduction` is set to `true` then `G` will be the reduced Groebner basis.
+monomial ordering `ordering` (as default degree reverse lexicographical), and `m` is a transformation matrix from
+gens(I)` to `G`. If complete_reduction`is set to `true` (as default 'false') then `G` will be the reduced Groebner basis.
 
 # Examples
 ```jldoctest
@@ -184,8 +176,9 @@ julia> m * gens(I) == G
 true
 ```
 """
-function groebner_basis_with_transformation_matrix(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))); complete_reduction::Bool=false)
-   G, m = Oscar.groebner_basis_with_transform(I, ordering; complete_reduction=complete_reduction)
+function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
+   G, m = groebner_basis_with_transform(I.gens, ordering, complete_reduction)
+   I.gb[ordering]  = G
    return G, Array(m)
  end
 

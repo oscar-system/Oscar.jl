@@ -146,7 +146,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
     R = GF(p)
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord; complete_reduction = complete_reduction)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord, complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
@@ -211,12 +211,12 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
   end
 end
 
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
-   ord = Oscar.Orderings.MonomialOrdering(base_ring(I), Oscar.Orderings.ordering(gens(base_ring(I)), ordering))
-   return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
-end
-
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
+#= function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
+ =    ord = Oscar.Orderings.MonomialOrdering(base_ring(I), Oscar.Orderings.ordering(gens(base_ring(I)), ordering))
+ =    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
+ = end
+ =  =#
+ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=degrevlex(gens(base_ring(I))); complete_reduction::Bool = true, use_hilbert::Bool = false)
    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 
