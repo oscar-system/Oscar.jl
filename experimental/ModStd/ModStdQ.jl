@@ -102,7 +102,7 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb = BiPolyArray(gd, keep_ordering = false, isGB = true)
+              I.gb[degrevlex(gens(Qt))] = BiPolyArray(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end
@@ -114,9 +114,8 @@ end
 
 function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
-    I.gb = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
-    I.gb.ord = ord.o
-    singular_assure(I.gb, ord)
+    I.gb[ord] = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
+    singular_assure(I.gb[ord])
     return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
   end
     
@@ -197,9 +196,9 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
                I.gens.ord = ord.o
             end
             if ord.o == I.gens.ord && !isdefined(I, :gb)
-              I.gb = BiPolyArray(gd[1:length_gc], keep_ordering = false)
-              I.gb.isGB = true
-              singular_assure(I.gb)
+              I.gb[ord] = BiPolyArray(gd[1:length_gc], keep_ordering = false)
+              I.gb[ord].isGB = true
+              singular_assure(I.gb[ord])
             end
             return G, T
           else
