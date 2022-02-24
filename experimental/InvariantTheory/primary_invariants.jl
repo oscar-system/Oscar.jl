@@ -137,7 +137,7 @@ end
       ensure_minimality::Int = 0, degree_bound::Int = 1,
       primary_degrees::Vector{Int} = Int[])
 
-Return a system of primary invariants for `IR` using the algorithm in Kem99.
+Return a system of primary invariants for `IR` using the algorithm in [Kem99](@cite).
 
 The product of the degrees $d_1,\dots, d_n$ of the returned primary invariants
 is guaranteed to be minimal among all possible sets of primary invariants.
@@ -283,7 +283,7 @@ end
 @doc Markdown.doc"""
     primary_invariants_via_successive_algo(IR::InvRing)
 
-Return a system of primary invariants for `IR` using the algorithm in DHS98.
+Return a system of primary invariants for `IR` using the algorithm in [DHS98](@cite).
 
 # Examples
 ```jldoctest
@@ -332,8 +332,8 @@ degree. The result is cached, so calling this function again will be fast and
 give the same result.
 
 The used algorithm can be specified with the optional argument `algo`. Possible
-values are `:optimal_hsop` which uses the algorithm in Kem99 or `:successive_algo`
-which uses the algorithm from DHS98. The default option is `:optimal_hsop` which
+values are `:optimal_hsop` which uses the algorithm in [Kem99](@cite) or `:successive_algo`
+which uses the algorithm from [DHS98](@cite). The default option is `:optimal_hsop` which
 is in general expected to be the faster algorithm.
 
 See also [`primary_invariants_via_optimal_hsop`](@ref) and
