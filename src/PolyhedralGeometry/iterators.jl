@@ -1,22 +1,32 @@
-struct Polyhedron #a real polymake polyhedron
-    pm_polytope::Polymake.BigObject
-    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
-end
+################################################################################
+######## Scalar types
+################################################################################
+const scalar_types = Union{fmpq, nf_elem}
 
-struct Cone #a real polymake polyhedron
-    pm_cone::Polymake.BigObject
-end
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq),
+                                ("QuadraticExtension<Rational>", nf_elem)])
+
+const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational),
+                                    (nf_elem, Polymake.QuadraticExtension{Polymake.Rational})])
+
+const scalar_types_extended = Union{scalar_types, fmpz}
+
+################################################################################
+######## Vector types
+################################################################################
 
 struct PointVector{U} <: AbstractVector{U}
-    p::Polymake.Vector
-    PointVector{U}(p) where U = new(Polymake.Vector{Polymake.to_cxx_type(U)}(p))
+    p::Vector{U}
+    
+    PointVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
+    PointVector(p::AbstractVector) = new{fmpq}(p)
 end
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
-Base.getindex(po::PointVector, i::Base.Integer) = po.p[i]
+Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types_extended  = convert(T, po.p[i])
 
-function Base.setindex!(po::PointVector{U}, val, i::Base.Integer) where U
+function Base.setindex!(po::PointVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -26,30 +36,34 @@ Base.firstindex(::PointVector) = 1
 Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
-PointVector(x...) = PointVector{Polymake.Rational}(x...)
+PointVector{nf_elem}(p::AbstractVector) = PointVector{nf_scalar}(p)
 
-PointVector{U}(n::Base.Integer) where U = PointVector{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
+PointVector{U}(n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(zeros(U, n))
 
-function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer, Int64, Float64}
+function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
     return PointVector{S}(dims...)
 end
 
 Base.BroadcastStyle(::Type{<:PointVector}) = Broadcast.ArrayStyle{PointVector}()
 
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector}}, ::Type{ElType}) where ElType
-    return PointVector{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
+    return PointVector{ElType}(axes(bc)...)
 end
 
+################################################################################
+
 struct RayVector{U} <: AbstractVector{U}
-    p::Polymake.Vector
-    RayVector{U}(p) where U = new(Polymake.Vector{Polymake.to_cxx_type(U)}(p))
+    p::Vector{U}
+    
+    RayVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
+    RayVector(p::AbstractVector) = new{fmpq}(p)
 end
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
-Base.getindex(po::RayVector, i::Base.Integer) = po.p[i]
+Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types_extended  = convert(T, po.p[i])
 
-function Base.setindex!(po::RayVector{U}, val, i::Base.Integer) where U
+function Base.setindex!(po::RayVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -59,21 +73,31 @@ Base.firstindex(::RayVector) = 1
 Base.lastindex(iter::RayVector) = length(iter)
 Base.size(po::RayVector) = size(po.p)
 
-RayVector(x...) = RayVector{Polymake.Rational}(x...)
+RayVector{nf_elem}(p::AbstractVector) = RayVector{nf_scalar}(p)
 
-RayVector{U}(n::Base.Integer) where U = RayVector{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
+RayVector{U}(n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(zeros(U, n))
 
-function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer, Int64, Float64}
+function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
     return RayVector{S}(dims...)
 end
 
 Base.BroadcastStyle(::Type{<:RayVector}) = Broadcast.ArrayStyle{RayVector}()
 
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}, ::Type{ElType}) where ElType
-    return RayVector{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
+    return RayVector{ElType}(axes(bc)...)
 end
 
-abstract type Halfspace end
+################################################################################
+
+Base.:*(k::scalar_types_extended, po::Union{PointVector, RayVector}) = k .* po
+
+################################################################################
+######## Halfspaces and Hyperplanes
+################################################################################
+
+abstract type Halfspace{T} end
+
+################################################################################
 
 @doc Markdown.doc"""
     Halfspace(a, b)
@@ -81,30 +105,34 @@ abstract type Halfspace end
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
-struct AffineHalfspace <: Halfspace
-    a::Polymake.Vector{Polymake.Rational}
-    b::Polymake.Rational
+struct AffineHalfspace{T} <: Halfspace{T}
+    a::Vector{T}
+    b::T
+    
+    AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
+    AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
-
-AffineHalfspace(a::Union{MatElem, AbstractMatrix}, b=0) = AffineHalfspace(vec(a), b)
-
-AffineHalfspace(a) = AffineHalfspace(a, 0)
 
 Halfspace(a, b) = AffineHalfspace(a, b)
+Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
 
-negbias(H::AffineHalfspace) = H.b
+################################################################################
 
-struct LinearHalfspace <: Halfspace
-    a::Polymake.Vector{Polymake.Rational}
+struct LinearHalfspace{T} <: Halfspace{T}
+    a::Vector{T}
+    
+    LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
+    LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
 
-LinearHalfspace(a::Union{MatElem, AbstractMatrix}) = LinearHalfspace(vec(a))
-
 Halfspace(a) = LinearHalfspace(a)
+Halfspace{T}(a) where T<:scalar_types = LinearHalfspace{T}(a)
 
-negbias(H::LinearHalfspace) = 0
+################################################################################
 
-abstract type Hyperplane end
+abstract type Hyperplane{T} end
+
+################################################################################
 
 @doc Markdown.doc"""
     AffineHyperplane(a, b)
@@ -112,28 +140,35 @@ abstract type Hyperplane end
 One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax = b \}.$$
 """
-struct AffineHyperplane <: Hyperplane
-    a::Polymake.Vector{Polymake.Rational}
-    b::Polymake.Rational
+struct AffineHyperplane{T} <: Hyperplane{T}
+    a::Vector{T}
+    b::T
+    
+    AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
+    AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
-
-AffineHyperplane(a::Union{MatElem, AbstractMatrix}, b) = AffineHyperplane(vec(a), b)
-
-AffineHyperplane(a) = AffineHyperplane(a, 0)
 
 Hyperplane(a, b) = AffineHyperplane(a, b)
+Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
 
-negbias(H::AffineHyperplane) = H.b
+################################################################################
 
-struct LinearHyperplane <: Hyperplane
-    a::Polymake.Vector{Polymake.Rational}
+struct LinearHyperplane{T} <: Hyperplane{T}
+    a::Vector{T}
+    
+    LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
+    LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
 
-LinearHyperplane(a::Union{MatElem, AbstractMatrix}) = LinearHyperplane(vec(a))
-
 Hyperplane(a) = LinearHyperplane(a)
+Hyperplane{T}(a) where T<:scalar_types = LinearHyperplane{T}(a)
 
-negbias(H::LinearHyperplane) = 0
+################################################################################
+
+#  Field access
+negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
+negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
+normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
 # TODO: abstract notion of equality
 Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
@@ -144,7 +179,23 @@ Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
 
 Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 
-####################
+################################################################################
+
+for T in [LinearHalfspace, LinearHyperplane]
+    @eval begin
+        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $T{nf_scalar}(a)
+    end
+end
+
+for T in [AffineHalfspace, AffineHyperplane]
+    @eval begin
+        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $T{nf_scalar}(a, b)
+    end
+end
+
+################################################################################
+######## SubObjectIterator
+################################################################################
 
 @doc Markdown.doc"""
     SubObjectIterator(Obj, Acc, n, [options])
@@ -171,7 +222,12 @@ struct SubObjectIterator{T} <: AbstractVector{T}
     options::NamedTuple
 end
 
+# `options` is empty by default
 SubObjectIterator{T}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
+
+# Force `nf_scalar` for this `Pair` descpription of `Halfspace`s/`Hyperplane`s
+# derived from `nf_elem`templated object
+SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
@@ -184,6 +240,8 @@ Base.firstindex(::SubObjectIterator) = 1
 Base.lastindex(iter::SubObjectIterator) = length(iter)
 Base.size(iter::SubObjectIterator) = (iter.n,)
 
+################################################################################
+
 # Incidence matrices
 for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"))
     M = Symbol(sym)
@@ -194,23 +252,14 @@ for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_ind
     end
 end
 
-# Matrices with rational only elements
-for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("affine_inequality_matrix", "Affine Inequality Matrix"), ("linear_equation_matrix", "Linear Equation Matrix"), ("affine_equation_matrix", "Affine Equation Matrix"))
-    M = Symbol(sym)
-    _M = Symbol(string("_", sym))
-    @eval begin
-        $M(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
-        $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
-    end
-end
-
 # Matrices with rational or integer elements
 for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector Matrix"), ("generator_matrix", "Generator Matrix"))
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:AbstractVector{Polymake.Rational}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
-        $M(iter::SubObjectIterator{<:AbstractVector{Polymake.Integer}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator{<:AbstractVector{fmpz}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -224,11 +273,11 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
 end
 
 # primitive generators only for ray based iterators
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{Polymake.Rational}}) =
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{fmpq}}) =
     matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{Polymake.Integer},PointVector{Polymake.Integer}}}) =
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{fmpz},PointVector{fmpz}}}) =
     matrix(R, matrix_for_polymake(iter))
-matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector,PointVector}}) =
+matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector{fmpq}, PointVector{fmpq}}}) =
     matrix(R, Matrix{fmpq}(matrix_for_polymake(iter)))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
@@ -249,15 +298,6 @@ function affine_matrix_for_polymake(iter::SubObjectIterator)
         return homogenize(_linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...), 0)
     end
     throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
-end
-
-function halfspace_matrix_pair(iter::SubObjectIterator)
-    try
-        h = affine_matrix_for_polymake(iter)
-        return (A = matrix(QQ, Matrix{fmpq}(h[:, 2:end])), b = -h[:, 1])
-    catch e
-        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
-    end
 end
 
 Polymake.convert_to_pm_type(::Type{SubObjectIterator{RayVector{T}}}) where T = Polymake.Matrix{T}

@@ -56,6 +56,8 @@ The abstract supertype of module morphisms.
 """
 abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
+parent(f::ModuleMap) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
+
 @doc Markdown.doc"""
     FreeMod{T <: RingElem} <: ModuleFP{T}
 
@@ -532,8 +534,6 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     return hom
   end
 end
-
-
 
 struct FreeModuleHom_dec{T1, T2} <: ModuleMap{T1, T2}
   f::FreeModuleHom{T1,T2}

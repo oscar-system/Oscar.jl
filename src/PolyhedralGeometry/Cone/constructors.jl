@@ -7,8 +7,23 @@
 #TODO: have cone accept exterior description and reserve positive  hull for
 #interior description?
 
+struct Cone{T} #a real polymake polyhedron
+    pm_cone::Polymake.BigObject
+    
+    # only allowing scalar_types;
+    # can be improved by testing if the template type of the `BigObject` corresponds to `T`
+    Cone{T}(c::Polymake.BigObject) where T<:scalar_types = new{T}(c)
+end
+
+# default scalar type: `fmpq`
+Cone(x...; kwargs...) = Cone{fmpq}(x...; kwargs...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
+
 @doc Markdown.doc"""
-    Cone(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}])
+    Cone{T}(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -35,19 +50,19 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+function Cone{T}(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{Polymake.Rational}(undef, 0, size(R, 2))
+        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(R, 2))
     end
 
     if non_redundant
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = R, LINEALITY_SPACE = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = R, LINEALITY_SPACE = L,))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
     end
 end
 
-function ==(C0::Cone, C1::Cone)
+function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
     # TODO: Remove the following 3 lines, see #758
     for pair in Iterators.product([C0, C1], ["RAYS", "FACETS"])
         Polymake.give(pm_object(pair[1]),pair[2])
@@ -57,7 +72,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
+    positive_hull([::Type{T} = fmpq,] R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -74,15 +89,17 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix})
-    C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
+function positive_hull(::Type{T}, R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+    C=Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS =
       remove_zero_rows(R))
-    Cone(C)
+    Cone{T}(C)
 end
+
+positive_hull(x...) = positive_hull(fmpq, x...)
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
+    cone_from_inequalities([::Type{T} = fmpq,] I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
@@ -97,21 +114,23 @@ julia> C = cone_from_inequalities([0 -1; -1 1])
 A polyhedral cone in ambient dimension 2
 
 julia> rays(C)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
+function cone_from_inequalities(::Type{T}, I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false) where T<:scalar_types
     IM = -linear_matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
     if non_redundant
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = IM, LINEAR_SPAN = EM))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = IM, EQUATIONS = EM))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INEQUALITIES = IM, EQUATIONS = EM))
     end
 end
+
+cone_from_inequalities(x...) = cone_from_inequalities(fmpq, x...)
 
 """
     pm_object(C::Cone)
@@ -127,8 +146,9 @@ pm_object(C::Cone) = C.pm_cone
 ###############################################################################
 ###############################################################################
 
-function Base.show(io::IO, C::Cone)
-    print(io,"A polyhedral cone in ambient dimension $(ambient_dim(C))")
+function Base.show(io::IO, C::Cone{T}) where T<:scalar_types
+    print(io, "A polyhedral cone in ambient dimension $(ambient_dim(C))")
+    T != fmpq && print(io, " with $T type coefficients")
 end
 
 Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_object(C); opts...)

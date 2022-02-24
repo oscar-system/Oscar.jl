@@ -33,8 +33,8 @@ reason for keeping cones as a distinct type.
 ## Construction
 
 ```@docs
-positive_hull(::Union{Oscar.MatElem, AbstractMatrix})
-secondary_cone(SOP::SubdivisionOfPoints)
+positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
 ## Saving and loading
@@ -60,15 +60,15 @@ load_cone(filename::String)
 ```@docs
 ambient_dim(C::Cone)
 f_vector(C::Cone)
-hilbert_basis(C::Cone)
+hilbert_basis(C::Cone{fmpq})
 codim(C::Cone)
 dim(C::Cone)
-polarize(C::Cone)
-intersect(C0::Cone, C1::Cone)
+polarize(C::Cone{T}) where T<:scalar_types
+intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 ispointed(C::Cone)
 isfulldimensional(C::Cone)
 lineality_dim(C::Cone)
-lineality_space(C::Cone)
+lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone)

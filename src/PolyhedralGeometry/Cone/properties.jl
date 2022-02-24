@@ -12,7 +12,7 @@ _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = C.R
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
-rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
+rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 
 @doc Markdown.doc"""
     rays(C::Cone)
@@ -27,12 +27,12 @@ julia> R = [1 0; 0 1; 0 2];
 julia> PO = positive_hull(R);
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
 """
-rays(C::Cone) = rays(RayVector{Polymake.Rational}, C)
+rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
 
 @doc Markdown.doc"""
     faces(C::Cone, face_dim::Int)
@@ -49,20 +49,20 @@ A polyhedral cone in ambient dimension 3
 julia> for f in faces(PO, 2)
        println(rays(f))
        end
-RayVector{Polymake.Rational}[[0, 1, 0], [0, 0, 1]]
-RayVector{Polymake.Rational}[[1, 0, 0], [0, 0, 1]]
-RayVector{Polymake.Rational}[[1, 0, 0], [0, 1, 0]]
+RayVector{fmpq}[[0, 1, 0], [0, 0, 1]]
+RayVector{fmpq}[[1, 0, 0], [0, 0, 1]]
+RayVector{fmpq}[[1, 0, 0], [0, 1, 0]]
 ```
 """
-function faces(C::Cone, face_dim::Int)
-   face_dim == dim(C) - 1 && return SubObjectIterator{Cone}(pm_object(C), _face_cone_facet, nfacets(C))
+function faces(C::Cone{T}, face_dim::Int) where T<:scalar_types
+   face_dim == dim(C) - 1 && return SubObjectIterator{Cone{T}}(pm_object(C), _face_cone_facet, nfacets(C))
    n = face_dim - length(lineality_space(C))
    n < 1 && return nothing
-   return SubObjectIterator{Cone}(C.pm_cone, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
+   return SubObjectIterator{Cone{T}}(C.pm_cone, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
 end
 
-function _face_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer; f_dim::Int = 0)
-   return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+function _face_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer; f_dim::Int = 0) where T<:scalar_types
+   return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
 end
 
 function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
@@ -70,8 +70,8 @@ function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
    return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
 end
 
-function _face_cone_facet(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer)
-   return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+function _face_cone_facet(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
+   return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
 end
 
 _ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
@@ -182,7 +182,7 @@ julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 A polyhedral cone in ambient dimension 3
 
 julia> f_vector(C)
-2-element Vector{Polymake.Integer}:
+2-element Vector{fmpz}:
  4
  4
 
@@ -190,7 +190,7 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> f_vector(square)
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  4
  4
 ```
@@ -198,7 +198,7 @@ julia> f_vector(square)
 function f_vector(C::Cone)
     pmc = pm_object(C)
     ldim = pmc.LINEALITY_DIM
-    return vcat(fill(0,ldim),pmc.F_VECTOR)
+    return Vector{fmpz}(vcat(fill(0, ldim), pmc.F_VECTOR))
 end
 
 
@@ -294,24 +294,19 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
-3-element SubObjectIterator{LinearHalfspace}:
- The Halfspace of R^3 described by
-1: -x₃ ≦ 0
-
- The Halfspace of R^3 described by
-1: -x₁ + x₃ ≦ 0
-
- The Halfspace of R^3 described by
-1: -x₂ + x₃ ≦ 0
+3-element SubObjectIterator{LinearHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+-x₃ ≦ 0
+-x₁ + x₃ ≦ 0
+-x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{T}, C::Cone) where T<:Union{AffineHalfspace, LinearHalfspace, Polyhedron, Cone} = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
+facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
 
-_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T<:Union{Polyhedron, AffineHalfspace} = T(-C.FACETS[[i], :], 0)
+_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-C.FACETS[[i], :], 0)
 
-_facet_cone(::Type{LinearHalfspace}, C::Polymake.BigObject, i::Base.Integer) = LinearHalfspace(-C.FACETS[[i], :])
+_facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
 
-_facet_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer) = cone_from_inequalities(-C.FACETS[[i], :])
+_facet_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(T, -C.FACETS[[i], :])
 
 _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
@@ -319,9 +314,9 @@ _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
 _ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
-facets(C::Cone) = facets(LinearHalfspace, C)
+facets(C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
-facets(::Type{Halfspace}, C::Cone) = facets(LinearHalfspace, C)
+facets(::Type{Halfspace}, C::Cone{T}) where T<:scalar_types = facets(LinearHalfspace{T}, C)
 
 @doc Markdown.doc"""
     lineality_space(C::Cone)
@@ -335,13 +330,13 @@ This gives us a 1-dimensional lineality.
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
-1-element SubObjectIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
 ```
 """
-lineality_space(C::Cone) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(C), _lineality_cone, lineality_dim(C))
+lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(C), _lineality_cone, lineality_dim(C))
 
-_lineality_cone(::Type{RayVector{Polymake.Rational}}, C::Polymake.BigObject, i::Base.Integer) = RayVector(C.LINEALITY_SPACE[i, :])
+_lineality_cone(::Type{RayVector{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(C.LINEALITY_SPACE[i, :])
 
 _generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = C.LINEALITY_SPACE
 
@@ -359,22 +354,20 @@ $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 julia> c = Cone([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
-1-element SubObjectIterator{LinearHyperplane}:
- The Hyperplane of R^3 described by
-1: x₃ = 0
-
+1-element SubObjectIterator{LinearHyperplane{fmpq}} over the Hyperplanes of R^3 described by:
+x₃ = 0
 ```
 """
-linear_span(C::Cone) = SubObjectIterator{LinearHyperplane}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
+linear_span(C::Cone{T}) where T<:scalar_types = SubObjectIterator{LinearHyperplane{T}}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
 
-_linear_span(::Type{LinearHyperplane}, C::Polymake.BigObject, i::Base.Integer) = LinearHyperplane(C.LINEAR_SPAN[i, :])
+_linear_span(::Type{LinearHyperplane{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHyperplane{T}(C.LINEAR_SPAN[i, :])
 
 _linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
 
 _linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
 @doc Markdown.doc"""
-    hilbert_basis(C::Cone)
+    hilbert_basis(C::Cone{fmpq})
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 
@@ -391,15 +384,15 @@ julia> matrix(ZZ, hilbert_basis(C))
 
 ```
 """
-function hilbert_basis(C::Cone)
+function hilbert_basis(C::Cone{fmpq})
    if ispointed(C)
-      return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
+      return SubObjectIterator{PointVector{fmpz}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
    else
       throw(ArgumentError("Cone not pointed."))
    end
 end
 
-_hilbert_generator(::Type{PointVector{Polymake.Integer}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(C.HILBERT_BASIS_GENERATORS[1][i, :])
+_hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(C.HILBERT_BASIS_GENERATORS[1][i, :])
 
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
 

@@ -136,7 +136,7 @@ end
 
 Compute the spinor norm of `f`.
 
-`gram_diag` must be a diagonal matrix
+`gram_diag` must be a diagonal matrix.
 """
 function spin(gram_diag::MatElem, isometry::MatElem, check=true)
   G = gram_diag
