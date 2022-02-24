@@ -133,13 +133,19 @@ function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector
   if isempty(pertubation)
     for (vwdi,cf,expv) in zip(vwds,coefficients(f),exponent_vectors(f))
       if vwdi == vwd
-        push_term!(initialf, pi(R(t^-val(cf)*cf)), expv)
+        c = t^-val(cf)*cf   # make coefficient valuation 0
+        cNum = numerator(c) # split up numerator and denominator as pi is only defined on the valued ring
+        cDen = denominator(c)
+        push_term!(initialf, pi(cNum)//pi(cDen), expv) # apply pi to both and divide the result
       end
     end
   else
     for (vwdi,vwdiPerp,cf,expv) in zip(vwds,vwdsPerp,coefficients(f),exponent_vectors(f))
       if vwdi == vwd && vwdiPerp == vwdPerp
-        push_term!(initialf, pi(R(t^-val(cf)*cf)), expv)
+        c = t^-val(cf)*cf
+        cNum = numerator(c)
+        cDen = denominator(c)
+        push_term!(initialf, pi(cNum)//pi(cDen), expv)
       end
     end
   end
