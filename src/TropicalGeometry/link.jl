@@ -98,7 +98,7 @@ export pivots
 
 
 @doc Markdown.doc"""
-    tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; p_adic_prime::Integer=1000003)
+    tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector)
 
 Computes the tropical link of `I` around `w`, i.e., returns a minimal array of vectors `L` such that for every maximal Groebner polyhedron $\sigma\in\Trop(I)$ containing `w` there is a $u$ in `L` such that $w+\varepsilon*u\in\sigma$ for $\varepsilon>0$ sufficiently small.
 
@@ -145,8 +145,8 @@ julia> tropical_link(I,val_5,w5)
 
 ```
 """
-function tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; p_adic_prime::Integer=32003, p_adic_precision::Integer=19)
-  return tropical_link(initial(I,val,w),p_adic_prime=p_adic_prime, p_adic_precision=p_adic_precision)
+function tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; local_precision::Integer=19)
+  return tropical_link(initial(I,val,w),local_precision=local_precision)
 end
 
 
@@ -158,9 +158,9 @@ Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 #              10*x1^3-2*x1^2*x2+38*x1^2*x3+6*x2^2*x3+34*x1*x2*x4-x3^2*x4+8*x1*x4^2+18*x2*x4^2+47*x3^2*x5-22*x4^2*x5+43*x2*x5^2+16*x3*x5^2,
 #              49*x1^2*x4-50*x1*x2*x4-20*x1*x4^2+40*x1*x2*x5-27*x1*x3*x5+4*x1*x4*x5+22*x3*x5^2])
 inI = ideal([14*x1*x2-50*x1*x3+x2*x3+13*x3^2+40*x1*x4+16*x1*x5-27*x3*x5,-37*x1*x2+36*x3^2-x2*x4-12*x1*x5+37*x2*x5+12*x3*x5-20*x4*x5-26*x5^2,-2*x2*x3+39*x1*x4-5*x2*x5])
-tropical_link(inI,p_adic_precision=29)
+tropical_link(inI,local_precision=29)
 =======#
-function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_precision::Integer=19)
+function tropical_link(inI::MPolyIdeal; local_precision::Integer=19)
 
   ###
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
@@ -191,20 +191,22 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
   inI1 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
 
   ###
-  # Step 3.0: Create a p-adic field over a sufficiently large prime
+  # Step 3.0: Create a t-adic field extension of K
   ###
-  val_p = ValuationMap(QQ,p_adic_prime)   # todo: increase p when necessary
+  K = coefficient_ring(Kx)
+  L,t = RationalFunctionField(K,"t")
+  val = ValuationMap(L,t)
+  Lx,x = PolynomialRing(L,symbols(Kx))
+  inI1 = ideal([change_base_ring(L,g) for g in gens(inI1)])
 
   ###
   # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
   ###
-  hyperplanes = [x[i]-val_p.uniformizer_field for i in nonpivotIndices] # todo: only x[i] for i in indep set
-  append!(hyperplanes,[val_p.uniformizer_field*x[i]-1 for i in nonpivotIndices])
+  hyperplanes = [x[i]-t for i in nonpivotIndices] # todo: only x[i] for i in indep set
+  append!(hyperplanes,[t*x[i]-1 for i in nonpivotIndices])
   rayGenerators = [];
-  # rayMultiplicities = []; # ray multiplicities cannot be generally computed using this method,
-                            # however this method gives lower bounds on the multiplicities which may be used for sanity checking later
   for hyperplane in hyperplanes
-    inI0 = inI1+ideal(Kx,hyperplane)
+    inI0 = inI1+ideal(Lx,hyperplane)
 
     ###
     # Optional: Compute a partially saturated GB using satstd
@@ -215,7 +217,7 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
     Singular.libSingular.set_option("OPT_REDSB", true)
     singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
     Singular.libSingular.set_option("OPT_REDSB", false)
-    inI0 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
+    inI0 = ideal(Lx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
 
     if dim(inI0)!=0
       continue
@@ -224,7 +226,7 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
     ###
     # Step 3.2: compute tropical points on slice and merge them to rayGenerators
     ###
-    for pointOfSlice in tropical_points(inI0,val_p,local_precision=p_adic_precision) # todo: check how long it takes to saturate inI0
+    for pointOfSlice in tropical_points(inI0,val,local_precision=local_precision) # todo: check how long it takes to saturate inI0
       #   so that points at infinity are hard erros
       commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
       pointOfSlice = [commonDenominator*pj for pj in pointOfSlice] # = integer vector
