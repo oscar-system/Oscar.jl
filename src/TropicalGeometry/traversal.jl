@@ -24,6 +24,10 @@ tropical_variety(I,val)
 =======#
 function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
+  if coefficient_ring(base_ring(I))!=val.valued_field
+    error("input valuation not on coefficient ring of input ideal")
+  end
+
   ###
   # Part 1: Initialize working list and (re)compute starting points
   #   until all starting points lie in the relative interior of maximal cells
