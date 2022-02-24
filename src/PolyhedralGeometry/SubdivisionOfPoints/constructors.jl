@@ -12,11 +12,11 @@ struct SubdivisionOfPoints
 end
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+    SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix)
 
 # Arguments
-- `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
-- `Incidence::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
+- `points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
+- `cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
 
 A subdivision of points formed from points and cells made of these points. The
 cells are given as an IncidenceMatrix, where the columns represent the points
@@ -34,21 +34,21 @@ julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
 A subdivision of points in ambient dimension 3
 ```
 """
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
+function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix)
+   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
    SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
-      POINTS = homogenize(Points,1),
+      POINTS = homogenize(points,1),
       MAXIMAL_CELLS = arr,
    ))
 end
 
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
+    SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector)
 
 # Arguments
-- `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
-- `Weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
+- `points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
+- `weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
 
 A subdivision of points formed by placing every point at the corresponding
 height, then taking the convex hull and then only considering those cells
@@ -66,10 +66,10 @@ julia> n_maximal_cells(SOP)
 1
 ```
 """
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
+function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector)
    SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
-      POINTS = homogenize(Points,1),
-      WEIGHTS = Weights,
+      POINTS = homogenize(points,1),
+      WEIGHTS = weights,
    ))
 end
 
@@ -84,8 +84,8 @@ pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
-   SubdivisionOfPoints(Points,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool})
+   SubdivisionOfPoints(points,IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 
 
@@ -93,8 +93,8 @@ end
 
 
 #Same construction for when the user provides maximal cells
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, MaximalCells::Vector{Vector{Int64}})
-   SubdivisionOfPoints(Points,IncidenceMatrix(MaximalCells))
+function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::Vector{Vector{Int64}})
+   SubdivisionOfPoints(points,IncidenceMatrix(cells))
 end
 
 ###############################################################################

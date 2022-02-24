@@ -256,7 +256,7 @@ function secondary_polytope(P::Polyhedron)
 end
 
 @doc Markdown.doc"""
-    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Vector{Int64}}})
+    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
@@ -266,14 +266,14 @@ Compute whether a triangulation of the square is regular.
 julia> c = cube(2)
 A polyhedron in ambient dimension 2
 
-julia> T=[[1,2,3],[2,3,4]];
+julia> cells=[[1,2,3],[2,3,4]];
 
-julia> isregular(point_matrix(vertices(c)),T)
+julia> isregular(point_matrix(vertices(c)),cells)
 true
 ```
 """
-function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Int64}})
-    as_sop = SubdivisionOfPoints(pts,T)
+function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+    as_sop = SubdivisionOfPoints(pts,cells)
     isregular(as_sop)
 end
 
@@ -284,11 +284,11 @@ end
 
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(P::Polyhdron, Incidence::IncidenceMatrix)
+    SubdivisionOfPoints(P::Polyhdron, cells::IncidenceMatrix)
 
 # Arguments
 - `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
-- `Incidence::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
+- `cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
 
 A subdivision of points formed from points and cells made of these points. The
 cells are given as an IncidenceMatrix, where the columns represent the points
@@ -299,21 +299,21 @@ Compute a triangulation of the square
 ```jldoctest
 julia> C = cube(2);
 
-julia> Incidence = IncidenceMatrix([[1,2,3],[2,3,4]]);
+julia> cells = IncidenceMatrix([[1,2,3],[2,3,4]]);
 
-julia> S = SubdivisionOfPoints(C, Incidence)
+julia> S = SubdivisionOfPoints(C, cells)
 A subdivision of points in ambient dimension 2
 ```
 """
-SubdivisionOfPoints(P::Polyhedron, Incidence::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), Incidence)
+SubdivisionOfPoints(P::Polyhedron, cells::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), cells)
 
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(P::Polyhdron, Weights::AbstractVector)
+    SubdivisionOfPoints(P::Polyhdron, weights::AbstractVector)
 
 # Arguments
 - `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
-- `Weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
+- `weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
 
 A subdivision of points formed by placing every vertex of `P` at the corresponding
 height, then taking the convex hull and then only considering those cells
@@ -324,17 +324,17 @@ Compute a triangulation of the square
 ```jldoctest
 julia> C = cube(2);
 
-julia> Weights = [0,0,1,2];
+julia> weights = [0,0,1,2];
 
-julia> S = SubdivisionOfPoints(C, Weights)
+julia> S = SubdivisionOfPoints(C, weights)
 A subdivision of points in ambient dimension 2
 ```
 """
-SubdivisionOfPoints(P::Polyhedron, Weights::AbstractVector) = SubdivisionOfPoints(vertices(P), Weights)
-SubdivisionOfPoints(P::Polyhedron, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(vertices(P), IncidenceMatrix(MaximalCells))
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Incidence::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(Iter), Incidence)
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), Weights)
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(MaximalCells))
+SubdivisionOfPoints(P::Polyhedron, weights::AbstractVector) = SubdivisionOfPoints(vertices(P), weights)
+SubdivisionOfPoints(P::Polyhedron, cells::Vector{Vector{Int64}}) = SubdivisionOfPoints(vertices(P), IncidenceMatrix(cells))
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(Iter), cells)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), weights)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(cells))
 
 
 
