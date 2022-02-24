@@ -91,7 +91,7 @@ function tropical_points(I::MPolyIdeal,val::ValuationMap; convention=:max, local
   end
   while (d>0)
     # todo: change random_affine_linear_polynomials to be of the form x_i-z_i for i in an independent set and z_i of valuation 0 random
-    I = I + ideal(random_affine_linear_polynomials(d,Kx,val_p))
+    I = I + ideal(random_affine_linear_polynomials(d,Kx,val))
     d = dim(I)
   end
 
