@@ -118,7 +118,7 @@ function hom(f::AutGrpAbTorElem)
 end
 
 
-function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=false)
+function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=true)
   !check || (domain(f) === codomain(f) === domain(aut) && isbijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -136,11 +136,21 @@ function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=false)
 end
 
 
-function (aut::AutGrpAbTor)(M::fmpz_mat; check=false)
+function (aut::AutGrpAbTor)(M::fmpz_mat; check=true)
   !check || defines_automorphism(domain(aut),M) || error("Matrix does not define an automorphism of the abelian group.")
   return aut(hom(domain(aut),domain(aut),M); check=check)
 end
 
+function (aut::AutGrpAbTor)(g::MatrixGroupElem{fmpq, fmpq_mat}; check=true)
+  L = relations(domain(aut))
+  if check
+    B = basis_matrix(L)
+    @assert can_solve(B, B*matrix(g),side=:left)
+  end
+  T = domain(aut)
+  g = hom(T, T, [T(lift(t)*matrix(g)) for t in gens(T)])
+  return aut(g)
+end
 """
     matrix(f::AutomorphismGroupElem{GrpAbFinGen}) -> fmpz_mat
 
@@ -240,8 +250,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{T}) where T<:TorQuadMod
   D = domain(parent(f))
-  print(IOContext(io, :compact => true), "Isometry of ", D, "\n")
-  print(io, "defined by")
+  print(IOContext(io, :compact => true), "Isometry of ", D, " defined by \n")
   print(io, matrix(f))
 end
 

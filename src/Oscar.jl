@@ -224,6 +224,7 @@ include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
 include("Groups/abelian_aut.jl")
+include("Groups/spinor_norms.jl")
 include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")

@@ -1,5 +1,5 @@
 @doc Markdown.doc"""
-    common_refinement(PC::PolyhedralComplex,PC::PolyhedralComplex)
+    common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
 
 Return the common refinement of two polyhedral complexes. 
 
@@ -32,11 +32,11 @@ julia> common_refinement(PC1,PC2)
 A polyhedral complex in ambient dimension 2
 ```
 """
-function common_refinement(PC1::PolyhedralComplex,PC2::PolyhedralComplex) 
+function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
     pm_PC1 = pm_object(PC1)
     pm_PC2 = pm_object(PC2)
     result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_PC1,pm_PC2))
-    return PolyhedralComplex(result)
+    return PolyhedralComplex{T}(result)
 end
 
 
@@ -63,10 +63,10 @@ julia> k_skeleton(PC1,1)
 A polyhedral complex in ambient dimension 2
 ```
 """
-function k_skeleton(PC::PolyhedralComplex,k::Int)
+function k_skeleton(PC::PolyhedralComplex{T},k::Int) where T<:scalar_types
     pm_PC = pm_object(PC)
-    ksk = Polymake.fan.PolyhedralComplex(Polymake.fan.k_skeleton(pm_PC,k))
-    return PolyhedralComplex(ksk)
+    ksk = Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(Polymake.fan.k_skeleton(pm_PC,k))
+    return PolyhedralComplex{T}(ksk)
 end
 
 

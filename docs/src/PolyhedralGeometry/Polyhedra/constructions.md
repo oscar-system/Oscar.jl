@@ -35,18 +35,14 @@ julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 A polyhedron in ambient dimension 2
 
 julia> facets(P)
-2-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^2 described by
-1: -x₁ ≦ 0
-
- The Halfspace of R^2 described by
-1: x₁ ≦ 1
+2-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^2 described by:
+-x₁ ≦ 0
+x₁ ≦ 1
 
 
 julia> affine_hull(P)
-1-element SubObjectIterator{AffineHyperplane}:
- The Hyperplane of R^2 described by
-1: x₂ = 0
+1-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^2 described by:
+x₂ = 0
 
 
 julia> Q0 = Polyhedron(facets(P))
@@ -65,7 +61,7 @@ true
 ### Computing convex hulls: $V$-representation
 
 ```@docs
-convex_hull(::AnyVecOrMat; non_redundant::Bool=false)
+convex_hull(::Type{T}, ::AnyVecOrMat; non_redundant::Bool=false) where T<:scalar_types
 ```
 
 This is a standard triangle, defined via a (redundant) $V$-representation  and
@@ -122,17 +118,17 @@ they can be added using Minkowski addition or scaled; each of which results in
 a new polyhedron.
 
 ```@docs
-+(::Polyhedron, ::Polyhedron)
-*(::Int, ::Polyhedron)
-*(::Polyhedron, ::Polyhedron)
++(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
+*(::Int, ::Polyhedron{T}) where T<:scalar_types
+*(::Polyhedron{T}, ::Polyhedron{T})  where T<:scalar_types
 bipyramid
-intersect(::Polyhedron, ::Polyhedron)
+intersect(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
 pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
-convex_hull(::Polyhedron,::Polyhedron)
+convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
 ```
 
 ## Polyhedra from other mathematical objects

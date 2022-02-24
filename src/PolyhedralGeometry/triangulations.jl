@@ -49,7 +49,7 @@ julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [0, 0]
  [1, 0]
  [0, 1]
@@ -194,7 +194,7 @@ julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [0, 0]
  [1, 0]
  [0, 1]
@@ -263,6 +263,6 @@ julia> sc = secondary_polytope(c)
 A polyhedron in ambient dimension 8
 ```
 """
-function secondary_polytope(P::Polyhedron)
-    return Polyhedron(Polymake.polytope.secondary_polytope(pm_object(P)))
+function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
+    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)))
 end
