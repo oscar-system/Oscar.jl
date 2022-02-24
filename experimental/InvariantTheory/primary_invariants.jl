@@ -103,7 +103,7 @@ end
 # RG/< invars, f_1, ..., f_k > has Krull dimension n - k, where n == length(invars).
 # If the base field is finite, the answer "true" might be wrong (for theoretical reasons).
 # See Kem99, Theorem 2.
-function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars::Vector{PolyElemT}, k::Int, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Int}) where {FldT, GrpT, PolyElemT}
+function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars::Vector{PolyElemT}, k::Int, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Tuple{MPolyIdeal{PolyElemT}, Int}}) where {FldT, GrpT, PolyElemT}
   R = polynomial_ring(RG)
   n = length(degrees)
 
@@ -120,8 +120,10 @@ function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vect
       union!(gens_ideal, collect_basis(iter))
     end
     numbersInds = !isempty(degs) ? sum(deg_dict[e] for e in degs) : 0
-    dimI = get!(ideals, gens_ideal) do
-      dim(ideal(R, collect(gens_ideal)))
+    I, dimI = get!(ideals, gens_ideal) do
+      I = ideal(R, collect(gens_ideal))
+      d = dim(I)
+      return (I, d)
     end
     if dimI > n - length(invars) - numbersInds
       return false
@@ -187,7 +189,7 @@ end
 
 function _primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
   iters = Dict{Int, VectorSpaceIterator}()
-  ideals = Dict{Set{elem_type(polynomial_ring(RG))}, Int}()
+  ideals = Dict{Set{elem_type(polynomial_ring(RG))}, Tuple{MPolyIdeal{elem_type(polynomial_ring(RG))}, Int}}()
 
   if !isempty(primary_degrees)
     @assert length(primary_degrees) == degree(group(RG))
@@ -218,7 +220,7 @@ end
 # b == true iff primary invariants of the given degrees exist. In this case
 # invars_cache will contain those invariants.
 # k is only needed for recursive calls of the function.
-function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars_cache::PrimaryInvarsCache{PolyElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Int}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyElemT}
+function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars_cache::PrimaryInvarsCache{PolyElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Tuple{MPolyIdeal{PolyElemT}, Int}}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyElemT}
 
   n = length(degrees) - length(invars_cache.invars)
   R = polynomial_ring(RG)
@@ -262,16 +264,17 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
 
   if k <= 1
     k = 1
-    dimI = get!(ideals, Set(invars_cache.invars)) do
-      # Cache the Gröbner basis
-      invars_cache.ideal = ideal(polynomial_ring(RG), invars_cache.invars)
-      return dim(invars_cache.ideal)
+    I, dimI = get!(ideals, Set(invars_cache.invars)) do
+      I = ideal(polynomial_ring(RG), invars_cache.invars)
+      d = dim(I)
+      return (I, d)
     end
     if dimI > n
       k = 0
     end
   end
   if iszero(n) && isone(k)
+    invars_cache.ideal = ideals[Set(invars_cache.invars)][1]
     return true, k
   end
   return false, k

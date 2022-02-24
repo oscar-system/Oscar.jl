@@ -26,6 +26,18 @@
     end
     d = prod( 1 - t^total_degree(f.f) for f in primary_invariants(RG) )
     @test m == n//d
+
+    # The secondary invariants have to be a module basis. Let's test this for
+    # the degree 9 homogeneous component.
+    R = polynomial_ring(RG).R
+    C = Oscar.PowerProductCache(R, [ f.f for f in primary_invariants(RG) ])
+    b1, _ = Oscar.generators_for_given_degree!(C, [ f.f for f in secondary_invariants(RG) ], 9, false)
+    b2 = [ f.f for f in basis(RG, 9) ]
+    @test length(b1) == length(b2)
+    B = Oscar.BasisOfPolynomials(R, b2)
+    for f in b1
+      @test !Oscar.add_to_basis!(B, f)
+    end
   end
 
   s_invars = secondary_invariants(RGm)
@@ -36,6 +48,17 @@
     @test actionN4(f) == f
   end
   @test length(s_invars) == 6
+  # The secondary invariants have to be a module basis. Let's test this for
+  # the degree 6 homogeneous component.
+  R = polynomial_ring(RGm).R
+  C = Oscar.PowerProductCache(R, [ f.f for f in primary_invariants(RGm) ])
+  b1, _ = Oscar.generators_for_given_degree!(C, [ f.f for f in secondary_invariants(RGm) ], 6, false)
+  b2 = [ f.f for f in basis(RGm, 6) ]
+  @test length(b1) == length(b2)
+  B = Oscar.BasisOfPolynomials(R, b2)
+  for f in b1
+    @test !Oscar.add_to_basis!(B, f)
+  end
 
   is_invars = irreducible_secondary_invariants(RG0)
   @test issubset(is_invars, secondary_invariants(RG0))
