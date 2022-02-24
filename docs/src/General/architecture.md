@@ -28,7 +28,7 @@ and interfaces provided by the julia packages for the cornerstones:
   - [Singular.jl](https://github.com/oscar-system/Singular.jl)
 
 The packages are integrated into the julia package manager and will be
-installed automatically together with Oscar and can also be accessed directly
+installed automatically as dependencies of Oscar. They can be accessed directly
 by their names once Oscar is loaded.
 
 The current versions of these packages can be inspected with the `oscar_versioninfo` command:
