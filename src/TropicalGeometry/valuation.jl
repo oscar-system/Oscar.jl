@@ -327,8 +327,12 @@ end
 
 
 #=======
-function which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
-unless the polynomial to be reduced is p-t or t-p
+Given a polynomial f in t,x_1, ..., x_n simulating the valuation:
+- If f==p-t or f==t-p, returns f
+- Otherwise, returns a polynomial f' in <f,p-t> such that
+  * f' and f share the same monomials in x
+  * all terms of f' have distinct monomials in x
+  * all terms of f' have valuation 0 coefficients
 Example:
 val_2 = ValuationMap(QQ,2)
 Rtx,(p,x1,x2,x3) = PolynomialRing(val_2.valued_ring,["p","x1","x2","x3"])
