@@ -19,14 +19,19 @@ K,s = RationalFunctionField(QQ,"s");
 Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
 val = ValuationMap(K,s);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
-Random.seed!(3847598273423);
-tropical_variety(I,val)
+Random.seed!(3847598273423); tropical_variety(I,val)
 =======#
 function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
   if coefficient_ring(base_ring(I))!=val.valued_field
     error("input valuation not on coefficient ring of input ideal")
   end
+  for g in groebner_basis(I,complete_reduction=true) # todo: replace GB computation with interreduction
+    if !sloppy_is_homogeneous(g)
+      error("ideal needs to be homogeneous")
+    end
+  end
+
 
   ###
   # Part 1: Initialize working list and (re)compute starting points
