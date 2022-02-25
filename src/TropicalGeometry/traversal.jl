@@ -194,8 +194,9 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
                              lineality_space_gens)
 
   # construct list of weights and Groebner bases
-  weights_and_groebner_bases = [(w,G) for (w,C,G) in working_list_done]
-  return Trop_I, weights_and_groebner_bases
+  multiplicities_and_groebner_bases = [(w,multiplicity(ideal(initial(G,val,w))),G)
+                                       for (w,C,G) in working_list_done]
+  return Trop_I, multiplicities_and_groebner_bases
 end
 export tropical_variety
 

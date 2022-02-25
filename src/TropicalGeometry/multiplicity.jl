@@ -23,23 +23,20 @@ Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 inI = ideal([23*x1*x3+33*x1^11*x5,-22*x3*x4+44*x2^8*x5,-5*x2^3*x4+33*x5^2])
 multiplicity(inI)
 =======#
-function multiplicity(inI)
-
+function multiplicity(inI::MPolyIdeal; skip_groebner_basis_computation::Bool=false)
   ###
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
   ###
-  H = homogeneity_space(inI,compute_groebner_basis=true)
-  _,Eqs = rref(affine_equation_matrix(affine_hull(H)))            # rref returns rank first, which is not required here
+  H = homogeneity_space(inI,skip_groebner_basis_computation=skip_groebner_basis_computation)
+  _,Eqs = rref(matrix(QQ,lineality_space(H)))            # rref returns rank first, which is not required here
   pivotIndices = pivots(Eqs)
-  nonpivotIndices = setdiff(collect(1:ncols(Eqs)-1),pivotIndices) # the final column of Eqs represents the RHS of the linear equations,
-                                                                  # not a variable in the polynomial ring
 
   ###
   # Step 2: Construct linear equations and cut down the homogeneity space
   ###
   Kx = base_ring(inI)
   x = gens(Kx)
-  inI0 = inI + ideal(Kx,[x[i]-1 for i in nonpivotIndices])        # dim(inI1) = 1, Trop(inI) = Trop(inI1)+H
+  inI0 = inI + ideal(Kx,[x[i]-1 for i in pivotIndices])        # dim(inI1) = 1, Trop(inI) = Trop(inI1)+H
 
   ###
   # Optional: Partially saturate inI0 using satstd
@@ -59,3 +56,4 @@ function multiplicity(inI)
   singularIdeal = Singular.std(Singular.saturation(singularIdeal,prodx.gens.S)[1])
   return Singular.vdim(singularIdeal)
 end
+export multiplicity
