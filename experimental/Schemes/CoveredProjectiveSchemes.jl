@@ -365,16 +365,20 @@ end
 ### NOT TESTED YET
 function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}
 
+	X = domain(f)
+        Y = codomain(f)
+        R = base_ring(OO(X))
+	Excdiv = ideal(h)
+
 	Pf = pullback(f)
-	Iold = ideal(Pf.(g))
-	Excdiv = ideal(h)	
+        Iold = ideal(R, lifted_numerator.(Pf.(g)))
 
 	while true
 		Inew = quotient(Iold, Excdiv)
-		!(Iold == Excdiv * Inew) || break
+		!(Iold == Excdiv * Inew) && break
 		Iold = Inew 
 	end
-	return Iold
+	return gens(Iold)
 	#(IOw : Exc Div ^k), k maximal
 end
 
@@ -382,17 +386,22 @@ end
 function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyElem}
 	#(IOw : Exc Div ^i)
 
+	X = domain(f)
+        Y = codomain(f)
+        R = base_ring(OO(X))
+	Excdiv = ideal(h)
+
 	Pf = pullback(f)
-	Iold = ideal(Pf.(g))
-	Excdiv = ideal(h)	
+        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+	
 
 	for j in 1:i
 		Inew = quotient(Iold,Excdiv)
-		Inew == 1 || break
+		Inew == 1 && break
 		Iold = Inew
 	end
 	
-	return Iold
+	return gens(Iold)
 
 end
 
@@ -423,3 +432,28 @@ function total_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf)
   return IdealSheaf(X, CX, trans_dict, check=true)
 end
 
+function weak_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf)
+  X = domain(f)
+  Y = codomain(f)
+  CX = domain_covering(f)
+  CY = codomain_covering(f)
+  SpecType = affine_patch_type(X)
+  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+  for U in patches(CX)
+    trans_dict[U] = weak_transform(f[U], E[U], I[codomain(f[U])])
+  end
+  return IdealSheaf(X, CX, trans_dict, check=true)
+end
+
+function controlled_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf, i::Int)
+  X = domain(f)
+  Y = codomain(f)
+  CX = domain_covering(f)
+  CY = codomain_covering(f)
+  SpecType = affine_patch_type(X)
+  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+  for U in patches(CX)
+    trans_dict[U] = controlled_transform(f[U], E[U], I[codomain(f[U])],i)
+  end
+  return IdealSheaf(X, CX, trans_dict, check=true)
+end
