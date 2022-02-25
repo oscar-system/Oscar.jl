@@ -21,14 +21,10 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> Oscar.groebner_assure(I, degrevlex(gens(R)))
-3-element Vector{fmpq_mpoly}:
- x*y - 3*x
- y^3 - 6*x^2
- x^3 - 9//2*x
+julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
 
-julia> I.gb[degrevlex(gens(R)]
-Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, false)
+julia> I.gb[degrevlex(gens(R))]
+Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -6*x^2 + y^3, 2*x^3 - 9*x], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
@@ -69,7 +65,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, Multivariate Polynomial Ring in x, y over Rational Field, #undef, false, #undef, true)
 
-julia> B = _compute_groebner_basis(A, degrevlex(gens(R)))
+julia> B = Oscar._compute_groebner_basis(A, degrevlex(gens(R)))
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
@@ -126,13 +122,13 @@ ideal spanned by the elements in `B` w.r.t. the given monomial ordering `orderin
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex(gens(R)))
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, Multivariate Polynomial Ring in x, y over Rational Field, #undef, false, #undef, true)
 
-julia> B,m = Oscar.groebner_basis_with_transform(A)
+julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(gens(R)))
 (Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
@@ -172,14 +168,14 @@ ideal(x*y^2 - 1, x^3 + x*y + y^2)
 julia> G,m = groebner_basis_with_transformation_matrix(I)
 (fmpq_mpoly[x*y^2 - 1, x^3 + x*y + y^2, x^2 + y^4 + y], fmpq_mpoly[1 0; 0 1; -x^2 - y y^2])
 
-julia> m * gens(I) == G
+julia> gens(I)*m == collect(G)
 true
 ```
 """
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
    G, m = groebner_basis_with_transform(I.gens, ordering, complete_reduction)
    I.gb[ordering]  = G
-   return G, Array(m)
+   return G, m
  end
 
 # syzygies #######################################################
@@ -262,7 +258,7 @@ end
 
 Given a multivariate polynomial ideal `Ì` this function returns the
 leading ideal for `I`. This is done w.r.t. the given monomial ordering
-in the polynomial ring of `I`.
+(as default `degrevlex`) in the polynomial ring of `I`.
 
 # Examples
 ```jldoctest
@@ -274,6 +270,9 @@ ideal(x*y^2 - 3*x, x^3 - 14*y^5)
 
 julia> L = leading_ideal(I)
 ideal(x*y^2, x^4, y^5)
+
+julia> L = leading_ideal(I, lex(gens(R)))
+ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal)
@@ -288,28 +287,6 @@ function leading_ideal(I::MPolyIdeal, ord::MonomialOrdering)
   G = groebner_assure(I, ord)
   singular_assure(G)
   return MPolyIdeal(base_ring(I), Singular.Ideal(G.Sx, [Singular.leading_monomial(g) for g in gens(G.S)]))
-end
-
-@doc Markdown.doc"""
-    leading_ideal(I::MPolyIdeal, ordering::Symbol)
-
-Given a multivariate polynomial ideal `Ì` and a monomial ordering `ordering`
-this function returns the leading ideal for `I` w.r.t. `ordering`.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-
-julia> I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
-ideal(x*y^2 - 3*x, x^3 - 14*y^5)
-
-julia> L = leading_ideal(I, :lex)
-ideal(y^7, x*y^2, x^3)
-```
-"""
-function leading_ideal(I::MPolyIdeal, ordering::Symbol)
-  return leading_ideal(groebner_basis(I; ordering=ordering), ordering)
 end
 
 @doc Markdown.doc"""
