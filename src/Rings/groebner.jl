@@ -24,7 +24,7 @@ ideal(x*y - 3*x, -2*x^2*y + y^3)
 julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
 
 julia> I.gb[degrevlex(gens(R))]
-Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -6*x^2 + y^3, 2*x^3 - 9*x], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
+Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
@@ -166,16 +166,17 @@ julia> I = ideal([x*y^2-1,x^3+y^2+x*y])
 ideal(x*y^2 - 1, x^3 + x*y + y^2)
 
 julia> G,m = groebner_basis_with_transformation_matrix(I)
-(fmpq_mpoly[x*y^2 - 1, x^3 + x*y + y^2, x^2 + y^4 + y], fmpq_mpoly[1 0; 0 1; -x^2 - y y^2])
+(fmpq_mpoly[x*y^2 - 1, x^3 + x*y + y^2, x^2 + y^4 + y], [1 0 -x^2-y; 0 1 y^2])
 
-julia> gens(I)*m == collect(G)
+julia> gens(I)*m == G
 true
+
 ```
 """
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
    G, m = groebner_basis_with_transform(I.gens, ordering, complete_reduction)
    I.gb[ordering]  = G
-   return G, m
+   return collect(G), m
  end
 
 # syzygies #######################################################
