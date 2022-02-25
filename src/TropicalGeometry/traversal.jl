@@ -9,6 +9,28 @@
 #   D. Maclagan, B. Sturmfels: Introduction to tropical geometry
 ###
 
+function homogenize(I::MPolyIdeal)
+  G = groebner_basis(I,complete_reduction=true)
+
+  Kx = base_ring(I)
+  K = coefficient_ring(Kx)
+  x = symbols(Kx)
+  Kxh,_ = PolynomialRing(K,vcat([:xh],x))
+
+  Gh = Vector{elem_type(Kx)}(undef,length(G))
+  for (i,g) in enumerate(G)
+    gh = MPolyBuildCtx(Kxh)
+    d = max([sum(expv) for expv in exponent_vectors(g)]...) # degree of g
+    for (c,alpha) in zip(coefficients(g),exponent_vectors(g))
+      pushfirst!(alpha,d-sum(alpha)) # homogenize exponent vector
+      push_term!(gh,c,alpha)
+    end
+    Gh[i] = finish(gh)
+  end
+
+  return ideal([homogenize(g) for g in G])
+end
+
 
 #=======
 tropical variety of an ideal
@@ -26,9 +48,13 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   if coefficient_ring(base_ring(I))!=val.valued_field
     error("input valuation not on coefficient ring of input ideal")
   end
+  was_input_homogeneous = true
   for g in groebner_basis(I,complete_reduction=true) # todo: replace GB computation with interreduction
     if !sloppy_is_homogeneous(g)
-      error("ideal needs to be homogeneous")
+      println("WARNING: ideal not homogeneous, output not dehomogenized yet")
+      was_input_homogeneous = false
+      I = homogenize(I)
+      break
     end
   end
 
