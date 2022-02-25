@@ -17,12 +17,12 @@ the following six steps for submitting changes to the Oscar source:
    git checkout -b yi/issue1234
    git checkout -b yi/document_feature
    ```
-4. Edit your source and try out your changes locally. To use your local copy of
+4. Edit your source and try out your changes locally (see below). To use your local copy of
    the sources, start Julia and
    ```
    ]dev /path/to/local/clone/of/your/fork/of/Oscar.jl
    ```
-   If this succeeds, you can `using Oscar` in Julia and it will use your local
+   If this succeeds, you can enter `using Oscar` in Julia and it will use your local
    copy.
 5. Once you are done editing, push your branch and open a pull request. It is
    recommended that you open a draft pull request to the main Oscar repository
@@ -42,7 +42,7 @@ bug this is probably a minor question).
 ### Adding tests
 
 ### Adding documentation
-There are two places where documentation can added:
+There are two places where documentation can be added:
 1. In the docstrings above the functions in the `src` folder;
 2. In the documentation files in the `docs/src` folder.
 In general, 1 is preferred to 2, i.e. any explanation of the functions and
