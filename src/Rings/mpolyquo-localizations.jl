@@ -1111,10 +1111,9 @@ function is_isomorphism(
   denoms = Vector{elem_type(B)}()
   for f in images(phi)
     J_ext = ideal(B, push!(gens(J), inc2(denominator(f))))
-    g, M = groebner_basis_with_transformation_matrix(J_ext)
-    G = collect(g)
+    G, M = groebner_basis_with_transformation_matrix(J_ext)
     G[1]==one(B) || error("the denominator is not a unit in the target ring")
-    push!(denoms, last(M))
+    push!(denoms, last(collect(M)))
   end
 
   # write the images as polynomials in B 
@@ -1127,10 +1126,9 @@ function is_isomorphism(
     p = lifted_numerator(phi_h)
     q = lifted_denominator(phi_h)
     J_ext = ideal(B, push!(gens(J), inc2(p)))
-    g, M = groebner_basis_with_transformation_matrix(J_ext)
-    G = collect(g)
+    G, M = groebner_basis_with_transformation_matrix(J_ext)
     G[1]==one(B) || error("the denominator is not a unit in the target ring")
-    push!(denoms, inc2(q)*last(M))
+    push!(denoms, inc2(q)*last(collect(M)))
   end
   pushfirst!(imagesB, prod(denoms))
 
