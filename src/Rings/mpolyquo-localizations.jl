@@ -683,6 +683,7 @@ function ideal(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST},
 end
 
 ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:RingElement} = ideal(L, [g])
+ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:MPolyQuoLocalizedRingElem} = ideal(L, [g])
 
 @Markdown.doc """
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}

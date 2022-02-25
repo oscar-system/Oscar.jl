@@ -654,7 +654,7 @@ end
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
-  return SpecOpenMor(U, V, [SpecMor(U[1], Y, f, check=check)], check=check)
+  return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
 end
 
 
@@ -809,7 +809,7 @@ function restriction(
   return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end
 
-identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V))), check=false) for V in affine_patches(U)], check=false)
+identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], check=false)
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
   canonically_isomorphic(domain(f), domain(g)) || return false

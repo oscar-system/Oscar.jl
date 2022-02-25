@@ -344,7 +344,7 @@ function Base.intersect(
   I = IX + IY
   R = base_ring(OO(X))
   L = MPolyQuoLocalizedRing(R, I, U)
-  one(localized_ring(L)) in localized_modulus(L) && return EmptyScheme(coefficient_ring(R))
+  #one(localized_ring(L)) in localized_modulus(L) && return EmptyScheme(coefficient_ring(R))
   return Spec(L)
 end
 
@@ -415,7 +415,7 @@ function SpecMor(
       f::Vector;
       check::Bool=true
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), f, check=check), check=check)
+  return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
 identity_map(X::Spec) = SpecMor(X, X, gens(base_ring(OO(X))))
