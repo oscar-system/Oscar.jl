@@ -15,4 +15,4 @@ include("Schemes/IdealSheaves.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 include("Schemes/VectorBundle.jl")
-
+include("Schemes/smoothness_tests.jl")

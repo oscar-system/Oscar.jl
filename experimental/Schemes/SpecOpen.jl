@@ -36,10 +36,17 @@ this is an open subset;
   intersections::Dict{Tuple{Int, Int}, SpecType}
   complement::SpecType
 
-  function SpecOpen(X::SpecType, f::Vector{RET}; name::String="") where {SpecType<:Spec, RET<:RingElem}
+  function SpecOpen(
+      X::SpecType, 
+      f::Vector{RET}; 
+      name::String="", 
+      check::Bool=true
+    ) where {SpecType<:Spec, RET<:RingElem}
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
-      !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
+      if check
+        !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
+      end
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
     length(name) > 0 && set_name!(U, name)
@@ -227,7 +234,9 @@ end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
   base_ring(OO(ambient(U))) === base_ring(OO(ambient(V))) || return false
-  Z = complement(V)
+  W = V
+  issubset(W, ambient(U)) || (W = intersect(V, ambient(U)))
+  Z = complement(W)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
   # efficient than computing radicals.
   for g in gens(U)
@@ -629,21 +638,23 @@ function Base.show(io::IO, f::SpecOpenMor)
   print(io, "Morphism from $(domain(f)) to $(codomain(f)) given by the rational map $(generic_fractions(f))")
 end
 
-function SpecOpenMor(U::T, V::T, f::Vector) where {T<:SpecOpen}
+function SpecOpenMor(U::T, V::T, f::Vector; check::Bool=true) where {T<:SpecOpen}
   Y = ambient(V)
-  return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in affine_patches(U)]) 
+  return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in affine_patches(U)], check=check) 
 end
 
-function inclusion_morphism(U::T, V::T) where {T<:SpecOpen}
+function inclusion_morphism(U::T, V::T; check::Bool=true) where {T<:SpecOpen}
   X = ambient(U)
-  canonically_isomorphic(ambient(V), X) || error("method not implemented")
-  return SpecOpenMor(U, V, gens(base_ring(OO(X))))
+  if check 
+    issubset(U, V) || error("method not implemented")
+  end
+  return SpecOpenMor(U, V, gens(base_ring(OO(X))), check=false)
 end
 
-function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}) where {SpecType<:Spec, RET<:RingElem}
-  U = SpecOpen(X, [d])
-  V = SpecOpen(Y, [e])
-  return SpecOpenMor(U, V, [SpecMor(U[1], Y, f)])
+function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
+  U = SpecOpen(X, [d], check=check)
+  V = SpecOpen(Y, [e], check=check)
+  return SpecOpenMor(U, V, [SpecMor(U[1], Y, f, check=check)], check=check)
 end
 
 
@@ -660,11 +671,13 @@ Compute the composition of two morphisms
 
 of open sets of affine varieties.
 """
-function compose(f::T, g::T) where {T<:SpecOpenMor}
+function compose(f::T, g::T; check::Bool=true) where {T<:SpecOpenMor}
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
-  issubset(Cf, V) || error("maps are not compatible")
+  if check
+    issubset(Cf, V) || error("maps are not compatible")
+  end
   W = codomain(g)
   X = ambient(U)
   Y = ambient(V)
@@ -770,9 +783,9 @@ function restriction(
     issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
     issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
   end
-  inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in affine_patches(U)])
-  help_map = compose(inc, f)
-  return SpecOpenMor(U, V, maps_on_patches(help_map))
+  inc = inclusion_morphism(U, domain(f), check=check)
+  help_map = compose(inc, f, check=check)
+  return SpecOpenMor(U, V, maps_on_patches(help_map), check=check)
 end
 
 ### the restriction of a morphism to closed subsets in domain and codomain
@@ -786,16 +799,17 @@ function restriction(
   V = intersect(Y, codomain(f))
 
   # first restrict in the domain by composing with the inclusion
-  inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in affine_patches(U)])
-  help_map = compose(inc, f)
+  inc = inclusion_morphism(U, domain(f), check=check)
+  #inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W))), check=check) for W in affine_patches(U)], check=check)
+  help_map = compose(inc, f, check=check)
 
   # then manually restrict on the codomain by modifying the maps on the patches
   new_maps_on_patches = [restrict(h, domain(h), Y) for h in maps_on_patches(help_map)]
 
-  return SpecOpenMor(U, V, new_maps_on_patches)
+  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end
 
-identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V)))) for V in affine_patches(U)])
+identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V))), check=false) for V in affine_patches(U)], check=false)
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
   canonically_isomorphic(domain(f), domain(g)) || return false

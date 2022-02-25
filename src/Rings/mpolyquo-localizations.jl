@@ -582,7 +582,7 @@ function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where 
 end
 
 function *(a::BRET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(base_ring(b)(a)*lifted_numerator(b), lifted_denominator(b), check=false))
+  return reduce_fraction((parent(b))(a*lifted_numerator(b), lifted_denominator(b), check=false))
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
@@ -632,30 +632,30 @@ function ^(a::MPolyQuoLocalizedRingElem, i::Integer)
 end
 
 function isone(a::MPolyQuoLocalizedRingElem) 
-  a = reduce_fraction(a)
-  return (numerator(a) == denominator(a))
+  return lifted_numerator(a) - lifted_denominator(a) in localized_modulus(parent(a))
 end
 
 function iszero(a::MPolyQuoLocalizedRingElem)
-  a = reduce_fraction(a)
-  return iszero(numerator(a))
+  return lifted_numerator(a) in localized_modulus(parent(a))
 end
 
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+  return f
   h = lift(f)
   h = reduce(h, groebner_basis(localized_modulus(parent(f))))
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h)
+  return parent(f)(h, check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
+  return f
   h = lift(f)
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h)
+  return parent(f)(h, check=false)
 end
 
 ### implementation of Oscar's general ring interface
@@ -939,9 +939,10 @@ end
 function MPolyQuoLocalizedRingHom(
     L::MPolyQuoLocalizedRing,
     S::Ring,
-    a::Vector{T}
+    a::Vector{T};
+    check::Bool=true
   ) where {T<:RingElem}
-  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a))
+  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
 hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a)

@@ -114,8 +114,9 @@ end
 function Covering(patches::Vector{SpecType}) where {SpecType<:Spec}
   g = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
   for X in patches
-    f = maximal_extension(X, X, fraction.(gens(OO(X))))
-    g[X,X] = Glueing(X, X, f, f)
+    U = SpecOpen(X)
+    f = identity_map(U)
+    g[X,X] = Glueing(X, X, f, f, check=false)
   end
   return Covering(patches, g, check=false)
 end
@@ -152,14 +153,39 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
     push!(U, Spec(R, I))
   end
   result = Covering(U)
-  for i in 2:r+1
-    x = gens(base_ring(OO(U[1])))
-    y = gens(base_ring(OO(U[i])))
-    f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r]))
-    g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r]))
-    add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
+  for i in 1:r
+    for j in i+1:r+1
+      x = gens(base_ring(OO(U[i])))
+      y = gens(base_ring(OO(U[j])))
+      f = SpecOpenMor(U[i], x[j-1], 
+                      U[j], y[i],
+                      vcat([x[k]//x[j-1] for k in 1:i-1],
+                           [1//x[j-1]],
+                           [x[k-1]//x[j-1] for k in i+1:j-1],
+                           [x[k]//x[j-1] for k in j:r],
+                           x[r+1:end]),
+                      check=false
+                     )
+      g = SpecOpenMor(U[j], y[i],
+                      U[i], x[j-1],
+                      vcat([y[k]//y[i] for k in 1:i-1],
+                           [y[k+1]//y[i] for k in i:j-2],
+                           [1//y[i]],
+                           [y[k]//y[i] for k in j:r],
+                           y[r+1:end]),
+                      check=false
+                     )
+      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+    end
   end
-  fill_transitions!(result)
+# for i in 2:r+1
+#   x = gens(base_ring(OO(U[1])))
+#   y = gens(base_ring(OO(U[i])))
+#   f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r]))
+#   g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r]))
+#   add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
+# end
+# fill_transitions!(result)
   set_attribute!(X, :standard_covering, result)
   return result
 end
@@ -212,7 +238,8 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
                            [1//x[j-1]],
                            [x[k-1]//x[j-1] for k in i+1:j-1],
                            [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end])
+                           x[r+1:end]),
+                      check=false
                      )
       g = SpecOpenMor(U[j], y[i],
                       U[i], x[j-1],
@@ -220,9 +247,10 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
                            [y[k+1]//y[i] for k in i:j-2],
                            [1//y[i]],
                            [y[k]//y[i] for k in j:r],
-                           y[r+1:end])
+                           y[r+1:end]),
+                      check=false
                      )
-      add_glueing!(result, Glueing(U[i], U[j], f, g))
+      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
     end
   end
   #fill_transitions!(result)

@@ -37,6 +37,10 @@ export ideal_sheaf_type
     end
     if check
       for ((X, Y), G) in glueings(C)
+        # We also allow ideal sheaves that are not fully specified on all 
+        # patches, assuming that canonical extension is possible.
+        X in keys(I) || continue
+        Y in keys(I) || continue
         (U, V) = glueing_domains(G)
         (f, g) = glueing_morphisms(G)
         for i in 1:npatches(U)
@@ -243,4 +247,17 @@ function Base.show(io::IO, I::IdealSheaf)
     return 
   end
   print(io, "sheaf of ideals on $(scheme(I))")
+end
+
+function canonically_isomorphic(I::T, J::T) where{T<:IdealSheaf}
+  X = scheme(I)
+  X == scheme(J) || return false
+  C = covering(I)
+  C == covering(J) || error("comparison not implemented")
+  for U in patches(C)
+    if ideal(OO(U), I[U]) != ideal(OO(U), J[U])
+      return false
+    end
+  end
+  return true
 end

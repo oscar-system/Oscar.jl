@@ -42,7 +42,7 @@ polynomial algebra of type `RT` over a base ring ``k`` of type
 with elements of type `RET`, and ``S`` a multiplicative set in ``R`` of 
 type `MST`.
 """
-mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
+@attributes mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   # the basic fields 
   OO::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}
   # fields for caching
@@ -269,6 +269,7 @@ function canonically_isomorphic(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  X === Y && return true
   isempty(X) && isempty(Y) && return true
   base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
@@ -383,10 +384,14 @@ end
   function SpecMor(
       X::DomainType,
       Y::CodomainType,
-      pullback::PullbackType
+      pullback::PullbackType;
+      check::Bool=true
     ) where {DomainType<:Spec, CodomainType<:Spec, PullbackType<:MPolyQuoLocalizedRingHom}
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
+    if check
+      # do some more expensive tests
+    end
     return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end
 end
@@ -407,9 +412,10 @@ codomain(phi::SpecMor) = phi.codomain
 function SpecMor(
       X::Spec{BRT, BRET, RT, RET, MST1},
       Y::Spec{BRT, BRET, RT, RET, MST2},
-      f::Vector
+      f::Vector;
+      check::Bool=true
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), f))
+  return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), f, check=check), check=check)
 end
 
 identity_map(X::Spec) = SpecMor(X, X, gens(base_ring(OO(X))))
@@ -421,12 +427,12 @@ function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
     issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
     issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
   end
-  return SpecMor(U, V, images(pullback(f)))
+  return SpecMor(U, V, images(pullback(f)), check=check)
 end
 
 function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
   codomain(f) == domain(g) || error("Morphisms can not be composed")
-  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
+  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
 
 function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
@@ -539,3 +545,11 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = PolynomialRing(kk, var_symbols)
   return Spec(R)
 end
+
+function dim(X::Spec)
+  if !has_attribute(X, :dim)
+    set_attribute!(X, :dim, dim(saturated_ideal(localized_modulus(OO(X)))))
+  end
+  return get_attribute(X, :dim)::Int64
+end
+

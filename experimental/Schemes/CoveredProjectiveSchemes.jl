@@ -8,6 +8,8 @@ export blow_up, empty_covered_projective_scheme
 
 export strict_transform, total_transform, weak_transform, controlled_transform
 
+export prepare_smooth_center
+
 mutable struct ProjectiveGlueing{
                                  GlueingType<:Glueing,
                                  ProjectiveSchemeType<:ProjectiveScheme,
@@ -168,6 +170,8 @@ end
 
 # blow up X in the center described by g using these explicit generators.
 function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyElem}
+  @show W
+  @show I
 
   # some internal function
   function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
@@ -200,15 +204,22 @@ function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyEle
   #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
   SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
 
+  @show "done. Proceed to process"
   projective_version = subscheme(Pw, SIWpre)
+  @show 1
   covered_version = as_covered_scheme(projective_version)
+  @show 2
   projection_map = get_attribute(projective_version, :covered_projection_to_base)
+  @show 3
   E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
   for i in 1:length(I)
+    @show i
     U = default_covering(covered_version)[i]
     E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
   end
-  exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict)
+  @show 4
+  exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
+  @show "processing done."
   return projective_version, covered_version, projection_map, exc_div
 end
 
@@ -422,4 +433,110 @@ function total_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf)
   end
   return IdealSheaf(X, CX, trans_dict, check=true)
 end
+
+function prepare_smooth_center(I::IdealSheaf; check::Bool=true)
+  X = scheme(I)
+  C = covering(I)
+  res_dict = Dict{affine_patch_type(X), Vector{poly_type(affine_patch_type(X))}}()
+  for U in patches(C)
+    if check
+      is_equidimensional_and_smooth(U) || error("ambient space is not smooth")
+    end
+    merge!(res_dict, prepare_smooth_center(U, I[U], check=check))
+  end
+  Z = subscheme(I)
+  CZ = default_covering(Z)
+  if check
+    for U in patches(CZ)
+      is_equidimensional_and_smooth(U) || error("center is not smooth")
+    end
+  end
+  return I
+end
+
+function prepare_smooth_center(X::Spec, f::Vector{PolyType}; check::Bool=true) where {PolyType<:MPolyElem}
+  Z = subscheme(X, f)
+  Df = jacobi_matrix(f)
+  d = dim(Z)
+  n = nvars(base_ring(OO(U)))
+end
+
+function as_smooth_local_complete_intersection(X::CoveredScheme; check::Bool=true)
+  C = default_covering(X)
+  SpecType = affine_patch_type(X)
+  PolyType = poly_type(SpecType)
+  res_dict = Dict{SpecType, Vector{PolyType}}()
+  for U in patches(C)
+    merge!(res_dict, as_smooth_local_complete_intersection(U))
+  end
+  return res_dict
+end
+
+function as_smooth_local_complete_intersection(X::Spec; check::Bool=true)
+  R = base_ring(OO(X))
+  f = modulus(OO(X))
+  Df = jacobi_matrix(f)
+  d = dim(X)
+  n = nvars(R)
+  return _as_smooth_lci_rec(X, X, (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, d, n)
+end
+
+function _as_smooth_lci_rec(
+    X::SpecType, 
+    Z::SpecType, # the uncovered locus
+    good::Tuple{Vector{Int}}, # partial derivatives that form the beginning of the solution sequence
+    bad::Vector{Tuple{Int, Int}}, # partial derivatives that vanish on the uncovered locus.
+    f::Vector{PolyType}, 
+    Df::MatrixType,
+    d::Int, n::Int;
+    check::Bool=true
+  ) where{
+          SpecType<:Spec,
+          PolyType<:MPolyElem,
+          MatrixType
+         }
+  if length(good[1]) == n-d
+    g = det(Df[good[1], good[2]])
+    isempty(subscheme(C, g)) || error("scheme is not smooth")
+    U = hypersurface_complement(X, g)
+    res_dict = Dict{typeof(U), Vector{PolyType}}
+    res_dict[U] = f[good[2]]
+    return res_dict
+  end
+
+  R = base_ring(OO(X))
+  W = localized_ring(OO(X))
+  J = localized_modulus(OO(Z))
+  Df_red = Df
+  m = ncols(Df)
+  n = nrows(Df)
+  max = -1
+  (k, l) = (0, 0)
+  for i in [a for a in 1:n if !(a in good[1])]
+    for j in [b for b in 1:m if !(b in good[2])]
+      if !(i,j) in bad
+        Df_red[i, j] = numerator(reduce_fraction(OO(W)(Df_red[i, j]), groebner_basis(J)))
+        if !iszero(Df_red[i, j]) && total_degree(Df_red[i, j]) > max 
+          max = total_degree(Df_red[i, j])
+          (k, l) = (i, j)
+        end
+      end
+    end
+  end
+  @show (k, l)
+  @show Df_red[k, l]
+  if max == -1 
+    error("no nonzero entry could be found")
+  end
+
+  good_ext = (vcat(good[1], k), vcat(good[2], l))
+  g = det(Df[good_ext[1], good_ext[2]])
+  U = hypersurface_complement(X, g)
+  U_dict = _as_smooth_lci_rec(U, intersect(U, C), good_ext, bad, f, Df, d, n)
+  bad_ext = vcat(bad, (k, l))
+  V_dict = _as_smooth_lci_rec(X, subscheme(C, g), good, bad_ext, f, Df, d, n)
+  return merge!(U_dict, V_dict)
+end
+
+
 

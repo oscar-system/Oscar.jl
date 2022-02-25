@@ -977,7 +977,7 @@ function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BR
 end
 
 function *(a::BRET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
-  return (parent(b))(a*fraction(b), check=false)
+  return (parent(b))(a*numerator(b), denominator(b), check=false)
 end
 
 function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
