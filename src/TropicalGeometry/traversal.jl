@@ -28,8 +28,9 @@ function homogenize(I::MPolyIdeal)
     Gh[i] = finish(gh)
   end
 
-  return ideal([homogenize(g) for g in G])
+  return ideal(Gh)
 end
+export homogenize
 
 
 #=======
@@ -93,7 +94,9 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     facet_points_done = []
     compute_starting_points = false
     for starting_point in starting_points
+      print("computing groebner_basis for starting point ",starting_point,"... ")
       G = groebner_basis(I,val,starting_point)
+      println("done")
       C = groebner_polyhedron(G,val,starting_point)
       w = anchor_point(C)
 
