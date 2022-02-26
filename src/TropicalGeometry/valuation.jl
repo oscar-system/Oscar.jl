@@ -103,15 +103,13 @@ end
 ###
 
 # t-adic valuation for elements in the valued field (=rational functions):
-function t_adic_valuation(c::AbstractAlgebra.Generic.Rat)
+function t_adic_valuation(c::Generic.Rat)
   num = numerator(c)
   nom = denominator(c)
-  valnum = first(i for i in 0:degree(num) if !iszero(coeff(num, i)))
-  valnom = first(i for i in 0:degree(nom) if !iszero(coeff(nom, i)))
-  return valnum-valnom
+  return t_adic_valuation(num)-t_adic_valuation(nom)
 end
 # t-adic valuation for elements in the valued ring (=polynomials):
-function t_adic_valuation(c::fmpq_poly)
+function t_adic_valuation(c::PolyElem)
   return first(i for i in 0:degree(c) if !iszero(coeff(c, i)))
 end
 
@@ -351,7 +349,7 @@ tighten_simulation(s^3*f,val_s)
 tighten_simulation(t^3*f,val_s)
 =======#
 function tighten_simulation(f::MPolyElem,val::ValuationMap)
-
+  @assert !iszero(f)
   # return f if f = p-t or t-p
   Rtx = parent(f)
   p = val.uniformizer_ring
