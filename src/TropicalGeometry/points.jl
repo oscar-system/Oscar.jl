@@ -28,7 +28,7 @@ val_t = ValuationMap(Ft,t)
 Ftx,(x,y,z) = PolynomialRing(Ft,3)
 random_affine_linear_polynomials(3,Ftx,val_t)
 =======#
-function random_affine_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=19)
+function random_affine_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=29)
   n = length(gens(Kx))
   p = val.uniformizer_field
 
@@ -51,6 +51,17 @@ function random_affine_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where
   return lin_polys
 end
 export random_affine_linear_polynomials
+
+
+function random_valued_ring_elem(s)
+  random_coeffs_and_powers = zip([rand(-99:99) for i in 1:2],[rand(1:9) for i in 1:2])
+  (c,d),random_coeffs_and_powers = Iterators.peel(random_coeffs_and_powers)
+  a = c*s^d
+  for (c,d) in random_coeffs_and_powers
+    a += c*s^d
+  end
+  return a
+end
 
 
 #=======
@@ -89,9 +100,15 @@ function tropical_points(I::MPolyIdeal,val::ValuationMap; convention=:max, local
     println(I)
     error("input ideal is has no solutions")
   end
-  while (d>0)
-    # todo: change random_affine_linear_polynomials to be of the form x_i-z_i for i in an independent set and z_i of valuation 0 random
-    I = I + ideal(random_affine_linear_polynomials(d,Kx,val))
+  while (d!=0)
+    p = val.uniformizer_field
+    singular_assure(I)
+    sI = Singular.std(I.gens.S)
+    sR = base_ring(sI)
+    sK = coefficient_ring(sR)
+    sp = sK(p)
+    sI = sI + Singular.Ideal(sR,[x-random_valued_ring_elem(sp) for x in first(Singular.independent_sets(sI))])
+    I = ideal(Kx,sI)
     d = dim(I)
   end
 
