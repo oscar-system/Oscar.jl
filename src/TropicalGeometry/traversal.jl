@@ -88,7 +88,7 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     compute_starting_points = false
     for starting_point in starting_points
       G = groebner_basis(I,val,starting_point)
-      C = groebner_polyhedron(I,val,starting_point,skip_groebner_basis_computation=true)
+      C = groebner_polyhedron(G,val,starting_point)
       w = anchor_point(C)
 
       # if C is lower-dimensional, recompute all starting points
