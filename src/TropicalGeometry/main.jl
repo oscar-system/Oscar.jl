@@ -85,6 +85,29 @@ function gcd(F::Vector{fmpq})
   return 1
 end
 
+function gcd(F::Vector{gfp_poly})
+  if length(F)==1
+    return F[1]
+  end
+  gcdF = gcd(F[1],F[2])
+  for i in 3:length(F)
+    gcdF = gcd(gcdF,F[i])
+  end
+  return gcdF
+end
+
+function gcd(F::Vector{AbstractAlgebra.Generic.Rat{gfp_elem}})
+  if length(F)==1
+    return F[1]
+  end
+  gcdF = gcd(F[1],F[2])
+  for i in 3:length(F)
+    gcdF = gcd(gcdF,F[i])
+  end
+  return gcdF
+end
+
+
 ###
 # Allow Singular.satstd over coefficient rings
 ###
