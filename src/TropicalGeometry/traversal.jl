@@ -45,13 +45,17 @@ Random.seed!(3847598273423); tropical_variety(I,val)
 =======#
 function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
+  ###
+  # Part 0: Preprocessing
+  #   Check whether valuation is on the coefficient ring of input polynomials,
+  #   homogenize input ideal if inhomogeneous
+  ###
   if coefficient_ring(base_ring(I))!=val.valued_field
     error("input valuation not on coefficient ring of input ideal")
   end
   was_input_homogeneous = true
   for g in groebner_basis(I,complete_reduction=true) # todo: replace GB computation with interreduction
     if !sloppy_is_homogeneous(g)
-      println("WARNING: ideal not homogeneous, output not dehomogenized yet")
       was_input_homogeneous = false
       I = homogenize(I)
       break
@@ -59,9 +63,11 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   end
 
 
+
   ###
-  # Part 1: Initialize working list and (re)compute starting points
-  #   until all starting points lie in the relative interior of maximal cells
+  # Part 1: Computing tropical starting polyhedra (todo: avoid recomputation)
+  #   - compute and recompute starting points until they lie in the relative interior of maximal cells
+  #   - initialize working lists
   ###
 
   # Note: a working list entry consists of a triple (w,C,G) where
@@ -108,8 +114,10 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     end
   end
 
+
+
   ###
-  # Part 2: Traversing the tropical variety
+  # Part 2: Traversing tropical variety
   ###
   while !isempty(working_list_todo)
     print("#working_list_todo: ",length(working_list_todo),"  ")
@@ -121,8 +129,6 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     insert!(working_list_done, i, (w,C,G))
 
     points_to_traverse = facet_points(C)
-    # println("================================================== points_to_traverse")
-    # display(points_to_traverse)
     for point_to_traverse in points_to_traverse
       # if point was traversed before, skip
       i = searchsortedfirst(facet_points_done,point_to_traverse)
@@ -133,8 +139,6 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
       insert!(facet_points_done, i, point_to_traverse)
 
       directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse) # todo, this output can be wrong
-      # println("================================================== directions_to_traverse")
-      # display(directions_to_traverse)
       for direction_to_traverse in directions_to_traverse
         # compute neighbour
         G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
@@ -156,24 +160,34 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
           continue
         end
         # otherwise, add neighbour to todo list
-        # println("================================================== new working_list_done entry")
-        # println(point_to_traverse)
-        # println(direction_to_traverse)
-        # display(G_neighbour)
-        # println(w_neighbour)
-        # display(facet_points(C_neighbour))
-        # display([wCG[1] for wCG in working_list_todo])
-        # display([wCG[1] for wCG in working_list_done])
         insert!(working_list_todo, i, (w_neighbour,C_neighbour,G_neighbour))
       end
     end
   end
 
+
+
   ###
-  # Part 3: Preparing data to return
+  # Part 3: Postprocessing
   ###
 
-  # 3.1 construct incidence_matrix, vertices_and_rays, and far_vertices for PolyhedralComplex
+  # 3.0: dehomogenize data if input was homogenized
+  if !was_input_homogeneous
+    n = length(gens(base_ring(I)))
+
+    # 3.0.1: dehomogenize Groebner polyhedra
+    zeroth_unit_vector_as_row_vector = zeros(Int,1,n)
+    zeroth_unit_vector_as_row_vector[1,1] = 1
+    dehomogenising_hyperplane = Polyhedron((zeros(Int,0,n),zeros(Int,0)),
+                                           (zeroth_unit_vector_as_row_vector,[1]))
+    for wCG in working_list_done
+      wCG[2] = intersect(wCG[2],dehomogenising_hyperplane)
+    end
+    # 3.0.2: check that initial ideals are distinct (todo)
+  end
+
+  # 3.1 construct incidence_matrix, vertices_and_rays, and far_vertices
+  #       for the construction of PolyhedralComplex
   incidence_matrix = Vector{Vector{Int}}()
   vertices_and_rays = Vector{Vector{Polymake.Rational}}()
   far_vertices = Vector{Int}()
