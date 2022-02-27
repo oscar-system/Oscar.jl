@@ -8,13 +8,13 @@ This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
 
 using AbstractAlgebra
 
-import Base: deepcopy_internal, hash, isone, iszero, length, parent, +, -, *
+import Base: deepcopy_internal, hash, isless, isone, iszero, length, parent, +, -, *, ==
 
 import AbstractAlgebra: CacheDictType, get_cached!
 
 import AbstractAlgebra: Ring, RingElement
 
-import AbstractAlgebra: base_ring, check_parent, coeff, combine_like_terms!, degree, elem_type, expressify, gen, gens, isconstant, isgen, isunit, nvars, parent_type, sort_terms!, symbols, total_degree, vars
+import AbstractAlgebra: base_ring, check_parent, coeff, combine_like_terms!, degree, elem_type, expressify, gen, gens, isconstant, isgen, isunit, nvars, parent_type, promote_rule, sort_terms!, symbols, total_degree, vars
 
 import AbstractAlgebra.Generic: ordering
 
@@ -97,7 +97,7 @@ end
 
 function gen(a::MPolyRingSparse{T}, i::Int, ::Type{Val{:degrevlex}}) where {T <: RingElement}
     n = a.num_vars
-    return a([one(base_ring(a))], [[(n-i+1,1)]])
+    return a([one(base_ring(a))], [[(i,1)]])
 end
 
 function gens(a::MPolyRingSparse{T}) where {T <: RingElement}
@@ -153,16 +153,40 @@ function monomial_cmp(a::Vector{Tuple{Int,Int}}, b::Vector{Tuple{Int,Int}}, R::M
     if R.ord == :lex
         for i in 1:min(length(a), length(b))
             if a[i][1] != b[i][1]
-                return a[i][1] - b[i][1]
+                return b[i][1] - a[i][1]
             elseif a[i][2] != b[i][2]
                 return a[i][2] - b[i][2]
             end
         end
         return length(a) - length(b)
     elseif R.ord == :deglex
-        # TODO
+        dega = sum(x -> x[2], a; init=0)
+        degb = sum(x -> x[2], b; init=0)
+        if dega != degb
+            return dega - degb
+        end
+        for i in 1:min(length(a), length(b))
+            if a[i][1] != b[i][1]
+                return b[i][1] - a[i][1]
+            elseif a[i][2] != b[i][2]
+                return a[i][2] - b[i][2]
+            end
+        end
+        return length(a) - length(b)
     elseif R.ord == :degrevlex
-        # TODO
+        dega = sum(x -> x[2], a; init=0)
+        degb = sum(x -> x[2], b; init=0)
+        if dega != degb
+            return dega - degb
+        end
+        for i in 0:min(length(a), length(b))-1
+            if a[length(a)-i][1] != b[length(b)-i][1]
+                return b[length(b)-i][1] - a[length(a)-i][1]
+            elseif a[length(a)-i][2] != b[length(b)-i][2]
+                return b[length(b)-i][2] - a[length(a)-i][2]
+            end
+        end
+        return length(a) - length(b)
     end
 end
 
@@ -298,14 +322,14 @@ function total_degree(f::MPolySparse{T}) where {T <: RingElement}
     if ord == :lex
         max_deg = -1
         for i = 1:length(f)
-            sum_deg = sum(x -> x[2], f.exps[i])
+            sum_deg = sum(x -> x[2], f.exps[i]; init=0)
             if sum_deg > max_deg
                 max_deg = sum_deg
             end
         end
         return max_deg
     elseif ord == :deglex || ord == :degrevlex
-        return length(f) == 0 ? -1 : sum(x -> x[2], f.exps[end])
+        return length(f) == 0 ? -1 : sum(x -> x[2], f.exps[1])
     else
         error("total_degree is not implemented for this ordering.")
     end
@@ -481,7 +505,28 @@ end
 #
 ###############################################################################
 
-# TODO
+function ==(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+    fl = check_parent(a, b, false)
+    !fl && return false
+    if length(a) != length(b)
+        return false
+    end
+    for i = 1:length(a)
+        if a.exps[i] != b.exps[i]
+            return false
+        end
+        if a.coeffs[i] != b.coeffs[i]
+            return false
+        end
+    end
+    return true
+end
+
+function Base.isless(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+    check_parent(a, b)
+    (!ismonomial(a) || !ismonomial(b)) && error("Not monomials in comparison")
+    return monomial_isless(a.exps[1], b.exps[1], parent(a))
+end
 
 
 ###############################################################################
@@ -608,7 +653,11 @@ end
 #
 ###############################################################################
 
-# TODO
+promote_rule(::Type{MPolySparse{T}}, ::Type{MPolySparse{T}}) where T <: RingElement = MPolySparse{T}
+
+function promote_rule(::Type{MPolySparse{T}}, ::Type{U}) where {T <: RingElement, U <: RingElement}
+   promote_rule(T, U) == T ? MPolySparse{T} : Union{}
+end
 
 
 ###############################################################################
