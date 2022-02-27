@@ -8,13 +8,13 @@ This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
 
 using AbstractAlgebra
 
-import Base: deepcopy_internal, hash, isone, iszero, length, parent
+import Base: deepcopy_internal, hash, isone, iszero, length, parent, +, -, *
 
 import AbstractAlgebra: CacheDictType, get_cached!
 
 import AbstractAlgebra: Ring, RingElement
 
-import AbstractAlgebra: base_ring, check_parent, coeff, degree, elem_type, gen, gens, isconstant, isgen, isunit, nvars, parent_type, symbols, total_degree, vars
+import AbstractAlgebra: base_ring, check_parent, coeff, degree, elem_type, expressify, gen, gens, isconstant, isgen, isunit, nvars, parent_type, symbols, total_degree, vars
 
 import AbstractAlgebra.Generic: ordering
 
@@ -526,6 +526,32 @@ function (a::MPolyRingSparse{T})(b::Vector{T}, m::Vector{Vector{Int}}) where {T 
     # return z
 end
 
+
+###############################################################################
+#
+#   String I/O
+#
+###############################################################################
+
+function expressify(a::MPolySparse, x = symbols(parent(a)); context = nothing)
+    sum = Expr(:call, :+)
+    n = nvars(parent(a))
+    for i in 1:length(a)
+        prod = Expr(:call, :*)
+        if !isone(a.coeffs[i])
+            push!(prod.args, expressify(a.coeffs[i], context = context))
+        end
+        for (var, exp) in a.exps[i]
+            if exp == 1
+                push!(prod.args, x[var])
+            else
+                push!(prod.args, Expr(:call, :^, x[var], exp))
+            end
+        end
+        push!(sum.args, prod)
+    end
+    return sum
+end
 
 ###############################################################################
 #
