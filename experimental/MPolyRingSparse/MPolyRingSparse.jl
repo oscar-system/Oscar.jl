@@ -14,7 +14,7 @@ import AbstractAlgebra: CacheDictType, get_cached!
 
 import AbstractAlgebra: Ring, RingElement
 
-import AbstractAlgebra: base_ring, check_parent, coeff, degree, elem_type, expressify, gen, gens, isconstant, isgen, isunit, nvars, parent_type, symbols, total_degree, vars
+import AbstractAlgebra: base_ring, check_parent, coeff, combine_like_terms!, degree, elem_type, expressify, gen, gens, isconstant, isgen, isunit, nvars, parent_type, sort_terms!, symbols, total_degree, vars
 
 import AbstractAlgebra.Generic: ordering
 
@@ -145,6 +145,54 @@ end
 
 # TODO
 
+function monomial_isless(a::Vector{Tuple{Int,Int}}, b::Vector{Tuple{Int,Int}}, R::MPolyRing{T}) where {T <: RingElement}
+    return monomial_cmp(a, b, R) < 0
+ end
+
+function monomial_cmp(a::Vector{Tuple{Int,Int}}, b::Vector{Tuple{Int,Int}}, R::MPolyRing{T}) where {T <: RingElement}
+    if R.ord == :lex
+        for i in 1:min(length(a), length(b))
+            if a[i][1] != b[i][1]
+                return a[i][1] - b[i][1]
+            elseif a[i][2] != b[i][2]
+                return a[i][2] - b[i][2]
+            end
+        end
+        return length(a) - length(b)
+    elseif R.ord == :deglex
+        # TODO
+    elseif R.ord == :degrevlex
+        # TODO
+    end
+end
+
+function merge_exps(a::Vector{Tuple{Int,Int}}, b::Vector{Tuple{Int,Int}})
+    r = Tuple{Int,Int}[]
+    i = 1
+    j = 1
+    while i <= length(a) && j <= length(b)
+        if a[i][1] < b[j][1]
+            push!(r, a[i])
+            i += 1
+        elseif a[i][1] == b[j][1]
+            push!(r, (a[i][1], a[i][2] + b[j][2]))
+            i += 1
+            j += 1
+        else
+            push!(r, b[j])
+            j += 1
+        end
+    end
+    while i <= length(a)
+        push!(r, a[i])
+        i += 1
+    end
+    while j <= length(b)
+        push!(r, b[j])
+        j += 1
+    end
+    return r
+end
 
 ###############################################################################
 #
@@ -298,19 +346,115 @@ end
 
 # TODO
 function -(a::MPolySparse{T}) where {T <: RingElement}
-    return a
+    r = zero(a)
+    fit!(r, length(a))
+    for i in 1:length(a)
+        r.coeffs[i] = -a.coeffs[i]
+        r.exps[i] = deepcopy(a.exps[i])
+    end
+    r.length = a.length
+    return r
 end
 
 function +(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
-    return a
+    r = zero(a)
+    fit!(r, length(a) + length(b))
+    i = 1
+    j = 1
+    k = 1
+    while i <= length(a) && j <= length(b)
+        cmpexp = monomial_cmp(a.exps[i], b.exps[j], parent(a))
+        if cmpexp > 0
+            r.coeffs[k] = a.coeffs[i]
+            r.exps[k] = deepcopy(a.exps[i])
+            i += 1
+        elseif cmpexp == 0
+            c = a.coeffs[i] + b.coeffs[j]
+            if !iszero(c)
+                r.coeffs[k] = c
+                r.exps[k] = deepcopy(a.exps[i])
+            else
+                k -= 1
+            end
+            i += 1
+            j += 1
+        else
+            r.coeffs[k] = b.coeffs[j]
+            r.exps[k] = deepcopy(b.exps[j])
+            j += 1
+        end
+        k += 1
+    end
+    while i <= length(a)
+        r.coeffs[k] = a.coeffs[i]
+        r.exps[k] = deepcopy(a.exps[i])
+        i += 1
+        k += 1
+    end
+    while j <= length(b)
+        r.coeffs[k] = b.coeffs[j]
+        r.exps[k] = deepcopy(b.exps[j])
+        j += 1
+        k += 1
+    end
+    r.length = k - 1
+    return r
 end
 
 function -(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
-    return a
+    r = zero(a)
+    fit!(r, length(a) + length(b))
+    i = 1
+    j = 1
+    k = 1
+    while i <= length(a) && j <= length(b)
+        cmpexp = monomial_cmp(a.exps[i], b.exps[j], parent(a))
+        if cmpexp > 0
+            r.coeffs[k] = a.coeffs[i]
+            r.exps[k] = deepcopy(a.exps[i])
+            i += 1
+        elseif cmpexp == 0
+            c = a.coeffs[i] - b.coeffs[j]
+            if !iszero(c)
+                r.coeffs[k] = c
+                r.exps[k] = deepcopy(a.exps[i])
+            else
+                k -= 1
+            end
+            i += 1
+            j += 1
+        else
+            r.coeffs[k] = -b.coeffs[j]
+            r.exps[k] = deepcopy(b.exps[j])
+            j += 1
+        end
+        k += 1
+    end
+    while i <= length(a)
+        r.coeffs[k] = a.coeffs[i]
+        r.exps[k] = deepcopy(a.exps[i])
+        i += 1
+        k += 1
+    end
+    while j <= length(b)
+        r.coeffs[k] = -b.coeffs[j]
+        r.exps[k] = deepcopy(b.exps[j])
+        j += 1
+        k += 1
+    end
+    r.length = k - 1
+    return r
 end
 
 function *(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
-    return a
+    r = zero(a)
+    fit!(r, length(a) * length(b))
+    for i in 1:length(a), j in 1:length(b)
+        r.coeffs[(i-1)*length(b) + j] = a.coeffs[i]*b.coeffs[j]
+        r.exps[(i-1)*length(b) + j] = merge_exps(a.exps[i], b.exps[j])
+    end
+    r.length = length(a) * length(b)
+    return combine_like_terms!(sort_terms!(r))
 end
 
 ###############################################################################
@@ -414,20 +558,48 @@ end
 
 ###############################################################################
 #
-#   GCD
-#
-###############################################################################
-
-# TODO
-
-
-###############################################################################
-#
 #   Unsafe functions
 #
 ###############################################################################
 
 # TODO
+
+function fit!(a::MPolySparse{T}, n::Int) where {T <: RingElement}
+    if length(a) < n
+        resize!(a.coeffs, n)
+        resize!(a.exps, n)
+    end
+    return nothing
+end
+
+function sort_terms!(a::MPolySparse{T}) where {T <: RingElement}
+    n = length(a)
+    monomial_lt = (x, y) -> monomial_isless(x, y, parent(a))
+    if n > 1
+       p = sortperm(view(a.exps, 1:n), lt = monomial_lt, rev = true)
+       a.coeffs = [a.coeffs[p[i]] for i in 1:n]
+       a.exps = [a.exps[p[i]] for i in 1:n]
+    end
+    return a
+end
+
+function combine_like_terms!(a::MPolySparse{T}) where {T <: RingElement}
+    o = 0
+    i = 1
+    while i <= length(a)
+        if o > 0 && monomial_cmp(a.exps[o], a.exps[i], parent(a)) == 0
+            a.coeffs[o] += a.coeffs[i]
+        else
+            o += (o < 1 || !iszero(a.coeffs[o]))
+            a.exps[o] = a.exps[i]
+            a.coeffs[o] = a.coeffs[i]
+        end
+        i += 1
+    end
+    o += (o < 1 || !iszero(a.coeffs[o]))
+    a.length = o - 1
+    return a
+end
 
 
 ###############################################################################
@@ -535,7 +707,6 @@ end
 
 function expressify(a::MPolySparse, x = symbols(parent(a)); context = nothing)
     sum = Expr(:call, :+)
-    n = nvars(parent(a))
     for i in 1:length(a)
         prod = Expr(:call, :*)
         if !isone(a.coeffs[i])
