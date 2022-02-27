@@ -28,28 +28,44 @@ julia> tropical_polynomial(f,max)
 (-1)*x + y + (-2)
 ```
 """
-function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)})
-    T = tropical_numbers(M)
-    if M==min
-        s=1
-    else
-        s=-1
+function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)}=min)
+  T = tropical_numbers(M)
+  if M==min
+    s=1
+  else
+    s=-1
+  end
+
+  Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
+  tropf = inf(T)
+
+  if base_ring(parent(f)) isa NonArchLocalField
+    for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+      tropf = tropf + T(s*valuation(c))*monomial(Tx,alpha)
     end
-    println(s)
-
-    Tx = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
-    tropf = inf(T)
-
-    if base_ring(parent(f)) isa NonArchLocalField
-        for expv in exponent_vectors(f)
-            tropf = tropf + T(s*valuation(coeff(f,expv)))*monomial(Tx[1],expv)
-        end
-    else
-        for expv in exponent_vectors(f)
-            tropf = tropf + T(0)*monomial(Tx[1],expv)
-        end
+  else
+    for alpha in exponent_vectors(f)
+      tropf = tropf + T(0)*monomial(Tx,alpha)
     end
+  end
 
-    return tropf
+  return tropf
+end
+function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::ValuationMap, M::Union{typeof(min),typeof(max)}=min)
+  T = tropical_numbers(M)
+  if M==min
+    s=1
+  else
+    s=-1
+  end
+
+  Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
+  tropf = inf(T)
+
+  for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+    tropf = tropf + T(s*val(c))*monomial(Tx,alpha)
+  end
+
+  return tropf
 end
 export tropical_polynomial
