@@ -56,6 +56,9 @@ Oscar.parent_type(::Type{TropicalNumbersElem{T}}) where {T} = TropicalNumbers{T}
 #
 ################################################################################
 
+# Invoke via tropical_numbers()
+tropical_numbers() = TropicalNumbers{typeof(min)}()
+
 # Invoke via tropical_numbers(max)
 tropical_numbers(::typeof(max)) = TropicalNumbers{typeof(max)}()
 
