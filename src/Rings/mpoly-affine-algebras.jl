@@ -388,7 +388,7 @@ Return `true` if `F` is finite, `false` otherwise.
 """
 function isfinite(F::AlgHom)
   (T, _, _, J, _) = groebner_data(F, :lex)
-  G = collect(collect(values(J.gb))[1])
+  G = collect(first(values(J.gb)))
   # Find all elements with leading monomial which contains the 
   # variables x_i.
   s = codomain(F)
