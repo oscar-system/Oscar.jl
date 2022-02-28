@@ -3,9 +3,9 @@ export image_in_Oq
 @doc Markdown.doc"""
     sigma_sharp(L::ZLat, p) -> Vector{Tuple{fmpz, fmpq}}
 
-Return generators for `\Sigma^\#(L\otimes \ZZ_p)` of a lattice `L`.
+Return generators for $\Sigma^\#(L\otimes \ZZ_p)$ of a lattice `L`.
 
-- a list of tuples `(det_p, spin_p)` with `det = \pm 1`.
+- a list of tuples `(det_p, spin_p)` with `det = +- 1`.
 """
 function sigma_sharp(L::ZLat, p)
   T = primary_part(discriminant_group(L), p)[1]
@@ -136,7 +136,7 @@ end
 
 Compute the spinor norm of `f`.
 
-``gram_diag`` must be a diagonal matrix
+`gram_diag` must be a diagonal matrix.
 """
 function spin(gram_diag::MatElem, isometry::MatElem, check=true)
   G = gram_diag
@@ -181,23 +181,21 @@ function valuation(A::fmpq_mat, p)
   return minimum([a==0 ? PosInf() : valuation(a, p) for a in A])
 end
 
-"""
+@doc Markdown.doc"""
     det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
 
-Return approximations for `(det_p, spin_p)` of the approximate isometry ``T``.
+Return approximations for `(det_p, spin_p)` of the approximate isometry `T`.
 
 The algorithm is by Shimada [Shim2018](@cite)
 
 We follow the conventions of Miranda and Morrison that the quadratic form is defined by
-Q(x) = (x G x.T)/2. Then the spinor norm of the reflection in x is Q(x).
+`Q(x) = (x G x.T)/2`. Then the spinor norm of the reflection in x is Q(x).
 
-INPUT:
-
-  - ``G`` -- a diagonal matrix
-  - ``T`` -- an isometry up to some padic precision
-  - ``p`` -- a prime number
-  - ``nu`` -- an integer giving the valuation of the approximation
-    error of ``T``
+# Arguments
+- `G::fmpq_mat`: a diagonal matrix
+- `T::fmpq_mat`: an isometry up to some padic precision
+- `p`: a prime number
+- `nu`: an integer giving the valuation of the approximation error of `T`
 """
 function det_spin(G::fmpq_mat, T::fmpq_mat, p, nu)
   p = ZZ(p)
@@ -327,7 +325,7 @@ function inv(f::Hecke.LocMultGrpModSquMap)
 end
 
 
-"""
+@doc Markdown.doc"""
     det_spin_homomorphism(L::ZLat) -> GAPGroupHomomorphism
 
 Return the det spin homomorphism.
@@ -447,10 +445,10 @@ function det_spin_homomorphism(L::ZLat; signed=false)
 end
 
 
-"""
+@doc Markdown.doc"""
     image_in_Oq(L::ZLat) -> AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism
 
-Return the image of `O(L) \to O(L^\vee / L)`.
+Return the image of $O(L) \to O(L^\vee / L)$.
 
 ```
 julia> L = 2*root_lattice(:D,4)
