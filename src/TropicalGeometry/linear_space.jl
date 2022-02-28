@@ -54,8 +54,28 @@ function TropicalLinearSpace(plv::Vector)
     return #...
 end
 
+#needs Oscar type as entry 
+function TropicalLinearSpace(tropicalmatrix::MatElem)
+  plv = Nemo.minors(tropicalmatrix, min(size(tropicalmatrix)[1], size(tropicalmatrix)[2])) 
+  rk = rank(tropicalmatrix)
+  nelement = size(tropicalmatrix)[2]
+  return (plv,nelement, rk)
+  ### TropicalLinearSpace(plv, nelement, rk)
+end
+
+function TropicalLinearSpace(tropicalmatrix::Matrix{Int})
+  return TropicalLinearSpace(matrix(ZZ, tropicalmatrix))
+end
 
 
+function TropicalLinearSpace(tropicalmatrix::Matrix{fmpq})
+  return TropicalLinearSpace(matrix(base_ring(tropicalmatrix), tropicalmatrix))  
+end
+
+
+function TropicalLinearSpace(tropicalmatrix::Matrix{fmpz})
+  return TropicalLinearSpace(matrix(base_ring(tropicalmatrix), tropicalmatrix))  
+end
 ###
 # 3. Basic properties
 # -------------------
