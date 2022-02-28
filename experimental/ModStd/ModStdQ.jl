@@ -104,7 +104,7 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-              I.gb[degrevlex(gens(Qt))] = BiPolyArray(gd, keep_ordering = false, isGB = true)
+            I.gb[degrevlex(gens(Qt))] = BiPolyArray(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end
