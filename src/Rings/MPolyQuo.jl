@@ -832,7 +832,7 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
-      GI = collect(values(I.gb))[1]
+      GI = first(values(I.gb))
       oscar_assure(GI)
       J = GI.O
   else
