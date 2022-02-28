@@ -1,6 +1,19 @@
 # Introduction for new developers
 
-This document is meant to get new developers started. In general you have to do
+This document is meant to get new developers started. It will not go into depth
+of programming in Julia or working with git, as there are far better resources
+on these things online.
+
+## Important notes
+1. If you encounter error messages after rebasing to the current master chances
+   are that some dependencies need upgrading. Please first try whether
+   executing `]up` gets rid of your errors.
+2. Please have a look at [our style guide](@ref styleguide). Adhering to the
+   style guide makes reviewing easier for us, and hence your new feature can be
+   merged faster.
+
+## Overview
+In general you have to do
 the following six steps for submitting changes to the Oscar source:
 
 1. Fork the main Oscar.jl repository. For this go to the [Oscar.jl github
