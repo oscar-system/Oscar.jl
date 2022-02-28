@@ -188,7 +188,7 @@ function assert_has_gb(K::NfNSGen)
   end
   I = defining_ideal(K)
   groebner_assure(I, degrevlex(gens(base_ring(I))))
-  GI = collect(values(I.gb))[1]
+  GI = first(values(I.gb))
   singular_assure(GI)
   GI.S.isGB = true
   return nothing
