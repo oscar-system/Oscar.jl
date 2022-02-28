@@ -198,8 +198,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
                I.gens.ord = ord.o
             end
             if ord.o == I.gens.ord && !isdefined(I, :gb)
-              I.gb[ord] = BiPolyArray(gd[1:length_gc], keep_ordering = false)
-              I.gb[ord].isGB = true
+              I.gb[ord] = BiPolyArray(gd[1:length_gc], keep_ordering = false, isGB = true)
               singular_assure(I.gb[ord])
             end
             return G, T
