@@ -6,15 +6,21 @@ with lots of variables.
 This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
 """
 
-using AbstractAlgebra
-
-import Base: deepcopy_internal, hash, isless, isone, iszero, length, parent, +, -, *, ==
+import Base: deepcopy_internal, hash, isless, isone, iszero, 
+             length, parent, +, -, *, ==
 
 import AbstractAlgebra: CacheDictType, get_cached!, internal_power
 
 import AbstractAlgebra: Ring, RingElement
 
-import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring, check_parent, coeff, combine_like_terms!, degree, elem_type, exponent, exponent_vector, expressify, fit!, gen, gens, isconstant, isgen, ishomogeneous, isunit, map_coefficients, monomial, monomial!, nvars, parent_type, promote_rule, setcoeff!, set_exponent_vector!, sort_terms!, symbols, term, total_degree, vars, zero!
+import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring,
+                        check_parent, coeff, combine_like_terms!,
+                        degree, elem_type, exponent, exponent_vector,
+                        expressify, fit!, gen, gens,
+                        isconstant, isgen, ishomogeneous, isunit,
+                        map_coefficients, monomial, monomial!,
+                        nvars, parent_type, setcoeff!, set_exponent_vector!,
+                        sort_terms!, symbols, term, total_degree, vars, zero!
 
 import AbstractAlgebra.Generic: ordering
 
@@ -783,10 +789,10 @@ end
 #
 ###############################################################################
 
-promote_rule(::Type{MPolySparse{T}}, ::Type{MPolySparse{T}}) where T <: RingElement = MPolySparse{T}
+AbstractAlgebra.promote_rule(::Type{MPolySparse{T}}, ::Type{MPolySparse{T}}) where T <: RingElement = MPolySparse{T}
 
-function promote_rule(::Type{MPolySparse{T}}, ::Type{U}) where {T <: RingElement, U <: RingElement}
-   promote_rule(T, U) == T ? MPolySparse{T} : Union{}
+function AbstractAlgebra.promote_rule(::Type{MPolySparse{T}}, ::Type{U}) where {T <: RingElement, U <: RingElement}
+    AbstractAlgebra.promote_rule(T, U) == T ? MPolySparse{T} : Union{}
 end
 
 
