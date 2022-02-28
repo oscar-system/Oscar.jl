@@ -76,6 +76,12 @@ end
 function TropicalLinearSpace(tropicalmatrix::Matrix{fmpz})
   return TropicalLinearSpace(matrix(base_ring(tropicalmatrix), tropicalmatrix))  
 end
+
+function TropicalLinearSpace(tropicalmatrix::Matrix{Rational})
+  return TropicalLinearSpace(matrix(QQ, tropicalmatrix))  
+end
+
+
 ###
 # 3. Basic properties
 # -------------------
