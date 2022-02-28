@@ -226,17 +226,7 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
   end
 
   function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
-    monomial_to_column = Dict{elem_type(R), Int}()
-    c = 0
-    for f in polys
-      for m in monomials(f)
-        if !haskey(monomial_to_column, m)
-          c += 1
-          monomial_to_column[m] = c
-        end
-      end
-    end
-    return BasisOfPolynomials(R, polys, monomial_to_column)
+    return BasisOfPolynomials(R, polys, enumerate_monomials(polys))
   end
 
   function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}, monomial_to_column::Dict{PolyElemT, Int}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
@@ -250,18 +240,7 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
 
     B.monomial_to_column = monomial_to_column
 
-    M = sparse_matrix(K)
-    for i = 1:length(polys)
-      srow = sparse_row(K)
-      for (a, m) in zip(coefficients(polys[i]), monomials(polys[i]))
-        @assert haskey(monomial_to_column, m) "Monomial not found in the given dictionary"
-        col = monomial_to_column[m]
-        k = searchsortedfirst(srow.pos, col)
-        insert!(srow.pos, k, col)
-        insert!(srow.values, k, deepcopy(a))
-      end
-      push!(M, srow)
-    end
+    M = polys_to_smat(polys, monomial_to_column, copy = true)
     rref!(M, truncate = true)
     B.M = M
 

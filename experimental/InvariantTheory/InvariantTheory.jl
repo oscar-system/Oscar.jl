@@ -1,4 +1,5 @@
 include("types.jl")
+include("helpers.jl")
 include("invariant_rings.jl")
 include("iterators.jl")
 include("primary_invariants.jl")
