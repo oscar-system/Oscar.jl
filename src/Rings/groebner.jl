@@ -33,7 +33,7 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
         I.gb[drl] = groebner_assure(I, drl, complete_reduction)
         G = I.gb[drl]
     else
-        G = collect(values(I.gb))[1]
+        G = first(values(I.gb))
     end
     return G
 end
