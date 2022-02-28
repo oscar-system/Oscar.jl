@@ -728,7 +728,7 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
-    G = collect(values(I.gb))[1]
+    G = first(values(I.gb))
     oscar_assure(G)
     J = G.O
   else
