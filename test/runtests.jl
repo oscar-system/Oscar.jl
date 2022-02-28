@@ -6,7 +6,7 @@ include("Combinatorics/runtests.jl")
 
 include("GAP/runtests.jl")
 
-#= include("Rings/integer-test.jl") =#
+include("Rings/integer-test.jl")
 include("Rings/rational-test.jl")
 include("Rings/mpoly-test.jl")
 include("Rings/orderings-test.jl")
