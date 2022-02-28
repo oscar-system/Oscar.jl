@@ -39,7 +39,7 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
 end
 
 function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering,  complete_reduction::Bool = false)
-    if get(I.gb, ordering, -1) == -1
+    if !haskey(I.gb, ordering)
         I.gb[ordering]  = _compute_groebner_basis(I.gens, ordering, complete_reduction)
     end
     G = I.gb[ordering]
