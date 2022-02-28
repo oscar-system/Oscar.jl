@@ -43,50 +43,45 @@
 
       V = [R(rand(-100:100)) for i in 1:5]
 
-      W0 = UInt[rand(0:100) for i in 1:5*num_vars]
-      W = reshape(W0, num_vars, 5)
+      W1 = [[rand(0:100) for i in 1:num_vars] for j in 1:5]
 
-      @test_broken isa(S(V, W), MPolyElem)
+      V = [R(rand(-100:100)) for i in 1:5]
 
       W1 = [[rand(0:100) for i in 1:num_vars] for j in 1:5]
 
       f1 = S(V, W1)
-
-      @test_broken isa(f1, MPolyElem)
+      @test isa(f1, MPolyElem)
 
       Va = [rand(-100:100) for i in 1:5]
       f1a = S(Va, W1)
 
-      @test_broken isa(f1a, MPolyElem)
+      @test isa(f1a, MPolyElem)
 
       Vb = [ZZ(rand(-100:100)) for i in 1:5]
       f1b = S(Vb, W1)
 
-      @test_broken isa(f1b, MPolyElem)
+      @test isa(f1b, MPolyElem)
 
-      # TODO
-      # f2 = S()
-      # fit!(f2, 5)
+      f2 = S()
+      fit!(f2, 5)
 
-      # for i = 1:5
-      #    f2 = set_exponent_vector!(f2, i, W1[i])
-      #    f2 = setcoeff!(f2, i, V[i])
-      # end
-      # f2 = sort_terms!(f2)
-      # f2 = combine_like_terms!(f2)
+      for i = 1:5
+         f2 = set_exponent_vector!(f2, i, W1[i])
+         f2 = setcoeff!(f2, i, V[i])
+      end
+      f2 = sort_terms!(f2)
+      f2 = combine_like_terms!(f2)
 
-      @test_broken f1 == f2
+      @test f1 == f2
 
-      # C = MPolyBuildCtx(S)
+      C = MPolyBuildCtx(S)
 
-      # @test_throws ErrorException push_term!(C, one(base_ring(S)), zeros(Int, num_vars + 1))
+      for i = 1:5
+         push_term!(C, V[i], W1[i])
+      end
+      f3 = finish(C)
 
-      # for i = 1:5
-      #    push_term!(C, V[i], W1[i])
-      # end
-      # f3 = finish(C)
-
-      @test_broken f1 == f3
+      @test f1 == f3
 
       _, varlist = PolynomialRingSparse(QQ, var_names)
       y = varlist[1]
@@ -146,31 +141,31 @@ end
       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
       g = gens(S)
 
-      @test_broken !isgen(S(1))
+      @test !isgen(S(1))
 
       for i = 1:num_vars
-         @test_broken isgen(varlist[i])
-         @test_broken isgen(g[i])
-         #@test_broken !isgen(g[i] + 1)
+         @test isgen(varlist[i])
+         @test isgen(g[i])
+         @test !isgen(g[i] + 1)
          @test gen(S, i) == g[i]
-         @test_broken var_index(gen(S, i)) == i
+         @test var_index(gen(S, i)) == i
       end
 
       nv = rand(1:num_vars)
       f = S(2)
 
-      @test_broken length(vars(f)) == 0
+      @test length(vars(f)) == 0
 
       f = 3*g[nv] + 2
 
-      @test_broken length(vars(f)) == 1 && vars(f)[1] == g[nv]
+      @test length(vars(f)) == 1 && vars(f)[1] == g[nv]
 
       f = 2*g[1]*g[num_vars] + 12
 
       if num_vars == 1
-         @test_broken length(vars(f)) == 1 && vars(f)[1] == g[1]
+         @test length(vars(f)) == 1 && vars(f)[1] == g[1]
       else
-         @test_broken length(vars(f)) == 2 && vars(f)[1] == g[1] && vars(f)[2] == g[num_vars]
+         @test length(vars(f)) == 2 && vars(f)[1] == g[1] && vars(f)[2] == g[num_vars]
       end
 
       f = rand(S, 0:5, 0:100, 0:0, -100:100)
@@ -190,39 +185,24 @@ end
       m = one(S)
       r = zero(S)
       r2 = zero(S)
-      # TODO
-      # for i = 1:length(f)
-      #    m = monomial!(m, f, i)
-      #    @test_broken m == monomial(f, i)
-      #    @test_broken term(f, i) == coeff(f, i)*monomial(f, i)
-      #    r += coeff(f, i)*monomial(f, i)
-      #    r2 += coeff(f, monomial(f, i))*monomial(f, i)
-      # end
-      # @test_broken r == f
-      # @test_broken r2 == f
+      
+      for i = 1:length(f)
+         m = monomial!(m, f, i)
+         @test m == monomial(f, i)
+         @test term(f, i) == coeff(f, i)*monomial(f, i)
+         r += coeff(f, i)*monomial(f, i)
+         r2 += coeff(f, monomial(f, i))*monomial(f, i)
+      end
+      @test r == f
+      @test r2 == f
 
       for i = 1:length(f)
          i1 = rand(1:length(f))
          i2 = rand(1:length(f))
-         @test_broken (i1 < i2) == (monomial(f, i1) > monomial(f, i2))
-         @test_broken (i1 > i2) == (monomial(f, i1) < monomial(f, i2))
-         @test_broken (i1 == i2) == (monomial(f, i1) == monomial(f, i2))
+         @test (i1 < i2) == (monomial(f, i1) > monomial(f, i2))
+         @test (i1 > i2) == (monomial(f, i1) < monomial(f, i2))
+         @test (i1 == i2) == (monomial(f, i1) == monomial(f, i2))
       end
-
-      # TODO
-      # degs = degrees(f)
-
-      # for j = 1:num_vars
-      #    @test_broken degs[j] == degree(f, j)
-      #    if rev
-      #       @test_broken max_degs[j] == degs[j] || (degs[j] == -1 && max_degs[j] == 0)
-      #    else
-      #       @test_broken max_degs[j] == degs[num_vars - j + 1] ||
-      #             (degs[num_vars - j + 1] == -1 && max_degs[j] == 0)
-      #    end
-
-      #    @test_broken max_degs[j] <= biggest
-      # end
 
       @test ord == ordering(S)
 
@@ -252,11 +232,11 @@ end
       S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
 
       for iter = 1:10
-         @test_broken ishomogeneous(zero(S))
-         @test_broken ishomogeneous(one(S))
+         @test ishomogeneous(zero(S))
+         @test ishomogeneous(one(S))
          for v in varlist
-            @test_broken ishomogeneous(v)
-            @test_broken !ishomogeneous(v + one(S))
+            @test ishomogeneous(v)
+            @test !ishomogeneous(v + one(S))
          end
       end
    end
@@ -264,26 +244,25 @@ end
    R, (x, ) = PolynomialRingSparse(ZZ, ["x"])
 
    @test isunivariate(R)
-   @test_broken isunivariate(x)
+   @test isunivariate(x)
    @test isunivariate(R())
    @test isunivariate(R(1))
-   @test_broken isunivariate(x^3 + 3x)
+   @test isunivariate(x^3 + 3x)
 
    R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"])
 
-   # TODO
-   # @test !isunivariate(R)
-   # @test_broken isunivariate(x)
-   # @test_broken isunivariate(y)
-   # @test isunivariate(R())
-   # @test isunivariate(R(1))
-   # @test_broken isunivariate(x^3 + 3*x)
-   # @test isunivariate(2*y^4 + 3*y + 5)
-   # @test_broken !isunivariate(x + y)
-   # @test_broken !isunivariate(x*y)
-   # @test_broken !isunivariate(x^3 + 3x + y + 1)
-   # @test_broken !isunivariate(x^3 + 3x + y)
-   # @test_broken !isunivariate(y^4 + 3x + 1)
+   @test !isunivariate(R)
+   @test isunivariate(x)
+   @test isunivariate(y)
+   @test isunivariate(R())
+   @test isunivariate(R(1))
+   @test isunivariate(x^3 + 3*x)
+   @test isunivariate(2*y^4 + 3*y + 5)
+   @test !isunivariate(x + y)
+   @test !isunivariate(x*y)
+   @test !isunivariate(x^3 + 3x + y + 1)
+   @test !isunivariate(x^3 + 3x + y)
+   @test !isunivariate(y^4 + 3x + 1)
 end
 
 @testset "MPolySparse.multivariate_coeff" begin
@@ -294,16 +273,15 @@ end
 
       S, (x, y, z) = PolynomialRingSparse(R, ["x", "y", "z"]; ordering=ord)
 
-      f = -8*x^5*y^3*z^5+9*x^5*y^2*z^3-8*x^4*y^5*z^4-10*x^4*y^3*z^2+8*x^3*y^2*z-10*x*y^3*
-z^4-4*x*y-10*x*z^2+8*y^2*z^5-9*y^2*z^3
+      f = -8*x^5*y^3*z^5+9*x^5*y^2*z^3-8*x^4*y^5*z^4-10*x^4*y^3*z^2+8*x^3*y^2*z-10*x*y^3*z^4-4*x*y-10*x*z^2+8*y^2*z^5-9*y^2*z^3
 
-      @test_broken coeff(f, [1], [1]) == -10*y^3*z^4-4*y-10*z^2
-      @test_broken coeff(f, [2, 3], [3, 2]) == -10*x^4
-      @test_broken coeff(f, [1, 3], [4, 5]) == 0
+      @test coeff(f, [1], [1]) == -10*y^3*z^4-4*y-10*z^2
+      @test coeff(f, [2, 3], [3, 2]) == -10*x^4
+      @test coeff(f, [1, 3], [4, 5]) == 0
 
-      @test_broken coeff(f, [x], [1]) == -10*y^3*z^4-4*y-10*z^2
-      @test_broken coeff(f, [y, z], [3, 2]) == -10*x^4
-      @test_broken coeff(f, [x, z], [4, 5]) == 0
+      @test coeff(f, [x], [1]) == -10*y^3*z^4-4*y-10*z^2
+      @test coeff(f, [y, z], [3, 2]) == -10*x^4
+      @test coeff(f, [x, z], [4, 5]) == 0
    end
 end
 
@@ -317,19 +295,15 @@ end
       f = rand(R, 5:10, 1:10, -100:100)
       g = rand(R, 5:10, 1:10, -100:100)
 
-      if !iszero(f) && !iszero(g)
-         @test_broken leading_term(f*g) == leading_term(f)*leading_term(g)
-      else
-         @test_throws ArgumentError leading_term(f)*leading_term(g)
-      end
-      @test_broken leading_term(one(R)) == one(R)
-      # @test_throws ArgumentError leading_term(zero(R))
+      @test leading_term(f*g) == leading_term(f)*leading_term(g)
+      @test leading_term(one(R)) == one(R)
+      @test leading_term(zero(R)) == zero(R)
 
       for v in vars_R
-         @test_broken leading_term(v) == v
+         @test leading_term(v) == v
       end
 
-      @test_broken parent(leading_term(f)) == parent(f)
+      @test parent(leading_term(f)) == parent(f)
    end
 
    for num_vars = 1:4
@@ -342,7 +316,7 @@ end
          g = rand(S, 0:4, 0:5, -10:10)
 
          @test leading_coefficient(f*g) ==
-          leading_coefficient(f)*leading_coefficient(g)
+	       leading_coefficient(f)*leading_coefficient(g)
          @test leading_coefficient(one(S)) == one(base_ring(S))
 
          for v in varlist
@@ -368,35 +342,33 @@ end
             g = rand(S, 0:4, 0:5, -10:10)
          end
 
-         @test_broken leading_monomial(f*g) == leading_monomial(f)*leading_monomial(g)
-         @test_broken leading_exponent_vector(f*g) == leading_exponent_vector(f) +
-                                               leading_exponent_vector(g)
-         @test_broken leading_monomial(one(S)) == one(S)
-         # @test_throws ArgumentError leading_monomial(zero(S))
-         # @test_throws ArgumentError leading_exponent_vector(zero(S))
+         @test leading_monomial(f*g) ==
+	       leading_monomial(f)*leading_monomial(g)
+         @test leading_monomial(one(S)) == one(S)
+         @test leading_monomial(zero(S)) == zero(S)
 
          for v in varlist
-            @test_broken leading_monomial(v) == v
+            @test leading_monomial(v) == v
          end
 
-         @test_broken parent(leading_monomial(f)) == parent(f)
+         @test parent(leading_monomial(f)) == parent(f)
       end
    end
 
    R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"])
 
    @test constant_coefficient(R()) == 0
-   @test_broken constant_coefficient(2x + 1) == 1
-   @test_broken constant_coefficient(2x) == 0
-   @test_broken constant_coefficient(2x^2 + 3y^3 + 4) == 4
+   @test constant_coefficient(2x + 1) == 1
+   @test constant_coefficient(2x) == 0
+   @test constant_coefficient(2x^2 + 3y^3 + 4) == 4
 
    @test trailing_coefficient(x^2*y + 7x*y + 3x + 2y + 5) == 5
    @test trailing_coefficient(x^2*y + 7x*y + 3x + 2y) == 2
    @test trailing_coefficient(R(2)) == 2
    @test trailing_coefficient(R()) == 0
 
-   @test_broken tail(2x^2 + 2x*y + 3) == 2x*y + 3
-   @test_broken tail(R(1)) == 0
+   @test tail(2x^2 + 2x*y + 3) == 2x*y + 3
+   @test tail(R(1)) == 0
    @test tail(R()) == 0
 end
 
@@ -416,8 +388,7 @@ end
             end
             push!(degrees, total_degree(p))
          end
-         # TODO
-         # @test_broken length(Set(degrees)) == 1
+         @test length(Set(degrees)) == 1
       end
    end
 end
@@ -458,8 +429,6 @@ end
          @test f*g == g*f
          @test f*g + f*h == f*(g + h)
          @test f*g - f*h == f*(g - h)
-
-         @test_broken f*g == AbstractAlgebra.mul_classical(f, g)
       end
    end
 end
@@ -548,9 +517,8 @@ end
          @test f^expn == r
       end
 
-      # TODO
-      # @test_throws DomainError rand(varlist)^-1
-      # @test_throws DomainError rand(varlist)^-rand(2:100)
+      @test_throws DomainError rand(varlist)^-1
+      @test_throws DomainError rand(varlist)^-rand(2:100)
    end
 
    # Over field of nonzero characteristic
@@ -564,279 +532,271 @@ end
    end
 end
 
-@testset "MPolySparse.divides" begin
-   R, x = ZZ["y"]
+# @testset "MPolySparse.divides" begin
+#    R, x = ZZ["y"]
 
-   for num_vars = 1:10
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
+#    for num_vars = 1:10
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-      # TODO
-      # for iter = 1:10
-      #    f = S(0)
-      #    f = rand(S, 0:5, 0:100, 0:0, -100:100)
-      #    g = rand(S, 0:5, 0:100, 0:0, -100:100)
+#       for iter = 1:10
+#          f = S(0)
+#          f = rand(S, 0:5, 0:100, 0:0, -100:100)
+#          g = rand(S, 0:5, 0:100, 0:0, -100:100)
 
-      #    p = f*g
+#          p = f*g
 
-      #    flag, q = divides(p, f)
-      #    flag2, q2 = divides(f, p)
+#          flag, q = divides(p, f)
+#          flag2, q2 = divides(f, p)
 
-      #    @test_broken flag == true
+#          @test_broken flag == true
 
-      #    @test_broken q * f == p
+#          @test_broken q * f == p
 
-      #    q1 = divexact(p, f)
+#          q1 = divexact(p, f)
 
-      #    @test_broken q1 * f == p
+#          @test_broken q1 * f == p
 
-      #    if !iszero(p)
-      #      @test_broken q1 == g
-      #    end
-      # end
-   end
-end
+#          if !iszero(p)
+#            @test_broken q1 == g
+#          end
+#       end
+#    end
+# end
 
-@testset "MPolySparse.square_root" begin
-   for R in [ZZ, QQ]
-      for num_vars = 1:10
-         var_names = ["x$j" for j in 1:num_vars]
-         ord = rand_ordering()
+# @testset "MPolySparse.square_root" begin
+#    for R in [ZZ, QQ]
+#       for num_vars = 1:10
+#          var_names = ["x$j" for j in 1:num_vars]
+#          ord = rand_ordering()
 
-         S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+#          S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-         # TODO
-         # for iter = 1:10
-         #    f = rand(S, 0:5, 0:100, -100:100)
+#          for iter = 1:10
+#             f = rand(S, 0:5, 0:100, -100:100)
 
-         #    p = f^2
+#             p = f^2
 
-         #    @test_broken issquare(p)
+#             @test_broken issquare(p)
 
-         #    q = sqrt(f^2)
+#             q = sqrt(f^2)
 
-         #    @test_broken q^2 == f^2
+#             @test_broken q^2 == f^2
 
-         #    q = sqrt(f^2; check=false)
+#             q = sqrt(f^2; check=false)
 
-         #    @test_broken q^2 == f^2
+#             @test_broken q^2 == f^2
 
-         #    if f != 0
-         #       x = varlist[rand(1:num_vars)]
-         #       @test_throws ErrorException sqrt(f^2*(x^2 - x))
-         #    end
+#             if f != 0
+#                x = varlist[rand(1:num_vars)]
+#                @test_throws ErrorException sqrt(f^2*(x^2 - x))
+#             end
 
-         #    f1, s1 = issquare_with_sqrt(f)
+#             f1, s1 = issquare_with_sqrt(f)
 
-         #    @test_broken !f1 || s1^2 == f
-         # end
-      end
-   end
+#             @test_broken !f1 || s1^2 == f
+#          end
+#       end
+#    end
 
-   # Field of characteristic p
-   for p in [2, 7, 13, 65537, ZZ(2), ZZ(7), ZZ(37), ZZ(65537)]
-      R = ResidueField(ZZ, p)
-      for num_vars = 1:10
-         var_names = ["x$j" for j in 1:num_vars]
-         ord = rand_ordering()
+#    # Field of characteristic p
+#    for p in [2, 7, 13, 65537, ZZ(2), ZZ(7), ZZ(37), ZZ(65537)]
+#       R = ResidueField(ZZ, p)
+#       for num_vars = 1:10
+#          var_names = ["x$j" for j in 1:num_vars]
+#          ord = rand_ordering()
 
-         S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+#          S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-         # TODO
-         # for iter = 1:10
-         #    f = rand(S, 0:5, 0:100, 0:Int(p))
+#          for iter = 1:10
+#             f = rand(S, 0:5, 0:100, 0:Int(p))
 
-         #    s = f^2
+#             s = f^2
 
-         #    @test_broken issquare(s)
+#             @test_broken issquare(s)
 
-         #    q = sqrt(f^2)
+#             q = sqrt(f^2)
 
-         #    @test_broken q^2 == f^2
+#             @test_broken q^2 == f^2
 
-         #    q = sqrt(f^2)
+#             q = sqrt(f^2)
 
-         #    @test_broken q^2 == f^2
+#             @test_broken q^2 == f^2
 
-         #    if f != 0
-         #       x = varlist[rand(1:num_vars)]
-         #       @test_throws ErrorException sqrt(f^2*(x^2 - x))
-         #    end
+#             if f != 0
+#                x = varlist[rand(1:num_vars)]
+#                @test_throws ErrorException sqrt(f^2*(x^2 - x))
+#             end
 
-         #    f1, s1 = issquare_with_sqrt(f)
+#             f1, s1 = issquare_with_sqrt(f)
 
-         #    @test_broken !f1 || s1^2 == f
-         # end
-      end
-   end
-end
+#             @test_broken !f1 || s1^2 == f
+#          end
+#       end
+#    end
+# end
+
+# @testset "MPolySparse.euclidean_division" begin
+#    R, x = QQ["y"]
 
-@testset "MPolySparse.euclidean_division" begin
-   R, x = QQ["y"]
+#    for num_vars = 1:10
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
 
-   for num_vars = 1:10
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
+#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
-
-      # TODO
-      # for iter = 1:10
-      #    f = S(0)
-      #    while iszero(f)
-      #       f = rand(S, 0:5, 0:100, 0:0, -100:100)
-      #    end
-      #    g = rand(S, 0:5, 0:100, 0:0, -100:100)
+#       for iter = 1:10
+#          f = S(0)
+#          while iszero(f)
+#             f = rand(S, 0:5, 0:100, 0:0, -100:100)
+#          end
+#          g = rand(S, 0:5, 0:100, 0:0, -100:100)
+
+#          p = f*g
 
-      #    p = f*g
-
-      #    q1, r = divrem(p, f)
-      #    q2 = div(p, f)
-
-      #    @test_broken q1 == g
-      #    @test_broken q2 == g
-      #    @test_broken f*q1 + r == p
-
-      #    q3, r3 = divrem(g, f)
-      #    q4 = div(g, f)
-      #    flag, q5 = divides(g, f)
-
-      #    @test_broken q3*f + r3 == g
-      #    @test_broken q3 == q4
-      #    @test_broken (r3 == 0 && flag == true && q5 == q3) || (r3 != 0 && flag == false)
-
-      # end
-
-      S, varlist = PolynomialRingSparse(QQ, var_names, ordering = ord)
-      v = varlist[1+Int(round(rand() * (num_vars-1)))]
-      @test_broken divrem(v, 2*v) == (1//2, 0)
-   end
-end
-
-@testset "MPolySparse.ideal_reduction" begin
-   R, x = QQ["y"]
-
-   for num_vars = 1:10
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
-
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
-
-      # TODO
-      # for iter = 1:10
-      #    f = S(0)
-      #    while iszero(f)
-      #       f = rand(S, 0:5, 0:100, 0:0, -100:100)
-      #    end
-      #    g = rand(S, 0:5, 0:100, 0:0, -100:100)
-
-      #    p = f*g
-
-      #    q1, r = divrem(p, [f])
-
-      #    @test_broken q1[1] == g
-      #    @test_broken r == 0
-      # end
-
-      # for iter = 1:10
-      #    num = rand(1:5)
-
-      #    V = Array{elem_type(S)}(undef, num)
-
-      #    for i = 1:num
-      #       V[i] = S(0)
-      #       while iszero(V[i])
-      #          V[i] = rand(S, 0:5, 0:100, 0:0, -100:100)
-      #       end
-      #    end
-      #    g = rand(S, 0:5, 0:100, 0:0, -100:100)
-
-      #    q, r = divrem(g, V)
-
-      #    p = r
-      #    for i = 1:num
-      #       p += q[i]*V[i]
-      #    end
-
-      #    @test_broken p == g
-      # end
-   end
-end
-
-@testset "MPolySparse.deflation" begin
-   for num_vars = 1:4
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
-
-      # TODO
-      # for iter = 1:10
-      #    f = rand(S, 0:4, 0:5, -10:10)
-      #    shift = [rand(0:10) for i in 1:num_vars]
-      #    defl = [rand(1:10) for i in 1:num_vars]
-      #    f = inflate(f, shift, defl)
-
-      #    s, d = deflation(f)
-      #    g = deflate(f, s, d)
-      #    h = inflate(g, s, d)
-
-      #    @test_broken h == f
-
-      #    @test_broken deflate(inflate(f, d), d) == f
-
-      #    g = inflate(f, defl)
-      #    h, defl = deflate(g)
-      #    @test_broken g == inflate(h, defl)
-      # end
-   end
-end
-
-@testset "MPolySparse.gcd" begin
-   for num_vars = 1:4
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
-
-      # TODO
-      # for iter = 1:10
-      #    f = rand(S, 0:4, 0:5, -10:10)
-      #    g = rand(S, 0:4, 0:5, -10:10)
-      #    h = rand(S, 0:4, 0:5, -10:10)
-
-      #    g1 = gcd(f, g)
-      #    g2 = gcd(f*h, g*h)
-
-      #    @test_broken g2 == g1*h || g2 == -g1*h
-      # end
-   end
-end
-
-@testset "MPolySparse.lcm" begin
-   for num_vars = 1:4
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
-      S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
-
-      # TODO
-      # for iter = 1:10
-      #    f = rand(S, 0:4, 0:5, -10:10)
-      #    g = rand(S, 0:4, 0:5, -10:10)
-      #    h = rand(S, 0:4, 0:5, -10:10)
-
-      #    l1 = lcm(f, g)
-      #    l2 = lcm(f*h, g*h)
-
-      #    @test_broken l2 == l1*h || l2 == -l1*h
-      #    @test_broken divides(l1, f)[1]
-      #    @test_broken divides(l1, g)[1]
-      #    @test_broken divides(l2, f)[1]
-      #    @test_broken divides(l2, g)[1]
-      #    @test_broken divides(l2, h)[1]
-      # end
-   end
-end
+#          q1, r = divrem(p, f)
+#          q2 = div(p, f)
+
+#          @test_broken q1 == g
+#          @test_broken q2 == g
+#          @test_broken f*q1 + r == p
+
+#          q3, r3 = divrem(g, f)
+#          q4 = div(g, f)
+#          flag, q5 = divides(g, f)
+
+#          @test_broken q3*f + r3 == g
+#          @test_broken q3 == q4
+#          @test_broken (r3 == 0 && flag == true && q5 == q3) || (r3 != 0 && flag == false)
+
+#       end
+
+#       S, varlist = PolynomialRingSparse(QQ, var_names, ordering = ord)
+#       v = varlist[1+Int(round(rand() * (num_vars-1)))]
+#       @test_broken divrem(v, 2*v) == (1//2, 0)
+#    end
+# end
+
+# @testset "MPolySparse.ideal_reduction" begin
+#    R, x = QQ["y"]
+
+#    for num_vars = 1:10
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
+
+#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+
+#       for iter = 1:10
+#          f = S(0)
+#          while iszero(f)
+#             f = rand(S, 0:5, 0:100, 0:0, -100:100)
+#          end
+#          g = rand(S, 0:5, 0:100, 0:0, -100:100)
+
+#          p = f*g
+
+#          q1, r = divrem(p, [f])
+
+#          @test_broken q1[1] == g
+#          @test_broken r == 0
+#       end
+
+#       for iter = 1:10
+#          num = rand(1:5)
+
+#          V = Array{elem_type(S)}(undef, num)
+
+#          for i = 1:num
+#             V[i] = S(0)
+#             while iszero(V[i])
+#                V[i] = rand(S, 0:5, 0:100, 0:0, -100:100)
+#             end
+#          end
+#          g = rand(S, 0:5, 0:100, 0:0, -100:100)
+
+#          q, r = divrem(g, V)
+
+#          p = r
+#          for i = 1:num
+#             p += q[i]*V[i]
+#          end
+
+#          @test_broken p == g
+#       end
+#    end
+# end
+
+# @testset "MPolySparse.deflation" begin
+#    for num_vars = 1:4
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
+#       S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+
+#       for iter = 1:10
+#          f = rand(S, 0:4, 0:5, -10:10)
+#          shift = [rand(0:10) for i in 1:num_vars]
+#          defl = [rand(1:10) for i in 1:num_vars]
+#          f = inflate(f, shift, defl)
+
+#          s, d = deflation(f)
+#          g = deflate(f, s, d)
+#          h = inflate(g, s, d)
+
+#          @test_broken h == f
+
+#          @test_broken deflate(inflate(f, d), d) == f
+
+#          g = inflate(f, defl)
+#          h, defl = deflate(g)
+#          @test_broken g == inflate(h, defl)
+#       end
+#    end
+# end
+
+# @testset "MPolySparse.gcd" begin
+#    for num_vars = 1:4
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
+#       S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+
+#       for iter = 1:10
+#          f = rand(S, 0:4, 0:5, -10:10)
+#          g = rand(S, 0:4, 0:5, -10:10)
+#          h = rand(S, 0:4, 0:5, -10:10)
+
+#          g1 = gcd(f, g)
+#          g2 = gcd(f*h, g*h)
+
+#          @test_broken g2 == g1*h || g2 == -g1*h
+#       end
+#    end
+# end
+
+# @testset "MPolySparse.lcm" begin
+#    for num_vars = 1:4
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
+#       S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
+
+#       for iter = 1:10
+#          f = rand(S, 0:4, 0:5, -10:10)
+#          g = rand(S, 0:4, 0:5, -10:10)
+#          h = rand(S, 0:4, 0:5, -10:10)
+
+#          l1 = lcm(f, g)
+#          l2 = lcm(f*h, g*h)
+
+#          @test_broken l2 == l1*h || l2 == -l1*h
+#          @test_broken divides(l1, f)[1]
+#          @test_broken divides(l1, g)[1]
+#          @test_broken divides(l2, f)[1]
+#          @test_broken divides(l2, g)[1]
+#          @test_broken divides(l2, h)[1]
+#       end
+#    end
+# end
 
 @testset "MPolySparse.evaluation" begin
    R, x = ZZ["x"]
@@ -1006,56 +966,54 @@ end
 
       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-      # TODO
-      # for iter = 1:50
-      #    f = rand(S, 0:5, 0:100, -100:100)
-      #    g = rand(S, 0:5, 0:100, -100:100)
+      for iter = 1:50
+         f = rand(S, 0:5, 0:100, -100:100)
+         g = rand(S, 0:5, 0:100, -100:100)
 
-      #    V1 = [rand(-10:10) for i in 1:num_vars]
+         V1 = [rand(-10:10) for i in 1:num_vars]
 
-      #    r1 = f(V1...)
-      #    r2 = g(V1...)
-      #    r3 = (f + g)(V1...)
+         r1 = f(V1...)
+         r2 = g(V1...)
+         r3 = (f + g)(V1...)
 
-      #    @test_broken r3 == r1 + r2
-      # end
+         @test r3 == r1 + r2
+      end
 
-      # for iter = 1:50
-      #    f = rand(S, 0:5, 0:100, -100:100)
-      #    g = rand(S, 0:5, 0:100, -100:100)
+      for iter = 1:50
+         f = rand(S, 0:5, 0:100, -100:100)
+         g = rand(S, 0:5, 0:100, -100:100)
 
-      #    V1 = [T(rand(-10:10)) for i in 1:num_vars]
+         V1 = [T(rand(-10:10)) for i in 1:num_vars]
 
-      #    r1 = f(V1...)
-      #    r2 = g(V1...)
-      #    r3 = (f + g)(V1...)
+         r1 = f(V1...)
+         r2 = g(V1...)
+         r3 = (f + g)(V1...)
 
-      #    @test_broken r3 == r1 + r2
-      # end
+         @test r3 == r1 + r2
+      end
 
-      # for iter = 1:50
-      #    f = rand(S, 0:5, 0:100, -100:100)
-      #    g = rand(S, 0:5, 0:100, -100:100)
+      for iter = 1:50
+         f = rand(S, 0:5, 0:100, -100:100)
+         g = rand(S, 0:5, 0:100, -100:100)
 
-      #    V4 = [QQ(rand(-10:10)) for i in 1:num_vars]
+         V4 = [QQ(rand(-10:10)) for i in 1:num_vars]
 
-      #    r1 = evaluate(f, V4)
-      #    r2 = evaluate(g, V4)
-      #    r3 = evaluate(f + g, V4)
+         r1 = evaluate(f, V4)
+         r2 = evaluate(g, V4)
+         r3 = evaluate(f + g, V4)
 
-      #    @test_broken r3 == r1 + r2
-      # end
+         @test r3 == r1 + r2
+      end
    end
 
-   # Test ordering is correct, see issue #184
    for iter = 1:10
       ord = rand_ordering()
       R, (x, y, z) = PolynomialRingSparse(ZZ, ["x", "y", "z"], ordering = ord)
 
       f = x*y^2*z^3
 
-      @test_broken evaluate(f, [2, 3, 5]) == 2*9*125
-      @test_broken evaluate(f, BigInt[2, 3, 5]) == 2*9*125
+      @test evaluate(f, [2, 3, 5]) == 2*9*125
+      @test evaluate(f, BigInt[2, 3, 5]) == 2*9*125
    end
 
    # Individual tests
@@ -1064,49 +1022,49 @@ end
 
    f = 2x^2*y^2 + 3x + y + 1
 
-   @test_broken evaluate(f, [0*x, 0*y]) == 1
+   @test evaluate(f, [0*x, 0*y]) == 1
 
-   @test_broken evaluate(f, BigInt[1, 2]) == ZZ(14)
-   @test_broken evaluate(f, [QQ(1), QQ(2)]) == 14//1
-   @test_broken evaluate(f, [1, 2]) == 14
-   @test_broken f(1, 2) == 14
-   @test_broken f(ZZ(1), ZZ(2)) == ZZ(14)
-   @test_broken f(QQ(1), QQ(2)) == 14//1
+   @test evaluate(f, BigInt[1, 2]) == ZZ(14)
+   @test evaluate(f, [QQ(1), QQ(2)]) == 14//1
+   @test evaluate(f, [1, 2]) == 14
+   @test f(1, 2) == 14
+   @test f(ZZ(1), ZZ(2)) == ZZ(14)
+   @test f(QQ(1), QQ(2)) == 14//1
 
-   @test_broken evaluate(f, [x + y, 2y - x]) ==
+   @test evaluate(f, [x + y, 2y - x]) ==
                2*x^4 - 4*x^3*y - 6*x^2*y^2 + 8*x*y^3 + 2*x + 8*y^4 + 5*y + 1
-   @test_broken f(x + y, 2y - x) ==
+   @test f(x + y, 2y - x) ==
                2*x^4 - 4*x^3*y - 6*x^2*y^2 + 8*x*y^3 + 2*x + 8*y^4 + 5*y + 1
 
    S, z = PolynomialRing(R, "z")
 
-   @test_broken evaluate(f, [z + 1, z - 1]) == 2*z^4 - 4*z^2 + 4*z + 5
+   @test evaluate(f, [z + 1, z - 1]) == 2*z^4 - 4*z^2 + 4*z + 5
    @test_broken f(z + 1, z - 1) == 2*z^4 - 4*z^2 + 4*z + 5
 
    R, (x, y, z) = PolynomialRingSparse(ZZ, ["x", "y", "z"])
 
    f = x^2*y^2 + 2x*z + 3y*z + z + 1
 
-   @test_broken evaluate(f, [1, 3], [3, 4]) == 9*y^2 + 12*y + 29
-   @test_broken evaluate(f, [x, z], [3, 4]) == 9*y^2 + 12*y + 29
+   @test evaluate(f, [1, 3], [3, 4]) == 9*y^2 + 12*y + 29
+   @test evaluate(f, [x, z], [3, 4]) == 9*y^2 + 12*y + 29
 
-   @test_broken evaluate(f, [1, 2], [x + z, x - z]) ==
+   @test evaluate(f, [1, 2], [x + z, x - z]) ==
                   x^4 - 2*x^2*z^2 + 5*x*z + z^4 - z^2 + z + 1
-   @test_broken evaluate(f, [x, y], [x + z, x - z]) ==
+   @test evaluate(f, [x, y], [x + z, x - z]) ==
                   x^4 - 2*x^2*z^2 + 5*x*z + z^4 - z^2 + z + 1
 
    S, t = PolynomialRing(R, "t")
    T, (x1, y1, z1) = PolynomialRingSparse(QQ, ["x", "y", "z"])
    f1 = x1^2*y1^2 + 2x1*z1 + 3y1*z1 + z1 + 1
 
-   @test_broken evaluate(f, [2, 3], [t + 1, t - 1]) ==
+   @test evaluate(f, [2, 3], [t + 1, t - 1]) ==
                  (x^2 + 3)*t^2 + (2*x^2 + 2*x + 1)*t + (x^2 - 2*x - 3)
-   @test_broken evaluate(f, [y, z], [t + 1, t - 1]) ==
+   @test evaluate(f, [y, z], [t + 1, t - 1]) ==
                  (x^2 + 3)*t^2 + (2*x^2 + 2*x + 1)*t + (x^2 - 2*x - 3)
 
-   @test_broken evaluate(change_base_ring(QQ, f1), [2, 4, 6]) == 167//1
-   @test_broken evaluate(f1, [1, 3], [2, 4]) == 4*y1^2 + 12*y1 + 21
-   @test_broken evaluate(f1, [x1, z1], [2, 4]) == 4*y1^2 + 12*y1 + 21
+   @test evaluate(change_base_ring(QQ, f1), [2, 4, 6]) == 167//1
+   @test evaluate(f1, [1, 3], [2, 4]) == 4*y1^2 + 12*y1 + 21
+   @test evaluate(f1, [x1, z1], [2, 4]) == 4*y1^2 + 12*y1 + 21
 
    S = MatrixAlgebra(ZZ, 2)
 
@@ -1114,55 +1072,54 @@ end
    M2 = S([2 3; 1 -1])
    M3 = S([-1 1; 1 1])
 
-   @test_broken evaluate(f, [M1, M2, M3]) == S([64 83; 124 149])
-   @test_broken f(M1, M2, M3) == S([64 83; 124 149])
+   @test evaluate(f, [M1, M2, M3]) == S([64 83; 124 149])
+   @test f(M1, M2, M3) == S([64 83; 124 149])
 
-   @test_broken f(M1, ZZ(2), M3) == S([24 53; 69 110])
-   @test_broken f(M1, ZZ(2), 3) == S([56 52; 78 134])
+   @test f(M1, ZZ(2), M3) == S([24 53; 69 110])
+   @test f(M1, ZZ(2), 3) == S([56 52; 78 134])
 
    K = AbstractAlgebra.RealField
    R, (x, y) = PolynomialRingSparse(K, ["x", "y"])
-   @test_broken evaluate(x + y, [K(1), K(1)]) isa BigFloat
+   @test evaluate(x + y, [K(1), K(1)]) isa BigFloat
 end
 
-@testset "MPolySparse.valuation" begin
-   R, x = ZZ["y"]
+# @testset "MPolySparse.valuation" begin
+#    R, x = ZZ["y"]
 
-   for num_vars = 1:10
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
+#    for num_vars = 1:10
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-      # TODO
-      # for iter = 1:100
-      #    f = S()
-      #    g = S()
-      #    while f == 0 || g == 0 || isconstant(g)
-      #       f = rand(S, 0:5, 0:100, 0:0, -100:100)
-      #       g = rand(S, 0:5, 0:100, 0:0, -100:100)
-      #    end
+#       for iter = 1:100
+#          f = S()
+#          g = S()
+#          while f == 0 || g == 0 || isconstant(g)
+#             f = rand(S, 0:5, 0:100, 0:0, -100:100)
+#             g = rand(S, 0:5, 0:100, 0:0, -100:100)
+#          end
 
-      #    d1 = valuation(f, g)
+#          d1 = valuation(f, g)
 
-      #    expn = rand(1:5)
+#          expn = rand(1:5)
 
-      #    d2 = valuation(f*g^expn, g)
+#          d2 = valuation(f*g^expn, g)
 
-      #    @test_broken d2 == d1 + expn
+#          @test_broken d2 == d1 + expn
 
-      #    d3, q3 = remove(f, g)
+#          d3, q3 = remove(f, g)
 
-      #    @test_broken d3 == d1
-      #    @test_broken f == q3*g^d3
+#          @test_broken d3 == d1
+#          @test_broken f == q3*g^d3
 
-      #    d4, q4 = remove(q3*g^expn, g)
+#          d4, q4 = remove(q3*g^expn, g)
 
-      #    @test_broken d4 == expn
-      #    @test_broken q4 == q3
-      # end
-   end
-end
+#          @test_broken d4 == expn
+#          @test_broken q4 == q3
+#       end
+#    end
+# end
 
 @testset "MPolySparse.derivative" begin
    for num_vars=1:10
@@ -1173,57 +1130,55 @@ end
 
       j = 1
       for v in vars
-         # TODO
-         # for iter in 1:10
-         #    f = rand(R, 5:10, 1:10, -100:100)
-         #    g = rand(R, 5:10, 1:10, -100:100)
+         for iter in 1:10
+            f = rand(R, 5:10, 1:10, -100:100)
+            g = rand(R, 5:10, 1:10, -100:100)
 
-         #    @test_broken derivative(f + g, v) == derivative(g, v) + derivative(f, v)
-         #    @test_broken derivative(g*f, v) == derivative(g, v)*f + derivative(f, v)*g
-         #    @test_broken derivative(f, j) == derivative(f, v)
-         # end
-         @test_broken derivative(one(R), v) == zero(R)
-         @test_broken derivative(zero(R), v) == zero(R)
-         @test_broken derivative(v, v) == one(R)
+            @test derivative(f + g, v) == derivative(g, v) + derivative(f, v)
+            @test derivative(g*f, v) == derivative(g, v)*f + derivative(f, v)*g
+            @test derivative(f, j) == derivative(f, v)
+         end
+         @test derivative(one(R), v) == zero(R)
+         @test derivative(zero(R), v) == zero(R)
+         @test derivative(v, v) == one(R)
          j += 1
       end
    end
 end
 
-# TODO
-# @testset "MPolySparse.change_base_ring" begin
-#    F2 = ResidueRing(ZZ, 2)
-#    R, varsR = PolynomialRingSparse(F2, ["x"])
-#    S, varsS = PolynomialRingSparse(R, ["y"])
-#    f = x -> x^2
-#    map_coefficients(f, varsR[1] * varsS[1]) == f(varsR[1]) * varsS[1]
+@testset "MPolySparse.change_base_ring" begin
+   F2 = ResidueRing(ZZ, 2)
+   R, varsR = PolynomialRingSparse(F2, ["x"])
+   S, varsS = PolynomialRingSparse(R, ["y"])
+   f = x -> x^2
+   map_coefficients(f, varsR[1] * varsS[1]) == f(varsR[1]) * varsS[1]
 
-#    for num_vars=1:10
-#       var_names = ["x$j" for j in 1:num_vars]
-#       ord = rand_ordering()
+   for num_vars=1:10
+      var_names = ["x$j" for j in 1:num_vars]
+      ord = rand_ordering()
 
-#       R, vars = PolynomialRingSparse(ZZ, var_names; ordering=ord)
+      R, vars = PolynomialRingSparse(ZZ, var_names; ordering=ord)
 
-#       F2x, varss = PolynomialRingSparse(F2, var_names; ordering = ord)
+      F2x, varss = PolynomialRingSparse(F2, var_names; ordering = ord)
 
-#       @test_broken typeof(AbstractAlgebra.Generic.change_base_ring(ZZ, R(1))) == AbstractAlgebra.MPolySparse{typeof(ZZ(1))}
-#       @test_broken typeof(AbstractAlgebra.Generic.change_base_ring(ZZ, R(0))) == AbstractAlgebra.MPolySparse{typeof(ZZ(0))}
+      @test typeof(change_base_ring(ZZ, R(1))) == MPolySparse{typeof(ZZ(1))}
+      @test typeof(change_base_ring(ZZ, R(0))) == MPolySparse{typeof(ZZ(0))}
 
-#       for iter in 1:10
-#          f = rand(R, 5:10, 1:10, -100:100)
-#          @test_broken evaluate(change_base_ring(R, f), [one(R) for i=1:num_vars]) == sum(f.coeffs[i] for i=1:f.length)
-#          @test_broken evaluate(change_base_ring(R, f), vars) == f
-#          @test_broken ordering(parent(change_base_ring(R, f))) == ordering(parent(f))
+      for iter in 1:10
+         f = rand(R, 5:10, 1:10, -100:100)
+         @test evaluate(change_base_ring(R, f), [one(R) for i=1:num_vars]) == sum(f.coeffs[i] for i=1:f.length)
+         @test evaluate(change_base_ring(R, f), vars) == f
+         @test ordering(parent(change_base_ring(R, f))) == ordering(parent(f))
 
-#          g = change_base_ring(F2, f, parent = F2x)
-#          @test_broken base_ring(g) === F2
-#          @test_broken parent(g) === F2x
+         g = change_base_ring(F2, f, parent = F2x)
+         @test base_ring(g) === F2
+         @test parent(g) === F2x
 
-#          g = map_coefficients(z -> z + 1, f, parent = R)
-#          @test_broken parent(g) === R
-#       end
-#    end
-# end
+         g = map_coefficients(z -> z + 1, f, parent = R)
+         @test parent(g) === R
+      end
+   end
+end
 
 @testset "MPolySparse.vars" begin
    for num_vars=1:10
@@ -1246,31 +1201,30 @@ end
 
       R, vars_R = PolynomialRingSparse(ZZ, var_names; ordering=ord)
 
-      # TODO
-      # for iter in 1:10
-      #    f = R()
-      #    while f == 0
-      #       f = rand(R, 5:10, 1:10, -100:100)
-      #    end
+      for iter in 1:10
+         f = R()
+         while f == 0
+            f = rand(R, 5:10, 1:10, -100:100)
+         end
 
-      #    lenf = length(f)
-      #    f = setcoeff!(f, rand(1:lenf), 0)
-      #    f = combine_like_terms!(f)
+         lenf = length(f)
+         f = setcoeff!(f, rand(1:lenf), ZZ(0))
+         f = combine_like_terms!(f)
 
-      #    @test_broken length(f) == lenf - 1
+         @test length(f) == lenf - 1
 
-      #    while length(f) < 2
-      #       f = rand(R, 5:10, 1:10, -100:100)
-      #    end
+         while length(f) < 2
+            f = rand(R, 5:10, 1:10, -100:100)
+         end
 
-      #    lenf = length(f)
-      #    nrand = rand(1:lenf - 1)
-      #    v = exponent_vector(f, nrand)
-      #    f = set_exponent_vector!(f, nrand + 1, v)
-      #    terms_cancel = coeff(f, nrand) == -coeff(f, nrand + 1)
-      #    f = combine_like_terms!(f)
-      #    @test_broken length(f) == lenf - 1 - terms_cancel
-      # end
+         lenf = length(f)
+         nrand = rand(1:lenf - 1)
+         v = exponent_vector(f, nrand)
+         f = set_exponent_vector!(f, nrand + 1, v)
+         terms_cancel = coeff(f, nrand) == -coeff(f, nrand + 1)
+         f = combine_like_terms!(f)
+         @test length(f) == lenf - 1 - terms_cancel
+      end
    end
 end
 
@@ -1368,7 +1322,7 @@ end
             f = f + coeffs[i] * x^i
             f_univ = f_univ + coeffs[i] * x_univ^i
          end
-         @test_broken to_univariate(R_univ, f) == f_univ
+         @test to_univariate(R_univ, f) == f_univ
       end
    end
 end
@@ -1382,12 +1336,12 @@ end
 
       @test length(AbstractAlgebra.Generic.coefficients_of_univariate(zero(R), true)) == 0
       @test length(AbstractAlgebra.Generic.coefficients_of_univariate(zero(R), false)) == 0
-      @test_broken AbstractAlgebra.Generic.coefficients_of_univariate(one(R), true) == [ one(base_ring(R)) ]
+      @test AbstractAlgebra.Generic.coefficients_of_univariate(one(R), true) == [ one(base_ring(R)) ]
       x = rand(vars_R)
-      @test_broken AbstractAlgebra.Generic.coefficients_of_univariate(one(R), false) == [ one(base_ring(R)) ]
-      @test_broken AbstractAlgebra.Generic.coefficients_of_univariate(x, true) == [ zero(base_ring(R)), one(base_ring(R)) ]
+      @test AbstractAlgebra.Generic.coefficients_of_univariate(one(R), false) == [ one(base_ring(R)) ]
+      @test AbstractAlgebra.Generic.coefficients_of_univariate(x, true) == [ zero(base_ring(R)), one(base_ring(R)) ]
       x = rand(vars_R)
-      @test_broken AbstractAlgebra.Generic.coefficients_of_univariate(x, false) == [ zero(base_ring(R)), one(base_ring(R)) ]
+      @test AbstractAlgebra.Generic.coefficients_of_univariate(x, false) == [ zero(base_ring(R)), one(base_ring(R)) ]
 
       for iter in 1:10
          f = zero(R)
@@ -1396,8 +1350,8 @@ end
          for i in 1:l
             f = f + coeffs[i] * x^(i-1)
          end
-         @test_broken AbstractAlgebra.Generic.coefficients_of_univariate(f, true) == coeffs
-         @test_broken AbstractAlgebra.Generic.coefficients_of_univariate(f, false) == coeffs
+         @test AbstractAlgebra.Generic.coefficients_of_univariate(f, true) == coeffs
+         @test AbstractAlgebra.Generic.coefficients_of_univariate(f, false) == coeffs
       end
    end
 end
@@ -1423,7 +1377,7 @@ end
       for i in 1:size(A)[1]-1
          f = R([base_ring(R)(1)], [A[i,:]])
          g = R([base_ring(R)(1)], [A[i+1,:]])
-         @test_broken isless(f,g)
+         @test isless(f,g)
       end
    end
 
@@ -1441,25 +1395,25 @@ end
       var_names = ["x$j" for j in 1:n_vars]
       R, varsR = PolynomialRingSparse(ZZ, var_names, ordering=:deglex)
 
-      # for i in 1:size(A)[1]-1
-      #    f = R([base_ring(R)(1)], [A[i,:]])
-      #    g = R([base_ring(R)(1)], [A[i+1,:]])
-      #    if total_degree(f) < total_degree(g)
-      #       @test_broken isless(f,g)
-      #    elseif total_degree(g) < total_degree(f)
-      #       @test_broken isless(g,f)
-      #    else
-      #       for j = 1:n_vars
-      #          if A[i, j] < A[i+1, j]
-      #             @test_broken isless(f,g)
-      #             break
-      #          elseif A[i,j] > A[i+1,j]
-      #             @test_broken isless(g,f)
-      #             break
-      #          end
-      #       end
-      #    end
-      # end
+      for i in 1:size(A)[1]-1
+         f = R([base_ring(R)(1)], [A[i,:]])
+         g = R([base_ring(R)(1)], [A[i+1,:]])
+         if total_degree(f) < total_degree(g)
+            @test isless(f,g)
+         elseif total_degree(g) < total_degree(f)
+            @test isless(g,f)
+         else
+            for j = 1:n_vars
+               if A[i, j] < A[i+1, j]
+                  @test isless(f,g)
+                  break
+               elseif A[i,j] > A[i+1,j]
+                  @test isless(g,f)
+                  break
+               end
+            end
+         end
+      end
    end
 
    # :degrevlex ordering
@@ -1470,31 +1424,30 @@ end
    @test isless(x*z, y^2) == true
    @test isless(y^2, x*y) == true
    @test isless(x*y, x^2) == true
-   # TODO
-   # for n_vars = 1:maxdeg
-   #    A = reshape(map(Int,map(round, rand(n_vars * n_mpolys) * maxval)), (n_mpolys, n_vars))
-   #    var_names = ["x$j" for j in 1:n_vars]
-   #    R, varsR = PolynomialRingSparse(ZZ, var_names, ordering=:degrevlex)
-   #    for i in 1:size(A)[1]-1
-   #       f = R([base_ring(R)(1)], [A[i,:]])
-   #       g = R([base_ring(R)(1)], [A[i+1,:]])
-   #       if total_degree(f) < total_degree(g)
-   #          @test_broken isless(f,g)
-   #       elseif total_degree(g) < total_degree(f)
-   #          @test_broken isless(g,f)
-   #       else
-   #          for j = n_vars:-1:1
-   #             if A[i, j] > A[i+1, j]
-   #                @test_broken isless(f,g)
-   #                break
-   #             elseif A[i, j] == A[i+1, j]
-   #                continue
-   #             elseif A[i,j] < A[i+1,j]
-   #                @test_broken isless(g,f)
-   #                break
-   #             end
-   #          end
-   #       end
-   #    end
-   # end
+   for n_vars = 1:maxdeg
+      A = reshape(map(Int,map(round, rand(n_vars * n_mpolys) * maxval)), (n_mpolys, n_vars))
+      var_names = ["x$j" for j in 1:n_vars]
+      R, varsR = PolynomialRingSparse(ZZ, var_names, ordering=:degrevlex)
+      for i in 1:size(A)[1]-1
+         f = R([base_ring(R)(1)], [A[i,:]])
+         g = R([base_ring(R)(1)], [A[i+1,:]])
+         if total_degree(f) < total_degree(g)
+            @test isless(f,g)
+         elseif total_degree(g) < total_degree(f)
+            @test isless(g,f)
+         else
+            for j = n_vars:-1:1
+               if A[i, j] > A[i+1, j]
+                  @test isless(f,g)
+                  break
+               elseif A[i, j] == A[i+1, j]
+                  continue
+               elseif A[i,j] < A[i+1,j]
+                  @test isless(g,f)
+                  break
+               end
+            end
+         end
+      end
+   end
 end

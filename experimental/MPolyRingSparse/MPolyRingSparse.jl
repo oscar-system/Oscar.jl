@@ -10,11 +10,11 @@ using AbstractAlgebra
 
 import Base: deepcopy_internal, hash, isless, isone, iszero, length, parent, +, -, *, ==
 
-import AbstractAlgebra: CacheDictType, get_cached!
+import AbstractAlgebra: CacheDictType, get_cached!, internal_power
 
 import AbstractAlgebra: Ring, RingElement
 
-import AbstractAlgebra: base_ring, check_parent, coeff, combine_like_terms!, degree, elem_type, expressify, gen, gens, isconstant, isgen, isunit, nvars, parent_type, promote_rule, sort_terms!, symbols, total_degree, vars
+import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring, check_parent, coeff, combine_like_terms!, degree, elem_type, exponent, exponent_vector, expressify, fit!, gen, gens, isconstant, isgen, ishomogeneous, isunit, map_coefficients, monomial, monomial!, nvars, parent_type, promote_rule, setcoeff!, set_exponent_vector!, sort_terms!, symbols, term, total_degree, vars, zero!
 
 import AbstractAlgebra.Generic: ordering
 
@@ -112,10 +112,15 @@ end
 function vars(p::MPolySparse{T}) where {T <: RingElement}
     exps = p.exps
     gen_list = gens(p.parent)
-    inds_in_p = sort!(unique([v[1] for v in exps[i] for i in 1:length(exps)]))
+    inds_in_p = sort!(unique([v[1] for i in 1:length(exps) for v in exps[i]]))
     
     return map(ind -> gen_list[ind], inds_in_p)
 end
+
+function var_index(x::MPolySparse{T}) where {T <: RingElement}
+    !isgen(x) && error("Not a variable in var_index")
+    return x.exps[1][1][1]
+ end
 
 function ordering(a::MPolyRingSparse{T}) where {T <: RingElement}
     return a.ord
@@ -134,16 +139,60 @@ end
 #
 ###############################################################################
 
-# TODO
+function transform_exps(e::Vector{Int})
+    exp = Vector{Tuple{Int,Int}}(undef, 0)
+    for (i,j) in enumerate(e)
+        if !iszero(j)
+            push!(exp, (i,j))
+        end
+    end
+    return exp
+end
 
+function transform_exps2(e::Vector{Tuple{Int,Int}}, N::Int)
+    exp = zeros(Int, N)
+    for (i,j) in e
+        exp[i] = j
+    end
+    return exp
+end
+
+function exponent_vector(a::MPolySparse{T}, i::Int) where T <: RingElement
+    return transform_exps2(a.exps[i], nvars(parent(a)))
+end
+
+function exponent(a::MPolySparse{T}, i::Int, j::Int) where T <: RingElement
+    k = searchsortedfirst(a.exps[i], j; by=first)
+    if 1 <= k <= length(a.exps[i])
+        return a.exps[i][k][2]
+    else
+        return 0
+    end
+end
+
+function coeff(a::MPolySparse, i::Int)
+    return a.coeffs[i]
+end
+
+function coeff(a::MPolySparse{T}, e::Vector{Tuple{Int,Int}}) where T <: RingElement
+    monomial_lt = (x, y) -> monomial_isless(x, y, parent(a))
+    k = searchsortedfirst(a.exps, e; lt = monomial_lt)
+    if 1 <= k <= length(a)
+        return a.coeffs[k]
+    else
+        return parent(a)()
+    end
+end
+
+function coeff(a::MPolySparse{T}, e::Vector{Int}) where T <: RingElement
+    return coeff(a, transform_exps(e))
+end
 
 ###############################################################################
 #
 #   Monomial operations
 #
 ###############################################################################
-
-# TODO
 
 function monomial_isless(a::Vector{Tuple{Int,Int}}, b::Vector{Tuple{Int,Int}}, R::MPolyRing{T}) where {T <: RingElement}
     return monomial_cmp(a, b, R) < 0
@@ -218,6 +267,7 @@ function merge_exps(a::Vector{Tuple{Int,Int}}, b::Vector{Tuple{Int,Int}})
     return r
 end
 
+
 ###############################################################################
 #
 #   Basic manipulation
@@ -240,7 +290,7 @@ function isgen(x::MPolySparse{T}) where {T <: RingElement}
     if length(x) != 1
         return false
     end
-    if !isone(x.coeff[1])
+    if !isone(x.coeffs[1])
         return false
     end
     if length(x.exps[1]) != 1
@@ -249,58 +299,45 @@ function isgen(x::MPolySparse{T}) where {T <: RingElement}
     return x.exps[1][1][2] == 1
 end
 
-# TODO
-# function ishomogeneous(x::MPoly{T}) where {T <: RingElement}
-#     last_deg = 0
-#     is_first = true
+function ishomogeneous(x::MPolySparse{T}) where {T <: RingElement}
+    last_deg = 0
+    is_first = true
+ 
+    for e in x.exps
+       d = sum(x -> x[2], e; init=0)
+       if !is_first
+          if d != last_deg
+             return false
+          else
+             last_deg = d
+          end
+       else
+          is_first = false
+          last_deg = d
+       end
+    end
+    return true
+ end
 
-#     for e in exponent_vectors(x)
-#         d = sum(e)
-#         if !is_first
-#             if d != last_deg
-#                 return false
-#             else
-#                 last_deg = d
-#             end
-#         else
-#             is_first = false
-#             last_deg = d
-#         end
-#     end
-#     return true
-# end
-
-function coeff(x::MPolySparse, i::Int)
-    return x.coeffs[i]
+function monomial(x::MPolySparse{T}, i::Int) where {T <: RingElement}
+    return parent(x)([one(base_ring(x))], [x.exps[i]])
 end
 
-# TODO
-# function monomial(x::MPoly, i::Int)
-#     R = base_ring(x)
-#     N = size(x.exps, 1)
-#     exps = Matrix{UInt}(undef, N, 1)
-#     monomial_set!(exps, 1, x.exps, i, N)
-#     return parent(x)([one(R)], exps)
-# end
+function monomial!(m::MPolySparse{T}, x::MPolySparse{T}, i::Int) where {T <: RingElement}
+    fit!(m, 1)
+    m.exps[1] = x.exps[i]
+    m.coeffs[1] = one(base_ring(x))
+    m.length = 1
+    return m
+ end
 
-# function monomial!(m::MPoly{T}, x::MPoly{T}, i::Int) where T <: RingElement
-#     N = size(x.exps, 1)
-#     fit!(m, 1)
-#     monomial_set!(m.exps, 1, x.exps, i, N)
-#     m.coeffs[1] = one(base_ring(x))
-#     m.length = 1
-#     return m
-#  end
 
-# function term(x::MPoly, i::Int)
-#     R = base_ring(x)
-#     N = size(x.exps, 1)
-#     exps = Matrix{UInt}(undef, N, 1)
-#     monomial_set!(exps, 1, x.exps, i, N)
-#     return parent(x)([deepcopy(x.coeffs[i])], exps)
-# end
+function term(x::MPolySparse{T}, i::Int) where {T <: RingElement}
+    return parent(x)([x.coeffs[i]], [x.exps[i]])
+end
 
-function degree(f::MPolySparse{T}, i::Int) where T <: RingElement
+
+function degree(f::MPolySparse{T}, i::Int) where {T <: RingElement}
     biggest = -1
     for j = 1:length(f)
         k = searchsortedfirst(f.exps[j], i; by=first)
@@ -314,8 +351,7 @@ function degree(f::MPolySparse{T}, i::Int) where T <: RingElement
         end
     end
     return biggest
- end
-
+end
 
 function total_degree(f::MPolySparse{T}) where {T <: RingElement}
     ord = ordering(parent(f))
@@ -329,7 +365,7 @@ function total_degree(f::MPolySparse{T}) where {T <: RingElement}
         end
         return max_deg
     elseif ord == :deglex || ord == :degrevlex
-        return length(f) == 0 ? -1 : sum(x -> x[2], f.exps[1])
+        return length(f) == 0 ? -1 : sum(x -> x[2], f.exps[1]; init = 0)
     else
         error("total_degree is not implemented for this ordering.")
     end
@@ -368,7 +404,6 @@ end
 #
 ###############################################################################
 
-# TODO
 function -(a::MPolySparse{T}) where {T <: RingElement}
     r = zero(a)
     fit!(r, length(a))
@@ -481,18 +516,10 @@ function *(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
     return combine_like_terms!(sort_terms!(r))
 end
 
+
 ###############################################################################
 #
 #   Square root
-#
-###############################################################################
-
-# TODO
-
-
-###############################################################################
-#
-#   Ad hoc arithmetic functions
 #
 ###############################################################################
 
@@ -531,21 +558,29 @@ end
 
 ###############################################################################
 #
-#   Ad hoc comparison functions
-#
-###############################################################################
-
-# TODO
-
-
-###############################################################################
-#
 #   Powering
 #
 ###############################################################################
 
-# TODO
-
+function ^(a::MPolySparse{T}, b::Int) where {T <: RingElement}
+    b < 0 && throw(DomainError(b, "exponent must be >= 0"))
+    # special case powers of x for constructing polynomials efficiently
+    if iszero(a)
+        if iszero(b)
+            return one(a)
+        else
+            return zero(a)
+        end
+    elseif b == 0
+        return one(a)
+    elseif b == 1
+        return deepcopy(a)
+    elseif b == 2
+        return a*a
+    else
+        return internal_power(a, b)
+    end
+end
 
 ###############################################################################
 #
@@ -580,7 +615,45 @@ end
 #
 ###############################################################################
 
-# TODO
+function (a::MPolySparse{T})(vals::Union{NCRingElem, RingElement}...) where T <: RingElement
+    length(vals) != nvars(parent(a)) && error("Number of variables does not match number of values")
+    R = base_ring(a)
+    # The best we can do here is to cache previously used powers of the values
+    # being substituted, as we cannot assume anything about the relative
+    # performance of powering vs multiplication. The function should not try
+    # to optimise computing new powers in any way.
+    # Note that this function accepts values in a non-commutative ring, so operations
+    # must be done in a certain order.
+    powers = [Dict{Int, Any}() for i in 1:length(vals)]
+    # First work out types of products
+    r = R()
+    c = zero(R)
+    U = Vector{Any}(undef, length(vals))
+    for j = 1:length(vals)
+        W = typeof(vals[j])
+        if ((W <: Integer && W != BigInt) ||
+            (W <: Rational && W != Rational{BigInt}))
+            c = c*zero(W)
+            U[j] = parent(c)
+        else
+            U[j] = parent(vals[j])
+            c = c*zero(parent(vals[j]))
+        end
+    end
+    cvzip = zip(coefficients(a), exponent_vectors(a))
+    for (c, v) in cvzip
+        t = c
+        for j = 1:length(vals)
+            exp = v[j]
+            if !haskey(powers[j], exp)
+                powers[j][exp] = (U[j](vals[j]))^exp
+            end
+            t = t*powers[j][exp]
+        end
+        r += t
+    end
+    return r
+end
 
 
 ###############################################################################
@@ -594,11 +667,37 @@ end
 
 ###############################################################################
 #
-#   Build context
+#  Change base ring
 #
 ###############################################################################
 
-# TODO
+function map_coefficients(f, p::MPolySparse; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(parent(f(zero(base_ring(p)))), parent(p), cached))
+    return _map(f, p, parent)
+end
+
+function _map(g, p::MPolySparse, Rx)
+    cvzip = zip(coefficients(p), exponent_vectors(p))
+    M = MPolyBuildCtx(Rx)
+    for (c, v) in cvzip
+        push_term!(M, g(c), v)
+    end
+
+    return finish(M)
+end
+
+function _change_mpoly_ring(R, Rx, cached)
+    P, _ = PolynomialRingSparse(R, map(string, symbols(Rx)), ordering = ordering(Rx), cached = cached)
+    return P
+ end
+
+function change_base_ring(R::Ring, p::MPolySparse{T}; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
+    base_ring(parent) != R && error("Base rings do not match.")
+    return _map(R, p, parent)
+end
+
+function change_coefficient_ring(R::Ring, p::MPolySparse{T}; cached = true, parent::MPolyRingSparse = _change_mpoly_ring(R, parent(p), cached)) where {T <: RingElement}
+   return change_base_ring(R, p, cached = cached, parent = parent)
+end
 
 
 ###############################################################################
@@ -607,14 +706,45 @@ end
 #
 ###############################################################################
 
-# TODO
-
 function fit!(a::MPolySparse{T}, n::Int) where {T <: RingElement}
     if length(a) < n
         resize!(a.coeffs, n)
         resize!(a.exps, n)
     end
     return nothing
+end
+
+function zero!(a::MPolySparse{T}) where {T <: RingElement}
+    a.length = 0
+    return a
+end
+
+function set_exponent_vector!(a::MPolySparse{T}, i::Int, e::Vector{Tuple{Int,Int}}) where T <: RingElement
+    n = nvars(parent(a))
+    all(x -> 0 < x[1] <= n, e) || error("variable index out of range")
+    fit!(a, i)
+    a.exps[i] = filter(x -> !iszero(x[2]), e)
+    if i > length(a)
+        a.length = i
+    end
+    return a
+end
+
+function set_exponent_vector!(a::MPolySparse{T}, i::Int, e::Vector{Int}) where T <: RingElement
+    return set_exponent_vector!(a, i, transform_exps(e))
+end
+
+for T in [RingElem, Integer, Rational, AbstractFloat]
+    @eval begin
+        function setcoeff!(a::MPolySparse{S}, i::Int, c::S) where {S <: $T}
+            fit!(a, i)
+            a.coeffs[i] = c
+            if i > length(a)
+                a.length = i
+            end
+            return a
+        end
+    end
 end
 
 function sort_terms!(a::MPolySparse{T}) where {T <: RingElement}
@@ -700,51 +830,24 @@ function (a::MPolyRingSparse{T})(b::Vector{T}, e::Vector{Vector{Tuple{Int,Int}}}
     if length(b) > 0 && isassigned(b, 1)
         parent(b[1]) != base_ring(a) && error("Unable to coerce to polynomial")
     end
-    z = MPolySparse{T}(a, b, e)
+    z = MPolySparse{T}(a, b, map(x -> filter(y -> !iszero(y[2]), x), e))
     return z
 end
 
 # This is the main user interface for efficiently creating a polynomial. It accepts
 # an array of coefficients and an array of exponent vectors. Sorting, coalescing of
 # like terms and removal of zero terms is performed.
-function (a::MPolyRingSparse{T})(b::Vector{T}, m::Vector{Vector{Int}}) where {T <: RingElement}
+function (R::MPolyRingSparse{T})(b::Vector{T}, e::Vector{Vector{Int}}) where {T <: RingElement}
     if length(b) > 0 && isassigned(b, 1)
-        parent(b[1]) != base_ring(a) && error("Unable to coerce to polynomial")
+        parent(b[1]) != base_ring(R) && error("Unable to coerce to polynomial")
     end
 
-    length(m) != length(b) && error("Exponent vector has length $(length(m)) (expected $(length(b)))")
+    length(e) != length(b) && error("Exponent vector has length $(length(e)) (expected $(length(b)))")
 
-    ord = ordering(a)
-    # TODO
-
-    # Pe = Matrix{UInt}(undef, N, length(m))
-
-    # if ord == :lex
-    #     for i = 1:length(m)
-    #         for j = 1:N
-    #             Pe[j, i] = UInt(m[i][N - j + 1])
-    #         end
-    #     end
-    # elseif ord == :deglex
-    #     for i = 1:length(m)
-    #         for j = 1:N - 1
-    #             Pe[j, i] = UInt(m[i][N - j])
-    #         end
-    #         Pe[N, i] = UInt(sum(m[i]))
-    #     end
-    # else # degrevlex
-    #     for i = 1:length(m)
-    #         for j = 1:N - 1
-    #             Pe[j, i] = UInt(m[i][j])
-    #         end
-    #         Pe[N, i] = UInt(sum(m[i]))
-    #     end
-    # end
-
-    # z = MPolySparse{T}(a, b, Pe)
-    # z = sort_terms!(z)
-    # z = combine_like_terms!(z)
-    # return z
+    z = MPolySparse{T}(R, b, map(transform_exps, e))
+    z = sort_terms!(z)
+    z = combine_like_terms!(z)
+    return z
 end
 
 
@@ -764,7 +867,7 @@ function expressify(a::MPolySparse, x = symbols(parent(a)); context = nothing)
         for (var, exp) in a.exps[i]
             if exp == 1
                 push!(prod.args, x[var])
-            else
+            elseif exp > 1
                 push!(prod.args, Expr(:call, :^, x[var], exp))
             end
         end
