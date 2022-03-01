@@ -82,10 +82,11 @@ TropicalLinearSpace_impl(plv, rank, nElements, max)
 #TODO requires a fix of ValuationMap
 function TropicalLinearSpace(tropicalmatrix::MatElem, val)
   plv = [val(p) for p in Nemo.minors(tropicalmatrix, min( nrows(tropicalmatrix), ncols(tropicalmatrix)) )]
+  plv =Oscar.tropical_numbers(min).(plv)
   rk = rank(tropicalmatrix)
   nelement = max( nrows(tropicalmatrix), ncols(tropicalmatrix))
-  println(plv)
-  return TropicalLinearSpace(plv, nelement, rk)
+  println(typeof(plv))
+  return TropicalLinearSpace(plv, rk, nelement)
 end
 
 function TropicalLinearSpace(tropicalmatrix::Matrix{Int})
