@@ -547,7 +547,7 @@ function basis(K::NfNSGen; copy::Bool = true)
   else
     I = defining_ideal(K)
     assert_has_gb(K)
-    GI = collect(values(I.gb))[1]
+    GI = first(values(I.gb))
     s = Singular.kbase(GI.S)
     if iszero(s)
       error("ideal was not zero-dimensional")
