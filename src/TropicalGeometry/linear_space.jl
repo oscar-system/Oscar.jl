@@ -39,8 +39,15 @@ Construct a tropical linear space from a degree 1 polynomial ideal
 
 # Examples
 """
-function TropicalLinearSpace(ideal::MPolyIdeal{fmpq_poly})
-  return #...
+function TropicalLinearSpace(I::MPolyIdeal{fmpz_mpoly}, val)
+    R = base_ring(I)
+    n = ngens(R)
+    g = gens(I)
+    l = length(g)
+    id = [ v for v in identity_matrix(ZZ,n)]
+    A = [ [ coeff(p,Vector{Int}(v)) for v in [id[i,:] for i in 1:nrows(id)] ] for p in gens(I) ]
+    B = kernel_basis(matrix(QQ,A))
+    return TropicalLinearSpace(matrix(B),val)
 end
 
 @doc Markdown.doc"""
@@ -82,7 +89,6 @@ TropicalLinearSpace_impl(plv, rank, nElements, max)
 #TODO requires a fix of TropicalSemiringMap
 function TropicalLinearSpace(tropicalmatrix::MatElem, val)
   plv = [val(p) for p in Nemo.minors(tropicalmatrix, min( nrows(tropicalmatrix), ncols(tropicalmatrix)) )]
-  plv =Oscar.tropical_semiring(min).(plv)
   rk = rank(tropicalmatrix)
   nelement = max( nrows(tropicalmatrix), ncols(tropicalmatrix))
   println(typeof(plv))
