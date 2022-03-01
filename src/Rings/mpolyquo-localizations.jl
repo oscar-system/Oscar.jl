@@ -191,8 +191,9 @@ function quo(
   ) where {BRT, BRET, RT, RET, MST}
   R = base_ring(W)
   S = inverted_set(W)
-  lbpa = groebner_basis(I) # In particular, this saturates the ideal
-  J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
+  #lbpa = groebner_basis(I) # In particular, this saturates the ideal
+  #J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
+  J = ideal(R, numerator.(gens(I)))
   return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
 end
 
@@ -548,7 +549,7 @@ end
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if denominator(a) == denominator(b) 
+  if lifted_denominator(a) == lifted_denominator(b) 
     return reduce_fraction((parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false))
   end
   return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false))
@@ -562,7 +563,7 @@ end
 
 function -(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if denominator(a) == denominator(b) 
+  if lifted_denominator(a) == lifted_denominator(b) 
     return reduce_fraction((parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false))
   end
   return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false))
@@ -636,6 +637,7 @@ function isone(a::MPolyQuoLocalizedRingElem)
 end
 
 function iszero(a::MPolyQuoLocalizedRingElem)
+  iszero(lifted_numerator(a)) && return true
   return lifted_numerator(a) in localized_modulus(parent(a))
 end
 

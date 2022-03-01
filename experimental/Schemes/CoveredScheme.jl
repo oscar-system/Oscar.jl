@@ -215,7 +215,7 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
     patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
-    pU[patch] = restrict(pY, patch, Y)
+    pU[patch] = restrict(pY, patch, Y, check=false)
   end
   result = Covering(U)
   # manually glue sufficiently many patches.

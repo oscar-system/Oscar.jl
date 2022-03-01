@@ -8,7 +8,7 @@ export blow_up, empty_covered_projective_scheme
 
 export strict_transform, total_transform, weak_transform, controlled_transform
 
-export prepare_smooth_center, as_smooth_local_complete_intersection
+export prepare_smooth_center, as_smooth_local_complete_intersection, as_smooth_lci_of_cod
 
 mutable struct ProjectiveGlueing{
                                  GlueingType<:Glueing,
@@ -200,11 +200,13 @@ function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyEle
 
   Imod = modulus(A)
   IW = ideal(At, [embeddingAt(f) for f in gens(Imod)])
+  @show "start groebner basis computation."
   IWpre = preimage(Phi, IW)
+  @show "done. Proceed to process"
   #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
   SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
+  @show 0
 
-  @show "done. Proceed to process"
   projective_version = subscheme(Pw, SIWpre)
   @show 1
   covered_version = as_covered_scheme(projective_version)
@@ -347,7 +349,7 @@ function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) 
 	Excdiv = ideal(h)
 
 	Pf = pullback(f)
-        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 	
 	while true
           Inew = quotient(Iold, Excdiv)
@@ -368,7 +370,7 @@ function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) w
 	Excdiv = ideal(h)
 
 	Pf = pullback(f)
-        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
         return gens(Iold)
 end
 
@@ -382,7 +384,7 @@ function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) wh
 	Excdiv = ideal(h)
 
 	Pf = pullback(f)
-        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 
 	while true
 		Inew = quotient(Iold, Excdiv)
@@ -403,7 +405,7 @@ function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyTyp
 	Excdiv = ideal(h)
 
 	Pf = pullback(f)
-        Iold = ideal(R, lifted_numerator.(Pf.(g)))
+        Iold = ideal(R, lifted_numerator.(Pf.(g))) + strict_modulus(X)
 	
 
 	for j in 1:i
@@ -469,11 +471,91 @@ function prepare_smooth_center(X::Spec, f::Vector{PolyType}; check::Bool=true) w
   return X_dict
 end
 
+function as_smooth_local_complete_intersection(I::IdealSheaf; check::Bool=true, verbose::Bool=false)
+  X = scheme(I)
+  C = covering(I)
+  SpecType = affine_patch_type(X)
+  PolyType = poly_type(SpecType)
+  res_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+  for U in patches(C)
+    merge!(res_dict, as_smooth_local_complete_intersection(U, I[U], check=check, verbose=verbose))
+  end
+  return res_dict
+end
+
+function as_smooth_local_complete_intersection(
+    X::Spec, 
+    f::Vector{PolyType}; 
+    check::Bool=true, 
+    verbose::Bool=false
+  ) where {PolyType}
+  verbose && println("call with $X and $f")
+  R = base_ring(OO(X))
+  g = gens(modulus(OO(X)))
+  Dg = jacobi_matrix(g)
+  d = dim(X)
+  n = nvars(R)
+  verbose && println("generators:")
+  verbose && println(f)
+  verbose && println("jacobian matrix:")
+  if verbose
+    for i in 1:nrows(Dg)
+      println(Dg[i, 1:end])
+    end
+  end
+  X_dict = _as_smooth_lci_rec(X, X, PolyType[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), g, Dg, d, n, check=check, verbose=verbose)
+  verbose && println("####################### done with the ambient space #######################")
+  SpecType = typeof(X)
+  f_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+  for U in keys(X_dict)
+    verbose && println("proceed with finding a regular sequence on $U")
+    g = X_dict[U][2]
+    f_ext = vcat(g, f)
+    Df_ext = jacobi_matrix(f_ext)
+    good = X_dict[U][3]
+    Z = subscheme(U, f)
+    d = dim(Z)
+    merge!(f_dict, _as_smooth_lci_rec(X, Z, X_dict[U][1], (collect(1:length(g)), good), 
+                                      Vector{Tuple{Int, Int}}(), 
+                                      f_ext, Df_ext, d, n, 
+                                      check=check, verbose=verbose)
+          )
+  end
+  return f_dict
+end
+
+function as_smooth_lci_of_cod(X::CoveredScheme, c::Int; check::Bool=true, verbose::Bool=false)
+  C = default_covering(X)
+  SpecType = affine_patch_type(X)
+  PolyType = poly_type(SpecType)
+  res_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+  for U in patches(C)
+    merge!(res_dict, as_smooth_lci_of_cod(U, d, check=check, verbose=verbose))
+  end
+  return res_dict
+end
+
+function as_smooth_lci_of_cod(X::Spec, c::Int; check::Bool=true, verbose::Bool=false)
+  R = base_ring(OO(X))
+  f = gens(modulus(OO(X)))
+  Df = jacobi_matrix(f)
+  n = nvars(R)
+#  verbose && println("generators:")
+#  verbose && println(f)
+#  verbose && println("jacobian matrix:")
+#  if verbose
+#    for i in 1:nrows(Df)
+#      println(Df[i, 1:end])
+#    end
+#  end
+  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, n-c, n, check=check, verbose=verbose)
+end
+
 function as_smooth_local_complete_intersection(X::CoveredScheme; check::Bool=true, verbose::Bool=false)
   C = default_covering(X)
   SpecType = affine_patch_type(X)
   PolyType = poly_type(SpecType)
-  res_dict = Dict{SpecType, Vector{PolyType}}()
+  res_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
   for U in patches(C)
     merge!(res_dict, as_smooth_local_complete_intersection(U, check=check, verbose=verbose))
   end
@@ -494,12 +576,13 @@ function as_smooth_local_complete_intersection(X::Spec; check::Bool=true, verbos
       println(Df[i, 1:end])
     end
   end
-  return _as_smooth_lci_rec(X, X, (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, d, n, check=check, verbose=verbose)
+  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, d, n, check=check, verbose=verbose)
 end
 
 function _as_smooth_lci_rec(
     X::SpecType, 
     Z::SpecType, # the uncovered locus
+    h::Vector{PolyType}, # equations that were localized already
     good::Tuple{Vector{Int}, Vector{Int}}, # partial derivatives that form the beginning of the solution sequence
     bad::Vector{Tuple{Int, Int}}, # partial derivatives that vanish on the uncovered locus.
     f::Vector{PolyType}, 
@@ -514,22 +597,31 @@ function _as_smooth_lci_rec(
           MatrixType
          }
   recstring = prod(["#" for i in 0:rec_depth])
-  verbose && println(recstring * "call with $X, $Z")
+  #verbose && println(recstring * "call with $X, $Z")
   verbose && println(recstring * "selected minors: $(good[1]) x $(good[2])")
   verbose && println(recstring * "bad positions: $bad")
-  res_dict = Dict{typeof(X), Vector{PolyType}}()
+  # return format: 
+  # key: affine patch
+  # value: (equations that were localized from root, 
+  #         regular sequence, 
+  #         index of variables for non-vanishing minor)
+  res_dict = Dict{typeof(X), Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 
-  if isempty(Z)
-    verbose && println("this patch is already covered by others")
-    return res_dict
-  end
+# if isempty(Z)
+#   verbose && println("this patch is already covered by others")
+#   return res_dict
+# end
 
   if length(good[1]) == n-d
+    if isempty(Z)
+      verbose && println("this patch is already covered by others")
+      return res_dict
+    end
     verbose && println(recstring * "end of recursion reached")
     g = det(Df[good[1], good[2]])
     isempty(subscheme(Z, g)) || error("scheme is not smooth")
     U = hypersurface_complement(X, g)
-    res_dict[U] = f[good[2]]
+    res_dict[U] = (vcat(h, [g]), f[good[2]], good[1])
     if check
       issubset(localized_modulus(OO(U)), ideal(OO(U), f[good[2]])) || error("the found generators are not correct")
     end
@@ -537,6 +629,7 @@ function _as_smooth_lci_rec(
     return res_dict
   end
 
+  verbose && println("reducing matrix and selecting pivot...")
   R = base_ring(OO(X))
   W = localized_ring(OO(X))
   J = localized_modulus(OO(Z))
@@ -554,22 +647,28 @@ function _as_smooth_lci_rec(
       end
     end
   end
-  if verbose
-    for i in 1:nrows(Df)
-      println(Df[i, 1:end])
-    end
-  end
+#  if verbose
+#    for i in 1:nrows(Df)
+#      println(Df[i, 1:end])
+#    end
+#  end
   if (k, l) == (0, 0)
     error("scheme is not smooth")
   end
   verbose && println(recstring*"selected the $((k, l))-th entry: $(Df[k,l])")
 
   good_ext = (vcat(good[1], k), vcat(good[2], l))
+  @show 1
   g = det(Df[good_ext[1], good_ext[2]])
+  @show 2
   U = hypersurface_complement(X, g)
-  U_dict = _as_smooth_lci_rec(U, intersect(U, Z), good_ext, bad, f, Df, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
+  @show 3
+  U_dict = _as_smooth_lci_rec(U, hypersurface_complement(Z, g), vcat(h, [g]), good_ext, bad, f, Df, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
+  @show 4
   bad_ext = vcat(bad, (k, l))
-  V_dict = _as_smooth_lci_rec(X, subscheme(Z, g), good, bad_ext, f, Df, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
+  @show 5
+  V_dict = _as_smooth_lci_rec(X, subscheme(Z, g), h, good, bad_ext, f, Df, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
+  @show 6
   return merge!(U_dict, V_dict)
 end
 

@@ -132,7 +132,7 @@ function complement(X::T, Z::T) where {T<:Spec}
   return SpecOpen(X, modulus(OO(Z)))
 end
 
-SpecOpen(X::Spec) = SpecOpen(X, [one(base_ring(OO(X)))])
+SpecOpen(X::Spec) = SpecOpen(X, [one(base_ring(OO(X)))], check=false)
 
 function complement(U::SpecOpen) 
   if !isdefined(U, :complement)

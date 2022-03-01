@@ -1,6 +1,6 @@
 import AbstractAlgebra.Generic: MatSpaceElem
 
-export degeneracy_locus, is_equidimensional_and_smooth, singular_locus
+export degeneracy_locus, is_equidimensional_and_smooth, singular_locus, is_smooth_of_dimension
 
 function degeneracy_locus(
     X::SpecType,
@@ -21,7 +21,7 @@ function degeneracy_locus(
   end
 
   # if X is already empty, quit
-  isempty(X) && return SpecType[]
+  #isempty(X) && return SpecType[]
 
   # check for some other aborting conditions
   m = nrows(A)
@@ -102,6 +102,15 @@ function degeneracy_locus(
   return vcat(DU_closure, DY)
 end
 
+function is_smooth_of_dimension(X::Spec, d::Int; verbose::Bool=false)
+  R = base_ring(OO(X))
+  W = localized_ring(OO(X))
+  IW = localized_modulus(OO(X))
+  I = saturated_ideal(IW)
+  n = nvars(R)
+  return length(degeneracy_locus(X, jacobi_matrix(gens(I)), n-d, verbose=verbose))== 0
+end
+
 function is_equidimensional_and_smooth(X::Spec; verbose::Bool=false)
   R = base_ring(OO(X))
   W = localized_ring(OO(X))
@@ -133,6 +142,14 @@ function is_equidimensional_and_smooth(X::CoveredScheme)
   C = default_covering(X) 
   for U in patches(C)
     is_equidimensional_and_smooth(U) || return false
+  end
+  return true
+end
+
+function is_smooth_of_dimension(X::CoveredScheme, d::Int)
+  C = default_covering(X) 
+  for U in patches(C)
+    is_smooth_of_dimension(U, d) || return false
   end
   return true
 end

@@ -13,6 +13,9 @@ export closure, product
 
 export SpecMor, morphism_type
 export pullback, domain, codomain, preimage, restrict, graph, identity_map, inclusion_map, is_isomorphism, is_inverse_of
+
+export strict_modulus
+
 # TODO for Tommy: Find out why the following are necessary
 AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
 AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
@@ -209,6 +212,9 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   iszero(f) && return subscheme(X, [one(R)])
+  isunit(f) && return X
+  W = Localization(OO(X), MPolyPowersOfElement(f))
+  #TODO: Hier weiter machen! Groebner-Basen cachen.
   return Spec(Localization(OO(X), MPolyPowersOfElement(f)))
 end
 
@@ -496,8 +502,8 @@ function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, M
   m = length(gens(R))
   n = length(gens(S))
   RS, z = PolynomialRing(k, vcat(symbols(R), symbols(S)))
-  inc1 = AlgebraHomomorphism(R, RS, gens(RS)[1:m])
-  inc2 = AlgebraHomomorphism(S, RS, gens(RS)[m+1:m+n])
+  inc1 = hom(R, RS, gens(RS)[1:m])
+  inc2 = hom(S, RS, gens(RS)[m+1:m+n])
   #pr1 = AlgebraHomomorphism(RS, R, vcat(gens(R), [zero(R) for i in 1:n]))
   #pr2 = AlgebraHomomorphism(RS, S, vcat([zero(S) for i in 1:m], gens(S)))
   IX = ideal(RS, inc1.(gens(modulus(OO(X)))))
@@ -505,8 +511,8 @@ function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, M
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
   UY = MPolyPowersOfElement(RS, inc2.(denominators(inverted_set(OO(Y)))))
   XxY = Spec(RS, IX + IY, UX*UY)
-  pr1 = SpecMor(XxY, X, gens(RS)[1:m])
-  pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n])
+  pr1 = SpecMor(XxY, X, gens(RS)[1:m], check=false)
+  pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
 
@@ -553,3 +559,4 @@ function dim(X::Spec)
   return get_attribute(X, :dim)::Int64
 end
 
+strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))

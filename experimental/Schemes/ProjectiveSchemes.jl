@@ -415,8 +415,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     CX = subscheme(C, I)
     set_attribute!(X, :affine_cone, CX)
     X.C = get_attribute(X, :affine_cone)
-    pr_base_res = restrict(pr_base, CX, Y)
-    pr_fiber_res = restrict(pr_fiber, CX, F)
+    pr_base_res = restrict(pr_base, CX, Y, check=false)
+    pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
 
     # store the various conversion maps
     set_attribute!(X, :homog_to_frac, 
@@ -456,8 +456,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
 
     I = help_map(defining_ideal(X))
     CX = subscheme(C, I)
-    pr_base_res = restrict(pr_base, CX, Y)
-    pr_fiber_res = restrict(pr_fiber, CX, F)
+    pr_base_res = restrict(pr_base, CX, Y, check=false)
+    pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
 
     set_attribute!(X, :homog_to_frac, 
                     hom(S, OO(CX), 
