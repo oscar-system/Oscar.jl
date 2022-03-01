@@ -56,7 +56,7 @@ julia> f_vector(L)
 
 # Examples
 julia> Kt, t = RationalFunctionField(QQ,"t");
-julia> val = ValuationMap(Kt,t);
+julia> val = TropicalSemiringMap(Kt,t);
 julia> A = matrix(Kt,[[t,4t,0,2],[1,4,1,t^2]])
 julia> TropicalLinearSpace(A, val)
 """
@@ -79,7 +79,7 @@ TropicalLinearSpace_impl(plv, rank, nElements, max)
 
 #needs Oscar type as entry
 
-#TODO requires a fix of ValuationMap
+#TODO requires a fix of TropicalSemiringMap
 function TropicalLinearSpace(tropicalmatrix::MatElem, val)
   plv = [val(p) for p in Nemo.minors(tropicalmatrix, min( nrows(tropicalmatrix), ncols(tropicalmatrix)) )]
   plv =Oscar.tropical_semiring(min).(plv)
