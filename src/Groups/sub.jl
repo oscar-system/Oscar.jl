@@ -31,7 +31,7 @@ end
 
 function _as_subgroup(G::GAPGroup, H::GapObj)
   H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x -> group_element(G, x.X))
+  return H1, hom(H1, G, x -> group_element(G, x.X), x -> group_element(H1, x.X); is_known_to_be_bijective = false)
 end
 
 """
