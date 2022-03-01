@@ -57,6 +57,7 @@ end
 #needs Oscar type as entry 
 function TropicalLinearSpace(tropicalmatrix::MatElem)
   plv = Nemo.minors(tropicalmatrix, min(size(tropicalmatrix)[1], size(tropicalmatrix)[2])) 
+  #plv = Vector{Int}(plv)
   rk = rank(tropicalmatrix)
   nelement = size(tropicalmatrix)[2]
   return (plv,nelement, rk)
