@@ -6,4 +6,4 @@ include("InvariantTheory.jl")
 include("GITFans.jl")
 include("GModule.jl")
 
-include("experimental/LibSingWrapper.jl")
+include("LibSingWrapper.jl")
