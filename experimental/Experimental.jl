@@ -5,3 +5,5 @@ include("PlaneCurve.jl")
 include("InvariantTheory.jl")
 include("GITFans.jl")
 include("GModule.jl")
+
+include("experimental/LibSingWrapper.jl")
