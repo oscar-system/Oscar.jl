@@ -50,15 +50,34 @@ If the curve is embedded, vertices must be points in $\mathbb R^n$.
 If the curve is abstract, vertices must be 1, ..., n.
 
 # Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]])
+3×4 IncidenceMatrix
+[1, 2]
+[1, 3]
+[1, 4]
 
+
+julia>  VR = [0 0; 1 0; -1 0; 0 1]
+4×2 Matrix{Int64}:
+  0  0
+  1  0
+ -1  0
+  0  1
+
+julia> PC = PolyhedralComplex(IM, vr)
+A polyhedral complex in ambient dimension 2
+
+julia> TC = TropicalCurve{min}(PC)
+A tropical curve in 2-dimensional Euclidean space
+
+julia> abs_TC = TropicalCurve{min}(IM)
+An abstract tropical curve
+```
 """
-function TropicalCurve{M, EMB}(Vertices::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, LS::Union{Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool}) where {M, EMB}
-    if EMB
-        # tropicalCurve = TropicalCurve(PolyhedralComplex(Vertices, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence))))
-        return #...
-    else
-        return #...
-    end
+function TropicalCurve{M}(PC::PolyhedralComplex) where {M}
+   @assert dim(PC)==1 "The polyhedral complex is not of dimenion 1."   
+  return TropicalCurve{M, true}(PC)
 end
 
 
@@ -86,7 +105,7 @@ end
 
 function Base.show(io::IO, tc::TropicalCurve{M, EMB}) where {M, EMB}
     if EMB
-        print(io, "A tropical curve")
+        print(io, "A tropical curve in $(ambient_dim(tc))-dimensional Euclidean space")
     else
         print(io, "An abstract tropical curve")
     end
