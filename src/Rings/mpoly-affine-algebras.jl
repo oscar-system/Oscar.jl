@@ -227,7 +227,7 @@ function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Ve
    else ## ord == :degrevlex
       O = degrevlex(GG[1:M])*degrevlex(GG[M+1:M+N])
    end
-   groebner_assure(J, O, complete_reduction = true)
+   groebner_assure(J, O, true)
    return (T, phi, J)
 end
 
@@ -388,7 +388,7 @@ Return `true` if `F` is finite, `false` otherwise.
 """
 function isfinite(F::AlgHom)
   (T, _, _, J, _) = groebner_data(F, :lex)
-  G = collect(J.gb)
+  G = collect(first(values(J.gb)))
   # Find all elements with leading monomial which contains the 
   # variables x_i.
   s = codomain(F)

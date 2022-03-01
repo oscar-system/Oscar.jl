@@ -1423,8 +1423,8 @@ mutable struct HilbertData
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end
     
-    Oscar.groebner_assure(I)
-    h = sing_hilb(I.gb.S)
+    G = groebner_assure(I)
+    h = sing_hilb(G.S)
     return new(h, I)
   end
   function HilbertData(B::BiPolyArray)
@@ -1727,7 +1727,7 @@ Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
   y -> [1]
   z -> [1]
 
-julia> homogenization(I, "w", ordering = :deglex)
+julia> homogenization(I, "w", ordering = deglex(gens(base_ring(I))))
 ideal(x*z - y^2, -w*z + x*y, -w*y + x^2, -w*z^2 + y^3)
 ```
 """
@@ -1753,7 +1753,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
-function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
+function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where {T <: MPolyElem}
   # TODO: Adjust as soon as new GB concept is implemented
   return ideal(homogenization(groebner_basis(I, ordering=ordering), var, pos))
 end
