@@ -38,6 +38,10 @@ export TropicalLinearSpace
 Construct a tropical linear space from a degree 1 polynomial ideal
 
 # Examples
+julia> R,(x_0,x_1,x_2,x_3,x_4,x_5)=PolynomialRing(ZZ,["x_0","x_1","x_2","x_3","x_4","x_5"])
+julia> I=ideal(R,[-x_0+x_2+x_3,-x_1+x_2+x_4,-x_0+x_1+x_5])
+julia> val = ValuationMap(QQ)
+julia> TropicalLinearSpace(I,val)
 """
 function TropicalLinearSpace(I::MPolyIdeal{fmpz_mpoly}, val)
     R = base_ring(I)
