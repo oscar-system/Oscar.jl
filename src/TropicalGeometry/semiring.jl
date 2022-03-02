@@ -293,7 +293,7 @@ end
 ################################################################################
 
 function Base.:(-)(x::TropicalSemiringElem, y::TropicalSemiringElem...)
-  error("Computer says no!")
+  error("Tropical subtraction not defined (use tropical division for classical substraction)")
 end
 
 ################################################################################
