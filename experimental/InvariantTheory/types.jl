@@ -231,7 +231,7 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
         insert!(srow.pos, k, col)
         insert!(srow.values, k, deepcopy(a))
       end
-      Hecke.push_row!(M, srow)
+      push!(M, srow)
     end
     rref!(M, truncate = true)
     B.M = M
