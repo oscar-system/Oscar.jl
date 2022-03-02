@@ -303,8 +303,8 @@ end
 
 Return the cardinality of the (double) coset `C`.
 """
-order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
-Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
+order(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, C::Union{GroupCoset,GroupDoubleCoset})

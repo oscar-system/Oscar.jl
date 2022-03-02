@@ -145,7 +145,7 @@ false
 
 ```
 """
-isfiniteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAP.Globals.Order(x.X))::Bool
+isfiniteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
 @deprecate isfinite_order(x::GAPGroupElem) isfiniteorder(x)
 
@@ -162,7 +162,7 @@ An exception is thrown if the order of `x` is infinite,
 use [`isfinite`](@ref) in order to check for finiteness.
 """
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
-   ord = GAP.Globals.Order(x.X)::GapInt
+   ord = GAPWrap.Order(x.X)
    if ord === GAP.Globals.infinity
       throw(GroupsCore.InfiniteOrder(x))
    end
@@ -431,7 +431,7 @@ end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC 
 
-Base.length(C::GroupConjClass) = fmpz(GAP.Globals.Size(C.CC)::GapInt) # TODO: allow specifying return type, default fmpz
+Base.length(C::GroupConjClass) = fmpz(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default fmpz
 
 representative(C::GroupConjClass) = C.repr
 
@@ -445,7 +445,7 @@ representative(C::GroupConjClass) = C.repr
 Return the conjugacy class `cc` of `g` in `G`, where `g` = `representative`(`cc`).
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
-   return GroupConjClass(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
+   return GroupConjClass(G, g, GAP.Globals.ConjugacyClass(G.X,g.X)::GapObj)
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
@@ -453,7 +453,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
-   return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC))
+   return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj)
 end
 
 @deprecate elements(C::GroupConjClass) collect(C)
@@ -466,7 +466,7 @@ It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
    L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X)::GapObj)
-   return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
+   return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)::GapObj),cc) for cc in L]
 end
 
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
@@ -487,7 +487,7 @@ return `(true, z)`, where `x^z == y` holds;
 otherwise, return `(false, nothing)`.
 """
 function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
-   conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)
+   conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
    else
@@ -503,7 +503,7 @@ end
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
 function conjugacy_class(G::T, g::T) where T<:GAPGroup
-   return GroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
+   return GroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X)::GapObj)
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
@@ -566,7 +566,7 @@ where `H^z = K`; otherwise, return `false, nothing`.
 ```
 """
 function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
-   conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)
+   conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
    else
@@ -580,7 +580,7 @@ end
 # START iterator
 Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 
-Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC))
+Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC)::GapObj)
 
 function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
   if GAPWrap.IsDoneIterator(state)
@@ -783,7 +783,7 @@ julia> h = hall_subgroups_representatives(g, [2, 7]); length(h)
 function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(isprime, P) || throw(ArgumentError("The integers must be prime"))
-   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))
+   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
    elseif GAPWrap.IsList(res_gap)
