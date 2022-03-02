@@ -103,6 +103,30 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
   return GAPGroupHomomorphism(G, H, mp)
 end
 
+# This method is used for those embeddings that are
+# the identity on the GAP side.
+function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known_to_be_bijective::Bool = false)
+  function gap_fun(x::GapObj)
+    el = group_element(G, x)
+    img_el = img(el)
+    return img_el.X
+  end
+
+  function gap_pre_fun(x::GapObj)
+    el = group_element(H, x)
+    preimg_el = preimg(el)
+    return preimg_el.X
+  end
+
+  if is_known_to_be_bijective
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), GAP.julia_to_gap(gap_pre_fun))
+  else
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), false, GAP.julia_to_gap(gap_pre_fun))
+  end
+
+  return GAPGroupHomomorphism(G, H, mp)
+end
+
 """
     hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
@@ -147,6 +171,19 @@ Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
   return group_element(codomain(f), GAP.Globals.Image(f.map,x.X))
+end
+
+"""
+    preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+
+Return an element `y` in the domain of `f` with the property `f(y) == x`.
+See [`haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)`](@ref)
+for a check whether `x` has such a preimage.
+"""
+function preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+  fl, p = haspreimage(f, x)
+  @assert fl
+  return p
 end
 
 """
@@ -271,7 +308,8 @@ end
 """
     haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 
-Return (`true`,`y`) if there exists `y` such that `f`(`y`) = `x`; otherwise, return (`false`,`1`).
+Return (`true`, `y`) if there exists `y` such that `f`(`y`) = `x`;
+otherwise, return (`false`, `o`) where `o` is the identity of `domain(f)`.
 """
 function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
   r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
