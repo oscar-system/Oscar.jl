@@ -24,6 +24,7 @@ export
     order,
     restrict_automorphism,
     restrict_homomorphism,
+    simplified_fp_group,
     trivial_morphism
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -408,6 +409,35 @@ function isomorphic_fp_group(G::GAPGroup)
    f = GAP.Globals.IsomorphismFpGroup(G.X)
    f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAP.Globals.Image(f))
+   return H, GAPGroupHomomorphism(G,H,f)
+end
+
+"""
+    simplified_fp_group(G::FPGroup)
+
+Return a group `H` of type `FPGroup` and an isomorphism `f` from `G` to `H`, where
+the presentation of `H` was obtained from the presentation of `G` by applying Tietze
+transformations in order to reduce it with respect to the number of
+generators, the number of relators, and the relator lengths.
+
+# Examples
+```jldoctest
+julia> F = free_group(3)
+<free group on the generators [ f1, f2, f3 ]>
+
+julia> G = quo(F, [gen(F,1)])[1]
+<fp group of size infinity on the generators [ f1, f2, f3 ]>
+
+julia> simplified_fp_group(G)[1]
+<fp group of size infinity on the generators [ f2, f3 ]>
+```
+"""
+function simplified_fp_group(G::FPGroup)
+   f = GAP.Globals.IsomorphismSimplifiedFpGroup(G.X)
+   H = FPGroup(GAP.Globals.Image(f))
+   # TODO: remove the next line once https://github.com/gap-system/gap/pull/4810
+   # is deployed to Oscar
+   GAP.Globals.UseIsomorphismRelation(G.X, H.X)
    return H, GAPGroupHomomorphism(G,H,f)
 end
 
