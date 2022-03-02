@@ -662,7 +662,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    integral_basis(f::MPolyElem{fmpq}, i::Int)
+    integral_basis(f::MPolyElem, i::Int)
 
 Given a polynomial $f$ in two variables with rational coefficients and an
 integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
@@ -691,7 +691,7 @@ julia> integral_basis(f, 2)
 (x^2, MPolyQuoElem{fmpq_mpoly}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])
 ```
 """
-function integral_basis(f::MPolyElem{fmpq}, i::Int)
+function integral_basis(f::MPolyElem, i::Int)
   R = parent(f)
 
   if typeof(R) <: MPolyRing_dec
@@ -706,9 +706,9 @@ function integral_basis(f::MPolyElem{fmpq}, i::Int)
     throw(ArgumentError("The index $i must be either 1 or 2, indicating the integral variable."))
   end
 
-  #if !(coefficient_ring(R) == QQ || base_ring(R) == Singular.QQ)
-  #  throw(ArgumentError("The coefficient ring must be the rationals."))
-  #end
+  if !(coefficient_ring(R) == QQ || base_ring(R) == Singular.QQ)
+    throw(ArgumentError("The coefficient ring must be the rationals."))
+  end
 
   if !isone(coeff(f, [i], [degree(f, i)]))
     throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))

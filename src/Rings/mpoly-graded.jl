@@ -1,7 +1,7 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded
+homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
 
@@ -316,8 +316,14 @@ julia> G = abelian_group([0, 2])
 
 julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
 2-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 1]
- Element of G with components [1 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 0]
 
 julia> S, (x, y) = grade(R, W)
 (Multivariate Polynomial Ring in x, y over Rational Field graded by 
