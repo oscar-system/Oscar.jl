@@ -146,6 +146,7 @@ julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
+   x == GAP.Globals.fail && throw(ArgumentError("the list does not describe a permutation"))
    if length(L) <= degree(g) && x in g.X
      return PermGroupElem(g, x)
    end

@@ -88,7 +88,7 @@ julia> x^f
 
 A sort of "inverse" of the evaluation is the following
 ```@docs
-haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 ```
   **Example:**
 ```jldoctest
