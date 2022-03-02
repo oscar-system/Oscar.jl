@@ -26,6 +26,70 @@ include("imports.jl")
 # possibly all should add a doc string to the module?
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
+const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
+const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
+                        "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
+                        "polymake_jll", "Singular_jll"];
+
+function _lookup_git_branch(dir::AbstractString)
+   if length(Sys.which("git")) != nothing &&
+         isdir(joinpath(dir,".git"))
+      try
+         ref = cd(dir) do
+            readchomp(`git rev-parse --abbrev-ref HEAD`)
+         end
+         return " - branch #$(ref)"
+      catch
+      end
+   end
+   return ""
+end
+
+function _deps_git_info(dep::Pkg.API.PackageInfo)
+   if dep.is_tracking_repo
+      return " - branch #$(dep.git_revision)"
+   elseif dep.is_tracking_path
+      return _lookup_git_branch(dep.source)
+   end
+   return ""
+end
+
+function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString}; padding="    ", suffix="", branch=false)
+   width = maximum(length.(deps))+length(suffix)+2
+   deps = filter(d->d.name in deps, collect(values(Pkg.dependencies())))
+   deps = sort!(deps; by=x->x.name)
+   for dep in deps
+      print(io, "$(padding)$(rpad(dep.name*suffix, width, ' ')) v$(dep.version)")
+      println(io, branch ? _deps_git_info(dep) : "")
+   end
+end
+
+@doc Markdown.doc"""
+    Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+
+Print the versions of all Oscar-related dependencies.
+
+# Arguments
+- `branch::Bool=false`: include git branch name in the output
+- `jll::Bool=false`   : include binary packages (jll) in the output
+- `julia::Bool=false` : include julia `versioninfo` output
+"""
+function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+   print(io, "OSCAR version $(VERSION_NUMBER)")
+   println(io, branch ? _lookup_git_branch(dirname(@__DIR__)) : "")
+   println(io, "  combining:")
+   _print_dependency_versions(io, cornerstones; suffix=".jl", branch=branch)
+   if jll
+      println(io, "  building on:")
+      _print_dependency_versions(io, jll_deps; branch=branch)
+      println(io, "See `]st -m` for a full list of dependencies.")
+   end
+   if julia
+      println(io, "")
+      Main.InteractiveUtils.versioninfo(io)
+   end
+end
+
 # More helpful error message for users on Windows.
 windows_error() = error("""
 
