@@ -150,10 +150,7 @@ function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector
   if isempty(pertubation)
     for (vwdi,cf,expv) in zip(vwds,coefficients(f),exponent_vectors(f))
       if vwdi == vwd
-        vcf = numerator(data(val(cf)))
-        if convention(val)==max
-          vcf = -vcf
-        end
+        vcf = Int(val(cf),preserve_ordering=true)
         c = t^-vcf*cf   # make coefficient valuation 0
         cNum = numerator(c) # split up numerator and denominator as pi is only defined on the valued ring
         cDen = denominator(c)
@@ -163,10 +160,7 @@ function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector
   else
     for (vwdi,vwdiPerp,cf,expv) in zip(vwds,vwdsPerp,coefficients(f),exponent_vectors(f))
       if vwdi == vwd && vwdiPerp == vwdPerp
-        vcf = numerator(data(val(cf)))
-        if convention(val)==max
-          vcf = -vcf
-        end
+        vcf = Int(val(cf),preserve_ordering=true)
         c = t^-vcf*cf
         cNum = numerator(c)
         cDen = denominator(c)
