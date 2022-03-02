@@ -177,7 +177,7 @@ end
     preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 
 Return an element `y` in the domain of `f` with the property `f(y) == x`.
-See [`haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)`](@ref)
+See [`haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)`](@ref)
 for a check whether `x` has such a preimage.
 """
 function preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
@@ -246,7 +246,7 @@ An exception is thrown if `H` is not a subgroup of `domain(f)`.
 """
 function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # We have to check whether `H` is really a subgroup of `f.domain`,
-  # since `GAP.Globals.RestrictedMappin` does not check this.
+  # since `GAP.Globals.RestrictedMapping` does not check this.
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
@@ -306,12 +306,27 @@ function cokernel(f::GAPGroupHomomorphism)
 end
 
 """
-    haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+    haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 
-Return (`true`, `y`) if there exists `y` such that `f`(`y`) = `x`;
+Return (`true`, `y`) if there exists `y` in `domain(f)`
+such that `f`(`y`) = `x` holds;
 otherwise, return (`false`, `o`) where `o` is the identity of `domain(f)`.
+
+If `check` is set to `false` then the test whether `x` is an element of
+`image(f)` is omitted.
 """
-function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+  # `GAP.Globals.PreImagesRepresentative` does not promise anything
+  # if the given element is not in the codomain of the map.
+# check && ! (x in codomain(f)) && return false, one(domain(f))
+#TODO:
+# Apparently the documentation of `GAP.Globals.PreImagesRepresentative`
+# is wrong in the situation that `x` is not in the *image* of `f`,
+# the function can then run into an error or return some group element,
+# see https://github.com/gap-system/gap/issues/4088.
+# Until this problem gets fixed on the GAP side, we perform a membership test
+# before calling `GAP.Globals.PreImagesRepresentative`.
+  check && ! (x in image(f)[1]) && return false, one(domain(f))
   r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
   if r == GAP.Globals.fail
     return false, one(domain(f))
