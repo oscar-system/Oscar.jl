@@ -137,12 +137,14 @@ are thought of as column vectors in $\mathbb Z^m$, and $W$ as an $m \times n$-ma
 entries in $\mathbb Z$. In particular, if $G = \mathbb Z$, then $W$ is thought of as a row vector
 in $\mathbb Z^n$.
 
+We refer to the textbooks [MS05](@cite) and [KR05](@cite) for details on multigradings. With respect to notation,
+we follow the former book.
+
 !!! note
     Given a $G$-grading on $R$, we say that $R$ is *$G$-graded*, or simply that $R$  is *graded*.
-    We say that $R$ is *positively graded (by $G$)* if each graded part $R_g$ has finite rank.
-    Equivalently, the degree zero part consists of the constants only.
-
-See [MS05](@cite) and [KR05](@cite) for details on multigradings.
+    We say that $R$ is *positively graded (by $G$)* if $G$ is torsion-free and each graded part $R_g$
+	has finite rank. The latter condition is equivalent to the condition that the degree zero
+	part consists of the constants only (see Theorem 8.6 in [MS05](@cite).
 
 
 ### Types
@@ -175,6 +177,10 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
 
 ### Tests on Graded Rings
+
+```@docs
+is_standard_graded(R::MPolyRing_dec)
+```
 
 ```@docs
 is_z_graded(R::MPolyRing_dec)
@@ -320,4 +326,3 @@ degree(f::MPolyElem_dec)
 
 How to handle homomorphisms of multivariate polynomial rings and their graded versions is described in
 a more general context in the section on affine algebras. 
-
