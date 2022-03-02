@@ -915,6 +915,16 @@ An exception is thrown if `G` is not nilpotent.
    return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
 end
 
+
+function describe(G::GrpAbFinGen)
+   l = elementary_divisors(G)
+   length(l) == 0 && return "0"   # trivial group
+   l_tor = filter(x -> x != 0, l)
+   free = length(l) - length(l_tor)
+   res = length(l_tor) == 0 ? "" : "Z/" * join([string(x) for x in l_tor], " + Z/")
+   return free == 0 ? res : ( res == "" ? ( free == 1 ? "Z" : "Z^$free" ) : ( free == 1 ? "$res + Z" : "$res + Z^$free" ) )
+end
+
 @doc Markdown.doc"""
     describe(G::GAPGroup)
 
