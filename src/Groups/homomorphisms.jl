@@ -44,7 +44,7 @@ function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
    return GAPGroupHomomorphism(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
 end
 
-order(f::GAPGroupHomomorphism) = GAP.Globals.Order(f.map)
+order(f::GAPGroupHomomorphism) = GAPWrap.Order(f.map)
 
 function Base.:^(f::GAPGroupHomomorphism{S,T}, n::Int64) where S where T
    if n==1
