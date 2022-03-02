@@ -83,6 +83,7 @@ issolvable
 isperfect
 issimple
 isalmostsimple
+isfinitelygenerated
 ```
 
 
