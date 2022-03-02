@@ -318,7 +318,7 @@ normalization_with_delta(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
 ## Integral Bases
 
 ```@docs
-integral_basis(f::MPolyElem{fmpq}, i::Int)
+integral_basis(f::MPolyElem, i::Int)
 ```
 
 ## Tests on Affine Algebras
