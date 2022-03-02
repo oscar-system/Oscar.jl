@@ -146,6 +146,7 @@
      ],
      "Tropical Geometry" => [
          "TropicalGeometry/intro.md",
+	 "TropicalGeometry/curve.md",
      ]
   ],
 
