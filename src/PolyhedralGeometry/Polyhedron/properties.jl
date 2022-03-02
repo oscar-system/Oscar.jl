@@ -16,7 +16,7 @@ A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
-6-element SubObjectIterator{Polyhedron}:
+6-element SubObjectIterator{Polyhedron{fmpq}}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -25,8 +25,8 @@ julia> F = faces(cube(3), 2)
  A polyhedron in ambient dimension 3
 ```
 """
-function faces(P::Polyhedron, face_dim::Int)
-    face_dim == dim(P) - 1 && return SubObjectIterator{Polyhedron}(pm_object(P), _face_polyhedron_facet, nfacets(P))
+function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
+    face_dim == dim(P) - 1 && return SubObjectIterator{Polyhedron{T}}(pm_object(P), _face_polyhedron_facet, nfacets(P))
     n = face_dim - length(lineality_space(P))
     n < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -41,12 +41,12 @@ function faces(P::Polyhedron, face_dim::Int)
             rfaces[index - nfarf] = index
         end
     end
-    return SubObjectIterator{Polyhedron}(pm_object(P), _face_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
+    return SubObjectIterator{Polyhedron{T}}(pm_object(P), _face_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
 end
 
-function _face_polyhedron(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}())
+function _face_polyhedron(::Type{Polyhedron{T}}, P::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
     pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim))[f_ind[i]]
-    return Polyhedron(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
 end
 
 function _vertex_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
@@ -57,9 +57,9 @@ function _ray_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1
     return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _ray_indices(P)]
 end
 
-function _face_polyhedron_facet(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Integer)
+function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     pface = P.VERTICES_IN_FACETS[_facet_index(P, i), :]
-    return Polyhedron(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
 end
 
 _vertex_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
@@ -113,7 +113,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(PointVector, P)
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+5-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [2, -1]
  [2, 1]
@@ -129,7 +129,7 @@ _point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=fals
 
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
-vertices(::Type{PointVector}, P::Polyhedron) = vertices(PointVector{Polymake.Rational}, P)
+vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
 
 @doc Markdown.doc"""
     vertices(P::Polyhedron)
@@ -143,7 +143,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(P)
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+5-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [2, -1]
  [2, 1]
@@ -203,7 +203,7 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(RayVector, PO)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
@@ -216,7 +216,7 @@ _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false)
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
-rays(::Type{RayVector}, P::Polyhedron) = rays(RayVector{Polymake.Rational}, P)
+rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = rays(RayVector{T}, P)
 
 @doc Markdown.doc"""
     rays(P::Polyhedron)
@@ -231,12 +231,12 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
 """
-rays(P::Polyhedron) = rays(RayVector,P)
+rays(P::Polyhedron) = rays(RayVector, P)
 
 @doc Markdown.doc"""
     nfacets(P::Polyhedron)
@@ -272,7 +272,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
-6-element SubObjectIterator{Polyhedron}:
+6-element SubObjectIterator{Polyhedron{fmpq}}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -281,29 +281,18 @@ julia> facets(Polyhedron, C)
  A polyhedron in ambient dimension 3
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^3 described by
-1: -x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₃ ≦ 1
+6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+-x₁ ≦ 1
+x₁ ≦ 1
+-x₂ ≦ 1
+x₂ ≦ 1
+-x₃ ≦ 1
+x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{AffineHalfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
+facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
 
-function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, AffineHalfspace, Pair{R, S}}}
+function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S<:scalar_types, T<:Union{Polyhedron{S}, AffineHalfspace{S}, Pair{R, S}}}
     h = decompose_hdata(P.FACETS[[_facet_index(P, i)], :])
     return T(h[1], h[2][])
 end
@@ -316,7 +305,9 @@ _vertex_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTIC
 
 _ray_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
 
-facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
+facets(::Type{Pair}, P::Polyhedron{T}) where T<:scalar_types = facets(Pair{Matrix{T}, T}, P)
+
+facets(::Type{Polyhedron}, P::Polyhedron{T}) where T<:scalar_types = facets(Polyhedron{T}, P)
 
 @doc Markdown.doc"""
     facets(P::Polyhedron)
@@ -329,29 +320,20 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^3 described by
-1: -x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₃ ≦ 1
+6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+-x₁ ≦ 1
+x₁ ≦ 1
+-x₂ ≦ 1
+x₂ ≦ 1
+-x₃ ≦ 1
+x₃ ≦ 1
 ```
 """
-facets(P::Polyhedron) = facets(AffineHalfspace, P)
+facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
 
-facets(::Type{Halfspace}, P::Polyhedron) = facets(AffineHalfspace, P)
+facets(::Type{Halfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
+
+facets(::Type{AffineHalfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
 
 function _facet_index(P::Polymake.BigObject, i::Base.Integer)
     i < _facet_at_infinity(P) && return i
@@ -414,11 +396,13 @@ julia> volume(C)
 4
 ```
 """
-volume(P::Polyhedron) = (pm_object(P)).VOLUME
+volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, (pm_object(P)).VOLUME)
+
+volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, pm_object(P).VOLUME)
 
 
 @doc Markdown.doc"""
-    lattice_volume(P::Polyhedron)
+    lattice_volume(P::Polyhedron{fmpq})
 
 Return the lattice volume of `P`.
 
@@ -430,7 +414,7 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron)::fmpz = (pm_object(P)).LATTICE_VOLUME
+lattice_volume(P::Polyhedron{fmpq})::fmpz = (pm_object(P)).LATTICE_VOLUME
 
 
 @doc Markdown.doc"""
@@ -446,7 +430,9 @@ julia> normalized_volume(C)
 8
 ```
 """
-normalized_volume(P::Polyhedron) = factorial(dim(P))*(pm_object(P)).VOLUME
+normalized_volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, factorial(dim(P))*(pm_object(P)).VOLUME)
+
+normalized_volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, factorial(dim(P))*(pm_object(P)).VOLUME)
 
 @doc Markdown.doc"""
     dim(P::Polyhedron)
@@ -467,7 +453,7 @@ dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 
 @doc Markdown.doc"""
-    lattice_points(P::Polyhedron)
+    lattice_points(P::Polyhedron{fmpq})
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -476,7 +462,7 @@ Return the integer points contained in the bounded polyhedron `P`.
 julia> S = 2 * simplex(2);
 
 julia> lattice_points(S)
-6-element SubObjectIterator{PointVector{Polymake.Integer}}:
+6-element SubObjectIterator{PointVector{fmpz}}:
  [0, 0]
  [0, 1]
  [0, 2]
@@ -485,19 +471,19 @@ julia> lattice_points(S)
  [2, 0]
 ```
 """
-function lattice_points(P::Polyhedron)
+function lattice_points(P::Polyhedron{fmpq})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
+    return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
 
-_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
+_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
 
 _point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
-    interior_lattice_points(P::Polyhedron)
+    interior_lattice_points(P::Polyhedron{fmpq})
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -508,23 +494,23 @@ julia> c = cube(3)
 A polyhedron in ambient dimension 3
 
 julia> interior_lattice_points(c)
-1-element SubObjectIterator{PointVector{Polymake.Integer}}:
+1-element SubObjectIterator{PointVector{fmpz}}:
  [0, 0, 0]
 ```
 """
-function interior_lattice_points(P::Polyhedron)
+function interior_lattice_points(P::Polyhedron{fmpq})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
+    return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
 
-_interior_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.INTERIOR_LATTICE_POINTS[i, 2:end])
+_interior_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(P.INTERIOR_LATTICE_POINTS[i, 2:end])
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.INTERIOR_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
-    boundary_lattice_points(P::Polyhedron)
+    boundary_lattice_points(P::Polyhedron{fmpq})
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -535,7 +521,7 @@ julia> c = polarize(cube(3))
 A polyhedron in ambient dimension 3
 
 julia> boundary_lattice_points(c)
-6-element SubObjectIterator{PointVector{Polymake.Integer}}:
+6-element SubObjectIterator{PointVector{fmpz}}:
  [-1, 0, 0]
  [0, -1, 0]
  [0, 0, -1]
@@ -544,12 +530,12 @@ julia> boundary_lattice_points(c)
  [1, 0, 0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron)
+function boundary_lattice_points(P::Polyhedron{fmpq})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
+    return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
 
-_boundary_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.BOUNDARY_LATTICE_POINTS[i, 2:end])
+_boundary_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(P.BOUNDARY_LATTICE_POINTS[i, 2:end])
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.BOUNDARY_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
 
@@ -609,13 +595,13 @@ its lineality in $x$-direction is recognized:
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
 julia> lineality_space(UH)
-1-element SubObjectIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
 ```
 """
-lineality_space(P::Polyhedron) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(P), _lineality_polyhedron, lineality_dim(P))
+lineality_space(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(P), _lineality_polyhedron, lineality_dim(P))
 
-_lineality_polyhedron(::Type{RayVector{Polymake.Rational}}, P::Polymake.BigObject, i::Base.Integer) = RayVector(P.LINEALITY_SPACE[i, 2:end])
+_lineality_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(P.LINEALITY_SPACE[i, 2:end])
 
 _generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.LINEALITY_SPACE[:, (homogenized ? 1 : 2):end]
 
@@ -633,23 +619,19 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane}:
- The Hyperplane of R^4 described by
-1: x₃ = 2
-
- The Hyperplane of R^4 described by
-1: x₄ = 5
-
+2-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^4 described by:
+x₃ = 2
+x₄ = 5
 ```
 """
-affine_hull(P::Polyhedron) = SubObjectIterator{AffineHyperplane}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
+affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
-function _affine_hull(::Type{AffineHyperplane}, P::Polymake.BigObject, i::Base.Integer)
+function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T
     h = decompose_hdata(-P.AFFINE_HULL[[i], :])
-    return AffineHyperplane(h[1], h[2][])
+    return AffineHyperplane{T}(h[1], h[2][])
 end
 
-_affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = -P.AFFINE_HULL
+_affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = P.AFFINE_HULL
 
 _affine_matrix_for_polymake(::Val{_affine_hull}) = _affine_equation_matrix
 
@@ -663,7 +645,7 @@ Return the recession cone of `P`.
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
 julia> vertices(P)
-3-element SubObjectIterator{PointVector{Polymake.Rational}}:
+3-element SubObjectIterator{PointVector{fmpq}}:
  [0, -1]
  [-1, 0]
  [-1, -1]
@@ -672,16 +654,16 @@ julia> recession_cone(P)
 A polyhedral cone in ambient dimension 2
 
 julia> rays(recession_cone(P))
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
- [1, 1/2]
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 1//2]
  [1, 1]
 ```
 """
-recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_object(P)))
+recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polytope.recession_cone(pm_object(P)))
 
 
 @doc Markdown.doc"""
-    ehrhart_polynomial(P::Polyhedron)
+    ehrhart_polynomial(P::Polyhedron{fmpq})
 
 Compute the Ehrhart polynomial of `P`.
 
@@ -693,14 +675,14 @@ A polyhedron in ambient dimension 3
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
 """
-function ehrhart_polynomial(P::Polyhedron)
+function ehrhart_polynomial(P::Polyhedron{fmpq})
     R, x = PolynomialRing(QQ, "x")
     return ehrhart_polynomial(R, P)
 end
 
 
 @doc Markdown.doc"""
-    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron{fmpq})
 
 Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 
@@ -716,7 +698,7 @@ julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
 ```
 """
-function ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron)
+function ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
     coeffs = Polymake.polytope.ehrhart_polynomial_coeff(pm_object(P))
     return (R)(Vector{fmpq}(coeffs))
 end
@@ -735,7 +717,7 @@ A polyhedron in ambient dimension 3
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
 """
-function h_star_polynomial(P::Polyhedron)
+function h_star_polynomial(P::Polyhedron{fmpq})
     R, x = PolynomialRing(QQ, "x")
     return h_star_polynomial(R, P)
 end
@@ -758,7 +740,7 @@ julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
 ```
 """
-function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron)
+function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
     coeffs = pm_object(P).H_STAR_VECTOR
     return (R)(Vector{fmpq}(coeffs))
 end
@@ -767,7 +749,7 @@ end
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
-    is_very_ample(P::Polyhedron)
+    is_very_ample(P::Polyhedron{fmpq})
 
 Check whether `P` is very ample.
 
@@ -786,7 +768,7 @@ julia> is_very_ample(P)
 false
 ```
 """
-is_very_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
+is_very_ample(P::Polyhedron{fmpq}) = pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -826,7 +808,7 @@ contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_objec
 
 
 @doc Markdown.doc"""
-    issmooth(P::Polyhedron)
+    issmooth(P::Polyhedron{fmpq})
 
 Check whether `P` is smooth.
 
@@ -839,11 +821,11 @@ julia> issmooth(C)
 true
 ```
 """
-issmooth(P::Polyhedron) = pm_object(P).SMOOTH::Bool
+issmooth(P::Polyhedron{fmpq}) = pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
-    isnormal(P::Polyhedron)
+    isnormal(P::Polyhedron{fmpq})
 
 Check whether `P` is normal.
 
@@ -864,7 +846,7 @@ julia> isnormal(P)
 false
 ```
 """
-isnormal(P::Polyhedron) = pm_object(P).NORMAL::Bool
+isnormal(P::Polyhedron{fmpq}) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
@@ -926,7 +908,7 @@ faces of $P$ of dimension $i$.
 Here we compute the f-vector of the 5-cube:
 ```jldoctest
 julia> f_vector(cube(5))
-5-element Vector{Int64}:
+5-element Vector{fmpz}:
  32
  80
  80
@@ -934,7 +916,7 @@ julia> f_vector(cube(5))
  10
 ```
 """
-function f_vector(P::Polyhedron)::Vector{Int}
+function f_vector(P::Polyhedron)::Vector{fmpz}
     # the following differs from polymake's count in the unbounded case;
     # polymake takes the far face into account, too
     ldim = lineality_dim(P)
@@ -952,14 +934,14 @@ Undefined for unbounded polyhedra.
 # Examples
 ```jldoctest
 julia> h_vector(cross(3))
-4-element Vector{Int64}:
+4-element Vector{fmpz}:
  1
  3
  3
  1
 ```
 """
-function h_vector(P::Polyhedron)::Vector{Int}
+function h_vector(P::Polyhedron)::Vector{fmpz}
     isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).H_VECTOR
 end
@@ -974,12 +956,12 @@ Undefined for unbounded polyhedra.
 # Examples
 ```jldoctest
 julia> g_vector(cross(3))
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  1
  2
 ```
 """
-function g_vector(P::Polyhedron)::Vector{Int}
+function g_vector(P::Polyhedron)::Vector{fmpz}
     isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).G_VECTOR
 end
@@ -997,19 +979,19 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> relative_interior_point(square)
-2-element PointVector{Polymake.Rational}:
+2-element PointVector{fmpq}:
  0
  0
 
 julia> vertices(square)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [1, -1]
  [-1, 1]
  [1, 1]
 ```
 """
-relative_interior_point(P::Polyhedron) = PointVector(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
+relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
 
 @doc Markdown.doc"""
     support_function(P::Polyhedron; convention::Symbol = :max)
@@ -1032,16 +1014,16 @@ julia> ψ([1,2,3])
 -6
 ```
 """
-function support_function(P::Polyhedron; convention = :max)
+function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_types
     function h(ω::AbstractVector)
-        lp=LinearProgram(P,ω; convention = convention)
+        lp=LinearProgram{T}(P,ω; convention = convention)
         return solve_lp(lp)[1]
     end
     return h
 end
 
 @doc Markdown.doc"""
-    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
+    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
@@ -1049,9 +1031,8 @@ Trivial inequalities are counted but omitted. They are included if `trivial` is
 set to `true`.
 
 # Examples
-The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
-julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5])
+julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; numbered = true)
 1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
 2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
 3: x₁ ≦ 2
@@ -1059,15 +1040,15 @@ julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9]
 6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; trivial = true)
-1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
-2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-3: x₁ ≦ 2
-4: 0 ≦ 3
-5: 0 ≦ -4
-6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+-x₁ + 4*x₃ + 5*x₄ ≦ 0
+4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
+x₁ ≦ 2
+0 ≦ 3
+0 ≦ -4
+9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, io::IO = stdout, cmp::String = "≦")
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::String = "≦")
     for i in 1:length(b)
         terms = Vector{String}(undef, size(A)[2])
         first = true
@@ -1075,12 +1056,12 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
             if iszero(A[i, j])
                 terms[j] = ""
             else
-                if isone(abs(A[i, j]))
+                if isone(A[i, j]) || isone(-A[i, j])
                     terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
                         string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
                 else
-                    terms[j] = first ? string(A[i, j], "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < 0 ? " - " : " + ", abs(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...)
+                    terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
+                        string(A[i, j] < 0 ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
                 end
                 first = false
             end
@@ -1091,12 +1072,16 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
             end
             terms[1] = "0"
         end
-        println(io, string(i, ": ", terms..., " ", cmp, " ", b[i]))
+        println(io, string(numbered ? string(i, ": ") : "", terms..., " ", cmp, " ", b[i]))
     end
 end
 
+_constraint_string(x::Any) = string(x)
+
+_constraint_string(x::nf_elem) = string("(", x, ")")
+
 @doc Markdown.doc"""
-    print_constraints(P::Polyhedron; trivial::Bool = false)
+    print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
@@ -1104,26 +1089,30 @@ Trivial inequalities are counted but omitted. They are included if `trivial` is
 set to `true`.
 
 # Examples
-The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
+The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints(cube(3))
-1: -x₁ ≦ 1
-2: x₁ ≦ 1
-3: -x₂ ≦ 1
-4: x₂ ≦ 1
-5: -x₃ ≦ 1
-6: x₃ ≦ 1
+-x₁ ≦ 1
+x₁ ≦ 1
+-x₂ ≦ 1
+x₂ ≦ 1
+-x₃ ≦ 1
+x₃ ≦ 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
 
-print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [negbias(H)]; trivial = trivial, io = io)
+print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
+print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
+
+print_constraints(H::SubObjectIterator{<:Halfspace}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io)
+
+print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = "=")
 
 function Base.show(io::IO, H::Halfspace)
-    n = length(H.a)
-    if iszero(H.a) && H.b >= 0
+    n = length(normal_vector(H))
+    if iszero(normal_vector(H)) && negbias(H) >= 0
         print(io, "The trivial Halfspace, R^$n")
     else
         print(io, "The Halfspace of R^$n described by\n")
@@ -1132,12 +1121,52 @@ function Base.show(io::IO, H::Halfspace)
 end
 
 function Base.show(io::IO, H::Hyperplane)
-    n = length(H.a)
+    n = length(normal_vector(H))
     b = negbias(H)
-    if iszero(b) && iszero(H.a)
+    if iszero(b) && iszero(normal_vector(H))
         print(io, "The trivial Hyperplane, R^$n")
     else
         print(io, "The Hyperplane of R^$n described by\n")
         print_constraints(H; io = io)
+    end
+end
+
+Base.show(io::IO, ::MIME"text/plain", H::SubObjectIterator{<:Union{Halfspace, Hyperplane}}) = show(io, H)
+
+function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
+    s = length(H)
+    t = typeof(H)
+    d = displaysize(io)[1] - 5
+    print(io, "$s-element $t")
+    if !isempty(H)
+        n = length(normal_vector(H[1]))
+        print(io, " over the Halfspaces of R^$n described by:\n")
+        if s < d
+            print_constraints(H; io = io)
+        else
+            A, b = halfspace_matrix_pair(H)
+            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io)
+            println(io, "⋮")
+            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io)
+        end
+    end
+end
+
+function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
+    s = length(H)
+    t = typeof(H)
+    d = displaysize(io)[1] - 5
+    print(io, "$s-element $t")
+    if !isempty(H)
+        n = length(normal_vector(H[1]))
+        print(io, " over the Hyperplanes of R^$n described by:\n")
+        if s < d
+            print_constraints(H; io = io)
+        else
+            A, b = halfspace_matrix_pair(H)
+            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = "=")
+            println(io, "⋮")
+            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = "=")
+        end
     end
 end

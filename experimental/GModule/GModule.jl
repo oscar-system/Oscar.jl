@@ -22,8 +22,10 @@ function __init__()
 
   add_assert_scope(:MinField)
   set_assert_level(:MinField, 0)
-end
 
+  add_verbose_scope(:MinField)
+  set_verbose_level(:MinField, 0)
+end
 
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
@@ -87,7 +89,7 @@ function Oscar.conductor(a::QabElem)
   return conductor(data(a))
 end
 
-function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
+function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
   z = irreducible_modules(G)
   Z = GModule[]
   for m in z
@@ -95,12 +97,33 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
     k, mk = Hecke.subfield(base_ring(a), vec(collect(vcat(map(mat, a.ac)...))))
     if k != base_ring(a)
       F = free_module(k, dim(m))
-      push!(Z, gmodule(group(m), [hom(F, F, map_entries(inv(mk), mat(x))) for x = a.ac]))
+      push!(Z, gmodule(group(m), [hom(F, F, map_entries(pseudo_inv(mk), mat(x))) for x = a.ac]))
     else
       push!(Z, a)
     end
   end
-  return Z
+
+  if !minimal_degree
+    return Z
+  else
+    res = GModule[]
+    for V in Z
+      k, m = _character_field(V)
+      chi = character(V)
+      #if schur_index(chi) != 1
+      #  error("Not implemented for non-trivial Schur indicies yet")
+      #end
+      if degree(k) == degree(base_ring(V))
+        push!(res, V)
+      else
+        @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
+        Vmin = gmodule_over(m, V)
+        push!(res, Vmin)
+      end
+    end
+    @assert length(res) == length(z)
+    return res
+  end
 end
 
 function irreducible_modules(::typeof(CyclotomicField), G::Oscar.GAPGroup)
@@ -197,26 +220,32 @@ function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, fmpq
   return chr
 end
 
-character_field(C::GModule{<:Any, <:Generic.FreeModule{fmpq}}) = QQ
+Oscar.character_field(C::GModule{<:Any, <:Generic.FreeModule{fmpq}}) = QQ
 
-function character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+function _character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   val = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
-  return k
+  return k, mkK
 end
 
-function character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+function Oscar.character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+  return _character_field(C)[1]
+end
+
+function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   chr = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
   A = maximal_abelian_subfield(ClassField, k)
   c = Hecke.norm(conductor(A)[1])
-  K = cyclotomic_field(Int(c))[1]
+  Qab = abelian_closure(QQ)[1]
+  K = cyclotomic_field(Qab, Int(c))[1]
   fl, em = issubfield(k, K)
-  return [(x[1], em(preimage(mkK, x[2]))) for x = chr]
+  return Oscar.group_class_function(group(C), [Qab(em(preimage(mkK, x[2]))) for x = chr])
 end
 
-function character(C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
-  return _character(C)
+function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
+  Qab = abelian_closure(QQ)[1]
+  return Oscar.group_class_function(group(C), [Qab(x[2]) for x = _character(C)])
 end
 
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
@@ -303,7 +332,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinF
 end
 
 #...now the same for number fields - and non-cyclic fields.
-function gmodule_over(em::Map{AnticNumberField, AnticNumberField}, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = false)
+function gmodule_over(em::Map{AnticNumberField, AnticNumberField}, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = true)
   K = base_ring(C)
   k = domain(em)
   @assert codomain(em) == K
@@ -312,14 +341,28 @@ function gmodule_over(em::Map{AnticNumberField, AnticNumberField}, C::GModule{<:
   A, mA = automorphism_group(PermGroup, K)
   s, ms = sub(A, [a for a = A if mA(a)(gk) == gk])
   ac =  _two_cocycle(ms*mA, C, do_error = do_error)  
+  if ac === nothing 
+    if do_error
+      error("cannot do over this field")
+    else
+      return nothing
+    end
+  end
   F = free_module(k, dim(C))
   return gmodule(F, group(C), [hom(F, F, map_entries(t->preimage(em, t), x)) for x = ac])
 end
 
-function gmodule_over(::FlintRationalField, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = false)
+function gmodule_over(::FlintRationalField, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = true)
   K = base_ring(C)
   A, mA = automorphism_group(PermGroup, K)
   ac = _two_cocycle(mA, C, do_error = do_error)  
+  if ac === nothing 
+    if do_error
+      error("cannot do over this field")
+    else
+      return nothing
+    end
+  end
   F = free_module(QQ, dim(C))
   return gmodule(F, group(C), [hom(F, F, map_entries(QQ, x)) for x = ac])
 end
@@ -345,7 +388,7 @@ function Oscar.content_ideal(M::MatElem{nf_elem})
   return C
 end
 
-function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = false)
+function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = true)
   G = domain(mA)
   K = base_ring(C)
 
@@ -353,7 +396,8 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
   @vprint :MinField 1 "Gathering Galois images of the generators...\n"
   for g = gens(G)
     @vprint :MinField 2 "gen: $g\n"
-    @vtime :MinField 2 hb = hom_base(C, C^mA(g))
+    @vtime :MinField 2 hb = hom_base(C^mA(g), C)
+    #C^g * hb == hb * C
     if length(hb) == 0
       do_error && return nothing
       error("field too small")
@@ -375,10 +419,10 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
   I = identity_matrix(K, dim(C))
 
   @vprint :MinField 1 "computing un-normalised 1-chain (of matrices)\n"
-  # pairs: (g, X_g) with operation (g, X_g)(h, X_h) = (gh, X_h*X_g^h)
+  # pairs: (g, X_g) with operation (g, X_g)(h, X_h) = (gh, X_g^h * X_h)
   @vtime :MinField 2 
     c = closure([(gen(G, i), homs[i]) for i=1:ngens(G)], 
-              (a, b) -> (a[1]*b[1], b[2]*map_entries(mA(b[1]), a[2])),
+              (a, b) -> (a[1]*b[1], map_entries(mA(b[1]), a[2])*b[2]),
               (one(G), I),
               eq = (a,b) -> a[1] == b[1])
   X = Dict(x[1] => x[2] for x = c)
@@ -389,32 +433,42 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
 
   @vprint :MinField 1 "now the 2-cocycle (scalars)\n"
   MK = MultGrp(K)
-  sigma = Dict{Tuple{PermGroupElem, PermGroupElem}, MultGrpElem{nf_elem}}()
+  sigma = Dict{Tuple{PermGroupElem, PermGroupElem}, nf_elem}()
   for g = G
     for h = G
       if isone(g)
-        sigma[(g, h)] = MK(one(K))
+        sigma[(g, h)] = (one(K))
       elseif isone(h)
-        sigma[(g, h)] = MK(one(K))
+        sigma[(g, h)] = (one(K))
       else
         lf = findfirst(x->!iszero(x), X[g*h])
-        sigma[(g, h)] = MK(X[g*h][lf]//(X[h]*map_entries(mA(h), X[g]))[lf])
+        sigma[(g, h)] = (X[g*h][lf]//(map_entries(mA(h), X[g])*X[h])[lf])
+#        sigma[(g, h)] = MK(X[g*h][lf]//(X[h]*map_entries(mA(h), X[g]))[lf])
       end
     end
   end
+  istwo_cocycle(sigma, mA)
 
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
-  Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, sigma)
+  Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
   @vtime :MinField 2 fl, cb = Oscar.GrpCoh.iscoboundary(Sigma)
+
+  cc = Dict(k => cb(k).data for k = G)
+  for g = G
+    for h = G
+      @assert mA(h)(cc[g])*cc[h] == sigma[(g, h)]*cc[g*h]
+    end
+  end
 
   if !fl
     do_error || return nothing
     error("field too small")
   end
   for g = G
-    X[g] *= inv(cb(g).data)
+    X[g] *= (cb(g).data)
   end
+  isone_cochain(X, mA)
 
   #now X should be in H^1(G, Gl(n, K)) which is trivial
   #hence a Hilbert-90 should find A s.th. A^(1-g) = X[g] for all g
@@ -427,8 +481,38 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}};
   Ai *= inv(d)
 
   @vprint :MinField 1 "conjugating the generators\n"
-  @vtime :MinField 2 r = [Ai*mat(x)*A for x = C.ac]
+  @vtime :MinField 2 r = [A*mat(x)*Ai for x = C.ac]
   return r
+end
+
+function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{nf_elem}}, mA)
+  G = domain(mA)
+  for g = G
+    for h = G
+      @assert X[g*h] == map_entries(mA(h), X[g])*X[h]
+    end
+  end
+end
+
+function isone_cochain(X::Dict{<:GAPGroupElem, nf_elem}, mA)
+  G = domain(mA)
+  for g = G
+    for h = G
+      @assert X[g*h] == mA(h)(X[g])*X[h]
+    end
+  end
+end
+
+
+function istwo_cocycle(X::Dict, mA)
+  G = domain(mA)
+  for g = G
+    for h = G
+      for k = G
+        @assert X[(g*h, k)] == X[(g, h*k)]//mA(k)(X[(g, h)])*X[(h, k)]
+      end
+    end
+  end
 end
 
 """
@@ -460,7 +544,7 @@ function hilbert90_generic(X::Dict, mA)
       cnt += 1
       if cnt > 10 error("s.th. wiered") end
     end
-    S = sum(v*map_entries(mA(g), Y) for (g,v) = X)
+    S = sum(map_entries(mA(g), Y)*v for (g,v) = X)
     fl, Si = isinvertible_with_inverse(S)
     fl && return S, Si
   end
@@ -1168,71 +1252,6 @@ function Nemo._hnf_with_transform(x::fmpz_mat)
   return Nemo.__hnf_with_transform(x) # ist die original Nemo flint hnf
 end
 
-
-function extend(C::GModule, m::Map)
-  #N acts and is normal in <h, N> 
-  #m injects N into <h, N>  (at least h, maybe more)
-  #h = gen(domain(m), 1)
-  #h has order p in <h, N>/N
-  #Satz 10 in Brueckner, Chap 1.2.3
-  #TODO: should be used above in reps!
-
-  F = Module(C)
-  N = group(C)
-  Nh = codomain(m)
-  @assert ngens(N) + 1 == ngens(Nh)
-  @assert all(x->m(gen(N, i)) == gen(Nh, i+1), 1:ngens(N))
-
-  h = gen(Nh, 1)
-  p = divexact(order(Nh), order(N))
-  @assert isprime(p)
-
-  F = C.M
-  K = base_ring(F)
-  Ch = gmodule(N, [action(C, preimage(m, m(x)^h)) for x = gens(N)])
-  l = Oscar.GModuleFromGap.hom_base(C, Ch)
-  @assert length(l) <= 1
-  nr = []
-  Y = mat(action(C, preimage(m, h^p)))
-  if length(l) == 1
-    X = l[1]
-    Xp = X^p
-    #Brueckner: C*Xp == Y for some scalar C
-    i = findfirst(x->!iszero(x), Xp)
-    @assert !iszero(Y[i])
-    C = divexact(Y[i], Xp[i])
-    @assert C*Xp == Y
-    # I think they should always be roots of one here.
-    rt = roots(C, p)
-    Y = r.ac
-    for x = rt
-      nw = gmodule(F, Nh,  vcat([hom(F, F, x*X)], Y))
-      push!(nr, nw)
-    end
-  else #need to extend dim
-    n = dim(r)
-    F = free_module(K, dim(r)*p)
-    z = zero_matrix(K, dim(F), dim(F))
-    #TODO: see above in reps, this is wrong.
-    #TODO: fuse
-    z[(p-1)*n+1:end, 1:n] = Y
-    for i=1:p-1
-      z[(i-1)*n+1:i*n, i*n+1:(i+1)*n] = identity_matrix(K, n)
-    end
-    md = [hom(F, F, z)]
-    for g = gens(s)
-      z = zero_matrix(K, dim(F), dim(F))
-      for j=1:p
-        Y = action(r, g)
-        z[(j-1)*n+1:j*n, (j-1)*n+1:j*n] = mat(Y)
-        g = preimage(m, g^h)
-      end
-      push!(md, hom(F, F, z))
-    end
-    push!(nr, gmodule(F, Nh, md))
-  end
-  return nr
-end
 
 """
 Brueckner Chap 1.3.1

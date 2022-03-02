@@ -1,3 +1,12 @@
+@testset "embeddings" begin
+   @testset for G in [symmetric_group(5), small_group(24, 12), general_linear_group(2, 3)]
+     G = symmetric_group(5)
+     H, emb = sylow_subgroup(G, 2)
+     x = gen(H, 1)
+     y = image(emb, x)
+     @test preimage(emb, y) == x
+   end
+end
 
 n = 6
 @testset "Homomorphism in Sym($n)" begin
@@ -5,6 +14,9 @@ n = 6
    x = G(vcat(2:n-1, [1]))
 
    g = hom(G, G, gens(G), [y^x for y in gens(G)])
+   @test g == hom(G, G, gens(G), [y^x for y in gens(G)], check = false)
+   @test g == hom(G, G, [y^x for y in gens(G)])
+   @test g == hom(G, G, [y^x for y in gens(G)], check = false)
    @test typeof(g) == Oscar.GAPGroupHomomorphism{PermGroup, PermGroup}
    @test domain(g) == G
    @test codomain(g) == G

@@ -1,6 +1,6 @@
 # Basically the same as the usual image function but without a type check since
 # we don't have elem_type(C) in this case
-function image(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
+function image(M::MapFromFunc{D, C}, a; check::Bool = true) where {D, C <: GapObj}
   parent(a) === domain(M) || error("the element is not in the map's domain")
   if isdefined(M, :header)
     if isdefined(M.header, :image)
@@ -14,7 +14,7 @@ function image(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
 end
 
 # needed in order to do a generic argument check on the GAP side
-function preimage(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
+function preimage(M::MapFromFunc{D, C}, a; check::Bool = true) where {D, C <: GapObj}
   if isdefined(M.header, :preimage)
     check && (a in codomain(M) || error("the element is not in the map's codomain"))
     p = M.header.preimage(a)::elem_type(D)
@@ -294,7 +294,7 @@ end
 #
 ################################################################################
 
-function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatElem) where T
+function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatrixElem{S}) where {S <: RingElement, T}
    isempty(a) && error("empty matrices are not supported by GAP")
    @assert base_ring(a) === domain(f)
    rows = Vector{GapObj}(undef, nrows(a))

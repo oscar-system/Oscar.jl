@@ -198,13 +198,13 @@ julia> V = [p(y)]
  y
 
 julia> P = hom(D, C, V)
-Algebra homomorphism with
-
-domain: Multivariate Polynomial Ring in t over Rational Field
-
-codomain: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1)
-
-defining images of generators: MPolyQuoElem{fmpq_mpoly}[y]
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1)
 ```
 """
 function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
@@ -217,9 +217,9 @@ function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where
    return AlgHom{T}(D, C, copy(V))
 end
 
-hom(D::U, C::W, V::Vector{X}) where {T, S <: MPolyElem{T},
-   U <: Union{MPolyRing{T}, MPolyQuo{S}}, W <: Union{MPolyRing{T}, MPolyQuo{S}},
-   X <: Union{S, MPolyQuoElem{S}}} = AlgebraHomomorphism(D, C, V)
+#hom(D::U, C::W, V::Vector{X}) where {T, S <: MPolyElem{T},
+#   U <: Union{MPolyRing{T}, MPolyQuo{S}}, W <: Union{MPolyRing{T}, MPolyQuo{S}},
+#   X <: Union{S, MPolyQuoElem{S}}} = AlgebraHomomorphism(D, C, V)
 
 ###############################################################################
 #

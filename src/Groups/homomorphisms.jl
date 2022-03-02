@@ -71,21 +71,17 @@ end
 Return the identity homomorphism on the group `G`.
 """
 function id_hom(G::GAPGroup)
-  return hom(G, G, x -> x)
+  return GAPGroupHomomorphism(G, G, GAP.Globals.IdentityMapping(G.X))
 end
 
 """
-    trivial_morphism(G::GAPGroup, H::GAPGroup)
+    trivial_morphism(G::GAPGroup, H::GAPGroup = G)
 
 Return the homomorphism from `G` to `H` sending every element of `G` into the
-identity of `H`. If `H` is not specified, it is taken equal to `G`.
+identity of `H`.
 """
-function trivial_morphism(G::GAPGroup, H::GAPGroup)
+function trivial_morphism(G::GAPGroup, H::GAPGroup = G)
   return hom(G, H, x -> one(H))
-end
-
-function trivial_morphism(G::GAPGroup)
-  return hom(G, G, x -> one(G))
 end
 
 """
@@ -107,18 +103,53 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
   return GAPGroupHomomorphism(G, H, mp)
 end
 
+# This method is used for those embeddings that are
+# the identity on the GAP side.
+function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known_to_be_bijective::Bool = false)
+  function gap_fun(x::GapObj)
+    el = group_element(G, x)
+    img_el = img(el)
+    return img_el.X
+  end
+
+  function gap_pre_fun(x::GapObj)
+    el = group_element(H, x)
+    preimg_el = preimg(el)
+    return preimg_el.X
+  end
+
+  if is_known_to_be_bijective
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), GAP.julia_to_gap(gap_pre_fun))
+  else
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), false, GAP.julia_to_gap(gap_pre_fun))
+  end
+
+  return GAPGroupHomomorphism(G, H, mp)
+end
+
 """
-    hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
+    hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
+
+If `check` is set to `false` then it is not checked whether the mapping
+defines a group homomorphism.
 """
-function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
+function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool = true)
   vgens = GapObj([x.X for x in gensG])
   vimgs = GapObj([x.X for x in imgs])
-  mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
+  if check
+    mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
+  else
+    mp = GAP.Globals.GroupHomomorphismByImagesNC(G.X, H.X, vgens, vimgs)
+  end
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   return GAPGroupHomomorphism(G, H, mp)
+end
+
+function hom(G::GAPGroup, H::GAPGroup, imgs::Vector; check::Bool = true)
+  return hom(G, H, gens(G), imgs; check)
 end
 
 function domain(f::GAPGroupHomomorphism)
@@ -140,6 +171,19 @@ Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
   return group_element(codomain(f), GAP.Globals.Image(f.map,x.X))
+end
+
+"""
+    preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+
+Return an element `y` in the domain of `f` with the property `f(y) == x`.
+See [`haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)`](@ref)
+for a check whether `x` has such a preimage.
+"""
+function preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+  fl, p = haspreimage(f, x)
+  @assert fl
+  return p
 end
 
 """
@@ -264,7 +308,8 @@ end
 """
     haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 
-Return (`true`,`y`) if there exists `y` such that `f`(`y`) = `x`; otherwise, return (`false`,`1`).
+Return (`true`, `y`) if there exists `y` such that `f`(`y`) = `x`;
+otherwise, return (`false`, `o`) where `o` is the identity of `domain(f)`.
 """
 function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
   r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
@@ -495,7 +540,7 @@ An exception is thrown if `H` is not invariant under `f`.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
   @assert isinvariant(f,H) "H is not invariant under f!"
-  fh = hom(H,H,gens(H), [f(x) for x in gens(H)])
+  fh = hom(H, H, gens(H), [f(x) for x in gens(H)], check = false)
   return A(fh)
 end
 

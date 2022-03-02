@@ -3,7 +3,7 @@ import Oscar.projective_space
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
-abstract type AbstractNormalToricVariety <: _FanLikeType end
+abstract type AbstractNormalToricVariety <: _FanLikeType{fmpq} end
 
 @attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject

@@ -47,7 +47,9 @@ end
   J = ideal(Q, [x - 1, y - 1])
 
   groebner_basis(I)
+  GI  = collect(values(I.gb))[1]
   groebner_basis(J)
-  @test I.gb.O == Q.([x - 2, (y - 1)^2])
-  @test J.gb.O == [one(Q)]
+  GJ  = collect(values(J.gb))[1]
+  @test GI.O == Q.([x - 2, (y - 1)^2])
+  @test GJ.O == [one(Q)]
 end

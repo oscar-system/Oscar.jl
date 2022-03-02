@@ -52,6 +52,7 @@ true
 hom(G::GAPGroup, H::GAPGroup, img::Function)
 hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
 image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 

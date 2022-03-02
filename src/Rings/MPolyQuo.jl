@@ -355,13 +355,13 @@ end
 
 ##################################################################
 
-function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
+function singular_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
-    groebner_assure(Rx.I)
-    singular_assure(Rx.I.gb)
+    groebner_assure(Rx.I, ordering)
+    singular_assure(Rx.I.gb[ordering], ordering)
     Rx.SQR = Singular.create_ring_from_singular_ring(
-                      Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr,
-                                             base_ring(Rx.I.gb.S).ptr))
+                Singular.libSingular.rQuotientRing(Rx.I.gb[ordering].S.ptr,
+                base_ring(Rx.I.gb[ordering].S).ptr))
   end
   return Rx.SQR
 end
@@ -447,11 +447,11 @@ function simplify(a::MPolyQuoIdeal)
    oscar_assure(a)
    RI  = base_ring(a.I)
    J = R.I
-   groebner_assure(J)
-   singular_assure(J.gb)
+   GJ = groebner_assure(J)
+   singular_assure(GJ)
    oscar_assure(a)
    singular_assure(a.I)
-   red  = reduce(a.I.gens.S, J.gb.S)
+   red  = reduce(a.I.gens.S, GJ.S)
    SR   = singular_ring(R)
    si   = Singular.Ideal(SR, gens(red))
    red  = MPolyQuoIdeal(R, si)
@@ -462,11 +462,11 @@ function simplify!(a::MPolyQuoIdeal)
     oscar_assure(a)
     RI  = base_ring(a.I)
     J = R.I
-    groebner_assure(J)
-    singular_assure(J.gb)
+    GJ = groebner_assure(J)
+    singular_assure(GJ)
     oscar_assure(a)
     singular_assure(a.I)
-    red  = reduce(a.I.gens.S, J.gb.S)
+    red  = reduce(a.I.gens.S, GJ.S)
     SR   = singular_ring(R)
     a.SI = Singular.Ideal(SR, gens(red))
     a.I  = ideal(RI, RI.(gens(a.SI)))
@@ -569,22 +569,22 @@ x
 function simplify(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
+  G = groebner_assure(I)
+  singular_assure(G)
+  Sx = base_ring(G.S)
   g = f.f
-  return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))
+return R(I.gens.Ox(reduce(Sx(g), G.S)))::elem_type(R)
 end
 
 function simplify!(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
+  G = groebner_assure(I)
+  singular_assure(G)
+  Sx = base_ring(G.S)
   g = f.f
-  f.f = I.gens.Ox(reduce(Sx(g), I.gb.S))
-  return f
+  f.f = I.gens.Ox(reduce(Sx(g), G.S))
+  return f::elem_type(R)
 end
 
 
@@ -727,14 +727,15 @@ one(Q::MPolyQuo) = Q(1)
 function isinvertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
-  if isdefined(I, :gb)
-    oscar_assure(I)
-    J = I.gb.O
+  if !isempty(I.gb)
+    G = first(values(I.gb))
+    oscar_assure(G)
+    J = G.O
   else
     J = gens(I)
   end
   J = vcat(J, [a.f])
-  j, T = groebner_basis_with_transformation_matrix(ideal(J))
+  j, T = groebner_basis_with_transform(ideal(J))
   if 1 in j
     @assert nrows(T) == 1
     return true, Q(T[1, end])
@@ -830,9 +831,10 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
 
   Q = parent(a)
   I = Q.I
-  if isdefined(I, :gb)
-    oscar_assure(I)
-    J = I.gb.O
+  if !isempty(I.gb)
+      GI = first(values(I.gb))
+      oscar_assure(GI)
+      J = GI.O
   else
     J = gens(I)
   end
@@ -853,10 +855,10 @@ end
 
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuo)
-  I = Q.I
-  groebner_assure(I)
-  singular_assure(I.gb)
-  s = Singular.kbase(I.gb.S)
+  I  = Q.I
+  GI = groebner_assure(I)
+  singular_assure(GI)
+  s = Singular.kbase(GI.S)
   if iszero(s)
     error("ideal was no zero-dimensional")
   end
@@ -1047,4 +1049,18 @@ function minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem,
     end
   end
   return result
+end
+
+################################################################################
+#
+#  Promote rule
+#
+################################################################################
+
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where {S, T <: RingElem}
+  if AbstractAlgebra.promote_rule(S, T) === S
+    return MPolyQuoElem{S}
+  else
+    return Union{}
+  end
 end
