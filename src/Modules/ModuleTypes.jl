@@ -169,55 +169,121 @@ mutable struct ModuleGens{T}
 end
 
 
+###############################################################################
+# Gröbner basis
+###############################################################################
+mutable struct ModuleGB{T}
+  gens::ModuleGens{T}
+  groebner_basis::ModuleGens{T}
+  quo_groebner_basis::ModuleGB{T}
+  reduced_groebner_basis::ModuleGens{T}
+
+  leading_module::ModuleGens{T}
+  leading_monomials::ModuleGens{T}
+  ordering::Singular.sordering
+
+  function ModuleGB{R}(gb::ModuleGens{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R
+    r = new{R}()
+    r.groebner_basis = gb
+    r.leading_monomials = lm
+    r.ordering = ord
+
+
+    # Remove
+    r.leading_module = lm
+    r.gens = gb
+    return r
+  end
+
+  function ModuleGB{R}(gb::ModuleGens{R}, qgb::ModuleGB{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R
+    r = new{R}()
+    r.groebner_basis = gb
+    r.quo_groebner_basis = qgb
+    r.leading_monomials = lm
+    r.ordering = ord
+
+    # Remove
+    r.leading_module = lm
+    r.gens = gb
+
+    return r
+  end
+end
 
 @doc Markdown.doc"""
     SubModuleOfFreeModule{T} <: ModuleFP{T}
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
 used by the end user.
-When computed, a standard basis (computed via `std_basis()`) and generating matrix (that is the rows of the matrix
+When computed, a standard basis (computed via `groebner_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
-  gens::ModuleGens
-  std_basis::ModuleGens
+  gens::ModuleGens{T}
+  std_basis::ModuleGens{T} # Remove
+  groebner_basis::Dict{Singular.sordering, ModuleGB{T}}
+  default_ordering::Singular.sordering
   matrix::MatElem
 
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}, 
+                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R}
     @assert all(x -> parent(x) === F, gens)
+    @assert exactly_one_module_ordering(default_ordering)
+    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+
     r = new{R}()
     r.F = F
     r.gens = ModuleGens(gens, F)
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
 
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule,
+                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R}
+    @assert exactly_one_module_ordering(default_ordering)
+    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+    
     r = new{R}()
     r.F = F
     r.gens = ModuleGens(F, singular_module)
     if singular_module.isGB
       r.std_basis = r.gens
     end
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
   
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens,
+                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R}                                    
+    @assert exactly_one_module_ordering(default_ordering)
+    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+
     r = new{R}()
     r.F = F
     r.gens = gens
     if singular_generators(gens).isGB
       r.std_basis = r.gens
     end
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
 
-  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L}) where {L}
+  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L},
+                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {L}
+    @assert exactly_one_module_ordering(default_ordering)
+    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+
     r = new{L}()
     r.F = F
     O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
     r.gens = ModuleGens(O, F)
     r.matrix = A
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
 end
@@ -243,6 +309,8 @@ option is set in suitable functions.
   quo::SubModuleOfFreeModule
   sum::SubModuleOfFreeModule
 
+  groebner_basis::Dict{Singular.sordering, ModuleGB{T}}
+
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
 
@@ -251,6 +319,8 @@ option is set in suitable functions.
     r.F = sub.F
     r.sub = sub
     r.sum = r.sub
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -265,6 +335,8 @@ option is set in suitable functions.
     r.quo = quo
     r.sum = sum(r.sub, r.quo)
 
+    r.groebner_basis = Dict()
+
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
 
@@ -275,6 +347,8 @@ option is set in suitable functions.
     r.F = F
     r.sub = SubModuleOfFreeModule(F, O)
     r.sum = r.sub
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -288,6 +362,8 @@ option is set in suitable functions.
     O_as_submodule = SubModuleOfFreeModule(S.F, O)
     r.quo = isdefined(S,:quo) ? sum(S.quo,O_as_submodule) : O_as_submodule
     r.sum = sum(r.sub, r.quo)
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -307,6 +383,8 @@ option is set in suitable functions.
     r.sub = SubModuleOfFreeModule(F, s)
     r.sum = r.sub
 
+    r.groebner_basis = Dict()
+
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
 
@@ -318,6 +396,8 @@ option is set in suitable functions.
     r.sub = SubModuleOfFreeModule(F, s)
     r.quo = SubModuleOfFreeModule(F, t)
     r.sum = sum(r.sub, r.quo)
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -554,9 +634,3 @@ struct FreeModuleHom_dec{T1, T2} <: ModuleMap{T1, T2}
 end
 
 
-###############################################################################
-# Gröbner basis
-###############################################################################
-mutable struct ModuleGB{T}
-  groebner_bases::Dict{Symbol,Tuple{ModuleGens{T}, ModuleGens{T}}}
-end

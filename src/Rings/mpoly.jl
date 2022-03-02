@@ -355,6 +355,13 @@ function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
+function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ord,
+              cached = false)[1]
+end
+
 function singular(o::Orderings.GenOrdering)
   v = o.vars
   @assert minimum(v)+length(v) == maximum(v)+1
