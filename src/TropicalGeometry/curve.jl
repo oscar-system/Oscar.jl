@@ -77,8 +77,8 @@ An abstract tropical curve
 ```
 """
 function TropicalCurve{M}(PC::PolyhedralComplex) where {M}
-   @assert dim(PC)==1 "The polyhedral complex is not of dimenion 1."   
-  return TropicalCurve{M, true}(PC)
+   @assert dim(PC)==1 "The polyhedral complex is not of dimenion 1."
+   return TropicalCurve{M, true}(PC)
 end
 
 
@@ -295,3 +295,104 @@ export DivisorOnTropicalCurve,
     outdegree, 
     v_reduced, 
     is_linearly_equivalent
+    chip_firing_move
+
+
+
+
+###
+# 4. More properties
+# -------------------
+###
+@doc Markdown.doc"""
+    ElementaryDivisors(M::MatrixElem{T}) where T <: Int
+
+Calculates the elementary divisors of the matrix M, together with their product. 
+This assumes that the matrix is square and of rank n-1. 
+"""
+function ElementaryDivisors(M::MatrixElem{T}) where T <: fmpz
+  @assert ncols(M)==nrows(M) "Not a square matrix."
+  C = snf(M)
+  c0 = 1
+  n = ncols(M)
+  Z = Vector{T}(undef,n)
+  for i in 1:n
+    Z[i] = C[i,i]
+    if i <= n-1
+      c0 = Z[i]*c0
+    end 
+  end 
+  return Z,c0
+end
+
+@doc Markdown.doc"""
+    StructureTropicalJacobian(TC::TropicalCurve)
+
+Computes the elementary divisors n_i of the Laplacian matrix of the tropical curve, 
+together with their product $N=\prod$ n_i.The tropical Jacobian is then isomorphic to 
+$\prod (Z/(n_i)Z)$ and the order of this group is N. 
+
+    
+# Examples
+```jldoctest
+julia> cg = Oscar.Graphs.complete_graph(5);
+
+julia> IM1=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in Oscar.Graphs.edges(cg)])
+10×5 IncidenceMatrix
+[1, 2]
+[1, 3]
+[2, 3]
+[1, 4]
+[2, 4]
+⁝
+
+julia> TC1 = TropicalCurve{min}(IM1)
+An abstract tropical curve
+
+julia> Oscar.StructureTropicalJacobian(TC1)
+(fmpz[1, 5, 5, 5, 0], 125)
+
+julia> cg2 = Oscar.Graphs.complete_graph(3);
+
+julia> IM2=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in Oscar.Graphs.edges(cg2)])
+3×3 IncidenceMatrix
+[1, 2]
+[1, 3]
+[2, 3]
+
+
+julia> TC2 = TropicalCurve{min}(IM2)
+An abstract tropical curve
+
+julia> Oscar.StructureTropicalJacobian(TC2)
+(fmpz[1, 3, 0], 3)
+
+julia> IM3 = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
+5×5 IncidenceMatrix
+[1, 2]
+[2, 3]
+[3, 4]
+[4, 5]
+[1, 5]
+
+
+julia> TC3=TropicalCurve{min}(IM3)
+An abstract tropical curve
+
+julia> Oscar.StructureTropicalJacobian(TC3)
+(fmpz[1, 1, 1, 5, 0], 5)
+```
+"""
+function StructureTropicalJacobian(TC::TropicalCurve)
+    gg=Graphs.Graph{Graphs.Undirected}(n_nodes(TC))
+    IM = graph(TC)
+    for i in 1:Polymake.nrows(IM)
+        row = Vector{Int}(Polymake.row(IM,i))
+        Graphs.add_edge!(gg, row[1],row[2])
+    end
+    lap = Polymake.graph.laplacian(Oscar.pm_object(gg))
+    L = Polymake.@convert_to Matrix{Int} lap
+    LL = matrix(ZZ, L)
+    ED = ElementaryDivisors(LL)
+    return ED
+end
