@@ -966,45 +966,33 @@ end
 
 Return a string that describes some aspects of the structure of `G`.
 
-This works well if `G` is an abelian group or a finite simple group
-or a group in one of the following series:
-symmetric, dihedral, quasidihedral, generalized quaternion,
-general linear, special linear.
+For finite groups, the function works well if `G` is an abelian group or a
+finite simple group or a group in one of the following series: symmetric,
+dihedral, quasidihedral, generalized quaternion, general linear, special
+linear.
 
-For other groups, the function tries to decompose `G` as a direct product
-or a semidirect product,
-and if this is not possible as a non-splitting extension of
-a normal subgroup $N$ with the factor group `G`$/N$,
-where $N$ is the center or the derived subgroup or the Frattini subgroup
-of `G`.
+For other finite groups, the function tries to decompose `G` as a direct
+product or a semidirect product, and if this is not possible as a
+non-splitting extension of a normal subgroup $N$ with the factor group
+`G`$/N$, where $N$ is the center or the derived subgroup or the Frattini
+subgroup of `G`.
 
-Note that
-- there is in general no "nice" decomposition of `G`,
-- there may be several decompositions of `G`,
-- nonisomorphic groups may yield the same `describe` result,
-- isomorphic groups may yield different `describe` results,
-- the computations can take a long time (for example in the case of
-  large $p$-groups), and the results are still often not very helpful.
+For infinite groups or groups for which finiteness is not (yet) known (e.g.
+finitely presented groups), it may not be possible to print much useful
+information. We make a best-effort attempt, but in general this is a hard
+problem.
 
-# Examples
-```jldoctest
-julia> g = symmetric_group(6);
+!!! note
+    - for finitely presented groups, even deciding if the group is trivial
+      is impossible in general; the same holds for most other properties,
+      like whether the group is finite, abelian, etc.
+    - there is in general no "nice" decomposition of `G`,
+    - there may be several decompositions of `G`,
+    - nonisomorphic groups may yield the same `describe` result,
+    - isomorphic groups may yield different `describe` results,
+    - the computations can take a long time (for example in the case of
+      large $p$-groups), and the results are still often not very helpful.
 
-julia> describe(g)
-"S6"
-
-julia> describe(sylow_subgroup(g,2)[1])
-"C2 x D8"
-
-julia> describe(sylow_subgroup(g, 3)[1])
-"C3 x C3"
-
-julia> g = symmetric_group(10);
-
-julia> describe(sylow_subgroup(g,2)[1])
-"C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
-
-```
 The following notation is used in the returned string.
 
 | Description | Syntax |
@@ -1035,5 +1023,87 @@ The following notation is used in the returned string.
 | direct product | A x B |
 | semidirect product | N : H |
 | non-split extension | Z(G) . G/Z(G) = G' . G/G', Phi(G) . G/Phi(G) |
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(6);
+
+julia> describe(g)
+"S6"
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x D8"
+
+julia> describe(sylow_subgroup(g, 3)[1])
+"C3 x C3"
+
+julia> g = symmetric_group(10);
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
+
+```
 """
-describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))
+function describe(G::GAPGroup)
+   isfinitelygenerated(G) || return "a non-finitely generated group"
+
+   # handle groups whose finiteness is known
+   if hasisfinite(G)
+      # finite groups: pass them to GAP
+      if isfinite(G)
+         return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+      end
+
+      # infinite groups known to be abelian can still be dealt with by GAP
+      if hasisabelian(G) && isabelian(G)
+         return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+      end
+
+      return "an infinite group"
+   end
+
+   return "a group"
+end
+
+function describe(G::FPGroup)
+   # despite the name, there are non-finitely generated (and hence non-finitely presented)
+   # FPGroup instances
+   isfinitelygenerated(G) || return "a non-finitely generated group"
+
+   if GAP.Globals.IsFreeGroup(G.X)::Bool
+      r = GAP.Globals.RankOfFreeGroup(G.X)::GapInt
+      r >= 2 && return "a free group of rank $(r)"
+      r == 1 && return "Z"
+      r == 0 && return "1"
+   end
+
+   # check for free groups in disguise
+   isempty(relators(G)) && return describe(free_group(G))
+
+   # attempt to simplify presentation
+   H = simplified_fp_group(G)[1]
+   ngens(H) < ngens(G) && return describe(H)
+
+   # abelian groups can be dealt with by GAP
+   extra = ""
+   if !hasisabelian(G)
+      # TODO: perform some cheap tests???
+   elseif isabelian(G)
+      return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+   else
+      extra *= " non-abelian"
+   end
+
+   if !hasisfinite(G)
+      # try to obtain an isomorphic permutation group, but don't try too hard
+      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
+      iso != GAP.Globals.fail && return describe(PermGroup(GAP.Globals.Range(iso)))
+   elseif isfinite(G)
+      return describe(isomorphic_perm_group(G)[1])
+   else
+      extra *= " infinite"
+   end
+
+   return "a finitely presented$(extra) group"
+
+end
