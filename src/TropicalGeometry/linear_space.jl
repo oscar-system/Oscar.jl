@@ -35,13 +35,16 @@ export TropicalLinearSpace
 @doc Markdown.doc"""
     TropicalLinearSpace(ideal::MPolyIdeal{fmpq_poly})
 
-Construct a tropical linear space from a degree 1 polynomial ideal
+Construct a tropical linear space from a degree 1 polynomial ideal.
 
 # Examples
+
+```jldoctest
 julia> R,(x_0,x_1,x_2,x_3,x_4,x_5)=PolynomialRing(ZZ,["x_0","x_1","x_2","x_3","x_4","x_5"])
 julia> I=ideal(R,[-x_0+x_2+x_3,-x_1+x_2+x_4,-x_0+x_1+x_5])
 julia> val = ValuationMap(QQ)
 julia> TropicalLinearSpace(I,val)
+```
 """
 function TropicalLinearSpace(I::MPolyIdeal{fmpz_mpoly}, val)
     R = base_ring(I)
@@ -57,19 +60,14 @@ end
 @doc Markdown.doc"""
     TropicalLinearSpace(plv::Vector)
 
-Construct a tropical linear space from its Pluecker vector
-
-# Examples
+Construct a tropical linear space from its Pluecker vector.
+#Examples
+```jldoctest
 julia> R = tropical_semiring(min);
 julia> plv = [R(e) for e in [2,1,1,0,0,zero(R)]];
 julia> L = TropicalLinearSpace(plv, 2, 4)
 julia> f_vector(L)
-
-# Examples
-julia> Kt, t = RationalFunctionField(QQ,"t");
-julia> val = TropicalSemiringMap(Kt,t);
-julia> A = matrix(Kt,[[t,4t,0,2],[1,4,1,t^2]])
-julia> TropicalLinearSpace(A, val)
+```
 """
 function TropicalLinearSpace_impl(plv, rank, nElements, M)
     Zero = zero(tropical_semiring(M))
@@ -88,9 +86,27 @@ TropicalLinearSpace_impl(plv, rank, nElements, min)
 TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(max)}},rank::IntegerUnion, nElements::IntegerUnion) =
 TropicalLinearSpace_impl(plv, rank, nElements, max)
 
-#needs Oscar type as entry
 
-#TODO requires a fix of TropicalSemiringMap
+@doc Markdown.doc"""
+    TropicalLinearSpace()
+
+Construct a tropical linear space from a matrix generating it. Requires the matrix input to be of Type MatElem.
+
+# Examples
+```jldoctest
+julia> Kt, t = RationalFunctionField(QQ,"t");
+julia> val = ValuationMap(Kt,t);
+julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
+julia> TropicalLinearSpace(A, val);
+
+ 
+julia> p = 3;
+julia> val = ValuationMap(QQ, p);
+julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
+julia> TropicalLinearSpace(A,val);
+
+```
+"""
 function TropicalLinearSpace(tropicalmatrix::MatElem, val)
   plv = [val(p) for p in Nemo.minors(tropicalmatrix, min( nrows(tropicalmatrix), ncols(tropicalmatrix)) )]
   rk = rank(tropicalmatrix)
@@ -99,15 +115,7 @@ function TropicalLinearSpace(tropicalmatrix::MatElem, val)
   return TropicalLinearSpace(plv, rk, nelement)
 end
 
-function TropicalLinearSpace(tropicalmatrix::Matrix{Int})
-  #which valuation?
-  return TropicalLinearSpace(matrix(ZZ, tropicalmatrix))
-end
-
-function TropicalLinearSpace(tropicalmatrix::Matrix{Union{fmpq, fmpz}})
-  #which valuation?
-  return TropicalLinearSpace(matrix(base_ring(tropicalmatrix), tropicalmatrix))
-end
-
+###
+# 3. Basic properties
 # -------------------
 ###
