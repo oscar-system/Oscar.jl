@@ -185,7 +185,7 @@ base_curve(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.base_curve
 @doc Markdown.doc"""
     coefficients(dtc::DivisorOnTropicalCurve{M, EMB})            
 
-Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
+Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical curve.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -207,10 +207,68 @@ julia> coefficients(dtc)
 """
 coefficients(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.coefficients
 
+@doc Markdown.doc"""
+   degree(dtc::DivisorOnTropicalCurve{M, EMB})              
+
+Compute the degree of  a divisor `dtc` on an abstract tropical curve.
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+julia> tc = TropicalCurve{min}(IM)
+An abstract tropical curve
+
+julia> coeffs = [0, 1, 1, 1];
+
+julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+
+julia> degree(dtc)
+3
+```
+"""
 degree(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = sum(coefficients(dtc))
 
+@doc Markdown.doc"""
+    is_effective(dtc::DivisorOnTropicalCurve{M, EMB})              
+
+Check whether a divisor `dtc` on an abstract tropical curve is effective.
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+julia> tc = TropicalCurve{min}(IM)
+An abstract tropical curve
+
+julia> coeffs = [0, 1, 1, 1];
+
+julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+
+julia> is_effective(dtc)
+true
+```
+"""
 is_effective(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = all(e -> e>=0, coefficients(dtc))
 
+
+@doc Markdown.doc"""
+   chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int)                
+
+Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`. 
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+julia> tc = TropicalCurve{min}(IM)
+An abstract tropical curve
+
+julia> coeffs = [0, 1, 1, 1];
+
+julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+
+julia> chip_firing_move(dtc,1)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [-3, 2, 2, 2])
+```
+"""
 function chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int) where {M, EMB}
     G = graph(base_curve(dtc))
     newcoeffs = Vector{Int}(coefficients(dtc))
@@ -228,6 +286,8 @@ function chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int) wh
     return DivisorOnTropicalCurve(base_curve(dtc), newcoeffs)
 end
 
+### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices. 
+### This is the number of vertices not in W adjecent to v. 1,  
 function outdegree(tc::TropicalCurve{M,EMB}, W::Set{Int}, v::Int) where {M, EMB}
     G = graph(tc)
     m = Polymake.nrows(G) #number of edges of tc
@@ -246,6 +306,26 @@ function outdegree(tc::TropicalCurve{M,EMB}, W::Set{Int}, v::Int) where {M, EMB}
     return deg
 end
 
+@doc Markdown.doc"""
+   v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) 
+
+Given a divisor `dtc` and vertex labelled `vertex` compute the unique divisor reduced with repspect to `vertex`. 
+The divisor `dtc` must have positive coefficients apart from `vertex`.  
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+julia> tc = TropicalCurve{min}(IM)
+An abstract tropical curveRevise.retry()
+
+julia> coeffs = [0, 1, 1, 1];
+
+julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+
+julia> v_reduced(dtc,1)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [3, 0, 0, 0])
+```
+"""
 function v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) where {M, EMB}
     tc = base_curve(dtc)
     G = graph(base_curve(dtc))
@@ -254,24 +334,53 @@ function v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) where {M, E
     S = Set{Int}(1:n)
     W = setdiff(S,vertex)
     @assert all(j -> newcoeff[j]>=0, W) "Divisor not effective outside the vertex number $vertex"
-    while !(isempty(W)) 
-	for w in W 
-	    if newcoeff[w] < outdegree(tc,W,w)
-	        W = setdiff(W,w)	    	
-  	    else 
-		coeffdelta = zeros(Int, n)
-		delta = DivisorOnTropicalCurve(tc,coeffdelta)
-	   	for j in W 
-	            delta = chip_firing_move(delta,j)
-	        end
-	        newcoeff = newcoeff + coefficients(delta)
+    while !(isempty(W))
+	w0 = vertex
+	if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
+	    coeffdelta = zeros(Int, n)
+	    delta = DivisorOnTropicalCurve(tc,coeffdelta)
+	    for j in W 
+	        delta = chip_firing_move(delta,j)
 	    end
-       end 
-    end
+	    newcoeff = newcoeff + coefficients(delta)
+	else 
+	    for w in W 
+	        if newcoeff[w] < outdegree(tc,W,w) 
+		    w0 = w
+		    break	    	   
+	        end
+	    end
+	    W = setdiff(W,w0)
+        end
+    end    
     reduced = DivisorOnTropicalCurve(tc, newcoeff)
     return reduced   
 end
 
+@doc Markdown.doc"""
+   is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB})     
+
+Given two effective divisors `dtc1` and `dtc2` on the same tropica curve checks whether they are linearly equivalent. 
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+julia> tc = TropicalCurve{min}(IM)
+An abstract tropical curveRevise.retry()
+
+julia> coeffs1 = [0, 1, 1, 1];
+
+julia> dtc1 = DivisorOnTropicalCurve(tc,coeffs1)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+
+julia> coeffs2 = [3,0,0,0];
+
+julia> dtc2 = DivisorOnTropicalCurve(tc,coeffs2)
+DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [3, 0, 0, 0])
+
+julia> is_linearly_equivalent(dtc1, dtc2)
+true
+```
+"""
 function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB}) where {M, EMB}
     @assert is_effective(dtc1) "The divisor $dtc1 is not effective"
     @assert is_effective(dtc2) "The divisor $dtc2 is not effective"
@@ -292,7 +401,6 @@ export DivisorOnTropicalCurve,
     graph,
     base_curve,
     chip_firing_move,
-    outdegree, 
     v_reduced, 
     is_linearly_equivalent
     chip_firing_move
