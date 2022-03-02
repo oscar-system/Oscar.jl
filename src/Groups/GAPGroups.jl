@@ -25,7 +25,7 @@ export
     frattini_subgroup, hasfrattini_subgroup, setfrattini_subgroup,
     gap_perm, # HACK
     gen,
-    gens,
+    gens, hasgens,
     hall_subgroup,
     hall_subgroups_representatives,
     hall_system, hashall_system, sethall_system,
@@ -367,6 +367,28 @@ function gens(G::GAPGroup)
    end
    return res
 end
+
+"""
+    hasgens(G::Group)
+
+Return whether generators for the group `G` are known.
+
+# Examples
+```jldoctest
+julia> F = free_group(2)
+<free group on the generators [ f1, f2 ]>
+
+julia> hasgens(F)
+true
+
+julia> H = derived_subgroup(F)[1]
+Group(<free, no generators known>)
+
+julia> hasgens(H)
+false
+```
+"""
+hasgens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
 
 """
     gen(G::GAPGroup, i::Int)
