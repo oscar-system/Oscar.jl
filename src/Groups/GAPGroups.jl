@@ -33,6 +33,7 @@ export
     isalmostsimple, hasisalmostsimple, setisalmostsimple,
     isconjugate,
     isfinite, hasisfinite, setisfinite,
+    isfinitelygenerated, hasisfinitelygenerated, setisfinitelygenerated,
     isfiniteorder,
     isperfect, hasisperfect, setisperfect,
     ispgroup,
@@ -910,6 +911,29 @@ function ispgroup(G::GAPGroup)
    end
    return false, nothing
 end
+
+"""
+    isfinitelygenerated(G)
+
+Return whether `G` is a finitely generated group.
+
+# Examples
+```jldoctest
+julia> F = free_group(2)
+<free group on the generators [ f1, f2 ]>
+
+julia> isfinitelygenerated(F)
+true
+
+julia> H = derived_subgroup(F)[1]
+Group(<free, no generators known>)
+
+julia> isfinitelygenerated(H)
+false
+```
+"""
+@gapattribute isfinitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+
 
 @doc Markdown.doc"""
     relators(G::FPGroup)
