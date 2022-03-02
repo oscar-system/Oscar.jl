@@ -29,7 +29,7 @@ julia> tropical_polynomial(f,max)
 ```
 """
 function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)}=min)
-  T = tropical_numbers(M)
+  T = tropical_semiring(M)
   if M==min
     s=1
   else
@@ -51,19 +51,13 @@ function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M:
 
   return tropf
 end
-function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::ValuationMap, M::Union{typeof(min),typeof(max)}=min)
-  T = tropical_numbers(M)
-  if M==min
-    s=1
-  else
-    s=-1
-  end
-
+function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::ValuationMap)
+  T = val.tropical_semiring
   Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)
 
   for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
-    tropf = tropf + T(s*val(c))*monomial(Tx,alpha)
+    tropf = tropf + val(c)*monomial(Tx,alpha)
   end
 
   return tropf

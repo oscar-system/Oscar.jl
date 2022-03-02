@@ -9,7 +9,7 @@ _whyohwhy3 = FlintRationalField
 
 using pAdicSolver # to compute tropicalizations of zero-dimensional ideals (through solve_macaulay)
 
-include("numbers.jl")
+include("semiring.jl")
 include("valuation.jl")
 include("poly.jl")
 include("initial.jl")
@@ -25,9 +25,8 @@ include("multiplicity.jl")
 #
 # Warning: This function ignores all boundary cases!
 function tropical_polynomial_to_polymake(f)
-    convention = fun(base_ring(f))
     fstr = ""
-    if convention == min
+    if convention(base_ring(f))
         fstr *= "min("
     else
         fstr *= "max("

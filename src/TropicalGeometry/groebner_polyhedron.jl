@@ -68,7 +68,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
       println(inGB)
       error("initial forms have monomials which original polynomials do not")
     end
-    inf_leadval = val(coefficients_f[i])
+    inf_leadval = Int(val(coefficients_f[i]); preserve_ordering=true)
 
     for inf_tailexpv in inf_tailexpvs
       i = findfirst(isequal(inf_tailexpv),exponent_vectors_f)
@@ -77,7 +77,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
         println(inGB)
         error("initial forms have monomials which original polynomials do not")
       end
-      inf_tailval = val(coefficients_f[i])
+      inf_tailval = Int(val(coefficients_f[i]); preserve_ordering=true)
       eq_lhs = vcat(eq_lhs,transpose(inf_tailexpv-inf_leadexpv)) # todo: is there a better way of doing this line?
       push!(eq_rhs,inf_tailval-inf_leadval)
     end
@@ -86,7 +86,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
     # Step 2: construct weight inequalities enforcing that valued weighted degree of inf is greater equal f
     ###
     for (f_coeff,f_expv) in zip(coefficients(f),exponent_vectors(f))
-      f_val = val(f_coeff)
+      f_val = Int(val(f_coeff); preserve_ordering=true)
       ineq_lhs = vcat(ineq_lhs,transpose(f_expv-inf_leadexpv)) # todo: is there a better way of doing this line?
       push!(ineq_rhs,f_val-inf_leadval)
     end

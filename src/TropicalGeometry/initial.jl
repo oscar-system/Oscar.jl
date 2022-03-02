@@ -31,13 +31,12 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 ```
 """
 function valued_weighted_degree(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
-  # compute the weighted degrees
-  vwds = [dot(w,alpha) for alpha in exponent_vectors(f)]
-  # substract the coefficient valuations
-  vwds -= [val(c) for c in coefficients(f)]
+  # compute the weighted degrees shifted by the coefficient valuations
+  vwds = [val(c)*tropical_semiring(val)(dot(w,alpha)) for (c,alpha) in zip(coefficients(f),exponent_vectors(f))]
 
-  # compute the maximum degree
-  vwd = max(vwds...)
+  # compute the minimal degree
+  # (note: max tropical semiring is reversely ordered, so min in the semiring is max in the conventional sense)
+  vwd = min(vwds...)
 
   if isempty(pertubation)
     # if no pertubation is specified, compute the maximum and return vector if required
@@ -47,9 +46,9 @@ function valued_weighted_degree(f::MPolyElem, val::ValuationMap, w::Vector; pert
     return vwd
   else
     # if pertubation is specified, then compute the pertubed degrees
-    vwdsPerp = [dot(pertubation,alpha) for alpha in exponent_vectors(f)]
-    # compute the maximum amongst all pertubations with maximal original degree
-    vwdPerp = max([vwdsPerp[i] for i in 1:length(vwds) if vwds[i]==vwd]...)
+    vwdsPerp = [tropical_semiring(val)(dot(pertubation,alpha)) for alpha in exponent_vectors(f)]
+    # compute the mininum amongst all pertubations with maximal original degree
+    vwdPerp = min([vwdsPerp[i] for i in 1:length(vwds) if vwds[i]==vwd]...)
 
     if return_vector
       return vwd,vwdPerp,vwds,vwdsPerp
@@ -72,9 +71,11 @@ export valued_weighted_degree
 
 
 @doc Markdown.doc"""
-    initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector=[])
+    initial(f::MPolyElem, val::ValuationMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; pertubation::Vector=[])
 
-Returns the initial form of `f` with respect to valuation `val` and weight `w`. For the definition of initial form, see [Maclagan-Sturmfels, Section 2.4]
+Returns the initial form of `f` with respect to valuation `val` and weight `w`. If convention==min (default), it is computed in the min convention. If convention==max, it is computed in the max convention.
+
+For the definition of initial form in the min-convention, see [Maclagan-Sturmfels, Section 2.4]
 
 # Examples
 ```jldoctest
@@ -88,15 +89,31 @@ julia> val_trivial = ValuationMap(QQ);
 
 julia> f = 2*x+2*y+1;
 
-julia> initial(f,val_2,w)       # polynomial over FiniteField(2)
+julia> initial(f,val_2,w)       # polynomial over GF(2)
 
 julia> initial(f,val_trivial,w) # polynomial in the original ring
+
+julia> initial(f,val_trivial,w,min) # same as above, as min-convention default
+
+julia> initial(f,val_trivial,w,max) # different as above
 
 julia> Kt,t = RationalFunctionField(QQ,"t");
 
 julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
 
-julia> f = 2*x+2*y+1;
+julia> f = t*x+t*y+1;
+
+julia> val_t = ValuationMap(Kt,t);
+
+julia> initial(f,val_t,w)       # polynomial over QQ
+
+julia> initial(f,val_trivial,w) # polynomial in the original ring
+
+julia> Kt,t = RationalFunctionField(GF(32003),"t");
+
+julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
+
+julia> f = t*x+t*y+1;
 
 julia> val_t = ValuationMap(Kt,t);
 
@@ -133,7 +150,11 @@ function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector
   if isempty(pertubation)
     for (vwdi,cf,expv) in zip(vwds,coefficients(f),exponent_vectors(f))
       if vwdi == vwd
-        c = t^-val(cf)*cf   # make coefficient valuation 0
+        vcf = numerator(data(val(cf)))
+        if convention(val)==max
+          vcf = -vcf
+        end
+        c = t^-vcf*cf   # make coefficient valuation 0
         cNum = numerator(c) # split up numerator and denominator as pi is only defined on the valued ring
         cDen = denominator(c)
         push_term!(initialf, pi(cNum)//pi(cDen), expv) # apply pi to both and divide the result
@@ -142,7 +163,11 @@ function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector
   else
     for (vwdi,vwdiPerp,cf,expv) in zip(vwds,vwdsPerp,coefficients(f),exponent_vectors(f))
       if vwdi == vwd && vwdiPerp == vwdPerp
-        c = t^-val(cf)*cf
+        vcf = numerator(data(val(cf)))
+        if convention(val)==max
+          vcf = -vcf
+        end
+        c = t^-vcf*cf
         cNum = numerator(c)
         cDen = denominator(c)
         push_term!(initialf, pi(cNum)//pi(cDen), expv)

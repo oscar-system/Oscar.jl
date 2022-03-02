@@ -63,7 +63,7 @@ Returns the tropical hypersurface of a tropical polynomial.
 
 # Examples
 ```jldoctest
-julia> T = tropical_numbers(min)
+julia> T = tropical_semiring(min)
 Tropical ring (min)
 
 julia> Txy,(x,y) = T["x","y"]
@@ -76,19 +76,19 @@ julia> Tf = TropicalHypersurface(f)
 A min tropical hypersurface embedded in 2-dimensional Euclidian space
 ```
 """
-function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
-                                       AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
+function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
+                                       AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
     if total_degree(f) <= 0
         error("Tropical hypersurfaces of constant polynomials not supported.")
     end
-    convention = fun(base_ring(f))
+    M = convention(base_ring(f))
 
     fstr = Tuple(tropical_polynomial_to_polymake(f))
     pmpoly = Polymake.common.totropicalpolynomial(fstr...)
-    pmhypproj = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
+    pmhypproj = Polymake.tropical.Hypersurface{M}(POLYNOMIAL=pmpoly)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
 
-    Vf = TropicalHypersurface{convention, true}(PolyhedralComplex(pmhyp))
+    Vf = TropicalHypersurface{M, true}(PolyhedralComplex(pmhyp))
     w = pmhypproj.WEIGHTS
     set_attribute!(Vf,:polymake_bigobject,pmhypproj)
     set_attribute!(Vf,:tropical_polynomial,f)
@@ -97,14 +97,14 @@ function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.Tropi
 end
 
 # @doc Markdown.doc"""
-#     tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
-#                               AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
+#     tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
+#                               AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
 
 # Returns the tropical variety of a tropical polynomial in form of a TropicalHypersurface
 
 # # Examples
 # ```jldoctest
-# julia> T = tropical_numbers(min)
+# julia> T = tropical_semiring(min)
 # Tropical ring (min)
 
 # julia> Txy,(x,y) = T["x","y"]
@@ -117,15 +117,15 @@ end
 # A min tropical hypersurface embedded in 2-dimensional Euclidian space
 # ```
 # """
-# function tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
-#                                    AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
+# function tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
+#                                    AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
 #     return TropicalHypersurface(f)
 # end
 
 
 @doc Markdown.doc"""
-    TropicalHypersurface{M}(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
-                                     AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
+    TropicalHypersurface{M}(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
+                                     AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
 
 Returns the tropical hypersurface of an algebraic polynomial.
 If M=min, the tropical hypersurface will obey the min-convention.
@@ -206,7 +206,7 @@ Returns the dual subdivision of `TH` if it is embedded. Returns error otherwise
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> T = tropical_semiring(min);
 
 julia> Txy,(x,y) = T["x","y"];
 
@@ -236,7 +236,7 @@ Returns the tropical polynomial of `TH` if it is embedded. Returns error otherwi
 
 # Examples
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> T = tropical_semiring(min);
 
 julia> Txy,(x,y) = T["x","y"];
 

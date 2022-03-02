@@ -140,7 +140,7 @@ I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
 Random.seed!(3847598273423);
 TropI = tropical_variety(I,val)
 =======#
-function tropical_variety(I::MPolyIdeal, val::ValuationMap)
+function tropical_variety(I::MPolyIdeal, val::ValuationMap, convention::Union{typeof(min),typeof(max)}=min)
 
   ###
   # Part 0: Preprocessing
@@ -334,6 +334,7 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   weight_vectors = [w for (w,C,G) in working_list_done]
   initial_ideals = [ideal(initial(G,val,w)) for (w,C,G) in working_list_done]
   multiplicities = [multiplicity(inI) for inI in initial_ideals]
+  set_attribute!(TropI,:input_ideal,I)
   set_attribute!(TropI,:weight_vectors,weight_vectors)
   set_attribute!(TropI,:initial_ideals,initial_ideals)
   set_attribute!(TropI,:multiplicities,multiplicities)

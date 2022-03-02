@@ -32,11 +32,11 @@ Intersect two tropical varieties.
 
 # Examples
 ```jldoctest
-julia> RR = tropical_numbers(min)
+julia> RR = tropical_semiring(min)
 Tropical ring (min)
 
 julia> S,(x,y) = RR["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
+(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 julia> f1 = x+y+1
 x + y + (1)
@@ -89,7 +89,7 @@ Returns the ambient dimension of `T` if it is embedded. Returns an error otherwi
 # Examples
 A tropical hypersurface in RR^n is of ambient dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -122,7 +122,7 @@ Returns the codimension of `T`.
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -151,7 +151,7 @@ Returns the dimension of `T`.
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -180,7 +180,7 @@ Returns the f-Vector of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -209,7 +209,7 @@ Returns the dimension of the lineality space of `T` if it is embedded. Returns a
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -242,7 +242,7 @@ Returns the lineality space of `T` if it is embedded. Returns an error otherwise
 # Examples
 A tropical hypersurface in RR^n is of lineality spaceension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -275,7 +275,7 @@ Returns the maximal polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -304,7 +304,7 @@ Returns the number of maximal polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -334,7 +334,7 @@ Returns the number of polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -364,7 +364,7 @@ Returns the number of vertices of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -394,7 +394,7 @@ Returns the polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -424,7 +424,7 @@ Return true if `T` is a pure polyhedral complex, false otherwise.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -453,7 +453,7 @@ Returns true if `T` is a simplicial polyhedral complex, false otherwise.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -482,7 +482,7 @@ Returns the vertices of `T`, which are points in euclidean space if T is embedde
 # Examples
 The vertices of a plane tropical line, plane tropical honeycomb quadric, and plane tropical honeycomb cubic
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -526,7 +526,7 @@ Returns the weights of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_numbers(min);
+julia> RR = tropical_semiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -554,11 +554,11 @@ end
 
 # # Examples
 # ```jldoctest
-# julia> RR = tropical_numbers(min)
+# julia> RR = tropical_semiring(min)
 # Tropical ring (min)
 
 # julia> S,(x,y) = RR["x","y"]
-# (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
+# (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 # julia> f = x+y+1
 # x + y + (1)
