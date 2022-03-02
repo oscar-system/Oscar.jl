@@ -632,8 +632,3 @@ struct FreeModuleHom_dec{T1, T2} <: ModuleMap{T1, T2}
     return r
   end
 end
-<<<<<<< HEAD
-
-
-=======
->>>>>>> upstream/master
