@@ -82,6 +82,6 @@ end
    pi_1 = fundamental_group(P)
    @test describe(pi_1) == "SL(2,5)"
 
-   @test describe(fundamental_group(torus())) == "a finitely presented infinite group"
+   @test describe(fundamental_group(torus())) == "Z x Z"
 
 end
