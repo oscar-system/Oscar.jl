@@ -280,6 +280,8 @@ include("Combinatorics/Graphs.jl")
 export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
 
+include("Combinatorics/Matroids/JMatroids.jl")
+
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
