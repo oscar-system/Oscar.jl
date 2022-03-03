@@ -1087,7 +1087,10 @@ function describe(G::FPGroup)
    # abelian groups can be dealt with by GAP
    extra = ""
    if !hasisabelian(G)
-      # TODO: perform some cheap tests???
+      if isobviouslyabelian(G)
+         setisabelian(G, true) # TODO: Claus won't like this...
+         return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+      end
    elseif isabelian(G)
       return String(GAP.Globals.StructureDescription(G.X)::GapObj)
    else
@@ -1106,4 +1109,18 @@ function describe(G::FPGroup)
 
    return "a finitely presented$(extra) group"
 
+end
+
+function isobviouslyabelian(G::FPGroup)
+    rels = relators(G)
+    fgens = gens(free_group(G))
+    signs = [(e1,e2,e3) for e1 in (-1,1) for e2 in (-1,1) for e3 in (-1,1)]
+    for i in 1:length(fgens)
+        a = fgens[i]
+        for j in i+1:length(fgens)
+            b = fgens[j]
+            any(t -> comm(a^t[1],b^t[2])^t[3] in rels, signs) || return false
+        end
+    end
+    return true
 end
