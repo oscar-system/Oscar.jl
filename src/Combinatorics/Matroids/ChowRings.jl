@@ -2,27 +2,26 @@ export chow_ring, select
 
 function chow_ring(M::Matroid, extended=false)
 	Flats = flats(M)
-	sizeFlats = size(Flats)[1]
-	n = size(M.groundset)[1]
-	if(!is_loopless(M))
-		throw("Matroid has loops")
+	number_flats = length(Flats)
+	n = length(M.groundset)
+	if !is_loopless(M)
+		error("Matroid has loops")
 	end
-	if(sizeFlats<2)
-		throw("matroid has to few flats")
+	if number_flats<2
+		error("matroid has to few flats")
 	end
-	proper_flats = Flats[2:sizeFlats-1]
-	var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]# var names?
-	if(extended)
-		var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[sizeFlats]]]]]
+	proper_flats = Flats[2:number_flats-1]
+	var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by sets  
+	if extended 
+		var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]]
 	end
-	s = size(var_names)
 
 	ring, vars = GradedPolynomialRing(QQ, var_names)
 	#ring, vars = PolynomialRing(ZZ, var_names) $which ring do we want here
 	I = linear_relations(ring, proper_flats, vars, M)
 	J = quadratic_relations(ring, proper_flats, vars)
 	Ex = []
-	if(extended)
+	if extended
 		Ex = relations_extended_ring(ring, proper_flats, vars)
 	end
 	chow_modulus = ideal(ring, vcat(I, J, Ex))
@@ -33,13 +32,13 @@ end
 
 function linear_relations(ring, proper_flats, vars, M)
 	alpha = 0
-	relations = Vector()
+	relations = []
 	for i in M.groundset
 		poly = ring(0)
 		for index in findall(issubset([i],F) for F in proper_flats)
 			poly+= vars[index]
 		end
-		if(i==M.groundset[1])
+		if i==M.groundset[1]
 			alpha = poly
 		else
 			push!(relations, alpha-poly)
@@ -55,7 +54,7 @@ function quadratic_relations(ring, proper_flats, indeterminates)
 		F = proper_flats[i]
 		for j in 1:i-1
 			G = proper_flats[j]
-			if( !issubset(F,G) && !issubset(G,F) )
+			if !issubset(F,G) && !issubset(G,F) 
 				push!(relations, indeterminates[i]*indeterminates[j])
 			end
 		end

@@ -13,7 +13,7 @@ export
 	connectivity_function, is_vertical_k_separation,
 	vertical_connectivity, girth, tutte_connectivity,
 	principal_extension, free_extension, series_extension,
-	tutte_polynomial, characteristic_polynomial, reduced_characteristic_polynomial,
+	tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
 	is_quotient
 
 ################################################################################
@@ -22,7 +22,7 @@ export
 
 function isomorphism(M::Matroid, gs::AbstractVector)
 	if size(M.groundset)[1]!=size(gs)[1]
-		throw("Sets of different size")
+		throw(ArgumentError("Sets of different size"))
 	end
 	gs2num = Dict{Any,Int}()
 	i = 1
@@ -234,11 +234,17 @@ function direct_sum_components(M::Matroid)
 	return res
 end
 
-connectivity_function(M::Matroid, set::Union{AbstractVector, Set}) = rank(M,set) + rank(M,setdiff( Set(M.groundset), set)) - rank(M)
+function connectivity_function(M::Matroid, set::Union{AbstractVector, Set})
+	return rank(M,set) + rank(M,setdiff( Set(M.groundset), set)) - rank(M)
+end
 
-is_vertical_k_separation(M::Matroid,k::Int, set::Union{AbstractVector,Set}) = k<=rank(M,set) && k<=rank(M,setdiff( Set(M.groundset), set)) && k> connectivity_function(M,set)
+function is_vertical_k_separation(M::Matroid,k::Int, set::Union{AbstractVector,Set}) 
+	return k<=rank(M,set) && k<=rank(M,setdiff( Set(M.groundset), set)) && k> connectivity_function(M,set)
+end
 
-is_k_separation(M::Matroid,k::Int, set::Union{AbstractVector,Set}) = k<=size(set)[1] && k<=size(setdiff( Set(M.groundset), set))[1] && k> connectivity_function(M,set)
+function is_k_separation(M::Matroid,k::Int, set::Union{AbstractVector,Set})
+	return k<=size(set)[1] && k<=size(setdiff( Set(M.groundset), set))[1] && k> connectivity_function(M,set)
+end
 
 function vertical_connectivity(M::Matroid)
 	gs = Set(M.groundset)
@@ -286,6 +292,8 @@ function characteristic_polynomial(M::Matroid)
 	R, q = PolynomialRing(ZZ, 'q')
 	return (-1)^M.pm_matroid.RANK*tutte_polynomial(M)(1-q,0)
 end
+
+charpoly(M::Matroid) = characteristic_polynomial(M)
 
 function reduced_characteristic_polynomial(M::Matroid)
 	R, q = PolynomialRing(ZZ, 'q')
