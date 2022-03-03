@@ -18,6 +18,9 @@ function __init__()
   add_verbose_scope(:BruecknerSQ)
   set_verbose_level(:BruecknerSQ, 0)
 
+  add_assert_scope(:BruecknerSQ)
+  set_assert_level(:BruecknerSQ, 0)
+
   add_assert_scope(:MinField)
   set_assert_level(:MinField, 0)
 
@@ -25,12 +28,6 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GapInt)
-  E = abelian_closure(QQ)[1]
-  return E(fmpz(a))
-end
-
-(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
 Hecke.data(a::QabElem) = a.data
 
 function Hecke.number_field(::FlintRationalField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
