@@ -38,7 +38,7 @@ function Hecke.number_field(::FlintRationalField, a::qqbar; cached::Bool = false
   function to_qqbar(x::nf_elem)
     return Qx(x)(a)
   end
-  #TODO: make make canonical?
+  #TODO: make map canonical?
   # ... and return gen(k) instead?
   return k, MapFromFunc(to_qqbar, to_k, k, parent(a))
 end
