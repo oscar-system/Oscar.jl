@@ -1,7 +1,7 @@
 export
 	Matroid, groundset,
 	matroid_from_bases, matroid_from_circuits,
-	matroid_from_matrix, matroid_from_reduced_matrix,
+	matroid_from_matrix_columns, matroid_from_matrix_rows,
 	cycle_matroid, bond_matroid, cocycle_matroid,
 	dual_matroid, direct_sum, restriction, deletion, contraction, minor,
 	principal_extension,
@@ -27,20 +27,26 @@ end
 
 
 @doc Markdown.doc"""
-Construct a `matroid` with bases `B` on the ground set `{1,2,...n}` (which can be the empty set) where `n` is a non-negative integer and `B` is a collection of subsets of the ground set satisfying an exchange property.
+Construct a `matroid` with bases `B` on the ground set `E` (which can be the empty set).
+The set `B` is a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
+and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
+
+See Section 1.2 of Oxl11 (@cite)
 
 # Examples
-To construct a rank two matroid with five bases on the four elements 1,2,3,4 you can write:
+To construct a rank two matroid with five bases on four elements you can write:
 ```jldoctest
 julia> B = [[1,2],[1,3],[1,4],[2,3],[2,4]];
-julia> M = matroid_from_bases(B,4);
-A matroid on 4 elements with 5 bases.
+
+julia> M = matroid_from_bases(B,4)
+Matroid of rank 2 on 4 elements
 ```
 
 # Examples
-To construct the same matroid on the four elements 2,1,i,j you may write:
+To construct the same matroid on the four elements 1,2,i,j you may write:
 ```jldoctest
-julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[2,1,'i','j']);
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+Matroid of rank 2 on 4 elements
 ```
 """
 matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_bases(bases,Vector(1:nelements))
@@ -64,20 +70,28 @@ function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, Abstr
 end
 
 @doc Markdown.doc"""
-A matroid with circuits `C` on the ground set ``{1,2,...`n`}`` (which can be the empty set) where `n` is a non-negative integer and `C` is a collection of subsets of the ground set.
+A matroid with circuits `C` on the ground set `E` (which can be the empty set).
+The set `C` is a collection of subsets of the ground set `E` satisfying an exchange property,
+and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
+
+See Section 1.1 of Oxl11 (@cite)
 
 # Examples
-To construct a rank two matroid with five bases on the four elements 1,2,3,4 you can write:
+To construct a rank two matroid with five bases on four elements by its circuits you may write:
 ```jldoctest
-julia> B = [[1,2,3],[1,2,4],[3,4]];
+julia> C = [[1,2,3],[1,2,4],[3,4]];
 
-julia> M = matroid_from_circuits(B,4);
-A matroid on 4 elements with 5 bases.
+julia> M = matroid_from_circuits(C,4)
+Matroid of rank 2 on 4 elements
 ```
+
 # Examples
-To construct the same matroid on the four elements 2,1,i,j you may write:
+To construct the same matroid on the ground set `{1,2,i,j}` you may write:
 ```jldoctest
-julia> M = matroid_from_bases([[1,2,'i'],[1,2,'j'],['i','j']],[2,1,'i','j']);
+julia> C = [[1,2,'j'],[1,2,'i'],['i','j']];
+
+julia> M = matroid_from_circuits(C,4)
+Matroid of rank 2 on 4 elements
 ```
 """
 matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_circuits(circuits,Vector(1:nelements))
@@ -104,25 +118,17 @@ end
 @doc Markdown.doc"""
 A matroid represented by the column vectors of a matrix.
 
+See Section 1.1 of Oxl11 (@cite)
+
 # Examples
-To construct the linear matroid of the matrix `A` over the field with two elements write:
+To construct the vector matroid (a.k.a linear matroid) of the matrix `A` over the field with two elements write:
 ```jldoctest
-julia> A = [[1,0],[0,1],[1,1],[1,1]]
+julia> A = matrix(GF(2),[[1,0,1,1],[0,1,1,1]]);
 
-julia> M = matroid_from_matrix(matrix(GF(2),A))
-```
-
-or to obtain the same result
-```jldoctest
-julia> A = [[1,1],[1,1]]
-
-julia> M = matroid_from_reduced_matrix(matrix(GF(2),A))
+julia> M = matroid_from_matrix_columns(A)
+Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_reduced_matrix_columns(A::MatrixElem) = matroid_from_matrix(hcat(identity_matrix(A.base_ring,nrows(A)),A))
-
-matroid_from_reduced_matrix_rows(A::MatrixElem) = matroid_from_reduced_matrix_columns(transpose(A))
-
 function matroid_from_matrix_columns(A::MatrixElem)
 	rk = rank(A)
 	bases = Vector{Vector{IntegerUnion}}()
@@ -134,17 +140,34 @@ function matroid_from_matrix_columns(A::MatrixElem)
 	return matroid_from_bases(bases,ncols(A))
 end
 
+@doc Markdown.doc"""
+A matroid represented by the row vectors of a matrix.
+
+See Section 1.1 of Oxl11 (@cite)
+
+# Examples
+To construct the linear matroid of the rows of the matrix `A` over the field with two elements write:
+```jldoctest
+julia> A = matrix(GF(2),[[1,0],[0,1],[1,1],[1,1]]);
+
+julia> M = matroid_from_matrix_rows(A)
+Matroid of rank 2 on 4 elements
+```
+"""
 matroid_from_matrix_rows(A::MatrixElem) = matroid_from_matrix_columns(transpose(A))
 
 @doc Markdown.doc"""
 The cycle matroid of a graph.
 
+See Section 1.1 of Oxl11 (@cite)
+
 # Examples
 To construct the cycle matroid of the complete graph of 4 vertices write:
 ```jldoctest
-julia> g = Oscar.Graphs.complete_graph(4)
+julia> g = Oscar.Graphs.complete_graph(4);
 
 julia> M = cycle_matroid(g)
+Matroid of rank 3 on 6 elements
 ```
 """
 function cycle_matroid(g::Oscar.Graphs.Graph)
@@ -161,62 +184,86 @@ function cycle_matroid(g::Oscar.Graphs.Graph)
 end
 
 @doc Markdown.doc"""
-The bond or cocylce matroid of a graph which is the dual of a cycle matroid, e.g, cographic.
+The `bond matroid` or `cocylce matroid` of a graph which is the dual of a cycle matroid, e.g, cographic.
+
+See Section 2.3 of Oxl11 (@cite)
 
 # Examples
 To construct the bond or cocycle matroid of the complete graph of 4 vertices write:
 ```jldoctest
-julia> g = Oscar.Graphs.complete_graph(4)
+julia> g = Oscar.Graphs.complete_graph(4);
 
 julia> M = bond_matroid(g)
+Matroid of rank 3 on 6 elements
 ```
 
-or
+or equivalently
+
 ```jldoctest
 julia> M = cocycle_matroid(g)
+Matroid of rank 3 on 6 elements
 ```
 """
 bond_matroid(g::Oscar.Graphs.Graph) = dual_matroid(cycle_matroid(g))
+
+@doc Markdown.doc"""
+See bond_matroid
+"""
 cocycle_matroid(g::Oscar.Graphs.Graph) = bond_matroid(g::Oscar.Graphs.Graph)
 
 
 @doc Markdown.doc"""
-The dual matroid of a given matroid.
+The `dual matroid` of a given matroid.
+
+See page 65 and Sectrion 2 in Oxl11 (@cite)
 
 # Examples
 To construct the dual of the fano matroid write:
 ```jldoctest
 julia> M = dual_matroid(fano_matroid())
+Matroid of rank 4 on 7 elements
 ```
 """
 dual_matroid(M::Matroid) = Matroid(M.pm_matroid.DUAL,M.groundset,M.gs2num)
 
 @doc Markdown.doc"""
-The ground set of a matroid.
+The ground set `E` of a matroid.
 
 To obtain the ground set of the fano matroid type:
 # Example
 ```jldoctest
-julia> ground_set(fano())
+julia> groundset(fano_matroid())
+7-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
 ```
 """
 groundset(M::Matroid) = M.groundset
 
 @doc Markdown.doc"""
-The direct sum of matroids.
+The `direct sum` of matroids.
 
-To obtain the direct sum of the fano and non-fano matroid type:
+See Section 4.2 of Oxl11 (@cite)
+
+To obtain the direct sum of the fano and a uniform matroid type:
 # Example
 ```jldoctest
-julia> direct_sum(fano_matroid(),non_fano_matroid())
+julia> direct_sum(fano_matroid(), uniform_matroid(2,4))
+Matroid of rank 5 on 11 elements
 ```
 
-or to take the sum of more matroids use:
+To take the sum of three uniform matroids use:
 # Example
 ```jldoctest
-julia> matroids = Vector(uniform_matroid(2,4), uniform_matroid(1,3), uniform_matroid(3,4))
+julia> matroids = Vector([uniform_matroid(2,4), uniform_matroid(1,3), uniform_matroid(3,4)]);
 
-julia> direct_sum(matroids)
+julia> M = direct_sum(matroids)
+Matroid of rank 6 on 11 elements
 ```
 """
 function direct_sum(M::Matroid, N::Matroid)
@@ -240,11 +287,29 @@ end
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
 
 @doc Markdown.doc"""
-The deletion of an element or a subset of the ground set.
+The `deletion M\S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
+
+See Section 3 of Oxl11 (@cite)
 
 # Example
 ```jldoctest
-julia> 
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+
+julia> N = deletion(M,'i')
+Matroid of rank 2 on 3 elements
+```
+
+# Example
+```jldoctest
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+
+julia> N = deletion(M,['i','j'])
+Matroid of rank 2 on 2 elements
+
+julia> groundset(N)
+2-element Vector{Any}:
+ 1
+ 2
 ```
 """
 function deletion(M::Matroid,set::Union{AbstractVector, Set})
@@ -264,6 +329,24 @@ end
 
 deletion(M::Matroid,elem::Union{IntegerUnion,Char,String}) = deletion(M,Vector([elem]))
 
+@doc Markdown.doc"""
+The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
+
+See Section 3 of Oxl11 (@cite)
+
+# Example
+```jldoctest
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+
+julia> N = restriction(M,[1,2])
+Matroid of rank 2 on 2 elements
+
+julia> groundset(N)
+2-element Vector{Int64}:
+ 1
+ 2
+```
+"""
 function restriction(M::Matroid,set::Union{AbstractVector, Set})
 	sort_set = copy(set)
 	gs2num = Dict{Any,IntegerUnion}()
@@ -280,6 +363,32 @@ function restriction(M::Matroid,set::Union{AbstractVector, Set})
 	return Matroid(pm_rest, sort_set, gs2num)
 end
 
+@doc Markdown.doc"""
+The `contraction M/S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
+
+See Section 3 of Oxl11 (@cite)
+
+# Example
+```jldoctest
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+
+julia> N = contraction(M,'i')
+Matroid of rank 1 on 3 elements
+```
+
+# Example
+```jldoctest
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+
+julia> N = deletion(M,['i','j'])
+Matroid of rank 0 on 2 elements
+
+julia> groundset(N)
+2-element Vector{Any}:
+ 1
+ 2
+```
+"""
 function contraction(M::Matroid,set::Union{AbstractVector, Set})
 	sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
 	gs2num = Dict{Any,IntegerUnion}()
@@ -297,14 +406,44 @@ end
 
 contraction(M::Matroid,elem::Union{IntegerUnion,Char,String}) = contraction(M,Vector([elem]))
 
+@doc Markdown.doc"""
+The 'minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
 
-function minor(M::Matroid,set_del::Union{AbstractVector, Set},set_cont::Union{AbstractVector, Set})
-	if length(intersect(set_del,set_cont)>0)
+See also ``contraction`` and ``deletion``. You can find more in Section 3 of Oxl11 (@cite)
+
+# Example
+```jldoctest
+julia> M = fano_matroid();
+
+julia> S = [1,2,3];
+
+julia> T = [4];
+
+julia>  N = minor(M,S,T) 
+Matroid of rank 2 on 3 elements
+```
+"""
+function minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{AbstractVector, Set})
+	if any(in(set_del), set_cont)
 		error("The two sets are not disjoined, which is required")
 	end
-	return contraction(deletion(M, set_del), set_contr)
+	return contraction(deletion(M, set_del), set_cont)
 end
 
+@doc Markdown.doc"""
+The `principal extension M +_F e` of a matroid `M` where the element `e` is freely added to the flat `F`.
+
+See Section 7.2 of Oxl11 (@cite)
+
+# Example
+To add `4` freely to the flat `{1,2}` of the uniform matroid U_{2,3} do
+```jldoctest
+julia> M = uniform_matroid(3,4);
+
+julia>  N = principal_extension(M,[1,2],5)
+Matroid of rank 3 on 5 elements
+```
+"""
 function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::Union{IntegerUnion,Char,String})
 	if issubset([elem],M.groundset)
 		error("The element you are about to add is already contained in the ground set")
@@ -315,6 +454,11 @@ function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::U
 end
 
 
+"""
+    uniform_matroid(r,n)
+
+Construct the uniform matroid of rank `r` on the `n` elements `{1,...,n}`.
+"""
 function uniform_matroid(r::IntegerUnion,n::IntegerUnion)
 	gs2num = Dict{Any,IntegerUnion}()
 	i = 1
@@ -325,8 +469,16 @@ function uniform_matroid(r::IntegerUnion,n::IntegerUnion)
 	return Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
 end
 
+"""
+    fano_matroid()
+
+Construct the fano_matroid.
+"""
 fano_matroid() = matroid_from_matrix_rows(matrix(GF(2),[[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]))
 
-non_fano_matroid() = matroid_from_matrix_rows(matrix(QQ,[[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]])) 
+"""
+    non_fano_matroid()
 
-
+Construct the non-fano matroid.
+"""
+non_fano_matroid() = matroid_from_matrix_rows(matrix(QQ,[[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]))
