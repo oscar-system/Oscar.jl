@@ -987,15 +987,22 @@ non-splitting extension of a normal subgroup $N$ with the factor group
 `G`$/N$, where $N$ is the center or the derived subgroup or the Frattini
 subgroup of `G`.
 
-For infinite groups or groups for which finiteness is not (yet) known (e.g.
-finitely presented groups), it may not be possible to print much useful
-information. We make a best-effort attempt, but in general this is a hard
-problem.
+For infinite groups, if the group is known to be finitely generated and
+abelian or free, a reasonable description is printed.
+
+For general infinite groups, or groups for which finiteness is not (yet) known,
+not much if anything can be done. In particular we avoid potentially expensive
+checks such as computing the size of the group or whether it is abelian.
+While we do attempt a few limited fast checks for finiteness and
+commutativity, these will not detect all finite or commutative groups.
+
+Thus calling `describe` again on the same group after additional information
+about it becomes known to Oscar may yield different outputs.
 
 !!! note
     - for finitely presented groups, even deciding if the group is trivial
       is impossible in general; the same holds for most other properties,
-      like whether the group is finite, abelian, etc.
+      like whether the group is finite, abelian, etc.,
     - there is in general no "nice" decomposition of `G`,
     - there may be several decompositions of `G`,
     - nonisomorphic groups may yield the same `describe` result,
