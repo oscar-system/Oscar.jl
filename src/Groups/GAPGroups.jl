@@ -1054,10 +1054,8 @@ julia> describe(sylow_subgroup(g,2)[1])
 julia> describe(sylow_subgroup(g, 3)[1])
 "C3 x C3"
 
-julia> g = symmetric_group(10);
-
-julia> describe(sylow_subgroup(g,2)[1])
-"C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
+julia> describe(free_group(3))
+"a free group of rank 3"
 
 ```
 """
