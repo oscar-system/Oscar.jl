@@ -1,9 +1,10 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded
+homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
+
 
 @attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -186,6 +187,40 @@ function grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
 end
 
 @doc Markdown.doc"""
+    is_standard_graded(R::MPolyRing_dec)
+
+Return `true` if `R` is $\mathbb Z$-graded with weight 1 assigned to each variable, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> W = [1, 2, 3];
+
+julia> S, (x, y, z) = grade(R, W)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [2]
+  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> is_standard_graded(S)
+false
+```
+"""
+function is_standard_graded(R::MPolyRing_dec)
+  is_z_graded(R) || return false
+  A = grading_group(R)
+  W = R.d
+  for i = 1:length(W)
+     if W[i] != A[1]
+        return false
+     end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
     is_z_graded(R::MPolyRing_dec)
 
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
@@ -251,6 +286,10 @@ end
     is_positively_graded(R::MPolyRing_dec)
 
 Return `true` if `R` is positively graded, `false` otherwise.
+
+Here, `R` is called *positively graded* by a finitely generated abelian group $G$
+if $G$ is torsion-free and each graded part $R_g$ has finite rank.
+
 # Examples
 ```jldoctest
 julia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
@@ -267,11 +306,38 @@ julia> S, (t, x, y) = grade(R, [-1, 1, 1])
 
 julia> is_positively_graded(S)
 false
+
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> G = abelian_group([0, 2])
+(General) abelian group with relation matrix
+[0 0; 0 2]
+
+julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 0]
+
+julia> S, (x, y) = grade(R, W)
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1 1]
+  y -> [1 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia> is_positively_graded(S)
+false
 ```
 """
 function is_positively_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   G = grading_group(R)
+  isfree(G) || return false
   try 
     homogeneous_component(R, zero(G))
   catch e
@@ -1399,6 +1465,11 @@ end
 ############################################################################
 ############################################################################
 
+###############################################################################
+### z-graded Hilbert series stuff using Singular for finding the Hilbert series
+###############################################################################
+
+
 function sing_hilb(I::Singular.sideal)
   a = Vector{Int32}()
   @assert I.isGB
@@ -1504,6 +1575,7 @@ end
 function Base.show(io::IO, h::HilbertData)
   print(io, "Hilbert Series for $(h.I), data: $(h.data)")
 end
+
 
 ############################################################################
 ### Homogenization and Dehomogenization

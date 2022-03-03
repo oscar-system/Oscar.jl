@@ -292,10 +292,10 @@ minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuo
 ## Noether Normalization
 
 ```@docs
-noether_normalization(A::MPolyQuo)
+noether_normalization(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
 ```
 
-###### Example
+###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
@@ -305,47 +305,20 @@ L[1]
 L[2]
 L[3]
 ```
-
-## Normalization of Rings
+## Normalization
 
 ```@docs
-normalization(A::MPolyQuo)
-normalization_with_delta(A::MPolyQuo)
+normalization(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
 ```
 
-###### Examples
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
-L = normalization(A)
-```
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z^3-x*y^4]))
-L = normalization(A)
-```
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
-L = normalization_with_delta(A)
+```@docs
+normalization_with_delta(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
 ```
 
 ## Integral Bases
 
 ```@docs
 integral_basis(f::MPolyElem, i::Int)
-```
-
-###### Example
-
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-f = (y^2-2)^2 + x^5
-integral_basis(f, 2)
 ```
 
 ## Tests on Affine Algebras
@@ -362,7 +335,7 @@ isreduced(Q::MPolyQuo)
 isnormal(A::MPolyQuo)
 ```
 
-###### Example
+###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -374,7 +347,7 @@ isnormal(A)
 
 iscohenmacaulay(R)
 
-###### Example
+###### Examples
 
 ## Hilbert Series and Hilbert Polynomial
 
