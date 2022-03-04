@@ -1,6 +1,6 @@
 export
     Matroid, groundset,
-    matroid_from_bases, matroid_from_circuits,
+    matroid_from_bases, matroid_from_circuits, matroid_from_hyperplanes
     matroid_from_matrix_columns, matroid_from_matrix_rows,
     cycle_matroid, bond_matroid, cocycle_matroid,
     dual_matroid, direct_sum, restriction, deletion, contraction, minor,
@@ -112,6 +112,41 @@ function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector},
     #if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
     #   error("Input is not a collection of circuits")
     #end
+    return Matroid(M,groundset,gs2num)
+end
+
+@doc Markdown.doc"""
+A matroid with hyperplanes `H` on the ground set `E` (which can be the empty set).
+The set `H` is a collection of subsets of the ground set `E` satisfying an exchange property,
+and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
+
+See Section 1.4 of Oxl11 (@cite)
+
+# Examples
+To construct the Fano matroid you may write:
+```jldoctest
+julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
+
+julia> M = matroid_from_hyperplanes(H,7)
+Matroid of rank 3 on 7 elements
+
+```
+"""
+matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
+
+function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
+    if check && size(groundset)[1]!=length(Set(groundset))
+        error("Input is not a valid groundset of a matroid")
+    end
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in groundset
+        gs2num[elem] = i
+        i+=1
+    end
+    pm_hyperplanes = [[gs2num[i]-1 for i in H] for H in hyperplanes]
+    M = Polymake.matroid.Matroid(MATROID_HYPERPLANES=pm_hyperplanes,N_ELEMENTS=length(groundset))
+    #TODO implement a check if these are actually the hyperplanes of a matroid
     return Matroid(M,groundset,gs2num)
 end
 
