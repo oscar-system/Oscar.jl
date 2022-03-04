@@ -5,8 +5,9 @@ export
     matroid_from_matrix_columns, matroid_from_matrix_rows,
     cycle_matroid, bond_matroid, cocycle_matroid,
     dual_matroid, direct_sum, restriction, deletion, contraction, minor,
-    principal_extension, free_extension, series_extension, parallel_extension
-    uniform_matroid, fano_matroid, non_fano_matroid, non_pappus_matroid, vamos_matroid
+    principal_extension, free_extension, series_extension, parallel_extension,
+    uniform_matroid, fano_matroid, non_fano_matroid, non_pappus_matroid, vamos_matroid,
+    all_subsets_matroid, projective_plane, projective_geometry, affine_geometry
 
 ################################################################################
 ##  Constructing
@@ -69,7 +70,7 @@ Matroid of rank 2 on 4 elements
 # Examples
 To construct the same matroid on the four elements 1,2,i,j you may write:
 ```jldoctest
-julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
+julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j'])
 Matroid of rank 2 on 4 elements
 ```
 """
@@ -106,6 +107,7 @@ See Section 1.2 of Oxl11 (@cite)
 To construct the Fano matroid you may write:
 ```jldoctest
 julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
+
 julia> M = matroid_from_nonbases(H,7)
 Matroid of rank 3 on 7 elements
 
@@ -307,6 +309,8 @@ Matroid of rank 3 on 6 elements
 or equivalently
 
 ```jldoctest
+julia> g = Oscar.Graphs.complete_graph(4);
+
 julia> M = cocycle_matroid(g)
 Matroid of rank 3 on 6 elements
 ```
@@ -488,7 +492,7 @@ Matroid of rank 1 on 3 elements
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
 julia> N = deletion(M,['i','j'])
-Matroid of rank 0 on 2 elements
+Matroid of rank 2 on 2 elements
 
 julia> groundset(N)
 2-element Vector{Any}:
@@ -661,3 +665,99 @@ non_pappus_matroid() = matroid_from_nonbases([[1,2,3],[4,5,6],[1,5,7],[1,6,8],[2
 Construct the Vamos matroid.
 """
 vamos_matroid() = matroid_from_nonbases([[1,2,3,4],[1,2,5,6],[3,4,5,6],[5,6,7,8],[3,4,7,8]], 8)
+
+"""
+    all_subsets_matroid(r)
+
+Construct the all-subsets-matroid of rank r, a.k.a. the matroid underlying the resonance arrangement.
+"""
+function all_subsets_matroid(r::Int)
+    M=[]
+    for i in 1:2^r-1
+        M=vcat(M,digits(i, base=2, pad=r))
+    end
+    M = convert(Array{Int64, 2}, reshape(M, r, 2^r-1))
+    return matroid_from_matrix_columns(matrix(QQ, M))
+end
+
+@doc Markdown.doc"""
+The projective plane of order `q`.
+Note that this only works for prime numbers `q` for now.
+
+See Section 6.1 of Oxl11 (@cite)
+
+# Example
+```jldoctest
+julia> M = projective_plane(3)
+Matroid of rank 3 on 13 elements
+
+```
+"""
+function projective_plane(q::Int)
+    if !isprime(q)
+        error("Only works for prime q at the moment.")
+    end
+    return Matroid(Polymake.matroid.projective_plane(q))
+end
+
+
+@doc Markdown.doc"""
+The projective geometry of order `q` and rank `r`.
+Note that this only works for prime numbers `q` for now.
+
+See Section 6.1 of Oxl11 (@cite)
+Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
+
+# Example
+```jldoctest
+julia> M = projective_geometry(3, 3)
+Matroid of rank 3 on 13 elements
+
+```
+"""
+function projective_geometry(r::Int, q::Int)
+    if !isprime(q)
+        error("q is not a prime.")
+    end
+    if r<3
+        error("The rank should be at least 3")
+    elseif r==3
+        return projective_plane(q)
+    end
+    M=[]
+    n=Int((q^r-1)/(q-1))
+    for i in 1:(q^r-1)
+        new_column = digits(i, base=q, pad=r)
+        if new_column[findfirst(k->k!=0, new_column)]==1
+            M = vcat(M, new_column)
+        end
+    end
+    M = convert(Array{Int64,2},reshape(M, r, n))
+    return matroid_from_matrix_columns(matrix(GF(q), M))
+end
+
+@doc Markdown.doc"""
+The affine geometry of order `q` and rank `r`.
+Note that this only works for prime numbers `q` for now.
+
+See Section 6.1 of Oxl11 (@cite)
+Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
+
+# Example
+```jldoctest
+julia> M = affine_geometry(3, 3)
+Matroid of rank 3 on 13 elements
+
+```
+"""
+function affine_geometry(r::Int, q::Int)
+    if !isprime(q)
+        error("q is not a prime.")
+    end
+    if r<3
+        error("The rank should be at least 3")
+    end
+
+    PG = projective_geometry(r, q)
+    return restriction(PG, Vector(2:(length(PG.groundset)-q)))
+end
