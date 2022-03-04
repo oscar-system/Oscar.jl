@@ -38,13 +38,23 @@ const superscript = Dict(zip("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))
 const subscript = Dict(zip("-0123456789", "₋₀₁₂₃₄₅₆₇₈₉"))
 
 function replace_TeX(str::String)
-  str = replace(str, "\\chi" => "χ")
-  str = replace(str, "\\phi" => "φ")
-  str = replace(str, "\\varphi" => "φ")
-  str = replace(str, "\\zeta" => "ζ")
-  str = replace(str, r"\^\{[-0123456789]*\}" => (s -> map(x->superscript[x], s[3:end-1])))
-  str = replace(str, r"_\{[-0123456789]*\}" => (s -> map(x->subscript[x], s[3:end-1])))
-  str = replace(str, r"\\overline\{(?<nam>[A-Z]*)\}" => s"\g<nam>\u0305")
+  if Oscar.is_unicode_allowed()
+    str = replace(str, "\\chi" => "χ")
+    str = replace(str, "\\phi" => "φ")
+    str = replace(str, "\\varphi" => "φ")
+    str = replace(str, "\\zeta" => "ζ")
+    str = replace(str, r"\^\{[-0123456789]*\}" => (s -> map(x->superscript[x], s[3:end-1])))
+    str = replace(str, r"_\{[-0123456789]*\}" => (s -> map(x->subscript[x], s[3:end-1])))
+    str = replace(str, r"\\overline\{(?<nam>[A-Z]*)\}" => s"\g<nam>\u0305")
+  else
+    str = replace(str, "\\chi" => "X")
+    str = replace(str, "\\phi" => "Y")
+    str = replace(str, "\\varphi" => "Y")
+    str = replace(str, "\\zeta" => "z")
+    str = replace(str, r"\^\{[-0123456789]*\}" => (s -> "^"*s[3:end-1]))
+    str = replace(str, r"_\{[-0123456789]*\}" => (s -> "_"*s[3:end-1]))
+    str = replace(str, r"\\overline\{(?<nam>[A-Z]*)\}" => s"/\g<nam>")
+  end
   return str
 end
 
@@ -57,8 +67,8 @@ The following attributes of `io` are supported.
 
 - `:TeX`:
   Produce a LaTeX format `array` if the value is `true`,
-  otherwise produce column aligned text format with unicode characters and
-  sub-/superscripts.
+  otherwise produce column aligned text format (if `Oscar.is_unicode_allowed()`
+  returns `true` then with unicode characters and sub-/superscripts).
 
 - `:subset_row`:
   array of positions of those rows of `mat` that shall be shown,
@@ -108,7 +118,7 @@ The following attributes of `io` are supported.
   and to create portions according to the screen width otherwise,
 
 ## Examples
-```jldoctest
+```jldoctest; setup = :(Oscar.allow_unicode(true))
 julia> m = 3; n = 4;  mat = Array{String}(undef, m, n);
 
 julia> for i in 1:m for j in 1:n mat[i,j] = string( (i,j) ); end; end
@@ -178,6 +188,16 @@ julia> print(String(take!(io)))
 """
 function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     TeX = get(io, :TeX, false)
+
+    if Oscar.is_unicode_allowed()
+      pipe = "\u2502"
+      horz_bar = "\u2500"
+      cross = "\u253C"
+    else
+      pipe = "|"
+      horz_bar = "-"
+      cross = "+"
+    end
 
     subset_row = get(io, :subset_row, 1:size(mat, 1))
     subset_col = get(io, :subset_col, 1:size(mat, 2))
@@ -317,7 +337,7 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
         end
       else
         if 0 in separators_col
-          cprefix = "\u2502"
+          cprefix = pipe
         elseif n1 == 0
           cprefix = ""
         else
@@ -325,7 +345,7 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
         end
         cpattern = String[]
         for j in crange
-          push!(cpattern, j in separators_col ? "\u2502" : " ")
+          push!(cpattern, j in separators_col ? pipe : " ")
         end
         if ! (crange[end] in separators_col)
           cpattern[end] = ""
@@ -347,20 +367,20 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
         if TeX
           hline = "\\hline"
         else
-          hline = repeat("\u2500", leftwidthsum)
+          hline = repeat(horz_bar, leftwidthsum)
           if 0 in separators_col
-            hline = hline * "\u253C"
+            hline = hline * cross
           elseif n1 != 0
-            hline = hline * "\u2500"
+            hline = hline * horz_bar
           end
           for jj in 1:length(crange)
             j = crange[jj]
-            hline = hline * repeat("\u2500", widths_rightpart[j])
+            hline = hline * repeat(horz_bar, widths_rightpart[j])
             if jj < length(crange) || j in separators_col
               if j in separators_col
-                hline = hline * "\u253C"
+                hline = hline * cross
               else
-                hline = hline * "\u2500"
+                hline = hline * horz_bar
               end
             end
           end
