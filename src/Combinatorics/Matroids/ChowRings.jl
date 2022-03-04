@@ -1,4 +1,4 @@
-export chow_ring, select
+export chow_ring, augmented_chow_ring, select
 
 function chow_ring(M::Matroid, extended=false)
 	Flats = flats(M)
@@ -11,8 +11,8 @@ function chow_ring(M::Matroid, extended=false)
 		error("matroid has to few flats")
 	end
 	proper_flats = Flats[2:number_flats-1]
-	var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by sets  
-	if extended 
+	var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by sets
+	if extended
 		var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]]
 	end
 
@@ -54,7 +54,7 @@ function quadratic_relations(ring, proper_flats, indeterminates)
 		F = proper_flats[i]
 		for j in 1:i-1
 			G = proper_flats[j]
-			if !issubset(F,G) && !issubset(G,F) 
+			if !issubset(F,G) && !issubset(G,F)
 				push!(relations, indeterminates[i]*indeterminates[j])
 			end
 		end
@@ -84,6 +84,89 @@ function relations_extended_ring(ring, proper_flats, vars)
 	end
 	return relations
 end
+
+@doc Markdown.doc"""
+An augmented Chow ring of a matroid. As described in the paper
+"A semi-small decomposition of the Chow ring of a matroid" by Tom Braden,
+June Huh, et. al.
+
+# Examples
+The following computes the augmented chow ring of the Fano matroid.
+```jldoctest
+julia> M = fano_matroid();
+julia> R = augmented_chow_ring(M);
+```
+"""
+function augmented_chow_ring(M::Matroid)
+	Flats = flats(M)
+	sizeFlats = size(Flats)[1]
+	n = size(M.groundset)[1]
+
+	if(!is_loopless(M))
+		throw("Matroid has loops")
+	end
+	if(sizeFlats<2)
+		throw("Matroid has too few flats")
+	end
+	proper_flats = Flats[1:sizeFlats-1]
+
+	element_var_names = [string("y_", S) for S in groundset(M)]
+	flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
+	flat_var_names[1] = "x_{}" # Override "x_Any{}"
+	var_names = vcat(element_var_names, flat_var_names)
+	s = size(var_names)[1]
+
+	ring, vars = GradedPolynomialRing(QQ, var_names)
+	element_vars = vars[1:n]
+	flat_vars = vars[n+1:s]
+
+	I = augmented_linear_relations(ring, proper_flats, element_vars, flat_vars, M)
+	J = augmented_quadratic_relations(ring, proper_flats, element_vars, flat_vars, M)
+
+	chow_modulus = ideal(ring, vcat(I, J))
+	chow_ring, projection = quo(ring, chow_modulus)
+
+	return chow_ring
+end
+
+function augmented_linear_relations(ring, proper_flats, element_vars, flat_vars, M)
+	n = size(M.groundset)[1]
+
+	relations = Array{MPolyElem_dec{fmpq, fmpq_mpoly}}(undef, n)
+	i = 1
+	for element in groundset(M)
+		relations[i] = element_vars[i]
+		j = 1
+		for proper_flat in proper_flats
+			if !(element in proper_flat)
+				relations[i] -= flat_vars[j]
+			end
+			j += 1
+		end
+		i += 1
+	end
+	return relations
+end
+
+function augmented_quadratic_relations(ring, proper_flats, element_vars, flat_vars, M)
+	incomparable_polynomials = quadratic_relations(ring, proper_flats, flat_vars)
+	xy_polynomials = Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}()
+
+	i = 1
+	for element in groundset(M)
+		j = 1
+		for proper_flat in proper_flats
+			if !(element in proper_flat)
+				push!(xy_polynomials, element_vars[i] * flat_vars[j])
+			end
+		 	j += 1
+		end
+		i += 1
+	end
+
+ 	return vcat(incomparable_polynomials, xy_polynomials)
+end
+
 
 function select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
 	all = []
