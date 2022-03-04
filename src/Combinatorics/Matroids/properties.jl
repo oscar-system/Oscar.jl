@@ -1,6 +1,6 @@
 export
     isomorphism, size_groundset,
-    bases, circuits, hyperplanes, flats, cyclic_flats, closure, 
+    bases, nonbases, circuits, hyperplanes, flats, cyclic_flats, closure, 
     rank, nullity, 
     fundamental_circuit, fundamental_cocircuit,
     spanning_sets, independent_sets,
@@ -48,6 +48,37 @@ julia> bases(uniform_matroid(2, 3))
 ```
 """
 bases(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.BASES)]
+
+@doc Markdown.doc"""
+    nonbases(M::matroid)
+
+Return the list of nonbases of the matroid `M`.
+
+# Example
+```jldoctest
+julia> nonbases(fano_matroid())
+7-element Vector{Any}:
+ [1, 6, 7]
+ [2, 5, 7]
+ [3, 4, 7]
+ [3, 5, 6]
+ [2, 4, 6]
+ [1, 4, 5]
+ [1, 2, 3]
+
+```
+"""
+function nonbases(M::Matroid)
+    Nonbases = []
+    Bases = bases(M)
+    for set in Oscar.Hecke.subsets(Vector(1:length(M.groundset)),rank(M))
+        if !(set in Bases)
+            push!(Nonbases, set)
+        end
+    end
+    return Nonbases
+end 
+
 
 @doc Markdown.doc"""
     circuits(M::matroid)
@@ -99,7 +130,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> flats(M)
-16-element Vector{Vector}:
+16-element Vector{Vector{T} where T}:
  Any[]
  [1]
  [2]
@@ -118,7 +149,7 @@ julia> flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> flats(M, 2)
-7-element Vector{Vector}:
+7-element Vector{Vector{T} where T}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -247,6 +278,7 @@ Return the rank of `set` in the matroid `M`.
 # Example
 ```jldoctest
 julia> M = fano_matroid();
+
 julia> rank(M, [1,2,3])
 2
 ```
@@ -268,6 +300,7 @@ This is defined to be |set| - rk(set).
 # Example
 ```jldoctest
 julia> M = fano_matroid();
+
 julia> nullity(M, [1,2,3])
 1
 ```
@@ -286,6 +319,7 @@ Note that `elem` needs to be in the complement of the `basis` in this case.
 # Example
 ```jldoctest
 julia> M = fano_matroid();
+
 julia> fundamental_circuit(M, [1,2,4], 7)
 4-element Vector{Int64}:
  1
@@ -811,6 +845,20 @@ function vertical_connectivity(M::Matroid)
     return res
 end
 
+@doc Markdown.doc"""
+    girth(M::Matroid, set::Vector)
+
+Return the girth of `set` in the matroid `M`.
+This is the size of the smalles circuit contained in `set` and infintie otherwise.
+See Section 8.6 in Oxl11(@cite)
+
+# Example
+```jldoctest
+julia> girth(fano_matroid(), [1,2,3])
+q^2 - 6*q + 8
+
+```
+"""
 girth(M::Matroid, set::Vector=M.groundset) = minimum([inf; [issubset(C,set) ? length(C) : inf for C in circuits(M)]])
 
 @doc Markdown.doc"""
