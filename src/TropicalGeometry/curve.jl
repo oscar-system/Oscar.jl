@@ -4,6 +4,7 @@
 ###
 
 
+using Plots
 
 ###
 # 1. Definition
@@ -506,7 +507,6 @@ end
 
 function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
     @assert EMB "Tropical curve is abstract."
-    using Plots
     PC = tc.polyhedralComplex
     MaxPoly= maximal_polyhedra(PC)
     list_vertices = Vector{Complex{Float64}}()
