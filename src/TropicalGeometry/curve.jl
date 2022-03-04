@@ -29,7 +29,7 @@
 end
 export TropicalCurve
 
-function pm_object(T::TropicalCurve)
+function pm_object(T::TropicalCurve{M, EMB}) where {M, EMB}
     if has_attribute(T,:polymake_bigobject)
         return get_attribute(T,:polymake_bigobject)
     end
@@ -402,11 +402,9 @@ export DivisorOnTropicalCurve,
     base_curve,
     chip_firing_move,
     v_reduced, 
-    is_linearly_equivalent
-    chip_firing_move
-
-
-
+    is_linearly_equivalent,
+    StructureTropicalJacobian,
+    visualize
 
 ###
 # 4. More properties
@@ -503,4 +501,28 @@ function StructureTropicalJacobian(TC::TropicalCurve)
     LL = matrix(ZZ, L)
     ED = ElementaryDivisors(LL)
     return ED
+end
+
+
+function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
+    @assert EMB "Tropical curve is abstract."
+    using Plots
+    PC = tc.polyhedralComplex
+    MaxPoly= maximal_polyhedra(PC)
+    list_vertices = Vector{Complex{Float64}}()
+    for P in MaxPoly
+        V = vertices(P)
+        R = rays(P)
+        #V = [Vector{Rational{Int}}(x) for x in V]
+        V = [Vector{Float64}(Vector{Rational}(Vector{Polymake.Rational}(x))) for x in V]
+        #R = [Vector{Rational{Int}}(x) for x in R]
+        R = [Vector{Float64}(Vector{Rational}(Vector{Polymake.Rational}(x))) for x in R]
+        if length(V)==2
+            append!(list_vertices,V[1][1]+V[1][2]*im,V[2][1]+V[2][2]*im,Inf+0*im)
+        else
+            B = V[1]+R[1]
+            append!(list_vertices,V[1][1]+V[1][2]*im,B[1]+B[2]*im,Inf+0*im)
+        end
+    end
+    Plots.plot(list_vertices,legend=false,axis=false,label=false)
 end
