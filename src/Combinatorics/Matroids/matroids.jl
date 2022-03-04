@@ -1,11 +1,11 @@
 export
-	Matroid, groundset,
-	matroid_from_bases, matroid_from_circuits,
-	matroid_from_matrix_columns, matroid_from_matrix_rows,
-	cycle_matroid, bond_matroid, cocycle_matroid,
-	dual_matroid, direct_sum, restriction, deletion, contraction, minor,
-	principal_extension,
-	uniform_matroid, fano_matroid, non_fano_matroid
+    Matroid, groundset,
+    matroid_from_bases, matroid_from_circuits,
+    matroid_from_matrix_columns, matroid_from_matrix_rows,
+    cycle_matroid, bond_matroid, cocycle_matroid,
+    dual_matroid, direct_sum, restriction, deletion, contraction, minor,
+    principal_extension,
+    uniform_matroid, fano_matroid, non_fano_matroid
 
 ################################################################################
 ##  Constructing
@@ -20,9 +20,9 @@ end
 pm_object(M::Matroid) = M.pm_matroid
 
 function Base.show(io::IO, M::Matroid)
-	r = rank(M)
-	n = length(M.groundset)
-	print(io, "Matroid of rank $(r) on $(n) elements")
+    r = rank(M)
+    n = length(M.groundset)
+    print(io, "Matroid of rank $(r) on $(n) elements")
 end
 
 
@@ -52,21 +52,21 @@ Matroid of rank 2 on 4 elements
 matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_bases(bases,Vector(1:nelements))
 
 function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
-	if check && size(groundset)[1]!=length(Set(groundset))
-		error("Input is not a valid groundset of a matroid")
-	end
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in groundset
-		gs2num[elem] = i
-		i+=1
-	end
-	pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
-	M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=size(groundset)[1])
-	if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
-		error("Input is not a collection of bases")
-	end
-	return Matroid(M,groundset,gs2num)
+    if check && size(groundset)[1]!=length(Set(groundset))
+        error("Input is not a valid groundset of a matroid")
+    end
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in groundset
+        gs2num[elem] = i
+        i+=1
+    end
+    pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
+    M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=size(groundset)[1])
+    if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
+        error("Input is not a collection of bases")
+    end
+    return Matroid(M,groundset,gs2num)
 end
 
 @doc Markdown.doc"""
@@ -97,22 +97,22 @@ Matroid of rank 2 on 4 elements
 matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_circuits(circuits,Vector(1:nelements))
 
 function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
-	if check && size(groundset)[1]!=length(Set(groundset))
-		error("Input is not a valid groundset of a matroid")
-	end
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in groundset
-		gs2num[elem] = i
-		i+=1
-	end
-	pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
-	M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=size(groundset)[1])
-	#TODO check_circuit_exchange_axiom (requires an update of polymake)
-	#if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
-	#	error("Input is not a collection of circuits")
-	#end
-	return Matroid(M,groundset,gs2num)
+    if check && size(groundset)[1]!=length(Set(groundset))
+        error("Input is not a valid groundset of a matroid")
+    end
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in groundset
+        gs2num[elem] = i
+        i+=1
+    end
+    pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
+    M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=size(groundset)[1])
+    #TODO check_circuit_exchange_axiom (requires an update of polymake)
+    #if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
+    #   error("Input is not a collection of circuits")
+    #end
+    return Matroid(M,groundset,gs2num)
 end
 
 @doc Markdown.doc"""
@@ -130,14 +130,14 @@ Matroid of rank 2 on 4 elements
 ```
 """
 function matroid_from_matrix_columns(A::MatrixElem)
-	rk = rank(A)
-	bases = Vector{Vector{IntegerUnion}}()
-	for set in Oscar.Hecke.subsets(Vector(1:ncols(A)),rk)
-		if rank(A[:,set])==rk
-			push!(bases, set);
-		end
-	end
-	return matroid_from_bases(bases,ncols(A))
+    rk = rank(A)
+    bases = Vector{Vector{IntegerUnion}}()
+    for set in Oscar.Hecke.subsets(Vector(1:ncols(A)),rk)
+        if rank(A[:,set])==rk
+            push!(bases, set);
+        end
+    end
+    return matroid_from_bases(bases,ncols(A))
 end
 
 @doc Markdown.doc"""
@@ -171,16 +171,16 @@ Matroid of rank 3 on 6 elements
 ```
 """
 function cycle_matroid(g::Oscar.Graphs.Graph)
-	pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
-	M = Polymake.matroid.matroid_from_graph(pm_Graph)
-	n = Oscar.Graphs.ne(g)
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in 1:n
-		gs2num[elem] = i
-		i+=1
-	end
-	return Matroid(M,1:n,gs2num)
+    pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
+    M = Polymake.matroid.matroid_from_graph(pm_Graph)
+    n = Oscar.Graphs.ne(g)
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in 1:n
+        gs2num[elem] = i
+        i+=1
+    end
+    return Matroid(M,1:n,gs2num)
 end
 
 @doc Markdown.doc"""
@@ -267,21 +267,21 @@ Matroid of rank 6 on 11 elements
 ```
 """
 function direct_sum(M::Matroid, N::Matroid)
-	gsN = N.groundset
-	while any(in(M.groundset), gsN)
-		gsN = Vector{Any}(copy(gsN))
-		for i in 1:size(gsN)[1]
-			gsN[i] = string(gsN[i],'\'')
-		end
-	end
-	new_gs2num = Dict{Any,IntegerUnion}()
-	i = size(M.groundset)[1]+1
-	for elem in gsN
-		new_gs2num[elem] = i
-		i+=1
-	end
-	gs2num = merge(M.gs2num,new_gs2num)
-	return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],gs2num)
+    gsN = N.groundset
+    while any(in(M.groundset), gsN)
+        gsN = Vector{Any}(copy(gsN))
+        for i in 1:size(gsN)[1]
+            gsN[i] = string(gsN[i],'\'')
+        end
+    end
+    new_gs2num = Dict{Any,IntegerUnion}()
+    i = size(M.groundset)[1]+1
+    for elem in gsN
+        new_gs2num[elem] = i
+        i+=1
+    end
+    gs2num = merge(M.gs2num,new_gs2num)
+    return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],gs2num)
 end
 
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
@@ -313,18 +313,18 @@ julia> groundset(N)
 ```
 """
 function deletion(M::Matroid,set::Union{AbstractVector, Set})
-	sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in M.groundset
-		if size(findall(x->x==elem, set))[1]==0
-			sort_set[i]=elem
-			gs2num[elem] = i
-			i+=1
-		end
-	end
-	pm_del = Polymake.matroid.deletion(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
-	return Matroid(pm_del, sort_set, gs2num)
+    sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in M.groundset
+        if size(findall(x->x==elem, set))[1]==0
+            sort_set[i]=elem
+            gs2num[elem] = i
+            i+=1
+        end
+    end
+    pm_del = Polymake.matroid.deletion(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
+    return Matroid(pm_del, sort_set, gs2num)
 end
 
 deletion(M::Matroid,elem::Union{IntegerUnion,Char,String}) = deletion(M,Vector([elem]))
@@ -348,19 +348,19 @@ julia> groundset(N)
 ```
 """
 function restriction(M::Matroid,set::Union{AbstractVector, Set})
-	sort_set = copy(set)
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in M.groundset
-		if size(findall(x->x==elem, set))[1]>0
-			sort_set[i]=elem
-			gs2num[elem] = i
-			i+=1
-		end
-	end
-	pm_complement = setdiff(Set(0:size(M.groundset)[1]-1),Set([M.gs2num[i]-1 for i in set]))
-	pm_rest = Polymake.matroid.deletion(M.pm_matroid, pm_complement)
-	return Matroid(pm_rest, sort_set, gs2num)
+    sort_set = copy(set)
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in M.groundset
+        if size(findall(x->x==elem, set))[1]>0
+            sort_set[i]=elem
+            gs2num[elem] = i
+            i+=1
+        end
+    end
+    pm_complement = setdiff(Set(0:size(M.groundset)[1]-1),Set([M.gs2num[i]-1 for i in set]))
+    pm_rest = Polymake.matroid.deletion(M.pm_matroid, pm_complement)
+    return Matroid(pm_rest, sort_set, gs2num)
 end
 
 @doc Markdown.doc"""
@@ -390,18 +390,18 @@ julia> groundset(N)
 ```
 """
 function contraction(M::Matroid,set::Union{AbstractVector, Set})
-	sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in M.groundset
-		if size(findall(x->x==elem, set))[1]==0
-			sort_set[i]=elem
-			gs2num[elem] = i
-			i+=1
-		end
-	end
-	pm_contr = Polymake.matroid.contraction(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
-	return Matroid(pm_contr, sort_set, gs2num)
+    sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in M.groundset
+        if size(findall(x->x==elem, set))[1]==0
+            sort_set[i]=elem
+            gs2num[elem] = i
+            i+=1
+        end
+    end
+    pm_contr = Polymake.matroid.contraction(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
+    return Matroid(pm_contr, sort_set, gs2num)
 end
 
 contraction(M::Matroid,elem::Union{IntegerUnion,Char,String}) = contraction(M,Vector([elem]))
@@ -424,10 +424,10 @@ Matroid of rank 2 on 3 elements
 ```
 """
 function minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{AbstractVector, Set})
-	if any(in(set_del), set_cont)
-		error("The two sets are not disjoined, which is required")
-	end
-	return contraction(deletion(M, set_del), set_cont)
+    if any(in(set_del), set_cont)
+        error("The two sets are not disjoined, which is required")
+    end
+    return contraction(deletion(M, set_del), set_cont)
 end
 
 @doc Markdown.doc"""
@@ -445,12 +445,12 @@ Matroid of rank 3 on 5 elements
 ```
 """
 function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::Union{IntegerUnion,Char,String})
-	if issubset([elem],M.groundset)
-		error("The element you are about to add is already contained in the ground set")
-	end
-	gs2num = copy(M.gs2num)
-	gs2num[elem] = length(M.groundset)
-	return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
+    if issubset([elem],M.groundset)
+        error("The element you are about to add is already contained in the ground set")
+    end
+    gs2num = copy(M.gs2num)
+    gs2num[elem] = length(M.groundset)
+    return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
 end
 
 
@@ -460,13 +460,13 @@ end
 Construct the uniform matroid of rank `r` on the `n` elements `{1,...,n}`.
 """
 function uniform_matroid(r::IntegerUnion,n::IntegerUnion)
-	gs2num = Dict{Any,IntegerUnion}()
-	i = 1
-	for elem in 1:n
-		gs2num[elem] = i
-		i+=1
-	end
-	return Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in 1:n
+        gs2num[elem] = i
+        i+=1
+    end
+    return Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
 end
 
 """
