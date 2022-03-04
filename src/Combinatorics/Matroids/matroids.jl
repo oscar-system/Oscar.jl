@@ -164,7 +164,7 @@ To construct the same matroid on the ground set `{1,2,i,j}` you may write:
 ```jldoctest
 julia> C = [[1,2,'j'],[1,2,'i'],['i','j']];
 
-julia> M = matroid_from_circuits(C,4)
+julia> M = matroid_from_circuits(C,[1,2,'i','j'])
 Matroid of rank 2 on 4 elements
 ```
 """
@@ -615,7 +615,7 @@ To add `e` parallel to `1` in the uniform matroid U_{3,4} do
 julia> M = uniform_matroid(3,4);
 
 julia> N = parallel_extension(M,1,'e')
-Matroid of rank 4 on 5 elements
+Matroid of rank 3 on 5 elements
 
 julia> circuits(N)[1]
 2-element Vector{Any}:
@@ -753,7 +753,7 @@ Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
 # Example
 ```jldoctest
 julia> M = affine_geometry(3, 3)
-Matroid of rank 3 on 13 elements
+Matroid of rank 3 on 9 elements
 ```
 """
 function affine_geometry(r::Int, q::Int)
