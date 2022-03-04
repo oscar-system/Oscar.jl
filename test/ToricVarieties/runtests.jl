@@ -292,6 +292,6 @@ charges[1,2] = 1;
 charges[1,3] = 1;
 
 @testset "ToricVarieties from triangulations and GLSMs" begin
-    @test length(NormalToricVarietyFromTriangulation(P)) == 2
+    @test length(NormalToricVarietiesFromStarTriangulations(P)) == 2
     @test length(NormalToricVarietyFromGLSM(charges)) == 1
 end

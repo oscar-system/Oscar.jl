@@ -499,7 +499,7 @@ end
 ############################
 
 @doc Markdown.doc"""
-    NormalToricVarietyFromTriangulation(P::Polyhedron)
+    NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
 
 Returns the list of toric varieties obtained from fine regular
 star triangulations of the polyhedron P.
@@ -509,13 +509,13 @@ star triangulations of the polyhedron P.
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
 A polyhedron in ambient dimension 3
 
-julia> NormalToricVarietyFromTriangulation(P::Polyhedron)
+julia> NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
 2-element Vector{NormalToricVariety}:
  A normal toric variety
  A normal toric variety
 ```
 """
-function NormalToricVarietyFromTriangulation(P::Polyhedron)
+function NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
     # triangulate the polyhedron
     trias = star_triangulations(P)
     
@@ -537,7 +537,7 @@ function NormalToricVarietyFromTriangulation(P::Polyhedron)
     # construct the varieties
     return [NormalToricVariety(PolyhedralFan(integral_rays, cones)) for cones in max_cones]
 end
-export NormalToricVarietyFromTriangulation
+export NormalToricVarietiesFromStarTriangulations
 
 
 ############################
@@ -601,7 +601,7 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat)
 
     # construct polyhedron
     p = convex_hull(pts)
-    return NormalToricVarietyFromTriangulation(p)
+    return NormalToricVarietiesFromStarTriangulations(p)
 end
 NormalToricVarietyFromGLSM(charges::Vector{Vector{Int}}) = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
 NormalToricVarietyFromGLSM(charges::Vector{Vector{fmpz}}) = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
