@@ -43,7 +43,7 @@ if `F` is not given then the result has type `QabElem`.
 `description` is assumed to have the format defined in
 [CCNPW85](@cite), Chapter 6, Section 10.
 
-```jldoctest
+```jldoctest; setup = :(Oscar.allow_unicode(true))
 julia> atlas_irrationality("r5")
 -2*ζ(5)^3 - 2*ζ(5)^2 - 1
 
@@ -126,7 +126,7 @@ If the `p`-modular character table of `G` cannot be computed by GAP
 then `nothing` is returned.
 
 # Examples
-```jldoctest
+```jldoctest; setup = :(Oscar.allow_unicode(true))
 julia> character_table( symmetric_group(3) )
 Sym( [ 1 .. 3 ] )
 
