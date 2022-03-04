@@ -92,20 +92,14 @@ function f4(
         jl_cf = Base.unsafe_wrap(Array, ptr, nr_terms)
     end
 
-    # construct Singular ideal
-    # if 0 == field_char
-    #     basis = convert_qq_gb_array_to_singular_ideal(
-    #       jl_ld, jl_len, jl_cf, jl_exp, R)
-    # else
-        basis = convert_ff_gb_array_to_oscar_array(
-                                                   jl_ld, jl_len, jl_cf, jl_exp, base_ring(I))
-    # end
+    basis = convert_ff_gb_array_to_oscar_array(
+                jl_ld, jl_len, jl_cf, jl_exp, base_ring(I))
     ccall((:free_f4_julia_result_data, libneogb), Nothing ,
           (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}},
            Ptr{Ptr{Cvoid}}, Int, Int),
           cglobal(:jl_free), gb_len, gb_exp, gb_cf, jl_ld, field_char)
 
-    I.gb        = BiPolyArray(basis, keep_ordering=false, isGB=true)
+    I.gb[degrevlex(gens(R))] = BiPolyArray(basis, keep_ordering=false, isGB=true)
     
     return basis
 end

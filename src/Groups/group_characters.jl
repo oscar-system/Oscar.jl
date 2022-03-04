@@ -386,7 +386,7 @@ end
 function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = tbl.GAPTable
-    size = fmpz(GAP.Globals.Size(gaptbl))
+    size = fmpz(GAPWrap.Size(gaptbl))
     primes = [x[1] for x in collect(factor(size))]
     sort!(primes)
 

@@ -874,11 +874,10 @@ true
 ```
 """
 function Base.issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  # avoid Singular.contains as it does not save the gb it might compute
   singular_assure(I)
-  groebner_assure(J)
-  singular_assure(J.gb)
-  return Singular.iszero(Singular.reduce(I.gens.S, J.gb.S))
+  G = groebner_assure(J)
+  singular_assure(G)
+  return Singular.iszero(Singular.reduce(I.gens.S, G.S))
 end
 
 ### todo: wenn schon GB's  bekannt ...
@@ -911,11 +910,12 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}) where T
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
-  return Singular.iszero(reduce(Sx(f), I.gb.S))
+function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where T
+  groebner_assure(I, ordering)
+  GI = I.gb[ordering]
+  singular_assure(GI)
+  Sx = base_ring(GI.S)
+  return Singular.iszero(reduce(Sx(f), GI.S))
 end
 Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
@@ -1098,9 +1098,9 @@ function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
-  groebner_assure(I)
-  singular_assure(I.gb)
-  I.dim = Singular.dimension(I.gb.S)
+  G = groebner_assure(I)
+  singular_assure(G)
+  I.dim = Singular.dimension(G.S)
   return I.dim
 end
 

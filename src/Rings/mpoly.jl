@@ -460,28 +460,36 @@ Fields:
 """
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
-  gb::BiPolyArray{S}
+  gb::Dict{MonomialOrdering, BiPolyArray{S}}
   dim::Int
 
   function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
     r = new{T}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(g, keep_ordering = false)
+    r.gb = Dict()
     return r
   end
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = new{elem_type(T)}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(Ox, s)
+    r.gb = Dict()
     if s.isGB
-      r.gb = r.gens
+      # We need to get the monomial ordering from the Singular side,
+      # there should be an easier and more versatile implementation
+      # for this in orderings.jl.
+      ord = MonomialOrdering(parent(first(gens(Ox))),
+                             Orderings.ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s))))
+      r.gb[ord] = r.gens
     end
     return r
   end
   function MPolyIdeal(B::BiPolyArray{T}) where T
     r = new{T}()
-    r.dim = -1
+    r.dim = -1 #not known
     r.gens = B
+    r.gb = Dict()
     return r
   end
 end
@@ -508,25 +516,35 @@ function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
     I.Sx = singular_ring(I.Ox, keep_ordering=I.keep_ordering)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-    if I.isGB
-      I.S.isGB = true
-    end
+  end
+  if I.isGB
+    I.S.isGB = true
   end
 end
 
-function singular_assure(I::MPolyIdeal, O::MonomialOrdering)
-   singular_assure(I.gens, O)
+function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
+   singular_assure(I.gens, ordering)
 end
 
-function singular_assure(I::BiPolyArray, O::MonomialOrdering)
-   if !isdefined(I, :ord) || I.ord != O.o
-      I.ord = O.o
-      I.Sx = singular_ring(I.Ox, O.o)
-      I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-      I.isGB = false
-   else
-      singular_assure(I)
-   end
+function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
+    if !isdefined(I, :S) 
+        I.ord = ordering.o
+        I.Sx = singular_ring(I.Ox, ordering.o)
+        I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+        if I.isGB
+            I.S.isGB = true
+        end
+    else
+        #= singular ideal exists, but the singular ring has the wrong ordering
+         = attached, thus we have to create a new singular ring and map the ideal. =#
+        if !isdefined(I, :ord) || I.ord != ordering.o
+            I.ord = ordering.o
+            SR    = singular_ring(I.Ox, ordering.o)
+            f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
+            I.S   = Singular.map_ideal(f, I.S)
+            I.Sx  = SR
+        end
+    end
 end 
 
 function oscar_assure(I::MPolyIdeal)
@@ -535,6 +553,12 @@ function oscar_assure(I::MPolyIdeal)
   end
   if isdefined(I, :gb)
     I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
+  end
+end
+
+function oscar_assure(B::BiPolyArray)
+  if !isdefined(B, :O) || !isassigned(B.O, 1)
+    B.O = [B.Ox(x) for x = gens(B.S)]
   end
 end
 

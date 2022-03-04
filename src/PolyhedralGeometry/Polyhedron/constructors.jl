@@ -4,19 +4,36 @@
 ###############################################################################
 ###############################################################################
 
+struct Polyhedron{T} #a real polymake polyhedron
+    pm_polytope::Polymake.BigObject
+    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
+    
+    # only allowing scalar_types;
+    # can be improved by testing if the template type of the `BigObject` corresponds to `T`
+    Polyhedron{T}(p::Polymake.BigObject, b::Symbol) where T<:scalar_types = new{T}(p, b)
+end
+
+# default scalar type: `fmpq`
+Polyhedron(x...) = Polyhedron{fmpq}(x...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
+Polyhedron(p::Polymake.BigObject, b::Symbol) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p, b)
+
 @doc Markdown.doc"""
 
-    Polyhedron(P::Polymake.BigObject)
+    Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
 
 Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
 """
-function Polyhedron(pm_polytope::Polymake.BigObject)
-    Polyhedron(pm_polytope, :unknown)
+function Polyhedron{T}(pm_polytope::Polymake.BigObject) where T<:scalar_types
+    Polyhedron{T}(pm_polytope, :unknown)
 end
 
 @doc Markdown.doc"""
 
-    Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
+    Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
 
@@ -48,18 +65,18 @@ julia> dim(P)
 1
 
 julia> vertices(P)
-2-element SubObjectIterator{PointVector{Polymake.Rational}}:
+2-element SubObjectIterator{PointVector{fmpq}}:
  [1, 0]
  [0, 0]
 ```
 """
-Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b) = Polyhedron((A, b))
+Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing)
+function Polyhedron{T}(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
     IM = -affine_matrix_for_polymake(I)
-    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
 
-    return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
+    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
 end
 
 """
@@ -80,7 +97,7 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull(V [, R [, L]]; non_redundant::Bool = false)
+    convex_hull([::Type{T} = fmpq,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
@@ -139,7 +156,7 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
+function convex_hull(::Type{T}, V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
     points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
@@ -148,21 +165,24 @@ function convex_hull(V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unnecessary redundancy checks
     if non_redundant
-        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = points, LINEALITY_SPACE = lineality))
+        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = points, LINEALITY_SPACE = lineality))
     else
-        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
+        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
     end
 end
+
+convex_hull(x...) = convex_hull(fmpq, x...)
 
 ###############################################################################
 ###############################################################################
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, P::Polyhedron)
+function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
     try
         ad = ambient_dim(P)
         print(io, "A polyhedron in ambient dimension $(ad)")
+        T != fmpq && print(io, " with $T type coefficients")
     catch e
         print(io, "A polyhedron without ambient dimension")
     end

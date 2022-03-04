@@ -1,13 +1,34 @@
 @testset "types" begin
+    
+    @testset "nf_scalar" begin
+        
+        qe = Polymake.QuadraticExtension{Polymake.Rational}(123, 456, 789)
+        @test convert(Oscar.nf_scalar, qe) isa nf_elem
+        nfe = convert(Oscar.nf_scalar, qe)
+        @test coordinates(nfe) == [123, 456]
+        p = defining_polynomial(parent(nfe))
+        @test p == parent(p)([-789, 0, 1])
+        @test convert(Polymake.QuadraticExtension{Polymake.Rational}, nfe) == qe
+        
+        qet = Polymake.QuadraticExtension{Polymake.Rational}(9)
+        @test convert(Oscar.nf_scalar, qet) isa fmpq
+        @test convert(Oscar.nf_scalar, qet) == 9
+        @test convert(Polymake.QuadraticExtension{Polymake.Rational}, convert(Oscar.nf_scalar, qet)) == qet
+        
+        @test convert(Oscar.nf_scalar, 5) isa fmpq
+        @test convert(Oscar.nf_scalar, 5) == 5
+        
+    end
 
     a = [1, 2, 3]
     b = [8, 6, 4]
 
+    #TODO: RayVector
     @testset "$T" for T in (PointVector, RayVector)
 
-        @test T(a) isa T{Polymake.Rational}
+        @test T(a) isa T{fmpq}
 
-        @testset "$T{$U}" for U in (Int64, Polymake.Integer, Polymake.Rational, Float64)
+        @testset "$T{$U}" for U in (fmpz, fmpq, Oscar.nf_scalar)
 
             @test T{U} <: AbstractVector
             @test T{U} <: AbstractVector{U}
@@ -18,8 +39,6 @@
             @test T{U}(7) == zeros(7)
 
             A = T{U}(a)
-
-            @test A.p isa Polymake.Vector{Polymake.to_cxx_type(U)}
 
             @test A[1] isa U
             @test A[2] == 2
@@ -34,26 +53,22 @@
             @test_throws BoundsError A[0]
             @test_throws BoundsError A[4]
 
-            for V in [Int64, Polymake.Integer, Polymake.Rational, Float64]
-
+            for V in [fmpz, fmpq, Oscar.nf_scalar]
+            
                 B = T{V}(b)
-
+            
                 for op in [+, -]
                     @test op(A, B) isa T
-                    @test op(A, B) isa T{promote_type(U, V)}
-
+            
                     @test op(A, B) == op(a, b)
                 end
-
+            
                 @test *(V(3), A) isa T
-                @test *(V(3), A) isa T{promote_type(U, V)}
-
-                @test *(V(3), A) == *(V(3), A)
-
-                @test [A; B] isa T
-                @test [A; B] isa T{promote_type(U, V)}
+                
+                @test *(V(3), A) == 3 * a
+                
                 @test [A; B] == [a; b]
-
+            
             end
 
         end
@@ -65,26 +80,62 @@
 
 
     @testset "$T" for T in (AffineHalfspace, AffineHyperplane)
+        
+        for U in [fmpq]
+            @test T{U}(a, 0) isa T{U}
+            @test T{U}(a', 0) isa T{U}
 
-        @test T(a, 0) isa T
-        @test T(a', 0) isa T
+            @test T{U}(a, 0) == T{U}(a', 0) == T{U}(a) == T{U}(a')
 
-        @test T(a, 0) == T(a', 0) == T(a) == T(a')
+            A = T{U}(a, 0)
+            B = T{U}(b, 2)
 
-        A = T(a, 0)
-        B = T(b, 2)
+            @test A != B
 
-        @test A != B
-
-        @test A.a == a
-        @test A.b == Oscar.negbias(A) == 0
-
-        @test B.a == b
-        @test B.b == Oscar.negbias(B) == 2
-
+            @test Oscar.normal_vector(A) isa Vector{U}
+            @test Oscar.normal_vector(A) == a
+            @test Oscar.negbias(A) isa U
+            @test Oscar.negbias(A) == 0
+            
+            
+            @test Oscar.normal_vector(B) == b
+            @test Oscar.negbias(B) == 2
+        end
+        
+        @test T(a, 0) isa T{fmpq}
+        
     end
     
-    @test Halfspace(a) isa LinearHalfspace
-    @test Hyperplane(a) isa LinearHyperplane
+    @testset "$T" for T in (LinearHalfspace, LinearHyperplane)
+        
+        for U in [fmpq]
+            @test T{U}(a) isa T{U}
+            @test T{U}(a') isa T{U}
+
+            @test T{U}(a) == T{U}(a')
+
+            A = T{U}(a)
+            B = T{U}(b)
+
+            @test A != B
+
+            @test Oscar.normal_vector(A) isa Vector{U}
+            @test Oscar.normal_vector(A) == a
+            @test Oscar.negbias(A) isa U
+            @test Oscar.negbias(A) == 0
+            
+            
+            @test Oscar.normal_vector(B) == b
+            @test Oscar.negbias(B) == 0
+        end
+        
+        @test T(a) isa T{fmpq}
+        
+    end
+    
+    @test Halfspace(a) isa LinearHalfspace{fmpq}
+    @test Hyperplane(a) isa LinearHyperplane{fmpq}
+    @test Halfspace(a, 0) isa AffineHalfspace{fmpq}
+    @test Hyperplane(a, 0) isa AffineHyperplane{fmpq}
 
 end
