@@ -798,13 +798,7 @@ function restriction(
   U = intersect(X, domain(f))
   V = intersect(Y, codomain(f))
 
-  # first restrict in the domain by composing with the inclusion
-  inc = inclusion_morphism(U, domain(f), check=check)
-  #inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W))), check=check) for W in affine_patches(U)], check=check)
-  help_map = compose(inc, f, check=check)
-
-  # then manually restrict on the codomain by modifying the maps on the patches
-  new_maps_on_patches = [restrict(h, domain(h), Y) for h in maps_on_patches(help_map)]
+  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
 
   return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end

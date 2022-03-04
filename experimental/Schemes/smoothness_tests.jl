@@ -10,7 +10,8 @@ function degeneracy_locus(
     verbose::Bool=false
   ) where {SpecType<:Spec, MatrixType} #TODO: How specific can we be with the matrices?
   indent_str = prod([ "#" for i in 1:rec_count ]) * " "
-  verbose && println(indent_str * "call with $(X) and matrix $(A) for rank $r")
+  #verbose && println(indent_str * "call with $(X) and matrix $(A) for rank $r")
+  verbose && println(indent_str * "call to degeneracy_locus for rank $r")
 
   # checking for rank < 0 does not make sense unless we have the the zero matrix
   if r == 0
@@ -30,7 +31,8 @@ function degeneracy_locus(
   if r == 1 
     # if the matrix is trivial, but the rank is not, quit.
     if m == 0 || n == 0
-      verbose && println(indent_str, "zero matrix; returning $X")
+      #verbose && println(indent_str, "zero matrix; returning $X")
+      verbose && println(indent_str, "zero matrix")
       return [X]
     end
     # if we are in rank < 1 for a non-trivial matrix, collect the entries and quit
@@ -56,7 +58,7 @@ function degeneracy_locus(
 	(k, l) = (i, j)
       end
     end
-    verbose && println(print_str)
+    #verbose && println(print_str)
   end
   f = A[k,l]
 
@@ -86,19 +88,19 @@ function degeneracy_locus(
   #B = vcat(hcat(B[1:k-1, 1:l-1], B[1:k-1, l+1:n]), hcat(B[k+1:m, 1:l-1], B[k+1:m, l+1:n]))
   #
   verbose && println(indent_str * "new matrix of size $(nrows(B)) x $(ncols(B)):")
-  if verbose
-    for i in 1:nrows(B)
-      print_str = indent_str
-      for j in 1:ncols(B)
-        print_str = print_str * "$(B[i,j]);\t"
-      end
-      println(print_str)
-    end
-  end
+#  if verbose
+#    for i in 1:nrows(B)
+#      print_str = indent_str
+#      for j in 1:ncols(B)
+#        print_str = print_str * "$(B[i,j]);\t"
+#      end
+#      println(print_str)
+#    end
+#  end
   
-  DU = degeneracy_locus(U, B, r-1, rec_count=rec_count+1)
+  DU = degeneracy_locus(U, B, r-1, rec_count=rec_count+1, verbose=verbose)
   DU_closure = SpecType[closure(V, X) for V in DU]
-  DY = degeneracy_locus(Y, copy(A), r, rec_count=rec_count+1)
+  DY = degeneracy_locus(Y, copy(A), r, rec_count=rec_count+1, verbose=verbose)
   return vcat(DU_closure, DY)
 end
 
@@ -106,7 +108,8 @@ function is_smooth_of_dimension(X::Spec, d::Int; verbose::Bool=false)
   R = base_ring(OO(X))
   W = localized_ring(OO(X))
   IW = localized_modulus(OO(X))
-  I = saturated_ideal(IW)
+  #I = saturated_ideal(IW)
+  I = modulus(OO(X))
   n = nvars(R)
   return length(degeneracy_locus(X, jacobi_matrix(gens(I)), n-d, verbose=verbose))== 0
 end
@@ -141,7 +144,12 @@ end
 function is_equidimensional_and_smooth(X::CoveredScheme)
   C = default_covering(X) 
   for U in patches(C)
-    is_equidimensional_and_smooth(U) || return false
+    if !has_attribute(U, :is_smooth) || !has_attribute(U, :is_equidimensional)
+      d = dim(U)
+      is_smooth_of_dimension(U, d) || return false
+      set_attribute!(U, :is_equidimensional, true)
+      set_attribute!(U, :is_smooth, true)
+    end
   end
   return true
 end
@@ -149,7 +157,11 @@ end
 function is_smooth_of_dimension(X::CoveredScheme, d::Int)
   C = default_covering(X) 
   for U in patches(C)
-    is_smooth_of_dimension(U, d) || return false
+    if !has_attribute(U, :is_smooth) || !has_attribute(U, :is_equidimensional)
+      is_smooth_of_dimension(U, d) || return false
+      set_attribute!(U, :is_equidimensional, true)
+      set_attribute!(U, :is_smooth, true)
+    end
   end
   return true
 end

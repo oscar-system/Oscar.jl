@@ -1114,7 +1114,8 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
       oscar_gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}},
       shift::Vector{BRET},
-      ordering::Symbol
+      ordering::Symbol;
+      is_groebner_basis::Bool=false
     ) where {BRT, BRET, RT, RET, MST}
     lbpa = new{BRT, BRET, RT, RET, MST}()
     # TODO: Add some sanity checks here
@@ -1126,7 +1127,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       push!(shift, zero(coefficient_ring(base_ring(oscar_ring))))
     end
     lbpa.shift = shift
-    lbpa.is_groebner_basis=false
+    lbpa.is_groebner_basis=is_groebner_basis
     return lbpa
   end
   
@@ -1305,7 +1306,7 @@ end
 
 Ideals in localizations of polynomial rings.
 """
-mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
+@attributes mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
   # the initial set of generators, not to be changed ever!
   gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
   # the ambient ring for this ideal
@@ -1314,7 +1315,6 @@ mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal
   # Fields for caching
   groebner_bases::Dict{Symbol, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}
   dimension::Int
-  saturated_ideal::MPolyIdeal{RET} 
  
   function MPolyLocalizedIdeal(
       W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
@@ -1354,77 +1354,83 @@ end
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  ### saturation has to proceed via primary decomposition in this case. 
-  # We rely on the primary decomposition on the singular side which is 
-  # already implemented so that all non-relevant components are thrown 
-  # away. The remaining components are then intersected to produce 
-  # the ideal in question. 
-  lbpa = LocalizedBiPolyArray(I)
-  V = base_ring(I)
-  R = base_ring(V)
-  sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-  decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
-  if length(decomp) == 0
-    return ideal(R, one(R))
+  if !has_attribute(I, :saturated_ideal)
+    ### saturation has to proceed via primary decomposition in this case. 
+    # We rely on the primary decomposition on the singular side which is 
+    # already implemented so that all non-relevant components are thrown 
+    # away. The remaining components are then intersected to produce 
+    # the ideal in question. 
+    lbpa = LocalizedBiPolyArray(I)
+    V = base_ring(I)
+    R = base_ring(V)
+    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
+    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+    if length(decomp) == 0
+      return ideal(R, one(R))
+    end
+    relevant_comp = LocalizedBiPolyArray([one(V)])
+    U = inverted_set(V)
+    P = prime_ideal(U)
+    for comp in decomp
+      # Check whether the given component is contained in P.
+      issubset(ideal(R, numerator.(oscar_gens(comp))), P) && (relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(comp))))
+    end
+    set_attribute!(I, :saturated_ideal, ideal(R, numerator.(oscar_gens(relevant_comp))))
   end
-  relevant_comp = LocalizedBiPolyArray([one(V)])
-  U = inverted_set(V)
-  P = prime_ideal(U)
-  for comp in decomp
-    # Check whether the given component is contained in P.
-    issubset(ideal(R, numerator.(oscar_gens(comp))), P) && (relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(comp))))
-  end
-  return ideal(R, numerator.(oscar_gens(relevant_comp)))
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  ### saturation has to proceed via primary decomposition in this case. 
-  # We rely on the primary decomposition on the singular side which is 
-  # already implemented so that all non-relevant components are thrown 
-  # away. The remaining components are then intersected to produce 
-  # the ideal in question. 
-  lbpa = LocalizedBiPolyArray(I)
-  V = base_ring(I)
-  R = base_ring(V)
-  sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-  decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
-  if length(decomp) == 0
-    return ideal(R, one(R))
+  if !has_attribute(I, :saturated_ideal)
+    ### saturation has to proceed via primary decomposition in this case. 
+    # We rely on the primary decomposition on the singular side which is 
+    # already implemented so that all non-relevant components are thrown 
+    # away. The remaining components are then intersected to produce 
+    # the ideal in question. 
+    lbpa = LocalizedBiPolyArray(I)
+    V = base_ring(I)
+    R = base_ring(V)
+    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
+    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+    if length(decomp) == 0
+      return ideal(R, one(R))
+    end
+    relevant_comp = decomp[1]
+    for i in (2:length(decomp))
+      relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(decomp[i])))
+    end
+    set_attribute!(I, :saturated_ideal, ideal(R, numerator.(oscar_gens(relevant_comp))))
   end
-  relevant_comp = decomp[1]
-  for i in (2:length(decomp))
-    relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(decomp[i])))
-  end
-  return ideal(R, numerator.(oscar_gens(relevant_comp)))
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  if !isdefined(I, :saturated_ideal)
-    if is_trivial(inverted_set(base_ring(I)))
-      I.saturated_ideal = ideal(base_ring(base_ring(I)), numerator.(gens(I)))
-      return I.saturated_ideal
-    end
+  if is_trivial(inverted_set(base_ring(I)))
+    set_attribute!(I, :saturated_ideal, ideal(base_ring(base_ring(I)), numerator.(gens(I))))
+  end
+  if !has_attribute(I, :saturated_ideal)
     W = base_ring(I)
     R = base_ring(W)
     U = inverted_set(W)
     lbpa = LocalizedBiPolyArray(I)
-    sat_ideal = singular_gens(lbpa)
+    ssat_ideal = singular_gens(lbpa)
     for a in denominators(U)
-      sat_ideal = Singular.saturation(sat_ideal, Singular.Ideal(singular_ring(lbpa), [singular_ring(lbpa)(a)]))[1]
+      ssat_ideal = Singular.saturation(ssat_ideal, Singular.Ideal(singular_ring(lbpa), [singular_ring(lbpa)(a)]))[1]
     end
-    I.saturated_ideal = ideal(R, R.(gens(sat_ideal)))
+    sat_ideal = ideal(R, R.(gens(ssat_ideal)))
+    set_attribute!(I, :saturated_ideal, sat_ideal)
   end
-  return I.saturated_ideal
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyProductOfMultSets{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  if !isdefined(I, :saturated_ideal)
+  if !has_attribute(I, :saturated_ideal)
     W = base_ring(I)
     R = base_ring(W)
     J = ideal(R, numerator.(gens(I)))
@@ -1432,9 +1438,9 @@ function saturated_ideal(
       L = Localization(U)
       J = saturated_ideal(L(J))
     end
-    I.saturated_ideal = J
+    set_attribute!(I, saturated_ideal, J)
   end
-  return I.saturated_ideal
+  return get_attribute(I, saturated_ideal)::MPolyIdeal{RET}
 end
 
 
@@ -1511,10 +1517,11 @@ function Base.in(
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, 
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} 
   ) where {BRT, BRET, RT, RET, MST}
+  iszero(numerator(f)) && return true
   parent(f) == base_ring(I) || return false
-  #lbpa = groebner_basis(I)
-  #return iszero(reduce(f, lbpa))
-  return numerator(f) in saturated_ideal(I)
+  lbpa = groebner_basis(I)
+  return iszero(reduce(f, lbpa))
+  #return numerator(f) in saturated_ideal(I)
 end
 
 function Base.in(
@@ -1715,14 +1722,23 @@ function Base.reduce(
   W = parent(f)
   W == oscar_ring(lbpa) || error("element does not belong to the Oscar ring of the biPolyArray")
   R = base_ring(W)
-  shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
-  singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
-  singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
-  if iszero(singular_n) 
-    return zero(W)
+  if !iszero(shift(lbpa))
+    shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
+    singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
+    singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+    if iszero(singular_n) 
+      return zero(W)
+    end
+    inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
+    return W(inv_shift_hom(R(singular_n)), denominator(f))
+  else
+    singular_n = singular_ring(lbpa)(numerator(f))
+    singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+    if iszero(singular_n) 
+      return zero(W)
+    end
+    return W(R(singular_n), denominator(f))
   end
-  inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
-  return W(inv_shift_hom(R(singular_n)), denominator(f))
 end
 
 @Markdown.doc """

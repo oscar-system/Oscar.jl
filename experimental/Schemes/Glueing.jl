@@ -119,5 +119,5 @@ function restriction(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) whe
     is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check))
+  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check), check=check)
 end

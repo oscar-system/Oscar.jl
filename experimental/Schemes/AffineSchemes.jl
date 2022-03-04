@@ -208,14 +208,53 @@ For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f �
 this returns the open subscheme ``U = X ∖ V(f)`` defined by the complement of the vanishing 
 locus of ``f``.
 """
-function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_cache::Bool=false) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   iszero(f) && return subscheme(X, [one(R)])
-  isunit(f) && return X
-  W = Localization(OO(X), MPolyPowersOfElement(f))
-  #TODO: Hier weiter machen! Groebner-Basen cachen.
-  return Spec(Localization(OO(X), MPolyPowersOfElement(f)))
+  f in inverted_set(OO(X)) && return X
+  #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
+  W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
+  if keep_cache
+    @show inverted_set(OO(X))
+    @show inverted_set(W)
+    IX = localized_modulus(OO(X))
+    DIX = groebner_bases(IX)
+    # we have a look at the possibility to transfer groebner bases that 
+    # have already been computed.
+    if length(DIX)>0
+      @show "found at least one groebner basis"
+      if has_attribute(IX, :saturated_ideal)
+        @show "saturation exists"
+        # in case the saturated ideal has already been computed once, 
+        # we assume that this computation is also feasible a second time.
+        # We check whether the new saturation makes any difference and 
+        # transfer the cached data if applicable.
+        Jsat = ideal(R, numerator.(oscar_gens(groebner_basis(IX))))
+        for d in [b for b in denominators(inverted_set(W)) if !(b in inverted_set(OO(X)))]
+          for a in factor(d)
+            @show "saturating w.r.t. $a"
+            Jsat = saturation(Jsat, ideal(R, a[1]))
+          end
+        end
+        J = localized_modulus(W)
+        set_attribute!(J, :saturated_ideal, Jsat)
+        if issubset(Jsat, saturated_ideal(IX))
+          @show "groebner bases can be kept"
+          for o in keys(DIX)
+            gb = DIX[o]
+            groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), true)
+          end
+        else 
+          @show "saturations differ"
+        end
+        set_attribute!(W, :localized_modulus, J)
+      else
+        @show "saturation does not exist"
+      end
+    end
+  end
+  return Spec(W)
 end
 
 function hypersurface_complement(
@@ -553,10 +592,10 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 end
 
 function dim(X::Spec)
-  if !has_attribute(X, :dim)
-    set_attribute!(X, :dim, dim(saturated_ideal(localized_modulus(OO(X)))))
+  if !has_attribute(X, :dimension)
+    set_attribute!(X, :dimension, dim(saturated_ideal(localized_modulus(OO(X)))))
   end
-  return get_attribute(X, :dim)::Int64
+  return get_attribute(X, :dimension)::Int64
 end
 
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))

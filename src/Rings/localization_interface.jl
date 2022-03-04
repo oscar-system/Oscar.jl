@@ -398,6 +398,10 @@ function ideal(
   error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
 end
 
+function (W::AbsLocalizedRing)(I::Ideal)
+  return ideal(W, W.(gens(I)))
+end
+
 ### required functionality
 # Checks for ideal membership of `f` in `I`.
 function Base.in(

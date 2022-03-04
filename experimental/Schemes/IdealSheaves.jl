@@ -199,7 +199,7 @@ function subscheme(I::IdealSheaf)
     new_glueings[(Unew, Vnew)] = restriction(C[U, V], Unew, Vnew, check=false)
     new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
   end
-  Cnew = Covering(new_patches, new_glueings)
+  Cnew = Covering(new_patches, new_glueings, check=false)
   return CoveredScheme(Cnew)
 end
 

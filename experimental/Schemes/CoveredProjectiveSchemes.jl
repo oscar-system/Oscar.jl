@@ -169,9 +169,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
 end
 
 # blow up X in the center described by g using these explicit generators.
-function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyElem}
-  @show W
-  @show I
+function blow_up(W::Spec, I::Vector{RingElemType}; is_regular_sequence::Bool=false) where {RingElemType<:MPolyElem}
 
   # some internal function
   function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
@@ -191,38 +189,87 @@ function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyEle
 
   CP = affine_cone(Pw)
   Polyring = base_ring(OO(CP))
-  At, embeddingAt, T =  _add_variables(R,[:t])
-  t = T[1]
+  if !is_regular_sequence
+    At, embeddingAt, T =  _add_variables(R,[:t])
+    t = T[1]
 
-  #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
-  Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
-  kernel(Phi)
+    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
+    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
 
-  Imod = modulus(A)
-  IW = ideal(At, [embeddingAt(f) for f in gens(Imod)])
-  @show "start groebner basis computation."
-  IWpre = preimage(Phi, IW)
-  @show "done. Proceed to process"
-  #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
-  SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
-  @show 0
+    Imod = modulus(A)
+    IW = ideal(At, [embeddingAt(f) for f in gens(Imod)])
+    @show "start groebner basis computation."
+    IWpre = preimage(Phi, IW)
+    @show "done. Proceed to process"
+    #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
+    SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
+    @show 0
 
-  projective_version = subscheme(Pw, SIWpre)
-  @show 1
-  covered_version = as_covered_scheme(projective_version)
-  @show 2
-  projection_map = get_attribute(projective_version, :covered_projection_to_base)
-  @show 3
-  E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
-  for i in 1:length(I)
-    @show i
-    U = default_covering(covered_version)[i]
-    E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
+    projective_version = subscheme(Pw, SIWpre)
+    @show 1
+    covered_version = as_covered_scheme(projective_version)
+    @show 2
+    projection_map = get_attribute(projective_version, :covered_projection_to_base)
+    @show 3
+    E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
+    for i in 1:length(I)
+      @show i
+      U = default_covering(covered_version)[i]
+      E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
+    end
+    @show 4
+    exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
+    @show "processing done."
+    return projective_version, covered_version, projection_map, exc_div
+  else
+    M = MatrixSpace(S, 2, ngens(S))
+    A = zero(M)
+    for i in 1:ngens(S)
+      A[1, i] = S[i]
+      A[2, i] = I[i]
+    end
+    IW = ideal(S, minors(A, 2))
+    projective_version = subscheme(Pw, IW)
+    covered_ambient = as_covered_scheme(Pw)
+    ambient_projection_map = get_attribute(Pw, :covered_projection_to_base)
+    C = default_covering(covered_ambient)
+    SpecType = affine_patch_type(covered_ambient)
+    PolyType = poly_type(SpecType)
+    Idict = Dict{SpecType, Vector{PolyType}}()
+    @show I
+    for i in 1:npatches(C)
+      @show i
+      v = gens(OO(C[i]))
+      phi = pullback(ambient_projection_map[C[i]])
+      loc_eqns = vcat([v[j]*phi(I[i])-phi(I[j]) for j in 1:i-1], [v[j]*phi(I[i])-phi(I[j+1]) for j in i:length(I)-1])
+      @show loc_eqns
+      Idict[C[i]] = lifted_numerator.(loc_eqns)
+    end
+    Itrans = IdealSheaf(covered_ambient, C, Idict, check=false)
+    covered_version = subscheme(Itrans)
+    set_attribute!(projective_version, :as_covered_scheme, covered_version)
+
+    proj_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+    for i in 1:length(I)
+      Z = patches(default_covering(covered_version))[i]
+      U = patches(default_covering(covered_ambient))[i]
+      proj_dict[Z] = restrict(ambient_projection_map[U], Z, codomain(ambient_projection_map[U]))
+    end
+
+    projection_map = CoveringMorphism(default_covering(covered_version), Covering(W), proj_dict)
+    set_attribute!(projective_version, :covered_projection_to_base, projection_map)
+    @show 3
+    E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
+    for i in 1:length(I)
+      @show i
+      U = default_covering(covered_version)[i]
+      E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
+    end
+    @show 4
+    exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
+    @show "processing done."
+    return projective_version, covered_version, projection_map, exc_div
   end
-  @show 4
-  exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
-  @show "processing done."
-  return projective_version, covered_version, projection_map, exc_div
 end
 
 function blow_up(I::IdealSheaf)
@@ -503,7 +550,7 @@ function as_smooth_local_complete_intersection(
       println(Dg[i, 1:end])
     end
   end
-  X_dict = _as_smooth_lci_rec(X, X, PolyType[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), g, Dg, d, n, check=check, verbose=verbose)
+  X_dict = _as_smooth_lci_rec(X, X, PolyType[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), g, Dg, Dg, d, n, check=check, verbose=verbose)
   verbose && println("####################### done with the ambient space #######################")
   SpecType = typeof(X)
   f_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
@@ -517,7 +564,7 @@ function as_smooth_local_complete_intersection(
     d = dim(Z)
     merge!(f_dict, _as_smooth_lci_rec(X, Z, X_dict[U][1], (collect(1:length(g)), good), 
                                       Vector{Tuple{Int, Int}}(), 
-                                      f_ext, Df_ext, d, n, 
+                                      f_ext, Df_ext, Df_ext, d, n, 
                                       check=check, verbose=verbose)
           )
   end
@@ -548,7 +595,18 @@ function as_smooth_lci_of_cod(X::Spec, c::Int; check::Bool=true, verbose::Bool=f
 #      println(Df[i, 1:end])
 #    end
 #  end
-  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, n-c, n, check=check, verbose=verbose)
+#    PolyType = poly_type(X)
+#    f_part = PolyType[]
+#    for i in 1:c+3
+#      push!(f_part, sum([(rand(Int)%1000)*g for g in f]))
+#    end
+#    @show "first try"
+#    while !isempty(degeneracy_locus(X, jacobi_matrix(f_part), c, verbose=true))
+#      @show "new try"
+#      push!(f_part, dot([rand(Int)%1000 for j in 1:length(f)], f))
+#    end
+#    return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f_part, jacobi_matrix(f_part), n-c, n, check=check, verbose=verbose)
+  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, Df, n-c, n, check=check, verbose=verbose)
 end
 
 function as_smooth_local_complete_intersection(X::CoveredScheme; check::Bool=true, verbose::Bool=false)
@@ -576,9 +634,10 @@ function as_smooth_local_complete_intersection(X::Spec; check::Bool=true, verbos
       println(Df[i, 1:end])
     end
   end
-  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, d, n, check=check, verbose=verbose)
+  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, Df, d, n, check=check, verbose=verbose)
 end
 
+using Infiltrator
 function _as_smooth_lci_rec(
     X::SpecType, 
     Z::SpecType, # the uncovered locus
@@ -587,6 +646,7 @@ function _as_smooth_lci_rec(
     bad::Vector{Tuple{Int, Int}}, # partial derivatives that vanish on the uncovered locus.
     f::Vector{PolyType}, 
     Df::MatrixType,
+    B::MatrixType,
     d::Int, n::Int;
     check::Bool=true,
     verbose::Bool=false,
@@ -607,41 +667,49 @@ function _as_smooth_lci_rec(
   #         index of variables for non-vanishing minor)
   res_dict = Dict{typeof(X), Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 
-# if isempty(Z)
-#   verbose && println("this patch is already covered by others")
-#   return res_dict
-# end
-
-  if length(good[1]) == n-d
-    if isempty(Z)
-      verbose && println("this patch is already covered by others")
-      return res_dict
-    end
-    verbose && println(recstring * "end of recursion reached")
-    g = det(Df[good[1], good[2]])
-    isempty(subscheme(Z, g)) || error("scheme is not smooth")
-    U = hypersurface_complement(X, g)
-    res_dict[U] = (vcat(h, [g]), f[good[2]], good[1])
-    if check
-      issubset(localized_modulus(OO(U)), ideal(OO(U), f[good[2]])) || error("the found generators are not correct")
-    end
-    verbose && println(recstring*"returning $U with generators $(res_dict[U])")
+  if isempty(Z)
+    verbose && println("this patch is already covered by others")
     return res_dict
   end
 
-  verbose && println("reducing matrix and selecting pivot...")
+  if length(good[1]) == n-d
+    verbose && println(recstring * "end of recursion reached")
+    #g = det(Df[good[1], good[2]])
+    #isempty(subscheme(Z, g)) || error("scheme is not smooth")
+    res_dict[X] = (h, f[good[2]], good[1])
+    if check
+      issubset(localized_modulus(OO(X)), ideal(OO(X), f[good[2]])) || error("the found generators are not correct")
+    end
+    verbose && println(recstring*"returning $X with generators $(res_dict[X])")
+    return res_dict
+  end
+
+  verbose && println("setting up matrix of minors")
   R = base_ring(OO(X))
   W = localized_ring(OO(X))
   J = localized_modulus(OO(Z))
   m = ncols(Df)
   n = nrows(Df)
-  min = maximum([total_degree(a) for a in collect(Df)])
-  (k, l) = (0, 0)
   for i in [a for a in 1:n if !(a in good[1])]
     for j in [b for b in 1:m if !(b in good[2])]
       if !((i,j) in bad)
-        if !iszero(OO(X)(Df[i, j])) && total_degree(Df[i, j]) <= min
-          min = total_degree(Df[i, j])
+        #B[i,j] = numerator(reduce(W(B[i,j]), groebner_basis(localized_modulus(OO(X)))))
+        #B[i,j] = numerator(reduce(W(det(Df[vcat(good[1], i), vcat(good[2], j)])), groebner_basis(localized_modulus(OO(X)))))
+        B[i,j] = det(Df[vcat(good[1], i), vcat(good[2], j)])
+      end
+    end
+  end
+  min = maximum([total_degree(a) for a in collect(B)])
+  (k, l) = (0, 0)
+  verbose && println("reducing matrix and selecting pivot...")
+  for i in [a for a in 1:n if !(a in good[1])]
+    for j in [b for b in 1:m if !(b in good[2])]
+      if !((i,j) in bad)
+        #B[i,j] = numerator(reduce(W(B[i,j]), groebner_basis(localized_modulus(OO(X)))))
+        #B[i,j] = numerator(reduce(W(det(Df[vcat(good[1], i), vcat(good[2], j)])), groebner_basis(localized_modulus(OO(X)))))
+        #Df[i,j] = normal_form(Df[i,j], groebner_basis(saturated_ideal(localized_modulus(OO(X)))))
+        if total_degree(B[i, j]) <= min && !iszero(OO(Z)(B[i, j]))
+          min = total_degree(B[i, j])
           (k, l) = (i, j)
         end
       end
@@ -653,21 +721,57 @@ function _as_smooth_lci_rec(
 #    end
 #  end
   if (k, l) == (0, 0)
+    isempty(Z) && return res_dict
     error("scheme is not smooth")
   end
   verbose && println(recstring*"selected the $((k, l))-th entry: $(Df[k,l])")
-
+  
   good_ext = (vcat(good[1], k), vcat(good[2], l))
+  p = Df[k,l]
+  Bnew = copy(B)
+# for i in [a for a in 1:n if !(a in good_ext[1])]
+#   if !iszero(Bnew[i,l])
+#     @show i
+#     @show n
+#     multiply_row!(Bnew, p, i)
+#     add_row!(Bnew, -B[i,l], k, i)
+#   end
+# end
+#   for j in [b for b in 1:m if !(b in good_ext[2])]
+#     if !iszero(Bnew[k,j])
+#       @show j
+#       multiply_column!(Bnew, p, j)
+#       @show m
+#       add_column!(Bnew, -Df[k,j], j, l)
+#     end
+#   end
   @show 1
   g = det(Df[good_ext[1], good_ext[2]])
+  g = B[k,l]
+  #g = B[k,l]
+  @show total_degree(g)
+  @show has_attribute(localized_modulus(OO(X)), :saturated_ideal)
+  @show has_attribute(localized_modulus(OO(Z)), :saturated_ideal)
+  I = localized_modulus(OO(Z))
+  Isat = saturated_ideal(I)
+  @show has_attribute(I, :saturated_ideal)
   @show 2
-  U = hypersurface_complement(X, g)
+  U = hypersurface_complement(X, g, keep_cache=false)
+  @show 2.5
+  Z_next = hypersurface_complement(Z, g, keep_cache=true)
+#  U = X
+#  Z_next = Z
+#  for a in factor(g)
+#    @show a
+#    U = hypersurface_complement(U, a[1])
+#    Z_next = hypersurface_complement(Z_next, a[1])
+#  end
   @show 3
-  U_dict = _as_smooth_lci_rec(U, hypersurface_complement(Z, g), vcat(h, [g]), good_ext, bad, f, Df, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
+  U_dict = _as_smooth_lci_rec(U, Z_next, vcat(h, [g]), good_ext, bad, f, Df, B, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
   @show 4
   bad_ext = vcat(bad, (k, l))
   @show 5
-  V_dict = _as_smooth_lci_rec(X, subscheme(Z, g), h, good, bad_ext, f, Df, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
+  V_dict = _as_smooth_lci_rec(X, subscheme(Z, g), h, good, bad_ext, f, Df, B, d, n, check=check, verbose=verbose, rec_depth=rec_depth+1)
   @show 6
   return merge!(U_dict, V_dict)
 end
