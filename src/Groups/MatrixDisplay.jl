@@ -118,7 +118,9 @@ The following attributes of `io` are supported.
   and to create portions according to the screen width otherwise,
 
 ## Examples
-```jldoctest; setup = :(Oscar.allow_unicode(true))
+```jldoctest
+julia> old_allow_unicode = Oscar.allow_unicode(true);
+
 julia> m = 3; n = 4;  mat = Array{String}(undef, m, n);
 
 julia> for i in 1:m for j in 1:n mat[i,j] = string( (i,j) ); end; end
@@ -183,6 +185,8 @@ julia> print(String(take!(io)))
  │     3      4
 ─┼─────────────
 3│(3, 3) (3, 4)
+
+julia> Oscar.allow_unicode(old_allow_unicode);
 
 ```
 """
