@@ -64,7 +64,7 @@ end
 
 function relations_extended_ring(ring, proper_flats, vars)
 	relations = Vector()
-	s = size(proper_flats)[1]
+	s = length(proper_flats)
 
 	# h_E = alpha = -x_E
 	poly = ring(0)
@@ -99,8 +99,8 @@ julia> R = augmented_chow_ring(M);
 """
 function augmented_chow_ring(M::Matroid)
 	Flats = flats(M)
-	sizeFlats = size(Flats)[1]
-	n = size(M.groundset)[1]
+	sizeFlats = length(Flats)
+	n = length(M.groundset)
 
 	if(!is_loopless(M))
 		throw("Matroid has loops")
@@ -114,7 +114,7 @@ function augmented_chow_ring(M::Matroid)
 	flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
 	flat_var_names[1] = "x_{}" # Override "x_Any{}"
 	var_names = vcat(element_var_names, flat_var_names)
-	s = size(var_names)[1]
+	s = length(var_names)
 
 	ring, vars = GradedPolynomialRing(QQ, var_names)
 	element_vars = vars[1:n]
@@ -130,7 +130,7 @@ function augmented_chow_ring(M::Matroid)
 end
 
 function augmented_linear_relations(ring, proper_flats, element_vars, flat_vars, M)
-	n = size(M.groundset)[1]
+	n = length(M.groundset)
 
 	relations = Array{MPolyElem_dec{fmpq, fmpq_mpoly}}(undef, n)
 	i = 1
