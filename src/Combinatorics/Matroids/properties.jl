@@ -534,7 +534,7 @@ true
 function is_clutter(sets::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}})
     for A in sets
         for B in sets
-            if issubset(A,B) ⊻ issubset(B,A)
+            if A!=B && (issubset(A,B) || issubset(B,A))
                 return false
             end
         end
