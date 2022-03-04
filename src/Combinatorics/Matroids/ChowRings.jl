@@ -1,6 +1,37 @@
 export chow_ring, augmented_chow_ring, select
 
-function chow_ring(M::Matroid, extended=false)
+@doc Markdown.doc"""
+The Chow ring of a matroid, optional also with the simplical generators.
+
+See AHK18 (@cite) and BES21 (@cite) 
+
+
+# Examples
+The following computes the chow ring of the Fano matroid.
+```jldoctest
+julia> M = fano_matroid();
+
+julia> R = chow_ring(M);
+
+julia> R[1]*R[8]
+-x_{3,4,7}^2
+```
+
+# Examples
+The following computes the chow ring of the Fano matroid including variables for the simplicial generators.
+```jldoctest
+julia> M = fano_matroid();
+
+julia> R = chow_ring(M, extended=true);
+
+julia> f = R[22] + R[8] - R[29]
+x_{1,2,3} + h_{1,2,3} - h_{1,2,3,4,5,6,7}
+
+julia> f==0
+true
+```
+"""
+function chow_ring(M::Matroid; extended=false)
         Flats = flats(M)
         number_flats = length(Flats)
         n = length(M.groundset)
@@ -11,14 +42,15 @@ function chow_ring(M::Matroid, extended=false)
                 error("matroid has to few flats")
         end
         proper_flats = Flats[2:number_flats-1]
-        var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by sets
+        var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
         if extended
-                var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]]
+                var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] #addeds the variables for the simplicial generators
         end
 
         ring, vars = GradedPolynomialRing(QQ, var_names)
         #ring, vars = PolynomialRing(ZZ, var_names) $which ring do we want here
-        I = linear_relations(ring, proper_flats, vars, M)
+        
+	I = linear_relations(ring, proper_flats, vars, M)
         J = quadratic_relations(ring, proper_flats, vars)
         Ex = []
         if extended
@@ -86,13 +118,14 @@ end
 
 @doc Markdown.doc"""
 An augmented Chow ring of a matroid. As described in the paper
-"A semi-small decomposition of the Chow ring of a matroid" by Tom Braden,
-June Huh, et. al.
+"A semi-small decomposition of the Chow ring of a matroid" by 
+Tom Braden, June Huh, et. al.
 
 # Examples
 The following computes the augmented chow ring of the Fano matroid.
 ```jldoctest
 julia> M = fano_matroid();
+
 julia> R = augmented_chow_ring(M);
 ```
 """
@@ -166,7 +199,9 @@ function augmented_quadratic_relations(ring, proper_flats, element_vars, flat_va
         return vcat(incomparable_polynomials, xy_polynomials)
 end
 
-
+"""
+A helper function to select indicies of a vector that do `include` elments of a given set and `exclude` anothers
+"""
 function select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
         all = []
         for e in set
