@@ -1402,7 +1402,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     end
     push!(M, sparse_row(K, pos, val))
   end
-  Hecke.echelon!(M, complete = true)
+  rref!(M)
 
   b = Vector{elem_type(R)}()
   for i=1:nrows(M)
