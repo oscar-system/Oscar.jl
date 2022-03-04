@@ -434,10 +434,6 @@ function det_spin_homomorphism(L::ZLat; signed=false)
         gg = t*M*g*inv(t*M)
         det_p, spin_p = det_spin(diag, gg, p, prec + v)
         if det_p != 0
-          @show parent(spin_p)
-          @show domain(inj[p])
-          @show parent(det_p)
-          @show domain(det_hom[p])
           result[f]+= inj[p](QQ(spin_p)) + det_hom[p](ZZ(det_p))
           break
         end
