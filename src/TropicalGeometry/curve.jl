@@ -524,5 +524,5 @@ function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
             append!(list_vertices,V[1][1]+V[1][2]*im,B[1]+B[2]*im,Inf+0*im)
         end
     end
-    Plots.plot(list_vertices,legend=false,axis=false,label=false)
+    Plots.plot(list_vertices,legend=false,axis=false,xlabel="",ylabel="")
 end
