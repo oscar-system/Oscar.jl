@@ -6,7 +6,7 @@ export
     cycle_matroid, bond_matroid, cocycle_matroid,
     dual_matroid, direct_sum, restriction, deletion, contraction, minor,
     principal_extension, free_extension, series_extension, parallel_extension,
-    uniform_matroid, fano_matroid, non_fano_matroid, non_pappus_matroid, vamos_matroid,
+    uniform_matroid, fano_matroid, non_fano_matroid, pappus_matroid, non_pappus_matroid, vamos_matroid,
     all_subsets_matroid, projective_plane, projective_geometry, affine_geometry
 
 ################################################################################
@@ -657,14 +657,21 @@ non_fano_matroid() = matroid_from_matrix_rows(matrix(QQ,[[1,0,0],[0,1,0],[1,1,0]
 
 Construct the non-Pappus matroid.
 """
-non_pappus_matroid() = matroid_from_nonbases([[1,2,3],[4,5,6],[1,5,7],[1,6,8],[2,4,7],[2,6,9],[3,4,8],[3,5,9]], 9)
+non_pappus_matroid() = Matroid(Polymake.matroid.non_pappus_matroid())
+
+"""
+    pappus_matroid()
+
+Construct the non-Pappus matroid.
+"""
+pappus_matroid() = Matroid(Polymake.matroid.pappus_matroid())
 
 """
     vamos_matroid()
 
 Construct the Vamos matroid.
 """
-vamos_matroid() = matroid_from_nonbases([[1,2,3,4],[1,2,5,6],[3,4,5,6],[5,6,7,8],[3,4,7,8]], 8)
+vamos_matroid() = Matroid(Polymake.matroid.vamos_matroid())
 
 """
     all_subsets_matroid(r)
@@ -672,9 +679,9 @@ vamos_matroid() = matroid_from_nonbases([[1,2,3,4],[1,2,5,6],[3,4,5,6],[5,6,7,8]
 Construct the all-subsets-matroid of rank r, a.k.a. the matroid underlying the resonance arrangement.
 """
 function all_subsets_matroid(r::Int)
-    M=[]
+    M = []
     for i in 1:2^r-1
-        M=vcat(M,digits(i, base=2, pad=r))
+        M = vcat(M,digits(i, base=2, pad=r))
     end
     M = convert(Array{Int64, 2}, reshape(M, r, 2^r-1))
     return matroid_from_matrix_columns(matrix(QQ, M))
@@ -747,7 +754,6 @@ Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
 ```jldoctest
 julia> M = affine_geometry(3, 3)
 Matroid of rank 3 on 13 elements
-
 ```
 """
 function affine_geometry(r::Int, q::Int)
