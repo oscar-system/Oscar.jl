@@ -5,7 +5,7 @@ export
     matroid_from_matrix_columns, matroid_from_matrix_rows,
     cycle_matroid, bond_matroid, cocycle_matroid,
     dual_matroid, direct_sum, restriction, deletion, contraction, minor,
-    principal_extension,
+    principal_extension, free_extension, series_extension, parallel_extension
     uniform_matroid, fano_matroid, non_fano_matroid, non_pappus_matroid, vamos_matroid
 
 ################################################################################
@@ -543,21 +543,87 @@ The `principal extension M +_F e` of a matroid `M` where the element `e` is free
 See Section 7.2 of Oxl11 (@cite)
 
 # Example
-To add `4` freely to the flat `{1,2}` of the uniform matroid U_{2,3} do
+To add `4` freely to the flat `{1,2}` of the uniform matroid U_{3,4} do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
 
-julia>  N = principal_extension(M,[1,2],5)
+julia> N = principal_extension(M,[1,2],5)
 Matroid of rank 3 on 5 elements
 ```
 """
 function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::Union{IntegerUnion,Char,String})
-    if issubset([elem],M.groundset)
+    if elem in M.groundset
         error("The element you are about to add is already contained in the ground set")
     end
     gs2num = copy(M.gs2num)
     gs2num[elem] = length(M.groundset)
     return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
+end
+
+@doc Markdown.doc"""
+The `free extension M +_E e` of a matroid `M` where the element `e`.
+
+See ``principal_extension`` and Section 7.2 of Oxl11 (@cite)
+
+# Example
+To add `4` freely to the uniform matroid U_{3,4} do
+```jldoctest
+julia> M = uniform_matroid(3,4);
+
+julia>  N = free_extension(M,5)
+Matroid of rank 3 on 5 elements
+```
+"""
+free_extension(M::Matroid, elem::Union{IntegerUnion,Char,String}) = principal_extension(M, M.groundset, elem)
+
+@doc Markdown.doc"""
+The `series extension` of a matroid `M` where the element `e` is added in series to `f`.
+
+This is actually a coextension see also Section 7.2 of Oxl11 (@cite)
+
+# Example
+To add `e` in series to `1` in the uniform matroid U_{3,4} do
+```jldoctest
+julia> M = uniform_matroid(1,4);
+
+julia> N = series_extension(M,1,'e')
+Matroid of rank 2 on 5 elements
+
+julia> cocircuits(N)[1]
+2-element Vector{Any}:
+ 2
+  'e': ASCII/Unicode U+0065 (category Ll: Letter, lowercase)
+```
+"""
+function series_extension(M::Matroid, old::Union{IntegerUnion,Char,String}, new::Union{IntegerUnion,Char,String})
+	return dual_matroid(principal_extension(dual_matroid(M),[old], new))
+end
+
+
+@doc Markdown.doc"""
+The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is added parallel to `f`.
+
+See Section 7.2 of Oxl11 (@cite)
+
+# Example
+To add `e` parallel to `1` in the uniform matroid U_{3,4} do
+```jldoctest
+julia> M = uniform_matroid(3,4);
+
+julia> N = parallel_extension(M,1,'e')
+Matroid of rank 4 on 5 elements
+
+julia> circuits(N)[1]
+2-element Vector{Any}:
+ 2
+  'e': ASCII/Unicode U+0065 (category Ll: Letter, lowercase)
+```
+"""
+function parallel_extension(M::Matroid, old::Union{IntegerUnion,Char,String}, new::Union{IntegerUnion,Char,String})
+	if !(old in M.groundset)
+		error("The element ".old." is not in the ground set")
+	end
+	return principal_extension(M,closure(M,[old]), new)
 end
 
 

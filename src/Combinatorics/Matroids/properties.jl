@@ -11,7 +11,6 @@ export
     loops, coloops, is_loopless, is_coloopless, is_simple, direct_sum_components,
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
-    principal_extension, free_extension, series_extension,
     tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
     revlex_basis_encoding
 
@@ -845,10 +844,6 @@ function tutte_connectivity(M::Matroid)
     end
     return minimum([vertical_connectivity(M),girth(M)])
 end
-
-principal_extension()=0
-free_extension()=0
-series_extension()=0
 
 @doc Markdown.doc"""
     tutte_polynomial(M::Matroid)
