@@ -1,5 +1,6 @@
 export
-    Matroid, groundset,
+    Matroid, groundset, 
+    matroid_from_revlex_basis_encoding, revlex_basis_encoding,
     matroid_from_bases, matroid_from_nonbases, matroid_from_circuits, matroid_from_hyperplanes,
     matroid_from_matrix_columns, matroid_from_matrix_rows,
     cycle_matroid, bond_matroid, cocycle_matroid,
@@ -25,6 +26,42 @@ function Base.show(io::IO, M::Matroid)
     print(io, "Matroid of rank $(r) on $(n) elements")
 end
 
+"""
+Matroid(M)
+Construct a `matroid` from a ``polymake matroid M`` on the default ground set `{1,...,n}`.
+"""
+function Matroid(pm_matroid::Polymake.BigObjectAllocated)
+    gs2num = Dict{Any,IntegerUnion}()
+    [gs2num[i] = i for i in 1:pm_matroid.N_ELEMENTS]
+    return Matroid(pm_matroid, 1:pm_matroid.N_ELEMENTS, gs2num)
+end
+
+"""
+matroid_from_revlex_encoding()
+Construct a `matroid` from a ``polymake matroid M`` on the default ground set `{1,...,n}`.
+"""
+function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
+    if match(r"[^*0]",rvlx)!=nothing
+	    error("The revlex encoding uses only `*` and `0`")
+    end
+    if length(rvlx)!= binomial(n,r)
+	    error("The length of the string does not match the rank and number of elements")
+    end
+    return Matroid(Polymake.matroid.Matroid(N_ELEMENTS=n, RANK=rank, REVLEX_BASIS_ENCODING=rvlx))
+end
+
+function revlex_basis_encoding(M::Matroid)
+	rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
+	indicies = findall(x->x=='*', rvlx)
+	v = zeros(Int,length(rvlx))
+	[v[i]=1 for i in indicies]
+
+	#maybe we can use GAP here? see https://gap-packages.github.io/images/doc/chap2.html#X7B4A093B7FBA4C23
+	hy = Polymake.polytope.hypersimplex(rank(M),length(groundset(M)), group=1);
+	Polymake.Shell.pair = Polymake.group.lex_minimal(hy.GROUP.VERTICES_ACTION, v)
+	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
+	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+end
 
 @doc Markdown.doc"""
 Construct a `matroid` with bases `B` on the ground set `E` (which can be the empty set).
@@ -542,15 +579,7 @@ end
 
 Construct the uniform matroid of rank `r` on the `n` elements `{1,...,n}`.
 """
-function uniform_matroid(r::IntegerUnion,n::IntegerUnion)
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in 1:n
-        gs2num[elem] = i
-        i+=1
-    end
-    return Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
-end
+uniform_matroid(r::IntegerUnion,n::IntegerUnion) = Matroid(Polymake.matroid.uniform_matroid(r,n))
 
 """
     fano_matroid()
