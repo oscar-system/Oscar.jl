@@ -681,8 +681,8 @@ julia> fan(p2)
 A polyhedral fan in ambient dimension 2
 ```
 """
-@attr PolyhedralFan function fan(v::AbstractNormalToricVariety)
-    return PolyhedralFan(pm_object(v))
+@attr PolyhedralFan{fmpq} function fan(v::AbstractNormalToricVariety)
+    return PolyhedralFan{fmpq}(pm_object(v))
 end
 export fan
 

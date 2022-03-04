@@ -93,6 +93,7 @@ function all_power_products_of_degree!(C::PowerProductCache{S, T}, d::Int, remem
   end
 
   C.power_products[d] = Vector{T}()
+  C.exponent_vectors_known[d] = remember_exponents
 
   if d == 0
     push!(C.power_products[d], one(C.ring))
@@ -104,7 +105,7 @@ function all_power_products_of_degree!(C::PowerProductCache{S, T}, d::Int, remem
   for i = 1:length(C.base)
     extend!(C, d, i, remember_exponents)
   end
-  C.exponent_vectors_known[d] = remember_exponents
+
   return C.power_products[d]
 end
 
@@ -183,6 +184,18 @@ function add_to_basis!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
   return Hecke._add_row_to_rref!(B.M, srow)
 end
 
+function add_invariant!(C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}) where T
+  push!(C.invars, f)
+  push!(C.isirreducible, isirred)
+  if isirred
+    for exp in C.sec_in_irred
+      push!(exp, 0)
+    end
+  end
+  push!(C.sec_in_irred, exps)
+  return nothing
+end
+
 ################################################################################
 #
 #  Modular case
@@ -201,8 +214,12 @@ function secondary_invariants_modular(RG::InvRing)
   p_invars = elem_type(R)[ f.f for f in primary_invariants(RG) ]
 
   s_invars = elem_type(R)[ one(R) ]
+  s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
+  add_invariant!(s_invars_cache, one(Rgraded), false, Int[])
 
   C = PowerProductCache(R, p_invars)
+  # D.base is going to be the irreducible secondary invariants
+  D = PowerProductCache(R, elem_type(R)[])
   for d = 1:sum( total_degree(f) - 1 for f in p_invars )
     Md = generators_for_given_degree!(C, s_invars, d, false)[1]
 
@@ -211,17 +228,26 @@ function secondary_invariants_modular(RG::InvRing)
     # of Md, but we can do a little bit better.
 
     # Build the basis matrix of Md compatible with Bd
+    # We need to reverse the columns of this matrix, see below.
     Bd = iterate_basis_linear_algebra(RG, d)
-    mons_to_rows = Dict{elem_type(R), Int}(Bd.monomials_collected[i].f => i for i = 1:length(Bd.monomials_collected))
-    B = zero_matrix(K, length(Md), length(Bd.monomials_collected))
-    ncB1 = ncols(B) + 1
-    for i = 1:length(Md)
-      for (a, m) in zip(coefficients(Md[i]), monomials(Md[i]))
-        # Need to reverse the columns of B, see below
-        B[i, ncB1 - mons_to_rows[m]] = deepcopy(a)
+    ncB1 = length(Bd.monomials_collected) + 1
+    mons_to_cols = Dict{elem_type(R), Int}(Bd.monomials_collected[i].f => ncB1 - i for i = 1:length(Bd.monomials_collected))
+    B = BasisOfPolynomials(R, Md, mons_to_cols)
+
+    # Do a slight detour and first try to build invariants as products of ones
+    # of smaller degree. This is no speed-up (it's in fact more work), but this
+    # way we have a set of irreducible secondary invariants of a much smaller
+    # cardinality.
+    for f in all_power_products_of_degree!(D, d, true)
+      if add_to_basis!(B, f)
+        # f is a power product of monic polynomials, so monic itself
+        add_invariant!(s_invars_cache, Rgraded(f), false, copy(D.exponent_vectors[f]))
+        push!(s_invars, f)
       end
     end
-    rref!(B)
+
+    # Now look for "new" invariants in this degree (the irreducible ones)
+    B = B.M
     N = Bd.kernel
 
     # Now find all columns of N which are not in the span of B.
@@ -242,12 +268,15 @@ function secondary_invariants_modular(RG::InvRing)
       end
       # N[r, c] is a pivot of N
 
-      if b <= nrows(B) && !iszero(B[b, ncB1 - r])
-        # B has also has a pivot at the corresponding position, so we can skip
-        # this column of N.
-        c -= 1
-        b += 1
-        continue
+      if b <= nrows(B)
+        k = searchsortedfirst(B.rows[b].pos, ncB1 - r)
+        if k <= length(B.rows[b].pos) && B.rows[b].pos[k] == ncB1 - r
+          # B has also has a pivot at the corresponding position, so we can skip
+          # this column of N.
+          c -= 1
+          b += 1
+          continue
+        end
       end
 
       f = R()
@@ -257,54 +286,15 @@ function secondary_invariants_modular(RG::InvRing)
         end
         f += N[j, c]*Bd.monomials_collected[j].f
       end
-      push!(s_invars, inv(leading_coefficient(f))*f)
+      f = inv(leading_coefficient(f))*f
+      add_base_element!(D, f, true)
+      add_invariant!(s_invars_cache, Rgraded(f), true, D.exponent_vectors[f])
+      push!(s_invars, f)
 
       c -= 1
     end
   end
-  return [ Rgraded(f) for f in s_invars ]
-end
-
-function irreducible_secondary_invariants_modular(RG::InvRing)
-  Rgraded = polynomial_ring(RG)
-  R = Rgraded.R
-  K = coefficient_ring(R)
-
-  s_invars = elem_type(R)[ f.f for f in secondary_invariants(RG) ]
-
-  # Sort the secondary invariants by degree
-  maxd = maximum(total_degree(f) for f in s_invars)
-
-  if maxd == 0
-    return elem_type(Rgraded)[]
-  end
-
-  s_invars_sorted = Vector{Vector{elem_type(R)}}(undef, maxd)
-  for i = 1:maxd
-    s_invars_sorted[i] = elem_type(R)[]
-  end
-  for f in s_invars
-    d = total_degree(f)
-    if d == 0
-      continue
-    end
-    push!(s_invars_sorted[d], f)
-  end
-
-  # secondary invariants of degree 1 are irreducible
-  is_invars = s_invars_sorted[1]
-  C = PowerProductCache(R, append!(elem_type(R)[ f.f for f in primary_invariants(RG) ], is_invars))
-  for d = 2:maxd
-    basis_d = all_power_products_of_degree!(C, d, false)
-    B = BasisOfPolynomials(R, basis_d)
-    for f in s_invars_sorted[d]
-      if add_to_basis!(B, f)
-        push!(is_invars, f)
-        add_base_element!(C, f, false)
-      end
-    end
-  end
-  return [ Rgraded(f) for f in is_invars ]
+  return s_invars_cache
 end
 
 ################################################################################
@@ -334,15 +324,16 @@ function secondary_invariants_nonmodular(RG::InvRing)
   Rgraded = polynomial_ring(RG)
   R = Rgraded.R
   K = coefficient_ring(R)
-  s_invars = elem_type(R)[ one(R) ] # secondary invariants
-  is_invars = elem_type(R)[] # irreducible secondary invariants
+  s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
+  add_invariant!(s_invars_cache, one(Rgraded), false, Int[])
 
   # sum(coefficients(h)) is the number of secondary invariants we need in total.
   B = BasisOfPolynomials(R, [ one(R) ])
 
   # We try to construct as many invariants as possible as power products from
   # already computed ones using all_power_products_of_degree! .
-  C = PowerProductCache(R, is_invars)
+  # C.base is going to be the irreducible secondary invariants.
+  C = PowerProductCache(R, elem_type(R)[])
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
@@ -350,11 +341,12 @@ function secondary_invariants_nonmodular(RG::InvRing)
     end
     invars_found = 0
 
-    invars = all_power_products_of_degree!(C, d, false)
+    invars = all_power_products_of_degree!(C, d, true)
     for f in invars
       nf = normal_form(f, I).f
       if add_to_basis!(B, nf)
-        push!(s_invars, inv(leading_coefficient(f))*f)
+        # f is a power product of monic polynomials, so monic itself
+        add_invariant!(s_invars_cache, Rgraded(f), false, copy(C.exponent_vectors[f]))
         invars_found += 1
         invars_found == k && break
       end
@@ -384,15 +376,15 @@ function secondary_invariants_nonmodular(RG::InvRing)
       nf = normal_form(f, I).f
       if add_to_basis!(B, nf)
         f = inv(leading_coefficient(f))*f
-        push!(s_invars, f)
-        push!(is_invars, f)
-        add_base_element!(C, f, false)
+        add_base_element!(C, f, true)
+        add_invariant!(s_invars_cache, Rgraded(f), true, copy(C.exponent_vectors[f]))
         invars_found += 1
         invars_found == k && break
       end
     end
   end
-  return [ Rgraded(f) for f in s_invars], [ Rgraded(f) for f in is_invars ]
+
+  return s_invars_cache
 end
 
 ################################################################################
@@ -400,6 +392,18 @@ end
 #  User functions
 #
 ################################################################################
+
+function _secondary_invariants(IR::InvRing)
+  if isdefined(IR, :secondary)
+    return nothing
+  end
+  if ismodular(IR)
+    IR.secondary = secondary_invariants_modular(IR)
+  else
+    IR.secondary = secondary_invariants_nonmodular(IR)
+  end
+  return nothing
+end
 
 @doc Markdown.doc"""
     secondary_invariants(IR::InvRing)
@@ -411,8 +415,8 @@ Note that the secondary invariants are defined with respect to the currently
 cached system of primary invariants for `IR` (if no system of primary invariants
 for `IR` is cached, compute and cache such a system first).
 
-The implemented algorithms are [DK15, Algorithm 3.7.5] for the modular case and
-[DK15, Algorithm 3.7.2] for the non-modular case.
+The implemented algorithms are Algorithm 3.7.5 in [DK15](@cite) for the modular case and
+Algorithm 3.7.2 in [DK15](@cite) for the non-modular case.
 
 # Examples
 ```jldoctest
@@ -433,14 +437,8 @@ julia> secondary_invariants(IR)
 ```
 """
 function secondary_invariants(IR::InvRing)
-  if !isdefined(IR, :secondary)
-    if ismodular(IR)
-      IR.secondary = secondary_invariants_modular(IR)
-    else
-      IR.secondary, IR.irreducible_secondary = secondary_invariants_nonmodular(IR)
-    end
-  end
-  return copy(IR.secondary)
+  _secondary_invariants(IR)
+  return copy(IR.secondary.invars)
 end
 
 @doc Markdown.doc"""
@@ -494,16 +492,10 @@ julia> irreducible_secondary_invariants(IR)
 ```
 """
 function irreducible_secondary_invariants(IR::InvRing)
-  if !isdefined(IR, :irreducible_secondary)
-    # If we are not in the modular case and the irreducible secondary invariants
-    # are not computed, there shouldn't be any secondary invariants cached.
-    # But if the user somehow managed to get them in here, I think we should not
-    # overwrite them.
-    if ismodular(IR) || isdefined(IR, :secondary)
-      IR.irreducible_secondary = irreducible_secondary_invariants_modular(IR)
-    else
-      IR.secondary, IR.irreducible_secondary = secondary_invariants_nonmodular(IR)
-    end
+  _secondary_invariants(IR)
+  is_invars = elem_type(polynomial_ring(IR))[]
+  for i = 1:length(IR.secondary.invars)
+    IR.secondary.isirreducible[i] ? push!(is_invars, IR.secondary.invars[i]) : nothing
   end
-  return copy(IR.irreducible_secondary)
+  return is_invars
 end

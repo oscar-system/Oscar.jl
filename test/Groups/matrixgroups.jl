@@ -639,7 +639,7 @@ end
    K, a = number_field(f)
    D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);
    gens = [[13, 0, 0], [156*a+143, 0, 0], [3//2*a+5, 1, 0], [3//2*a+5, 1, 0], [21//2*a, 0, 1//26], [21//2*a, 0, 1//26]]
-   L = quadratic_lattice(K, generators = gens, gram_ambient_space = D)
+   L = quadratic_lattice(K, gens, gram = D)
    G = orthogonal_group(L)
    g = -identity_matrix(K, 3)
    @test g in G

@@ -230,7 +230,7 @@ function assign_from_description(G::MatrixGroup)
      # Here d is odd, and we do not get here if d == 1 holds
      # because `omega_group` delegates to `SO` in this case.
      @assert G.deg > 1
-     if iseven(GAP.Globals.Size(F))
+     if iseven(GAPWrap.Size(F))
        G.X = GAP.Globals.SO(0, G.deg, F)
      else
        L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0, G.deg, F))
@@ -526,7 +526,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X)::GapInt)
+compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
 
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 

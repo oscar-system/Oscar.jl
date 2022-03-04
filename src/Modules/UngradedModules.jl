@@ -2316,8 +2316,8 @@ If `task` is set to `:only_morphism` then return only the isomorphism.
 function present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
   chainComplex = presentation(SQ)
   R_b = obj(chainComplex, 1)
-  f = map(chainComplex, 1)
-  g = map(chainComplex, 2)
+  f = map(chainComplex, 2)
+  g = map(chainComplex, 1)
   presentation_module = quo(R_b, image(f)[1])
 
   if task == :none
@@ -3099,33 +3099,35 @@ that converts elements from $S$ into morphisms $M \to N$.
 If `alg` is `:matrices` a different implementation that is using matrices instead of maps is used.
 """
 function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)  
+  d1 = 1
+  d2 = 2
   if alg == :matrices && M isa SubQuo && N isa SubQuo
     return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
   p2 = presentation(N)
-  k, mk = kernel(map(p2, 1))
+  k, mk = kernel(map(p2, d2))
   #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
   #kernel g1: k -> R^t1
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   F = FreeMod(base_ring(M), ngens(k))
   g2 = hom(F, codomain(mk), collect(k.sub.gens)) #not clean - but maps not (yet) working
   #step 2
-  H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
-  H_s1_t1, mH_s1_t1 = hom(domain(map(p1, 1)), domain(map(p2, 1)))
+  H_s0_t0, mH_s0_t0 = hom(domain(map(p1, d1)), domain(map(p2, d1)))
+  H_s1_t1, mH_s1_t1 = hom(domain(map(p1, d2)), domain(map(p2, d2)))
   D, pro, emb = direct_product(H_s0_t0, H_s1_t1, task = :both)
 
-  H_s1_t0, mH_s1_t0 = hom(domain(map(p1, 1)), domain(map(p2, 2)))
+  H_s1_t0, mH_s1_t0 = hom(domain(map(p1, d2)), domain(map(p2, d1)))
 
-  delta = hom(D, H_s1_t0, Vector{ModuleFPElem}([preimage(mH_s1_t0, map(p1, 1)*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*map(p2, 1)) for g = gens(D)]))
+  delta = hom(D, H_s1_t0, Vector{ModuleFPElem}([preimage(mH_s1_t0, map(p1, d2)*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*map(p2, d2)) for g = gens(D)]))
 
-  H_s0_t1, mH_s0_t1 = hom(domain(map(p1, 2)), domain(map(p2, 1)))
-  H_s1_t2, mH_s1_t2 = hom(domain(map(p1, 1)), F)
+  H_s0_t1, mH_s0_t1 = hom(domain(map(p1, d1)), domain(map(p2, d2)))
+  H_s1_t2, mH_s1_t2 = hom(domain(map(p1, d2)), F)
 
   E, pr = direct_product(H_s0_t1, H_s1_t2, task = :prod)
 
-  rho = hom(E, D, Vector{ModuleFPElem}([emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
-                  emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)]))
+  rho = hom(E, D, Vector{ModuleFPElem}([emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, d2))) + 
+                  emb[2](preimage(mH_s1_t1, map(p1, d2)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)]))
   #need quo(kern(delta), image(rho))
  
   kDelta = kernel(delta)
@@ -3139,15 +3141,15 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
   function im(x::SubQuoElem)
     @assert parent(x) === H
     #return SubQuoHom(M, N, mH_s0_t0(pro[1](x.repres)).matrix)
-    return hom(M, N, Vector{ModuleFPElem}([map(p2, 2)(mH_s0_t0(pro[1](x.repres))(preimage(map(p1, 2), g))) for g = gens(M)]))
+    return hom(M, N, Vector{ModuleFPElem}([map(p2, d1)(mH_s0_t0(pro[1](x.repres))(preimage(map(p1, d1), g))) for g = gens(M)]))
   end
 
   function pre(f::ModuleMap)
     @assert domain(f) === M
     @assert codomain(f) === N
-    Rs0 = domain(map(p1, 2))
-    Rt0 = domain(map(p2, 2))
-    g = hom(Rs0, Rt0, Vector{ModuleFPElem}([preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)]))
+    Rs0 = domain(map(p1, d1))
+    Rt0 = domain(map(p2, d1))
+    g = hom(Rs0, Rt0, Vector{ModuleFPElem}([preimage(map(p2, d1), f(map(p1, d1)(g))) for g = gens(Rs0)]))
 
     #return H(preimage(psi, (preimage(mH_s0_t0, g))).repres)
     return SubQuoElem(repres(preimage(psi, (preimage(mH_s0_t0, g)))), H)

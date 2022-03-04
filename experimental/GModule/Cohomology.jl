@@ -498,12 +498,6 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
 
-function Oscar.preimage(f::GAPGroupHomomorphism, x::GAPGroupElem) 
-  fl, p = haspreimage(f, x)
-  @assert fl
-  return p
-end
-
 
 #############################
 #
@@ -1558,7 +1552,7 @@ function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacEle
   u = domain(mu)
   U = [mu(g) for g = gens(u)]
   G, mG = automorphism_group(PermGroup, k)
-  ac = [hom(u, u, [preimage(mu, mG(g)(x)) for x = U]) for g = gens(H)]
+  ac = [hom(u, u, [preimage(mu, mG(G(g))(x)) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
 end
 
