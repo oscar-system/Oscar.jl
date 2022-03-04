@@ -8,7 +8,7 @@ export
     is_clutter,
     is_regular, is_binary, is_ternary,
     n_connected_components, connected_components, is_connected,
-    loops, coloops, is_loopless, is_coloopless, is_simple_matroid, direct_sum_components,
+    loops, coloops, is_loopless, is_coloopless, is_simple, direct_sum_components,
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
     principal_extension, free_extension, series_extension,
@@ -685,7 +685,7 @@ true
 is_coloopless(M::Matroid) = length(M.pm_matroid.DUAL.LOOPS)==0 ? true : false
 
 @doc Markdown.doc"""
-    is_simple_matroid(M::Matroid)
+    is_simple(M::Matroid)
 
 Check if `M` has is simple. A matroid is simple if it doesn't have loops and doesn't have parallel elements.
 Return `true` if `M` is simple.
@@ -693,14 +693,14 @@ See also `loops`.
 
 # Example
 ```jldoctest
-julia> is_simple_matroid(matroid_from_bases([[1,2]], 4))
+julia> is_simple(matroid_from_bases([[1,2]], 4))
 false
 
-julia> is_simple_matroid(fano_matroid())
+julia> is_simple(fano_matroid())
 true
 ```
 """
-is_simple_matroid(M::Matroid) = M.pm_matroid.SIMPLE
+is_simple(M::Matroid) = M.pm_matroid.SIMPLE
 
 @doc Markdown.doc"""
     direct_sum_components(M::Matroid)
