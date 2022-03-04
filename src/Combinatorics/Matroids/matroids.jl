@@ -1,11 +1,11 @@
 export
     Matroid, groundset,
-    matroid_from_bases, matroid_from_circuits, matroid_from_hyperplanes
+    matroid_from_bases, matroid_from_nonbases, matroid_from_circuits, matroid_from_hyperplanes,
     matroid_from_matrix_columns, matroid_from_matrix_rows,
     cycle_matroid, bond_matroid, cocycle_matroid,
     dual_matroid, direct_sum, restriction, deletion, contraction, minor,
     principal_extension,
-    uniform_matroid, fano_matroid, non_fano_matroid
+    uniform_matroid, fano_matroid, non_fano_matroid, non_pappus_matroid, vamos_matroid
 
 ################################################################################
 ##  Constructing
@@ -52,7 +52,7 @@ Matroid of rank 2 on 4 elements
 matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_bases(bases,Vector(1:nelements))
 
 function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
-    if check && size(groundset)[1]!=length(Set(groundset))
+    if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
     gs2num = Dict{Any,IntegerUnion}()
@@ -62,9 +62,57 @@ function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, Abstr
         i+=1
     end
     pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
-    M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=size(groundset)[1])
+    M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
         error("Input is not a collection of bases")
+    end
+    return Matroid(M,groundset,gs2num)
+end
+
+@doc Markdown.doc"""
+Construct a `matroid` with nonbases `N` on the ground set `E` (which can be the empty set).
+That means that the matroid has as bases all subsets of the size `|N[1]|` of the ground set that are not in `N`.
+There `N` can't be empty.
+The described complement of `N` needs to be a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
+and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
+
+See Section 1.2 of Oxl11 (@cite)
+
+# Examples
+To construct the Fano matroid you may write:
+```jldoctest
+julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
+julia> M = matroid_from_nonbases(H,7)
+Matroid of rank 3 on 7 elements
+
+```
+"""
+matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_nonbases(nonbases,Vector(1:nelements))
+
+function matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
+    if check && length(groundset)!=length(Set(groundset))
+        error("Input is not a valid groundset of a matroid")
+    end
+    gs2num = Dict{Any,IntegerUnion}()
+    i = 1
+    for elem in groundset
+        gs2num[elem] = i
+        i+=1
+    end
+    if length(nonbases)==0
+        error("The collection of nonbases should not be empty.")
+    end
+    rk = length(nonbases[1])
+    bases = Vector{Vector{IntegerUnion}}()
+    for set in Oscar.Hecke.subsets(Vector(1:length(groundset)),rk)
+        if !(set in nonbases)
+            push!(bases, set)
+        end
+    end
+    pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
+    M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
+    if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
+        error("Input is not a collection of nonbases")
     end
     return Matroid(M,groundset,gs2num)
 end
@@ -97,7 +145,7 @@ Matroid of rank 2 on 4 elements
 matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_circuits(circuits,Vector(1:nelements))
 
 function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
-    if check && size(groundset)[1]!=length(Set(groundset))
+    if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
     gs2num = Dict{Any,IntegerUnion}()
@@ -107,7 +155,7 @@ function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector},
         i+=1
     end
     pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
-    M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=size(groundset)[1])
+    M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=length(groundset))
     #TODO check_circuit_exchange_axiom (requires an update of polymake)
     #if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
     #   error("Input is not a collection of circuits")
@@ -135,7 +183,7 @@ Matroid of rank 3 on 7 elements
 matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
 
 function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
-    if check && size(groundset)[1]!=length(Set(groundset))
+    if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
     gs2num = Dict{Any,IntegerUnion}()
@@ -305,12 +353,12 @@ function direct_sum(M::Matroid, N::Matroid)
     gsN = N.groundset
     while any(in(M.groundset), gsN)
         gsN = Vector{Any}(copy(gsN))
-        for i in 1:size(gsN)[1]
+        for i in 1:length(gsN)
             gsN[i] = string(gsN[i],'\'')
         end
     end
     new_gs2num = Dict{Any,IntegerUnion}()
-    i = size(M.groundset)[1]+1
+    i = length(M.groundset)+1
     for elem in gsN
         new_gs2num[elem] = i
         i+=1
@@ -348,11 +396,11 @@ julia> groundset(N)
 ```
 """
 function deletion(M::Matroid,set::Union{AbstractVector, Set})
-    sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
+    sort_set = Vector(undef,length(M.groundset)-length(set))
     gs2num = Dict{Any,IntegerUnion}()
     i = 1
     for elem in M.groundset
-        if size(findall(x->x==elem, set))[1]==0
+        if length(findall(x->x==elem, set))==0
             sort_set[i]=elem
             gs2num[elem] = i
             i+=1
@@ -387,13 +435,13 @@ function restriction(M::Matroid,set::Union{AbstractVector, Set})
     gs2num = Dict{Any,IntegerUnion}()
     i = 1
     for elem in M.groundset
-        if size(findall(x->x==elem, set))[1]>0
+        if length(findall(x->x==elem, set))>0
             sort_set[i]=elem
             gs2num[elem] = i
             i+=1
         end
     end
-    pm_complement = setdiff(Set(0:size(M.groundset)[1]-1),Set([M.gs2num[i]-1 for i in set]))
+    pm_complement = setdiff(Set(0:length(M.groundset)-1),Set([M.gs2num[i]-1 for i in set]))
     pm_rest = Polymake.matroid.deletion(M.pm_matroid, pm_complement)
     return Matroid(pm_rest, sort_set, gs2num)
 end
@@ -425,11 +473,11 @@ julia> groundset(N)
 ```
 """
 function contraction(M::Matroid,set::Union{AbstractVector, Set})
-    sort_set = Vector(undef,size(M.groundset)[1]-size(set)[1])
+    sort_set = Vector(undef,length(M.groundset)-length(set))
     gs2num = Dict{Any,IntegerUnion}()
     i = 1
     for elem in M.groundset
-        if size(findall(x->x==elem, set))[1]==0
+        if length(findall(x->x==elem, set))==0
             sort_set[i]=elem
             gs2num[elem] = i
             i+=1
@@ -517,3 +565,17 @@ fano_matroid() = matroid_from_matrix_rows(matrix(GF(2),[[1,0,0],[0,1,0],[1,1,0],
 Construct the non-fano matroid.
 """
 non_fano_matroid() = matroid_from_matrix_rows(matrix(QQ,[[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]))
+
+"""
+    non_pappus_matroid()
+
+Construct the non-Pappus matroid.
+"""
+non_pappus_matroid() = matroid_from_nonbases([[1,2,3],[4,5,6],[1,5,7],[1,6,8],[2,4,7],[2,6,9],[3,4,8],[3,5,9]], 9)
+
+"""
+    vamos_matroid()
+
+Construct the Vamos matroid.
+"""
+vamos_matroid() = matroid_from_nonbases([[1,2,3,4],[1,2,5,6],[3,4,5,6],[5,6,7,8],[3,4,7,8]], 8)
