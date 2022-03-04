@@ -1,5 +1,5 @@
 export Glueing
-export glueing_morphism, patches, glueing_domains, inverse_glueing_morphism, inverse
+export glueing_morphisms, patches, glueing_domains, inverse_glueing_morphism, inverse
 export glueing_type
 
 export compose, maximal_extension, restriction
@@ -20,22 +20,26 @@ mutable struct Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
   g::MorType
 
   function Glueing(
-      X::SpecType, Y::SpecType, f::MorType, g::MorType
+      X::SpecType, Y::SpecType, f::MorType, g::MorType; check::Bool=true
     ) where {
       SpecType<:Spec, MorType<:SpecOpenMor
     }
-    ambient(domain(f)) == X || error("the domain of the glueing morphism is not an open subset of the first argument")
-    ambient(codomain(f)) == Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
-    (canonically_isomorphic(domain(f), codomain(g)) && 
-     canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
-    return new{SpecType, open_subset_type(X), MorType}(X, Y, domain(f), codomain(f), f, g)
+    ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
+    ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
+    if check
+      (canonically_isomorphic(domain(f), codomain(g)) && 
+       canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
+      compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
+      compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
+    end
+    return new{SpecType, open_subset_type(X), MorType}(X, Y, domain(f), domain(g), f, g)
   end
 end
 
 patches(G::Glueing) = G.X, G.Y
 glueing_morphisms(G::Glueing) = G.f, G.g
-glueing_domains(G::Glueing) = domain(G.f), codomain(G.f)
-inverse(G::Glueing) = Glueing(G.Y, G.X, G.g, G.f)
+glueing_domains(G::Glueing) = domain(G.f), domain(G.g)
+inverse(G::Glueing) = Glueing(G.Y, G.X, G.g, G.f, check=false)
 
 function Base.show(io::IO, G::Glueing)
   print(io, "Glueing of $(patches(G)[1]) and $(patches(G)[2]) along the map $(glueing_morphisms(G)[1])")
@@ -115,5 +119,5 @@ function restriction(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) whe
     is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check))
+  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check), check=check)
 end

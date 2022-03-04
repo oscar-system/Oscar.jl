@@ -9,7 +9,7 @@ export MPolyQuoLocalizedRingElem
 export numerator, denominator, parent, lift, isunit, inv, convert, lifted_numerator, lifted_denominator, fraction
 
 export MPolyQuoLocalizedRingHom
-export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type
+export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type, ideal_type
 export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
 export is_isomorphism, inverse
@@ -73,7 +73,7 @@ Localization ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of a quotient
 of type `RingType` over a base ring ``𝕜`` of type `BaseRingType` at a
 multiplicative set ``S ⊂ P`` of type `MultSetType`.
 """
-mutable struct MPolyQuoLocalizedRing{
+@attributes mutable struct MPolyQuoLocalizedRing{
     BaseRingType,
     BaseRingElemType,
     RingType,
@@ -89,9 +89,6 @@ mutable struct MPolyQuoLocalizedRing{
   S::MultSetType
   Q::MPolyQuo{RingElemType}
   W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-
-  # fields for caching
-  J::MPolyLocalizedIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
   function MPolyQuoLocalizedRing(
       R::RingType,
@@ -116,7 +113,6 @@ mutable struct MPolyQuoLocalizedRing{
     ambient_ring(S) == R || error("Multiplicative set does not belong to the ring")
     k = coefficient_ring(R)
     L = new{typeof(k), elem_type(k), typeof(R), RingElemType, MultSetType}(R, I, S, Q, W)
-    L.J = W(I)
     return L
   end
 end
@@ -134,6 +130,9 @@ base_ring_elem_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BR
 
 mult_set_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
 mult_set_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(L))
+
+ideal_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+ideal_type(W::MPolyQuoLocalizedRing) = ideal_type(typeof(W))
 
 
 
@@ -156,7 +155,12 @@ modulus(L::MPolyQuoLocalizedRing) = L.I
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
 """
-localized_modulus(L::MPolyQuoLocalizedRing) = L.J
+function localized_modulus(L::MPolyQuoLocalizedRing) 
+  if !has_attribute(L, :localized_modulus)
+    set_attribute!(L, :localized_modulus, localized_ring(L)(modulus(L)))
+  end
+  return get_attribute(L, :localized_modulus)::ideal_type(L)
+end
 
 @Markdown.doc """
     quotient_ring(L::MPolyQuoLocalizedRing)
@@ -191,8 +195,9 @@ function quo(
   ) where {BRT, BRET, RT, RET, MST}
   R = base_ring(W)
   S = inverted_set(W)
-  lbpa = groebner_basis(I) # In particular, this saturates the ideal
-  J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
+  #lbpa = groebner_basis(I) # In particular, this saturates the ideal
+  #J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
+  J = ideal(R, numerator.(gens(I)))
   return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
 end
 
@@ -440,20 +445,26 @@ For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representati
 """
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
-isunit(f::MPolyQuoLocalizedRingElem) = one(localized_ring(parent(f))) in localized_modulus(parent(f)) + ideal(localized_ring(parent(f)), lift(f))
+function isunit(f::MPolyQuoLocalizedRingElem) 
+  lifted_numerator(f) in inverted_set(parent(f)) && return true
+  return one(localized_ring(parent(f))) in localized_modulus(parent(f)) + ideal(localized_ring(parent(f)), lift(f))
+end
 
 function isunit(L::MPolyQuoLocalizedRing, f::MPolyLocalizedRingElem) 
   parent(f) == localized_ring(L) || error("element does not belong to the correct ring")
+  numerator(f) in inverted_set(L) && return true
   one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), f)
 end
 
 function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   parent(f) == base_ring(L) || error("element does not belong to the correct ring")
+  f in inverted_set(L) && return true
   return one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
 function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST}
   parent(f) == quotient_ring(L) || error("element does not belong to the correct ring")
+  lift(f) in inverted_set(L) && return true
   one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
@@ -548,7 +559,7 @@ end
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if denominator(a) == denominator(b) 
+  if lifted_denominator(a) == lifted_denominator(b) 
     return reduce_fraction((parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false))
   end
   return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false))
@@ -562,7 +573,7 @@ end
 
 function -(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if denominator(a) == denominator(b) 
+  if lifted_denominator(a) == lifted_denominator(b) 
     return reduce_fraction((parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false))
   end
   return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false))
@@ -582,7 +593,7 @@ function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where 
 end
 
 function *(a::BRET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(base_ring(b)(a)*lifted_numerator(b), lifted_denominator(b), check=false))
+  return reduce_fraction((parent(b))(a*lifted_numerator(b), lifted_denominator(b), check=false))
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
@@ -620,7 +631,7 @@ end
 
 function ==(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return numerator(a)*denominator(b) == numerator(b)*denominator(a)
+  return lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a) in localized_modulus(parent(a))
 end
 
 function ^(a::MPolyQuoLocalizedRingElem, i::fmpz)
@@ -632,30 +643,31 @@ function ^(a::MPolyQuoLocalizedRingElem, i::Integer)
 end
 
 function isone(a::MPolyQuoLocalizedRingElem) 
-  a = reduce_fraction(a)
-  return (numerator(a) == denominator(a))
+  return lifted_numerator(a) - lifted_denominator(a) in localized_modulus(parent(a))
 end
 
 function iszero(a::MPolyQuoLocalizedRingElem)
-  a = reduce_fraction(a)
-  return iszero(numerator(a))
+  iszero(lifted_numerator(a)) && return true
+  return lifted_numerator(a) in localized_modulus(parent(a))
 end
 
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+  return f
   h = lift(f)
   h = reduce(h, groebner_basis(localized_modulus(parent(f))))
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h)
+  return parent(f)(h, check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
+  return f
   h = lift(f)
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h)
+  return parent(f)(h, check=false)
 end
 
 ### implementation of Oscar's general ring interface
@@ -683,6 +695,7 @@ function ideal(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST},
 end
 
 ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:RingElement} = ideal(L, [g])
+ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:MPolyQuoLocalizedRingElem} = ideal(L, [g])
 
 @Markdown.doc """
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
@@ -939,9 +952,10 @@ end
 function MPolyQuoLocalizedRingHom(
     L::MPolyQuoLocalizedRing,
     S::Ring,
-    a::Vector{T}
+    a::Vector{T};
+    check::Bool=true
   ) where {T<:RingElem}
-  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a))
+  return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
 hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a)
@@ -1009,7 +1023,7 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocalizedRing}
     c_inv = theta[1]
     helper_images = [kappa(numerator(y))*c_inv*kappa(divexact(p, denominator(y))) for y in images(f)]
     set_attribute!(f, :helper_images, helper_images)
-    eta = AlgebraHomomorphism(R, help_ring, helper_images)
+    eta = hom(R, help_ring, helper_images)
     set_attribute!(f, :eta, eta)
   end
   return get_attribute(f, :helper_ring)::base_ring_type(domain(f))
@@ -1039,7 +1053,8 @@ function helper_eta(
   if !has_attribute(f, :eta) 
     helper_ring(f)
   end
-  return get_attribute(f, :eta)::AlgHom{coefficient_ring_elem_type(domain(f))}
+  return get_attribute(f, :eta)
+  #return get_attribute(f, :eta)::AlgHom{coefficient_ring_elem_type(domain(f))}
 end
 
 function helper_kappa(
@@ -1048,7 +1063,8 @@ function helper_kappa(
   if !has_attribute(f, :kappa) 
     helper_ring(f)
   end
-  return get_attribute(f, :kappa)::AlgHom{coefficient_ring_elem_type(domain(f))}
+  return get_attribute(f, :kappa)
+  #return get_attribute(f, :kappa)::AlgHom{coefficient_ring_elem_type(domain(f))}
 end
 
 function common_denominator(
@@ -1134,13 +1150,13 @@ function is_isomorphism(
   pushfirst!(imagesB, prod(denoms))
 
   # perform a sanity check
-  phiAB = AlgebraHomomorphism(A, B, imagesB)
+  phiAB = hom(A, B, imagesB)
   issubset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
   C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
-  j2 = AlgebraHomomorphism(B, C, B_vars)
+  j2 = hom(B, C, B_vars)
   G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(C)), 
 				  String.(symbols(C)),  
@@ -1208,14 +1224,14 @@ end
 function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = length(gens(R))
-  phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
+  phi = hom(R, ext_R, gens(ext_R)[1:n])
   return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
 end
 
 function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
   n = length(gens(R))
-  phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
+  phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
 

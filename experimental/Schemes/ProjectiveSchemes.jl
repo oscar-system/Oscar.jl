@@ -415,8 +415,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     CX = subscheme(C, I)
     set_attribute!(X, :affine_cone, CX)
     X.C = get_attribute(X, :affine_cone)
-    pr_base_res = restrict(pr_base, CX, Y)
-    pr_fiber_res = restrict(pr_fiber, CX, F)
+    pr_base_res = restrict(pr_base, CX, Y, check=false)
+    pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
 
     # store the various conversion maps
     set_attribute!(X, :homog_to_frac, 
@@ -456,8 +456,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
 
     I = help_map(defining_ideal(X))
     CX = subscheme(C, I)
-    pr_base_res = restrict(pr_base, CX, Y)
-    pr_fiber_res = restrict(pr_fiber, CX, F)
+    pr_base_res = restrict(pr_base, CX, Y, check=false)
+    pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
 
     set_attribute!(X, :homog_to_frac, 
                     hom(S, OO(CX), 
@@ -704,20 +704,18 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:AbstractAlgebra.
 end
 
 function as_covered_scheme(P::ProjectiveScheme)
-  if has_attribute(P, :as_covered_scheme) 
-    return get_attribute(P, :as_covered_scheme)
+  if !has_attribute(P, :as_covered_scheme) 
+    C = standard_covering(P) 
+    X = CoveredScheme(C)
+    set_attribute!(P, :as_covered_scheme, X)
   end
-  C = standard_covering(P) 
-  X = CoveredScheme(C)
-  set_attribute!(P, :as_covered_scheme, X)
-  return X
+  return get_attribute(P, :as_covered_scheme)
 end
 
 function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuoLocalizedRing})
-  if has_attribute(X, :covered_projection_to_base) 
-    return get_attribute(X, :covered_projection_to_base)
+  if !has_attribute(X, :covered_projection_to_base) 
+    C = standard_covering(X)
   end
-  C = standard_covering(X)
   return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
 end
 
