@@ -12,7 +12,8 @@ export
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
     principal_extension, free_extension, series_extension,
-    tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial
+    tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
+    revlex_basis_encoding
 
 ################################################################################
 ##  Properties and basic functions
@@ -912,4 +913,28 @@ function reduced_characteristic_polynomial(M::Matroid)
         c[i] = s
     end
     return R(c)
+end
+
+@doc Markdown.doc"""
+Computes the ``revlex basis encoding`` and the ``minimal revlex basis encoding`` among isomorphic matroids 
+
+# Examples
+To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
+```jldoctest
+julia> string1, string2 = revlex_basis_encoding(fano_matroid())
+("0******0******0***0******0*0**0****", "000****0**0**0***0*****************")
+
+julia> matroid_from_revlex_basis_encoding(string2, 3, 7)
+Matroid of rank 3 on 7 elements
+```
+"""
+function revlex_basis_encoding(M::Matroid)
+	rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
+	indicies = findall(x->x=='*', rvlx)
+	v = zeros(Int,length(rvlx))
+	[v[i]=1 for i in indicies]
+	hy = Polymake.polytope.hypersimplex(rank(M),length(groundset(M)), group=1);
+	Polymake.Shell.pair = Polymake.group.lex_minimal(hy.GROUP.VERTICES_ACTION, v)
+	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
+	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
 end

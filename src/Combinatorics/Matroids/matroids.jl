@@ -1,6 +1,6 @@
 export
     Matroid, groundset, 
-    matroid_from_revlex_basis_encoding, revlex_basis_encoding,
+    matroid_from_revlex_basis_encoding,
     matroid_from_bases, matroid_from_nonbases, matroid_from_circuits, matroid_from_hyperplanes,
     matroid_from_matrix_columns, matroid_from_matrix_rows,
     cycle_matroid, bond_matroid, cocycle_matroid,
@@ -37,8 +37,8 @@ function Matroid(pm_matroid::Polymake.BigObjectAllocated)
 end
 
 """
-matroid_from_revlex_encoding()
-Construct a `matroid` from a ``polymake matroid M`` on the default ground set `{1,...,n}`.
+matroid_from_revlex_encoding(M, r, n)
+Construct a `matroid` from a ``polymake matroid M`` of rank `r` on the default ground set `{1,...,n}`.
 """
 function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
     if match(r"[^*0]",rvlx)!=nothing
@@ -47,20 +47,7 @@ function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::In
     if length(rvlx)!= binomial(n,r)
 	    error("The length of the string does not match the rank and number of elements")
     end
-    return Matroid(Polymake.matroid.Matroid(N_ELEMENTS=n, RANK=rank, REVLEX_BASIS_ENCODING=rvlx))
-end
-
-function revlex_basis_encoding(M::Matroid)
-	rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
-	indicies = findall(x->x=='*', rvlx)
-	v = zeros(Int,length(rvlx))
-	[v[i]=1 for i in indicies]
-
-	#maybe we can use GAP here? see https://gap-packages.github.io/images/doc/chap2.html#X7B4A093B7FBA4C23
-	hy = Polymake.polytope.hypersimplex(rank(M),length(groundset(M)), group=1);
-	Polymake.Shell.pair = Polymake.group.lex_minimal(hy.GROUP.VERTICES_ACTION, v)
-	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
-	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+    return Matroid(Polymake.matroid.Matroid(N_ELEMENTS=n, RANK=r, REVLEX_BASIS_ENCODING=rvlx))
 end
 
 @doc Markdown.doc"""
