@@ -8,7 +8,7 @@ export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_
 export affine_space, empty_spec
 export EmptyScheme
 
-export is_open_embedding, is_closed_embedding, canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
+export is_open_embedding, is_closed_embedding, is_canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
 export SpecMor, morphism_type
@@ -300,7 +300,7 @@ function ==(X::T, Y::T) where {T<:Spec}
   return X === Y
 end
 
-function canonically_isomorphic(
+function is_canonically_isomorphic(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
@@ -310,11 +310,11 @@ function canonically_isomorphic(
   return issubset(X, Y) && issubset(Y, X)
 end
 
-function canonically_isomorphic(X::Spec, Y::EmptyScheme)
+function is_canonically_isomorphic(X::Spec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
-canonically_isomorphic(X::EmptyScheme, Y::Spec) = canonically_isomorphic(Y, X)
+is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
 
 Base.isempty(X::Spec) = iszero(one(OO(X)))
 
