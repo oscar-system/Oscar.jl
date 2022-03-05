@@ -1053,8 +1053,7 @@ function helper_eta(
   if !has_attribute(f, :eta) 
     helper_ring(f)
   end
-  return get_attribute(f, :eta)
-  #return get_attribute(f, :eta)::AlgHom{coefficient_ring_elem_type(domain(f))}
+  return get_attribute(f, :eta)::morphism_type(base_ring_type(domain(f)), base_ring_type(domain(f)))
 end
 
 function helper_kappa(
@@ -1063,8 +1062,7 @@ function helper_kappa(
   if !has_attribute(f, :kappa) 
     helper_ring(f)
   end
-  return get_attribute(f, :kappa)
-  #return get_attribute(f, :kappa)::AlgHom{coefficient_ring_elem_type(domain(f))}
+  return get_attribute(f, :kappa)::morphism_type(base_ring_type(domain(f)), base_ring_type(domain(f)))
 end
 
 function common_denominator(
@@ -1213,7 +1211,7 @@ function inverse(
                                }
   )
   is_isomorphism(f) || error("the given morphism is not an isomorphism")
-  return get_attribute(f, :inverse)
+  return get_attribute(f, :inverse)::morphism_type(codomain(f), domain(f))
 end
 
 
