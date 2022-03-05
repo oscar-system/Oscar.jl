@@ -157,7 +157,9 @@ stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
 toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
 character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
+character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
 ```
 
 ### Sheaves

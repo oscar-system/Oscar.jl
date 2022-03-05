@@ -358,8 +358,23 @@ Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field
 """
 function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
     S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
-    relations = [gens(S)[i] * gens(S)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(v)) for i in 1:length(coordinate_names_of_torus(v))]
-    return quo(S, ideal(relations))[1]
+    return coordinate_ring_of_torus(S, v)
+end
+export coordinate_ring_of_torus
+
+
+@doc Markdown.doc"""
+    coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+
+Computes the coordinate ring of the torus of the normal toric variety `v`
+in the given polynomial ring `R`.
+"""
+function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+    if length(gens(R)) < 2 * length(coordinate_names_of_torus(v))
+        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates."))
+    end
+    relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
+    return quo(R, ideal(relations))[1]
 end
 export coordinate_ring_of_torus
 
@@ -378,11 +393,33 @@ x2^2*x1_
 ```
 """
 function character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
+    S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
+    return character_to_rational_function(S, v::AbstractNormalToricVariety, character::Vector{fmpz})
+end
+character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [fmpz(k) for k in character])
+
+
+@doc Markdown.doc"""
+    character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
+
+Computes the rational function corresponding to a character of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> R,_ = PolynomialRing(QQ, 4);
+
+julia> character_to_rational_function(R, p2, [-1,2])
+x2^2*x3
+```
+"""
+function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
     if ambient_dim(v) != length(character)
         throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety."))
     end
-    generators = gens(coordinate_ring_of_torus(v))
-    rational_function = one(coefficient_ring(v))
+    generators = gens(coordinate_ring_of_torus(R,v))
+    rational_function = one(coefficient_ring(R))
     for i in 1:length(character)
         if character[i] < 0
             rational_function = rational_function * generators[i+ambient_dim(v)]^(-1*character[i])
@@ -392,7 +429,7 @@ function character_to_rational_function(v::AbstractNormalToricVariety, character
     end
     return rational_function
 end
-character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [fmpz(k) for k in character])
+character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(R, v, [fmpz(k) for k in character])
 export character_to_rational_function
 
 
