@@ -89,7 +89,10 @@ export set_coordinate_names
 This method returns the names of the homogeneous coordinates of 
 the normal toric variety `v`. The default is `x1,...,xn`.
 """
-coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))])
+@attr Vector{String} function coordinate_names(v::AbstractNormalToricVariety)
+    return ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))]
+end
+export coordinate_names
 
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
@@ -337,7 +340,9 @@ export set_coordinate_names_of_torus
 This method returns the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1,...,xn`.
 """
-coordinate_names_of_torus(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names_of_torus, ["x$(i)" for i in 1:ambient_dim(v)])
+@attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)
+    return ["x$(i)" for i in 1:ambient_dim(v)]
+end
 export coordinate_names_of_torus
 
 
