@@ -275,3 +275,23 @@ line_bundle2 = ToricLineBundle(D2)
     @test all_cohomologies(line_bundle) == [11,0,0]
     @test cohomology(line_bundle,0) == 11
 end
+
+torus_coordinate_ring = coordinate_ring_of_torus(dP3)
+
+@testset "Characters, rational functions and global sections" begin
+    @test ngens(torus_coordinate_ring.I) == 2
+    @test length(basis_of_global_sections_via_rational_functions(line_bundle)) == 11
+    @test length(basis_of_global_sections_via_rational_functions(line_bundle2)) == 1
+    @test length(basis_of_global_sections_via_rational_functions(line_bundle2^2)) == length(basis_of_global_sections_via_homogeneous_component(line_bundle2^2))
+end
+
+P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+charges = zero_matrix(ZZ, 1, 3);
+charges[1,1] = 1;
+charges[1,2] = 1;
+charges[1,3] = 1;
+
+@testset "ToricVarieties from triangulations and GLSMs" begin
+    @test length(NormalToricVarietiesFromStarTriangulations(P)) == 2
+    @test length(NormalToricVarietyFromGLSM(charges)) == 1
+end
