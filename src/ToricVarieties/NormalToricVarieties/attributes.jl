@@ -370,7 +370,8 @@ Computes the coordinate ring of the torus of the normal toric variety `v`
 in the given polynomial ring `R`.
 """
 function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
-    if length(gens(R)) < 2 * length(coordinate_names_of_torus(v))
+    n = length(coordinate_names_of_torus(v))
+    if length(gens(R)) < 2 * n
         throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates."))
     end
     relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
@@ -422,9 +423,9 @@ function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVari
     rational_function = one(coefficient_ring(R))
     for i in 1:length(character)
         if character[i] < 0
-            rational_function = rational_function * generators[i+ambient_dim(v)]^(-1*character[i])
+            rational_function *= generators[i+ambient_dim(v)]^(-1*character[i])
         else
-            rational_function = rational_function * generators[i]^(character[i])
+            rational_function *= generators[i]^(character[i])
         end
     end
     return rational_function
