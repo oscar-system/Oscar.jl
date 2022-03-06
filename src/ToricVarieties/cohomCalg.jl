@@ -43,7 +43,13 @@ end
 @doc Markdown.doc"""
     all_cohomologies(l::ToricLineBundle)
 
-Computes the dimension of all sheaf cohomologies of the toric line bundle `l`.
+Computes the dimension of all sheaf cohomologies of the 
+toric line bundle `l` by use of the cohomCalg algorithm 
+[BJRR10](@cite),
+[cohomCalg:Implementation(@cite),
+[RR10](@cite),
+[Jow11](@cite),
+[BJRR12](@cite).
 
 # Examples
 ```jldoctest
@@ -171,7 +177,13 @@ export all_cohomologies
 @doc Markdown.doc"""
     cohomology(l::ToricLineBundle, i::Int)
 
-Computes the dimension of the i-th sheaf cohomology of the toric line bundle `l`.
+Computes the dimension of the i-th sheaf cohomology of the
+toric line bundle `l` by use of the cohomCalg algorithm
+[BJRR10](@cite),
+[cohomCalg:Implementation(@cite),
+[RR10](@cite),
+[Jow11](@cite),
+[BJRR12](@cite).
 
 # Examples
 ```jldoctest
