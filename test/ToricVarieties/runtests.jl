@@ -298,7 +298,7 @@ charges[1,3] = 1;
     @test length(NormalToricVarietyFromGLSM(charges)) == 1
 end
 
-
 @testset "Intersection theory" begin
     @test ngens(ideal_of_linear_relations(v)) == 4
+    @test ngens(chow_ring(v).I) == 7
 end
