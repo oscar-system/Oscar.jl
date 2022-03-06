@@ -254,6 +254,56 @@ end
 export irrelevant_ideal
 
 
+@doc Markdown.doc"""
+    ideal_of_linear_relations(v::AbstractNormalToricVariety)
+
+Return the ideal of linear relations of the simplicial and complete toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> ngens(ideal_of_linear_relations(p2))
+2
+```
+"""
+function ideal_of_linear_relations(v::AbstractNormalToricVariety)
+    R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
+    weights = [1 for i in 1:ngens(R)]
+    grade(R, weights)
+    return ideal_of_linear_relations(R, v)
+end
+
+
+@doc Markdown.doc"""
+    ideal_of_linear_relations(v::AbstractNormalToricVariety)
+
+Return the ideal of linear relations of the simplicial and complete toric variety `v` in the ring R.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> R,_ = PolynomialRing(QQ, 3);
+
+julia> ngens(ideal_of_linear_relations(R, p2))
+2
+```
+"""
+function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
+    if !(iscomplete(v) && issimplicial(v))
+        throw(ArgumentError("The variety must be both complete and simplicial for the computation of the ideal of linear relations"))
+    end
+    if ngens(R) != nrays(v)
+        throw(ArgumentError("The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"))
+    end
+    indeterminates = gens(R)
+    d = rank(character_lattice(v))
+    generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
+    return ideal(generators)
+end
+export ideal_of_linear_relations
+
 
 @doc Markdown.doc"""
     toric_ideal(antv::AffineNormalToricVariety)

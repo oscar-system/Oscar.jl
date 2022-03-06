@@ -297,3 +297,8 @@ charges[1,3] = 1;
     @test length(NormalToricVarietiesFromStarTriangulations(P)) == 2
     @test length(NormalToricVarietyFromGLSM(charges)) == 1
 end
+
+
+@testset "Intersection theory" begin
+    @test ngens(ideal_of_linear_relations(v)) == 4
+end
