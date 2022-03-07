@@ -54,6 +54,11 @@ include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
 
+include("CohomologyClasses/constructors.jl")
+include("CohomologyClasses/attributes.jl")
+include("CohomologyClasses/properties.jl")
+include("CohomologyClasses/methods.jl")
+
 include("cohomCalg.jl")
 
 # deprecated functions

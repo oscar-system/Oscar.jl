@@ -298,7 +298,22 @@ charges[1,3] = 1;
     @test length(NormalToricVarietyFromGLSM(charges)) == 1
 end
 
-@testset "Intersection theory" begin
+(x1,e1,x2,e3,x3,e2) = gens(cohomology_ring(dP3))
+c = CohomologyClass(dP3, x1)
+
+@testset "Topological intersection numbers" begin
     @test ngens(ideal_of_linear_relations(v)) == 4
     @test ngens(chow_ring(v).I) == 7
+    @test integrate(volume_form(v)) == 1
+    @test nrows(exponents(c)) == 1
+    @test length(coefficients(c)) == 1
+    @test istrivial(c) == false
+    @test integrate(c^2+c-3//4*c*c) == -1//4
+    @test integrate(CohomologyClass(dP3,e1*e1)) == -1
+    @test integrate(CohomologyClass(dP3,e2*e2)) == -1
+    @test integrate(CohomologyClass(dP3,e3*e3)) == -1
+    @test integrate(CohomologyClass(dP3,x1*x1)) == -1
+    @test integrate(CohomologyClass(dP3,x2*x2)) == -1
+    @test integrate(CohomologyClass(dP3,x3*x3)) == -1
+    @test length(intersection_form(dP3)) == 21
 end
