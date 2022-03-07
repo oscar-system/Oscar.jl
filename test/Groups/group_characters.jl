@@ -1,8 +1,6 @@
 @testset "show and print character tables" begin
   io = IOBuffer();
 
-  old_allow = Oscar.is_unicode_allowed()
-
   t_a4 = character_table(alternating_group(4))
   t_a5 = character_table("A5")
 
@@ -11,8 +9,9 @@
   @test String(take!(io)) == "character_table(Alt( [ 1 .. 4 ] ))"
 
   # default `show`
-  Oscar.allow_unicode(true)
-  show(io, t_a4)
+  Oscar.with_unicode() do
+    show(io, t_a4)
+  end
   @test String(take!(io)) ==
   """
   Alt( [ 1 .. 4 ] )
@@ -30,7 +29,6 @@
   χ₄  3 -1       .       .
   """
 
-  Oscar.allow_unicode(false)
   show(io, t_a4)
   @test String(take!(io)) ==
   """
@@ -72,8 +70,9 @@
 
   # show a legend of irrationalities instead of self-explanatory values,
   # in the screen format ...
-  Oscar.allow_unicode(true)
-  show(IOContext(io, :with_legend => true), t_a4)
+  Oscar.with_unicode() do
+    show(IOContext(io, :with_legend => true), t_a4)
+  end
   @test String(take!(io)) ==
   """
   Alt( [ 1 .. 4 ] )
@@ -94,7 +93,6 @@
   A̅ = ζ₃
   """
 
-  Oscar.allow_unicode(false)
   show(IOContext(io, :with_legend => true), t_a4)
   @test String(take!(io)) ==
   """
@@ -141,8 +139,9 @@
   \$"""
 
   # show the screen format for a table with real and non-real irrationalities
-  Oscar.allow_unicode(true)
-  show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+  Oscar.with_unicode() do
+    show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+  end
   @test String(take!(io)) ==
   """
   L2(11)
@@ -173,7 +172,6 @@
   B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
   """
 
-  Oscar.allow_unicode(false)
   show(IOContext(io, :with_legend => true), character_table("L2(11)"))
   @test String(take!(io)) ==
   """
@@ -206,9 +204,10 @@
   """
 
   # show some separating lines, in the screen format ...
-  Oscar.allow_unicode(true)
-  show(IOContext(io, :separators_col => [0,5],
-                     :separators_row => [0,5]), t_a5)
+  Oscar.with_unicode() do
+    show(IOContext(io, :separators_col => [0,5],
+                       :separators_row => [0,5]), t_a5)
+  end
   @test String(take!(io)) ==
   """
   A5
@@ -231,7 +230,6 @@
   ──┼────────────────────────────────────┼
   """
 
-  Oscar.allow_unicode(false)
   show(IOContext(io, :separators_col => [0,5],
                      :separators_row => [0,5]), t_a5)
   @test String(take!(io)) ==
@@ -285,10 +283,11 @@
   \$"""
 
   # distribute the table into column portions, in the screen format ...
-  Oscar.allow_unicode(true)
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_col => [2,3]), t_a5)
+  Oscar.with_unicode() do
+    show(IOContext(io, :separators_col => [0],
+                       :separators_row => [0],
+                       :portions_col => [2,3]), t_a5)
+  end
   @test String(take!(io)) ==
   """
   A5
@@ -326,7 +325,6 @@
   χ₅│-1             .             .
   """
 
-  Oscar.allow_unicode(false)
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
                      :portions_col => [2,3]), t_a5)
@@ -414,10 +412,11 @@
 
   # distribute the table into row portions,
   # in the screen format (perhaps not relevant) ...
-  Oscar.allow_unicode(true)
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_row => [2,3]), t_a5)
+  Oscar.with_unicode() do
+    show(IOContext(io, :separators_col => [0],
+                       :separators_row => [0],
+                       :portions_row => [2,3]), t_a5)
+  end
   @test String(take!(io)) ==
   """
   A5
@@ -450,7 +449,6 @@
   χ₅│ 5  1 -1             .             .
   """
 
-  Oscar.allow_unicode(false)
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
                      :portions_row => [2,3]), t_a5)
@@ -485,8 +483,6 @@
   X_4| 4  .  1                -1                -1
   X_5| 5  1 -1                 .                 .
   """
-
-  Oscar.allow_unicode(old_allow)
 
   # ... and in LaTeX format (may be interesting)
   show(IOContext(io, :separators_col => [0],

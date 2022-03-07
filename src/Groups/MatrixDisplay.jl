@@ -119,8 +119,6 @@ The following attributes of `io` are supported.
 
 ## Examples
 ```jldoctest
-julia> old_allow_unicode = Oscar.allow_unicode(true);
-
 julia> m = 3; n = 4;  mat = Array{String}(undef, m, n);
 
 julia> for i in 1:m for j in 1:n mat[i,j] = string( (i,j) ); end; end
@@ -142,7 +140,9 @@ julia> ioc = IOContext(io,
               :footer => ["", "with footer"],
              );
 
-julia> labelled_matrix_formatted(ioc, mat)
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(ioc, mat)
+       end;
 
 julia> print(String(take!(io)))
 
@@ -165,7 +165,9 @@ julia> ioc = IOContext(io,
               :portions_col => [2,2],
              );
 
-julia> labelled_matrix_formatted(ioc, mat)
+julia> Oscar.with_unicode() do
+         labelled_matrix_formatted(ioc, mat)
+       end;
 
 julia> print(String(take!(io)))
  │     1      2
@@ -185,8 +187,6 @@ julia> print(String(take!(io)))
  │     3      4
 ─┼─────────────
 3│(3, 3) (3, 4)
-
-julia> Oscar.allow_unicode(old_allow_unicode);
 
 ```
 """
