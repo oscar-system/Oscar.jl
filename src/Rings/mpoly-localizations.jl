@@ -1438,9 +1438,9 @@ function saturated_ideal(
       L = Localization(U)
       J = saturated_ideal(L(J))
     end
-    set_attribute!(I, saturated_ideal, J)
+    set_attribute!(I, :saturated_ideal, J)
   end
-  return get_attribute(I, saturated_ideal)::MPolyIdeal{RET}
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 

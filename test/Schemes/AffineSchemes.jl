@@ -11,12 +11,12 @@
   set_name!(U, "U")
   UX = intersect(X, U)
   set_name!(UX, "U ∩ X")
-  @test canonically_isomorphic(X, closure(UX, A3))
+  @test is_canonically_isomorphic(X, closure(UX, A3))
   @test is_open_embedding(UX, X)
   @test is_closed_embedding(X, A3)
   UZ = subscheme(UX, y^2)
   Z = subscheme(X, y^2)
-  @test canonically_isomorphic(closure(UZ, X), Z)
+  @test is_canonically_isomorphic(closure(UZ, X), Z)
   
   S, (u,v) = QQ["u", "v"]
   A2 = Spec(S)

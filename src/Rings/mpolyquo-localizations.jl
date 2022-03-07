@@ -1023,7 +1023,7 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocalizedRing}
     c_inv = theta[1]
     helper_images = [kappa(numerator(y))*c_inv*kappa(divexact(p, denominator(y))) for y in images(f)]
     set_attribute!(f, :helper_images, helper_images)
-    eta = AlgebraHomomorphism(R, help_ring, helper_images)
+    eta = hom(R, help_ring, helper_images)
     set_attribute!(f, :eta, eta)
   end
   return get_attribute(f, :helper_ring)::base_ring_type(domain(f))
@@ -1053,7 +1053,7 @@ function helper_eta(
   if !has_attribute(f, :eta) 
     helper_ring(f)
   end
-  return get_attribute(f, :eta)::AlgHom{coefficient_ring_elem_type(domain(f))}
+  return get_attribute(f, :eta)::morphism_type(base_ring_type(domain(f)), base_ring_type(domain(f)))
 end
 
 function helper_kappa(
@@ -1062,7 +1062,7 @@ function helper_kappa(
   if !has_attribute(f, :kappa) 
     helper_ring(f)
   end
-  return get_attribute(f, :kappa)::AlgHom{coefficient_ring_elem_type(domain(f))}
+  return get_attribute(f, :kappa)::morphism_type(base_ring_type(domain(f)), base_ring_type(domain(f)))
 end
 
 function common_denominator(
@@ -1148,13 +1148,13 @@ function is_isomorphism(
   pushfirst!(imagesB, prod(denoms))
 
   # perform a sanity check
-  phiAB = AlgebraHomomorphism(A, B, imagesB)
+  phiAB = hom(A, B, imagesB)
   issubset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
   C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
-  j2 = AlgebraHomomorphism(B, C, B_vars)
+  j2 = hom(B, C, B_vars)
   G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(C)), 
 				  String.(symbols(C)),  
@@ -1211,7 +1211,7 @@ function inverse(
                                }
   )
   is_isomorphism(f) || error("the given morphism is not an isomorphism")
-  return get_attribute(f, :inverse)
+  return get_attribute(f, :inverse)::morphism_type(codomain(f), domain(f))
 end
 
 
@@ -1222,14 +1222,14 @@ end
 function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = length(gens(R))
-  phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
+  phi = hom(R, ext_R, gens(ext_R)[1:n])
   return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
 end
 
 function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
   n = length(gens(R))
-  phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
+  phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
   return ext_R, phi, gens(ext_R)[(1:length(v))]
 end
 

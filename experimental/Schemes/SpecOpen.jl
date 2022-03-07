@@ -1,4 +1,4 @@
-export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, canonically_isomorphic
+export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 
 export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_type, isexact_type
 
@@ -206,12 +206,12 @@ function intersect(
     V::SpecOpen
   )
   X = ambient(U) 
-  canonically_isomorphic(X, ambient(V)) || error("ambient schemes do not coincide")
+  is_canonically_isomorphic(X, ambient(V)) || error("ambient schemes do not coincide")
   return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
 end
 
 function Base.union(U::T, V::T) where {T<:SpecOpen}
-  canonically_isomorphic(ambient(U), ambient(V)) || error("the two open sets do not lay in the same ambient scheme")
+  is_canonically_isomorphic(ambient(U), ambient(V)) || error("the two open sets do not lay in the same ambient scheme")
   return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
@@ -246,22 +246,22 @@ function issubset(U::T, V::T) where {T<:SpecOpen}
   #return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
-function canonically_isomorphic(U::T, V::T) where {T<:SpecOpen}
+function is_canonically_isomorphic(U::T, V::T) where {T<:SpecOpen}
   return issubset(U, V) && issubset(V, U)
 end
 
-function canonically_isomorphic(
+function is_canonically_isomorphic(
     U::SpecOpen,
     Y::Spec
   )
   return issubset(U, Y) && issubset(Y, U)
 end
 
-function canonically_isomorphic(
+function is_canonically_isomorphic(
     Y::Spec,
     U::SpecOpen
   )
-  return canonically_isomorphic(U, Y)
+  return is_canonically_isomorphic(U, Y)
 end
 
 @Markdown.doc """
@@ -340,7 +340,7 @@ OO(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 OO(X::Spec, U::SpecOpen) = SpecOpenRing(X, U)
 
 function ==(R::T, S::T) where {T<:SpecOpenRing}
-  return canonically_isomorphic(scheme(R), scheme(S)) && canonically_isomorphic(domain(R), domain(S))
+  return is_canonically_isomorphic(scheme(R), scheme(S)) && is_canonically_isomorphic(domain(R), domain(S))
 end
 
 @Markdown.doc """
@@ -608,8 +608,6 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
       for i in 1:n
         domain(f[i]) == affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
         codomain(f[i]) == Y || error("codomain is not compatible")
-        #canonically_isomorphic(domain(f[i]), affine_patches(U)[i]) || error("domain of definition of the map does not coincide with the patch")
-        #canonically_isomorphic(codomain(f[i]), Y) || error("codomain is not compatible")
       end
       for i in 1:n-1
 	for j in i+1:n
@@ -806,8 +804,8 @@ end
 identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], check=false)
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
-  canonically_isomorphic(domain(f), domain(g)) || return false
-  canonically_isomorphic(codomain(f), codomain(g)) || return false
+  is_canonically_isomorphic(domain(f), domain(g)) || return false
+  is_canonically_isomorphic(codomain(f), codomain(g)) || return false
   Y = ambient(codomain(f))
   m = length(affine_patches(domain(f)))
   n = length(affine_patches(domain(g)))

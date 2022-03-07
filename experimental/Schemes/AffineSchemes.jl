@@ -8,7 +8,7 @@ export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_
 export affine_space, empty_spec
 export EmptyScheme
 
-export is_open_embedding, is_closed_embedding, canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
+export is_open_embedding, is_closed_embedding, is_canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
 export SpecMor, morphism_type
@@ -216,16 +216,12 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
   W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   if keep_cache
-    @show inverted_set(OO(X))
-    @show inverted_set(W)
     IX = localized_modulus(OO(X))
     DIX = groebner_bases(IX)
     # we have a look at the possibility to transfer groebner bases that 
     # have already been computed.
     if length(DIX)>0
-      @show "found at least one groebner basis"
       if has_attribute(IX, :saturated_ideal)
-        @show "saturation exists"
         # in case the saturated ideal has already been computed once, 
         # we assume that this computation is also feasible a second time.
         # We check whether the new saturation makes any difference and 
@@ -233,24 +229,18 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
         Jsat = ideal(R, numerator.(oscar_gens(groebner_basis(IX))))
         for d in [b for b in denominators(inverted_set(W)) if !(b in inverted_set(OO(X)))]
           for a in factor(d)
-            @show "saturating w.r.t. $a"
             Jsat = saturation(Jsat, ideal(R, a[1]))
           end
         end
         J = localized_modulus(W)
         set_attribute!(J, :saturated_ideal, Jsat)
         if issubset(Jsat, saturated_ideal(IX))
-          @show "groebner bases can be kept"
           for o in keys(DIX)
             gb = DIX[o]
             groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), true)
           end
-        else 
-          @show "saturations differ"
         end
         set_attribute!(W, :localized_modulus, J)
-      else
-        @show "saturation does not exist"
       end
     end
   end
@@ -310,7 +300,7 @@ function ==(X::T, Y::T) where {T<:Spec}
   return X === Y
 end
 
-function canonically_isomorphic(
+function is_canonically_isomorphic(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
@@ -320,11 +310,11 @@ function canonically_isomorphic(
   return issubset(X, Y) && issubset(Y, X)
 end
 
-function canonically_isomorphic(X::Spec, Y::EmptyScheme)
+function is_canonically_isomorphic(X::Spec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
-canonically_isomorphic(X::EmptyScheme, Y::Spec) = canonically_isomorphic(Y, X)
+is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
 
 Base.isempty(X::Spec) = iszero(one(OO(X)))
 
@@ -543,8 +533,11 @@ function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, M
   RS, z = PolynomialRing(k, vcat(symbols(R), symbols(S)))
   inc1 = hom(R, RS, gens(RS)[1:m])
   inc2 = hom(S, RS, gens(RS)[m+1:m+n])
+<<<<<<< HEAD
   #pr1 = AlgebraHomomorphism(RS, R, vcat(gens(R), [zero(R) for i in 1:n]))
   #pr2 = AlgebraHomomorphism(RS, S, vcat([zero(S) for i in 1:m], gens(S)))
+=======
+>>>>>>> update_on_schemes_feb_22
   IX = ideal(RS, inc1.(gens(modulus(OO(X)))))
   IY = ideal(RS, inc2.(gens(modulus(OO(Y)))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
