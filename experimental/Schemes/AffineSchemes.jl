@@ -533,11 +533,6 @@ function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, M
   RS, z = PolynomialRing(k, vcat(symbols(R), symbols(S)))
   inc1 = hom(R, RS, gens(RS)[1:m])
   inc2 = hom(S, RS, gens(RS)[m+1:m+n])
-<<<<<<< HEAD
-  #pr1 = AlgebraHomomorphism(RS, R, vcat(gens(R), [zero(R) for i in 1:n]))
-  #pr2 = AlgebraHomomorphism(RS, S, vcat([zero(S) for i in 1:m], gens(S)))
-=======
->>>>>>> update_on_schemes_feb_22
   IX = ideal(RS, inc1.(gens(modulus(OO(X)))))
   IY = ideal(RS, inc2.(gens(modulus(OO(Y)))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
