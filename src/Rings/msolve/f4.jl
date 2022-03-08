@@ -16,7 +16,8 @@ See [Fau99](@cite) for more information.
 - `nr_thrds::Int=1`: number of threads for parallel linear algebra.
 - `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
-- `reduce_gb::Int=1`: compute a reduced Gröbner basis for `I`
+- `eliminate::Int=0`: size of first block of variables to be eliminated.
+- `complete_reduction::Bool=true`: compute a reduced Gröbner basis for `I`
 - `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 
 # Examples
@@ -44,7 +45,8 @@ function f4(
         nr_thrds::Int=1,
         max_nr_pairs::Int=0,
         la_option::Int=2,
-        reduce_gb::Int=1,
+        eliminate::Int=0,
+        complete_reduction::Bool=true,
         info_level::Int=0
         )
 
@@ -54,7 +56,8 @@ function f4(
     field_char  = Int(characteristic(R))
 
     mon_order       = 0
-    elim_block_size = 0
+    elim_block_size = eliminate
+    reduce_gb       = Int(complete_reduction)
 
     # convert ideal to flattened arrays of ints
     if !(isprime(field_char))
