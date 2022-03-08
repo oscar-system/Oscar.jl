@@ -14,7 +14,8 @@ Pages = ["it_lrg.md"]
 
 In this section, with notation as in the introduction to this chapter, $G$ will be a *linearly algebraic group* over an algebraically closed field $K$, and ``\rho: G \to \text{GL}(V)\cong \text{GL}_n(K)`` will be a *rational* representation of $G$. As in the previous sections, ``G`` will act on $K[V]\cong K[x_1, \dots, x_n]$ by linear substitution:
 
-$(\pi \;\!  . \;\! f) \;\! (x_1, \dots, x_n)  = f(\rho(\pi^{-1}) \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)) \text{ for all } \pi\in G.$
+
 
 !!! note
     
