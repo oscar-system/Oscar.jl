@@ -128,11 +128,8 @@ function msolve(
     jl_dim      = res_dim[]
     jl_dquot    = res_dquot[]
 
-    jl_nb_sols  = nb_sols[]
-    jl_len      = Base.unsafe_wrap(Array, res_len[], jl_ld)
+    jl_nb_sols	= nb_sols[]
 
-    nterms  = 0
-    
     # set dimension
     I.dim = jl_dim
     if jl_dim > 0
@@ -141,6 +138,10 @@ function msolve(
     if jl_nb_sols == 0
         return [], Vector{fmpq}[]
     end
+
+    jl_len  = Base.unsafe_wrap(Array, res_len[], jl_ld)
+    nterms  = 0
+
 
     [nterms += jl_len[i] for i=1:jl_ld]
     # if 0 == field_char
@@ -152,21 +153,33 @@ function msolve(
     #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num[])
     # end
 
+    #= solutions are returned as intervals, i.e. a minimum and a maximum entry for
+     = the numerator and denominator; thus we sum up and divide by  =#
     solutions = Array{Array{fmpq, 1}, 1}(undef, jl_nb_sols)
-    for i in 1:jl_nb_sols
+
+    len = 2*jl_nb_sols*nr_vars
+    i = 1
+    k = 1
+    while i <= len
+        j = 1
         tmp = Vector{Nemo.fmpq}(undef, nr_vars)
-        for j in 1:nr_vars
-            tmp[j]  = fmpq(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) >> Int64(unsafe_load(jl_sols_den, (i-1)*nr_vars+j))
+        while j <= nr_vars
+            tmp[j]  = fmpq(unsafe_load(jl_sols_num, i)) >> Int64(unsafe_load(jl_sols_den, i))
+            tmp[j] += fmpq(unsafe_load(jl_sols_num, i+1)) >> Int64(unsafe_load(jl_sols_den, i+1))
+            tmp[j] = tmp[j] >> 1
+            i += 2
+            j += 1
         end
-        solutions[i]  = tmp
+        solutions[k] = tmp
+        k += 1
     end
 
     rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
 
     ccall((:free_msolve_julia_result_data, libmsolve), Nothing ,
-          (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
-           Ptr{Ptr{Cvoid}}, Ptr{Ptr{Cint}}, Cint, Cint, Cint),
-          cglobal(:jl_free), res_len, res_cf, sols_num, sols_den,
+		  (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
+		   Ptr{Ptr{Cvoid}}, Ptr{Ptr{Cint}}, Cint, Cint, Cint),
+		  cglobal(:jl_free), res_len, res_cf, sols_num, sols_den,
           jl_ld, jl_nb_sols, field_char)
 
     return rat_param, solutions
