@@ -189,6 +189,10 @@
       @test !isroot_of_unity(z(5) + 1)
     end
 
+    @test length(roots(8*b, 3)) == 3
+    Kx, x = PolynomialRing(K)
+    @test length(roots(x^15-2^15)) == 15
+
     @test order(z(5)) == 5
   end
 
