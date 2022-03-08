@@ -102,7 +102,8 @@ function f4(
            Ptr{Ptr{Cvoid}}, Int, Int),
           cglobal(:jl_free), gb_len, gb_exp, gb_cf, jl_ld, field_char)
 
-    I.gb[degrevlex(gens(R))] = BiPolyArray(basis, keep_ordering=false, isGB=true)
+    vars = gens(R)[eliminate+1:end]
+    I.gb[degrevlex(vars)] = BiPolyArray(basis, keep_ordering=false, isGB=true)
     
     return basis
 end
