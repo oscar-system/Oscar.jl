@@ -637,7 +637,6 @@ function as_smooth_local_complete_intersection(X::Spec; check::Bool=true, verbos
   return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, Df, d, n, check=check, verbose=verbose)
 end
 
-using Infiltrator
 ### 
 # Given a matrix A with polynomial entries, this routine returns a 
 # list of equations hₖ and gₖ, and sets of columns Iₖ and rows Jₖ such that 
@@ -995,7 +994,6 @@ function test_cover(C, f, hl, ql, rl, cl)
     g = det(A)
     U = hypersurface_complement(subscheme(C, ql[i]), h)
     @show isunit(OO(U)(g))
-    @infiltrate !isunit(OO(U)(g))
   end
 
 
