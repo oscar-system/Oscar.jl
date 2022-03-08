@@ -1741,6 +1741,28 @@ function Base.reduce(
   end
 end
 
+function Base.reduce(
+    f::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}, 
+    lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+
+  length(f) == 0 && return f
+  W = parent(f[1])
+  W == oscar_ring(lbpa) || error("element does not belong to the Oscar ring of the biPolyArray")
+  R = base_ring(W)
+  if !iszero(shift(lbpa))
+    shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
+    singular_n = Singular.Ideal(singular_ring(lbpa), (elem_type(singular_ring(lbpa)))[singular_ring(lbpa)(shift_hom(numerator(x))) for x in f])
+    singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+    inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
+    return [W(inv_shift_hom(R(gens(singular_n)[i])), denominator(f[i]), check=false) for i in 1:length(f)]
+  else
+    singular_n = Singular.Ideal(singular_ring(lbpa), (elem_type(singular_ring(lbpa)))[singular_ring(lbpa)(numerator(x)) for x in f])
+    singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+    return [W(R(gens(singular_n)[i]), denominator(f[i]), check=false) for i in 1:length(f)]
+  end
+end
+
 @Markdown.doc """
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
 

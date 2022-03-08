@@ -8,7 +8,7 @@ export blow_up, empty_covered_projective_scheme
 
 export strict_transform, total_transform, weak_transform, controlled_transform
 
-export prepare_smooth_center, as_smooth_local_complete_intersection, as_smooth_lci_of_cod
+export prepare_smooth_center, as_smooth_local_complete_intersection, as_smooth_lci_of_cod, _non_degeneration_cover
 
 mutable struct ProjectiveGlueing{
                                  GlueingType<:Glueing,
@@ -638,6 +638,188 @@ function as_smooth_local_complete_intersection(X::Spec; check::Bool=true, verbos
 end
 
 using Infiltrator
+### 
+# Given a matrix A with polynomial entries, this routine returns a 
+# list of equations hₖ and gₖ, and sets of columns Iₖ and rows Jₖ such that 
+# the (Iₖ, Jₖ)-minor of A has the prescribed full rank r along the 
+# hypersurface complement of hₖ of the zero locus of gₖ on C.
+#
+# Altogether, the latter sets form a disjoint union of C into locally 
+# closed sets. In particular, we can derive an open covering of C 
+# from the hypersurface complements of the listed (I, J)-minors.
+#
+# Input: 
+#   C::Spec     the locus that needs to be covered
+#   A::Matrix   the matrix that needs to have rank r
+#   r::Int      the prescribed rank of the matrix.
+#
+# Output: 
+#   the following lists with index i
+#   loc_list::Vector{Vector{MPolyElem}} A list of partial
+#               factorizations of polynomials that need to
+#               be localized in order to arrive at the i-th 
+#               patch.
+#   row_list::Vector{Vector{Int}} the indices of the rows 
+#               of the non-vanishing minor on the i-th patch.
+#   column_list::Vector{Vector{Int}}    the indices of the 
+#               columns of the non-vanishing minor on the 
+#               i-th patch.
+function _non_degeneration_cover(
+    C::SpecType,
+    A::MatrixType,
+    r::Int; 
+    rec_count::Int=0,
+    check::Bool=true,
+    verbose::Bool=false
+  ) where {SpecType<:Spec, MatrixType} #TODO: How specific can we be with the matrices?
+  indent_str = prod([ "#" for i in 1:rec_count ]) * " "
+  #verbose && println(indent_str * "call with $(X) and matrix $(A) for rank $r")
+  verbose && println(indent_str * "call to _non_degeneration_cover for rank $r")
+
+  # check for some other aborting conditions
+  m = nrows(A)
+  n = ncols(A)
+  R = base_ring(OO(C))
+  
+  verbose && println("checking for the scheme being empty...")
+  if isempty(C)
+    verbose && println("the scheme is empty; returning empty lists")
+    return (Vector{Vector{poly_type(C)}}(), Vector{Vector{poly_type(C)}}(), Vector{Vector{Int}}(), Vector{Vector{Int}}())
+  end
+
+#  if r == 1 
+#    verbose && println("reached the rank-1-case")
+#    Y = subscheme(C, ideal(R, [A[i,j] for i in 1:nrows(A) for j in 1:ncols(A)]))
+#    if check 
+#      isempty(Y) || error("the prescribed rank can not be achieved on $Y")
+#    end
+#    ll = Vector{Vector{poly_type(C)}}()
+#    dl = Vector{Vector{poly_type(C)}}()
+#    rl = Vector{Vector{Int}}() 
+#    cl = Vector{Vector{Int}}()
+#    for i in 1:nrows(A)
+#      for j in 1:ncols(A)
+#        if !iszero(OO(C)(A[i,j]))
+#          push!(ll, [A[i,j]])
+#          push!(dl, poly_type(C)[])
+#          push!(rl, [i])
+#          push!(cl, [j])
+#        end
+#      end
+#    end
+#    #verbose && println("returning localizations at $ll modulo $dl")
+#    return ll, dl, rl, cl
+#  end
+
+  # find a suitable entry of lowest degree for the next recursion
+  verbose && println("reducing the entries...")
+  (k, l) = (1, 1)
+  d = maximum(total_degree.(A))
+  I = localized_modulus(OO(C))
+  allzero = true
+  W = localized_ring(OO(C))
+  verbose && print(indent_str*" reducing row number ")
+  for i in 1:m
+    verbose && print("$i")
+    v = W.([A[i,j] for j in 1:n])
+    verbose && print(".")
+    w = numerator.(reduce(v, groebner_basis(I))) # TODO: Implement and use reduction for matrices?
+    verbose && print(".")
+    for j in 1:n
+      allzero = allzero && iszero(A[i,j])
+      A[i,j] = w[j]
+      if total_degree(w[j]) <= d && !iszero(w[j])
+        d = total_degree(w[j])
+	(k, l) = (i, j)
+      end
+    end
+    verbose && print(".")
+  end
+  f = A[k,l]
+
+  # in case that after reduction all the matrix' entries are zero, quit
+  if r> 0 && allzero
+    error(indent_str * "All entries are zero")
+  end
+
+  verbose && println(indent_str * "selected entry at ($k, $l): $f")
+
+  verbose && println("preparing the matrix for induction...")
+  B = copy(A)
+  for i in 1:k-1
+    multiply_row!(B, f, i)
+    add_row!(B, -A[i,l], k, i)
+  end
+  for i in k+1:m
+    multiply_row!(B, f, i)
+    add_row!(B, -A[i,l], k, i)
+  end
+
+  # set up the submatrix for induction on the open part
+  u = [i for i in 1:m if i != k]
+  v = [j for j in 1:n if j != l]
+  B_part = B[u, v]
+
+  verbose && println("do the induction steps.")
+
+  loc_list = Vector{Vector{poly_type(C)}}()
+  div_list = Vector{Vector{poly_type(C)}}()
+  row_list = Vector{Vector{Int}}() 
+  column_list = Vector{Vector{Int}}()
+
+  if r>1
+    # prepare for recursion on the open part
+    verbose && println("preparing the hypersurface complement")
+    U = hypersurface_complement(C, f, keep_cache=true)
+
+    # harvest from recursion on the open part
+    verbose && println("recursive call for the complement")
+    llU, dlU, rlU, clU = _non_degeneration_cover(U, B_part, r-1, rec_count=rec_count+1, check=check, verbose=verbose)
+
+    # process the output according to the preparations for the recursion
+    loc_list = [push!(Ul, f) for Ul in llU]
+    div_list = dlU
+
+    # the indices have to be adjusted according to the choice of the submatrix B from A
+    row_list = [push!(Ul, k) for Ul in [[(i < k ? i : i+1) for i in a] for a in rlU]]
+    column_list = [push!(Ul, l) for Ul in [[(i < l ? i : i+1) for i in a] for a in clU]]
+    #verbose && println("return value was non-trivial; composing as $loc_list and $div_list")
+    if check
+      verbose && println("checking the return values")
+      n = length(loc_list)
+      for i in 1:n
+        X = hypersurface_complement(subscheme(C, div_list[i]), prod(loc_list[i]))
+        D = A[row_list[i], column_list[i]]
+        g = det(D)
+        isunit(OO(X)(g)) || error("selected minor is not a unit")
+      end
+    end
+  else
+    push!(loc_list, [f])
+    push!(div_list, poly_type(C)[])
+    push!(row_list, [k])
+    push!(column_list, [l])
+  end
+
+  # prepare for recursion on the closed part
+  verbose && println("preparing the hypersurface subscheme")
+  Y = subscheme(C, f)
+
+  # harvest from recursion on the closed part
+  verbose && println("recursive call for the subscheme")
+  llY, dlY, rlY, clY = _non_degeneration_cover(Y, copy(A), r, rec_count=rec_count+1, check=check, verbose=verbose)
+  
+  # process the output according to the preparations for the recursion
+  loc_list = vcat(loc_list, llY)
+  div_list = vcat(div_list, [push!(Ud, f) for Ud in dlY])
+  # no adjustment necessary, since this happens on the same recursion level
+  row_list = vcat(row_list, rlY)
+  column_list = vcat(column_list, clY)
+  #verbose && println("return value was non-trivial; adding $llY and $dlY")
+
+  return loc_list, div_list, row_list, column_list
+end
+    
 function _as_smooth_lci_rec(
     X::SpecType, 
     Z::SpecType, # the uncovered locus
@@ -803,3 +985,21 @@ function controlled_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealS
   end
   return IdealSheaf(X, CX, trans_dict, check=true)
 end
+
+function test_cover(C, f, hl, ql, rl, cl)
+  n = length(hl)
+  Df = jacobi_matrix(f)
+  for i in 1:n
+    h = prod(hl[i])
+    A = Df[rl[i], cl[i]]
+    g = det(A)
+    U = hypersurface_complement(subscheme(C, ql[i]), h)
+    @show isunit(OO(U)(g))
+    @infiltrate !isunit(OO(U)(g))
+  end
+
+
+  I = ideal(OO(C), [det(Df[rl[i], cl[i]]) for i in 1:length(rl)])
+  @show one(localized_ring(OO(C))) in I
+end
+
