@@ -543,7 +543,7 @@ function Oscar.roots(f::PolyElem{QabElem})
     rt = roots(map_coefficients(k, g))
     append!(rts, map(Qab, rt))
   end
-  return rts
+  return rts::QabElem[]
 end
 
 function Oscar.roots(a::QabElem, n::Int)
@@ -561,14 +561,14 @@ function Oscar.roots(a::QabElem, n::Int)
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = ispower(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
-    fl || return roots(x^n-a)
+    fl || return roots(x^n-a)::QabElem[]
     b = gens(Hecke.inv(i))[2]
     c = deepcopy(a)
     c.data = b
     corr = Hecke.inv(c)
     a *= c^n
     fl = isroot_of_unity(a)
-    fl || return corr .* roots(x^n-a)
+    fl || return (corr .* roots(x^n-a))::QabElem[]
   end
   
   o = order(a)
@@ -584,7 +584,7 @@ function Oscar.roots(a::QabElem, n::Int)
       push!(A, el)
     end
   end
-  return [x*corr for x = A]
+  return [x*corr for x = A]::QabElem[]
 end
 
 function isroot_of_unity(a::QabElem)
