@@ -351,30 +351,59 @@ iscohenmacaulay(R)
 
 ## Hilbert Series and Hilbert Polynomial
 
+Given a multivariate polynomial ring $R$ over a field $K$ together with a (multi)grading
+on $R$ by a finitely generated abelian group $G$, let $I$ be an ideal of $R$ which is
+homogeneous with respect to this grading. Then the affine $K-$algebra $A=R/I$
+inherits the grading: $A = \bigoplus_{g\in G} A_g$. Suppose now that $R$ is positively
+graded by $G$. That is, $G$ is torsion-free and each graded piece $R_g$ has finite dimension.
+Then also $A_g$ is a finite dimensional $K$-vector space for each $g$, and we have the
+well-defined *Hilbert function* of $A$,
+
+$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
+
+The *Hilbert series* of $A$ is the generating function 
+
+$H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
+
+(see  Section 8.2 in [MS05](@cite) for a formal discussion extending the standard
+$\mathbb Z$-graded case to the more general case considered here). As in the
+standard $\mathbb Z$-graded case, the infinitely many values of the Hilbert function
+can be expressed in finite terms by representing the Hilbert series as a rational function
+(see Theorem 8.20 in [MS05](@cite) for a precise statement).
+
+Using Gröbner bases, the computation of Hilbert series can be reduced to the case where
+the modulus $I$ is a monomial ideal. In the latter case, the computation of Hilbert series
+is of combinatorial nature, and there are various strategies of how to proceed. In
+describing corresponding OSCAR functionality, we first focus on the special case of
+$\mathbb Z$-gradings with positive weights.
+
+
+### The Case of $\mathbb Z$-Gradings With Positive Weights
+
 Let $R=K[x_1, \dots x_n]$ be a polynomial ring in $n$ variables over a field $K$.
 Assign positive integer weights $w_i$ to the variables $x_i$, and grade
-$R=\bigoplus_{d\geq 0} R_d$ according to the corresponding weighted degree. Let $I$ be an
+$R=\bigoplus_{d\in \mathbb Z} R_d=\bigoplus_{d\geq 0} R_d$ according
+to the corresponding weighted degree. Let $I$ be an
 ideal of $R$ which is homogeneous with respect to this
 grading. Then the affine $K$-algebra $A=R/I$ inherits the grading:
 $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensional
 $K$-vector space. In this situation, the *Hilbert function* of $A$ is
-the function
+of type
 
-$H(A, \underline{\phantom{d}}): \N \to \N, d \mapsto \dim_K(d).$
+$H(A, \underline{\phantom{d}}): \N \to \N, \;d \mapsto \dim_K(d),$
 
-The *Hilbert series* of $A$ is the generating function
+and the *Hilbert series* of $A$ is the formal power series
 
-$H_A(t)=\sum_{d\geq 0} H(A, d) t^d.$
+$H_A(t)=\sum_{d\geq 0} H(A, d) t^d\in\mathbb Z[[t]].$
 
-It can be written as a rational function in $t$, say, with denominator
+The Hilbert series can be written as a rational function $p(t)/q(t)$, with denominator
 
-$(1-t^{w_1})\cdots (1-t^{w_n}).$ 
+$q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).$ 
 
-Now suppose that the weights on the variables are all 1. Then we also have the *Hilbert
-polynomial* $P_A(t)\in\mathbb{Q}[t]$ which satisfies $H(M,d)=P_M(d)$ for all $d \gg 0$.
-Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if this dimension
-is finite, and as the integer $d$ such that the leading term of the
-Hilbert polynomial has the form $d t^e/e!$, otherwise.
+In the standard $\mathbb Z$-graded case, where the weights on the variables are all 1, the Hilbert function is of polynomial nature: There exists
+ a unique polynomial $P_A(t)\in\mathbb{Q}[t]$, the *Hilbert polynomial*, which satisfies $H(M,d)=P_M(d)$
+for all $d \gg 0$. Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if this dimension
+is finite, and as the integer $d$ such that the leading term of the Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
 !!! warning
     Currently, all functions described below are only implemented in the case where the weights on the variables are all 1.
@@ -388,15 +417,10 @@ hilbert_polynomial(A::MPolyQuo)
 degree(A::MPolyQuo)
 ```
 
-###### Examples
+### The General Case of Positive Multigradings
 
-```@repl oscar
-R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
-A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
-hilbert_series(A)
-hilbert_series_reduced(A)
-hilbert_series_expanded(A, 7)
-hilbert_function(A,7)
-hilbert_polynomial(A)
-degree(A)
+```@docs
+multi_hilbert_series(A::MPolyQuo)
+multi_hilbert_series_reduced(A::MPolyQuo)
 ```
+

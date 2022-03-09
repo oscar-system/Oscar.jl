@@ -4,7 +4,7 @@ export noether_normalization, normalization, integral_basis
 export isreduced, subalgebra_membership
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
 export issurjective, isinjective, isbijective, inverse, preimage, isfinite
-export _multi_hilbert_series, _multi_hilbert_series_reduced
+export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
 
 ##############################################################################
 #
@@ -42,21 +42,37 @@ end
 ##############################################################################
 
 
-
+##################################################################################
+###    z-graded Hilbert series stuff using Singular for finding the Hilbert series
+###    from mpoly-graded.jl
+##################################################################################
 
 
 @doc Markdown.doc"""
     hilbert_series(A::MPolyQuo)
 
-Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
-of univariate polynomials in $t$ with integer coefficients
-such that: If $A = R/I$, where $R$ is a multivariate polynomial ring in $n$
-variables over $K$, with positive integer weights $w_1, \dots, w_n$ assigned to the variables,
-and $I$ is a homogeneous ideal of $R$ when we grade $R$ according to the corresponding 
-weighted degree, then $p/q$ represents the Hilbert series of $A$ as a rational function
-with denominator $q = (1-t^{w_1})\cdots (1-t^{w_n})$. 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
+positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
+with respect to this grading, return a pair $(p,q)$, say, of univariate polynomials 
+$p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as 
+a rational function with denominator 
+
+$q = (1-t^{w_1})\cdots (1-t^{w_n}),$
+
+where $n$ is the number of variables of $R$, and $w_1, \dots, w_n$ are the assigned weights.
 
 See also `hilbert_series_reduced`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> hilbert_series(A)
+(2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+```
 """
 function hilbert_series(A:: MPolyQuo)
    if iszero(A.I)
@@ -71,15 +87,24 @@ end
 @doc Markdown.doc"""
     hilbert_series_reduced(A::MPolyQuo)
 
-Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
-of univariate polynomials in $t$ with integer coefficients such that: 
-If $A = R/I$, where $R$ is a multivariate polynomial ring in $n$
-variables over $K$, with positive integer weights $w_1, \dots, w_n$ assigned to the variables,
-and $I$ is a homogeneous ideal of $R$ when we grade $R$ according to the corresponding 
-weighted degree, then $p/q$ represents the Hilbert series of $A$ as a rational function
-written in lowest terms. 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
+positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
+with respect to this grading, return a pair $(p,q)$, say, of univariate polynomials 
+$p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as 
+a rational function written in lowest terms. 
 
 See also `hilbert_series`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> hilbert_series_reduced(A)
+(2*t + 1, t^2 - 2*t + 1)
+```
 """
 function hilbert_series_reduced(A::MPolyQuo)
    if iszero(A.I)
@@ -93,8 +118,20 @@ end
 @doc Markdown.doc"""
     hilbert_series_expanded(A::MPolyQuo, d::Int)
 
-Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the
-Hilbert series of $A$ to precision $d$. 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
+positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
+with respect to this grading, return the Hilbert series of $A$ to precision $d$. 
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> hilbert_series_expanded(A, 7)
+1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 14*t^7 + O(t^7)
+```
 """
 function hilbert_series_expanded(A::MPolyQuo, d::Int)
    if iszero(A.I)
@@ -113,9 +150,24 @@ end
 @doc Markdown.doc"""
     hilbert_function(A::MPolyQuo, d::Int)
 
-Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the value
-$H(A, d)$, where $H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K A_d$ is 
-the Hilbert function of $A$.
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
+positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
+with respect to this grading, return the value $H(A, d)$, where 
+
+$H(A, \underline{\phantom{d}}): \N \rightarrow \N, \; d  \mapsto \dim_K A_d,$ 
+
+is the Hilbert function of $A$.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> hilbert_function(A,7)
+14
+```
 """
 function hilbert_function(A::MPolyQuo, d::Int)
    if iszero(A.I)
@@ -129,8 +181,19 @@ end
 @doc Markdown.doc"""
      hilbert_polynomial(A::MPolyQuo)
 
-Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$ by degree,
 return the Hilbert polynomial of $A$.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> hilbert_polynomial(A)
+3*t + 1
+```
 """
 function hilbert_polynomial(A::MPolyQuo)::fmpq_poly
    if iszero(A.I)
@@ -150,8 +213,19 @@ end
 @doc Markdown.doc"""
     degree(A::MPolyQuo)
 
-Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$ by degree,
 return the degree of $A$.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> degree(A)
+3
+```
 """
 function degree(A::MPolyQuo)
    if iszero(A.I)
@@ -160,6 +234,184 @@ function degree(A::MPolyQuo)
    H = HilbertData(A.I)
    return degree(H)
 end
+
+###############################################################################
+### zm-graded Hilbert series stuff using Singular for computing ideal quotients
+###############################################################################
+
+function transform_to_positive_orthant(rs::Matrix{Int})   
+    C = positive_hull(rs)
+    @assert isfulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
+    F = linear_inequality_matrix(facets(C))
+    
+    # Find a simplicial cone containing C
+    index = 2
+    full_rank_subset = [1]
+    full_rank = rank(F)
+    current_rank = rank(F[full_rank_subset, :])
+    while current_rank < full_rank
+        for i in index:nrows(F)
+            test = Vector{Int}(full_rank_subset)
+            append!(test, i)
+            testrank = rank(F[test,:])
+            if testrank > current_rank
+                index = i+1
+                current_rank = testrank
+                append!(full_rank_subset, i)
+                break
+            end
+        end
+    end
+    Csimplicial = cone_from_inequalities(F[full_rank_subset,:])
+    
+    @assert Polymake.polytope.included_polyhedra(C.pm_cone, Csimplicial.pm_cone) "Cone containment violated"
+    CsRays = Polymake.common.primitive(Csimplicial.pm_cone.RAYS)
+    CsRays = matrix(ZZ, CsRays)
+    nf = AbstractAlgebra.hnf_with_transform(transpose(CsRays))
+    CsRays_transformed = transpose(nf[1])
+    transformation = transpose(nf[2])
+    @assert CsRays * transformation == CsRays_transformed "Maybe order of transformation is wrong?"
+    original = matrix(ZZ, rs)
+    return original * transformation, transformation
+end
+
+function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
+   ###for use in _multi_hilbert_series only
+   ###if !ismonomial(I)
+   ###      throw(ArgumentError("The ideal is not monomial"))
+   ###end
+   ### V = minimal_monomial_generators(I)  ### to be written
+   V = gens(I)
+   s = ngens(I)
+   d = degree(Vector{Int}, V[s])
+   B = MPolyBuildCtx(S)
+   push_term!(B, 1, d)
+   p = finish(B)
+   if s == 1
+      return 1-p
+   end
+   v = V[s]
+   V = deleteat!(V, s)
+   J = ideal(base_ring(I), V)
+   p1 = _numerator_monomial_multi_hilbert_series(J, S)
+   p2 = _numerator_monomial_multi_hilbert_series(J:v, S)
+   ### TODO: Do I have the minimal set of monomial generators here?
+   return p1-p*p2
+end
+
+@doc Markdown.doc"""
+    multi_hilbert_series(A::MPolyQuo)
+
+# Examples
+```jldoctest
+julia> W = [1 1 1; 0 0 -1];
+
+julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  x[3] -> [1 -1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+
+julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
+
+julia> A, _ = quo(R, I);
+
+julia> H = multi_hilbert_series(A);
+
+julia> H[1][1]
+-t[1]^5*t[2]^2 + t[1]^5*t[2] + t[1]^4*t[2]^2 - t[1]^4 + t[1]^2*t[2]^2 - t[1]^2*t[2] + t[1]*t[2]^4 - t[1]*t[2]^2 - t[2]^4 + 1
+
+julia> H[1][2]
+-t[1]^2*t[2] + t[1]^2 + 2*t[1]*t[2] - 2*t[1] - t[2] + 1
+
+julia> H[2]
+[1    0]
+[1   -1]
+```
+"""
+function multi_hilbert_series(A::MPolyQuo)
+   R = A.R
+   if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+   end
+   if !(typeof(R) <: MPolyRing_dec && isgraded(R) && is_zm_graded(R) && is_positively_graded(R))
+       throw(ArgumentError("The base ring must be positively zm-graded."))
+   end
+   m = ngens(grading_group(R))  
+   n = ngens(R)
+   W = R.d
+   MI = Matrix{Int}(undef, n, m)
+   for i=1:n
+       for j=1:m
+           MI[i, j] = Int(W[i][j])
+       end
+   end
+   minMI = minimum(MI)
+   if minMI<0
+      MI, T = transform_to_positive_orthant(MI)     
+   else
+      T = identity_matrix(ZZ, m)
+   end  
+   if m == 1
+      VAR = ["t"]
+   else
+      VAR = [_make_variable("t", i) for i = 1:m]
+   end
+   S, _ = PolynomialRing(ZZ, VAR) 
+   q = one(S)
+   for i = 1:n
+      e = [Int(MI[i, :][j]) for j = 1:m]
+      B = MPolyBuildCtx(S)
+      push_term!(B, 1, e)
+      q = q*(1-finish(B))
+   end
+   if iszero(A.I)
+      p = one(S)
+   else
+      LI = leading_ideal(A.I)
+      if minMI<0
+         RNEW, _ = GradedPolynomialRing(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
+         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
+      end
+   end
+   p = _numerator_monomial_multi_hilbert_series(LI, S)
+   return  (p, q), T
+end
+
+@doc Markdown.doc"""
+    multi_hilbert_series_reduced(A::MPolyQuo)
+
+# Examples
+```jldoctest
+julia> W = [1 1 1; 0 0 -1];
+
+julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  x[3] -> [1 -1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+
+julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
+
+julia> A, _ = quo(R, I);
+
+julia> H[1][1]
+-t[1]^4*t[2] + t[1]^3 + t[1]^2 + t[1]*t[2] + t[1] + t[2]^3 + t[2]^2 + t[2] + 1
+
+julia> H[1][2]
+-t[1] + 1
+
+julia> H[2]
+[1    0]
+[1   -1]
+```
+"""
+function multi_hilbert_series_reduced(A::MPolyQuo)
+   (p, q), T = multi_hilbert_series(A::MPolyQuo)
+   c = gcd(p, q)
+   return (divexact(p, c), divexact(q, c)), T
+end
+
 
 ##############################################################################
 #
