@@ -626,12 +626,12 @@ function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
     return GAPGroupClassFunction(tbl, values)
 end
 
-function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabElem})
+function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QabElem})
     gapvalues = GAP.GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues))
 end
 
-function group_class_function(G::GAPGroup, values::Vector{QabElem})
+function group_class_function(G::GAPGroup, values::Vector{<:QabElem})
     return group_class_function(character_table(G), values)
 end
 
@@ -710,7 +710,7 @@ Nemo.degree(::Type{fmpq}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1
 
 Nemo.degree(::Type{fmpz}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::fmpz
 
-Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabElem
+Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabElem{nf_elem}
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(fmpz, chi))::T
 
