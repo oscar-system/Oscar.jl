@@ -7,7 +7,7 @@
     @test K isa QabField
     @test elem_type(K) === QabElem{nf_elem}
     @test elem_type(typeof(K)) === QabElem{nf_elem}
-    @test parent_type(QabElem) === QabField{AnticNumberField}
+    @test parent_type(QabElem{nf_elem}) === QabField{AnticNumberField}
     @test parent_type(one(K)) === QabField{AnticNumberField}
 
     a = @inferred K()
