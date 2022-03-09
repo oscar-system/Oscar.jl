@@ -488,12 +488,11 @@ end
 deletion(M::Matroid,elem::ElementType) = deletion(M,Vector([elem]))
 
 @doc Markdown.doc"""
-    restriction(M, [S, e])
+    restriction(M, S)
 
 # Arguments
 - `M::Matroid`: A matroid `M`.
 - `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
-- `e::ElementType`: An element `e` of the ground set of `M`.
 
 The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
 
@@ -512,20 +511,9 @@ julia> groundset(N)
  2
 ```
 """
-function restriction(M::Matroid,set::Union{AbstractVector, Set})
-    sort_set = copy(set)
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in M.groundset
-        if length(findall(x->x==elem, set))>0
-            sort_set[i]=elem
-            gs2num[elem] = i
-            i+=1
-        end
-    end
-    pm_complement = setdiff(Set(0:length(M.groundset)-1),Set([M.gs2num[i]-1 for i in set]))
-    pm_rest = Polymake.matroid.deletion(M.pm_matroid, pm_complement)
-    return Matroid(pm_rest, sort_set, gs2num)
+function restriction(M::Matroid, set::Union{AbstractVector, Set})
+    deleted_elems = filter(x -> x ∉ set, M.groundset)
+    return deletion(M, deleted_elems)
 end
 
 @doc Markdown.doc"""
