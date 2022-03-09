@@ -43,8 +43,7 @@ function is_unicode_allowed()
 end
 
 function with_unicode(f::Function)
-  old_allow_unicode = allow_unicode(true)
-  result = f()
-  allow_unicode(old_allow_unicode)
-  return result
+  old_allow_unicode = allow_unicode(true);
+  f()
+  allow_unicode(old_allow_unicode);
 end
