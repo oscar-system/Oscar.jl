@@ -562,7 +562,7 @@ function Oscar.roots(a::QabElem, n::Int)
     fl, i = ispower(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
     fl || return roots(x^n-a)::Vector{QabElem}
-    b = gens(Hecke.inv(i))[2]
+    b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
     c.data = b
     corr = Hecke.inv(c)
