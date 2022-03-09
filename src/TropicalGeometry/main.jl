@@ -22,7 +22,7 @@ include("points.jl")
 # Warning: This function ignores all boundary cases!
 function tropical_polynomial_to_polymake(f)
     fstr = ""
-    if convention(base_ring(f))
+    if convention(base_ring(f)) == min
         fstr *= "min("
     else
         fstr *= "max("
