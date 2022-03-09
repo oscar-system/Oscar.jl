@@ -268,13 +268,21 @@ Matroid of rank 2 on 4 elements
 """
 function matroid_from_matrix_columns(A::MatrixElem)
     rk = rank(A)
+    nr = nrows(A)
     bases = Vector{Vector{IntegerUnion}}()
-    for set in Oscar.Hecke.subsets(Vector(1:ncols(A)),rk)
-        if rank(A[:,set])==rk
+    # We use a temporary matrix which we will rewrite to avoid creating new matrices in every iteration.
+    tmp_mat = A[:,1:rk]
+    for set in subsets(Vector(1:ncols(A)),rk)
+        for is in 1:rk
+            for ir in 1:nr
+                tmp_mat[ir,is] = A[ir,set[is]]
+            end
+        end
+        if rank(tmp_mat)==rk
             push!(bases, set);
         end
     end
-    return matroid_from_bases(bases,ncols(A))
+    return matroid_from_bases(bases, ncols(A); check=false)
 end
 
 @doc Markdown.doc"""
