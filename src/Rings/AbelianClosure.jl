@@ -54,8 +54,8 @@ end
 
 # This is a functor like object G with G(n) = primitive n-th root of unity
 
-mutable struct QabFieldGen
-  K::QabField
+mutable struct QabFieldGen{T}
+  K::QabField{T}
 end
 
 const _QabGen = QabFieldGen(_Qab)
@@ -179,7 +179,7 @@ Oscar.data(a::QabElem) = a.data
 # This function finds a primitive root of unity in our field, note this is
 # not always e^(2*pi*i)/n
 
-function root_of_unity(K::QabField, n::Int)
+function root_of_unity(K::QabField{AnticNumberField}, n::Int)
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
@@ -187,11 +187,26 @@ function root_of_unity(K::QabField, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QabElem(z, c)
+    return QabElem{nf_elem}(z, c)
   else
-    return QabElem(-z, c)
+    return QabElem{nf_elem}(-z, c)
   end
 end
+
+function root_of_unity(K::QabField{NfAbsNS}, n::Int)
+  if n % 2 == 0 && n % 4 != 0
+    c = div(n, 2)
+  else
+    c = n
+  end
+  K, z = cyclotomic_field(K, c)
+  if c == n
+    return QabElem{NfAbsNSElem}(z, c)
+  else
+    return QabElem{NfAbsNSElem}(-z, c)
+  end
+end
+
 
 function root_of_unity2(K::QabField, c::Int)
   # This function returns the primitive root of unity e^(2*pi*i/n)
