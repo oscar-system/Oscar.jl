@@ -9,6 +9,9 @@ export
     uniform_matroid, fano_matroid, non_fano_matroid, pappus_matroid, non_pappus_matroid, vamos_matroid,
     all_subsets_matroid, projective_plane, projective_geometry, affine_geometry
 
+
+include("representations.jl")
+
 ################################################################################
 ##  Constructing
 ################################################################################
@@ -266,7 +269,7 @@ julia> M = matroid_from_matrix_columns(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-function matroid_from_matrix_columns(A::MatrixElem)
+function matroid_from_matrix_columns(A::MatrixElem; check=true)
     rk = rank(A)
     nr = nrows(A)
     bases = Vector{Vector{IntegerUnion}}()
@@ -282,7 +285,7 @@ function matroid_from_matrix_columns(A::MatrixElem)
             push!(bases, set);
         end
     end
-    return matroid_from_bases(bases, ncols(A); check=false)
+    return matroid_from_bases(bases, ncols(A); check=check)
 end
 
 @doc Markdown.doc"""
@@ -301,7 +304,7 @@ julia> M = matroid_from_matrix_rows(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_matrix_rows(A::MatrixElem) = matroid_from_matrix_columns(transpose(A))
+matroid_from_matrix_rows(A::MatrixElem, ; check=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc Markdown.doc"""
     cycle_matroid(g::Oscar.Graphs.Graph)
@@ -740,7 +743,7 @@ function all_subsets_matroid(r::Int)
         M = vcat(M,digits(i, base=2, pad=r))
     end
     M = convert(Array{Int64, 2}, reshape(M, r, 2^r-1))
-    return matroid_from_matrix_columns(matrix(QQ, M))
+    return matroid_from_matrix_columns(matrix(QQ, M); check=false)
 end
 
 @doc Markdown.doc"""
@@ -800,7 +803,7 @@ function projective_geometry(r::Int, q::Int)
         end
     end
     M = convert(Array{Int64,2},reshape(M, r, n))
-    return matroid_from_matrix_columns(matrix(GF(q), M))
+    return matroid_from_matrix_columns(matrix(GF(q), M); check=false)
 end
 
 @doc Markdown.doc"""
@@ -826,6 +829,6 @@ function affine_geometry(r::Int, q::Int)
         error("The rank should be at least 3")
     end
 
-    PG = projective_geometry(r, q)
+    PG = projective_geometry(r, q; check=false)
     return restriction(PG, Vector(2:(length(PG.groundset)-q)))
 end
