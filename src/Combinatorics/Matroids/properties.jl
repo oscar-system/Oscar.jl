@@ -18,8 +18,20 @@ export
 ##  Properties and basic functions
 ################################################################################
 
+
+@doc Markdown.doc"""
+    isomorphism(M::matroid, gs::AbstractVector)
+
+Return a matroid isomorphic to `M` on the groundset `gs`.
+
+# Example
+```jldoctest
+julia> isomorphism(fano_matroid(), [2,3,4,1,5,6,7])
+Matroid of rank 3 on 7 elements
+```
+"""
 function isomorphism(M::Matroid, gs::AbstractVector)
-    if lenght(M.groundset)!=length(gs)
+    if length(M.groundset)!=length(gs)
         error("Sets of different size")
     end
     gs2num = Dict{Any,Int}()
@@ -31,6 +43,18 @@ function isomorphism(M::Matroid, gs::AbstractVector)
     return Matroid(M.pm_matroid,gs,gs2num)
 end
 
+
+@doc Markdown.doc"""
+    size_groundset(M::matroid)
+
+Return the size of the ground set of the matroid `M`.
+
+# Example
+```jldoctest
+julia> size_groundset(fano_matroid())
+7
+```
+"""
 size_groundset(M::Matroid) = length(M.groundset)
 
 @doc Markdown.doc"""
@@ -65,7 +89,6 @@ julia> nonbases(fano_matroid())
  [2, 4, 6]
  [1, 4, 5]
  [1, 2, 3]
-
 ```
 """
 function nonbases(M::Matroid)
