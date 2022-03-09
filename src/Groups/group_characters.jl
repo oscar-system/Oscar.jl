@@ -45,26 +45,26 @@ if `F` is not given then the result has type `QabElem`.
 
 ```jldoctest
 julia> Oscar.with_unicode() do
-         show(atlas_irrationality("r5"))
-       end;
+         atlas_irrationality("r5"))
+       end
 -2*ζ(5)^3 - 2*ζ(5)^2 - 1
 
 julia> atlas_irrationality(CyclotomicField(5)[1], "r5")
 -2*z_5^3 - 2*z_5^2 - 1
 
 julia> Oscar.with_unicode() do
-         show(atlas_irrationality("i"))
-       end;
+         atlas_irrationality("i")
+       end
 ζ(4)
 
 julia> Oscar.with_unicode() do
-         show(atlas_irrationality("b7*3"))
-       end;
+         atlas_irrationality("b7*3")
+       end
 -ζ(7)^4 - ζ(7)^2 - ζ(7) - 1
 
 julia> Oscar.with_unicode() do
-         show(atlas_irrationality("3y'''24*13-2&5"))
-       end;
+         atlas_irrationality("3y'''24*13-2&5")
+       end
 -5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
 
 ```
@@ -136,8 +136,8 @@ then `nothing` is returned.
 # Examples
 ```jldoctest
 julia> Oscar.with_unicode() do
-         show(character_table(symmetric_group(3)))
-       end;
+         character_table(symmetric_group(3))
+       end
 Sym( [ 1 .. 3 ] )
 
  2  1  1  .
@@ -152,8 +152,8 @@ Sym( [ 1 .. 3 ] )
 χ₃  1  1  1
 
 julia> Oscar.with_unicode() do
-         show(character_table(symmetric_group(3), 2))
-       end;
+         character_table(symmetric_group(3), 2)
+       end
 Sym( [ 1 .. 3 ] ) mod 2
 
  2  1  .
