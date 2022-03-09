@@ -5,10 +5,10 @@
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
     @test K isa QabField
-    @test elem_type(K) === QabElem
-    @test elem_type(typeof(K)) === QabElem
-    @test parent_type(QabElem) === QabField
-    @test parent_type(one(K)) === QabField
+    @test elem_type(K) === QabElem{nf_elem}
+    @test elem_type(typeof(K)) === QabElem{nf_elem}
+    @test parent_type(QabElem) === QabField{AnticNumberField}
+    @test parent_type(one(K)) === QabField{AnticNumberField}
 
     a = @inferred K()
     @test a isa QabElem
