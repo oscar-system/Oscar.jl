@@ -1,5 +1,5 @@
 export
-    Matroid, groundset, 
+    Matroid, matroid_groundset, 
     matroid_from_revlex_basis_encoding,
     matroid_from_bases, matroid_from_nonbases, matroid_from_circuits, matroid_from_hyperplanes,
     matroid_from_matrix_columns, matroid_from_matrix_rows,
@@ -392,7 +392,7 @@ julia> groundset(fano_matroid())
  7
 ```
 """
-groundset(M::Matroid) = M.groundset
+matroid_groundset(M::Matroid) = M.groundset
 
 @doc Markdown.doc"""
     direct_sum(M::Matroid, N::Matroid)
