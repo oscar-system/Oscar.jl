@@ -92,14 +92,8 @@ julia> nonbases(fano_matroid())
 ```
 """
 function nonbases(M::Matroid)
-    Nonbases = []
     Bases = bases(M)
-    for set in Oscar.Hecke.subsets(Vector(1:length(M.groundset)),rank(M))
-        if !(set in Bases)
-            push!(Nonbases, set)
-        end
-    end
-    return Nonbases
+    return filter(set -> set ∉ Bases, Oscar.Hecke.subsets(Vector(1:length(M.groundset)),rank(M)))
 end 
 
 
@@ -391,40 +385,6 @@ julia> fundamental_cocircuit(fano_matroid(), [1,2,4], 4)
 fundamental_cocircuit(M::Matroid, basis::AbstractVector, elem::Union{IntegerUnion,Char,String}) = fundamental_circuit(dual_matroid(M), setdiff(M.groundset, basis), elem)
 
 @doc Markdown.doc"""
-    spanning_sets(M::matroid)
-
-Return the list of spanning sets of the matroid `M`.
-These are all sets containing a basis.
-
-# Example
-```jldoctest
-julia> spanning_sets(uniform_matroid(2, 3))
-4-element Vector{Vector{Any}}:
- [1, 3]
- [2, 3]
- [1, 2]
- [1, 2, 3]
-```
-"""
-function spanning_sets(M::Matroid)
-    pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
-    n = length(M.groundset)
-    gs = M.groundset
-    sets = Vector{Vector{Any}}()
-    for k in rank(M):n
-        for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
-            for B in pm_bases
-                if issubset(B,set)
-                    push!(sets, [gs[i+1] for i in set])
-                    break
-                end
-            end
-        end
-    end
-    return sets
-end
-
-@doc Markdown.doc"""
     independet_sets(M::matroid)
 
 Return the list of independent sets of the matroid `M`.
@@ -459,6 +419,29 @@ function independent_sets(M::Matroid)
         end
     end
     return sets
+end
+
+@doc Markdown.doc"""
+    spanning_sets(M::matroid)
+
+Return the list of spanning sets of the matroid `M`.
+These are all sets containing a basis.
+
+# Example
+```jldoctest
+julia> spanning_sets(uniform_matroid(2, 3))
+4-element Vector{Vector{Any}}:
+ [1, 3]
+ [2, 3]
+ [1, 2]
+ [1, 2, 3]
+```
+"""
+function spanning_sets(M::Matroid)
+    # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
+    coindependent_sets = independent_sets(dual_matroid(M))
+    span_sets = [filter(k -> k ∉ set, 1:size_groundset(M)) for set in coindependent_sets]
+    return reverse(span_sets)
 end
 
 @doc Markdown.doc"""
