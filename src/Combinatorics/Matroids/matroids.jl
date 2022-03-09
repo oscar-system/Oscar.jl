@@ -540,8 +540,8 @@ Matroid of rank 1 on 3 elements
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
-julia> N = deletion(M,['i','j'])
-Matroid of rank 2 on 2 elements
+julia> N = contraction(M,['i','j'])
+Matroid of rank 1 on 2 elements
 
 julia> groundset(N)
 2-element Vector{Any}:
@@ -550,18 +550,8 @@ julia> groundset(N)
 ```
 """
 function contraction(M::Matroid,set::Union{AbstractVector, Set})
-    sort_set = Vector(undef,length(M.groundset)-length(set))
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in M.groundset
-        if length(findall(x->x==elem, set))==0
-            sort_set[i]=elem
-            gs2num[elem] = i
-            i+=1
-        end
-    end
-    pm_contr = Polymake.matroid.contraction(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
-    return Matroid(pm_contr, sort_set, gs2num)
+    # We use that the contraction by set is the dual of the deletion of set in the dual matroid. 
+    return dual_matroid(deletion(dual_matroid(M), set))
 end
 
 contraction(M::Matroid,elem::ElementType) = contraction(M,Vector([elem]))
