@@ -8,7 +8,7 @@ _whyohwhy3 = FlintRationalField
 @attributes _whyohwhy3
 
 
-include("numbers.jl")
+include("semiring.jl")
 include("valuation.jl")
 include("poly.jl")
 include("initial.jl")
@@ -21,9 +21,8 @@ include("points.jl")
 #
 # Warning: This function ignores all boundary cases!
 function tropical_polynomial_to_polymake(f)
-    convention = fun(base_ring(f))
     fstr = ""
-    if convention == min
+    if convention(base_ring(f))
         fstr *= "min("
     else
         fstr *= "max("
