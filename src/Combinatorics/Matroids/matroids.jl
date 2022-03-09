@@ -52,11 +52,18 @@ function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::In
 end
 
 @doc Markdown.doc"""
+    matroid_from_bases(B, [n, E])
+
+# Arguments
+- `B::AbstractVector`: The set of bases of the matroid.
+- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `E::AbstractVector`: An explicit ground set passed as vector.
+
 Construct a `matroid` with bases `B` on the ground set `E` (which can be the empty set).
 The set `B` is a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
 
-See Section 1.2 of Oxl11 (@cite)
+See Section 1.2 of Oxl11 (@cite).
 
 # Examples
 To construct a rank two matroid with five bases on four elements you can write:
@@ -76,7 +83,7 @@ Matroid of rank 2 on 4 elements
 """
 matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_bases(bases,Vector(1:nelements))
 
-function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
+function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}}, groundset::AbstractVector; check::Bool=true)
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
@@ -95,13 +102,20 @@ function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, Abstr
 end
 
 @doc Markdown.doc"""
+    matroid_from_nonbases(N, [n, E])
+
+# Arguments
+- `N::AbstractVector`: The set of nonbases of the matroid.
+- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `E::AbstractVector`: An explicit ground set passed as vector.
+
 Construct a `matroid` with nonbases `N` on the ground set `E` (which can be the empty set).
 That means that the matroid has as bases all subsets of the size `|N[1]|` of the ground set that are not in `N`.
-There `N` can't be empty.
+The set `N` can't be empty in this function.
 The described complement of `N` needs to be a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
 
-See Section 1.2 of Oxl11 (@cite)
+See Section 1.2 of Oxl11 (@cite).
 
 # Examples
 To construct the Fano matroid you may write:
@@ -144,11 +158,18 @@ function matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector},
 end
 
 @doc Markdown.doc"""
+    matroid_from_circuits(C, [n, E])
+
+# Arguments
+- `C::AbstractVector`: The set of circuits of the matroid.
+- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `E::AbstractVector`: An explicit ground set passed as vector.
+
 A matroid with circuits `C` on the ground set `E` (which can be the empty set).
 The set `C` is a collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
 
-See Section 1.1 of Oxl11 (@cite)
+See Section 1.1 of Oxl11 (@cite).
 
 # Examples
 To construct a rank two matroid with five bases on four elements by its circuits you may write:
@@ -190,11 +211,19 @@ function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector},
 end
 
 @doc Markdown.doc"""
+    matroid_from_hyperplanes(H, [n, E])
+
+# Arguments
+- `H::AbstractVector`: The set of hyperplanes of the matroid.
+- `n::InterUnion`: The size of the ground set. The ground set will be `{1,..n}` in this case.
+- `E::AbstractVector`: An explicit ground set passed as vector.
+
 A matroid with hyperplanes `H` on the ground set `E` (which can be the empty set).
+A hyperplane is a flat of rank `r-1`.
 The set `H` is a collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
 
-See Section 1.4 of Oxl11 (@cite)
+See Section 1.4 of Oxl11 (@cite).
 
 # Examples
 To construct the Fano matroid you may write:
@@ -225,9 +254,11 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVe
 end
 
 @doc Markdown.doc"""
-A matroid represented by the column vectors of a matrix.
+    matroid_from_matrix_columns(A::MatrixElem)
 
-See Section 1.1 of Oxl11 (@cite)
+A matroid represented by the column vectors of a matrix `A`.
+
+See Section 1.1 of Oxl11 (@cite).
 
 # Examples
 To construct the vector matroid (a.k.a linear matroid) of the matrix `A` over the field with two elements write:
@@ -250,9 +281,11 @@ function matroid_from_matrix_columns(A::MatrixElem)
 end
 
 @doc Markdown.doc"""
+    matroid_from_matrix_columns(A::MatrixElem)
+
 A matroid represented by the row vectors of a matrix.
 
-See Section 1.1 of Oxl11 (@cite)
+See Section 1.1 of Oxl11 (@cite).
 
 # Examples
 To construct the linear matroid of the rows of the matrix `A` over the field with two elements write:
@@ -266,9 +299,11 @@ Matroid of rank 2 on 4 elements
 matroid_from_matrix_rows(A::MatrixElem) = matroid_from_matrix_columns(transpose(A))
 
 @doc Markdown.doc"""
-The cycle matroid of a graph.
+    cycle_matroid(g::Oscar.Graphs.Graph)
 
-See Section 1.1 of Oxl11 (@cite)
+The cycle matroid of a graph `g`.
+
+See Section 1.1 of Oxl11 (@cite).
 
 # Examples
 To construct the cycle matroid of the complete graph of 4 vertices write:
@@ -293,9 +328,11 @@ function cycle_matroid(g::Oscar.Graphs.Graph)
 end
 
 @doc Markdown.doc"""
-The `bond matroid` or `cocylce matroid` of a graph which is the dual of a cycle matroid, e.g, cographic.
+    bond_matroid(g::Oscar.Graphs.Graph)
 
-See Section 2.3 of Oxl11 (@cite)
+The `bond matroid` or `cocylce matroid` of a graph `g` which is the dual of a cycle matroid, e.g, cographic.
+
+See Section 2.3 of Oxl11 (@cite).
 
 # Examples
 To construct the bond or cocycle matroid of the complete graph of 4 vertices write:
@@ -324,9 +361,11 @@ cocycle_matroid(g::Oscar.Graphs.Graph) = bond_matroid(g::Oscar.Graphs.Graph)
 
 
 @doc Markdown.doc"""
-The `dual matroid` of a given matroid.
+    dual_matroid(M::Matroid)
 
-See page 65 and Sectrion 2 in Oxl11 (@cite)
+The `dual matroid` of a given matroid `M`.
+
+See page 65 and Sectrion 2 in Oxl11 (@cite).
 
 # Examples
 To construct the dual of the fano matroid write:
@@ -338,7 +377,9 @@ Matroid of rank 4 on 7 elements
 dual_matroid(M::Matroid) = Matroid(M.pm_matroid.DUAL,M.groundset,M.gs2num)
 
 @doc Markdown.doc"""
-The ground set `E` of a matroid.
+    groundset(M::Matroid)
+
+The ground set `E` of a matroid `M`.
 
 To obtain the ground set of the fano matroid type:
 # Example
@@ -357,9 +398,11 @@ julia> groundset(fano_matroid())
 groundset(M::Matroid) = M.groundset
 
 @doc Markdown.doc"""
-The `direct sum` of matroids.
+    direct_sum(M::Matroid, N::Matroid)
+The `direct sum` of the matroids `M` and `N`.
+Optionally one can also pass a vector of matroids.
 
-See Section 4.2 of Oxl11 (@cite)
+See Section 4.2 of Oxl11 (@cite).
 
 To obtain the direct sum of the fano and a uniform matroid type:
 # Example
@@ -398,9 +441,16 @@ end
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
 
 @doc Markdown.doc"""
-The `deletion M\S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
+    deletion(M, [S, e])
 
-See Section 3 of Oxl11 (@cite)
+# Arguments
+- `M::Matroid`: A matroid `M`.
+- `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
+- `e::Union{IntegerUnion,Char,String}`: An element `e` of the ground set of `M`.
+
+The `deletion M\S` of an element `e` or a subset `S` of the ground set `E` of the matroid `M`.
+
+See Section 3 of Oxl11 (@cite).
 
 # Example
 ```jldoctest
@@ -441,9 +491,16 @@ end
 deletion(M::Matroid,elem::Union{IntegerUnion,Char,String}) = deletion(M,Vector([elem]))
 
 @doc Markdown.doc"""
+    restriction(M, [S, e])
+
+# Arguments
+- `M::Matroid`: A matroid `M`.
+- `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
+- `e::Union{IntegerUnion,Char,String}`: An element `e` of the ground set of `M`.
+
 The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
 
-See Section 3 of Oxl11 (@cite)
+See Section 3 of Oxl11 (@cite).
 
 # Example
 ```jldoctest
@@ -475,9 +532,16 @@ function restriction(M::Matroid,set::Union{AbstractVector, Set})
 end
 
 @doc Markdown.doc"""
+    contraction(M, [S, e])
+
+# Arguments
+- `M::Matroid`: A matroid `M`.
+- `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
+- `e::Union{IntegerUnion,Char,String}`: An element `e` of the ground set of `M`.
+
 The `contraction M/S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
 
-See Section 3 of Oxl11 (@cite)
+See Section 3 of Oxl11 (@cite).
 
 # Example
 ```jldoctest
@@ -518,9 +582,11 @@ end
 contraction(M::Matroid,elem::Union{IntegerUnion,Char,String}) = contraction(M,Vector([elem]))
 
 @doc Markdown.doc"""
+    minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{AbstractVector, Set})
+
 The 'minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
 
-See also ``contraction`` and ``deletion``. You can find more in Section 3 of Oxl11 (@cite)
+See also ``contraction`` and ``deletion``. You can find more in Section 3 of Oxl11 (@cite).
 
 # Example
 ```jldoctest
@@ -542,9 +608,11 @@ function minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{
 end
 
 @doc Markdown.doc"""
+    principal_extension(M::Matroid, F::Union{AbstractVector,Set}, e::Union{IntegerUnion,Char,String})
+
 The `principal extension M +_F e` of a matroid `M` where the element `e` is freely added to the flat `F`.
 
-See Section 7.2 of Oxl11 (@cite)
+See Section 7.2 of Oxl11 (@cite).
 
 # Example
 To add `4` freely to the flat `{1,2}` of the uniform matroid U_{3,4} do
@@ -565,9 +633,10 @@ function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::U
 end
 
 @doc Markdown.doc"""
+    free_extension(M::Matroid, e::Union{IntegerUnion,Char,String})
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
-See ``principal_extension`` and Section 7.2 of Oxl11 (@cite)
+See ``principal_extension`` and Section 7.2 of Oxl11 (@cite).
 
 # Example
 To add `4` freely to the uniform matroid U_{3,4} do
@@ -581,9 +650,11 @@ Matroid of rank 3 on 5 elements
 free_extension(M::Matroid, elem::Union{IntegerUnion,Char,String}) = principal_extension(M, M.groundset, elem)
 
 @doc Markdown.doc"""
+    series_extension(M::Matroid, f::Union{IntegerUnion,Char,String}, e::Union{IntegerUnion,Char,String})
+
 The `series extension` of a matroid `M` where the element `e` is added in series to `f`.
 
-This is actually a coextension see also Section 7.2 of Oxl11 (@cite)
+This is actually a coextension see also Section 7.2 of Oxl11 (@cite).
 
 # Example
 To add `e` in series to `1` in the uniform matroid U_{3,4} do
@@ -605,9 +676,11 @@ end
 
 
 @doc Markdown.doc"""
+    parallel_extension(M::Matroid, f::Union{IntegerUnion,Char,String}, e::Union{IntegerUnion,Char,String})
+
 The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is added parallel to `f`.
 
-See Section 7.2 of Oxl11 (@cite)
+See Section 7.2 of Oxl11 (@cite).
 
 # Example
 To add `e` parallel to `1` in the uniform matroid U_{3,4} do
@@ -688,10 +761,12 @@ function all_subsets_matroid(r::Int)
 end
 
 @doc Markdown.doc"""
+    projective_plane(q::Int)
+
 The projective plane of order `q`.
 Note that this only works for prime numbers `q` for now.
 
-See Section 6.1 of Oxl11 (@cite)
+See Section 6.1 of Oxl11 (@cite).
 
 # Example
 ```jldoctest
@@ -709,10 +784,12 @@ end
 
 
 @doc Markdown.doc"""
+    projective_geometry(r::Int, q::Int)
+
 The projective geometry of order `q` and rank `r`.
 Note that this only works for prime numbers `q` for now.
 
-See Section 6.1 of Oxl11 (@cite)
+See Section 6.1 of Oxl11 (@cite).
 Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
 
 # Example
@@ -744,10 +821,12 @@ function projective_geometry(r::Int, q::Int)
 end
 
 @doc Markdown.doc"""
+    affine_geometry(r::Int, q::Int)
+
 The affine geometry of order `q` and rank `r`.
 Note that this only works for prime numbers `q` for now.
 
-See Section 6.1 of Oxl11 (@cite)
+See Section 6.1 of Oxl11 (@cite).
 Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
 
 # Example
