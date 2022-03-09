@@ -128,7 +128,7 @@ Matroid of rank 3 on 7 elements
 
 ```
 """
-matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_nonbases(nonbases,Vector(1:nelements))
+matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion; check::Bool=true) = matroid_from_nonbases(nonbases,Vector(1:nelements); check)
 
 function matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
     if check && length(groundset)!=length(Set(groundset))
@@ -143,14 +143,10 @@ function matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector},
     if length(nonbases)==0
         error("The collection of nonbases should not be empty.")
     end
+
     rk = length(nonbases[1])
-    bases = Vector{Vector{IntegerUnion}}()
-    for set in Oscar.Hecke.subsets(Vector(1:length(groundset)),rk)
-        if !(set in nonbases)
-            push!(bases, set)
-        end
-    end
-    pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
+    Bases = filter(set -> set ∉ nonbases, Oscar.Hecke.subsets(Vector(1:length(groundset)),rk))
+    pm_bases = [[gs2num[i]-1 for i in B] for B in Bases]
     M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
         error("Input is not a collection of nonbases")
