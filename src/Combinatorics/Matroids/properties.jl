@@ -326,7 +326,7 @@ nullity(M::Matroid, set::Union{AbstractVector,Set}) = length(set)-Polymake.matro
 
 
 @doc Markdown.doc"""
-    fundamental_circuit(M::matroid, basis::Vector, elem::Union{IntegerUnion,Char,String})
+    fundamental_circuit(M::matroid, basis::Vector, elem::ElementType)
 
 Return the unique circuit contained in the union of `basis` and `elem` of the matroid `M`.
 See Section 1.2 of Oxl11 (@cite).
@@ -351,7 +351,7 @@ julia> fundamental_circuit(M, [1,2,4], 3)
  3
 ```
 """
-function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::Union{IntegerUnion,Char,String})
+function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::ElementType)
     if !(basis in bases(M))
         error("The set is not a basis of M")
     end
@@ -365,7 +365,7 @@ function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::Union{Inte
 end
 
 @doc Markdown.doc"""
-    fundamental_cocircuit(M::matroid, cobasis::Vector, elem::Union{IntegerUnion,Char,String})
+    fundamental_cocircuit(M::matroid, cobasis::Vector, elem::ElementType)
 
 Return the unique circuit of the dual matroid of `M` in the union of the complement of `basis` and `elem`.
 See Section 2.1 of Oxl11 (@cite).
@@ -382,7 +382,7 @@ julia> fundamental_cocircuit(fano_matroid(), [1,2,4], 4)
  7
 ```
 """
-fundamental_cocircuit(M::Matroid, basis::AbstractVector, elem::Union{IntegerUnion,Char,String}) = fundamental_circuit(dual_matroid(M), setdiff(M.groundset, basis), elem)
+fundamental_cocircuit(M::Matroid, basis::AbstractVector, elem::ElementType) = fundamental_circuit(dual_matroid(M), setdiff(M.groundset, basis), elem)
 
 @doc Markdown.doc"""
     independet_sets(M::matroid)

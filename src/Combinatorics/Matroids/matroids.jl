@@ -12,10 +12,11 @@ export
 ################################################################################
 ##  Constructing
 ################################################################################
+ElementType = Union{IntegerUnion,Char,String}
 
 struct Matroid
     pm_matroid::Polymake.BigObject
-    groundset::Vector # groundset of the matroid 
+    groundset::Vector{ElementType} # groundset of the matroid 
     gs2num::Dict{Any, IntegerUnion}# dictionary to map the groundset to the integers from 1 to its size
 end
 
@@ -446,7 +447,7 @@ direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
 # Arguments
 - `M::Matroid`: A matroid `M`.
 - `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
-- `e::Union{IntegerUnion,Char,String}`: An element `e` of the ground set of `M`.
+- `e::ElementType`: An element `e` of the ground set of `M`.
 
 The `deletion M\S` of an element `e` or a subset `S` of the ground set `E` of the matroid `M`.
 
@@ -488,7 +489,7 @@ function deletion(M::Matroid,set::Union{AbstractVector, Set})
     return Matroid(pm_del, sort_set, gs2num)
 end
 
-deletion(M::Matroid,elem::Union{IntegerUnion,Char,String}) = deletion(M,Vector([elem]))
+deletion(M::Matroid,elem::ElementType) = deletion(M,Vector([elem]))
 
 @doc Markdown.doc"""
     restriction(M, [S, e])
@@ -496,7 +497,7 @@ deletion(M::Matroid,elem::Union{IntegerUnion,Char,String}) = deletion(M,Vector([
 # Arguments
 - `M::Matroid`: A matroid `M`.
 - `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
-- `e::Union{IntegerUnion,Char,String}`: An element `e` of the ground set of `M`.
+- `e::ElementType`: An element `e` of the ground set of `M`.
 
 The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
 
@@ -537,7 +538,7 @@ end
 # Arguments
 - `M::Matroid`: A matroid `M`.
 - `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
-- `e::Union{IntegerUnion,Char,String}`: An element `e` of the ground set of `M`.
+- `e::ElementType`: An element `e` of the ground set of `M`.
 
 The `contraction M/S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
 
@@ -579,7 +580,7 @@ function contraction(M::Matroid,set::Union{AbstractVector, Set})
     return Matroid(pm_contr, sort_set, gs2num)
 end
 
-contraction(M::Matroid,elem::Union{IntegerUnion,Char,String}) = contraction(M,Vector([elem]))
+contraction(M::Matroid,elem::ElementType) = contraction(M,Vector([elem]))
 
 @doc Markdown.doc"""
     minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{AbstractVector, Set})
@@ -608,7 +609,7 @@ function minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{
 end
 
 @doc Markdown.doc"""
-    principal_extension(M::Matroid, F::Union{AbstractVector,Set}, e::Union{IntegerUnion,Char,String})
+    principal_extension(M::Matroid, F::Union{AbstractVector,Set}, e::ElementType)
 
 The `principal extension M +_F e` of a matroid `M` where the element `e` is freely added to the flat `F`.
 
@@ -623,7 +624,7 @@ julia> N = principal_extension(M,[1,2],5)
 Matroid of rank 3 on 5 elements
 ```
 """
-function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::Union{IntegerUnion,Char,String})
+function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::ElementType)
     if elem in M.groundset
         error("The element you are about to add is already contained in the ground set")
     end
@@ -633,7 +634,7 @@ function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::U
 end
 
 @doc Markdown.doc"""
-    free_extension(M::Matroid, e::Union{IntegerUnion,Char,String})
+    free_extension(M::Matroid, e::ElementType)
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
 See ``principal_extension`` and Section 7.2 of Oxl11 (@cite).
@@ -647,10 +648,10 @@ julia>  N = free_extension(M,5)
 Matroid of rank 3 on 5 elements
 ```
 """
-free_extension(M::Matroid, elem::Union{IntegerUnion,Char,String}) = principal_extension(M, M.groundset, elem)
+free_extension(M::Matroid, elem::ElementType) = principal_extension(M, M.groundset, elem)
 
 @doc Markdown.doc"""
-    series_extension(M::Matroid, f::Union{IntegerUnion,Char,String}, e::Union{IntegerUnion,Char,String})
+    series_extension(M::Matroid, f::ElementType, e::ElementType)
 
 The `series extension` of a matroid `M` where the element `e` is added in series to `f`.
 
@@ -670,13 +671,13 @@ julia> cocircuits(N)[1]
   'e': ASCII/Unicode U+0065 (category Ll: Letter, lowercase)
 ```
 """
-function series_extension(M::Matroid, old::Union{IntegerUnion,Char,String}, new::Union{IntegerUnion,Char,String})
+function series_extension(M::Matroid, old::ElementType, new::ElementType)
 	return dual_matroid(principal_extension(dual_matroid(M),[old], new))
 end
 
 
 @doc Markdown.doc"""
-    parallel_extension(M::Matroid, f::Union{IntegerUnion,Char,String}, e::Union{IntegerUnion,Char,String})
+    parallel_extension(M::Matroid, f::ElementType, e::ElementType)
 
 The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is added parallel to `f`.
 
@@ -696,7 +697,7 @@ julia> circuits(N)[1]
   'e': ASCII/Unicode U+0065 (category Ll: Letter, lowercase)
 ```
 """
-function parallel_extension(M::Matroid, old::Union{IntegerUnion,Char,String}, new::Union{IntegerUnion,Char,String})
+function parallel_extension(M::Matroid, old::ElementType, new::ElementType)
 	if !(old in M.groundset)
 		error("The element ".old." is not in the ground set")
 	end
