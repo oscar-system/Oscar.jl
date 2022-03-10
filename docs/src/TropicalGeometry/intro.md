@@ -23,7 +23,7 @@ TropicalHypersurface
 ## Auxiliary
 
 ```@docs
-dual_subdivision(TH::TropicalHypersurface{M, EMB})
+dual_subdivision(TH::TropicalHypersurface{M, EMB}) where {M, EMB}
 intersect
 stably_intersect
 ```

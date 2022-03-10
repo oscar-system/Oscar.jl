@@ -17,9 +17,9 @@ A valuation map for computations in the tropical geometry package. Currently, th
 julia> val_2 = ValuationMap(QQ,2);
 
 julia> val_2(4)
-2
+(2)
 julia> val_2(1//4)
--2
+(-2)
 ```
 
 # Example for t-adic valuation on QQ(t)
@@ -29,9 +29,9 @@ julia> Kt,t = RationalFunctionField(QQ,"t");
 julia> val_t = ValuationMap(Kt,t);
 
 julia> val_t(t^2)
-2
-julia> val_2(1//t^2)
--2
+(2)
+julia> val_t(1//t^2)
+(-2)
 ```
 
 # Example for p-adic valuation on QQ
@@ -39,9 +39,9 @@ julia> val_2(1//t^2)
 julia> val = ValuationMap(QQ);
 
 julia> val(4)
-0
+(0)
 julia> val(1//4)
-0
+(0)
 ```
 """
 struct ValuationMap{typeofValuedField,typeofUniformizer}
@@ -88,7 +88,7 @@ function (val::ValuationMap{K,Nothing} where {K})(c)
   if iszero(c)
     return inf(val.tropical_semiring)
   end
-  return 0
+  return val.tropical_semiring(0)
 end
 
 # Display:

@@ -67,7 +67,7 @@ julia> T = tropical_semiring(min)
 Tropical ring (min)
 
 julia> Txy,(x,y) = T["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalRingElem{typeof(min)}}[x, y])
+(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 julia> f = x+y+1
 x + y + (1)
@@ -108,7 +108,7 @@ end
 # Tropical ring (min)
 
 # julia> Txy,(x,y) = T["x","y"]
-# (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalRingElem{typeof(min)}}[x, y])
+# (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 # julia> f = x+y+1
 # x + y + (1)
@@ -198,6 +198,7 @@ end
 # -------------------
 ###
 
+# todo: add examples for varieties, curves and linear spaces
 @doc Markdown.doc"""
     dual_subdivision(TH::TropicalHypersurface{M, EMB})
 
@@ -215,7 +216,7 @@ julia> f = x+y+1;
 julia> tropicalLine = TropicalHypersurface(f);
 
 julia> dual_subdivision(tropicalLine)
-# todo: add examples for varieties, curves and linear spaces
+A subdivision of points in ambient dimension 3
 ```
 """
 function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
@@ -245,6 +246,7 @@ julia> f = x+y+1;
 julia> TH = TropicalHypersurface(f);
 
 julia> polynomial(TH)
+x + y + (1)
 ```
 """
 function polynomial(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
