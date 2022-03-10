@@ -63,7 +63,7 @@ function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
       OK = true
       for x = eachindex(a)
         y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
-        if y == false
+        if y === nothing 
           OK = false
         else
           b[x] = y
@@ -90,6 +90,12 @@ end
 
 function Oscar.conductor(a::nf_elem)
   return conductor(parent(minimize(CyclotomicField, a)))
+end
+
+function Oscar.conductor(k::AnticNumberField)
+  f, c = Hecke.iscyclotomic_type(k)
+  f || error("field is not of cyclotomic type")
+  return c
 end
 
 function Oscar.conductor(a::QabElem)
@@ -1168,6 +1174,21 @@ function reps(K, G::Oscar.GAPGroup)
           C = divexact(Y[ii], Xp[ii])
           @assert C*Xp == Y
           # I think they should always be roots of one here.
+          # They should - but they are not:
+          # Given that X is defined up-to-scalars only, at best 
+          # C is a root-of-1 * a p-th power:
+          # Y is in the image of the rep (action matrix), hence has
+          # finite order (at least if the group is finite), hence
+          # det(Y) is a root-of-1, so X is defined up to scalars,
+          # xX for x in the field., hence Xp = X^p is defined up
+          # to p-th powers: x^p Xp, so
+          # C x^p Xp = Y
+          # appliying det:
+          # det(C x^p Xp) = C^n x^(pn) det(Xp) = det(Y) = root-of-1
+          # so I think that shows that C is (up to p-th powers)
+          # also a root-of-1
+          #
+          # However, I don't know how to use this...
           rt = roots(C, p)
           @assert characteristic(K) == p || length(rt) == p
           Y = r.ac

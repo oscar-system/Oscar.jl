@@ -487,11 +487,90 @@ function Oscar.root(a::QabElem, n::Int)
   return mu
 end
 
+function Oscar.roots(f::PolyElem{QabElem})
+  Qab = base_ring(f)
+  c = mapreduce(conductor, lcm, coefficients(f), init = Int(1))
+  k, z = cyclotomic_field(Qab, c)
+  f = map_coefficients(x->k(x.data), f)
+  lf = factor(f).fac
+  #we need to find the correct cyclotomic field...
+  #can't use ray_class_group in k as this is expensive (needs class group)
+  #need absolute norm group
+  QQ = rationals_as_number_field()[1]
+
+  C = cyclotomic_field(ClassField, c)
+
+  rts = QabElem[]
+
+  for g = keys(lf)
+    c = reduce(lcm, map(conductor, coefficients(g)), init = Int(1))
+    #so THIS factor lives in cyclo(c)
+    k, z = cyclotomic_field(Qab, c)
+    d = numerator(norm(k(discriminant(g))))
+
+    R, mR = ray_class_group(lcm(d, c)*maximal_order(QQ), infinite_places(QQ), 
+                                        n_quo = degree(g)*degree(k))
+    q, mq = quo(R, [R[0]])
+    for p = PrimesSet(100, -1, c, 1) #totally split primes.
+      if d % p == 0
+        continue
+      end
+      if order(q) <= degree(g)*degree(k)
+        break
+      end
+      P = preimage(mR, p*maximal_order(QQ))
+      if iszero(mq(P))
+        continue
+      end
+
+      me = modular_init(k, p)
+      lp = Hecke.modular_proj(g, me)
+      for pg = lp
+        l = factor(pg)
+        q, mqq = quo(q, [degree(x)*mq(P) for x = keys(l.fac)])
+        mq = mq*mqq
+        if order(q) <= degree(g)*degree(k)
+          break
+        end
+      end
+      if order(q) <= degree(g)*degree(k)
+        break
+      end
+    end
+    D = C*ray_class_field(mR, mq)
+    c = norm(conductor(D)[1])
+    k, a = cyclotomic_field(Qab, Int(c))
+    rt = roots(map_coefficients(k, g))
+    append!(rts, map(Qab, rt))
+  end
+  return rts::Vector{QabElem}
+end
+
 function Oscar.roots(a::QabElem, n::Int)
-  #Assuming that a is a root of unity, finds all its n-th roots.
-  #all roots in a probably smaller field than with the function allrootNew
-  #(using root_of_unity -> construct field Q(z_5) when needing a 10th root of unity,
-  #root_of_unity constructs the field Q(z_10))
+
+  #strategy:
+  # - if a is a root-of-1: trivial, as the answer is also roots-of-1
+  # - if a can "easily" be made into a root-of-one: doit
+  #   easily is "defined" as <a> = b^n and gens(inv(b))[2]^n*a is a root 
+  #   as ideal roots are easy
+  # - else: call the function above which is non-trivial...
+
+  corr = one(parent(a))
+
+  if !isroot_of_unity(a) 
+    zk = maximal_order(parent(a.data)) #should be for free
+    fl, i = ispower(a.data*zk, n)
+    _, x = PolynomialRing(parent(a), cached = false)
+    fl || return roots(x^n-a)::Vector{QabElem}
+    b = gens(Hecke.inv(i))[end]
+    c = deepcopy(a)
+    c.data = b
+    corr = Hecke.inv(c)
+    a *= c^n
+    fl = isroot_of_unity(a)
+    fl || return (corr .* roots(x^n-a))::Vector{QabElem}
+  end
+  
   o = order(a)
   l = o*n
   mu = root_of_unity(parent(a), Int(l))
@@ -505,11 +584,11 @@ function Oscar.roots(a::QabElem, n::Int)
       push!(A, el)
     end
   end
-  return A
+  return [x*corr for x = A]::Vector{QabElem}
 end
 
 function isroot_of_unity(a::QabElem)
-  return istorsion_unit(a.data)
+  return istorsion_unit(a.data, true)
   #=
   b = a^a.c
   return b.data == 1 || b.data == -1
