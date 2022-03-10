@@ -576,7 +576,7 @@ function Oscar.roots(f::PolyElem{QabElem{T}}) where T
 
   C = cyclotomic_field(ClassField, c)
 
-  rts = QabElem[]
+  rts = QabElem{T}[]
 
   for g = keys(lf)
     c = reduce(lcm, map(conductor, coefficients(g)), init = Int(1))
