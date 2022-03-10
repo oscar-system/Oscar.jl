@@ -28,8 +28,6 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-Hecke.data(a::QabElem) = a.data
-
 function Hecke.number_field(::FlintRationalField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
   return number_field(QQ, map(x->GAP.gap_to_julia(QabElem, x), chi.values), cached = cached)
 end
@@ -829,7 +827,7 @@ function (K::QabField)(a::nf_elem)
   return QabElem(a, f)
 end
 
-function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{QabElem}}
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QabElem}}
   C1 = gmodule(CyclotomicField, C)
   D1 = gmodule(CyclotomicField, D)
   fl, Cf = Hecke.iscyclotomic_type(base_ring(C1))

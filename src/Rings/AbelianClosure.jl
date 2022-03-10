@@ -31,7 +31,9 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, isroot_of_unity, promote_rule,
-                AbstractAlgebra, data
+                AbstractAlgebra
+using Hecke
+import Hecke: data
 
 ################################################################################
 #
@@ -39,25 +41,27 @@ import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
 #
 ################################################################################
 
-mutable struct QabField <: Nemo.Field # union of cyclotomic fields
+mutable struct QabField{T} <: Nemo.Field # union of cyclotomic fields
   s::String
-  fields::Dict{Int, AnticNumberField} # Cache for the cyclotomic fields
+  fields::Dict{Int, T} # Cache for the cyclotomic fields
 end
 
-const _Qab = QabField("ζ", Dict{Int, AnticNumberField}())
+const _Qab = QabField{AnticNumberField}("ζ", Dict{Int, AnticNumberField}())
+const _Qab_sparse = QabField{NfAbsNS}("ζ", Dict{Int, NfAbsNS}())
 
-mutable struct QabElem <: Nemo.FieldElem
-  data::nf_elem                       # Element in cyclotomic field
+mutable struct QabElem{T} <: Nemo.FieldElem
+  data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
 end
 
 # This is a functor like object G with G(n) = primitive n-th root of unity
 
-mutable struct QabFieldGen
-  K::QabField
+mutable struct QabFieldGen{T}
+  K::QabField{T}
 end
 
 const _QabGen = QabFieldGen(_Qab)
+const _QabGen_sparse = QabFieldGen(_Qab_sparse)
 
 ################################################################################
 #
@@ -72,7 +76,13 @@ Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals
 and a generator `z` that can be used to construct primitive roots of unity in
 `K`.
 """
-abelian_closure(::FlintRationalField) = _Qab, _QabGen
+function abelian_closure(::FlintRationalField; sparse::Bool = false) 
+  if sparse 
+    return _Qab_sparse, _QabGen_sparse
+  else
+    return _Qab, _QabGen
+  end
+end
 
 """
     gen(K::QabField)
@@ -80,7 +90,8 @@ abelian_closure(::FlintRationalField) = _Qab, _QabGen
 Return the generator of the abelian closure `K` that can be used to construct
 primitive roots of unity.
 """
-gen(K::QabField) = _QabGen
+gen(K::QabField{AnticNumberField}) = _QabGen
+gen(K::QabField{NfAbsNS}) = _QabGen_sparse
 
 """
     gen(K::QabField, s::String)
@@ -99,15 +110,17 @@ end
 #
 ################################################################################
 
-elem_type(::Type{QabField}) = QabElem
+elem_type(::Type{QabField{AnticNumberField}}) = QabElem{nf_elem}
+elem_type(::QabField{AnticNumberField}) = QabElem{nf_elem}
+parent_type(::Type{QabElem{nf_elem}}) = QabField{AnticNumberField}
+parent_type(::QabElem{nf_elem}) = QabField{AnticNumberField}
+Oscar.parent(::QabElem{nf_elem}) = _Qab
 
-elem_type(::QabField) = QabElem
-
-parent_type(::Type{QabElem}) = QabField
-
-parent_type(::QabElem) = QabField
-
-Oscar.parent(::QabElem) = _Qab
+elem_type(::Type{QabField{NfAbsNS}}) = QabElem{NfAbsNSElem}
+elem_type(::QabField{NfAbsNS}) = QabElem{NfAbsNSElem}
+parent_type(::Type{QabElem{NfAbsNSElem}}) = QabField{NfAbsNS}
+parent_type(::QabElem{NfAbsNSElem}) = QabField{NfAbsNS}
+Oscar.parent(::QabElem{NfAbsNSElem}) = _Qab_sparse
 
 ################################################################################
 #
@@ -116,10 +129,16 @@ Oscar.parent(::QabElem) = _Qab
 ################################################################################
 
 _variable(K::QabField) = K.s
+_variable(b::QabElem{nf_elem}) = Expr(:call, Symbol(_variable(_Qab)), b.c)
 
-_variable(b::QabElem) = Expr(:call, Symbol(_variable(_Qab)), b.c)
+function _variable(b::QabElem{NfAbsNSElem}) 
+  k = parent(b.data)
+  lc = get_attribute(k, :decom)
+  n = get_attribute(k, :cyclo)
+  return [Expr(:call, Symbol(_variable(_Qab)), n, divexact(n, i)) for i = lc]
+end
 
-function Hecke.cyclotomic_field(K::QabField, c::Int)
+function Hecke.cyclotomic_field(K::QabField{AnticNumberField}, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, gen(k)
@@ -130,7 +149,28 @@ function Hecke.cyclotomic_field(K::QabField, c::Int)
   end
 end
 
-data(a::QabElem) = a.data
+function ns_gen(K::NfAbsNS)
+  #z_pq^p = z_q and z_pg^q = z_p
+  #thus z_pq = z_p^a z_q^b implies
+  #z_pq^p = z_q^pb, so pb = 1 mod q
+  #so:
+  lc = get_attribute(K, :decom)
+  n = get_attribute(K, :cyclo)
+  return prod(gen(K, i)^invmod(divexact(n, lc[i]), lc[i]) for i=1:length(lc))
+end
+
+function Hecke.cyclotomic_field(K::QabField{NfAbsNS}, c::Int)
+  if haskey(K.fields, c)
+    k = K.fields[c]
+    return k, ns_gen(k)
+  else
+    k, _ = cyclotomic_field(NonSimpleNumField, c, string(K.s))
+    K.fields[c] = k
+    return k, ns_gen(k)
+  end
+end
+
+Hecke.data(a::QabElem) = a.data
 
 ################################################################################
 #
@@ -141,7 +181,7 @@ data(a::QabElem) = a.data
 # This function finds a primitive root of unity in our field, note this is
 # not always e^(2*pi*i)/n
 
-function root_of_unity(K::QabField, n::Int)
+function root_of_unity(K::QabField{AnticNumberField}, n::Int)
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
@@ -149,11 +189,26 @@ function root_of_unity(K::QabField, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QabElem(z, c)
+    return QabElem{nf_elem}(z, c)
   else
-    return QabElem(-z, c)
+    return QabElem{nf_elem}(-z, c)
   end
 end
+
+function root_of_unity(K::QabField{NfAbsNS}, n::Int)
+  if n % 2 == 0 && n % 4 != 0
+    c = div(n, 2)
+  else
+    c = n
+  end
+  K, z = cyclotomic_field(K, c)
+  if c == n
+    return QabElem{NfAbsNSElem}(z, c)
+  else
+    return QabElem{NfAbsNSElem}(-z, c)
+  end
+end
+
 
 function root_of_unity2(K::QabField, c::Int)
   # This function returns the primitive root of unity e^(2*pi*i/n)
@@ -162,6 +217,7 @@ function root_of_unity2(K::QabField, c::Int)
 end
 
 (z::QabFieldGen)(n::Int) = root_of_unity(z.K, n)
+(z::QabFieldGen)(n::Int, r::Int) = z(n)^r
 
 one(K::QabField) = _Qab(1)
 
@@ -195,12 +251,19 @@ end
 #
 ################################################################################
 
-function Base.show(io::IO, a::QabField)
+function Base.show(io::IO, a::QabField{NfAbsNS})
+  print(io, "(Sparse) abelian closure of Q")
+end
+function Base.show(io::IO, a::QabField{AnticNumberField})
   print(io, "Abelian closure of Q")
 end
 
 function Base.show(io::IO, a::QabFieldGen)
-  print(io, "Generator of abelian closure of Q")
+  if isa(a.K, QabField{AnticNumberField})
+    print(io, "Generator of abelian closure of Q")
+  else
+    print(io, "Generator of sparse abelian closure of Q")
+  end
 end
 
 """
@@ -223,9 +286,14 @@ of the rationals.
 """
 get_variable(K::QabField) = _variable(K)
 
-function AbstractAlgebra.expressify(b::QabElem; context = nothing)
+function AbstractAlgebra.expressify(b::QabElem{nf_elem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(parent(parent(a).pol)(a), _variable(b), context = context)
+end
+
+function AbstractAlgebra.expressify(b::QabElem{NfAbsNSElem}; context = nothing)
+  a = data(b)
+  return AbstractAlgebra.expressify(a.data, _variable(b), context = context)
 end
 
 Oscar.@enable_all_show_via_expressify QabElem
@@ -253,13 +321,24 @@ function isconductor(n::Int)
   return n % 4 == 0
 end
 
-function coerce_up(K::AnticNumberField, n::Int, a::QabElem)
+function coerce_up(K::AnticNumberField, n::Int, a::QabElem{nf_elem})
   d = div(n, a.c)
   @assert n % a.c == 0
   #z_n^(d) = z_a
   R = parent(parent(data(a)).pol)
-  return QabElem(evaluate(R(data(a)), gen(K)^d), n)
+  return QabElem{nf_elem}(evaluate(R(data(a)), gen(K)^d), n)
 end
+
+function coerce_up(K::NfAbsNS, n::Int, a::QabElem{NfAbsNSElem})
+  d = div(n, a.c)
+  @assert n % a.c == 0
+  lk = get_attribute(parent(a.data), :decom)
+  #gen(k, i) = gen(K, j)^n for the unique j s.th. gcd(lk[i], lK[j])
+  # and n = lK[j]/lk[i]
+  #z_n^(d) = z_a
+  return QabElem{NfAbsNSElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
+end
+
 
 function coerce_down(K::AnticNumberField, n::Int, a::QabElem)
   throw(Hecke.NotImplemented())
@@ -344,9 +423,6 @@ function addeq!(c::QabElem, a::QabElem)
   _c, _a = make_compatible(c, a)
   addeq!(_c.data, _a.data)
   return _c
-  #c.data = _c.data
-  #c.c = _c.c
-  #return c
 end
 
 function neg!(a::QabElem)
@@ -487,9 +563,9 @@ function Oscar.root(a::QabElem, n::Int)
   return mu
 end
 
-function Oscar.roots(f::PolyElem{QabElem})
+function Oscar.roots(f::PolyElem{QabElem{T}}) where T
   Qab = base_ring(f)
-  c = mapreduce(conductor, lcm, coefficients(f), init = Int(1))
+  c = reduce(lcm, map(conductor, coefficients(f)), init = Int(1))
   k, z = cyclotomic_field(Qab, c)
   f = map_coefficients(x->k(x.data), f)
   lf = factor(f).fac
@@ -500,7 +576,7 @@ function Oscar.roots(f::PolyElem{QabElem})
 
   C = cyclotomic_field(ClassField, c)
 
-  rts = QabElem[]
+  rts = QabElem{T}[]
 
   for g = keys(lf)
     c = reduce(lcm, map(conductor, coefficients(g)), init = Int(1))
@@ -543,11 +619,10 @@ function Oscar.roots(f::PolyElem{QabElem})
     rt = roots(map_coefficients(k, g))
     append!(rts, map(Qab, rt))
   end
-  return rts::Vector{QabElem}
+  return rts::Vector{QabElem{T}}
 end
 
-function Oscar.roots(a::QabElem, n::Int)
-
+function Oscar.roots(a::QabElem{T}, n::Int) where {T}
   #strategy:
   # - if a is a root-of-1: trivial, as the answer is also roots-of-1
   # - if a can "easily" be made into a root-of-one: doit
@@ -561,14 +636,14 @@ function Oscar.roots(a::QabElem, n::Int)
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = ispower(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
-    fl || return roots(x^n-a)::Vector{QabElem}
+    fl || return roots(x^n-a)::Vector{QabElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
     c.data = b
     corr = Hecke.inv(c)
     a *= c^n
     fl = isroot_of_unity(a)
-    fl || return (corr .* roots(x^n-a))::Vector{QabElem}
+    fl || return (corr .* roots(x^n-a))::Vector{QabElem{T}}
   end
   
   o = order(a)
@@ -584,7 +659,7 @@ function Oscar.roots(a::QabElem, n::Int)
       push!(A, el)
     end
   end
-  return [x*corr for x = A]::Vector{QabElem}
+  return [x*corr for x = A]::Vector{QabElem{T}}
 end
 
 function isroot_of_unity(a::QabElem)
