@@ -1,4 +1,6 @@
 @testset "Printing" begin
+  # TODO: disable this in Julia nightly for now until a Preferences.jl update is released
+  # See https://github.com/oscar-system/Oscar.jl/issues/1140
   if VERSION <= v"1.8.0"
     old_flag = Oscar.is_unicode_allowed()
 
