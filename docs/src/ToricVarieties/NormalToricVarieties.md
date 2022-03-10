@@ -51,6 +51,8 @@ projective_space(::Type{NormalToricVariety}, d::Int)
 ```@docs
 blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+NormalToricVarietyFromGLSM(charges::fmpz_mat)
 ```
 
 
@@ -119,24 +121,28 @@ We support the Cox ring (also termed the "total coordinate ring" in [CLS11](@cit
 - `irrelevant ideal`,
 - `Stanley-Reisner ideal`
 For their computation, names for the indeterminates of the Cox ring must be chosen.
-The user is free to change these until the Cox ring is computed for the first time.
+The default value is `[x1, x2, ... ]`. the user can overwrite this at any time.
 
 ```@docs
 coordinate_names(v::AbstractNormalToricVariety)
 set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 ```
 
-Likewise, a coefficient ring for the Cox ring must be chosen. The user can change 
-it until either the Cox ring or the toric ideal is computed for the first time.
+Likewise, a coefficient ring for the Cox ring must be chosen. The default value is 
+the field of rational numbers. The user can overwrite this at any time.
 
 ```@docs
 coefficient_ring(v::AbstractNormalToricVariety)
 set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
 ```
 
-If no choice is made, we invoke the following default values:
-- `coefficient_ring` is chosen as the field of rational numbers,
-- `coordinate_names` is chosen as `[x1, x2, ... ]`.
+Similarly, the computation of the coordinate ring of the torus requires coordinate names.
+Again, the default value is `[x1, x2, ... ]` and be overwritten at any time.
+
+```@docs
+coordinate_names_of_torus(v::AbstractNormalToricVariety)
+set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+```
 
 
 ### Rings and ideals
@@ -150,6 +156,10 @@ stanley_reisner_ideal(v::AbstractNormalToricVariety)
 stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
 toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
+coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
+character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
 ```
 
 ### Sheaves

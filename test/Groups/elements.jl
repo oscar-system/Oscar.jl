@@ -48,6 +48,7 @@
   @test_throws ArgumentError G([2,3,1,4,6,5,7])
   @test G(gap_perm([2,3,1,4,6,5,7]))==gap_perm([2,3,1,4,6,5])
   @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
+  @test_throws ArgumentError perm(G, [1,1])
   @test one(G)==cperm(G,Int64[])
 end
 

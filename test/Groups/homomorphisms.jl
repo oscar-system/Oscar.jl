@@ -5,6 +5,7 @@
      x = gen(H, 1)
      y = image(emb, x)
      @test preimage(emb, y) == x
+     @test any(g -> ! haspreimage(emb, g)[1], gens(G))
    end
 end
 

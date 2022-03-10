@@ -101,6 +101,24 @@ the general [Ring Interface](@ref) of Oscar! This has not been done to a full ex
 for the previous two examples, but for `MPolyLocalizedRing`; see below.
 
  
+### Homomorphisms for localized rings
+
+Homomorphisms from localized rings to arbitrary algebras are of type 
+```@docs
+    AbsLocalizedRingHom
+```
+Note that, in order to be well-defined, we must have 
+that ``\phi'(u) \in S`` must be a unit for every element ``u \in U``. 
+
+The getters associated to this type which need to be implemented are 
+```@docs
+    domain(f::AbsLocalizedRingHom) 
+    codomain(f::AbsLocalizedRingHom) 
+    restricted_map(f::AbsLocalizedRingHom) 
+```
+Any concrete instance `f` of `AbsLocalizedRingHom` can then be applied to elements 
+`a` of `domain(f)` by calling `f(a)`. 
+
 ### Ideals in localized rings
 
 One of the main reasons to implement localizations in the first place 
@@ -408,64 +426,3 @@ lifted_denominator(a::MPolyQuoLocalizedRingElem)
 fraction(a::MPolyQuoLocalizedRingElem)
 ```
 
-## Homomorphisms of localized affine algebras 
-Suppose we are given two localizations of polynomial algebras 
-by means of commutative diagrams 
-```math
-\begin{matrix}
-      R &  →    & P = R/I\\
-      ↓  & &       ↓ \\
-V = R[T⁻¹] & →  & P[T⁻¹]
-\end{matrix}
-```
-and 
-```math
-\begin{matrix}
-      S   & →   & Q = S/J\\
-      ↓ & &        ↓ \\
-W = S[U⁻¹] & →  & Q[U⁻¹].
-\end{matrix}
-```
-
-**Lemma:**
-For any homomorphism ``φ : P[T⁻¹] → Q[U⁻¹]`` the following holds. 
-```math
-\begin{matrix}
-            &φ& \\
-    P[T⁻¹]  & →  & Q[U⁻¹]\\
-      ↑      & &     ↑\\
-    R[T⁻¹] & \dashrightarrow & S[U⁻¹]\\
-      ↑    & ↗ ψ   &↑ ι\\
-      R     &→  &S[c⁻¹]\\
-            & η   & ↑ κ\\
-             & &     S 
-\end{matrix}
-```
-  1) The composition of maps ``R → Q[U⁻¹]`` completely determines ``φ`` by the images ``xᵢ ↦ [aᵢ]/[bᵢ]`` with ``aᵢ ∈ S``, ``bᵢ ∈ U``.
-
-  2) Let ``ψ : R → S[U⁻¹]`` be the map determined by some choice of the images ``xᵢ↦ aᵢ/b``ᵢ as above. Then ``ψ`` extends to a map ``R[T⁻¹] → S[U⁻¹]`` if and only if for all ``t ∈ T : ψ(t) ∈ U``. This is not necessarily the case as the lift of images ``φ(t) ∈ Q[U⁻¹]`` in ``S[U⁻¹]`` need only be elements of ``U + J``.
-
-  3) Choosing a common denominator ``c`` for all ``ψ(xᵢ)``, we obtain a ring homomorphism ``η : R → S[c⁻¹]`` such that ``ψ = ι ∘ η``.
-
-Upshot: In order to describe ``φ``, we may store some homomorphism 
-``ψ : R → S[U⁻¹]``
-lifting it and keep in mind the ambiguity of choices for such ``ψ``.
-The latter point 3) will be useful for reducing to a homomorphism 
-of finitely generated algebras.
-
-
-A homomorphism of localized affine algebras is stored in 
-```@docs
-MPolyQuoLocalizedRingHom{
-  BaseRingType, 
-  BaseRingElemType, 
-  RingType, 
-  RingElemType, 
-  DomainMultSetType, 
-  CodomainMultSetType
-}
-```
-An additional getter method is 
-```@docs
-images(f::MPolyQuoLocalizedRingHom)
-```

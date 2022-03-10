@@ -1,6 +1,6 @@
 export ProjEllipticCurve, discriminant, issmooth, j_invariant,
        Point_EllCurve, curve, weierstrass_form, toweierstrass,
-       iselliptic, list_rand, proj_space
+       iselliptic, list_rand
 
 ################################################################################
 # Helping functions
@@ -155,7 +155,7 @@ julia> T, _ = grade(S)
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -186,7 +186,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
-    PP = projective_space(K, 2)
+    PP = proj_space(K, 2)
     V = gens(T)
     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], v[1]))
   end
@@ -218,7 +218,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     K = T.R.base_ring
     n = modulus(K)
     gcd(Hecke.data(d), n) == ZZ(1) || error("The discriminant is not invertible")
-    PP = projective_space(K, 2)
+    PP = proj_space(K, 2)
     V = gens(T)
     E = new{S}()
     E.eq = eq
@@ -274,7 +274,7 @@ julia> T, _ = grade(S)
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -462,7 +462,7 @@ end
 
 Return the projective space to which the point `P` belongs.
 """
-function proj_space(P::Point_EllCurve{S}) where S <: FieldElem
+function Oscar.Geometry.proj_space(P::Point_EllCurve{S}) where S <: FieldElem
    return P.Pt.parent
 end
 
@@ -564,7 +564,7 @@ julia> T, _ = grade(S)
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -638,7 +638,7 @@ end
 
 Return the projective space to which the base point of the elliptic curve `E` belongs.
 """
-function proj_space(E::ProjEllipticCurve{S}) where S <: FieldElem
+function Oscar.Geometry.proj_space(E::ProjEllipticCurve{S}) where S <: FieldElem
    return base_point(E).parent
 end
 

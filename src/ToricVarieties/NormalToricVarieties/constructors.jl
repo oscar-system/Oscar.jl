@@ -495,7 +495,125 @@ end
 
 
 ############################
-### 5: Display
+# 5: Toric varieties from triangulations
+############################
+
+@doc Markdown.doc"""
+    NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+
+Returns the list of toric varieties obtained from fine regular
+star triangulations of the polyhedron P.
+
+# Examples
+```jldoctest
+julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+A polyhedron in ambient dimension 3
+
+julia> NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+2-element Vector{NormalToricVariety}:
+ A normal toric variety
+ A normal toric variety
+```
+"""
+function NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+    # triangulate the polyhedron
+    trias = star_triangulations(P)
+    
+    # Currently, the rays in trias[1]
+    # (a) are encoded as fmpq_mat (fmpz expected)
+    # (b) contain the origin as first element (not a rays, so to be removed)
+    rays = trias[1]
+    integral_rays = zeros(ZZ, nrows(rays)-1, ncols(rays))
+    for i in 2:nrows(rays)
+        integral_rays[i-1, 1:ncols(rays)] = [ZZ(c) for c in rays[i,1:ncols(rays)]]
+    end
+    
+    # trias[2] contains the max_cones as list of lists
+    # (a) needs to be converted to incidence matrix
+    # (b) one has to remove origin from list of indices (as removed above)
+    max_cones = trias[2]
+    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
+    
+    # construct the varieties
+    return [NormalToricVariety(PolyhedralFan(integral_rays, cones)) for cones in max_cones]
+end
+export NormalToricVarietiesFromStarTriangulations
+
+
+############################
+# 5: Toric varieties from GLSMs
+############################
+
+@doc Markdown.doc"""
+    NormalToricVarietyFromGLSM(charges::fmpz_mat)
+
+Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
+originally sparked interest in the physics community in toric varieties.
+On a mathematical level, this establishes a construction of toric 
+varieties for  which a Z^n grading of the Cox ring is provided. See 
+for example [FJR17](@cite), which describes this as GIT 
+construction [CLS11](@cite).
+
+Explicitly, given the grading of the Cox ring, the map from
+the group of torus invariant Weil divisors to the class group
+is known. Under the assumption that the variety in question
+has no torus factor, we can then identify the map from the 
+lattice to the group of torus invariant Weil divisors as the 
+kernel of the map from the torus invariant Weil divisor to the
+class group. The latter is a map between free Abelian groups, i.e.
+is provided by an integer valued matrix. The rows of this matrix
+are nothing but the ray generators of the fan of the toric variety.
+It then remains to triangulate these rays, hence in general for
+a GLSM the toric variety is only unique up to fine regular
+star triangulations.
+
+# Examples
+```jldoctest
+julia> charges = [[1,1,1]]
+1-element Vector{Vector{Int64}}:
+ [1, 1, 1]
+
+julia> NormalToricVarietyFromGLSM(charges)
+1-element Vector{NormalToricVariety}:
+ A normal toric variety
+```
+
+For convenience, we also support:
+- NormalToricVarietyFromGLSM(charges::Vector{Vector{Int}})
+- NormalToricVarietyFromGLSM(charges::Vector{Vector{fmpz}})
+"""
+function NormalToricVarietyFromGLSM(charges::fmpz_mat)
+    # compute the map from Div_T -> Cl
+    source = free_abelian_group(ncols(charges))
+    range = free_abelian_group(nrows(charges))
+    map = hom(source, range, transpose(charges))
+    
+    # compute the map char -> Div_T
+    ker = kernel(map)
+    embedding = snf(ker[1])[2] * ker[2]
+    
+    # identify the rays
+    rays = transpose(embedding.map)
+    
+    # construct vertices of polyhedron
+    pts = zeros(QQ, nrows(rays), ncols(charges)-nrows(charges))
+    for i in 1:nrows(rays)
+        pts[i,:] = [fmpz(c) for c in rays[i,:]]
+    end
+    zero = [0 for i in 1:ncols(charges)-nrows(charges)]
+    pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
+
+    # construct polyhedron
+    p = convex_hull(pts)
+    return NormalToricVarietiesFromStarTriangulations(p)
+end
+NormalToricVarietyFromGLSM(charges::Vector{Vector{Int}}) = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
+NormalToricVarietyFromGLSM(charges::Vector{Vector{fmpz}}) = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
+export NormalToricVarietyFromGLSM
+
+
+############################
+### 6: Display
 ############################
 function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
