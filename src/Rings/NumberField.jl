@@ -224,9 +224,9 @@ zero(K::NfNSGen) = K(0)
 one(K::NfNSGen) = K(1)
 
 # Our ideals are non-trivial, so we don't have to reduce
-isone(a::NfNSGenElem) = isone(data(reduce!(a)))
+isone(a::NfNSGenElem) = isone(Hecke.data(reduce!(a)))
 
-iszero(a::NfNSGenElem) = iszero(data(reduce!(a)))
+iszero(a::NfNSGenElem) = iszero(Hecke.data(reduce!(a)))
 
 ###############################################################################3
 #
@@ -236,12 +236,12 @@ iszero(a::NfNSGenElem) = iszero(data(reduce!(a)))
 
 function +(a::NfNSGenElem, b::NfNSGenElem)
   check_parent(a, b)
-  return NfNSGenElem(data(a) + data(b), parent(a))
+  return NfNSGenElem(Hecke.data(a) + Hecke.data(b), parent(a))
 end
 
 function -(a::NfNSGenElem, b::NfNSGenElem)
   check_parent(a, b)
-  NfNSGenElem(data(a) - data(b), parent(a))
+  NfNSGenElem(Hecke.data(a) - Hecke.data(b), parent(a))
 end
 
 function divexact(a::NfNSGenElem, b::NfNSGenElem; check::Bool = true)
@@ -256,7 +256,7 @@ function Base.:(*)(a::NfNSGenElem, b::NfNSGenElem)
   check_parent(a, b)
   reduce!(a)
   reduce!(b)
-  return NfNSGenElem(data(a) * data(b), parent(a))
+  return NfNSGenElem(Hecke.data(a) * Hecke.data(b), parent(a))
 end
 
 ################################################################################
@@ -265,7 +265,7 @@ end
 #
 ################################################################################
 
--(a::NfNSGenElem) = NfNSGenElem(-data(a), parent(a))
+-(a::NfNSGenElem) = NfNSGenElem(-Hecke.data(a), parent(a))
 
 ################################################################################
 #
@@ -323,13 +323,13 @@ end
 # with base type
 
 +(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
-    NfNSGenElem(data(a) + b, parent(a))
+    NfNSGenElem(Hecke.data(a) + b, parent(a))
 
 *(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
-    NfNSGenElem(data(a) * b, parent(a))
+    NfNSGenElem(Hecke.data(a) * b, parent(a))
 
 Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
-    NfNSGenElem(divexact(data(a), b), parent(a))
+    NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
 divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = a//b
 
@@ -343,13 +343,13 @@ divexact(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a//b
 
 # with fmpq
 +(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} =
-    NfNSGenElem(data(a) + b, parent(a))
+    NfNSGenElem(Hecke.data(a) + b, parent(a))
 
 *(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} =
-    NfNSGenElem(data(a) * b, parent(a))
+    NfNSGenElem(Hecke.data(a) * b, parent(a))
 
 Base.://(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} =
-    NfNSGenElem(divexact(data(a), b), parent(a))
+    NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
 divexact(a::NfNSGenElem{T, S}, b::fmpq) where {S, T} = a//b
 
@@ -363,13 +363,13 @@ divexact(a::fmpq, b::NfNSGenElem{T, S}) where {S, T} = a//b
 
 # with fmpz
 +(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} =
-    NfNSGenElem(data(a) + b, parent(a))
+    NfNSGenElem(Hecke.data(a) + b, parent(a))
 
 *(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} =
-    NfNSGenElem(data(a) * b, parent(a))
+    NfNSGenElem(Hecke.data(a) * b, parent(a))
 
 Base.://(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} =
-    NfNSGenElem(divexact(data(a), b), parent(a))
+    NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
 divexact(a::NfNSGenElem{T, S}, b::fmpz) where {S, T} = a//b
 
@@ -383,13 +383,13 @@ divexact(a::fmpz, b::NfNSGenElem{T, S}) where {S, T} = a//b
 
 # with Integer
 +(a::NfNSGenElem{T, S}, b::Base.Integer) where {S, T} =
-    NfNSGenElem(data(a) + b, parent(a))
+    NfNSGenElem(Hecke.data(a) + b, parent(a))
 
 *(a::NfNSGenElem{T, S}, b::Base.Integer) where {S, T} =
-    NfNSGenElem(data(a) * b, parent(a))
+    NfNSGenElem(Hecke.data(a) * b, parent(a))
 
 Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer) =
-    NfNSGenElem(divexact(data(a), b), parent(a))
+    NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
 divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer) = a//b
 
@@ -403,13 +403,13 @@ divexact(a::Base.Integer, b::NfNSGenElem{T, S}) where {S, T} = a//b
 
 # with Rational
 +(a::NfNSGenElem{T, S}, b::Base.Rational{<:Base.Integer}) where {T, S} =
-    NfNSGenElem(data(a) + b, parent(a))
+    NfNSGenElem(Hecke.data(a) + b, parent(a))
 
 *(a::NfNSGenElem{T, S}, b::Base.Rational{<:Base.Integer}) where {S, T} =
-    NfNSGenElem(data(a) * b, parent(a))
+    NfNSGenElem(Hecke.data(a) * b, parent(a))
 
 Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}) =
-    NfNSGenElem(divexact(data(a), b), parent(a))
+    NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
 divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}) =
     a//b
@@ -476,19 +476,19 @@ end
 # with scalars
 for t in [Base.Integer, Base.Rational{<:Integer}, fmpz, fmpq]
   @eval begin
-    ==(a::NfNSGenElem{T, S}, b::$t) where {T, S} = data(a) == b
+    ==(a::NfNSGenElem{T, S}, b::$t) where {T, S} = Hecke.data(a) == b
 
-    ==(a::$t, b::NfNSGenElem{T, S}) where {T, S} = data(b) == a
+    ==(a::$t, b::NfNSGenElem{T, S}) where {T, S} = Hecke.data(b) == a
   end
 end
 
-==(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = data(a) == b
+==(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = Hecke.data(a) == b
 
-==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) where {T, S} = a == data(b)
+==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) where {T, S} = a == Hecke.data(b)
 
-==(a::NfNSGenElem{fmpq, fmpq_mpoly}, b::fmpq) = data(a) == b
+==(a::NfNSGenElem{fmpq, fmpq_mpoly}, b::fmpq) = Hecke.data(a) == b
 
-==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) where {T, S} = data(b) == a
+==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) where {T, S} = Hecke.data(b) == a
 
 ################################################################################
 #
@@ -532,7 +532,7 @@ end
 ################################################################################
 
 Hecke.denominator(a::NfNSGenElem{fmpq, fmpq_mpoly}) =
-    denominator(data(reduce!(a)))
+    denominator(Hecke.data(reduce!(a)))
 
 ################################################################################
 #
@@ -575,7 +575,7 @@ function coordinates(a::NfNSGenElem{T, S}) where {T, S}
   reduce!(a)
   g = a.f
   for j in 1:length(B)
-    v[j] = coeff(g, data(B[j]))
+    v[j] = coeff(g, Hecke.data(B[j]))
   end
   @assert dot(v, B) == a
   return v
@@ -896,11 +896,11 @@ function Hecke.image_generators(f::Hecke.NumFieldMor{<:NfAbsNSGen})
 end
 
 # into NfAbsNSGen
-function Hecke._compute_inverse_data(f#= image data =#, K, L::NfAbsNSGen)
+function Hecke._compute_inverse_data(f#= image Hecke.data =#, K, L::NfAbsNSGen)
   return Hecke._compute_inverse_data(f, K, L, L)
 end
 
-function Hecke._compute_inverse_data(f#= image data =#, K, LL, L::NfAbsNSGen)
+function Hecke._compute_inverse_data(f#= image Hecke.data =#, K, LL, L::NfAbsNSGen)
   preimg_gens = elem_type(K)[]
   for g in gens(L)
     fl, preimg = haspreimage(f, LL(g))
@@ -911,7 +911,7 @@ function Hecke._compute_inverse_data(f#= image data =#, K, LL, L::NfAbsNSGen)
 end
 
 # compose
-function Hecke._compose(f::MapDataFromNfAbsNSGen, g#= map data =#, K, L, M)
+function Hecke._compose(f::MapDataFromNfAbsNSGen, g#= map Hecke.data =#, K, L, M)
   return Hecke.map_data_type(K, M)(elem_type(M)[image(g, M, image(f, L, gg)) for gg in gens(K)])
 end
 
@@ -944,7 +944,7 @@ end
 
 function image(f::MapDataFromNfNSGen, L, y)
   f.isid && return L(y)
-  z = map_coefficients(w -> image(f.base_field_map_data, L, w), data(y), cached = false)
+  z = map_coefficients(w -> image(f.base_field_map_data, L, w), Hecke.data(y), cached = false)
   return evaluate(z, f.images)
 end
 
@@ -999,7 +999,7 @@ function Hecke.map_data(K::NfNSGen, L, x...; check = true)
 end
 
 # into NfNSGen
-function Hecke._compute_inverse_data(f#= image data =#, K, L::NfNSGen)
+function Hecke._compute_inverse_data(f#= image Hecke.data =#, K, L::NfNSGen)
   return Hecke._compute_inverse_data(f, K, L, L)
 end
 
@@ -1014,7 +1014,7 @@ function Hecke._compute_inverse_data(f, K, LL, L::NfNSGen)
 end
 
 # compose
-function Hecke._compose(f::MapDataFromNfNSGen, g#= map data =#, K, L, M)
+function Hecke._compose(f::MapDataFromNfNSGen, g#= map Hecke.data =#, K, L, M)
   return Hecke.map_data_type(K, M)(elem_type(M)[image(g, M, image(f, L, u)) for u in gens(K)],
                              Hecke._compose(f.base_field_map_data, g, base_field(K), L, M))
 end
