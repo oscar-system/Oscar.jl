@@ -479,6 +479,15 @@ function singular_generators(M::ModuleGens)
 end
 
 @doc Markdown.doc"""
+    singular_generators(M::ModuleGB)
+
+Return the elements of `M` from Singular side.
+"""
+function singular_generators(M::ModuleGB)
+  return singular_generators(M.groebner_basis)
+end
+
+@doc Markdown.doc"""
     oscar_generators(M::ModuleGens)  
 
 Return the generators of `M` from the OSCAR side.

@@ -175,12 +175,10 @@ end
 # Gröbner basis
 ###############################################################################
 mutable struct ModuleGB{T}
-  gens::ModuleGens{T}
   groebner_basis::ModuleGens{T}
   quo_groebner_basis::ModuleGB{T}
   reduced_groebner_basis::ModuleGens{T}
 
-  leading_module::ModuleGens{T}
   leading_monomials::ModuleGens{T}
   ordering::Singular.sordering
 
@@ -190,10 +188,6 @@ mutable struct ModuleGB{T}
     r.leading_monomials = lm
     r.ordering = ord
 
-
-    # Remove
-    r.leading_module = lm
-    r.gens = gb
     return r
   end
 
@@ -203,10 +197,6 @@ mutable struct ModuleGB{T}
     r.quo_groebner_basis = qgb
     r.leading_monomials = lm
     r.ordering = ord
-
-    # Remove
-    r.leading_module = lm
-    r.gens = gb
 
     return r
   end
@@ -223,7 +213,6 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
   gens::ModuleGens{T}
-  std_basis::ModuleGens{T} # Remove
   groebner_basis::Dict{Singular.sordering, ModuleGB{T}}
   default_ordering::Singular.sordering
   matrix::MatElem
