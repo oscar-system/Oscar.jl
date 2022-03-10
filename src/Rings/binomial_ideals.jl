@@ -542,7 +542,7 @@ function cellular_standard_monomials(I::MPolyIdeal)
     push!(bas, mon)
   end
 
-  leadIdeal = leading_ideal(J)
+  leadIdeal = leading_ideal(J, ordering=degrevlex(gens(R)))
   res = elem_type(R)[]
   it = Hecke.cartesian_product_iterator(UnitRange{Int}[1:length(x) for x in bas], inplace = true)
   for I in it

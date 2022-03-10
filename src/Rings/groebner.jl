@@ -220,6 +220,9 @@ julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5])
 ideal(x*y^2, x^3)
 ```
 """
+function leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
+  return ideal([ leading_monomial(f, args...) for f in g ])
+end
 function leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
   return ideal([ leading_monomial(f, args...) for f in g ])
 end
@@ -251,12 +254,11 @@ function leading_ideal(Rx::MPolyRing, g::Vector{Any}, args...)
 end
 
 @doc Markdown.doc"""
-    leading_ideal(I::MPolyIdeal)
-    leading_ideal(I::MPolyIdeal, ord::MonomialOrdering)
+    leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 
 Given a multivariate polynomial ideal `Ì` this function returns the
 leading ideal for `I`. This is done w.r.t. the given monomial ordering
-(as default `degrevlex`) in the polynomial ring of `I`.
+in the polynomial ring of `I`.
 
 # Examples
 ```jldoctest
@@ -266,25 +268,16 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
 ideal(x*y^2 - 3*x, x^3 - 14*y^5)
 
-julia> L = leading_ideal(I)
+julia> L = leading_ideal(I, ordering=degrevlex(gens(R)))
 ideal(x*y^2, x^4, y^5)
 
-julia> L = leading_ideal(I, lex(gens(R)))
+julia> L = leading_ideal(I, ordering=lex(gens(R)))
 ideal(y^7, x*y^2, x^3)
 ```
 """
-function leading_ideal(I::MPolyIdeal)
-  singular_assure(I)
-  G = groebner_assure(I)
-  singular_assure(G)
-  return MPolyIdeal(base_ring(I), Singular.Ideal(G.Sx, [Singular.leading_monomial(g) for g in gens(G.S)]))
-end
-
-function leading_ideal(I::MPolyIdeal, ord::MonomialOrdering)
-  singular_assure(I, ord)
-  G = groebner_assure(I, ord)
-  singular_assure(G)
-  return MPolyIdeal(base_ring(I), Singular.Ideal(G.Sx, [Singular.leading_monomial(g) for g in gens(G.S)]))
+function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
+  G = groebner_basis(I, ordering=ordering)
+  return MPolyIdeal([leading_term(g) for g in G])
 end
 
 @doc Markdown.doc"""

@@ -269,7 +269,7 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 
 ```@docs
 leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
-leading_ideal(I::MPolyIdeal)
+leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 ```
 
 #### Gröbner Bases over the integers
