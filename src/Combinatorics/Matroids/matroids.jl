@@ -10,8 +10,6 @@ export
     all_subsets_matroid, projective_plane, projective_geometry, affine_geometry
 
 
-include("representations.jl")
-
 ################################################################################
 ##  Constructing
 ################################################################################
