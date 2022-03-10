@@ -16,6 +16,8 @@ export pullback, domain, codomain, preimage, restrict, graph, identity_map, incl
 
 export strict_modulus
 
+export simplify
+
 # TODO for Tommy: Find out why the following are necessary
 AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
 AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
@@ -465,7 +467,7 @@ function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   return SpecMor(U, V, images(pullback(f)), check=check)
 end
 
-function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
+function compose(f::SpecMor, g::SpecMor)
   codomain(f) == domain(g) || error("Morphisms can not be composed")
   return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
@@ -587,3 +589,9 @@ function dim(X::Spec)
 end
 
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
+
+function simplify(X::Spec)
+  L, f, g = simplify(OO(X))
+  Y = Spec(L)
+  return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
+end

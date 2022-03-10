@@ -14,6 +14,8 @@ export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kapp
 
 export is_isomorphism, inverse
 
+export simplify
+
 ########################################################################
 # Localizations of polynomial algebras                                 #
 ########################################################################
@@ -977,12 +979,14 @@ function compose(
     g::MPolyQuoLocalizedRingHom
   )
   codomain(f) === domain(g) || error("maps are not compatible")
-  if codomain(restricted_map(f)) === domain(g)
-    return MPolyQuoLocalizedRingHom(domain(f), codomain(g), compose(restricted_map(f), g))
-  elseif codomain(restricted_map(f)) === base_ring(domain(g)) 
-    h = hom(base_ring(domain(g)), domain(g), domain(g).(gens(base_ring(domain(g)))))
-    return MPolyQuoLocalizedRingHom(domain(f), codomain(g), compose(compose(restricted_map(f), h), g))
-  end
+
+  ### the following is commented out because as of now it's not type-stable!
+#  if codomain(restricted_map(f)) === domain(g)
+#    return MPolyQuoLocalizedRingHom(domain(f), codomain(g), compose(restricted_map(f), g))
+#  elseif codomain(restricted_map(f)) === base_ring(domain(g)) 
+#    h = hom(base_ring(domain(g)), domain(g), domain(g).(gens(base_ring(domain(g)))))
+#    return MPolyQuoLocalizedRingHom(domain(f), codomain(g), compose(compose(restricted_map(f), h), g))
+#  end
   ### The fallback version. Careful: This might not carry over maps on the coefficient rings!
   R = base_ring(domain(f))
   return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)]))
@@ -1270,3 +1274,61 @@ function preimage(
   J = ideal(helper_ring(f), helper_kappa(f).(gens(saturated_ideal(I)))) + helper_ideal(f)
   return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
+
+using Infiltrator
+@Markdown.doc """
+    simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
+
+Use `elimpart` from the Singular library `Presolve.lib` to simplify the presentation 
+of `L` by eliminating superfluous variables. 
+"""
+function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
+  W = localized_ring(L)
+  I = localized_modulus(L)
+  J = saturated_ideal(I)
+  singular_assure(J)
+  R = base_ring(L)
+  SR = singular_ring(R)
+  SJ = J.gens.S
+
+  # collect the output from elimpart in Singular
+  l = Singular.LibPresolve.elimpart(SJ)
+
+  # set up the ring with the fewer variables 
+  kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
+  Rnew, new_vars = PolynomialRing(coefficient_ring(R), kept_var_symb)
+
+  # and the maps to go back and forth
+  subst_map_R = hom(R, R, R.(gens(l[5])))
+  imgs = Vector{elem_type(Rnew)}()
+  j = 1
+  for i in 1:ngens(R)
+    if !iszero(l[4][i])
+      push!(imgs, gens(Rnew)[j])
+      j = j+1
+    else
+      push!(imgs, zero(Rnew))
+    end
+  end
+  proj_map = hom(R, Rnew, imgs)
+
+  # the full substitution map 
+  f = compose(subst_map_R, proj_map)
+
+  # the transformed ideal
+  Jnew = ideal(Rnew, f.(gens(J)))
+
+  # the translated inverted set
+  U = inverted_set(L)
+  Unew = MPolyPowersOfElement(Rnew, f.(denominators(U)))
+
+  # the new localized ring
+  Lnew = MPolyQuoLocalizedRing(Rnew, Jnew, Unew)
+
+  # the localized map and its inverse
+  floc = hom(L, Lnew, Lnew.(f.(gens(R))))
+  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)])
+
+  return Lnew, floc, flocinv
+end
+

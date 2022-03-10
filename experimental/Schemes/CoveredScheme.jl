@@ -15,6 +15,8 @@ import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, al
 
 export CoveredSchemeMorphism, domain, codomain, covering_morphism
 
+export simplify
+
 @Markdown.doc """
     Covering{SpecType<:Spec, GlueingType<:Glueing}
 
@@ -661,5 +663,54 @@ covering_morphism(f::CoveredSchemeMorphism) = f.f
 domain_covering(f::CoveredSchemeMorphism) = domain(covering_morphism(f))
 codomain_covering(f::CoveredSchemeMorphism) = codomain(covering_morphism(f))
 getindex(f::CoveredSchemeMorphism, U::Spec) = covering_morphism(f)[U]
+
+function simplify(C::Covering)
+  n = npatches(C)
+  SpecType = affine_patch_type(C)
+  new_patches = [simplify(X) for X in patches(C)]
+  GD = glueings(C)
+  new_glueings = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
+  for (X, Y) in keys(GD)
+    Xsimp, iX, jX = new_patches[C[X]]
+    Ysimp, iY, jY = new_patches[C[Y]]
+    G = GD[(X, Y)]
+    U, V = glueing_domains(G)
+    f, g = glueing_morphisms(G)
+    Usimp = SpecOpen(Xsimp, lifted_numerator.(pullback(iX).(gens(U))), check=false)
+    Vsimp = SpecOpen(Ysimp, lifted_numerator.(pullback(iY).(gens(V))), check=false)
+
+    fsimp = SpecOpenMor(Usimp, Vsimp, 
+                        [
+                         compose(
+                                 compose(
+                                         restrict(iX, Usimp[k], U[k], check=true), 
+                                         f[k]),
+                                 jY)
+                         for k in 1:npatches(Usimp)],
+                        check=true
+                       )
+    gsimp = SpecOpenMor(Vsimp, Usimp, 
+                        [
+                         compose(
+                                 compose(
+                                         restrict(iY, Vsimp[k], V[k], check=true), 
+                                         g[k]),
+                                 jX)
+                         for k in 1:npatches(Vsimp)],
+                        check=true
+                       )
+    new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=true)
+  end
+  iDict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+  jDict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+  for i in 1:length(new_patches)
+    iDict[new_patches[i][1]] = new_patches[i][2]
+    jDict[C[i]] = new_patches[i][3]
+  end
+  Cnew = Covering([ U for (U, _, _) in new_patches], new_glueings, check=true)
+  i_cov_mor = CoveringMorphism(Cnew, C, iDict)
+  j_cov_mor = CoveringMorphism(C, Cnew, jDict)
+  return Cnew, i_cov_mor, j_cov_mor
+end
 
 

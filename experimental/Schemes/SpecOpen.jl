@@ -917,3 +917,10 @@ function Base.adjoint(M::MatElem)
 end
 
 Base.inv(M::MatElem) = inv(det(M))*adjoint(M)
+
+function preimage(f::SpecMor, V::SpecOpen; check::Bool=true)
+  Z = preimage(f, ambient(V))
+  new_gens = pullback(f).(gens(V))
+  return SpecOpen(Z, lifted_numerator.(new_gens), check=check)
+end
+

@@ -713,11 +713,12 @@ function _non_degeneration_cover(
   # find a suitable entry of lowest degree for the next recursion
   verbose && println("reducing the entries...")
   (k, l) = (1, 1)
-  d = maximum(total_degree.(A))
+  d = maximum(total_degree.(A))+1
   I = localized_modulus(OO(C))
   allzero = true
   W = localized_ring(OO(C))
   verbose && print(indent_str*" reducing row number ")
+  degA = Array{Int, 2}(undef, nrows(A), ncols(A))
   for i in 1:m
     verbose && print("$i")
     v = W.([A[i,j] for j in 1:n])
@@ -727,6 +728,7 @@ function _non_degeneration_cover(
     for j in 1:n
       allzero = allzero && iszero(A[i,j])
       A[i,j] = w[j]
+      degA[i, j] = total_degree(w[j])
       if total_degree(w[j]) <= d && !iszero(w[j])
         d = total_degree(w[j])
 	(k, l) = (i, j)
@@ -735,6 +737,8 @@ function _non_degeneration_cover(
     verbose && print(".")
   end
   f = A[k,l]
+  verbose && println("")
+  verbose && println(degA)
 
   # in case that after reduction all the matrix' entries are zero, quit
   if r> 0 && allzero
