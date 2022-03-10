@@ -1568,6 +1568,7 @@ function hilbert_series_expanded(H::HilbertData, d::Int)
 end
 
 function hilbert_function(H::HilbertData, d::Int)
+   if d<0 return 0 end
    HS = hilbert_series_expanded(H,d)
    return coeff(hilbert_series_expanded(H, d), d)
 end
