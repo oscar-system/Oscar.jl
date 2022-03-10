@@ -138,7 +138,7 @@ symbols(K::NfNSGen) = K.S
 
 parent(a::NfNSGenElem) = a.parent
 
-data(a::NfNSGenElem) = a.f
+Hecke.data(a::NfNSGenElem) = a.f
 
 base_field(K::NfNSGen{fmpq, fmpq_mpoly}) = FlintQQ
 

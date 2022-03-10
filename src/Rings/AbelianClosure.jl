@@ -31,7 +31,9 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, isroot_of_unity, promote_rule,
-                AbstractAlgebra, data
+                AbstractAlgebra
+using Hecke
+import Hecke: data
 
 ################################################################################
 #
@@ -168,7 +170,7 @@ function Hecke.cyclotomic_field(K::QabField{NfAbsNS}, c::Int)
   end
 end
 
-Oscar.data(a::QabElem) = a.data
+Hecke.data(a::QabElem) = a.data
 
 ################################################################################
 #
