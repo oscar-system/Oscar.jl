@@ -489,7 +489,7 @@ end
 
 function Oscar.roots(f::PolyElem{QabElem})
   Qab = base_ring(f)
-  c = reduce(lcm, map(conductor, coefficients(f)), init = Int(1))
+  c = mapreduce(conductor, lcm, coefficients(f), init = Int(1))
   k, z = cyclotomic_field(Qab, c)
   f = map_coefficients(x->k(x.data), f)
   lf = factor(f).fac
