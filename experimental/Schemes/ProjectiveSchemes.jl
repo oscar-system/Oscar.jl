@@ -735,6 +735,48 @@ function dehomogenize(
   return hom(S, OO(U), pullback(p[U]), s)
 end
 
+function getindex(X::ProjectiveScheme, U::Spec)
+  Xcov = as_covered_scheme(X)
+  for C in coverings(Xcov)
+    for j in 1:npatches(C)
+      if U === C[j] 
+        return C, j
+      end
+    end
+  end
+  return nothing, 0
+end
+
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
+    U::SpecType
+  ) where {
+    CRT<:MPolyQuoLocalizedRing,
+    SpecType<:Spec
+  }
+  # look up U in the coverings of X
+  cover_of_U, index_of_U = X[U]
+  Xcov = as_covered_scheme(X)
+  S = homogeneous_coordinate_ring(X)
+
+  s = Vector{elem_type(OO(U))}()
+  if cover_of_U === standard_covering(X)
+    S = homogeneous_coordinate_ring(X)
+    C = standard_covering(X)
+    p = covered_projection_to_base(X)
+    s = vcat(gens(OO(U))[1:index_of_U-1], [one(OO(U))], gens(OO(U))[index_of_U:fiber_dimension(X)])
+    return hom(S, OO(U), pullback(p[U]), s)
+  else
+    ref = Xcov[cover_of_U, standard_covering(X)]
+    V = codomain(ref[U])
+    index_of_V = standard_covering(X)[V]
+    t = vcat(gens(OO(V))[1:index_of_V-1], [one(OO(V))], gens(OO(V))[index_of_V:fiber_dimension(X)])
+    s = pullback(ref[U]).(t)
+    pb = compose(ref[U], covered_projection_to_base(X)[V])
+    return hom(S, OO(U), pullback(pb), s)
+  end
+end
+
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     i::Int

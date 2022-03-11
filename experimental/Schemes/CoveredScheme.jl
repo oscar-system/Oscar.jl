@@ -128,9 +128,9 @@ Covering(X::SpecType) where {SpecType<:Spec} = Covering([X])
 function Base.show(io::IO, C::Covering) 
   println(io, 
           "Covering with $(npatches(C)) patch" * 
-          (npatches(C) == 1 ? "" : "es") * 
-          " and glueing graph")
-  print(io, glueing_graph(C))
+          (npatches(C) == 1 ? "" : "es"))
+#           " and glueing graph")
+#   print(io, glueing_graph(C))
 end
 
 
@@ -683,23 +683,23 @@ function simplify(C::Covering)
                         [
                          compose(
                                  compose(
-                                         restrict(iX, Usimp[k], U[k], check=true), 
+                                         restrict(iX, Usimp[k], U[k], check=false), 
                                          f[k]),
                                  jY)
                          for k in 1:npatches(Usimp)],
-                        check=true
+                        check=false
                        )
     gsimp = SpecOpenMor(Vsimp, Usimp, 
                         [
                          compose(
                                  compose(
-                                         restrict(iY, Vsimp[k], V[k], check=true), 
+                                         restrict(iY, Vsimp[k], V[k], check=false), 
                                          g[k]),
                                  jX)
                          for k in 1:npatches(Vsimp)],
-                        check=true
+                        check=false
                        )
-    new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=true)
+    new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=false)
   end
   iDict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
   jDict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
@@ -707,10 +707,20 @@ function simplify(C::Covering)
     iDict[new_patches[i][1]] = new_patches[i][2]
     jDict[C[i]] = new_patches[i][3]
   end
-  Cnew = Covering([ U for (U, _, _) in new_patches], new_glueings, check=true)
+  Cnew = Covering([ U for (U, _, _) in new_patches], new_glueings, check=false)
   i_cov_mor = CoveringMorphism(Cnew, C, iDict)
   j_cov_mor = CoveringMorphism(C, Cnew, jDict)
   return Cnew, i_cov_mor, j_cov_mor
 end
 
+
+
+function simplify!(X::CoveredScheme)
+  C = default_covering(X)
+  Csimp, i, j = simplify(C)
+  push!(coverings(X), Csimp)
+  refinements(X)[(C, Csimp)] = j
+  refinements(X)[(Csimp, C)] = i
+  return (X, Csimp)
+end
 

@@ -169,7 +169,12 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
 end
 
 # blow up X in the center described by g using these explicit generators.
-function blow_up(W::Spec, I::Vector{RingElemType}; is_regular_sequence::Bool=false) where {RingElemType<:MPolyElem}
+function blow_up(
+    W::Spec, 
+    I::Vector{RingElemType}; 
+    var_names::Vector{Symbol}=Vector{Symbol}(), 
+    is_regular_sequence::Bool=false
+  ) where {RingElemType<:MPolyElem}
 
   # some internal function
   function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
@@ -184,7 +189,7 @@ function blow_up(W::Spec, I::Vector{RingElemType}; is_regular_sequence::Bool=fal
   #TODO: Check if for all i \in I parent(i) == R
 
   m = length(I)
-  Pw = projective_space(W,m-1)
+  Pw = (length(var_names) > 0 ? projective_space(W, var_names) : projective_space(W,m-1))
   S = homogeneous_coordinate_ring(Pw)
 
   CP = affine_cone(Pw)
@@ -248,12 +253,13 @@ function blow_up(W::Spec, I::Vector{RingElemType}; is_regular_sequence::Bool=fal
     Itrans = IdealSheaf(covered_ambient, C, Idict, check=false)
     covered_version = subscheme(Itrans)
     set_attribute!(projective_version, :as_covered_scheme, covered_version)
+    set_attribute!(projective_version, :standard_covering, default_covering(covered_version))
 
     proj_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
     for i in 1:length(I)
       Z = patches(default_covering(covered_version))[i]
       U = patches(default_covering(covered_ambient))[i]
-      proj_dict[Z] = restrict(ambient_projection_map[U], Z, codomain(ambient_projection_map[U]))
+      proj_dict[Z] = restrict(ambient_projection_map[U], Z, codomain(ambient_projection_map[U]), check=false)
     end
 
     projection_map = CoveringMorphism(default_covering(covered_version), Covering(W), proj_dict)

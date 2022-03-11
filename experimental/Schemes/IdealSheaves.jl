@@ -89,11 +89,25 @@ end
 
 function IdealSheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
   X_covered = as_covered_scheme(X)
-  C = standard_covering(X)
+  C = default_covering(X_covered)
   r = fiber_dimension(X)
   I = Dict{affine_patch_type(X), Vector{poly_type(affine_patch_type(X))}}()
   for i in 0:r
     I[C[i+1]] = lifted_numerator.(dehomogenize(X, i).(g))
+  end
+  return IdealSheaf(X_covered, C, I, check=false)
+end
+
+function IdealSheaf(
+    X::ProjectiveScheme, 
+    C::Covering, 
+    g::Vector{RingElemType}
+  ) where {RingElemType<:MPolyElem_dec}
+  X_covered = as_covered_scheme(X)
+  r = fiber_dimension(X)
+  I = Dict{affine_patch_type(X), Vector{poly_type(affine_patch_type(X))}}()
+  for U in patches(C)
+    I[U] = lifted_numerator.(dehomogenize(X, U).(g))
   end
   return IdealSheaf(X_covered, C, I, check=false)
 end
@@ -261,3 +275,13 @@ function canonically_isomorphic(I::T, J::T) where{T<:IdealSheaf}
   end
   return true
 end
+
+function (f::CoveringMorphism)(I::IdealSheaf)
+  covering(I) === codomain(f) || error("ideal sheaf is not defined on the codomain of f") 
+  new_dict = Dict{affine_patch_type(domain(f)), Vector{poly_type(domain(f))}}()
+  for U in patches(domain(f))
+    new_dict[U] = pullback(f[U]).(I[codomain(f[U])])
+  end
+  return IdealSheaf(scheme(I), domain(f), new_dict)
+end
+

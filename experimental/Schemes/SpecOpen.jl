@@ -184,14 +184,15 @@ end
 
 function intersect(
     Y::Spec, 
-    U::SpecOpen
+    U::SpecOpen;
+    check::Bool=true
   )
   X = ambient(U)
   base_ring(OO(X)) === base_ring(OO(Y)) || error("Schemes can not be compared")
   if !issubset(Y, X)
     Y = intersect(Y, X)
   end
-  return SpecOpen(Y, gens(U))
+  return SpecOpen(Y, gens(U), check=check)
 end
 
 function intersect(
@@ -793,8 +794,8 @@ function restriction(
     Y::SpecType;
     check::Bool=true
   ) where {SpecType<:Spec}
-  U = intersect(X, domain(f))
-  V = intersect(Y, codomain(f))
+  U = intersect(X, domain(f), check=check)
+  V = intersect(Y, codomain(f), check=check)
 
   new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
 

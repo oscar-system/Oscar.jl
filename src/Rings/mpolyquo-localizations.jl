@@ -317,19 +317,21 @@ mutable struct MPolyQuoLocalizedRingElem{
   # representatives of numerator and denominator
   numerator::RingElemType
   denominator::RingElemType
+  is_reduced::Bool
 
   function MPolyQuoLocalizedRingElem(
       L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}, 
       a::RingElemType,
       b::RingElemType;
-      check::Bool=true
+      check::Bool=true,
+      is_reduced::Bool=false
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
     S = inverted_set(L)
     R = base_ring(L)
     parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
     check && (b in S || error("denominator is not admissible"))
-    return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(L, a, b)
+    return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(L, a, b, is_reduced)
   end
 end
 
@@ -356,6 +358,7 @@ denominator(a::MPolyQuoLocalizedRingElem) = quotient_ring(parent(a))(a.denominat
 quotient_ring(a::MPolyQuoLocalizedRingElem) = quotient_ring(parent(a))
 localized_ring(a::MPolyQuoLocalizedRingElem) = localized_ring(parent(a))
 base_ring(a::MPolyQuoLocalizedRingElem) = base_ring(parent(a))
+is_reduced(a::MPolyQuoLocalizedRingElem) = a.is_reduced
 
 @Markdown.doc """
     lifted_numerator(a::MPolyQuoLocalizedRingElem)
@@ -383,11 +386,11 @@ fraction(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)//lifted_denominator
 
 ### copying of elements
 function Base.deepcopy_internal(f::MPolyQuoLocalizedRingElem, dict::IdDict)
-  return parent(f)(f, check=false)
+  return parent(f)(f, check=false, is_reduced=is_reduced(f))
 end
 
 ### required conversions
-(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType<:RingElem, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f), check=false)
+(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType, is_reduced::Bool=false) where {BaseRingType, BaseRingElemType, RingType, RingElemType<:RingElem, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f), check=false, is_reduced=is_reduced)
 
 function (L::MPolyQuoLocalizedRing{
                                    BaseRingType, 
@@ -398,7 +401,8 @@ function (L::MPolyQuoLocalizedRing{
                                   })(
                                      a::RingElemType, 
                                      b::RingElemType;
-                                     check::Bool=true
+                                     check::Bool=true,
+                                     is_reduced::Bool=false
                                     ) where {
                                              BaseRingType, 
                                              BaseRingElemType, 
@@ -406,36 +410,36 @@ function (L::MPolyQuoLocalizedRing{
                                              RingElemType, 
                                              MultSetType
                                             } 
-  check || return MPolyQuoLocalizedRingElem(L, a, b, check=false)
+  check || return MPolyQuoLocalizedRingElem(L, a, b, check=false, is_reduced=is_reduced)
   b in inverted_set(L) || return convert(L, a//b)
-  return MPolyQuoLocalizedRingElem(L, a, b, check=false)
+  return MPolyQuoLocalizedRingElem(L, a, b, check=false, is_reduced=is_reduced)
 end
 
 ### additional conversions
-function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}; check::Bool=true) where {BRT, BRET, RT, RET, MST}
+function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
   R = base_ring(L)
-  return L(R(numerator(f)), R(denominator(f)), check=check)
+  return L(R(numerator(f)), R(denominator(f)), check=check, is_reduced=is_reduced)
 end
 
-(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::T, b::T; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType, T<:MPolyQuoElem{RingElemType}} = L(lift(a), lift(b), check=check)
+(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::T, b::T; check::Bool=true, is_reduced::Bool=false) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType, T<:MPolyQuoElem{RingElemType}} = L(lift(a), lift(b), check=check, is_reduced=is_reduced)
 
-function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}; check::Bool=true) where {BRT, BRET, RT, RET, MST}
+function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
   parent(f) === L && return f
-  return L(lifted_numerator(f), lifted_denominator(f), check=check)
+  return L(lifted_numerator(f), lifted_denominator(f), check=check, is_reduced=is_reduced)
 end
 
-function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}; check::Bool=true) where {BRT, BRET, RT, RET, MST}
-  parent(f) === localized_ring(L) && return L(numerator(f), denominator(f), check=false)
-  return L(numerator(f), denominator(f), check=check)
+function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
+  parent(f) === localized_ring(L) && return L(numerator(f), denominator(f), check=false, is_reduced=is_reduced)
+  return L(numerator(f), denominator(f), check=check, is_reduced=is_reduced)
 end
 
-function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}; check::Bool=true) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
-  return L(numerator(f), denominator(f), check=check)
+function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
+  return L(numerator(f), denominator(f), check=check, is_reduced=is_reduced)
 end
 
-function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST} 
+function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST} 
   parent(f) == quotient_ring(L) || error("the given element does not belong to the correct ring") 
-  return L(lift(f))
+  return L(lift(f), check=check, is_reduced=is_reduced)
 end
 
 ### additional functionality
@@ -562,9 +566,9 @@ end
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if lifted_denominator(a) == lifted_denominator(b) 
-    return reduce_fraction((parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false))
+    return (parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false)
   end
-  return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false))
+  return (parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
 end
 
 # TODO: improve this method.
@@ -576,18 +580,18 @@ end
 function -(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if lifted_denominator(a) == lifted_denominator(b) 
-    return reduce_fraction((parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false))
+    return (parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false)
   end
-  return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false))
+  return (parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
 end
 
 function *(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b), check=false))
+  return (parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b), check=false)
 end
 
 function *(a::RET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(a*lifted_numerator(b), lifted_denominator(b), check=false))
+  return (parent(b))(a*lifted_numerator(b), lifted_denominator(b), check=false)
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
@@ -595,7 +599,7 @@ function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where 
 end
 
 function *(a::BRET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(a*lifted_numerator(b), lifted_denominator(b), check=false))
+  return (parent(b))(a*lifted_numerator(b), lifted_denominator(b), check=false)
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
@@ -649,27 +653,27 @@ function isone(a::MPolyQuoLocalizedRingElem)
 end
 
 function iszero(a::MPolyQuoLocalizedRingElem)
-  iszero(lifted_numerator(a)) && return true
-  return lifted_numerator(a) in localized_modulus(parent(a))
+  is_reduced(a) || (a = reduce_fraction(a))
+  return iszero(lifted_numerator(a))
 end
 
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
-  return f
+  is_reduced(f) && return f
   h = lift(f)
-  h = reduce(h, groebner_basis(localized_modulus(parent(f))))
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h, check=false)
+  h = reduce(h, groebner_basis(localized_modulus(parent(f))))
+  return parent(f)(h, is_reduced=true, check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
-  return f
+  is_reduced(f) && return f
   h = lift(f)
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h, check=false)
+  return parent(f)(h, is_reduced=true, check=false)
 end
 
 ### implementation of Oscar's general ring interface
@@ -960,7 +964,7 @@ function MPolyQuoLocalizedRingHom(
   return MPolyQuoLocalizedRingHom(L, S, hom(base_ring(L), S, a), check=check)
 end
 
-hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a)
+hom(L::MPolyQuoLocalizedRing, S::Ring, a::Vector{T}; check::Bool=true) where {T<:RingElem} = MPolyQuoLocalizedRingHom(L, S, a, check=check)
 
 ### implementing the Oscar map interface
 function identity_map(W::T) where {T<:MPolyQuoLocalizedRing} 
@@ -1326,8 +1330,8 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   Lnew = MPolyQuoLocalizedRing(Rnew, Jnew, Unew)
 
   # the localized map and its inverse
-  floc = hom(L, Lnew, Lnew.(f.(gens(R))))
-  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)])
+  floc = hom(L, Lnew, Lnew.(f.(gens(R))), check=false)
+  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
 
   return Lnew, floc, flocinv
 end

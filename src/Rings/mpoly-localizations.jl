@@ -1633,6 +1633,7 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   W = base_ring(I)
+  println("now it's expensive: $(ngens(base_ring(W))) variables and degrees $(total_degree.(numerator.(gens(I))))")
   lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering)
   # compute the standard basis and cache the result
   D[ordering] = std(lbpa)
@@ -1706,6 +1707,10 @@ function groebner_basis(
   # if not, set up a LocalizedBiPolyArray
   # Note that saturation is essential here!
   W = base_ring(I)
+  println("now it's expensive: $(ngens(base_ring(W))) variables and degrees")
+  println("$(total_degree.(numerator.(gens(I))))")
+  #println("leading monomials:")
+  #println("$([(!iszero(a) ? leading_monomial(a) : 0) for a in numerator.(gens(I))])")
   lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering) 
   D[ordering] = std(lbpa)
   return D[ordering]
