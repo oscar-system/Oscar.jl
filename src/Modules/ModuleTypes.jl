@@ -296,7 +296,7 @@ option is set in suitable functions.
 
     return r
   end
-  #=function SubQuo(S::SubQuo, O::Array{<:SubQuoElem, 1})
+  #=function SubQuo(S::SubQuo, O::Vector{<:SubQuoElem})
     @assert all(x->x.parent === S, O)
     r = SubQuo(S.F, [x.repres for x in O])
     r.quo = S.quo
