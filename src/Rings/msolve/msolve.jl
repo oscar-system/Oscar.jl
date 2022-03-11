@@ -3,7 +3,7 @@ import msolve_jll: libmsolve
 export msolve
 
 @doc Markdown.doc"""
-    get_rational_parametrization(nr::Int32, lens::Array{Int32,1}, cfs::Ptr{BigInt})
+    get_rational_parametrization(nr::Int32, lens::Vector{Int32}, cfs::Ptr{BigInt})
 
 Construct the rational parametrization of the solution set computed via msolve.
 
@@ -155,7 +155,7 @@ function msolve(
 
     #= solutions are returned as intervals, i.e. a minimum and a maximum entry for
      = the numerator and denominator; thus we sum up and divide by  =#
-    solutions = Array{Array{fmpq, 1}, 1}(undef, jl_nb_sols)
+    solutions = Vector{Vector{fmpq}}(undef, jl_nb_sols)
 
     len = 2*jl_nb_sols*nr_vars
     i = 1

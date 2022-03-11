@@ -91,7 +91,7 @@ function _collect_variables(c::Vector, v::Pair, start = 1)
   if lv isa Tuple
     res = Array{eltype(c)}(undef, map(length, lv))
   else
-    res = Array{eltype(c)}(undef, length(lv))
+    res = Vector{eltype(c)}(undef, length(lv))
   end
   for i in eachindex(res)
     res[i] = c[start]
@@ -184,7 +184,7 @@ mutable struct BiPolyArray{S}
   function BiPolyArray(Ox::T, b::Singular.sideal) where {T <: MPolyRing}
     r = new{elem_type(T)}()
     r.S = b
-    r.O = Array{elem_type(T)}(undef, Singular.ngens(b))
+    r.O = Vector{elem_type(T)}(undef, Singular.ngens(b))
     r.Ox = Ox
     r.isGB = b.isGB
     r.Sx = base_ring(b)
