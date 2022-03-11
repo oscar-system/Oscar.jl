@@ -281,7 +281,7 @@ end
 function blow_up(I::IdealSheaf)
   X = scheme(I)
   C = covering(I)
-  local_blowups = [blow_up(U, I[U]) for U in patches(C)]
+  local_blowups = [blow_up(U, I[U], is_regular_sequence=is_regular_sequence(I)) for U in patches(C)]
   ProjectivePatchType = projective_scheme_type(affine_patch_type(X))
   projective_glueings = Dict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(ProjectivePatchType)}()
 
@@ -675,15 +675,29 @@ function _non_degeneration_cover(
     r::Int; 
     rec_count::Int=0,
     check::Bool=true,
-    verbose::Bool=false
+    verbose::Bool=false,
+    restricted_rows::Vector{Vector{Int}}=[Int[]],
+    restricted_columns::Vector{Vector{Int}}=[Int[]]
   ) where {SpecType<:Spec, MatrixType} #TODO: How specific can we be with the matrices?
   indent_str = prod([ "#" for i in 1:rec_count ]) * " "
   #verbose && println(indent_str * "call with $(X) and matrix $(A) for rank $r")
   verbose && println(indent_str * "call to _non_degeneration_cover for rank $r")
+  verbose && println(indent_str * "on $C")
+  verbose && println(indent_str * "for $A")
+  verbose && println(indent_str * "with restricted rows $restricted_rows")
+  verbose && println(indent_str * "and restricted columns $restricted_columns")
 
   # check for some other aborting conditions
   m = nrows(A)
+  while length(restricted_rows) > 0 && length(restricted_rows[1]) == 0
+    popfirst!(restricted_rows)
+  end
+  length(restricted_rows) == 0 && (restricted_rows = [collect(1:m)])
   n = ncols(A)
+  while length(restricted_columns) > 0 && length(restricted_columns[1]) == 0
+    popfirst!(restricted_columns)
+  end
+  length(restricted_columns) == 0 && (restricted_columns = [collect(1:n)])
   R = base_ring(OO(C))
   
   verbose && println("checking for the scheme being empty...")
@@ -719,7 +733,7 @@ function _non_degeneration_cover(
   # find a suitable entry of lowest degree for the next recursion
   verbose && println("reducing the entries...")
   (k, l) = (1, 1)
-  d = maximum(total_degree.(A))+1
+  d = maximum(total_degree.(A[restricted_rows[1], restricted_columns[1]]))+1
   I = localized_modulus(OO(C))
   allzero = true
   W = localized_ring(OO(C))
@@ -732,12 +746,14 @@ function _non_degeneration_cover(
     w = numerator.(reduce(v, groebner_basis(I))) # TODO: Implement and use reduction for matrices?
     verbose && print(".")
     for j in 1:n
-      allzero = allzero && iszero(A[i,j])
       A[i,j] = w[j]
       degA[i, j] = total_degree(w[j])
-      if total_degree(w[j]) <= d && !iszero(w[j])
-        d = total_degree(w[j])
-	(k, l) = (i, j)
+      if i in restricted_rows[1] && j in restricted_columns[1] 
+        allzero = allzero && iszero(A[i,j])
+        if total_degree(w[j]) <= d && !iszero(w[j])
+          d = total_degree(w[j])
+          (k, l) = (i, j)
+        end
       end
     end
     verbose && print(".")
@@ -751,6 +767,12 @@ function _non_degeneration_cover(
     error(indent_str * "All entries are zero")
   end
 
+  verbose && println("oracle gives $(_degree_oracle_rec(total_degree.(A[restricted_rows[1], restricted_columns[1]]), rec_depth=r-1))")
+  A_part = A[restricted_rows[1], restricted_columns[1]]
+  deg_A_part = total_degree.(A[restricted_rows[1], restricted_columns[1]])
+  (i,j), e = _degree_oracle_rec(deg_A_part, rec_depth=r-1)
+  (k,l) = restricted_rows[1][i], restricted_columns[1][j]
+  f = A[k,l]
   verbose && println(indent_str * "selected entry at ($k, $l): $f")
 
   verbose && println("preparing the matrix for induction...")
@@ -768,6 +790,8 @@ function _non_degeneration_cover(
   u = [i for i in 1:m if i != k]
   v = [j for j in 1:n if j != l]
   B_part = B[u, v]
+  new_restricted_rows = [[(i > k ? i-1 : i) for i in a if i != k] for a in restricted_rows]
+  new_restricted_columns = [[(j > l ? j-1 : j) for j in b if j != l] for b in restricted_columns]
 
   verbose && println("do the induction steps.")
 
@@ -783,7 +807,13 @@ function _non_degeneration_cover(
 
     # harvest from recursion on the open part
     verbose && println("recursive call for the complement")
-    llU, dlU, rlU, clU = _non_degeneration_cover(U, B_part, r-1, rec_count=rec_count+1, check=check, verbose=verbose)
+    llU, dlU, rlU, clU = _non_degeneration_cover(U, B_part, r-1, 
+                                                 rec_count=rec_count+1, 
+                                                 check=check, 
+                                                 verbose=verbose,
+                                                 restricted_rows=new_restricted_rows,
+                                                 restricted_columns=new_restricted_columns
+                                                )
 
     # process the output according to the preparations for the recursion
     loc_list = [push!(Ul, f) for Ul in llU]
@@ -816,7 +846,13 @@ function _non_degeneration_cover(
 
   # harvest from recursion on the closed part
   verbose && println("recursive call for the subscheme")
-  llY, dlY, rlY, clY = _non_degeneration_cover(Y, copy(A), r, rec_count=rec_count+1, check=check, verbose=verbose)
+  llY, dlY, rlY, clY = _non_degeneration_cover(Y, copy(A), r, 
+                                               rec_count=rec_count+1, 
+                                               check=check, 
+                                               verbose=verbose,
+                                               restricted_rows=restricted_rows,
+                                               restricted_columns=restricted_columns
+                                              )
   
   # process the output according to the preparations for the recursion
   loc_list = vcat(loc_list, llY)
@@ -1010,4 +1046,59 @@ function test_cover(C, f, hl, ql, rl, cl)
   I = ideal(OO(C), [det(Df[rl[i], cl[i]]) for i in 1:length(rl)])
   @show one(localized_ring(OO(C))) in I
 end
+
+function _degree_oracle_rec(M::Matrix{Int}; rec_depth::Int=0)
+  m = nrows(M)
+  n = ncols(M)
+  d = maximum(M)
+  minimal_entries = Vector{Tuple{Int, Int}}()
+  for i in 1:m
+    for j in 1:n
+      if M[i,j] >= 0 && M[i,j] < d
+        d = M[i,j]
+        minimal_entries = [(i,j)]
+      end
+      if M[i,j] >=0 && M[i,j] <= d
+        push!(minimal_entries, (i, j))
+      end
+    end
+  end
+
+  if rec_depth==0
+    return minimal_entries[1], d
+  end
+
+  oracles = Vector{Tuple{Tuple{Int, Int}, Int}}()
+  for p in 1:length(minimal_entries)
+    (k,l) = minimal_entries[p]
+    Mnew = Matrix{Int}(undef, m-1, n-1)
+    for i in 1:k-1
+      for j in 1:l-1
+        Mnew[i,j] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1), (M[i,l]>=0 ? M[k,j] + M[i,l] : -1)])
+      end
+      for j in l+1:n
+        Mnew[i,j-1] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1), (M[i,l]>=0 ? M[k,j] + M[i,l] : -1)])
+      end
+    end
+    for i in k+1:m
+      for j in 1:l-1
+        Mnew[i-1,j] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1), (M[i,l]>=0 ? M[k,j] + M[i,l] : -1)])
+      end
+      for j in l+1:n
+        Mnew[i-1,j-1] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1), 
+                                 (M[i,l]>=0 ? M[k,j] + M[i,l] : -1)])
+      end
+    end
+    push!(oracles, _degree_oracle_rec(Mnew))
+  end
+
+  e = minimum([a[2] for a in oracles])
+  for p in 1:length(minimal_entries)
+    if oracles[p][2] == e
+      return minimal_entries[p], maximum([d, e])
+    end
+  end
+  return minimal_entries[p], maximum([d, e])
+end
+
 

@@ -588,6 +588,10 @@ function dim(X::Spec)
   return get_attribute(X, :dimension)::Int64
 end
 
+function codim(X::Spec)
+  return ngens(base_ring(OO(X)))-dim(X)
+end
+
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
 
 function simplify(X::Spec)
