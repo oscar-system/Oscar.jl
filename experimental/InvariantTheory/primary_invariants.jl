@@ -142,15 +142,15 @@ Return a system of primary invariants for `IR` using the algorithm in [Kem99](@c
 The product of the degrees $d_1,\dots, d_n$ of the returned primary invariants
 is guaranteed to be minimal among all possible sets of primary invariants.
 
-The following keyword agruments can be used to speed up the computation.
-If degrees $d_1,\dots, d_n$ of primary invariants are known, those can be specified
-by `primary_degrees = [d_1, ..., d_n]`. Note that an error is raised if in fact
-no primary invariants of the given degrees exist.
-If a number $l \geq 1$ with $d_1\cdots d_n \geq l |G|$, where $G$ is the underlying
-group, is known, this can be specified by `degree_bound = l`. The default value is
+Expert users (or users happy to experiment) may enter the following keyword arguments to 
+speed up the computation. If admissible degrees $d_1,\dots, d_n$ for a system of primary 
+invariants are known a priori, these degrees can be specified by `primary_degrees = [d_1, ..., d_n]`. 
+Note that an error is raised if in fact no primary invariants of the given degrees exist.
+An a priori known number $k \geq 1$ with $d_1\cdots d_n \geq k \cdot |G|$, where 
+$G$ is the underlying group, can be specified by `degree_bound = k`. The default value is
 `degree_bound = 1`.
-In some situations the runtime of the algorithm might be improved by assigning
-`ensure_minimality` a positive integer. This leads to an early cancellation of
+In some situations, the runtime of the algorithm might be improved by assigning
+a positive integer to `ensure_minimality`. This leads to an early cancellation of
 loops in the algorithm and the described minimality of the degrees is not
 guaranteed anymore. A smaller (positive) value of `ensure_minimality` corresponds
 to an earlier cancellation. However, the default value `ensure_minimality = 0`
@@ -328,8 +328,8 @@ end
     primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
 
 Return a system of primary invariants for `IR` as a `Vector` sorted by increasing
-degree. The result is cached, so calling this function again will be fast and
-give the same result.
+degree. The result is cached, so calling this function again with argument `IR` 
+will be fast and give the same result.
 
 The used algorithm can be specified with the optional argument `algo`. Possible
 values are `:optimal_hsop` which uses the algorithm in [Kem99](@cite) or `:successive_algo`

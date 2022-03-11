@@ -24,7 +24,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
 		   
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
-       $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
+       $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(f \;\!   . \;\! \pi).$
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
@@ -46,10 +46,6 @@ In the non-modular case, an alternative and typically more effective way to comp
 
 We discuss the relevant OSCAR functionality below.
 
-!!! warning
-    At current state, only the non-modular case is supported by OSCAR. 
-
-
 ## Creating Invariant Rings
 
 The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified.
@@ -58,7 +54,7 @@ The invariant theory part of OSCAR  distinguishes two ways of how  finite groups
 
 Here, $G$ will be explicitly given as a matrix group $G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$ by linear substitution:
 
-$(\pi \;\!  . \;\! f) \;\! (x_1, \dots, x_n)  = f(\pi^{-1} \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)) \text{ for all } \pi\in G.$
 
 
 ```@docs
@@ -67,6 +63,7 @@ invariant_ring(G::MatrixGroup)
 
 ### Permutation Groups
 
+Taylor made functionality for handling invariant rings of permutation groups is not implemented yet.
 
 ## Basic Data Associated to Invariant Rings
 

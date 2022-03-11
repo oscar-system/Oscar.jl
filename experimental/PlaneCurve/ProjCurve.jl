@@ -91,7 +91,7 @@ julia> C = Oscar.ProjCurve(I)
 Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
 
-julia> PP = projective_space(QQ, 3)
+julia> PP = proj_space(QQ, 3)
 (Projective space of dim 3 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2], x[3]])
 

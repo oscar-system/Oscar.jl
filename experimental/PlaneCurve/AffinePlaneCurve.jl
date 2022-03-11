@@ -432,8 +432,8 @@ function intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S
   m = ideal_point(R, P)
   r = Localization(R, m)
   I = ideal(r, [C.eq, D.eq])
-  groebner_basis(I)
-  return Singular.vdim(I.gb.S)
+  G = groebner_assure(I)
+  return Singular.vdim(G.S)
 end
 
 ################################################################################

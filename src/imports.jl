@@ -96,6 +96,7 @@ import AbstractAlgebra:
 
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:
+    hasgens,
     isfiniteorder,
     istrivial
 

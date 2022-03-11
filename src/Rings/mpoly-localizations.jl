@@ -1,5 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
-export rand, sets, issubset, units_of
+export rand, sets, issubset, units_of, simplify!, is_trivial
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
@@ -103,8 +103,16 @@ function Base.in(
   # We need to check whether for some a ∈ R and k ∈ ℕ we have 
   #   a⋅f = dᵏ.
   (i, o) = ppio(f, d)
-  return divides(one(R), o)[1]
+  #return divides(one(R), o)[1]
+  return isunit(o)
 end
+
+### iteration 
+Base.iterate(U::MPolyPowersOfElement) = (U.a[1], 1)
+Base.iterate(U::MPolyPowersOfElement, a::Tuple{<:MPolyElem, Int}) = (a[2] < length(U.a) ? (U.a[a[2]+1], a[2]+1) : nothing)
+Base.iterate(U::MPolyPowersOfElement, i::Int) = (i < length(U.a) ? (U.a[i+1], i+1) : nothing)
+
+is_trivial(U::MPolyPowersOfElement) = (U == units_of(ambient_ring(U)))
 
 ### printing
 function Base.show(io::IO, S::MPolyPowersOfElement)
@@ -115,6 +123,20 @@ end
 ### generation of random elements 
 function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
+end
+
+### simplification. 
+# Replaces each element d by its list of square free prime divisors.
+function simplify!(S::MPolyPowersOfElement)
+  R = ambient_ring(S)
+  new_denom = Vector{elem_type(R)}()
+  for d in denominators(S)
+    for a in factor(d)
+      push!(new_denom, a[1])
+    end
+  end
+  S.a = new_denom
+  return S
 end
 
 
@@ -868,9 +890,23 @@ fraction(a::MPolyLocalizedRingElem) = a.frac
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
-    RingElemType, 
+    RingElemType<:RingElem, 
     MultSetType
   } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=check)
+
+(W::MPolyLocalizedRing{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  })(f::BaseRingElemType) where {
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
 
 function (W::MPolyLocalizedRing{
     BaseRingType, 
@@ -941,7 +977,7 @@ function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BR
 end
 
 function *(a::BRET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
-  return (parent(b))(a*fraction(b), check=false)
+  return (parent(b))(a*numerator(b), denominator(b), check=false)
 end
 
 function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
@@ -1024,7 +1060,9 @@ parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingT
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(W, fraction(f), check=check)
 
 (W::MPolyLocalizedRing)() = zero(W)
-(W::MPolyLocalizedRing)(a::Integer; check::Bool=true) = W(base_ring(W)(a), check=check)
+(W::MPolyLocalizedRing)(a::Integer) = W(base_ring(W)(a), check=false)
+(W::MPolyLocalizedRing)(a::Int64) = W(base_ring(W)(a), check=false)
+(W::MPolyLocalizedRing)(a::fmpz) = W(base_ring(W)(a), check=false)
 
 isdomain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 isexact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
@@ -1076,7 +1114,8 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
       oscar_gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}},
       shift::Vector{BRET},
-      ordering::Symbol
+      ordering::Symbol;
+      is_groebner_basis::Bool=false
     ) where {BRT, BRET, RT, RET, MST}
     lbpa = new{BRT, BRET, RT, RET, MST}()
     # TODO: Add some sanity checks here
@@ -1088,7 +1127,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       push!(shift, zero(coefficient_ring(base_ring(oscar_ring))))
     end
     lbpa.shift = shift
-    lbpa.is_groebner_basis=false
+    lbpa.is_groebner_basis=is_groebner_basis
     return lbpa
   end
   
@@ -1146,7 +1185,8 @@ function singular_assure(lbpa::LocalizedBiPolyArray)
     shift_hom = hom(base_ring(oscar_ring(lbpa)), base_ring(oscar_ring(lbpa)), 
         [gen(base_ring(oscar_ring(lbpa)), i) + lbpa.shift[i] for i in (1:nvars(base_ring(oscar_ring(lbpa))))])
     lbpa.singular_gens = Singular.Ideal(lbpa.singular_ring,
-	[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
+                                        (elem_type(lbpa.singular_ring))[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
+    #lbpa.singular_gens = (length(oscar_gens(lbpa)) == 0 ? Singular.Ideal(lbpa.singular_ring) : Singular.Ideal(lbpa.singular_ring, [lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)]))
   end
 end
 
@@ -1266,7 +1306,7 @@ end
 
 Ideals in localizations of polynomial rings.
 """
-mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
+@attributes mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
   # the initial set of generators, not to be changed ever!
   gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
   # the ambient ring for this ideal
@@ -1275,7 +1315,6 @@ mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal
   # Fields for caching
   groebner_bases::Dict{Symbol, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}
   dimension::Int
-  saturated_ideal::MPolyIdeal{RET} 
  
   function MPolyLocalizedIdeal(
       W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
@@ -1315,73 +1354,83 @@ end
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  ### saturation has to proceed via primary decomposition in this case. 
-  # We rely on the primary decomposition on the singular side which is 
-  # already implemented so that all non-relevant components are thrown 
-  # away. The remaining components are then intersected to produce 
-  # the ideal in question. 
-  lbpa = LocalizedBiPolyArray(I)
-  V = base_ring(I)
-  R = base_ring(V)
-  sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-  decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
-  if length(decomp) == 0
-    return ideal(R, one(R))
+  if !has_attribute(I, :saturated_ideal)
+    ### saturation has to proceed via primary decomposition in this case. 
+    # We rely on the primary decomposition on the singular side which is 
+    # already implemented so that all non-relevant components are thrown 
+    # away. The remaining components are then intersected to produce 
+    # the ideal in question. 
+    lbpa = LocalizedBiPolyArray(I)
+    V = base_ring(I)
+    R = base_ring(V)
+    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
+    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+    if length(decomp) == 0
+      return ideal(R, one(R))
+    end
+    relevant_comp = LocalizedBiPolyArray([one(V)])
+    U = inverted_set(V)
+    P = prime_ideal(U)
+    for comp in decomp
+      # Check whether the given component is contained in P.
+      issubset(ideal(R, numerator.(oscar_gens(comp))), P) && (relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(comp))))
+    end
+    set_attribute!(I, :saturated_ideal, ideal(R, numerator.(oscar_gens(relevant_comp))))
   end
-  relevant_comp = LocalizedBiPolyArray([one(V)])
-  U = inverted_set(V)
-  P = prime_ideal(U)
-  for comp in decomp
-    # Check whether the given component is contained in P.
-    issubset(ideal(R, numerator.(oscar_gens(comp))), P) && (relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(comp))))
-  end
-  return ideal(R, numerator.(oscar_gens(relevant_comp)))
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  ### saturation has to proceed via primary decomposition in this case. 
-  # We rely on the primary decomposition on the singular side which is 
-  # already implemented so that all non-relevant components are thrown 
-  # away. The remaining components are then intersected to produce 
-  # the ideal in question. 
-  lbpa = LocalizedBiPolyArray(I)
-  V = base_ring(I)
-  R = base_ring(V)
-  sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-  decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
-  if length(decomp) == 0
-    return ideal(R, one(R))
+  if !has_attribute(I, :saturated_ideal)
+    ### saturation has to proceed via primary decomposition in this case. 
+    # We rely on the primary decomposition on the singular side which is 
+    # already implemented so that all non-relevant components are thrown 
+    # away. The remaining components are then intersected to produce 
+    # the ideal in question. 
+    lbpa = LocalizedBiPolyArray(I)
+    V = base_ring(I)
+    R = base_ring(V)
+    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
+    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+    if length(decomp) == 0
+      return ideal(R, one(R))
+    end
+    relevant_comp = decomp[1]
+    for i in (2:length(decomp))
+      relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(decomp[i])))
+    end
+    set_attribute!(I, :saturated_ideal, ideal(R, numerator.(oscar_gens(relevant_comp))))
   end
-  relevant_comp = decomp[1]
-  for i in (2:length(decomp))
-    relevant_comp = LocalizedBiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(decomp[i])))
-  end
-  return ideal(R, numerator.(oscar_gens(relevant_comp)))
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  if !isdefined(I, :saturated_ideal)
+  if is_trivial(inverted_set(base_ring(I)))
+    set_attribute!(I, :saturated_ideal, ideal(base_ring(base_ring(I)), numerator.(gens(I))))
+  end
+  if !has_attribute(I, :saturated_ideal)
     W = base_ring(I)
     R = base_ring(W)
     U = inverted_set(W)
     lbpa = LocalizedBiPolyArray(I)
-    sat_ideal = singular_gens(lbpa)
+    ssat_ideal = singular_gens(lbpa)
     for a in denominators(U)
-      sat_ideal = Singular.saturation(sat_ideal, Singular.Ideal(singular_ring(lbpa), [singular_ring(lbpa)(a)]))[1]
+      ssat_ideal = Singular.saturation(ssat_ideal, Singular.Ideal(singular_ring(lbpa), [singular_ring(lbpa)(a)]))[1]
     end
-    I.saturated_ideal = ideal(R, R.(gens(sat_ideal)))
+    sat_ideal = ideal(R, R.(gens(ssat_ideal)))
+    set_attribute!(I, :saturated_ideal, sat_ideal)
   end
-  return I.saturated_ideal
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyProductOfMultSets{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
-  if !isdefined(I, :saturated_ideal)
+  if !has_attribute(I, :saturated_ideal)
     W = base_ring(I)
     R = base_ring(W)
     J = ideal(R, numerator.(gens(I)))
@@ -1389,9 +1438,9 @@ function saturated_ideal(
       L = Localization(U)
       J = saturated_ideal(L(J))
     end
-    I.saturated_ideal = J
+    set_attribute!(I, :saturated_ideal, J)
   end
-  return I.saturated_ideal
+  return get_attribute(I, :saturated_ideal)::MPolyIdeal{RET}
 end
 
 
@@ -1468,10 +1517,11 @@ function Base.in(
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, 
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} 
   ) where {BRT, BRET, RT, RET, MST}
+  iszero(numerator(f)) && return true
   parent(f) == base_ring(I) || return false
-  #lbpa = groebner_basis(I)
-  #return iszero(reduce(f, lbpa))
-  return numerator(f) in saturated_ideal(I)
+  lbpa = groebner_basis(I)
+  return iszero(reduce(f, lbpa))
+  #return numerator(f) in saturated_ideal(I)
 end
 
 function Base.in(
@@ -1537,7 +1587,6 @@ LocalizedBiPolyArray(
     W::MPolyLocalizedRing, 
     I::Singular.sideal
   ) = LocalizedBiPolyArray(W, I, default_shift(W), false)
-
 
 function Base.show(io::IO, I::MPolyLocalizedIdeal) 
   print(io, "ideal in $(base_ring(I)) generated by the elements ") 
@@ -1673,14 +1722,23 @@ function Base.reduce(
   W = parent(f)
   W == oscar_ring(lbpa) || error("element does not belong to the Oscar ring of the biPolyArray")
   R = base_ring(W)
-  shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
-  singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
-  singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
-  if iszero(singular_n) 
-    return zero(W)
+  if !iszero(shift(lbpa))
+    shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
+    singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
+    singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+    if iszero(singular_n) 
+      return zero(W)
+    end
+    inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
+    return W(inv_shift_hom(R(singular_n)), denominator(f))
+  else
+    singular_n = singular_ring(lbpa)(numerator(f))
+    singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+    if iszero(singular_n) 
+      return zero(W)
+    end
+    return W(R(singular_n), denominator(f))
   end
-  inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
-  return W(inv_shift_hom(R(singular_n)), denominator(f))
 end
 
 @Markdown.doc """
@@ -1808,118 +1866,99 @@ end
 ########################################################################
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
-#
-# Let P = 𝕜[x₁,…,xₘ] and Q = 𝕜[y₁,…,yₙ] be polynomial rings 
-# Any homomorphism ϕ : P[U⁻¹] → Q[V⁻¹] is completely determined 
-# by the images of the variables 
-#
-#     ϕ(xᵢ) = aᵢ(y)/ bᵢ(y)
-#
-# where bᵢ(y) ∈ V for all i. Given such a list of images
-# one can always define the associated homomorphism ϕ' : P → Q[V⁻¹]. 
-# This extends to a well defined homomorphism ϕ as above iff
-#
-#     for all f ∈ U : ϕ'(f) is a unit in Q[V⁻¹]            (*)
-#
-# and this is easily seen to be the case iff there exists an 
-# element c ∈ V such that c⋅ϕ'(f) ∈ V
 
-mutable struct MPolyLocalizedRingHom{BaseRingType, BaseRingElemType, 
-    RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-  } <: AbsLocalizedRingHom{
-    RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-  }
+mutable struct MPolyLocalizedRingHom{
+                                     DomainType<:MPolyLocalizedRing, 
+                                     CodomainType<:Ring, 
+                                     RestrictedMapType<:Map
+                                    } <: AbsLocalizedRingHom{
+                                                             DomainType, 
+                                                             CodomainType, 
+                                                             RestrictedMapType
+                                                            }
   # the domain of definition
-  V::MPolyLocalizedRing{BaseRingType, BaseRingElemType, 
-			RingType, RingElemType, DomainMultSetType}
-  # the codomain 
-  W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, 
-			RingType, RingElemType, CodomainMultSetType}
-  # the images of the variables
-  images::Vector{MPolyLocalizedRingElem{
-    BaseRingType, BaseRingElemType, RingType, RingElemType, 
-    CodomainMultSetType}}
+  W::DomainType
+
+  ### the codomain
+  # Why do we need to store the codomain explicitly and not extract it from 
+  # the restricted map? 
+  # Because the restricted map res probably takes values in a strictly 
+  # smaller or even completely different ring than S. If C is the codomain 
+  # of res, then we impliticly assume (and check) that coercion from elements 
+  # of C to S is possible. This is strictly weaker than requiring res to implement 
+  # the full map interface. In that case, one would -- for example -- need to 
+  # implement a new type just for the inclusion map R → R[U⁻¹] of a ring into 
+  # its localization.
+  S::CodomainType
+
+  # the restriction of the map to the base_ring of the domain
+  res::RestrictedMapType
 
   function MPolyLocalizedRingHom(
-      V::MPolyLocalizedRing{BRT, BRET, RT, RET, DMST}, 
-      W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
-      a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
-    ) where {BRT, BRET, RT, RET, CMST, DMST}
-    R = base_ring(V)
-    S = base_ring(W)
-    k = coefficient_ring(R) 
-    k == coefficient_ring(S) || error("the two polynomial rings are not defined over the same coefficient ring")
-    ngens(R) == length(a) || error("the number of images does not coincide with the number of variables")
-    parent_check = true
-    for x in a
-      parent_check = parent_check && parent(x) == W
-      denominator(x) in inverted_set(W) || error("the homomorphism is not well defined")
+      W::DomainType,
+      S::CodomainType,
+      res::RestrictedMapType;
+      check::Bool=true
+    ) where {DomainType<:MPolyLocalizedRing, CodomainType<:Ring, RestrictedMapType<:Map}
+    R = base_ring(W)
+    U = inverted_set(W)
+    domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
+    for f in U
+      isunit(S(res(f))) || error("image of $f is not a unit in the codomain")
     end
-    parent_check || error("the images of the variables are not elements of the codomain")
-    # Check whether this homomorphism is well defined
-    # TODO: Implement that!
-    return new{typeof(k), elem_type(k), typeof(R), elem_type(R), typeof(inverted_set(V)), typeof(inverted_set(W))}(V, W, a)
+    return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end
 end
   
 ### additional constructors
 function MPolyLocalizedRingHom(
-      R::RT,
-      W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
-      a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
-    ) where {BRT, BRET, RT, RET, CMST}
-  return MPolyLocalizedRingHom(Localization(units_of(R)), W, a)
+      R::MPolyRing,
+      S::Ring,
+      a::Vector{RingElemType}
+  ) where {RingElemType<:RingElem}
+  res = hom(R, S, a)
+  return MPolyLocalizedRingHom(Localization(units_of(R)), S, res)
 end
 
 function MPolyLocalizedRingHom(
-      V::MPolyLocalizedRing{BRT, BRET, RT, RET, DMST}, 
-      S::RT,
-      a::Vector{RET}
-    ) where {BRT, BRET, RT, RET, DMST}
-  W = Localization(units_of(S))
-  return MPolyLocalizedRingHom(V, W, W.(a))
+      W::MPolyLocalizedRing,
+      S::Ring,
+      a::Vector{RingElemType}
+  ) where {RingElemType<:RingElem}
+  R = base_ring(W)
+  res = hom(R, S, a)
+  return MPolyLocalizedRingHom(W, S, res)
 end
+
+hom(W::MPolyLocalizedRing, S::Ring, res::Map) = MPolyLocalizedRingHom(W, S, res)
+hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a)
 
 ### required getter functions
-domain(f::MPolyLocalizedRingHom) = f.V
-codomain(f::MPolyLocalizedRingHom) = f.W
-images(f::MPolyLocalizedRingHom) = f.images
-
-### required functionality
-function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::MPolyLocalizedRingElem{BRT, BRET, RT, RET, DMST}) where {BRT, BRET, RT, RET, DMST, CMST}
-  parent(p) == domain(f) || error("the given element does not belong to the domain of the map")
-  return evaluate(numerator(p), images(f))//evaluate(denominator(p), images(f))
-end
-
-### overwriting of the generic method
-function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::RET) where {BRT, BRET, RT, RET, DMST, CMST}
-  parent(p) == base_ring(domain(f)) || error("the given element does not belong to the domain of the map")
-  return evaluate(p, images(f))
-end
-
-### provide an extra method for elements of the base ring
-function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::BRET) where {BRT, BRET, RT, RET, DMST, CMST}
-  parent(p) == coefficient_ring(base_ring(domain(f))) || error("the given element does not belong to the domain of the map")
-  return codomain(f)(p)
-end
-
-### remove the ambiguity of methods in case the base ring is ℤ
-function (f::MPolyLocalizedRingHom)(p::fmpz) 
-  return codomain(f)(p)
-end
+domain(f::MPolyLocalizedRingHom) = f.W
+codomain(f::MPolyLocalizedRingHom) = f.S
+restricted_map(f::MPolyLocalizedRingHom) = f.res
 
 ### implementing the Oscar map interface
-identity_map(W::T) where {T<:MPolyLocalizedRing} = MPolyLocalizedRingHom(W, W, W.(gens(base_ring(W))))
-function compose(
-    f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, MST1, MST2}, 
-    g::MPolyLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST3}
-  ) where {BRT, BRET, RT, RET, MST1, MST2, MST3}
-  codomain(f) == domain(g) || error("maps are not compatible")
-  return MPolyLocalizedRingHom(domain(f), codomain(g), g.(images(f)))
+function identity_map(W::T) where {T<:MPolyLocalizedRing} 
+  MPolyLocalizedRingHom(W, W, identity_map(base_ring(W)))
 end
 
-function preimage(f::MPolyLocalizedRingHom, I::MPolyLocalizedIdeal)
-  base_ring(I) == codomain(f) || error("the ideal does not belong to the codomain of the map")
-  R = base_ring(domain(f))
-  error("not implemented")
+function compose(
+    f::MPolyLocalizedRingHom, 
+    g::MPolyLocalizedRingHom
+  )
+  codomain(f) === domain(g) || error("maps are not compatible")
+  return MPolyLocalizedRingHom(domain(f), codomain(g), compose(restricted_map(f), g))
 end
+
+(f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
+
+function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom) 
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  for x in gens(base_ring(domain(f)))
+    f(x) == g(x) || return false
+  end
+  return true
+end
+

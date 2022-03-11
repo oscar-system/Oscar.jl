@@ -5,10 +5,10 @@
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
     @test K isa QabField
-    @test elem_type(K) === QabElem
-    @test elem_type(typeof(K)) === QabElem
-    @test parent_type(QabElem) === QabField
-    @test parent_type(one(K)) === QabField
+    @test elem_type(K) === QabElem{nf_elem}
+    @test elem_type(typeof(K)) === QabElem{nf_elem}
+    @test parent_type(QabElem{nf_elem}) === QabField{AnticNumberField}
+    @test parent_type(one(K)) === QabField{AnticNumberField}
 
     a = @inferred K()
     @test a isa QabElem
@@ -188,6 +188,10 @@
       @test isroot_of_unity(z(5))
       @test !isroot_of_unity(z(5) + 1)
     end
+
+    @test length(roots(8*b, 3)) == 3
+    Kx, x = PolynomialRing(K)
+    @test length(roots(x^15-2^15)) == 15
 
     @test order(z(5)) == 5
   end

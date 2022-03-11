@@ -164,7 +164,7 @@ end
     G = Oscar.ProjPlaneCurve(T(x * z + y^2 + z^2))
     H = Oscar.ProjPlaneCurve(T(x * (x + y) * y))
     M = Oscar.ProjPlaneCurve((x - y) * (x - 2 * z))
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
 
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
@@ -200,7 +200,7 @@ end
     T, _ = grade(R)
     F = Oscar.ProjPlaneCurve(T((x^2 + y^2) * (x^2 + y^2 + 2 * y * z)))
     G = Oscar.ProjPlaneCurve(T((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2 * z)))
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
 
     L = Oscar.curve_intersect(PP[1], F, G)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
@@ -218,7 +218,7 @@ end
 @testset "ProjPlaneCurve singularity functions" begin
     R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(R)
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
     F = Oscar.ProjPlaneCurve(T(x * z + y^2))
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(0), QQ(0)])
 
@@ -273,7 +273,7 @@ end
     S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C = Oscar.ProjPlaneCurve(T(y^2 + y * z + x^2))
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
     D = Oscar.ProjCurveDivisor(C, Dict(P => 3, Q => -2))
@@ -293,7 +293,7 @@ end
     S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     C = Oscar.ProjPlaneCurve(T(y^2 * z - x * (x - z) * (x + 3 * z)))
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
     R = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     D = Oscar.ProjCurveDivisor(C, P, 4)
@@ -318,7 +318,7 @@ end
 @testset "Weierstrass form" begin
     S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(S)
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
     C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
@@ -358,7 +358,7 @@ end
     S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
     P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
     E = Oscar.ProjEllipticCurve(F, P1)
     @test Oscar.weierstrass_form(E) == T(-x^3 - x * z^2 + y^2 * z - 4 * z^3)
@@ -375,7 +375,7 @@ end
     S, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
-    PP = projective_space(K, 2)
+    PP = proj_space(K, 2)
     P1 = Oscar.Geometry.ProjSpcElem(PP[1], [K(-1), K(1), K(0)])
     E = Oscar.ProjEllipticCurve(F, P1)
     @test order(E) == 78633
@@ -385,7 +385,7 @@ end
     S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
-    PP = projective_space(QQ, 2)
+    PP = proj_space(QQ, 2)
     P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
     E = Oscar.ProjEllipticCurve(F, P1)
     Q1 = Oscar.Point_EllCurve(E, P1)
@@ -408,7 +408,7 @@ end
     T, _ = grade(S)
     F = T(y^2 * z - x^3 - 10 * x * z^2 + 2 * z^3)
     E = Oscar.ProjEllipticCurve(F)
-    PP = projective_space(A, 2)
+    PP = proj_space(A, 2)
     P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
     Q = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(4332), A(3230), A(1)]))
     @test Oscar.sum_Point_EllCurveZnZ(P, P).Pt.v == Q.Pt.v
@@ -478,7 +478,7 @@ end
     T, _ = grade(S)
     I = ideal(T, [x^2, y^2*z, z^2])
     C = Oscar.ProjCurve(I)
-    PP = projective_space(QQ, 3)
+    PP = proj_space(QQ, 3)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
     @test P in C
     @test Oscar.isirreducible(C)

@@ -498,12 +498,6 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
 
-function Oscar.preimage(f::GAPGroupHomomorphism, x::GAPGroupElem) 
-  fl, p = haspreimage(f, x)
-  @assert fl
-  return p
-end
-
 
 #############################
 #

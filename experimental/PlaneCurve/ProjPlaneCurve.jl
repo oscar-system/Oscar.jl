@@ -32,7 +32,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -74,7 +74,7 @@ julia> T, _ = grade(S)
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -155,7 +155,7 @@ julia> T, _ = grade(S)
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -223,7 +223,7 @@ end
 
 function curve_intersect(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
    R = parent(C.eq)
-   PP = projective_space(R.R.base_ring, 2)
+   PP = proj_space(R.R.base_ring, 2)
    curve_intersect(PP[1], C, D)
 end
 
@@ -275,7 +275,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
   pY = phi(FY.f)
   pZ = phi(FZ.f)
   I = ideal([pF, pX, pY, pZ])
-  g = groebner_basis(I, ordering = :lex, complete_reduction=true)
+  g = collect(groebner_assure(I, lex(gens(rr)), true))
   f = factor(g[1])
   ro = []
   for h in keys(f.fac)
@@ -298,7 +298,7 @@ end
 
 function curve_singular_locus(C::ProjectivePlaneCurve)
    R = parent(C.eq)
-   PP = projective_space(R.R.base_ring, 2)
+   PP = proj_space(R.R.base_ring, 2)
    curve_singular_locus(PP[1], C)
 end
 

@@ -357,12 +357,12 @@ function det_spin_homomorphism(L::ZLat; signed=false)
 
     \Gamma_S^+ = ker(\Gamma_\QQ \to \{\pm 1\}, (d,s) \mapsto \sign(ds))
   =#
-  GammaS = [diagonal(s) for s in S]
+  GammaS = [diagonal(QQ(s)) for s in S]
   if signed
-    push!(GammaS, diagonal(-1)+sum([det_hom[p](-1) for p in S]))
+    push!(GammaS, diagonal(QQ(-1))+sum([det_hom[p](ZZ(-1)) for p in S]))
   else
-    push!(GammaS, sum([det_hom[p](-1) for p in S]))
-    push!(GammaS, diagonal(-1))
+    push!(GammaS, sum([det_hom[p](ZZ(-1)) for p in S]))
+    push!(GammaS, diagonal(QQ(-1)))
   end
   gens_ker = append!(sigma_sharp_gens, GammaS)
   _, j = sub(A, gens_ker)
@@ -427,12 +427,12 @@ function det_spin_homomorphism(L::ZLat; signed=false)
       while true
         R = ResidueRing(ZZ, p^(prec+3))
         conv = MapFromFunc(x -> R(numerator(x)) * R(denominator(x)^(-1)), QQ, R)
-        g = Hecke.hensel_qf(map_entries(conv, q0), map_entries(conv, g), prec0, prec, p)
-        g = change_base_ring(ZZ, g)
+        _g = Hecke.hensel_qf(map_entries(conv, q0), change_base_ring(R, g), prec0, prec, p)
+        g = change_base_ring(ZZ, _g)
         gg = t*M*g*inv(t*M)
         det_p, spin_p = det_spin(diag, gg, p, prec + v)
         if det_p != 0
-          result[f]+= inj[p](spin_p) + det_hom[p](det_p)
+          result[f]+= inj[p](QQ(spin_p)) + det_hom[p](ZZ(det_p))
           break
         end
         prec0 = prec
