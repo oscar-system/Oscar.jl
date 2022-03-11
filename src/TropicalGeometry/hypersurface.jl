@@ -31,7 +31,7 @@ function pm_object(T::TropicalHypersurface)
     if has_attribute(T,:polymake_bigobject)
         return get_attribute(T,:polymake_bigobject)
     end
-    error("pm_object(T::TropicalHypersurface): no polymake bigobject attributed")
+    error("pm_object(T::TropicalHypersurface): Has no polymake bigobject")
 end
 
 
@@ -59,7 +59,7 @@ end
 @doc Markdown.doc"""
     TropicalHypersurface(f::MPolyElem{TropicalSemiringElem})
 
-Returns the tropical hypersurface of a tropical polynomial.
+Return the tropical hypersurface of a tropical polynomial.
 
 # Examples
 ```jldoctest
@@ -102,7 +102,7 @@ end
 #     tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
 #                               AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
 
-# Returns the tropical variety of a tropical polynomial in form of a TropicalHypersurface
+# Return the tropical variety of a tropical polynomial in form of a TropicalHypersurface
 
 # # Examples
 # ```jldoctest
@@ -129,7 +129,7 @@ end
     TropicalHypersurface{M}(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
                                      AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
 
-Returns the tropical hypersurface of an algebraic polynomial.
+Return the tropical hypersurface of an algebraic polynomial.
 If M=min, the tropical hypersurface will obey the min-convention.
 If M=max, the tropical hypersurface will obey the max-convention.
 If coefficient ring has a valuation, the tropical hypersurface will be constructed with respect to it.
@@ -171,7 +171,7 @@ end
 # @doc Markdown.doc"""
 #     tropical_variety(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)})
 
-# Returns the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
+# Return the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
 # If M=min, the tropical hypersurface will obey the min-convention.
 # If M=max, the tropical hypersurface will obey the max-convention.
 # If coefficient ring has a valuation, the tropical hypersurface will be constructed with respect to it.
@@ -204,7 +204,7 @@ end
 @doc Markdown.doc"""
     dual_subdivision(TH::TropicalHypersurface{M, EMB})
 
-Returns the dual subdivision of `TH` if it is embedded. Returns error otherwise
+Return the dual subdivision of `TH` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
@@ -235,7 +235,7 @@ export dual_subdivision
 @doc Markdown.doc"""
     polynomial(TH::TropicalHypersurface{M, EMB})
 
-Returns the tropical polynomial of `TH` if it is embedded. Returns error otherwise
+Return the tropical polynomial of `TH` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 ```jldoctest

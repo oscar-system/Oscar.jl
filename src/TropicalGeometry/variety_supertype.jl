@@ -82,7 +82,7 @@ export intersect_stably
     ambient_dim(T::TropicalHypersurface{M, EMB})
     ambient_dim(T::TropicalLinearSpace{M, EMB})
 
-Returns the ambient dimension of `T` if it is embedded. Returns an error otherwise.
+Return the ambient dimension of `T` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 A tropical hypersurface in RR^n is of ambient dimension n
@@ -115,7 +115,7 @@ end
     codim(T::TropicalHypersurface{M, EMB})
     codim(T::TropicalLinearSpace{M, EMB})
 
-Returns the codimension of `T`.
+Return the codimension of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
@@ -144,7 +144,7 @@ end
     dim(T::TropicalHypersurface{M, EMB})
     dim(T::TropicalLinearSpace{M, EMB})
 
-Returns the dimension of `T`.
+Return the dimension of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
@@ -173,7 +173,7 @@ end
     f_vector(T::TropicalHypersurface{M, EMB})
     f_vector(T::TropicalLinearSpace{M, EMB})
 
-Returns the f-Vector of `T`.
+Return the f-Vector of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -204,7 +204,7 @@ end
     lineality_dim(T::TropicalHypersurface{M, EMB})
     lineality_dim(T::TropicalLinearSpace{M, EMB})
 
-Returns the dimension of the lineality space of `T` if it is embedded. Returns an error otherwise.
+Return the dimension of the lineality space of `T` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -237,7 +237,7 @@ end
     lineality_space(T::TropicalHypersurface{M, EMB})
     lineality_space(T::TropicalLinearSpace{M, EMB})
 
-Returns the lineality space of `T` if it is embedded. Returns an error otherwise.
+Return the lineality space of `T` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality spaceension n
@@ -271,7 +271,7 @@ end
     maximal_polyhedra(T::TropicalHypersurface{M, EMB})
     maximal_polyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the maximal polyhedra of `T`.
+Return the maximal polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -304,7 +304,7 @@ end
     n_maximal_polyhedra(T::TropicalHypersurface{M, EMB})
     n_maximal_polyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the number of maximal polyhedra of `T`.
+Return the number of maximal polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -334,7 +334,7 @@ end
     npolyhedra(T::TropicalHypersurface{M, EMB})
     npolyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the number of polyhedra of `T`.
+Return the number of polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -364,7 +364,7 @@ end
     nvertices(T::TropicalHypersurface{M, EMB})
     nvertices(T::TropicalLinearSpace{M, EMB})
 
-Returns the number of vertices of `T`.
+Return the number of vertices of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -423,7 +423,7 @@ end
     issimplicial(T::TropicalHypersurface{M, EMB})
     issimplicial(T::TropicalLinearSpace{M, EMB})
 
-Returns true if `T` is a simplicial polyhedral complex, false otherwise.
+Return true if `T` is a simplicial polyhedral complex, false otherwise.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
@@ -452,7 +452,7 @@ end
     vertices(T::TropicalHypersurface{M, EMB})
     vertices(T::TropicalLinearSpace{M, EMB})
 
-Returns the vertices of `T`, which are points in euclidean space if T is embedded or elements in an ordered set otherwise.
+Return the vertices of `T`, which are points in euclidean space if T is embedded or elements in an ordered set otherwise.
 
 # Examples
 The vertices of a plane tropical line, plane tropical honeycomb quadric, and plane tropical honeycomb cubic
@@ -503,7 +503,7 @@ end
     weights(T::TropicalHypersurface{M, EMB})
     weights(T::TropicalLinearSpace{M, EMB})
 
-Returns the weights of `T`.
+Return the weights of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n

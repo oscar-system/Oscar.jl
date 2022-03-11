@@ -6,9 +6,11 @@
 @doc Markdown.doc"""
     tropical_polynomial{M}(f::AbstractAlgebra.Generic.MPoly{Any})
 
-Returns the tropicalization of a polynomial in form of a polynomial over the tropical numbers.
-If M=min, returns a polynomial over the min-plus semiring.
-If M=max, returns a polynomial over the max-plus semiring.
+Return the tropicalization of a polynomial in form of a polynomial over the
+tropical numbers.
+
+If M=min, return a polynomial over the min-plus semiring.
+If M=max, return a polynomial over the max-plus semiring.
 
 # Examples
 ```jldoctest

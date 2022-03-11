@@ -6,9 +6,12 @@
 @doc Markdown.doc"""
     valued_weighted_degree(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
 
-Returns the valued weighted degree of a polynomial `f` with respect to valuation `val` and weight vector `w`. In other words, returns the tropicalized polynomial of `f` with respect to valuation `val` evaluated at `w`.
+Return the valued weighted degree of a polynomial `f` with respect to valuation
+`val` and weight vector `w`. In other words, returns the tropicalized
+polynomial of `f` with respect to valuation `val` evaluated at `w`.
 
-If `return_vector=true`, returns a vector whose i-th entry is the valued weighted degree of the i-th term of `f`.
+If `return_vector=true`, returns a vector whose i-th entry is the valued
+weighted degree of the i-th term of `f`.
 
 # Examples
 ```jldoctest
@@ -76,9 +79,12 @@ export valued_weighted_degree
 @doc Markdown.doc"""
     initial(f::MPolyElem, val::ValuationMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; pertubation::Vector=[])
 
-Returns the initial form of `f` with respect to valuation `val` and weight `w`. If convention==min (default), it is computed in the min convention. If convention==max, it is computed in the max convention.
+Return the initial form of `f` with respect to valuation `val` and weight `w`.
+If convention==min (default), it is computed in the min convention. If
+convention==max, it is computed in the max convention.
 
-For the definition of initial form in the min-convention, see [Maclagan-Sturmfels, Section 2.4]
+For the definition of initial form in the min-convention, see
+Section 2.4 of [MS15](@cite).
 
 # Examples
 ```jldoctest
@@ -186,9 +192,13 @@ export initial
 @doc Markdown.doc"""
     initial(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
 
-Returns the initial ideal of `I` with respect to valuation `val` and weight `w`. For the definition of initial ideal, see [Maclagan-Sturmfels, Section 2.4]
+Return the initial ideal of `I` with respect to valuation `val` and weight `w`.
+For the definition of initial ideal, see Section 2.4 of [MS15](@cite).
 
-Use at your own risk: If `skip_groebner_basis_computation=true`, skips Groebner basis computation. If `skip_legality_check=true`, skips check whether valuation and weight vector are legal, i.e., if `I` is non-homogeneous, then `val` may only be trivial and `w` may only have non-negative entries.
+Use at your own risk: If `skip_groebner_basis_computation=true`, skips Groebner
+basis computation. If `skip_legality_check=true`, skips check whether valuation
+and weight vector are legal, i.e., if `I` is non-homogeneous, then `val` may
+only be trivial and `w` may only have non-negative entries.
 
 # Examples
 ```jldoctest

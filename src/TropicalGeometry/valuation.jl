@@ -7,7 +7,8 @@
 
     ValuationMap(K,p)
 
-A valuation map for computations in the tropical geometry package. Currently, the only supported valuations are:
+A valuation map for computations in the tropical geometry package. Currently,
+the only supported valuations are:
 - t-adic valuation on QQ(t)
 - p-adic valuations on QQ
 - trivial valuation on any field

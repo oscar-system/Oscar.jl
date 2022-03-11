@@ -37,7 +37,8 @@ Construct a tropical linear space from a degree 1 polynomial ideal
 # Examples
 """
 function TropicalLinearSpace(ideal::MPolyIdeal{fmpq_poly})
-  return #...
+    error("TODO: Not implemented yet.")
+    return #...
 end
 
 
@@ -49,7 +50,8 @@ Construct a tropical linear space from its Pluecker vector
 # Examples
 """
 function TropicalLinearSpace(plv::Vector)
-  return #...
+    error("TODO: Not implemented yet.")
+    return #...
 end
 
 

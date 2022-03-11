@@ -55,7 +55,8 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
     exponent_vectors_f = collect(exponent_vectors(f))
 
     ###
-    # Step 1: construct weight equations enforcing that valued weighted degrees of inf are the same
+    # Step 1: construct weight equations enforcing that valued weighted degrees
+    # of inf are the same
     ###
     inf_leadexpv,inf_tailexpvs = Iterators.peel(exponent_vectors(inf))
     i = findfirst(isequal(inf_leadexpv),exponent_vectors_f)
@@ -79,7 +80,8 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
     end
 
     ###
-    # Step 2: construct weight inequalities enforcing that valued weighted degree of inf is greater equal f
+    # Step 2: construct weight inequalities enforcing that valued weighted
+    # degree of inf is greater equal f
     ###
     for (f_coeff,f_expv) in zip(coefficients(f),exponent_vectors(f))
       f_val = Int(val(f_coeff); preserve_ordering=true)

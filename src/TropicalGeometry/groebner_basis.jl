@@ -56,12 +56,18 @@ groebner_basis(I,val_t,w,return_lead=true)
 @doc Markdown.doc"""
     groebner_basis(I::Ideal, val::ValuationMap, w::Vector; complete_reduction::Bool, return_lead)
 
-Computes a Groebner basis of `I` over a field with valuation `val` with respect to weight vector `w`, that is a finite generating set of `I` whose initial forms generate the initial ideal with respect to `w`.
+Compute a Groebner basis of `I` over a field with valuation `val` with respect
+to weight vector `w`, that is a finite generating set of `I` whose initial
+forms generate the initial ideal with respect to `w`.
 
-For the definitions of initial form, initial ideal and Groebner basis see [Maclagan-Sturmfels, Section 2.4].
+For the definitions of initial form, initial ideal and Groebner basis see
+Section 2.4 of [MS15](@cite).
 
 # Warning
-`I` must be homogeneous if `val` is non-trivial or `w` contains non-positive entries. If `val` is trivla and `w` contains only non-negative entries, then what is computed is a regular Groebner basis with respect to a weighted ordering with weight vector `w`.
+`I` must be homogeneous if `val` is non-trivial or `w` contains non-positive
+entries. If `val` is trivla and `w` contains only non-negative entries, then
+what is computed is a regular Groebner basis with respect to a weighted
+ordering with weight vector `w`.
 
 # Examples
 ```jldoctest
@@ -208,15 +214,18 @@ function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,R
 
 
   ###
-  # Step 2: tighten simulation so that no two monomials of the standard basis elements have the same x-monomial
+  # Step 2: tighten simulation so that no two monomials of the standard basis
+  # elements have the same x-monomial
   ###
   vvGB = [S(tighten_simulation(Rtx(g),val)) for g in vvGB]
 
 
   ###
-  # Step 3: if complete_reduction = true and val is non-trivial, eliminate tail-monomials contained in the leading ideal in the tropical sense
-  #  In the simulation, these monomials corresponds to tail-monomials contained in the leading ideal up to saturation by t
-  #  and elimination means eliminating them after multiplying by a sufficiently high power in t
+  # Step 3: if complete_reduction = true and val is non-trivial, eliminate
+  # tail-monomials contained in the leading ideal in the tropical sense
+  #  In the simulation, these monomials corresponds to tail-monomials contained
+  #  in the leading ideal up to saturation by t and elimination means
+  #  eliminating them after multiplying by a sufficiently high power in t
   ###
   if complete_reduction==true && is_valuation_nontrivial(val)
     sort!(vvGB,lt=x_monomial_lt) # sort vvGB by their leading x monomial from small to large
