@@ -19,7 +19,7 @@ export tropical_semiring,
 
 # We use T to record whether we are in the min/max case
 # T is either typeof(min) or typeof(max)
-mutable struct TropicalSemiring{T} <: Field
+struct TropicalSemiring{T} <: Field
 end
 
 # We use the flag isinf to denote +/- infinity
@@ -108,7 +108,7 @@ data(x::TropicalSemiringElem) = x.data
 # Test if something is inf.
 isinf(x::TropicalSemiringElem) = x.isinf
 
-Oscar.parent(x::TropicalSemiringElem) = x.parent
+Oscar.parent(x::TropicalSemiringElem{T}) where T = TropicalSemiring{T}()
 
 # get the underlyling min/max convention
 convention(x::TropicalSemiring{typeof(min)}) = min
@@ -176,7 +176,7 @@ function isless(x::TropicalSemiringElem{typeof(min)}, y::TropicalSemiringElem{ty
     return false # x=-inf, no y is smaller
   end
   if isinf(y)
-    return !isinf(x) # y=-inf, smaller than all x except x=-inf
+    return true # y=-inf, smaller than all x except x=-inf, which was handled above
   end
   return data(x) < data(y)
 end
@@ -186,7 +186,7 @@ function isless(x::TropicalSemiringElem{typeof(max)}, y::TropicalSemiringElem{ty
     return false # x=inf, no y is smaller
   end
   if isinf(y)
-    return !isinf(x) # y=inf, smaller than all x except x=inf
+    return true # y=inf, smaller than all x except x=inf, which was handled above
   end
   return data(x) > data(y)
 end
@@ -214,15 +214,9 @@ end
 ################################################################################
 
 function Base.:(+)(x::TropicalSemiringElem{T}, y::TropicalSemiringElem{T}) where {T}
-  if isinf(x)
-    return deepcopy(y)
-  else
-    if isinf(y)
-      return deepcopy(x)
-    else
-      return parent(x)(convention(parent(x))(data(x), data(y)))
-    end
-  end
+  isinf(x) && return deepcopy(y)
+  isinf(y) && return deepcopy(x)
+  return parent(x)(convention(parent(x))(data(x), data(y)))
 end
 
 ################################################################################

@@ -61,15 +61,8 @@ end
 # Allow gcd of vectors of univariate rational polynomials
 # to make their handling similar to that of integers
 ###
-function gcd(F::Vector{fmpq_poly})
-  F_gcd,F_latter = Iterators.peel(F)
-
-  for f in F_latter
-    F_gcd = gcd(F_gcd,f)
-  end
-
-  return F_gcd
-end
+gcd(F::Vector{fmpq_poly}) = reduce(gcd, F)
+gcd(F::fmpq_poly...) = reduce(gcd, F)
 
 
 

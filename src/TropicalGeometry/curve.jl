@@ -51,6 +51,7 @@ If the curve is abstract, vertices must be 1, ..., n.
 
 """
 function TropicalCurve{M, EMB}(Vertices::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, LS::Union{Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool}) where {M, EMB}
+    error("TODO: not yet implemented")
     if EMB
         # tropicalCurve = TropicalCurve(PolyhedralComplex(Vertices, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence))))
         return #...

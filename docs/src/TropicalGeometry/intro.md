@@ -10,7 +10,7 @@ Pages = ["intro.md"]
 
 ## Introduction
 
-For notation we refer to [MS15](@cite)
+For notation we refer to [MS15](@cite).
 
 ## Constructors
 

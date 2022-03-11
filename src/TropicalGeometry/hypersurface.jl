@@ -57,7 +57,7 @@ end
 ###
 
 @doc Markdown.doc"""
-    TropicalHypersurface()
+    TropicalHypersurface(f::MPolyElem{TropicalSemiringElem})
 
 Returns the tropical hypersurface of a tropical polynomial.
 
@@ -76,8 +76,10 @@ julia> Tf = TropicalHypersurface(f)
 A min tropical hypersurface embedded in 2-dimensional Euclidian space
 ```
 """
-function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
-                                       AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
+function TropicalHypersurface(
+    f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
+             AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}}
+        )
     if total_degree(f) <= 0
         error("Tropical hypersurfaces of constant polynomials not supported.")
     end

@@ -14,7 +14,7 @@
 return true if f is homogeneous (w.r.t. total degree)
 return false otherwise
 =======#
-function is_homogeneous(f::Union{AbstractAlgebra.Generic.MPoly{K},fmpq_mpoly,fmpz_mpoly} where {K})
+function is_homogeneous(f::MPolyElem)
   leadexpv,tailexpvs = Iterators.peel(exponent_vectors(f))
   d = sum(leadexpv)
   for tailexpv in tailexpvs
@@ -30,12 +30,7 @@ function is_homogeneous(I::MPolyIdeal{K} where {K})
   # todo: test whether generators are interreduced
   @warn "is_homogeneous: merely checking whether given generators are homogeneous, can result in false negative"
 
-  for f in gens(I)
-    if !is_homogeneous(f)
-      return false
-    end
-  end
-  return true
+  return all(is_homogeneous, gens(I))
 end
 
 
