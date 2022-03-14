@@ -30,7 +30,7 @@ export TropicalLinearSpace
 ###
 
 @doc Markdown.doc"""
-    TropicalLinearSpace()
+    TropicalLinearSpace(ideal::MPolyIdeal{fmpq_poly})
 
 Construct a tropical linear space from a degree 1 polynomial ideal
 
@@ -43,7 +43,7 @@ end
 
 
 @doc Markdown.doc"""
-    TropicalLinearSpace()
+    TropicalLinearSpace(plv::Vector)
 
 Construct a tropical linear space from its Pluecker vector
 

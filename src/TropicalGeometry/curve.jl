@@ -1,6 +1,5 @@
 ###
 # Tropical curves in Oscar
-# ========================
 ###
 
 
@@ -31,7 +30,7 @@ function pm_object(T::TropicalCurve)
     if has_attribute(T,:polymake_bigobject)
         return get_attribute(T,:polymake_bigobject)
     end
-    error("pm_object(T::TropicalCurve): no polymake bigobject attributed")
+    error("pm_object(T::TropicalCurve): Has no polymake bigobject")
 end
 
 

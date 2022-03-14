@@ -28,7 +28,7 @@ function pm_object(T::TropicalVariety)
     if has_attribute(T,:polymake_bigobject)
         return get_attribute(T,:polymake_bigobject)
     end
-    error("pm_object(T::TropicalVariety): no polymake bigobject attributed")
+    error("pm_object(T::TropicalVariety): Has no polymake bigobject.")
 end
 
 
