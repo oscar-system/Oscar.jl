@@ -1,5 +1,6 @@
 export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
+      groebner_basis, reduced_groebner_basis, leading_module, 
       show_morphism, hom_tensor, hom_prod_prod, coordinates, 
       represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
@@ -747,7 +748,10 @@ the ordering `ordering`.
 """
 function ReducedModuleGB(gb::ModuleGens{T}, leading_monomials::ModuleGens{T}, ordering::Singular.sordering) where {T}
   gb = ModuleGB{T}(gb, leading_monomials, ordering)
-  gb.reduced_groebner_basis = gb
+  gb.reduced_groebner_basis = gb.groebner_basis
+  if isdefined(gb, :quo_groebner_basis)
+    gb.quo_groebner_basis.reduced_groebner_basis = gb.quo_groebner_basis.groebner_basis
+  end
   return gb
 end
 
@@ -760,7 +764,10 @@ the ordering `ordering`.
 """
 function ReducedModuleGB(gb::ModuleGens{T}, quotient_gb::ModuleGB{T}, leading_monomials::ModuleGens{T}, ordering::Singular.sordering) where {T}
   gb = ModuleGB{T}(gb, quotient_gb, leading_monomials, ordering)
-  gb.reduced_groebner_basis = gb
+  gb.reduced_groebner_basis = gb.groebner_basis
+  if isdefined(gb, :quo_groebner_basis)
+    gb.quo_groebner_basis.reduced_groebner_basis = gb.quo_groebner_basis.groebner_basis
+  end
   return gb
 end
 
@@ -774,6 +781,10 @@ end
 
 function ordering_compatible_with_ring(R::MPolyRing, ordering::Singular.sordering)
   return sum([ord.size for ord in ordering.data]) == nvars(R)
+end
+
+function ordering_is_global(R::MPolyRing, ordering::Singular.sordering)
+  return Singular.has_global_ordering(singular_ring(R, ordering))
 end
 
 
@@ -860,26 +871,47 @@ function set_default_ordering!(M::SubModuleOfFreeModule, ord::Singular.sordering
 end
 
 @doc Markdown.doc"""
-    groebner_basis(submod::SubModuleOfFreeModule)
+    std_basis(submod::SubModuleOfFreeModule)
 
 Compute a standard basis of `submod` with respect to its default odering.
+"""
+function std_basis(submod::SubModuleOfFreeModule)
+  return std_basis(submod, submod.default_ordering)
+end
+
+@doc Markdown.doc"""
+    groebner_basis(submod::SubModuleOfFreeModule)
+
+Compute a Gröbner basis of `submod` with respect to its default odering.
+For this, the default ordering must be global.
 """
 function groebner_basis(submod::SubModuleOfFreeModule)
   return groebner_basis(submod, submod.default_ordering)
 end
 
 @doc Markdown.doc"""
-    groebner_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
+    std_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
 
 Compute a standard basis of `submod` with respect to the given `ordering`.
 """
-function groebner_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
+function std_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
   if !haskey(submod.groebner_basis, ordering)
-    gb = groebner_basis_as_ModuleGens(submod, ordering)
+    gb = std_basis_as_ModuleGens(submod, ordering)
     lm = leading_module_as_ModuleGens(submod, ordering)
     submod.groebner_basis[ordering] = ModuleGB(gb, lm, ordering)
   end
   return submod.groebner_basis[ordering]
+end
+
+@doc Markdown.doc"""
+    groebner_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
+
+Compute a Gröbner of `submod` with respect to the given `ordering`.
+The ordering must be global.
+"""
+function groebner_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
+  @assert ordering_is_global(base_ring(submod), ordering)
+  return std_basis(submod, ordering)
 end
 
 @doc Markdown.doc"""
@@ -897,17 +929,20 @@ end
 Compute a reduced Gröbner basis with respect to the given `ordering`. The return type is `ModuleGens`.
 """
 function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
+  @assert ordering_is_global(base_ring(submod), ordering)
+  
   if !haskey(submod.groebner_basis, ordering)
-    gb = groebner_basis_as_ModuleGens(submod, ordering, true)
+    gb = std_basis_as_ModuleGens(submod, ordering, true)
     lm = leading_module_as_ModuleGens(submod, ordering)
-    submod.groebner_basis[ordering] = ModuleGB(gb, lm, ordering)
+    submod.groebner_basis[ordering] = ReducedModuleGB(gb, lm, ordering)
   else
     if !isdefined(submod.groebner_basis[ordering], :reduced_groebner_basis)
-      red_gb = groebner_basis_as_ModuleGens(submod, ordering, true)
+      # TODO compute reduced GB from given GB
+      red_gb = std_basis_as_ModuleGens(submod, ordering, true)
       submod.groebner_basis[ordering].reduced_groebner_basis = red_gb
     end
   end
-  return submod.groebner_basis[ordering].reduced_groebner_basis
+  return submod.groebner_basis[ordering]
 end
 
 function leading_module(submod::SubModuleOfFreeModule)
@@ -915,30 +950,33 @@ function leading_module(submod::SubModuleOfFreeModule)
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
-  gb = groebner_basis(submod, ordering)
-  lm = gb.leading_module
+  gb = std_basis(submod, ordering)
+  lm = gb.leading_monomials
   return SubModuleOfFreeModule(submod.F, lm)
 end
 
 @doc Markdown.doc"""
-    groebner_basis_as_ModuleGens(submod::SubModuleOfFreeModule)
+    std_basis_as_ModuleGens(submod::SubModuleOfFreeModule)
 
-Compute a Gröbner basis of `submod` and return it as a `ModuleGens`.
+Compute a standard basis of `submod` and return it as a `ModuleGens`.
 """
-function groebner_basis_as_ModuleGens(submod::SubModuleOfFreeModule)
-  return groebner_basis_as_ModuleGens(submod, submod.default_ordering)
+function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule)
+  return std_basis_as_ModuleGens(submod, submod.default_ordering)
 end
 
 @doc Markdown.doc"""
-    groebner_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
+    std_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::Singular.sordering, reduced::Bool=false)
 
-Compute a Gröbner basis of `submod` with respect to the given ordering.
+Compute a stanard basis of `submod` with respect to the given ordering.
 Allowed orderings are those that are allowed as orderings for Singular polynomial rings.
-The Gröbner basis is reduced if `reduced` is set to `true`.
+In case `reduced` is `true` and the ordering is global, a reduced Gröbner basis is computed.
 """
-function groebner_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::Singular.sordering, reduced::Bool=false)
+function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::Singular.sordering, reduced::Bool=false)
+  if reduced
+    @assert ordering_is_global(base_ring(submod), ordering)
+  end
   mg = ModuleGens(oscar_generators(submod.gens), submod.F , ordering)
-  gb = groebner_basis(mg, reduced)
+  gb = std_basis(mg, reduced)
   oscar_assure(gb)
   return gb
 end
@@ -956,11 +994,46 @@ function leading_module_as_ModuleGens(M::SubModuleOfFreeModule, ordering::Singul
 end
 
 function show(io::IO, GB::ModuleGB)
-  print(io, "Gröbner basis with elements")
-  M = GB.groebner_basis
-  for v in M.O
+  if isdefined(GB, :quo_groebner_basis)
+    show_relative_groebner_basis(io, GB.groebner_basis, GB.quo_groebner_basis.groebner_basis)
+    if isdefined(GB, :reduced_groebner_basis)
+      print(io, "\n")
+      show_relative_groebner_basis(io, GB.reduced_groebner_basis, GB.quo_groebner_basis.reduced_groebner_basis)
+    end
+  else
+    show_groebner_basis(io, GB.groebner_basis)
+    if isdefined(GB, :reduced_groebner_basis)
+      print(io, "\n\n")
+      show_groebner_basis(io, GB.reduced_groebner_basis, true)
+    end
+  end
+end
+
+function show_groebner_basis_helper(io::IO, sub::ModuleGens, init::String)
+  print(io, init)
+  for v in sub.O
     print(io, "\n", v)
   end
+end
+
+function show_groebner_basis(io::IO, sub::ModuleGens, reduced::Bool = false)
+  init = "Gröbner basis with elements"
+  if reduced
+    init = "Reduced " * init
+  end
+  show_groebner_basis_helper(io, sub, init)
+end
+
+function show_relative_groebner_basis(io::IO, sub::ModuleGens, quo::ModuleGens, reduced::Bool = false)
+  init = "Gröbner basis with elements"
+  if reduced
+    init = "Reduced relative " * init
+  else
+    init = "Relative "
+  end
+  show_groebner_basis_helper(io, sub, init)
+  print(io, "\n")
+  show_groebner_basis_helper(io, quo, "\nwith quotient Gröbner basis defined by the elements")
 end
 
 @doc Markdown.doc"""
@@ -1055,7 +1128,7 @@ function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   if M.F !== N.F
     return false
   end
-  M_mod_N = _reduce(singular_generators(groebner_basis(M)), singular_generators(groebner_basis(N)))
+  M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
   return iszero(M_mod_N)
 end
 
@@ -1070,8 +1143,8 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
     return false
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
-  M_mod_N = _reduce(singular_generators(groebner_basis(M)), singular_generators(groebner_basis(N)))
-  N_mod_M = _reduce(singular_generators(groebner_basis(N)), singular_generators(groebner_basis(M)))
+  M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
+  N_mod_M = _reduce(singular_generators(std_basis(N)), singular_generators(std_basis(M)))
   return iszero(M_mod_N) && iszero(N_mod_M)
 end
 
@@ -1379,12 +1452,12 @@ function set_default_ordering!(M::SubQuo, ord::Singular.sordering)
   set_default_ordering!(M.sum, ord)
 end
 
-function groebner_basis(M::SubQuo, ord::Singular.sordering)
+function std_basis(M::SubQuo, ord::Singular.sordering)
   if !haskey(M.groebner_basis, ord)
     if isdefined(M, :quo)
-      quo_gb = groebner_basis(M.quo, ord)
+      quo_gb = std_basis(M.quo, ord)
       sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.groebner_basis.O), M.F))
-      gb = groebner_basis(sub_union_gb_of_quo, ord)
+      gb = std_basis(sub_union_gb_of_quo, ord)
       rel_gb_list = Vector{FreeModElem}()
 
       for i in 1:length(gb.groebner_basis.O)
@@ -1397,22 +1470,56 @@ function groebner_basis(M::SubQuo, ord::Singular.sordering)
       rel_gb_ModuleGens = ModuleGens(rel_gb_list, M.F)
       M.groebner_basis[ord] = ModuleGB(rel_gb_ModuleGens, quo_gb, gb.leading_monomials, ord)
     else
-      M.groebner_basis[ord] = groebner_basis(M.sub, ord)
+      M.groebner_basis[ord] = std_basis(M.sub, ord)
     end
   end
   return M.groebner_basis[ord]
+end
+
+function groebner_basis(M::SubQuo, ord::Singular.sordering)
+  @assert ordering_is_global(base_ring(M), ord)
+  return std_basis(M, ord)
+end
+
+function std_basis(M::SubQuo)
+  return std_basis(M, M.sub.default_ordering)
 end
 
 function groebner_basis(M::SubQuo)
   return groebner_basis(M, M.sub.default_ordering)
 end
 
+function reduced_groebner_basis(M::SubQuo)
+  return reduced_groebner_basis(M, M.sub.default_ordering)
+end
+
 function reduced_groebner_basis(M::SubQuo, ord::Singular.sordering)
-  error("tbd")
-  quo_gb = reduced_groebner_basis(M.quo, ord)
-  sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
-  gb = reduced_groebner_basis(sub_union_gb_of_quo, ord)
-  rel_gb_list = Vector{FreeModElem}()
+  if !haskey(M.groebner_basis, ord) || !isdefined(M.groebner_basis[ord], :reduced_groebner_basis)
+    if !isdefined(M, :quo)
+      M.groebner_basis[ord] = reduced_groebner_basis(M.sub, ord)
+    else
+      quo_gb = reduced_groebner_basis(M.quo, ord)
+      sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.reduced_groebner_basis.O), M.F))
+      gb = reduced_groebner_basis(sub_union_gb_of_quo, ord)
+      rel_gb_list = Vector{FreeModElem}()
+
+      for i in 1:length(gb.groebner_basis.O)
+        v = gb.groebner_basis.S[i]
+        if !iszero(_reduce(v, quo_gb.groebner_basis.S))
+          push!(rel_gb_list, gb.groebner_basis.O[i])
+        end
+      end
+
+      rel_gb_ModuleGens = ModuleGens(rel_gb_list, M.F)
+      if !haskey(M.groebner_basis, ord)
+        M.groebner_basis[ord] = ReducedModuleGB(rel_gb_ModuleGens, quo_gb, gb.leading_monomials, ord)
+      else
+        M.groebner_basis[ord].reduced_groebner_basis = rel_gb_ModuleGens
+        M.groebner_basis[ord].quo_groebner_basis.reduced_groebner_basis = quo_gb.groebner_basis
+      end
+    end
+  end
+  return M.groebner_basis[ord]
 end
 
 function leading_module(M::SubQuo, ord::Singular.sordering)
@@ -2017,13 +2124,17 @@ function Vector(v::SubQuoElem)
 end
 
 @doc Markdown.doc"""
-    groebner_basis(F::ModuleGens, reduced::Bool=false)
+    std_basis(F::ModuleGens, reduced::Bool=false)
 
-Return a Gröbner basis of `F` as an object of type `ModuleGens.
-The Gröbner basis is reduced if `reduced` is set to true.
+Return a standard basis of `F` as an object of type `ModuleGens.
+If `reduced` is set to `true` and the ordering of the underlying ring is global, 
+a reduced Gröbner basis is computed.
 """
-function groebner_basis(F::ModuleGens, reduced::Bool=false)
+function std_basis(F::ModuleGens, reduced::Bool=false)
   singular_assure(F)
+  if reduced
+    @assert Singular.has_global_ordering(base_ring(F.SF))
+  end
   if singular_generators(F).isGB && !reduced
     return F
   end
@@ -2070,7 +2181,7 @@ indeed an element of `M`.
 function (M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
   if check
     b = M.sum.gens.SF(f)
-    c = _reduce(b, singular_generators(groebner_basis(M.sum)))
+    c = _reduce(b, singular_generators(std_basis(M.sum)))
     iszero(c) || error("not in the module")
   end
   return SubQuoElem(f, M)
@@ -3077,7 +3188,7 @@ function iszero(m::SubQuoElem)
   if !isdefined(C, :quo)
     return iszero(m.repres)
   end
-  x = _reduce(C.quo.gens.SF(m.repres), singular_generators(groebner_basis(C.quo)))
+  x = _reduce(C.quo.gens.SF(m.repres), singular_generators(std_basis(C.quo)))
   return iszero(x)
 end
 
@@ -4468,7 +4579,7 @@ function simplify(M::SubQuo)
     if !isdefined(M, :quo)
       return false
     end
-    reduced_standard_unit_vector = _reduce(M.quo.gens.SF(M.F[i]), singular_generators(groebner_basis(M.quo)))
+    reduced_standard_unit_vector = _reduce(M.quo.gens.SF(M.F[i]), singular_generators(std_basis(M.quo)))
     return iszero(reduced_standard_unit_vector)
   end
 

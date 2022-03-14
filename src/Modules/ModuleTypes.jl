@@ -207,7 +207,7 @@ end
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
 used by the end user.
-When computed, a standard basis (computed via `groebner_basis()`) and generating matrix (that is the rows of the matrix
+When computed, a standard basis (computed via `std_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
@@ -239,9 +239,6 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     r = new{R}()
     r.F = F
     r.gens = ModuleGens(F, singular_module)
-    if singular_module.isGB
-      r.std_basis = r.gens
-    end
     r.default_ordering = default_ordering
     r.groebner_basis = Dict()
     return r
@@ -255,9 +252,6 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     r = new{R}()
     r.F = F
     r.gens = gens
-    if singular_generators(gens).isGB
-      r.std_basis = r.gens
-    end
     r.default_ordering = default_ordering
     r.groebner_basis = Dict()
     return r

@@ -127,6 +127,39 @@ end
 
 
 @testset "Gröbner bases" begin
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	F = FreeMod(R, 1)
+
+	J = SubQuo(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
+	@test leading_module(J) == SubQuo(F, [x*F[1], y*F[1]])
+
+	J = SubQuo(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
+	@test leading_module(J) == SubQuo(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
+
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R, 2)
+	lp = Singular.sordering([Singular.ordering_lp(3).data[1], Singular.ordering_C().data[1]])
+
+	M = SubQuo(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
+	@test leading_module(M,lp) == SubQuo(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
+
+	R, x = PolynomialRing(QQ, ["x_"*string(i) for i=1:4])
+	F = FreeMod(R, 1)
+	lp = Singular.sordering([Singular.ordering_lp(4).data[1], Singular.ordering_C().data[1]])
+
+	J = SubQuo(F, [(x[1]+x[2]+R(1))*F[1], (x[1]+x[2]+2*x[3]+2*x[4]+1)*F[1],(x[1]+x[2]+x[3]+x[4]+1)*F[1]])
+	@test reduced_groebner_basis(J, lp).reduced_groebner_basis.O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O
+
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R, 2)
+
+	A = R[x+1 y*z+x^2; (y+2*z) z^3]
+	B = R[2*z*(x*z+y^2) (x*z)^5]
+	M = SubQuo(F, A, B)
+	gb = groebner_basis(M)
+	P = sum(Oscar.SubModuleOfFreeModule(F, gb.groebner_basis), Oscar.SubModuleOfFreeModule(F, gb.quo_groebner_basis.groebner_basis))
+	Q = Oscar.SubModuleOfFreeModule(F, groebner_basis(M.sum).groebner_basis)
+	@test P == Q
 end
 
 
