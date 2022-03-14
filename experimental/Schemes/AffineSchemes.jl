@@ -214,7 +214,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   iszero(f) && return subscheme(X, [one(R)])
-  f in inverted_set(OO(X)) && return X
+  f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
   W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   if keep_cache

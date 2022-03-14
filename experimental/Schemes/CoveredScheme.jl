@@ -1,4 +1,4 @@
-export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union, neighbor_patches
+export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union, neighbor_patches, affine_refinements
 export fill_transitions!
 
 export affine_patch_type, glueing_type
@@ -8,7 +8,7 @@ export morphism_type, morphisms
 
 export CoveredScheme
 export empty_covered_scheme
-export coverings, refinements, default_covering, set_name!, name_of, has_name
+export coverings, refinements, default_covering, set_name!, name_of, has_name, dim
 export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
 import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
@@ -30,9 +30,10 @@ along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
 is made from their hashes. Thus, an affine scheme must not appear more than once 
 in any covering!
 """
-mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing}
+mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
   patches::Vector{SpecType}
   glueings::Dict{Tuple{SpecType, SpecType}, GlueingType}
+  affine_refinements::Dict{SpecType, Vector{SpecOpenType}}
 
   # fields for caching
   glueing_graph::Graph{Undirected}
@@ -42,8 +43,9 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing}
   function Covering(
       patches::Vector{SpecType},
       glueings::Dict{Tuple{SpecType, SpecType}, GlueingType};
+      affine_refinements::Dict{SpecType, Vector{SpecOpenType}}=Dict{SpecType, Vector{open_subset_type(SpecType)}}(),
       check::Bool=true
-    ) where {SpecType<:Spec, GlueingType<:Glueing}
+    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
     kk = coefficient_ring(base_ring(OO(patches[1])))
@@ -67,7 +69,20 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing}
 	glueings[(Y, X)] = inverse(glueings[(X, Y)])
       end
     end
-    return new{SpecType, GlueingType}(patches, glueings)
+
+    # check the affine refinements
+    for U in keys(affine_refinements)
+      for V in affine_refinements[U]
+        ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
+        U in patches && error("the ambient scheme of the refinement can not be found in the affine patches")
+      end
+      if check
+        l = vcat([gens(U) for U in collect(values(affine_refinements))]...)
+        W = localized_ring(OO(U))
+        one(W) in ideal(W, l) || error("the given refinement is not a covering of the original patch")
+      end
+    end
+    return new{SpecType, GlueingType, SpecOpenType}(patches, glueings, affine_refinements)
   end
 end
 
@@ -83,16 +98,20 @@ getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j
 getindex(C::Covering, X::SpecType, Y::SpecType) where {SpecType<:Spec} = glueings(C)[(X, Y)]
 edge_dict(C::Covering) = C.edge_dict
 
+affine_refinements(C::Covering) = C.affine_refinements
+
 function neighbor_patches(C::Covering, U::Spec)
   gg = glueing_graph(C)
   n = neighbors(gg, C[U])
   return [C[i] for i in n]
 end
 
-affine_patch_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = SpecType
-glueing_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = GlueingType
-affine_patch_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = SpecType
-glueing_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = GlueingType
+affine_patch_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = SpecType
+glueing_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
+affine_patch_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = SpecType
+glueing_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
+open_subset_type(::Type{Covering{R, S, T}}) where {R, S, T} = T
+open_subset_type(C::Covering) = open_subset_type(typeof(C))
 
 # TODO: For some reason, the `indexin` method won't work. In the long 
 # run, one should probably find out why and fix it. 
@@ -126,13 +145,45 @@ end
 Covering(X::SpecType) where {SpecType<:Spec} = Covering([X])
 
 function Base.show(io::IO, C::Covering) 
-  println(io, 
+  print(io, 
           "Covering with $(npatches(C)) patch" * 
           (npatches(C) == 1 ? "" : "es"))
 #           " and glueing graph")
 #   print(io, glueing_graph(C))
 end
 
+function Base.in(U::Spec, C::Covering)
+  for i in 1:npatches(C)
+    U == C[i] && return true
+  end
+  for i in 1:npatches(C)
+    if haskey(affine_refinements(C), C[i])
+      V = affine_refinements(C)[C[i]]
+      for V in affine_refinements(C)[C[i]]
+        U in affine_patches(V) && return true
+      end
+    end
+  end
+  return false
+end
+
+function Base.indexin(U::Spec, C::Covering)
+  for i in 1:npatches(C)
+    U == C[i] && return (i, 0, 0)
+  end
+  for i in 1:npatches(C)
+    if haskey(affine_refinements(C), C[i])
+      V = affine_refinements(C)[C[i]]
+      for j in 1:length(V)
+        W = V[j]
+        for k in 1:length(gens(W))
+          U == W[k] && return (i, j, k)
+        end
+      end
+    end
+  end
+  return (0,0,0)
+end
 
 
 ### standard constructors 
@@ -388,8 +439,8 @@ covering_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = S
 affine_patch_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = R
 affine_patch_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = R
 
-morphism_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType}, morphism_type(SpecType, SpecType)}
-morphism_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType}, morphism_type(SpecType, SpecType)}
+morphism_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+morphism_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
 
 domain(f::CoveringMorphism) = f.domain
 codomain(f::CoveringMorphism) = f.codomain
@@ -479,6 +530,30 @@ getindex(X::CoveredScheme, i::Int, j::Int) = X[X[i], X[j]]
 set_name!(X::CoveredScheme, name::String) = set_attribute!(X, :name, name)
 name_of(X::CoveredScheme) = get_attribute(X, :name)::String
 has_name(X::CoveredScheme) = has_attribute(X, :name)
+
+function dim(X::CoveredScheme) 
+  if !has_attribute(X, :dim)
+    d = -1
+    is_equidimensional=true
+    for U in patches(default_covering(X))
+      e = dim(U)
+      if e > d
+        d == -1 || (is_equidimensional=false)
+        d = e
+      end
+    end
+    set_attribute!(X, :dim, d)
+    if !is_equidimensional
+      # the above is not an honest check for equidimensionality,
+      # because in each chart the output of `dim` is only the 
+      # supremum of all components. Thus we can only infer 
+      # non-equidimensionality in case this is already visible
+      # from comparing the diffent charts
+      set_attribute(X, :is_equidimensional, false)
+    end
+  end
+  return get_attribute(X, :dim)::Int
+end
 
 function set_default_covering!(X::CoveredScheme, C::Covering) 
   C in coverings(X) || error("covering is not listed")

@@ -173,6 +173,8 @@ function blow_up(
     W::Spec, 
     I::Vector{RingElemType}; 
     var_names::Vector{Symbol}=Vector{Symbol}(), 
+    verbose::Bool=false,
+    check::Bool=true,
     is_regular_sequence::Bool=false
   ) where {RingElemType<:MPolyElem}
 
@@ -278,10 +280,14 @@ function blow_up(
   end
 end
 
-function blow_up(I::IdealSheaf)
+function blow_up(
+    I::IdealSheaf;
+    verbose::Bool=false,
+    check::Bool=true,
+  )
   X = scheme(I)
   C = covering(I)
-  local_blowups = [blow_up(U, I[U], is_regular_sequence=is_regular_sequence(I)) for U in patches(C)]
+  local_blowups = [blow_up(U, I[U], is_regular_sequence=is_regular_sequence(I), verbose=verbose, check=check) for U in patches(C)]
   ProjectivePatchType = projective_scheme_type(affine_patch_type(X))
   projective_glueings = Dict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(ProjectivePatchType)}()
 
@@ -738,7 +744,6 @@ function _non_degeneration_cover(
   allzero = true
   W = localized_ring(OO(C))
   verbose && print(indent_str*" reducing row number ")
-  degA = Array{Int, 2}(undef, nrows(A), ncols(A))
   for i in 1:m
     verbose && print("$i")
     v = W.([A[i,j] for j in 1:n])
@@ -747,7 +752,6 @@ function _non_degeneration_cover(
     verbose && print(".")
     for j in 1:n
       A[i,j] = w[j]
-      degA[i, j] = total_degree(w[j])
       if i in restricted_rows[1] && j in restricted_columns[1] 
         allzero = allzero && iszero(A[i,j])
         if total_degree(w[j]) <= d && !iszero(w[j])
@@ -760,7 +764,6 @@ function _non_degeneration_cover(
   end
   f = A[k,l]
   verbose && println("")
-  verbose && println(degA)
 
   # in case that after reduction all the matrix' entries are zero, quit
   if r> 0 && allzero

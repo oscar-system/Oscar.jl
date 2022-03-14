@@ -1279,7 +1279,6 @@ function preimage(
   return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
 
-using Infiltrator
 @Markdown.doc """
     simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
 
