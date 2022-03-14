@@ -21,5 +21,8 @@
   @test length(l) == 8
   @test count(isequal(1), ds) == 6
   @test count(isequal(2), ds) == 2
+
+  G = SL(2, 3)
+  @test length(Oscar.RepPc.reps(abelian_closure(QQ)[1], G)) == 7
 end
 

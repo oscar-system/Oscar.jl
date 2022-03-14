@@ -125,8 +125,13 @@ ZZ
 
 ## Gradings
 
-Given a polynomial ring $R = C[x_1, \dots, x_n]$ and a finitely generated abelian group $G$,
-a *(multi)grading* on $R$ by $G$, or a *$G$-grading*, corresponds to a semigroup homomorphism
+Given a polynomial ring $R = C[x_1, \dots, x_n]$, we may endow $R$ with various gradings.
+The *standard $\mathbb Z$-grading*  on $R$ is the decomposition
+$R=\bigoplus_{d\in \mathbb Z} R_d=\bigoplus_{d\geq 0} R_d$ by the usual degree of polynomials.
+More general $\mathbb Z$-gradings are obtained by assigning integer weights to the variables
+and considering the corresponding weighted degrees. Even more generally, we may consider
+multigradings: Given a finitely generated abelian group $G$, a *multigrading* on $R$ by $G$,
+or a *$G$-grading*, or simply a *grading*, corresponds to a semigroup homomorphism
 $\phi: \mathbb N^n \rightarrow G$: Given $\phi$, the *degree* of a monomial $x^\alpha$
 is the image $\deg(x^\alpha):=\phi(\alpha)\in G$; the induced $G$-grading on $R$
 is the decomposition $R = \bigoplus_{g\in G} R_g$ satisfying $R_g\cdot R_h\subset R_{g+h}$,
@@ -141,10 +146,10 @@ We refer to the textbooks [MS05](@cite) and [KR05](@cite) for details on multigr
 we follow the former book.
 
 !!! note
-    Given a $G$-grading on $R$, we say that $R$ is *$G$-graded*, or simply that $R$  is *graded*.
+    Given a $G$-grading on $R$, we also say that $R$ is *$G$-graded*, or simply that $R$  is *graded*.
     We say that $R$ is *positively graded (by $G$)* if $G$ is torsion-free and each graded part $R_g$
-	has finite rank. The latter condition is equivalent to the condition that the degree zero
-	part consists of the constants only (see Theorem 8.6 in [MS05](@cite).
+	has finite rank. Note that the latter condition can be equivalently expressed by asking that the
+	degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
 
 
 ### Types

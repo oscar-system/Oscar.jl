@@ -41,3 +41,9 @@ export allow_unicode
 function is_unicode_allowed()
   return @load_preference("unicode", default = false)
 end
+
+function with_unicode(f::Function)
+  old_allow_unicode = allow_unicode(true);
+  f()
+  allow_unicode(old_allow_unicode);
+end
