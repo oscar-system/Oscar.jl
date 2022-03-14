@@ -92,7 +92,6 @@ function ordering(a::AbstractVector{Int}, s::Symbol, w::Vector{Int})
    return GenOrdering(collect(a), w, ord = s)
  end
  
-
 #not really user facing, flattens a product of product orderings into an array 
 function flat(a::GenOrdering)
    return [a]
@@ -170,6 +169,9 @@ function weights(a::GenOrdering)
   if a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
     return a.wgt
   end              
+  if a.ord == :weight
+    return a.wgt
+  end
 end
 
 #not user facing
