@@ -75,6 +75,7 @@ bug this is probably a minor question).
 There are two places where documentation can be added:
 1. In the docstrings above the functions in the `src` folder;
 2. In the documentation files in the `docs/src` folder.
+
 In general, 1 is preferred to 2, i.e. any explanation of the functions and
 objects should go there and the files in `docs/src` should remain relatively
 sparse. Please also pay attention to the documentation section of [our style
