@@ -11,6 +11,11 @@ on these things online.
 2. Please have a look at [our style guide](@ref styleguide). Adhering to the
    style guide makes reviewing easier for us, and hence your new feature can be
    merged faster.
+3. Let us know what you are working on:
+   - You can open a draft pull request on github right at the beginning of your
+     work.
+   - Feel free to contact us on
+     [slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
 
 ## Overview
 In general you have to do
