@@ -46,6 +46,39 @@ end
   check_gcd(g*a, g*b, g)
 end
 
+@testset "mpoly-nested.Q(y)[x]" begin
+  Qx, x = PolynomialRing(QQ, "x")
+  Fx = FractionField(Qx)
+  x = Fx(x)
+  R, y = PolynomialRing(Fx, "y")
+  check_factor((y*inv(x)+x)^2, 2)
+  @test isunit(gcd(x+y, x-y))
+
+  Qx, (x,) = PolynomialRing(QQ, ["x"])
+  Fx = FractionField(Qx)
+  x = Fx(x)
+  R, y = PolynomialRing(Fx, "y")
+  check_factor((y*inv(x)+x)^2, 2)
+  @test isunit(gcd(x+y, x-y))
+
+  if false  # enable only for long tests
+    Qx, x = PolynomialRing(QQ, "x")
+    Fx = FractionField(Qx)
+    x = Fx(x)
+    R, (y, ) = PolynomialRing(Fx, ["y"])
+    check_factor((y*inv(x)+x)^2, 2)
+    @test isunit(gcd(x+y, x-y))
+
+    Qx, (x,) = PolynomialRing(QQ, ["x"])
+    Fx = FractionField(Qx)
+    x = Fx(x)
+    R, (y, ) = PolynomialRing(Fx, ["y"])
+    check_factor((y*inv(x)+x)^2, 2)
+    @test isunit(gcd(x+y, x-y))
+  end
+end
+
+
 @testset "mpoly-nested.frac.factor" begin
 
   if false  # enable only for long tests
