@@ -368,7 +368,7 @@ function multi_hilbert_series(A::MPolyQuo)
    if iszero(A.I)
       p = one(S)
    else
-      LI = leading_ideal(A.I)
+      LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
       if minMI<0
          RNEW, _ = GradedPolynomialRing(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
          LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
