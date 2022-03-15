@@ -380,7 +380,8 @@ mutable struct GaloisCtx{T}
     
     vl = roots_upper_bound(f)
     r.B = qt_ring()(vl[1])
-    r.data = [vl[2], shft]
+    r.data = Any[vl[2], shft, false] #false: not simulating C
+    @assert typeof(r.data[3]) == Bool
     return r
   end
 end
@@ -391,7 +392,7 @@ function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.R
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, extra=(5, 2)) where {T}
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, extra=(0, 0)) where {T}
   if isa(extra, Int)
     extra = (extra, min(2, div(extra, 3)))
   end
@@ -402,7 +403,9 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, f
   #padic: we ne |a_i| for i=0:n and |a_i| <= C (i+1)^k/r^i
   #and then log_p()
   #according to the Qt file, a_i is maximal around k/log(r) -1
-  if isone(r)
+  if G.data[3] #we're simulating CC, so we don't care about the p-adics (too much)
+    b = max(C, fmpz(10)^10)
+  elseif isone(r)
     b = C*(n+1)^k
   else
     c = max(1, floor(Int, k/log(r)-1))
@@ -470,9 +473,25 @@ function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = fa
     return leading_coefficient(G.f) .* b
   end
 end
+
 function Hecke.setprecision(a::Generic.RelSeries, p::Int)
   b = parent(a)(a.coeffs, min(length(a.coeffs), p), p+valuation(a), valuation(a))
 end
+
+#TODO: does not really work: the polynomial is not truncated, only
+#      the entry for precision is updated: 1 + ... + s^40 + O(s^2)
+function Hecke.setprecision!(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::Tuple{Int, Int})
+  c = coeff(G.C.lf[1], 0)
+  @assert precision(c) >= pr[2]
+  @assert precision(coeff(c, 0)) >= pr[1]
+  for f = G.C.lf
+    Hecke.set_precision!(f, pr[2])
+  end
+  for f = G.C.cf  
+    Hecke.set_precision!(f, pr[2])
+  end
+end
+
 function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::Tuple{Int, Int} = (5, 2); raw::Bool = false)
   C = G.C
   while precision(C)[1] < pr[1]
@@ -1035,7 +1054,9 @@ mutable struct DescentEnv
     s = maximal_subgroup_reps(G)
     r = new()
     r.G = G
+    @vprint :GaloisGroup 2 "starting with $(length(s)) maximal subgroup classes\n"
     r.s = filter(f, s)
+    @vprint :GaloisGroup 2 "filtering down to $(length(r.s)) maximal subgroup classes\n"
     r.I = Dict{Int, SLPoly}()
     r.T = Dict{Int, Vector{fmpz_poly}}()
     r.l = zeros(Int, length(r.s))
@@ -1343,19 +1364,92 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   return p_best, ct
 end
 
+#given cycle types, try to find a divisor (large) of the transitive
+#group. Used for sieving.
+function order_from_shape(ct, n)
+  o1 = fmpz(1)
+  o  = fmpz(1)
+  for p = PrimesSet(1, n)
+    #find cycletypes that would correpond to elt of order a multiple of p
+    #the exact order is lcm(x) for x in ct
+    ct_p = [x for x = ct if any(t->t % p == 0, x)]
+    #so ct_t contains all cycle types belongign to elements where the
+    #order is divisible by p
+    length(ct_p) == 0 && continue
+    #now x in ct_p is is the cycle type of an element where the order is a multiple
+    #of p. I need the type of x^f (which is of maximal order p-power order)
+    #e.g. a cycle of length 6 will produce 3 of length 2
+    ct_pp = Set{Vector{Int}}()
+    for x = ct_p
+      l = []
+      for y = x
+        e = valuation(y, p)
+        append!(l, [p^e for i=1:divexact(y, p^e)])
+      end
+      sort!(l)
+      #we divide by the min <=> cycle type of power by min
+      #this is min expo to get a fixed point.
+      for i=1:length(l)
+        l[i] = divexact(l[i], l[1])
+      end
+      push!(ct_pp, l)
+    end
+    # Now everything has a fixed point, so we can bound the
+    # size of Stab_G(1) from below (we're transitive, so the fixed point
+    # is 1)
+    # the plan is to take to 2 different largest ones
+
+    mu = [(y[end], sum(x for x = y if x == y[end])) for y = ct_pp]
+    sort!(mu, lt = (a,b) -> a[1] < b[1])
+    if length(mu) == 1
+       o *= p^maximum(maximum(valuation(x, p) for x = y) for y = ct_p)
+    else
+      p_part = maximum([x[1]*y[1] for x = mu for y = mu if x[2] != y[2]], init = maximum(x[1] for x = mu))
+      o1 *= p_part
+    end
+  end
+  return lcm(n*o1, o)
+end
+
+#https://mathoverflow.net/questions/286316/recognition-of-symmetric-groups-in-gap
+#show primitivity by finding a permutation which has a p cycle for n/2<p<n−1
+function primitive_by_shape(ct::Set{Vector{Int}}, n::Int)
+  for p = PrimesSet(div(n, 2)+1, n-2)
+    if any(y->any(x->x % p == 0, y), ct)
+      return true
+    end
+  end
+  return false
+end
+
+function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
+  n <= 3 && return true
+
+  ub = n > 8 ? n-3 : n-1
+  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))))
+
+  if any(x->any(y ->gcd(y, lp) > 1, x), ct)
+    n != 6 && return true
+    #from Elsenhans (ask Max???) need the 5-cycle and 
+    #    [1,1,1,3] or [1,2,3] ie. not [3,3]
+    # Elsenhans also tries to seperate Sn/An but there I am not certain
+    # I think if there is a type proving odd, then we have Sn, hower
+    # not finding one does not prove anyhting
+    if any(x->3 in x && length(x) > 2, ct)
+      return true
+    end
+  end
+  return false
+end
 
 #TODO
-# - split: find primes (done) and abort on Sn/An
 # - subfield lattice directly
 # - subfield to block system outsource (also for lattice)
 # - more invars
-# - re-arrange to make cheap this first, expensive later
+# - re-arrange to make cheap things first, expensive later
 # - proof, live and later
-# - "isInt", ie. the test for being in Z: outsource... (done(ish))
 # - tschirnhausen transformation: slowly increasing degree and coeffs.
 # - for larger degrees: improve starting group by doing Galois groups of subfields
-# - make the descent a seperate function (done)
-# - for reducibles...: write for irr. poly and for red. poly (done)
 # - more base rings
 # - applications: subfields of splitting field (done), towers, solvability by radicals
 @doc Markdown.doc"""
@@ -1372,22 +1466,34 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
   if prime != 0
     p = prime
-    ct = Vector{Int}[]
+    ct = Set{Vector{Int}}()
   else
     p, ct = find_prime(K.pol, pStart = pStart)
   end
 
-  # TODO: detect A_n/S_n here, handle separately
-
   # TODO: otherwise, try to detect here if we are primitive or even 2-transitive
 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
+  if an_sn_by_shape(ct, degree(K))
+    @vprint :GaloisGroup 1 "An/Sn by cycloe type\n"
+    if issquare(discriminant(K))
+      G = alternating_group(degree(K))
+    else
+      G = symmetric_group(degree(K))
+    end
+    GC.G = G
+    return G, GC
+  end
 
-  G, F, si = starting_group(GC, K, useSubfields = useSubfields)
+  G, F, si = starting_group(GC, K, useSubfields = useSubfields && !primitive_by_shape(ct, degree(K)))
   if degree(K) == 1
     GC.G = G
     return G, GC
   end
+
+  os = order_from_shape(ct, degree(K))
+  @vprint :GaloisGroup 2 "using lower bound $os for order to sieve\n"
+  push!(F, x->order(x) % os == 0)
 
   # TODO: here we know that we are primitive; can we detect 2-transitive (inside starting_group)?
 
@@ -1407,7 +1513,6 @@ For verbose output, the groups are printed through `grp_id`.
 function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_identification, extra::Int = 5)
   @vprint :GaloisGroup 2 "Have starting group with id $(grp_id(G))\n"
 
-  p = GC.C.p
   n = degree(GC.f)
 
   nG = order(G)
@@ -1432,7 +1537,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       @vprint :GaloisGroup 2 "of maximal degree $(total_degree(I)*degree(ts))\n"
       @vprint :GaloisGroup 2 "root upper_bound: $(value(B))\n"
 
-      c = roots(GC, clog(2*value(B), p)+extra)
+      c = roots(GC, bound_to_precision(GC, B, extra))
       c = map(ts, c)
 
       local fd
@@ -1468,18 +1573,10 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
         end
 
         push!(cs, e)
-        if e.length<2
-          l = coeff(e, 0)
-          lz = lift(l)
-          l = Hecke.mod_sym(lz, fmpz(p)^precision(l))
-          if abs(l) < value(B)
-            @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
-            push!(fd, t)
-          else
-            @vprint :GaloisGroup 3 "no int: wrong size $l, $(value(B))\n"
-          end
-        else
-          @vprint :GaloisGroup 3 "no int: wrong degree\n"
+        fl, l = isinteger(GC, B, e)
+        if fl
+          @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
+          push!(fd, t)
         end
       end
       if length(cs) == length(lt)
@@ -1495,6 +1592,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
           @assert length(fd) > 1 || order(G) == order(s)
           @assert order(G) < nG
           @vprint :GaloisGroup 2 "descending to $(grp_id(G))\n"
+          
           if order(G) == n
             GC.G = G
             return G, GC
