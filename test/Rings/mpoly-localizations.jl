@@ -52,12 +52,12 @@
   
   J = ideal(W, [W(x-3), W(y-4)])
   lbpa = groebner_basis(J)
-  @test ordering(lbpa) == :negdegrevlex
+  @test MonomialOrdering(R, ordering(lbpa)) == negdegrevlex(gens(base_ring(W)))
   @test oscar_gens(lbpa)[1] == W(1)
 
   J = ideal(W, [f, y-q])
   lbpa = groebner_basis(J)
-  @test ordering(lbpa) == :negdegrevlex
+  @test MonomialOrdering(R, ordering(lbpa)) == negdegrevlex(gens(base_ring(W)))
   @test oscar_gens(lbpa) == W.([x-p, y-q])
 
   @test I_loc + J isa MPolyLocalizedIdeal

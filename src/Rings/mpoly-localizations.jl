@@ -16,7 +16,7 @@ export bring_to_common_denominator, write_as_linear_combination
 
 export LocalizedBiPolyArray
 export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift, shift_hom, inv_shift_hom, to_singular_side, to_oscar_side
-export groebner_basis, groebner_assure
+export groebner_basis
 
 export MPolyLocalizedRingHom
 export domain, codomain, images
@@ -1102,7 +1102,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
   # The polynomial ring on the singular side
   singular_ring::Singular.PolyRing
   # The ordering used for the above singular ring.
-  ordering::Symbol
+  ordering::Orderings.AbsOrdering
   # An optional shift vector applied to the polynomials in Oscar when 
   # translating them to the Singular ring. 
   # This is to make local orderings useful for localizations at 𝕜-points.
@@ -1114,7 +1114,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
       oscar_gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}},
       shift::Vector{BRET},
-      ordering::Symbol;
+      ordering::Orderings.AbsOrdering;
       is_groebner_basis::Bool=false
     ) where {BRT, BRET, RT, RET, MST}
     lbpa = new{BRT, BRET, RT, RET, MST}()
@@ -1135,6 +1135,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
       singular_gens::Singular.sideal,
       shift::Vector{BRET},
+      ordering::Orderings.AbsOrdering,
       is_groebner_basis::Bool
     ) where {BRT, BRET, RT, RET, MST}
     lbpa = new{BRT, BRET, RT, RET, MST}()
@@ -1142,8 +1143,8 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
     lbpa.oscar_ring = oscar_ring
     lbpa.singular_gens = singular_gens
     lbpa.singular_ring = base_ring(singular_gens)
+    lbpa.ordering = ordering
     R = base_ring(oscar_ring)
-    lbpa.ordering = Singular.ordering_as_symbol(lbpa.singular_ring)
     k = coefficient_ring(R)
     # fill up the shift vector with zeroes if it is not provided in full length
     for i in (length(shift)+1:nvars(R))
@@ -1174,30 +1175,40 @@ end
 
 function singular_assure(lbpa::LocalizedBiPolyArray)
   if !isdefined(lbpa, :singular_ring)
-    lbpa.singular_ring = Singular.PolynomialRing(
-	Oscar.singular_coeff_ring(base_ring(base_ring(oscar_ring(lbpa)))), 
-        [string(a) for a = Nemo.symbols(base_ring(oscar_ring(lbpa)))], 
-        ordering = ordering(lbpa), 
-        cached = false
-      )[1]
-  end
-  if !isdefined(lbpa, :singular_gens)
+    lbpa.singular_ring = singular_poly_ring(base_ring(oscar_ring(lbpa)), ordering(lbpa))
     shift_hom = hom(base_ring(oscar_ring(lbpa)), base_ring(oscar_ring(lbpa)), 
         [gen(base_ring(oscar_ring(lbpa)), i) + lbpa.shift[i] for i in (1:nvars(base_ring(oscar_ring(lbpa))))])
     lbpa.singular_gens = Singular.Ideal(lbpa.singular_ring,
                                         (elem_type(lbpa.singular_ring))[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
     #lbpa.singular_gens = (length(oscar_gens(lbpa)) == 0 ? Singular.Ideal(lbpa.singular_ring) : Singular.Ideal(lbpa.singular_ring, [lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)]))
   end
+  if lbpa.is_groebner_basis
+    lbpa.singular_gens.isGB = true
+  end
 end
 
-function std(lbpa::LocalizedBiPolyArray)
+function singular_assure(lbpa::LocalizedBiPolyArray, ordering::MonomialOrdering)
+  if isdefined(lbpa, :ordering)
+    @assert lbpa.ordering == ordering.o
+  end
+  if !isdefined(lbpa, :singular_ring)
+    lbpa.ordering = ordering.o
+    singular_assure(lbpa)
+  else
+    if !isdefined(lbpa, :ordering)
+      lbpa.ordering = ordering.o
+      SR = singular_ring(lbpa.oscar_ring, ordering.o)
+      f = Singular.AlgebraHomomorphism(lbpa.singular_ring, SR, gens(SR))
+      lbpa.singular_gens = Singular.map_ideal(f, lbpa.singular_gens)
+      lbpa.singular_ring = SR
+    end
+  end
+end
+
+function _compute_standard_basis(lbpa::LocalizedBiPolyArray, ordering::MonomialOrdering)
+  singular_assure(lbpa, ordering)
   i = Singular.std(singular_gens(lbpa))
-  return LocalizedBiPolyArray(
-             oscar_ring(lbpa), 
-	     i, 
-	     shift(lbpa),
-	     true
-	   )
+  return LocalizedBiPolyArray(oscar_ring(lbpa), i, shift(lbpa), ordering.o, true)
 end
 
 function shift_hom(lbpa::LocalizedBiPolyArray) 
@@ -1313,7 +1324,7 @@ Ideals in localizations of polynomial rings.
   W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST} 
   
   # Fields for caching
-  groebner_bases::Dict{Symbol, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}
+  groebner_bases::Dict{MonomialOrdering, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}
   dimension::Int
  
   function MPolyLocalizedIdeal(
@@ -1331,7 +1342,7 @@ Ideals in localizations of polynomial rings.
     I = new{BRT, BRET, RT, RET, MST}()
     I.gens = gens
     I.W = W
-    I.groebner_bases = Dict{Symbol, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}()
+    I.groebner_bases = Dict{MonomialOrdering, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}()
     return I
   end
 end
@@ -1451,16 +1462,16 @@ end
 groebner_bases(I::MPolyLocalizedIdeal) = I.groebner_bases
 
 # the default ordering; probably mathematically useless
-default_ordering(W::MPolyLocalizedRing) = :degrevlex
+default_ordering(W::MPolyLocalizedRing) = degrevlex(gens(base_ring(W)))
 
 # specific default orderings for other cases
 default_ordering(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  ) where {BRT, BRET, RT, RET} = :degrevlex
+   ) where {BRT, BRET, RT, RET} = degrevlex(gens(base_ring(W)))
 
 default_ordering(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
-  ) where {BRT, BRET, RT, RET} = :negdegrevlex
+   ) where {BRT, BRET, RT, RET} = negdegrevlex(gens(base_ring(W)))
 
 default_ordering(I::MPolyLocalizedIdeal) = default_ordering(base_ring(I))
 
@@ -1561,7 +1572,7 @@ end
 # The ordering and the shifts are determined from the type of the multiplicative set
 LocalizedBiPolyArray(
     I::MPolyLocalizedIdeal
-  ) = LocalizedBiPolyArray(base_ring(I), gens(I), default_shift(I), default_ordering(I)) 
+  ) = LocalizedBiPolyArray(base_ring(I), gens(I), default_shift(I), default_ordering(I).o)
 
 function LocalizedBiPolyArray(
     g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
@@ -1571,7 +1582,7 @@ function LocalizedBiPolyArray(
   for f in g
     parent(f) == W || error("elements do not belong to the same ring")
   end
-  return LocalizedBiPolyArray(W, g, default_shift(W), default_ordering(W)) 
+  return LocalizedBiPolyArray(W, g, default_shift(W), default_ordering(W).o)
 end
 
 LocalizedBiPolyArray(
@@ -1581,12 +1592,12 @@ LocalizedBiPolyArray(
 LocalizedBiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
     I::MPolyIdeal{RET}
-  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), default_shift(W), default_ordering(W))
+  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), default_shift(W), default_ordering(W).o)
 
 LocalizedBiPolyArray(
     W::MPolyLocalizedRing, 
     I::Singular.sideal
-  ) = LocalizedBiPolyArray(W, I, default_shift(W), false)
+   ) = LocalizedBiPolyArray(W, I, default_shift(W), default_ordering(W).o, false)
 
 function Base.show(io::IO, I::MPolyLocalizedIdeal) 
   print(io, "ideal in $(base_ring(I)) generated by the elements ") 
@@ -1614,8 +1625,8 @@ end
 # membership of the numerator in the base_ring.
 @Markdown.doc """
     groebner_basis(
-        I::MPolyLocalizedIdeal,
-        ordering::Symbol
+        I::MPolyLocalizedIdeal;
+        ordering::MonomialOrdering = default_ordering(I)
       )
 
 For an ideal ``I ⊂ R[S⁻¹]`` in a localized polynomial ring generated 
@@ -1623,8 +1634,8 @@ by fractions ``a₁//b₁,…, aₘ//bₘ``, this returns a groebner basis
 for the ideal ``I' ⊂ R`` generated by the numerators ``a₁
 """
 function groebner_basis(
-    I::MPolyLocalizedIdeal,
-    ordering::Symbol
+    I::MPolyLocalizedIdeal;
+    ordering::MonomialOrdering = default_ordering(I)
   )
   D = groebner_bases(I)
   # check whether a standard basis has already been computed for this ordering
@@ -1633,30 +1644,17 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   W = base_ring(I)
-  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering)
+  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering.o)
   # compute the standard basis and cache the result
-  D[ordering] = std(lbpa)
+  D[ordering] = _compute_standard_basis(lbpa, ordering)
   return D[ordering]
-end
-
-function groebner_basis(I::MPolyLocalizedIdeal)
-  return groebner_basis(I, default_ordering(I))
-end
-
-function groebner_assure(I::MPolyLocalizedIdeal)
-  D = groebner_bases(I)
-  if length(D) > 0 
-    return
-  end
-  D[default_ordering(I)] = std(BiPolyArray(I))
-  return
 end
 
 ### special routines for localizations at 𝕜-points.
 # This is using local orderings.
 function groebner_basis(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}; 
-    ordering::Symbol=:negdegrevlex
+    ordering::MonomialOrdering = default_ordering(I)
   ) where {BRT, BRET, RT, RET}
   D = groebner_bases(I)
   # check whether a standard basis has already been computed for this ordering
@@ -1664,12 +1662,12 @@ function groebner_basis(
     return D[ordering]
   end
   # if not, set up a LocalizedBiPolyArray
-  lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering)
+  lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering.o)
   # Check whether this ordering is admissible
   !Singular.has_local_ordering(singular_poly_ring(lbpa)) && error("The ordering has to be a local ordering.")
   # compute the standard basis and cache the result.
   # No saturation is necessary in this case. 
-  D[ordering] = std(lbpa)
+  D[ordering] = _compute_standard_basis(lbpa, ordering)
   return D[ordering]
 end
 
@@ -1677,7 +1675,7 @@ end
 # This uses the saturated ideal computed via primary decomposition.
 function groebner_basis(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}}; 
-    ordering::Symbol=:degrevlex
+    ordering::MonomialOrdering = default_ordering(I)
   ) where {BRT, BRET, RT, RET}
   D = groebner_bases(I)
   # check whether a standard basis has already been computed for this ordering
@@ -1687,8 +1685,8 @@ function groebner_basis(
   # if not, set up a LocalizedBiPolyArray
   # Note that saturation is essential here!
   W = base_ring(I)
-  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering) 
-  D[ordering] = std(lbpa)
+  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering.o)
+  D[ordering] = _compute_standard_basis(lbpa, ordering)
   return D[ordering]
 end
   
@@ -1696,7 +1694,7 @@ end
 # This performs saturation.
 function groebner_basis(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
-    ordering::Symbol=:degrevlex
+    ordering::MonomialOrdering = default_ordering(I)
   ) where {BRT, BRET, RT, RET}
   D = groebner_bases(I)
   # check whether a standard basis has already been computed for this ordering
@@ -1706,8 +1704,8 @@ function groebner_basis(
   # if not, set up a LocalizedBiPolyArray
   # Note that saturation is essential here!
   W = base_ring(I)
-  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering) 
-  D[ordering] = std(lbpa)
+  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering.o)
+  D[ordering] = _compute_standard_basis(lbpa, ordering)
   return D[ordering]
 end
 
