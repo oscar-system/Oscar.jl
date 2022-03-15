@@ -268,7 +268,7 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 #### Leading Ideals
 
 ```@docs
-leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
+leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
 leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 ```
 
