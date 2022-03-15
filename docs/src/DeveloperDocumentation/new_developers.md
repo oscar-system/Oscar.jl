@@ -8,9 +8,9 @@ on these things online.
 1. If you encounter error messages after rebasing to the current master chances
    are that some dependencies need upgrading. Please first try whether
    executing `]up` gets rid of your errors.
-2. Please have a look at [our style guide](@ref styleguide). Adhering to the
-   style guide makes reviewing easier for us, and hence your new feature can be
-   merged faster.
+2. Please have a look at the [Developer Style Guide](@ref). Adhering to the
+   style guide makes reviewing code easier for us, and hence your new feature
+   can be merged faster.
 3. Let us know what you are working on:
    - You can open a draft pull request on github right at the beginning of your
      work.
@@ -92,12 +92,11 @@ depends on need to be up to date. Julia can update these packages if you type
 resolved by simply updating.
 
 ### Style guide
-Please have a look at [our style guide](@ref styleguide) to get an overview
-over naming conventions, code formatting, etc.
+Please have a look at the [Developer Style Guide](@ref) to get an overview over
+naming conventions, code formatting, etc.
 
 ### Building the documentation
-To build and test the documentation, please have a look at [this page](@ref
-building_docs).
+To build and test the documentation, please have a look at [Building the OSCAR documentation](@ref).
 
 ### Rebasing
 One way to stay up to date with the current master is rebasing. In order to do
