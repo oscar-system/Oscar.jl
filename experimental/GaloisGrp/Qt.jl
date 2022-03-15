@@ -149,7 +149,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   return C, K, p
 end
 
-function galois_group(FF::Generic.FunctionField{fmpq})
+function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
   tStart = -1
   tr = -1
   while true
@@ -159,6 +159,7 @@ function galois_group(FF::Generic.FunctionField{fmpq})
       error("not plausible")
     end
     C, K, p = _galois_init(FF, tStart = tStart)
+
     if issquare(discriminant(K)) != issquare(discriminant(FF))
       @vprint :GaloisGroup 2 "bad evaluation point: parity changed\n"
       tStart += 1
@@ -215,7 +216,7 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     # need to verify the starting group
     #either, if block-systems are there, find the subfields
     #or verify the factorisation of the resolvent (no idea?)
-
+    C.data[3] = overC
     #then verify the descent-chain in S
     C.chn = typeof(S.chn)()
     more_t = false
@@ -267,6 +268,13 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     end
     more_t && continue
     C.G = Gal^inv(pr)
+    if overC
+      F = GroupFilter() # no filter: need also intransitive groups
+                        # could restrict (possibly) to only those
+                        # cannot use short_cosets...
+      descent(C, C.G, F, one(C.G), grp_id = x->order(x))
+      return C, S, pr
+    end
     return C.G, C
   end
   #if any fails, "t" was bad and I need to find a way of restarting
@@ -561,7 +569,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
 end
 
 function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Generic.RelSeries{qadic})
-#  @show "testing", r, "against", p
+#  @show "testing", r, "against", B
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
 
@@ -575,10 +583,15 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
   f = Qx()
   x = gen(parent(f))
   xpow = parent(x)(1)
+
+  if G.data[3]
+    return true, x
+  end
   
   for i = 0:(r.length + r.val - 1)
     c = coeff(r, i)
     pr = prime(parent(c))
+    
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
       l = Hecke.mod_sym(lift(cc), pr^precision(cc))
@@ -592,6 +605,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
     else
       return false, x
     end
+    
     xpow *= x
   end
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
