@@ -45,6 +45,18 @@ the following six steps for submitting changes to the Oscar source:
    then be reviewed and, probably after feedback and requests for changes,
    merged.
 
+## Alternative: `]dev Oscar`
+
+Alternatively you can call
+   ```
+   ]dev Oscar
+   ```
+in Julia. This will create a directory `~/.julia/dev/Oscar`. This directory is
+a git clone of the central Oscar repository. You can develope your code here,
+however you will still have to fork Oscar, as you have no rights to push to the
+central repository. You can then add your fork as another remote, have a look
+at the section on rebasing below for hints.
+
 
 ## The edit process
 ### Editing the source
