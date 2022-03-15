@@ -1010,10 +1010,36 @@ function show(io::IO, GB::ModuleGB)
 end
 
 function show_groebner_basis_helper(io::IO, sub::ModuleGens, init::String)
+  F = sub.F
+
   print(io, init)
-  for v in sub.O
-    print(io, "\n", v)
+
+  # This shall be removed when Oscar orderings are used
+  vectors = [[] for _ in 1:length(sub.O)]
+  for i in 1:length(sub.O)
+    monomials = []
+    v = sub.S[i]
+    l = Singular.lead(v)
+    while !iszero(l)
+      push!(monomials, l)
+      v = v - l
+      l = Singular.lead(v)
+    end
+    monomials = Vector{FreeModElem}(map(x -> F(x), monomials))
+    vectors[i] = monomials
   end
+
+  for v in vectors
+    print(io, "\n")
+    print(io, v[1])
+    for i in 2:length(v)
+      print(io, " + ", v[i])
+    end
+  end
+
+  #=for v in sub.O    
+    print(io, "\n", v)
+  end=#
 end
 
 function show_groebner_basis(io::IO, sub::ModuleGens, reduced::Bool = false)
