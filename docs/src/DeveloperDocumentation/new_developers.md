@@ -15,7 +15,7 @@ on these things online.
    - You can open a draft pull request on github right at the beginning of your
      work.
    - Feel free to contact us on
-     [slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
+     [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
 
 ## Overview
 In general you have to do
