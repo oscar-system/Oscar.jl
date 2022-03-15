@@ -1,4 +1,4 @@
-export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
+export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
 export rand, sets, issubset, units_of, simplify!, is_trivial
 
 export MPolyLocalizedRing
@@ -380,6 +380,77 @@ end
 ### generation of random elements 
 function rand(S::MPolyProductOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
+end
+
+########################################################################
+# Localization associated to a monomial ordering                       #
+########################################################################
+
+@Markdown.doc """
+    MPolyLeadingMonOne{
+        BaseRingType,
+        BaseRingElemType,
+        RingType,
+        RingElemType
+      } <: AbsMPolyMultSet{
+        BaseRingType,
+        BaseRingElemType,
+        RingType,
+        RingElemType
+      }
+
+The set `S = { a in R : leading_monomial(a, ord) = 1 }` for a fixed
+monomial ordering `ord`.
+"""
+mutable struct MPolyLeadingMonOne{
+    BaseRingType,
+    BaseRingElemType,
+    RingType,
+    RingElemType
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType,
+    RingType,
+    RingElemType
+  }
+
+  R::RingType # the parent ring
+  ord::MonomialOrdering
+
+  function MPolyLeadingMonOne(R::RingType, ord::MonomialOrdering) where {RingType <: MPolyRing}
+    @assert R === ord.R "Ordering does not belong to the given ring"
+    k = coefficient_ring(R)
+    return new{typeof(k), elem_type(k), RingType, elem_type(R)}(R, ord)
+  end
+end
+
+### required getter functions
+ambient_ring(S::MPolyLeadingMonOne) = S.R
+
+### additional constructors
+MPolyLeadingMonOne(ord::MonomialOrdering) = MPolyLeadingMonOne(ord.R, ord)
+
+ordering(S::MPolyLeadingMonOne) = S.ord
+
+### required functionality
+function Base.in(
+    f::RingElemType,
+    S::MPolyLeadingMonOne{BaseRingType, BaseRingElemType, RingType, RingElemType}
+  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
+  R = parent(f)
+  R == ambient_ring(S) || return false
+  if iszero(f)
+    return false
+  end
+  return isone(leading_monomial(f, ordering(S)))
+end
+
+### printing
+function Base.show(io::IO, S::MPolyLeadingMonOne)
+  print(io, "elements of ")
+  print(io, ambient_ring(S))
+  print(io, " with leading monomial 1 w.r.t. ")
+  print(io, ordering(S))
 end
 
 ########################################################################
@@ -765,13 +836,12 @@ inverted_set(W::MPolyLocalizedRing) = W.S
 gens(W::MPolyLocalizedRing) = W.(gens(base_ring(W)))
 
 ### required extension of the localization function
-Localization(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
+Localization(S::AbsMPolyMultSet) = MPolyLocalizedRing(ambient_ring(S), S)
 
-Localization(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
-
-Localization(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
-
-Localization(S::MPolyProductOfMultSets) = MPolyLocalizedRing(ambient_ring(S), S)
+function Localization(R::MPolyRing, ord::MonomialOrdering)
+  @assert R === ord.R
+  return Localization(MPolyLeadingMonOne(ord))
+end
 
 ### Successive localizations are handled by the dispatch for products
 function Localization(
@@ -1473,6 +1543,10 @@ default_ordering(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
    ) where {BRT, BRET, RT, RET} = negdegrevlex(gens(base_ring(W)))
 
+default_ordering(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyLeadingMonOne{BRT, BRET, RT, RET}}
+   ) where {BRT, BRET, RT, RET} = ordering(inverted_set(W))
+
 default_ordering(I::MPolyLocalizedIdeal) = default_ordering(base_ring(I))
 
 # the default shift for translation to the singular side in LocalizedBiPolyArrays
@@ -1705,6 +1779,19 @@ function groebner_basis(
   # Note that saturation is essential here!
   W = base_ring(I)
   lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering.o)
+  D[ordering] = _compute_standard_basis(lbpa, ordering)
+  return D[ordering]
+end
+
+function groebner_basis(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyLeadingMonOne{BRT, BRET, RT, RET}}; ordering::MonomialOrdering = default_ordering(I)) where {BRT, BRET, RT, RET}
+  D = groebner_bases(I)
+
+  if haskey(D, ordering)
+    return D[ordering]
+  end
+
+  W = base_ring(I)
+  lbpa = LocalizedBiPolyArray(W, gens(I), default_shift(W), ordering.o)
   D[ordering] = _compute_standard_basis(lbpa, ordering)
   return D[ordering]
 end
