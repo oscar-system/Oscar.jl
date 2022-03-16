@@ -1367,6 +1367,23 @@ function to_oscar_side(
   return [psi(R(numerator(a)))//psi(R(denominator(a))) for a in f]
 end
 
+function Base.length(lbpa::LocalizedBiPolyArray)
+  if isdefined(lbpa, :oscar_gens)
+    return length(lbpa.oscar_gens)
+  else
+    return Singular.ngens(lbpa.singular_gens)
+  end
+end
+
+function Base.iterate(lbpa::LocalizedBiPolyArray, s::Int = 1)
+  if s > length(lbpa)
+    return nothing
+  end
+  return lbpa.oscar_gens[s], s + 1
+end
+
+Base.eltype(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
 ########################################################################
 # Ideals in localizations of multivariate polynomial rings             #
 ########################################################################
