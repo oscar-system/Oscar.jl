@@ -4,7 +4,7 @@ using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
-       negwdeglex, negwdegrevlex, weights, isweighted,
+       negwdeglex, negwdegrevlex, matrix_ordering, weights, isweighted,
        MonomialOrdering, ModuleOrdering, singular
 
 abstract type AbsOrdering end
@@ -167,7 +167,7 @@ function weights(a::GenOrdering)
     return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
             zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
   end              
-  if a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
+  if a.ord == :weight || a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
     return a.wgt
   end              
 end
@@ -355,6 +355,15 @@ Defines the `negwdegrevlex` ordering on the variables given with the weights `w`
 function negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   return MonomialOrdering(parent(first(v)), ordering(v, :negwdegrevlex, w))
 end
+@doc Markdown.doc"""
+    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat) -> MonomialOrdering
+
+Defines the matrix ordering on the variables given with the matrix `M`.
+"""
+function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat)
+  return MonomialOrdering(parent(first(v)), ordering(v, M))
+end
+
 @doc Markdown.doc"""
     singular(ord::Symbol, v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 

@@ -11,7 +11,8 @@
    @test isa(negrevlex([x, y, z]), MonomialOrdering)
    @test isa(negdeglex([x, y, z]), MonomialOrdering)
    @test isa(negdegrevlex([x, y, z]), MonomialOrdering)
- 
+   @test isa(matrix_ordering([x, y, z], matrix(ZZ, [1 1 1; 1 0 0; 0 1 0])), MonomialOrdering)
+
    @test isa(wdeglex([x, y], [1, 2]), MonomialOrdering)
    @test isa(wdegrevlex([x, y], [1, 2]), MonomialOrdering)
    @test isa(negwdeglex([x, y], [1, 2]), MonomialOrdering)
