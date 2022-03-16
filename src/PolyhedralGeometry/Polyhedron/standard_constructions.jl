@@ -811,7 +811,6 @@ julia> volume(p)
 gelfand_tsetlin(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
 
 @doc Markdown.doc"""
-
     fano_simplex(d::Int)
 
 Construct a lattice simplex such that the origin is the unique interior lattice point.
