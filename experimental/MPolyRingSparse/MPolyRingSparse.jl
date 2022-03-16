@@ -6,7 +6,7 @@ with lots of variables.
 This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
 """
 
-import Base: deepcopy_internal, hash, isless, isone, iszero, 
+import Base: deepcopy_internal, divrem, hash, isless, isone, iszero, 
              length, parent, sqrt, +, -, *, ^, ==
 
 import AbstractAlgebra: CacheDictType, get_cached!, internal_power
@@ -15,7 +15,7 @@ import AbstractAlgebra: Ring, RingElement
 
 import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring,
                         check_parent, coeff, combine_like_terms!,
-                        degree, elem_type, exponent, exponent_vector,
+                        degree, divexact, divides, elem_type, exponent, exponent_vector,
                         expressify, fit!, gen, gens,
                         isconstant, isgen, ishomogeneous, issquare, isunit,
                         map_coefficients, monomial, monomial!,
@@ -542,7 +542,7 @@ function sparse_to_dense(as::MPolySparse{T}...) where {T <: RingElement}
     
     sparse_R = parent(as[1])
 
-    vmap = unique!(map(var_index, reduce(vcat, map(vars, as)))) # vars_indices occurring in as
+    vmap = sort!(unique!(map(var_index, reduce(vcat, map(vars, as))))) # vars_indices occurring in as
     N = length(vmap) > 0 ? length(vmap) : 1
 
     dense_R, _ = PolynomialRing(base_ring(sparse_R), N; ordering=sparse_R.ord)
@@ -573,11 +573,11 @@ function dense_to_sparse(data::SparseToDenseData{T}, dense_as::MPolyElem{T}...) 
                     push!(expv, (vmap[j],k))
                 end
             end
-            
+            sort!(expv; by=first)
             set_exponent_vector!(a, i, expv)
             setcoeff!(a, i, coeff(da, i))
         end
-        return a
+        return combine_like_terms!(sort_terms!(a))
     end, dense_as)
     return as
 end
@@ -673,7 +673,32 @@ end
 #
 ###############################################################################
 
-# TODO
+function divides(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+    (da, db), data = sparse_to_dense(a, b)
+    (flag, dq) = divides(da, db)
+    (q,) = dense_to_sparse(data, dq)
+    return flag, q
+end
+
+function divexact(a::MPolySparse{T}, b::MPolySparse{T}; check::Bool=true) where {T <: RingElement}
+    d, q = divides(a, b)
+    check && d == false && error("Not an exact division in divexact")
+    return q
+end
+
+function divexact(a::MPolySparse, n::Union{Integer, Rational, AbstractFloat}; check::Bool=true)
+    (da,), data = sparse_to_dense(a)
+    (dq) = divexact(da, n; check=check)
+    (q,) = dense_to_sparse(data, dq)
+    return q
+end
+
+function divexact(a::MPolySparse{T}, n::T; check::Bool=true) where {T <: RingElem}
+    (da,), data = sparse_to_dense(a)
+    (dq) = divexact(da, n; check=check)
+    (q,) = dense_to_sparse(data, dq)
+    return q
+end
 
 
 ###############################################################################
@@ -682,8 +707,12 @@ end
 #
 ###############################################################################
 
-# TODO
-
+function Base.divrem(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+    (da, db), data = sparse_to_dense(a, b)
+    (dq, dr) = divrem(da, db)
+    (q, r) = dense_to_sparse(data, dq, dr)
+    return q, r
+end
 
 ###############################################################################
 #
@@ -738,7 +767,19 @@ end
 #
 ###############################################################################
 
-# TODO
+function gcd(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+    (da, db), data = sparse_to_dense(a, b)
+    (dg) = gcd(da, db)
+    (g,) = dense_to_sparse(data, dg)
+    return g
+end
+
+function lcm(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
+    (da, db), data = sparse_to_dense(a, b)
+    (dl) = lcm(da, db)
+    (l,) = dense_to_sparse(data, dl)
+    return l
+end
 
 
 ###############################################################################
