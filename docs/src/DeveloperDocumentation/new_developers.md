@@ -16,6 +16,7 @@ on these things online.
      work.
    - Feel free to contact us on
      [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
+4. Please also read our page on [Documenting OSCAR code](@ref).
 
 ## Overview
 In general you have to do
@@ -97,7 +98,8 @@ Please have a look at the [Developer Style Guide](@ref) to get an overview over
 naming conventions, code formatting, etc.
 
 ### Building the documentation
-To build and test the documentation, please have a look at [Building the OSCAR documentation](@ref).
+To build and test the documentation, please have a look at [Documenting OSCAR
+code](@ref).
 
 ### Rebasing
 One way to stay up to date with the current master is rebasing. In order to do
