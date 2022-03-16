@@ -40,13 +40,8 @@ function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.NmodRing, Nemo.Fmp
    f(x) = GAP.Obj(lift(x))*e
 
    finv = function(x::GAP.Obj)
-     if GAP.Globals.IsFFE(x)
-       y = GAP.Globals.Int(x)
-     elseif GAP.Globals.IsZmodnZObj(x)
-       y = GAP.Globals.ExtRepOfObj(x)
-     else
-       error("GAP object $x is not supported")
-     end
+     @assert GAPWrap.IsFFE(x) || GAP.Globals.IsZmodnZObj(x)
+     y = GAP.Globals.Int(x)
      return y isa Int ? RO(y) : RO(fmpz(y))
    end
 
