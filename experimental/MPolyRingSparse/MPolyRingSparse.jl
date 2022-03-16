@@ -525,6 +525,66 @@ end
 
 ###############################################################################
 #
+#   Transformation to/from dense polynomials
+#
+###############################################################################
+
+struct SparseToDenseData{T <: RingElement}
+    vmap::Vector{Int}
+    sparse_R::MPolyRingSparse{T}
+    dense_R::MPolyRing{T}
+end
+
+function sparse_to_dense(as::MPolySparse{T}...) where {T <: RingElement}
+    for a in as
+        check_parent(a, as[1], true)
+    end
+    
+    sparse_R = parent(as[1])
+
+    vmap = unique!(map(var_index, reduce(vcat, map(vars, as)))) # vars_indices occurring in as
+    N = length(vmap)
+
+    dense_R, _ = PolynomialRing(base_ring(sparse_R), N)
+    dense_as = map(function (a)
+        ctx = MPolyBuildCtx(dense_R)
+        for i in 1:length(a)
+            expv = zeros(Int, N)
+            for (j,k) in a.exps[i]
+                expv[findfirst(==(j), vmap)] = k
+            end
+            push_term!(ctx, coeff(a, i), expv)
+        end
+        return finish(ctx)
+    end, as)
+    return dense_as, SparseToDenseData{T}(vmap, sparse_R, dense_R)
+end
+
+function dense_to_sparse(data::SparseToDenseData{T}, dense_as::MPolyElem{T}...) where {T <: RingElement}
+    sparse_R = data.sparse_R
+    vmap = data.vmap
+    as = map(function (da)
+        a = zero(sparse_R)
+        fit!(a, length(da))
+        for i in 1:length(da)
+            expv = Vector{Tuple{Int,Int}}(undef, 0)
+            for (j, k) in enumerate(exponent_vector(da, i))
+                if !iszero(k)
+                    push!(expv, (vmap[j],k))
+                end
+            end
+            
+            set_exponent_vector!(a, i, expv)
+            setcoeff!(a, i, coeff(da, i))
+        end
+        return a
+    end, dense_as)
+    return as
+end
+
+
+###############################################################################
+#
 #   Square root
 #
 ###############################################################################
