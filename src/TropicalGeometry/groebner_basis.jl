@@ -14,7 +14,7 @@
 return true if f is homogeneous (w.r.t. total degree)
 return false otherwise
 =======#
-function is_homogeneous(f::MPolyElem)
+function _is_homogeneous(f::MPolyElem)
   leadexpv,tailexpvs = Iterators.peel(exponent_vectors(f))
   d = sum(leadexpv)
   for tailexpv in tailexpvs
@@ -24,14 +24,13 @@ function is_homogeneous(f::MPolyElem)
   end
   return true
 end
-export is_homogeneous
 
-function is_homogeneous(I::MPolyIdeal{K} where {K})
+function has_homogeneous_generators(I::MPolyIdeal{K} where {K})
   # todo: test whether generators are interreduced
-  @warn "is_homogeneous: merely checking whether given generators are homogeneous, can result in false negative"
 
-  return all(is_homogeneous, gens(I))
+  return all(_is_homogeneous, gens(I))
 end
+export has_homogeneous_generators
 
 
 
