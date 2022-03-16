@@ -273,7 +273,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
                         # could restrict (possibly) to only those
                         # cannot use short_cosets...
       descent(C, C.G, F, one(C.G), grp_id = x->order(x))
-      return C, S, pr
+      return C.G, C, fixed_field(S, C.G^pr)
     end
     return C.G, C
   end
