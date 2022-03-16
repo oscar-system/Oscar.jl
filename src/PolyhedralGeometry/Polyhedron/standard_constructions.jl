@@ -830,7 +830,6 @@ true
 fano_simplex(d::Int) = Polyhedron{fmpq}(Polymake.polytope.fano_simplex(d))
 
 @doc Markdown.doc"""
-
     delpezzo(d::Int)
 
 Produce the d-dimensional del-Pezzo polytope, which is the convex hull of
