@@ -6,8 +6,8 @@ with lots of variables.
 This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
 """
 
-import Base: deepcopy_internal, divrem, hash, isless, isone, iszero, 
-             length, parent, sqrt, +, -, *, ^, ==
+import Base: deepcopy_internal, divrem, gcd, hash, isless, isone, iszero, 
+             lcm, length, parent, sqrt, +, -, *, ^, ==
 
 import AbstractAlgebra: CacheDictType, get_cached!, internal_power
 
@@ -658,14 +658,6 @@ function ^(a::MPolySparse{T}, b::Int) where {T <: RingElement}
     end
 end
 
-###############################################################################
-#
-#   Inflation/deflation
-#
-###############################################################################
-
-# TODO
-
 
 ###############################################################################
 #
@@ -712,6 +704,13 @@ function Base.divrem(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingEleme
     (dq, dr) = divrem(da, db)
     (q, r) = dense_to_sparse(data, dq, dr)
     return q, r
+end
+
+function Base.divrem(a::MPolySparse{T}, bs::Vector{MPolySparse{T}}) where {T <: RingElement}
+    (da, dbs...), data = sparse_to_dense(a, bs...)
+    (dqs, dr) = divrem(da, collect(dbs))
+    (r, qs...) = dense_to_sparse(data, dr, dqs...)
+    return collect(qs), r
 end
 
 ###############################################################################

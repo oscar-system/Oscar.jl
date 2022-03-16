@@ -435,46 +435,46 @@ end
    end
 end
 
-# @testset "MPolySparse.adhoc_binary" begin
-#    R, x = ZZ["y"]
+@testset "MPolySparse.adhoc_binary" begin
+   R, x = ZZ["y"]
 
-#    for num_vars = 1:10
-#       var_names = ["x$j" for j in 1:num_vars]
-#       ord = rand_ordering()
+   for num_vars = 1:10
+      var_names = ["x$j" for j in 1:num_vars]
+      ord = rand_ordering()
 
-#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-#       for iter = 1:100
-#          f = rand(S, 0:5, 0:100, 0:0, -100:100)
+      for iter = 1:100
+         f = rand(S, 0:5, 0:100, 0:0, -100:100)
 
-#          d1 = rand(-20:20)
-#          d2 = rand(-20:20)
-#          g1 = rand(R, 0:2, -10:10)
-#          g2 = rand(R, 0:2, -10:10)
+         d1 = rand(-20:20)
+         d2 = rand(-20:20)
+         g1 = rand(R, 0:2, -10:10)
+         g2 = rand(R, 0:2, -10:10)
 
-#          @test f*d1 + f*d2 == (d1 + d2)*f
-#          @test f*BigInt(d1) + f*BigInt(d2) == (BigInt(d1) + BigInt(d2))*f
-#          @test f*g1 + f*g2 == (g1 + g2)*f
+         @test f*d1 + f*d2 == (d1 + d2)*f
+         @test f*BigInt(d1) + f*BigInt(d2) == (BigInt(d1) + BigInt(d2))*f
+         @test f*g1 + f*g2 == (g1 + g2)*f
 
-#          @test f + d1 + d2 == d1 + d2 + f
-#          @test f + BigInt(d1) + BigInt(d2) == BigInt(d1) + BigInt(d2) + f
-#          @test f + g1 + g2 == g1 + g2 + f
+         @test f + d1 + d2 == d1 + d2 + f
+         @test f + BigInt(d1) + BigInt(d2) == BigInt(d1) + BigInt(d2) + f
+         @test f + g1 + g2 == g1 + g2 + f
 
-#          @test f - d1 - d2 == -((d1 + d2) - f)
-#          @test f - BigInt(d1) - BigInt(d2) == -((BigInt(d1) + BigInt(d2)) - f)
-#          @test f - g1 - g2 == -((g1 + g2) - f)
+         @test f - d1 - d2 == -((d1 + d2) - f)
+         @test f - BigInt(d1) - BigInt(d2) == -((BigInt(d1) + BigInt(d2)) - f)
+         @test f - g1 - g2 == -((g1 + g2) - f)
 
-#          @test f + d1 - d1 == f
-#          @test f + BigInt(d1) - BigInt(d1) == f
-#          @test f + g1 - g1 == f
+         @test f + d1 - d1 == f
+         @test f + BigInt(d1) - BigInt(d1) == f
+         @test f + g1 - g1 == f
 
-#          if !iszero(d1)
-#            @test_broken divexact(d1 * f, d1) == f
-#            @test_broken divexact(d1 * f, BigInt(d1)) == f
-#          end
-#       end
-#    end
-# end
+         if !iszero(d1)
+           @test divexact(d1 * f, d1) == f
+           @test divexact(d1 * f, BigInt(d1)) == f
+         end
+      end
+   end
+end
 
 @testset "MPolySparse.adhoc_comparison" begin
    R, x = ZZ["y"]
@@ -681,81 +681,54 @@ end
    end
 end
 
-# @testset "MPolySparse.ideal_reduction" begin
-#    R, x = QQ["y"]
+@testset "MPolySparse.ideal_reduction" begin
+   R, x = QQ["y"]
 
-#    for num_vars = 1:10
-#       var_names = ["x$j" for j in 1:num_vars]
-#       ord = rand_ordering()
+   for num_vars = 1:10
+      var_names = ["x$j" for j in 1:num_vars]
+      ord = rand_ordering()
 
-#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-#       for iter = 1:10
-#          f = S(0)
-#          while iszero(f)
-#             f = rand(S, 0:5, 0:100, 0:0, -100:100)
-#          end
-#          g = rand(S, 0:5, 0:100, 0:0, -100:100)
+      for iter = 1:10
+         f = S(0)
+         while iszero(f)
+            f = rand(S, 0:5, 0:100, 0:0, -100:100)
+         end
+         g = rand(S, 0:5, 0:100, 0:0, -100:100)
 
-#          p = f*g
+         p = f*g
 
-#          q1, r = divrem(p, [f])
+         q1, r = divrem(p, [f])
 
-#          @test_broken q1[1] == g
-#          @test_broken r == 0
-#       end
+         @test q1[1] == g
+         @test r == 0
+      end
 
-#       for iter = 1:10
-#          num = rand(1:5)
+      for iter = 1:10
+         num = rand(1:5)
 
-#          V = Array{elem_type(S)}(undef, num)
+         V = Array{elem_type(S)}(undef, num)
 
-#          for i = 1:num
-#             V[i] = S(0)
-#             while iszero(V[i])
-#                V[i] = rand(S, 0:5, 0:100, 0:0, -100:100)
-#             end
-#          end
-#          g = rand(S, 0:5, 0:100, 0:0, -100:100)
+         for i = 1:num
+            V[i] = S(0)
+            while iszero(V[i])
+               V[i] = rand(S, 0:5, 0:100, 0:0, -100:100)
+            end
+         end
+         g = rand(S, 0:5, 0:100, 0:0, -100:100)
 
-#          q, r = divrem(g, V)
+         q, r = divrem(g, V)
 
-#          p = r
-#          for i = 1:num
-#             p += q[i]*V[i]
-#          end
+         p = r
+         for i = 1:num
+            p += q[i]*V[i]
+         end
 
-#          @test_broken p == g
-#       end
-#    end
-# end
-
-# @testset "MPolySparse.deflation" begin
-#    for num_vars = 1:4
-#       var_names = ["x$j" for j in 1:num_vars]
-#       ord = rand_ordering()
-#       S, varlist = PolynomialRingSparse(ZZ, var_names, ordering = ord)
-
-#       for iter = 1:10
-#          f = rand(S, 0:4, 0:5, -10:10)
-#          shift = [rand(0:10) for i in 1:num_vars]
-#          defl = [rand(1:10) for i in 1:num_vars]
-#          f = inflate(f, shift, defl)
-
-#          s, d = deflation(f)
-#          g = deflate(f, s, d)
-#          h = inflate(g, s, d)
-
-#          @test_broken h == f
-
-#          @test_broken deflate(inflate(f, d), d) == f
-
-#          g = inflate(f, defl)
-#          h, defl = deflate(g)
-#          @test_broken g == inflate(h, defl)
-#       end
-#    end
-# end
+         @test p == g
+      end
+   end
+end
 
 @testset "MPolySparse.gcd" begin
    for num_vars = 1:4
@@ -1085,43 +1058,43 @@ end
    @test evaluate(x + y, [K(1), K(1)]) isa BigFloat
 end
 
-@testset "MPolySparse.valuation" begin
-   R, x = ZZ["y"]
+# @testset "MPolySparse.valuation" begin
+#    R, x = ZZ["y"]
 
-   for num_vars = 1:10
-      var_names = ["x$j" for j in 1:num_vars]
-      ord = rand_ordering()
+#    for num_vars = 1:10
+#       var_names = ["x$j" for j in 1:num_vars]
+#       ord = rand_ordering()
 
-      S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+#       S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-      for iter = 1:100
-         f = S()
-         g = S()
-         while f == 0 || g == 0 || isconstant(g)
-            f = rand(S, 0:5, 0:100, 0:0, -100:100)
-            g = rand(S, 0:5, 0:100, 0:0, -100:100)
-         end
+#       for iter = 1:100
+#          f = S()
+#          g = S()
+#          while f == 0 || g == 0 || isconstant(g)
+#             f = rand(S, 0:5, 0:100, 0:0, -100:100)
+#             g = rand(S, 0:5, 0:100, 0:0, -100:100)
+#          end
 
-         d1 = valuation(f, g)
+#          d1 = valuation(f, g)
 
-         expn = rand(1:5)
+#          expn = rand(1:5)
 
-         d2 = valuation(f*g^expn, g)
+#          d2 = valuation(f*g^expn, g)
 
-         @test d2 == d1 + expn
+#          @test d2 == d1 + expn
 
-         d3, q3 = remove(f, g)
+#          d3, q3 = remove(f, g)
 
-         @test d3 == d1
-         @test f == q3*g^d3
+#          @test d3 == d1
+#          @test f == q3*g^d3
 
-         d4, q4 = remove(q3*g^expn, g)
+#          d4, q4 = remove(q3*g^expn, g)
 
-         @test d4 == expn
-         @test q4 == q3
-      end
-   end
-end
+#          @test d4 == expn
+#          @test q4 == q3
+#       end
+#    end
+# end
 
 @testset "MPolySparse.derivative" begin
    for num_vars=1:10
