@@ -142,9 +142,9 @@ julia> Kxy, (x,y) = K["x", "y"]
 
 julia> f = 7*x+y+49
 
-julia> TropicalHypersurface{min}(f)
+julia> TropicalHypersurface(f, min)
 
-julia> TropicalHypersurface{max}(f)
+julia> TropicalHypersurface(f, max)
 """
 function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement},M::Union{typeof(min),typeof(max)}=min)
     tropf = tropical_polynomial(f,M)
