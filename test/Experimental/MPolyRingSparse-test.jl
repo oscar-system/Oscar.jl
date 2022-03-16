@@ -45,10 +45,6 @@
 
       W1 = [[rand(0:100) for i in 1:num_vars] for j in 1:5]
 
-      V = [R(rand(-100:100)) for i in 1:5]
-
-      W1 = [[rand(0:100) for i in 1:num_vars] for j in 1:5]
-
       f1 = S(V, W1)
       @test isa(f1, MPolyElem)
 

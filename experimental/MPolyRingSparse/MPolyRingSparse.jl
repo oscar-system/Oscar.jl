@@ -118,7 +118,7 @@ end
 function vars(p::MPolySparse{T}) where {T <: RingElement}
     exps = p.exps
     gen_list = gens(p.parent)
-    inds_in_p = sort!(unique([v[1] for i in 1:length(exps) for v in exps[i]]))
+    inds_in_p = sort!(unique([v[1] for i in 1:length(p) for v in exps[i]]))
     
     return map(ind -> gen_list[ind], inds_in_p)
 end
