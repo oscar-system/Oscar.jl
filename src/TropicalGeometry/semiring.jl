@@ -2,7 +2,7 @@
 
 export tropical_semiring,
        @tropical,
-       determinant,
+       det,
        permanent
 
 # using Reexport
@@ -331,7 +331,7 @@ end
 
 # todo: maybe this should be called tropical determinant
 #   lest it might crash with the non-tropical notion of determinant
-function determinant(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{T}}) where {T}
+function det(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{T}}) where {T}
   R = base_ring(x)
   S = AbstractAlgebra.SymmetricGroup(nrows(x))
   res = zero(R)
@@ -346,7 +346,7 @@ function determinant(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemir
 end
 
 function permanent(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{T}}) where {T}
-  return determinant(x)
+  return det(x)
 end
 
 ################################################################################
