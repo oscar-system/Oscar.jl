@@ -30,10 +30,42 @@ end
 #
 ################################################################################
 
+@attributes Nemo.NmodRing # TODO: port this to Nemo
+@attributes Nemo.FmpzModRing # TODO: port this to Nemo
+
+# Assume that `RO` and `RG` are residue rings of the same size
+# in Oscar and GAP, respectively.
+function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.NmodRing, Nemo.FmpzModRing}, RG::GAP.GapObj)
+   e = GAPWrap.One(RG)
+   f(x) = GAP.Obj(lift(x))*e
+
+   finv = function(x::GAP.Obj)
+     if GAP.Globals.IsFFE(x)
+       y = GAP.Globals.Int(x)
+     elseif GAP.Globals.IsZmodnZObj(x)
+       y = GAP.Globals.ExtRepOfObj(x)
+     else
+       error("GAP object $x is not supported")
+     end
+     return y isa Int ? RO(y) : RO(fmpz(y))
+   end
+
+   return (f, finv)
+end
+
+# Compute the isomorphism between the Oscar residue ring `RO`
+# and a corresponding GAP residue ring.
+function _iso_oscar_gap(RO::Union{Nemo.NmodRing, Nemo.FmpzModRing})
+   n = fmpz(modulus(RO))
+   RG = GAP.Globals.mod(GAP.Globals.Integers, GAP.Obj(n))
+   f, finv = _iso_oscar_gap_residue_ring_functions(RO, RG)
+
+   return MapFromFunc(f, finv, RO, RG)
+end
+
 # Assume that `FO` and `FG` are finite fields of the same order
 # in Oscar and GAP, respectively.
 function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.GaloisField, Nemo.GaloisFmpzField}, FG::GAP.GapObj)
-   p = characteristic(FO)
    e = GAPWrap.One(FG)
 
    f(x) = GAP.Obj(lift(x))*e

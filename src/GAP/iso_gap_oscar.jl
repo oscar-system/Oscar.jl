@@ -44,6 +44,8 @@ function _iso_gap_oscar(F::GAP.GapObj)
          end
        end
      end
+   elseif GAP.Globals.IsZmodnZObjNonprimeCollection(F)
+     return _iso_gap_oscar_residue_ring(F)
    elseif GAP.Globals.IsIntegers(F)
      return _iso_gap_oscar_ring_integers(F)
    elseif GAP.Globals.IsUnivariatePolynomialRing(F)
@@ -51,6 +53,18 @@ function _iso_gap_oscar(F::GAP.GapObj)
    end
 
    error("no method found")
+end
+
+function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
+   n = GAP.Globals.Size(RG)
+   if n isa GAP.GapObj
+     n = fmpz(n)
+   end
+   RO = ResidueRing(ZZ, n)
+
+   finv, f = _iso_oscar_gap_residue_ring_functions(RO, RG)
+
+   return MapFromFunc(f, finv, RG, RO)
 end
 
 function _iso_gap_oscar_field_finite(FG::GAP.GapObj)

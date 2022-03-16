@@ -1,3 +1,36 @@
+@testset "residue rings" begin
+   @testset for n in [2, 3, 6]
+      for R in [ResidueRing(ZZ, n), ResidueRing(ZZ, fmpz(n))]
+         f = Oscar.iso_oscar_gap(R)
+         a = one(R)
+         b = -one(R)
+         @test f(a*b) == f(a)*f(b)
+         @test f(a-b) == f(a)-f(b)
+         C = codomain(f)
+         for a in C
+            for b in C
+               @test preimage(f, a*b) == preimage(f, a)*preimage(f, b)
+               @test preimage(f, a-b) == preimage(f, a)-preimage(f, b)
+            end
+         end
+         n2 = n + 1
+         one2 = one(ResidueRing(ZZ, n2))
+         @test_throws ErrorException f(one2)
+         @test_throws ErrorException image(f, one2)
+         @test_throws ErrorException preimage(f, GAP.Globals.ZmodnZObj(1, GAP.Obj(n2)))
+      end
+   end
+
+   n = fmpz(2)^100
+   R = ResidueRing(ZZ, n)
+   f = Oscar.iso_oscar_gap(R)
+   a = -one(R)
+   @test f(a) == -f(one(R))
+   C = codomain(f)
+   a = -GAP.Globals.One(C)
+   @test preimage(f, a) == -preimage(f, GAP.Globals.One(C))
+end
+
 @testset "finite fields" begin
    @testset for p in [2, 3]
       for F in [Nemo.GaloisField(UInt(p)), Nemo.GaloisFmpzField(fmpz(p))]
