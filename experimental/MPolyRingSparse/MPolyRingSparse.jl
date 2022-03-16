@@ -7,7 +7,7 @@ This strongly follows Generic.MPolyRingSparse from AbstractAlgebra.
 """
 
 import Base: deepcopy_internal, hash, isless, isone, iszero, 
-             length, parent, +, -, *, ==
+             length, parent, sqrt, +, -, *, ^, ==
 
 import AbstractAlgebra: CacheDictType, get_cached!, internal_power
 
@@ -17,7 +17,7 @@ import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring,
                         check_parent, coeff, combine_like_terms!,
                         degree, elem_type, exponent, exponent_vector,
                         expressify, fit!, gen, gens,
-                        isconstant, isgen, ishomogeneous, isunit,
+                        isconstant, isgen, ishomogeneous, issquare, isunit,
                         map_coefficients, monomial, monomial!,
                         nvars, parent_type, setcoeff!, set_exponent_vector!,
                         sort_terms!, symbols, term, total_degree, vars, zero!
@@ -543,9 +543,9 @@ function sparse_to_dense(as::MPolySparse{T}...) where {T <: RingElement}
     sparse_R = parent(as[1])
 
     vmap = unique!(map(var_index, reduce(vcat, map(vars, as)))) # vars_indices occurring in as
-    N = length(vmap)
+    N = length(vmap) > 0 ? length(vmap) : 1
 
-    dense_R, _ = PolynomialRing(base_ring(sparse_R), N)
+    dense_R, _ = PolynomialRing(base_ring(sparse_R), N; ordering=sparse_R.ord)
     dense_as = map(function (a)
         ctx = MPolyBuildCtx(dense_R)
         for i in 1:length(a)
@@ -589,7 +589,17 @@ end
 #
 ###############################################################################
 
-# TODO
+function Base.sqrt(a::MPolySparse{T}; check::Bool=true) where {T <: RingElement}
+    (da,), data = sparse_to_dense(a)
+    dq = sqrt(da)
+    (q,) = dense_to_sparse(data, dq)
+    return q
+end
+
+function issquare(a::MPolySparse{T}) where {T <: RingElement}
+    (da,), _ = sparse_to_dense(a)
+    return issquare(da)
+end
 
 
 ###############################################################################

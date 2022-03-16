@@ -568,77 +568,77 @@ end
 #    end
 # end
 
-# @testset "MPolySparse.square_root" begin
-#    for R in [ZZ, QQ]
-#       for num_vars = 1:10
-#          var_names = ["x$j" for j in 1:num_vars]
-#          ord = rand_ordering()
+@testset "MPolySparse.square_root" begin
+   for R in [ZZ, QQ]
+      for num_vars = 1:10
+         var_names = ["x$j" for j in 1:num_vars]
+         ord = rand_ordering()
 
-#          S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+         S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-#          for iter = 1:10
-#             f = rand(S, 0:5, 0:100, -100:100)
+         for iter = 1:10
+            f = rand(S, 0:5, 0:100, -100:100)
 
-#             p = f^2
+            p = f^2
 
-#             @test_broken issquare(p)
+            @test issquare(p)
 
-#             q = sqrt(f^2)
+            q = sqrt(f^2)
 
-#             @test_broken q^2 == f^2
+            @test q^2 == f^2
 
-#             q = sqrt(f^2; check=false)
+            q = sqrt(f^2; check=false)
 
-#             @test_broken q^2 == f^2
+            @test q^2 == f^2
 
-#             if f != 0
-#                x = varlist[rand(1:num_vars)]
-#                @test_throws ErrorException sqrt(f^2*(x^2 - x))
-#             end
+            if f != 0
+               x = varlist[rand(1:num_vars)]
+               @test_throws ErrorException sqrt(f^2*(x^2 - x))
+            end
 
-#             f1, s1 = issquare_with_sqrt(f)
+            f1, s1 = issquare_with_sqrt(f)
 
-#             @test_broken !f1 || s1^2 == f
-#          end
-#       end
-#    end
+            @test !f1 || s1^2 == f
+         end
+      end
+   end
 
-#    # Field of characteristic p
-#    for p in [2, 7, 13, 65537, ZZ(2), ZZ(7), ZZ(37), ZZ(65537)]
-#       R = ResidueField(ZZ, p)
-#       for num_vars = 1:10
-#          var_names = ["x$j" for j in 1:num_vars]
-#          ord = rand_ordering()
+   # Field of characteristic p
+   for p in [2, 7, 13, 65537, ZZ(2), ZZ(7), ZZ(37), ZZ(65537)]
+      R = GF(p)
+      for num_vars = 1:10
+         var_names = ["x$j" for j in 1:num_vars]
+         ord = rand_ordering()
 
-#          S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
+         S, varlist = PolynomialRingSparse(R, var_names, ordering = ord)
 
-#          for iter = 1:10
-#             f = rand(S, 0:5, 0:100, 0:Int(p))
+         for iter = 1:10
+            f = rand(S, 0:5, 0:100, 0:Int(p))
 
-#             s = f^2
+            s = f^2
 
-#             @test_broken issquare(s)
+            @test issquare(s)
 
-#             q = sqrt(f^2)
+            q = sqrt(f^2)
 
-#             @test_broken q^2 == f^2
+            @test q^2 == f^2
 
-#             q = sqrt(f^2)
+            q = sqrt(f^2)
 
-#             @test_broken q^2 == f^2
+            @test q^2 == f^2
 
-#             if f != 0
-#                x = varlist[rand(1:num_vars)]
-#                @test_throws ErrorException sqrt(f^2*(x^2 - x))
-#             end
+            if f != 0
+               x = varlist[rand(1:num_vars)]
+               @test_throws ErrorException sqrt(f^2*(x^2 - x))
+            end
 
-#             f1, s1 = issquare_with_sqrt(f)
+            f1, s1 = issquare_with_sqrt(f)
 
-#             @test_broken !f1 || s1^2 == f
-#          end
-#       end
-#    end
-# end
+            @test !f1 || s1^2 == f
+         end
+      end
+   end
+end
 
 # @testset "MPolySparse.euclidean_division" begin
 #    R, x = QQ["y"]
