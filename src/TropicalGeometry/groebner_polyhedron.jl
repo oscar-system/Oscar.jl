@@ -14,26 +14,26 @@ tropical Groebner polyhedron
 todo: proper documentation
 Example:
 
-val_2 = ValuationMap(QQ,2)
+val_2 = TropicalSemiringMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
 w = [0,0,0]
 I = ideal([x+2*y,y+2*z])
 groebner_polyhedron(I,val_2,w)
 
 Kt,t = RationalFunctionField(QQ,"t")
-val_t = ValuationMap(Kt,t)
+val_t = TropicalSemiringMap(Kt,t)
 Ktx,(x,y,z) = PolynomialRing(Kt,3)
 w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
 groebner_polyhedron(I,val_t,w)
 =======#
-function groebner_polyhedron(I,val::ValuationMap{K,p} where {K,p},w::Vector{Int})
+function groebner_polyhedron(I,val::TropicalSemiringMap{K,p} where {K,p},w::Vector{Int})
   GB,LI = groebner_basis(I,val,w,complete_reduction=true,return_lead=true)
 
   return groebner_polyhedron(GB,val,w,pertubation=pertubation,skip_reduction=skip_reduction)
 end
 
-function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::ValuationMap, w::Vector; pertubation::Vector=[], skip_reduction::Bool=false)
+function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], skip_reduction::Bool=false)
   if !skip_reduction
     GB = interreduce_tropically(GB,val,w,pertubation=pertubation)
   end
@@ -41,7 +41,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::ValuationMap, w::Vect
   return groebner_polyhedron(GB,initial(GB,val,w,pertubation=pertubation),val)
 end
 
-function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem}, val::ValuationMap) # GB entries can be MPolyElem and fmpq_mpoly
+function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem}, val::TropicalSemiringMap) # GB entries can be MPolyElem and fmpq_mpoly
   eq_lhs = zeros(Int,0,nvars(parent(GB[1])))
   eq_rhs = zeros(Int,0)
   ineq_lhs = zeros(Int,0,nvars(parent(GB[1])))

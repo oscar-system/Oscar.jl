@@ -105,7 +105,7 @@ function tropical_link(inI; p_adic_prime=1000003)
   ###
   # Step 3.0: Create a p-adic field over a sufficiently large prime
   ###
-  val_p = ValuationMap(QQ,p_adic_prime)   # todo: increase p when necessary
+  val_p = TropicalSemiringMap(QQ,p_adic_prime)   # todo: increase p when necessary
 
   ###
   # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p

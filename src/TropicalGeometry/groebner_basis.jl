@@ -40,21 +40,21 @@ tropical Groebner basis
 todo: proper documentation
 Example:
 
-val_2 = ValuationMap(QQ,2)
+val_2 = TropicalSemiringMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
 w = [0,0,0]
 I = ideal([x+2*y,y+2*z])
 groebner_basis(I,val_2,w)
 
 Kt,t = RationalFunctionField(QQ,"t")
-val_t = ValuationMap(Kt,t)
+val_t = TropicalSemiringMap(Kt,t)
 Ktx,(x,y,z) = PolynomialRing(Kt,3)
 w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
 groebner_basis(I,val_t,w,return_lead=true)
 =======#
 @doc Markdown.doc"""
-    groebner_basis(I::Ideal, val::ValuationMap, w::Vector; complete_reduction::Bool, return_lead)
+    groebner_basis(I::Ideal, val::TropicalSemiringMap, w::Vector; complete_reduction::Bool, return_lead)
 
 Compute a Groebner basis of `I` over a field with valuation `val` with respect
 to weight vector `w`, that is a finite generating set of `I` whose initial
@@ -70,7 +70,7 @@ what is computed is a regular Groebner basis with respect to a weighted
 ordering with weight vector `w`.
 
 """
-function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,Rational{Int}} }; complete_reduction::Bool=false, return_lead::Bool=false)
+function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Union{Int,Rational{Int}} }; complete_reduction::Bool=false, return_lead::Bool=false)
 
   ###
   # Step 1: Compute a standard basis in the simulation ring

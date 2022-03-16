@@ -12,7 +12,7 @@
                                     2*x2*x3-x0*x4+2*x1*x4+2*x2*x5])
     w = [0,0,0,0,0,0]
     @testset "val_2" begin
-        val_2 = ValuationMap(QQ,2)
+        val_2 = TropicalSemiringMap(QQ,2)
         @testset "Cyclic5Homogenized" begin
             computed = gens(initial(Cyclic5Homogenized, val_2, w))
             # Apparently the Groebner basis lives in a different ring, so we have
@@ -34,7 +34,7 @@
     end
 
     @testset "val_3" begin
-        val_3 = ValuationMap(QQ,3)
+        val_3 = TropicalSemiringMap(QQ,3)
         @testset "Cyclic5Homogenized" begin
             computed = gens(initial(Cyclic5Homogenized, val_3, w))
             # Apparently the Groebner basis lives in a different ring, so we have
@@ -59,7 +59,7 @@
         Ktx,(x0,x1,x2,x3,x4,x5) = PolynomialRing(Kt,6)
         Cyclic5Homogenized_Kt = ideal([change_coefficient_ring(Kt,f) for f in gens(Cyclic5Homogenized)])
         Katsura5Homogenized_Kt = ideal([change_coefficient_ring(Kt,f) for f in gens(Katsura5Homogenized)])
-        val_t = ValuationMap(Kt,t)
+        val_t = TropicalSemiringMap(Kt,t)
         @testset "Cyclic5Homogenized_Kt" begin
             computed = gens(initial(Cyclic5Homogenized_Kt, val_t, w))
             # Apparently the Groebner basis lives in a different ring, so we have

@@ -4,7 +4,7 @@
 ###
 
 @doc Markdown.doc"""
-    valued_weighted_degree(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
+    valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
 
 Return the valued weighted degree of a polynomial `f` with respect to valuation
 `val` and weight vector `w`. In other words, returns the tropicalized
@@ -17,9 +17,9 @@ weighted degree of the i-th term of `f`.
 ```jldoctest
 julia> Kxy, (x,y) = PolynomialRing(QQ,["x", "y"]);
 
-julia> val_2 = ValuationMap(QQ,2);
+julia> val_2 = TropicalSemiringMap(QQ,2);
 
-julia> val_trivial = ValuationMap(QQ);
+julia> val_trivial = TropicalSemiringMap(QQ);
 
 julia> w = [1,1];
 
@@ -36,7 +36,7 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 
 ```
 """
-function valued_weighted_degree(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
+function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
   # compute the weighted degrees shifted by the coefficient valuations
   vwds = [val(c)*tropical_semiring(val)(dot(w,alpha)) for (c,alpha) in zip(coefficients(f),exponent_vectors(f))]
 
@@ -69,7 +69,7 @@ export valued_weighted_degree
 
 # # not wrong, but not sure whether needed
 # function weighted_degree(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, w::Vector; return_vector::Bool=false)
-#   trivial_val = ValuationMap(coefficient_ring(f))
+#   trivial_val = TropicalSemiringMap(coefficient_ring(f))
 #   return valued_weighted_degree(f, trivial_val, w, return_vector=return_vector)
 # end
 # export weighted_degree
@@ -77,7 +77,7 @@ export valued_weighted_degree
 
 
 @doc Markdown.doc"""
-    initial(f::MPolyElem, val::ValuationMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; pertubation::Vector=[])
+    initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; pertubation::Vector=[])
 
 Return the initial form of `f` with respect to valuation `val` and weight `w`.
 If convention==min (default), it is computed in the min convention. If
@@ -92,9 +92,9 @@ julia> Kxy, (x,y) = PolynomialRing(QQ,["x", "y"]);
 
 julia> w = [1,1];
 
-julia> val_2 = ValuationMap(QQ,2);
+julia> val_2 = TropicalSemiringMap(QQ,2);
 
-julia> val_trivial = ValuationMap(QQ);
+julia> val_trivial = TropicalSemiringMap(QQ);
 
 julia> f = 2*x+2*y+1;
 
@@ -113,7 +113,7 @@ julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
 
 julia> f = t*x+t*y+1;
 
-julia> val_t = ValuationMap(Kt,t);
+julia> val_t = TropicalSemiringMap(Kt,t);
 
 julia> initial(f,val_t,w)       # polynomial over QQ
 1
@@ -127,13 +127,13 @@ julia> w = [1,1];
 
 julia> f = t*x+t*y+1;
 
-julia> val_t = ValuationMap(Kt,t);
+julia> val_t = TropicalSemiringMap(Kt,t);
 
 julia> initial(f,val_t,w)       # polynomial over QQ
 1
 ```
 """
-function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector=[])
+function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[])
   # compute the maximal weighted degrees
   # todo (optional):
   # currently, we iterate over the entire polynomial to compute the (terms with) maximal valuated weighted degrees
@@ -181,7 +181,7 @@ function initial(f::MPolyElem, val::ValuationMap, w::Vector; pertubation::Vector
 
   return finish(initialf)
 end
-function initial(G::Vector, val::ValuationMap, w::Vector; pertubation::Vector=[])
+function initial(G::Vector, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[])
   return [initial(g,val,w,pertubation=pertubation) for g in G]
 end
 export initial
@@ -190,7 +190,7 @@ export initial
 
 
 @doc Markdown.doc"""
-    initial(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
+    initial(I::MPolyIdeal, val::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
 
 Return the initial ideal of `I` with respect to valuation `val` and weight `w`.
 For the definition of initial ideal, see Section 2.4 of [MS15](@cite).
@@ -201,7 +201,7 @@ and weight vector are legal, i.e., if `I` is non-homogeneous, then `val` may
 only be trivial and `w` may only have non-negative entries.
 
 """
-function initial(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false)
+function initial(I::MPolyIdeal, val::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false)
   if !skip_groebner_basis_computation
     G = groebner_basis(I,val,w)
   else

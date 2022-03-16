@@ -157,7 +157,7 @@ function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement},M:
 end
 
 
-function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::ValuationMap, M::Union{typeof(min),typeof(max)}=min)
+function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::TropicalSemiringMap, M::Union{typeof(min),typeof(max)}=min)
     tropf = tropical_polynomial(f,val,M)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS

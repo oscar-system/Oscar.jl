@@ -53,7 +53,7 @@ function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M:
 
   return tropf
 end
-function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::ValuationMap)
+function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::TropicalSemiringMap)
   T = val.tropical_semiring
   Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)

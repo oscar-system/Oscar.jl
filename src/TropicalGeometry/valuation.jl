@@ -5,7 +5,7 @@
 
 @doc Markdown.doc"""
 
-    ValuationMap(K,p)
+    TropicalSemiringMap(K,p)
 
 A valuation map for computations in the tropical geometry package. Currently,
 the only supported valuations are:
@@ -15,7 +15,7 @@ the only supported valuations are:
 
 # Example for p-adic valuation on QQ
 ```jldoctest
-julia> val_2 = ValuationMap(QQ,2);
+julia> val_2 = TropicalSemiringMap(QQ,2);
 
 julia> val_2(4)
 (2)
@@ -27,7 +27,7 @@ julia> val_2(1//4)
 ```jldoctest
 julia> Kt,t = RationalFunctionField(QQ,"t");
 
-julia> val_t = ValuationMap(Kt,t);
+julia> val_t = TropicalSemiringMap(Kt,t);
 
 julia> val_t(t^2)
 (2)
@@ -37,7 +37,7 @@ julia> val_t(1//t^2)
 
 # Example for p-adic valuation on QQ
 ```jldoctest
-julia> val = ValuationMap(QQ);
+julia> val = TropicalSemiringMap(QQ);
 
 julia> val(4)
 (0)
@@ -45,7 +45,7 @@ julia> val(1//4)
 (0)
 ```
 """
-struct ValuationMap{typeofValuedField,typeofUniformizer}
+struct TropicalSemiringMap{typeofValuedField,typeofUniformizer}
   valued_field::typeofValuedField
   uniformizer_field::typeofUniformizer
   valued_ring
@@ -55,7 +55,7 @@ struct ValuationMap{typeofValuedField,typeofUniformizer}
   uniformizer_symbol
   tropical_semiring
 end
-export ValuationMap
+export TropicalSemiringMap
 
 
 ################################################################################
@@ -64,28 +64,28 @@ export ValuationMap
 #
 ################################################################################
 
-valued_field(val::ValuationMap) = val.valued_field
-uniformizer_field(val::ValuationMap) = val.uniformizer_field
-valued_ring(val::ValuationMap) = val.valued_ring
-uniformizer_ring(val::ValuationMap) = val.uniformizer_ring
-residue_field(val::ValuationMap) = val.residue_field
-residue_map(val::ValuationMap) = val.residue_map
-uniformizer_symbol(val::ValuationMap) = val.uniformizer_symbol
-tropical_semiring(val::ValuationMap) = val.tropical_semiring
-convention(val::ValuationMap) = convention(val.tropical_semiring)
+valued_field(val::TropicalSemiringMap) = val.valued_field
+uniformizer_field(val::TropicalSemiringMap) = val.uniformizer_field
+valued_ring(val::TropicalSemiringMap) = val.valued_ring
+uniformizer_ring(val::TropicalSemiringMap) = val.uniformizer_ring
+residue_field(val::TropicalSemiringMap) = val.residue_field
+residue_map(val::TropicalSemiringMap) = val.residue_map
+uniformizer_symbol(val::TropicalSemiringMap) = val.uniformizer_symbol
+tropical_semiring(val::TropicalSemiringMap) = val.tropical_semiring
+convention(val::TropicalSemiringMap) = convention(val.tropical_semiring)
 
 ###
 # trivial valuation
 ###
 
 # Constructor:
-function ValuationMap(K,M::Union{typeof(min),typeof(max)}=min)
+function TropicalSemiringMap(K,M::Union{typeof(min),typeof(max)}=min)
   residue_map(c) = return c
-  return ValuationMap{typeof(K),Nothing}(K,nothing,K,nothing,K,residue_map,nothing,tropical_semiring(M))
+  return TropicalSemiringMap{typeof(K),Nothing}(K,nothing,K,nothing,K,residue_map,nothing,tropical_semiring(M))
 end
 
 # Evaluation:
-function (val::ValuationMap{K,Nothing} where {K})(c)
+function (val::TropicalSemiringMap{K,Nothing} where {K})(c)
   if iszero(c)
     return inf(val.tropical_semiring)
   end
@@ -93,7 +93,7 @@ function (val::ValuationMap{K,Nothing} where {K})(c)
 end
 
 # Display:
-function Base.show(io::IO, val::ValuationMap{K,Nothing} where {K})
+function Base.show(io::IO, val::TropicalSemiringMap{K,Nothing} where {K})
     print(io, "The trivial valuation on $(val.valued_field)")
 end
 
@@ -103,18 +103,18 @@ end
 ###
 
 # Constructor:
-function ValuationMap(Q::FlintRationalField, p::fmpq, M::Union{typeof(min),typeof(max)}=min)
+function TropicalSemiringMap(Q::FlintRationalField, p::fmpq, M::Union{typeof(min),typeof(max)}=min)
   function residue_map(c)
     return FiniteField(ZZ(p))[1](ZZ(c))
   end
-  return ValuationMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p,tropical_semiring(M))
+  return TropicalSemiringMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p,tropical_semiring(M))
 end
 # for other types of `p` such as `Integer`
-ValuationMap(Q::FlintRationalField,p::fmpz,M::Union{typeof(min),typeof(max)}=min) = ValuationMap(Q,QQ(p),M)
-ValuationMap(Q::FlintRationalField,p::Int64,M::Union{typeof(min),typeof(max)}=min) = ValuationMap(Q,QQ(p),M)
+TropicalSemiringMap(Q::FlintRationalField,p::fmpz,M::Union{typeof(min),typeof(max)}=min) = TropicalSemiringMap(Q,QQ(p),M)
+TropicalSemiringMap(Q::FlintRationalField,p::Int64,M::Union{typeof(min),typeof(max)}=min) = TropicalSemiringMap(Q,QQ(p),M)
 
 # Evaluation:
-function (val::ValuationMap{FlintRationalField,fmpq})(c)
+function (val::TropicalSemiringMap{FlintRationalField,fmpq})(c)
   if iszero(c)
     return inf(val.tropical_semiring)
   end
@@ -125,7 +125,7 @@ function (val::ValuationMap{FlintRationalField,fmpq})(c)
 end
 
 # Display:
-function Base.show(io::IO, val::ValuationMap{FlintRationalField,fmpq})
+function Base.show(io::IO, val::TropicalSemiringMap{FlintRationalField,fmpq})
     print(io, "The $(val.uniformizer_field)-adic valuation on $(val.valued_field)")
 end
 
@@ -146,7 +146,7 @@ function t_adic_valuation(c::PolyElem)
 end
 
 # Constructor:
-function ValuationMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t::AbstractAlgebra.Generic.Rat,M::Union{typeof(min),typeof(max)}=min)
+function TropicalSemiringMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t::AbstractAlgebra.Generic.Rat,M::Union{typeof(min),typeof(max)}=min)
   function residue_map(c)
     valc = t_adic_valuation(c)
     if (valc<0)
@@ -155,11 +155,11 @@ function ValuationMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t::Abstr
     return base_ring(Kt)(evaluate(c,0))
   end
   Rt,_ = PolynomialRing(base_ring(Kt),symbols(Kt))
-  return ValuationMap{typeof(Kt),typeof(t)}(Kt,t,Rt,Rt(t),base_ring(Kt),residue_map,:t,tropical_semiring(M))
+  return TropicalSemiringMap{typeof(Kt),typeof(t)}(Kt,t,Rt,Rt(t),base_ring(Kt),residue_map,:t,tropical_semiring(M))
 end
 
 # Evaluation:
-function (val::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})(c)
+function (val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})(c)
   if iszero(c)
     return inf(val.tropical_semiring)
   end
@@ -169,7 +169,7 @@ function (val::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K},Abs
   return val.tropical_semiring(-t_adic_valuation(c))
 end
 # Display:
-function Base.show(io::IO, val::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})
+function Base.show(io::IO, val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})
     print(io, "The $(val.uniformizer_field)-adic valuation on $(val.valued_field)")
 end
 
@@ -180,19 +180,19 @@ end
 # ======================================================================================================
 ###
 
-function is_valuation_p_adic(val::ValuationMap)
+function is_valuation_p_adic(val::TropicalSemiringMap)
   return val.valued_field isa FlintRationalField && val.uniformizer_field isa fmpq
 end
 
-function is_valuation_t_adic(val::ValuationMap)
+function is_valuation_t_adic(val::TropicalSemiringMap)
   return val.valued_field isa AbstractAlgebra.Generic.RationalFunctionField && val.uniformizer_field isa AbstractAlgebra.Generic.Rat
 end
 
-function is_valuation_trivial(val::ValuationMap)
+function is_valuation_trivial(val::TropicalSemiringMap)
   return typeof(val.uniformizer_field)==Nothing
 end
 
-function is_valuation_nontrivial(val::ValuationMap)
+function is_valuation_nontrivial(val::TropicalSemiringMap)
   return typeof(val.uniformizer_field)!=Nothing
 end
 
@@ -220,20 +220,20 @@ returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bas
 correspond to standard bases of I w.r.t. (-1,w)
 Example:
 K,s = RationalFunctionField(QQ,"s")
-val_t = ValuationMap(K,s)
+val_t = TropicalSemiringMap(K,s)
 Kx,(x1,x2,x3) = PolynomialRing(K,3)
 I = ideal([x1+s*x2,x2+s*x3])
 simulate_valuation(I,val_t)
 
-val_2 = ValuationMap(QQ,2)
+val_2 = TropicalSemiringMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
 I = ideal([x+2*y,y+2*z])
 simulate_valuation(I,val_2)
 =======#
-function simulate_valuation(I::MPolyIdeal, val::ValuationMap)
+function simulate_valuation(I::MPolyIdeal, val::TropicalSemiringMap)
   return ideal(simulate_valuation(gens(I),val))
 end
-function simulate_valuation(G::Vector{<:MPolyElem}, val::ValuationMap)
+function simulate_valuation(G::Vector{<:MPolyElem}, val::TropicalSemiringMap)
 
   # if the valuation is trivial, then nothing needs to be done
   if is_valuation_trivial(val)
@@ -263,7 +263,7 @@ function simulate_valuation(G::Vector{<:MPolyElem}, val::ValuationMap)
 end
 export simulate_valuation
 
-function simulate_valuation(w::Vector, val::ValuationMap)
+function simulate_valuation(w::Vector, val::TropicalSemiringMap)
   # if the valuation is non-trivial, prepend -1 to the vector
   if !is_valuation_trivial(val)
     w = vcat([-1],w)
@@ -277,7 +277,7 @@ function simulate_valuation(w::Vector, val::ValuationMap)
   return sw
 end
 
-function simulate_valuation(w::Vector, u::Vector, val::ValuationMap)
+function simulate_valuation(w::Vector, u::Vector, val::TropicalSemiringMap)
   # if the valuation is non-trivial, prepend -1 to the vector
   if !is_valuation_trivial(val)
     w = vcat([-1],w)
@@ -300,29 +300,29 @@ functions which, given an ideal I in variables x1, ..., xn over a field with val
 returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bases of I w.r.t. w
 correspond to standard bases of I w.r.t. (-1,w)
 Example:
-val_2 = ValuationMap(QQ,2)
+val_2 = TropicalSemiringMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
 I = ideal([x+2*y,y+2*z])
 vvI = simulate_valuation(I,val_2)
 desimulate_valuation(vvI,val_2)
 
 Ks,s = RationalFunctionField(QQ,"s")
-val_s = ValuationMap(Ks,s)
+val_s = TropicalSemiringMap(Ks,s)
 Ksx,(x1,x2,x3) = PolynomialRing(Ks,3)
 I = ideal([x1+s*x2,x2+s*x3])
 vvI = simulate_valuation(I,val_s)
 desimulate_valuation(vvI,val_s)
 =======#
-function desimulate_valuation(vvI::MPolyIdeal,val::ValuationMap)
+function desimulate_valuation(vvI::MPolyIdeal,val::TropicalSemiringMap)
   return ideal([g for g in desimulate_valuation(gens(vvI),val) if !iszero(g)])
 end
 export desimulate_valuation
 
-function desimulate_valuation(vvG::Vector{<:MPolyElem}, val::ValuationMap)
+function desimulate_valuation(vvG::Vector{<:MPolyElem}, val::TropicalSemiringMap)
   return [desimulate_valuation(vvg,val) for vvg in vvG]
 end
 
-function desimulate_valuation(vvg::MPolyElem, val::ValuationMap)
+function desimulate_valuation(vvg::MPolyElem, val::TropicalSemiringMap)
   Rx = parent(vvg)
   R = coefficient_ring(Rx)
   x = copy(symbols(Rx))
@@ -345,7 +345,7 @@ function desimulate_valuation(vvg::MPolyElem, val::ValuationMap)
   return finish(g)
 end
 
-function desimulate_valuation(w::Vector,val::ValuationMap)
+function desimulate_valuation(w::Vector,val::TropicalSemiringMap)
   # if the valuation is non-trivial, scale the vector so that first entry is -1
   #   and then remove first entry
   if !is_valuation_trivial(val)
@@ -358,7 +358,7 @@ function desimulate_valuation(w::Vector,val::ValuationMap)
   return w
 end
 
-function desimulate_valuation(w::Vector, u::Vector, val::ValuationMap)
+function desimulate_valuation(w::Vector, u::Vector, val::TropicalSemiringMap)
   # if the valuation is non-trivial, scale the vector w so that first entry is -1
   #   and then remove first entry of both w and u
   if !is_valuation_trivial(val)
@@ -382,7 +382,7 @@ Given a polynomial f in t,x_1, ..., x_n simulating the valuation:
   * all terms of f' have distinct monomials in x
   * all terms of f' have valuation 0 coefficients
 Example:
-val_2 = ValuationMap(QQ,2)
+val_2 = TropicalSemiringMap(QQ,2)
 Rtx,(p,x1,x2,x3) = PolynomialRing(val_2.valued_ring,["p","x1","x2","x3"])
 f = x1+p*x1+p^2*x1+2^2*x2+p*x2+p^2*x2+x3
 tighten_simulation(f,val_2)
@@ -390,7 +390,7 @@ tighten_simulation(2^3*f,val_2)
 tighten_simulation(p^3*f,val_2)
 
 K,s = RationalFunctionField(QQ,"s")
-val_s = ValuationMap(K,s)
+val_s = TropicalSemiringMap(K,s)
 s = val_s.uniformizer_ring
 Rtx,(t,x1,x2,x3) = PolynomialRing(val_s.valued_ring,["t","x1","x2","x3"])
 f = x1+t*x1+t^2*x1+s^2*x2+t*x2+t^2*x2+x3
@@ -398,7 +398,7 @@ tighten_simulation(f,val_s)
 tighten_simulation(s^3*f,val_s)
 tighten_simulation(t^3*f,val_s)
 =======#
-function tighten_simulation(f::MPolyElem,val::ValuationMap)
+function tighten_simulation(f::MPolyElem,val::TropicalSemiringMap)
   @assert !iszero(f)
   # return f if f = p-t or t-p
   Rtx = parent(f)
@@ -432,7 +432,7 @@ end
 export tighten_simulation
 
 
-# function valuation_Int(val::ValuationMap, c)
+# function valuation_Int(val::TropicalSemiringMap, c)
 #   assert !iszero(c)
 #   vc = Int(ZZ(data(val(c))))
 #   if convention(valuation)==min
