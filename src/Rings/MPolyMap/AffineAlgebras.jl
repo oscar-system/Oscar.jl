@@ -20,57 +20,6 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 
 ################################################################################
 #
-# Legacy construct
-#
-################################################################################
-
-#@doc Markdown.doc"""
-#    AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-#    {T, S <: MPolyElem{T},
-#    U <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    W <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    X <: Union{S, MPolyQuoElem{S}}}
-#   
-#Create the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
-#Allow types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
-#Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
-#
-## Examples
-#```jldoctest
-#julia> D, (t,) = PolynomialRing(QQ, ["t"])
-#(Multivariate Polynomial Ring in t over Rational Field, fmpq_mpoly[t])
-#
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-#(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-#
-#julia> C, p = quo(R,  ideal(R, [x*y-1]))
-#(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1), Map from
-#Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1) defined by a julia-function with inverse)
-#
-#julia> V = [p(y)]
-#1-element Vector{MPolyQuoElem{fmpq_mpoly}}:
-# y
-#
-#julia> P = hom(D, C, V)
-#Algebra homomorphism with
-#
-#domain: Multivariate Polynomial Ring in t over Rational Field
-#
-#codomain: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1)
-#
-#defining images of generators: MPolyQuoElem{fmpq_mpoly}[y]
-#```
-#"""
-#function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-#    {T, S <: MPolyElem{T},
-#    U <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    W <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    X <: Union{S, MPolyQuoElem{S}}}
-#   return hom(D, C, copy(V))
-#end
-
-################################################################################
-#
 #  Singular data stuff
 #
 ################################################################################
@@ -123,7 +72,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isinjective(F::AlgHom)
+    isinjective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
@@ -157,6 +106,11 @@ end
 #
 ################################################################################
 
+@doc Markdown.doc"""
+    issurjective(F::AffAlgHom)
+
+Return `true` if `F` is issurjective, `false` otherwise.
+"""
 function issurjective(F::AffAlgHom)
   # Compute data necessary for computation
   r = domain(F)
@@ -181,6 +135,11 @@ end
 #
 ################################################################################
 
+@doc Markdown.doc"""
+    isbijective(F::AffAlgHom)
+
+Return `true` if `F` is bijective, `false` otherwise.
+"""
 function isbijective(F::AffAlgHom)
   return isinjective(F) && issurjective(F)
 end
@@ -192,7 +151,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isfinite(F::AlgHom)
+    isfinite(F::AffAlgHom)
 
 Return `true` if `F` is finite, `false` otherwise.
 """

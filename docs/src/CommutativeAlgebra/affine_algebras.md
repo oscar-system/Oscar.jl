@@ -213,11 +213,6 @@ refer to `R` and `S`, respectively.
        
 ### Data Associated to Homomorphisms of Affine Algebras
 
-```@docs
-preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
-kernel(F::AlgHom)
-```
-
 ###### Examples
 
 ```@repl oscar
@@ -246,10 +241,10 @@ steinerRomanSurface = preimage(F3, sphere)
 
 
 ```@docs
-isinjective(F::AlgHom)
-issurjective(F::AlgHom)
-isbijective(F::AlgHom)
-isfinite(F::AlgHom)
+isinjective(F::AffAlgHom)
+issurjective(F::AffAlgHom)
+isbijective(F::AffAlgHom)
+isfinite(F::AffAlgHom)
 ```
 
 ###### Examples
@@ -275,10 +270,6 @@ isfinite(hom(D, C, V))
 ```
 
 ### Composition of Homomorphisms of Affine Algebras
-
-```@docs
-compose(F::AlgHom{T}, G::AlgHom{T}) where T
-```
 
 ## Subalgebras
 

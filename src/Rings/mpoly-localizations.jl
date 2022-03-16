@@ -706,7 +706,7 @@ end
 # for preimages makes it necessary to extend all dispatch routines. 
 # It is not clear what is the best strategy for all this. 
 
-function preimage(f::Oscar.AlgHom, U::MST) where {MST<:AbsMPolyMultSet}
+function preimage(f::Oscar.AffAlgHom, U::MST) where {MST<:AbsMPolyMultSet}
   error("not implemented")
 end
 
@@ -1150,7 +1150,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
       push!(shift, zero(k))
     end
     lbpa.shift = shift
-    inv_shift_hom = AlgebraHomomorphism(R, R, [gen(R, i) - R(shift[i]) for i in (1:nvars(R))])
+    inv_shift_hom = hom(R, R, [gen(R, i) - R(shift[i]) for i in (1:nvars(R))])
     lbpa.oscar_gens = [ oscar_ring(y) for y in (inv_shift_hom.(R.([x for x in gens(singular_gens)])))]
     lbpa.is_groebner_basis=is_groebner_basis
     return lbpa
@@ -1207,7 +1207,7 @@ end
 
 function inv_shift_hom(lbpa::LocalizedBiPolyArray) 
   R = base_ring(oscar_ring(lbpa))
-  return AlgebraHomomorphism(R, R, [gen(R, i) - R(shift(lbpa)[i]) for i in (1:nvars(R))])
+  return hom(R, R, [gen(R, i) - R(shift(lbpa)[i]) for i in (1:nvars(R))])
 end
 
 function to_singular_side(

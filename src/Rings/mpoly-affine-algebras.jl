@@ -556,154 +556,6 @@ end
 
 ##############################################################################
 #
-# Properties of maps of affine algebras
-#
-##############################################################################
-
-@doc Markdown.doc"""
-    isinjective(F::AlgHom)
-
-Return `true` if `F` is injective, `false` otherwise.
-"""
-function isinjective(F::AlgHom)
-   G = gens(kernel(F))
-   for i in 1:length(G)
-      !iszero(G[i]) && return false
-   end
-   return true
-end
-
-# Helper function related to the computation of surjectivity, preimage etc.
-# Stores the necessary data in groebner_data, resp. groebner_data_lex
-function groebner_data(F::AlgHom, ord::Symbol)
-   r = domain(F)
-   s = codomain(F)
-   n = ngens(r)
-   m = ngens(s)
-
-   if ord == :lex
-         if !isdefined(F, :groebner_data_lex)
-            (S, I, W, _) = _ring_helper(s, zero(s), F.image)
-            # Build auxilliary objects
-            (T, inc, J) = _containement_helper(S, n, m, I, W, ord)
-            D = normal_form([gen(T, i) for i in 1:m], J)
-            A = [zero(r) for i in 1:m]
-            B = [gen(r, i) for i in 1:n]
-            pr = hom(T, r, vcat(A, B))
-            F.groebner_data_lex = (T, inc, pr, J, D)
-          end
-      return F.groebner_data_lex
-   else ##ord == :degrevlex
-         if !isdefined(F, :groebner_data)
-            (S, I, W, _) = _ring_helper(s, zero(s), F.image)
-            # Build auxilliary objects
-            (T, inc, J) = _containement_helper(S, n, m, I, W, ord)
-            D = normal_form([gen(T, i) for i in 1:m], J)
-            A = [zero(r) for i in 1:m]
-            B = [gen(r, i) for i in 1:n]
-            pr = hom(T, r, vcat(A, B))
-            F.groebner_data = (T, inc, pr, J, D)
-         end
-      return F.groebner_data
-   end
-end
-
-@doc Markdown.doc"""
-    issurjective(F::AlgHom)
-
-Return `true` if `F` is surjective, `false` otherwise.
-"""
-function issurjective(F::AlgHom)
-
-   # Compute data necessary for computation
-   r = domain(F)
-   s = codomain(F)
-   n = ngens(r)
-   m = ngens(s)
-   (T, _, _, _, D) = groebner_data(F, :degrevlex)
-
-   # Check if map is surjective
-
-   for i in 1:m
-      if !(leading_monomial(D[i]) < gen(T, m))
-         return false
-      end
-   end
-   return true
-end
-
-@doc Markdown.doc"""
-    isbijective(F::AlgHom)
-
-Return `true` if `F` is bijective, `false` otherwise.
-"""
-function isbijective(F::AlgHom)
-  return isinjective(F) && issurjective(F)
-end
-
-@doc Markdown.doc"""
-    isfinite(F::AlgHom)
-
-Return `true` if `F` is finite, `false` otherwise.
-"""
-function isfinite(F::AlgHom)
-  (T, _, _, J, _) = groebner_data(F, :lex)
-  G = collect(first(values(J.gb)))
-  # Find all elements with leading monomial which contains the 
-  # variables x_i.
-  s = codomain(F)
-  m = ngens(s)
-  L = leading_monomial.(G)
-
-  # Check if for all i, powers of x_i occur as leading monomials
-  N = Vector{Int}()
-  for i in 1:length(L)
-     exp = exponent_vector(L[i], 1)
-     f = findall(x->x!=0, exp) 
-     length(f) == 1 && f[1] <= m && union!(N, f)
-  end
-
-  return length(N) == m
-end
-
-##############################################################################
-#
-# Inverse of maps of affine algebras and preimages of elements
-#
-##############################################################################
-
-function inverse(F::AlgHom)
-   !isinjective(F) && error("Homomorphism is not injective")
-   !issurjective(F) && error("Homomorphism is not surjective")
-
-   # Compute inverse map via preimages of algebra generators
-   r = domain(F)
-   s = codomain(F)
-   n = ngens(r)
-   m = ngens(s)
-
-   (T, _, pr, _, D) = groebner_data(F, :degrevlex)
-   psi = hom(s, r, [pr(D[i]) for i in 1:m])
-   psi.kernel = ideal(s, [zero(s)])
-   return psi
-end
-
-function preimage(F::AlgHom, f::Union{MPolyElem, MPolyQuoElem})
-   @assert parent(f) == codomain(F)
-   r = domain(F)
-   s = codomain(F)
-   n = ngens(r)
-   m = ngens(s)
-
-   (S, _, _, g) = _ring_helper(s, f, [zero(s)])
-   (T, inc, pr, J, o) = groebner_data(F, :degrevlex)
-   D = normal_form([inc(g)], J)
-   !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
-   return (pr(D[1]), kernel(F))
-end
-
-##############################################################################
-#
 # Normalization
 #
 ##############################################################################
@@ -725,9 +577,9 @@ function _conv_normalize_data(A, l, br)
       newOR, _ = PolynomialRing(br, [string(x) for x in gens(newSR)])
       newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
       newgens = newOR.(gens(l[1][i][2][:normap]))
-      hom = AlgebraHomomorphism(A, newA, newA.(newgens))
+      _hom = hom(A, newA, newA.(newgens))
       idgens = A.R.(gens(l[2][i]))
-      (newA, hom, (A(idgens[end]), ideal(A, idgens)))
+      (newA, _hom, (A(idgens[end]), ideal(A, idgens)))
     end
     for i in 1:length(l[1])]
 end
@@ -787,13 +639,13 @@ julia> LL[1][1]
 Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][2]
-Algebra homomorphism with
-
-domain: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
-
-codomain: Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
-
-defining images of generators: MPolyQuoElem{fmpq_mpoly}[x, y]
+Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^5 - x^3*y^3 + x^3*y^2 - x*y^5)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in T(1), x, y over Rational Field by ideal(-T(1)*y + x, -T(1)*x + y^2, T(1)^2 - y, -x^2 + y^3)
 
 julia> LL[1][3]
 (y, ideal(x, y))
@@ -857,14 +709,13 @@ julia> A, _ = quo(R, ideal(R, [z^3-x*y^4]))
 Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y^4 + z^3) defined by a julia-function with inverse)
 
 julia> L = normalization_with_delta(A)
-(Tuple{MPolyQuo{fmpq_mpoly}, AlgHom{fmpq}, Tuple{MPolyQuoElem{fmpq_mpoly}, MPolyQuoIdeal{fmpq_mpoly}}}[(Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Field by ideal(T(1)*y - T(2)*z, T(2)*y - z, -T(1)*z + x*y^2, T(1)^2 - x*z, T(1)*T(2) - x*y, -T(1) + T(2)^2, x*y^4 - z^3), Algebra homomorphism with
-
-domain: Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y^4 + z^3)
-
-codomain: Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Field by ideal(T(1)*y - T(2)*z, T(2)*y - z, -T(1)*z + x*y^2, T(1)^2 - x*z, T(1)*T(2) - x*y, -T(1) + T(2)^2, x*y^4 - z^3)
-
-defining images of generators: MPolyQuoElem{fmpq_mpoly}[x, y, z]
-, (z^2, ideal(x*y^2*z, x*y^3, z^2)))], [-1], -1)
+(Tuple{MPolyQuo{fmpq_mpoly}, Oscar.MPolyAnyMap{MPolyQuo{fmpq_mpoly}, MPolyQuo{fmpq_mpoly}, Nothing, MPolyQuoElem{fmpq_mpoly}}, Tuple{MPolyQuoElem{fmpq_mpoly}, MPolyQuoIdeal{fmpq_mpoly}}}[(Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Field by ideal(T(1)*y - T(2)*z, T(2)*y - z, -T(1)*z + x*y^2, T(1)^2 - x*z, T(1)*T(2) - x*y, -T(1) + T(2)^2, x*y^4 - z^3), Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y^4 + z^3)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Field by ideal(T(1)*y - T(2)*z, T(2)*y - z, -T(1)*z + x*y^2, T(1)^2 - x*z, T(1)*T(2) - x*y, -T(1) + T(2)^2, x*y^4 - z^3), (z^2, ideal(x*y^2*z, x*y^3, z^2)))], [-1], -1)
 ```
 """
 function normalization_with_delta(A::MPolyQuo; alg=:equidimDec)
@@ -918,11 +769,11 @@ function noether_normalization(A::MPolyQuo)
  mi = inv(m)
  ###mi_arr = [collect(matrix([gens(R)])*map_entries(R, mi))[i] for i in 1:ngens(R)]
  mi_arr = [collect(map_entries(R, mi)*gens(R))[i] for i in 1:ngens(R)]
- h = AlgebraHomomorphism(R, R, i1)
+ h = hom(R, R, i1)
  V = map(x->h(x), gens(I))
  B, _ = quo(R, ideal(R, V))
- h1 = AlgebraHomomorphism(A, B, map(B, i1))
- h2 = AlgebraHomomorphism(B, A, map(A, mi_arr))
+ h1 = hom(A, B, map(B, i1))
+ h2 = hom(B, A, map(A, mi_arr))
  return map(x->h2(B(x)), i2), h1, h2
 end
 
