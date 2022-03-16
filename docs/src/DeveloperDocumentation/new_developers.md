@@ -53,9 +53,9 @@ the following six steps for submitting changes to the Oscar source:
 ## Alternative: `]dev Oscar`
 
 Alternatively you can call
-   ```
-   ]dev Oscar
-   ```
+```
+]dev Oscar
+```
 in Julia. This will create a directory `~/.julia/dev/Oscar`. This directory is
 a git clone of the central Oscar repository. You can develope your code here,
 however you will still have to fork Oscar, as you have no rights to push to the
@@ -78,8 +78,8 @@ There are two places where documentation can be added:
 
 In general, 1 is preferred to 2, i.e. any explanation of the functions and
 objects should go there and the files in `docs/src` should remain relatively
-sparse. Please also pay attention to the documentation section of [our style
-guide](@ref styleguide).
+sparse. Please also pay attention to the documentation section of the
+[Developer Style Guide](@ref).
 
 
 ## Further hints
