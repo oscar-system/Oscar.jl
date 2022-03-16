@@ -87,6 +87,14 @@
   @test f in U
   @test (f*(x-1) in U)
   @test !(f*x in U)
+
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  o = degrevlex([x, y])*negdegrevlex([z])
+  S = Localization(R, o)
+  @test z + 1 in inverted_set(S)
+  @test !(x + 1 in inverted_set(S))
+  I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
+  @test collect(groebner_basis(I)) == [ S(x + y + z), S(-x*z + 2*y^2 + y*z + z^3) ]
 end
 
 @testset "mpoly-localizations PowersOfElements" begin
