@@ -1340,8 +1340,6 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         G = intersect(G, ar)[1]
       else
         let ar = ar 
-          order(ar)
-          @show ar
           push!(F, x->!issubgroup(ar, x)[1])
         end
       end
@@ -1356,8 +1354,6 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         G = intersect(G, cr)[1]
       else
         let cr = cr
-          order(cr)
-          @show cr
           push!(F, x->!issubgroup(cr, x)[1])
         end
       end
