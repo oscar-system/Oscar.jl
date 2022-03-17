@@ -2,6 +2,7 @@
 
 export tropical_semiring,
        @tropical,
+       convention,
        det
 
 # using Reexport
@@ -171,10 +172,29 @@ isinf(x::TropicalSemiringElem) = x.isinf
 
 Oscar.parent(x::TropicalSemiringElem{T}) where T = TropicalSemiring{T}()
 
-# get the underlyling min/max convention
+@doc Markdown.doc"""
+    convention(T::TropicalSemiring)
+
+Returns `min` if `T` is the min tropical semiring,
+returns `max` if `T` is the max tropical semiring.
+
+# Examples
+```jldoctest
+julia> T = tropical_semiring(min)
+Tropical semiring (min)
+
+julia> convention(T)
+min (generic function with 12 methods)
+
+julia> T = tropical_semiring(max)
+Tropical semiring (max)
+
+julia> convention(T)
+max (generic function with 14 methods)
+```
+"""
 convention(x::TropicalSemiring{typeof(min)}) = min
 convention(x::TropicalSemiring{typeof(max)}) = max
-export convention
 
 ################################################################################
 #
