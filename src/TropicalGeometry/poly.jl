@@ -5,7 +5,7 @@
 export tropical_polynomial
 
 @doc Markdown.doc"""
-    tropical_polynomial(f::AbstractAlgebra.Generic.MPoly,M::Union{typeof(min),typeof(max)}=min)
+    tropical_polynomial(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
 
 Given a polynomial `f` over a field with an intrinsic valuation (e.g., `PadicField(7,2)`),
 returns the tropicalization of `f` as a polynomial over the min tropical semiring
@@ -29,7 +29,7 @@ julia> tropical_polynomial(f,max)
 (-1)*x + y + (-2)
 ```
 """
-function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)}=min)
+function tropical_polynomial(f::MPolyElem, M::Union{typeof(min),typeof(max)}=min)
   T = tropical_semiring(M)
   if M==min
     s=1
