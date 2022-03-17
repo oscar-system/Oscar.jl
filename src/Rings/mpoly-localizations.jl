@@ -1752,10 +1752,10 @@ function groebner_basis(
   if haskey(D, ordering)
     return D[ordering]
   end
-  # if not, set up a LocalizedBiPolyArray
-  lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering.o)
   # Check whether this ordering is admissible
-  !Singular.has_local_ordering(singular_poly_ring(lbpa)) && error("The ordering has to be a local ordering.")
+  !islocal(ordering) && error("The ordering has to be a local ordering.")
+  # set up a LocalizedBiPolyArray
+  lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering.o)
   # compute the standard basis and cache the result.
   # No saturation is necessary in this case. 
   D[ordering] = _compute_standard_basis(lbpa, ordering)
@@ -1806,6 +1806,8 @@ function groebner_basis(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyLeadingM
   if haskey(D, ordering)
     return D[ordering]
   end
+
+  Orderings._global_and_local_vars(ordering) != Orderings._global_and_local_vars(default_ordering(I)) && error("The localization does not correspond to the given ordering")
 
   W = base_ring(I)
   lbpa = LocalizedBiPolyArray(W, gens(I), default_shift(W), ordering.o)
