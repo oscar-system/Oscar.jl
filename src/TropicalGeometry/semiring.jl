@@ -61,8 +61,8 @@ Oscar.parent_type(::Type{TropicalSemiringElem{T}}) where {T} = TropicalSemiring{
 
 The tropical semiring with min (default) or max.
 
-**Warning:** There is no substraction in the tropical semiring.
-Any substraction of two tropical numbers will yield an error.
+!!! warning
+    There is no substraction in the tropical semiring. Any substraction of two tropical numbers will yield an error.
 
 # Examples
 Basic arithmetics with tropical numbers:
