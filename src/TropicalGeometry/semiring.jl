@@ -2,8 +2,7 @@
 
 export tropical_semiring,
        @tropical,
-       det,
-       permanent
+       det
 
 # using Reexport
 
@@ -325,7 +324,7 @@ end
 
 ################################################################################
 #
-#  Permanent
+#  Determinant
 #
 ################################################################################
 
@@ -343,10 +342,6 @@ function det(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{
     res = res + o
   end
   return res
-end
-
-function permanent(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{T}}) where {T}
-  return det(x)
 end
 
 ################################################################################
