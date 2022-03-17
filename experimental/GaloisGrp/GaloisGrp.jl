@@ -1340,6 +1340,8 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         G = intersect(G, ar)[1]
       else
         let ar = ar 
+          order(ar)
+          @show ar
           push!(F, x->!issubgroup(ar, x)[1])
         end
       end
@@ -1354,6 +1356,8 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         G = intersect(G, cr)[1]
       else
         let cr = cr
+          order(cr)
+          @show cr
           push!(F, x->!issubgroup(cr, x)[1])
         end
       end
@@ -1439,7 +1443,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
         end
       end
     end
-    if length(ps) > degree(f)
+    if length(ps) > 2*degree(f)
       break
     end
   end
@@ -1462,6 +1466,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   return p_best, ct
 end
 
+#=
 struct CycleType
   s::Vector{Int}
 end
@@ -1480,6 +1485,8 @@ end
 function order(c::CycleType)
   return reduce(lcm, map(fmpz, s.c), init = fmpz(1))
 end
+
+=#
 
 #given cycle types, try to find a divisor (large) of the transitive
 #group. Used for sieving.
