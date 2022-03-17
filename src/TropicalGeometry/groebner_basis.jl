@@ -62,11 +62,11 @@ forms generate the initial ideal with respect to `w`.
 For the definitions of initial form, initial ideal and Groebner basis see
 Section 2.4 of [MS15](@cite).
 
-# Warning
-`I` must be homogeneous if `val` is non-trivial or `w` contains non-positive
-entries. If `val` is trivla and `w` contains only non-negative entries, then
-what is computed is a regular Groebner basis with respect to a weighted
-ordering with weight vector `w`.
+!!! warning
+    `I` must be homogeneous if `val` is non-trivial or `w` contains
+    non-positive entries. If `val` is trivla and `w` contains only non-negative
+    entries, then what is computed is a regular Groebner basis with respect to
+    a weighted ordering with weight vector `w`.
 
 """
 function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Union{Int,Rational{Int}} }; complete_reduction::Bool=false, return_lead::Bool=false)
