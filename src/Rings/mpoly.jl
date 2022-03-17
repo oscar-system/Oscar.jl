@@ -370,6 +370,7 @@ function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
+# convert only a basic block of an ordering
 function singular(o::Orderings.GenOrdering)
   v = o.vars
   @assert minimum(v)+length(v) == maximum(v)+1
@@ -402,6 +403,7 @@ function singular(o::Orderings.GenOrdering)
   end
 end
 
+# converts only a basic block of an ordering
 function singular(o::Orderings.ModOrdering)
    v = o.gens
    if o.ord == :lex
@@ -413,7 +415,8 @@ function singular(o::Orderings.ModOrdering)
    end
 end
 
-function singular_poly_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
+# convert a whole ordering, which may be a product
+function singular(ord::Orderings.AbsOrdering)
   #test if it can be mapped directly to singular:
   # - consecutive, non-overlapping variables
   # - covering everything
@@ -439,10 +442,17 @@ function singular_poly_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where 
   else
     o = Singular.ordering_M(Orderings.simplify_weight_matrix(ord))
   end
+  return o
+end
 
+# MonomialOrdering{T} and ModuleOrdering{T} are the user-facing types
+singular(ord::MonomialOrdering) = singular(ord.o)
+singular(ord::ModuleOrdering) = singular(ord.o)
+
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
   return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
-              ordering = o,
+              ordering = singular(ord),
               cached = false)[1]
 end
 

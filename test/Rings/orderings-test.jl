@@ -137,3 +137,27 @@ end
    o = negdegrevlex(gens(R))
    @test collect(monomials(f, o)) == M
  end
+
+@testset "Polynomial Ordering internal conversion to Singular" begin
+   R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
+
+   O1 = degrevlex(gens(R))
+   @test string(singular(O1)) == "ordering_dp(5)"
+
+   O2 = lex([x, y])*deglex([s, t, u])
+   @test string(singular(O2)) == "ordering_lp(2) * ordering_Dp(3)"
+
+   O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+   @test string(singular(O3)) == "ordering_Wp([2, 3, 5, 7, 3])"
+
+   O4 = deglex([x, y, t]) * deglex([y, s, u])
+   @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
+
+   K = FreeModule(R, 3)
+
+   O5 = revlex(gens(K))*degrevlex(gens(R))
+   @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
+
+   O6 = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4])) * lex(gens(K)) * wdeglex([s, t, u], [1, 2, 3])
+   @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
+end
