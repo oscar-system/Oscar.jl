@@ -118,6 +118,8 @@ julia> A*A
  (0)  ∞
  ∞    (0)
 
+julia> det(A)
+(0)
 ```
 """
 tropical_semiring() = TropicalSemiring{typeof(min)}()
