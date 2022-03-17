@@ -65,10 +65,10 @@ Return the tropical hypersurface defined by a tropical polynomial.
 # Examples
 ```jldoctest
 julia> T = tropical_semiring(min)
-Tropical ring (min)
+Tropical semiring (min)
 
 julia> Txy,(x,y) = T["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
+(Multivariate Polynomial Ring in x, y over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 julia> f = x+y+1
 x + y + (1)

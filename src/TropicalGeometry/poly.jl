@@ -64,7 +64,7 @@ returns the tropicalization of `f` as a polynomial over the tropical semiring.
 # Examples
 ```jldoctest
 julia> R, (x,y) = PolynomialRing(QQ,["x", "y"])
-(Multivariate Polynomial Ring in x, y over Field of 7-adic numbers, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> val = TropicalSemiringMap(QQ,7)
 The 7-adic valuation on Rational Field

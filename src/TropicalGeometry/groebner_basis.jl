@@ -56,12 +56,19 @@ Section 2.4 of [MS15](@cite).
 julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
 
 julia> I = ideal([x^3-5*x^2*y,3*y^3-2*x^2*y])
+ideal(x^3 - 5*x^2*y, -2*x^2*y + 3*y^3)
 
 julia> val_2 = TropicalSemiringMap(QQ,2);
 
 julia> w = [0,0];
 
 julia> groebner_basis(I,val_2,w)
+5-element Vector{fmpq_mpoly}:
+ 2*x^2*y - 3*y^3
+ x^3 - 5*x^2*y
+ x*y^3 - 5*y^4
+ y^5
+ x^2*y^3 + 69*y^5
 ```
 """
 function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Union{Int,Rational{Int}} }; complete_reduction::Bool=false, return_lead::Bool=false)

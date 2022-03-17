@@ -33,10 +33,10 @@ Intersect two tropical varieties.
 # Examples
 ```jldoctest
 julia> RR = tropical_semiring(min)
-Tropical ring (min)
+Tropical semiring (min)
 
 julia> S,(x,y) = RR["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
+(Multivariate Polynomial Ring in x, y over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
 
 julia> f1 = x+y+1
 x + y + (1)

@@ -35,9 +35,9 @@ julia> val_2(1//4)
 julia> val_2 = TropicalSemiringMap(QQ,2,max);
 
 julia> val_2(4)
-(2)
-julia> val_2(1//4)
 (-2)
+julia> val_2(1//4)
+(2)
 ```
 
 # Example for t-adic valuation on QQ(t)
@@ -61,7 +61,7 @@ julia> val(4)
 julia> val(1//4)
 (0)
 julia> val(0)
-(0)
+∞
 ```
 """
 struct TropicalSemiringMap{typeofValuedField,typeofUniformizer}
