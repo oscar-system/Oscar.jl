@@ -25,12 +25,15 @@ function _is_homogeneous(f::MPolyElem)
   return true
 end
 
-function has_homogeneous_generators(I::MPolyIdeal{K} where {K})
-  # todo: test whether generators are interreduced
-
+#=======
+returns true if I has homogeneous generators,
+returns false otherwise
+=======#
+function _has_homogeneous_generators(I::MPolyIdeal{K} where {K})
+  # todo: replace with function that properly tests whether ideal is homogeneous
+  #   this requires interreduction which is not available in Oscar yet
   return all(_is_homogeneous, gens(I))
 end
-export has_homogeneous_generators
 
 
 
