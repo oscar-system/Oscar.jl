@@ -1,4 +1,4 @@
-export singular_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
+export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!
 export issubset
 ##############################################################################
@@ -10,7 +10,7 @@ export issubset
 @attributes mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
-  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_ring()
+  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_poly_ring()
 
   function MPolyQuo(R, I) where S
     @assert base_ring(I) === R
@@ -79,7 +79,7 @@ mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   dim::Int
 
   function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
-    singular_ring(Ox) == base_ring(si) || error("base rings must match")
+    singular_poly_ring(Ox) == base_ring(si) || error("base rings must match")
     r = new{T}()
     r.base_ring = Ox
     r.SI = si
@@ -133,7 +133,7 @@ end
 
 function singular_assure(a::MPolyQuoIdeal)
   isdefined(a, :SI) && return
-  sa = singular_ring(base_ring(a))
+  sa = singular_poly_ring(base_ring(a))
   a.SI = Singular.Ideal(sa, sa.(gens(a.I)))
 end
 
@@ -355,7 +355,7 @@ end
 
 ##################################################################
 
-function singular_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
+function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
     groebner_assure(Rx.I, ordering)
     singular_assure(Rx.I.gb[ordering], ordering)
@@ -452,7 +452,7 @@ function simplify(a::MPolyQuoIdeal)
    oscar_assure(a)
    singular_assure(a.I)
    red  = reduce(a.I.gens.S, GJ.S)
-   SR   = singular_ring(R)
+   SR   = singular_poly_ring(R)
    si   = Singular.Ideal(SR, gens(red))
    red  = MPolyQuoIdeal(R, si)
    return red
@@ -467,7 +467,7 @@ function simplify!(a::MPolyQuoIdeal)
     oscar_assure(a)
     singular_assure(a.I)
     red  = reduce(a.I.gens.S, GJ.S)
-    SR   = singular_ring(R)
+    SR   = singular_poly_ring(R)
     a.SI = Singular.Ideal(SR, gens(red))
     a.I  = ideal(RI, RI.(gens(a.SI)))
     return a
@@ -709,13 +709,13 @@ function (Q::MPolyQuo)(a::MPolyElem)
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
-   @assert singular_ring(Q) == parent(a)
+   @assert singular_poly_ring(Q) == parent(a)
    return MPolyQuoElem(Q.R(a), Q)
 end
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
-   @assert singular_ring(Q) == S
+   @assert singular_poly_ring(Q) == S
    return S(a.f)
 end
 

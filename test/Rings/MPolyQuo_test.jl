@@ -75,7 +75,8 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify!(I)
-  @test I.SI[1] == singular_ring(Q)(-x+y) && I.SI[2] == singular_ring(Q)(y+1)
+  SQ = singular_poly_ring(Q)
+  @test I.SI[1] == SQ(-x+y) && I.SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false

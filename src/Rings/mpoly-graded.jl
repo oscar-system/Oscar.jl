@@ -752,8 +752,8 @@ exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = exponent_vector(a
 exponent(a::MPolyElem_dec, i::Int, j::Int) = exponent(a.f, i, j)
 exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i, j, T)
 
-function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
-  return singular_ring(R.R, keep_ordering = keep_ordering)
+function singular_poly_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
+  return singular_poly_ring(R.R, keep_ordering = keep_ordering)
 end
 
 MPolyCoeffs(f::MPolyElem_dec) = MPolyCoeffs(f.f)

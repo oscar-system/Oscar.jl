@@ -140,7 +140,7 @@ function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrderin
    if !isdefined(B, :ordering)
       singular_assure(B, ordering)
    elseif ordering != B.ordering
-     R = singular_ring(B.Ox, ordering)
+     R = singular_poly_ring(B.Ox, ordering)
      i = Singular.Ideal(R, [R(x) for x = B])
      i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
      return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
@@ -284,7 +284,7 @@ julia> groebner_basis(J)
  b + c - 1
  a*c - 2*a + c
 
-julia> SR = singular_ring(base_ring(J))
+julia> SR = singular_poly_ring(base_ring(J))
 Singular Polynomial Ring (QQ),(a,b,c),(dp(3),C)
 
 julia> I = Singular.Ideal(SR,[SR(-1+c+b+a^3),SR(-1+b+c*a+2*a^3),SR(5+c*b+c^2*a)])

@@ -18,7 +18,7 @@ struct IdAlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
 
    function IdAlgHom{T}(R::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
       V = gens(R)
-      Sx = Oscar.singular_ring(R)
+      Sx = Oscar.singular_poly_ring(R)
       ty = typeof(base_ring(Sx))
       z = new(R, V, Singular.IdentityAlgebraHomomorphism(Sx), ideal(R, [zero(R)]))
       return z
@@ -112,8 +112,8 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
          all(ishomogeneous, V) || error("Array needs to contain homogeneous elements")
       end
 
-      Dx = singular_ring(D)
-      Cx = singular_ring(C)
+      Dx = singular_poly_ring(D)
+      Cx = singular_poly_ring(C)
       
       z = new(D, C, V, MapFromFunc(x->evaluate(x, V), D, C), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
       return z
@@ -127,8 +127,8 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
          all(ishomogeneous, V) || error("Array needs to contain homogeneous elements")
       end
 
-      Dx = singular_ring(D)
-      Cx = singular_ring(C)
+      Dx = singular_poly_ring(D)
+      Cx = singular_poly_ring(C)
       z = new(D, C, V, MapFromFunc(x->evaluate(x, V), base_ring(D), C), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
       return z
    end
@@ -141,8 +141,8 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
          all(ishomogeneous, V) || error("Array needs to contain homogeneous elements")
       end
 
-      Dx = singular_ring(D)
-      Cx = singular_ring(C)
+      Dx = singular_poly_ring(D)
+      Cx = singular_poly_ring(C)
       z = new(D, C, V, MapFromFunc(x->evaluate(x, V), D.R, C), Singular.AlgebraHomomorphism(Dx, Cx, Cx.(V)))
       return z
    end
