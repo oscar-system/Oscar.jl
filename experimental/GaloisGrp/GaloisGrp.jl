@@ -1159,6 +1159,24 @@ function sum_orbits(K, Qt_to_G, r)
   return O
 end
 
+"""
+Given 2 normal subgroups of index 2, there is a 3 index 2 subgroup
+automatically, given that the quotient ov G by the intersection
+is a V_4 group.
+
+This computes (in a dumb way) the 3rd group
+"""
+function index2sum(G::PermGroup, H::PermGroup, V::PermGroup)
+  global last_meet = (G, H, V)
+  @assert index(G, H) == index(G, V) == 2
+  U = intersect(H, V)[1]
+  @assert index(G, U) == 4
+  t = right_transversal(G, U)
+  s = [x for x = t if !(x in H || x in V)]
+  @assert length(s) == 1
+  return sub(G, vcat(gens(U), s))[1]
+end
+
 @doc Markdown.doc"""
     starting_group(GC::GaloisCtx, K::AnticNumberField) 
 
@@ -1188,6 +1206,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
   #compute the block system for all subfields...
   bs = Vector{Vector{Int}}[]
+  fld = Dict{Vector{Vector{Int}}, AnticNumberField}()
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
       continue
@@ -1217,8 +1236,22 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         break
       end
     end
+    #each subfield defines a block system, each block system results in
+    #a wreath product representing the largest subgroup of Sn with this
+    #block system: Sl wr Sk
+    #However, this wreath prodct has automatically 3 maximal subgroups
+    #of index 2 (Eichenlaub Prop 3, p 28 or Geissler Satz 6.8).
+    # - Sl wr Ak: possible iff disc(subfield) is a square, so
+    #   we can test this and then reduce the starting group 
+    #      or
+    #   add this as an exclusion: we don't need to test subgroups of this
+    #   any more
+    # - one of them should be (Sl wr Sk) meet A(lk))
+    #   disc(K) is a square
+    # - see below in starting_group
     sort!(v, lt = (x,y) -> minimum(x) < minimum(y))
     push!(bs, v)
+    fld[v] = s
   end
 
   F = GroupFilter()
@@ -1244,23 +1277,92 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
   if degree(K) == 1
     return G, F, one(G)
   end
-
   S = G
-  for b = bs
-    W = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
-    s = S(vcat(b...))
-    # W^s is largest group having "b" as a block system
-    # courtesy of Max...
-    G = intersect(G, W^s)[1]
-  end
+
+  in_br = false
 
   if issquare(discriminant(K))
     G = intersect(G, alternating_group(degree(K)))[1]
-    push!(F, iseven)
+    in_br = true
   else
     push!(F, isodd)
   end
 
+  for b = bs
+    #each block system b corresponds to a subfield and induces an upper
+    #limit of i
+    #  G =  Sym(k) wr Sym(l) 
+    #on the Galois group
+    #This wreath product has always (at least) 3 index 2 subgroups:
+    #  G meet Alt(k*l) 
+    #  Sym(k) wr Alt(l)
+    #  index2sum of the above
+    #We are a subgroup of the 1st iff disc(K) is a square (in_br = true)
+    #                         2nd iff disc(k) is a square (in_ar = true)
+    #                         3rd iff disc(k)*disc(K) is a square
+    #This is used in both directions
+    # - in an intersection to limit the starting group (upper bound)
+    #   (true case)
+    # - in the filter to avoid unneccessary tests
+    #   (false case)
+    # disc(k) is up to an unknown Tschirnhaus transformation exactly the
+    # D(y_1, .. y_k) invar in Geisser/Eichenlaub (case 2)
+    # and the product then is one for the 3rd case.
+    s = S(vcat(b...))
+
+    wr = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
+    br = intersect(wr, alternating_group(degree(K)))[1]
+    wr = wr^s
+    br = br^s
+
+    G = intersect(G, wr)[1]
+
+    can_use_wr = length(b) > 2
+    #for length(b) == 2, the bottom field is quadratic and thus always S2
+    #the wreath product would not be transitive here
+    if can_use_wr
+      ar = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), alternating_group(length(b))))[1]
+      ar = ar^s
+      cr = index2sum(wr, ar, br)
+    end
+
+
+    in_ar = false
+    if issquare(discriminant(fld[b]))
+      in_ar = true
+    end
+    #in_ar == true iff galois <= ar
+    #in_br == true iff galois <= br
+    in_cr = issquare(discriminant(K)*discriminant(fld[b]))
+
+    if can_use_wr
+      if in_ar 
+        G = intersect(G, ar)[1]
+      else
+        let ar = ar 
+          order(ar)
+          @show ar
+          push!(F, x->!issubgroup(ar, x)[1])
+        end
+      end
+    end
+    if in_br
+      #G = intersect(G, br)[1] #already done above
+    else
+      #push!(F, x->!issubgroup(br, x)[1]) #already done above
+    end
+    if can_use_wr
+      if in_cr
+        G = intersect(G, cr)[1]
+      else
+        let cr = cr
+          order(cr)
+          @show cr
+          push!(F, x->!issubgroup(cr, x)[1])
+        end
+      end
+    end
+  end
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
@@ -1341,7 +1443,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
         end
       end
     end
-    if length(ps) > degree(f)
+    if length(ps) > 2*degree(f)
       break
     end
   end
@@ -1363,6 +1465,28 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   @vprint :GaloisGroup 2 "and cycle types $ct\n"
   return p_best, ct
 end
+
+#=
+struct CycleType
+  s::Vector{Int}
+end
+
+function ^(c::CycleType, e::Int)
+  t = Int[]
+  for i = c.s
+    g = gcd(i, e)
+    for j=1:g
+      push!(t, divexact(i, g))
+    end
+  end
+  return CycleType(sort(t))
+end
+
+function order(c::CycleType)
+  return reduce(lcm, map(fmpz, s.c), init = fmpz(1))
+end
+
+=#
 
 #given cycle types, try to find a divisor (large) of the transitive
 #group. Used for sieving.
@@ -1389,10 +1513,13 @@ function order_from_shape(ct, n)
       sort!(l)
       #we divide by the min <=> cycle type of power by min
       #this is min expo to get a fixed point.
+      ll = Int[]
       for i=1:length(l)
-        l[i] = divexact(l[i], l[1])
+        for j=1:l[1]
+          push!(ll, divexact(l[i], l[1]))
+        end
       end
-      push!(ct_pp, l)
+      push!(ct_pp, ll)
     end
     # Now everything has a fixed point, so we can bound the
     # size of Stab_G(1) from below (we're transitive, so the fixed point
@@ -1402,7 +1529,8 @@ function order_from_shape(ct, n)
     mu = [(y[end], sum(x for x = y if x == y[end])) for y = ct_pp]
     sort!(mu, lt = (a,b) -> a[1] < b[1])
     if length(mu) == 1
-       o *= p^maximum(maximum(valuation(x, p) for x = y) for y = ct_p)
+      p_part = mu[1][1]
+      o1 *= p_part
     else
       p_part = maximum([x[1]*y[1] for x = mu for y = mu if x[2] != y[2]], init = maximum(x[1] for x = mu))
       o1 *= p_part
@@ -1425,7 +1553,7 @@ end
 function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
   n <= 3 && return true
 
-  ub = n > 8 ? n-3 : n-1
+  ub = n > 8 ? n-3 : n-2
   lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))))
 
   if any(x->any(y ->gcd(y, lp) > 1, x), ct)
@@ -1475,7 +1603,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
   if an_sn_by_shape(ct, degree(K))
-    @vprint :GaloisGroup 1 "An/Sn by cycloe type\n"
+    @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
     if issquare(discriminant(K))
       G = alternating_group(degree(K))
     else
