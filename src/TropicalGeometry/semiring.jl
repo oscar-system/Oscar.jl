@@ -55,13 +55,73 @@ Oscar.parent_type(::Type{TropicalSemiringElem{T}}) where {T} = TropicalSemiring{
 #
 ################################################################################
 
-# Invoke via tropical_semiring()
+@doc Markdown.doc"""
+
+    tropical_semiring(M::Union{typeof(min),typeof(max)}=min)
+
+The tropical semiring with min (default) or max.
+
+**Warning:** There is no substraction in the tropical semiring.
+Any substraction of two tropical numbers will yield an error.
+
+# Examples
+Basic arithmetics with tropical numbers:
+```jldoctest
+julia> T = tropical_semiring() # = tropical_semiring(min)
+Tropical semiring (min)
+
+julia> T = tropical_semiring(max)
+Tropical semiring (max)
+
+julia> 0*T(3) + 1*T(1)^2 + inf(T) # = max(0+3,1+2*1,-∞)
+(3)
+
+julia> T(0) == 0    # checks whether the tropical number is 0
+true
+
+julia> iszero(T(0)) # checks whether the tropical number is neutral element of addition
+false
+```
+
+Tropical polynomials:
+```jldoctest
+julia> T = tropical_semiring()
+Tropical semiring (min)
+
+julia> Tx,(x1,x2) = PolynomialRing(T,3)
+(Multivariate Polynomial Ring in x1, x2, x3 over Tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x1, x2, x3])
+
+julia> f = x1 + -1*x2 + 0
+x1 + (-1)*x2 + (0)
+
+julia> evaluate(f,[T(-1//2),T(1//2)]) # warning: omitting T(0) gives an error
+(-1//2)
+```
+
+Tropical matrices:
+```jldoctest
+julia> T = tropical_semiring()
+Tropical semiring (min)
+
+julia> A = [T(0) inf(T); inf(T) T(0)] # = tropical identity matrix
+2×2 Matrix{Oscar.TropicalSemiringElem{typeof(min)}}:
+ (0)  ∞
+ ∞    (0)
+
+julia> 2*A
+2×2 Matrix{Oscar.TropicalSemiringElem{typeof(min)}}:
+ (2)  ∞
+ ∞    (2)
+
+julia> A*A
+2×2 Matrix{Oscar.TropicalSemiringElem{typeof(min)}}:
+ (0)  ∞
+ ∞    (0)
+
+```
+"""
 tropical_semiring() = TropicalSemiring{typeof(min)}()
-
-# Invoke via tropical_semiring(max)
 tropical_semiring(::typeof(max)) = TropicalSemiring{typeof(max)}()
-
-# Invoke via tropical_semiring(min)
 tropical_semiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
 
 ################################################################################
@@ -130,9 +190,9 @@ function AbstractAlgebra.expressify(x::TropicalSemiringElem{T}; context = nothin
   return Expr(:call, "", expressify(data(x), context = context))
 end
 
-AbstractAlgebra.expressify(R::TropicalSemiring{typeof(min)}; context = nothing) = "Tropical ring (min)"
+AbstractAlgebra.expressify(R::TropicalSemiring{typeof(min)}; context = nothing) = "Tropical semiring (min)"
 
-AbstractAlgebra.expressify(R::TropicalSemiring{typeof(max)}; context = nothing) = "Tropical ring (max)"
+AbstractAlgebra.expressify(R::TropicalSemiring{typeof(max)}; context = nothing) = "Tropical semiring (max)"
 
 @enable_all_show_via_expressify TropicalSemiringElem
 
@@ -328,8 +388,6 @@ end
 #
 ################################################################################
 
-# todo: maybe this should be called tropical determinant
-#   lest it might crash with the non-tropical notion of determinant
 function det(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{T}}) where {T}
   R = base_ring(x)
   S = AbstractAlgebra.SymmetricGroup(nrows(x))
