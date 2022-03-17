@@ -402,6 +402,18 @@ function det(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{
   return res
 end
 
+function det(x::Matrix{Oscar.TropicalSemiringElem{T}}) where {T}
+  if length(x)==0
+    if T == typeof(min)
+      return tropical_semiring(min)(1)
+    else
+      return tropical_semiring(max)(1)
+    end
+  end
+
+  return det(matrix(parent(x[1,1]),x))
+end
+
 ################################################################################
 #
 #  Polynomials
