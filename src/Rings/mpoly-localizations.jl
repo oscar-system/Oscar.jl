@@ -1167,7 +1167,7 @@ function singular_gens(lbpa::LocalizedBiPolyArray)
   return lbpa.singular_gens
 end
 
-function singular_ring(lbpa::LocalizedBiPolyArray)
+function singular_poly_ring(lbpa::LocalizedBiPolyArray)
   singular_assure(lbpa)
   return lbpa.singular_ring
 end
@@ -1175,7 +1175,7 @@ end
 function singular_assure(lbpa::LocalizedBiPolyArray)
   if !isdefined(lbpa, :singular_ring)
     lbpa.singular_ring = Singular.PolynomialRing(
-	Oscar.singular_ring(base_ring(base_ring(oscar_ring(lbpa)))), 
+	Oscar.singular_coeff_ring(base_ring(base_ring(oscar_ring(lbpa)))), 
         [string(a) for a = Nemo.symbols(base_ring(oscar_ring(lbpa)))], 
         ordering = ordering(lbpa), 
         cached = false
@@ -1214,7 +1214,7 @@ function to_singular_side(
     lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  S = singular_ring(lbpa)
+  S = singular_poly_ring(lbpa)
   phi = shift_hom(lbpa)
   return S(phi(numerator(f)))//S(phi(denominator(f)))
 end
@@ -1223,7 +1223,7 @@ function to_singular_side(
     lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
     f::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
   ) where {BRT, BRET, RT, RET, MST}
-  S = singular_ring(lbpa)
+  S = singular_poly_ring(lbpa)
   phi = shift_hom(lbpa)
   return [S(phi(numerator(a)))//S(phi(denominator(a))) for a in f]
 end
@@ -1232,7 +1232,7 @@ function to_singular_side(
     lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
     f::RET
   ) where {BRT, BRET, RT, RET, MST}
-  S = singular_ring(lbpa)
+  S = singular_poly_ring(lbpa)
   phi = shift_hom(lbpa)
   return S(phi(f))
 end
@@ -1241,7 +1241,7 @@ function to_singular_side(
     lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
     f::Vector{RET}
   ) where {BRT, BRET, RT, RET, MST}
-  S = singular_ring(lbpa)
+  S = singular_poly_ring(lbpa)
   phi = shift_hom(lbpa)
   return [S(phi(a)) for a in f]
 end
@@ -1363,8 +1363,8 @@ function saturated_ideal(
     lbpa = LocalizedBiPolyArray(I)
     V = base_ring(I)
     R = base_ring(V)
-    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_poly_ring(lbpa), singular_gens(lbpa))
+    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_poly_ring(lbpa), singular_gens(lbpa))]
     if length(decomp) == 0
       return ideal(R, one(R))
     end
@@ -1392,8 +1392,8 @@ function saturated_ideal(
     lbpa = LocalizedBiPolyArray(I)
     V = base_ring(I)
     R = base_ring(V)
-    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+    sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_poly_ring(lbpa), singular_gens(lbpa))
+    decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_poly_ring(lbpa), singular_gens(lbpa))]
     if length(decomp) == 0
       return ideal(R, one(R))
     end
@@ -1419,7 +1419,7 @@ function saturated_ideal(
     lbpa = LocalizedBiPolyArray(I)
     ssat_ideal = singular_gens(lbpa)
     for a in denominators(U)
-      ssat_ideal = Singular.saturation(ssat_ideal, Singular.Ideal(singular_ring(lbpa), [singular_ring(lbpa)(a)]))[1]
+      ssat_ideal = Singular.saturation(ssat_ideal, Singular.Ideal(singular_poly_ring(lbpa), [singular_poly_ring(lbpa)(a)]))[1]
     end
     sat_ideal = ideal(R, R.(gens(ssat_ideal)))
     set_attribute!(I, :saturated_ideal, sat_ideal)
@@ -1666,7 +1666,7 @@ function groebner_basis(
   # if not, set up a LocalizedBiPolyArray
   lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering)
   # Check whether this ordering is admissible
-  !Singular.has_local_ordering(singular_ring(lbpa)) && error("The ordering has to be a local ordering.")
+  !Singular.has_local_ordering(singular_poly_ring(lbpa)) && error("The ordering has to be a local ordering.")
   # compute the standard basis and cache the result.
   # No saturation is necessary in this case. 
   D[ordering] = std(lbpa)
@@ -1724,7 +1724,7 @@ function Base.reduce(
   R = base_ring(W)
   if !iszero(shift(lbpa))
     shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
-    singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
+    singular_n = singular_poly_ring(lbpa)(shift_hom(numerator(f)))
     singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
     if iszero(singular_n) 
       return zero(W)
@@ -1732,7 +1732,7 @@ function Base.reduce(
     inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
     return W(inv_shift_hom(R(singular_n)), denominator(f))
   else
-    singular_n = singular_ring(lbpa)(numerator(f))
+    singular_n = singular_poly_ring(lbpa)(numerator(f))
     singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
     if iszero(singular_n) 
       return zero(W)
@@ -1788,7 +1788,7 @@ function write_as_linear_combination(
   lbpa = LocalizedBiPolyArray(W.(h))
   p = a[1]*numerator(f)
   p_sing = to_singular_side(lbpa, p)
-  S = singular_ring(lbpa)
+  S = singular_poly_ring(lbpa)
   
   M, N, U = Singular.lift(
                           Singular.Module(S, [Singular.vector(S, g) for g in gens(singular_gens(lbpa))]...),
@@ -1814,7 +1814,7 @@ function write_as_linear_combination(
   hg = [a[i+1]*numerator(g[i]) for i in 1:n]
   hf = numerator(f)*a[1]
   A, I, q, phi, theta = as_affine_algebra(W)
-  SA, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(A)), 
+  SA, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(A)), 
 				  String.(symbols(A)),  
 				  ordering=Singular.ordering_dp(1)
 				  *Singular.ordering_dp(nvars(A)-1))

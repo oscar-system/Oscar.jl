@@ -972,7 +972,7 @@ function integral_basis(f::MPolyElem, i::Int)
     throw(ArgumentError("The input polynomial must be irreducible"))
   end
 
-  SR = singular_ring(R)
+  SR = singular_poly_ring(R)
   l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred")
   A, p = quo(R, ideal(R, [f]))
   ###return (R(l[2]), R.(gens(l[1])))

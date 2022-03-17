@@ -75,9 +75,9 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 #
 ################################################################################
 
-@attr Any _singular_ring_domain(f::MPolyAnyMap) = singular_ring(domain(f))
+@attr Any _singular_ring_domain(f::MPolyAnyMap) = singular_poly_ring(domain(f))
 
-@attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_ring(codomain(f))
+@attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_poly_ring(codomain(f))
 
 @attr Any function _singular_algebra_morphism(f::MPolyAnyMap)
   DS = _singular_ring_domain(f)

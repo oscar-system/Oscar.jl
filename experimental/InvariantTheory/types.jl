@@ -52,7 +52,7 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
     R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
-    R_sing = singular_ring(R)
+    R_sing = singular_poly_ring(R)
     action_singular = identity.([change_base_ring(R_sing, g) for g in action])
     PolyRingT = typeof(R)
     PolyElemT = elem_type(R)

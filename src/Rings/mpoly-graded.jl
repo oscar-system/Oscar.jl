@@ -749,8 +749,8 @@ coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
 term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
 exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
 
-function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
-  return singular_ring(R.R, keep_ordering = keep_ordering)
+function singular_poly_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
+  return singular_poly_ring(R.R, keep_ordering = keep_ordering)
 end
 
 MPolyCoeffs(f::MPolyElem_dec) = MPolyCoeffs(f.f)
