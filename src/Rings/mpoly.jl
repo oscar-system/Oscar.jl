@@ -136,7 +136,7 @@ end
 using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       weights, MonomialOrdering, singular
+       matrix_ordering, weights, MonomialOrdering, singular
 
 
 ##############################################################################
@@ -380,7 +380,7 @@ function singular(o::Orderings.GenOrdering)
       return Singular.ordering_Ws(o.w)
    elseif o.ord == :negwdegrevlex
       return Singular.ordering_ws(o.w)
-   elseif o.ord == :weights
+   elseif o.ord == :weight
     return Singular.ordering_M(o.wgt)
   else
     error("not done yet")

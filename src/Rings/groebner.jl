@@ -3,7 +3,8 @@ export  groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal
 # groebner stuff #######################################################
 @doc Markdown.doc"""
     groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
-    groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false,
+                    enforce_global_ordering::Bool = true)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -38,14 +39,15 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
     return G
 end
 
-function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering,  complete_reduction::Bool = false)
+function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
     return get!(I.gb, ordering) do
-        _compute_groebner_basis(I.gens, ordering, complete_reduction)
+        _compute_groebner_basis(I.gens, ordering, complete_reduction, enforce_global_ordering)
     end
 end
 
 @doc Markdown.doc"""
-    _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering,
+                            complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -66,10 +68,12 @@ julia> B = Oscar._compute_groebner_basis(A, degrevlex(gens(R)))
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
-function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
    singular_assure(B, ordering)
    R = B.Sx
-   !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
+   if enforce_global_ordering
+     !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
+   end
    I  = Singular.Ideal(R, gens(B.S)...)
    i  = Singular.std(I, complete_reduction = complete_reduction)
    BA = BiPolyArray(B.Ox, i)
@@ -82,11 +86,14 @@ function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, com
 end
 
 @doc Markdown.doc"""
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
+    function groebner_basis(I::MPolyIdeal;
+      ordering::MonomialOrdering = degrevlex(gens(base_ring(I))),
+      complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
 
 Given an ideal `I` and optional parameters monomial ordering `ordering` and `complete_reduction`,
 compute a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of `I`
-    w.r.t. the given monomial ordering `ordering` (as default `degree reverse lexicographical`).
+w.r.t. the given monomial ordering `ordering` (as default `degree reverse lexicographical`).
+If `enforce_global_ordering = false` it is not checked whether the given ordering is global.
 
 # Examples
 ```jldoctest
@@ -103,8 +110,8 @@ julia> H = groebner_basis(I, ordering=lex(gens(R)))
  6*x^2 - y^3
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
-    groebner_assure(I, ordering, complete_reduction)
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false, enforce_global_ordering::Bool = true)
+    groebner_assure(I, ordering, complete_reduction, enforce_global_ordering)
     return collect(I.gb[ordering])
 end
 
