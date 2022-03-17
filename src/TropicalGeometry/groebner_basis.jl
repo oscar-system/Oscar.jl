@@ -101,7 +101,7 @@ function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Unio
   #  eliminating them after multiplying by a sufficiently high power in t
   ###
   if complete_reduction==true && is_valuation_nontrivial(val)
-    sort!(vvGB,lt=x_monomial_lt) # sort vvGB by their leading x monomial from small to large
+    sort!(vvGB,lt=_x_monomial_lt) # sort vvGB by their leading x monomial from small to large
     Singular.libSingular.set_option("OPT_INFREDTAIL", true)
     for i in 1:length(vvGB)-1
       for j in i+1:length(vvGB)
@@ -122,11 +122,15 @@ function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Unio
 end
 
 
-function x_monomial_lt(f::Singular.spoly,g::Singular.spoly)
+
+#=======
+returns true if the leading x-monomial of f is less than that of g,
+returns false otherwise
+=======#
+function _x_monomial_lt(f::Singular.spoly,g::Singular.spoly)
   expv_f = copy(Singular.leading_exponent_vector(f))
   expv_g = copy(Singular.leading_exponent_vector(g))
   popfirst!(expv_f)
   popfirst!(expv_g)
   return expv_f<expv_g
 end
-export x_monomial_lt
