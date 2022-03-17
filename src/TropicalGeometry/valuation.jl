@@ -5,17 +5,34 @@
 
 @doc Markdown.doc"""
 
-    TropicalSemiringMap(K,p)
+    TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
 
-A valuation map for computations in the tropical geometry package. Currently,
-the only supported valuations are:
+Constructs a map `v` from `K` to the min tropical semiring `T` (default)
+or the max tropical semiring that:
+- is a semigroup homomorphism `(K,*) -> (T,+)`,
+- preserves the ordering on both sides.
+
+In other words, `v` is either a valuation on `K` with image in
+`tropical_semiring(min)` or the negative of a valuation on `K` with image in
+`tropical_semiring(max)`.
+
+The role of `v` is to encode with respect to which valuation on `K` and
+under which convention (min or max) tropical computations should take place.
+
+Currently, the only supported valuations are:
 - t-adic valuation on QQ(t)
 - p-adic valuations on QQ
 - trivial valuation on any field
 
 # Example for p-adic valuation on QQ
 ```jldoctest
-julia> val_2 = TropicalSemiringMap(QQ,2);
+julia> val_2 = TropicalSemiringMap(QQ,2); # = TropicalSemiringMap(QQ,2,min)
+
+julia> val_2(4)
+(2)
+julia> val_2(1//4)
+(-2)
+julia> val_2 = TropicalSemiringMap(QQ,2,max);
 
 julia> val_2(4)
 (2)
@@ -35,13 +52,15 @@ julia> val_t(1//t^2)
 (-2)
 ```
 
-# Example for p-adic valuation on QQ
+# Example for the trivial valuation on QQ
 ```jldoctest
 julia> val = TropicalSemiringMap(QQ);
 
 julia> val(4)
 (0)
 julia> val(1//4)
+(0)
+julia> val(0)
 (0)
 ```
 """
