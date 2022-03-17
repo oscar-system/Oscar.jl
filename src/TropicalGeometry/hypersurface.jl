@@ -121,7 +121,7 @@ end
 # end
 
 @doc Markdown.doc"""
-    TropicalHypersurface{M}(f::AbstractAlgebra.Generic.MPoly{<:RingElement},M::Union{typeof(min),typeof(max)}=min)
+    TropicalHypersurface{M}(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
 
 Return the tropical hypersurface defined by the tropicalization of an algebraic polynomial.
 If M=min, the tropical hypersurface will obey the min-convention.
@@ -145,7 +145,7 @@ julia> TropicalHypersurface(f, max)
 A max tropical hypersurface embedded in 2-dimensional Euclidian space
 ```
 """
-function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement},M::Union{typeof(min),typeof(max)}=min)
+function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
     tropf = tropical_polynomial(f,M)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -155,7 +155,7 @@ function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement},M:
     return Tf
 end
 
-function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::TropicalSemiringMap, M::Union{typeof(min),typeof(max)}=min)
+function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap, M::Union{typeof(min),typeof(max)}=min)
     tropf = tropical_polynomial(f,val,M)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -167,7 +167,7 @@ end
 
 
 # @doc Markdown.doc"""
-#     tropical_variety(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)})
+#     tropical_variety(f::MPolyElem, M::Union{typeof(min),typeof(max)})
 
 # Return the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
 # If M=min, the tropical hypersurface will obey the min-convention.
@@ -187,7 +187,7 @@ end
 
 # julia> tropical_variety(f,max)
 # """
-# function tropical_variety(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)})
+# function tropical_variety(f::MPolyElem, M::Union{typeof(min),typeof(max)})
 #     return TropicalHypersurface{M}(f)
 # end
 
@@ -253,4 +253,3 @@ function polynomial(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
     end
     return get_attribute(TH,:tropical_polynomial)
 end
-
