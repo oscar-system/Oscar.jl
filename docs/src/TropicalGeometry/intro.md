@@ -6,9 +6,8 @@ CurrentModule = Oscar
 Pages = ["intro.md"]
 ```
 
-# Tropical geometry in Oscar
 
-## Introduction
+# Introduction
 
 For notation we refer to [MS15](@cite).
 
