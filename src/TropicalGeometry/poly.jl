@@ -2,15 +2,14 @@
 # Tropical polynomial computations in Oscar
 # =========================================
 ###
+export tropical_polynomial
 
 @doc Markdown.doc"""
-    tropical_polynomial{M}(f::AbstractAlgebra.Generic.MPoly{Any})
+    tropical_polynomial(f::AbstractAlgebra.Generic.MPoly,M::Union{typeof(min),typeof(max)}=min)
 
-Return the tropicalization of a polynomial in form of a polynomial over the
-tropical numbers.
-
-If M=min, return a polynomial over the min-plus semiring.
-If M=max, return a polynomial over the max-plus semiring.
+Given a polynomial `f` over a field with an intrinsic valuation (e.g., `PadicField(7,2)`),
+returns the tropicalization of `f` as a polynomial over the min tropical semiring
+(default) or the max tropical semiring.
 
 # Examples
 ```jldoctest
@@ -53,8 +52,32 @@ function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M:
 
   return tropf
 end
-function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, val::TropicalSemiringMap)
-  T = val.tropical_semiring
+
+
+
+@doc Markdown.doc"""
+    tropical_polynomial(f::MPolyElem,val::TropicalSemiringMap)
+
+Given a polynomial `f` and a tropical semiring map `val`,
+returns the tropicalization of `f` as a polynomial over the tropical semiring.
+
+# Examples
+```jldoctest
+julia> R, (x,y) = PolynomialRing(QQ,["x", "y"])
+(Multivariate Polynomial Ring in x, y over Field of 7-adic numbers, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+
+julia> val = TropicalSemiringMap(QQ,7)
+The 7-adic valuation on Rational Field
+
+julia> f = 7*x+y+49
+7*x + y + 49
+
+julia> tropical_polynomial(f,val)
+(1)*x + y + (2)
+```
+"""
+function tropical_polynomial(f::MPolyElem, val::TropicalSemiringMap)
+  T = tropical_semiring(val)
   Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)
 
@@ -64,4 +87,3 @@ function tropical_polynomial(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, va
 
   return tropf
 end
-export tropical_polynomial
