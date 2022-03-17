@@ -74,6 +74,8 @@ Section 2.4 of [MS15](@cite).
 """
 function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Union{Int,Rational{Int}} }; complete_reduction::Bool=false, return_lead::Bool=false)
 
+  @assert Oscar._has_homogeneous_generators(I)
+
   ###
   # Step 1: Compute a standard basis in the simulation ring
   ###
