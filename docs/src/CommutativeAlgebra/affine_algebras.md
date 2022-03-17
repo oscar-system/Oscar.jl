@@ -191,22 +191,27 @@ iszero(a::MPolyQuoIdeal)
 issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
-## Homomorphisms of Affine Algebras
+## Homomorphisms From Affine Algebras
 
-### Constructors
+If $A=R/I$ is an affine $C$-algebra, and $S$ is any ring, then defining a ring homomorphism
+$\overline{\phi}: A \rightarrow S$ means to define a ring homomorphism $\phi: R \rightarrow S$
+such that $I\subset \ker(\phi)$. Thus, $\overline{\phi} $ is determined by specifying its restriction
+to $C$, and by assigning an image to each generator of $A$.
+In OSCAR, such homomorphisms are created by using the following constructor:
 
 ```@docs
-AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-{T, S <: MPolyElem{T},
-U <: Union{MPolyRing{T}, MPolyQuo{S}},
-W <: Union{MPolyRing{T}, MPolyQuo{S}},
-X <: Union{S, MPolyQuoElem{S}}}
+hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
-### Data Associated to Homomorphisms of Affine Algebras
+Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
+refer to `R` and `S`, respectively.
 
-The usual methods for maps are supported, such
-as `domain` and `codomain`.
+!!! note
+    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
+    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
+    `U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in what follows.
+       
+### Data Associated to Homomorphisms of Affine Algebras
 
 ```@docs
 preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
@@ -216,22 +221,22 @@ kernel(F::AlgHom)
 ###### Examples
 
 ```@repl oscar
-D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"])
-C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"])
-V1 = [s^3, s^2*t, s*t^2, t^3]
+D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"]);
+V1 = [s^3, s^2*t, s*t^2, t^3];
 para = hom(D1, C1, V1)
 twistedCubic = kernel(para)
-C2, p2 = quo(D1, twistedCubic)
-D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"])
-V2 = [p2(w-y), p2(x), p2(z)]
+C2, p2 = quo(D1, twistedCubic);
+D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"]);
+V2 = [p2(w-y), p2(x), p2(z)];
 proj = hom(D2, C2, V2)
 nodalCubic = kernel(proj)
 ```
 
 ```@repl oscar
-D3,y = PolynomialRing(QQ, "y" => 1:3)
-C3, x = PolynomialRing(QQ, "x" => 1:3)
-V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]]
+D3,y = PolynomialRing(QQ, "y" => 1:3);
+C3, x = PolynomialRing(QQ, "x" => 1:3);
+V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 F3 = hom(D3, C3, V3)
 sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
 steinerRomanSurface = preimage(F3, sphere)
@@ -250,22 +255,22 @@ isfinite(F::AlgHom)
 ###### Examples
 
 ```@repl oscar
-D, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
-C, p = quo(S, ideal(S, [c-b^3]))
-V = [p(2*a + b^6), p(7*b - a^2), p(c^2)]
+D, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"]);
+C, p = quo(S, ideal(S, [c-b^3]));
+V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 F = hom(D, C, V)
 issurjective(F)
-D1, _ = quo(D, kernel(F))
-F1 = hom(D1, C, V)
+D1, _ = quo(D, kernel(F));
+F1 = hom(D1, C, V);
 isbijective(F1)
 ```
 ```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"])
-C, (s, t) = PolynomialRing(QQ, ["s", "t"])
-V = [s*t, t, s^2]
+R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"]);
+C, (s, t) = PolynomialRing(QQ, ["s", "t"]);
+V = [s*t, t, s^2];
 paraWhitneyUmbrella = hom(R, C, V)
-D, _ = quo(R, kernel(paraWhitneyUmbrella))
+D, _ = quo(R, kernel(paraWhitneyUmbrella));
 isfinite(hom(D, C, V))
 ```
 
@@ -280,7 +285,7 @@ compose(F::AlgHom{T}, G::AlgHom{T}) where T
 ### Subalgebra Membership
 
 ```@docs
-subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
+subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
 ```
 
 ### Minimal Subalgebra Generators
@@ -292,7 +297,7 @@ minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuo
 ## Noether Normalization
 
 ```@docs
-noether_normalization(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
+noether_normalization(A::MPolyQuo)
 ```
 
 ###### Examples
@@ -308,11 +313,11 @@ L[3]
 ## Normalization
 
 ```@docs
-normalization(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
+normalization(A::MPolyQuo)
 ```
 
 ```@docs
-normalization_with_delta(A::MPolyQuo{<:MPolyElem{<:FieldElem}})
+normalization_with_delta(A::MPolyQuo)
 ```
 
 ## Integral Bases

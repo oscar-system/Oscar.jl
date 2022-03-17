@@ -327,7 +327,22 @@ ishomogeneous(f::MPolyElem_dec)
 degree(f::MPolyElem_dec)
 ```
 
-## Homomorphisms of Multivariate Rings
+## Homomorphisms From Multivariate Rings
 
-How to handle homomorphisms of multivariate polynomial rings and their graded versions is described in
-a more general context in the section on affine algebras. 
+If $R$ is a multivariate polynomial ring, and $S$ is any ring, then a ring homomorphism
+$R \rightarrow S$ is determined by specifying its restriction to the coefficient ring of $R$,
+and by assigning an image to each variable of $R$.
+In OSCAR, such homomorphisms are created by using the following constructor:
+
+```@docs
+hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+```
+
+Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
+refer to `R` and `S`, respectively.
+
+!!! note
+    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
+    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
+    `U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+                                                       
