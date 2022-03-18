@@ -15,7 +15,7 @@ export Localization, ideal
 export bring_to_common_denominator, write_as_linear_combination
 
 export LocalizedBiPolyArray
-export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift, shift_hom, inv_shift_hom, to_singular_side, to_oscar_side
+export oscar_gens, oscar_ring, singular_gens, ordering, shift, shift_hom, inv_shift_hom, to_singular_side, to_oscar_side
 export groebner_basis
 
 export MPolyLocalizedRingHom
@@ -1267,7 +1267,7 @@ function singular_assure(lbpa::LocalizedBiPolyArray, ordering::MonomialOrdering)
   else
     if !isdefined(lbpa, :ordering)
       lbpa.ordering = ordering.o
-      SR = singular_ring(lbpa.oscar_ring, ordering.o)
+      SR = singular_poly_ring(lbpa.oscar_ring, ordering.o)
       f = Singular.AlgebraHomomorphism(lbpa.singular_ring, SR, gens(SR))
       lbpa.singular_gens = Singular.map_ideal(f, lbpa.singular_gens)
       lbpa.singular_ring = SR
