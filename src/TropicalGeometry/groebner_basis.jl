@@ -82,7 +82,7 @@ function groebner_basis(I::MPolyIdeal,val::TropicalSemiringMap,w::Vector{<: Unio
   w = simulate_valuation(w,val)
   Rtx = base_ring(vvI)
   # todo: replace with groebner_bases in OSCAR once more orderings are supported
-  S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
+  S,_ = Singular.PolynomialRing(singular_coeff_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
   vvGB = Singular.gens(Singular.std(SI,complete_reduction=complete_reduction))
 
