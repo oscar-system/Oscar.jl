@@ -1550,7 +1550,7 @@ function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
   n <= 3 && return true
 
   ub = n > 8 ? n-3 : n-2
-  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))))
+  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))), init = fmpz(1))
 
   if any(x->any(y ->gcd(y, lp) > 1, x), ct)
     n != 6 && return true
