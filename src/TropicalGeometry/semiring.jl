@@ -65,8 +65,7 @@ The tropical semiring with min (default) or max.
 !!! warning
     There is no substraction in the tropical semiring. Any substraction of two tropical numbers will yield an error.
 
-# Examples
-Basic arithmetics with tropical numbers:
+# Examples (basic arithmetic)
 ```jldoctest
 julia> T = TropicalSemiring() # = TropicalSemiring(min)
 Tropical semiring (min)
@@ -84,7 +83,7 @@ julia> iszero(T(0)) # checks whether the tropical number is neutral element of a
 false
 ```
 
-Tropical polynomials:
+# Examples (polynomials)
 ```jldoctest
 julia> T = TropicalSemiring()
 Tropical semiring (min)
@@ -99,7 +98,7 @@ julia> evaluate(f,[T(-1//2),T(1//2)]) # warning: omitting T(0) gives an error
 (-1//2)
 ```
 
-Tropical matrices:
+# Examples (matrices)
 ```jldoctest
 julia> T = TropicalSemiring()
 Tropical semiring (min)
