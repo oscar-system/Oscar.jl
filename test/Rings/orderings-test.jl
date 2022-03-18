@@ -146,4 +146,7 @@ end
    f = sum(M)
    o = negdegrevlex(gens(R))
    @test collect(monomials(f, o)) == M
+
+   o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
+   @test collect(monomials(f, o)) == collect(monomials(f, degrevlex(gens(R))))
  end

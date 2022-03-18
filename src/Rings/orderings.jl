@@ -973,6 +973,12 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
            return 1
          end
        end
+   elseif o.ord == :weight
+     if _isless_matrix(f, k, l, o.wgt)
+       return -1
+     elseif _isless_matrix(f, l, k, o.wgt)
+       return 1
+     end
    else
       dk = weighted_degree(f, k, o.vars, o.w)
       dl = weighted_degree(f, l, o.vars, o.w)
