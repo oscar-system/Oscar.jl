@@ -19,6 +19,7 @@ export
     isomorphic_fp_group,
     isomorphic_pc_group,
     isomorphic_perm_group,
+    isomorphism,
     issurjective,
     kernel,
     order,
@@ -368,6 +369,36 @@ function isisomorphic(G::GAPGroup, H::GAPGroup)
   else
     return true, GAPGroupHomomorphism(G, H, mp)
   end
+end
+
+"""
+    isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+
+Return a map from `G` to an isomorphic (additive) group of type `GrpAbFinGen`.
+An exception is thrown if `G` is not abelian or not finite.
+"""
+function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+  isabelian(G) || throw(ArgumentError("the group is not abelian"))
+  isfinite(G) || throw(ArgumentError("the group is not finite"))
+#T this restriction is not nice
+
+  indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)
+  orders = [GAP.Globals.Order(x) for x in indep]
+  n = length(indep)
+  A = abelian_group(GrpAbFinGen, orders)
+
+  f(g) = A(Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X)))
+
+  finv = function(g::elem_type(GrpAbFinGen))
+     exps = [GAP.Obj(g.coeff[i]) for i in 1:n]
+     res = Oscar.GAPWrap.One(G.X)
+     for i in 1:n
+       res = res * indep[i]^GAP.Obj(g.coeff[i])
+     end
+     return group_element(G, res)
+  end
+
+  return MapFromFunc(f, finv, G, A)
 end
 
 """
