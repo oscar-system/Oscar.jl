@@ -575,7 +575,6 @@ function upper_bound(G::GaloisCtx, ::typeof(power_sum), i::Int, ts::fmpz_poly = 
   return parent(b)(degree(G.f))*b^i
 end
 
-
 function Hecke.orbit(G::Oscar.PermGroup, f::MPolyElem)
   s = Set([f])
   while true
@@ -597,7 +596,7 @@ probable_orbit(G::Oscar.PermGroup, f::MPolyElem) = orbit(G, f)
 
 """
 `slprogram`s can be compiled into "normal" Julia functions, but there is
-some overhead inthe compilation itself. By default, aparently nothing is
+some overhead in the compilation itself. By default, aparently nothing is
 compiled, so we allow to force this there.
 
 `isPoly` allows the use of inplace operations, as `SLPoly`s result
@@ -641,7 +640,6 @@ function probable_orbit(G::Oscar.PermGroup, f::SLPoly; limit::Int = typemax(Int)
 end
 
 #TODO:
-#- ansehen der ZykelTypen um Sn/An zu erkennen (as well as to avoid 2-sum)
 #- Bessere Abstraktion um mehr Grundkoerper/ Ringe zu erlauben
 #- Bessere Teilkpoerper: ich brauche "nur" maximale
 #- sanity-checks
@@ -851,6 +849,9 @@ function invariant(G::PermGroup, H::PermGroup)
     return prod(sum(g[b]) for b = block_system(H, d[1]))
   else
     for BB = bG
+      #TODO: Max(?): some of this possibly cannot happen anymore
+      #      in starting group the sieving has been improved
+      #      classical D_sm or similar may no-longer be possible
       B = block_system(H, BB)
       m = length(B)
       l = length(B[1])
@@ -1401,7 +1402,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   if pStart < 0
     p = -pStart
     lf = factor(f, GF(p))
-    return p, [sort(map(degree, collect(keys(lf.fac))))]
+    return p, Set([sort(map(degree, collect(keys(lf.fac))))])
   end
 
   d_max = degree(f)^2
@@ -1462,13 +1463,29 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   return p_best, ct
 end
 
-#=
-struct CycleType
-  s::Vector{Int}
+#TODO: decide what a cycle type (and a colelction of them) should be
+#      in Gap/Oscar: cycle_structure -> [(l=>n) ...] sorted by 
+#                                  cycle length (l)
+#
+mutable struct CycleType
+  s::Vector{Pair{Int, Int}}
+  function CycleType(c::Vector{Int})
+    ct = CycleType()
+    for i = c
+      _push!(ct, i)
+    end
+    sort!(ct.s, lt = (x,y) -> x[1] < y[1])
+    return ct
+  end
+  function CycleType()
+    return new(Pair{Int, Int}[])
+  end
+  function CycleType(v::Vector{Pair{Int, Int}})
+    return new(sort(v, lt = (x,y) -> x[1] < y[1]))
+  end
 end
 
 function ^(c::CycleType, e::Int)
-  t = Int[]
   for i = c.s
     g = gcd(i, e)
     for j=1:g
@@ -1478,11 +1495,12 @@ function ^(c::CycleType, e::Int)
   return CycleType(sort(t))
 end
 
-function order(c::CycleType)
+function Oscar.order(c::CycleType)
   return reduce(lcm, map(fmpz, s.c), init = fmpz(1))
 end
 
-=#
+
+
 
 #given cycle types, try to find a divisor (large) of the transitive
 #group. Used for sieving.
@@ -1596,6 +1614,12 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   end
 
   # TODO: otherwise, try to detect here if we are primitive or even 2-transitive
+  #       primitive: done.
+  #       2-transitive: ????
+  # TODO: sieve (filter) by 
+  #       - cycle_structure
+  #       - primitive/ transitive/ 2-transitive/ ...
+  #       - blocks
 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
   if an_sn_by_shape(ct, degree(K))
@@ -1610,6 +1634,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   end
 
   G, F, si = starting_group(GC, K, useSubfields = useSubfields && !primitive_by_shape(ct, degree(K)))
+  # the filter will filter at least on 
+  #   size (have a lower bound from cycles)
+  #   even/odd
+  #   some subgroups of the wreath products
   if degree(K) == 1
     GC.G = G
     return G, GC
@@ -1735,49 +1763,6 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
   return G, GC
 end
 
-#=
-DNW (does not work)
-
-function subdir_invars(G, H)
-  GH, emb, pro = inner_direct_product(G, H, morphisms = true)
-  m = maximal_subgroup_reps(GH)
-  m = [x for x = m if pro[1](x)[1] == G && pro[2](x)[1] == H]
-  if length(m) == 0
-    return m, []
-  end
-  II = SLPoly[]
-  S, g = slpoly_ring(ZZ, degree(G)+degree(H))
-  for x = m
-    _, mx = Oscar._as_subgroup(GH, x.X)
-    A = pro[1](intersect(x, emb[1](G)[1])[1])[1]
-    B = pro[2](intersect(x, emb[2](H)[1])[1])[1]
-    AB = inner_direct_product(A, B)
-    #so G/A iso H/B iso x/(A x B)
-    I = invariant(G, A)
-    J = invariant(H, B)
-    IJ = evaluate(I, g[1:degree(G)])+evaluate(J, rand(H), 2 .* g[degree(G)+1:end])
-    push!(II, IJ) #sum(probable_orbit(x, IJ)))
-  end
-  return m, II
-  s = maximal_subgroup_reps(m[1])
-  s = [x for x = s if pro[1](x)[1] == G && pro[2](x)[1] == H]
-  _, mx = Oscar._as_subgroup(m[1], s[1].X)  
-
-    A = pro[1](intersect(s[1], emb[1](G)[1])[1])[1]
-    B = pro[2](intersect(s[1], emb[2](H)[1])[1])[1]
-    AB = inner_direct_product(A, B)
-    I = invariant(G, A)
-    J = invariant(H, B)
-    IJ = evaluate(I, g[1:degree(G)])+evaluate(J, g[degree(G)+1:end])
-    push!(II, sum(probable_orbit(m[1], IJ)))
-    push!(m, s[1])
-
-  return m, II
-end
-
-=#
-
-#TODO: use above as well.
 function isinteger(GC::GaloisCtx, B::BoundRingElem{fmpz}, e)
   p = GC.C.p
   if e.length<2
