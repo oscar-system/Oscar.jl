@@ -7,7 +7,8 @@ export tropical_polynomial
 @doc Markdown.doc"""
     tropical_polynomial(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
 
-Given a polynomial `f` over a field with an intrinsic valuation (e.g., `PadicField(7,2)`),
+Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
+on which a function `valuation` is defined such as `PadicField(7,2)`),
 returns the tropicalization of `f` as a polynomial over the min tropical semiring
 (default) or the max tropical semiring.
 
