@@ -230,6 +230,10 @@ relatively quickly converges to a uniform distribution.
 """
 rand_pseudo(G::GAPGroup) = group_element(G, GAP.Globals.PseudoRandom(G.X))
 
+function rand_pseudo(G::FPGroup; radius::Int)
+  return group_element(G, GAP.Globals.PseudoRandom(G.X, radius = radius))
+end
+
 function _maxgroup(x::T, y::T) where T <: GAPGroup
    # A typical situation should be that the two groups are identical,
    # but GAP's `IsSubset` check is not as cheap as one wants;

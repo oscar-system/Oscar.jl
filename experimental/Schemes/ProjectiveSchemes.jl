@@ -1,5 +1,3 @@
-import Oscar.AlgHom
-
 export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
 export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
 export projective_space, subscheme
