@@ -12,16 +12,16 @@ export TropicalSemiringMap,
 
     TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
 
-Constructs a map `v` from `K` to the min tropical semiring `T` (default)
+Constructs a map `val` from `K` to the min tropical semiring `T` (default)
 or the max tropical semiring that:
 - is a semigroup homomorphism `(K,*) -> (T,+)`,
 - preserves the ordering on both sides.
 
-In other words, `v` is either a valuation on `K` with image in
+In other words, `val` is either a valuation on `K` with image in
 `TropicalSemiring(min)` or the negative of a valuation on `K` with image in
 `TropicalSemiring(max)`.
 
-The role of `v` is to encode with respect to which valuation on `K` and
+The role of `val` is to encode with respect to which valuation on `K` and
 under which convention (min or max) tropical computations should take place.
 
 Currently, the only supported valuations are:
