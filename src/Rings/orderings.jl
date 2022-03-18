@@ -5,7 +5,8 @@ import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, weights, isweighted,
-       MonomialOrdering, ModuleOrdering, singular
+       MonomialOrdering, ModuleOrdering, singular,
+       isglobal, islocal, ismixed
 
 abstract type AbsOrdering end
 
@@ -451,6 +452,68 @@ end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
   return hash(Hecke.simplify(M).o.wgt, u)
+end
+
+@doc Markdown.doc"""
+    isglobal(M::MonomialOrdering)
+
+Return `true` if the given ordering is global, i.e. if $1 < x$ for
+each variable $x$ in the ring `M.R` for which `M` is defined.
+"""
+function isglobal(M::MonomialOrdering)
+  fl = flat(M.o)
+  R = M.R
+  for o in fl
+    for i in o.vars
+      if isone(leading_monomial(gens(R)[i] + one(R), M))
+        return false
+      end
+    end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
+    islocal(M::MonomialOrdering)
+
+Return `true` if the given ordering is local, i.e. if $1 > x$ for
+each variable $x$ in the ring `M.R` for which `M` is defined.
+"""
+function islocal(M::MonomialOrdering)
+  fl = flat(M.o)
+  R = M.R
+  for o in fl
+    for i in o.vars
+      if !isone(leading_monomial(gens(R)[i] + one(R), M))
+        return false
+      end
+    end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
+    ismixed(M::MonomialOrdering)
+
+Return `true` if the given ordering is mixed, i.e. if $1 < x_i$ for
+a variable $x_i$ and $1 > x_j$ for another variable $x_j$ in the ring `M.R`
+for which `M` is defined.
+"""
+ismixed(M::MonomialOrdering) = !isglobal(M) && !islocal(M)
+
+# Return two arrays of indices containing the variables which are > 1 and < 1
+# respectively.
+function _global_and_local_vars(M::MonomialOrdering)
+  globals = Int[]
+  locals = Int[]
+  for i in 1:ngens(M.R)
+    if isone(leading_monomial(gens(M.R)[i] + 1, M))
+      push!(locals, i)
+    else
+      push!(globals, i)
+    end
+  end
+  return globals, locals
 end
 
 ###################################################
@@ -910,6 +973,12 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
            return 1
          end
        end
+   elseif o.ord == :weight
+     if _isless_matrix(f, k, l, o.wgt)
+       return -1
+     elseif _isless_matrix(f, l, k, o.wgt)
+       return 1
+     end
    else
       dk = weighted_degree(f, k, o.vars, o.w)
       dl = weighted_degree(f, l, o.vars, o.w)

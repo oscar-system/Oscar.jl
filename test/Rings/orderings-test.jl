@@ -46,6 +46,16 @@
  
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
    @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
+
+   @test isglobal(lex([x, y]))
+   @test !islocal(lex([x, y]))
+   @test !ismixed(lex([x, y]))
+   @test !isglobal(neglex([y, z]))
+   @test islocal(neglex([y, z]))
+   @test !ismixed(neglex([y, z]))
+   @test !isglobal(lex([x, y])*neglex([z]))
+   @test !islocal(lex([x, y])*neglex([z]))
+   @test ismixed(lex([x, y])*neglex([z]))
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
@@ -136,4 +146,7 @@ end
    f = sum(M)
    o = negdegrevlex(gens(R))
    @test collect(monomials(f, o)) == M
+
+   o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
+   @test collect(monomials(f, o)) == collect(monomials(f, degrevlex(gens(R))))
  end
