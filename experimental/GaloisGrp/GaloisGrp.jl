@@ -1340,8 +1340,6 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         G = intersect(G, ar)[1]
       else
         let ar = ar 
-          order(ar)
-          @show ar
           push!(F, x->!issubgroup(ar, x)[1])
         end
       end
@@ -1356,8 +1354,6 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
         G = intersect(G, cr)[1]
       else
         let cr = cr
-          order(cr)
-          @show cr
           push!(F, x->!issubgroup(cr, x)[1])
         end
       end
@@ -1554,7 +1550,7 @@ function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
   n <= 3 && return true
 
   ub = n > 8 ? n-3 : n-2
-  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))))
+  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))), init = fmpz(1))
 
   if any(x->any(y ->gcd(y, lp) > 1, x), ct)
     n != 6 && return true
