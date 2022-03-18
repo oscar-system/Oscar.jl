@@ -29,7 +29,7 @@ Currently, the only supported valuations are:
 - p-adic valuations on QQ
 - trivial valuation on any field
 
-# Example for p-adic valuation on QQ
+# Example (p-adic valuation on QQ)
 ```jldoctest
 julia> val_2 = TropicalSemiringMap(QQ,2); # = TropicalSemiringMap(QQ,2,min)
 
@@ -45,7 +45,7 @@ julia> val_2(1//4)
 (2)
 ```
 
-# Example for t-adic valuation on QQ(t)
+# Example (t-adic valuation on QQ(t))
 ```jldoctest
 julia> Kt,t = RationalFunctionField(QQ,"t");
 
@@ -57,7 +57,7 @@ julia> val_t(1//t^2)
 (-2)
 ```
 
-# Example for the trivial valuation on QQ
+# Example (trivial valuation on QQ)
 ```jldoctest
 julia> val = TropicalSemiringMap(QQ);
 
