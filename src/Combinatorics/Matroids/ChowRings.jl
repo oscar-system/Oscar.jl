@@ -34,7 +34,7 @@ true
 function chow_ring(M::Matroid; extended=false)
         Flats = flats(M)
         number_flats = length(Flats)
-        n = length(M.groundset)
+        n = size_groundset(M)
         if !is_loopless(M)
                 error("Matroid has loops")
         end
@@ -132,7 +132,7 @@ julia> R = augmented_chow_ring(M);
 function augmented_chow_ring(M::Matroid)
         Flats = flats(M)
         sizeFlats = length(Flats)
-        n = length(M.groundset)
+        n = size_groundset(M)
 
         if(!is_loopless(M))
                 throw("Matroid has loops")
@@ -142,7 +142,7 @@ function augmented_chow_ring(M::Matroid)
         end
         proper_flats = Flats[1:sizeFlats-1]
 
-        element_var_names = [string("y_", S) for S in groundset(M)]
+        element_var_names = [string("y_", S) for S in M.groundset]
         flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
         flat_var_names[1] = "x_{}" # Override "x_Any{}"
         var_names = vcat(element_var_names, flat_var_names)
@@ -162,11 +162,11 @@ function augmented_chow_ring(M::Matroid)
 end
 
 function augmented_linear_relations(ring, proper_flats, element_vars, flat_vars, M)
-        n = length(M.groundset)
+        n = size_groundset(M)
 
         relations = Array{MPolyElem_dec{fmpq, fmpq_mpoly}}(undef, n)
         i = 1
-        for element in groundset(M)
+        for element in M.groundset
                 relations[i] = element_vars[i]
                 j = 1
                 for proper_flat in proper_flats
@@ -185,7 +185,7 @@ function augmented_quadratic_relations(ring, proper_flats, element_vars, flat_va
         xy_polynomials = Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}()
 
         i = 1
-        for element in groundset(M)
+        for element in M.groundset
                 j = 1
                 for proper_flat in proper_flats
                         if !(element in proper_flat)

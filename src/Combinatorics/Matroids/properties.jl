@@ -81,7 +81,7 @@ Return the list of nonbases of the matroid `M`.
 # Example
 ```jldoctest
 julia> nonbases(fano_matroid())
-7-element Vector{Any}:
+7-element Vector{Vector{Int64}}:
  [1, 6, 7]
  [2, 5, 7]
  [3, 4, 7]
@@ -147,7 +147,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> flats(M)
-16-element Vector{Vector{T} where T}:
+16-element Vector{Vector}:
  Any[]
  [1]
  [2]
@@ -166,7 +166,7 @@ julia> flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> flats(M, 2)
-7-element Vector{Vector{T} where T}:
+7-element Vector{Vector}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -210,7 +210,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> cyclic_flats(M)
-9-element Vector{Vector{T} where T}:
+9-element Vector{Vector}:
  Any[]
  [1, 2, 3]
  [1, 4, 5]
@@ -222,7 +222,7 @@ julia> cyclic_flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> cyclic_flats(M, 2)
-7-element Vector{Vector{T} where T}:
+7-element Vector{Vector}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -247,7 +247,6 @@ function cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing)
         matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
     end
     return matroid_flats
-    return [[M.groundset[i] for i in flat] for flat in jl_flats]
 end
 
 @doc Markdown.doc"""
@@ -393,7 +392,7 @@ These are all subsets of the bases.
 # Example
 ```jldoctest
 julia> independent_sets(uniform_matroid(2, 3))
-7-element Vector{Vector{Any}}:
+7-element Vector{Vector{Int64}}:
  []
  [1]
  [2]
@@ -407,7 +406,8 @@ function independent_sets(M::Matroid)
     pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
     n = length(M.groundset)
     gs = M.groundset
-    sets = [[]]
+    sets = Vector{Vector{Int64}}()
+    push!(sets,[])
     for k in 1:rank(M)
         for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
             for B in pm_bases
@@ -430,10 +430,10 @@ These are all sets containing a basis.
 # Example
 ```jldoctest
 julia> spanning_sets(uniform_matroid(2, 3))
-4-element Vector{Vector{Any}}:
+4-element Vector{Vector{Int64}}:
+ [1, 2]
  [1, 3]
  [2, 3]
- [1, 2]
  [1, 2, 3]
 ```
 """
@@ -982,7 +982,7 @@ function revlex_basis_encoding(M::Matroid)
 	indicies = findall(x->x=='*', rvlx)
 	v = zeros(Int,length(rvlx))
 	[v[i]=1 for i in indicies]
-	hy = Polymake.polytope.hypersimplex(rank(M),length(groundset(M)), group=1);
+	hy = Polymake.polytope.hypersimplex(rank(M),size_groundset(M), group=1);
 	Polymake.Shell.pair = Polymake.group.lex_minimal(hy.GROUP.VERTICES_ACTION, v)
 	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
 	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )

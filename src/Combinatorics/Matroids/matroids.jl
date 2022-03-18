@@ -267,10 +267,10 @@ julia> M = matroid_from_matrix_columns(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-function matroid_from_matrix_columns(A::MatrixElem; check=true)
+function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
     rk = rank(A)
     nr = nrows(A)
-    bases = Vector{Vector{IntegerUnion}}()
+    bases = Vector{Vector{Int64}}()
     # We use a temporary matrix which we will rewrite to avoid creating new matrices in every iteration.
     tmp_mat = A[:,1:rk]
     for set in subsets(Vector(1:ncols(A)),rk)
@@ -302,7 +302,7 @@ julia> M = matroid_from_matrix_rows(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_matrix_rows(A::MatrixElem, ; check=true) = matroid_from_matrix_columns(transpose(A); check=check)
+matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc Markdown.doc"""
     cycle_matroid(g::Oscar.Graphs.Graph)
@@ -383,15 +383,15 @@ Matroid of rank 4 on 7 elements
 dual_matroid(M::Matroid) = Matroid(M.pm_matroid.DUAL,M.groundset,M.gs2num)
 
 @doc Markdown.doc"""
-    groundset(M::Matroid)
+    matroid_groundset(M::Matroid)
 
 The ground set `E` of a matroid `M`.
 
 To obtain the ground set of the fano matroid type:
 # Example
 ```jldoctest
-julia> groundset(fano_matroid())
-7-element Vector{Int64}:
+julia> matroid_groundset(fano_matroid())
+7-element Vector{Union{Char, Integer, String, fmpz}}:
  1
  2
  3
@@ -473,8 +473,8 @@ julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','
 julia> N = deletion(M,['i','j'])
 Matroid of rank 2 on 2 elements
 
-julia> groundset(N)
-2-element Vector{Any}:
+julia> matroid_groundset(N)
+2-element Vector{Union{Char, Integer, String, fmpz}}:
  1
  2
 ```
@@ -514,8 +514,8 @@ julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','
 julia> N = restriction(M,[1,2])
 Matroid of rank 2 on 2 elements
 
-julia> groundset(N)
-2-element Vector{Int64}:
+julia> matroid_groundset(N)
+2-element Vector{Union{Char, Integer, String, fmpz}}:
  1
  2
 ```
@@ -552,8 +552,8 @@ julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','
 julia> N = contraction(M,['i','j'])
 Matroid of rank 1 on 2 elements
 
-julia> groundset(N)
-2-element Vector{Any}:
+julia> matroid_groundset(N)
+2-element Vector{Union{Char, Integer, String, fmpz}}:
  1
  2
 ```
@@ -783,7 +783,7 @@ Matroid of rank 3 on 13 elements
 
 ```
 """
-function projective_geometry(r::Int, q::Int)
+function projective_geometry(r::Int, q::Int; check::Bool=false)
     if !isprime(q)
         error("q is not a prime.")
     end
@@ -801,7 +801,7 @@ function projective_geometry(r::Int, q::Int)
         end
     end
     M = convert(Array{Int64,2},reshape(M, r, n))
-    return matroid_from_matrix_columns(matrix(GF(q), M); check=false)
+    return matroid_from_matrix_columns(matrix(GF(q), M); check=check)
 end
 
 @doc Markdown.doc"""
@@ -819,7 +819,7 @@ julia> M = affine_geometry(3, 3)
 Matroid of rank 3 on 9 elements
 ```
 """
-function affine_geometry(r::Int, q::Int)
+function affine_geometry(r::Int, q::Int; check::Bool=false)
     if !isprime(q)
         error("q is not a prime.")
     end
@@ -827,6 +827,6 @@ function affine_geometry(r::Int, q::Int)
         error("The rank should be at least 3")
     end
 
-    PG = projective_geometry(r, q; check=false)
+    PG = projective_geometry(r, q; check=check)
     return restriction(PG, Vector(2:(length(PG.groundset)-q)))
 end
