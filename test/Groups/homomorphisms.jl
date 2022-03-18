@@ -106,6 +106,21 @@ end
       @test H == D
    end
 
+   @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
+      for invs in [[2, 3, 4], [6, 8, 9, 15]]
+         for T in [PermGroup, PcGroup, FPGroup]
+            G = abelian_group(T, invs)
+            iso = isomorphism(GrpAbFinGen, G)
+            A = codomain(iso)
+            @test order(G) == order(A)
+            for x in gens(G)
+               y = image(iso, x)
+               @test preimage(iso, y) == x
+            end
+         end
+      end
+   end
+
    @testset "Abelian_as_permutation" for n in 15:20
       G = symmetric_group(n)
       for j in 2:n-2
