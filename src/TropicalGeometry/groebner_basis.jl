@@ -38,7 +38,7 @@ end
 
 
 @doc Markdown.doc"""
-    groebner_basis(I::Ideal, val::TropicalSemiringMap, w::Vector; complete_reduction::Bool, return_lead)
+    groebner_basis(I::Ideal, val::TropicalSemiringMap, w::Vector; complete_reduction::Bool, return_lead::Bool)
 
 Compute a Groebner basis of `I` over a field with valuation `val` with respect
 to weight vector `w`, that is a finite generating set of `I` whose initial forms
