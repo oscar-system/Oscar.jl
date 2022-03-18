@@ -38,7 +38,7 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 """
 function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
   # compute the weighted degrees shifted by the coefficient valuations
-  vwds = [val(c)*tropical_semiring(val)(dot(w,alpha)) for (c,alpha) in zip(coefficients(f),exponent_vectors(f))]
+  vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(coefficients(f),exponent_vectors(f))]
 
   # compute the minimal degree
   # (note: max tropical semiring is reversely ordered, so min in the semiring is max in the conventional sense)
@@ -52,7 +52,7 @@ function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vecto
     return vwd
   else
     # if pertubation is specified, then compute the pertubed degrees
-    vwdsPerp = [tropical_semiring(val)(dot(pertubation,alpha)) for alpha in exponent_vectors(f)]
+    vwdsPerp = [TropicalSemiring(val)(dot(pertubation,alpha)) for alpha in exponent_vectors(f)]
     # compute the mininum amongst all pertubations with maximal original degree
     vwdPerp = min([vwdsPerp[i] for i in 1:length(vwds) if vwds[i]==vwd]...)
 

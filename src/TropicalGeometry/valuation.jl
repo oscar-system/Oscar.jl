@@ -3,6 +3,11 @@
 # ==================================================
 ###
 
+export TropicalSemiringMap,
+       simulate_valuation,
+       desimulate_valuation,
+       tighten_simulation
+
 @doc Markdown.doc"""
 
     TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
@@ -13,8 +18,8 @@ or the max tropical semiring that:
 - preserves the ordering on both sides.
 
 In other words, `v` is either a valuation on `K` with image in
-`tropical_semiring(min)` or the negative of a valuation on `K` with image in
-`tropical_semiring(max)`.
+`TropicalSemiring(min)` or the negative of a valuation on `K` with image in
+`TropicalSemiring(max)`.
 
 The role of `v` is to encode with respect to which valuation on `K` and
 under which convention (min or max) tropical computations should take place.
@@ -72,9 +77,8 @@ struct TropicalSemiringMap{typeofValuedField,typeofUniformizer}
   residue_field
   residue_map
   uniformizer_symbol
-  tropical_semiring
+  TropicalSemiring
 end
-export TropicalSemiringMap
 
 
 ################################################################################
@@ -90,8 +94,8 @@ uniformizer_ring(val::TropicalSemiringMap) = val.uniformizer_ring
 residue_field(val::TropicalSemiringMap) = val.residue_field
 residue_map(val::TropicalSemiringMap) = val.residue_map
 uniformizer_symbol(val::TropicalSemiringMap) = val.uniformizer_symbol
-tropical_semiring(val::TropicalSemiringMap) = val.tropical_semiring
-convention(val::TropicalSemiringMap) = convention(val.tropical_semiring)
+TropicalSemiring(val::TropicalSemiringMap) = val.TropicalSemiring
+convention(val::TropicalSemiringMap) = convention(val.TropicalSemiring)
 
 ###
 # trivial valuation
@@ -100,15 +104,15 @@ convention(val::TropicalSemiringMap) = convention(val.tropical_semiring)
 # Constructor:
 function TropicalSemiringMap(K,M::Union{typeof(min),typeof(max)}=min)
   residue_map(c) = return c
-  return TropicalSemiringMap{typeof(K),Nothing}(K,nothing,K,nothing,K,residue_map,nothing,tropical_semiring(M))
+  return TropicalSemiringMap{typeof(K),Nothing}(K,nothing,K,nothing,K,residue_map,nothing,TropicalSemiring(M))
 end
 
 # Evaluation:
 function (val::TropicalSemiringMap{K,Nothing} where {K})(c)
   if iszero(c)
-    return inf(val.tropical_semiring)
+    return inf(val.TropicalSemiring)
   end
-  return val.tropical_semiring(0)
+  return val.TropicalSemiring(0)
 end
 
 # Display:
@@ -126,7 +130,7 @@ function TropicalSemiringMap(Q::FlintRationalField, p::fmpq, M::Union{typeof(min
   function residue_map(c)
     return FiniteField(ZZ(p))[1](ZZ(c))
   end
-  return TropicalSemiringMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p,tropical_semiring(M))
+  return TropicalSemiringMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p,TropicalSemiring(M))
 end
 # for other types of `p` such as `Integer`
 TropicalSemiringMap(Q::FlintRationalField,p::fmpz,M::Union{typeof(min),typeof(max)}=min) = TropicalSemiringMap(Q,QQ(p),M)
@@ -135,12 +139,12 @@ TropicalSemiringMap(Q::FlintRationalField,p::Int64,M::Union{typeof(min),typeof(m
 # Evaluation:
 function (val::TropicalSemiringMap{FlintRationalField,fmpq})(c)
   if iszero(c)
-    return inf(val.tropical_semiring)
+    return inf(val.TropicalSemiring)
   end
   if convention(val)==min
-    return val.tropical_semiring(valuation(QQ(c),val.uniformizer_ring))
+    return val.TropicalSemiring(valuation(QQ(c),val.uniformizer_ring))
   end
-  return val.tropical_semiring(-valuation(QQ(c),val.uniformizer_ring))
+  return val.TropicalSemiring(-valuation(QQ(c),val.uniformizer_ring))
 end
 
 # Display:
@@ -174,18 +178,18 @@ function TropicalSemiringMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t
     return base_ring(Kt)(evaluate(c,0))
   end
   Rt,_ = PolynomialRing(base_ring(Kt),symbols(Kt))
-  return TropicalSemiringMap{typeof(Kt),typeof(t)}(Kt,t,Rt,Rt(t),base_ring(Kt),residue_map,:t,tropical_semiring(M))
+  return TropicalSemiringMap{typeof(Kt),typeof(t)}(Kt,t,Rt,Rt(t),base_ring(Kt),residue_map,:t,TropicalSemiring(M))
 end
 
 # Evaluation:
 function (val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})(c)
   if iszero(c)
-    return inf(val.tropical_semiring)
+    return inf(val.TropicalSemiring)
   end
   if convention(val)==min
-    return val.tropical_semiring(t_adic_valuation(c))
+    return val.TropicalSemiring(t_adic_valuation(c))
   end
-  return val.tropical_semiring(-t_adic_valuation(c))
+  return val.TropicalSemiring(-t_adic_valuation(c))
 end
 # Display:
 function Base.show(io::IO, val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})
@@ -280,7 +284,6 @@ function simulate_valuation(G::Vector{<:MPolyElem}, val::TropicalSemiringMap)
 
   return vvG
 end
-export simulate_valuation
 
 function simulate_valuation(w::Vector, val::TropicalSemiringMap)
   # if the valuation is non-trivial, prepend -1 to the vector
@@ -335,7 +338,6 @@ desimulate_valuation(vvI,val_s)
 function desimulate_valuation(vvI::MPolyIdeal,val::TropicalSemiringMap)
   return ideal([g for g in desimulate_valuation(gens(vvI),val) if !iszero(g)])
 end
-export desimulate_valuation
 
 function desimulate_valuation(vvG::Vector{<:MPolyElem}, val::TropicalSemiringMap)
   return [desimulate_valuation(vvg,val) for vvg in vvG]
@@ -448,7 +450,6 @@ function tighten_simulation(f::MPolyElem,val::TropicalSemiringMap)
   return finish(f_tightened)
 
 end
-export tighten_simulation
 
 
 # function valuation_Int(val::TropicalSemiringMap, c)

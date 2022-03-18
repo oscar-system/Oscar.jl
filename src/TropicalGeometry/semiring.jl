@@ -1,6 +1,6 @@
 # module Tropical
 
-export tropical_semiring,
+export TropicalSemiring,
        @tropical,
        convention,
        det
@@ -58,7 +58,7 @@ Oscar.parent_type(::Type{TropicalSemiringElem{T}}) where {T} = TropicalSemiring{
 
 @doc Markdown.doc"""
 
-    tropical_semiring(M::Union{typeof(min),typeof(max)}=min)
+    TropicalSemiring(M::Union{typeof(min),typeof(max)}=min)
 
 The tropical semiring with min (default) or max.
 
@@ -68,10 +68,10 @@ The tropical semiring with min (default) or max.
 # Examples
 Basic arithmetics with tropical numbers:
 ```jldoctest
-julia> T = tropical_semiring() # = tropical_semiring(min)
+julia> T = TropicalSemiring() # = TropicalSemiring(min)
 Tropical semiring (min)
 
-julia> T = tropical_semiring(max)
+julia> T = TropicalSemiring(max)
 Tropical semiring (max)
 
 julia> 0*T(3) + 1*T(1)^2 + inf(T) # = max(0+3,1+2*1,-∞)
@@ -86,7 +86,7 @@ false
 
 Tropical polynomials:
 ```jldoctest
-julia> T = tropical_semiring()
+julia> T = TropicalSemiring()
 Tropical semiring (min)
 
 julia> Tx,(x1,x2) = PolynomialRing(T,3)
@@ -101,7 +101,7 @@ julia> evaluate(f,[T(-1//2),T(1//2)]) # warning: omitting T(0) gives an error
 
 Tropical matrices:
 ```jldoctest
-julia> T = tropical_semiring()
+julia> T = TropicalSemiring()
 Tropical semiring (min)
 
 julia> A = [T(0) inf(T); inf(T) T(0)] # = tropical identity matrix
@@ -123,9 +123,9 @@ julia> det(A)
 (0)
 ```
 """
-tropical_semiring() = TropicalSemiring{typeof(min)}()
-tropical_semiring(::typeof(max)) = TropicalSemiring{typeof(max)}()
-tropical_semiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
+TropicalSemiring() = TropicalSemiring{typeof(min)}()
+TropicalSemiring(::typeof(max)) = TropicalSemiring{typeof(max)}()
+TropicalSemiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
 
 ################################################################################
 #
@@ -180,13 +180,13 @@ returns `max` if `T` is the max tropical semiring.
 
 # Examples
 ```jldoctest
-julia> T = tropical_semiring(min)
+julia> T = TropicalSemiring(min)
 Tropical semiring (min)
 
 julia> convention(T)
 min (generic function with 12 methods)
 
-julia> T = tropical_semiring(max)
+julia> T = TropicalSemiring(max)
 Tropical semiring (max)
 
 julia> convention(T)
@@ -427,9 +427,9 @@ end
 function det(x::Matrix{Oscar.TropicalSemiringElem{T}}) where {T}
   if length(x)==0
     if T == typeof(min)
-      return tropical_semiring(min)(1)
+      return TropicalSemiring(min)(1)
     else
-      return tropical_semiring(max)(1)
+      return TropicalSemiring(max)(1)
     end
   end
 
@@ -522,7 +522,7 @@ Translates the expression in the tropical world.
 # Examples
 
 ```jlexample
-julia> T = tropical_semiring(min);
+julia> T = TropicalSemiring(min);
 
 julia> Tx, x = Tropical.PolynomialRing(T, "x" => 1:3);
 

@@ -30,7 +30,7 @@ julia> tropical_polynomial(f,max)
 ```
 """
 function tropical_polynomial(f::MPolyElem, M::Union{typeof(min),typeof(max)}=min)
-  T = tropical_semiring(M)
+  T = TropicalSemiring(M)
   if M==min
     s=1
   else
@@ -77,7 +77,7 @@ julia> tropical_polynomial(f,val)
 ```
 """
 function tropical_polynomial(f::MPolyElem, val::TropicalSemiringMap)
-  T = tropical_semiring(val)
+  T = TropicalSemiring(val)
   Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)
 

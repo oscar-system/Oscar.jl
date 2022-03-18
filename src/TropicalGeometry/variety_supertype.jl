@@ -32,7 +32,7 @@ Intersect two tropical varieties.
 
 # Examples
 ```jldoctest
-julia> RR = tropical_semiring(min)
+julia> RR = TropicalSemiring(min)
 Tropical semiring (min)
 
 julia> S,(x,y) = RR["x","y"]
@@ -87,7 +87,7 @@ Return the ambient dimension of `T` if it is embedded. Otherwise an error is thr
 # Examples
 A tropical hypersurface in RR^n is of ambient dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -120,7 +120,7 @@ Return the codimension of `T`.
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -149,7 +149,7 @@ Return the dimension of `T`.
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -178,7 +178,7 @@ Return the f-Vector of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -209,7 +209,7 @@ Return the dimension of the lineality space of `T` if it is embedded. Otherwise 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -242,7 +242,7 @@ Return the lineality space of `T` if it is embedded. Otherwise an error is throw
 # Examples
 A tropical hypersurface in RR^n is of lineality spaceension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -276,7 +276,7 @@ Return the maximal polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -309,7 +309,7 @@ Return the number of maximal polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -339,7 +339,7 @@ Return the number of polyhedra of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -369,7 +369,7 @@ Return the number of vertices of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -399,7 +399,7 @@ Return true if `T` is a pure polyhedral complex, false otherwise.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -428,7 +428,7 @@ Return true if `T` is a simplicial polyhedral complex, false otherwise.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -457,7 +457,7 @@ Return the vertices of `T`, which are points in euclidean space if T is embedded
 # Examples
 The vertices of a plane tropical line, plane tropical honeycomb quadric, and plane tropical honeycomb cubic
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -508,7 +508,7 @@ Return the weights of `T`.
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> RR = tropical_semiring(min);
+julia> RR = TropicalSemiring(min);
 
 julia> S,(x,y) = RR["x","y"];
 
@@ -537,7 +537,7 @@ end
 
 # # Examples
 # ```jldoctest
-# julia> RR = tropical_semiring(min)
+# julia> RR = TropicalSemiring(min)
 # Tropical ring (min)
 
 # julia> S,(x,y) = RR["x","y"]

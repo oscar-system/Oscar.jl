@@ -64,7 +64,7 @@ Return the tropical hypersurface defined by a tropical polynomial.
 
 # Examples
 ```jldoctest
-julia> T = tropical_semiring(min)
+julia> T = TropicalSemiring(min)
 Tropical semiring (min)
 
 julia> Txy,(x,y) = T["x","y"]
@@ -102,7 +102,7 @@ end
 
 # # Examples
 # ```jldoctest
-# julia> T = tropical_semiring(min)
+# julia> T = TropicalSemiring(min)
 # Tropical ring (min)
 
 # julia> Txy,(x,y) = T["x","y"]
@@ -206,7 +206,7 @@ Return the dual subdivision of `TH` if it is embedded. Otherwise an error is thr
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1.
 ```jldoctest
-julia> T = tropical_semiring(min);
+julia> T = TropicalSemiring(min);
 
 julia> Txy,(x,y) = T["x","y"];
 
@@ -235,7 +235,7 @@ Return the tropical polynomial of `TH` if it is embedded. Otherwise an error is 
 
 # Examples
 ```jldoctest
-julia> T = tropical_semiring(min);
+julia> T = TropicalSemiring(min);
 
 julia> Txy,(x,y) = T["x","y"];
 
