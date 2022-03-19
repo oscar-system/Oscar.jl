@@ -28,7 +28,9 @@ end
 #  crt in parallel
 #  use walk, tracing, ...
 
-function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
+#= TODO: Currently we had to "disable" modular GB stuff due to introducing dictionaries of GBs for ideals.
+ =     Next step is to reenable modular Singular.std and modular f4 again. =#
+function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return collect(I.gb)
   end
@@ -102,7 +104,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb = BiPolyArray(gd, keep_ordering = false, isGB = true)
+            I.gb[degrevlex(gens(Qt))] = BiPolyArray(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end
@@ -114,9 +116,8 @@ end
 
 function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
-    I.gb = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
-    I.gb.ord = ord.o
-    singular_assure(I.gb, ord)
+    I.gb[ord] = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
+    singular_assure(I.gb[ord])
     return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
   end
     
@@ -147,7 +148,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
     R = GF(p)
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord; complete_reduction = complete_reduction)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord, complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
@@ -197,9 +198,8 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
                I.gens.ord = ord.o
             end
             if ord.o == I.gens.ord && !isdefined(I, :gb)
-              I.gb = BiPolyArray(gd[1:length_gc], keep_ordering = false)
-              I.gb.isGB = true
-              singular_assure(I.gb)
+              I.gb[ord] = BiPolyArray(gd[1:length_gc], keep_ordering = false, isGB = true)
+              singular_assure(I.gb[ord])
             end
             return G, T
           else
@@ -212,12 +212,12 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
   end
 end
 
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
-   ord = Oscar.Orderings.MonomialOrdering(base_ring(I), Oscar.Orderings.ordering(gens(base_ring(I)), ordering))
-   return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
-end
-
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
+#= function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
+ =    ord = Oscar.Orderings.MonomialOrdering(base_ring(I), Oscar.Orderings.ordering(gens(base_ring(I)), ordering))
+ =    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
+ = end
+ =  =#
+ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=degrevlex(gens(base_ring(I))); complete_reduction::Bool = true, use_hilbert::Bool = false)
    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 
@@ -252,7 +252,7 @@ function induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
 end
 
 function exp_groebner_basis(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  H = Oscar.exp_groebner_assure(I, ord)
+  H = exp_groebner_assure(I, ord)
   return H
 end
 

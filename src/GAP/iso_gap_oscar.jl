@@ -1,6 +1,6 @@
 # Basically the same as the usual preimage function but without a type check
 # since we don't have elem_type(D) in this case
-function preimage(M::Map{D, C}, a; check::Bool = true) where {D <: GapObj, C}
+function preimage(M::MapFromFunc{D, C}, a; check::Bool = true) where {D <: GapObj, C}
   parent(a) === codomain(M) || error("the element is not in the map's codomain")
   if isdefined(M.header, :preimage)
     p = M.header.preimage(a)
@@ -10,7 +10,7 @@ function preimage(M::Map{D, C}, a; check::Bool = true) where {D <: GapObj, C}
 end
 
 # needed in order to do a generic argument check on the GAP side
-function image(M::Map{D, C}, a; check::Bool = true) where {D <: GapObj, C}
+function image(M::MapFromFunc{D, C}, a; check::Bool = true) where {D <: GapObj, C}
   check && (a in domain(M) || error("the element is not in the map's domain"))
   if isdefined(M, :header)
     if isdefined(M.header, :image)

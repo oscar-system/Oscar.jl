@@ -153,6 +153,7 @@
 
 
   "General" => [
+     "General/architecture.md",
      "General/other.md",
      "General/faq.md",
   ],

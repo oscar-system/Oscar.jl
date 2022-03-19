@@ -4,18 +4,22 @@
 ###############################################################################
 ###############################################################################
 
-struct PolyhedralComplex
+struct PolyhedralComplex{T}
     pm_complex::Polymake.BigObject
-    function PolyhedralComplex(pm::Polymake.BigObject)
-        return new(pm)
-    end
+    
+     PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
+
+# default scalar type: `fmpq`
+PolyhedralComplex(x...) = PolyhedralComplex{fmpq}(x...)
+
+PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
 
 pm_object(pc::PolyhedralComplex) = pc.pm_complex
 
 
 @doc Markdown.doc"""
-    PolyhedralComplex(polyhedra, vr, far_vertices, L)
+    PolyhedralComplex{T}(polyhedra, vr, far_vertices, L) where T<:scalar_types
 
 # Arguments
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
@@ -49,14 +53,14 @@ julia> PC = PolyhedralComplex(IM, vr)
 A polyhedral complex in ambient dimension 2
 ```
 """
-function PolyhedralComplex(
+function PolyhedralComplex{T}(
                 polyhedra::IncidenceMatrix, 
                 vr::Union{SubObjectIterator{<:Union{PointVector,PointVector}}, Oscar.MatElem, AbstractMatrix}, 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
                 L::Union{SubObjectIterator{<:RayVector}, 
                 Oscar.MatElem, AbstractMatrix, Nothing} = nothing
-            )
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(vr, 2)) : L
+            ) where T<:scalar_types
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L
 
     # Rays and Points are homogenized and combined and
     points = homogenize(vr, 1)
@@ -68,25 +72,28 @@ function PolyhedralComplex(
     # Lineality is homogenized
     lineality = homogenize(LM, 0)
 
-    PolyhedralComplex(Polymake.fan.PolyhedralComplex{Polymake.Rational}(
+    PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
         POINTS = points,
         INPUT_LINEALITY = lineality,
         INPUT_CONES = polyhedra,
     ))
 end
 
+# TODO: Only works for this specific case; implement generalization using `iter.Acc`
+# Fallback like: PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
 # This makes sure that PolyhedralComplex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
-PolyhedralComplex(iter::SubObjectIterator{Polyhedron}) = PolyhedralComplex(iter.Obj)
+PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
 
 ###############################################################################
 ###############################################################################
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, PC::PolyhedralComplex)
+function Base.show(io::IO, PC::PolyhedralComplex{T}) where T<:scalar_types
     try
         ad = ambient_dim(PC)
         print(io, "A polyhedral complex in ambient dimension $(ad)")
+        T != fmpq && print(io, " with $T type coefficients")
     catch e
         print(io, "A polyhedral complex without ambient dimension")
     end

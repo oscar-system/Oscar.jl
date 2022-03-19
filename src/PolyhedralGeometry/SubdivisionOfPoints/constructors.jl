@@ -4,12 +4,18 @@
 ###############################################################################
 ###############################################################################
 
-struct SubdivisionOfPoints
+struct SubdivisionOfPoints{T}
    pm_subdivision::Polymake.BigObject
-   function SubdivisionOfPoints(pm::Polymake.BigObject)
-      return new(pm)
-   end
+   
+   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
+
+# default scalar type: `fmpq`
+SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+SubdivisionOfPoints(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
 
 @doc Markdown.doc"""
     SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix)
@@ -34,10 +40,10 @@ julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
 A subdivision of points in ambient dimension 3
 ```
 """
-function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix)
+function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix) where T<:scalar_types
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
-   SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
-      POINTS = homogenize(points,1),
+   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
+      POINTS = homogenize(Points,1),
       MAXIMAL_CELLS = arr,
    ))
 end
@@ -66,8 +72,8 @@ julia> n_maximal_cells(SOP)
 1
 ```
 """
-function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector)
-   SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
+function SubdivisionOfPoints{T}(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector) where T<:scalar_types
+   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
       POINTS = homogenize(points,1),
       WEIGHTS = weights,
    ))
@@ -81,20 +87,14 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
-
-
-#Same construction for when the user gives Matrix{Bool} as incidence matrix
-function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool})
-   SubdivisionOfPoints(points,IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
+#Same construction for when the user provides maximal cells
+function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Vector{Vector{Int64}}) where T<:scalar_types
+   SubdivisionOfPoints{T}(points, IncidenceMatrix(cells))
 end
 
-
-
-
-
-#Same construction for when the user provides maximal cells
-function SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::Vector{Vector{Int64}})
-   SubdivisionOfPoints(points,IncidenceMatrix(cells))
+#Same construction for when the user gives Matrix{Bool} as incidence matrix
+function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}) where T<:scalar_types
+   SubdivisionOfPoints{T}(points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 
 ###############################################################################
@@ -102,6 +102,7 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, SOP::SubdivisionOfPoints)
+function Base.show(io::IO, SOP::SubdivisionOfPoints{T}) where T<:scalar_types
     print(io, "A subdivision of points in ambient dimension $(ambient_dim(SOP))")
+    T != fmpq && print(io, " with $T type coefficients")
 end

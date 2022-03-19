@@ -1,6 +1,7 @@
 module GModuleFromGap
 using Oscar
 using Hecke
+import Hecke: data
 
 #XXX: clash of names!
 #   gmodule(k, C) vs gmodule_ver(k, C)
@@ -25,6 +26,12 @@ function __init__()
 
   add_verbose_scope(:MinField)
   set_verbose_level(:MinField, 0)
+end
+
+Hecke.data(a::QabElem) = a.data
+
+function Hecke.number_field(::FlintRationalField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
+  return number_field(QQ, map(x->GAP.gap_to_julia(QabElem, x), chi.values), cached = cached)
 end
 
 function irreducible_modules(G::Oscar.GAPGroup)
@@ -116,7 +123,7 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minima
       if degree(k) == degree(base_ring(V))
         push!(res, V)
       else
-        @info("Going from $(degree(base_ring(V))) to $(degree(k))")
+        @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
         Vmin = gmodule_over(m, V)
         push!(res, Vmin)
       end
@@ -495,7 +502,6 @@ function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{nf_elem}}, mA)
 end
 
 function isone_cochain(X::Dict{<:GAPGroupElem, nf_elem}, mA)
-  @show X
   G = domain(mA)
   for g = G
     for h = G
