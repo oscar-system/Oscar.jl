@@ -1234,64 +1234,52 @@ Additionally, return the embedding of the component into `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+julia> R, x, y = PolynomialRing(QQ, "x" => 1:2, "y" => 1:3);
 
-julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+julia> W = [1 1 0 0 0; 0 0 1 1 1]
+2×5 Matrix{Int64}:
+ 1  1  0  0  0
+ 0  0  1  1  1
 
-julia> g = gens(G);
+julia> S, _ = grade(R, W);
 
-julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+julia> G = grading_group(S)
+GrpAb: Z^2
 
-julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
-
-julia> L = homogeneous_component(S, g[1]+g[3]);
+julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0] of degree Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 1 0]
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] of degree graded by [1 1]
 
-julia> L[2]
+julia> FG = gens(L[1]);
+
+julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0] of degree Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 1 0]
- to Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0] defined by a julia-function with inverse
-
-julia> FG = gens(L[1])
-1-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
- (1)
-
-julia> EMB = L[2];
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] of degree graded by [1 1]
+ to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] defined by a julia-function with inverse
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
-x[3]
+x[2]*y[3]
+x[2]*y[2]
+x[2]*y[1]
+x[1]*y[3]
+x[1]*y[2]
+x[1]*y[1]
 
 julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
@@ -1317,14 +1305,7 @@ homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational F
   y -> [1]
   z -> [1] defined by a julia-function with inverse)
 
-julia> FG = gens(L[1])
-6-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
- (1, 0, 0, 0, 0, 0)
- (0, 1, 0, 0, 0, 0)
- (0, 0, 1, 0, 0, 0)
- (0, 0, 0, 1, 0, 0)
- (0, 0, 0, 0, 1, 0)
- (0, 0, 0, 0, 0, 1)
+julia> FG = gens(L[1]);
 
 julia> EMB = L[2];
 
