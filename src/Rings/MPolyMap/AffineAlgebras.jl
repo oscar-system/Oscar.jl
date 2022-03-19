@@ -37,27 +37,15 @@ end
 
 ################################################################################
 #
-#  Preimage of ideal
-#
-################################################################################
-
-function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
-  @req base_ring(I) === codomain(f) "Parent mismatch"
-  D = domain(f)
-  salghom = _singular_algebra_morphism(f)
-  CS = codomain(salghom)
-  V = gens(I)
-  Ix = Singular.Ideal(CS, CS.(V))
-  prIx = Singular.preimage(salghom, Ix)
-  return ideal(D, D.(gens(prIx)))
-end
-
-################################################################################
-#
 #  Kernel
 #
 ################################################################################
 
+@doc Markdown.doc"""
+    kernel(F::AffAlgHom)
+
+Return the kernel of `F`.
+"""
 function kernel(f::AffAlgHom)
   get_attribute!(f, :kernel) do
     C = codomain(f)
@@ -214,4 +202,21 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyElem, MPolyQuoElem})
   D = normal_form([inc(g)], J)
   !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
   return (pr(D[1]), kernel(F))
+end
+
+@doc Markdown.doc"""
+    preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+
+Return the preimage of the ideal `I` under the algebra homomorphism `F`.
+
+"""
+function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
+  @req base_ring(I) === codomain(f) "Parent mismatch"
+  D = domain(f)
+  salghom = _singular_algebra_morphism(f)
+  CS = codomain(salghom)
+  V = gens(I)
+  Ix = Singular.Ideal(CS, CS.(V))
+  prIx = Singular.preimage(salghom, Ix)
+  return ideal(D, D.(gens(prIx)))
 end

@@ -213,6 +213,11 @@ refer to `R` and `S`, respectively.
        
 ### Data Associated to Homomorphisms of Affine Algebras
 
+```@docs
+preimage(F::AffAlgHom, I::MPolyIdeal)
+kernel(F::AffAlgHom)
+```
+
 ###### Examples
 
 ```@repl oscar
