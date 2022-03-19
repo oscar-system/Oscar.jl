@@ -288,7 +288,7 @@ end
 Return `true` if `R` is positively graded, `false` otherwise.
 
 Here, `R` is called *positively graded* by a finitely generated abelian group $G$
-if $G$ is torsion-free and each graded part $R_g$ has finite rank.
+if $G$ is torsion-free and each graded part $R_g$, $g\in G$, has finite rank.
 
 # Examples
 ```jldoctest
@@ -1214,21 +1214,23 @@ end
     homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem) 
 
 Given a polynomial ring `R` which is graded by a finitely
-generated Abelian group, and given an element `g` of that group,
-return the homogeneous component of `R` of degree `g`.
+generated Abelian group without torsion, and given an element `g` of that group,
+return the homogeneous component of `R` of degree `g`. Additionally, return
+the embedding of the component into `R`.
 
     homogeneous_component(R::MPolyRing_dec, g::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded polynomial ring, and given
 a vector `g` of $m$ integers, convert `g` into an element of the group 
 $\mathbb  Z^m$, and return the homogeneous component of `R` whose degree 
-is that element.
+is that element. Additionally, return the embedding of the component into `R`.
 
     homogeneous_component(R::MPolyRing_dec, g::IntegerUnion)
 
 Given a $\mathbb  Z$-graded polynomial ring, and given
 an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
 and return the homogeneous component of `R` whose degree is that element.
+Additionally, return the embedding of the component into `R`.
 
 # Examples
 ```jldoctest
@@ -1341,6 +1343,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
   D = W.D
+  isfree(D) || error("Grading group must be torsion-free")
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
   R = base_ring(W)
