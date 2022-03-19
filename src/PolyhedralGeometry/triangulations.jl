@@ -268,7 +268,7 @@ A polyhedron in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 
-julia> isregular(point_matrix(vertices(c)),cells)
+julia> isregular(vertices(c),cells)
 true
 ```
 """
@@ -278,8 +278,6 @@ function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, 
 end
 
 
-#These all seem like natural ways to construct a subdivision of points from the data
-#  of a triangulation.
 
 
 
