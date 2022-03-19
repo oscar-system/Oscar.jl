@@ -90,10 +90,10 @@ julia> maximal_cells(MOAE)
 ```
 """
 function maximal_cells(SOP::SubdivisionOfPoints)
-    return SubObjectIterator{PointVector{fmpq}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
+    return SubObjectIterator{Polymake.SetAllocated{Int64}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
 end
 
-_maximal_cell(::Type{PointVector{fmpq}}, SOP::Polymake.BigObject, i::Base.Integer) = Polymake.row(SOP.MAXIMAL_CELLS, i)
+_maximal_cell(::Type{Polymake.SetAllocated{Int64}}, SOP::Polymake.BigObject, i::Base.Integer) = Polymake.row(SOP.MAXIMAL_CELLS, i)
 
 
 ###############################################################################
