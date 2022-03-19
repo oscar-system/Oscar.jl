@@ -4,8 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-#TODO:Code as a SubObjectIterator
-#  so we can apply point_matrix(points(SOP))
+
 @doc Markdown.doc"""
     points(SOP::SubdivisionOfPoints)
 
@@ -20,48 +19,33 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
 
-julia> for p in points(MOAE)
-       println(p)
-       end
-pm::Vector<pm::Rational>
-4 0 0
-pm::Vector<pm::Rational>
-0 4 0
-pm::Vector<pm::Rational>
-0 0 4
-pm::Vector<pm::Rational>
-2 1 1
-pm::Vector<pm::Rational>
-1 2 1
-pm::Vector<pm::Rational>
-1 1 2
+julia> points(MOAE)
+6-element SubObjectIterator{PointVector{fmpq}}:
+ [4, 0, 0]
+ [0, 4, 0]
+ [0, 0, 4]
+ [2, 1, 1]
+ [1, 2, 1]
+ [1, 1, 2]
 """
 function points(SOP::SubdivisionOfPoints)
-   PointSOPIterator(SOP)
+    return SubObjectIterator{PointVector{fmpq}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))
 end
 
-struct PointSOPIterator
-    SOP::SubdivisionOfPoints
-end
+_point(::Type{PointVector{fmpq}}, SOP::Polymake.BigObject, i::Base.Integer) = PointVector{fmpq}(SOP.POINTS[i, 2:end])
 
-function Base.iterate(iter::PointSOPIterator, index = 1)
-    n_points = npoints(iter.SOP)
-    if index > n_points
-        return nothing
-    end
-    #dehomogenize doesn't check if the first entry is 0. I think this okay here.
-    current_point = dehomogenize(pm_object(iter.SOP).POINTS[index,:])
-    return (current_point, index + 1)
-end
-Base.length(iter::PointSOPIterator) = npoints(iter.SOP)
+_point_matrix(::Val{_point}, SOP::Polymake.BigObject; homogenized=false) = SOP.POINTS[:, (homogenized ? 1 : 2):end]
+
+_matrix_for_polymake(::Val{_point}) = _point_matrix
 
 
 
 
-"""
+
+@doc Markdown.doc"""
     maximal_cells(SOP::SubdivisionOfPoints)
 
-Return the maximal cells of `SOP`.
+Return an iterator over the maximal cells of `SOP`.
 
 # Examples
 Display the cells of the "mother of all examples" non-regular triangulation.
@@ -87,49 +71,30 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
 
-julia> for c in maximal_cells(MOAE)
-       println(c)
-       end
-pm::Set<long, pm::operations::cmp>
+julia> maximal_cells(MOAE)
+7-element SubObjectIterator{PointVector{fmpq}}:
+ pm::Set<long, pm::operations::cmp>
 {4 5 6}
-pm::Set<long, pm::operations::cmp>
+ pm::Set<long, pm::operations::cmp>
 {1 2 4}
-pm::Set<long, pm::operations::cmp>
+ pm::Set<long, pm::operations::cmp>
 {2 4 5}
-pm::Set<long, pm::operations::cmp>
+ pm::Set<long, pm::operations::cmp>
 {2 3 5}
-pm::Set<long, pm::operations::cmp>
+ pm::Set<long, pm::operations::cmp>
 {3 5 6}
-pm::Set<long, pm::operations::cmp>
+ pm::Set<long, pm::operations::cmp>
 {1 3 6}
-pm::Set<long, pm::operations::cmp>
+ pm::Set<long, pm::operations::cmp>
 {1 4 6}
 ```
 """
-
-
-@doc Markdown.doc"""
-    maximal_cells(SOP::SubdivisionOfPoints)
-
-Return an iterator over the maximal cells of `SOP`.
-"""
 function maximal_cells(SOP::SubdivisionOfPoints)
-   MaximalCellIterator(SOP)
+    return SubObjectIterator{PointVector{fmpq}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
 end
 
-struct MaximalCellIterator
-    SOP::SubdivisionOfPoints
-end
+_maximal_cell(::Type{PointVector{fmpq}}, SOP::Polymake.BigObject, i::Base.Integer) = Polymake.row(SOP.MAXIMAL_CELLS, i)
 
-function Base.iterate(iter::MaximalCellIterator, index = 1)
-    n_max_cells = n_maximal_cells(iter.SOP)
-    if index > n_max_cells
-        return nothing
-    end
-    current_cell = Polymake.row(pm_object(iter.SOP).MAXIMAL_CELLS, index)
-    return (current_cell, index + 1)
-end
-Base.length(iter::MaximalCellIterator) = n_maximal_cells(iter.SOP)
 
 ###############################################################################
 ###############################################################################

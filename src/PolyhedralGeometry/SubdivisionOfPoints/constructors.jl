@@ -6,9 +6,11 @@
 
 struct SubdivisionOfPoints{T}
    pm_subdivision::Polymake.BigObject
-   
+
    SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
+
+pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 # default scalar type: `fmpq`
 SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
