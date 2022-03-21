@@ -1544,13 +1544,13 @@ function (P::FmpqRelSeriesRing)(H::HilbertData)
   dd = map_coefficients(QQ, d, parent = Qt)
   gg, ee, _ = gcdx(dd, gen(Qt)^max_precision(P))
   @assert isone(gg)
-  nn = Hecke.mullow(nn, ee, max_precision(P)+1)
+  nn = Hecke.mullow(nn, ee, max_precision(P))
   c = collect(coefficients(nn))
   return P(map(fmpq, c), length(c), max_precision(P), 0)
 end
 
 function hilbert_series_expanded(H::HilbertData, d::Int)
-   T, t = PowerSeriesRing(QQ, d, "t")   
+   T, t = PowerSeriesRing(QQ, d+1, "t")   
    return T(H)
 end
 

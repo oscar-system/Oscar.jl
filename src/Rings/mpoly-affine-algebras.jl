@@ -130,7 +130,7 @@ julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_expanded(A, 7)
-1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 14*t^7 + O(t^7)
+1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuo, d::Int)
@@ -166,7 +166,7 @@ julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_function(A,7)
-14
+22
 ```
 """
 function hilbert_function(A::MPolyQuo, d::Int)
