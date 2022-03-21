@@ -426,5 +426,8 @@ degree(A::MPolyQuo)
 ```@docs
 multi_hilbert_series(A::MPolyQuo)
 multi_hilbert_series_reduced(A::MPolyQuo)
+multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 ```
+
+
 
