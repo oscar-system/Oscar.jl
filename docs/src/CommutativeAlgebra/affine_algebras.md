@@ -366,16 +366,19 @@ The *Hilbert series* of $A$ is the generating function
 
 $H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
 
-(see  Section 8.2 in [MS05](@cite) for a formal discussion extending the standard
-$\mathbb Z$-graded case to the more general case considered here). As in the
-standard $\mathbb Z$-graded case, the infinitely many values of the Hilbert function
+(see  Section 8.2 in [MS05](@cite) for a formal discussion extending the classical case of
+$\mathbb Z$-gradings with positive weights to the more general case considered here).
+As in the classical case, the infinitely many values of the Hilbert function
 can be expressed in finite terms by representing the Hilbert series as a rational function
 (see Theorem 8.20 in [MS05](@cite) for a precise statement).
 
-Using Gröbner bases, the computation of Hilbert series can be reduced to the case where
-the modulus $I$ is a monomial ideal. In the latter case, the computation of Hilbert series
-is of combinatorial nature, and there are various strategies of how to proceed. In
-describing corresponding OSCAR functionality, we first focus on the special case of
+By a result of Macaulay, if $A = R/I$ is an affine algebra, and $L_{>}(I)$ is the leading
+ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert function of $A$
+equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
+Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
+the modulus of an affine algebra is a monomial ideal. In the latter case, we face a problem 
+of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)). In
+describing corresponding OSCAR functionality, we first focus on the classical case of
 $\mathbb Z$-gradings with positive weights.
 
 
