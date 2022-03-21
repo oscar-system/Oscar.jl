@@ -35,6 +35,8 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
 modulus(W::MPolyQuo) = W.I
 
+default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
+
 ##############################################################################
 #
 # Quotient ring elements
@@ -358,7 +360,7 @@ end
 
 ##################################################################
 
-function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
+function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = default_ordering(Rx); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
     groebner_assure(Rx.I, ordering)
     singular_assure(Rx.I.gb[ordering], ordering)
@@ -1178,7 +1180,7 @@ end
 ##################################
 #######################################################
 
-function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = weighted_ordering(base_ring(base_ring(I))))
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyRing_dec are forced to be homogeneous though.
 

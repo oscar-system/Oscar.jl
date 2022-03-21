@@ -159,6 +159,8 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
+default_ordering(R::MPolyRing) = degrevlex(gens(R))
+
 mutable struct BiPolyArray{S}
   Ox::MPolyRing #Oscar Poly Ring
   O::Vector{S}

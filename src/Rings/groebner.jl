@@ -30,7 +30,7 @@ Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
     if isempty(I.gb)
-        drl = degrevlex(gens(base_ring(I)))
+        drl = default_ordering(base_ring(I))
         I.gb[drl] = groebner_assure(I, drl, complete_reduction)
         G = I.gb[drl]
     else
@@ -87,7 +87,7 @@ end
 
 @doc Markdown.doc"""
     function groebner_basis(I::MPolyIdeal;
-      ordering::MonomialOrdering = degrevlex(gens(base_ring(I))),
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
 
 Given an ideal `I` and optional parameters monomial ordering `ordering` and `complete_reduction`,
@@ -110,7 +110,7 @@ julia> H = groebner_basis(I, ordering=lex(gens(R)))
  6*x^2 - y^3
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false, enforce_global_ordering::Bool = true)
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false, enforce_global_ordering::Bool = true)
     groebner_assure(I, ordering, complete_reduction, enforce_global_ordering)
     return collect(I.gb[ordering])
 end
@@ -155,7 +155,7 @@ function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrderin
  end
 
 @doc Markdown.doc"""
-    groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
+    groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
 
 Return a pair `G, m` where `G` is a Groebner basis of the ideal `I` with respect to the
 monomial ordering `ordering` (as default degree reverse lexicographical), and `m` is a transformation matrix from
@@ -177,7 +177,7 @@ true
 
 ```
 """
-function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
+function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
    G, m = groebner_basis_with_transform(I.gens, ordering, complete_reduction)
    I.gb[ordering]  = G
    return collect(G), m

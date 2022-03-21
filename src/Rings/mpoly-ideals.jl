@@ -911,7 +911,7 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where T
+function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
   groebner_assure(I, ordering)
   GI = I.gb[ordering]
   singular_assure(GI)
@@ -1254,7 +1254,7 @@ Given a homogeneous ideal $I$ in graded ring $R$ such that the grading gives ris
 to a weighted monomial ordering, return an array containing a minimal set of
 generators of $I$.
 """
-function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = weighted_ordering(base_ring(I)))
+function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyRing_dec are forced to be homogeneous though.
 

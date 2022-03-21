@@ -755,6 +755,8 @@ exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i,
 function has_weighted_ordering(R::MPolyRing_dec)
   grading_to_ordering = false
   w_ord = degrevlex(gens(R.R)) # dummy, not used
+  # This is not meant to be exhaustive, there a probably more gradings which one
+  # can meaningfully translate into a monomial ordering
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
@@ -774,16 +776,17 @@ function has_weighted_ordering(R::MPolyRing_dec)
   return grading_to_ordering, w_ord
 end
 
-function weighted_ordering(R::MPolyRing_dec)
+function default_ordering(R::MPolyRing_dec)
   fl, w_ord = has_weighted_ordering(R)
-  @assert fl "Cannot translate grading into a monomial ordering"
-  return w_ord
+  if fl
+    return w_ord
+  end
+  return degrevlex(gens(R))
 end
 
 function singular_poly_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
-  fl, w_ord = has_weighted_ordering(R)
-  if fl && !keep_ordering
-    return singular_poly_ring(R.R, w_ord.o)
+  if !keep_ordering
+    return singular_poly_ring(R.R, default_ordering(R).o)
   end
   return singular_poly_ring(R.R, keep_ordering = keep_ordering)
 end
@@ -1845,7 +1848,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
-function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where {T <: MPolyElem}
+function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyElem}
   # TODO: Adjust as soon as new GB concept is implemented
   return ideal(homogenization(groebner_basis(I, ordering=ordering), var, pos))
 end
