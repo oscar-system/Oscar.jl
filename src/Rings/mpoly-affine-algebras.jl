@@ -182,7 +182,7 @@ end
      hilbert_polynomial(A::MPolyQuo)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
-is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$ by degree,
+is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
 return the Hilbert polynomial of $A$.
 
 # Examples
@@ -214,7 +214,7 @@ end
     degree(A::MPolyQuo)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
-is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$ by degree,
+is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
 return the degree of $A$.
 
 # Examples
