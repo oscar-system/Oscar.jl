@@ -752,7 +752,39 @@ exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = exponent_vector(a
 exponent(a::MPolyElem_dec, i::Int, j::Int) = exponent(a.f, i, j)
 exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i, j, T)
 
+function has_weighted_ordering(R::MPolyRing_dec)
+  grading_to_ordering = false
+  w_ord = degrevlex(gens(R.R)) # dummy, not used
+  if is_z_graded(R)
+    w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
+    if all(isone, w)
+      w_ord = degrevlex(gens(R.R))
+      grading_to_ordering = true
+    elseif all(isequal(-1), w)
+      w_ord = negdegrevlex(gens(R.R))
+      grading_to_ordering = true
+    elseif all(x -> x > 0, w)
+      w_ord = wdegrevlex(gens(R.R), w)
+      grading_to_ordering = true
+    elseif all( x -> x < 0, w)
+      w_ord = negwdegrevlex(gens(R.R), [ -v for v in w])
+      grading_to_ordering = true
+    end
+  end
+  return grading_to_ordering, w_ord
+end
+
+function weighted_ordering(R::MPolyRing_dec)
+  fl, w_ord = has_weighted_ordering(R)
+  @assert fl "Cannot translate grading into a monomial ordering"
+  return w_ord
+end
+
 function singular_poly_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
+  fl, w_ord = has_weighted_ordering(R)
+  if fl && !keep_ordering
+    return singular_poly_ring(R.R, w_ord.o)
+  end
   return singular_poly_ring(R.R, keep_ordering = keep_ordering)
 end
 

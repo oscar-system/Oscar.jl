@@ -199,6 +199,12 @@ end
   @test isisomorphic(D, abelian_group([0]))
 end
 
+@testset "Minimal generating set" begin
+  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  I = ideal(R, [ x^2, y, x^2 + y ])
+  @test minimal_generating_set(I) == [ y, x^2 ]
+end
+
 # Conversion bug
 
 begin

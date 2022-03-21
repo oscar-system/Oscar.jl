@@ -1178,6 +1178,23 @@ end
 ##################################
 #######################################################
 
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = weighted_ordering(base_ring(base_ring(I))))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  Q = base_ring(I)
+
+  QS = singular_poly_ring(Q, ordering)
+  singular_assure(I)
+
+  IS = I.SI
+  GC.@preserve IS QS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
+    gensS = gens(typeof(IS)(QS, ptr))
+  end
+
+  return elem_type(Q)[ Q(f) for f in gensS ]
+end
 
 ################################################################################
 #

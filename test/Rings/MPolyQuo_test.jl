@@ -83,4 +83,10 @@ end
   @test (I == J) == false
   @test dim(J)  == 1
   @test dim(J)  == J.dim  # test case if dim(J) is already set
+
+  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  I = ideal(R, [ x*y ])
+  Q, RtoQ = quo(R, I)
+  J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
+  @test minimal_generating_set(J) == [ Q(y), Q(x^2 + y) ]
 end
