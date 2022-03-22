@@ -587,6 +587,17 @@ end
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 
 @doc Markdown.doc"""
+    union(M::ModuleGens, N::ModuleGens)
+
+Compute the union of `M` and `N`.
+"""
+function union(M::ModuleGens, N::ModuleGens)
+  @assert M.F === N.F
+  O = vcat(M.O, N.O)
+  return ModuleGens(M.F, O)
+end
+
+@doc Markdown.doc"""
     singular_module(F::FreeMod)
 
 Create a Singular module from an OSCAR free module.
@@ -867,7 +878,7 @@ Set the default ordering in `M` to `ord`.
 function set_default_ordering!(M::SubModuleOfFreeModule, ord::Singular.sordering)
   @assert exactly_one_module_ordering(ord)
   @assert ordering_compatible_with_ring(base_ring(M), ord)
-  M.default_ordering = Singular.sordering
+  M.default_ordering = ord
 end
 
 @doc Markdown.doc"""
@@ -952,7 +963,7 @@ end
 function leading_module(submod::SubModuleOfFreeModule, ordering::Singular.sordering)
   gb = std_basis(submod, ordering)
   lm = gb.leading_monomials
-  return SubModuleOfFreeModule(submod.F, lm)
+  return SubModuleOfFreeModule(submod.F, lm, ordering)
 end
 
 @doc Markdown.doc"""
@@ -1154,7 +1165,7 @@ function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   if M.F !== N.F
     return false
   end
-  M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
+  M_mod_N = reduce(M, N)
   return iszero(M_mod_N)
 end
 
@@ -1169,8 +1180,8 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
     return false
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
-  M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
-  N_mod_M = _reduce(singular_generators(std_basis(N)), singular_generators(std_basis(M)))
+  M_mod_N = reduce(M, N)
+  N_mod_M = reduce(N, M)
   return iszero(M_mod_N) && iszero(N_mod_M)
 end
 
@@ -1474,7 +1485,9 @@ Set the default ordering in `M` to `ord`.
 """
 function set_default_ordering!(M::SubQuo, ord::Singular.sordering)
   set_default_ordering!(M.sub, ord)
-  set_default_ordering!(M.quo, ord)
+  if isdefined(M, :quo)
+    set_default_ordering!(M.quo, ord)
+  end
   set_default_ordering!(M.sum, ord)
 end
 
@@ -3123,6 +3136,61 @@ Check if `a` represents an element `SQ`.
 """
 function represents_element(a::FreeModElem, SQ::SubQuo)
   return !isnothing(coordinates(a,SQ))
+end
+
+@doc Markdown.doc"""
+    reduce(M::ModuleGens, GB::ModuleGB)
+
+Reduce `M` with respect to the Gröbner basis `GB`.
+"""
+function reduce(M::ModuleGens, GB::ModuleGB)
+  @assert M.F === GB.groebner_basis.F
+
+  P = isdefined(GB, :quo_groebner_basis) ? union(GB.groebner_basis, GB.quo_groebner_basis.groebner_basis) : GB.groebner_basis
+
+  singular_assure(P)
+  singular_assure(M)
+
+  red = _reduce(M.S, P.S)
+  res = ModuleGens(M.F, red)
+  oscar_assure(res)
+  return res
+end
+
+@doc Markdown.doc"""
+    reduce(M::SubModuleOfFreeModule, GB::ModuleGB)
+
+Reduce `M` with respect to the Gröbner basis `GB`.
+"""
+function reduce(M::SubModuleOfFreeModule, GB::ModuleGB)
+  return SubModuleOfFreeModule(M.F, reduce(M.gens, GB), M.default_ordering)
+end
+
+@doc Markdown.doc"""
+    reduce(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+
+Reduce `M` with respect to `N`, that is with respect to a Gröbner basis of `N` (the Gröbner basis is computed for this).
+"""
+function reduce(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  return reduce(M, groebner_basis(N, M.default_ordering))
+end
+
+@doc Markdown.doc"""
+    reduce(v::FreeModElem, GB::ModuleGB)
+
+Reduce the element `v` with respect to the Gröbner basis `GB` 
+"""
+function reduce(v::AbstractFreeModElem, GB::ModuleGB)
+  return reduce(ModuleGens(parent(v), [v]), GB).O[1]
+end
+
+@doc Markdown.doc"""
+    reduce(v::FreeModElem, N::SubModuleOfFreeModule)
+
+Reduce the element `v` with respect to a Gröbner basis of `N`.
+"""
+function reduce(v::AbstractFreeModElem, N::SubModuleOfFreeModule)
+  return reduce(v, groebner_basis(N))
 end
 
 hom(D::SubQuo, C::ModuleFP, A::Vector) = SubQuoHom(D, C, A)

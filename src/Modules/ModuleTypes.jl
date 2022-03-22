@@ -225,7 +225,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
 
     r = new{R}()
     r.F = F
-    r.gens = ModuleGens(gens, F)
+    r.gens = ModuleGens(gens, F, default_ordering)
     r.default_ordering = default_ordering
     r.groebner_basis = Dict()
     return r
@@ -265,7 +265,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     r = new{L}()
     r.F = F
     O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
-    r.gens = ModuleGens(O, F)
+    r.gens = ModuleGens(O, F, default_ordering)
     r.matrix = A
     r.default_ordering = default_ordering
     r.groebner_basis = Dict()
