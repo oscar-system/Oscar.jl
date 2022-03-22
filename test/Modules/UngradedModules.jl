@@ -138,14 +138,14 @@ end
 
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	F = FreeMod(R, 2)
-	lp = Singular.sordering([Singular.ordering_lp(3).data[1], Singular.ordering_C().data[1]])
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
 
 	M = SubQuo(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
 	@test leading_module(M,lp) == SubQuo(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
 
 	R, x = PolynomialRing(QQ, ["x_"*string(i) for i=1:4])
 	F = FreeMod(R, 1)
-	lp = Singular.sordering([Singular.ordering_lp(4).data[1], Singular.ordering_C().data[1]])
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
 
 	J = SubQuo(F, [(x[1]+x[2]+R(1))*F[1], (x[1]+x[2]+2*x[3]+2*x[4]+1)*F[1],(x[1]+x[2]+x[3]+x[4]+1)*F[1]])
 	@test reduced_groebner_basis(J, lp).reduced_groebner_basis.O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O

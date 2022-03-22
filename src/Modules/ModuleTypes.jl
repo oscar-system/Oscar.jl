@@ -26,7 +26,7 @@ abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 
 @doc Markdown.doc"""
-    ModuleFPElem{T}
+    ModuleFPElem{T} <: ModuleElem{T}
 
 The abstract supertype of all elements of finitely presented modules.
 """
@@ -180,9 +180,11 @@ mutable struct ModuleGB{T}
   reduced_groebner_basis::ModuleGens{T}
 
   leading_monomials::ModuleGens{T}
-  ordering::Singular.sordering
+  ordering::ModuleOrdering
+  #ordering::Singular.sordering # Remove
 
-  function ModuleGB{R}(gb::ModuleGens{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R
+  #function ModuleGB{R}(gb::ModuleGens{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R
+  function ModuleGB{R}(gb::ModuleGens{R}, lm::ModuleGens{R}, ord::ModuleOrdering) where R
     r = new{R}()
     r.groebner_basis = gb
     r.leading_monomials = lm
@@ -191,7 +193,8 @@ mutable struct ModuleGB{T}
     return r
   end
 
-  function ModuleGB{R}(gb::ModuleGens{R}, qgb::ModuleGB{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R
+  #function ModuleGB{R}(gb::ModuleGens{R}, qgb::ModuleGB{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R # Remove
+  function ModuleGB{R}(gb::ModuleGens{R}, qgb::ModuleGB{R}, lm::ModuleGens{R}, ord::ModuleOrdering) where R
     r = new{R}()
     r.groebner_basis = gb
     r.quo_groebner_basis = qgb
@@ -213,15 +216,18 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
   gens::ModuleGens{T}
-  groebner_basis::Dict{Singular.sordering, ModuleGB{T}}
-  default_ordering::Singular.sordering
+  #groebner_basis::Dict{Singular.sordering, ModuleGB{T}} # Remove
+  groebner_basis::Dict{ModuleOrdering, ModuleGB{T}}
+  #default_ordering::Singular.sordering # Remove
+  default_ordering::ModuleOrdering
   matrix::MatElem
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}, 
-                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R}
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {R}
+  #                                    default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R} # Remove
     @assert all(x -> parent(x) === F, gens)
-    @assert exactly_one_module_ordering(default_ordering)
-    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
 
     r = new{R}()
     r.F = F
@@ -232,9 +238,10 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   end
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule,
-                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R}
-    @assert exactly_one_module_ordering(default_ordering)
-    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {R}
+  #                                    default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R} # Remove
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
     
     r = new{R}()
     r.F = F
@@ -245,9 +252,10 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   end
   
   function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens,
-                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R}                                    
-    @assert exactly_one_module_ordering(default_ordering)
-    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {R}
+#                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R} # Remove
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
 
     r = new{R}()
     r.F = F
@@ -258,9 +266,10 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   end
 
   function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L},
-                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {L}
-    @assert exactly_one_module_ordering(default_ordering)
-    @assert ordering_compatible_with_ring(base_ring(F), default_ordering)
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {L}
+#                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {L} # Remove
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
 
     r = new{L}()
     r.F = F
@@ -294,7 +303,8 @@ option is set in suitable functions.
   quo::SubModuleOfFreeModule
   sum::SubModuleOfFreeModule
 
-  groebner_basis::Dict{Singular.sordering, ModuleGB{T}}
+  #groebner_basis::Dict{Singular.sordering, ModuleGB{T}} # Remove
+  groebner_basis::Dict{ModuleOrdering, ModuleGB{T}}
 
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
