@@ -38,8 +38,7 @@ end
 
 function get_version_info()
     result = Dict{Symbol, Any}(
-        :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER],
-        :Julia => ["https://julialang.org/", VERSION]
+        :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
     )
     return result
 end
