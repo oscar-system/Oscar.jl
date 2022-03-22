@@ -41,9 +41,17 @@ Construct a tropical linear space from a degree 1 polynomial ideal.
 
 ```jldoctest
 julia> R,(x_0,x_1,x_2,x_3,x_4,x_5)=PolynomialRing(ZZ,["x_0","x_1","x_2","x_3","x_4","x_5"])
+(Multivariate Polynomial Ring in 6 variables x_0, x_1, x_2, x_3, ..., x_5 over Integer Ring, fmpz_mpoly[x_0, x_1, x_2, x_3, x_4, x_5])
+
 julia> I=ideal(R,[-x_0+x_2+x_3,-x_1+x_2+x_4,-x_0+x_1+x_5])
+ideal(-x_0 + x_2 + x_3, -x_1 + x_2 + x_4, -x_0 + x_1 + x_5)
+
 julia> val = TropicalSemiringMap(QQ)
+The trivial valuation on Rational Field
+
 julia> TropicalLinearSpace(I,val)
+Vector{Oscar.TropicalSemiringElem{typeof(min)}}
+TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 6, #undef)
 ```
 """
 function TropicalLinearSpace(I::MPolyIdeal{fmpz_mpoly}, val)
@@ -63,10 +71,17 @@ end
 Construct a tropical linear space from its Pluecker vector.
 #Examples
 ```jldoctest
-julia> R = tropical_semiring(min);
+julia> R = TropicalSemiring(min);
+
 julia> plv = [R(e) for e in [2,1,1,0,0,zero(R)]];
+
 julia> L = TropicalLinearSpace(plv, 2, 4)
+TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
+
 julia> f_vector(L)
+2-element Vector{Int64}:
+ 1
+ 3
 ```
 """
 function TropicalLinearSpace_impl(plv, rank, nElements, M)
@@ -95,16 +110,26 @@ Construct a tropical linear space from a matrix generating it. Requires the matr
 # Examples
 ```jldoctest
 julia> Kt, t = RationalFunctionField(QQ,"t");
-julia> val = TropicalSemiringMap(Kt,t);
-julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
-julia> TropicalLinearSpace(A, val);
 
+julia> val = TropicalSemiringMap(Kt,t);
+
+julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
+
+julia> TropicalLinearSpace(A, val)
+Vector{Oscar.TropicalSemiringElem{typeof(min)}}
+TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
  
 julia> p = 3;
-julia> val = TropicalSemiringMap(QQ, p);
-julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
-julia> TropicalLinearSpace(A,val);
 
+julia> val = TropicalSemiringMap(QQ, p);
+
+julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
+[3   7   5   1]
+[9   7   1   2]
+
+julia> TropicalLinearSpace(A,val)
+Vector{Oscar.TropicalSemiringElem{typeof(min)}}
+TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
 ```
 """
 function TropicalLinearSpace(tropicalmatrix::MatElem, val)
