@@ -54,15 +54,9 @@ const versionInfo = get_version_info()
 # have to be adapted though to make it more generic for matrices, arrays, etc.
 const typeMap = Dict{Type, String}([
     Int => "Base.Int",
-    Cone => "Oscar.Cone",
-    Polyhedron => "Oscar.Polyhedron",
-    PolyhedralFan => "Oscar.PolyhedralFan",
-    PolyhedralComplex => "Oscar.PolyhedralComplex",
-    SubdivisionOfPoints => "Oscar.SubdivisionOfPoints",
     Graphs.Graph{Graphs.Undirected} => "Oscar.Graphs.Graph{Oscar.Graphs.Undirected}",
     Graphs.Graph{Graphs.Directed} => "Oscar.Graphs.Graph{Oscar.Graphs.Directed}",
     SimplicialComplex => "Oscar.SimplicialComplex",
-    LinearProgram => "Oscar.LinearProgram",
     Vector => "Vector",
     Nemo.GaloisField => "Nemo.GaloisField",
     Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
@@ -77,6 +71,9 @@ const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeM
 function encodeType(::Type{T}) where T
     if haskey(typeMap, T)
         return typeMap[T]
+    else
+        # As a default just save the type as a string.
+        string(T)
     end
 end
 
@@ -86,7 +83,12 @@ function decodeType(input::String)
     if Symbol(input) == backref_sym
         return backref_sym
     else
-        return reverseTypeMap[input]
+        if haskey(reverseTypeMap, input)
+            return reverseTypeMap[input]
+        else
+            # As a default, parse the type from the string.
+            eval(Meta.parse(input))
+        end
     end
 end
 

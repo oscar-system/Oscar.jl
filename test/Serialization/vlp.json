@@ -26,13 +26,13 @@
     "id": "86efb40e-2aa0-4d8f-81f2-84fe7a515c5a",
     "type": {
         "container": "Vector",
-        "element": "Oscar.LinearProgram"
+        "element": "LinearProgram{fmpq}"
     },
     "data": {
         "vector": [
             {
                 "id": "e4b76089-be0c-4c4c-a76d-aaa936d2b161",
-                "type": "Oscar.LinearProgram",
+                "type": "LinearProgram{fmpq}",
                 "data": {
                     "lpcoeffs": {
                         "data": [
@@ -52,7 +52,7 @@
                     "convention": "max",
                     "feasible_region": {
                         "id": "b5a394b1-0b80-4226-bf8a-ad7ce35d7c23",
-                        "type": "Oscar.Polyhedron",
+                        "type": "Polyhedron{fmpq}",
                         "data": {
                             "_ns": {
                                 "polymake": [
@@ -185,7 +185,7 @@
             },
             {
                 "id": "fb8a82a2-bb08-4bf0-8fe6-d57478aadc4d",
-                "type": "Oscar.LinearProgram",
+                "type": "LinearProgram{fmpq}",
                 "data": {
                     "lpcoeffs": {
                         "data": [
