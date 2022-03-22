@@ -63,7 +63,7 @@ end
 Construct a tropical linear space from its Pluecker vector.
 #Examples
 ```jldoctest
-julia> R = tropical_semiring(min);
+julia> R = TropicalSemiring(min);
 julia> plv = [R(e) for e in [2,1,1,0,0,zero(R)]];
 julia> L = TropicalLinearSpace(plv, 2, 4)
 julia> f_vector(L)
