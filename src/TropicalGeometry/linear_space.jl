@@ -70,13 +70,13 @@ julia> f_vector(L)
 ```
 """
 function TropicalLinearSpace_impl(plv, rank, nElements, M)
-    Zero = zero(tropical_semiring(M))
+    Zero = zero(TropicalSemiring(M))
     indexSet = findall(i->i!=Zero, plv)
     bases = [ sort(Hecke.subsets(Vector{Int}(0:nElements-1), rank))[i] for i in indexSet ]
     val = Polymake.matroid.ValuatedMatroid{M}(BASES = bases, N_ELEMENTS = nElements,VALUATION_ON_BASES = [plv[i].data for i in indexSet])
     #return Polymake.tropical.linear_space{min}(val)
     P = Polymake.tropical.linear_space{M}(val)
-    P = PolyhedralComplex(P)
+    P = PolyhedralComplex{fmpq}(P)
     return TropicalLinearSpace{M,true}(P)
 end
 
