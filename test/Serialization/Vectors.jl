@@ -36,5 +36,29 @@
             loaded = load(joinpath(path, "vge.json"))
             @test v == loaded
         end
+
+        @testset "Vector{Any}" begin
+            c = cube(3)
+            LP0 = LinearProgram(c, [2,2,-3])
+            v = [c, LP0]
+            save(v, joinpath(path, "vany1.json"))
+            loaded = load(joinpath(path, "vany1.json"))
+            @test length(v) == length(loaded)
+            @test loaded[1] isa Polyhedron
+            @test loaded[2] isa LinearProgram
+            @test loaded isa Vector{Any}
+        end
+        
+        @testset "Vector{Union{Polyhedron, LinearProgram}}" begin
+            c = cube(3)
+            LP0 = LinearProgram(c, [2,2,-3])
+            v = Vector{Union{Polyhedron, LinearProgram}}([c, LP0])
+            save(v, joinpath(path, "vany2.json"))
+            loaded = load(joinpath(path, "vany2.json"))
+            @test length(v) == length(loaded)
+            @test loaded[1] isa Polyhedron
+            @test loaded[2] isa LinearProgram
+            @test loaded isa Vector{Union{Polyhedron, LinearProgram}}
+        end
     end
 end

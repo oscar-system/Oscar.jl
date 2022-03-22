@@ -7,7 +7,7 @@ function save_intern(s::SerializerState, vec::Vector{T}) where T
 end
 
 function load_intern(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
-   return [load(s, T, x) for x in dict[:vector]]
+    return Vector{T}([load(s, x; check_namespace=false) for x in dict[:vector]])
 end
 
 
