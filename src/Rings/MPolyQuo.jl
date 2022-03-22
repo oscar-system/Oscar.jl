@@ -1003,12 +1003,7 @@ and return the homogeneous component of `f` whose degree is that element.
 ```jldoctest
 julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
-R to A defined by a julia-function with inverse)
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
 julia> f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
@@ -1041,12 +1036,7 @@ Return the homogeneous components of `f`.
 ```jldoctest
 julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
-R to A defined by a julia-function with inverse)
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
 julia> f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
@@ -1072,12 +1062,7 @@ Return `true` if `f` is homogeneous, `false` otherwise.
 ```jldoctest
 julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [1]
-  z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
-R to A defined by a julia-function with inverse)
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
