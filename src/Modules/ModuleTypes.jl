@@ -30,7 +30,7 @@ abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 The abstract supertype of all elements of finitely presented modules.
 """
-abstract type ModuleFPElem{T} end
+abstract type ModuleFPElem{T} <: ModuleElem{T} end
 
 @doc Markdown.doc"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
