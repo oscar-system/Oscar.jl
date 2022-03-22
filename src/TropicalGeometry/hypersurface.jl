@@ -156,7 +156,7 @@ function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min
 end
 
 function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap, M::Union{typeof(min),typeof(max)}=min)
-    tropf = tropical_polynomial(f,val,M)
+    tropf = tropical_polynomial(f,val)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
     set_attribute!(Tf,:algebraic_polynomial,f)
