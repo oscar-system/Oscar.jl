@@ -141,14 +141,16 @@ function load(s::DeserializerState, ::Type{T}, dict::Dict) where T
     return result
 end
 
-function load(s::DeserializerState, dict::Dict)
-    haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
-    _ns = dict[:_ns]
-    if haskey(_ns, :polymake)
-        # If this is a polymake file
-        return load_from_polymake(dict)
+function load(s::DeserializerState, dict::Dict; check_namespace=true)
+    if check_namespace
+        haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
+        _ns = dict[:_ns]
+        if haskey(_ns, :polymake)
+            # If this is a polymake file
+            return load_from_polymake(dict)
+        end
+        haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
     end
-    haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
 
     encodedType = dict[:type]
     T = decodeType(encodedType)
