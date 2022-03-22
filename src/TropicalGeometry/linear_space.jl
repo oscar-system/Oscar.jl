@@ -42,7 +42,7 @@ Construct a tropical linear space from a degree 1 polynomial ideal.
 ```jldoctest
 julia> R,(x_0,x_1,x_2,x_3,x_4,x_5)=PolynomialRing(ZZ,["x_0","x_1","x_2","x_3","x_4","x_5"])
 julia> I=ideal(R,[-x_0+x_2+x_3,-x_1+x_2+x_4,-x_0+x_1+x_5])
-julia> val = ValuationMap(QQ)
+julia> val = TropicalSemiringMap(QQ)
 julia> TropicalLinearSpace(I,val)
 ```
 """
@@ -95,13 +95,13 @@ Construct a tropical linear space from a matrix generating it. Requires the matr
 # Examples
 ```jldoctest
 julia> Kt, t = RationalFunctionField(QQ,"t");
-julia> val = ValuationMap(Kt,t);
+julia> val = TropicalSemiringMap(Kt,t);
 julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
 julia> TropicalLinearSpace(A, val);
 
  
 julia> p = 3;
-julia> val = ValuationMap(QQ, p);
+julia> val = TropicalSemiringMap(QQ, p);
 julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
 julia> TropicalLinearSpace(A,val);
 

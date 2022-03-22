@@ -136,12 +136,12 @@ Example:
 import Random
 K,s = RationalFunctionField(QQ,"s");
 Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
-val = ValuationMap(K,s);
+val = TropicalSemiringMap(K,s);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
 Random.seed!(3847598273423);
 TropI = tropical_variety(I,val)
 =======#
-function tropical_variety(I::MPolyIdeal, val::ValuationMap, convention::Union{typeof(min),typeof(max)}=min)
+function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::Union{typeof(min),typeof(max)}=min)
 
   ###
   # Part 0: Preprocessing
