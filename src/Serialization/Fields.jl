@@ -6,8 +6,8 @@ function save_intern(s::SerializerState, F::Nemo.GaloisField)
     )
 end
 
-function load_intern(s::DeserializerState, F::Type{Nemo.GaloisField}, dict::Dict)
-    return F(UInt64(dict[:characteristic]))
+function load_intern(s::DeserializerState, ::Type{Nemo.GaloisField}, dict::Dict)
+    return Nemo.GaloisField(UInt64(dict[:characteristic]))
 end
 
 # elements
