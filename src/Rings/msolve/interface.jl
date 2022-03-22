@@ -116,9 +116,9 @@ end
 # the terms, but we can directly set the next pointers of the polynomials
 function convert_ff_gb_array_to_singular_ideal(
         bld::Int32,
-        blen::Array{Int32,1},
-        bcf::Array{Int32,1},
-        bexp::Array{Int32,1},
+        blen::Vector{Int32},
+        bcf::Vector{Int32},
+        bexp::Vector{Int32},
         R::Singular.PolyRing
         )
     ngens = bld
@@ -160,9 +160,9 @@ end
 
 # function convert_qq_gb_array_to_singular_ideal(
 #         bld::Int32,
-#         blen::Array{Int32,1},
+#         blen::Vector{Int32},
 #         bcf::Ptr{T} where {T <: Signed},
-#         bexp::Array{Int32,1},
+#         bexp::Vector{Int32},
 #         R::Singular.PolyRing
 #         )
 #     ngens = bld

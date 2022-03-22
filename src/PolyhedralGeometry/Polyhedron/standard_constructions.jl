@@ -809,3 +809,42 @@ julia> volume(p)
 ```
 """
 gelfand_tsetlin(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+
+@doc Markdown.doc"""
+    fano_simplex(d::Int)
+
+Construct a lattice simplex such that the origin is the unique interior lattice point.
+The normal toric variety associated with its face fan is smooth.
+
+```jldoctest
+julia> S = fano_simplex(3)
+A polyhedron in ambient dimension 3
+
+julia> X = NormalToricVariety(face_fan(S))
+A normal toric variety
+
+julia> issmooth(X)
+true
+```
+"""
+fano_simplex(d::Int) = Polyhedron{fmpq}(Polymake.polytope.fano_simplex(d))
+
+@doc Markdown.doc"""
+    delpezzo(d::Int)
+
+Produce the d-dimensional del-Pezzo polytope, which is the convex hull of
+the cross polytope together with the all-ones and minus all-ones vector.
+
+```jldoctest
+julia> DP = delpezzo(4)
+A polyhedron in ambient dimension 4
+
+julia> f_vector(DP)
+4-element Vector{fmpz}:
+ 10
+ 40
+ 60
+ 30
+```
+"""
+delpezzo(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))

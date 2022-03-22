@@ -304,7 +304,7 @@ Oscar.@enable_all_show_via_expressify QabElem
 #
 ################################################################################
 
-function Oscar.singular_ring(F::QabField)
+function Oscar.singular_coeff_ring(F::QabField)
   return Singular.CoefficientRing(F)
 end
 

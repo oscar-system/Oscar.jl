@@ -144,6 +144,9 @@
      "Schemes" => [
         "AlgebraicGeometry/AffineSchemes.md",
      ],
+     "Tropical Geometry" => [
+         "TropicalGeometry/intro.md",
+     ]
   ],
 
   "Combinatorics" => [
@@ -161,8 +164,9 @@
   "References" => "references.md",
   "Index" => "manualindex.md",
   "Developer Documentation" => [
+    "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
-    "DeveloperDocumentation/build_documentation.md",
+    "DeveloperDocumentation/documentation.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/SubObjectIterator.md",
     ],

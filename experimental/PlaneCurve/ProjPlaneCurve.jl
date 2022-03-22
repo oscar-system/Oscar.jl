@@ -275,7 +275,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
   pY = phi(FY.f)
   pZ = phi(FZ.f)
   I = ideal([pF, pX, pY, pZ])
-  g = collect(groebner_assure(I, lex(gens(rr)), true))
+  g = collect(Oscar.groebner_assure(I, lex(gens(rr)), true))
   f = factor(g[1])
   ro = []
   for h in keys(f.fac)

@@ -193,7 +193,7 @@ Sets up the singular ring in the backend to perform, for instance, standard basi
 in `R`.
 """
 function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) where T
-  return Singular.PolynomialRing(Oscar.singular_ring(base_ring(R.base_ring)),
+  return Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(R.base_ring)),
               [string(x) for x = Nemo.symbols(R)],
               ordering = ord,
               cached = false)[1]

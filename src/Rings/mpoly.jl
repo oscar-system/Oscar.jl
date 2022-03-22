@@ -91,7 +91,7 @@ function _collect_variables(c::Vector, v::Pair, start = 1)
   if lv isa Tuple
     res = Array{eltype(c)}(undef, map(length, lv))
   else
-    res = Array{eltype(c)}(undef, length(lv))
+    res = Vector{eltype(c)}(undef, length(lv))
   end
   for i in eachindex(res)
     res[i] = c[start]
@@ -136,7 +136,8 @@ end
 using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       weights, MonomialOrdering, singular
+       matrix_ordering, weights, MonomialOrdering, singular,
+       isglobal, islocal, ismixed
 
 
 ##############################################################################
@@ -184,7 +185,7 @@ mutable struct BiPolyArray{S}
   function BiPolyArray(Ox::T, b::Singular.sideal) where {T <: MPolyRing}
     r = new{elem_type(T)}()
     r.S = b
-    r.O = Array{elem_type(T)}(undef, Singular.ngens(b))
+    r.O = Vector{elem_type(T)}(undef, Singular.ngens(b))
     r.Ox = Ox
     r.isGB = b.isGB
     r.Sx = base_ring(b)
@@ -234,8 +235,23 @@ Base.eltype(::BiPolyArray{S}) where S = S
 # Needs convert(Target(Ring), elem)
 # Ring(s.th.)
 #
-# singular_ring(Nemo-Ring) tries to create the appropriate Ring
+# Singular's polynomial rings are not recursive:
+# 1. singular_poly_ring(R::Ring) tries to create a Singular.PolyRing (with
+#    elements of type Singular.spoly) isomorphic to R 
+# 2. singular_coeff_ring(R::Ring) tries to create a ring isomorphic to R that is
+#    acceptable to Singular.jl as 'coefficients'
 #
+# a real native Singular polynomial ring with Singular's native QQ as coefficients:
+#  singular_poly_ring(QQ[t]) => Singular.PolyRing{Singular.n_Q}
+#
+# Singular's native Fp(5):
+#  singular_coeff_ring(GF(5)) => Singular.N_ZpField
+#
+# Singular wrapper of the Oscar type fmpq_poly:
+#  singular_coeff_ring(QQ[t]) => Singular.N_Ring{fmpq_poly}
+#
+# even more wrappings of the immutable Oscar type gfp_fmpz_elem:
+#  singular_coeff_ring(GF(fmpz(5))) => Singular.N_Field{Singular.FieldElemWrapper{GaloisFmpzField, gfp_fmpz_elem}}
 
 for T in [:MPolyRing, :(AbstractAlgebra.Generic.MPolyRing)]
 @eval function (Ox::$T)(f::Singular.spoly)
@@ -262,22 +278,22 @@ end
 (F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
 
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
-singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
+singular_coeff_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
+singular_coeff_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 
 # if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 
-function singular_ring(F::Union{Nemo.NmodRing, Nemo.FmpzModRing})
+function singular_coeff_ring(F::Union{Nemo.NmodRing, Nemo.FmpzModRing})
   return Singular.ResidueRing(Singular.Integers(), BigInt(modulus(F)))
 end
 
-singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
+singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AnticNumberField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
@@ -290,7 +306,7 @@ function singular_ring(K::AnticNumberField)
   return SK
 end
 
-function singular_ring(F::FqNmodFiniteField)
+function singular_coeff_ring(F::FqNmodFiniteField)
   # TODO: the Fp(Int(char)) can throw
   minpoly = modulus(F)
   Fa = parent(minpoly)
@@ -335,21 +351,21 @@ function (SF::Singular.N_AlgExtField)(a::fq_nmod)
 end
 #### end stuff to move to singular.jl
 
-function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
+function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+    return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ordering(Rx),
               cached = false)[1]
   else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+    return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
   end
 end
 
-function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
@@ -362,6 +378,7 @@ function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: Ri
               cached = false)[1]
 end
 
+# convert only a basic block of an ordering
 function singular(o::Orderings.GenOrdering)
   v = o.vars
   @assert minimum(v)+length(v) == maximum(v)+1
@@ -387,13 +404,14 @@ function singular(o::Orderings.GenOrdering)
       return Singular.ordering_Ws(o.w)
    elseif o.ord == :negwdegrevlex
       return Singular.ordering_ws(o.w)
-   elseif o.ord == :weights
+   elseif o.ord == :weight
     return Singular.ordering_M(o.wgt)
   else
     error("not done yet")
   end
 end
 
+# converts only a basic block of an ordering
 function singular(o::Orderings.ModOrdering)
    v = o.gens
    if o.ord == :lex
@@ -405,7 +423,8 @@ function singular(o::Orderings.ModOrdering)
    end
 end
 
-function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
+# convert a whole ordering, which may be a product
+function singular(ord::Orderings.AbsOrdering)
   #test if it can be mapped directly to singular:
   # - consecutive, non-overlapping variables
   # - covering everything
@@ -431,16 +450,23 @@ function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <:
   else
     o = Singular.ordering_M(Orderings.simplify_weight_matrix(ord))
   end
+  return o
+end
 
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+# MonomialOrdering{T} and ModuleOrdering{T} are the user-facing types
+singular(ord::MonomialOrdering) = singular(ord.o)
+singular(ord::ModuleOrdering) = singular(ord.o)
+
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
-              ordering = o,
+              ordering = singular(ord),
               cached = false)[1]
 end
 
 
 #catch all for generic nemo rings
-function Oscar.singular_ring(F::AbstractAlgebra.Ring)
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Ring)
   return Singular.CoefficientRing(F)
 end
 
@@ -521,7 +547,7 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
-    I.Sx = singular_ring(I.Ox, keep_ordering=I.keep_ordering)
+    I.Sx = singular_poly_ring(I.Ox, keep_ordering=I.keep_ordering)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
   end
   if I.isGB
@@ -536,7 +562,7 @@ end
 function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
     if !isdefined(I, :S) 
         I.ord = ordering.o
-        I.Sx = singular_ring(I.Ox, ordering.o)
+        I.Sx = singular_poly_ring(I.Ox, ordering.o)
         I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
         if I.isGB
             I.S.isGB = true
@@ -546,7 +572,7 @@ function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
          = attached, thus we have to create a new singular ring and map the ideal. =#
         if !isdefined(I, :ord) || I.ord != ordering.o
             I.ord = ordering.o
-            SR    = singular_ring(I.Ox, ordering.o)
+            SR    = singular_poly_ring(I.Ox, ordering.o)
             f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
             I.S   = Singular.map_ideal(f, I.S)
             I.Sx  = SR

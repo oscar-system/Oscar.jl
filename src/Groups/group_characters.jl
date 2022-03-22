@@ -44,19 +44,27 @@ if `F` is not given then the result has type `QabElem`.
 [CCNPW85](@cite), Chapter 6, Section 10.
 
 ```jldoctest
-julia> atlas_irrationality("r5")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("r5"))
+       end;
 -2*ζ(5)^3 - 2*ζ(5)^2 - 1
 
 julia> atlas_irrationality(CyclotomicField(5)[1], "r5")
 -2*z_5^3 - 2*z_5^2 - 1
 
-julia> atlas_irrationality("i")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("i"))
+       end;
 ζ(4)
 
-julia> atlas_irrationality("b7*3")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("b7*3"))
+       end;
 -ζ(7)^4 - ζ(7)^2 - ζ(7) - 1
 
-julia> atlas_irrationality("3y'''24*13-2&5")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("3y'''24*13-2&5"))
+       end;
 -5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
 
 ```
@@ -127,7 +135,9 @@ then `nothing` is returned.
 
 # Examples
 ```jldoctest
-julia> character_table( symmetric_group(3) )
+julia> Oscar.with_unicode() do
+         show(character_table(symmetric_group(3)))
+       end;
 Sym( [ 1 .. 3 ] )
 
  2  1  1  .
@@ -141,8 +151,9 @@ Sym( [ 1 .. 3 ] )
 χ₂  2  . -1
 χ₃  1  1  1
 
-
-julia> character_table( symmetric_group(3), 2 )
+julia> Oscar.with_unicode() do
+         show(character_table(symmetric_group(3), 2))
+       end;
 Sym( [ 1 .. 3 ] ) mod 2
 
  2  1  .
@@ -154,7 +165,6 @@ Sym( [ 1 .. 3 ] ) mod 2
         
 χ₁  1  1
 χ₂  2 -1
-
 
 ```
 """

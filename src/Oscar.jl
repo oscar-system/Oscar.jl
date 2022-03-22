@@ -309,7 +309,6 @@ include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")
 
-include("Rings/affine-algebra-homs.jl")
 include("Rings/mpoly-affine-algebras.jl")
 
 include("Rings/MPolyMap/MPolyAnyMap.jl")
@@ -357,6 +356,8 @@ include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
+
+include("TropicalGeometry/main.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

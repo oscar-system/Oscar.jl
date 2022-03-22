@@ -237,7 +237,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
         if issubset(Jsat, saturated_ideal(IX))
           for o in keys(DIX)
             gb = DIX[o]
-            groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), true)
+            groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), o.o, true)
           end
         end
         set_attribute!(W, :localized_modulus, J)

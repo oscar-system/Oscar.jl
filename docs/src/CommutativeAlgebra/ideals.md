@@ -205,6 +205,7 @@ wdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+matrix_ordering(::AbstractVector{<:MPolyElem}, ::fmpz_mat)
 ```
 
 Block orderings can be obtained by concatening monomial orderings using the `*`
@@ -268,8 +269,8 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 #### Leading Ideals
 
 ```@docs
-leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
-leading_ideal(I::MPolyIdeal)
+leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
+leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 ```
 
 #### Gröbner Bases over the integers

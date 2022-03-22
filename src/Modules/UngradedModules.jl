@@ -573,8 +573,8 @@ are computed, given the OSCAR side.
 function singular_assure(F::ModuleGens)
   if !isdefined(F, :S)
     if length(F) == 0
-      singular_ring = base_ring(F.SF)
-      F.S = Singular.Module(singular_ring, Singular.vector(singular_ring, singular_ring(0)))
+      sr = base_ring(F.SF)
+      F.S = Singular.Module(sr, Singular.vector(sr, sr(0)))
       return 
     end
     F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
@@ -603,7 +603,7 @@ end
 Create a Singular module from an OSCAR free module.
 """
 function singular_module(F::FreeMod)
-  Sx = singular_ring(base_ring(F), keep_ordering=false)
+  Sx = singular_poly_ring(base_ring(F), keep_ordering=false)
   return Singular.FreeModule(Sx, dim(F))
 end
 

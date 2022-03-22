@@ -8,7 +8,7 @@ export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
 function _tosingular(C::ProjPlaneCurve{fmpq})
     F = C.eq
     T = parent(F)
-    Tx = singular_ring(T)
+    Tx = singular_poly_ring(T)
     return Tx(F)
 end
 

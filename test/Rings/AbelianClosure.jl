@@ -239,7 +239,7 @@
 
   @testset "Singular ring" begin
     K, z = abelian_closure(QQ)
-    L = Oscar.singular_ring(K)
+    L = Oscar.singular_coeff_ring(K)
     a = z(4)
     @test K(L(a)) == a
   end
