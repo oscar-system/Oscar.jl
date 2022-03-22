@@ -24,6 +24,8 @@ functionality for handling such algebras in OSCAR.
     In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
     Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
 
+!!! note
+    carry over
 
 ## Types
 
@@ -56,6 +58,12 @@ base_ring(A)
 modulus(A)
 gens(A)
 ngens(A)
+```
+
+In the graded case, we additionally have:
+
+```@docs
+grading_group(q::MPolyQuo{<:MPolyElem_dec})
 ```
 
 ### Dimension
@@ -94,6 +102,32 @@ simplify(f::MPolyQuoElem)
 
 ```@docs
 ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
+```
+
+In the graded case, we additionally have:
+
+```@docs
+ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
+### Data associated to Elements of Affine Algebras
+
+Given an element `f` of an affine algebra `A`, 
+
+- `parent(f)` refers to `A`.
+
+In the graded case,  we also have:
+
+```@docs
+ homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
+```@docs
+homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
+```
+
+```@docs
+degree(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ## Ideals in Affine Algebras
@@ -204,12 +238,14 @@ hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
 Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
-refer to `R` and `S`, respectively.
+refer to `R` and `S`, respectively. Given ring homomorphisms `F` from `R` to `S` and
+`G` from `S` to `T` as above, `compose(F, G)` refers to their composition.
 
-!!! note
-    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
-    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
-    `U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in what follows.
+## Homomorphisms of Affine Algebras
+
+The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
+the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
+`U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in what follows.
        
 ### Data Associated to Homomorphisms of Affine Algebras
 
@@ -265,6 +301,7 @@ D1, _ = quo(D, kernel(F));
 F1 = hom(D1, C, V);
 isbijective(F1)
 ```
+
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"]);
 C, (s, t) = PolynomialRing(QQ, ["s", "t"]);
@@ -274,7 +311,20 @@ D, _ = quo(R, kernel(paraWhitneyUmbrella));
 isfinite(hom(D, C, V))
 ```
 
-### Composition of Homomorphisms of Affine Algebras
+### Inverting Homomorphisms of Affine Algebras
+
+```@docs
+inverse(F::AffAlgHom)
+```
+
+```@repl oscar
+D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+D, _ = quo(D1, [y-x^2, z-x^3])
+C, (t,) = PolynomialRing(QQ, ["t"]);
+para = hom(D, C, [t, t^2, t^3]);
+isbijective(para)
+inverse(para)
+```
 
 ## Subalgebras
 
