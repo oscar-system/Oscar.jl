@@ -6,30 +6,15 @@ function bigobject_to_dict(bo::Polymake.BigObject)
     return JSON.parse(jsonstr)
 end
 
-function save_intern(s::SerializerState, p::T) where {T <: Union{
-                    Cone, 
-                    PolyhedralComplex, 
-                    Polyhedron, 
-                    PolyhedralFan,
-                    SimplicialComplex,
-                    SubdivisionOfPoints
-                }
-            }
-    return bigobject_to_dict(pm_object(p))
+function save_intern(s::SerializerState, p::Polymake.BigObject)
+    return bigobject_to_dict(p)
 end
 
-function load_intern(s::DeserializerState, p::Type{T}, dict::Dict) where {T <: Union{
-                    Cone, 
-                    PolyhedralComplex, 
-                    Polyhedron, 
-                    PolyhedralFan,
-                    SimplicialComplex,
-                    SubdivisionOfPoints
-                }
-            }
+function load_intern(s::DeserializerState, ::Type{Polymake.BigObject}, dict::Dict)
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
-    return p(bigobject)
+    return bigobject
 end
+
 
 ##############################################################################
 function save_intern(s::SerializerState, lp::LinearProgram)
@@ -43,8 +28,8 @@ function save_intern(s::SerializerState, lp::LinearProgram)
     )
 end
 
-function load_intern(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dict) where {T}
-    fr = load(s, Polyhedron, dict[:feasible_region])
+function load_intern(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dict) where T
+    fr = load(s, Polyhedron{T}, dict[:feasible_region])
     conv = dict[:convention]
     lpcoeffs = Polymake.call_function(:common, :deserialize_json_string, json(dict[:lpcoeffs]))
     all = Polymake._lookup_multi(pm_object(fr), "LP")

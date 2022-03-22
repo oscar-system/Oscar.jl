@@ -87,6 +87,10 @@ function decodeType(input::String)
             return reverseTypeMap[input]
         else
             # As a default, parse the type from the string.
+            #
+            # WARNING: Never deserialize data from an untrusted source, as this
+            # parsing is insecure and potentially malicious code could be
+            # entered here.
             eval(Meta.parse(input))
         end
     end
@@ -158,6 +162,24 @@ function load(s::DeserializerState, dict::Dict)
     return load(s, T, dict)
 end
 
+
+################################################################################
+# Default generic save_intern, load_intern
+function save_intern(s::SerializerState, obj::T) where T
+    result = Dict{Symbol, Any}()
+    for (n,t) in zip(fieldnames(T), T.types)
+        result[n] = save(s, getfield(obj, n))
+    end
+    return result
+end
+
+function load_intern(s::DeserializerState, ::Type{T}, dict::Dict) where T
+    fields = []
+    for (n,t) in zip(fieldnames(T), T.types)
+        push!(fields, load(s, t, dict[n]))
+    end
+    return T(fields...)
+end
 
 
 ################################################################################

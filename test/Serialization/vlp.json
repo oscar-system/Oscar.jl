@@ -5,7 +5,7 @@
             {
                 "major": 1,
                 "minor": 7,
-                "patch": 1,
+                "patch": 2,
                 "prerelease": [],
                 "build": []
             }
@@ -15,7 +15,7 @@
             {
                 "major": 0,
                 "minor": 8,
-                "patch": 1,
+                "patch": 3,
                 "prerelease": [
                     "DEV"
                 ],
@@ -23,15 +23,15 @@
             }
         ]
     },
-    "id": "86efb40e-2aa0-4d8f-81f2-84fe7a515c5a",
+    "id": "c1e34abe-1bdc-4a30-8878-cdcf58c96228",
     "type": {
-        "container": "Vector",
-        "element": "LinearProgram{fmpq}"
+        "element": "LinearProgram{fmpq}",
+        "container": "Vector"
     },
     "data": {
         "vector": [
             {
-                "id": "e4b76089-be0c-4c4c-a76d-aaa936d2b161",
+                "id": "0db78d48-cc82-4774-8f3b-1bbd9005e085",
                 "type": "LinearProgram{fmpq}",
                 "data": {
                     "lpcoeffs": {
@@ -51,140 +51,151 @@
                     },
                     "convention": "max",
                     "feasible_region": {
-                        "id": "b5a394b1-0b80-4226-bf8a-ad7ce35d7c23",
+                        "id": "61425765-62c6-4856-a0b4-b527c93d4912",
                         "type": "Polyhedron{fmpq}",
                         "data": {
-                            "_ns": {
-                                "polymake": [
-                                    "https://polymake.org",
-                                    "4.6"
-                                ]
+                            "boundedness": {
+                                "id": "c4a66176-786e-4d2a-89cd-a0e072db1f18",
+                                "type": "Symbol",
+                                "data": {}
                             },
-                            "LP": [
-                                {
+                            "pm_polytope": {
+                                "id": "8541926d-7814-4160-995b-5100200f77eb",
+                                "type": "Polymake.BigObjectAllocated",
+                                "data": {
+                                    "LP": [
+                                        {
+                                            "LINEAR_OBJECTIVE": [
+                                                "0",
+                                                "2",
+                                                "2",
+                                                "-3"
+                                            ],
+                                            "convention": "max",
+                                            "_id": "unnamed#0",
+                                            "_attrs": {
+                                                "convention": {
+                                                    "attachment": true
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "LINEAR_OBJECTIVE": [
+                                                "0",
+                                                "2",
+                                                "2",
+                                                "4"
+                                            ],
+                                            "convention": "max",
+                                            "_id": "unnamed#1",
+                                            "_attrs": {
+                                                "convention": {
+                                                    "attachment": true
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "_ns": {
+                                        "polymake": [
+                                            "https://polymake.org",
+                                            "4.6"
+                                        ]
+                                    },
                                     "_attrs": {
-                                        "convention": {
-                                            "attachment": true
+                                        "FACETS": {
+                                            "_type": "SparseMatrix<Rational, NonSymmetric>"
                                         }
                                     },
-                                    "convention": "max",
-                                    "_id": "unnamed#0",
-                                    "LINEAR_OBJECTIVE": [
-                                        "0",
-                                        "2",
-                                        "2",
-                                        "-3"
-                                    ]
-                                },
-                                {
-                                    "LINEAR_OBJECTIVE": [
-                                        "0",
-                                        "2",
-                                        "2",
-                                        "4"
-                                    ],
-                                    "convention": "max",
-                                    "_id": "unnamed#1",
-                                    "_attrs": {
-                                        "convention": {
-                                            "attachment": true
+                                    "CONE_AMBIENT_DIM": 4,
+                                    "_type": "polytope::Polytope<Rational>",
+                                    "BOUNDED": true,
+                                    "_info": {
+                                        "description": "cube of dimension 3\n"
+                                    },
+                                    "AFFINE_HULL": [
+                                        {
+                                            "cols": 4
                                         }
-                                    }
+                                    ],
+                                    "CONE_DIM": 4,
+                                    "VERTICES_IN_FACETS": [
+                                        [
+                                            0,
+                                            2,
+                                            4,
+                                            6
+                                        ],
+                                        [
+                                            1,
+                                            3,
+                                            5,
+                                            7
+                                        ],
+                                        [
+                                            0,
+                                            1,
+                                            4,
+                                            5
+                                        ],
+                                        [
+                                            2,
+                                            3,
+                                            6,
+                                            7
+                                        ],
+                                        [
+                                            0,
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        [
+                                            4,
+                                            5,
+                                            6,
+                                            7
+                                        ],
+                                        {
+                                            "cols": 8
+                                        }
+                                    ],
+                                    "FACETS": [
+                                        {
+                                            "1": "1",
+                                            "0": "1"
+                                        },
+                                        {
+                                            "1": "-1",
+                                            "0": "1"
+                                        },
+                                        {
+                                            "0": "1",
+                                            "2": "1"
+                                        },
+                                        {
+                                            "0": "1",
+                                            "2": "-1"
+                                        },
+                                        {
+                                            "0": "1",
+                                            "3": "1"
+                                        },
+                                        {
+                                            "0": "1",
+                                            "3": "-1"
+                                        },
+                                        {
+                                            "cols": 4
+                                        }
+                                    ]
                                 }
-                            ],
-                            "_attrs": {
-                                "FACETS": {
-                                    "_type": "SparseMatrix<Rational, NonSymmetric>"
-                                }
-                            },
-                            "CONE_AMBIENT_DIM": 4,
-                            "_type": "polytope::Polytope<Rational>",
-                            "BOUNDED": true,
-                            "_info": {
-                                "description": "cube of dimension 3\n"
-                            },
-                            "AFFINE_HULL": [
-                                {
-                                    "cols": 4
-                                }
-                            ],
-                            "CONE_DIM": 4,
-                            "VERTICES_IN_FACETS": [
-                                [
-                                    0,
-                                    2,
-                                    4,
-                                    6
-                                ],
-                                [
-                                    1,
-                                    3,
-                                    5,
-                                    7
-                                ],
-                                [
-                                    0,
-                                    1,
-                                    4,
-                                    5
-                                ],
-                                [
-                                    2,
-                                    3,
-                                    6,
-                                    7
-                                ],
-                                [
-                                    0,
-                                    1,
-                                    2,
-                                    3
-                                ],
-                                [
-                                    4,
-                                    5,
-                                    6,
-                                    7
-                                ],
-                                {
-                                    "cols": 8
-                                }
-                            ],
-                            "FACETS": [
-                                {
-                                    "1": "1",
-                                    "0": "1"
-                                },
-                                {
-                                    "1": "-1",
-                                    "0": "1"
-                                },
-                                {
-                                    "0": "1",
-                                    "2": "1"
-                                },
-                                {
-                                    "0": "1",
-                                    "2": "-1"
-                                },
-                                {
-                                    "0": "1",
-                                    "3": "1"
-                                },
-                                {
-                                    "0": "1",
-                                    "3": "-1"
-                                },
-                                {
-                                    "cols": 4
-                                }
-                            ]
+                            }
                         }
                     }
                 }
             },
             {
-                "id": "fb8a82a2-bb08-4bf0-8fe6-d57478aadc4d",
+                "id": "3669ac45-8ba1-46a2-8f90-ad47ac56e9c3",
                 "type": "LinearProgram{fmpq}",
                 "data": {
                     "lpcoeffs": {
@@ -205,7 +216,7 @@
                     "convention": "max",
                     "feasible_region": {
                         "version": 1,
-                        "id": "b5a394b1-0b80-4226-bf8a-ad7ce35d7c23",
+                        "id": "61425765-62c6-4856-a0b4-b527c93d4912",
                         "type": "#backref"
                     }
                 }
