@@ -372,7 +372,7 @@ function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
