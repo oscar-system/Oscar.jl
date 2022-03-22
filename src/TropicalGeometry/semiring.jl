@@ -183,13 +183,13 @@ julia> T = TropicalSemiring(min)
 Tropical semiring (min)
 
 julia> convention(T)
-min (generic function with 12 methods)
+min (generic function with 14 methods)
 
 julia> T = TropicalSemiring(max)
 Tropical semiring (max)
 
 julia> convention(T)
-max (generic function with 14 methods)
+max (generic function with 16 methods)
 ```
 """
 convention(x::TropicalSemiring{typeof(min)}) = min

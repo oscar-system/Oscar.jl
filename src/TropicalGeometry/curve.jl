@@ -67,7 +67,7 @@ julia>  VR = [0 0; 1 0; -1 0; 0 1]
  -1  0
   0  1
 
-julia> PC = PolyhedralComplex(IM, vr)
+julia> PC = PolyhedralComplex{fmpq}(IM, VR)
 A polyhedral complex in ambient dimension 2
 
 julia> TC = TropicalCurve{min}(PC)
@@ -316,7 +316,7 @@ The divisor `dtc` must have positive coefficients apart from `vertex`.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curveRevise.retry()
+An abstract tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
@@ -366,7 +366,7 @@ Given two effective divisors `dtc1` and `dtc2` on the same tropica curve checks 
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curveRevise.retry()
+An abstract tropical curve
 
 julia> coeffs1 = [0, 1, 1, 1];
 
@@ -451,7 +451,11 @@ julia> IM1=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in 
 [2, 3]
 [1, 4]
 [2, 4]
-⁝
+[3, 4]
+[1, 5]
+[2, 5]
+[3, 5]
+[4, 5]
 
 julia> TC1 = TropicalCurve{min}(IM1)
 An abstract tropical curve
