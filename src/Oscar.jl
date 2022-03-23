@@ -369,6 +369,8 @@ if is_dev
 #  include("../examples/PlaneCurve.jl")
 end
 
+include("Serialization/main.jl")
+
 const global OSCAR = Oscar
 const global oscar = Oscar
 
