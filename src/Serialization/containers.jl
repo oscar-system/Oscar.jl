@@ -11,18 +11,19 @@ function load_intern(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where 
 end
 
 
-function encodeType(::Type{Vector{T}}) where T
+
+################################################################################
+# Saving and loading tuples
+function save_intern(s::SerializerState, tup::NTuple{n, T}) where {n, T}
     return Dict(
-        :container => "Vector",
-        :element => encodeType(T),
+        :content => [save(s, x) for x in tup]
     )
 end
 
-function decodeType(input::Dict{Symbol, Any})
-    container = input[:container]
-    if container == "Vector"
-        return Vector{decodeType(input[:element])}
-    else
-        error("Unknown container type \"$(container)\"")
-    end
+function load_intern(s::DeserializerState, ::Type{NTuple{n, T}}, dict::Dict) where {n, T}
+    content = [load(s, T, x) for x in dict[:content]]
+    @assert length(content) == n "Wrong length of tuple, data may be corrupted."
+    return NTuple{n, T}(content)
 end
+
+
