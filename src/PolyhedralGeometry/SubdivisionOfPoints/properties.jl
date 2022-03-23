@@ -73,7 +73,7 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
 
 julia> maximal_cells(MOAE)
-7-element SubObjectIterator{Polymake.SetAllocated{Int64}}:
+7-element SubObjectIterator{Polymake.Set{Int64}}:
  pm::Set<long, pm::operations::cmp>
 {4 5 6}
  pm::Set<long, pm::operations::cmp>
