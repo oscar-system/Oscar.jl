@@ -24,6 +24,11 @@ However, some of Oscar's components have additional requirements.
 For more detailed information, please consult the [installation
 instructions](https://oscar.computeralgebra.de/install/) on our website.
 
+## Contributing to OSCAR
+
+Please read the [introduction for new developers](https://oscar-system.github.io/Oscar.jl/dev/DeveloperDocumentation/new_developers/)
+in the OSCAR manual to learn more on how to contribute to OSCAR.
+
 ## Examples of usage
 
 ```julia
