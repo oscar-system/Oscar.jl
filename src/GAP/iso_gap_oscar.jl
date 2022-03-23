@@ -123,6 +123,9 @@ function __init_IsoGapOscar()
       GAP.Globals.InstallMethod(GAP.Globals.IsoGapOscar,
         GAP.Obj([GAP.Globals.IsDomain]), GAP.GapObj(_iso_gap_oscar));
     end
+
+    GAP.Globals.BindGlobal(GapObj("_OSCAR_GroupElem"), AbstractAlgebra.GroupElem)
+    GAP.Globals.Read(GapObj(joinpath(Oscar.oscardir, "gap", "misc.g")))
 end
 
 iso_gap_oscar(F::GAP.GapObj) = GAP.Globals.IsoGapOscar(F)
