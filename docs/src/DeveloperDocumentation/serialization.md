@@ -6,6 +6,12 @@
     you should never run a program from someone you do not trust, you should
     also not load their data.
 
+!!! warning
+    Serialization development has just started and the concrete design may
+    still change drastically. In particular the mechanism for upgrading old
+    data to newer versions is not in place yet, so at this point we do not yet
+    guarantee that old data can be read.
+
 This document summarises the serialization efforts of OSCAR, how it is supposed
 to work, how it works and the overall goal.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
