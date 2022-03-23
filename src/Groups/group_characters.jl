@@ -104,24 +104,17 @@ in an ordinary table, and to store the corresponding ordinary table
 in a `p`-modular table.
 """
 @attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
-    GAPGroup::GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
     characteristic::Int
+    GAPGroup::GAPGroup    # the underlying group, if any
 
     function GAPGroupCharacterTable(G::GAPGroup, tab::GAP.GapObj, char::Int)
-      ct = new()
-      ct.GAPGroup = G
-      ct.GAPTable = tab
-      ct.characteristic = char
-      return ct
+      return new(tab, char, G)
     end
 
     function GAPGroupCharacterTable(tab::GAP.GapObj, char::Int)
-      ct = new()
-      #ct.GAPGroup is left undefined
-      ct.GAPTable = tab
-      ct.characteristic = char
-      return ct
+      #GAPGroup is left undefined
+      return new(tab, char)
     end
 end
 
