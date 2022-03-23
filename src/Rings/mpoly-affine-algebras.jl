@@ -130,7 +130,7 @@ julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_expanded(A, 7)
-1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 14*t^7 + O(t^7)
+1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuo, d::Int)
@@ -166,7 +166,7 @@ julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_function(A,7)
-14
+22
 ```
 """
 function hilbert_function(A::MPolyQuo, d::Int)
@@ -414,6 +414,102 @@ function multi_hilbert_series_reduced(A::MPolyQuo)
    return (divexact(p, c), divexact(q, c)), T
 end
 
+function _monomial_ideal_membership(m::MPolyElem, I::MPolyIdeal)
+   ### for potential use in multi_hilbert_function
+   ### I is supposed to be given by monomial generators, ordered by
+   ### increasing (total) degree, m is supposed to be a monomial
+        for i = 1:ngens(I)
+	     if total_degree(gen(I, i))>total_degree(m)
+	        break
+	     end
+	     if minimum(exponent_vector(m, 1)-exponent_vector(gen(I, i), 1))>=0
+	         return true
+             end
+        end
+	return false
+end
+
+@doc Markdown.doc"""
+    multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
+
+Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively graded
+by a finitely generated Abelian group $G$, and given an element $g\in G$,
+consider the induced grading on $A$, and return the value $H(A, g)$, where 
+
+$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g)$
+
+is the Hilbert function of $A$.
+
+    multi_hilbert_function(A::MPolyQuo, g::Vector{<:IntegerUnion})
+
+Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively 
+$\mathbb  Z^m$-graded, and given a vector $g$ of $m$ integers, convert $g$ 
+into an element of the group $\mathbb  Z^m$, and return the value $H(A, g)$
+as above.
+
+    multi_hilbert_function(A::MPolyQuo, g::IntegerUnion)
+
+Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively 
+$\mathbb  Z$-graded, and given an integer $g$, convert $g$ into an element 
+of the group $\mathbb  Z$, and return the value $H(A, g)$ as above.
+
+# Examples
+```jldoctest
+julia> W = [1 1 1; 0 0 -1];
+
+julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]"], W)
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  x[3] -> [1 -1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+
+julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
+
+julia> A, _ = quo(R, I);
+
+julia> multi_hilbert_function(A::MPolyQuo, [1, 0])
+2
+
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> multi_hilbert_function(A, 7)
+22
+```
+"""
+function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
+    R = A.R
+    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+    end
+    LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
+    ### TODO: Decide whether we should check whether a GB with respect
+    ### to another degree-compatible ordering is already available
+    L = homogeneous_component(R, g);
+    FG = gens(L[1]);
+    EMB = L[2]
+    cc = 0
+    for i in 1:length(FG)
+         ### if !(_monomial_ideal_membership(EMB(FG[i]), LI))
+	 if !(EMB(FG[i]) in LI)
+	    cc = cc +1
+         end
+    end
+    return cc
+end
+
+function multi_hilbert_function(A::MPolyQuo, g::Vector{<:IntegerUnion})
+  R = A.R
+  @assert is_zm_graded(R)
+  return multi_hilbert_function(A, grading_group(R)(g))
+end
+
+function multi_hilbert_function(A::MPolyQuo, g::IntegerUnion)
+  R = A.R
+  @assert is_z_graded(R)
+  return multi_hilbert_function(A, grading_group(R)([g]))
+end
 
 ##############################################################################
 #
