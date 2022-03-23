@@ -3,9 +3,7 @@
 # ========================
 ###
 
-
-using Plots
-
+using RecipesBase
 ###
 # 1. Definition
 # -------------
@@ -509,7 +507,7 @@ function StructureTropicalJacobian(TC::TropicalCurve)
 end
 
 
-function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
+@recipe function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
     @assert EMB "Tropical curve is abstract."
     PC = tc.polyhedralComplex
     MaxPoly= maximal_polyhedra(PC)
@@ -528,5 +526,5 @@ function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
             append!(list_vertices,V[1][1]+V[1][2]*im,B[1]+B[2]*im,Inf+0*im)
         end
     end
-    Plots.plot(list_vertices,legend=false,axis=false,xlabel="",ylabel="")
+    return list_vertices #(list_vertices,legend=false,axis=false,xlabel="",ylabel="")
 end
