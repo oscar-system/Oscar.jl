@@ -27,9 +27,9 @@ functionality for handling such algebras in OSCAR.
 !!! note
     If $A=R/I$ is an affine algebra such that $R$ is (multi)graded by a finitely generated  Abelian group
     $G$, and such that $I$ is homogeneous with respect to this grading, then the grading descends
-	to a $G$-grading on $A$. OSCAR functionality for handling such gradings carries over from
-	the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
-	First examples are the functions `ìs_standard_graded`,  `ìs_z_graded`,
+    to a $G$-grading on $A$. OSCAR functionality for handling such gradings carries over from
+    the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
+    First examples are the functions `ìs_standard_graded`,  `ìs_z_graded`,
     `ìs_zm_graded`, and `ìs_positively_graded`. Further examples will be discussed in what follows.
 
 
