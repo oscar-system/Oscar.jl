@@ -114,10 +114,10 @@ function save(s::SerializerState, obj::T) where T
     # invoke the actual serializer
     encodedType = encodeType(T)
     s.depth += 1
-    result = Dict(
+    result = Dict{Symbol, Any}(
         :type => encodedType,
         :id => string(ref),
-        :data => save_intern(s, obj)
+        :data => save_intern(s, obj),
     )
     s.depth -= 1
     if s.depth == 0
@@ -137,7 +137,9 @@ function load(s::DeserializerState, ::Type{T}, dict::Dict) where T
         return s.objs[id]
     end
     result = load_intern(s, T, dict[:data])
-    s.objs[id] = result
+    if id != "-1"
+        s.objs[id] = result
+    end
     return result
 end
 
@@ -169,7 +171,9 @@ end
 function save_intern(s::SerializerState, obj::T) where T
     result = Dict{Symbol, Any}()
     for (n,t) in zip(fieldnames(T), T.types)
-        result[n] = save(s, getfield(obj, n))
+        if n != :__attrs
+            result[n] = save(s, getfield(obj, n))
+        end
     end
     return result
 end
@@ -177,7 +181,9 @@ end
 function load_intern(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
     for (n,t) in zip(fieldnames(T), T.types)
-        push!(fields, load(s, t, dict[n]))
+        if n!= :__attrs
+            push!(fields, load(s, t, dict[n]))
+        end
     end
     return T(fields...)
 end
