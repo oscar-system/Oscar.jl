@@ -422,8 +422,9 @@ Construct `ModuleGens` from an array of Oscar free module elements.
 function ModuleGens(O::Vector{<:FreeModElem})
   # TODO Empty generating set
   @assert length(O) > 0
-  SF = singular_module(parent(O[1]))
-  return ModuleGens(O, SF)
+  #SF = singular_module(parent(O[1]))
+  #return ModuleGens(O, SF)
+  return ModuleGens(O, parent(O[1]))
 end
 
 @doc Markdown.doc"""
@@ -436,8 +437,9 @@ Construct `ModuleGens` from an array of Oscar free module elements, specifying t
     The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
-  SF = singular_module(F)
-  return ModuleGens{T}(O, F, SF)
+  #SF = singular_module(F)
+  #return ModuleGens{T}(O, F, SF)
+  return ModuleGens{T}(O, F)
 end
 
 @doc Markdown.doc"""
@@ -452,8 +454,9 @@ allowed for Singular polynomial rings.
     The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}, ordering::ModuleOrdering) where {T}
-  SF = singular_module(F, ordering)
-  return ModuleGens{T}(O, F, SF)
+  #SF = singular_module(F, ordering)
+  #return ModuleGens{T}(O, F, SF)
+  return ModuleGens{T}(O, F)
 end
 
 @doc Markdown.doc"""
@@ -546,6 +549,7 @@ end
 # i-th entry of module generating set on Singular side
 # Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:S}, i::Int)
+  singular_assure(F)
   if !isdefined(F, :S)
     F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
   end
@@ -571,9 +575,11 @@ If fields of `F` from the Singular side are not defined, they
 are computed, given the OSCAR side.
 """
 function singular_assure(F::ModuleGens)
-  if !isdefined(F, :S)
+  if !isdefined(F, :S) || !isdefined(F, :SF)
+    SF = singular_module(F.F)
+    sr = base_ring(SF)
+    F.SF = SF
     if length(F) == 0
-      sr = base_ring(F.SF)
       F.S = Singular.Module(sr, Singular.vector(sr, sr(0)))
       return 
     end
@@ -2205,9 +2211,9 @@ The leading module is with respect to the ordering defined on the Singular side.
 In particular, something on the Singular side must be defined.
 """
 function leading_module(F::ModuleGens)
-  if !isdefined(F, :SF) && !isdefined(F, :S)
-    error("No singular ring and therefore no ordering defined.")
-  end
+  #if !isdefined(F, :SF) && !isdefined(F, :S)
+  #  error("No singular ring and therefore no ordering defined.")
+  #end
   singular_assure(F)
   singular_gens = singular_generators(F)
   if singular_gens.isGB
@@ -2236,6 +2242,7 @@ indeed an element of `M`.
 """
 function (M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
   if check
+    singular_assure(M.sum.gens)
     b = M.sum.gens.SF(f)
     c = _reduce(b, singular_generators(std_basis(M.sum)))
     iszero(c) || error("not in the module")
@@ -2492,6 +2499,7 @@ function quo(F::SubQuo, O::Vector{<:FreeModElem}, task::Symbol = :none)
   end
   if isdefined(F, :quo)
     oscar_assure(F.quo.gens)
+    singular_assure(F.quo.gens)
     s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
     Q = SubQuo(F.F, singular_generators(F.sub.gens), s)
     return return_quo_wrt_task(F, Q, task)
@@ -3136,6 +3144,7 @@ function coordinates(a::FreeModElem, SQ::SubQuo)::Union{Nothing,Oscar.SRow}
     generators = SQ.sub
   end
   S = singular_generators(generators.gens)
+  singular_assure(SQ.sum.gens)
   b = ModuleGens([a], SQ.sum.gens.SF)
   singular_assure(b)
   s, r = Singular.lift(S, singular_generators(b))
@@ -3299,6 +3308,7 @@ function iszero(m::SubQuoElem)
   if !isdefined(C, :quo)
     return iszero(m.repres)
   end
+  singular_assure(C.quo.gens)
   x = _reduce(C.quo.gens.SF(m.repres), singular_generators(std_basis(C.quo)))
   return iszero(x)
 end
@@ -4697,6 +4707,7 @@ function simplify(M::SubQuo)
     if !isdefined(M, :quo)
       return false
     end
+    singular_assure(M.quo.gens)
     reduced_standard_unit_vector = _reduce(M.quo.gens.SF(M.F[i]), singular_generators(std_basis(M.quo)))
     return iszero(reduced_standard_unit_vector)
   end
