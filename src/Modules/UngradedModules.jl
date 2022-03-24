@@ -436,8 +436,8 @@ Construct `ModuleGens` from an array of Oscar free module elements, specifying t
     The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
-  SF = singular_module(F)
-  return ModuleGens{T}(O, F, SF)
+  #SF = singular_module(F)
+  return ModuleGens{T}(O, F)
 end
 
 @doc Markdown.doc"""
@@ -452,8 +452,8 @@ allowed for Singular polynomial rings.
     The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}, ordering::ModuleOrdering) where {T}
-  SF = singular_module(F, ordering)
-  return ModuleGens{T}(O, F, SF)
+  #SF = singular_module(F, ordering)
+  return ModuleGens{T}(O, F)
 end
 
 @doc Markdown.doc"""
