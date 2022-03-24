@@ -1,4 +1,5 @@
-export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union, neighbor_patches, affine_refinements
+export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union, neighbor_patches, affine_refinements, add_affine_refinement!, all_patches
+
 export fill_transitions!
 
 export affine_patch_type, glueing_type
@@ -99,6 +100,17 @@ getindex(C::Covering, X::SpecType, Y::SpecType) where {SpecType<:Spec} = glueing
 edge_dict(C::Covering) = C.edge_dict
 
 affine_refinements(C::Covering) = C.affine_refinements
+
+function add_affine_refinement!(C::Covering, U::SpecOpen)
+  X = ambient(U)
+  X in patches(C) || error("ambient scheme not found in the basic patches of the covering")
+  if !haskey(affine_refinements(C), X)
+    affine_refinements(C)[X] = [U]
+  else
+    push!(affine_refinements(C)[X], U)
+  end
+  return C
+end
 
 function neighbor_patches(C::Covering, U::Spec)
   gg = glueing_graph(C)
@@ -449,13 +461,12 @@ morphisms(f::CoveringMorphism) = f.morphisms
 
 function compose(f::T, g::T) where {T<:CoveringMorphism}
   domain(g) == codomain(f) || error("morphisms can not be composed")
-  morphism_dict = Dict{affine_patch_type(f), morphism_type(affine_patch_type(f))}()
+  morphism_dict = Dict{affine_patch_type(f), morphism_type(affine_patch_type(f), affine_patch_type(f))}()
   for U in patches(domain(f))
     morphism_dict[U] = compose(f[U], g[codomain(f[U])])
   end
   return CoveringMorphism(domain(f), codomain(g), morphism_dict)
 end
-
 
 @Markdown.doc """
     mutable struct CoveredScheme{
@@ -799,3 +810,36 @@ function simplify!(X::CoveredScheme)
   return (X, Csimp)
 end
 
+function Base.length(C::Covering)
+  result = 0
+  for U in patches(C)
+    result = result + 1
+    if haskey(affine_refinements(C), U)
+      for W in affine_refinements(C)[U]
+        result = result + length(gens(W))
+      end
+    end
+  end
+  return result
+end
+
+function all_patches(C::Covering)
+  result = Vector{affine_patch_type(C)}()
+  for U in patches(C)
+    push!(result, U)
+    if haskey(affine_refinements(C), U)
+      for W in affine_refinements(C)[U]
+        result = vcat(result, affine_patches(W))
+      end
+    end
+  end
+  return result
+end
+
+function Base.iterate(C::Covering, s::Int=1)
+  U = all_patches(C)
+  s > length(U) && return nothing
+  return U[s], s+1
+end
+
+Base.eltype(C::Covering) = affine_patch_type(C)

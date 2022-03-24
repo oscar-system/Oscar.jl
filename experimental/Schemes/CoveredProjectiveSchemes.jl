@@ -287,7 +287,7 @@ function blow_up(
   )
   X = scheme(I)
   C = covering(I)
-  local_blowups = [blow_up(U, I[U], is_regular_sequence=is_regular_sequence(I), verbose=verbose, check=check) for U in patches(C)]
+  local_blowups = [blow_up(U, I[U], is_regular_sequence=is_regular_sequence(I), verbose=verbose, check=check) for U in all_patches(C) if is_defined_on(I, U)]
   ProjectivePatchType = projective_scheme_type(affine_patch_type(X))
   projective_glueings = Dict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(ProjectivePatchType)}()
 
@@ -476,6 +476,35 @@ function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyTyp
 	return gens(Iold)
 
 end
+
+function strict_transform(
+    P::ProjectiveScheme, 
+    E::IdealSheaf, 
+    I::Vector{PolyType}
+  ) where {PolyType<:MPolyElem}
+  X = as_covered_scheme(P)
+  C = covering(E) 
+  C in coverings(X) || error("covering not found")
+  Y = base_scheme(P)
+  length(I) > 0 || return IdealSheaf(X) # return the zero ideal sheaf
+  for i in 1:length(I)
+    parent(I[i]) == base_ring(OO(Y)) || error("polynomials do not belong to the correct ring")
+  end
+  f = covered_projection_to_base(P)
+  if domain(f) !== C 
+    f = compose(X[C, domain(f)], f)
+  end
+
+  SpecType = affine_patch_type(X)
+  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+  for U in patches(C)
+    println("computing the strict transform on the patch $U")
+    trans_dict[U] = strict_transform(f[U], E[U], I)
+  end
+  return IdealSheaf(X, C, trans_dict, check=false)
+  #return IdealSheaf(X, CX, trans_dict, check=false)
+end
+
 
 function strict_transform(f::CoveredSchemeMorphism, E::IdealSheaf, I::IdealSheaf)
   X = domain(f)
