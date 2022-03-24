@@ -72,6 +72,45 @@ InstallOtherMethod(One, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(OneOp(m!.m))
 
 InstallOtherMethod(Zero, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(ZeroOp(m!.m)));
 
+InstallOtherMethod(\+, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
+        return MakeJuliaMatrixRep(m1!.m + m2!.m);
+    end);
+    
+InstallOtherMethod(\-, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
+        return MakeJuliaMatrixRep(m1!.m - m2!.m);
+    end);
+
+InstallOtherMethod(\^, [IsJuliaMatrixRep, IsInt and IsSmallIntRep], function( m1, k )
+        if k < then
+            return MakeJuliaMatrixRep( (Inverse(m1)!.m)^k );
+        else
+            return MakeJuliaMatrixRep( (m1!.m)^k );
+        fi;
+    end);
+    
+InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
+        return m1!.m = m2!.m;
+    end);
+    
+InstallOtherMethod(Display, [IsJuliaMatrixRep], 5000, function( m )
+    local i,j;
+        print("[ ")
+        for i in [1..NumberRows(m)] do
+            Print("[ ")
+            for j in [1..NumberColumns(m)] do
+                Print(m[i,j]);
+                if (j < NumberColumns(m)) then
+                    Print(", ");
+                fi;
+            od;
+            if (i < NumberRows(m)) then
+                Print(" ] \n");
+            else
+                Print(" ] \n");
+            fi;
+        od;
+    end);
+
 InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
     local v, i, j;
     v := EmptyPlist(NumberRows(m)*NumberColumns(m));
@@ -83,6 +122,7 @@ InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
     return v;
 end);
 
+# TODO: Not working. JuliaMatrixRep is immutable
 InstallOtherMethod( \[\,\]\:\=,
     [ IsJuliaMatrixRep and IsMutable, IsPosInt and IsSmallIntRep,
                        IsPosInt and IsSmallIntRep, IsObject ],
@@ -91,3 +131,8 @@ InstallOtherMethod( \[\,\]\:\=,
         mat := m!.m;
         mat[i,j] := val;
     end );
+
+# TODO: Not working
+InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
+        return m1!.m < m2!.m;
+    end);
