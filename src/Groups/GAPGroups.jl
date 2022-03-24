@@ -234,7 +234,7 @@ function rand_pseudo(G::FPGroup; radius::Int)
   return group_element(G, GAP.Globals.PseudoRandom(G.X, radius = radius))
 end
 
-function _maxgroup(x::T, y::T) where T <: GAPGroup
+function _common_parent_group(x::T, y::T) where T <: GAPGroup
    # A typical situation should be that the two groups are identical,
    # but GAP's `IsSubset` check is not as cheap as one wants;
    # there is an `IsSubset` method that checks for identity,
@@ -252,7 +252,7 @@ end
 
 #We need a lattice of groups to implement this properly
 function _prod(x::T, y::T) where T <: GAPGroupElem
-  G = _maxgroup(parent(x), parent(y))
+  G = _common_parent_group(parent(x), parent(y))
   return group_element(G, x.X*y.X)
 end
 
@@ -496,7 +496,7 @@ function conjugacy_classes(G::GAPGroup)
    return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)::GapObj),cc) for cc in L]
 end
 
-Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
+Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), x.X ^ y.X)
 
 @doc Markdown.doc"""
     isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
