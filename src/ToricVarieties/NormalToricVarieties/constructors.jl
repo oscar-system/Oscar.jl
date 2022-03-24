@@ -387,23 +387,32 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :is_q_gorenstein, true)
     set_attribute!(variety, :isfano, true)
     
+    # assign meaningful variables according to the rays
+    vars_dict = Dict()
+    vars_dict[matrix(ZZ,[1 0])] = "x1"
+    vars_dict[matrix(ZZ,[0 1])] = "x2"
+    vars_dict[matrix(ZZ,[-1 -1])] = "x3"
+    vars_dict[matrix(ZZ,[1 1])] = "e1"
+    vars_dict[matrix(ZZ,[0 -1])] = "e2"
+    vars_dict[matrix(ZZ,[-1 0])] = "e3"
+    new_rays = matrix(ZZ, Oscar.rays(variety))
+    vars = [vars_dict[new_rays[i,:]] for i in 1:nrows(new_rays)]
+    set_coordinate_names(variety, vars)
+    
     # set attributes that depend on b
     if b == 1
         set_attribute!(variety, :euler_characteristic, 4)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
-        set_attribute!(variety, :coordinate_names, ["x1", "x2", "x3", "e1"])
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     end
     if b == 2
         set_attribute!(variety, :euler_characteristic, 5)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(5))
-        set_attribute!(variety, :coordinate_names, ["x1", "x2", "x3", "e1", "e2"])
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
     end
     if b == 3
         set_attribute!(variety, :euler_characteristic, 6)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(6))
-        set_attribute!(variety, :coordinate_names, ["x1", "x2", "x3", "e1", "e2", "e3"])
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
     end
     
