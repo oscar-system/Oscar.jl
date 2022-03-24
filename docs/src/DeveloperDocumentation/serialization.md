@@ -79,6 +79,46 @@ each linear program, instead it is only stored once and the second linear
 program just gets the `id` of the cube in its serialized form. Please take some
 time to look at the file written in this concrete example.
 
+### The version number
+We will use the version number for checking compatibility of the data with the
+current OSCAR version before attempting to load it. If the data version is
+lower than the OSCAR version we will provide appropriate upgrade scripts such
+that the data can be loaded. We will not provide scripts for attempting to
+downgrade data, but we will throw a warning or even error in this case. We may
+provide an option for attempting to load anyway in such a scenario.
+
+### Implementation
+All files for serialization can be found in the folder `src/Serialization`. The
+naming conventions of the files there follows the overall structure of OSCAR,
+i.e. the file `src/Serialization/PolyhedralGeometry.jl` contains functions for
+serializing objects of the polyhedral geometry section.
+
+The file `main.jl` contains the core of the serialization process, namely:
+- reading and writing files;
+- the `SerializerState` and `DeserializerState` objects;
+- writing and reading vesions; and
+- generic functions for attempting to serialize objects that do not have their
+  own dedicated serialization methods.
+
+If you want to write a serialization routine for an object, the way to go is to
+implement the following two functions, here in the example for `fmpz`:
+```
+function load_intern(s::DeserializerState, ::Type{fmpz}, str::String)
+    return fmpz(str)
+end
+
+function save_intern(s::SerializerState, z::fmpz)
+    return string(z)
+end
+```
+Then the main serialization methods will dispatch to `load_intern` and
+`save_intern` for `fmpz` instead of attempting the generic serialization.
+
+Often the generic serialization will fail and it is necessary to provide a
+`save_intern` and `load_intern` function. In that case, please have a look at
+the existing functions to get an idea of how these work, and maybe use
+something of this as a blueprint.
+
 ## Challenges
 This section documents the various challenges we (will) encounter while
 implementing this feature.
@@ -97,9 +137,22 @@ implementing this feature.
   like. Nevertheless, we still want to be able load data written by older
   versions of OSCAR. For this we inted to develop an upgrade mechanism.
 
+Another important point is the wider mathematical context of the data and code.
+For data associated to a publication, this context is provided by the paper.
+
 
 
 ## Goals
 
 The general goal is to make mathematical data
-[FAIR](https://en.wikipedia.org/wiki/FAIR_data). 
+[FAIR](https://en.wikipedia.org/wiki/FAIR_data), a goal for which we cooperate
+with the [MaRDI](https://www.mardi4nfdi.de/about/mission) project.
+
+The ramifications of making mathematical data FAIR are manifold. 
+- It becomes easier to exchange data and code with fellow mathematicians,
+  enhancing communication and boosting research.
+- Computer experiments and new implementations require a lot of work and hence
+  deserve to be recognized in form of a publication. Standardizing data plays
+  an important role for this process.
+- Future generations of mathematicians will be able to reuse both data and code
+  if we establish a FAIR culture.
