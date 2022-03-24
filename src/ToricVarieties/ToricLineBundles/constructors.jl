@@ -163,6 +163,7 @@ Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
     StructureSheaf(v::AbstractNormalToricVariety)
 
 Construct the structure sheaf of a normal toric variety.
+For convenience, we also support `structure_sheaf(variety)`.
 
 # Examples
 ```jldoctest
