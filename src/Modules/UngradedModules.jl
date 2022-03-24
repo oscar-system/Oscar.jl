@@ -938,7 +938,7 @@ Compute a Gröbner of `submod` with respect to the given `ordering`.
 The ordering must be global.
 """
 function groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering)
-  # @assert ordering_is_global(base_ring(submod), ordering) # Ordering_change
+  @assert isglobal(ordering)
   return std_basis(submod, ordering)
 end
 
@@ -957,7 +957,7 @@ end
 Compute a reduced Gröbner basis with respect to the given `ordering`. The return type is `ModuleGens`.
 """
 function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering)
-  # @assert ordering_is_global(base_ring(submod), ordering) # Ordering_change
+  @assert isglobal(ordering)
   
   if !haskey(submod.groebner_basis, ordering)
     gb = std_basis_as_ModuleGens(submod, ordering, true)
@@ -1001,7 +1001,7 @@ In case `reduced` is `true` and the ordering is global, a reduced Gröbner basis
 """
 function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::ModuleOrdering, reduced::Bool=false)
   if reduced
-    # @assert ordering_is_global(base_ring(submod), ordering) # Ordering_change
+    @assert isglobal(ordering)
   end
   mg = ModuleGens(oscar_generators(submod.gens), submod.F , ordering)
   gb = std_basis(mg, reduced)
@@ -1533,7 +1533,7 @@ function std_basis(M::SubQuo, ord::ModuleOrdering)
 end
 
 function groebner_basis(M::SubQuo, ord::ModuleOrdering)
-  # @assert ordering_is_global(base_ring(M), ord) # Ordering_change
+  @assert isglobal(ord)
   return std_basis(M, ord)
 end
 
