@@ -47,7 +47,7 @@ If `F` is a free `R`-module, then
 - `base_ring(F)` refers to `R`,
 - `basis(F)`, `gens(F)` to the basis vectors of `F`, 
 - `rank(F)`, `ngens(F)`, `dim(F)` to the number of these vectors, and
-- `F[i]`, `basis(F, i)`, `gen(F, i)` to the `i`th such vector.
+- `F[i]`, `basis(F, i)`, `gen(F, i)` to the `i`-th such vector.
 
 ###### Examples
 

@@ -165,6 +165,9 @@ function gens(a::MPolyQuoIdeal)
   return map(base_ring(a), gens(a.I))
 end
 
+gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
+
 @doc Markdown.doc"""
     ngens(a::MPolyQuoIdeal)
 
@@ -1151,6 +1154,28 @@ function dim(a::MPolyQuoIdeal)
   a.dim 		= Singular.dimension(a.SI)
   return a.dim
 end
+
+##################################
+### Tests on graded quotient rings
+##################################
+
+function is_standard_graded(A::MPolyQuo)
+  return is_standard_graded(A.R)
+end
+
+function is_z_graded(A::MPolyQuo)
+  return is_z_graded(A.R)
+end
+
+function is_zm_graded(A::MPolyQuo)
+  return is_zm_graded(A.R)
+end
+
+function is_positively_graded(A::MPolyQuo)
+  return is_positively_graded(A.R)
+end
+
+##################################
 #######################################################
 
 

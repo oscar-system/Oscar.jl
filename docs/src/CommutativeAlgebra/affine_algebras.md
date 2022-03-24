@@ -25,7 +25,13 @@ functionality for handling such algebras in OSCAR.
     Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
 
 !!! note
-    carry over
+    If $A=R/I$ is an affine algebra such that $R$ is (multi)graded by a finitely generated  Abelian group
+    $G$, and such that $I$ is homogeneous with respect to this grading, then the grading descends
+    to a $G$-grading on $A$. OSCAR functionality for handling such gradings carries over from
+    the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
+    First examples are the functions `ìs_standard_graded`,  `ìs_z_graded`,
+    `ìs_zm_graded`, and `ìs_positively_graded`. Further examples will be discussed in what follows.
+
 
 ## Types
 
@@ -46,8 +52,9 @@ If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an 
 
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
-- `gens(A)` to the generators of `A`, and
-- `ngens(A)` to the number of these generators.
+- `gens(A)` to the generators of `A`,
+- `ngens(A)` to the number of these generators, and
+- `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
 
 ###### Examples
 
@@ -58,6 +65,7 @@ base_ring(A)
 modulus(A)
 gens(A)
 ngens(A)
+gen(A, 2)
 ```
 
 In the graded case, we additionally have:
@@ -151,20 +159,21 @@ simplify(a::MPolyQuoIdeal)
 If `a` is an ideal of the affine algebra `A`, then
 
 - `base_ring(a)` refers to `A`,
-- `gens(a)` to the generators of `a`, and
-- `ngens(a)` to the number of these generators.
+- `gens(a)` to the generators of `a`,
+- `ngens(a)` to the number of these generators,  and
+- `gen(a, i)` as well as `a[i]` to the `i`-th such generator.
 
 ###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
-a = ideal(A, [x-y])
+a = ideal(A, [x-y, z^4])
 base_ring(a)
 gens(a)
 ngens(a)
+gen(a, 2)
 ```
-
 
 #### Dimension of Ideals in Affine Algebras
 

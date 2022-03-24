@@ -206,7 +206,7 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
 - `ngens(R)` to the number of these generators, and
-- `gen(R, i)` as well as `R[i]` to the `i`-th generator.
+- `gen(R, i)` as well as `R[i]` to the `i`-th such generator.
 
 ###### Examples
 
