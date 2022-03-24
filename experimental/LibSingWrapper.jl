@@ -1,6 +1,6 @@
 import Singular.LibSing: *
 
-export milnor, tjurina, global_milnor_number
+export milnor, tjurina, global_milnor_number, global_tjurina_number
 
 ### The Milnor algebra of an isolated hypersurface singularity f
 
@@ -116,12 +116,12 @@ function global_milnor_number(f::MPolyElem)
   # check whether we are working over a field of coefficients
   typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
 
-  # compute groebner basis of the jacobian ideal
-  Df = jacobi_matrix(f)::AbstractAlgebra.Generic.MatSpaceElem{typeof(f)}
-  #I = ideal(R, [Df[i, 1] for i in 1:nrows(Df)])
-
+  # set up Singular-ring, because we need it later on
   RS=Oscar.singular_ring(R)
-  # I needs to be passed to RS where we can make a Singular Standard basis..
+
+  # compute groebner basis of the jacobian ideal 
+  # after passing it to the Singular ring
+  Df = jacobi_matrix(f)::AbstractAlgebra.Generic.MatSpaceElem{typeof(f)}
   Ising = Singular.Ideal(RS, [RS(Df[i, 1]) for i in 1:nrows(Df)])
   stdI = Singular.std(Ising)
 
@@ -129,6 +129,36 @@ function global_milnor_number(f::MPolyElem)
   Singular.dimension(stdI) == 0 || error("non-isolated singularities detected")
   milnor_number = Singular.vdim(stdI) 
   return (milnor_number)
+end
+
+### The global Tjurina number of a hypersurface with at most isolated singularities
+@Markdown.doc """
+  global_tjurina_number(f::MPolyElem)
+
+Computes the global Tjurina number of the affine hypersurface
+defined by `f` with at most isolated singularities
+"""
+function global_tjurina_number(f::MPolyElem)
+  iszero(f) && error("polynomial is zero")
+  R = parent(f)
+  kk = coefficient_ring(f)
+  # check whether we are working over a field of coefficients
+  typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
+
+  # set up Singular-ring, because we need it later on
+  RS=Oscar.singular_ring(R)
+
+  # compute groebner basis of the Tjurina ideal 
+  # after passing it to the Singular ring
+  Df = jacobi_matrix(f)::AbstractAlgebra.Generic.MatSpaceElem{typeof(f)}
+  Ihyp= Singular.Ideal(RS,RS(f))
+  Ising = Singular.Ideal(RS, [RS(Df[i, 1]) for i in 1:nrows(Df)])
+  stdI = Singular.std(Ihyp+Ising)
+
+  # set up the resulting data
+  Singular.dimension(stdI) == 0 || error("non-isolated singularities detected")
+  tjurina_number = Singular.vdim(stdI) 
+  return (tjurina_number)
 end
 
 @Markdown.doc """
