@@ -118,15 +118,17 @@ function global_milnor_number(f::MPolyElem)
 
   # compute groebner basis of the jacobian ideal
   Df = jacobi_matrix(f)::AbstractAlgebra.Generic.MatSpaceElem{typeof(f)}
-  I = ideal(R, [Df[i, 1] for i in 1:nrows(Df)])
+  #I = ideal(R, [Df[i, 1] for i in 1:nrows(Df)])
 
-# NEE, das muss auf der Singular Seite passieren -- SingularRing machen, Ideal rüberziehen, std...
-  stdI = groebner_basis(I)
+  RS=Oscar.singular_ring(R)
+  # I needs to be passed to RS where we can make a Singular Standard basis..
+  Ising = Singular.Ideal(RS, [RS(Df[i, 1]) for i in 1:nrows(Df)])
+  stdI = Singular.std(Ising)
 
   # set up the resulting data
-  Singular.dimension(singular_gens(stdI)) == 0 || error("non-isolated singularities detected")
-  milnor_number = Singular.vdim(singular_gens(stdI)) 
-  return (stdI, milnor_number)
+  Singular.dimension(stdI) == 0 || error("non-isolated singularities detected")
+  milnor_number = Singular.vdim(stdI) 
+  return (milnor_number)
 end
 
 @Markdown.doc """
