@@ -634,6 +634,30 @@ function max_used_variable(st::Int, o::ModOrdering)
    return -1
 end
 
+@doc Markdown.doc"""
+    induced_ring_ordering(M::ModuleOrdering)
+
+Return the induced ring ordering.
+"""
+function induced_ring_ordering(M::ModuleOrdering)
+  R = base_ring(M.M)
+  if M.o.a isa AbsGenOrdering
+    return MonomialOrdering(R, M.o.a)
+  else
+    return MonomialOrdering(R, M.o.b)
+  end
+end
+
+@doc Markdown.doc"""
+    isglobal(M::ModuleOrdering)
+
+Return `true` if the given ordering is global, i.e. if the
+induced ring ordering is global.
+"""
+function isglobal(M::ModuleOrdering)
+  return isglobal(induced_ring_ordering(M))
+end
+
 end  # module Orderings
 
 ###################################################
