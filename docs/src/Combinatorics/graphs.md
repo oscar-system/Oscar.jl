@@ -81,12 +81,8 @@ src(e::Edge)
 
 ## Saving and loading
 
-Objects of type `Graph` can be saved to a file and loaded with the following
-two methods:
-```@docs
-save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
-load_graph(filename::String)
-```
-The file is in JSON format and contains the underlying polymake object. In
-particular, this file can now be read by both polymake and Oscar.
+Objects of type `Graph` can be saved to a file and loaded with the methods
+`load` and `save`.  The file is in JSON format and contains the underlying
+polymake object. In particular, this file can now be read by both polymake and
+Oscar.
 

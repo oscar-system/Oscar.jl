@@ -461,30 +461,3 @@ function Base.show(io::IO, K::SimplicialComplex)
     print(io, "Abstract simplicial complex of dimension $(d) on $(n) vertices")
 end
 
-###############################################################################
-## Serialization
-###############################################################################
-
-"""
-    save_simplicialcomplex(K::SimplicialComplex, filename::String)
-
-Save a SimplicialComplex to a file in JSON format.
-"""
-function save_simplicialcomplex(K::SimplicialComplex, filename::String)
-    bigobject = pm_object(K)
-    Polymake.save_bigobject(bigobject, filename)
-end
-
-"""
-    load_simplicialcomplex(filename::String)
-
-Load a SimplicialComplex stored in JSON format, given the filename as input.
-"""
-function load_simplicialcomplex(filename::String)
-   bigobject = Polymake.load_bigobject(filename)
-   typename = Polymake.type_name(bigobject)
-   if typename[1:17] != "SimplicialComplex"
-      throw(ArgumentError("Loaded object is not of type SimplicialComplex but rather " * typename))
-   end
-   return SimplicialComplex(bigobject)
-end

@@ -169,6 +169,39 @@ end
 #
 ##############################################################################
 
+@doc Markdown.doc"""
+    inverse(F::AffAlgHom)
+
+If `F` is bijective, return its inverse.
+
+# Examples
+```jldoctest
+julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> D, _ = quo(D1, [y-x^2, z-x^3])
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+
+julia> C, (t,) = PolynomialRing(QQ, ["t"]);
+
+julia> F = hom(D, C, [t, t^2, t^3]);
+
+julia> isbijective(F)
+true
+
+julia> G = inverse(F)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+
+julia> G(t)
+x
+```
+"""
 function inverse(F::AffAlgHom)
   !isinjective(F) && error("Homomorphism is not injective")
   !issurjective(F) && error("Homomorphism is not surjective")
@@ -207,8 +240,7 @@ end
 @doc Markdown.doc"""
     preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
-Return the preimage of the ideal `I` under the algebra homomorphism `F`.
-
+Return the preimage of the ideal `I` under `F`.
 """
 function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
   @req base_ring(I) === codomain(f) "Parent mismatch"

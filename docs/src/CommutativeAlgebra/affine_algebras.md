@@ -24,6 +24,14 @@ functionality for handling such algebras in OSCAR.
     In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
     Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
 
+!!! note
+    If $A=R/I$ is an affine algebra such that $R$ is (multi)graded by a finitely generated  Abelian group
+    $G$, and such that $I$ is homogeneous with respect to this grading, then the grading descends
+    to a $G$-grading on $A$. OSCAR functionality for handling such gradings carries over from
+    the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
+    First examples are the functions `ìs_standard_graded`,  `ìs_z_graded`,
+    `ìs_zm_graded`, and `ìs_positively_graded`. Further examples will be discussed in what follows.
+
 
 ## Types
 
@@ -44,8 +52,9 @@ If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an 
 
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
-- `gens(A)` to the generators of `A`, and
-- `ngens(A)` to the number of these generators.
+- `gens(A)` to the generators of `A`,
+- `ngens(A)` to the number of these generators, and
+- `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
 
 ###### Examples
 
@@ -56,6 +65,13 @@ base_ring(A)
 modulus(A)
 gens(A)
 ngens(A)
+gen(A, 2)
+```
+
+In the graded case, we additionally have:
+
+```@docs
+grading_group(q::MPolyQuo{<:MPolyElem_dec})
 ```
 
 ### Dimension
@@ -96,6 +112,32 @@ simplify(f::MPolyQuoElem)
 ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
 ```
 
+In the graded case, we additionally have:
+
+```@docs
+ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
+### Data associated to Elements of Affine Algebras
+
+Given an element `f` of an affine algebra `A`, 
+
+- `parent(f)` refers to `A`.
+
+In the graded case,  we also have:
+
+```@docs
+ homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
+```@docs
+homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
+```
+
+```@docs
+degree(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
 ## Ideals in Affine Algebras
 
 ### Constructors
@@ -117,20 +159,21 @@ simplify(a::MPolyQuoIdeal)
 If `a` is an ideal of the affine algebra `A`, then
 
 - `base_ring(a)` refers to `A`,
-- `gens(a)` to the generators of `a`, and
-- `ngens(a)` to the number of these generators.
+- `gens(a)` to the generators of `a`,
+- `ngens(a)` to the number of these generators,  and
+- `gen(a, i)` as well as `a[i]` to the `i`-th such generator.
 
 ###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
-a = ideal(A, [x-y])
+a = ideal(A, [x-y, z^4])
 base_ring(a)
 gens(a)
 ngens(a)
+gen(a, 2)
 ```
-
 
 #### Dimension of Ideals in Affine Algebras
 
@@ -204,12 +247,14 @@ hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
 Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
-refer to `R` and `S`, respectively.
+refer to `R` and `S`, respectively. Given ring homomorphisms `F` from `R` to `S` and
+`G` from `S` to `T` as above, `compose(F, G)` refers to their composition.
 
-!!! note
-    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
-    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
-    `U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in what follows.
+## Homomorphisms of Affine Algebras
+
+The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
+the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
+`U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in what follows.
        
 ### Data Associated to Homomorphisms of Affine Algebras
 
@@ -265,6 +310,7 @@ D1, _ = quo(D, kernel(F));
 F1 = hom(D1, C, V);
 isbijective(F1)
 ```
+
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"]);
 C, (s, t) = PolynomialRing(QQ, ["s", "t"]);
@@ -274,7 +320,20 @@ D, _ = quo(R, kernel(paraWhitneyUmbrella));
 isfinite(hom(D, C, V))
 ```
 
-### Composition of Homomorphisms of Affine Algebras
+### Inverting Homomorphisms of Affine Algebras
+
+```@docs
+inverse(F::AffAlgHom)
+```
+
+```@repl oscar
+D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+D, _ = quo(D1, [y-x^2, z-x^3])
+C, (t,) = PolynomialRing(QQ, ["t"]);
+para = hom(D, C, [t, t^2, t^3]);
+isbijective(para)
+inverse(para)
+```
 
 ## Subalgebras
 
@@ -366,16 +425,19 @@ The *Hilbert series* of $A$ is the generating function
 
 $H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
 
-(see  Section 8.2 in [MS05](@cite) for a formal discussion extending the standard
-$\mathbb Z$-graded case to the more general case considered here). As in the
-standard $\mathbb Z$-graded case, the infinitely many values of the Hilbert function
+(see  Section 8.2 in [MS05](@cite) for a formal discussion extending the classical case of
+$\mathbb Z$-gradings with positive weights to the more general case considered here).
+As in the classical case, the infinitely many values of the Hilbert function
 can be expressed in finite terms by representing the Hilbert series as a rational function
 (see Theorem 8.20 in [MS05](@cite) for a precise statement).
 
-Using Gröbner bases, the computation of Hilbert series can be reduced to the case where
-the modulus $I$ is a monomial ideal. In the latter case, the computation of Hilbert series
-is of combinatorial nature, and there are various strategies of how to proceed. In
-describing corresponding OSCAR functionality, we first focus on the special case of
+By a result of Macaulay, if $A = R/I$ is an affine algebra, and $L_{>}(I)$ is the leading
+ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert function of $A$
+equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
+Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
+the modulus of an affine algebra is a monomial ideal. In the latter case, we face a problem 
+of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)). In
+describing corresponding OSCAR functionality, we first focus on the classical case of
 $\mathbb Z$-gradings with positive weights.
 
 
@@ -423,5 +485,8 @@ degree(A::MPolyQuo)
 ```@docs
 multi_hilbert_series(A::MPolyQuo)
 multi_hilbert_series_reduced(A::MPolyQuo)
+multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 ```
+
+
 
