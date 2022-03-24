@@ -235,8 +235,11 @@ const centraliser = centralizer
 """
     isnormal(G::T, H::T) where T <: GAPGroup
 
-Return whether the subgroup `H` is normal in `G`,
-i. e., `H` is invariant under conjugation with elements of `G`.
+Return whether the group `H` is normalized by `G`, i. e.,
+whether `H` is invariant under conjugation with elements of `G`.
+
+!!! note
+    To test whether `H` is a normal subgroup, use `isnormal(G, H) && issubset(H, G)`
 """
 isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
 
@@ -245,6 +248,9 @@ isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
 
 Return whether the subgroup `H` is characteristic in `G`,
 i. e., `H` is invariant under all automorphisms of `G`.
+
+!!! note
+    To test whether `H` is a characteristic subgroup, use `ischaracteristic(G, H) && issubset(H, G)`
 """
 function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
