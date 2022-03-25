@@ -86,6 +86,14 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem})
   C.f = f
   C.C = V
   C.data = [mC, 1, mCD, Hecke.norm_change_const(zk), den]
+  #data:
+  # [1] map into the completion. Careful, currently Q_p is returned and used as a deg-1 extension (ie. Qq)
+  #     use only coeff(, 0)
+  # [2] the current precision of the roots
+  # [3] the embedding of completion of k into completion of K
+  # [4] as the namse suggest
+  # [5] the denominator used, f'(alpha), the Kronnecker rep
+
   C.B = add_ring()(maximum([iroot(ceil(fmpz, length(x)), 2)+1 for x = coefficients(f)]))
   G, F, si = starting_group(C, K)
   return descent(C, G, F, si)
@@ -105,6 +113,7 @@ function Base.show(io::IO, C::GaloisCtx{Hecke.vanHoeijCtx})
 end
 
 function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = true)
+  #TODO: deal with raw and denominators.
   if pr > C.data[2]
     setprecision!(codomain(C.data[1]), pr)
     setprecision!(codomain(C.data[3]), pr)
@@ -140,6 +149,7 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, x::q
   end
 end
 
+#TODO: maybe add precision argument, see comment in main file.
 function map_coeff(C::GaloisCtx{Hecke.vanHoeijCtx}, x)
   return coeff(C.data[1](x), 0)
 end

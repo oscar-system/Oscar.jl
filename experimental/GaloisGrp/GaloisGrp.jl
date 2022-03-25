@@ -1186,7 +1186,17 @@ function index2sum(G::PermGroup, H::PermGroup, V::PermGroup)
   return sub(G, vcat(gens(U), s))[1]
 end
 
+"""
+Maos elements of the base ring into the complation (the splitting field).
+FOr computations over QQ this does not matter as QQ just coerces into
+any q/p-adic field.
 
+FOr computations over number fields this is not true, here an explciti map
+is needed.
+
+TODO: check and add a precision parameter
+TODO: implement also for Q(t) (even though not used)
+"""
 function map_coeff(C::GaloisCtx{Hecke.qAdicRootCtx}, x)
   return (C.C.Q[1])(x)
 end
