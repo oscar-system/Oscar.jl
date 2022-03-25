@@ -244,6 +244,29 @@ julia> println(character_table(:WeylB, 3))
 character_table("W(B3)")
 
 ```
+
+Currently the following series are supported.
+
+| Series | Parameter |
+| ------ | ---------------- |
+| `:Cyclic` | pos. integer |
+| `:Dihedral` | even pos. integer |
+| `:Symmetric` | pos. integer |
+| `:Alternating` | integer `> 1` |
+| `:WeylB` | pos. integer |
+| `:WeylD` | integer `> 1` |
+| `:DoubleCoverSymmetric` | pos. integer |
+| `:DoubleCoverAlternating` | pos. integer |
+| `:GL2` | prime power |
+| `:SL2odd` | odd prime power |
+| `:SL2even` | even prime power |
+| `:PSL2odd` | odd prime power `q` s. t. `(q-1)/2` is odd |
+| `:PSL2even` | odd prime power `q` s. t. `(q-1)/2` is even |
+| `:Suzuki` | odd power of 2 |
+| `:GU3` | prime power |
+| `:SU3` | prime power |
+| `Symbol("P:Q")` | array `[p, q]` with prime `p` and `q` dividing `p-1` |
+| `:ExtraspecialPlusOdd` | odd power of odd prime |
 """
 function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
     hasproperty(GAP.Globals, :CTblLib) || error("no character table library available")
