@@ -81,8 +81,8 @@ InstallOtherMethod(\-, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
     end);
 
 InstallOtherMethod(\^, [IsJuliaMatrixRep, IsInt and IsSmallIntRep], function( m1, k )
-        if k < then
-            return MakeJuliaMatrixRep( (Inverse(m1)!.m)^k );
+        if k < 0 then
+            return MakeJuliaMatrixRep( (Inverse(m1)!.m)^(-k) );
         else
             return MakeJuliaMatrixRep( (m1!.m)^k );
         fi;
@@ -94,9 +94,9 @@ InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
     
 InstallOtherMethod(Display, [IsJuliaMatrixRep], 5000, function( m )
     local i,j;
-        print("[ ")
+        Print("[ ");
         for i in [1..NumberRows(m)] do
-            Print("[ ")
+            Print("[ ");
             for j in [1..NumberColumns(m)] do
                 Print(m[i,j]);
                 if (j < NumberColumns(m)) then
@@ -105,8 +105,9 @@ InstallOtherMethod(Display, [IsJuliaMatrixRep], 5000, function( m )
             od;
             if (i < NumberRows(m)) then
                 Print(" ] \n");
+                Print("  ");
             else
-                Print(" ] \n");
+                Print(" ] ] \n");
             fi;
         od;
     end);
