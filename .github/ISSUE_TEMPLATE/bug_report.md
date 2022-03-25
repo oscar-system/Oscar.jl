@@ -24,7 +24,9 @@ the bug is of mathematical nature we will need the mathematical context. If
 applicable please provide references to relevant papers.
 
 **System (please complete the following information):**
-Please paste the output of `Oscar.versioninfo(jll=true,julia=true)` below.
+Please paste the output of `Oscar.versioninfo(jll=true,julia=true)` below. If
+this does not work, please paste the output of Julia's `versioninfo()` and your
+Oscar version.
 ```
 julia> Oscar.versioninfo(jll=true,julia=true)
 OSCAR version 0.8.3-DEV
