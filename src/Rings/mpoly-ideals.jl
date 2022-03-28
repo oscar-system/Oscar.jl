@@ -1268,5 +1268,14 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::Monomi
     gensS = gens(typeof(IS)(RS, ptr))
   end
 
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
   return elem_type(R)[ R(f) for f in gensS ]
 end

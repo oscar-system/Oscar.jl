@@ -1195,6 +1195,15 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
     gensS = gens(typeof(IS)(QS, ptr))
   end
 
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
   return elem_type(Q)[ Q(f) for f in gensS ]
 end
 

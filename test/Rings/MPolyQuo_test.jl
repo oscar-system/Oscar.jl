@@ -89,4 +89,5 @@ end
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
   @test minimal_generating_set(J) == [ Q(y), Q(x^2 + y) ]
+  @test minimal_generating_set(ideal(Q, [ Q() ])) == elem_type(Q)[]
 end

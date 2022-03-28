@@ -203,6 +203,7 @@ end
   R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
   @test minimal_generating_set(I) == [ y, x^2 ]
+  @test minimal_generating_set(ideal(R, [ R() ])) == elem_type(R)[]
 end
 
 # Conversion bug
