@@ -1456,24 +1456,24 @@ end
 ### z-graded Hilbert series stuff using Singular for finding the Hilbert series
 ###############################################################################
 
-
-function sing_hilb(I::Singular.sideal)
-  a = Vector{Int32}()
-  @assert I.isGB
-  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
-  return a
-end
-
 mutable struct HilbertData
   data::Vector{Int32}
+  weights::Vector{Int32}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
-
-    if !(typeof(base_ring(base_ring(I))) <: AbstractAlgebra.Field)
+    R = base_ring(I)
+    W = R.d
+    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    
+    if !(minimum(W)>0)
+       throw(ArgumentError("The weights must be positive."))
+    end
+    
+    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
     end
 
-    if !((typeof(base_ring(I)) <: Oscar.MPolyRing_dec) && (isgraded(base_ring(I))))
+    if !((typeof(R) <: Oscar.MPolyRing_dec) && (isgraded(R)))
        throw(ArgumentError("The base ring must be graded."))
     end
     
@@ -1482,8 +1482,8 @@ mutable struct HilbertData
     end
     
     G = groebner_assure(I)
-    h = sing_hilb(G.S)
-    return new(h, I)
+    h = Singular.hilbert_series(G.S, W)
+    return new(h, W, I)
   end
   function HilbertData(B::BiPolyArray)
     return HilbertData(Oscar.MPolyIdeal(B))
@@ -1492,17 +1492,26 @@ end
 
 function hilbert_series(H::HilbertData, i::Int= 1)
   Zt, t = ZZ["t"]
-  if i==1
-    return Zt(map(fmpz, H.data[1:end-1])), (1-gen(Zt))^(ngens(base_ring(H.I)))
-  elseif i==2
+  den = prod([1-t^H.weights[i] for i = 1:ngens(base_ring(H.I))])
+  if i==1   ### the Hilbert series with denominator prod (1-t^H.weights[i])
+    return Zt(map(fmpz, H.data[1:end-1])), den
+  elseif i==2   ### the reduced Hilbert series
     h = hilbert_series(H, 1)[1]
-    return divexact(h, (1-gen(Zt))^(ngens(base_ring(H.I))-dim(H.I))), (1-gen(Zt))^dim(H.I)
+    c = gcd(h, den)
+    return divexact(h, c), divexact(den, c)
   end
   error("2nd parameter must be 1 or 2")
 end
 
 #Decker-Lossen, p23/24
 function hilbert_polynomial(H::HilbertData)
+
+  for i = 1:ngens(base_ring(H.I))
+     if H.weights[i] != 1
+       throw(ArgumentError("All weights must be 1."))
+     end
+  end
+  
   q, dn = hilbert_series(H, 2)
   a = fmpq[]
   nf = fmpq(1)
@@ -1525,6 +1534,13 @@ function hilbert_polynomial(H::HilbertData)
 end
 
 function Oscar.degree(H::HilbertData)
+
+  for i = 1:ngens(base_ring(H.I))
+     if H.weights[i] != 1
+       throw(ArgumentError("All weights must be 1."))
+     end
+  end
+  
   P = hilbert_polynomial(H)
   if P==zero(parent(P))
      q, _ = hilbert_series(H, 2)
@@ -1534,11 +1550,12 @@ function Oscar.degree(H::HilbertData)
 end
 
 function (P::FmpqRelSeriesRing)(H::HilbertData)
-  n = hilbert_series(H, 1)[1]
-  d = (1-gen(parent(n)))^ngens(base_ring(H.I))
-  g = gcd(n, d)
-  n = divexact(n, g)
-  d = divexact(d, g)
+  ###n = hilbert_series(H, 1)[1]
+  ###d = (1-gen(parent(n)))^ngens(base_ring(H.I))
+  ###g = gcd(n, d)
+  ###n = divexact(n, g)
+  ###d = divexact(d, g)
+  n, d = hilbert_series(H, 2)  ###new
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
@@ -1561,7 +1578,8 @@ function hilbert_function(H::HilbertData, d::Int)
 end
 
 function Base.show(io::IO, h::HilbertData)
-  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+  ###print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+  print(io, "Hilbert Series for $(h.I), data: $(h.data), weights: $(h.weights)")  ###new
 end
 
 

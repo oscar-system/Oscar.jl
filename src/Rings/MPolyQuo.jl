@@ -1072,6 +1072,9 @@ julia> f = p(y^2-x^2+z^4)
 
 julia> ishomogeneous(f)
 true
+
+julia> f
+z^4
 ```
 """
 function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
