@@ -1014,7 +1014,7 @@ end
    S, z = PolynomialRing(R, "z")
 
    @test evaluate(f, [z + 1, z - 1]) == 2*z^4 - 4*z^2 + 4*z + 5
-   @test_broken f(z + 1, z - 1) == 2*z^4 - 4*z^2 + 4*z + 5
+   @test f(z + 1, z - 1) == 2*z^4 - 4*z^2 + 4*z + 5
 
    R, (x, y, z) = PolynomialRingSparse(ZZ, ["x", "y", "z"])
 
