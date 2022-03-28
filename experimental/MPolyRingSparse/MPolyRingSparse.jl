@@ -386,7 +386,7 @@ iszero(x::MPolySparse) = x.length == 0
 isconstant(x::MPolySparse) = x.length == 0 || (x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0))
 
 function Base.deepcopy_internal(a::MPolySparse{T}, dict::IdDict) where {T <: RingElement}
-    Re = deepcopy_internal(a.exps, dict)
+    Re = deepcopy_internal(a.exps[1:a.length], dict)
     Rc = Array{T}(undef, a.length)
     for i = 1:a.length
         Rc[i] = deepcopy(a.coeffs[i])
