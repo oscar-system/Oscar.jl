@@ -440,7 +440,7 @@ function multi_hilbert_series_reduced(A::MPolyQuo)
    c = gcd(p, q)
    p = divexact(p, c)
    q = divexact(q, c)
-   return (q(0)*p, q(0)*q), T
+   return (constant_coefficient(q)*p, constant_coefficient(q)*q), T
 end
 
 function _monomial_ideal_membership(m::MPolyElem, I::MPolyIdeal)
