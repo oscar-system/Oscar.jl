@@ -438,7 +438,9 @@ julia> H[2]
 function multi_hilbert_series_reduced(A::MPolyQuo)
    (p, q), T = multi_hilbert_series(A::MPolyQuo)
    c = gcd(p, q)
-   return (divexact(p, c), divexact(q, c)), T
+   p = divexact(p, c)
+   q = divexact(q, c)
+   return (q(0)*p, q(0)*q), T
 end
 
 function _monomial_ideal_membership(m::MPolyElem, I::MPolyIdeal)

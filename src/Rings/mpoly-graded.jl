@@ -1498,7 +1498,9 @@ function hilbert_series(H::HilbertData, i::Int= 1)
   elseif i==2   ### the reduced Hilbert series
     h = hilbert_series(H, 1)[1]
     c = gcd(h, den)
-    return divexact(h, c), divexact(den, c)
+    h = divexact(h, c)
+    den = divexact(den, c)
+    return den(0)*h, den(0)*den
   end
   error("2nd parameter must be 1 or 2")
 end
