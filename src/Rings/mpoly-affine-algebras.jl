@@ -124,7 +124,7 @@ julia> hilbert_series(A)
 (-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 
 julia> hilbert_series_reduced(A)
-(-t^2 + t - 1, -t^2 + 2*t - 1)
+(t^2 - t + 1, t^2 - 2*t + 1)
 ```
 """
 function hilbert_series_reduced(A::MPolyQuo)
