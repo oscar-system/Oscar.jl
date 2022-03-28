@@ -480,6 +480,14 @@ function singular_generators(M::ModuleGens)
   return M.S
 end
 
+function base_ring(M::ModuleGens)
+  return base_ring(M.F)
+end
+
+function ambient_free_module(M::ModuleGens)
+  return M.F
+end
+
 @doc Markdown.doc"""
     singular_generators(M::ModuleGB)
 

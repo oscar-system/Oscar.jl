@@ -146,13 +146,6 @@ mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
   F::FreeMod{T}
   SF::Singular.FreeMod
 
-  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
-    r = new{T}()
-    r.O = O
-    r.F = F
-    return r
-  end
-
   # ModuleGens from an Array of Oscar free module elements, specifying the free module 
   # and Singular free module, only useful indirectly
   function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T}
