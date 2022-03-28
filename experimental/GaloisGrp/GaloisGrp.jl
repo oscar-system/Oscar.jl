@@ -1510,23 +1510,26 @@ mutable struct CycleType
   end
 end
 
+function Base.hash(c::CycleType, u::UInt = UInt(121324))
+  return hash(c.s, u)
+end
+
 function _push!(ct::CycleType, i::Int)
   f = findfirst(x->x[1] == i, ct.s)
   if f === nothing
     push!(ct.s, i=>1)
   else
-    ct.s[f] = i=>ct.s[f][2]+1
+    ct.s[f] = ct.s[f][1]=>ct.s[f][2] + 1
   end
 end
 
 function ^(c::CycleType, e::Int)
-  for i = c.s
+  t = Vector{Pair{Int, Int}}()
+  for (i,j) = c.s
     g = gcd(i, e)
-    for j=1:g
-      push!(t, divexact(i, g))
-    end
+    push!(t, (divexact(i, g)=>g*j))
   end
-  return CycleType(sort(t))
+  return CycleType(t)
 end
 
 function Oscar.order(c::CycleType)
@@ -1535,7 +1538,7 @@ end
 
 #given cycle types, try to find a divisor (large) of the transitive
 #group. Used for sieving.
-function order_from_shape(ct, n)
+function order_from_shape(ct::Set{Vector{Int}}, n)
   o1 = fmpz(1)
   o  = fmpz(1)
   for p = PrimesSet(1, n)
@@ -1583,12 +1586,56 @@ function order_from_shape(ct, n)
   end
   return lcm(n*o1, o)
 end
+function order_from_shape(ct::Set{CycleType}, n)
+  o1 = fmpz(1)
+  o  = fmpz(1)
+  for p = PrimesSet(1, n)
+    #find cycletypes that would correpond to elt of order a multiple of p
+    #the exact order is lcm(x) for x in ct
+    ct_p = [x for x = ct if any(t->t[1] % p == 0, x.s)]
+    #so ct_t contains all cycle types belongign to elements where the
+    #order is divisible by p
+    length(ct_p) == 0 && continue
+    #now x in ct_p is is the cycle type of an element where the order is a multiple
+    #of p. I need the type of x^f (which is of maximal order p-power order)
+    #e.g. a cycle of length 6 will produce 3 of length 2
+    ct_pp = Set{CycleType}()
+    for x = ct_p
+      y = x^Int(ppio(order(x), fmpz(p))[2])
+      push!(ct_pp, y^y.s[1][1])
+    end
+    # Now everything has a fixed point, so we can bound the
+    # size of Stab_G(1) from below (we're transitive, so the fixed point
+    # is 1)
+    # the plan is to take to 2 different largest ones
+
+    mu = [(y.s[end][1], y.s[end][1]*y.s[end][2]) for y = ct_pp]
+    sort!(mu, lt = (a,b) -> a[1] < b[1])
+    if length(mu) == 1
+      p_part = mu[1][1]
+      o1 *= p_part
+    else
+      p_part = maximum([x[1]*y[1] for x = mu for y = mu if x[2] != y[2]], init = maximum(x[1] for x = mu))
+      o1 *= p_part
+    end
+  end
+  return lcm(n*o1, o)
+end
+
 
 #https://mathoverflow.net/questions/286316/recognition-of-symmetric-groups-in-gap
 #show primitivity by finding a permutation which has a p cycle for n/2<p<n−1
 function primitive_by_shape(ct::Set{Vector{Int}}, n::Int)
   for p = PrimesSet(div(n, 2)+1, n-2)
     if any(y->any(x->x % p == 0, y), ct)
+      return true
+    end
+  end
+  return false
+end
+function primitive_by_shape(ct::Set{CycleType})
+  for p = PrimesSet(div(n, 2)+1, n-2)
+    if any(y->any(x->x[1] % p == 0, y), ct)
       return true
     end
   end
@@ -1615,6 +1662,27 @@ function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
   return false
 end
 
+function an_sn_by_shape(ct::Set{CycleType}, n::Int)
+  n <= 3 && return true
+
+  ub = n > 8 ? n-3 : n-2
+  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))), init = fmpz(1))
+
+  if any(x->any(y ->gcd(y[1], lp) > 1, x), ct)
+    n != 6 && return true
+    #from Elsenhans (ask Max???) need the 5-cycle and 
+    #    [1,1,1,3] or [1,2,3] ie. not [3,3]
+    # Elsenhans also tries to seperate Sn/An but there I am not certain
+    # I think if there is a type proving odd, then we have Sn, hower
+    # not finding one does not prove anyhting
+    if any(x->(3=>2) in x, ct)
+      return true
+    end
+  end
+  return false
+end
+
+#
 #TODO
 # - subfield lattice directly
 # - subfield to block system outsource (also for lattice)
