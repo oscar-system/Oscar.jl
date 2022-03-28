@@ -91,10 +91,10 @@ julia> maximal_cells(MOAE)
 ```
 """
 function maximal_cells(SOP::SubdivisionOfPoints)
-    return SubObjectIterator{Polymake.Set{Int}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
+    return SubObjectIterator{Polymake.Set{Polymake.to_cxx_type(Int)}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
 end
 
-_maximal_cell(::Type{Polymake.Set{Int}}, SOP::Polymake.BigObject, i::Base.Integer) = Polymake.row(SOP.MAXIMAL_CELLS, i)
+_maximal_cell(::Type{Polymake.Set{Polymake.to_cxx_type(Int)}}, SOP::Polymake.BigObject, i::Base.Integer) = Polymake.row(SOP.MAXIMAL_CELLS, i)
 
 
 ###############################################################################
