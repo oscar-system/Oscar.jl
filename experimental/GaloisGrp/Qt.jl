@@ -193,29 +193,32 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     prm = [findfirst(x->x == y, _rS) for y = _rC]
     pr = symmetric_group(length(prm))(prm)
 
-    if isdefined(S, :start) && length(S.start) > 0
-      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start)
+    # need to verify the starting group
+    #either, if block-systems are there, find the subfields
+    #or verify the factorisation of the resolvent:
+    if isdefined(S, :start) && S.start[1] == 1 && length(S.start) > 0
+      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
         @vprint :GaloisGroup 2 "bad evaluation point: subfields don't exist\n"
         continue
       end
-      C.start = [[[inv(pr)(i) for i = y] for y = x] for x = S.start]
-    else
-      @assert isa(S.data[1][1], Tuple)
+      C.start = (1, [[[inv(pr)(i) for i = y] for y = x] for x = S.start[2]])
+    elseif isdefined(S, :start)
+      @assert S.start[1] == 2
         
-      if length(S.data) == 1 #msum was irreducible over Q, so also over Qt
+      if length(S.start[2]) == 1 #msum was irreducible over Q, so also over Qt
         @vprint :GaloisGroup 1 "msum irreducible over Q, starting with Sn/An\n"
       else
         O = sum_orbits(FF, Qt_to_G, map(x->mG(mF(x)), rC))
-        if sort(map(length, O)) != sort(map(length, S.data))
+        if sort(map(length, O)) != sort(map(length, S.data[2]))
           @vprint :GaloisGroup 2 "bad evaluation point: 2-sum polynomial has wrong factorisation\n"
           continue
         end
       end
+    else
+      #should be in the An/Sn case
+      #but the parity is already checked, so group is correct
     end
 
-    # need to verify the starting group
-    #either, if block-systems are there, find the subfields
-    #or verify the factorisation of the resolvent (no idea?)
     C.data[3] = overC
     #then verify the descent-chain in S
     C.chn = typeof(S.chn)()

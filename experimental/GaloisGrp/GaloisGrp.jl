@@ -332,7 +332,10 @@ mutable struct GaloisCtx{T}
   G::PermGroup
   rt_num::Dict{Int, Int}
   chn::Vector{Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}}
-  start::Vector{Vector{Vector{Int}}} # a list of block systems
+  start::Tuple{Int, Vector{Vector{Vector{Int}}}} # data for the starting group:
+    # if start[1] == 1: start[2] is a list of the block systems used
+    #             == 2  start[2] is a list of the orbits of the msum-poly, ie. a list of a list of pairs
+    #                            where the pairs are Vector{Int} of length 2
   data::Any #whatever else is needed in special cases
   #= the descent chain, recodring
    - the group
@@ -382,6 +385,11 @@ mutable struct GaloisCtx{T}
     r.B = qt_ring()(vl[1])
     r.data = Any[vl[2], shft, false] #false: not simulating C
     @assert typeof(r.data[3]) == Bool
+    return r
+  end
+  function GaloisCtx(T::Type)
+    r = new{T}()
+    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     return r
   end
 end
@@ -1117,13 +1125,13 @@ function sum_orbits(K, Qt_to_G, r)
   #if not: transform (using ts) and try again.
   
   k = parent(r[1])
-  m = Dict{typeof(r[1]), Tuple{Int, Int}}()
+  m = Dict{typeof(r[1]), Vector{Int}}()  #the vector has length 2 always
   local ts = gen(Hecke.Globals.Zx)
   c = r
   while true
     for i=1:length(r)-1
       for j=i+1:length(r)
-        m[c[i]+c[j]] = (i,j)
+        m[c[i]+c[j]] = [i,j]
       end
     end
     if length(keys(m)) < binomial(degree(K), 2)
@@ -1178,6 +1186,21 @@ function index2sum(G::PermGroup, H::PermGroup, V::PermGroup)
   return sub(G, vcat(gens(U), s))[1]
 end
 
+"""
+Maos elements of the base ring into the complation (the splitting field).
+FOr computations over QQ this does not matter as QQ just coerces into
+any q/p-adic field.
+
+FOr computations over number fields this is not true, here an explciti map
+is needed.
+
+TODO: check and add a precision parameter
+TODO: implement also for Q(t) (even though not used)
+"""
+function map_coeff(C::GaloisCtx{Hecke.qAdicRootCtx}, x)
+  return (C.C.Q[1])(x)
+end
+
 @doc Markdown.doc"""
     starting_group(GC::GaloisCtx, K::AnticNumberField) 
 
@@ -1193,7 +1216,7 @@ Returns a triple:
  - a filter for all groups that can occur
  - a permutation representing the operation of the Frobenius automorphism
 """
-function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool = true)
+function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T <: SimpleNumField
   c = roots(GC, 5, raw = true)
 
   @vprint :GaloisGroup 1 "computing starting group (upper bound for Galois group)\n"
@@ -1207,7 +1230,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
   #compute the block system for all subfields...
   bs = Vector{Vector{Int}}[]
-  fld = Dict{Vector{Vector{Int}}, AnticNumberField}()
+  fld = Dict{Vector{Vector{Int}}, T}()
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
       continue
@@ -1218,7 +1241,8 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
       c = roots(GC, pr, raw = true)
 
       g = ms(gen(s))
-      d = map(parent(K.pol)(g), c)
+      gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(g))
+      d = map(gg, c)
       b = Dict{typeof(c[1]), Vector{Int}}()
       for i=1:length(c)
         if Base.haskey(b, d[i])
@@ -1267,7 +1291,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
     bs = minimal_elements(L)
     @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
   end
-  GC.start = bs
+  GC.start = (1, bs)
 
   d = map(frobenius, c)
   si = [findfirst(y->y==x, c) for x = d]
@@ -1363,9 +1387,10 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
-    k, mk = ResidueField(parent(c[1]))
-    O = sum_orbits(K, k, map(mk, c))
-    GC.data = O
+    pc = parent(c[1])
+    k, mk = ResidueField(pc)
+    O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
+    GC.start = (2, O)
     
     #the factors define a partitioning of pairs, the stabiliser of this
     #partition is the largest possible group...
@@ -1485,26 +1510,35 @@ mutable struct CycleType
   end
 end
 
-function ^(c::CycleType, e::Int)
-  for i = c.s
-    g = gcd(i, e)
-    for j=1:g
-      push!(t, divexact(i, g))
-    end
+function Base.hash(c::CycleType, u::UInt = UInt(121324))
+  return hash(c.s, u)
+end
+
+function _push!(ct::CycleType, i::Int)
+  f = findfirst(x->x[1] == i, ct.s)
+  if f === nothing
+    push!(ct.s, i=>1)
+  else
+    ct.s[f] = ct.s[f][1]=>ct.s[f][2] + 1
   end
-  return CycleType(sort(t))
+end
+
+function ^(c::CycleType, e::Int)
+  t = Vector{Pair{Int, Int}}()
+  for (i,j) = c.s
+    g = gcd(i, e)
+    push!(t, (divexact(i, g)=>g*j))
+  end
+  return CycleType(t)
 end
 
 function Oscar.order(c::CycleType)
-  return reduce(lcm, map(fmpz, s.c), init = fmpz(1))
+  return reduce(lcm, map(x->fmpz(x[1]), c.s), init = fmpz(1))
 end
-
-
-
 
 #given cycle types, try to find a divisor (large) of the transitive
 #group. Used for sieving.
-function order_from_shape(ct, n)
+function order_from_shape(ct::Set{Vector{Int}}, n)
   o1 = fmpz(1)
   o  = fmpz(1)
   for p = PrimesSet(1, n)
@@ -1552,12 +1586,56 @@ function order_from_shape(ct, n)
   end
   return lcm(n*o1, o)
 end
+function order_from_shape(ct::Set{CycleType}, n)
+  o1 = fmpz(1)
+  o  = fmpz(1)
+  for p = PrimesSet(1, n)
+    #find cycletypes that would correpond to elt of order a multiple of p
+    #the exact order is lcm(x) for x in ct
+    ct_p = [x for x = ct if any(t->t[1] % p == 0, x.s)]
+    #so ct_t contains all cycle types belongign to elements where the
+    #order is divisible by p
+    length(ct_p) == 0 && continue
+    #now x in ct_p is is the cycle type of an element where the order is a multiple
+    #of p. I need the type of x^f (which is of maximal order p-power order)
+    #e.g. a cycle of length 6 will produce 3 of length 2
+    ct_pp = Set{CycleType}()
+    for x = ct_p
+      y = x^Int(ppio(order(x), fmpz(p))[2])
+      push!(ct_pp, y^y.s[1][1])
+    end
+    # Now everything has a fixed point, so we can bound the
+    # size of Stab_G(1) from below (we're transitive, so the fixed point
+    # is 1)
+    # the plan is to take to 2 different largest ones
+
+    mu = [(y.s[end][1], y.s[end][1]*y.s[end][2]) for y = ct_pp]
+    sort!(mu, lt = (a,b) -> a[1] < b[1])
+    if length(mu) == 1
+      p_part = mu[1][1]
+      o1 *= p_part
+    else
+      p_part = maximum([x[1]*y[1] for x = mu for y = mu if x[2] != y[2]], init = maximum(x[1] for x = mu))
+      o1 *= p_part
+    end
+  end
+  return lcm(n*o1, o)
+end
+
 
 #https://mathoverflow.net/questions/286316/recognition-of-symmetric-groups-in-gap
 #show primitivity by finding a permutation which has a p cycle for n/2<p<n−1
 function primitive_by_shape(ct::Set{Vector{Int}}, n::Int)
   for p = PrimesSet(div(n, 2)+1, n-2)
     if any(y->any(x->x % p == 0, y), ct)
+      return true
+    end
+  end
+  return false
+end
+function primitive_by_shape(ct::Set{CycleType})
+  for p = PrimesSet(div(n, 2)+1, n-2)
+    if any(y->any(x->x[1] % p == 0, y), ct)
       return true
     end
   end
@@ -1584,6 +1662,27 @@ function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
   return false
 end
 
+function an_sn_by_shape(ct::Set{CycleType}, n::Int)
+  n <= 3 && return true
+
+  ub = n > 8 ? n-3 : n-2
+  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))), init = fmpz(1))
+
+  if any(x->any(y ->gcd(y[1], lp) > 1, x), ct)
+    n != 6 && return true
+    #from Elsenhans (ask Max???) need the 5-cycle and 
+    #    [1,1,1,3] or [1,2,3] ie. not [3,3]
+    # Elsenhans also tries to seperate Sn/An but there I am not certain
+    # I think if there is a type proving odd, then we have Sn, hower
+    # not finding one does not prove anyhting
+    if any(x->(3=>2) in x, ct)
+      return true
+    end
+  end
+  return false
+end
+
+#
 #TODO
 # - subfield lattice directly
 # - subfield to block system outsource (also for lattice)
@@ -1763,7 +1862,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
   return G, GC
 end
 
-function isinteger(GC::GaloisCtx, B::BoundRingElem{fmpz}, e)
+function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{fmpz}, e)
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
@@ -1794,6 +1893,10 @@ end
 
 function extension_field(f::Generic.Poly{Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
   return FunctionField(f, n, cached = cached)
+end
+
+function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
+  return NumberField(f, n, cached = cached)
 end
 
 Hecke.function_field(f::Generic.Poly{Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
@@ -2103,6 +2206,7 @@ function Nemo.cyclotomic(n::Int, x::fmpq_poly)
   return Nemo.cyclotomic(n, gen(Hecke.Globals.Zx))(x)
 end
 
+
 ################################################################################
 #
 #  Promote rules
@@ -2117,6 +2221,7 @@ include("Group.jl")
 include("POSet.jl")
 include("SeriesEval.jl")
 include("Qt.jl")
+include("RelGalois.jl")
 
 end
 
