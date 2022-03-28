@@ -8,9 +8,7 @@ mutable struct Variety
   I::Oscar.MPolyIdeal
 
   function Variety(I::Oscar.MPolyIdeal{<:MPolyElem{<:FieldElem}})
-    r = new()
-    r.I = I
-    return r
+    return new(I)
   end
 end
 

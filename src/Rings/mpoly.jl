@@ -160,35 +160,31 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 #in general: all algos here needs revision: do they benefit from gb or not?
 
 mutable struct BiPolyArray{S}
+  Ox::MPolyRing #Oscar Poly Ring
   O::Vector{S}
-  S::Singular.sideal
-  Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
+  S::Singular.sideal
   isGB::Bool #if the Singular side (the sideal) will be a GB
-  ord :: Orderings.AbsOrdering #for this ordering
+  ord::Orderings.AbsOrdering #for this ordering
   keep_ordering::Bool
 
-  function BiPolyArray(a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
-    return BiPolyArray(parent(a[1]), a; keep_ordering = keep_ordering,
+  function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
+    return BiPolyArray(parent(O[1]), O; keep_ordering = keep_ordering,
                                         isGB = isGB)
   end
 
-  function BiPolyArray(R::MPolyRing, a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
-    r = new{T}()
-    r.O = a
-    r.Ox = R
+  function BiPolyArray(Ox::MPolyRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
+    r = new{T}(Ox, O)
     r.isGB = isGB
     r.keep_ordering = keep_ordering
     return r
   end
 
-  function BiPolyArray(Ox::T, b::Singular.sideal) where {T <: MPolyRing}
-    r = new{elem_type(T)}()
-    r.S = b
-    r.O = Vector{elem_type(T)}(undef, Singular.ngens(b))
-    r.Ox = Ox
-    r.isGB = b.isGB
-    r.Sx = base_ring(b)
+  function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: MPolyRing}
+    O = Vector{elem_type(T)}(undef, Singular.ngens(S))
+    Sx = base_ring(S)
+    r = new{elem_type(T)}(Ox, O, Sx, S)
+    r.isGB = S.isGB
     r.keep_ordering = true
     return r
   end
@@ -497,17 +493,11 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   dim::Int
 
   function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
-    r = new{T}()
-    r.dim = -1 #not known
-    r.gens = BiPolyArray(g, keep_ordering = false)
-    r.gb = Dict()
-    return r
+    return MPolyIdeal(BiPolyArray(g, keep_ordering = false))
   end
+
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
-    r = new{elem_type(T)}()
-    r.dim = -1 #not known
-    r.gens = BiPolyArray(Ox, s)
-    r.gb = Dict()
+    r = MPolyIdeal(BiPolyArray(Ox, s))
     if s.isGB
       # We need to get the monomial ordering from the Singular side,
       # there should be an easier and more versatile implementation
@@ -518,11 +508,9 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
     end
     return r
   end
+
   function MPolyIdeal(B::BiPolyArray{T}) where T
-    r = new{T}()
-    r.dim = -1 #not known
-    r.gens = B
-    r.gb = Dict()
+    r = new{T}(B, Dict(), -1)
     return r
   end
 end
@@ -709,7 +697,6 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
   i::Vector{Int}
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Vector{Int}) where {T1 <: MPolyRing, T2 <: MPolyRing}
-    r = new()
     p = sortperm(i)
     j = Int[]
     for h = 1:length(p)
@@ -718,9 +705,8 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
         break
       end
     end
-    r.header = MapHeader{T1, T2}(R, S, x -> im_func(x, S, i), y-> im_func(y, R, j))
-    r.i = i
-    return r
+    header = MapHeader{T1, T2}(R, S, x -> im_func(x, S, i), y-> im_func(y, R, j))
+    return new(header, i)
   end
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2; type::Symbol = :none) where {T1 <: MPolyRing, T2 <: MPolyRing}
