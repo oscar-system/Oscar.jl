@@ -308,7 +308,8 @@ end
 @doc Markdown.doc"""
    v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) 
 
-Given a divisor `dtc` and vertex labelled `vertex` compute the unique divisor reduced with repspect to `vertex`. 
+Given a divisor `dtc` and vertex labelled `vertex` compute the unique divisor reduced with repspect to `vertex`
+as defined in [BN07](@cite).
 The divisor `dtc` must have positive coefficients apart from `vertex`.  
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
