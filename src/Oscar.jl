@@ -89,6 +89,7 @@ function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
    if julia
       println(io, "")
       Main.InteractiveUtils.versioninfo(io)
+      println(io, Base.TAGGED_RELEASE_BANNER)
    end
 end
 
