@@ -14,7 +14,7 @@ Pages = ["affine_algebras.md"]
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient ring of $R$
-modulo an ideal $I$ of $R$, we refer to $A$ as an affine algebra over $C$, or an affine $C$-algebra. In this section, we discuss
+modulo an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we discuss
 functionality for handling such algebras in OSCAR.
 
 !!! note
@@ -29,7 +29,7 @@ functionality for handling such algebras in OSCAR.
     $G$, and such that $I$ is homogeneous with respect to this grading, then the grading descends
     to a $G$-grading on $A$. OSCAR functionality for handling such gradings carries over from
     the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
-    First examples are the functions `ìs_standard_graded`,  `ìs_z_graded`,
+    First examples are the functions `ìs_z_graded`, `ìs_standard_graded`,  `ìs_z_graded`,
     `ìs_zm_graded`, and `ìs_positively_graded`. Further examples will be discussed in what follows.
 
 
@@ -436,9 +436,13 @@ ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert fu
 equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
 Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
 the modulus of an affine algebra is a monomial ideal. In the latter case, we face a problem 
-of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)). In
-describing corresponding OSCAR functionality, we first focus on the classical case of
-$\mathbb Z$-gradings with positive weights.
+of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)).
+The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expanded`,
+`hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
+$\mathbb Z$-gradings with positive weights, relying on corresponding Singular
+functionality. The functions `multi_hilbert_series`, `multi_hilbert_series_reduced `,
+and `multi_hilbert_function` use different strategies and allow one to handle arbitrary
+positive $\mathbb Z^m$-gradings.
 
 
 ### The Case of $\mathbb Z$-Gradings With Positive Weights
@@ -468,9 +472,6 @@ In the standard $\mathbb Z$-graded case, where the weights on the variables are 
 for all $d \gg 0$. Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if this dimension
 is finite, and as the integer $d$ such that the leading term of the Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
-!!! warning
-    Currently, all functions described below are only implemented in the case where the weights on the variables are all 1.
-
 ```@docs
 hilbert_series(A::MPolyQuo)
 hilbert_series_reduced(A::MPolyQuo)
@@ -480,7 +481,7 @@ hilbert_polynomial(A::MPolyQuo)
 degree(A::MPolyQuo)
 ```
 
-### The General Case of Positive Multigradings
+### The General Case of Positive $\mathbb Z^m$-Gradings
 
 ```@docs
 multi_hilbert_series(A::MPolyQuo)

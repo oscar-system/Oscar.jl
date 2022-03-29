@@ -72,12 +72,23 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series(A)
 (2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_series(A)
+(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
 function hilbert_series(A:: MPolyQuo)
    if iszero(A.I)
+      R = base_ring(A.I)
+      W = R.d
+      W = [Int(W[i][1]) for i = 1:ngens(R)]   
       Zt, t = ZZ["t"]
-      return (one(parent(t)), (1-t)^(ngens(A)))
+      den = prod([1-t^W[i] for i = 1:ngens(base_ring(A.I))])
+      return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
    return hilbert_series(H,1)
@@ -104,12 +115,21 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_reduced(A)
 (2*t + 1, t^2 - 2*t + 1)
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_series(A)
+(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+
+julia> hilbert_series_reduced(A)
+(t^2 - t + 1, t^2 - 2*t + 1)
 ```
 """
 function hilbert_series_reduced(A::MPolyQuo)
    if iszero(A.I)
-      Zt, t = ZZ["t"]
-      return (one(parent(t)), (1-t)^(ngens(A)))
+      return hilbert_series(A)
    end
    H = HilbertData(A.I)
    return hilbert_series(H,2)
@@ -131,6 +151,13 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_expanded(A, 7)
 1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_series_expanded(A, 5)
+1 + t + 2*t^2 + 3*t^3 + 4*t^4 + 5*t^5 + O(t^6)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuo, d::Int)
@@ -411,7 +438,9 @@ julia> H[2]
 function multi_hilbert_series_reduced(A::MPolyQuo)
    (p, q), T = multi_hilbert_series(A::MPolyQuo)
    c = gcd(p, q)
-   return (divexact(p, c), divexact(q, c)), T
+   p = divexact(p, c)
+   q = divexact(q, c)
+   return (constant_coefficient(q)*p, constant_coefficient(q)*q), T
 end
 
 function _monomial_ideal_membership(m::MPolyElem, I::MPolyIdeal)
