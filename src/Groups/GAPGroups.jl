@@ -183,7 +183,7 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
-i. e., the smallest positive integer $e$ such that
+i.e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """
 @gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
@@ -502,7 +502,7 @@ Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group
     isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
+i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
 isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
 
@@ -631,7 +631,7 @@ end
     normalizer(G::Group, H::Group)
 
 Return `N, f`, where `N` is the normalizer of `H` in `G`,
-i. e., the largest subgroup of `G` in which `H` is normal,
+i.e., the largest subgroup of `G` in which `H` is normal,
 and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalizer(G.X,H.X))
@@ -889,7 +889,7 @@ Return whether `G` is a simple group, i.e.,
     isalmostsimple(G)
 
 Return whether `G` is an almost simple group,
-i. e., `G` is isomorphic to a group $H$ with the property
+i.e., `G` is isomorphic to a group $H$ with the property
 $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 """
 @gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
@@ -942,7 +942,7 @@ false
 @doc Markdown.doc"""
     relators(G::FPGroup)
 
-Return a vector of relators for the finitely presented group, i. e.,
+Return a vector of relators for the finitely presented group, i.e.,
 elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
 `G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
 """
