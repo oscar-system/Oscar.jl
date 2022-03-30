@@ -355,15 +355,15 @@ function *(a::MPolyElem_dec, b::AbstractFreeModElem)
 end
 function *(a::MPolyElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
+    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return FreeModElem(a*coords(b), parent(b))
 end
 function *(a::RingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
+    return base_ring(parent(b))(a)*b
   end
-  return FreeModElem(a*coords(b), parent(b))
+  return FreeModElem(a*coords(b), parent(b)) # this will throw if conversion is not possible
 end
 *(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coords(b), parent(b))
 *(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coords(b), parent(b))
@@ -2335,13 +2335,13 @@ function *(a::MPolyElem_dec, b::SubQuoElem)
 end
 function *(a::MPolyElem, b::SubQuoElem) 
   if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
+    return base_ring(parent(b))(a)*b
   end
   return SubQuoElem(a*coeffs(b), b.parent)
 end
 function *(a::RingElem, b::SubQuoElem) 
   if parent(a) !== base_ring(parent(b))
-    error("elements not compatible")
+    return base_ring(parent(b))(a)*b
   end
   return SubQuoElem(a*coeffs(b), b.parent)
 end
