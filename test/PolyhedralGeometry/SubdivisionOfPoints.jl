@@ -38,7 +38,7 @@
         @test min_weights(SOP1) == [0,0,0,1,1,1]
         @test dim(C1) == 6
         @test dim(CMOAE) == 4
-        @test moaeimnonreg0 == maximal_cells_as_incidence_matrix(MOAE)
+        @test moaeimnonreg0 == maximal_cells(IncidenceMatrix, MOAE)
         @test npoints(MOAE) == 6
         @test length(points(MOAE)) == 6
         @test collect(points(MOAE))[3] == [0,0,4]
