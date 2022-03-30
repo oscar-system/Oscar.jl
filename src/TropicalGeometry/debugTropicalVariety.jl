@@ -5,8 +5,8 @@ import Random
 K,s = RationalFunctionField(QQ,"s");
 Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
-val = ValuationMap(K,s,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val) # works
-val = ValuationMap(K,s,max); Random.seed!(3847598273423); TropI = tropical_variety(I,val) # does not work
+val = TropicalSemiringMap(K,s,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val) # works
+val = TropicalSemiringMap(K,s,max); Random.seed!(3847598273423); TropI = tropical_variety(I,val) # does not work
 
 
 
@@ -17,8 +17,8 @@ import Random
 Kx,(x1,x2,x3,x4) = PolynomialRing(QQ,4);
 p = 2;
 I = ideal([x1-p*x2+(p+1)*x3,3*x2-p^2*x3+(p^2+1)*x4]);
-val = ValuationMap(QQ,p,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
-val = ValuationMap(QQ,p,max); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
+val = TropicalSemiringMap(QQ,p,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
+val = TropicalSemiringMap(QQ,p,max); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
 
 
 ###
@@ -29,7 +29,7 @@ import Random
 K = QQ;
 p = K(3);
 Kx,(x,y,z) = PolynomialRing(K,3);
-val = ValuationMap(K,p,max);
+val = TropicalSemiringMap(K,p,max);
 Random.seed!(1337133713371337);
 I = ideal(
   [rand(1:2)*p*1+rand(1:2)*x+rand(1:2)*y+rand(1:2)*z+rand(1:2)*x*y+rand(1:2)*x*z+rand(1:2)*y*z+rand(1:2)*p*x^2+rand(1:2)*p*y^2+rand(1:2)*p*z^2,
@@ -76,8 +76,8 @@ I = ideal([p03*p12-p02*p13+p01*p23,
            p04*p13-p03*p14+p01*p34,
            p04*p23-p03*p24+p02*p34,
            p14*p23-p13*p24+p12*p34])
-val = ValuationMap(K,s,min); Random.seed!(3847598273423); TropI,wG = tropical_variety(I,val)
-val = ValuationMap(K,s,max); Random.seed!(3847598273423); TropI,wG = tropical_variety(I,val)
+val = TropicalSemiringMap(K,s,min); Random.seed!(3847598273423); TropI,wG = tropical_variety(I,val)
+val = TropicalSemiringMap(K,s,max); Random.seed!(3847598273423); TropI,wG = tropical_variety(I,val)
 
 
 ###
@@ -106,8 +106,8 @@ I = ideal([p03*p12-p02*p13+p01*p23,
            p04*p13-p03*p14+p01*p34,
            p04*p23-p03*p24+p02*p34,
            p14*p23-p13*p24+p12*p34])
-val = ValuationMap(K,s,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
-val = ValuationMap(K,s,max); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
+val = TropicalSemiringMap(K,s,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
+val = TropicalSemiringMap(K,s,max); Random.seed!(3847598273423); TropI = tropical_variety(I,val)
 
 
 ###
@@ -116,7 +116,7 @@ val = ValuationMap(K,s,max); Random.seed!(3847598273423); TropI = tropical_varie
 import Random
 K,s = RationalFunctionField(QQ,"s");
 Kx,(p01,p02,p03,p04,p05,p12,p13,p14,p15,p23,p24,p25,p34,p35,p45) = PolynomialRing(K,15);
-val = ValuationMap(K,s);
+val = TropicalSemiringMap(K,s);
 I = ideal([p03*p12-p02*p13+p01*p23,  p04*p12-p02*p14+p01*p24,
 	         p05*p12-p02*p15+p01*p25,  p04*p13-p03*p14+p01*p34,
 	         p05*p13-p03*p15+p01*p35,  p05*p14-p04*p15+p01*p45,
@@ -157,7 +157,7 @@ Random.seed!(133713371337); TropI,wG = tropical_variety(I,val)
 import Random
 K,s = RationalFunctionField(GF(32003),"s");
 Kx,(p01,p02,p03,p04,p05,p12,p13,p14,p15,p23,p24,p25,p34,p35,p45) = PolynomialRing(K,15);
-val = ValuationMap(K,s);
+val = TropicalSemiringMap(K,s);
 I = ideal([p03*p12-p02*p13+p01*p23,  p04*p12-p02*p14+p01*p24,
 	         p05*p12-p02*p15+p01*p25,  p04*p13-p03*p14+p01*p34,
 	         p05*p13-p03*p15+p01*p35,  p05*p14-p04*p15+p01*p45,
@@ -198,7 +198,7 @@ Random.seed!(133713371337); TropI,wG = tropical_variety(I,val)
 import Random
 K,s = RationalFunctionField(GF(32003),"s");
 Kx,(p012,p013,p014,p015,p023,p024,p025,p034,p035,p045,p123,p124,p125,p134,p135,p145,p234,p235,p245,p345) = PolynomialRing(K,20);
-val = ValuationMap(K,s);
+val = TropicalSemiringMap(K,s);
 I = ideal([p014*p023-p013*p024+p012*p034,  p015*p023-p013*p025+p012*p035,
 	         p015*p024-p014*p025+p012*p045,  p015*p034-p014*p035+p013*p045,
 	         p014*p123-p013*p124+p012*p134,  p015*p123-p013*p125+p012*p135,
