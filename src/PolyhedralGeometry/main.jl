@@ -26,7 +26,6 @@ export AffineHalfspace,
     bipyramid,
     birkhoff,
     boundary_lattice_points,
-    bounded,
     catalan_solid,
     codim,
     combinatorial_symmetries,
@@ -42,8 +41,6 @@ export AffineHalfspace,
     fano_simplex,
     faces,
     facets,
-    facets_as_halfspace_matrix_pair,
-    facets_as_point_matrix,
     face_fan,
     feasible_region,
     f_vector,
@@ -83,7 +80,6 @@ export AffineHalfspace,
     maximal_polyhedra,
     min_weights,
     minkowski_sum,
-    ne,
     newton_polytope,
     normalized_volume,
     normal_fan,
@@ -95,7 +91,6 @@ export AffineHalfspace,
     npoints,
     npolyhedra,
     nrays,
-    nv,
     nvertices,
     objective_function,
     optimal_vertex,
@@ -158,6 +153,8 @@ include("type_functions.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")
 include("triangulations.jl")
+
+@deprecate bounded(Obj::Polyhedron) isbounded(Obj)
 
 # Some temporary aliases to avoid breaking all current PRs
 pm_cone(C::Cone) = pm_object(C)
