@@ -445,7 +445,7 @@ end
 @doc Markdown.doc"""
     tropical_minors(A::MatElem, k::Int)
 
-Return an array consisting of the k-minors of a tropical matrix A
+Return an array consisting of the k-minors of a tropical matrix `A`.
 """
 function tropical_minors(A::MatElem, k::Int)
    row_indices = AbstractAlgebra.combinations(nrows(A), k)

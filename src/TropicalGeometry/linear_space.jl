@@ -68,7 +68,8 @@ end
 @doc Markdown.doc"""
     TropicalLinearSpace(plv::Vector)
 
-Construct a tropical linear space from its Pluecker vector.
+Construct a tropical linear space from a Pluecker vector `plv`.
+
 #Examples
 ```jldoctest
 julia> R = TropicalSemiring(min);
@@ -84,6 +85,7 @@ julia> f_vector(L)
  3
 ```
 """
+
 function TropicalLinearSpace_impl(plv, rank, nElements, M)
     Zero = zero(TropicalSemiring(M))
     indexSet = findall(i->i!=Zero, plv)
@@ -103,9 +105,9 @@ TropicalLinearSpace_impl(plv, rank, nElements, max)
 
 
 @doc Markdown.doc"""
-    TropicalLinearSpace()
+    TropicalLinearSpace(tropicalmatrix::MatElem,val)
 
-Construct a tropical linear space from a matrix generating it. Requires the matrix input to be of Type MatElem.
+Construct a tropical linear space from a matrix which must be of type MatElem.
 
 # Examples
 ```jldoctest
