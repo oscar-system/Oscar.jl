@@ -106,8 +106,11 @@ true
 ```@docs
 archimedean_solid
 birkhoff
+catalan_solid
 cross
 cube
+delpezzo
+fano_simplex
 gelfand_tsetlin
 simplex
 ```

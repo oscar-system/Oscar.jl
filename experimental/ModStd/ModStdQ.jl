@@ -217,7 +217,7 @@ end
  =    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
  = end
  =  =#
- function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=degrevlex(gens(base_ring(I))); complete_reduction::Bool = true, use_hilbert::Bool = false)
+ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 

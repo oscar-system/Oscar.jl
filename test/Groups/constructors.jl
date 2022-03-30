@@ -106,13 +106,30 @@ end
   @test !isfinite(F)
   @test !isabelian(F)
 
+  F = free_group(:x,:y)
+  @test F isa FPGroup
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
+  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws MethodError degree(F)
+  @test !isfinite(F)
+  @test !isabelian(F)
+
+  F = free_group("x",:y)
+  @test F isa FPGroup
+  
   F = free_group(2)
   @test F isa FPGroup
   
   F = free_group(["x","y"])
   @test F isa FPGroup
   
+  F = free_group([:x,:y])
+  @test F isa FPGroup
+  
   F = free_group(3,"y")
+  @test F isa FPGroup
+  
+  F = free_group(3,:y)
   @test F isa FPGroup
   
   Q8 = quaternion_group(8)

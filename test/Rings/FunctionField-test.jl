@@ -21,7 +21,7 @@
       F2, (a2,) = Singular.FunctionField(kk, vcat(symb, ["b"])) # one more gen
       F3, (a3,) = Singular.FunctionField(Singular.Fp(5), symb) # different char
       
-      @test singular_ring(F) === F1
+      @test singular_coeff_ring(F) === F1
       @test F(a1) == a
       @test F1(a) == a1
       
@@ -32,7 +32,7 @@
       @test_throws ArgumentError F3(a) # wrong char
       
       R, (x, y) = PolynomialRing(F, ["x", "y"])
-      @test singular_ring(R) isa Singular.PolyRing{Singular.n_transExt}
+      @test singular_poly_ring(R) isa Singular.PolyRing{Singular.n_transExt}
 
       @test k(F(1)) isa elem_type(k)
       @test_throws InexactError k(a)

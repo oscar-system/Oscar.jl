@@ -28,7 +28,7 @@ end
 
 function exp_groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
-    R = Oscar.singular_ring(B.Ox, ord)
+    R = Oscar.singular_poly_ring(B.Ox, ord)
     i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), h.data, complete_reduction = complete_reduction)
     return BiPolyArray(B.Ox, i)
   end

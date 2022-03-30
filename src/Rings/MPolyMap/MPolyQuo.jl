@@ -24,18 +24,48 @@ function _check_imgs_quo(R, S::Ring, imgs)
   end
 end
 
-function hom(R::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
-  n = ngens(R)
-  @req n == length(images) "Number of images must be $n"
-  # Now coerce into S or throw an error if not possible
-  imgs = _coerce(S, images)
-  if check
-    _check_imgs_quo(R, S, imgs)
-    _check_homo(S, imgs)
-  end
-  return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
-end
+@doc Markdown.doc"""
+    hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 
+    hom(A::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
+    
+Given a homomorphism `coeff_map` from `C` to `S`, where `C` is the 
+coefficient ring of the base ring of `A`, and given a vector `images` of `ngens(A)` 
+elements of `S`, return the homomorphism `A` $\to$ `S` whose restriction 
+to `C` is `coeff_map`, and which sends the `i`-th generator of `A` to the 
+`i`-th entry of `images`.
+ 
+If no coefficient map is entered, invoke a canonical homomorphism of `C`
+to `S`, if such a homomorphism exists, and throw an error, otherwise.
+
+!!! note
+    The function returns a well-defined homomorphism `A` $\to$ `S` iff the
+    given data defines a homomorphism from the base ring of `A` to `S` whose
+    kernel contains the modulus of `A`. This condition is checked by the 
+    function in case `check = true` (default).
+
+!!! note
+    If `S` is noncommutative, the assigned images must pairwise commute.
+    This is checked by the function in case `check = true` (default).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"] );
+
+julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
+
+julia> S, (s, t) = PolynomialRing(QQ, ["s", "t"]);
+
+julia> F = hom(A, S, [s, s^2, s^3])
+Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+Codomain:
+=========
+Multivariate Polynomial Ring in s, t over Rational Field
+```
+"""
 function hom(R::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
@@ -47,6 +77,18 @@ function hom(R::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = tr
   end
 
   return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
+end
+
+function hom(R::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
+  n = ngens(R)
+  @req n == length(images) "Number of images must be $n"
+  # Now coerce into S or throw an error if not possible
+  imgs = _coerce(S, images)
+  if check
+    _check_imgs_quo(R, S, imgs)
+    _check_homo(S, imgs)
+  end
+  return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
 end
 
 ################################################################################

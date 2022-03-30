@@ -52,13 +52,18 @@ the conditions in `L`. Here, `L` is a vector whose arguments are organized as
 `L` = [ `func1`, `arg1`, `func2`, `arg2`, ... ], and the function returns all
 the groups `G` satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) =
 `arg2`, etc. An argument can be omitted if it corresponds to the boolean value
-``true``.
+`true`.
+
+The following command returns the list of all abelian non-cyclic groups
+of order 12.
 
 # Examples
+```jldoctest
+julia> all_small_groups(12, iscyclic, false, isabelian)
+1-element Vector{PcGroup}:
+ <pc group of size 12 with 3 generators>
+
 ```
-julia> all_small_groups(12, cyclic, false, isabelian)
-```
-returns the list of all abelian non-cyclic groups of order 12.
 
 The type of the groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.
 """

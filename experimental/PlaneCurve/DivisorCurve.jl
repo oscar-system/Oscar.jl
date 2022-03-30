@@ -81,7 +81,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -302,7 +302,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -424,7 +424,7 @@ end
 
 function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
     R = parent(C.eq)
-    PP = projective_space(R.R.base_ring, 2)
+    PP = proj_space(R.R.base_ring, 2)
     return divisor(PP[1], C, F)
 end
 
@@ -449,7 +449,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -471,7 +471,7 @@ end
 
 function divisor(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
     R = parent(C.eq)
-    PP = projective_space(R.R.base_ring, 2)
+    PP = proj_space(R.R.base_ring, 2)
     return divisor(PP[1], C, phi)
 end
 
@@ -596,7 +596,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -695,7 +695,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -739,7 +739,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -781,7 +781,7 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 

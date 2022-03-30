@@ -55,19 +55,14 @@ file in the following way:
 moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
 moaeincidence = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
 MOAE = SubdivisionOfPoints(moaepts, moaeincidence)
-save_subdivisionofpoints(MOAE, "moae.sop");
-SOP = load_subdivisionofpoints("moae.sop");
+save(MOAE, "moae.sop");
+SOP = load("moae.sop");
 isregular(SOP)
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
 
-
-```@docs
-save_subdivisionofpoints(SOP::SubdivisionOfPoints, filename::String)
-load_subdivisionofpoints(filename::String)
-```
 
 ## Auxiliary functions
 ```@docs

@@ -57,9 +57,16 @@ toric_variety(l::ToricLineBundle)
 ## Method
 
 We use [cohomCalg](https://github.com/BenjaminJurke/cohomCalg)
-to compute line bundle cohomologies. This is achieved with the following methods.
+to compute the dimension of line bundle cohomologies. This is achieved with the following methods.
 
 ```@docs
 all_cohomologies(l::ToricLineBundle)
 cohomology(l::ToricLineBundle, i::Int)
+```
+
+We can also compute a basis of the global sections.
+
+```@docs
+basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
+basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
 ```

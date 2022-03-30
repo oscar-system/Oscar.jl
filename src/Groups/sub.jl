@@ -168,7 +168,7 @@ Return the vector of maximal subgroups of `G`.
     maximal_normal_subgroups(G::Group)
 
 Return the vector of maximal normal subgroups of `G`,
-i. e., of those proper normal subgroups of `G` that are maximal
+i.e., of those proper normal subgroups of `G` that are maximal
 among the proper normal subgroups.
 """
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
@@ -178,7 +178,7 @@ among the proper normal subgroups.
     minimal_normal_subgroups(G::Group)
 
 Return the vector of minimal normal subgroups of `G`,
-i. e., of those nontrivial normal subgroups of `G` that are minimal
+i.e., of those nontrivial normal subgroups of `G` that are minimal
 among the nontrivial normal subgroups.
 """
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
@@ -235,8 +235,11 @@ const centraliser = centralizer
 """
     isnormal(G::T, H::T) where T <: GAPGroup
 
-Return whether the subgroup `H` is normal in `G`,
-i. e., `H` is invariant under conjugation with elements of `G`.
+Return whether the group `H` is normalized by `G`, i.e.,
+whether `H` is invariant under conjugation with elements of `G`.
+
+!!! note
+    To test whether `H` is a normal subgroup, use `isnormal(G, H) && issubset(H, G)`
 """
 isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
 
@@ -244,7 +247,10 @@ isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
     ischaracteristic(G::T, H::T) where T <: GAPGroup
 
 Return whether the subgroup `H` is characteristic in `G`,
-i. e., `H` is invariant under all automorphisms of `G`.
+i.e., `H` is invariant under all automorphisms of `G`.
+
+!!! note
+    To test whether `H` is a characteristic subgroup, use `ischaracteristic(G, H) && issubset(H, G)`
 """
 function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
@@ -254,7 +260,7 @@ end
     issolvable(G::GAPGroup)
 
 Return whether `G` is solvable,
-i. e., whether [`derived_series`](@ref)(`G`)
+i.e., whether [`derived_series`](@ref)(`G`)
 reaches the trivial subgroup in a finite number of steps.
 """
 @gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
@@ -263,7 +269,7 @@ reaches the trivial subgroup in a finite number of steps.
     isnilpotent(G::GAPGroup)
 
 Return whether `G` is nilpotent,
-i. e., whether the lower central series of `G` reaches the trivial subgroup
+i.e., whether the lower central series of `G` reaches the trivial subgroup
 in a finite number of steps.
 """
 @gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
@@ -272,7 +278,7 @@ in a finite number of steps.
     issupersolvable(G::GAPGroup)
 
 Return whether `G` is supersolvable,
-i. e., `G` is finite and has a normal series with cyclic factors.
+i.e., `G` is finite and has a normal series with cyclic factors.
 """
 @gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
 

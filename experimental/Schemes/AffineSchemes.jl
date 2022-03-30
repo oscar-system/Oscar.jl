@@ -1,14 +1,25 @@
 import AbstractAlgebra.Ring
 import Base: intersect
 
-export Spec, OO
-export ⊂
+export Scheme
+export Spec, OO, defining_ideal
+export spec_type, ring_type
+export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
+export affine_space, empty_spec
+export EmptyScheme
 
-export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
+export is_open_embedding, is_closed_embedding, is_canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
-export SpecMor
-export pullback, domain, codomain, preimage, restrict, graph
+export SpecMor, morphism_type
+export pullback, domain, codomain, preimage, restrict, graph, identity_map, inclusion_map, is_isomorphism, is_inverse_of
+
+export strict_modulus
+
+# TODO for Tommy: Find out why the following are necessary
+AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
+AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
+AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{AbstractAlgebra.Generic.Frac{gfp_mpoly}}) = AbstractAlgebra.Generic.Frac{gfp_mpoly}
 
 @Markdown.doc """
     Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} 
@@ -34,7 +45,7 @@ polynomial algebra of type `RT` over a base ring ``k`` of type
 with elements of type `RET`, and ``S`` a multiplicative set in ``R`` of 
 type `MST`.
 """
-mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
+@attributes mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   # the basic fields 
   OO::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}
   # fields for caching
@@ -44,6 +55,33 @@ mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
     return new{BRT, BRET, RT, RET, MST}(OO)
   end
 end
+
+### Type getters
+
+ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}
+ring_type(X::Spec) = ring_type(typeof(X))
+
+base_ring_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = BRT
+base_ring_elem_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = BRET
+mult_set_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = MST
+poly_ring_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = RT
+poly_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = RET
+
+base_ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
+base_ring_elem_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRET
+mult_set_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
+poly_ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
+poly_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
+
+### type constructors
+
+# this defaults to Specs over localizations of polynomial rings at hypersurfaces
+# and does not cover localizations for germs!
+spec_type(R::T) where {T<:AbstractAlgebra.Ring} = Spec{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T), MPolyPowersOfElement{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T)}}
+spec_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = Spec{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T), MPolyPowersOfElement{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T)}}
+spec_type(L::MPolyQuoLocalizedRing{S, T, U, V, W}) where {S, T, U, V, W} = Spec{S, T, U, V, W}
+spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = Spec{S, T, U, V, W}
+
 
 
 ### Getter functions
@@ -74,6 +112,9 @@ function Base.show(io::IO, X::Spec)
   print(io, "Spec of $(OO(X))")
 end
 
+base_ring(X::Spec) = coefficient_ring(base_ring(OO(X)))
+defining_ideal(X::Spec) = modulus(OO(X))
+
 ### Copy constructor
 Spec(X::Spec) = Spec(OO(X))
 
@@ -88,6 +129,15 @@ Spec(Q::MPolyQuo) = Spec(MPolyQuoLocalizedRing(Q))
 Spec(W::MPolyLocalizedRing) = Spec(MPolyQuoLocalizedRing(W))
 
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, I, U))
+Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, ideal(R, [zero(R)]), U))
+Spec(R::MPolyRing, I::MPolyIdeal) = Spec(MPolyQuoLocalizedRing(R, I, units_of(R)))
+
+# Hack for the construction of the empty scheme over kk 
+# as an instance of Spec
+function empty_spec(kk::BRT) where {BRT<:AbstractAlgebra.Ring} 
+  R, (x,) = PolynomialRing(kk, ["x"])
+  return Spec(R, ideal(R, [x]), MPolyPowersOfElement(x))
+end
 
 ### closed subschemes defined by ideals
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
@@ -118,6 +168,26 @@ function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT,
   return subscheme(X, I)
 end
 
+function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
+  I = ideal(OO(X), [f])
+  return subscheme(X, I)
+end
+
+function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
+  I = ideal(OO(X), f)
+  return subscheme(X, I)
+end
+
+function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
+  I = ideal(OO(X), [f])
+  return subscheme(X, I)
+end
+
+function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
+  I = ideal(OO(X), f)
+  return subscheme(X, I)
+end
+
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
   R = base_ring(OO(X))
   I = ideal(R, R(f))
@@ -138,10 +208,43 @@ For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f �
 this returns the open subscheme ``U = X ∖ V(f)`` defined by the complement of the vanishing 
 locus of ``f``.
 """
-function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_cache::Bool=false) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
-  return Spec(Localization(OO(X), MPolyPowersOfElement(f)))
+  iszero(f) && return subscheme(X, [one(R)])
+  f in inverted_set(OO(X)) && return X
+  #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
+  W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
+  if keep_cache
+    IX = localized_modulus(OO(X))
+    DIX = groebner_bases(IX)
+    # we have a look at the possibility to transfer groebner bases that 
+    # have already been computed.
+    if length(DIX)>0
+      if has_attribute(IX, :saturated_ideal)
+        # in case the saturated ideal has already been computed once, 
+        # we assume that this computation is also feasible a second time.
+        # We check whether the new saturation makes any difference and 
+        # transfer the cached data if applicable.
+        Jsat = ideal(R, numerator.(oscar_gens(groebner_basis(IX))))
+        for d in [b for b in denominators(inverted_set(W)) if !(b in inverted_set(OO(X)))]
+          for a in factor(d)
+            Jsat = saturation(Jsat, ideal(R, a[1]))
+          end
+        end
+        J = localized_modulus(W)
+        set_attribute!(J, :saturated_ideal, Jsat)
+        if issubset(Jsat, saturated_ideal(IX))
+          for o in keys(DIX)
+            gb = DIX[o]
+            groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), o.o, true)
+          end
+        end
+        set_attribute!(W, :localized_modulus, J)
+      end
+    end
+  end
+  return Spec(W)
 end
 
 function hypersurface_complement(
@@ -161,12 +264,11 @@ end
 
 
 ### testing containment
-⊂(
-  X::Scheme{BRT, BRET}, 
-  Y::Scheme{BRT, BRET}
- ) where {BRT, BRET} = issubset(X, Y)
-
 issubset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = true
+
+function issubset(Y::Spec{BRT, BRET, RT, RET, MST1}, X::EmptyScheme{BRT, BRET}) where {BRT, BRET, RT, RET, MST1} 
+  return iszero(one(OO(Y)))
+end
 
 @Markdown.doc """
     issubset(
@@ -181,7 +283,7 @@ function issubset(
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || return false
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   if !issubset(UY, UX) 
@@ -194,12 +296,27 @@ function issubset(
   return issubset(J, localized_modulus(OO(X)))
 end
 
-function ==(
+function ==(X::T, Y::T) where {T<:Spec}
+  return X === Y
+end
+
+function is_canonically_isomorphic(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  X === Y && return true
+  isempty(X) && isempty(Y) && return true
+  base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
 end
+
+function is_canonically_isomorphic(X::Spec, Y::EmptyScheme)
+  return issubset(X, Y)
+end
+
+is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
+
+Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
     is_open_embedding(
@@ -251,6 +368,7 @@ function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
   issubset(X, Y) && return X
   issubset(Y, X) && return Y
   UX = inverted_set(OO(X))
@@ -261,7 +379,7 @@ function Base.intersect(
   I = IX + IY
   R = base_ring(OO(X))
   L = MPolyQuoLocalizedRing(R, I, U)
-  one(localized_ring(L)) in localized_modulus(L) && return EmptyScheme(coefficient_ring(R))
+  #one(localized_ring(L)) in localized_modulus(L) && return EmptyScheme(coefficient_ring(R))
   return Spec(L)
 end
 
@@ -293,24 +411,32 @@ end
 # Morphisms of affine schemes                                      #
 ########################################################################
 
-mutable struct SpecMor{BRT, BRET, RT, RET, MST1, MST2}
-  domain::Spec{BRT, BRET, RT, RET, MST1}
-  codomain::Spec{BRT, BRET, RT, RET, MST2}
-  pullback::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST1}
-
-  # fields used for caching
-  inverse::SpecMor{BRT, BRET, RT, RET, MST2, MST1}
+@attributes mutable struct SpecMor{DomainType<:Spec, CodomainType<:Spec, PullbackType<:MPolyQuoLocalizedRingHom}
+  domain::DomainType
+  codomain::CodomainType
+  pullback::PullbackType
 
   function SpecMor(
-      X::Spec{BRT, BRET, RT, RET, MST1},
-      Y::Spec{BRT, BRET, RT, RET, MST2},
-      pullback::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST1}
-    ) where {BRT, BRET, RT, RET, MST1, MST2}
+      X::DomainType,
+      Y::CodomainType,
+      pullback::PullbackType;
+      check::Bool=true
+    ) where {DomainType<:Spec, CodomainType<:Spec, PullbackType<:MPolyQuoLocalizedRingHom}
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
-    return new{BRT, BRET, RT, RET, MST1, MST2}(X, Y, pullback)
+    if check
+      # do some more expensive tests
+    end
+    return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end
 end
+
+function morphism_type(::Type{SpecType1}, ::Type{SpecType2}) where {SpecType1<:Spec, SpecType2<:Spec}
+  return SpecMor{SpecType1, SpecType1, morphism_type(ring_type(SpecType2), ring_type(SpecType1))}
+end
+
+morphism_type(X::Spec, Y::Spec) = morphism_type(typeof(X), typeof(Y))
+
 
 ### getter functions
 pullback(phi::SpecMor) = phi.pullback
@@ -321,24 +447,27 @@ codomain(phi::SpecMor) = phi.codomain
 function SpecMor(
       X::Spec{BRT, BRET, RT, RET, MST1},
       Y::Spec{BRT, BRET, RT, RET, MST2},
-      f::Vector
+      f::Vector;
+      check::Bool=true
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), f))
+  return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
-function restrict(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}, 
-    U::Spec{BRT, BRET, RT, RET, MST1},
-    V::Spec{BRT, BRET, RT, RET, MST2}
-  ) where {BRT, BRET, RT, RET, MST1, MST2}
-  issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
-  issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
-  issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
-  return SpecMor(U, V, images(pullback(f)))
+identity_map(X::Spec) = SpecMor(X, X, gens(base_ring(OO(X))))
+inclusion_map(X::T, Y::T) where {T<:Spec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
+
+function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
+  if check
+    issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
+    issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
+    issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
+  end
+  return SpecMor(U, V, images(pullback(f)), check=check)
 end
 
 function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
   codomain(f) == domain(g) || error("Morphisms can not be composed")
-  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
+  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
 
 function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
@@ -351,7 +480,7 @@ end
 
 ### functionality
 function preimage(
-    phi::SpecMor{BRT, BRET, RT, RET, MST1, MST2}, 
+    phi::SpecMor{Spec{BRT, BRET, RT, RET, MST1}, Spec{BRT, BRET, RT, RET, MST2}},
     Z::Spec{BRT, BRET, RT, RET, MST3}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST3<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   X = domain(phi)
@@ -366,18 +495,21 @@ function preimage(
   return Spec(MPolyQuoLocalizedRing(R, ideal(R, new_gens) + modulus(OO(X)), inverted_set(OO(X))*new_units))
 end
 
-function is_isomorphism(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+function is_isomorphism(f::SpecMor)
   is_isomorphism(pullback(f)) || return false
-  f.inverse = SpecMor(codomain(f), domain(f), inverse(pullback(f)))
+  set_attribute!(f, :inverse, SpecMor(codomain(f), domain(f), inverse(pullback(f))))
   return true
 end
 
-function inverse(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  if isdefined(f, :inverse) 
-    return f.inverse
+function is_inverse_of(f::S, g::T) where {S<:SpecMor, T<:SpecMor}
+  return is_isomorphism(f) && (inverse(f) == g)
+end
+
+function inverse(f::SpecMor) 
+  if !has_attribute(f, :inverse) 
+    is_isomorphism(f) || error("the given morphism is not an isomorphism")
   end
-  is_isomorphism(f) || error("the given morphism is not an isomorphism")
-  return f.inverse
+  return get_attribute(f, :inverse)::morphism_type(codomain(f), domain(f))
 end
 
 @Markdown.doc """
@@ -399,22 +531,22 @@ function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, M
   m = length(gens(R))
   n = length(gens(S))
   RS, z = PolynomialRing(k, vcat(symbols(R), symbols(S)))
-  inc1 = AlgebraHomomorphism(R, RS, gens(RS)[1:m])
-  inc2 = AlgebraHomomorphism(S, RS, gens(RS)[m+1:m+n])
-  #pr1 = AlgebraHomomorphism(RS, R, vcat(gens(R), [zero(R) for i in 1:n]))
-  #pr2 = AlgebraHomomorphism(RS, S, vcat([zero(S) for i in 1:m], gens(S)))
+  inc1 = hom(R, RS, gens(RS)[1:m])
+  inc2 = hom(S, RS, gens(RS)[m+1:m+n])
   IX = ideal(RS, inc1.(gens(modulus(OO(X)))))
   IY = ideal(RS, inc2.(gens(modulus(OO(Y)))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
   UY = MPolyPowersOfElement(RS, inc2.(denominators(inverted_set(OO(Y)))))
   XxY = Spec(RS, IX + IY, UX*UY)
-  pr1 = SpecMor(XxY, X, gens(RS)[1:m])
-  pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n])
+  pr1 = SpecMor(XxY, X, gens(RS)[1:m], check=false)
+  pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
 
   
-function graph(f::SpecMor{BRT, BRET, RT, RET, MST, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+function graph(f::SpecMor{<:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}, 
+                          <:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  )
   X = domain(f)
   Y = codomain(f)
   XxY, prX, prY = product(X, Y)
@@ -432,3 +564,26 @@ function partition_of_unity(X::Spec{BRT, BRET, RT, RET, MST},
   error("not implemented")
 end
 
+#function hash(X::Spec, u::UInt)
+#  r = 0x753087204385757820349592852
+#  return xor(r, hash(OO(X), u))
+#end
+  
+function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
+  R, _ = PolynomialRing(kk, [ variable_name * "$i" for i in 1:n])
+  return Spec(R)
+end
+
+function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
+  R, _ = PolynomialRing(kk, var_symbols)
+  return Spec(R)
+end
+
+function dim(X::Spec)
+  if !has_attribute(X, :dimension)
+    set_attribute!(X, :dimension, dim(saturated_ideal(localized_modulus(OO(X)))))
+  end
+  return get_attribute(X, :dimension)::Int64
+end
+
+strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))

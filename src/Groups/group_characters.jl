@@ -17,7 +17,9 @@
 export
     atlas_irrationality,
     character_field,
+    character_parameters,
     character_table,
+    class_parameters,
     decomposition_matrix,
     indicator,
     induced_cyclic,
@@ -44,19 +46,27 @@ if `F` is not given then the result has type `QabElem`.
 [CCNPW85](@cite), Chapter 6, Section 10.
 
 ```jldoctest
-julia> atlas_irrationality("r5")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("r5"))
+       end;
 -2*ζ(5)^3 - 2*ζ(5)^2 - 1
 
 julia> atlas_irrationality(CyclotomicField(5)[1], "r5")
 -2*z_5^3 - 2*z_5^2 - 1
 
-julia> atlas_irrationality("i")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("i"))
+       end;
 ζ(4)
 
-julia> atlas_irrationality("b7*3")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("b7*3"))
+       end;
 -ζ(7)^4 - ζ(7)^2 - ζ(7) - 1
 
-julia> atlas_irrationality("3y'''24*13-2&5")
+julia> Oscar.with_unicode() do
+         show(atlas_irrationality("3y'''24*13-2&5"))
+       end;
 -5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
 
 ```
@@ -96,24 +106,17 @@ in an ordinary table, and to store the corresponding ordinary table
 in a `p`-modular table.
 """
 @attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
-    GAPGroup::GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
     characteristic::Int
+    GAPGroup::GAPGroup    # the underlying group, if any
 
     function GAPGroupCharacterTable(G::GAPGroup, tab::GAP.GapObj, char::Int)
-      ct = new()
-      ct.GAPGroup = G
-      ct.GAPTable = tab
-      ct.characteristic = char
-      return ct
+      return new(tab, char, G)
     end
 
     function GAPGroupCharacterTable(tab::GAP.GapObj, char::Int)
-      ct = new()
-      #ct.GAPGroup is left undefined
-      ct.GAPTable = tab
-      ct.characteristic = char
-      return ct
+      #GAPGroup is left undefined
+      return new(tab, char)
     end
 end
 
@@ -127,7 +130,9 @@ then `nothing` is returned.
 
 # Examples
 ```jldoctest
-julia> character_table( symmetric_group(3) )
+julia> Oscar.with_unicode() do
+         show(character_table(symmetric_group(3)))
+       end;
 Sym( [ 1 .. 3 ] )
 
  2  1  1  .
@@ -141,8 +146,9 @@ Sym( [ 1 .. 3 ] )
 χ₂  2  . -1
 χ₃  1  1  1
 
-
-julia> character_table( symmetric_group(3), 2 )
+julia> Oscar.with_unicode() do
+         show(character_table(symmetric_group(3), 2))
+       end;
 Sym( [ 1 .. 3 ] ) mod 2
 
  2  1  .
@@ -154,7 +160,6 @@ Sym( [ 1 .. 3 ] ) mod 2
         
 χ₁  1  1
 χ₂  2 -1
-
 
 ```
 """
@@ -214,6 +219,56 @@ function character_table(id::String, p::Int = 0)
       tbl == GAP.Globals.fail && return nothing
       return GAPGroupCharacterTable(tbl, p)
     end
+end
+
+
+"""
+    character_table(series::Symbol, parameter::Any)
+
+Return the ordinary character table of the group described by the series
+`series` and the parameter `parameter`.
+
+# Examples
+```jldoctest
+julia> println(character_table(:Symmetric, 5))
+character_table("Sym(5)")
+
+julia> println(character_table(:WeylB, 3))
+character_table("W(B3)")
+
+```
+
+Currently the following series are supported.
+
+| Series | Parameter |
+| ------ | ---------------- |
+| `:Cyclic` | pos. integer |
+| `:Dihedral` | even pos. integer |
+| `:Symmetric` | pos. integer |
+| `:Alternating` | integer `> 1` |
+| `:WeylB` | pos. integer |
+| `:WeylD` | integer `> 1` |
+| `:DoubleCoverSymmetric` | pos. integer |
+| `:DoubleCoverAlternating` | pos. integer |
+| `:GL2` | prime power |
+| `:SL2odd` | odd prime power |
+| `:SL2even` | even prime power |
+| `:PSL2odd` | odd prime power `q` s. t. `(q-1)/2` is odd |
+| `:PSL2even` | odd prime power `q` s. t. `(q-1)/2` is even |
+| `:Suzuki` | odd power of 2 |
+| `:GU3` | prime power |
+| `:SU3` | prime power |
+| `Symbol("P:Q")` | array `[p, q]` with prime `p` and `q` dividing `p-1` |
+| `:ExtraspecialPlusOdd` | odd power of odd prime |
+"""
+function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
+    hasproperty(GAP.Globals, :CTblLib) || error("no character table library available")
+    args = GAP.Obj([string(series), parameter], recursive = true)
+    tbl = GAP.Globals.CallFuncList(GAP.Globals.CharacterTable, args)
+    tbl == GAP.Globals.fail && return nothing
+    tbl = GAPGroupCharacterTable(tbl, 0)
+    set_attribute!(tbl, :series, (series, parameter))
+    return tbl
 end
 
 ##############################################################################
@@ -563,6 +618,104 @@ function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
 end
 
+
+#############################################################################
+##
+##  character parameters, class parameters
+##
+function _translate_parameter(para)
+    if GAP.Globals.IsChar(para)
+      return Char(para)
+    elseif GAP.Globals.IsInt(para)
+      return para
+    elseif GAP.Globals.IsCyc(para)
+      # happens for the `P:Q` table, only roots of unity occur
+      return [x for x in GAP.Globals.DescriptionOfRootOfUnity(para)]
+    elseif ! GAP.Globals.IsList(para)
+      # What can this parameter be?
+      return GAP.gap_to_julia(para)
+    elseif length(para) == 0
+      return Int[]
+    else
+      return [_translate_parameter(x) for x in para]
+    end
+end
+
+function _translate_parameter_list(paras)
+    if all(x -> GAP.Globals.IsList(x) && length(x) == 2 && x[1] == 1, paras)
+      # If all parameters are lists of length 2 with first entry `1` then
+      # take the second entry.
+      paras = [x[2] for x in paras]
+      return [_translate_parameter(x) for x in paras]
+    else
+      # Create tuples `(t, v)` where `t` is the parameter type
+      # and `v` is the value for this type.
+      return [(x[1], x[2]) for x in [_translate_parameter(x) for x in paras]]
+    end
+end
+
+@doc Markdown.doc"""
+    character_parameters(tbl::GAPGroupCharacterTable)
+
+Return a vector of character parameters for the rows of `tbl`
+if such parameters are stored, and `nothing` otherwise.
+
+# Examples
+```jldoctest
+julia> character_parameters(character_table("S5"))
+7-element Vector{Vector{Int64}}:
+ [5]
+ [1, 1, 1, 1, 1]
+ [3, 1, 1]
+ [4, 1]
+ [2, 1, 1, 1]
+ [3, 2]
+ [2, 2, 1]
+
+julia> character_parameters(character_table("M11"))
+
+```
+"""
+function character_parameters(tbl::GAPGroupCharacterTable)
+    return get_attribute!(tbl, :character_parameters) do
+      GAPt = tbl.GAPTable
+      GAP.Globals.HasCharacterParameters(GAPt) || return nothing
+      paras = Vector{GAP.Obj}(GAP.Globals.CharacterParameters(GAPt)::GapObj)
+      return _translate_parameter_list(paras)
+    end
+end
+
+@doc Markdown.doc"""
+    class_parameters(tbl::GAPGroupCharacterTable)
+
+Return a vector of class parameters for the columns of `tbl`
+if such parameters are stored, and `nothing` otherwise.
+
+# Examples
+```jldoctest
+julia> class_parameters(character_table("S5"))
+7-element Vector{Vector{Int64}}:
+ [1, 1, 1, 1, 1]
+ [2, 2, 1]
+ [3, 1, 1]
+ [5]
+ [2, 1, 1, 1]
+ [4, 1]
+ [3, 2]
+
+julia> class_parameters(character_table("M11"))
+
+```
+"""
+function class_parameters(tbl::GAPGroupCharacterTable)
+    return get_attribute!(tbl, :class_parameters) do
+      GAPt = tbl.GAPTable
+      GAP.Globals.HasClassParameters(GAPt) || return nothing
+      paras = Vector{GAP.Obj}(GAP.Globals.ClassParameters(GAPt)::GapObj)
+      return _translate_parameter_list(paras)
+    end
+end
+
 @doc Markdown.doc"""
     names_of_fusion_sources(tbl::GAPGroupCharacterTable)
 
@@ -626,12 +779,12 @@ function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
     return GAPGroupClassFunction(tbl, values)
 end
 
-function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabElem})
+function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QabElem})
     gapvalues = GAP.GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues))
 end
 
-function group_class_function(G::GAPGroup, values::Vector{QabElem})
+function group_class_function(G::GAPGroup, values::Vector{<:QabElem})
     return group_class_function(character_table(G), values)
 end
 
@@ -710,7 +863,7 @@ Nemo.degree(::Type{fmpq}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1
 
 Nemo.degree(::Type{fmpz}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::fmpz
 
-Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabElem
+Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabElem{nf_elem}
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(fmpz, chi))::T
 
@@ -1016,4 +1169,14 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
 
     # For the moment, we do not have more character theoretic criteria.
     return nothing
+end
+
+function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
+    p == 1 || error("the case G(m,p,n) with p != 1 is not (yet) supported")
+    tbl = GAP.Globals.CharacterTableWreathSymmetric(
+            GAP.Globals.CharacterTable(GAP.GapObj("Cyclic"), m), n)
+    tbl = GAPGroupCharacterTable(tbl, 0)
+    set_attribute!(tbl, :type, (m, p, n))
+
+    return tbl
 end

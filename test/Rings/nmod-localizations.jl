@@ -124,6 +124,7 @@ end
 (W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b))
 (W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::fmpq) = W(numerator(q), denominator(q))
+(W::NmodLocalizedRing)(i::Int64) = W(base_ring(W)(i), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q))
 
 ### implementation of Oscar's general ring interface

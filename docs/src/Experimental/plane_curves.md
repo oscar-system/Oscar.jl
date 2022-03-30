@@ -80,7 +80,7 @@ the projective plane as follows, where `K` is the base ring:
 #### Example
 ```@repl oscar
 K = QQ
-PP = projective_space(K, 2)
+PP = proj_space(K, 2)
 ```
 
 Then, one can define a projective point as follows:

@@ -100,31 +100,47 @@
   ioc = IOContext(io,
           :separators_row => [0, 1, 2],
         );
-  labelled_matrix_formatted(ioc, mat)
+  Oscar.with_unicode() do
+    labelled_matrix_formatted(ioc, mat)
+  end
   @test String(take!(io)) == "───────\n1/1 1/2\n───────\n2/1 2/2\n───────\n"
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "-------\n1/1 1/2\n-------\n2/1 2/2\n-------\n"
 
   # with row separators and column labels
   ioc = IOContext(io,
           :labels_col => [string(j) for j in 1:n],
           :separators_row => [0,1,2],
         );
-  labelled_matrix_formatted(ioc, mat)
+  Oscar.with_unicode() do
+    labelled_matrix_formatted(ioc, mat)
+  end
   @test String(take!(io)) == "  1   2\n───────\n1/1 1/2\n───────\n2/1 2/2\n───────\n"
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "  1   2\n-------\n1/1 1/2\n-------\n2/1 2/2\n-------\n"
 
   # with column separators but without row labels
   ioc = IOContext(io,
           :separators_col => [0, 1, 2],
         );
-  labelled_matrix_formatted(ioc, mat)
+  Oscar.with_unicode() do
+    labelled_matrix_formatted(ioc, mat)
+  end
   @test String(take!(io)) == "│1/1│1/2│\n│2/1│2/2│\n"
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "|1/1|1/2|\n|2/1|2/2|\n"
 
   # with column separators and row labels
   ioc = IOContext(io,
           :labels_row => [string(i)*":" for i in 1:m],
           :separators_col => [0, 1, 2],
         );
-  labelled_matrix_formatted(ioc, mat)
+  Oscar.with_unicode() do
+    labelled_matrix_formatted(ioc, mat)
+  end
   @test String(take!(io)) == "1:│1/1│1/2│\n2:│2/1│2/2│\n"
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "1:|1/1|1/2|\n2:|2/1|2/2|\n"
 
   # with row and column labels and separators
   ioc = IOContext(io,
@@ -133,8 +149,12 @@
           :separators_row => [0, 1, 2],
           :separators_col => [0, 1, 2],
         );
-  labelled_matrix_formatted(ioc, mat)
+  Oscar.with_unicode() do
+    labelled_matrix_formatted(ioc, mat)
+  end
   @test String(take!(io)) == "  │  1│  2│\n──┼───┼───┼\n1:│1/1│1/2│\n──┼───┼───┼\n2:│2/1│2/2│\n──┼───┼───┼\n"
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "  |  1|  2|\n--+---+---+\n1:|1/1|1/2|\n--+---+---+\n2:|2/1|2/2|\n--+---+---+\n"
 
   # with row and column portions
   ioc = IOContext(io,
@@ -145,8 +165,12 @@
           :portions_row => [1,1],
           :portions_col => [1,1],
         );
-  labelled_matrix_formatted(ioc, mat)
+  Oscar.with_unicode() do
+    labelled_matrix_formatted(ioc, mat)
+  end
   @test String(take!(io)) == "  │  1\n──┼───\n1:│1/1\n\n  │  1\n──┼───\n2:│2/1\n\n  │  2\n──┼───\n1:│1/2\n\n  │  2\n──┼───\n2:│2/2\n"
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "  |  1\n--+---\n1:|1/1\n\n  |  1\n--+---\n2:|2/1\n\n  |  2\n--+---\n1:|1/2\n\n  |  2\n--+---\n2:|2/2\n"
 end
 
 @testset "labelled_matrix_formatted, LaTeX format" begin

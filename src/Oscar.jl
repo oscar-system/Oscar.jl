@@ -89,6 +89,7 @@ function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
    if julia
       println(io, "")
       Main.InteractiveUtils.versioninfo(io)
+      println(io, Base.TAGGED_RELEASE_BANNER)
    end
 end
 
@@ -137,6 +138,7 @@ function __init__()
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     __init_IsoGapOscar()
+    __GAP_info_messages_off()
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -308,7 +310,6 @@ include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")
 
-include("Rings/affine-algebra-homs.jl")
 include("Rings/mpoly-affine-algebras.jl")
 
 include("Rings/MPolyMap/MPolyAnyMap.jl")
@@ -325,6 +326,9 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/FreeAssAlgIdeal.jl")
+
+include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 include("GAP/iso_gap_oscar.jl")
@@ -356,8 +360,7 @@ include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
 
-include("../experimental/Schemes/AffineSchemes.jl")
-include("../experimental/Schemes/SpecOpen.jl")
+include("TropicalGeometry/main.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
@@ -368,6 +371,8 @@ if is_dev
 
 #  include("../examples/PlaneCurve.jl")
 end
+
+include("Serialization/main.jl")
 
 const global OSCAR = Oscar
 const global oscar = Oscar

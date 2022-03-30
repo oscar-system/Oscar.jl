@@ -80,9 +80,9 @@ function Base.:(==)(P::PartialCharacter{T}, Q::PartialCharacter{T}) where T <: F
   return true
 end
 
-function saturations(L::PartialCharacter{QabElem})
+function saturations(L::PartialCharacter{QabElem{T}}) where T
 	#computes all saturations of the partial character L
-  res = PartialCharacter{QabElem}[]
+  res = PartialCharacter{QabElem{T}}[]
 
   #first handle case wher the domain of the partial character is the zero lattice
   #in this case return L
@@ -98,7 +98,7 @@ function saturations(L::PartialCharacter{QabElem})
   #so, saturation is i' * H // d
   S = divexact(transpose(i)*L.A, d)
 
-	B = Vector{Vector{QabElem}}()
+	B = Vector{Vector{QabElem{T}}}()
   for k = 1:nrows(H)
     c = i[1, k]
     for j = 2:ncols(H)
@@ -107,19 +107,19 @@ function saturations(L::PartialCharacter{QabElem})
         break
       end
     end
-    mu = evaluate(FacElem(Dict(Tuple{QabElem, fmpz}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
+    mu = evaluate(FacElem(Dict(Tuple{QabElem{T}, fmpz}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
 		mu1 = roots(mu, Int(div(d, c)))
     push!(B,  mu1)
   end
   it = Hecke.cartesian_product_iterator(UnitRange{Int}[1:length(x) for x in B])
-  T = Vector{Vector{QabElem}}()
+  vT = Vector{Vector{QabElem{T}}}()
   for I in it
-    push!(T, [B[i][I[i]] for i = 1:length(B)])
+    push!(vT, [B[i][I[i]] for i = 1:length(B)])
   end
   
-  for k = 1:length(T)
-		#check if PChar(S,T[k],L.D) puts on the right value on the lattice generators of L
-		Pnew = partial_character(S, T[k], L.D)
+  for k = 1:length(vT)
+		#check if PChar(S,vT[k],L.D) puts on the right value on the lattice generators of L
+		Pnew = partial_character(S, vT[k], L.D)
 		flag = true	#flag if value on lattice generators is right
 		for i = 1:Nemo.nrows(L.A)
 			if Pnew(sub(L.A, i:i ,1:Nemo.ncols(L.A))) != L.b[i]

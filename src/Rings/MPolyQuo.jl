@@ -1,4 +1,4 @@
-export singular_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
+export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!
 export issubset
 ##############################################################################
@@ -10,7 +10,7 @@ export issubset
 @attributes mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
-  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_ring()
+  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_poly_ring()
 
   function MPolyQuo(R, I) where S
     @assert base_ring(I) === R
@@ -34,6 +34,8 @@ gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
 Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
 modulus(W::MPolyQuo) = W.I
+
+default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
 
 ##############################################################################
 #
@@ -79,7 +81,7 @@ mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   dim::Int
 
   function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
-    singular_ring(Ox) == base_ring(si) || error("base rings must match")
+    singular_poly_ring(Ox) == base_ring(si) || error("base rings must match")
     r = new{T}()
     r.base_ring = Ox
     r.SI = si
@@ -110,6 +112,7 @@ end
 Return the ambient ring of `a`. 
 
 # Examples
+```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> Q, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
@@ -133,7 +136,7 @@ end
 
 function singular_assure(a::MPolyQuoIdeal)
   isdefined(a, :SI) && return
-  sa = singular_ring(base_ring(a))
+  sa = singular_poly_ring(base_ring(a))
   a.SI = Singular.Ideal(sa, sa.(gens(a.I)))
 end
 
@@ -143,7 +146,6 @@ end
 Return the generators of `a`. 
 
 # Examples
-
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -164,6 +166,9 @@ function gens(a::MPolyQuoIdeal)
   oscar_assure(a)
   return map(base_ring(a), gens(a.I))
 end
+
+gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc Markdown.doc"""
     ngens(a::MPolyQuoIdeal)
@@ -355,7 +360,7 @@ end
 
 ##################################################################
 
-function singular_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
+function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = default_ordering(Rx); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
     groebner_assure(Rx.I, ordering)
     singular_assure(Rx.I.gb[ordering], ordering)
@@ -452,7 +457,7 @@ function simplify(a::MPolyQuoIdeal)
    oscar_assure(a)
    singular_assure(a.I)
    red  = reduce(a.I.gens.S, GJ.S)
-   SR   = singular_ring(R)
+   SR   = singular_poly_ring(R)
    si   = Singular.Ideal(SR, gens(red))
    red  = MPolyQuoIdeal(R, si)
    return red
@@ -467,7 +472,7 @@ function simplify!(a::MPolyQuoIdeal)
     oscar_assure(a)
     singular_assure(a.I)
     red  = reduce(a.I.gens.S, GJ.S)
-    SR   = singular_ring(R)
+    SR   = singular_poly_ring(R)
     a.SI = Singular.Ideal(SR, gens(red))
     a.I  = ideal(RI, RI.(gens(a.SI)))
     return a
@@ -709,13 +714,13 @@ function (Q::MPolyQuo)(a::MPolyElem)
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
-   @assert singular_ring(Q) == parent(a)
+   @assert singular_poly_ring(Q) == parent(a)
    return MPolyQuoElem(Q.R(a), Q)
 end
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
-   @assert singular_ring(Q) == S
+   @assert singular_poly_ring(Q) == S
    return S(a.f)
 end
 
@@ -913,32 +918,190 @@ function grading(R::MPolyQuo)
   end
 end
 
+@doc Markdown.doc"""
+    degree(f::MPolyQuoElem{<:MPolyElem_dec})
+
+Given a homogeneous element `f` of a graded affine algebra, return the degree of `f`.
+
+    degree(::Type{Vector{Int}}, f::MPolyQuoElem{<:MPolyElem_dec})
+
+Given a homogeneous element `f` of a $\mathbb Z^m$-graded affine algebra, return the degree of `f`, converted to a vector of integer numbers.
+
+    degree(::Type{Int}, f::MPolyQuoElem{<:MPolyElem_dec})
+
+Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return the degree of `f`, converted to an integer number.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"] );
+
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(-x + y, -x^3 + z^3), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(-x + y, -x^3 + z^3) defined by a julia-function with inverse)
+
+julia> f = p(y^2-x^2+z^4)
+-x^2 + y^2 + z^4
+
+julia> degree(f)
+graded by [4]
+
+julia> typeof(degree(f))
+GrpAbFinGenElem
+
+julia> degree(Int, f)
+4
+
+julia> typeof(degree(Int, f))
+Int64
+```
+"""
 function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
   @req !iszero(a) "Element must be non-zero"
   return degree(a.f)
 end
 
+function degree(::Type{Int}, a::MPolyQuoElem{<:MPolyElem_dec})
+  @assert is_z_graded(base_ring(parent(a)))
+  return Int(degree(a)[1])
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
+  @assert is_zm_graded((base_ring(parent(a))))
+  d = degree(a)
+  return Int[d[i] for i=1:ngens(parent(d))]
+end
+
 isfiltered(q::MPolyQuo) = isfiltered(q.R)
 isgraded(q::MPolyQuo) = isgraded(q.R)
 
+@doc Markdown.doc"""
+    homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
+
+Given an element `f` of an affine algebra which is graded by a finitely
+generated Abelian group, and given an element `g` of that group,
+return the homogeneous component of `f` of degree `g`.
+
+    homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
+
+Given an element `f` of a $\mathbb  Z^m$-graded affine algebra, and given
+a vector `g` of $m$ integers, convert `g` into an element of the group 
+$\mathbb  Z^m$, and return the homogeneous component of `f` whose degree 
+is that element.
+
+    homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
+
+Given an element `f` of a $\mathbb  Z$-graded affine algebra, and given
+an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
+and return the homogeneous component of `f` whose degree is that element.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
+
+julia> f = p(y^2-x^2+x*y*z+z^4)
+-x^2 + x*y*z + y^2 + z^4
+
+julia> homogeneous_component(f, 4)
+z^4
+```
+"""
 function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   simplify!(a)
   return homogeneous_component(a.f, d)
 end
 
+function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
+  @assert is_z_graded(base_ring(parent(a)))
+  return homogeneous_component(a, grading_group(base_ring(parent(a)))([g]))
+end
+
+function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(base_ring(parent(a)))
+  return homogeneous_component(a, grading_group(base_ring(parent(a)))(g))
+end
+
+@doc Markdown.doc"""
+    homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
+
+Return the homogeneous components of `f`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
+
+julia> f = p(y^2-x^2+x*y*z+z^4)
+-x^2 + x*y*z + y^2 + z^4
+
+julia> homogeneous_components(f)
+Dict{GrpAbFinGenElem, MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}} with 2 entries:
+  [4] => z^4
+  [3] => y^2*z
+```
+"""
 function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
   h = homogeneous_components(a.f)
   return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
+@doc Markdown.doc"""
+    ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+
+Return `true` if `f` is homogeneous, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
+
+julia> f = p(y^2-x^2+z^4)
+-x^2 + y^2 + z^4
+
+julia> ishomogeneous(f)
+true
+
+julia> f
+z^4
+```
+"""
 function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
   return ishomogeneous(a.f)
 end
 
-grading_group(q::MPolyQuo{<:MPolyElem_dec}) = grading_group(q.R)
+@doc Markdown.doc"""
+    grading_group(A::MPolyQuo{<:MPolyElem_dec})
+
+If `A` is, say, `G`-graded, return `G`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [x^2*z-y^3, x-y]));
+
+julia> grading_group(A)
+GrpAb: Z
+```
+"""
+function grading_group(A::MPolyQuo{<:MPolyElem_dec})
+  return grading_group(A.R)
+end
 
 function hash(w::MPolyQuoElem, u::UInt)
   simplify!(w)
@@ -996,33 +1159,81 @@ function dim(a::MPolyQuoIdeal)
   a.dim 		= Singular.dimension(a.SI)
   return a.dim
 end
+
+##################################
+### Tests on graded quotient rings
+##################################
+
+function is_standard_graded(A::MPolyQuo)
+  return is_standard_graded(A.R)
+end
+
+function is_z_graded(A::MPolyQuo)
+  return is_z_graded(A.R)
+end
+
+function is_zm_graded(A::MPolyQuo)
+  return is_zm_graded(A.R)
+end
+
+function is_positively_graded(A::MPolyQuo)
+  return is_positively_graded(A.R)
+end
+
+##################################
 #######################################################
 
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  Q = base_ring(I)
+
+  QS = singular_poly_ring(Q, ordering)
+  singular_assure(I)
+
+  IS = I.SI
+  GC.@preserve IS QS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
+    gensS = gens(typeof(IS)(QS, ptr))
+  end
+
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
+  return elem_type(Q)[ Q(f) for f in gensS ]
+end
 
 ################################################################################
 #
 #  Minimalizing a set of subalgebra generators in graded case
 #
 ################################################################################
-@doc Markdown.doc"""
+@doc Markdown.doc""" 
     minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
 
-Given a vector `V` collecting homogeneous elements of a graded multivariate polynomial ring or
-quotient ring `R`, say, return a minimal subset of these elements which still generate the
-subalgebra of `R` generated by all elements collected in `V`.
+Given a vector `V` of homogeneous elements of a graded ring `R`, say, where `R`  is a positively graded
+multivariate polynomial ring over a field, or a quotient ring of such a ring, return a minimal
+subset of the elements in `V` which still generate the subalgebra of `R`
+generated by all elements in `V`.
 
 !!! note
     The conditions on `V` and `R` are automatically checked.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+julia> R, (x, y) = GradedPolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
   x -> [1]
-  y -> [1]
-  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+  y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
 
-julia> V = [x,y,x^2+y^2]
+julia> V = [x, y, x^2+y^2]
 3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  x
  y
@@ -1034,14 +1245,26 @@ julia> minimal_subalgebra_generators(V)
  y
 ```
 """
-function minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
+function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
   p = parent(V[1])
   @assert all(x->parent(x) == p, V)
-  p isa MPolyRing_dec && isgraded(p) || throw(ArgumentError("The base ring must be graded"))
-  all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
-
-  # iterate over the generators, starting with those in lowest degree, then work up
-  W = sort(V, by = x -> degree(x)[1])
+  if typeof(p) <: MPolyRing
+      if !(typeof(base_ring(p)) <: AbstractAlgebra.Field)
+          throw(ArgumentError("The coefficient ring must be a field."))
+      end
+      p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
+      all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+      # iterate over the generators, starting with those in lowest degree, then work up
+      W = sort(V, by = x -> degree(x)[1])
+  else
+      if !(typeof(base_ring(p.R)) <: AbstractAlgebra.Field)
+          throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+      end
+      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
+      all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+      # iterate over the generators, starting with those in lowest degree, then work up
+      W = sort(V, by = x -> degree(x.f)[1])
+  end
   result = [ W[1] ]
   for elm in W
     if !subalgebra_membership(elm, result)[1]

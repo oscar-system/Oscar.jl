@@ -405,14 +405,26 @@ function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
    end
 end
 
+function _common_parent_group(x::T, y::T) where T <: MatrixGroup
+   @assert x.deg == y.deg
+   @assert x.ring === y.ring
+   x === y && return x
+   return GL(x.deg, x.ring)::T
+end
+
 # Base.:* is defined in src/Groups/GAPGroups.jl, and it calls the function _prod below
 # if the parents are different, the parent of the output product is set as GL(n,q)
-function _prod(x::MatrixGroupElem,y::MatrixGroupElem)
-   G = x.parent==y.parent ? x.parent : GL(x.parent.deg, x.parent.ring)
+function _prod(x::T,y::T) where {T <: MatrixGroupElem}
+   G = _common_parent_group(parent(x), parent(y))
+
+   # if the underlying GAP matrices are both defined, but not both Oscar matrices,
+   # then use the GAP matrices.
+   # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
+   # by the Base.getproperty(::MatrixGroupElem, ::Symbil) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
-      return MatrixGroupElem(G, x.X*y.X)
+      return T(G, x.X*y.X)
    else
-      return MatrixGroupElem(G, x.elm*y.elm)
+      return T(G, x.elm*y.elm)
    end
 end
 
