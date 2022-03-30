@@ -5,6 +5,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
 export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, inradical, isprime, isprimary
 export ngens, gens
+export minimal_generating_set
 
 # constructors #######################################################
 
@@ -910,7 +911,7 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where T
+function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
   groebner_assure(I, ordering)
   GI = I.gb[ordering]
   singular_assure(GI)
@@ -1238,3 +1239,43 @@ function ismonomial(I::MPolyIdeal)
   end
   return false
 end 
+
+################################################################################
+#
+# Minimal generating set
+#
+################################################################################
+
+@doc Markdown.doc"""
+    minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
+    minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
+
+Given a homogeneous ideal $I$ in graded ring $R$ such that the grading gives rise
+to a weighted monomial ordering, return an array containing a minimal set of
+generators of $I$.
+"""
+function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  R = base_ring(I)
+
+  singular_assure(I, ordering)
+  IS = I.gens.S
+  RS = I.gens.Sx
+  GC.@preserve IS RS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, RS.ptr)
+    gensS = gens(typeof(IS)(RS, ptr))
+  end
+
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
+  return elem_type(R)[ R(f) for f in gensS ]
+end

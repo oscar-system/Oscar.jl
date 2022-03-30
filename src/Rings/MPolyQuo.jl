@@ -35,6 +35,8 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
 modulus(W::MPolyQuo) = W.I
 
+default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
+
 ##############################################################################
 #
 # Quotient ring elements
@@ -358,7 +360,7 @@ end
 
 ##################################################################
 
-function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
+function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = default_ordering(Rx); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
     groebner_assure(Rx.I, ordering)
     singular_assure(Rx.I.gb[ordering], ordering)
@@ -1181,6 +1183,32 @@ end
 ##################################
 #######################################################
 
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  Q = base_ring(I)
+
+  QS = singular_poly_ring(Q, ordering)
+  singular_assure(I)
+
+  IS = I.SI
+  GC.@preserve IS QS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
+    gensS = gens(typeof(IS)(QS, ptr))
+  end
+
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
+  return elem_type(Q)[ Q(f) for f in gensS ]
+end
 
 ################################################################################
 #
