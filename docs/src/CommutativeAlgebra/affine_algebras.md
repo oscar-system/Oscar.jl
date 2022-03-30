@@ -27,9 +27,9 @@ functionality for handling such algebras in OSCAR.
 !!! note
     If $A=R/I$ is an affine algebra such that $R$ is (multi)graded by a finitely generated  Abelian group
     $G$, and such that $I$ is homogeneous with respect to this grading, then the grading descends
-    to a $G$-grading on $A$. OSCAR functionality for handling such gradings carries over from
+    to a $G$-grading on $A$. Our notation and OSCAR functionality for dealing with such gradings carry over from
     the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
-    First examples are the functions `ìs_z_graded`, `ìs_standard_graded`,  `ìs_z_graded`,
+    First examples are the functions `ìs_graded`, `ìs_standard_graded`,  `ìs_z_graded`,
     `ìs_zm_graded`, and `ìs_positively_graded`. Further examples will be discussed in what follows.
 
 
@@ -441,11 +441,10 @@ The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expand
 `hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
 $\mathbb Z$-gradings with positive weights, relying on corresponding Singular
 functionality. The functions `multi_hilbert_series`, `multi_hilbert_series_reduced `,
-and `multi_hilbert_function` use different strategies and allow one to handle arbitrary
-positive $\mathbb Z^m$-gradings.
+and `multi_hilbert_function` use different strategies and allow one to handle
+positive gradings in full generality.
 
-
-### The Case of $\mathbb Z$-Gradings With Positive Weights
+### $\mathbb Z$-Gradings With Positive Weights
 
 Let $R=K[x_1, \dots x_n]$ be a polynomial ring in $n$ variables over a field $K$.
 Assign positive integer weights $w_i$ to the variables $x_i$, and grade
@@ -481,7 +480,7 @@ hilbert_polynomial(A::MPolyQuo)
 degree(A::MPolyQuo)
 ```
 
-### The General Case of Positive $\mathbb Z^m$-Gradings
+### Positive Gradings in Full Generality
 
 ```@docs
 multi_hilbert_series(A::MPolyQuo)

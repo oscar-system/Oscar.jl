@@ -288,7 +288,8 @@ end
 Return `true` if `R` is positively graded, `false` otherwise.
 
 Here, `R` is called *positively graded* by a finitely generated abelian group $G$
-if $G$ is torsion-free and each graded part $R_g$, $g\in G$, has finite rank.
+if the coeffcient ring of `R` is a field, $G$ is torsion-free, and each graded part 
+$R_g$, $g\in G$, has finite dimension.
 
 # Examples
 ```jldoctest
@@ -1323,24 +1324,28 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #      aparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
+  if !(typeof(base_ring(W)) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  end
   D = W.D
   isfree(D) || error("Grading group must be torsion-free")
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
   R = base_ring(W)
-  @assert fl
-  k, im = kernel(h)
-  #need the positive elements in there...
-  #Ax = b, Cx >= 0
-  C = identity_matrix(FlintZZ, ngens(W))
-  A = vcat([x.coeff for x = W.d])
-  k = solve_mixed(transpose(A), transpose(d.coeff), C)
   B = elem_type(W)[]
-  for ee = 1:nrows(k)
-    e = k[ee, :]
-    a = MPolyBuildCtx(W.R)
-    push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
-    push!(B, W(finish(a)))
+  if fl
+     k, im = kernel(h)
+     #need the positive elements in there...
+     #Ax = b, Cx >= 0
+     C = identity_matrix(FlintZZ, ngens(W))
+     A = vcat([x.coeff for x = W.d])
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
+     for ee = 1:nrows(k)
+       e = k[ee, :]
+       a = MPolyBuildCtx(W.R)
+       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
+       push!(B, W(finish(a)))
+     end
   end
   M, h = vector_space(R, B, target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
@@ -1552,12 +1557,7 @@ function Oscar.degree(H::HilbertData)
 end
 
 function (P::FmpqRelSeriesRing)(H::HilbertData)
-  ###n = hilbert_series(H, 1)[1]
-  ###d = (1-gen(parent(n)))^ngens(base_ring(H.I))
-  ###g = gcd(n, d)
-  ###n = divexact(n, g)
-  ###d = divexact(d, g)
-  n, d = hilbert_series(H, 2)  ###new
+  n, d = hilbert_series(H, 2)
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
@@ -1580,7 +1580,6 @@ function hilbert_function(H::HilbertData, d::Int)
 end
 
 function Base.show(io::IO, h::HilbertData)
-  ###print(io, "Hilbert Series for $(h.I), data: $(h.data)")
   print(io, "Hilbert Series for $(h.I), data: $(h.data), weights: $(h.weights)")  ###new
 end
 
