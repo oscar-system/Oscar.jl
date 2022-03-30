@@ -90,11 +90,12 @@ julia> maximal_cells(MOAE)
 {1 4 6}
 ```
 """
-function maximal_cells(SOP::SubdivisionOfPoints)
-    return SubObjectIterator{Polymake.Set{Polymake.to_cxx_type(Int)}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
+maximal_cells(SOP::SubdivisionOfPoints) = maximal_cells(Vector{Int}, SOP)
+function maximal_cells(::Type{Vector{Int}}, SOP::SubdivisionOfPoints)
+    return SubObjectIterator{Vector{Int}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
 end
 
-_maximal_cell(::Type{Polymake.Set{Polymake.to_cxx_type(Int)}}, SOP::Polymake.BigObject, i::Base.Integer) = Polymake.row(SOP.MAXIMAL_CELLS, i)
+_maximal_cell(::Type{Vector{Int}}, SOP::Polymake.BigObject, i::Base.Integer) = Vector{Int}(Polymake.row(SOP.MAXIMAL_CELLS, i))
 
 
 ###############################################################################
@@ -191,7 +192,7 @@ end
 
 
 @doc Markdown.doc"""
-    maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
+    maximal_cells(IncidenceMatrix, SOP::SubdivisionOfPoints)
 
 Return the maximal cells of `SOP` as an incidence matrix.
 
@@ -214,13 +215,13 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
 A subdivision of points in ambient dimension 3
 
-julia> maximal_cells_as_incidence_matrix(SOP)
+julia> maximal_cells(IncidenceMatrix, SOP)
 1×6 IncidenceMatrix
 [1, 2, 3, 4, 5, 6]
 ```
 """
-function maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
-   IncidenceMatrix(pm_object(SOP).MAXIMAL_CELLS)
+function maximal_cells(::Type{IncidenceMatrix}, SOP::SubdivisionOfPoints)
+    pm_object(SOP).MAXIMAL_CELLS
 end
 
 ###############################################################################
