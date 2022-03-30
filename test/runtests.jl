@@ -36,6 +36,8 @@ include("Rings/MPolyAnyMap/MPolyRing.jl")
 include("Rings/MPolyAnyMap/MPolyQuo.jl")
 include("Rings/MPolyAnyMap/AffineAlgebras.jl")
 
+include("Rings/FreeAssAlgIdeal-test.jl")
+
 if Oscar.is_dev
   include("Examples/GITFans-test.jl")
 end

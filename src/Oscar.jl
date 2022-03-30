@@ -326,6 +326,8 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/FreeAssAlgIdeal.jl")
+
 include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
