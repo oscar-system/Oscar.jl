@@ -327,9 +327,7 @@ end
 @doc Markdown.doc"""
     multi_hilbert_series(A::MPolyQuo)
 
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively graded
-by $G$, and where $I$ is homogeneous with respect to this grading, consider 
-the induced grading on $A$, and return the Hilbert series of $A$.
+Return the Hilbert series of the positively graded affine algebra `A`.
 
 # Examples
 ```jldoctest
@@ -440,9 +438,7 @@ end
 @doc Markdown.doc"""
     multi_hilbert_series_reduced(A::MPolyQuo)
 
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively graded
-by $G$, and where $I$ is homogeneous with respect to this grading, consider 
-the induced grading on $A$, and return the reduced Hilbert series of $A$.
+Return the reduced Hilbert series of the positively graded affine algebra `A`.
 
 # Examples
 ```jldoctest
@@ -585,8 +581,8 @@ function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
     EMB = L[2]
     cc = 0
     for i in 1:length(FG)
-         ### if !(_monomial_ideal_membership(EMB(FG[i]), LI))
-	 if !(EMB(FG[i]) in LI)
+         if !(_monomial_ideal_membership(EMB(FG[i]), LI))
+	 ### if !(EMB(FG[i]) in LI)
 	    cc = cc +1
          end
     end
