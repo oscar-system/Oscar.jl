@@ -204,7 +204,7 @@ end
 Return the dual subdivision of `TH` if it is embedded. Otherwise an error is thrown.
 
 # Examples
-A tropical hypersurface in RR^n is always of dimension n-1.
+A tropical hypersurface in $\mathbb{R}^n$ is always of dimension n-1.
 ```jldoctest
 julia> T = TropicalSemiring(min);
 
