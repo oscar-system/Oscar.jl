@@ -114,7 +114,6 @@ julia> val = TropicalSemiringMap(Kt,t);
 julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
 
 julia> TropicalLinearSpace(A, val)
-Vector{Oscar.TropicalSemiringElem{typeof(min)}}
 TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
 
 julia> p = 3;
@@ -135,6 +134,7 @@ function TropicalLinearSpace(M::MatElem, val)
   nelement = max(nrows(M), ncols(M))
   return TropicalLinearSpace(plv, rk, nelement)
 end
+
 
 ###
 # 3. Basic properties
