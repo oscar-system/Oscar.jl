@@ -481,7 +481,35 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
       end
     end
 
-    empty = ["" for i in 1:n]
+    # Compute the indicator values if applicable.
+    ind = get(io, :indicator, Int[])
+    if ind == true
+      ind = [2]
+    end
+    indicators = [[string(indicator(x, n)) for x in tbl] for n in ind]
+    for i in 1:length(ind)
+      if ind[i] == 2
+        indicators[i] = replace( x -> x == "1" ? "+" :
+                                    ( x == "0" ? "o" :
+                                    ( x == "-1" ? "-" : "?" ) ), indicators[i])
+      end
+    end
+
+    # Fetch the Orthogonal Discriminants if applicable.
+    # (This is possible only if the OD database is available.
+    OD = get(io, :OD, false)::Bool
+    if OD && hasproperty(GAP.Globals, :OrthogonalDiscriminants)
+      ODs = [replace(x -> isnothing(x) ? "" : string(x),
+                     Vector{Any}(GAP.Globals.OrthogonalDiscriminants(gaptbl)))]
+      ODlabel = ["OD"]
+      emptycor = ["" for i in 1:(length(ind)+1)]
+    else
+      ODs = []
+      ODlabel = []
+      emptycor = ["" for i in 1:length(ind)]
+    end
+
+    emptycol = ["" for i in 1:n]
 
     if isdefined(tbl, :GAPGroup)
       headerstring = string(tbl.GAPGroup)
@@ -506,19 +534,24 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
       # p-th power maps for known p-th power maps,
       # separating empty line,
       :labels_col => permutedims(hcat(
-        cents_strings..., empty, names, power_maps_strings..., empty)),
+        cents_strings..., emptycol, names, power_maps_strings..., emptycol)),
 
       # row labels:
-      # character names (a column vector is sufficient)
-      :labels_row => ["\\chi_{$i}" for i in 1:n],
+      # character names and perhaps indicators.
+      :labels_row => hcat(["\\chi_{$i}" for i in 1:n], ODs..., indicators...),
 
-      # corner (a column vector is sufficient):
+      # corner:
       # primes in the centralizer rows,
       # separating empty line,
       # separating empty line,
       # primes in the power map rows,
-      # separating empty line,
-      :corner => vcat( string.(primes), ["", ""], power_maps_primes, [""] ),
+      # separating line perhaps containing indicator labels,
+      :corner => permutedims(hcat(
+                      [vcat(emptycor, [string(x)]) for x in primes]...,
+                      vcat(emptycor, [""]),
+                      vcat(emptycor, [""]),
+                      [vcat(emptycor, [x]) for x in power_maps_primes]...,
+                      vcat([""], ODlabel, [string(x) for x in ind]))),
 
       # footer (an array of strings)
       :footer => length(legend) == 0 ? [] :
