@@ -1271,7 +1271,7 @@ julia> minimal_generating_set(I)
 function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyRing_dec are forced to be homogeneous though.
- 
+
   R = base_ring(I)
 
   @assert isgraded(R)
