@@ -3,6 +3,7 @@
 # ===============================
 ###
 
+export TropicalLinearSpace
 
 
 ###
@@ -23,7 +24,6 @@
         return new{M,T}(Sigma)
     end
 end
-export TropicalLinearSpace
 
 
 
@@ -33,28 +33,27 @@ export TropicalLinearSpace
 ###
 
 @doc Markdown.doc"""
-    TropicalLinearSpace(ideal::MPolyIdeal{fmpq_poly})
+    TropicalLinearSpace(I::MPolyIdeal, val::TropicalSemiringMap)
 
-Construct a tropical linear space from a degree 1 polynomial ideal.
+Constructs a tropical linear space from a degree 1 polynomial ideal `I` and a map to the tropical semiring `val`.
 
 # Examples
 
 ```jldoctest
-julia> R,(x_0,x_1,x_2,x_3,x_4,x_5)=PolynomialRing(ZZ,["x_0","x_1","x_2","x_3","x_4","x_5"])
-(Multivariate Polynomial Ring in 6 variables x_0, x_1, x_2, x_3, ..., x_5 over Integer Ring, fmpz_mpoly[x_0, x_1, x_2, x_3, x_4, x_5])
+julia> R,(x1,x2,x3,x4,x5,x6) = PolynomialRing(ZZ,6)
+(Multivariate Polynomial(Multivariate Polynomial Ring in 6 variables x1, x2, x3, x4, ..., x6 over Integer Ring, fmpz_mpoly[x1, x2, x3, x4, x5, x6])
 
-julia> I=ideal(R,[-x_0+x_2+x_3,-x_1+x_2+x_4,-x_0+x_1+x_5])
-ideal(-x_0 + x_2 + x_3, -x_1 + x_2 + x_4, -x_0 + x_1 + x_5)
+julia> I = ideal(R,[-x1+x3+x4,-x2+x3+x5,-x1+x2+x6])
+ideal(-x1 + x3 + x4, -x2 + x3 + x5, -x1 + x2 + x6)
 
-julia> val = TropicalSemiringMap(QQ)
-The trivial valuation on Rational Field
+julia> val = TropicalSemiringMap(ZZ)
+The trivial valuation on Integer Ring
 
 julia> TropicalLinearSpace(I,val)
-Vector{Oscar.TropicalSemiringElem{typeof(min)}}
 TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 6, #undef)
 ```
 """
-function TropicalLinearSpace(I::MPolyIdeal{fmpz_mpoly}, val)
+function TropicalLinearSpace(I::MPolyIdeal, val)
     R = base_ring(I)
     n = ngens(R)
     g = gens(I)
@@ -66,9 +65,9 @@ function TropicalLinearSpace(I::MPolyIdeal{fmpz_mpoly}, val)
 end
 
 @doc Markdown.doc"""
-    TropicalLinearSpace(plv::Vector)
+    TropicalLinearSpace(plv::Vector{TropicalSemiringElem}, rank::IntegerUnion, nElements::IntegerUnion)
 
-Construct a tropical linear space from a Pluecker vector `plv`.
+Constructs a tropical linear space from a (tropical) Pluecker vector `plv`, rank `rank`, and size of the ground set `nElements`.
 
 #Examples
 ```jldoctest
@@ -85,7 +84,6 @@ julia> f_vector(L)
  3
 ```
 """
-
 function TropicalLinearSpace_impl(plv, rank, nElements, M)
     Zero = zero(TropicalSemiring(M))
     indexSet = findall(i->i!=Zero, plv)
@@ -96,18 +94,16 @@ function TropicalLinearSpace_impl(plv, rank, nElements, M)
     P = PolyhedralComplex{fmpq}(P)
     return TropicalLinearSpace{M,true}(P)
 end
-
 TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(min)}},rank::IntegerUnion, nElements::IntegerUnion) =
 TropicalLinearSpace_impl(plv, rank, nElements, min)
-
 TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(max)}},rank::IntegerUnion, nElements::IntegerUnion) =
 TropicalLinearSpace_impl(plv, rank, nElements, max)
 
 
 @doc Markdown.doc"""
-    TropicalLinearSpace(tropicalmatrix::MatElem,val)
+    TropicalLinearSpace(M::MatElem,val::TropicalSemiringMap)
 
-Construct a tropical linear space from a matrix which must be of type MatElem.
+Constructs a tropical linear space from a matrix `M` and a map to the tropical semiring `val`.
 
 # Examples
 ```jldoctest
@@ -120,7 +116,7 @@ julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
 julia> TropicalLinearSpace(A, val)
 Vector{Oscar.TropicalSemiringElem{typeof(min)}}
 TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
- 
+
 julia> p = 3;
 
 julia> val = TropicalSemiringMap(QQ, p);
@@ -130,14 +126,13 @@ julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
 [9   7   1   2]
 
 julia> TropicalLinearSpace(A,val)
-Vector{Oscar.TropicalSemiringElem{typeof(min)}}
 TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
 ```
 """
-function TropicalLinearSpace(tropicalmatrix::MatElem, val)
-  plv = [val(p) for p in Nemo.minors(tropicalmatrix, min( nrows(tropicalmatrix), ncols(tropicalmatrix)) )]
-  rk = rank(tropicalmatrix)
-  nelement = max( nrows(tropicalmatrix), ncols(tropicalmatrix))
+function TropicalLinearSpace(M::MatElem, val)
+  plv = [val(p) for p in Nemo.minors(M, min(nrows(M), ncols(M)))]
+  rk = rank(M)
+  nelement = max(nrows(M), ncols(M))
   return TropicalLinearSpace(plv, rk, nelement)
 end
 
