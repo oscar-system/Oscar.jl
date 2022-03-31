@@ -43,8 +43,6 @@ in work: minimal tropical polynomials of a hypersurface.
 
 ## Tropical linear spaces
 
-(no functions yet, under active development)
-
 ```@docs
 TropicalLinearSpace
 ```
