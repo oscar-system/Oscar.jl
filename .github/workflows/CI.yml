@@ -17,6 +17,7 @@ concurrency:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
     continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     strategy:
       fail-fast: false
