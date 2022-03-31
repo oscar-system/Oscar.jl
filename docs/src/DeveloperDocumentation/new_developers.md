@@ -4,6 +4,11 @@ This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources
 on these things online.
 
+!!! note Pay attention to github
+    Once you open a pull request on github you will receive feedback, comments,
+    and questions on github. So please pay attention to your github
+    notifications.
+
 ## Important notes
 1. If you encounter error messages after rebasing to the current master chances
    are that some dependencies need upgrading. Please first try whether
@@ -16,6 +21,7 @@ on these things online.
      work.
    - Feel free to contact us on
      [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
+   - Have a look at [our community page](https://oscar.computeralgebra.de/community/).
 4. Please also read our page on [Documenting OSCAR code](@ref).
 
 ## Overview
