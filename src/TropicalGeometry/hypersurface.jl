@@ -262,5 +262,6 @@ export polynomial
 Returns the minimal polynomial with smallest possible coefficients of a hypersurface
 """
 function minimalPolynomialFromHypersurface(T::TropicalHypersurface)
+    error("function not implemented yet")
     return
 end
