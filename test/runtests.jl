@@ -1,6 +1,8 @@
 using Oscar
 using Test
 
+# Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
+const SLP = Oscar.StraightLinePrograms
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
