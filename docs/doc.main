@@ -1,6 +1,13 @@
 [
   "index.md",
 
+  "General" => [
+     "General/architecture.md",
+     "General/other.md",
+     "General/faq.md",
+     "General/serialization.md",
+  ],
+
   "Groups" => [
      "Groups/intro.md",
      "Groups/basics.md",
@@ -158,13 +165,6 @@
       "Combinatorics/simplicialcomplexes.md",
   ],
 
-
-  "General" => [
-     "General/architecture.md",
-     "General/other.md",
-     "General/faq.md",
-     "General/serialization.md",
-  ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",

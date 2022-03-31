@@ -4,10 +4,10 @@ This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources
 on these things online.
 
-!!! note
-    **Pay attention to your GitHub notifications!** Once you open a pull
-    request on GitHub you will receive feedback, comments, and questions on
-    GitHub. So please pay attention to your GitHub notifications.
+!!! note "Pay attention to your GitHub notifications!"
+    Once you open a pull request on GitHub you will receive feedback, comments,
+    and questions on GitHub. So please pay attention to your GitHub
+    notifications.
 
 ## Important notes
 1. If you encounter error messages after rebasing to the current master chances
