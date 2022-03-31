@@ -64,3 +64,5 @@ include("Schemes/ProjectiveSchemes.jl")
 
 include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")
+
+include("StraightLinePrograms/runtests.jl")
