@@ -758,19 +758,14 @@ function has_weighted_ordering(R::MPolyRing_dec)
   w_ord = degrevlex(gens(R.R)) # dummy, not used
   # This is not meant to be exhaustive, there a probably more gradings which one
   # can meaningfully translate into a monomial ordering
+  # However, we want to stick to global orderings.
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
       w_ord = degrevlex(gens(R.R))
       grading_to_ordering = true
-    elseif all(isequal(-1), w)
-      w_ord = negdegrevlex(gens(R.R))
-      grading_to_ordering = true
     elseif all(x -> x > 0, w)
       w_ord = wdegrevlex(gens(R.R), w)
-      grading_to_ordering = true
-    elseif all( x -> x < 0, w)
-      w_ord = negwdegrevlex(gens(R.R), [ -v for v in w])
       grading_to_ordering = true
     end
   end
