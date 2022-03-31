@@ -4,6 +4,11 @@ This document is meant to get new developers started. It will not go into depth
 of programming in Julia or working with git, as there are far better resources
 on these things online.
 
+!!! note
+    **Pay attention to your GitHub notifications!** Once you open a pull
+    request on GitHub you will receive feedback, comments, and questions on
+    GitHub. So please pay attention to your GitHub notifications.
+
 ## Important notes
 1. If you encounter error messages after rebasing to the current master chances
    are that some dependencies need upgrading. Please first try whether
@@ -12,17 +17,18 @@ on these things online.
    style guide makes reviewing code easier for us, and hence your new feature
    can be merged faster.
 3. Let us know what you are working on:
-   - You can open a draft pull request on github right at the beginning of your
+   - You can open a draft pull request on GitHub right at the beginning of your
      work.
    - Feel free to contact us on
      [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
+   - Have a look at [our community page](https://oscar.computeralgebra.de/community/).
 4. Please also read our page on [Documenting OSCAR code](@ref).
 
 ## Overview
 In general you have to do
 the following six steps for submitting changes to the Oscar source:
 
-1. Fork the main Oscar.jl repository. For this go to the [Oscar.jl github
+1. Fork the main Oscar.jl repository. For this go to the [Oscar.jl GitHub
    page](https://github.com/oscar-system/Oscar.jl) and click on "Fork" at the
    upper right.
 2. Clone your forked repository to your local machine.
