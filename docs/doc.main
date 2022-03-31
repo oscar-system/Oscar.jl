@@ -165,6 +165,12 @@
       "Combinatorics/simplicialcomplexes.md",
   ],
 
+  "Straight Line Programs" => [
+      "StraightLinePrograms/intro.md",
+      "StraightLinePrograms/gapslps.md",
+      "StraightLinePrograms/abstractalgebra.md",
+   ],
+
 
   "References" => "references.md",
   "Index" => "manualindex.md",
