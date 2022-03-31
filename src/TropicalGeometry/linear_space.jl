@@ -138,7 +138,6 @@ function TropicalLinearSpace(tropicalmatrix::MatElem, val)
   plv = [val(p) for p in Nemo.minors(tropicalmatrix, min( nrows(tropicalmatrix), ncols(tropicalmatrix)) )]
   rk = rank(tropicalmatrix)
   nelement = max( nrows(tropicalmatrix), ncols(tropicalmatrix))
-  println(typeof(plv))
   return TropicalLinearSpace(plv, rk, nelement)
 end
 
