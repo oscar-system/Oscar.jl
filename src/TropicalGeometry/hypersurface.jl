@@ -60,7 +60,7 @@ end
 @doc Markdown.doc"""
     TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}})
 
-Returns the tropical hypersurface defined of a tropical polynomial `f`.
+Returns the tropical hypersurface of a tropical polynomial `f`.
 
 # Examples
 ```jldoctest
@@ -164,7 +164,7 @@ tropical semiring `val`.
 julia> Kx, (x1,x2) = PolynomialRing(QQ,2)
 (Multivariate Polynomial Ring in x1, x2 over Rational Field, fmpq_mpoly[x1, x2])
 
-ulia> val = TropicalSemiringMap(QQ,7)
+julia> val = TropicalSemiringMap(QQ,7)
 The 7-adic valuation on Rational Field
 
 julia> f = 7*x1+x2+49;
