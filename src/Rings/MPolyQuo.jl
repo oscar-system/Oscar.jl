@@ -1182,13 +1182,43 @@ end
 
 ##################################
 #######################################################
+@doc Markdown.doc"""
+    minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
 
+Given a homogeneous ideal `I` in a graded affine algebra over a field,
+return an array containing a minimal set of generators of `I`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> A, p = quo(R, ideal(R, [x-y]));
+
+julia> J = ideal(A, [p(x) for x in V]);
+
+julia> minimal_generating_set(J)
+2-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+ x
+ z^2
+```
+"""
 function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
   # MPolyRing_dec are forced to be homogeneous though.
 
   Q = base_ring(I)
 
+  @assert isgraded(Q)
+  
+  if !(typeof(base_ring(base_ring(Q))) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
+  end
+  
   QS = singular_poly_ring(Q, ordering)
   singular_assure(I)
 

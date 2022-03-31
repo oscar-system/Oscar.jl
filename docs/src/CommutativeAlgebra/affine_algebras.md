@@ -181,6 +181,14 @@ gen(a, 2)
 dim(a::MPolyQuoIdeal)
 ```
 
+#### Minimal Sets of Generators
+
+In the graded case, we have:
+
+```@docs
+minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
+```
+
 ### Operations on Ideals in Affine Algebras
 
 #### Simple Ideal Operations in Affine Algebras
