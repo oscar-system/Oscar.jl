@@ -101,9 +101,9 @@ TropicalLinearSpace_impl(plv, rank, nElements, max)
 
 
 @doc Markdown.doc"""
-    TropicalLinearSpace(M::MatElem,val::TropicalSemiringMap)
+    TropicalLinearSpace(A::MatElem,val::TropicalSemiringMap)
 
-Constructs a tropical linear space from a matrix `M` and a map to the tropical semiring `val`.
+Constructs a tropical linear space from a matrix `A` and a map to the tropical semiring `val`.
 
 # Examples
 ```jldoctest
@@ -128,10 +128,10 @@ julia> TropicalLinearSpace(A,val)
 TropicalLinearSpace{min, true}(A polyhedral complex in ambient dimension 4, #undef)
 ```
 """
-function TropicalLinearSpace(M::MatElem, val)
-  plv = [val(p) for p in Nemo.minors(M, min(nrows(M), ncols(M)))]
-  rk = rank(M)
-  nelement = max(nrows(M), ncols(M))
+function TropicalLinearSpace(A::MatElem, val)
+  plv = [val(p) for p in Nemo.minors(A, min(nrows(A), ncols(A)))]
+  rk = rank(A)
+  nelement = max(nrows(A), ncols(A))
   return TropicalLinearSpace(plv, rk, nelement)
 end
 
