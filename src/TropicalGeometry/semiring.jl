@@ -174,8 +174,8 @@ Oscar.parent(x::TropicalSemiringElem{T}) where T = TropicalSemiring{T}()
 @doc Markdown.doc"""
     convention(T::TropicalSemiring)
 
-Returns `min` if `T` is the min tropical semiring,
-returns `max` if `T` is the max tropical semiring.
+Return `min` if `T` is the min tropical semiring,
+return `max` if `T` is the max tropical semiring.
 
 # Examples
 ```jldoctest
@@ -542,7 +542,7 @@ zero(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalSemiringElem}) = R(zero(base
 """
     @tropical(expr)
 
-Translates the expression in the tropical world.
+Translate the expression in the tropical world.
 
 # Examples
 
