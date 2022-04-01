@@ -112,6 +112,8 @@ schur_index
 ## Attributes of character tables
 
 ```@docs
+character_parameters
+class_parameters
 decomposition_matrix
 induced_cyclic(tbl::GAPGroupCharacterTable)
 names_of_fusion_sources

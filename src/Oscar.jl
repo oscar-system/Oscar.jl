@@ -19,12 +19,79 @@ Oscar is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
+using Preferences
+
 include("imports.jl")
 
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
+
+const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
+const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
+                        "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
+                        "polymake_jll", "Singular_jll"];
+
+function _lookup_git_branch(dir::AbstractString)
+   if length(Sys.which("git")) != nothing &&
+         isdir(joinpath(dir,".git"))
+      try
+         ref = cd(dir) do
+            readchomp(`git rev-parse --abbrev-ref HEAD`)
+         end
+         return " - branch #$(ref)"
+      catch
+      end
+   end
+   return ""
+end
+
+function _deps_git_info(dep::Pkg.API.PackageInfo)
+   if dep.is_tracking_repo
+      return " - branch #$(dep.git_revision)"
+   elseif dep.is_tracking_path
+      return _lookup_git_branch(dep.source)
+   end
+   return ""
+end
+
+function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString}; padding="    ", suffix="", branch=false)
+   width = maximum(length.(deps))+length(suffix)+2
+   deps = filter(d->d.name in deps, collect(values(Pkg.dependencies())))
+   deps = sort!(deps; by=x->x.name)
+   for dep in deps
+      print(io, "$(padding)$(rpad(dep.name*suffix, width, ' ')) v$(dep.version)")
+      println(io, branch ? _deps_git_info(dep) : "")
+   end
+end
+
+@doc Markdown.doc"""
+    Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+
+Print the versions of all Oscar-related dependencies.
+
+# Arguments
+- `branch::Bool=false`: include git branch name in the output
+- `jll::Bool=false`   : include binary packages (jll) in the output
+- `julia::Bool=false` : include julia `versioninfo` output
+"""
+function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+   print(io, "OSCAR version $(VERSION_NUMBER)")
+   println(io, branch ? _lookup_git_branch(dirname(@__DIR__)) : "")
+   println(io, "  combining:")
+   _print_dependency_versions(io, cornerstones; suffix=".jl", branch=branch)
+   if jll
+      println(io, "  building on:")
+      _print_dependency_versions(io, jll_deps; branch=branch)
+      println(io, "See `]st -m` for a full list of dependencies.")
+   end
+   if julia
+      println(io, "")
+      Main.InteractiveUtils.versioninfo(io)
+      println(io, Base.TAGGED_RELEASE_BANNER)
+   end
+end
 
 # More helpful error message for users on Windows.
 windows_error() = error("""
@@ -71,6 +138,7 @@ function __init__()
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     __init_IsoGapOscar()
+    __GAP_info_messages_off()
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -224,6 +292,7 @@ include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
 include("Groups/abelian_aut.jl")
+include("Groups/spinor_norms.jl")
 include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
@@ -241,7 +310,6 @@ include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")
 
-include("Rings/affine-algebra-homs.jl")
 include("Rings/mpoly-affine-algebras.jl")
 
 include("Rings/MPolyMap/MPolyAnyMap.jl")
@@ -258,6 +326,9 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/FreeAssAlgIdeal.jl")
+
+include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 include("GAP/iso_gap_oscar.jl")
@@ -280,7 +351,7 @@ include("Combinatorics/Graphs.jl")
 export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
 
-include("../StraightLinePrograms/src/StraightLinePrograms.jl")
+include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
@@ -288,6 +359,8 @@ include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
+
+include("TropicalGeometry/main.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
@@ -298,6 +371,8 @@ if is_dev
 
 #  include("../examples/PlaneCurve.jl")
 end
+
+include("Serialization/main.jl")
 
 const global OSCAR = Oscar
 const global oscar = Oscar

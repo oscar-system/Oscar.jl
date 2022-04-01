@@ -96,10 +96,7 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 
 ## Saving and loading
 
-Objects of type `SimplicialComplex` can be saved to a file and loaded with the following two methods:
-```@docs
-save_simplicialcomplex(K::SimplicialComplex, filename::String)
-load_simplicialcomplex(filename::String)
-```
-The file is in JSON format and contains the underlying polymake object.
-In particular, such a file can be read by both polymake and Oscar.
+Objects of type `SimplicialComplex` can be saved to a file and loaded with the
+two methods `save` and `load`.  The file is in JSON format and contains the
+underlying polymake object.  In particular, such a file can be read by both
+polymake and Oscar.

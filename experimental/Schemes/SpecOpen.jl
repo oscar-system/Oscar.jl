@@ -658,6 +658,7 @@ end
 
 
 
+
 @Markdown.doc """
     compose(f::T, g::T) where {T<:SpecOpenMor}
 
@@ -924,4 +925,3 @@ function preimage(f::SpecMor, V::SpecOpen; check::Bool=true)
   new_gens = pullback(f).(gens(V))
   return SpecOpen(Z, lifted_numerator.(new_gens), check=check)
 end
-

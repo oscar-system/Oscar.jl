@@ -5,31 +5,39 @@ The linear program on the feasible set `P` (a Polyhedron) with
 respect to the function x ↦ dot(c,x)+k.
 
 """
-struct LinearProgram
-   feasible_region::Polyhedron
+struct LinearProgram{T}
+   feasible_region::Polyhedron{T}
    polymake_lp::Polymake.BigObject
    convention::Symbol
+   
+   LinearProgram{T}(fr::Polyhedron{T}, lp::Polymake.BigObject, c::Symbol) where T<:scalar_types = new{T}(fr, lp, c)
 end
 
-function LinearProgram(Q::Polyhedron, objective::AbstractVector; k = 0, convention = :max)
+# no default = `fmpq` here; scalar type can be derived from the feasible region
+LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
+
+function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
-   P=Polyhedron(Polymake.polytope.Polytope(pm_object(Q)))
    ambDim = ambient_dim(P)
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
-   lp = Polymake.polytope.LinearProgram(LINEAR_OBJECTIVE=homogenize(objective, k))
+   lp = Polymake.polytope.LinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k))
    if convention == :max
       Polymake.attach(lp, "convention", "max")
    elseif convention == :min
       Polymake.attach(lp, "convention", "min")
    end
-   pm_object(P).LP = lp
-   LinearProgram(P, lp, convention)
+   Polymake.add(pm_object(P), "LP", lp)
+   LinearProgram{T}(P, lp, convention)
 end
 
-LinearProgram(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max) =
-   LinearProgram(Polyhedron(A, b), c;  k = k, convention = convention)
+LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types = LinearProgram{T}(Q, objective; k = k, convention = convention)
+
+LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T =
+   LinearProgram{T}(Polyhedron{T}(A, b), c;  k = k, convention = convention)
+
+LinearProgram(x...) = LinearProgram{fmpq}(x...)
 
 
 ###############################################################################
@@ -71,9 +79,9 @@ The allowed values for `as` are
 
 
 """
-function objective_function(lp::LinearProgram; as::Symbol = :pair)
+function objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_types
    if as == :pair
-      return dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE),lp.polymake_lp.LINEAR_OBJECTIVE[1]
+      return Vector{T}(dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)),convert(T, lp.polymake_lp.LINEAR_OBJECTIVE[1])
    elseif as == :function
       (c,k) = objective_function(lp, as = :pair)
       return x -> sum(x.*c)+k
@@ -113,16 +121,18 @@ A polyhedron in ambient dimension 3
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program
    max{c⋅x + k | x ∈ P}
-where P is a Polyhedron and
+where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]
    k=0
 
 julia> optimal_vertex(LP)
-pm::Vector<pm::Rational>
-1 1 -1
+3-element PointVector{fmpq}:
+ 1
+ 1
+ -1
 ```
 """
-function optimal_vertex(lp::LinearProgram)
+function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
    opt_vert = nothing
    if lp.convention == :max
       opt_vert = lp.polymake_lp.MAXIMAL_VERTEX
@@ -130,7 +140,7 @@ function optimal_vertex(lp::LinearProgram)
       opt_vert = lp.polymake_lp.MINIMAL_VERTEX
    end
    if opt_vert != nothing
-      return dehomogenize(opt_vert)
+      return PointVector{T}(dehomogenize(opt_vert))
    else
       return nothing
    end
@@ -153,7 +163,7 @@ A polyhedron in ambient dimension 3
 julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
 The linear program
    min{c⋅x + k | x ∈ P}
-where P is a Polyhedron and
+where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]
    k=0
 
@@ -161,10 +171,13 @@ julia> optimal_value(LP)
 -6
 ```
 """
-function optimal_value(lp::LinearProgram)
+function optimal_value(lp::LinearProgram{T}) where T<:scalar_types
    if lp.convention == :max
+      # TODO: consider inf
+      # return convert(T, lp.polymake_lp.MAXIMAL_VALUE)
       return lp.polymake_lp.MAXIMAL_VALUE
    else
+      # return convert(T, lp.polymake_lp.MINIMAL_VALUE)
       return lp.polymake_lp.MINIMAL_VALUE
    end
 end

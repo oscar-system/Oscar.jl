@@ -4,19 +4,26 @@
 ###############################################################################
 ###############################################################################
 
-struct SubdivisionOfPoints
+struct SubdivisionOfPoints{T}
    pm_subdivision::Polymake.BigObject
-   function SubdivisionOfPoints(pm::Polymake.BigObject)
-      return new(pm)
-   end
+
+   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
+
+# default scalar type: `fmpq`
+SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+SubdivisionOfPoints(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
+
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points, Cells)
+    SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix)
 
 # Arguments
-- `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
-- `Cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
+- `points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
+- `cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
 
 A subdivision of points formed from points and cells made of these points. The
 cells are given as an IncidenceMatrix, where the columns represent the points
@@ -34,9 +41,9 @@ julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
 A subdivision of points in ambient dimension 3
 ```
 """
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
-   SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
+function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix) where T<:scalar_types
+   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
+   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
       POINTS = homogenize(Points,1),
       MAXIMAL_CELLS = arr,
    ))
@@ -44,11 +51,11 @@ end
 
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points, Weights)
+    SubdivisionOfPoints(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector)
 
 # Arguments
-- `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
-- `Weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
+- `points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
+- `weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
 
 A subdivision of points formed by placing every point at the corresponding
 height, then taking the convex hull and then only considering those cells
@@ -66,10 +73,10 @@ julia> n_maximal_cells(SOP)
 1
 ```
 """
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
-   SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
-      POINTS = homogenize(Points,1),
-      WEIGHTS = Weights,
+function SubdivisionOfPoints{T}(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector) where T<:scalar_types
+   SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
+      POINTS = homogenize(points,1),
+      WEIGHTS = weights,
    ))
 end
 
@@ -81,11 +88,14 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
-
+#Same construction for when the user provides maximal cells
+function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Vector{Vector{Int64}}) where T<:scalar_types
+   SubdivisionOfPoints{T}(points, IncidenceMatrix(cells))
+end
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
-   SubdivisionOfPoints(Points,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}) where T<:scalar_types
+   SubdivisionOfPoints{T}(points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 
 ###############################################################################
@@ -93,6 +103,7 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, SOP::SubdivisionOfPoints)
+function Base.show(io::IO, SOP::SubdivisionOfPoints{T}) where T<:scalar_types
     print(io, "A subdivision of points in ambient dimension $(ambient_dim(SOP))")
+    T != fmpq && print(io, " with $T type coefficients")
 end

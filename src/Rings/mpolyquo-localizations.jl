@@ -749,7 +749,7 @@ function write_as_linear_combination(
   lbpa = LocalizedBiPolyArray(W.(h))
   p = a[1]*lifted_numerator(f)
   p_sing = to_singular_side(lbpa, p)
-  S = singular_ring(lbpa)
+  S = singular_poly_ring(lbpa)
   I = modulus(L)
   SI = to_singular_side(lbpa, gens(I))
   
@@ -777,7 +777,7 @@ function write_as_linear_combination(
   hg = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
   hf = lifted_numerator(f)*a[1]
   A, I, q, phi, theta = as_affine_algebra(L)
-  SA, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(A)), 
+  SA, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(A)), 
 				  String.(symbols(A)),  
 				  ordering=Singular.ordering_dp(1)
 				  *Singular.ordering_dp(nvars(A)-1))
@@ -803,7 +803,7 @@ function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyQuoElem}
   for b in g
     parent(b) == Q || error("elements do not belong to the same ring")
   end
-  SR, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(R)), 
+  SR, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(R)), 
 				  String.(symbols(R)),  
 				  ordering=Singular.ordering_dp(ngens(R)))
   Sg_ext = SR.(vcat(lift.(g), gens(I)))
@@ -1136,7 +1136,7 @@ function is_isomorphism(
     J_ext = ideal(B, push!(gens(J), inc2(denominator(f))))
     G, M = groebner_basis_with_transformation_matrix(J_ext)
     G[1]==one(B) || error("the denominator is not a unit in the target ring")
-    push!(denoms, last(M))
+    push!(denoms, last(collect(M)))
   end
 
   # write the images as polynomials in B 
@@ -1151,7 +1151,7 @@ function is_isomorphism(
     J_ext = ideal(B, push!(gens(J), inc2(p)))
     G, M = groebner_basis_with_transformation_matrix(J_ext)
     G[1]==one(B) || error("the denominator is not a unit in the target ring")
-    push!(denoms, inc2(q)*last(M))
+    push!(denoms, inc2(q)*last(collect(M)))
   end
   pushfirst!(imagesB, prod(denoms))
 
@@ -1164,7 +1164,7 @@ function is_isomorphism(
   C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
   j2 = hom(B, C, B_vars)
   G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
-  singC, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(C)), 
+  singC, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(C)), 
 				  String.(symbols(C)),  
 				  ordering=Singular.ordering_dp(1)
 				  *Singular.ordering_dp(nvars(B)-1)

@@ -11,7 +11,8 @@
    @test isa(negrevlex([x, y, z]), MonomialOrdering)
    @test isa(negdeglex([x, y, z]), MonomialOrdering)
    @test isa(negdegrevlex([x, y, z]), MonomialOrdering)
- 
+   @test isa(matrix_ordering([x, y, z], matrix(ZZ, [1 1 1; 1 0 0; 0 1 0])), MonomialOrdering)
+
    @test isa(wdeglex([x, y], [1, 2]), MonomialOrdering)
    @test isa(wdegrevlex([x, y], [1, 2]), MonomialOrdering)
    @test isa(negwdeglex([x, y], [1, 2]), MonomialOrdering)
@@ -45,6 +46,16 @@
  
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
    @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
+
+   @test isglobal(lex([x, y]))
+   @test !islocal(lex([x, y]))
+   @test !ismixed(lex([x, y]))
+   @test !isglobal(neglex([y, z]))
+   @test islocal(neglex([y, z]))
+   @test !ismixed(neglex([y, z]))
+   @test !isglobal(lex([x, y])*neglex([z]))
+   @test !islocal(lex([x, y])*neglex([z]))
+   @test ismixed(lex([x, y])*neglex([z]))
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
@@ -135,4 +146,31 @@ end
    f = sum(M)
    o = negdegrevlex(gens(R))
    @test collect(monomials(f, o)) == M
+
+   o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
+   @test collect(monomials(f, o)) == collect(monomials(f, degrevlex(gens(R))))
  end
+
+@testset "Polynomial Ordering internal conversion to Singular" begin
+   R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
+
+   O1 = degrevlex(gens(R))
+   @test string(singular(O1)) == "ordering_dp(5)"
+
+   O2 = lex([x, y])*deglex([s, t, u])
+   @test string(singular(O2)) == "ordering_lp(2) * ordering_Dp(3)"
+
+   O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+   @test string(singular(O3)) == "ordering_Wp([2, 3, 5, 7, 3])"
+
+   O4 = deglex([x, y, t]) * deglex([y, s, u])
+   @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
+
+   K = FreeModule(R, 3)
+
+   O5 = revlex(gens(K))*degrevlex(gens(R))
+   @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
+
+   O6 = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4])) * lex(gens(K)) * wdeglex([s, t, u], [1, 2, 3])
+   @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
+end

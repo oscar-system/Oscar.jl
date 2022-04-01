@@ -25,7 +25,7 @@ export
     frattini_subgroup, hasfrattini_subgroup, setfrattini_subgroup,
     gap_perm, # HACK
     gen,
-    gens,
+    gens, hasgens,
     hall_subgroup,
     hall_subgroups_representatives,
     hall_system, hashall_system, sethall_system,
@@ -33,6 +33,7 @@ export
     isalmostsimple, hasisalmostsimple, setisalmostsimple,
     isconjugate,
     isfinite, hasisfinite, setisfinite,
+    isfinitelygenerated, hasisfinitelygenerated, setisfinitelygenerated,
     isfiniteorder,
     isperfect, hasisperfect, setisperfect,
     ispgroup,
@@ -145,7 +146,7 @@ false
 
 ```
 """
-isfiniteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAP.Globals.Order(x.X))::Bool
+isfiniteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
 @deprecate isfinite_order(x::GAPGroupElem) isfiniteorder(x)
 
@@ -162,7 +163,7 @@ An exception is thrown if the order of `x` is infinite,
 use [`isfinite`](@ref) in order to check for finiteness.
 """
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
-   ord = GAP.Globals.Order(x.X)::GapInt
+   ord = GAPWrap.Order(x.X)
    if ord === GAP.Globals.infinity
       throw(GroupsCore.InfiniteOrder(x))
    end
@@ -182,7 +183,7 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
-i. e., the smallest positive integer $e$ such that
+i.e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """
 @gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
@@ -229,7 +230,11 @@ relatively quickly converges to a uniform distribution.
 """
 rand_pseudo(G::GAPGroup) = group_element(G, GAP.Globals.PseudoRandom(G.X))
 
-function _maxgroup(x::T, y::T) where T <: GAPGroup
+function rand_pseudo(G::FPGroup; radius::Int)
+  return group_element(G, GAP.Globals.PseudoRandom(G.X, radius = radius))
+end
+
+function _common_parent_group(x::T, y::T) where T <: GAPGroup
    # A typical situation should be that the two groups are identical,
    # but GAP's `IsSubset` check is not as cheap as one wants;
    # there is an `IsSubset` method that checks for identity,
@@ -247,7 +252,7 @@ end
 
 #We need a lattice of groups to implement this properly
 function _prod(x::T, y::T) where T <: GAPGroupElem
-  G = _maxgroup(parent(x), parent(y))
+  G = _common_parent_group(parent(x), parent(y))
   return group_element(G, x.X*y.X)
 end
 
@@ -369,6 +374,28 @@ function gens(G::GAPGroup)
 end
 
 """
+    hasgens(G::Group)
+
+Return whether generators for the group `G` are known.
+
+# Examples
+```jldoctest
+julia> F = free_group(2)
+<free group on the generators [ f1, f2 ]>
+
+julia> hasgens(F)
+true
+
+julia> H = derived_subgroup(F)[1]
+Group(<free, no generators known>)
+
+julia> hasgens(H)
+false
+```
+"""
+hasgens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
+
+"""
     gen(G::GAPGroup, i::Int)
 
 Return the `i`-th element of the vector `gens(G)`.
@@ -431,7 +458,7 @@ end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC 
 
-Base.length(C::GroupConjClass) = fmpz(GAP.Globals.Size(C.CC)::GapInt) # TODO: allow specifying return type, default fmpz
+Base.length(C::GroupConjClass) = fmpz(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default fmpz
 
 representative(C::GroupConjClass) = C.repr
 
@@ -445,7 +472,7 @@ representative(C::GroupConjClass) = C.repr
 Return the conjugacy class `cc` of `g` in `G`, where `g` = `representative`(`cc`).
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
-   return GroupConjClass(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
+   return GroupConjClass(G, g, GAP.Globals.ConjugacyClass(G.X,g.X)::GapObj)
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
@@ -453,7 +480,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
-   return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC))
+   return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj)
 end
 
 @deprecate elements(C::GroupConjClass) collect(C)
@@ -466,16 +493,16 @@ It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
    L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X)::GapObj)
-   return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
+   return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)::GapObj),cc) for cc in L]
 end
 
-Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
+Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), x.X ^ y.X)
 
 @doc Markdown.doc"""
     isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
+i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
 isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
 
@@ -487,7 +514,7 @@ return `(true, z)`, where `x^z == y` holds;
 otherwise, return `(false, nothing)`.
 """
 function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
-   conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)
+   conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
    else
@@ -503,7 +530,7 @@ end
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
 function conjugacy_class(G::T, g::T) where T<:GAPGroup
-   return GroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
+   return GroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X)::GapObj)
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
@@ -566,7 +593,7 @@ where `H^z = K`; otherwise, return `false, nothing`.
 ```
 """
 function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
-   conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)
+   conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)::GapObj
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
    else
@@ -580,7 +607,7 @@ end
 # START iterator
 Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 
-Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC))
+Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC)::GapObj)
 
 function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
   if GAPWrap.IsDoneIterator(state)
@@ -604,7 +631,7 @@ end
     normalizer(G::Group, H::Group)
 
 Return `N, f`, where `N` is the normalizer of `H` in `G`,
-i. e., the largest subgroup of `G` in which `H` is normal,
+i.e., the largest subgroup of `G` in which `H` is normal,
 and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalizer(G.X,H.X))
@@ -783,7 +810,7 @@ julia> h = hall_subgroups_representatives(g, [2, 7]); length(h)
 function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(isprime, P) || throw(ArgumentError("The integers must be prime"))
-   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))
+   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
    elseif GAPWrap.IsList(res_gap)
@@ -862,7 +889,7 @@ Return whether `G` is a simple group, i.e.,
     isalmostsimple(G)
 
 Return whether `G` is an almost simple group,
-i. e., `G` is isomorphic to a group $H$ with the property
+i.e., `G` is isomorphic to a group $H$ with the property
 $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 """
 @gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
@@ -889,10 +916,33 @@ function ispgroup(G::GAPGroup)
    return false, nothing
 end
 
+"""
+    isfinitelygenerated(G)
+
+Return whether `G` is a finitely generated group.
+
+# Examples
+```jldoctest
+julia> F = free_group(2)
+<free group on the generators [ f1, f2 ]>
+
+julia> isfinitelygenerated(F)
+true
+
+julia> H = derived_subgroup(F)[1]
+Group(<free, no generators known>)
+
+julia> isfinitelygenerated(H)
+false
+```
+"""
+@gapattribute isfinitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+
+
 @doc Markdown.doc"""
     relators(G::FPGroup)
 
-Return a vector of relators for the finitely presented group, i. e.,
+Return a vector of relators for the finitely presented group, i.e.,
 elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
 `G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
 """
@@ -915,50 +965,55 @@ An exception is thrown if `G` is not nilpotent.
    return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
 end
 
+
+function describe(G::GrpAbFinGen)
+   l = elementary_divisors(G)
+   length(l) == 0 && return "0"   # trivial group
+   l_tor = filter(x -> x != 0, l)
+   free = length(l) - length(l_tor)
+   res = length(l_tor) == 0 ? "" : "Z/" * join([string(x) for x in l_tor], " + Z/")
+   return free == 0 ? res : ( res == "" ? ( free == 1 ? "Z" : "Z^$free" ) : ( free == 1 ? "$res + Z" : "$res + Z^$free" ) )
+end
+
 @doc Markdown.doc"""
     describe(G::GAPGroup)
 
 Return a string that describes some aspects of the structure of `G`.
 
-This works well if `G` is an abelian group or a finite simple group
-or a group in one of the following series:
-symmetric, dihedral, quasidihedral, generalized quaternion,
-general linear, special linear.
+For finite groups, the function works well if `G` is an abelian group or a
+finite simple group or a group in one of the following series: symmetric,
+dihedral, quasidihedral, generalized quaternion, general linear, special
+linear.
 
-For other groups, the function tries to decompose `G` as a direct product
-or a semidirect product,
-and if this is not possible as a non-splitting extension of
-a normal subgroup $N$ with the factor group `G`$/N$,
-where $N$ is the center or the derived subgroup or the Frattini subgroup
-of `G`.
+For other finite groups, the function tries to decompose `G` as a direct
+product or a semidirect product, and if this is not possible as a
+non-splitting extension of a normal subgroup $N$ with the factor group
+`G`$/N$, where $N$ is the center or the derived subgroup or the Frattini
+subgroup of `G`.
 
-Note that
-- there is in general no "nice" decomposition of `G`,
-- there may be several decompositions of `G`,
-- nonisomorphic groups may yield the same `describe` result,
-- isomorphic groups may yield different `describe` results,
-- the computations can take a long time (for example in the case of
-  large $p$-groups), and the results are still often not very helpful.
+For infinite groups, if the group is known to be finitely generated and
+abelian or free, a reasonable description is printed.
 
-# Examples
-```jldoctest
-julia> g = symmetric_group(6);
+For general infinite groups, or groups for which finiteness is not (yet) known,
+not much if anything can be done. In particular we avoid potentially expensive
+checks such as computing the size of the group or whether it is abelian.
+While we do attempt a few limited fast checks for finiteness and
+commutativity, these will not detect all finite or commutative groups.
 
-julia> describe(g)
-"S6"
+Thus calling `describe` again on the same group after additional information
+about it becomes known to Oscar may yield different outputs.
 
-julia> describe(sylow_subgroup(g,2)[1])
-"C2 x D8"
+!!! note
+    - for finitely presented groups, even deciding if the group is trivial
+      is impossible in general; the same holds for most other properties,
+      like whether the group is finite, abelian, etc.,
+    - there is in general no "nice" decomposition of `G`,
+    - there may be several decompositions of `G`,
+    - nonisomorphic groups may yield the same `describe` result,
+    - isomorphic groups may yield different `describe` results,
+    - the computations can take a long time (for example in the case of
+      large $p$-groups), and the results are still often not very helpful.
 
-julia> describe(sylow_subgroup(g, 3)[1])
-"C3 x C3"
-
-julia> g = symmetric_group(10);
-
-julia> describe(sylow_subgroup(g,2)[1])
-"C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
-
-```
 The following notation is used in the returned string.
 
 | Description | Syntax |
@@ -989,5 +1044,102 @@ The following notation is used in the returned string.
 | direct product | A x B |
 | semidirect product | N : H |
 | non-split extension | Z(G) . G/Z(G) = G' . G/G', Phi(G) . G/Phi(G) |
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(6);
+
+julia> describe(g)
+"S6"
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x D8"
+
+julia> describe(sylow_subgroup(g, 3)[1])
+"C3 x C3"
+
+julia> describe(free_group(3))
+"a free group of rank 3"
+
+```
 """
-describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))
+function describe(G::GAPGroup)
+   isfinitelygenerated(G) || return "a non-finitely generated group"
+
+   # handle groups whose finiteness is known
+   if hasisfinite(G)
+      # finite groups: pass them to GAP
+      if isfinite(G)
+         return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+      end
+
+      # infinite groups known to be abelian can still be dealt with by GAP
+      if hasisabelian(G) && isabelian(G)
+         return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+      end
+
+      return "an infinite group"
+   end
+
+   return "a group"
+end
+
+function describe(G::FPGroup)
+   # despite the name, there are non-finitely generated (and hence non-finitely presented)
+   # FPGroup instances
+   isfinitelygenerated(G) || return "a non-finitely generated group"
+
+   if GAP.Globals.IsFreeGroup(G.X)::Bool
+      r = GAP.Globals.RankOfFreeGroup(G.X)::GapInt
+      r >= 2 && return "a free group of rank $(r)"
+      r == 1 && return "Z"
+      r == 0 && return "1"
+   end
+
+   # check for free groups in disguise
+   isempty(relators(G)) && return describe(free_group(G))
+
+   # attempt to simplify presentation
+   H = simplified_fp_group(G)[1]
+   ngens(H) < ngens(G) && return describe(H)
+
+   # abelian groups can be dealt with by GAP
+   extra = ""
+   if !hasisabelian(G)
+      if isobviouslyabelian(G)
+         setisabelian(G, true) # TODO: Claus won't like this...
+         return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+      end
+   elseif isabelian(G)
+      return String(GAP.Globals.StructureDescription(G.X)::GapObj)
+   else
+      extra *= " non-abelian"
+   end
+
+   if !hasisfinite(G)
+      # try to obtain an isomorphic permutation group, but don't try too hard
+      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
+      iso != GAP.Globals.fail && return describe(PermGroup(GAP.Globals.Range(iso)))
+   elseif isfinite(G)
+      return describe(isomorphic_perm_group(G)[1])
+   else
+      extra *= " infinite"
+   end
+
+   return "a finitely presented$(extra) group"
+
+end
+
+function isobviouslyabelian(G::FPGroup)
+    rels = relators(G)
+    fgens = gens(free_group(G))
+    signs = [(e1,e2,e3) for e1 in (-1,1) for e2 in (-1,1) for e3 in (-1,1)]
+    for i in 1:length(fgens)
+        a = fgens[i]
+        for j in i+1:length(fgens)
+            b = fgens[j]
+            any(t -> comm(a^t[1],b^t[2])^t[3] in rels, signs) || return false
+        end
+    end
+    return true
+end

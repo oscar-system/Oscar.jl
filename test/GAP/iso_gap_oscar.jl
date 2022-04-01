@@ -1,3 +1,28 @@
+@testset "residue ring" begin
+  @testset "order $n" for n in [ 2, 3, 65536, fmpz(2)^64 ]
+    gap_n = GAP.Obj(n)
+    R = GAP.Globals.mod(GAP.Globals.Integers, gap_n)
+    y = GAP.Globals.One(R)
+    x = 2*y
+    iso = Oscar.iso_gap_oscar(R)
+    ox = iso(x)
+    oy = iso(y)
+    for i in 1:10
+      xi = x^i
+      oxi = iso(xi)
+      @test preimage(iso, oxi) == xi
+      @test oxi == ox^i
+      @test oxi + oy == iso(xi + y)
+    end
+    n2 = n + 1
+
+    x = GAP.Globals.ZmodnZObj(1, GAP.Obj(n2))
+    @test_throws ErrorException iso(x)
+    @test_throws ErrorException image(iso, x)
+    @test_throws ErrorException preimage(iso, one(ResidueRing(ZZ, n2)))
+  end
+end
+
 @testset "finite prime field" begin
   # On the GAP side, consider fields of order up to 2^16 and larger fields.
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.

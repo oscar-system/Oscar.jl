@@ -28,5 +28,22 @@ macro enable_all_show_via_expressify(T)
     end
   end
 end
+end
 
+# A non-compiletime preference
+function allow_unicode(flag::Bool)
+  old_flag = is_unicode_allowed()
+  @set_preferences!("unicode" => flag)
+  return old_flag
+end
+export allow_unicode
+
+function is_unicode_allowed()
+  return @load_preference("unicode", default = false)
+end
+
+function with_unicode(f::Function)
+  old_allow_unicode = allow_unicode(true);
+  f()
+  allow_unicode(old_allow_unicode);
 end

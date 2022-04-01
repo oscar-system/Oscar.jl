@@ -421,12 +421,18 @@ FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, a::Vector) where {T} = Fre
 
 FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
 
-function forget_decoration(f::FreeModuleHom_dec)
+function forget_decoration_on_morphism(f::FreeModuleHom_dec)
   return f.f
 end
 
+function forget_decoration(f::FreeModuleHom_dec)
+  F = forget_decoration(domain(f))
+  G = forget_decoration(codomain(f))
+  return hom(F, G, [forget_decoration(f(v)) for v in gens(domain(f))])
+end
+
 function matrix(a::FreeModuleHom_dec)
-  return matrix(forget_decoration(a))
+  return matrix(forget_decoration_on_morphism(a))
 end
 
 (h::FreeModuleHom_dec)(a::FreeModElem_dec) = image(h, a)

@@ -1,6 +1,6 @@
 # Basically the same as the usual preimage function but without a type check
 # since we don't have elem_type(D) in this case
-function preimage(M::Map{D, C}, a; check::Bool = true) where {D <: GapObj, C}
+function preimage(M::MapFromFunc{D, C}, a; check::Bool = true) where {D <: GapObj, C}
   parent(a) === codomain(M) || error("the element is not in the map's codomain")
   if isdefined(M.header, :preimage)
     p = M.header.preimage(a)
@@ -10,7 +10,7 @@ function preimage(M::Map{D, C}, a; check::Bool = true) where {D <: GapObj, C}
 end
 
 # needed in order to do a generic argument check on the GAP side
-function image(M::Map{D, C}, a; check::Bool = true) where {D <: GapObj, C}
+function image(M::MapFromFunc{D, C}, a; check::Bool = true) where {D <: GapObj, C}
   check && (a in domain(M) || error("the element is not in the map's domain"))
   if isdefined(M, :header)
     if isdefined(M.header, :image)
@@ -44,6 +44,8 @@ function _iso_gap_oscar(F::GAP.GapObj)
          end
        end
      end
+   elseif GAP.Globals.IsZmodnZObjNonprimeCollection(F)
+     return _iso_gap_oscar_residue_ring(F)
    elseif GAP.Globals.IsIntegers(F)
      return _iso_gap_oscar_ring_integers(F)
    elseif GAP.Globals.IsUnivariatePolynomialRing(F)
@@ -51,6 +53,18 @@ function _iso_gap_oscar(F::GAP.GapObj)
    end
 
    error("no method found")
+end
+
+function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
+   n = GAP.Globals.Size(RG)
+   if n isa GAP.GapObj
+     n = fmpz(n)
+   end
+   RO = ResidueRing(ZZ, n)
+
+   finv, f = _iso_oscar_gap_residue_ring_functions(RO, RG)
+
+   return MapFromFunc(f, finv, RG, RO)
 end
 
 function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
@@ -109,6 +123,9 @@ function __init_IsoGapOscar()
       GAP.Globals.InstallMethod(GAP.Globals.IsoGapOscar,
         GAP.Obj([GAP.Globals.IsDomain]), GAP.GapObj(_iso_gap_oscar));
     end
+
+    GAP.Globals.BindGlobal(GapObj("_OSCAR_GroupElem"), AbstractAlgebra.GroupElem)
+    GAP.Globals.Read(GapObj(joinpath(Oscar.oscardir, "gap", "misc.g")))
 end
 
 iso_gap_oscar(F::GAP.GapObj) = GAP.Globals.IsoGapOscar(F)

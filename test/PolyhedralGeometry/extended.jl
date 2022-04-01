@@ -21,12 +21,12 @@
     end
 
     @testset "conformance tests" begin
-        @test typeof(Cone1) == Cone
-        @test typeof(Q0) == Polyhedron
-        @test typeof(Q1) == Polyhedron
-        @test typeof(Q2) == Polyhedron
-        @test typeof(C0) == Polyhedron
-        @test typeof(C1) == Polyhedron
+        @test typeof(Cone1) == Cone{fmpq}
+        @test typeof(Q0) == Polyhedron{fmpq}
+        @test typeof(Q1) == Polyhedron{fmpq}
+        @test typeof(Q2) == Polyhedron{fmpq}
+        @test typeof(C0) == Polyhedron{fmpq}
+        @test typeof(C1) == Polyhedron{fmpq}
         @test typeof(Q0 == Q0) == Bool
         @test typeof(Q0 == Q1) == Bool
         @test typeof(Q0 != Q0) == Bool

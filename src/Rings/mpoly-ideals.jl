@@ -5,6 +5,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
 export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, inradical, isprime, isprimary
 export ngens, gens
+export minimal_generating_set
 
 # constructors #######################################################
 
@@ -874,11 +875,10 @@ true
 ```
 """
 function Base.issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  # avoid Singular.contains as it does not save the gb it might compute
   singular_assure(I)
-  groebner_assure(J)
-  singular_assure(J.gb)
-  return Singular.iszero(Singular.reduce(I.gens.S, J.gb.S))
+  G = groebner_assure(J)
+  singular_assure(G)
+  return Singular.iszero(Singular.reduce(I.gens.S, G.S))
 end
 
 ### todo: wenn schon GB's  bekannt ...
@@ -911,11 +911,12 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}) where T
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
-  return Singular.iszero(reduce(Sx(f), I.gb.S))
+function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
+  groebner_assure(I, ordering)
+  GI = I.gb[ordering]
+  singular_assure(GI)
+  Sx = base_ring(GI.S)
+  return Singular.iszero(reduce(Sx(f), GI.S))
 end
 Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
@@ -1098,9 +1099,9 @@ function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
-  groebner_assure(I)
-  singular_assure(I.gb)
-  I.dim = Singular.dimension(I.gb.S)
+  G = groebner_assure(I)
+  singular_assure(G)
+  I.dim = Singular.dimension(G.S)
   return I.dim
 end
 
@@ -1238,3 +1239,63 @@ function ismonomial(I::MPolyIdeal)
   end
   return false
 end 
+
+################################################################################
+#
+# Minimal generating set
+#
+################################################################################
+
+@doc Markdown.doc"""
+    minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
+
+Given a homogeneous ideal `I` in a graded multivariate polynomial ring
+over a field, return an array containing a minimal set of generators of `I`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> minimal_generating_set(I)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ z^2
+ x^3 + y^3
+```
+"""
+function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  R = base_ring(I)
+
+  @assert isgraded(R)
+  
+  if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
+  end
+  
+  singular_assure(I, ordering)
+  IS = I.gens.S
+  RS = I.gens.Sx
+  GC.@preserve IS RS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, RS.ptr)
+    gensS = gens(typeof(IS)(RS, ptr))
+  end
+
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
+  return elem_type(R)[ R(f) for f in gensS ]
+end

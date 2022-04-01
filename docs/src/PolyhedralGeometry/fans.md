@@ -34,8 +34,8 @@ PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMat
 ```
 
 ```@docs
-normal_fan(P::Polyhedron)
-face_fan(P::Polyhedron)
+normal_fan(P::Polyhedron{T}) where T<:scalar_types
+face_fan(P::Polyhedron{T}) where T<:scalar_types
 ```
 
 ## Saving and loading
@@ -45,18 +45,13 @@ in the following way:
 ```@repl oscar
 square = cube(2)
 fan = normal_fan(square)
-save_polyhedralfan(fan, "F.fan")
-f = load_polyhedralfan("F.fan")
+save(fan, "F.fan")
+f = load("F.fan")
 collect(rays(f))
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
-
-```@docs
-save_polyhedralfan(PF::PolyhedralFan, filename::String)
-load_polyhedralfan(filename::String)
-```
 
 ## Auxiliary functions
 ```@docs
@@ -67,16 +62,16 @@ iscomplete(PF::PolyhedralFan)
 ispointed(PF::PolyhedralFan)
 isregular(PF::PolyhedralFan)
 issimplicial(PF::PolyhedralFan)
-issmooth(PF::PolyhedralFan)
+issmooth(PF::PolyhedralFan{fmpq})
 lineality_dim(PF::PolyhedralFan)
-lineality_space(PF::PolyhedralFan)
-maximal_cones(PF::PolyhedralFan)
-cones(PF::PolyhedralFan, cone_dim::Int)
+lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
+maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types
+cones(PF::PolyhedralFan{T}, cone_dim::Int) where T<:scalar_types
 n_maximal_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)
-starsubdivision(PF::PolyhedralFan, n::Int)
+starsubdivision(PF::PolyhedralFan{T}, n::Int) where T<:scalar_types
 *(PF1::PolyhedralFan, PF2::PolyhedralFan)
 ```
 

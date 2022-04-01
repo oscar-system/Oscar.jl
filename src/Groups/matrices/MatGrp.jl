@@ -230,7 +230,7 @@ function assign_from_description(G::MatrixGroup)
      # Here d is odd, and we do not get here if d == 1 holds
      # because `omega_group` delegates to `SO` in this case.
      @assert G.deg > 1
-     if iseven(GAP.Globals.Size(F))
+     if iseven(GAPWrap.Size(F))
        G.X = GAP.Globals.SO(0, G.deg, F)
      else
        L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0, G.deg, F))
@@ -405,14 +405,26 @@ function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
    end
 end
 
+function _common_parent_group(x::T, y::T) where T <: MatrixGroup
+   @assert x.deg == y.deg
+   @assert x.ring === y.ring
+   x === y && return x
+   return GL(x.deg, x.ring)::T
+end
+
 # Base.:* is defined in src/Groups/GAPGroups.jl, and it calls the function _prod below
 # if the parents are different, the parent of the output product is set as GL(n,q)
-function _prod(x::MatrixGroupElem,y::MatrixGroupElem)
-   G = x.parent==y.parent ? x.parent : GL(x.parent.deg, x.parent.ring)
+function _prod(x::T,y::T) where {T <: MatrixGroupElem}
+   G = _common_parent_group(parent(x), parent(y))
+
+   # if the underlying GAP matrices are both defined, but not both Oscar matrices,
+   # then use the GAP matrices.
+   # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
+   # by the Base.getproperty(::MatrixGroupElem, ::Symbil) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
-      return MatrixGroupElem(G, x.X*y.X)
+      return T(G, x.X*y.X)
    else
-      return MatrixGroupElem(G, x.elm*y.elm)
+      return T(G, x.elm*y.elm)
    end
 end
 
@@ -526,7 +538,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X)::GapInt)
+compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
 
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 

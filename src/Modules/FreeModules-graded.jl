@@ -343,7 +343,7 @@ end
 getindex(F::BiModArray, i::Int) = getindex(F, Val(:O), i)
 
 function singular_module(F::FreeModule_dec)
-  Sx = singular_ring(base_ring(F).R)
+  Sx = singular_poly_ring(base_ring(F).R)
   return Singular.FreeModule(Sx, dim(F))
 end
 

@@ -149,7 +149,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   return C, K, p
 end
 
-function galois_group(FF::Generic.FunctionField{fmpq})
+function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
   tStart = -1
   tr = -1
   while true
@@ -159,6 +159,7 @@ function galois_group(FF::Generic.FunctionField{fmpq})
       error("not plausible")
     end
     C, K, p = _galois_init(FF, tStart = tStart)
+
     if issquare(discriminant(K)) != issquare(discriminant(FF))
       @vprint :GaloisGroup 2 "bad evaluation point: parity changed\n"
       tStart += 1
@@ -192,30 +193,33 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     prm = [findfirst(x->x == y, _rS) for y = _rC]
     pr = symmetric_group(length(prm))(prm)
 
-    if isdefined(S, :start) && length(S.start) > 0
-      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start)
+    # need to verify the starting group
+    #either, if block-systems are there, find the subfields
+    #or verify the factorisation of the resolvent:
+    if isdefined(S, :start) && S.start[1] == 1 && length(S.start) > 0
+      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
         @vprint :GaloisGroup 2 "bad evaluation point: subfields don't exist\n"
         continue
       end
-      C.start = [[[inv(pr)(i) for i = y] for y = x] for x = S.start]
-    else
-      @assert isa(S.data[1][1], Tuple)
+      C.start = (1, [[[inv(pr)(i) for i = y] for y = x] for x = S.start[2]])
+    elseif isdefined(S, :start)
+      @assert S.start[1] == 2
         
-      if length(S.data) == 1 #msum was irreducible over Q, so also over Qt
+      if length(S.start[2]) == 1 #msum was irreducible over Q, so also over Qt
         @vprint :GaloisGroup 1 "msum irreducible over Q, starting with Sn/An\n"
       else
         O = sum_orbits(FF, Qt_to_G, map(x->mG(mF(x)), rC))
-        if sort(map(length, O)) != sort(map(length, S.data))
+        if sort(map(length, O)) != sort(map(length, S.data[2]))
           @vprint :GaloisGroup 2 "bad evaluation point: 2-sum polynomial has wrong factorisation\n"
           continue
         end
       end
+    else
+      #should be in the An/Sn case
+      #but the parity is already checked, so group is correct
     end
 
-    # need to verify the starting group
-    #either, if block-systems are there, find the subfields
-    #or verify the factorisation of the resolvent (no idea?)
-
+    C.data[3] = overC
     #then verify the descent-chain in S
     C.chn = typeof(S.chn)()
     more_t = false
@@ -267,6 +271,13 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     end
     more_t && continue
     C.G = Gal^inv(pr)
+    if overC
+      F = GroupFilter() # no filter: need also intransitive groups
+                        # could restrict (possibly) to only those
+                        # cannot use short_cosets...
+      descent(C, C.G, F, one(C.G), grp_id = x->order(x))
+      return C.G, C, fixed_field(S, C.G^pr)
+    end
     return C.G, C
   end
   #if any fails, "t" was bad and I need to find a way of restarting
@@ -561,7 +572,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
 end
 
 function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Generic.RelSeries{qadic})
-#  @show "testing", r, "against", p
+#  @show "testing", r, "against", B
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
 
@@ -575,10 +586,15 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
   f = Qx()
   x = gen(parent(f))
   xpow = parent(x)(1)
+
+  if G.data[3]
+    return true, x
+  end
   
   for i = 0:(r.length + r.val - 1)
     c = coeff(r, i)
     pr = prime(parent(c))
+    
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
       l = Hecke.mod_sym(lift(cc), pr^precision(cc))
@@ -592,6 +608,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
     else
       return false, x
     end
+    
     xpow *= x
   end
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift

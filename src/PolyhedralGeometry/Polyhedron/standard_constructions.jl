@@ -20,7 +20,7 @@ julia> b = birkhoff(3)
 A polyhedron in ambient dimension 9
 
 julia> vertices(b)
-6-element SubObjectIterator{PointVector{Polymake.Rational}}:
+6-element SubObjectIterator{PointVector{fmpq}}:
  [1, 0, 0, 0, 1, 0, 0, 0, 1]
  [0, 1, 0, 1, 0, 0, 0, 0, 1]
  [0, 0, 1, 1, 0, 0, 0, 1, 0]
@@ -50,7 +50,7 @@ julia> c = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> vertices(pyramid(c,5))
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+5-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1, 0]
  [1, -1, 0]
  [-1, 1, 0]
@@ -58,10 +58,10 @@ julia> vertices(pyramid(c,5))
  [0, 0, 5]
 ```
 """
-function pyramid(P::Polyhedron, z::Number=1)
+function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
    pm_in = pm_object(P)
    has_group = Polymake.exists(pm_in, "GROUP")
-   return Polyhedron(Polymake.polytope.pyramid(pm_in, z, group=has_group))
+   return Polyhedron{T}(Polymake.polytope.pyramid(pm_in, z, group=has_group))
 end
 
 
@@ -82,7 +82,7 @@ julia> c = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> vertices(bipyramid(c,2))
-6-element SubObjectIterator{PointVector{Polymake.Rational}}:
+6-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1, 0]
  [1, -1, 0]
  [-1, 1, 0]
@@ -92,10 +92,10 @@ julia> vertices(bipyramid(c,2))
 
 ```
 """
-function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z)
+function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:scalar_types
    pm_in = pm_object(P)
    has_group = Polymake.exists(pm_in, "GROUP")
-   return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
+   return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
 end
 
 
@@ -115,7 +115,7 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> vertices(square)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [1, -1]
  [-1, 1]
@@ -125,17 +125,17 @@ julia> nc = normal_cone(square, 1)
 A polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
 """
-function normal_cone(P::Polyhedron, i::Int64)
+function normal_cone(P::Polyhedron{T}, i::Int64) where T<:scalar_types
     if(i<1 || i>nvertices(P))
        throw(ArgumentError("Vertex index out of range"))
     end
     bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i-1]))
-    return Cone(bigobject)
+    return Cone{T}(bigobject)
 end
 
 
@@ -156,7 +156,7 @@ julia> P = orbit_polytope(V, G)
 A polyhedron in ambient dimension 3
 
 julia> vertices(P)
-6-element SubObjectIterator{PointVector{Polymake.Rational}}:
+6-element SubObjectIterator{PointVector{fmpq}}:
  [1, 2, 3]
  [1, 3, 2]
  [2, 1, 3]
@@ -172,14 +172,14 @@ function orbit_polytope(V::AbstractMatrix, G::PermGroup)
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(homogenize(V,1), pmGroup)
-   return Polyhedron(pmPolytope)
+   return Polyhedron{fmpq}(pmPolytope)
 end
 function orbit_polytope(V::AbstractVector, G::PermGroup)
    return orbit_polytope(Matrix(reshape(V,(1,length(V)))), G)
 end
 
 @doc Markdown.doc"""
-    cube(d::Int , [l::Rational = -1, u::Rational = 1])
+    cube([::Type{T} = fmpq,] d::Int , [l::Rational = -1, u::Rational = 1])
 
 Construct the $[l,u]$-cube in dimension $d$.
 
@@ -193,8 +193,9 @@ julia> normalized_volume(C)
 120
 ```
 """
-cube(d) = Polyhedron(Polymake.polytope.cube(d))
-cube(d, l, u) = Polyhedron(Polymake.polytope.cube(d, u, l))
+cube(::Type{T}, d) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d))
+cube(::Type{T}, d, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
+cube(x...) = cube(fmpq, x...)
 
 
 
@@ -215,7 +216,7 @@ julia> NP = newton_polytope(f)
 A polyhedron in ambient dimension 2
 
 julia> vertices(NP)
-3-element SubObjectIterator{PointVector{Polymake.Rational}}:
+3-element SubObjectIterator{PointVector{fmpq}}:
  [3, 1]
  [1, 2]
  [0, 0]
@@ -246,13 +247,13 @@ julia> PO = intersect(UH1, UH2)
 A polyhedron in ambient dimension 2
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
 """
-function intersect(P::Polyhedron, Q::Polyhedron)
-   return Polyhedron(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
+function intersect(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+   return Polyhedron{T}(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
 end
 
 
@@ -276,11 +277,11 @@ julia> nvertices(M)
 8
 ```
 """
-function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard)
+function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{T}; algorithm::Symbol=:standard) where T<:scalar_types
    if algorithm == :standard
-      return Polyhedron(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)))
+      return Polyhedron{T}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)))
    elseif algorithm == :fukuda
-      return Polyhedron(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)))
+      return Polyhedron{T}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)))
    else
       throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
    end
@@ -308,7 +309,7 @@ julia> length(vertices(product(T,S)))
 6
 ```
 """
-product(P::Polyhedron, Q::Polyhedron) = Polyhedron(Polymake.polytope.product(pm_object(P), pm_object(Q)))
+product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)))
 
 @doc Markdown.doc"""
     *(P::Polyhedron, Q::Polyhedron)
@@ -328,7 +329,7 @@ julia> length(vertices(T*S))
 6
 ```
 """
-*(P::Polyhedron, Q::Polyhedron) = product(P,Q)
+*(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = product(P,Q)
 
 @doc Markdown.doc"""
     convex_hull(P::Polyhedron, Q::Polyhedron)
@@ -347,12 +348,12 @@ A polyhedron in ambient dimension 3
 julia> T=convex_hull(L₁,L₂);
 
 julia> f_vector(T)
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  4
  4
 ```
 """
-convex_hull(P::Polyhedron,Q::Polyhedron) = Polyhedron(Polymake.polytope.conv(pm_object(P),pm_object(Q)))
+convex_hull(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.conv(pm_object(P),pm_object(Q)))
 
 
 
@@ -378,7 +379,7 @@ julia> nvertices(M)
 8
 ```
 """
-+(P::Polyhedron, Q::Polyhedron) = minkowski_sum(P,Q)
++(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = minkowski_sum(P,Q)
 
 
 #TODO: extend to different fields
@@ -404,7 +405,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(k::Int, P::Polyhedron) = Polyhedron(Polymake.polytope.scale(pm_object(P),k))
+*(k::Int, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k))
 
 
 @doc Markdown.doc"""
@@ -428,7 +429,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(P::Polyhedron,k::Int) = k*P
+*(P::Polyhedron{T},k::Int) where T<:scalar_types = k*P
 
 
 @doc Markdown.doc"""
@@ -450,18 +451,18 @@ julia> S = P + v
 A polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [0, 0, 0]
  [1, 0, 0]
  [0, 1, 0]
  [0, 0, 1]
 ```
 """
-function +(P::Polyhedron,v::AbstractVector)
+function +(P::Polyhedron{T}, v::AbstractVector) where T<:scalar_types
     if ambient_dim(P) != length(v)
         throw(ArgumentError("Translation vector not correct dimension"))
     else
-        return Polyhedron(Polymake.polytope.translate(pm_object(P),Polymake.Vector{Polymake.Rational}(v)))
+        return Polyhedron{T}(Polymake.polytope.translate(pm_object(P), Polymake.Vector{scalar_type_to_polymake[T]}(v)))
     end
 end
 
@@ -485,18 +486,18 @@ julia> S = v + P
 A polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [0, 0, 0]
  [1, 0, 0]
  [0, 1, 0]
  [0, 0, 1]
 ```
 """
-+(v::AbstractVector,P::Polyhedron) = P+v
++(v::AbstractVector,P::Polyhedron{T}) where T<:scalar_types = P+v
 
 @doc Markdown.doc"""
 
-    simplex(d::Int [,n::Rational])
+    simplex([::Type{T} = fmpq,] d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
 along with the origin in $\mathbb{R}^d$, scaled by $n$.
@@ -508,68 +509,39 @@ julia> s = simplex(7)
 A polyhedron in ambient dimension 7
 
 julia> facets(s)
-8-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^7 described by
-1: -x₁ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₂ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₃ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₄ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₅ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₆ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₇ ≦ 0
-
- The Halfspace of R^7 described by
-1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
+-x₁ ≦ 0
+-x₂ ≦ 0
+-x₃ ≦ 0
+-x₄ ≦ 0
+-x₅ ≦ 0
+-x₆ ≦ 0
+-x₇ ≦ 0
+x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
 
 julia> t = simplex(7, 5)
 A polyhedron in ambient dimension 7
 
 julia> facets(t)
-8-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^7 described by
-1: -x₁ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₂ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₃ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₄ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₅ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₆ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₇ ≦ 0
-
- The Halfspace of R^7 described by
-1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
+-x₁ ≦ 0
+-x₂ ≦ 0
+-x₃ ≦ 0
+-x₄ ≦ 0
+-x₅ ≦ 0
+-x₆ ≦ 0
+-x₇ ≦ 0
+x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
-simplex(d::Int64,n) = Polyhedron(Polymake.polytope.simplex(d,n))
-simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
+simplex(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
+simplex(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d))
+simplex(x...) = simplex(fmpq, x...)
 
 
 @doc Markdown.doc"""
 
-    cross(d::Int [,n::Rational])
+    cross([::Type{T} = fmpq,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
 at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
@@ -582,63 +554,34 @@ julia> C = cross(3)
 A polyhedron in ambient dimension 3
 
 julia> facets(C)
-8-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^3 described by
-1: x₁ + x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ + x₂ - x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ - x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ - x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ - x₃ ≦ 1
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+x₁ + x₂ + x₃ ≦ 1
+-x₁ + x₂ + x₃ ≦ 1
+x₁ - x₂ + x₃ ≦ 1
+-x₁ - x₂ + x₃ ≦ 1
+x₁ + x₂ - x₃ ≦ 1
+-x₁ + x₂ - x₃ ≦ 1
+x₁ - x₂ - x₃ ≦ 1
+-x₁ - x₂ - x₃ ≦ 1
 
 julia> D = cross(3, 2)
 A polyhedron in ambient dimension 3
 
 julia> facets(D)
-8-element SubObjectIterator{AffineHalfspace}:
- The Halfspace of R^3 described by
-1: x₁ + x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: x₁ + x₂ - x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ - x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ - x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ - x₃ ≦ 2
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+x₁ + x₂ + x₃ ≦ 2
+-x₁ + x₂ + x₃ ≦ 2
+x₁ - x₂ + x₃ ≦ 2
+-x₁ - x₂ + x₃ ≦ 2
+x₁ + x₂ - x₃ ≦ 2
+-x₁ + x₂ - x₃ ≦ 2
+x₁ - x₂ - x₃ ≦ 2
+-x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross(d::Int64,n) = Polyhedron(Polymake.polytope.cross(d,n))
-cross(d::Int64) = Polyhedron(Polymake.polytope.cross(d))
+cross(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
+cross(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
+cross(x...) = cross(fmpq, x...)
 
 @doc Markdown.doc"""
 
@@ -807,15 +750,15 @@ julia> P = polarize(square)
 A polyhedron in ambient dimension 2
 
 julia> vertices(P)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [1, 0]
  [-1, 0]
  [0, 1]
  [0, -1]
 ```
 """
-function polarize(P::Polyhedron)
-    return Polyhedron(Polymake.polytope.polarize(pm_object(P)))
+function polarize(P::Polyhedron{T}) where T<:scalar_types
+    return Polyhedron{T}(Polymake.polytope.polarize(pm_object(P)))
 end
 
 
@@ -840,9 +783,7 @@ julia> isfulldimensional(p)
 true
 ```
 """
-project_full(P::Polyhedron) = Polyhedron(Polymake.polytope.project_full(pm_object(P)))
-
-
+project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.project_full(pm_object(P)))
 
 @doc Markdown.doc"""
 
@@ -867,4 +808,43 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(lambda::AbstractVector) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Vector{Rational}(lambda),projected=false))
+gelfand_tsetlin(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+
+@doc Markdown.doc"""
+    fano_simplex(d::Int)
+
+Construct a lattice simplex such that the origin is the unique interior lattice point.
+The normal toric variety associated with its face fan is smooth.
+
+```jldoctest
+julia> S = fano_simplex(3)
+A polyhedron in ambient dimension 3
+
+julia> X = NormalToricVariety(face_fan(S))
+A normal toric variety
+
+julia> issmooth(X)
+true
+```
+"""
+fano_simplex(d::Int) = Polyhedron{fmpq}(Polymake.polytope.fano_simplex(d))
+
+@doc Markdown.doc"""
+    delpezzo(d::Int)
+
+Produce the d-dimensional del-Pezzo polytope, which is the convex hull of
+the cross polytope together with the all-ones and minus all-ones vector.
+
+```jldoctest
+julia> DP = delpezzo(4)
+A polyhedron in ambient dimension 4
+
+julia> f_vector(DP)
+4-element Vector{fmpz}:
+ 10
+ 40
+ 60
+ 30
+```
+"""
+delpezzo(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))

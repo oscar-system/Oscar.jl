@@ -1,9 +1,10 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded
+homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
+
 
 @attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -186,6 +187,40 @@ function grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
 end
 
 @doc Markdown.doc"""
+    is_standard_graded(R::MPolyRing_dec)
+
+Return `true` if `R` is $\mathbb Z$-graded with weight 1 assigned to each variable, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> W = [1, 2, 3];
+
+julia> S, (x, y, z) = grade(R, W)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [2]
+  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> is_standard_graded(S)
+false
+```
+"""
+function is_standard_graded(R::MPolyRing_dec)
+  is_z_graded(R) || return false
+  A = grading_group(R)
+  W = R.d
+  for i = 1:length(W)
+     if W[i] != A[1]
+        return false
+     end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
     is_z_graded(R::MPolyRing_dec)
 
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
@@ -251,6 +286,11 @@ end
     is_positively_graded(R::MPolyRing_dec)
 
 Return `true` if `R` is positively graded, `false` otherwise.
+
+Here, `R` is called *positively graded* by a finitely generated abelian group $G$
+if the coeffcient ring of `R` is a field, $G$ is torsion-free, and each graded part 
+$R_g$, $g\in G$, has finite dimension.
+
 # Examples
 ```jldoctest
 julia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
@@ -267,11 +307,38 @@ julia> S, (t, x, y) = grade(R, [-1, 1, 1])
 
 julia> is_positively_graded(S)
 false
+
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> G = abelian_group([0, 2])
+(General) abelian group with relation matrix
+[0 0; 0 2]
+
+julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
+2-element Vector{GrpAbFinGenElem}:
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0; 0 2]
+with components [1 0]
+
+julia> S, (x, y) = grade(R, W)
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1 1]
+  y -> [1 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia> is_positively_graded(S)
+false
 ```
 """
 function is_positively_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   G = grading_group(R)
+  isfree(G) || return false
   try 
     homogeneous_component(R, zero(G))
   catch e
@@ -682,9 +749,42 @@ monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
 coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
 term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
 exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
+exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = exponent_vector(a.f, i, T)
+exponent(a::MPolyElem_dec, i::Int, j::Int) = exponent(a.f, i, j)
+exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i, j, T)
 
-function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
-  return singular_ring(R.R, keep_ordering = keep_ordering)
+function has_weighted_ordering(R::MPolyRing_dec)
+  grading_to_ordering = false
+  w_ord = degrevlex(gens(R.R)) # dummy, not used
+  # This is not meant to be exhaustive, there a probably more gradings which one
+  # can meaningfully translate into a monomial ordering
+  # However, we want to stick to global orderings.
+  if is_z_graded(R)
+    w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
+    if all(isone, w)
+      w_ord = degrevlex(gens(R.R))
+      grading_to_ordering = true
+    elseif all(x -> x > 0, w)
+      w_ord = wdegrevlex(gens(R.R), w)
+      grading_to_ordering = true
+    end
+  end
+  return grading_to_ordering, w_ord
+end
+
+function default_ordering(R::MPolyRing_dec)
+  fl, w_ord = has_weighted_ordering(R)
+  if fl
+    return w_ord
+  end
+  return degrevlex(gens(R))
+end
+
+function singular_poly_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
+  if !keep_ordering
+    return singular_poly_ring(R.R, default_ordering(R).o)
+  end
+  return singular_poly_ring(R.R, keep_ordering = keep_ordering)
 end
 
 MPolyCoeffs(f::MPolyElem_dec) = MPolyCoeffs(f.f)
@@ -1145,82 +1245,72 @@ end
     homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem) 
 
 Given a polynomial ring `R` which is graded by a finitely
-generated Abelian group, and given an element `g` of that group,
-return the homogeneous component of `R` of degree `g`.
+generated Abelian group without torsion, and given an element `g` of that group,
+return the homogeneous component of `R` of degree `g`. Additionally, return
+the embedding of the component into `R`.
 
     homogeneous_component(R::MPolyRing_dec, g::Vector{<:IntegerUnion})
 
 Given a $\mathbb  Z^m$-graded polynomial ring, and given
 a vector `g` of $m$ integers, convert `g` into an element of the group 
 $\mathbb  Z^m$, and return the homogeneous component of `R` whose degree 
-is that element.
+is that element. Additionally, return the embedding of the component into `R`.
 
     homogeneous_component(R::MPolyRing_dec, g::IntegerUnion)
 
 Given a $\mathbb  Z$-graded polynomial ring, and given
 an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
 and return the homogeneous component of `R` whose degree is that element.
+Additionally, return the embedding of the component into `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, "x" => 1:5)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5]])
+julia> R, x, y = PolynomialRing(QQ, "x" => 1:2, "y" => 1:3);
 
-julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+julia> W = [1 1 0 0 0; 0 0 1 1 1]
+2×5 Matrix{Int64}:
+ 1  1  0  0  0
+ 0  0  1  1  1
 
-julia> g = gens(G);
+julia> S, _ = grade(R, W);
 
-julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
+julia> G = grading_group(S)
+GrpAb: Z^2
 
-julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
-
-julia> L = homogeneous_component(S, g[1]+g[3]);
+julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0] of degree Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 1 0]
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] of degree graded by [1 1]
 
-julia> L[2]
+julia> FG = gens(L[1]);
+
+julia> EMB = L[2]
 Map from
-homogeneous component of Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0] of degree Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 1 0]
- to Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
-  x[1] -> [1 0 1 1]
-  x[2] -> [0 1 0 1]
-  x[3] -> [1 0 1 0]
-  x[4] -> [0 1 0 0]
-  x[5] -> [1 1 0 0] defined by a julia-function with inverse
-
-julia> FG = gens(L[1])
-1-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
- (1)
-
-julia> EMB = L[2];
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] of degree graded by [1 1]
+ to Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1] defined by a julia-function with inverse
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
-x[3]
+x[2]*y[3]
+x[2]*y[2]
+x[2]*y[1]
+x[1]*y[3]
+x[1]*y[2]
+x[1]*y[1]
 
 julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
@@ -1246,14 +1336,7 @@ homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational F
   y -> [1]
   z -> [1] defined by a julia-function with inverse)
 
-julia> FG = gens(L[1])
-6-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
- (1, 0, 0, 0, 0, 0)
- (0, 1, 0, 0, 0, 0)
- (0, 0, 1, 0, 0, 0)
- (0, 0, 0, 1, 0, 0)
- (0, 0, 0, 0, 1, 0)
- (0, 0, 0, 0, 0, 1)
+julia> FG = gens(L[1]);
 
 julia> EMB = L[2];
 
@@ -1271,23 +1354,28 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #      aparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
+  if !(typeof(base_ring(W)) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  end
   D = W.D
+  isfree(D) || error("Grading group must be torsion-free")
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
   R = base_ring(W)
-  @assert fl
-  k, im = kernel(h)
-  #need the positive elements in there...
-  #Ax = b, Cx >= 0
-  C = identity_matrix(FlintZZ, ngens(W))
-  A = vcat([x.coeff for x = W.d])
-  k = solve_mixed(transpose(A), transpose(d.coeff), C)
   B = elem_type(W)[]
-  for ee = 1:nrows(k)
-    e = k[ee, :]
-    a = MPolyBuildCtx(W.R)
-    push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
-    push!(B, W(finish(a)))
+  if fl
+     k, im = kernel(h)
+     #need the positive elements in there...
+     #Ax = b, Cx >= 0
+     C = identity_matrix(FlintZZ, ngens(W))
+     A = vcat([x.coeff for x = W.d])
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
+     for ee = 1:nrows(k)
+       e = k[ee, :]
+       a = MPolyBuildCtx(W.R)
+       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
+       push!(B, W(finish(a)))
+     end
   end
   M, h = vector_space(R, B, target = W)
   set_attribute!(M, :show => show_homo_comp, :data => (W, d))
@@ -1336,7 +1424,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     end
     push!(M, sparse_row(K, pos, val))
   end
-  Hecke.echelon!(M, complete = true)
+  rref!(M)
 
   b = Vector{elem_type(R)}()
   for i=1:nrows(M)
@@ -1399,23 +1487,28 @@ end
 ############################################################################
 ############################################################################
 
-function sing_hilb(I::Singular.sideal)
-  a = Vector{Int32}()
-  @assert I.isGB
-  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
-  return a
-end
+###############################################################################
+### z-graded Hilbert series stuff using Singular for finding the Hilbert series
+###############################################################################
 
 mutable struct HilbertData
   data::Vector{Int32}
+  weights::Vector{Int32}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
-
-    if !(typeof(base_ring(base_ring(I))) <: AbstractAlgebra.Field)
+    R = base_ring(I)
+    W = R.d
+    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    
+    if !(minimum(W)>0)
+       throw(ArgumentError("The weights must be positive."))
+    end
+    
+    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
     end
 
-    if !((typeof(base_ring(I)) <: Oscar.MPolyRing_dec) && (isgraded(base_ring(I))))
+    if !((typeof(R) <: Oscar.MPolyRing_dec) && (isgraded(R)))
        throw(ArgumentError("The base ring must be graded."))
     end
     
@@ -1423,9 +1516,9 @@ mutable struct HilbertData
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end
     
-    Oscar.groebner_assure(I)
-    h = sing_hilb(I.gb.S)
-    return new(h, I)
+    G = groebner_assure(I)
+    h = Singular.hilbert_series(G.S, W)
+    return new(h, W, I)
   end
   function HilbertData(B::BiPolyArray)
     return HilbertData(Oscar.MPolyIdeal(B))
@@ -1434,17 +1527,28 @@ end
 
 function hilbert_series(H::HilbertData, i::Int= 1)
   Zt, t = ZZ["t"]
-  if i==1
-    return Zt(map(fmpz, H.data[1:end-1])), (1-gen(Zt))^(ngens(base_ring(H.I)))
-  elseif i==2
+  den = prod([1-t^H.weights[i] for i = 1:ngens(base_ring(H.I))])
+  if i==1   ### the Hilbert series with denominator prod (1-t^H.weights[i])
+    return Zt(map(fmpz, H.data[1:end-1])), den
+  elseif i==2   ### the reduced Hilbert series
     h = hilbert_series(H, 1)[1]
-    return divexact(h, (1-gen(Zt))^(ngens(base_ring(H.I))-dim(H.I))), (1-gen(Zt))^dim(H.I)
+    c = gcd(h, den)
+    h = divexact(h, c)
+    den = divexact(den, c)
+    return den(0)*h, den(0)*den
   end
   error("2nd parameter must be 1 or 2")
 end
 
 #Decker-Lossen, p23/24
 function hilbert_polynomial(H::HilbertData)
+
+  for i = 1:ngens(base_ring(H.I))
+     if H.weights[i] != 1
+       throw(ArgumentError("All weights must be 1."))
+     end
+  end
+  
   q, dn = hilbert_series(H, 2)
   a = fmpq[]
   nf = fmpq(1)
@@ -1467,6 +1571,13 @@ function hilbert_polynomial(H::HilbertData)
 end
 
 function Oscar.degree(H::HilbertData)
+
+  for i = 1:ngens(base_ring(H.I))
+     if H.weights[i] != 1
+       throw(ArgumentError("All weights must be 1."))
+     end
+  end
+  
   P = hilbert_polynomial(H)
   if P==zero(parent(P))
      q, _ = hilbert_series(H, 2)
@@ -1476,34 +1587,32 @@ function Oscar.degree(H::HilbertData)
 end
 
 function (P::FmpqRelSeriesRing)(H::HilbertData)
-  n = hilbert_series(H, 1)[1]
-  d = (1-gen(parent(n)))^ngens(base_ring(H.I))
-  g = gcd(n, d)
-  n = divexact(n, g)
-  d = divexact(d, g)
+  n, d = hilbert_series(H, 2)
   Qt, t = QQ["t"]
   nn = map_coefficients(QQ, n, parent = Qt)
   dd = map_coefficients(QQ, d, parent = Qt)
   gg, ee, _ = gcdx(dd, gen(Qt)^max_precision(P))
   @assert isone(gg)
-  nn = Hecke.mullow(nn, ee, max_precision(P)+1)
+  nn = Hecke.mullow(nn, ee, max_precision(P))
   c = collect(coefficients(nn))
   return P(map(fmpq, c), length(c), max_precision(P), 0)
 end
 
 function hilbert_series_expanded(H::HilbertData, d::Int)
-   T, t = PowerSeriesRing(QQ, d, "t")   
+   T, t = PowerSeriesRing(QQ, d+1, "t")   
    return T(H)
 end
 
 function hilbert_function(H::HilbertData, d::Int)
+   if d<0 return 0 end
    HS = hilbert_series_expanded(H,d)
    return coeff(hilbert_series_expanded(H, d), d)
 end
 
 function Base.show(io::IO, h::HilbertData)
-  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+  print(io, "Hilbert Series for $(h.I), data: $(h.data), weights: $(h.weights)")  ###new
 end
+
 
 ############################################################################
 ### Homogenization and Dehomogenization
@@ -1727,7 +1836,7 @@ Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
   y -> [1]
   z -> [1]
 
-julia> homogenization(I, "w", ordering = :deglex)
+julia> homogenization(I, "w", ordering = deglex(gens(base_ring(I))))
 ideal(x*z - y^2, -w*z + x*y, -w*y + x^2, -w*z^2 + y^3)
 ```
 """
@@ -1753,7 +1862,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
-function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
+function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyElem}
   # TODO: Adjust as soon as new GB concept is implemented
   return ideal(homogenization(groebner_basis(I, ordering=ordering), var, pos))
 end

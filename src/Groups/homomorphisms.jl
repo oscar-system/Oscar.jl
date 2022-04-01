@@ -19,11 +19,13 @@ export
     isomorphic_fp_group,
     isomorphic_pc_group,
     isomorphic_perm_group,
+    isomorphism,
     issurjective,
     kernel,
     order,
     restrict_automorphism,
     restrict_homomorphism,
+    simplified_fp_group,
     trivial_morphism
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -44,7 +46,7 @@ function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
    return GAPGroupHomomorphism(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
 end
 
-order(f::GAPGroupHomomorphism) = GAP.Globals.Order(f.map)
+order(f::GAPGroupHomomorphism) = GAPWrap.Order(f.map)
 
 function Base.:^(f::GAPGroupHomomorphism{S,T}, n::Int64) where S where T
    if n==1
@@ -103,6 +105,30 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
   return GAPGroupHomomorphism(G, H, mp)
 end
 
+# This method is used for those embeddings that are
+# the identity on the GAP side.
+function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known_to_be_bijective::Bool = false)
+  function gap_fun(x::GapObj)
+    el = group_element(G, x)
+    img_el = img(el)
+    return img_el.X
+  end
+
+  function gap_pre_fun(x::GapObj)
+    el = group_element(H, x)
+    preimg_el = preimg(el)
+    return preimg_el.X
+  end
+
+  if is_known_to_be_bijective
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), GAP.julia_to_gap(gap_pre_fun))
+  else
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), false, GAP.julia_to_gap(gap_pre_fun))
+  end
+
+  return GAPGroupHomomorphism(G, H, mp)
+end
+
 """
     hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
@@ -147,6 +173,19 @@ Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
   return group_element(codomain(f), GAP.Globals.Image(f.map,x.X))
+end
+
+"""
+    preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+
+Return an element `y` in the domain of `f` with the property `f(y) == x`.
+See [`haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)`](@ref)
+for a check whether `x` has such a preimage.
+"""
+function preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+  fl, p = haspreimage(f, x)
+  @assert fl
+  return p
 end
 
 """
@@ -209,7 +248,7 @@ An exception is thrown if `H` is not a subgroup of `domain(f)`.
 """
 function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # We have to check whether `H` is really a subgroup of `f.domain`,
-  # since `GAP.Globals.RestrictedMappin` does not check this.
+  # since `GAP.Globals.RestrictedMapping` does not check this.
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
@@ -269,11 +308,27 @@ function cokernel(f::GAPGroupHomomorphism)
 end
 
 """
-    haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+    haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 
-Return (`true`,`y`) if there exists `y` such that `f`(`y`) = `x`; otherwise, return (`false`,`1`).
+Return (`true`, `y`) if there exists `y` in `domain(f)`
+such that `f`(`y`) = `x` holds;
+otherwise, return (`false`, `o`) where `o` is the identity of `domain(f)`.
+
+If `check` is set to `false` then the test whether `x` is an element of
+`image(f)` is omitted.
 """
-function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+  # `GAP.Globals.PreImagesRepresentative` does not promise anything
+  # if the given element is not in the codomain of the map.
+# check && ! (x in codomain(f)) && return false, one(domain(f))
+#TODO:
+# Apparently the documentation of `GAP.Globals.PreImagesRepresentative`
+# is wrong in the situation that `x` is not in the *image* of `f`,
+# the function can then run into an error or return some group element,
+# see https://github.com/gap-system/gap/issues/4088.
+# Until this problem gets fixed on the GAP side, we perform a membership test
+# before calling `GAP.Globals.PreImagesRepresentative`.
+  check && ! (x in image(f)[1]) && return false, one(domain(f))
   r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
   if r == GAP.Globals.fail
     return false, one(domain(f))
@@ -317,6 +372,36 @@ function isisomorphic(G::GAPGroup, H::GAPGroup)
 end
 
 """
+    isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+
+Return a map from `G` to an isomorphic (additive) group of type `GrpAbFinGen`.
+An exception is thrown if `G` is not abelian or not finite.
+"""
+function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+  isabelian(G) || throw(ArgumentError("the group is not abelian"))
+  isfinite(G) || throw(ArgumentError("the group is not finite"))
+#T this restriction is not nice
+
+  indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)
+  orders = [GAP.Globals.Order(x) for x in indep]
+  n = length(indep)
+  A = abelian_group(GrpAbFinGen, orders)
+
+  f(g) = A(Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X)))
+
+  finv = function(g::elem_type(GrpAbFinGen))
+     exps = [GAP.Obj(g.coeff[i]) for i in 1:n]
+     res = Oscar.GAPWrap.One(G.X)
+     for i in 1:n
+       res = res * indep[i]^GAP.Obj(g.coeff[i])
+     end
+     return group_element(G, res)
+  end
+
+  return MapFromFunc(f, finv, G, A)
+end
+
+"""
     isomorphic_perm_group(G::GAPGroup)
 
 Return a permutation group `H` and an isomorphism `f` from `G` to `H`.
@@ -355,6 +440,35 @@ function isomorphic_fp_group(G::GAPGroup)
    f = GAP.Globals.IsomorphismFpGroup(G.X)
    f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAP.Globals.Image(f))
+   return H, GAPGroupHomomorphism(G,H,f)
+end
+
+"""
+    simplified_fp_group(G::FPGroup)
+
+Return a group `H` of type `FPGroup` and an isomorphism `f` from `G` to `H`, where
+the presentation of `H` was obtained from the presentation of `G` by applying Tietze
+transformations in order to reduce it with respect to the number of
+generators, the number of relators, and the relator lengths.
+
+# Examples
+```jldoctest
+julia> F = free_group(3)
+<free group on the generators [ f1, f2, f3 ]>
+
+julia> G = quo(F, [gen(F,1)])[1]
+<fp group of size infinity on the generators [ f1, f2, f3 ]>
+
+julia> simplified_fp_group(G)[1]
+<fp group of size infinity on the generators [ f2, f3 ]>
+```
+"""
+function simplified_fp_group(G::FPGroup)
+   f = GAP.Globals.IsomorphismSimplifiedFpGroup(G.X)
+   H = FPGroup(GAP.Globals.Image(f))
+   # TODO: remove the next line once https://github.com/gap-system/gap/pull/4810
+   # is deployed to Oscar
+   GAP.Globals.UseIsomorphismRelation(G.X, H.X)
    return H, GAPGroupHomomorphism(G,H,f)
 end
 

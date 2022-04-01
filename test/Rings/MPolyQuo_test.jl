@@ -75,11 +75,19 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify!(I)
-  @test I.SI[1] == singular_ring(Q)(-x+y) && I.SI[2] == singular_ring(Q)(y+1)
+  SQ = singular_poly_ring(Q)
+  @test I.SI[1] == SQ(-x+y) && I.SI[2] == SQ(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false
   @test (I == J) == false
   @test dim(J)  == 1
   @test dim(J)  == J.dim  # test case if dim(J) is already set
+
+  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  I = ideal(R, [ x*y ])
+  Q, RtoQ = quo(R, I)
+  J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
+  @test minimal_generating_set(J) == [ Q(y), Q(x^2 + y) ]
+  @test minimal_generating_set(ideal(Q, [ Q() ])) == elem_type(Q)[]
 end

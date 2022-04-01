@@ -1,6 +1,6 @@
 # Basically the same as the usual image function but without a type check since
 # we don't have elem_type(C) in this case
-function image(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
+function image(M::MapFromFunc{D, C}, a; check::Bool = true) where {D, C <: GapObj}
   parent(a) === domain(M) || error("the element is not in the map's domain")
   if isdefined(M, :header)
     if isdefined(M.header, :image)
@@ -14,7 +14,7 @@ function image(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
 end
 
 # needed in order to do a generic argument check on the GAP side
-function preimage(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
+function preimage(M::MapFromFunc{D, C}, a; check::Bool = true) where {D, C <: GapObj}
   if isdefined(M.header, :preimage)
     check && (a in codomain(M) || error("the element is not in the map's codomain"))
     p = M.header.preimage(a)::elem_type(D)
@@ -30,10 +30,37 @@ end
 #
 ################################################################################
 
+@attributes Nemo.NmodRing # TODO: port this to Nemo
+@attributes Nemo.FmpzModRing # TODO: port this to Nemo
+
+# Assume that `RO` and `RG` are residue rings of the same size
+# in Oscar and GAP, respectively.
+function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.NmodRing, Nemo.FmpzModRing}, RG::GAP.GapObj)
+   e = GAPWrap.One(RG)
+   f(x) = GAP.Obj(lift(x))*e
+
+   finv = function(x::GAP.Obj)
+     @assert GAPWrap.IsFFE(x) || GAP.Globals.IsZmodnZObj(x)
+     y = GAP.Globals.Int(x)
+     return y isa Int ? RO(y) : RO(fmpz(y))
+   end
+
+   return (f, finv)
+end
+
+# Compute the isomorphism between the Oscar residue ring `RO`
+# and a corresponding GAP residue ring.
+function _iso_oscar_gap(RO::Union{Nemo.NmodRing, Nemo.FmpzModRing})
+   n = fmpz(modulus(RO))
+   RG = GAP.Globals.mod(GAP.Globals.Integers, GAP.Obj(n))
+   f, finv = _iso_oscar_gap_residue_ring_functions(RO, RG)
+
+   return MapFromFunc(f, finv, RO, RG)
+end
+
 # Assume that `FO` and `FG` are finite fields of the same order
 # in Oscar and GAP, respectively.
 function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.GaloisField, Nemo.GaloisFmpzField}, FG::GAP.GapObj)
-   p = characteristic(FO)
    e = GAPWrap.One(FG)
 
    f(x) = GAP.Obj(lift(x))*e
@@ -196,7 +223,7 @@ end
 # Assume that `FO` and `FG` are cyclotomic fields with the same conductor
 # in Oscar and GAP, respectively.
 function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP.GapObj)
-   N = GAPWrap.Conductor(FG)
+   N = conductor(FO)
    cycpol = GAP.Globals.CyclotomicPol(N)::GapObj
    dim = length(cycpol)-1
 

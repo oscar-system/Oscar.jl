@@ -1,9 +1,7 @@
-import Oscar.AlgHom
-
-export ProjectiveScheme, base_ring, fiber_dimension, homog_poly_ring, gens, getindex, affine_patch_type
+export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
 export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
 export projective_space, subscheme
-export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homog_poly_ring, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
+export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
 export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
 export fiber_product, inclusion_map
 

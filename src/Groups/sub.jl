@@ -31,7 +31,7 @@ end
 
 function _as_subgroup(G::GAPGroup, H::GapObj)
   H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x -> group_element(G, x.X))
+  return H1, hom(H1, G, x -> group_element(G, x.X), x -> group_element(H1, x.X); is_known_to_be_bijective = false)
 end
 
 """
@@ -54,7 +54,7 @@ true
 function sub(G::GAPGroup, gens::AbstractVector{S}) where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_GAP = GapObj([x.X for x in gens])
-  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
+  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
 end
 
@@ -86,21 +86,18 @@ Return the embedding morphism of `H` into `G`.
 An exception is thrown if `H` is not a subgroup of `G`.
 """
 function embedding(G::T, H::T) where T <: GAPGroup
-   a,f = issubgroup(G,H)
-   if !a
-      throw(ArgumentError("H is not a subgroup of G"))
-   else
-      return f
-   end
+   a, f = issubgroup(G,H)
+   a || throw(ArgumentError("H is not a subgroup of G"))
+   return f
 end
 
-@gapattribute trivial_subgroup(G::GAPGroup) =_as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X))
 @doc """
     trivial_subgroup(G::GAPGroup)
 
 Return the trivial subgroup of `G`,
 together with its embedding morphism into `G`.
-""" trivial_subgroup
+"""
+@gapattribute trivial_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X)::GapObj)
 
 
 ###############################################################################
@@ -117,7 +114,7 @@ Return the index of `H` in `G`, as an instance of `I`.
 index(G::T, H::T) where T <: GAPGroup = index(fmpz, G, H)
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
-   i = GAP.Globals.Index(G.X, H.X)
+   i = GAP.Globals.Index(G.X, H.X)::GapInt
    if i === GAP.Globals.infinity
       error("index() not supported for subgroup of infinite index, use isfinite()")
    end
@@ -154,6 +151,8 @@ Return the vector of normal subgroups of `G` (see [`isnormal`](@ref)).
 Return the vector of all subgroups of `G`.
 """
 function subgroups(G::GAPGroup)
+  # TODO: this is super inefficient. Slightly better would be to return an iterator
+  # which iterates over the (elements of) the conjugacy classes of subgroups
   return _as_subgroups(G, GAP.Globals.AllSubgroups(G.X))
 end
 
@@ -169,7 +168,7 @@ Return the vector of maximal subgroups of `G`.
     maximal_normal_subgroups(G::Group)
 
 Return the vector of maximal normal subgroups of `G`,
-i. e., of those proper normal subgroups of `G` that are maximal
+i.e., of those proper normal subgroups of `G` that are maximal
 among the proper normal subgroups.
 """
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
@@ -179,7 +178,7 @@ among the proper normal subgroups.
     minimal_normal_subgroups(G::Group)
 
 Return the vector of minimal normal subgroups of `G`,
-i. e., of those nontrivial normal subgroups of `G` that are minimal
+i.e., of those nontrivial normal subgroups of `G` that are minimal
 among the nontrivial normal subgroups.
 """
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
@@ -236,8 +235,11 @@ const centraliser = centralizer
 """
     isnormal(G::T, H::T) where T <: GAPGroup
 
-Return whether the subgroup `H` is normal in `G`,
-i. e., `H` is invariant under conjugation with elements of `G`.
+Return whether the group `H` is normalized by `G`, i.e.,
+whether `H` is invariant under conjugation with elements of `G`.
+
+!!! note
+    To test whether `H` is a normal subgroup, use `isnormal(G, H) && issubset(H, G)`
 """
 isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
 
@@ -245,7 +247,10 @@ isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
     ischaracteristic(G::T, H::T) where T <: GAPGroup
 
 Return whether the subgroup `H` is characteristic in `G`,
-i. e., `H` is invariant under all automorphisms of `G`.
+i.e., `H` is invariant under all automorphisms of `G`.
+
+!!! note
+    To test whether `H` is a characteristic subgroup, use `ischaracteristic(G, H) && issubset(H, G)`
 """
 function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
@@ -255,7 +260,7 @@ end
     issolvable(G::GAPGroup)
 
 Return whether `G` is solvable,
-i. e., whether [`derived_series`](@ref)(`G`)
+i.e., whether [`derived_series`](@ref)(`G`)
 reaches the trivial subgroup in a finite number of steps.
 """
 @gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
@@ -264,7 +269,7 @@ reaches the trivial subgroup in a finite number of steps.
     isnilpotent(G::GAPGroup)
 
 Return whether `G` is nilpotent,
-i. e., whether the lower central series of `G` reaches the trivial subgroup
+i.e., whether the lower central series of `G` reaches the trivial subgroup
 in a finite number of steps.
 """
 @gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
@@ -273,7 +278,7 @@ in a finite number of steps.
     issupersolvable(G::GAPGroup)
 
 Return whether `G` is supersolvable,
-i. e., `G` is finite and has a normal series with cyclic factors.
+i.e., `G` is finite and has a normal series with cyclic factors.
 """
 @gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
 
@@ -309,7 +314,7 @@ function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupE
     H1 = trivial_subgroup(G)[1]
   else
     elems_in_gap = GapObj([x.X for x in elements])
-    H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))
+    H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))::GapObj
     @assert GAPWrap.IsNormal(G.X, H)
     H1 = _as_subgroup_bare(G, H)
   end
@@ -356,8 +361,8 @@ PermGroup
 ```
 """
 function quo(G::T, N::T) where T <: GAPGroup
-  mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, N.X)
-  cod = GAP.Globals.ImagesSource(mp)
+  mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, N.X)::GapObj
+  cod = GAP.Globals.ImagesSource(mp)::GapObj
   S = elem_type(G)
   S1 = _get_type(cod)
   codom = S1(cod)
@@ -411,8 +416,8 @@ PermGroup
 ```
 """
 function maximal_abelian_quotient(G::GAPGroup)
-  map = GAP.Globals.MaximalAbelianQuotient(G.X)
-  F = GAP.Globals.Range(map)
+  map = GAP.Globals.MaximalAbelianQuotient(G.X)::GapObj
+  F = GAP.Globals.Range(map)::GapObj
   S1 = _get_type(F)
   F = S1(F)
   return F, GAPGroupHomomorphism(G, F, map)
@@ -479,7 +484,7 @@ together with the embeddings of $K into $G_i$.
 """
 function intersect(V::T...) where T<:GAPGroup
    L = GapObj([G.X for G in V])
-   K = GAP.Globals.Intersection(L)
+   K = GAP.Globals.Intersection(L)::GapObj
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))
@@ -488,7 +493,7 @@ end
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup
    L = GapObj([G.X for G in V])
-   K = GAP.Globals.Intersection(L)
+   K = GAP.Globals.Intersection(L)::GapObj
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))
@@ -509,8 +514,8 @@ _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 function isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
   f = _get_iso_function(T)
-  mp = f(G.X)
-  G1 = T(GAP.Globals.ImagesSource(mp))
+  mp = f(G.X)::GapObj
+  G1 = T(GAP.Globals.ImagesSource(mp)::GapObj)
   fmap = GAPGroupHomomorphism(G, G1, mp)
   return G1, fmap
 end

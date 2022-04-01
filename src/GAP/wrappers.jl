@@ -25,7 +25,6 @@ GAP.@wrap DenominatorRat(x::Any)::GapInt
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
-GAP.@wrap IN(x::Any, y::Any)::Bool
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap IntFFE(x::Any)::GapInt
 GAP.@wrap IsAbelian(x::Any)::Bool
@@ -89,11 +88,14 @@ GAP.@wrap IsZero(x::Any)::Bool
 GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NrCols(x::GapObj)::Int
+GAP.@wrap NrConjugacyClasses(x::Any)::GapInt
 GAP.@wrap NrRows(x::GapObj)::Int
 GAP.@wrap NumberColumns(x::GapObj)::Int
 GAP.@wrap NumberRows(x::GapObj)::Int
 GAP.@wrap NumeratorRat(x::Any)::GapInt
 GAP.@wrap One(x::Any)::Any
+GAP.@wrap Order(x::Any)::GapInt
+GAP.@wrap Size(x::Any)::GapInt
 GAP.@wrap Zero(x::Any)::Any
 
 # for Int arguments we can sometimes provide better alternatives

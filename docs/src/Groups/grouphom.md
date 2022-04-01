@@ -52,6 +52,7 @@ true
 hom(G::GAPGroup, H::GAPGroup, img::Function)
 hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
 image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
@@ -87,7 +88,7 @@ julia> x^f
 
 A sort of "inverse" of the evaluation is the following
 ```@docs
-haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 ```
   **Example:**
 ```jldoctest
@@ -169,4 +170,5 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 isomorphic_perm_group(G::GAPGroup)
 isomorphic_pc_group(G::GAPGroup)
 isomorphic_fp_group(G::GAPGroup)
+simplified_fp_group(G::FPGroup)
 ```

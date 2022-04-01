@@ -1,3 +1,13 @@
+@testset "embeddings" begin
+   @testset for G in [symmetric_group(5), small_group(24, 12), general_linear_group(2, 3)]
+     G = symmetric_group(5)
+     H, emb = sylow_subgroup(G, 2)
+     x = gen(H, 1)
+     y = image(emb, x)
+     @test preimage(emb, y) == x
+     @test any(g -> ! haspreimage(emb, g)[1], gens(G))
+   end
+end
 
 n = 6
 @testset "Homomorphism in Sym($n)" begin
@@ -94,6 +104,21 @@ end
    
       @test order(H)==2*n
       @test H == D
+   end
+
+   @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
+      for invs in [[2, 3, 4], [6, 8, 9, 15]]
+         for T in [PermGroup, PcGroup, FPGroup]
+            G = abelian_group(T, invs)
+            iso = isomorphism(GrpAbFinGen, G)
+            A = codomain(iso)
+            @test order(G) == order(A)
+            for x in gens(G)
+               y = image(iso, x)
+               @test preimage(iso, y) == x
+            end
+         end
+      end
    end
 
    @testset "Abelian_as_permutation" for n in 15:20

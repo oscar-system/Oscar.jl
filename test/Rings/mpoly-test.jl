@@ -191,8 +191,8 @@ end
 @testset "Groebner" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   I = ideal([x+y^2+4*z-5,x+y*z+5*z-2])
-  @test groebner_basis(I;ordering=:lex) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
-  @test groebner_basis(I;ordering=:degrevlex, complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
+  @test groebner_basis(I, ordering=lex(gens(R))) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
+  @test groebner_basis(I, ordering=degrevlex(gens(R)), complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
 
   # Test coefficient rings that are actually fields for safety. The first three
   # are native to singular while gfp_fmpz_elem now has a proper wrapper
@@ -200,14 +200,14 @@ end
              GF(fmpz(10)^50+151)]
     R, (x, y) = PolynomialRing(Zn, ["x", "y"], ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
-    g = groebner_basis(ideal(R, l); ordering = :degrevlex)
+    g = groebner_basis(ideal(R, l); ordering = degrevlex(gens(R)))
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
   F, a = FiniteField(11, 2, "a")
   R, (x, y, z) = PolynomialRing(F, ["x", "y", "z"], ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
-  gb = groebner_basis(ideal(R, l); ordering = :degrevlex)
+  gb = groebner_basis(ideal(R, l); ordering = degrevlex(gens(R)))
   @test iszero(divrem(l[1] + l[2], gb)[2])
 end
 
@@ -235,4 +235,11 @@ end
   I = ideal(R, zero(R))
   @test issubset(I, I)
   @test I == I
+end
+
+@testset "#975" begin
+  A, t = PolynomialRing(QQ, ["t"])
+  R, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
+  I = ideal(R, [x])
+  @test x in I
 end

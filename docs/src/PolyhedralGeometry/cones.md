@@ -33,8 +33,8 @@ reason for keeping cones as a distinct type.
 ## Construction
 
 ```@docs
-positive_hull(::Union{Oscar.MatElem, AbstractMatrix})
-secondary_cone(SOP::SubdivisionOfPoints)
+positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
 ## Saving and loading
@@ -43,32 +43,27 @@ Objects of type `Cone` can be saved to a file and loaded from a file in the
 following way:
 ```@repl oscar
 C = positive_hull([1 0; 0 1])
-save_cone(C, "C.cone")
-CC = load_cone("C.cone")
+save(C, "C.cone")
+CC = load("C.cone")
 collect(rays(CC))
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
 
-```@docs
-save_cone(C::Cone, filename::String)
-load_cone(filename::String)
-```
-
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)
 f_vector(C::Cone)
-hilbert_basis(C::Cone)
+hilbert_basis(C::Cone{fmpq})
 codim(C::Cone)
 dim(C::Cone)
-polarize(C::Cone)
-intersect(C0::Cone, C1::Cone)
+polarize(C::Cone{T}) where T<:scalar_types
+intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 ispointed(C::Cone)
 isfulldimensional(C::Cone)
 lineality_dim(C::Cone)
-lineality_space(C::Cone)
+lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone)

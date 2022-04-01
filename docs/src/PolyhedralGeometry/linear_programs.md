@@ -104,8 +104,8 @@ in the following way:
 ```@repl oscar
 C = cube(3)
 LP=LinearProgram(C, [1,2,-3], convention=:min)
-save_linearprogram(LP, "lp.poly")
-LP0 = load_linearprogram("lp.poly")
+save(LP, "lp.poly")
+LP0 = load("lp.poly")
 solve_lp(LP0)
 solve_lp(LP)
 ```
@@ -113,7 +113,3 @@ The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
 
-```@docs
-save_linearprogram(LP::LinearProgram, filename::String)
-load_linearprogram(filename::String)
-```
