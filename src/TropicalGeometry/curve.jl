@@ -94,6 +94,8 @@ end
     graph(tc::TropicalCurve{M, EMB})
 
 Return the graph of an abstract tropical curve `tc`.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
