@@ -133,7 +133,7 @@ julia> n_nodes(tc)
 4
 ```
 """
-function n_nodes(tc::TropicalCurve{M, EMB}) where {M, EMB}
+function n_nodes(tc::TropicalCurve)
     G = graph(tc)
     return Polymake.ncols(G)
 end
