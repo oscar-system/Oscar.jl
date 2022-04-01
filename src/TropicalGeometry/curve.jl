@@ -42,7 +42,7 @@ end
 ###
 
 @doc Markdown.doc"""
-    TropicalCurve{M, EMB}()
+    TropicalCurve(PC::PolyhedralComplex)
 
 Construct a tropical curve from a polyhedral complex.
 If the curve is embedded, vertices must are points in $\mathbb R^n$.
@@ -68,20 +68,19 @@ julia> VR = [0 0; 1 0; -1 0; 0 1]
 julia> PC = PolyhedralComplex{fmpq}(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> TC = TropicalCurve{min}(PC)
+julia> TC = TropicalCurve(PC)
 A tropical curve in 2-dimensional Euclidean space
 
-julia> abs_TC = TropicalCurve{min}(IM)
+julia> abs_TC = TropicalCurve(IM)
 An abstract tropical curve
 ```
 """
-function TropicalCurve{M}(PC::PolyhedralComplex) where {M}
+function TropicalCurve(PC::PolyhedralComplex, M::Union{typeof(min),typeof(max)}=min)
    @assert dim(PC)==1 "The polyhedral complex is not of dimenion 1."
    return TropicalCurve{M, true}(PC)
 end
 
-
-function TropicalCurve{M}(graph::IncidenceMatrix) where {M}
+function TropicalCurve(graph::IncidenceMatrix, M::Union{typeof(min),typeof(max)}=min)
     # Columns correspond to nodes
     # Rows correpons to edges
     empty = PolyhedralComplex(Polymake.fan.PolyhedralComplex())
@@ -99,7 +98,7 @@ Return the graph of an abstract tropical curve `tc`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
+julia> tc = TropicalCurve(IM)
 An abstract tropical curve
 
 julia> graph(tc)
@@ -120,7 +119,7 @@ function graph(tc::TropicalCurve)
 end
 
 @doc Markdown.doc"""
-    n_nodes(tc::TropicalCurve{M, EMB})
+    n_nodes(tc::TropicalCurve)
 
 Return the number of nodes of an abstract tropical curve `tc`.
 
@@ -128,8 +127,8 @@ Return the number of nodes of an abstract tropical curve `tc`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> n_nodes(tc)
 4
@@ -141,16 +140,16 @@ function n_nodes(tc::TropicalCurve)
 end
 
 
-function Base.show(io::IO, tc::TropicalCurve{M, EMB}) where {M, EMB}
+function Base.show(io::IO, tc::TropicalCurve{M,EMB}) where {M,EMB}
     if EMB
-        print(io, "A tropical curve in $(ambient_dim(tc))-dimensional Euclidean space")
+        print(io, "A "*string(M)*" tropical curve in $(ambient_dim(tc))-dimensional Euclidean space")
     else
-        print(io, "An abstract tropical curve")
+        print(io, "An abstract "*string(M)*" tropical curve")
     end
 end
 
 @doc Markdown.doc"""
-    DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int})
+    DivisorOnTropicalCurve(tc::TropicalCurve, coeffs::Vector{Int})
 
 Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
 
@@ -158,13 +157,13 @@ Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 ```
 """
 struct DivisorOnTropicalCurve{M, EMB}
@@ -182,13 +181,13 @@ struct DivisorOnTropicalCurve{M, EMB}
     end
 end
 
-base_curve(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.base_curve
+base_curve(dtc::DivisorOnTropicalCurve) = dtc.base_curve
 
 ###
 # 3.Basic properties
 #
 @doc Markdown.doc"""
-    coefficients(dtc::DivisorOnTropicalCurve{M, EMB})
+    coefficients(dtc::DivisorOnTropicalCurve)
 
 Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical curve.
 
@@ -196,13 +195,13 @@ Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical cur
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 
 julia> coefficients(dtc)
 4-element Vector{Int64}:
@@ -212,10 +211,10 @@ julia> coefficients(dtc)
  1
 ```
 """
-coefficients(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.coefficients
+coefficients(dtc::DivisorOnTropicalCurve) = dtc.coefficients
 
 @doc Markdown.doc"""
-   degree(dtc::DivisorOnTropicalCurve{M, EMB})
+   degree(dtc::DivisorOnTropicalCurve)
 
 Compute the degree of  a divisor `dtc` on an abstract tropical curve.
 
@@ -223,22 +222,22 @@ Compute the degree of  a divisor `dtc` on an abstract tropical curve.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 
 julia> degree(dtc)
 3
 ```
 """
-degree(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = sum(coefficients(dtc))
+degree(dtc::DivisorOnTropicalCurve) = sum(coefficients(dtc))
 
 @doc Markdown.doc"""
-    is_effective(dtc::DivisorOnTropicalCurve{M, EMB})
+    is_effective(dtc::DivisorOnTropicalCurve)
 
 Check whether a divisor `dtc` on an abstract tropical curve is effective.
 
@@ -246,23 +245,23 @@ Check whether a divisor `dtc` on an abstract tropical curve is effective.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 
 julia> is_effective(dtc)
 true
 ```
 """
-is_effective(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = all(e -> e>=0, coefficients(dtc))
+is_effective(dtc::DivisorOnTropicalCurve) = all(e -> e>=0, coefficients(dtc))
 
 
 @doc Markdown.doc"""
-   chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int)
+   chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
 
 Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
 
@@ -270,19 +269,19 @@ Given a divisor `dtc` and vertex labelled `position`, compute the linearly equiv
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 
 julia> chip_firing_move(dtc,1)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [-3, 2, 2, 2])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [-3, 2, 2, 2])
 ```
 """
-function chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int) where {M, EMB}
+function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
     G = graph(base_curve(dtc))
     newcoeffs = Vector{Int}(coefficients(dtc))
     for i in 1:Polymake.nrows(G)
@@ -301,7 +300,7 @@ end
 
 ### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices.
 ### This is the number of vertices not in W adjecent to v. 1,
-function outdegree(tc::TropicalCurve{M,EMB}, W::Set{Int}, v::Int) where {M, EMB}
+function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
     G = graph(tc)
     m = Polymake.nrows(G) #number of edges of tc
     @assert v in W "Vertex number $v not in $W"
@@ -330,16 +329,16 @@ The divisor `dtc` must have positive coefficients apart from `vertex`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs = [0, 1, 1, 1];
 
 julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 
 julia> v_reduced(dtc,1)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [3, 0, 0, 0])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [3, 0, 0, 0])
 ```
 """
 function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
@@ -374,7 +373,7 @@ function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 end
 
 @doc Markdown.doc"""
-   is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB})
+   is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
 
 Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check whether they are linearly equivalent.
 
@@ -382,18 +381,18 @@ Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
-julia> tc = TropicalCurve{min}(IM)
-An abstract tropical curve
+julia> tc = TropicalCurve(IM)
+An abstract min tropical curve
 
 julia> coeffs1 = [0, 1, 1, 1];
 
 julia> dtc1 = DivisorOnTropicalCurve(tc,coeffs1)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [0, 1, 1, 1])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 
 julia> coeffs2 = [3,0,0,0];
 
 julia> dtc2 = DivisorOnTropicalCurve(tc,coeffs2)
-DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [3, 0, 0, 0])
+DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [3, 0, 0, 0])
 
 julia> is_linearly_equivalent(dtc1, dtc2)
 true
@@ -452,8 +451,8 @@ julia> IM1=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in 
 [3, 5]
 [4, 5]
 
-julia> TC1 = TropicalCurve{min}(IM1)
-An abstract tropical curve
+julia> TC1 = TropicalCurve(IM1)
+An abstract min tropical curve
 
 julia> structure_tropical_jacobian(TC1)
 (General) abelian group with relation matrix
@@ -467,8 +466,8 @@ julia> IM2=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in 
 [1, 3]
 [2, 3]
 
-julia> TC2 = TropicalCurve{min}(IM2)
-An abstract tropical curve
+julia> TC2 = TropicalCurve(IM2)
+An abstract min tropical curve
 
 julia> structure_tropical_jacobian(TC2)
 (General) abelian group with relation matrix
@@ -482,8 +481,8 @@ julia> IM3 = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
 [4, 5]
 [1, 5]
 
-julia> TC3=TropicalCurve{min}(IM3)
-An abstract tropical curve
+julia> TC3=TropicalCurve(IM3)
+An abstract min tropical curve
 
 julia> G = structure_tropical_jacobian(TC3)
 (General) abelian group with relation matrix
