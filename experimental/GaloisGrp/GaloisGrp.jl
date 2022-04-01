@@ -1732,12 +1732,19 @@ function an_sn_by_shape(ct::Set{CycleType}, n::Int)
 end
 
 function Oscar.cycle_structure(x::GroupConjClass{PermGroup, PermGroupElem})
-  return cycle_structure(x.repr)
+  c = cycle_structure(x.repr)
+  s = reduce(+, [v*k for (k,v) = c], init = 0)
+  if s < degree(parent(x.repr))
+    @assert !any(x->x[1] == 1, c)
+    insert!(c, 1, 1=>(degree(parent(x.repr))-s))
+  end
+
+  return c
 end
 
 function cycle_structures(G::PermGroup)
   r = conjugacy_classes(G)
-  return Set([cycle_structure(x.repr) for x = r])
+  return Set([cycle_structure(x) for x = r])
 end
 
 #
@@ -1804,7 +1811,8 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   @vprint :GaloisGroup 2 "using lower bound $os for order to sieve\n"
   push!(F, x->order(x) % os == 0, "group too small")
   if degree(K) < 20 #arbitrary....
-    push!(F, x->issubset(ct, cycle_structures(x)), "by cycle structures")
+    cct = Set([CycleType(x).s for x = ct])
+    push!(F, x->issubset(cct, cycle_structures(x)), "by cycle structures")
   end
 
   # TODO: here we know if we are primitive; can we detect 2-transitive (inside starting_group)?
