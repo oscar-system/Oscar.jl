@@ -310,7 +310,6 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
       add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
     end
   end
-  #fill_transitions!(result)
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
   set_attribute!(X, :standard_covering, result)
   set_attribute!(X, :covered_projection_to_base, covered_projection)

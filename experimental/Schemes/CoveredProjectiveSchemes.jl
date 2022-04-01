@@ -192,7 +192,7 @@ function blow_up(
 
   m = length(I)
   Pw = (length(var_names) > 0 ? projective_space(W, var_names) : projective_space(W,m-1))
-  S = homogeneous_coordinate_ring(Pw)
+  S = homog_poly_ring(Pw)
 
   CP = affine_cone(Pw)
   Polyring = base_ring(OO(CP))
@@ -295,10 +295,10 @@ function blow_up(
   for (U, V) in keys(glueings(C))
     P = local_blowups[C[U]][1]
     base_scheme(P) == U || error()
-    SP = homogeneous_coordinate_ring(P)
+    SP = homog_poly_ring(P)
     Q = local_blowups[C[V]][1]
     base_scheme(Q) == V || error()
-    SQ = homogeneous_coordinate_ring(Q)
+    SQ = homog_poly_ring(Q)
     G = C[U, V]
     UV, VU = glueing_domains(G)
     f, g = glueing_morphisms(G)
@@ -311,7 +311,7 @@ function blow_up(
       gensVW = OO(W).(pullback(f[i]).(I[V])) # TODO: Why is this conversion necessary?!
       transitionVU = [write_as_linear_combination(g, gensUW) for g in gensVW]
       PW, _ = fiber_product(W, P)
-      SPW = homogeneous_coordinate_ring(PW)
+      SPW = homog_poly_ring(PW)
       push!(P_on_U_patches_to_Q, 
             ProjectiveSchemeMor(PW, Q, 
                                 hom(SQ, SPW,
@@ -330,7 +330,7 @@ function blow_up(
       gensUW = OO(W).(pullback(g[i]).(I[U]))
       transitionUV = [write_as_linear_combination(g, gensVW) for g in gensUW]
       QW, _ = fiber_product(W, Q)
-      SQW = homogeneous_coordinate_ring(QW)
+      SQW = homog_poly_ring(QW)
       push!(Q_on_V_patches_to_P, 
             ProjectiveSchemeMor(QW, P, 
                                 hom(SP, SQW,
