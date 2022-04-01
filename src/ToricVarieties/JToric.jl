@@ -53,6 +53,7 @@ include("ToricDivisorClasses/attributes.jl")
 include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
+include("ToricLineBundles/special_attributes.jl")
 
 include("CohomologyClasses/constructors.jl")
 include("CohomologyClasses/properties.jl")
