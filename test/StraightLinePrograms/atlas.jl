@@ -86,56 +86,56 @@ end
     res = empty(ab)
 
     p = AtlasSLProgram("cjr 2 1 \noup 1 2")
-    @test evaluate(p, ab) == [a^-1 * b * a]
-    @test res === evaluate!(res, p, ab) == [a^-1 * b * a]
-    g = SL.compile(GAPSLProgram, p)
+    @test SLP.evaluate(p, ab) == [a^-1 * b * a]
+    @test res === SLP.evaluate!(res, p, ab) == [a^-1 * b * a]
+    g = SLP.compile(GAPSLProgram, p)
     @test g isa GAPSLProgram
-    @test evaluate(g, ab) == [a^-1 * b * a]
-    sl = SL.compile(SLProgram, p)
+    @test SLP.evaluate(g, ab) == [a^-1 * b * a]
+    sl = SLP.compile(SLProgram, p)
     @test sl isa SLProgram
-    @test evaluate(sl, ab) == [a^-1 * b * a]
-    sl = SL.compile(p)
+    @test SLP.evaluate(sl, ab) == [a^-1 * b * a]
+    sl = SLP.compile(p)
     @test sl isa SLProgram
-    @test evaluate(sl, ab) == [a^-1 * b * a]
+    @test SLP.evaluate(sl, ab) == [a^-1 * b * a]
 
     p = AtlasSLProgram("cj 1 2 3\noup 2 1 3")
-    @test evaluate(p, ab) == [a, b^-1 * a * b]
-    @test res === evaluate!(res, p, ab) == [a, b^-1 * a * b]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [a, b^-1 * a * b]
+    @test SLP.evaluate(p, ab) == [a, b^-1 * a * b]
+    @test res === SLP.evaluate!(res, p, ab) == [a, b^-1 * a * b]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [a, b^-1 * a * b]
 
     p = AtlasSLProgram("com 1 2 3 \noup 1 3")
-    @test evaluate(p, ab) == [a^-1 * b^-1 * a * b]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [a^-1 * b^-1 * a * b]
+    @test SLP.evaluate(p, ab) == [a^-1 * b^-1 * a * b]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [a^-1 * b^-1 * a * b]
 
     p = AtlasSLProgram("iv 1 2")
-    @test evaluate(p, ab) == [a, a^-1]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [a, a^-1]
+    @test SLP.evaluate(p, ab) == [a, a^-1]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [a, a^-1]
 
     p = AtlasSLProgram("mu 1 2 1")
-    @test evaluate(p, ab) == [a * b, b]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [a * b, b]
+    @test SLP.evaluate(p, ab) == [a * b, b]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [a * b, b]
 
     p = AtlasSLProgram("inp 1 \n pwr 4 1 2")
-    @test evaluate(p, ab) == [a, a^4]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [a, a^4]
+    @test SLP.evaluate(p, ab) == [a, a^4]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [a, a^4]
 
     p = AtlasSLProgram("cp 1 3 \n cp 2 4 \n oup 4")
-    @test evaluate(p, ab) == [a, b, a, b]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [a, b, a, b]
+    @test SLP.evaluate(p, ab) == [a, b, a, b]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [a, b, a, b]
 
-    @test_throws ArgumentError SL.compile(GAPSLDecision, p)
+    @test_throws ArgumentError SLP.compile(GAPSLDecision, p)
 
     # bug with overwriting results
     p = AtlasSLProgram("oup 2 2 1")
-    @test evaluate(p, ab) == [b, a]
-    g = SL.compile(GAPSLProgram, p)
-    @test evaluate(g, ab) == [b, a]
+    @test SLP.evaluate(p, ab) == [b, a]
+    g = SLP.compile(GAPSLProgram, p)
+    @test SLP.evaluate(g, ab) == [b, a]
 end
 
 @testset "AtlasSLDecision evaluate /compile" begin
@@ -156,8 +156,8 @@ end
             chor 3 $k
             """)
 
-        @test evaluate(d, pq) == r
-        @test_throws ArgumentError SL.compile(GAPSLProgram, d)
+        @test SLP.evaluate(d, pq) == r
+        @test_throws ArgumentError SLP.compile(GAPSLProgram, d)
     end
 
     for (p, q, r) in eachcol(rand(parent(p), 3, 50))
@@ -175,8 +175,8 @@ end
                 ["Order", 2, j],
                 ["Order", 3, k]],
                                3)
-            @test evaluate(ad, pqr) == evaluate(gd, pqr)
-            @test SL.compile(GAPSLDecision, ad).lines == gd.lines
+            @test SLP.evaluate(ad, pqr) == SLP.evaluate(gd, pqr)
+            @test SLP.compile(GAPSLDecision, ad).lines == gd.lines
         end
     end
 end

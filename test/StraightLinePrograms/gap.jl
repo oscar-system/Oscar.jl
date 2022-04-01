@@ -104,57 +104,57 @@ end
 
         g = GAPSLProgram([ [2,3], [ 1, 2, 3, 1] ], 2 )
 
-        @test evaluate(g, xy) == x^2*y^3
-        @test evaluate!(res, g, xy) == x^2*y^3
-        slp0 = SL.compile(g)
+        @test SLP.evaluate(g, xy) == x^2*y^3
+        @test SLP.evaluate!(res, g, xy) == x^2*y^3
+        slp0 = SLP.compile(g)
         @test slp0 isa SLProgram
-        @test evaluate(slp0, xy) == x^2*y^3
-        slp = SL.compile(SLProgram, g)
+        @test SLP.evaluate(slp0, xy) == x^2*y^3
+        slp = SLP.compile(SLProgram, g)
         @test slp isa SLProgram
         @test slp == slp0
-        @test evaluate(slp, xy) == x^2*y^3
-        slp = SL.compile!(g)
+        @test SLP.evaluate(slp, xy) == x^2*y^3
+        slp = SLP.compile!(g)
         @test slp == slp0
         @test g.slp[] === slp
-        @test evaluate(slp, xy) == x^2*y^3
+        @test SLP.evaluate(slp, xy) == x^2*y^3
 
         g = GAPSLProgram([ [2,3], [ 3, 1, 1, 4] ], 2 )
-        @test evaluate(g, xy) == y^3*x^4
-        @test evaluate!(res, g, xy) == y^3*x^4
-        slp = SL.compile!(g)
-        @test evaluate(slp, xy) == y^3*x^4
+        @test SLP.evaluate(g, xy) == y^3*x^4
+        @test SLP.evaluate!(res, g, xy) == y^3*x^4
+        slp = SLP.compile!(g)
+        @test SLP.evaluate(slp, xy) == y^3*x^4
 
         g = GAPSLProgram([ [2,3], [ [3, 1, 1, 4], [ 1, 2, 3, 1]] ], 2 )
-        @test evaluate(g, xy) == [y^3*x^4, x^2*y^3]
-        @test evaluate!(res, g, xy) == [y^3*x^4, x^2*y^3]
-        slp = SL.compile!(g)
+        @test SLP.evaluate(g, xy) == [y^3*x^4, x^2*y^3]
+        @test SLP.evaluate!(res, g, xy) == [y^3*x^4, x^2*y^3]
+        slp = SLP.compile!(g)
         # convert to Vector{Any} as otherwise we don't get a vector
         # but an SLP returning a list
-        @test evaluate(slp, convert(Vector{Any}, xy)) == [y^3*x^4, x^2*y^3]
+        @test SLP.evaluate(slp, convert(Vector{Any}, xy)) == [y^3*x^4, x^2*y^3]
 
         g = GAPSLProgram([ [ [1,1,2,2], 2 ], [2,3,1,1] ] )
-        @test evaluate(g, xy) == (x*y^2)^3*x
-        @test evaluate!(res, g, xy) == (x*y^2)^3*x
-        slp = SL.compile!(g)
-        @test evaluate(slp, xy) == (x*y^2)^3*x
+        @test SLP.evaluate(g, xy) == (x*y^2)^3*x
+        @test SLP.evaluate!(res, g, xy) == (x*y^2)^3*x
+        slp = SLP.compile!(g)
+        @test SLP.evaluate(slp, xy) == (x*y^2)^3*x
 
         g = GAPSLProgram([ [ [1,-1,2,-2], 2 ], [2,-3,1,1] ] )
         t = (x^-Int(1)*y^-Int(2))^-Int(3)*x
-        @test evaluate(g, xy) == t
-        @test evaluate!(res, g, xy) == t
-        slp = SL.compile!(g)
-        @test evaluate(slp, xy) == t
+        @test SLP.evaluate(g, xy) == t
+        @test SLP.evaluate!(res, g, xy) == t
+        slp = SLP.compile!(g)
+        @test SLP.evaluate(slp, xy) == t
 
         # assignments
         g = GAPSLProgram([ [[2, 3], 3] ])
-        @test evaluate(g, xy) == y^3
-        slp = SL.compile!(g)
-        @test evaluate(slp, xy) == y^3
+        @test SLP.evaluate(g, xy) == y^3
+        slp = SLP.compile!(g)
+        @test SLP.evaluate(slp, xy) == y^3
 
         g = GAPSLProgram([ [[2, 3], 3], [[1, 2, 3, 2], 2] ])
-        @test evaluate(g, xy) == x^2*(y^3)^2
-        slp = SL.compile!(g)
-        @test evaluate(slp, xy) == x^2*(y^3)^2
+        @test SLP.evaluate(g, xy) == x^2*(y^3)^2
+        slp = SLP.compile!(g)
+        @test SLP.evaluate(slp, xy) == x^2*(y^3)^2
     end
 end
 
@@ -173,17 +173,17 @@ end
             ["Order", 2, j],
             ["Order", 3, k] ])
 
-        @test evaluate(gd, pq) == r
+        @test SLP.evaluate(gd, pq) == r
 
-        gdc = SL.compile!(gd)
-        @test evaluate(gdc, pq) == r
+        gdc = SLP.compile!(gd)
+        @test SLP.evaluate(gdc, pq) == r
 
         sld = SLProgram()
-        m = SL.pushop!(sld, SL.times, SL.input(1), SL.input(2))
-        SL.pushop!(sld, SL.decision, SL.input(1), SL.pushint!(sld, i))
-        SL.pushop!(sld, SL.decision, SL.input(2), SL.pushint!(sld, j))
-        dec = SL.pushop!(sld, SL.decision, m, SL.pushint!(sld, k))
-        SL.pushfinalize!(sld, dec)
-        @test evaluate(sld, pq) == r
+        m = SLP.pushop!(sld, SLP.times, SLP.input(1), SLP.input(2))
+        SLP.pushop!(sld, SLP.decision, SLP.input(1), SLP.pushint!(sld, i))
+        SLP.pushop!(sld, SLP.decision, SLP.input(2), SLP.pushint!(sld, j))
+        dec = SLP.pushop!(sld, SLP.decision, m, SLP.pushint!(sld, k))
+        SLP.pushfinalize!(sld, dec)
+        @test SLP.evaluate(sld, pq) == r
     end
 end
