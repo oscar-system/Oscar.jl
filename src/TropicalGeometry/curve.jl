@@ -91,7 +91,7 @@ function TropicalCurve{M}(graph::IncidenceMatrix) where {M}
 end
 
 @doc Markdown.doc"""
-    graph(tc::TropicalCurve{M, EMB})
+    graph(tc::TropicalCurve)
 
 Return the graph of an abstract tropical curve `tc`.
 
@@ -320,7 +320,7 @@ function outdegree(tc::TropicalCurve{M,EMB}, W::Set{Int}, v::Int) where {M, EMB}
 end
 
 @doc Markdown.doc"""
-   v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int)
+   v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 
 Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
 as defined in [BN07](@cite).
@@ -342,7 +342,7 @@ julia> v_reduced(dtc,1)
 DivisorOnTropicalCurve{min, false}(An abstract tropical curve, [3, 0, 0, 0])
 ```
 """
-function v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) where {M, EMB}
+function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
     tc = base_curve(dtc)
     G = graph(base_curve(dtc))
     n = Polymake.ncols(G)
