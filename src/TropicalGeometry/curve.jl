@@ -112,7 +112,7 @@ julia> graph(tc)
 [3, 4]
 ```
 """
-function graph(tc::TropicalCurve{M, EMB}) where {M, EMB}
+function graph(tc::TropicalCurve)
     if !has_attribute(tc, :graph)
         throw(ArgumentError("No graph attached"))
     end
