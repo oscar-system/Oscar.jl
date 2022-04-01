@@ -49,6 +49,7 @@ include("ToricDivisors/attributes.jl")
 include("ToricDivisorClasses/constructors.jl")
 include("ToricDivisorClasses/properties.jl")
 include("ToricDivisorClasses/attributes.jl")
+include("ToricDivisorClasses/special_attributes.jl")
 
 include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")

@@ -256,6 +256,8 @@ DC2 = ToricDivisorClass(H5, [1,2])
     @test istrivial(2 * DC1 + DC2) == false
     @test toric_variety(DC1) === toric_variety(DC2)
     @test (divisor_class(DC1) == divisor_class(DC2)) == false
+    @test canonical_divisor_class(dP3) - canonical_divisor_class(dP3) == trivial_divisor_class(dP3)
+    @test anticanonical_divisor_class(dP3) + canonical_divisor_class(dP3) == trivial_divisor_class(dP3)
 end
 
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])
@@ -275,6 +277,7 @@ line_bundle2 = ToricLineBundle(D2)
     @test all_cohomologies(line_bundle) == [11,0,0]
     @test cohomology(line_bundle,0) == 11
     @test istrivial(canonical_bundle(dP3)) == false
+    @test istrivial(structure_sheaf(dP3)) == true
     @test inv(anticanonical_bundle(dP3)) == canonical_bundle(dP3)
 end
 

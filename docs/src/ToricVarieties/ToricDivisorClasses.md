@@ -37,13 +37,11 @@ Base.:*(c::fmpz, td::ToricDivisorClass)
 Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
 ```
 
-
 ## Properties of toric divisor classes
 
 ```@docs
 istrivial(tdc::ToricDivisorClass)
 ```
-
 
 ## Operations for toric divisor classes
 
@@ -51,4 +49,12 @@ istrivial(tdc::ToricDivisorClass)
 divisor_class(tdc::ToricDivisorClass)
 toric_variety(tdc::ToricDivisorClass)
 toric_divisor(tdc::ToricDivisorClass)
+```
+
+## Special divisor classes
+
+```@docs
+TrivialDivisorClass(v::AbstractNormalToricVariety)
+AnticanonicalDivisorClass(v::AbstractNormalToricVariety)
+CanonicalDivisorClass(v::AbstractNormalToricVariety)
 ```
