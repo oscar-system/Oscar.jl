@@ -31,6 +31,16 @@ InstallOtherMethod( \[\,\],
       return (m!.m)[i,j];
     end );
     
+# TODO: Not working. JuliaMatrixRep is immutable
+InstallOtherMethod( \[\,\]\:\=,
+    [ IsJuliaMatrixRep and IsMutable, IsPosInt and IsSmallIntRep,
+                       IsPosInt and IsSmallIntRep, IsObject ],
+    function( m, i, j, val )
+    local mat;
+        mat := m!.m;
+        mat[i,j] := val;
+    end );
+    
 InstallOtherMethod( \*, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         return MakeJuliaMatrixRep(m1!.m * m2!.m);
     end );
@@ -71,11 +81,7 @@ InstallOtherMethod(\^, [IsJuliaMatrixRep, IsInt and IsSmallIntRep], function( m1
         fi;
     end);
     
-InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
-        return m1!.m = m2!.m;
-    end);
-    
-InstallOtherMethod(Display, [IsJuliaMatrixRep], 5000, function( m )
+InstallOtherMethod(Display, [IsJuliaMatrixRep], function( m )
     local i,j;
         Print("[ ");
         for i in [1..NumberRows(m)] do
@@ -105,22 +111,16 @@ InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
     od;
     return v;
 end);
-
-InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
-    return Julia.Base.
-end);
-
-# TODO: Not working. JuliaMatrixRep is immutable
-InstallOtherMethod( \[\,\]\:\=,
-    [ IsJuliaMatrixRep and IsMutable, IsPosInt and IsSmallIntRep,
-                       IsPosInt and IsSmallIntRep, IsObject ],
-    function( m, i, j, val )
-    local mat;
-        mat := m!.m;
-        mat[i,j] := val;
-    end );
-
-# TODO: Not working
+    
+InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
+        return m1!.m = m2!.m;
+    end);
+    
+# TODO: Not working in all cases. Needs more checks?
 InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         return m1!.m < m2!.m;
     end);
+
+# InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
+#    return Julia.Base.
+# end);
