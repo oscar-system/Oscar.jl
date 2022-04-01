@@ -3,8 +3,13 @@ import Polymake: IncidenceMatrix
 const nf_scalar = Union{nf_elem, fmpq}
 
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
-    i = findfirst(_cannot_convert_to_fmpq, m)
-    m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+    a, b = size(m)
+    if a > 0
+        i = findfirst(_cannot_convert_to_fmpq, m)
+        m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+    else
+        m = Polymake.Matrix{Polymake.Rational}(undef, a, b)
+    end
     return m
 end
 
