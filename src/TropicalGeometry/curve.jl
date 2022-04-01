@@ -123,6 +123,8 @@ end
     n_nodes(tc::TropicalCurve{M, EMB})
 
 Return the number of nodes of an abstract tropical curve `tc`.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -151,6 +153,8 @@ end
     DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int})
 
 Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -187,6 +191,8 @@ base_curve(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.base_curve
     coefficients(dtc::DivisorOnTropicalCurve{M, EMB})
 
 Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical curve.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -212,6 +218,8 @@ coefficients(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.coefficie
    degree(dtc::DivisorOnTropicalCurve{M, EMB})
 
 Compute the degree of  a divisor `dtc` on an abstract tropical curve.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -233,6 +241,8 @@ degree(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = sum(coefficients(dt
     is_effective(dtc::DivisorOnTropicalCurve{M, EMB})
 
 Check whether a divisor `dtc` on an abstract tropical curve is effective.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -255,6 +265,8 @@ is_effective(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = all(e -> e>=0
    chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int)
 
 Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -313,6 +325,8 @@ end
 Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
 as defined in [BN07](@cite).
 The divisor `dtc` must have positive coefficients apart from `vertex`.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -363,6 +377,8 @@ end
    is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB})
 
 Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check whether they are linearly equivalent.
+
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
