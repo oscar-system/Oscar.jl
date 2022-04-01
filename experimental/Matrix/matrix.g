@@ -1,6 +1,5 @@
-BindGlobal("HelloWorld", function()
-    return "Hello World!";
-end);
+# This file implements a minimal GAP MatrixObj type which wraps around Julia
+# matrices, to make them usable within GAP.
 
 BindGlobal("JuliaMatrixFamily", NewFamily("JuliaMatrixFamily"));
 
@@ -10,36 +9,14 @@ DeclareRepresentation(
   
 JuliaMatrixIdentificationType :=
     NewType( JuliaMatrixFamily, IsJuliaMatrixRep);
-    
-#DeclareOperation( "MakeJuliaMatrixRep", [ IsJuliaObject] );
-
-#InstallMethod( MakeJuliaMatrixRep, "", [IsJuliaObject],
-#    function(m)
-#        return Objectify(JuliaMatrixIdentificationType, rec(m := m));
-#    end
-#);
 
 BindGlobal("MakeJuliaMatrixRep",function(m)
+  if not IsJuliaObject(m) then
+    Error("<m> must be a Julia object");
+  fi;
   return Objectify(JuliaMatrixIdentificationType,
                rec(m := m));
 end);
-
-#DeclareOperation( "\*", [ IsJuliaMatrixRep, IsJuliaMatrixRep ] );
-#DeclareOperation( "\/", [ IsJuliaMatrixRep, IsJuliaMatrixRep ] );
-
-#InstallMethod( \*,
-#    "for two IsJuliaMatrixRep",
-#    [ IsJuliaMatrixRep, IsJuliaMatrixRep ],
-#    function( m1, m2 )
-#        return MakeJuliaMatrixRep(m1!.m * m2!.m);
-#    end );
-
-#InstallMethod( \/,
-#    "for two IsJuliaMatrixRep",
-#    [ IsJuliaMatrixRep, IsJuliaMatrixRep ],
-#    function( m1, m2 )
-#        return m1 * Inverse(m2);
-#    end );
     
 InstallOtherMethod( NumberRows, [IsJuliaMatrixRep], m -> Julia.nrows(m!.m));
 
@@ -59,18 +36,24 @@ InstallOtherMethod( \*, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
     end );
     
 InstallOtherMethod( \/, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
-        return m1 * Inverse(m2);
+        MakeJuliaMatrixRep(m1!.m * Inverse(m2!.m));
     end);
     
 InstallMethod( InverseMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(InverseOp(m!.m)));
 
 InstallMethod( InverseImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(InverseOp(m!.m))));
 
-InstallOtherMethod( AdditiveInverseOp, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(AdditiveInverseOp(m!.m)));
+InstallOtherMethod( AdditiveInverseMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(AdditiveInverseOp(m!.m)));
 
-InstallOtherMethod(One, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(OneOp(m!.m)));
+InstallOtherMethod( AdditiveInverseImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(AdditiveInverseOp(m!.m))));
 
-InstallOtherMethod(Zero, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(ZeroOp(m!.m)));
+InstallOtherMethod(OneMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(OneOp(m!.m)));
+
+InstallOtherMethod(OneImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(OneOp(m!.m))));
+
+InstallOtherMethod(ZeroMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(ZeroOp(m!.m)));
+
+InstallOtherMethod(ZeroImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(ZeroOp(m!.m))));
 
 InstallOtherMethod(\+, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         return MakeJuliaMatrixRep(m1!.m + m2!.m);
@@ -121,6 +104,10 @@ InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
         od;
     od;
     return v;
+end);
+
+InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
+    return Julia.Base.
 end);
 
 # TODO: Not working. JuliaMatrixRep is immutable
