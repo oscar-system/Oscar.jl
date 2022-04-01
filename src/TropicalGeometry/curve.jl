@@ -44,10 +44,10 @@ end
 @doc Markdown.doc"""
     TropicalCurve{M, EMB}()
 
-Construct a tropical curve from a polyhedral complex. 
+Construct a tropical curve from a polyhedral complex.
 If the curve is embedded, vertices must are points in $\mathbb R^n$.
-If the curve is abstract, the polyhedral complex is empty, vertices must be 1, ..., n, 
-and the graph is given as attribute. 
+If the curve is abstract, the polyhedral complex is empty, vertices must be 1, ..., n,
+and the graph is given as attribute.
 
 # Examples
 ```jldoctest
@@ -86,14 +86,14 @@ function TropicalCurve{M}(graph::IncidenceMatrix) where {M}
     # Rows correpons to edges
     empty = PolyhedralComplex(Polymake.fan.PolyhedralComplex())
     result = TropicalCurve{M, false}(empty)
-    set_attribute!(result, :graph, graph)    
+    set_attribute!(result, :graph, graph)
     return result
 end
 
 @doc Markdown.doc"""
     graph(tc::TropicalCurve{M, EMB})
 
-Returns the graph of an abstract tropical curve `tc`. 
+Return the graph of an abstract tropical curve `tc`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -118,9 +118,9 @@ function graph(tc::TropicalCurve{M, EMB}) where {M, EMB}
 end
 
 @doc Markdown.doc"""
-    n_nodes(tc::TropicalCurve{M, EMB})      
+    n_nodes(tc::TropicalCurve{M, EMB})
 
-Returns the number of nodes of an abstract tropical curve `tc`.
+Return the number of nodes of an abstract tropical curve `tc`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -146,7 +146,7 @@ function Base.show(io::IO, tc::TropicalCurve{M, EMB}) where {M, EMB}
 end
 
 @doc Markdown.doc"""
-    DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int})       
+    DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int})
 
 Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
 ```jldoctest
@@ -182,7 +182,7 @@ base_curve(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.base_curve
 # 3.Basic properties
 #
 @doc Markdown.doc"""
-    coefficients(dtc::DivisorOnTropicalCurve{M, EMB})            
+    coefficients(dtc::DivisorOnTropicalCurve{M, EMB})
 
 Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical curve.
 ```jldoctest
@@ -207,7 +207,7 @@ julia> coefficients(dtc)
 coefficients(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = dtc.coefficients
 
 @doc Markdown.doc"""
-   degree(dtc::DivisorOnTropicalCurve{M, EMB})              
+   degree(dtc::DivisorOnTropicalCurve{M, EMB})
 
 Compute the degree of  a divisor `dtc` on an abstract tropical curve.
 ```jldoctest
@@ -228,7 +228,7 @@ julia> degree(dtc)
 degree(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = sum(coefficients(dtc))
 
 @doc Markdown.doc"""
-    is_effective(dtc::DivisorOnTropicalCurve{M, EMB})              
+    is_effective(dtc::DivisorOnTropicalCurve{M, EMB})
 
 Check whether a divisor `dtc` on an abstract tropical curve is effective.
 ```jldoctest
@@ -250,9 +250,9 @@ is_effective(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB} = all(e -> e>=0
 
 
 @doc Markdown.doc"""
-   chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int)                
+   chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int)
 
-Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`. 
+Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -285,14 +285,14 @@ function chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int) wh
     return DivisorOnTropicalCurve(base_curve(dtc), newcoeffs)
 end
 
-### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices. 
-### This is the number of vertices not in W adjecent to v. 1,  
+### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices.
+### This is the number of vertices not in W adjecent to v. 1,
 function outdegree(tc::TropicalCurve{M,EMB}, W::Set{Int}, v::Int) where {M, EMB}
     G = graph(tc)
     m = Polymake.nrows(G) #number of edges of tc
     @assert v in W "Vertex number $v not in $W"
     deg = 0 #outdeg
-    for i in 1:m 
+    for i in 1:m
         row = Polymake.row(G,i)
         if v in row
             for j in row
@@ -306,11 +306,11 @@ function outdegree(tc::TropicalCurve{M,EMB}, W::Set{Int}, v::Int) where {M, EMB}
 end
 
 @doc Markdown.doc"""
-   v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) 
+   v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int)
 
-Given a divisor `dtc` and vertex labelled `vertex` compute the unique divisor reduced with repspect to `vertex`
+Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
 as defined in [BN07](@cite).
-The divisor `dtc` must have positive coefficients apart from `vertex`.  
+The divisor `dtc` must have positive coefficients apart from `vertex`.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -339,28 +339,28 @@ function v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) where {M, E
 	if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
 	    coeffdelta = zeros(Int, n)
 	    delta = DivisorOnTropicalCurve(tc,coeffdelta)
-	    for j in W 
+	    for j in W
 	        delta = chip_firing_move(delta,j)
 	    end
 	    newcoeff = newcoeff + coefficients(delta)
-	else 
-	    for w in W 
-	        if newcoeff[w] < outdegree(tc,W,w) 
+	else
+	    for w in W
+	        if newcoeff[w] < outdegree(tc,W,w)
 		    w0 = w
-		    break	    	   
+		    break
 	        end
 	    end
 	    W = setdiff(W,w0)
         end
-    end    
+    end
     reduced = DivisorOnTropicalCurve(tc, newcoeff)
-    return reduced   
+    return reduced
 end
 
 @doc Markdown.doc"""
-   is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB})     
+   is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB})
 
-Given two effective divisors `dtc1` and `dtc2` on the same tropica curve checks whether they are linearly equivalent. 
+Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check whether they are linearly equivalent.
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
@@ -390,7 +390,7 @@ function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::Divi
     reduced2 = v_reduced(dtc2,v)
     coeff1 = coefficients(reduced1)
     coeff2 = coefficients(reduced2)
-    return coeff1 == coeff2 
+    return coeff1 == coeff2
 end
 
 export DivisorOnTropicalCurve,
@@ -401,7 +401,7 @@ export DivisorOnTropicalCurve,
     graph,
     base_curve,
     chip_firing_move,
-    v_reduced, 
+    v_reduced,
     is_linearly_equivalent,
     structure_tropical_jacobian,
     visualize
@@ -414,9 +414,9 @@ export DivisorOnTropicalCurve,
 @doc Markdown.doc"""
     structure_tropical_jacobian(TC::TropicalCurve)
 
-Computes the elementary divisors $n_i$ of the Laplacian matrix of the tropical curve `TC`. 
-The tropical Jacobian is then isomorphic to $\prod (Z/(n_i)Z)$. 
-    
+Compute the elementary divisors $n_i$ of the Laplacian matrix of the tropical curve `TC`.
+The tropical Jacobian is then isomorphic to $\prod (Z/(n_i)Z)$.
+
 # Examples
 ```jldoctest
 julia> cg = Oscar.Graphs.complete_graph(5);
@@ -483,7 +483,7 @@ function structure_tropical_jacobian(TC::TropicalCurve)
     L = Polymake.@convert_to Matrix{Int} lap
     LL = matrix(ZZ, L)
     ED = elementary_divisors(LL)[1:nrows(LL)-1]
-    G = abelian_group(ED)    
+    G = abelian_group(ED)
     return G
 end
 
