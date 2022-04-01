@@ -184,7 +184,7 @@ julia> star_triangulations(hex; full=true)
 ([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
 
 julia> star_triangulations(hex; full=true, regular=true)
-([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 2, 7]]])
+([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 5, 6], [1, 2, 3], [1, 3, 4], [1, 4, 5]]])
 ```
 A three-dimensional example with two star triangulations.
 ```jldoctest
@@ -240,8 +240,8 @@ julia> V = vertices(c)
 
 julia> regular_triangulations(V)
 2-element Vector{Vector{Vector{Int64}}}:
- [[1, 2, 3], [2, 3, 4]]
- [[1, 3, 4], [1, 2, 4]]
+ [[0, 1, 2], [1, 2, 3]]
+ [[0, 2, 3], [0, 1, 3]]
 ```
 """
 function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
@@ -276,8 +276,8 @@ A polyhedron in ambient dimension 2
 
 julia> regular_triangulations(c)
 2-element Vector{Vector{Vector{Int64}}}:
- [[1, 2, 3], [2, 3, 4]]
- [[1, 3, 4], [1, 2, 4]]
+ [[0, 1, 2], [1, 2, 3]]
+ [[0, 2, 3], [0, 1, 3]]
 ```
 """
 function regular_triangulations(P::Polyhedron)
