@@ -114,7 +114,7 @@ end
 @doc Markdown.doc"""
     Base.:inv(l::ToricLineBundle)
 
-Returns the inverse of the toric line bundle `l`.
+Return the inverse of the toric line bundle `l`.
 
 # Examples
 ```jldoctest
@@ -233,7 +233,7 @@ export CanonicalBundle, canonical_bundle
 @doc Markdown.doc"""
     Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
 
-Returns true if the toric line bundles `l1` and `l2` are isomorphic and false otherwise.
+Return `true` if the toric line bundles `l1` and `l2` are isomorphic and `false` otherwise.
 
 # Examples
 ```jldoctest

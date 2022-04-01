@@ -32,18 +32,19 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
 Construct an abstract simplicial complex from a set of faces.
 While arbitrary nonnegative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 ```
-# Simplicial complex comprising the empty set only
+
+Simplicial complex comprising the empty set only:
 ```jldoctest
 julia> empty = SimplicialComplex(Vector{Set{Int}}([]))
 Abstract simplicial complex of dimension -1 on 0 vertices
 ```
-# Example with relabeling
-The original vertices can be recovered.
+
+The original vertices can be recovered:
 ```jldoctest
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
@@ -112,7 +113,7 @@ end
 
 Return the number of vertices of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nvertices(torus())
 7
@@ -143,7 +144,7 @@ dim(K::SimplicialComplex) = pm_object(K).DIM::Int
 
 Return the face vector (number of faces per dimension) of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> f_vector(torus())
 3-element Vector{Int64}:
@@ -159,7 +160,7 @@ f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
 
 Return the h-vector of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> h_vector(torus())
 4-element Vector{Int64}:
@@ -176,7 +177,7 @@ h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 Return the reduced rational Betti numbers of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> betti_numbers(klein_bottle())
 3-element Vector{Int64}:
@@ -192,7 +193,7 @@ betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(p
 
 Return the reduced Euler characteristic of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> euler_characteristic(complex_projective_plane())
 2
@@ -206,7 +207,7 @@ euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::
 Return `i`-th reduced integral homology group of `K`.
 Recall that the 0-th homology group is trivial if and only if `K` is connected.
 
-# Example
+# Examples
 ```jldoctest
 julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
 3-element Vector{GrpAbFinGen}:
@@ -222,7 +223,7 @@ homology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generat
 
 Return `i`-th reduced integral cohomology group of `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[0,1],[1,2],[0,2]]);
 
@@ -238,7 +239,7 @@ cohomology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_gener
 
 Return the minimal non-faces of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -263,7 +264,7 @@ end
 
 Return the Alexander dual of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -278,7 +279,7 @@ alexander_dual(K::SimplicialComplex) = SimplicialComplex(Polymake.topaz.alexande
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> stanley_reisner_ideal(real_projective_plane())
 ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x4*x6, x2*x3*x5, x2*x4*x6)
@@ -295,7 +296,7 @@ end
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, _ = QQ["a","b","c","d","e","f"];
 
@@ -313,7 +314,7 @@ end
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -333,7 +334,7 @@ end
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
@@ -353,7 +354,7 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisne
 
 Return the fundamental group of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> pi_1 = fundamental_group(torus());
 
@@ -426,7 +427,7 @@ complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective
 
 Return the star of the face `sigma` in the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -441,7 +442,7 @@ star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = Sim
 
 Return the link of the face `sigma` in the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 

@@ -27,7 +27,7 @@ export toric_variety
 @doc Markdown.doc"""
     toric_divisor(l::ToricLineBundle)
 
-Returns a divisor corresponding to the toric line bundle `l`.
+Return a divisor corresponding to the toric line bundle `l`.
 """
 @attr ToricDivisor function toric_divisor(l::ToricLineBundle)
     class = divisor_class(l)
@@ -45,7 +45,7 @@ export toric_divisor
 @doc Markdown.doc"""
     degree(l::ToricLineBundle)
 
-Returns the degree of the toric line bundle `l`.
+Return the degree of the toric line bundle `l`.
 """
 @attr fmpz function degree(l::ToricLineBundle)
     return sum(coefficients(toric_divisor(l)))
@@ -60,7 +60,7 @@ export degree
 @doc Markdown.doc"""
     basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
 
-Returns a basis of the global sections of the toric line bundle `l`.
+Return a basis of the global sections of the toric line bundle `l`.
 """
 @attr function basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
     characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
@@ -72,7 +72,7 @@ export basis_of_global_sections_via_rational_functions
 @doc Markdown.doc"""
     basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
 
-Returns a basis of the global sections of the toric line bundle `l`,
+Return a basis of the global sections of the toric line bundle `l`,
 which is computed from a homogeneous component of the cox ring.
 """
 @attr function basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
