@@ -55,9 +55,12 @@ include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
 
 include("CohomologyClasses/constructors.jl")
-include("CohomologyClasses/attributes.jl")
 include("CohomologyClasses/properties.jl")
+include("CohomologyClasses/attributes.jl")
+include("CohomologyClasses/special_attributes.jl")
 include("CohomologyClasses/methods.jl")
+
+include("AlgebraicCycles/special_attributes.jl")
 
 include("cohomCalg.jl")
 

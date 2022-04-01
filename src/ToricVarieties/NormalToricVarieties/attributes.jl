@@ -306,49 +306,6 @@ export ideal_of_linear_relations
 
 
 @doc Markdown.doc"""
-    cohomology_ring(v::AbstractNormalToricVariety)
-
-Return the cohomology ring of the simplicial and complete toric variety `v`.
-
-# Examples
-```jldoctest
-julia> p2 = projective_space(NormalToricVariety, 2);
-
-julia> ngens(cohomology_ring(p2))
-3
-```
-"""
-function cohomology_ring(v::AbstractNormalToricVariety)
-    R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached = false)
-    weights = [1 for i in 1:ngens(R)]
-    R = grade(R, weights)[1]
-    linear_relations = ideal_of_linear_relations(R, v)
-    stanley_reisner = stanley_reisner_ideal(R,v)
-    return quo(R, linear_relations + stanley_reisner)[1]
-end
-export cohomology_ring
-
-
-@doc Markdown.doc"""
-    chow_ring(v::AbstractNormalToricVariety)
-
-Return the Chow ring of the simplicial and complete toric variety `v`.
-
-# Examples
-```jldoctest
-julia> p2 = projective_space(NormalToricVariety, 2);
-
-julia> ngens(chow_ring(p2))
-3
-```
-"""
-function chow_ring(v::AbstractNormalToricVariety)
-    return cohomology_ring(v)
-end
-export chow_ring
-
-
-@doc Markdown.doc"""
     toric_ideal(antv::AffineNormalToricVariety)
 
 Return the toric ideal defining the affine normal toric variety.
