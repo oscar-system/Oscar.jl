@@ -14,12 +14,52 @@ function galois_group(mkK::Map{AnticNumberField, AnticNumberField})
   return image(h)[1]
 end
 
-function galois_group(K::Hecke.SimpleNumField{nf_elem})
-  f = defining_polynomial(K)
+function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
+  k = base_ring(f)
+  @assert k == nf(order(P))
+  zk = order(P)
+  C, mC = completion(k, P)
+  setprecision!(C, 10)
+  F, mF = Hecke.ResidueFieldSmallDegree1(order(P), P)
+  p = Int(characteristic(F))
+  mF = Hecke.extend(mF, k)
+  d = reduce(lcm, keys(factor_shape(map_coefficients(mF, f))))
+  D = QadicField(p, d, 10)[1]
+  mCD = MapFromFunc(x->D(coeff(x, 0)), C, D)
+  H = Hecke.HenselCtxQadic(map_coefficients(x->mCD(mC(x)), f))
+  V = Hecke.vanHoeijCtx()
+  V.P = P
+  V.H = H
+  C = GaloisCtx(typeof(V))
+  C.f = f
+  C.C = V
+  if Hecke.ismaximal_order_known(k)
+    den = k(1)
+  else
+    den = derivative(defining_polynomial(k))(gen(k))
+  end
+  C.data = [mC, 1, mCD, Hecke.norm_change_const(zk), den]
+  #data:
+  # [1] map into the completion. Careful, currently Q_p is returned and used as a deg-1 extension (ie. Qq)
+  #     use only coeff(, 0)
+  # [2] the current precision of the roots
+  # [3] the embedding of completion of k into completion of K
+  # [4] as the namse suggest
+  # [5] the denominator used, f'(alpha), the Kronnecker rep
+
+  C.B = add_ring()(maximum([iroot(ceil(fmpz, length(x)), 2)+1 for x = coefficients(f)]))
+  return C
+end
+
+function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f)+1, prime::Any = 0)
+  if prime !== 0
+    @assert isa(prime, NfOrdIdl)
+    return prime, Set{CycleType}()
+  end
   @assert degree(f) >= 2
   k = base_ring(f)
   bp = (1,1)
-  ct = CycleType[]
+  ct = Set{CycleType}()
 
   local zk::NfOrd
   local den::nf_elem
@@ -57,9 +97,10 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem})
       continue
     end
     lf = factor_shape(fp)
-    push!(ct, CycleType(vec(collect(keys(lf)))))
-    dg = order(ct[end])
-    if order(ct[end]) == 1
+    c = CycleType(vec(collect(keys(lf))))
+    push!(ct, c)
+    dg = order(c)
+    if order(c) == 1
       continue
     end
     if bp == (1,1) 
@@ -74,27 +115,26 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem})
 
   #next: need the prime (and the completion of k at that prime)
   P = bp[3]
-  C, mC = completion(k, P)
-  setprecision!(C, 10)
-  D = QadicField(Int(bp[1]), Int(bp[2]), 10)[1]
-  mCD = MapFromFunc(x->D(coeff(x, 0)), C, D)
-  H = Hecke.HenselCtxQadic(map_coefficients(x->mCD(mC(x)), f))
-  V = Hecke.vanHoeijCtx()
-  V.P = P
-  V.H = H
-  C = GaloisCtx(typeof(V))
-  C.f = f
-  C.C = V
-  C.data = [mC, 1, mCD, Hecke.norm_change_const(zk), den]
-  #data:
-  # [1] map into the completion. Careful, currently Q_p is returned and used as a deg-1 extension (ie. Qq)
-  #     use only coeff(, 0)
-  # [2] the current precision of the roots
-  # [3] the embedding of completion of k into completion of K
-  # [4] as the namse suggest
-  # [5] the denominator used, f'(alpha), the Kronnecker rep
+  return P, ct
+end
 
-  C.B = add_ring()(maximum([iroot(ceil(fmpz, length(x)), 2)+1 for x = coefficients(f)]))
+function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0)
+  f = defining_polynomial(K)
+
+  P, ct = find_prime(f, prime = prime)
+  C = GaloisCtx(f, P)
+
+  if an_sn_by_shape(ct, degree(K))
+    @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
+    if issquare(discriminant(K))
+      G = alternating_group(degree(K))
+    else
+      G = symmetric_group(degree(K))
+    end
+    GC.G = G
+    return G, GC
+  end
+
   G, F, si = starting_group(C, K)
   return descent(C, G, F, si)
 end
@@ -162,13 +202,12 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fm
   #want to be able to detect x in Z_k of T_2(x) <= v^2
   #if zk = order(C.C.P) is (known to be) maximal, 2-norm of coeff. vector squared < c2*v^2
   #otherwise, we need tpo multiply by f'(alpha) (increasing the size), revover and divide
-  #needs to be corrdinated with isinteger
+  #needs to be coordinated with isinteger
 
   #step 2: copy the precision estimate from NumField/NfAbs/PolyFactor.jl
-  #        (and check if all logs should really be log2?)
   P = C.C.P
   zk = order(P)
   k = nf(zk)
-  @show N = ceil(Int, degree(k)/2/log(norm(P))*(log2(c1*c2) + 2*nbits(v)))
+  @show N = ceil(Int, degree(k)/2/log(norm(P))*(log(c1*c2) + 2*log(v)))
   return N
 end
