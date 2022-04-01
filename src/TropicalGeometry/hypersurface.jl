@@ -60,7 +60,7 @@ end
 @doc Markdown.doc"""
     TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}})
 
-Returns the tropical hypersurface of a tropical polynomial `f`.
+Return the tropical hypersurface of a tropical polynomial `f`.
 
 # Examples
 ```jldoctest
@@ -125,7 +125,7 @@ end
 
 Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
 on which a function `valuation` is defined such as `PadicField(7,2)`),
-returns the tropical hypersurface of `f` under the convention specified by `M`.
+return the tropical hypersurface of `f` under the convention specified by `M`.
 
 # Examples
 ```jldoctest
@@ -156,7 +156,7 @@ end
 @doc Markdown.doc"""
     TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
 
-Constructs the tropical hypersurface from a polynomial `f` and a map to the
+Construct the tropical hypersurface from a polynomial `f` and a map to the
 tropical semiring `val`.
 
 # Examples
@@ -219,7 +219,7 @@ end
 @doc Markdown.doc"""
     dual_subdivision(TH::TropicalHypersurface{M, EMB})
 
-Returns the dual subdivision of `TH` if it is embedded. Otherwise an error is thrown.
+Return the dual subdivision of `TH` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 A tropical hypersurface in $\mathbb{R}^n$ is always of dimension n-1.
@@ -249,7 +249,7 @@ export dual_subdivision
 @doc Markdown.doc"""
     polynomial(TH::TropicalHypersurface{M, EMB})
 
-Returns the tropical polynomial of `TH` if it is embedded. Otherwise an error is thrown.
+Return the tropical polynomial of `TH` if it is embedded. Otherwise an error is thrown.
 
 # Examples
 ```jldoctest
@@ -275,11 +275,11 @@ export polynomial
 
 
 @doc Markdown.doc"""
-    minimalPolynomialFromHypersurface(T::TropicalHypersurface)
+    minpoly(T::TropicalHypersurface)
 
-Returns the minimal polynomial with smallest possible coefficients of a hypersurface
+Return the minimal polynomial with smallest possible coefficients of a hypersurface
 """
-function minimalPolynomialFromHypersurface(T::TropicalHypersurface)
+function minpoly(T::TropicalHypersurface)
     error("function not implemented yet")
     return
 end
