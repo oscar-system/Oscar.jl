@@ -180,6 +180,8 @@
     end
 
     @testset "standard_constructions" begin
+        @test convex_hull(T, pts, nothing, [1 1]) == Q2
+        @test Polyhedron{T}(nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
         nc = normal_cone(square, 1)
         @test nc isa Cone{T}
         @test rays(nc) == [[1, 0], [0, 1]]

@@ -235,13 +235,13 @@ Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(permutedims
 function Polyhedron(H::Hyperplane{T}) where T<:scalar_types
    n = permutedims(normal_vector(H))
    b = negbias(H)
-   return Polyhedron{T}((Matrix{T}(undef, 0, 3), T[]), (n, [b]))
+   return Polyhedron{T}(nothing, (n, [b]))
 end
 
 function Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}})
    n = permutedims(normal_vector(H))
    b = negbias(H)
-   return Polyhedron{nf_elem}((Matrix{Union{fmpq, nf_elem}}(undef, 0, 3), Union{fmpq, nf_elem}[]), (n, [b]))
+   return Polyhedron{nf_elem}(nothing, (n, [b]))
 end
 
 @doc Markdown.doc"""
