@@ -259,7 +259,7 @@ export polynomial
 @doc Markdown.doc"""
     minimalPolynomialFromHypersurface(T::TropicalHypersurface)
 
-Returns the minimal polynomial with smallest possible coefficients of a hypersurface
+Return the minimal polynomial with smallest possible coefficients of a hypersurface.
 """
 function minimalPolynomialFromHypersurface(T::TropicalHypersurface)
     return
