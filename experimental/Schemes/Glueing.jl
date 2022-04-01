@@ -78,6 +78,32 @@ function compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
 	     )
 end
 
+# A simplified constructor for the common case to glue along principal open sets
+function Glueing(
+    X::SpecType, p::RET, Y::SpecType, q::RET,
+    a::Vector{FracType}, b::Vector{FracType};
+    check::Bool=true
+  ) where {
+           SpecType<:Spec, 
+           SpecMorType<:SpecMor,
+           RET<:MPolyElem,
+           FracType
+          }
+  parent(p) == base_ring(OO(X)) || error("polynomial does not belong to the correct ring")
+  parent(q) == base_ring(OO(Y)) || error("polynomial does not belong to the correct ring")
+  UU = SpecOpen(X, [p])
+  VV = SpecOpen(Y, [q])
+  U = UU[1]
+  V = VV[1]
+  f = SpecMor(U, Y, a)
+  g = SpecMor(V, X, b)
+  if check
+    compose(restrict(f,U, V), restrict(g, V, U)) == identity_map(U) || error("glueing maps are not inverse to each other")
+    compose(restrict(g, V, U), restrict(f, U, V)) == identity_map(V) || error("glueing maps are not inverse to each other")
+  end
+  return Glueing(X, Y, SpecOpenMor(UU, VV, [f]), SpecOpenMor(VV, UU, [g]))
+end
+
 @Markdown.doc """
 maximal_extension(G::Glueing)
 

@@ -439,7 +439,7 @@ end
 
 function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST} 
   parent(f) == quotient_ring(L) || error("the given element does not belong to the correct ring") 
-  return L(lift(f), check=check, is_reduced=is_reduced)
+  return L(lift(f))
 end
 
 ### additional functionality
