@@ -1248,11 +1248,25 @@ end
 
 @doc Markdown.doc"""
     minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
-    minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
 
-Given a homogeneous ideal $I$ in graded ring $R$ such that the grading gives rise
-to a weighted monomial ordering, return an array containing a minimal set of
-generators of $I$.
+Given a homogeneous ideal `I` in a graded multivariate polynomial ring
+over a field, return an array containing a minimal set of generators of `I`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> minimal_generating_set(I)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ z^2
+ x^3 + y^3
+```
 """
 function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   # This only works / makes sense for homogeneous ideals. So far ideals in an
@@ -1260,6 +1274,12 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::Monomi
 
   R = base_ring(I)
 
+  @assert isgraded(R)
+  
+  if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
+  end
+  
   singular_assure(I, ordering)
   IS = I.gens.S
   RS = I.gens.Sx
