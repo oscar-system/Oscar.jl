@@ -8,7 +8,7 @@ DeclareRepresentation(
   IsComponentObjectRep and IsAttributeStoringRep and IsMatrixObj);
   
 JuliaMatrixIdentificationType :=
-    NewType( JuliaMatrixFamily, IsJuliaMatrixRep);
+    NewType( JuliaMatrixFamily, IsJuliaMatrixRep and IsMutable);
 
 BindGlobal("MakeJuliaMatrixRep",function(m)
   if not IsJuliaObject(m) then
