@@ -50,6 +50,7 @@ include("Experimental/ModStdNF-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")
+include("Modules/MatrixGroupExperimental-test.jl")
 
 include("InvariantTheory/runtests.jl")
 
