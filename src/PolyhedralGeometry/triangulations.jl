@@ -1,3 +1,33 @@
+using TOPCOM_jll
+
+function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+    input = homogenized_matrix(pts, 1)
+    cmdopts = "--regular"
+    if full
+        cmdopts = "--regular -F"
+    end
+    inputfile = tempname()
+    inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
+    inputstr = "[\n"*inputstr*"\n]"
+    write(inputfile, inputstr)
+    out = Pipe()
+    err = Pipe()
+    TOPCOM_jll.points2triangs() do exe
+        process = run(pipeline(`$exe $cmdopts`, stdin=inputfile, stdout=out, stderr=err))
+    end
+    close(out.in)
+    close(err.in)
+    result = Vector{Vector{Vector{Int}}}()
+    for line in eachline(out)
+        m = match(r"{{.*}}", line)
+        triang = m.match
+        triang = replace(triang, "{"=>"[", "}"=>"]")
+        triang = convert(Vector{Vector{Int}},JSON.parse(triang))
+        push!(result, triang)
+    end
+    return result
+end
+
 ################################################################################
 # TODO: Remove the following two functions after next polymake release 4.7
 function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
@@ -218,9 +248,7 @@ function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abs
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    triangs = Polymake.polytope.topcom_regular_triangulations(PC)
-    result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, nrows(input), full)
+    return topcom_regular_triangulations(pts; full=full)
 end
 
 
