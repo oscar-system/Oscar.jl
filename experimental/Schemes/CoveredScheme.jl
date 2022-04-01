@@ -213,8 +213,8 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
   s = symbols(S)
   for i in 0:r
     R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    dehomog_mor = AlgebraHomomorphism(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
-    I = ideal(R, dehomog_mor.(gens(defining_ideal(X))))
+    phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
+    I = ideal(R, phi.(gens(defining_ideal(X))))
     push!(U, Spec(R, I))
   end
   result = Covering(U)
@@ -243,14 +243,6 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
       add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
     end
   end
-# for i in 2:r+1
-#   x = gens(base_ring(OO(U[1])))
-#   y = gens(base_ring(OO(U[i])))
-#   f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r]))
-#   g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r]))
-#   add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
-# end
-# fill_transitions!(result)
   set_attribute!(X, :standard_covering, result)
   return result
 end
