@@ -522,6 +522,47 @@
   \\chi_{5} & 5 & 1 & -1 & . & . \\\\
   \\end{array}
   \$"""
+
+  # show indicators in the screen format ...
+  Oscar.with_unicode() do
+    show(IOContext(io, :indicator => [2]), t_a4)
+  end
+  @test String(take!(io)) ==
+  """
+  Alt( [ 1 .. 4 ] )
+
+      2  2  2       .       .
+      3  1  .       1       1
+                             
+        1a 2a      3a      3b
+     2P 1a 1a      3b      3a
+     3P 1a 2a      1a      1a
+      2                      
+  χ₁  +  1  1       1       1
+  χ₂  o  1  1 -ζ₃ - 1      ζ₃
+  χ₃  o  1  1      ζ₃ -ζ₃ - 1
+  χ₄  +  3 -1       .       .
+  """
+
+  # ... and in LaTeX format
+  show(IOContext(io, :indicator => [2]), MIME("text/latex"), t_a4)
+  @test String(take!(io)) ==
+  """\$Alt( [ 1 .. 4 ] )
+
+  \\begin{array}{rrrrrr}
+   & 2 & 2 & 2 & . & . \\\\
+   & 3 & 1 & . & 1 & 1 \\\\
+   &  &  &  &  &  \\\\
+   &  & 1a & 2a & 3a & 3b \\\\
+   & 2P & 1a & 1a & 3b & 3a \\\\
+   & 3P & 1a & 2a & 1a & 1a \\\\
+   & 2 &  &  &  &  \\\\
+  \\chi_{1} & + & 1 & 1 & 1 & 1 \\\\
+  \\chi_{2} & o & 1 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\
+  \\chi_{3} & o & 1 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\
+  \\chi_{4} & + & 3 & -1 & . & . \\\\
+  \\end{array}
+  \$"""
 end
 
 @testset "create character tables" begin
