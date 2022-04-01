@@ -58,7 +58,7 @@ julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]])
 [1, 4]
 
 
-julia>  VR = [0 0; 1 0; -1 0; 0 1]
+julia> VR = [0 0; 1 0; -1 0; 0 1]
 4×2 Matrix{Int64}:
   0  0
   1  0
