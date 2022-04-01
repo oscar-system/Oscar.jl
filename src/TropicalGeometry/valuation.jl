@@ -25,9 +25,9 @@ The role of `val` is to encode with respect to which valuation on `K` and
 under which convention (min or max) tropical computations should take place.
 
 Currently, the only supported valuations are:
-- $t$-adic valuation on $\mathbb{Q}(t)$
-- $p$-adic valuations on $\mathbb{Q}$
-- trivial valuation on any field
+- the $t$-adic valuation on $\mathbb{Q}(t)$
+- the $p$-adic valuations on $\mathbb{Q}$
+- the trivial valuation on any field
 
 # Example ($p$-adic valuation on $\mathbb{Q}$)
 ```jldoctest
