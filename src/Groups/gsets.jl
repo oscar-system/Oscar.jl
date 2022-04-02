@@ -57,6 +57,9 @@ abstract type GSet{T} end
 end
 #TODO: How can I specify that `seeds` should be an iterable object?
 
+# TODO: document `acting_group` and GSets in general
+acting_group(gset::GSetByElements) = gset.group
+
 
 #############################################################################
 ##

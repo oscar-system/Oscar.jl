@@ -114,7 +114,7 @@ end
 @doc Markdown.doc"""
     Base.:inv(l::ToricLineBundle)
 
-Returns the inverse of the toric line bundle `l`.
+Return the inverse of the toric line bundle `l`.
 
 # Examples
 ```jldoctest
@@ -163,6 +163,7 @@ Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
     StructureSheaf(v::AbstractNormalToricVariety)
 
 Construct the structure sheaf of a normal toric variety.
+For convenience, we also support `structure_sheaf(variety)`.
 
 # Examples
 ```jldoctest
@@ -181,6 +182,50 @@ structure_sheaf(v::AbstractNormalToricVariety) = StructureSheaf(v)
 export StructureSheaf, structure_sheaf
 
 
+@doc Markdown.doc"""
+    AnticanonicalBundle(v::AbstractNormalToricVariety)
+
+Construct the anticanonical bundle of a normal toric variety.
+For convenience, we also support `anticanonical_bundle(variety)`.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> AnticanonicalBundle(v)
+A toric line bundle on a normal toric variety
+```
+"""
+@attr ToricLineBundle function AnticanonicalBundle(v::AbstractNormalToricVariety)
+    return ToricLineBundle(v, sum(cox_ring(v).d))
+end
+anticanonical_bundle(v::AbstractNormalToricVariety) = AnticanonicalBundle(v)
+export AnticanonicalBundle, anticanonical_bundle
+
+
+@doc Markdown.doc"""
+    CanonicalBundle(v::AbstractNormalToricVariety)
+
+Construct the canonical bundle of a normal toric variety.
+For convenience, we also support `canonical_bundle(variety)`.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> CanonicalBundle(v)
+A toric line bundle on a normal toric variety
+```
+"""
+@attr ToricLineBundle function CanonicalBundle(v::AbstractNormalToricVariety)
+    return ToricLineBundle(v, (-1)*sum(cox_ring(v).d))
+end
+canonical_bundle(v::AbstractNormalToricVariety) = CanonicalBundle(v)
+export CanonicalBundle, canonical_bundle
+
+
 ########################
 # 5: Equality
 ########################
@@ -188,7 +233,7 @@ export StructureSheaf, structure_sheaf
 @doc Markdown.doc"""
     Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
 
-Returns true if the toric line bundles `l1` and `l2` are isomorphic and false otherwise.
+Return `true` if the toric line bundles `l1` and `l2` are isomorphic and `false` otherwise.
 
 # Examples
 ```jldoctest

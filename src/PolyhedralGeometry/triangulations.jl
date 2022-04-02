@@ -113,7 +113,7 @@ The return type is a `Vector{Vector{Vector{Int}}}` where each
 a simplex as the set of indices of the vertices of the simplex. I.e. the
 `Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
 the first, second, and fourth input point.
-"""    
+"""
 function star_triangulations(pts::AnyVecOrMat; full::Bool=false, regular::Bool=false)
     if regular
         result = regular_triangulations(pts; full=full)
@@ -164,7 +164,7 @@ A polyhedron in ambient dimension 3
 julia> star_triangulations(P)
 ([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1], [[[1, 2, 3, 4], [1, 2, 4, 5]], [[1, 2, 3, 5], [1, 3, 4, 5]]])
 ```
-"""    
+"""
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
     isfulldimensional(P) || error("Input polytope must be full-dimensional.")
     isbounded(P) || error("Input polytope must be bounded.")
@@ -278,4 +278,115 @@ A polyhedron in ambient dimension 8
 """
 function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
     return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)))
+end
+
+@doc Markdown.doc"""
+    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
+
+Compute whether a triangulation is regular.
+
+# Examples
+Compute whether a triangulation of the square is regular.
+```jldoctest
+julia> c = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> cells=[[1,2,3],[2,3,4]];
+
+julia> isregular(vertices(c),cells)
+true
+```
+"""
+function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+    as_sop = SubdivisionOfPoints(pts,cells)
+    isregular(as_sop)
+end
+
+
+
+
+
+@doc Markdown.doc"""
+    SubdivisionOfPoints(P::Polyhdron, cells::IncidenceMatrix)
+
+# Arguments
+- `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
+- `cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
+
+A subdivision of points formed from points and cells made of these points. The
+cells are given as an IncidenceMatrix, where the columns represent the points
+and the rows represent the cells.
+
+# Examples
+Compute a triangulation of the square
+```jldoctest
+julia> C = cube(2);
+
+julia> cells = IncidenceMatrix([[1,2,3],[2,3,4]]);
+
+julia> S = SubdivisionOfPoints(C, cells)
+A subdivision of points in ambient dimension 2
+```
+"""
+SubdivisionOfPoints(P::Polyhedron, cells::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), cells)
+
+
+@doc Markdown.doc"""
+    SubdivisionOfPoints(P::Polyhdron, weights::AbstractVector)
+
+# Arguments
+- `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
+- `weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
+
+A subdivision of points formed by placing every vertex of `P` at the corresponding
+height, then taking the convex hull and then only considering those cells
+corresponding to faces visible from below ("lower envelope").
+
+# Examples
+Compute a triangulation of the square
+```jldoctest
+julia> C = cube(2);
+
+julia> weights = [0,0,1,2];
+
+julia> S = SubdivisionOfPoints(C, weights)
+A subdivision of points in ambient dimension 2
+```
+"""
+SubdivisionOfPoints(P::Polyhedron, weights::AbstractVector) = SubdivisionOfPoints(vertices(P), weights)
+SubdivisionOfPoints(P::Polyhedron, cells::Vector{Vector{Int64}}) = SubdivisionOfPoints(vertices(P), IncidenceMatrix(cells))
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(Iter), cells)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), weights)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(cells))
+
+
+
+
+@doc Markdown.doc"""
+    gkz_vector(SOP::SubdivisionOfPoints)
+
+Compute the gkz vector of a triangulation given as a subdivision of points, SOP.
+
+# Examples
+Compute the gkz vector of one of the two regular triangulations of the square.
+```jldoctest
+julia> C = cube(2);
+
+julia> Triang = SubdivisionOfPoints(C,[[1,2,3],[2,3,4]])
+A subdivision of points in ambient dimension 2
+
+julia> gkz_vector(Triang)
+pm::Vector<pm::Rational>
+4 8 8 4
+```
+"""
+function gkz_vector(SOP::SubdivisionOfPoints)
+    V = SOP.pm_subdivision.POINTS
+    T = SOP.pm_subdivision.MAXIMAL_CELLS
+    n = ambient_dim(SOP)
+    for i in 1:size(T,1)
+        @assert sum(T[i,:]) == n+1 #poor check that subdivision is triangulation
+    end
+    TT = [Polymake.to_zero_based_indexing(Polymake.row(T,i)) for i in 1:Polymake.nrows(T)]
+    Polymake.call_function(:polytope, :gkz_vector, V, TT)
 end

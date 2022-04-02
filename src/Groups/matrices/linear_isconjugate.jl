@@ -44,14 +44,14 @@ end
 
 Return whether `x` is semisimple, i.e. has order coprime with the characteristic of its base ring.
 """
-issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = iscoprime(Int(order(x)::fmpz), Int(characteristic(x.parent.ring)))
+issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = iscoprime(order(Int, x), Int(characteristic(x.parent.ring)))
 
 """
     isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is unipotent, i.e. its order is a power of the characteristic of its base ring.
 """
-isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || ispower(Int(order(x)))[2]==Int(characteristic(x.parent.ring))
+isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || ispower(order(Int, x))[2]==Int(characteristic(x.parent.ring))
 
 
 
@@ -126,12 +126,12 @@ end
 
 # TODO is there a way to accelerate the process? pol_elementary_divisors and generalized_jordan_block repeat parts of the same code.
 """
-    generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
+    generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
 
 Return (`J`,`Z`), where `Z^-1*J*Z = A` and `J` is a diagonal join of Jordan
 blocks (corresponding to irreducible polynomials).
 """
-function generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
+function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
    V = pol_elementary_divisors(A)
    GJ = cat([generalized_jordan_block(v[1],v[2]) for v in V]..., dims=(1,2))
    a = rational_canonical_form(A)[2]

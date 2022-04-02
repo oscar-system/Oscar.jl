@@ -89,6 +89,7 @@ function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
    if julia
       println(io, "")
       Main.InteractiveUtils.versioninfo(io)
+      println(io, Base.TAGGED_RELEASE_BANNER)
    end
 end
 
@@ -325,6 +326,8 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/FreeAssAlgIdeal.jl")
+
 include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
@@ -348,7 +351,7 @@ include("Combinatorics/Graphs.jl")
 export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
 
-include("../StraightLinePrograms/src/StraightLinePrograms.jl")
+include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
@@ -368,6 +371,8 @@ if is_dev
 
 #  include("../examples/PlaneCurve.jl")
 end
+
+include("Serialization/main.jl")
 
 const global OSCAR = Oscar
 const global oscar = Oscar

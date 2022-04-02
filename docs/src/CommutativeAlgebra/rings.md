@@ -146,11 +146,12 @@ We refer to the textbooks [MS05](@cite) and [KR05](@cite) for details on multigr
 we follow the former book.
 
 !!! note
-    Given a $G$-grading on $R$, we also say that $R$ is *$G$-graded*, or simply that $R$  is *graded*.
-    We say that $R$ is *positively graded (by $G$)* if $G$ is torsion-free and each graded part $R_g$
-	has finite rank. Note that the latter condition can be equivalently expressed by asking that the
-	degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
-
+    Given a $G$-grading on $R$, we also say that $R$ is *$G$-graded*, or simply that $R$ is *graded*.
+    If $R$ is a polynomial ring over a field, we say that a $G$-grading on $R$ is *positive* if $G$ is torsion-free
+	and each graded part $R_g$, $g\in G$, has finite dimension. We then also say that say that $R$ is
+	*positively graded (by $G$)*. Note that the positivity condition can be equivalently expressed by
+	asking that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
+		
 
 ### Types
 
@@ -206,7 +207,7 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
 - `ngens(R)` to the number of these generators, and
-- `gen(R, i)` as well as `R[i]` to the `i`-th generator.
+- `gen(R, i)` as well as `R[i]` to the `i`-th such generator.
 
 ###### Examples
 

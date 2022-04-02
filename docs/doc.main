@@ -1,6 +1,13 @@
 [
   "index.md",
 
+  "General" => [
+     "General/architecture.md",
+     "General/other.md",
+     "General/faq.md",
+     "General/serialization.md",
+  ],
+
   "Groups" => [
      "Groups/intro.md",
      "Groups/basics.md",
@@ -117,6 +124,10 @@
      "CommutativeAlgebra/localizations.md",
   ],
 
+  "Noncommutative Algebra" => [
+    "NoncommutativeAlgebra/free_associative_algebra.md",
+  ],
+
   "Invariant Theory" => [
      "InvariantTheory/intro.md",
      "InvariantTheory/finite_groups.md",
@@ -154,12 +165,12 @@
       "Combinatorics/simplicialcomplexes.md",
   ],
 
+  "Straight Line Programs" => [
+      "StraightLinePrograms/intro.md",
+      "StraightLinePrograms/gapslps.md",
+      "StraightLinePrograms/abstractalgebra.md",
+   ],
 
-  "General" => [
-     "General/architecture.md",
-     "General/other.md",
-     "General/faq.md",
-  ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
@@ -167,6 +178,7 @@
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
     "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/serialization.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/SubObjectIterator.md",
     ],

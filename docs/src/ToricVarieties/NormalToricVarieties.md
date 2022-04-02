@@ -165,6 +165,8 @@ character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, char
 ### Sheaves
 
 ```@docs
+AnticanonicalBundle(v::AbstractNormalToricVariety)
+CanonicalBundle(v::AbstractNormalToricVariety)
 StructureSheaf(v::AbstractNormalToricVariety)
 ```
 

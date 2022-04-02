@@ -174,8 +174,8 @@ Oscar.parent(x::TropicalSemiringElem{T}) where T = TropicalSemiring{T}()
 @doc Markdown.doc"""
     convention(T::TropicalSemiring)
 
-Returns `min` if `T` is the min tropical semiring,
-returns `max` if `T` is the max tropical semiring.
+Return `min` if `T` is the min tropical semiring,
+return `max` if `T` is the max tropical semiring.
 
 # Examples
 ```jldoctest
@@ -434,6 +434,32 @@ function det(x::Matrix{Oscar.TropicalSemiringElem{T}}) where {T}
 
   return det(matrix(parent(x[1,1]),x))
 end
+
+
+
+################################################################################
+#
+#  Tropical Minors
+#
+################################################################################
+@doc Markdown.doc"""
+    tropical_minors(A::MatElem, k::Int)
+
+Return an array consisting of the k-minors of a tropical matrix A
+"""
+function tropical_minors(A::MatElem, k::Int)
+   row_indices = AbstractAlgebra.combinations(nrows(A), k)
+   col_indices = AbstractAlgebra.combinations(ncols(A), k)
+   mins = Vector{elem_type(base_ring(A))}(undef, 0)
+   for ri in row_indices
+      for ci in col_indices
+         push!(mins, determinant(A[ri, ci]))
+      end
+   end
+   return(mins)
+end
+
+
 
 ################################################################################
 #

@@ -35,6 +35,8 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
 modulus(W::MPolyQuo) = W.I
 
+default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
+
 ##############################################################################
 #
 # Quotient ring elements
@@ -164,6 +166,9 @@ function gens(a::MPolyQuoIdeal)
   oscar_assure(a)
   return map(base_ring(a), gens(a.I))
 end
+
+gen(a::MPolyQuoIdeal, i::Int) = gens(a)[i]
+getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc Markdown.doc"""
     ngens(a::MPolyQuoIdeal)
@@ -355,7 +360,7 @@ end
 
 ##################################################################
 
-function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
+function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = default_ordering(Rx); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
     groebner_assure(Rx.I, ordering)
     singular_assure(Rx.I.gb[ordering], ordering)
@@ -1069,6 +1074,9 @@ julia> f = p(y^2-x^2+z^4)
 
 julia> ishomogeneous(f)
 true
+
+julia> f
+z^4
 ```
 """
 function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
@@ -1151,8 +1159,86 @@ function dim(a::MPolyQuoIdeal)
   a.dim 		= Singular.dimension(a.SI)
   return a.dim
 end
-#######################################################
 
+##################################
+### Tests on graded quotient rings
+##################################
+
+function is_standard_graded(A::MPolyQuo)
+  return is_standard_graded(A.R)
+end
+
+function is_z_graded(A::MPolyQuo)
+  return is_z_graded(A.R)
+end
+
+function is_zm_graded(A::MPolyQuo)
+  return is_zm_graded(A.R)
+end
+
+function is_positively_graded(A::MPolyQuo)
+  return is_positively_graded(A.R)
+end
+
+##################################
+#######################################################
+@doc Markdown.doc"""
+    minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
+
+Given a homogeneous ideal `I` in a graded affine algebra over a field,
+return an array containing a minimal set of generators of `I`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> A, p = quo(R, ideal(R, [x-y]));
+
+julia> J = ideal(A, [p(x) for x in V]);
+
+julia> minimal_generating_set(J)
+2-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+ x
+ z^2
+```
+"""
+function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(base_ring(I))))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  Q = base_ring(I)
+
+  @assert isgraded(Q)
+  
+  if !(typeof(base_ring(base_ring(Q))) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
+  end
+  
+  QS = singular_poly_ring(Q, ordering)
+  singular_assure(I)
+
+  IS = I.SI
+  GC.@preserve IS QS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, QS.ptr)
+    gensS = gens(typeof(IS)(QS, ptr))
+  end
+
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
+  return elem_type(Q)[ Q(f) for f in gensS ]
+end
 
 ################################################################################
 #

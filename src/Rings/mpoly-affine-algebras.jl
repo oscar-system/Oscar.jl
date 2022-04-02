@@ -72,12 +72,23 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series(A)
 (2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1)
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_series(A)
+(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
 function hilbert_series(A:: MPolyQuo)
    if iszero(A.I)
+      R = base_ring(A.I)
+      W = R.d
+      W = [Int(W[i][1]) for i = 1:ngens(R)]   
       Zt, t = ZZ["t"]
-      return (one(parent(t)), (1-t)^(ngens(A)))
+      den = prod([1-t^W[i] for i = 1:ngens(base_ring(A.I))])
+      return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
    return hilbert_series(H,1)
@@ -104,12 +115,21 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_reduced(A)
 (2*t + 1, t^2 - 2*t + 1)
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_series(A)
+(-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
+
+julia> hilbert_series_reduced(A)
+(t^2 - t + 1, t^2 - 2*t + 1)
 ```
 """
 function hilbert_series_reduced(A::MPolyQuo)
    if iszero(A.I)
-      Zt, t = ZZ["t"]
-      return (one(parent(t)), (1-t)^(ngens(A)))
+      return hilbert_series(A)
    end
    H = HilbertData(A.I)
    return hilbert_series(H,2)
@@ -131,18 +151,16 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_series_expanded(A, 7)
 1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_series_expanded(A, 5)
+1 + t + 2*t^2 + 3*t^3 + 4*t^4 + 5*t^5 + O(t^6)
 ```
 """
 function hilbert_series_expanded(A::MPolyQuo, d::Int)
-   if iszero(A.I)
-      P, t = PowerSeriesRing(QQ, d, "t")   
-      b = zero(parent(t))
-      n = ngens(A)
-      for i=0:d
-           b = b + binomial(n-1+i, i)*t^i
-        end
-      return b	   
-     end
    H = HilbertData(A.I)  
    return hilbert_series_expanded(H, d)
 end
@@ -167,6 +185,13 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
 julia> hilbert_function(A,7)
 22
+
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3]);
+
+julia> A, _ = quo(R, ideal(R, [x*y*z]));
+
+julia> hilbert_function(A, 5)
+5
 ```
 """
 function hilbert_function(A::MPolyQuo, d::Int)
@@ -236,7 +261,7 @@ function degree(A::MPolyQuo)
 end
 
 ###############################################################################
-### zm-graded Hilbert series stuff using Singular for computing ideal quotients
+### General Hilbert series stuff using Singular for computing ideal quotients
 ###############################################################################
 
 function transform_to_positive_orthant(rs::Matrix{Int})   
@@ -302,6 +327,8 @@ end
 @doc Markdown.doc"""
     multi_hilbert_series(A::MPolyQuo)
 
+Return the Hilbert series of the positively graded affine algebra `A`.
+
 # Examples
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
@@ -327,15 +354,45 @@ julia> H[1][2]
 julia> H[2]
 [1    0]
 [1   -1]
+
+julia> G = abelian_group(fmpz_mat([1 -1]));
+
+julia> g = gen(G, 1)
+Element of
+(General) abelian group with relation matrix
+[1 -1]
+with components [0 1]
+
+julia> W = [g, g, g, g];
+
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> multi_hilbert_series(A)
+((2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1), [1])
 ```
 """
 function multi_hilbert_series(A::MPolyQuo)
    R = A.R
+   I = A.I
    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
    end
-   if !(typeof(R) <: MPolyRing_dec && isgraded(R) && is_zm_graded(R) && is_positively_graded(R))
-       throw(ArgumentError("The base ring must be positively zm-graded."))
+   if !(typeof(R) <: MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+       throw(ArgumentError("The base ring must be positively graded."))
+   end
+   if !(is_zm_graded(R))
+      G = grading_group(R)
+      H, iso = snf(G)
+      V = [preimage(iso, x) for x in gens(G)]
+      isoinv = hom(G, H, V)
+      W = R.d
+      W = [isoinv(W[i]) for i = 1:length(W)]
+      S, _ = GradedPolynomialRing(coefficient_ring(R), map(string, symbols(R)), W)
+      change = hom(R, S, gens(S))
+      I = change(A.I)
+      R = S
    end
    m = ngens(grading_group(R))  
    n = ngens(R)
@@ -365,21 +422,23 @@ function multi_hilbert_series(A::MPolyQuo)
       push_term!(B, 1, e)
       q = q*(1-finish(B))
    end
-   if iszero(A.I)
+   if iszero(I)
       p = one(S)
    else
-      LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
+      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
       if minMI<0
          RNEW, _ = GradedPolynomialRing(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
          LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
       end
+      p = _numerator_monomial_multi_hilbert_series(LI, S)
    end
-   p = _numerator_monomial_multi_hilbert_series(LI, S)
    return  (p, q), T
 end
 
 @doc Markdown.doc"""
     multi_hilbert_series_reduced(A::MPolyQuo)
+
+Return the reduced Hilbert series of the positively graded affine algebra `A`.
 
 # Examples
 ```jldoctest
@@ -406,12 +465,27 @@ julia> H[1][2]
 julia> H[2]
 [1    0]
 [1   -1]
+
+julia> G = abelian_group(fmpz_mat([1 -1]));
+
+julia> g = gen(G, 1);
+
+julia> W = [g, g, g, g];
+
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> multi_hilbert_series_reduced(A)
+((2*t + 1, t^2 - 2*t + 1), [1])
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuo)
    (p, q), T = multi_hilbert_series(A::MPolyQuo)
    c = gcd(p, q)
-   return (divexact(p, c), divexact(q, c)), T
+   p = divexact(p, c)
+   q = divexact(q, c)
+   return (constant_coefficient(q)*p, constant_coefficient(q)*q), T
 end
 
 function _monomial_ideal_membership(m::MPolyElem, I::MPolyIdeal)
@@ -432,26 +506,26 @@ end
 @doc Markdown.doc"""
     multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively graded
-by a finitely generated Abelian group $G$, and given an element $g\in G$,
-consider the induced grading on $A$, and return the value $H(A, g)$, where 
+Given an element $g$ of a finitely generated Abelian group $G$, and given
+an affine algebra $A = R/I$ over a field $K$, where $R$ is positively graded
+by $G$, and where $I$ is homogeneous with respect to this grading, consider 
+the induced grading on $A$, and return the value $H(A, g)$ of 
+the Hilbert function
 
-$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g)$
-
-is the Hilbert function of $A$.
+$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
 
     multi_hilbert_function(A::MPolyQuo, g::Vector{<:IntegerUnion})
 
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively 
-$\mathbb  Z^m$-graded, and given a vector $g$ of $m$ integers, convert $g$ 
-into an element of the group $\mathbb  Z^m$, and return the value $H(A, g)$
+Given an affine algebra $A = R/I$ as above, where $G =\mathbb  Z^m$, 
+and given a vector $g$ of $m$ integers, convert $g$ into an element 
+of the group $\mathbb  Z^m$, and return the value $H(A, g)$
 as above.
 
     multi_hilbert_function(A::MPolyQuo, g::IntegerUnion)
 
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is positively 
-$\mathbb  Z$-graded, and given an integer $g$, convert $g$ into an element 
-of the group $\mathbb  Z$, and return the value $H(A, g)$ as above.
+Given an affine algebra $A = R/I$ as above, where $G =\mathbb  Z$,
+and given an integer $g$, convert $g$ into an element of the group 
+$\mathbb  Z$, and return the value $H(A, g)$ as above.
 
 # Examples
 ```jldoctest
@@ -470,11 +544,24 @@ julia> A, _ = quo(R, I);
 julia> multi_hilbert_function(A::MPolyQuo, [1, 0])
 2
 
-julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], [-1, -1, -1, -1]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
-julia> multi_hilbert_function(A, 7)
+julia> multi_hilbert_function(A, -7)
+22
+
+julia> G = abelian_group(fmpz_mat([1 -1]));
+
+julia> g = gen(G, 1);
+
+julia> W = [g, g, g, g];
+
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
+
+julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
+
+julia> multi_hilbert_function(A, 7*g)
 22
 ```
 """
@@ -487,12 +574,15 @@ function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
     ### TODO: Decide whether we should check whether a GB with respect
     ### to another degree-compatible ordering is already available
     L = homogeneous_component(R, g);
+    if rank(L[1]) == 0
+       return 0
+    end
     FG = gens(L[1]);
     EMB = L[2]
     cc = 0
     for i in 1:length(FG)
-         ### if !(_monomial_ideal_membership(EMB(FG[i]), LI))
-	 if !(EMB(FG[i]) in LI)
+         if !(_monomial_ideal_membership(EMB(FG[i]), LI))
+	 ### if !(EMB(FG[i]) in LI)
 	    cc = cc +1
          end
     end

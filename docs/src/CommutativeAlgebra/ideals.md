@@ -299,20 +299,25 @@ syzygy_generators(a::Vector{<:MPolyElem})
 
 ## Data Associated to Ideals
 
-```@docs
-base_ring(I::MPolyIdeal)
-```
+### Basic Data
 
-### Generators
+If `I` is an ideal of a multivariate polynomial ring  `R`, then
 
-```@docs
-gens(I::MPolyIdeal)
-```
+- `base_ring(I)` refers to `I`,
+- `gens(I)` to the generators of `I`,
+- `ngens(I)` to the number of these generators, and
+- `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
 
-### Number of Generators
+###### Examples
 
-```@docs
-ngens(I::MPolyIdeal)
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+base_ring(I)
+gens(I)
+ngens(I)
+gen(I, 2)
+x*y
 ```
 
 ### Dimension
@@ -325,6 +330,13 @@ dim(I::MPolyIdeal)
 
 ```@docs
 codim(I::MPolyIdeal)
+```
+### Minimal Sets of Generators
+
+In the graded case, we have:
+
+```@docs
+minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
 ```
     
 ## Operations on Ideals

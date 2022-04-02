@@ -16,11 +16,10 @@ end
 # no default = `fmpq` here; scalar type can be derived from the feasible region
 LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
 
-function LinearProgram{T}(Q::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
+function LinearProgram{T}(P::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
-   P=Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(pm_object(Q)))
    ambDim = ambient_dim(P)
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
    lp = Polymake.polytope.LinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k))
@@ -29,7 +28,7 @@ function LinearProgram{T}(Q::Polyhedron{T}, objective::AbstractVector; k = 0, co
    elseif convention == :min
       Polymake.attach(lp, "convention", "min")
    end
-   pm_object(P).LP = lp
+   Polymake.add(pm_object(P), "LP", lp)
    LinearProgram{T}(P, lp, convention)
 end
 
