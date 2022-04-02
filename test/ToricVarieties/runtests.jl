@@ -239,6 +239,8 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test coefficients(D2+D2) == coefficients(2*D2)
     @test coefficients(D2-D2) == [0,0,0,0]
     @test (D == D2) == false
+    @test canonical_divisor(dP3) - canonical_divisor(dP3) == trivial_divisor(dP3)
+    @test anticanonical_divisor(dP3) + canonical_divisor(dP3) == trivial_divisor(dP3)    
 end
 
 p = polyhedron(D)

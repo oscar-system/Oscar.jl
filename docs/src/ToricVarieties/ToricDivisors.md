@@ -62,3 +62,11 @@ coefficients(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
 toric_variety(td::ToricDivisor)
 ```
+
+## Special divisors
+
+```@docs
+TrivialDivisor(v::AbstractNormalToricVariety)
+AnticanonicalDivisor(v::AbstractNormalToricVariety)
+CanonicalDivisor(v::AbstractNormalToricVariety)
+```

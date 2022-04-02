@@ -45,6 +45,7 @@ include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
 include("ToricDivisors/constructors.jl")
 include("ToricDivisors/properties.jl")
 include("ToricDivisors/attributes.jl")
+include("ToricDivisors/special_attributes.jl")
 
 include("ToricDivisorClasses/constructors.jl")
 include("ToricDivisorClasses/properties.jl")
