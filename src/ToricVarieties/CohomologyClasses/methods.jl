@@ -42,6 +42,11 @@ julia> integrate(c)
 ```
 """
 function integrate(c::CohomologyClass)::fmpq
+    # can only integrate if the variety is simplicial, complete
+    if (issimplicial(toric_variety(c)) == false) || (iscomplete(toric_variety(c)) == false)
+        throw(ArgumentError("Integration only supported over complete and simplicial toric varieties."))
+    end
+
     # if the intersection form is known, we can use it
     if has_attribute(toric_variety(c),:_intersection_form_via_exponents)
         intersection_dict = _intersection_form_via_exponents(toric_variety(c))
