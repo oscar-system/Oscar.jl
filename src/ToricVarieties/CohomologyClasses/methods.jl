@@ -24,17 +24,17 @@ A cohomology class on a normal toric variety given by e3 + e2^2
 julia> integrate(c)
 -1
 
-julia> H3 = hirzebruch_surface(3)
+julia> F3 = hirzebruch_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> (x1,x2,x3,x4) = gens(cohomology_ring(H3))
+julia> (x1,x2,x3,x4) = gens(cohomology_ring(F3))
 4-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
  x1
  x2
  x3
  x4
 
-julia> c = CohomologyClass(H3, x1*x2 + x3*x4)
+julia> c = CohomologyClass(F3, x1*x2 + x3*x4)
 A cohomology class on a normal toric variety given by 2//3*x4^2
 
 julia> integrate(c)
