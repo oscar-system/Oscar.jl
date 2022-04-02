@@ -894,6 +894,15 @@ function base_ring(M::SubModuleOfFreeModule)
 end
 
 @doc Markdown.doc"""
+    get_default_ordering(M::SubModuleOfFreeModule)
+
+Get the default ordering of `M`.
+"""
+function default_ordering(M::SubModuleOfFreeModule)
+  return M.default_ordering
+end
+
+@doc Markdown.doc"""
     set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 
 Set the default ordering in `M` to `ord`.
@@ -910,7 +919,7 @@ end
 Compute a standard basis of `submod` with respect to its default odering.
 """
 function std_basis(submod::SubModuleOfFreeModule)
-  return std_basis(submod, submod.default_ordering)
+  return std_basis(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -920,7 +929,7 @@ Compute a Gröbner basis of `submod` with respect to its default odering.
 For this, the default ordering must be global.
 """
 function groebner_basis(submod::SubModuleOfFreeModule)
-  return groebner_basis(submod, submod.default_ordering)
+  return groebner_basis(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -954,7 +963,7 @@ end
 Compute a reduced Gröbner basis. The return type is `ModuleGens`.
 """
 function reduced_groebner_basis(submod::SubModuleOfFreeModule)
-  return reduced_groebner_basis(submod, submod.default_ordering)
+  return reduced_groebner_basis(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -980,7 +989,7 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
 end
 
 function leading_module(submod::SubModuleOfFreeModule)
-  return leading_module(submod, submod.default_ordering)
+  return leading_module(submod, default_ordering(submod))
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering)
@@ -995,7 +1004,7 @@ end
 Compute a standard basis of `submod` and return it as a `ModuleGens`.
 """
 function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule)
-  return std_basis_as_ModuleGens(submod, submod.default_ordering)
+  return std_basis_as_ModuleGens(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -1016,7 +1025,7 @@ function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::Module
 end
 
 function leading_module_as_ModuleGens(M::SubModuleOfFreeModule)
-  ord = M.default_ordering
+  ord = default_ordering(M)
   return leading_module_as_ModuleGens(M, ord)
 end
 
@@ -1502,6 +1511,15 @@ function cokernel(A::MatElem)
 end
 
 @doc Markdown.doc"""
+    default_ordering(M::SubQuo)    
+
+Return the default ordering of `M`.
+"""
+function default_ordering(M::SubQuo)
+  return default_ordering(M.sub)
+end
+
+@doc Markdown.doc"""
     set_default_ordering!(M::SubQuo, ord::ModuleOrdering)
 
 Set the default ordering in `M` to `ord`.
@@ -1544,15 +1562,15 @@ function groebner_basis(M::SubQuo, ord::ModuleOrdering)
 end
 
 function std_basis(M::SubQuo)
-  return std_basis(M, M.sub.default_ordering)
+  return std_basis(M, default_ordering(M))
 end
 
 function groebner_basis(M::SubQuo)
-  return groebner_basis(M, M.sub.default_ordering)
+  return groebner_basis(M, default_ordering(M))
 end
 
 function reduced_groebner_basis(M::SubQuo)
-  return reduced_groebner_basis(M, M.sub.default_ordering)
+  return reduced_groebner_basis(M, default_ordering(M))
 end
 
 function reduced_groebner_basis(M::SubQuo, ord::ModuleOrdering)
@@ -1590,7 +1608,7 @@ function leading_module(M::SubQuo, ord::ModuleOrdering)
 end
 
 function leading_module(M::SubQuo)
-  return leading_module(M, M.sub.default_ordering)
+  return leading_module(M, default_ordering(M))
 end
 
 @doc Markdown.doc"""
@@ -3189,7 +3207,7 @@ end
 Reduce `M` with respect to the Gröbner basis `GB`.
 """
 function reduce(M::SubModuleOfFreeModule, GB::ModuleGB)
-  return SubModuleOfFreeModule(M.F, reduce(M.gens, GB), M.default_ordering)
+  return SubModuleOfFreeModule(M.F, reduce(M.gens, GB), default_ordering(M))
 end
 
 @doc Markdown.doc"""
@@ -3198,7 +3216,7 @@ end
 Reduce `M` with respect to `N`, that is with respect to a Gröbner basis of `N` (the Gröbner basis is computed for this).
 """
 function reduce(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
-  return reduce(M, groebner_basis(N, M.default_ordering))
+  return reduce(M, groebner_basis(N, default_ordering(M)))
 end
 
 @doc Markdown.doc"""
