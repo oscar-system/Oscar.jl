@@ -351,7 +351,7 @@ include("Combinatorics/Graphs.jl")
 export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
 
-include("../StraightLinePrograms/src/StraightLinePrograms.jl")
+include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 

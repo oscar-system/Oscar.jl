@@ -277,7 +277,7 @@ export polynomial
 @doc Markdown.doc"""
     minpoly(T::TropicalHypersurface)
 
-Return the minimal polynomial with smallest possible coefficients of a hypersurface
+Return the minimal polynomial with smallest possible coefficients of a hypersurface.
 """
 function minpoly(T::TropicalHypersurface)
     error("function not implemented yet")

@@ -1,6 +1,7 @@
 export GroupConjClass
 
 export
+    acting_group,
     comm,
     comm!,
     complement_system, hascomplement_system, setcomplement_system,
@@ -460,9 +461,19 @@ end
 
 Base.length(C::GroupConjClass) = fmpz(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default fmpz
 
+"""
+    representative(C::GroupConjClass)
+
+Return a representative of the conjugacy class `C`.
+"""
 representative(C::GroupConjClass) = C.repr
 
-@gapattribute number_conjugacy_classes(G::GAPGroup) = fmpz(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default fmpz
+"""
+    acting_group(C::GroupConjClass)
+
+Return the acting group of the conjugacy class `C`.
+"""
+acting_group(C::GroupConjClass) = C.X
 
 # START elements conjugation
 
@@ -486,9 +497,16 @@ end
 @deprecate elements(C::GroupConjClass) collect(C)
 
 """
+    number_conjugacy_classes(G::GAPGroup)
+
+Return the number of conjugacy classes of elements in `G`.
+"""
+@gapattribute number_conjugacy_classes(G::GAPGroup) = fmpz(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default fmpz
+
+"""
     conjugacy_classes(G::Group)
 
-Return the vector of all conjugacy classes of elements in G.
+Return the vector of all conjugacy classes of elements in `G`.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)

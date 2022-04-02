@@ -182,7 +182,7 @@ Base.:*(c::Int, td::ToricDivisor) = ToricDivisor(toric_variety(td), [fmpz(c)*x f
 @doc Markdown.doc"""
     Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
 
-Returns true if the toric divisors `td1` and `td2` are equal and false otherwise.
+Return `true` if the toric divisors `td1` and `td2` are equal and `false` otherwise.
 
 # Examples
 ```jldoctest
