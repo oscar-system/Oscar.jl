@@ -29,13 +29,13 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 
 julia> (x1,x2,x3,x4) = gens(cohomology_ring(F3))
 4-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
+ t1
  x1
+ t2
  x2
- x3
- x4
 
 julia> c = CohomologyClass(F3, x1*x2 + x3*x4)
-A cohomology class on a normal toric variety given by 2//3*x4^2
+A cohomology class on a normal toric variety given by 2//3*x2^2
 
 julia> integrate(c)
 2

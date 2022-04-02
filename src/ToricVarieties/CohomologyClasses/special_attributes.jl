@@ -41,7 +41,7 @@ julia> polynomial(volume_form(del_pezzo(3)))
 -e2^2
 
 julia> polynomial(volume_form(hirzebruch_surface(5)))
-1//5*x4^2
+1//5*x2^2
 ```
 """
 @attr CohomologyClass function volume_form(v::NormalToricVariety)
