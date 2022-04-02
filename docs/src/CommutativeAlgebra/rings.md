@@ -14,7 +14,7 @@ Pages = ["rings.md"]
 
 In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
 while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
-rings with gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
+rings with (multi)gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
 and their elements, we refer to the chapters on rings and fields. 
 
 ## Types
@@ -160,10 +160,21 @@ Multivariate rings with gradings are modelled by objects of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
 
+!!! note
+    The types `MPolyRing_dec{T, S}` and `MPolyRingElem_dec{T, S}` are
+    also meant to eventually model multivariate rings with filtrations
+	and their elements.
+
+
+The following function allows one to distinguish between graded and filtered rings:
+
+```@docs
+isgraded(R::MPolyRing_dec)
+```
 
 ### Constructors for Graded Rings
 
-There are two basic ways of creating graded polynomial rings:
+There are two basic ways of creating multivariate rings with gradings:
 While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
 the `GradedPolynomialRing` function is meant to create a graded polynomial ring all at once.
 
