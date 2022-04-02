@@ -267,16 +267,17 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :is_q_gorenstein, true)
     set_attribute!(variety, :isfano, true)
     
-    # set attributes
+    # set general attributes
     set_attribute!(variety, :dim, d)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, d+1)
+    set_attribute!(variety, :betti_number, fill(fmpz(1), d+1))
+    
+    # set groups and mappings
     set_attribute!(variety, :character_lattice, free_abelian_group(d))
-    set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_weil_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
-    betti_numbers = fill(fmpz(1), d+1)
-    set_attribute!(variety, :betti_number, betti_numbers)
     
     # return the variety
     return variety
