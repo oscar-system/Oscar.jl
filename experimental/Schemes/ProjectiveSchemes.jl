@@ -342,7 +342,7 @@ end
 @Markdown.doc """
     homog_to_frac(X::ProjectiveScheme) 
 
-Returns a map that converts a polynomial in the 
+Return a map that converts a polynomial in the 
 `homogeneous_coordinate_ring` of `X` into a function on the 
 `affine_cone` of `X`.
 """
@@ -356,7 +356,7 @@ end
 @Markdown.doc """
     poly_to_homog(X::ProjectiveScheme)
 
-Returns a map that converts an element of the `base_ring` of 
+Return a map that converts an element of the `base_ring` of 
 ring of functions `OO` of the `affine_cone` of `X` into 
 an element of the `homogeneous_coordinate_ring` of `X`.
 """
@@ -370,7 +370,7 @@ end
 @Markdown.doc """
     function frac_to_homog_pair(X::ProjectiveScheme)
 
-Returns a map that converts an element ``f = p/q`` of the ring of 
+Return a map that converts an element ``f = p/q`` of the ring of 
 functions `OO` of the `affine_cone` of `X` into a pair 
 ``(a, b)`` of elements of the `homogeneous_coordinate_ring` of `X`
 corresponding to ``p`` and ``q``, respectively.

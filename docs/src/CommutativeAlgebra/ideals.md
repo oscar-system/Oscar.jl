@@ -331,6 +331,13 @@ dim(I::MPolyIdeal)
 ```@docs
 codim(I::MPolyIdeal)
 ```
+### Minimal Sets of Generators
+
+In the graded case, we have:
+
+```@docs
+minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
+```
     
 ## Operations on Ideals
 

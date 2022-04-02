@@ -621,7 +621,7 @@ end
 @Markdown.doc """
     product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 
-Returns the product of the multiplicative sets `T` and `U`. 
+Return the product of the multiplicative sets `T` and `U`. 
 """
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)

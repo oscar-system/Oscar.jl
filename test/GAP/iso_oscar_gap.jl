@@ -173,6 +173,10 @@ end
       @test_throws ErrorException image(f, CyclotomicField(2)[2])
       @test_throws ErrorException preimage(f, GAP.Globals.Z(2))
    end
+
+   K, a = CyclotomicField(10, "a")
+   phi = Oscar.iso_oscar_gap(K)
+   @test phi(-a^3 + a^2 + 1) == GAP.evalstr("-E(5)^2-E(5)^3")
 end
 
 @testset "univariate polynomial rings" begin

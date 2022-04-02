@@ -1,7 +1,7 @@
 @doc Markdown.doc"""
     istrivial(l::ToricLineBundle)
 
-Returns "true" if the toric line bundle `l` is trivial and "false" otherwise.
+Return `true` if the toric line bundle `l` is trivial and `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -22,7 +22,7 @@ export istrivial
 @doc Markdown.doc"""
     is_basepoint_free(l::ToricLineBundle)
 
-Returns "true" if the toric line bundle `l` is basepoint free and "false" otherwise.
+Return `true` if the toric line bundle `l` is basepoint free and `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -40,7 +40,7 @@ export is_basepoint_free
 @doc Markdown.doc"""
     isample(l::ToricLineBundle)
 
-Returns "true" if the toric line bundle `l` is ample and "false" otherwise.
+Return `true` if the toric line bundle `l` is ample and `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -58,7 +58,7 @@ export isample
 @doc Markdown.doc"""
     is_very_ample(l::ToricLineBundle)
 
-Returns "true" if the toric line bundle `l` is very ample and "false" otherwise.
+Return `true` if the toric line bundle `l` is very ample and `false` otherwise.
 
 # Examples
 ```jldoctest

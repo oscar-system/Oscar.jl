@@ -223,7 +223,7 @@ end
 # Assume that `FO` and `FG` are cyclotomic fields with the same conductor
 # in Oscar and GAP, respectively.
 function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP.GapObj)
-   N = GAPWrap.Conductor(FG)
+   N = conductor(FO)
    cycpol = GAP.Globals.CyclotomicPol(N)::GapObj
    dim = length(cycpol)-1
 
