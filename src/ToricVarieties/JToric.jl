@@ -65,7 +65,7 @@ include("CohomologyClasses/methods.jl")
 
 include("AlgebraicCycles/special_attributes.jl")
 
-include("cohomCalg.jl")
+include("cohomCalg/cohomCalg.jl")
 
 # deprecated functions
 @deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
