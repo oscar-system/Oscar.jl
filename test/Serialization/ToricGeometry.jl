@@ -9,5 +9,5 @@
             @test rays(pp) == rays(loaded)
             @test ray_indices(maximal_cones(pp)) == ray_indices(maximal_cones(loaded))
         end
-
+    end
 end
