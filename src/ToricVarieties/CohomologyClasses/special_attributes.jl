@@ -57,22 +57,7 @@ end
 export volume_form
 
 
-@doc Markdown.doc"""
-    intersection_form(v::NormalToricVariety)
-
-Computes the intersection numbers among the cohomology classes
-associated to the torusinvariant prime divisors of the normal toric toric variety `v`.
-
-# Examples
-```jldoctest
-julia> H3 = hirzebruch_surface(3)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
-
-julia> length(intersection_form(H3))
-10
-```
-"""
-@attr function _intersection_form_via_exponents(v::NormalToricVariety)::Dict{fmpz_mat, fmpq}
+@attr function _intersection_form_via_exponents(v::NormalToricVariety)
     # extract the cohomology classes corresponding to the torus-invariant prime divisors
     generators = [CohomologyClass(d) for d in torusinvariant_prime_divisors(v)]
     
@@ -94,7 +79,23 @@ julia> length(intersection_form(H3))
     return intersection_dict
 end
 
-function intersection_form(v::NormalToricVariety)::Dict{MPolyElem, fmpq}
+
+@doc Markdown.doc"""
+    intersection_form(v::NormalToricVariety)
+
+Computes the intersection numbers among the cohomology classes
+associated to the torusinvariant prime divisors of the normal toric toric variety `v`.
+
+# Examples
+```jldoctest
+julia> H3 = hirzebruch_surface(3)
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+
+julia> length(intersection_form(H3))
+10
+```
+"""
+function intersection_form(v::NormalToricVariety)
     intersection_dict = _intersection_form_via_exponents(v)
     monoms_of_prime_divisors = gens(cox_ring(v))    
     intersection_dict_for_user = Dict{MPolyElem, fmpq}()

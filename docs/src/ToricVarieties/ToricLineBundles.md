@@ -54,6 +54,16 @@ toric_divisor(l::ToricLineBundle)
 toric_variety(l::ToricLineBundle)
 ```
 
+
+### Special line bundles
+
+```@docs
+AnticanonicalBundle(v::AbstractNormalToricVariety)
+CanonicalBundle(v::AbstractNormalToricVariety)
+StructureSheaf(v::AbstractNormalToricVariety)
+```
+
+
 ## Method
 
 We use [cohomCalg](https://github.com/BenjaminJurke/cohomCalg)

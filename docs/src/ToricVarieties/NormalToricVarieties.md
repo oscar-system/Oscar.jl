@@ -164,23 +164,6 @@ character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{
 character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
 ```
 
-
-### Intersection theory
-
-```@docs
-chow_ring(v::AbstractNormalToricVariety)
-cohomology_ring(v::AbstractNormalToricVariety)
-```
-
-
-### Sheaves
-
-```@docs
-AnticanonicalBundle(v::AbstractNormalToricVariety)
-CanonicalBundle(v::AbstractNormalToricVariety)
-StructureSheaf(v::AbstractNormalToricVariety)
-```
-
 ## Auxillary Methods
 
 ```@docs

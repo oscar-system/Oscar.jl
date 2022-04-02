@@ -15,58 +15,60 @@ Pages = ["CohomologyClasses.md"]
 ### Generic constructors
 
 ```@docs
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
-ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+CohomologyClass(d::ToricDivisor)
+CohomologyClass(c::ToricDivisorClass)
+CohomologyClass(l::ToricLineBundle)
 ```
 
-### Tensor products
+### Addition, subtraction and scalar multiplication
 
 ```@docs
-Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
-Base.:^(l::ToricLineBundle, p::fmpz)
-Base.:inv(l::ToricLineBundle)
+Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
+Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
+Base.:*(c::fmpq, cc::CohomologyClass)
+```
+
+### Wedge product
+
+```@docs
+Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
+Base.:^(cc::CohomologyClass, p::fmpz)
 ```
 
 ### Equality
 
 ```@docs
-Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
+Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
 ```
 
 
 ## Properties
 
 ```@docs
-istrivial(l::ToricLineBundle)
-is_basepoint_free(l::ToricLineBundle)
-isample(l::ToricLineBundle)
-is_very_ample(l::ToricLineBundle)
+istrivial(c::CohomologyClass)
 ```
 
 
 ## Attributes
 
 ```@docs
-degree(l::ToricLineBundle)
-divisor_class(l::ToricLineBundle)
-toric_divisor(l::ToricLineBundle)
-toric_variety(l::ToricLineBundle)
+toric_variety(c::CohomologyClass)
+coefficients(c::CohomologyClass)
+exponents(c::CohomologyClass)
+polynomial(c::CohomologyClass)
+polynomial(c::CohomologyClass, ring::MPolyQuo)
 ```
 
-## Method
-
-We use [cohomCalg](https://github.com/BenjaminJurke/cohomCalg)
-to compute the dimension of line bundle cohomologies. This is achieved with the following methods.
+## Methods
 
 ```@docs
-all_cohomologies(l::ToricLineBundle)
-cohomology(l::ToricLineBundle, i::Int)
+integrate(c::CohomologyClass)
 ```
 
-We can also compute a basis of the global sections.
+## Special attributes of toric varieties
 
 ```@docs
-basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
-basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
+cohomology_ring(v::AbstractNormalToricVariety)
+volume_form(v::NormalToricVariety)
+intersection_form(v::NormalToricVariety)
 ```

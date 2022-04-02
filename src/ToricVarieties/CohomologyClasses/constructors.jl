@@ -2,37 +2,16 @@
 # 1: The Julia type for toric cohomology classes
 #############################
 
-@doc Markdown.doc"""
-    CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoElem)
-
-Construct the toric cohomology class on the normal toric variety `v`
-corresponding to the polynomial `p` in the cohomology ring of `v`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> (x1,x2,x3) = gens(cohomology_ring(P2))
-3-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
- x1
- x2
- x3
-
-julia> CohomologyClass(P2, x1)
-A cohomology class on a normal toric variety given by x3
-```
-"""
 @attributes mutable struct CohomologyClass
     toric_variety::AbstractNormalToricVariety
     coeffs::Vector
     exponents::fmpz_mat
-    function CohomologyClass(toric_variety::AbstractNormalToricVariety, p::MPolyQuoElem)
-        if length(coordinate_names(toric_variety)) != ngens(parent(p))
+    function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoElem)
+        if length(coordinate_names(v)) != ngens(parent(p))
             throw(ArgumentError("The polynomial must reside in the cohomology ring of the toric variety."))
         end
-        for k in 1:length(coordinate_names(toric_variety))
-            if string(gens(parent(p))[k]) !== coordinate_names(toric_variety)[k]
+        for k in 1:length(coordinate_names(v))
+            if string(gens(parent(p))[k]) !== coordinate_names(v)[k]
                 throw(ArgumentError("The names of the indeterminates must match the names of the homogeneous coordinates of the toric variety."))
             end
         end
@@ -41,10 +20,10 @@ A cohomology class on a normal toric variety given by x3
         if (nrows(expos) !== length(coeffs))
             throw(ArgumentError("There must be as many exponents as coefficients."))
         end
-        if ((iszero(p) == false) && (ncols(expos) !== ngens(cohomology_ring(toric_variety))))
+        if ((iszero(p) == false) && (ncols(expos) !== ngens(cohomology_ring(v))))
             throw(ArgumentError("Each exponent must consist of as many numbers as generators of the cohomology ring of the toric variety."))
         end
-        return new(toric_variety, coeffs, expos)
+        return new(v, coeffs, expos)
     end
 end
 export CohomologyClass
