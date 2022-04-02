@@ -373,6 +373,7 @@ function del_pezzo(b::Int)
         cones = IncidenceMatrix([[1,6],[6,2],[2,4],[4,3],[3,5],[5,1]])
     end
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
+    new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
     set_attribute!(variety, :isaffine, false)
@@ -395,32 +396,78 @@ function del_pezzo(b::Int)
     vars_dict[matrix(ZZ,[1 1])] = "e1"
     vars_dict[matrix(ZZ,[0 -1])] = "e2"
     vars_dict[matrix(ZZ,[-1 0])] = "e3"
-    new_rays = matrix(ZZ, Oscar.rays(variety))
     vars = [vars_dict[new_rays[i,:]] for i in 1:nrows(new_rays)]
     set_coordinate_names(variety, vars)
     
-    # set attributes that depend on b
-    if b == 1
-        set_attribute!(variety, :euler_characteristic, 4)
-        set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
-    end
-    if b == 2
-        set_attribute!(variety, :euler_characteristic, 5)
-        set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(5))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
-    end
-    if b == 3
-        set_attribute!(variety, :euler_characteristic, 6)
-        set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(6))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
-    end
-    
-    # set further attributes
+    # set attributes
     set_attribute!(variety, :dim, 2)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    
+    # set attributes that depend on b
+    if b == 1
+        # determine weights of the Cox ring
+        weight_dict = Dict()
+        weight_dict[matrix(ZZ,[1 0])] = [1, 1]
+        weight_dict[matrix(ZZ,[0 1])] = [1, 1]
+        weight_dict[matrix(ZZ,[-1 -1])] = [1, 0]
+        weight_dict[matrix(ZZ,[1 1])] = [0, -1]
+        weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+        
+        # set special attributes
+        set_attribute!(variety, :euler_characteristic, 4)
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
+        set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
+        set_attribute!(variety, :class_group, free_abelian_group(2))
+        set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+        k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
+        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
+        
+    end
+    if b == 2
+        # determine weights of the Cox ring
+        weight_dict = Dict()
+        weight_dict[matrix(ZZ,[1 0])] = [1, 1, 1]
+        weight_dict[matrix(ZZ,[0 1])] = [1, 1, 0]
+        weight_dict[matrix(ZZ,[-1 -1])] = [1, 0, 1]
+        weight_dict[matrix(ZZ,[1 1])] = [0, -1, 0]
+        weight_dict[matrix(ZZ,[0 -1])] = [0, 0, -1]
+        weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+
+        # set special attributes
+        set_attribute!(variety, :euler_characteristic, 5)
+        set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(5))
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
+        set_attribute!(variety, :class_group, free_abelian_group(3))
+        set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+        k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
+        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
+                
+    end
+    if b == 3
+        # determine weights of the Cox ring
+        weight_dict = Dict()
+        weight_dict[matrix(ZZ,[1 0])] = [1, 1, 1, 0]
+        weight_dict[matrix(ZZ,[0 1])] = [1, 1, 0, 1]
+        weight_dict[matrix(ZZ,[-1 -1])] = [1, 0, 1, 1]
+        weight_dict[matrix(ZZ,[1 1])] = [0, -1, 0, 0]
+        weight_dict[matrix(ZZ,[0 -1])] = [0, 0, -1, 0]
+        weight_dict[matrix(ZZ,[-1 0])] = [0, 0, 0, -1]
+        weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+        
+        # set special attributes
+        set_attribute!(variety, :euler_characteristic, 6)
+        set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(6))
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
+        set_attribute!(variety, :class_group, free_abelian_group(4))
+        set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
+        k = kernel(map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
+        set_attribute!(variety, :map_from_character_lattice_to_torusinvariant_weil_divisor_group, snf(k[1])[2] * k[2])
+        
+    end
+    
+    # set more attributes
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_weil_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
     # return the result
