@@ -1276,7 +1276,7 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::Monomi
 
   @assert isgraded(R)
   
-  if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
+  if !(base_ring(R) isa AbstractAlgebra.Field)
      throw(ArgumentError("The coefficient ring must be a field."))
   end
   
