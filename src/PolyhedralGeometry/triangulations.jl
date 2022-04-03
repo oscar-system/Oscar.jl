@@ -20,8 +20,8 @@ function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVecto
     result = Vector{Vector{Vector{Int}}}()
     for line in eachline(out)
         m = match(r"{{.*}}", line)
-        triang = String(m.match)
-        triang = replace(triang, "{"=>"[", "}"=>"]")
+        triang = replace(m.match, "{"=>"[")
+        triang = replace(triang, "}"=>"]")
         triang = convert(Vector{Vector{Int}},JSON.parse(triang))
         push!(result, Polymake.to_one_based_indexing(triang))
     end
