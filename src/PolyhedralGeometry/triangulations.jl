@@ -6,15 +6,19 @@ function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVecto
     if full
         cmdopts = "--regular -F"
     end
-    inputfile = tempname()
     inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
-    inputstr = "[\n"*inputstr*"\n]"
-    write(inputfile, inputstr)
+    in = Pipe()
     out = Pipe()
     err = Pipe()
-    TOPCOM_jll.points2triangs() do exe
-        process = run(pipeline(`$exe $cmdopts`, stdin=inputfile, stdout=out, stderr=err))
+    Base.link_pipe!(in, writer_supports_async=true)
+    Base.link_pipe!(out, reader_supports_async=true)
+    Base.link_pipe!(err, reader_supports_async=true)
+    proc = run(pipeline(`$(Oscar.TOPCOM_jll.points2triangs()) $cmdopts`, stdin=in, stdout=out, stderr=err), wait=false)
+    task = @async begin
+        write(in, "[\n$inputstr\n]\n")
+        close(in)
     end
+    close(in.out)
     close(out.in)
     close(err.in)
     result = Vector{Vector{Vector{Int}}}()
@@ -24,6 +28,11 @@ function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVecto
         triang = replace(triang, "}"=>"]")
         triang = convert(Vector{Vector{Int}},JSON.parse(triang))
         push!(result, Polymake.to_one_based_indexing(triang))
+    end
+    wait(task)
+    if !success(proc)
+        error = eof(err) ? "unknown error" : readchomp(err)
+        throw("Failed to run TOPCOM: $error")
     end
     return result
 end
