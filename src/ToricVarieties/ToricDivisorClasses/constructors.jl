@@ -174,7 +174,7 @@ Base.:*(c::Int, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), 
 @doc Markdown.doc"""
     Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
 
-Returns true if the toric divisor classes `tdc1` and `tdc2` are equal and false otherwise.
+Return `true` if the toric divisor classes `tdc1` and `tdc2` are equal and `false` otherwise.
 
 # Examples
 ```jldoctest

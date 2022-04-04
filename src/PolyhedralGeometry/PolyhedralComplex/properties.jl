@@ -412,7 +412,7 @@ codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
 @doc Markdown.doc"""
     isembedded(PC::PolyhedralComplex)
 
-Returns true if `PC` is embedded, i.e. if its vertices can be computed as a
+Return `true` if `PC` is embedded, i.e. if its vertices can be computed as a
 subset of some $\mathbb{R}^n$.
 
 # Examples
