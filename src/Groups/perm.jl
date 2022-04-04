@@ -440,7 +440,7 @@ julia> cperm()
 
 julia> cycle_structure(ans)
 1-element Oscar.CycleType:
- 1 => 15
+ 1 => 1
 ```
 """
 function cycle_structure(g::PermGroupElem)
