@@ -357,12 +357,72 @@ Base.iseven(n::PermGroupElem) = !isodd(n)
 Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
 
+##
+# cycle-types and support
+##
+mutable struct CycleType <: AbstractVector{Pair{Int64, Int64}}
+  s::Vector{Pair{Int, Int}}
+  function CycleType(c::Vector{Int})
+    ct = CycleType()
+    for i = c
+      _push!(ct, i)
+    end
+    sort!(ct.s, lt = (x,y) -> x[1] < y[1])
+    return ct
+  end
+  function CycleType()
+    return new(Pair{Int, Int}[])
+  end
+  function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
+    sorted && return new(v)
+    return new(sort(v, lt = (x,y) -> x[1] < y[1]))
+  end
+end
+
+Base.iterate(C::CycleType) = iterate(C.s)
+Base.iterate(C::CycleType, x) = iterate(C.s, x)
+Base.length(C::CycleType) = length(C.s)
+Base.eltype(C::CycleType) = Pair{Int, Int}
+Base.getindex(C::CycleType, i::Int) = C.s[i]
+Base.size(C::CycleType) = size(C.s)
+
+function Base.hash(c::CycleType, u::UInt = UInt(121324))
+  return hash(c.s, u)
+end
+
+function Base.show(io::IO, C::CycleType)
+  print(io, C.s)
+end
+
+function _push!(ct::CycleType, i::Int, j::Int = 1)
+  f = findfirst(x->x[1] == i, ct.s)
+  if f === nothing
+    push!(ct.s, i=>j)
+    sort!(ct.s, lt= (a,b) -> a[1] < b[1])
+  else
+    ct.s[f] = ct.s[f][1]=>ct.s[f][2] + j
+  end
+end
+
+function ^(c::CycleType, e::Int)
+  t = CycleType()
+  for (i,j) = c.s
+    g = gcd(i, e)
+    _push!(t, divexact(i, g), g*j)
+  end
+  return t
+end
+
+function order(c::CycleType)
+  return reduce(lcm, map(x->fmpz(x[1]), c.s), init = fmpz(1))
+end
+
 """
     cycle_structure(g::PermGroupElem)
 
-Return the cycle structure of the permutation `g` as a sorted vector of
-pairs. A pair `k => n` in this vector indicates that the number
-of ``k``-cycles in the cycle decomposition of `g` is equal to `n`.
+Return the cycle structure of the permutation `g` as a cycle type.
+A cycle type behaves similar to a vector of pairs `k => n`
+indicating that there are `n` cycles of length `k`.
 
 # Examples
 ```jldoctest
@@ -370,7 +430,7 @@ julia> g = cperm(1:3, 4:5, 6:7, 8:10, 11:15)
 (1,2,3)(4,5)(6,7)(8,9,10)(11,12,13,14,15)
 
 julia> cycle_structure(g)
-3-element Vector{Pair{Int64, Int64}}:
+3-element Oscar.CycleType:
  2 => 2
  3 => 2
  5 => 1
@@ -379,11 +439,18 @@ julia> cperm()
 ()
 
 julia> cycle_structure(ans)
-Pair{Int64, Int64}[]
+1-element Oscar.CycleType:
+ 1 => 15
 ```
 """
 function cycle_structure(g::PermGroupElem)
     c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
-    return Pair{Int,Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
+    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
+    s = mapreduce(x->x[1]*x[2], +, ct, init = Int(0))
+    if s < degree(parent(g))
+      @assert length(c) == 0 || ct[1][1] > 1
+      insert!(ct, 1, 1=>degree(parent(g))-s)
+    end
+    return CycleType(ct, sorted = true)
 end
