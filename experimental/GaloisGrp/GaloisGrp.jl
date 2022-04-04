@@ -1347,6 +1347,9 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       #       the poset should make this trivial.
       @vprint :GaloisGroup 1 "computing group of subfield of degree $(degree(s))\n"
       local g, gc
+      if valuation(discriminant(s), GC.prime) > 0
+        throw(Hecke.BadPrime(GC.prime))
+      end
       g, gc = try
           Hecke.pushindent()
           galois_group(s, prime = GC.prime)
