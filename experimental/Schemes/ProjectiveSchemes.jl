@@ -789,3 +789,26 @@ function dehomogenize(
   return hom(S, OO(U), s)
 end
 
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:Nothing})(a::MPolyElem)
+  if !has_attribute(f, :lifted_map)
+    S = domain(f)
+    W = codomain(f)
+    L = localized_ring(W)
+    g = hom(S, L, lift.(f.img_gens))
+    set_attribute!(f, :lifted_map, g)
+  end
+  g = get_attribute(f, :lifted_map)
+  return codomain(f)(g(a), check=false)
+end
+
+function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing, <:MPolyQuoLocalizedRingHom})(a::MPolyElem)
+  if !has_attribute(f, :lifted_map)
+    S = domain(f)
+    W = codomain(f)
+    L = localized_ring(W)
+    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens))
+    set_attribute!(f, :lifted_map, g)
+  end
+  g = get_attribute(f, :lifted_map)
+  return codomain(f)(g(a), check=false)
+end
