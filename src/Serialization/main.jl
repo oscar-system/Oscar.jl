@@ -156,6 +156,9 @@ function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=tr
 
     encodedType = dict[:type]
     T = decodeType(encodedType)
+    if T == backref_sym
+        return s.objs[UUID(dict[:id])]
+    end
 
     Base.issingletontype(T) && return T()
 
