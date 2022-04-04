@@ -69,10 +69,10 @@ julia> PC = PolyhedralComplex{fmpq}(IM, VR)
 A polyhedral complex in ambient dimension 2
 
 julia> TC = TropicalCurve(PC)
-A tropical curve in 2-dimensional Euclidean space
+A min tropical curve in 2-dimensional Euclidean space
 
 julia> abs_TC = TropicalCurve(IM)
-An abstract tropical curve
+An abstract min tropical curve
 ```
 """
 function TropicalCurve(PC::PolyhedralComplex, M::Union{typeof(min),typeof(max)}=min)
@@ -99,7 +99,7 @@ Return the graph of an abstract tropical curve `tc`.
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
 
 julia> tc = TropicalCurve(IM)
-An abstract tropical curve
+An abstract min tropical curve
 
 julia> graph(tc)
 6×4 IncidenceMatrix
