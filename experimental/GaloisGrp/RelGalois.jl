@@ -31,6 +31,7 @@ function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
   V.P = P
   V.H = H
   C = GaloisCtx(typeof(V))
+  C.prime = P
   C.f = f
   C.C = V
   if Hecke.ismaximal_order_known(k)

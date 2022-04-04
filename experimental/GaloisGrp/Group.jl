@@ -108,6 +108,16 @@ function action_on_blocks(G::PermGroup, B::Vector{Int})
   return Oscar.GAPGroupHomomorphism(G, H, act)
 end
 
+function action_on_block_system(G::PermGroup, B::Vector{Vector{Int}})
+  orb = GAP.GapObj(B, recursive = true)
+  act = GAP.Globals.ActionHomomorphism(G.X, orb, GAP.Globals.OnSets)
+  H = GAP.Globals.Image(act)
+  T = Oscar._get_type(H)
+  H = T(H)
+  return Oscar.GAPGroupHomomorphism(G, H, act)
+end
+
+
 @doc Markdown.doc"""
     short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem) ->
 
