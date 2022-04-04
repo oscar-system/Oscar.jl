@@ -151,6 +151,7 @@
         "ToricVarieties/ToricDivisors.md",
         "ToricVarieties/ToricDivisorClasses.md",
         "ToricVarieties/ToricLineBundles.md",
+        "ToricVarieties/cohomCalg.md",
      ],
      "Schemes" => [
         "AlgebraicGeometry/AffineSchemes.md",

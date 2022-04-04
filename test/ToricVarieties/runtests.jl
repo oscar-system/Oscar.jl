@@ -243,7 +243,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test coefficients(D2-D2) == [0,0,0,0]
     @test (D == D2) == false
     @test canonical_divisor(dP3) - canonical_divisor(dP3) == trivial_divisor(dP3)
-    @test anticanonical_divisor(dP3) + canonical_divisor(dP3) == trivial_divisor(dP3)    
+    @test anticanonical_divisor(dP3) + canonical_divisor(dP3) == trivial_divisor(dP3)
 end
 
 p = polyhedron(D)
@@ -283,6 +283,9 @@ line_bundle2 = ToricLineBundle(D2)
     @test istrivial(structure_sheaf(dP3)) == true
     @test all_cohomologies(line_bundle) == [11,0,0]
     @test cohomology(line_bundle,0) == 11
+    @test contains(vanishing_sets(dP3)[1], line_bundle) == false
+    @test contains(vanishing_sets(dP3)[2], line_bundle) == true
+    @test contains(vanishing_sets(dP3)[3], line_bundle) == true
     @test istrivial(canonical_bundle(dP3)) == false
     @test istrivial(structure_sheaf(dP3)) == true
     @test inv(anticanonical_bundle(dP3)) == canonical_bundle(dP3)

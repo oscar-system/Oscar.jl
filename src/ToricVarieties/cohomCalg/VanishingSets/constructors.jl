@@ -1,0 +1,32 @@
+#########################
+# 1: The Julia type for toric vanishing sets
+#########################
+
+@attributes mutable struct ToricVanishingSet
+    v::AbstractNormalToricVariety
+    ps::Vector{Polyhedron{fmpq}}
+    i::Int
+    function ToricVanishingSet(v::AbstractNormalToricVariety, ps::Vector{Polyhedron{fmpq}}, i::Int)
+        ambient_dimension = unique([ambient_dim(p) for p in ps])
+        if (length(ambient_dimension) > 1)
+            throw(ArgumentError("The ambient dimensions of the polyhedra must all agree."))
+        end
+        if (ambient_dimension[1] != rank(picard_group(v)))
+            throw(ArgumentError("The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety."))
+        end
+        if ((i < 0) || (i > dim(v)))
+            throw(ArgumentError("The cohomology index must not be negative and not larger than $(dim(v))."))
+        end
+        return new(v, ps, i)
+    end
+end
+export ToricVanishingSet
+
+
+######################
+# 2: Display
+######################s
+
+function Base.show(io::IO, tvs::ToricVanishingSet)
+    join(io, "A toric vanishing set for cohomology index $(cohomology_index(tvs))")
+end

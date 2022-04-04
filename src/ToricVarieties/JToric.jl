@@ -65,7 +65,12 @@ include("CohomologyClasses/methods.jl")
 
 include("AlgebraicCycles/special_attributes.jl")
 
-include("cohomCalg/cohomCalg.jl")
+include("cohomCalg/VanishingSets/constructors.jl")
+include("cohomCalg/VanishingSets/attributes.jl")
+include("cohomCalg/VanishingSets/methods.jl")
+
+include("cohomCalg/auxilliary.jl")
+include("cohomCalg/special_attributes.jl")
 
 # deprecated functions
 @deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
