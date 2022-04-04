@@ -282,7 +282,7 @@ end
 
 function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
   S = homog_poly_ring(P)
-  length(f) == 1 && return P #TODO: Replace P by an honest copy!
+  length(f) == 0 && return P #TODO: Replace P by an honest copy!
   for i in 1:length(f)
     parent(f[i]) == S || error("ring element does not belong to the correct ring")
   end
