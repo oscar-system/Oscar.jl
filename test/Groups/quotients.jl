@@ -32,13 +32,13 @@ end
    for subgens in [N, gens(N)]
       @test quo(G, subgens)[1] isa PermGroup
       @test quo(FPGroup, G, subgens)[1] isa FPGroup
-      @test_throws ErrorException quo(PcGroup, G, subgens)
+      @test_throws ArgumentError quo(PcGroup, G, subgens)
    end
    N = trivial_subgroup(G)[1]
    for subgens in [N, gens(N)]
       @test quo(G, subgens)[1] isa MatrixGroup
       @test quo(PermGroup, G, subgens)[1] isa PermGroup
-      @test_throws ErrorException quo(PcGroup, G, subgens)
+      @test_throws ArgumentError quo(PcGroup, G, subgens)
    end
 
    # - `maximal_abelian_quotient` without prescribed type:

@@ -371,6 +371,33 @@ function isisomorphic(G::GAPGroup, H::GAPGroup)
   end
 end
 
+
+################################################################################
+#
+#  Conversions between types
+#
+################################################################################
+
+_get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
+_get_iso_function(::Type{FPGroup}) = GAP.Globals.IsomorphismFpGroup
+_get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
+
+
+"""
+    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+
+Return an isomorphism from `G` to a group of type `T`.
+An exception is thrown if no such isomorphism exists.
+"""
+function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+   fun = _get_iso_function(T)
+   f = fun(G.X)::GapObj
+   f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
+   H = T(GAP.Globals.ImagesSource(f)::GapObj)
+   return GAPGroupHomomorphism(G, H, f)
+end
+
+
 """
     isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 
@@ -390,7 +417,6 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
   f(g) = A(Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X)))
 
   finv = function(g::elem_type(GrpAbFinGen))
-     exps = [GAP.Obj(g.coeff[i]) for i in 1:n]
      res = Oscar.GAPWrap.One(G.X)
      for i in 1:n
        res = res * indep[i]^GAP.Obj(g.coeff[i])
@@ -402,46 +428,114 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 end
 
 """
-    isomorphic_perm_group(G::GAPGroup)
+    isomorphism(::Type{T}, A::GrpAbFinGen) where T <: Union{GAPGroup, GrpAbFinGen}
 
-Return a permutation group `H` and an isomorphism `f` from `G` to `H`.
-
-If `G` is infinite, then no such isomorphism exists and an exception is thrown.
+Return an isomorphism from `A` to a group of type `T`.
+An exception is thrown if no such isomorphism exists or if `A` is not finite.
 """
-function isomorphic_perm_group(G::GAPGroup)
-   f = GAP.Globals.IsomorphismPermGroup(G.X)
-   f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a permutation group"))
-   H = GAP.Globals.Image(f)
-   n = GAP.Globals.NrMovedPoints(H)
-   H = PermGroup(H,n)
-   return H, GAPGroupHomomorphism(G,H,f)
+function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
+  # find independent generators
+  if isdiagonal(rels(A))
+    exponents = diagonal(rels(A))
+    A2 = A
+    A2_to_A = identity_map(A)
+    A_to_A2 = identity_map(A)
+  else
+    exponents = elementary_divisors(A)
+    A2, A2_to_A = snf(A)
+    A_to_A2 = inv(A2_to_A)
+  end
+  # the isomorphic gap group
+  G = abelian_group(T, exponents)
+  # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
+  # of the orders in `exponents`.
+  # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
+  # that may differ from these generators,
+  # and that belong to the exponent vectors returned by
+  # `GAP.Globals.IndependentGeneratorExponents(G.X, g)`.
+  # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
+  # we let `hom` compute elements in `A2` that correspond to
+  # `GAP.Globals.IndependentGenerators(G.X)`.
+  Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
+  gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
+  Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
+
+  imgs = [Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
+  A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
+  Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
+  n = length(exponents)
+
+  f = function(a::elem_type(GrpAbFinGen))
+    exp = A_to_A2(a)
+    img = GAP.Globals.One(G.X)
+    for i in 1:n
+      img = img * Ggens[i]^GAP.Obj(exp[i])
+    end
+    return group_element(G, img)
+  end
+
+  finv = function(g)
+    exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X))
+    return Aindep_to_A(Aindep(exp))
+  end
+
+  return MapFromFunc(f, finv, A, G)
 end
 
-"""
-    isomorphic_pc_group(G::GAPGroup)
+isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen) = identity_map(A)
 
-Return a group `H` of type `PcGroup` and an isomorphism `f` from `G` to `H`.
-
-If `G` is infinite or not solvable, then no such isomorphism exists and an exception is thrown.
 """
-function isomorphic_pc_group(G::GAPGroup)
-   f = GAP.Globals.IsomorphismPcGroup(G.X)
-   f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type PcGroup"))
-   H = PcGroup(GAP.Globals.Image(f))
-   return H, GAPGroupHomomorphism(G,H,f)
+    FPGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    GrpAbFinGen(G::T) where T <: GAPGroup
+    PcGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+    PermGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
+
+Return a group of type `T` that is isomorphic with `G`.
+If one needs the isomorphism then
+[isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}](@ref)
+can be used instead.
+"""
+function (::Type{S})(G::T) where {S <: Union{GrpAbFinGen, GAPGroup}, T <: GAPGroup}
+   return codomain(isomorphism(S, G))
 end
 
-"""
-    isomorphic_fp_group(G::GAPGroup)
-
-Return a group `H` of type `FPGroup` and an isomorphism `f` from `G` to `H`.
-"""
-function isomorphic_fp_group(G::GAPGroup)
-   f = GAP.Globals.IsomorphismFpGroup(G.X)
-   f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
-   H = FPGroup(GAP.Globals.Image(f))
-   return H, GAPGroupHomomorphism(G,H,f)
+function (::Type{T})(G::GrpAbFinGen) where T <: GAPGroup
+   return codomain(isomorphism(T, G))
 end
+
+
+################################################################################
+#
+# provide and deprecate the old syntax
+#
+function _isomorphic_perm_group(G::GAPGroup)
+   f = isomorphism(PermGroup, G)
+   return codomain(f), f
+end
+
+@deprecate isomorphic_perm_group(G::GAPGroup) _isomorphic_perm_group(G)
+
+function _isomorphic_pc_group(G::GAPGroup)
+   f = isomorphism(PcGroup, G)
+   return codomain(f), f
+end
+
+@deprecate isomorphic_pc_group(G::GAPGroup) _isomorphic_pc_group(G)
+
+function _isomorphic_fp_group(G::GAPGroup)
+   f = isomorphism(FPGroup, G)
+   return codomain(f), f
+end
+
+@deprecate isomorphic_fp_group(G::GAPGroup) _isomorphic_fp_group(G)
+
+function _isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
+  fmap = isomorphism(T, G)
+  return codomain(fmap), fmap
+end
+
+@deprecate isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup _isomorphic_group(T, G)
+
 
 """
     simplified_fp_group(G::FPGroup)

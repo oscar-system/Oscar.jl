@@ -167,8 +167,7 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 ## Groups created by isomorphisms
 
 ```@docs
-isomorphic_perm_group(G::GAPGroup)
-isomorphic_pc_group(G::GAPGroup)
-isomorphic_fp_group(G::GAPGroup)
+isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```
