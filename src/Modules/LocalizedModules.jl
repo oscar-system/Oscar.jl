@@ -1,5 +1,6 @@
 export default_ordering, singular_assure, saturated_modulus, kernel, singular_gens, oscar_assure
 export MapFromFreeModule, domain, codomain, img_gens, base_ring_map
+export SubQuo
 
 #promotion for scalar multiplication
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MET}) where {RET<:RingElem, MET<:ModuleElem} = MET
@@ -369,9 +370,16 @@ function morphism_type(F::FreeMod, G::ModuleFP)
   return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(base_ring(G))}
 end
 
+morphism_type(::Type{T}, ::Type{U}) where {T<:FreeMod, U<:ModuleFP} = MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), Nothing}
+
 function morphism_type(F::FreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
   return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(h)}
 end
+
+morphism_type(::Type{T}, ::Type{U}, ::Type{H}) where {T<:FreeMod, U<:ModuleFP, H} = MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), H}
+
+base_ring_type(::Type{FreeMod{T}}) where {T<:RingElem} = parent_type(T)
+base_ring_elem_type(::Type{FreeMod{T}}) where {T<:RingElem} = T
 
 ### mapping functionality
 function (f::MapFromFreeModule{<:Any, <:Any, <:Any, Nothing})(a::ModuleElem)
@@ -425,6 +433,138 @@ function base_ring_module(F::FreeMod{<:MPolyLocalizedRingElem})
     set_attribute!(F, :base_ring_module, Fb)
   end
   return get_attribute(F, :base_ring_module)::FreeMod{elem_type(base_ring(base_ring(F)))}
+end
+
+function map_from_base_ring_module(F::FreeMod{<:MPolyLocalizedRingElem})
+  if !has_attribute(F, :map_from_base_ring_module)
+    L = base_ring(F)
+    R = base_ring(L)
+    Fb = base_ring_module(F)
+    h = hom(Fb, F, gens(F), L)
+    set_attribute!(F, :map_from_base_ring_module, h)
+  end
+  return get_attribute(F, :map_from_base_ring_module)::morphism_type(typeof(F), base_ring_module_type(F), typeof(L))
+end
+
+base_ring_module_type(::Type{FreeMod{T}}) where {T<:AbsLocalizedRingElem} = FreeMod{base_ring_type(parent_type(T))}
+base_ring_module_type(F::FreeMod{T}) where {T<:AbsLocalizedRingElem} = base_ring_module_type(typeof(F))
+
+
+### Translations for SubQuos
+
+function SubQuo(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
+  return SubQuo(Oscar.SubModuleOfFreeModule(F, g), Oscar.SubModuleOfFreeModule(F, q))
+end
+
+function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  if !has_attribute(M, :base_ring_module) 
+    L = base_ring(M)
+    R = base_ring(L)
+    g, d = clear_denominators(ambient_representatives_generators(M))
+    q, _ = clear_denominators(relations(M))
+    F = ambient_free_module(M)
+    Fb = base_ring_module(F)
+    Mb = SubQuo(Fb, g, q)
+    set_attribute!(M, :base_ring_module, Mb)
+    # TODO: Also build and cache the canonical map 
+    # Mb → M for the given denominators d, once the 
+    # required type exists.
+    # For now, we do a manual storage of this data:
+    set_attribute!(M, :generator_denominators, d)
+  end
+  return get_attribute(M, :base_ring_module)::SubQuo{elem_type(base_ring(base_ring(F)))}
+end
+
+function generator_denominators(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  if !has_attribute(M, :generator_denominators)
+    base_ring_module(M)
+  end
+  return get_attribute(M, :generator_denominators)::Vector{elem_type(base_ring(base_ring(M)))}
+end
+
+@Markdown.doc """
+    saturated_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+
+Suppose ``M = M₀[U⁻¹]`` is a localized `SubQuo` over ``L = R[U⁻¹]`` for 
+some `base_ring_module` ``M₀`` over ``R``. Then ``M₀ = (G + Q) / Q`` 
+for submodules ``G`` and ``Q`` of some free ``R``-module ``F``. 
+Let ``Q' = {v ∈ F : ∃ u ∈ U : u⋅v ∈ Q}`` be the saturation of ``Q`` at ``U``
+and let ``G'⊂ F`` be a submodule such that ``G' + Q'`` is the saturation 
+of ``G + Q`` at ``U``. Then for fixed sets of generators ``fᵢ`` of ``G'`` 
+and ``gⱼ`` of ``G`` there exist units ``uᵢ ∈ U`` and a matrix 
+``A ∈ Rᵐˣⁿ`` such that ``uᵢ⋅fᵢ ≡ ∑ⱼaⱼᵢ⋅gⱼ mod Q'``.
+
+This procedure returns the `SubQuo` ``(G' + Q')/Q'``. The transition 
+information ``(u, A)`` can be asked for via `saturation_transitions(M)`.
+"""
+function saturated_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  if !has_attribute(M, :saturated_module)
+    L = base_ring(M)
+    R = base_ring(L)
+    Mb = base_ring_module(M)
+    U = inverted_set(L)
+    Qsat, uQ, AQ = saturation(relations(Mb), U)
+    Gsat, u, A = saturation(ambient_representatives_generators(Mb), Qsat, U)
+    F = ambient_free_module(M)
+    Fb = base_ring_module(F)
+    Mbsat = SubQuo(Fb, Gsat, Qsat)
+    set_attribute!(M, :saturated_module, Mbsat)
+    set_attribute!(M, :saturation_transitions, (u, A))
+  end
+  return get_attribute(M, :saturated_module)::SubQuo{base_ring_elem_type(T)}
+end
+
+function saturation_transitions(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  if !has_attribute(M, :saturation_transitions)
+    saturated_module(M)
+  end
+  return get_attribute(M, :saturation_transitions)::Tuple{Vector{base_ring_elem_type(T)}, dense_matrix_type{base_ring_elem_type(T)}}
+end
+
+@Markdown.doc """
+    saturation(G::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:AbsLocalizedRingElem}
+
+For a submodule ``G ⊂ F ≅ Rʳ`` with generators ``gⱼ`` and a multiplicative set ``U ⊂ R``
+this computes a set of generators ``fᵢ`` for the submodule
+
+    G' = { v ∈ F : ∃ u ∈ U : u ⋅ v ∈ G}
+
+and returns the triple ``(G', u, A)`` where ``u = (u₁,…,uₘ) ∈ Uᵐ`` is a vector and 
+``A = (aⱼᵢ) ∈ Rⁿˣᵐ`` is a matrix such that ``uᵢ⋅fᵢ = ∑ⱼ aⱼᵢ⋅ gⱼ``.
+
+"""
+function saturation(G::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:AbsLocalizedRingElem}
+  error("not implemented; see the documentation for the required functionality")
+end
+
+function saturation(G::Oscar.SubModuleOfFreeModule{T}, Q::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:AbsLocalizedRingElem}
+  error("not implemented; see the documentation for the required functionality")
+end
+
+### coercion of elements from the base_ring_module and its ambient free module
+function (M::SubQuo{T})(a::SubQuoElem) where {T<:AbsLocalizedRingElem}
+  L = base_ring(M)
+  Mb = base_ring_module(M)
+  parent(a) === Mb || return M(Mb(a))
+  d = generator_denominators(M)
+  v = [a[i] for i in 1:ngens(Mb)]
+  return sum([v*d*e for (v,d,e) in zip(v, d, gens(M))])
+end
+
+function (M::SubQuo{T})(a::FreeModElem) where {T<:AbsLocalizedRingElem}
+  L = base_ring(M)
+  Mb = base_ring_module(M)
+  parent(a) === ambient_free_module(Mb) || return M(ambient_free_module(Mb)(a))
+  d = generator_denominators(M)
+  v = coordinates(a, Mb)
+  return sum([v*d*e for (v,d,e) in zip(v, d, gens(M))])
+end
+
+function coordinates(a::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  b, d = clear_denominators(a)
+  Mb = base_ring_module(M)
+  error("not implemented")
+  #return sparse_row(base_ring(M), [i for (i,a) in v], [d[i]*a for (i, a) in v])
 end
 
 # internal routine to get rid of denominators. 
