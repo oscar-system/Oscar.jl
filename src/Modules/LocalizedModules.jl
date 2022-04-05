@@ -1,4 +1,5 @@
 export default_ordering, singular_assure, saturated_modulus, kernel, singular_gens, oscar_assure
+export MapFromFreeModule, domain, codomain, img_gens, base_ring_map
 
 #promotion for scalar multiplication
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MET}) where {RET<:RingElem, MET<:ModuleElem} = MET
@@ -291,3 +292,185 @@ function groebner_basis(M::SubQuo{T}) where {T<:MPolyLocalizedRingElem}
   end
   return groebner_bases(M)[default_ordering(F)]
 end
+
+
+###################################################################
+# 
+# Maps from free modules to arbitrary modules over different rings
+#
+# Given any ring homomorphism φ : R → S, a free R-module F ≅ Rⁿ, 
+# and a finitely presented S-module G, a morphism of R-modules 
+#
+#   f : F → G, v = ∑ᵢ vᵢ⋅eᵢ ↦ ∑ᵢ φ(vᵢ)⋅f(eᵢ)
+#
+# is completely determined by φ and the images of the generators 
+# eᵢ of F. 
+#
+# In some cases, we really need the flexibility to allow different 
+# base rings for the domain and codomain; for instance when working 
+# with S a quotient ring, or a localization of R. However, we can 
+# usually not assume that the coercion of elements in R to elements 
+# of S is given by a map that implements any Oscar map interface. 
+# Therefore, we allow maximal flexibility here and a fallback to 
+# the case of modules defined over the same ring. 
+
+mutable struct MapFromFreeModule{
+    BRET<:RingElem, CodomainType<:ModuleFP, CodElemType<:ModuleElem, RingMapType<:Any
+  } 
+  dom::FreeMod
+  cod::CodomainType
+  v::Vector{CodElemType}
+  ring_map::RingMapType
+
+  function MapFromFreeModule(F::FreeMod, G::CodomainType, v::Vector{CodElemType}) where {CodomainType<:ModuleFP, CodElemType<:ModuleElem}
+    base_ring(F) == base_ring(G) || error("modules are not defined over the same ring")
+    all(w->(parent(w) == G), v) || error("elements do not belong to the correct module")
+    return new{elem_type(base_ring(F)), CodomainType, CodElemType, Nothing}(F, G, v)
+  end
+
+  function MapFromFreeModule(F::FreeMod, G::CodomainType, v::Vector{CodElemType}, h::RingMapType) where {CodomainType<:ModuleFP, CodElemType<:ModuleElem, RingMapType}
+    # This is an implicit check of domain/codomain compatibility. 
+    # The given ring map might not implement the map interface 
+    # (for instance, it could just be coercion), so we do this check
+    # instead.
+    h(one(base_ring(F))) == one(base_ring(G)) || error("ring map is not compatible")
+    all(w->(parent(w) == G), v) || error("elements do not belong to the correct module")
+    return new{elem_type(base_ring(F)), CodomainType, CodElemType, typeof(h)}(F, G, v, h)
+  end
+end
+
+### getter methods 
+domain(f::MapFromFreeModule) = f.dom
+codomain(f::MapFromFreeModule) = f.cod
+img_gens(f::MapFromFreeModule) = f.v
+base_ring_map(f::MapFromFreeModule) = f.ring_map
+
+### external constructors 
+function hom(
+    F::FreeMod{RET}, G::ModuleFP, v::Vector{CodElemType}
+  ) where {RET<:RingElem, CodElemType<:ModuleFPElem}
+  base_ring(F) == base_ring(G) || return MapFromFreeModule(F, G, v, base_ring(G)) # try with coercion map
+  return MapFromFreeModule(F, G, v)
+end
+
+function hom(F::FreeMod{RET}, G::ModuleFP, 
+    v::Vector{CodElemType}, h::RingMapType
+  ) where {
+           RET<:RingElem,
+           CodElemType<:ModuleFPElem, 
+           RingMapType
+          }
+  return MapFromFreeModule(F, G, v, h)
+end
+
+### type getters in accordance with external constructors
+function morphism_type(F::FreeMod, G::ModuleFP) 
+  base_ring(F) == base_ring(G) && return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), Nothing}
+  return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(base_ring(G))}
+end
+
+function morphism_type(F::FreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
+  return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(h)}
+end
+
+### mapping functionality
+function (f::MapFromFreeModule{<:Any, <:Any, <:Any, Nothing})(a::ModuleElem)
+  parent(a) == domain(f)
+  return sum([b*g for (b, g) in zip(Vector(a), img_gens(f))])
+end
+
+function (f::MapFromFreeModule{<:Any, <:Any, <:Any, RingMapType})(a::ModuleElem) where {RingMapType}
+  h = base_ring_map(f)
+  parent(a) == domain(f)
+  return sum([h(b)*g for (b, g) in zip(Vector(a), img_gens(f))])
+end
+
+
+### An example for how one can implement the kernel routine based on 
+# the above type for localizations of polynomial rings
+
+function kernel(f::MapFromFreeModule{BRET, CodomainType}) where {BRET<:MPolyLocalizedRingElem, CodomainType<:ModuleFP}
+  Fl = domain(f)
+  L = base_ring(Fl)
+  Gl = codomain(f)
+  v = [f(Fl[i]) for i in 1:ngens(Fl)]
+  w, d = clear_denominators(v)
+  F = base_ring_module(Fl)
+  G = base_ring_module(Gl)
+  R = base_ring(G)
+  A = zero(MatrixSpace(R, rank(F), rank(G)))
+  for i in 1:length(v)
+    for j in 1:rank(G)
+      A[i,j] = w[i][j]
+    end
+  end
+  g = hom(F, G, A)
+  K, inc = kernel(g)
+  # the inclusion of F into its localization
+  inc_F = hom(F, Fl, gens(Fl), L)
+  u = [sum([u[i]*d[i]*Fl[i] for i in 1:ngens(Fl)]) for u in ambient_representatives_generators(K)]
+  Kl = SubQuo(Fl, u)
+  set_attribute!(Kl, :base_ring_module, K)
+  set_attribute!(Kl, :denominators, d)
+  return Kl, hom(Kl, Fl, ambient_representatives_generators(Kl))
+end
+
+# the associated module over the base ring is stored as an attribute; 
+# no new fields required, but type stability provided by assertion via type getters.
+function base_ring_module(F::FreeMod{<:MPolyLocalizedRingElem})
+  if !has_attribute(F, :base_ring_module) 
+    L = base_ring(F)
+    R = base_ring(L)
+    Fb = FreeMod(R, ngens(F))
+    set_attribute!(F, :base_ring_module, Fb)
+  end
+  return get_attribute(F, :base_ring_module)::FreeMod{elem_type(base_ring(base_ring(F)))}
+end
+
+# internal routine to get rid of denominators. 
+# returns a pair of an element in the associated base_ring_module and the 
+# denominator pulled out of the components
+function clear_denominators(v::FreeModElem{<:MPolyLocalizedRingElem})
+  F = parent(v)
+  L = base_ring(F)
+  R = base_ring(L)
+  d = lcm(denominator.(Vector(v)))
+  u = elem_type(R)[]
+  for a in Vector(v)
+    push!(u, numerator(a)*div(d, denominator(a)))
+  end
+  Fb = base_ring_module(F)
+  return sum([a*e for (a, e) in zip(u, gens(Fb))]), d
+end
+
+function clear_denominators(v::Vector{FreeModElem{RET}}) where {RET<:MPolyLocalizedRingElem}
+  u = clear_denominators.(v)
+  return [a[1] for a in u], [a[2] for a in u]
+end
+
+
+### Special tensor product routines for localizations of modules.
+# They return the associated module over the localized ring
+function tensor_product(L::AbsLocalizedRing, G::FreeMod)
+  R = base_ring(L)
+  R == base_ring(G) || error("no canonical map provided from the base ring of the module to the new ring")
+  F = FreeMod(L, ngens(G))
+  set_attribute!(F, :base_ring_module, G)
+  return F, hom(G, F, gens(F), L)
+end
+  
+function tensor_product(L::AbsLocalizedRing, G::SubQuo)
+  R = base_ring(L)
+  R == base_ring(G) || error("no canonical map provided from the base ring of the module to the new ring")
+  F = ambient_free_module(G)
+  Fl = FreeMod(L, ngens(F))
+  set_attribute!(Fl, :base_ring_module, F)
+  inc_F = hom(F, Fl, gens(Fl), L)
+  Gl = SubQuo(Fl, inc_F.(ambient_representatives_generators(G)))
+  if length(relations(G)) > 0 
+    error("conversion of SubQuos with nontrivial relations not implemented")
+  end
+  set_attribute!(Gl, :base_ring_module, G)
+  return Gl #TODO: add the inclusion morphism once the required type exists.
+end
+  
