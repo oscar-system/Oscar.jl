@@ -2,10 +2,6 @@ using TOPCOM_jll
 
 function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
     input = homogenized_matrix(pts, 1)
-    cmdopts = "--regular"
-    if full
-        cmdopts = "--regular -F"
-    end
     inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
     in = Pipe()
     out = Pipe()
@@ -13,7 +9,11 @@ function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVecto
     Base.link_pipe!(in, writer_supports_async=true)
     Base.link_pipe!(out, reader_supports_async=true)
     Base.link_pipe!(err, reader_supports_async=true)
-    proc = run(pipeline(`$(Oscar.TOPCOM_jll.points2triangs()) $cmdopts`, stdin=in, stdout=out, stderr=err), wait=false)
+    cmd = Oscar.TOPCOM_jll.points2triangs()
+    if full
+        cmd = Oscar.TOPCOM_jll.points2finetriangs()
+    end
+    proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
     task = @async begin
         write(in, "[\n$inputstr\n]\n")
         close(in)
