@@ -452,7 +452,7 @@ julia> S, (t, x, y) = grade(R, [-gen(G, 1), gen(G, 1), gen(G, 1)])
 julia> typeof(S)
 MPolyRing_dec{fmpq, FmpqMPolyRing}
 
-julia> typeof(S) <: MPolyRing
+julia> S isa MPolyRing
 true
 
 julia> typeof(x)
@@ -1315,8 +1315,8 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #      aparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
-  if !(typeof(base_ring(W)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  if !(coefficient_ring(W) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
   end
   D = W.D
   isfree(D) || error("Grading group must be torsion-free")
@@ -1465,11 +1465,11 @@ mutable struct HilbertData
        throw(ArgumentError("The weights must be positive."))
     end
     
-    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
     end
 
-    if !((typeof(R) <: Oscar.MPolyRing_dec) && (isgraded(R)))
+    if !((R isa Oscar.MPolyRing_dec) && (isgraded(R)))
        throw(ArgumentError("The base ring must be graded."))
     end
     
