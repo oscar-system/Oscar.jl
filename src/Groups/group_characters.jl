@@ -319,46 +319,31 @@ in the character table library that satisfy the conditions in the array `L`.
 
 # Examples
 ```jldoctest
-julia> spor_names = all_character_table_names(is_sporadic_simple, true,
-         is_duplicate_table, false);
+julia> spor_names = all_character_table_names(is_sporadic_simple => true,
+         is_duplicate_table => false);
 
 julia> println(spor_names[1:5])
 ["B", "Co1", "Co2", "Co3", "F3+"]
 
-julia> spor_names = all_character_table_names(is_sporadic_simple, true,
-         is_duplicate_table, false; ordered_by = order);
+julia> spor_names = all_character_table_names(is_sporadic_simple,
+         !is_duplicate_table; ordered_by = order);
 
 julia> println(spor_names[1:5])
 ["M11", "M12", "J1", "M22", "J2"]
 
-julia> length(all_character_table_names(number_conjugacy_classes, 1))
+julia> length(all_character_table_names(number_conjugacy_classes => 1))
 1
 
 ```
 """
 function all_character_table_names(L...; ordered_by = nothing)
-    @assert CheckValidType(L)[1] "Wrong type inserted"
-
-    L1 = Any[]
-    hadfunc = false
-    for i in 1:length(L)
-      if typeof(L[i]) <: Function
-        if hadfunc
-          push!(L1, true)
-        end
-        push!(L1, find_index_function(L[i],false)[2])
-        hadfunc = true
-      else
-        push!(L1, GAP.julia_to_gap(L[i]))
-        hadfunc = false
-      end
-    end
+    gapargs = translate_group_library_args(L; permgroups=false)
 
     if ordered_by isa Function
-      K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, L1...;
+      K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, gapargs...;
             OrderedBy = find_index_function(ordered_by, false)[2])
     else
-      K = GAP.Globals.AllCharacterTableNames(L1...)
+      K = GAP.Globals.AllCharacterTableNames(gapargs...)
     end
     return Vector{String}(K)
 end
