@@ -1,3 +1,42 @@
+using TOPCOM_jll
+
+function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+    input = homogenized_matrix(pts, 1)
+    inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
+    in = Pipe()
+    out = Pipe()
+    err = Pipe()
+    Base.link_pipe!(in, writer_supports_async=true)
+    Base.link_pipe!(out, reader_supports_async=true)
+    Base.link_pipe!(err, reader_supports_async=true)
+    cmd = Oscar.TOPCOM_jll.points2triangs()
+    if full
+        cmd = Oscar.TOPCOM_jll.points2finetriangs()
+    end
+    proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
+    task = @async begin
+        write(in, "[\n$inputstr\n]\n")
+        close(in)
+    end
+    close(in.out)
+    close(out.in)
+    close(err.in)
+    result = Vector{Vector{Vector{Int}}}()
+    for line in eachline(out)
+        m = match(r"{{.*}}", line)
+        triang = replace(m.match, "{"=>"[")
+        triang = replace(triang, "}"=>"]")
+        triang = convert(Vector{Vector{Int}},JSON.parse(triang))
+        push!(result, Polymake.to_one_based_indexing(triang))
+    end
+    wait(task)
+    if !success(proc)
+        error = eof(err) ? "unknown error" : readchomp(err)
+        throw("Failed to run TOPCOM: $error")
+    end
+    return result
+end
+
 ################################################################################
 # TODO: Remove the following two functions after next polymake release 4.7
 function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
@@ -218,9 +257,7 @@ function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abs
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    triangs = Polymake.polytope.topcom_regular_triangulations(PC)
-    result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, nrows(input), full)
+    return topcom_regular_triangulations(pts; full=full)
 end
 
 

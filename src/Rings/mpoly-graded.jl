@@ -3,8 +3,6 @@ grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
 homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
-export minimal_subalgebra_generators
-
 
 @attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -475,23 +473,7 @@ with components [1 0]
 GrpAb: Z^2
 with components [0 1]
 
-julia> W = [g[1], g[1], g[2], g[2], g[2]]
-5-element Vector{GrpAbFinGenElem}:
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [1 0]
- Element of
-GrpAb: Z^2
-with components [0 1]
- Element of
-GrpAb: Z^2
-with components [0 1]
- Element of
-GrpAb: Z^2
-with components [0 1]
+julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
 julia> S, _ = grade(R, W)
 (Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
@@ -544,28 +526,7 @@ with components [0 0 1 0]
 [0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
 with components [0 0 0 1]
 
-julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]]
-5-element Vector{GrpAbFinGenElem}:
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 1 1]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 1 0 1]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 0 1 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [0 1 0 0]
- Element of
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
-with components [1 1 0 0]
+julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
 (Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
