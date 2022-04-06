@@ -1177,7 +1177,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
     return M(z)
   end
 
-  @assert isisomorphic(B, fp_group(M)[1])[1]
+  @assert isisomorphic(B, fp_group(M)[1])
 
   return B, MapFromFunc(
     x->image(mM, gap_to_julia(x.X)),

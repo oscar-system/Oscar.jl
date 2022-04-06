@@ -16,6 +16,7 @@ export
     isinvariant,
     isinvertible,
     isisomorphic,
+    isisomorphic_with_map,
     isomorphic_fp_group,
     isomorphic_pc_group,
     isomorphic_perm_group,
@@ -356,19 +357,65 @@ end
 ################################################################################
 
 """
-    isisomorphic(G::Group, H::Group)
+    isisomorphic_with_map(G::Group, H::Group)
 
 Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group
 isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial
 homomorphism.
+
+# Examples
+```jldoctest
+julia> isisomorphic_with_map(symmetric_group(3), dihedral_group(6))
+(true, Group homomorphism from
+Sym( [ 1 .. 3 ] )
+to
+<pc group of size 6 with 2 generators>)
+```
 """
-function isisomorphic(G::GAPGroup, H::GAPGroup)
+function isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
-  if mp == GAP.Globals.fail
+  if mp === GAP.Globals.fail
     return false, trivial_morphism(G, H)
   else
     return true, GAPGroupHomomorphism(G, H, mp)
   end
+end
+
+"""
+    isisomorphic(G::Group, H::Group)
+
+Return `true` if `G` and `H` are isomorphic groups, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> isisomorphic(symmetric_group(3), dihedral_group(6))
+true
+```
+"""
+function isisomorphic(G::GAPGroup, H::GAPGroup)
+  mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
+  return mp !== GAP.Globals.fail
+end
+
+"""
+    isomorphism(G::Group, H::Group)
+
+Return a group isomorphism between `G` and `H` if they are isomorphic groups.
+Otherwise throw an exception.
+
+# Examples
+```jldoctest
+julia> isomorphism(symmetric_group(3), dihedral_group(6))
+Group homomorphism from
+Sym( [ 1 .. 3 ] )
+to
+<pc group of size 6 with 2 generators>
+```
+"""
+function isomorphism(G::GAPGroup, H::GAPGroup)
+  mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
+  mp === GAP.Globals.fail && throw(ArgumentError("the groups are not isomorphic"))
+  return GAPGroupHomomorphism(G, H, mp)
 end
 
 
