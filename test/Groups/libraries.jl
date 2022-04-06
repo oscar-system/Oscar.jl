@@ -42,15 +42,25 @@ end
    @test !isperfect(symmetric_group(5))
 
    @test perfect_group(120,1) isa PermGroup
+   @test perfect_group(PermGroup,120,1) isa PermGroup
    @test perfect_group(FPGroup,120,1) isa FPGroup
    @test_throws ArgumentError perfect_group(MatrixGroup,120,1)
 
+   @test_throws ArgumentError perfect_group(17, 0)
+   @test_throws ArgumentError perfect_group(17, 1)
+   @test_throws ArgumentError perfect_group(60, 0)
+   @test_throws ArgumentError perfect_group(60, 2)
+
    @test isisomorphic(perfect_group(60,1),G)
    @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
-   x = perfect_identification(alternating_group(5))
+   x = perfect_group_identification(alternating_group(5))
    @test isisomorphic(perfect_group(x[1],x[2]),alternating_group(5))
+   @test_throws ErrorException perfect_group_identification(symmetric_group(5))
 
-   @test_throws AssertionError perfect_group(60, 2)
+   @test sum(number_perfect_groups, 1:59) == 1
+   @test number_perfect_groups(fmpz(60)^3) == 1
+   @test_throws ArgumentError number_perfect_groups(0) # invalid argument
+   @test_throws ErrorException number_perfect_groups(fmpz(60)^10)  # result not known
 end
 
 @testset "Small groups" begin
