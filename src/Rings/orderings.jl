@@ -172,7 +172,7 @@ function weights(a::AbsOrdering)
   aa = flat(a)
   m = matrix(ZZ, 0, 0, [])
   for o = aa
-    if typeof(o) <: GenOrdering
+    if o isa GenOrdering
       w = weights(o)
       if maximum(o.vars) > ncols(m)
         m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))

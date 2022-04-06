@@ -67,7 +67,7 @@ over its prime subfield.
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
+   @assert F isa FinField "At the moment, only finite fields are considered"
    @assert iseven(degree(F)) "Base ring has no even degree"
    n = degree(G)
    M = T[]
@@ -202,7 +202,7 @@ over its prime subfield.
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
+   @assert F isa FinField "At the moment, only finite fields are considered"
    n = degree(G)
    M = T[]
 

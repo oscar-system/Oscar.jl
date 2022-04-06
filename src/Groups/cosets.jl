@@ -359,7 +359,7 @@ Return a vector containing all elements belonging to all groups and cosets
 in `V`.
 """
 function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
-   if typeof(V[1]) <: GAPGroup
+   if V[1] isa GAPGroup
       G = V[1]
    else
       G = V[1].G
