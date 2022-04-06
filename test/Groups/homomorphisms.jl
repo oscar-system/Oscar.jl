@@ -395,7 +395,7 @@ end
 @testset "Composition of mappings" begin
    g = symmetric_group(4)
    q, epi = quo(g, pcore(g, 2)[1])
-   F, iso = isomorphic_perm_group(q)
+   iso = isomorphism(PermGroup, q)
    comp = compose(epi, iso)
    @test domain(comp) == domain(epi)
    @test codomain(comp) == codomain(iso)

@@ -1139,7 +1139,7 @@ function describe(G::FPGroup)
       iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAP.Globals.Range(iso)))
    elseif isfinite(G)
-      return describe(isomorphic_perm_group(G)[1])
+      return describe(codomain(isomorphism(PermGroup, G)))
    else
       extra *= " infinite"
    end
