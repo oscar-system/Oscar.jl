@@ -1378,7 +1378,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     # and the product then is one for the 3rd case.
     s = S(vcat(b...))
 
-    wr = codomain(isomorphism(PermGroup, wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b)))))
+    wr = PermGroup(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))
     br = intersect(wr, alternating_group(degree(K)))[1]
     wr = wr^s
     br = br^s
@@ -1389,7 +1389,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #for length(b) == 2, the bottom field is quadratic and thus always S2
     #the wreath product would not be transitive here
     if can_use_wr
-      ar = codomain(isomorphism(PermGroup, wreath_product(symmetric_group(length(b[1])), alternating_group(length(b)))))
+      ar = PermGroup(wreath_product(symmetric_group(length(b[1])), alternating_group(length(b))))
       ar = ar^s
       cr = index2sum(wr, ar, br)
     end
