@@ -1443,7 +1443,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     # and the product then is one for the 3rd case.
     s = S(vcat(b...))
 
-    wr = codomain(isomorphism(PermGroup, wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b)))))
+    wr = PermGroup(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))
     br = intersect(wr, alternating_group(degree(K)))[1]
     wr = wr^s
     br = br^s
@@ -1458,7 +1458,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #    (sym(l) wr gal(k) is constructed above
     #    does this part still make sense????
     if can_use_wr
-      ar = codomain(isomorphism(PermGroup, wreath_product(symmetric_group(length(b[1])), alternating_group(length(b)))))
+      ar = PermGroup(wreath_product(symmetric_group(length(b[1])), alternating_group(length(b))))
       ar = ar^s
       cr = index2sum(wr, ar, br)
     end
