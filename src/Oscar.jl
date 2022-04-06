@@ -139,6 +139,7 @@ function __init__()
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     __init_IsoGapOscar()
+    __init_group_libraries()
     __GAP_info_messages_off()
 end
 
