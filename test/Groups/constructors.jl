@@ -69,7 +69,7 @@ end
   
   @test isa(alternating_group(PcGroup,3), PcGroup)
   @test isa(symmetric_group(PcGroup,3), PcGroup)
-  @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))[1]
+  @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))
 
   @test isquaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)
@@ -85,7 +85,7 @@ end
   @test isa(G, PcGroup)
   @test iscyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
-  @test isisomorphic(G, G1)[1]
+  @test isisomorphic(G, G1)
   G = abelian_group(PcGroup, [ZZ(2)^70])
 
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke

@@ -38,7 +38,7 @@ n = 6
    @test g^(og+1) == g
    @test g^(1-og) == g
 
-   @test !isisomorphic(symmetric_group(4), symmetric_group(3))[1]
+   @test !isisomorphic(symmetric_group(4), symmetric_group(3))
 
    A = alternating_group(n)
    x = cperm(G,[1,2,3])
@@ -245,10 +245,10 @@ TestDirectProds=function(G1,G2)
    end
    q1=p1*f1
    q2=p2*f2
-   @test isisomorphic(kernel(q1)[1],G2)[1]
-   @test isisomorphic(image(q1)[1],G1)[1]
-   @test isisomorphic(kernel(q2)[1],G1)[1]
-   @test isisomorphic(image(q2)[1],G2)[1]
+   @test isisomorphic(kernel(q1)[1],G2)
+   @test isisomorphic(image(q1)[1],G1)
+   @test isisomorphic(kernel(q2)[1],G1)
+   @test isisomorphic(image(q2)[1],G2)
 end
 
 @testset "Direct product" begin
@@ -331,7 +331,7 @@ end
    @test A isa AutomorphismGroup
    @test A isa AutomorphismGroup{PermGroup}
    @test A.G == G
-   @test isisomorphic(G,A)[1]
+   @test isisomorphic(G,A)
    @test order(A) == 24
    @test A==inner_automorphisms_group(A)[1]
 
@@ -366,7 +366,7 @@ end
    @test g1 in A
    g2 = A(inner_automorphism(G(alt[2])))
    AA,phi = sub(A,[g1,g2])
-   @test isisomorphic(AA,alt)[1]
+   @test isisomorphic(AA,alt)
    @test index(A,AA)==2
    @test isnormal(A,AA)
    @test phi(AA[1])==AA[1]
@@ -393,7 +393,7 @@ end
    G = direct_product(C,C)
    A = automorphism_group(G)
 
-   @test isisomorphic(A,GL(2,3))[1]
+   @test isisomorphic(A,GL(2,3))
    @test order(inner_automorphisms_group(A)[1])==1
 end
 

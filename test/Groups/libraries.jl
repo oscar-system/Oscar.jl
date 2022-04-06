@@ -9,7 +9,7 @@
    H4 = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]         #Klein subgroup
    L = [G,H1,H2,H3,H4]
    for i in 1:5
-      @test sum([isisomorphic(transitive_group(4,i),l)[1] for l in L])==1
+      @test sum([isisomorphic(transitive_group(4,i),l) for l in L])==1
    end
    @test Set([transitive_identification(l) for l in L])==Set(1:5)
    @test Set(L)==Set(all_transitive_groups(degree,4))
@@ -45,10 +45,10 @@ end
    @test perfect_group(FPGroup,120,1) isa FPGroup
    @test_throws ArgumentError perfect_group(MatrixGroup,120,1)
 
-   @test isisomorphic(perfect_group(60,1),G)[1]
+   @test isisomorphic(perfect_group(60,1),G)
    @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_identification(alternating_group(5))
-   @test isisomorphic(perfect_group(x[1],x[2]),alternating_group(5))[1]
+   @test isisomorphic(perfect_group(x[1],x[2]),alternating_group(5))
 
    @test_throws AssertionError perfect_group(60, 2)
 end
@@ -58,7 +58,7 @@ end
    LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
    @test length(L)==5
    @testset for G in LG
-      arr = [i for i in 1:5 if isisomorphic(L[i],G)[1]]
+      arr = [i for i in 1:5 if isisomorphic(L[i],G)]
       @test length(arr)==1
       @test small_group_identification(G)==(8,arr[1])
    end

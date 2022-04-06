@@ -79,7 +79,7 @@ end
    @test isfinite(G)
    @test order(G) == 2*n
    @test !isabelian(G)
-   @test isisomorphic(G, dihedral_group(2*n))[1]
+   @test isisomorphic(G, dihedral_group(2*n))
    @test !isinjective(f)
    @test issurjective(f)
    @test exponent(G) == 2*n
