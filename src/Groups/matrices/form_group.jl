@@ -13,6 +13,7 @@ export
     preserved_sesquilinear_forms,
     automorphism_group,
     orthogonal_group,
+    orthogonal_sign,
     unitary_group
 
 ########################################################################
@@ -454,7 +455,7 @@ end
 """
     invariant_quadratic_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`.
+Return an invariant quadratic form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
@@ -523,6 +524,27 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(R,f)
    end
    return R
+end
+
+
+"""
+    orthogonal_sign(G::MatrixGroup)
+
+For absolutely irreducible `G` of degree `n` and such that `base_ring(G)`
+is a finite field, return
+- `nothing` if `G` does not preserve a nonzero quadratic form,
+- `0` if `n` is odd and `G` preserves a nonzero quadratic form,
+- `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
+- `-1` if `n` is even and `G` preserves a nonzero quadratic form of `-` type.
+"""
+function orthogonal_sign(G::MatrixGroup)
+    R = base_ring(G)
+    R isa FinField || error("G must be a matrix group over a finite field")
+    M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X),
+                                  codomain(iso_oscar_gap(R)))
+    sign = GAP.Globals.MTX.OrthogonalSign(M)
+    sign == GAP.Globals.fail && return nothing
+    return sign
 end
 
 
