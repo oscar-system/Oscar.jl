@@ -371,16 +371,22 @@ function morphism_type(F::FreeMod, G::ModuleFP)
   return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(base_ring(G))}
 end
 
-morphism_type(::Type{T}, ::Type{U}) where {T<:FreeMod, U<:ModuleFP} = MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), Nothing}
+function morphism_type(::Type{T}, ::Type{U}) where {T<:FreeMod, U<:ModuleFP}
+  base_ring_type(T) == base_ring_type(U) || return morphism_type(T, U, base_ring_type(U))
+  return MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), Nothing}
+end
+
+base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
+base_ring_elem_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = T
+
+base_ring_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_type(typeof(M))
+base_ring_elem_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_elem_type(typeof(M))
 
 function morphism_type(F::FreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
   return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(h)}
 end
 
 morphism_type(::Type{T}, ::Type{U}, ::Type{H}) where {T<:FreeMod, U<:ModuleFP, H} = MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), H}
-
-base_ring_type(::Type{FreeMod{T}}) where {T<:RingElem} = parent_type(T)
-base_ring_elem_type(::Type{FreeMod{T}}) where {T<:RingElem} = T
 
 ### mapping functionality
 function (f::MapFromFreeModule{<:Any, <:Any, <:Any, Nothing})(a::ModuleElem)
@@ -650,10 +656,8 @@ generating_submodule(G::SubQuo) = G.sub
 function modulus(G::SubQuo) 
   if isdefined(G, :quo) 
     return G.quo
-  else 
-    F = ambient_free_module(G)
-    return Oscar.SubModuleOfFreeModule(F) # Should this be cached???
   end
+  return nothing
 end
 
 Oscar.SubModuleOfFreeModule(F::FreeMod) = Oscar.SubModuleOfFreeModule(F, Vector{elem_type(F)}())
