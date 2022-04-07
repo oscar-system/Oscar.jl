@@ -36,6 +36,9 @@
       @test isa(delta, Int)
     end
   end
+
+  @test !isnormal(quo(R, ideal(R, [x^2 - y^3]))[1])
+  @test isnormal(quo(R, ideal(R, [x - y^3]))[1])
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin
