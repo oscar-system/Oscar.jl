@@ -156,3 +156,26 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   return S
 end
 
+"""
+Computes representatives (under conjugation) for all subgroups of
+the given group. If geven, only subgroups of a certain order
+are returned.
+"""
+function subgroup_reps(G::PermGroup; order::fmpz = fmpz(-1))
+  C = GAP.Globals.ConjugacyClassesSubgroups(G.X)
+  C = map(GAP.Globals.Representative, C)
+  if order != -1
+    C = [x for x = C if GAP.Globals.Order(x) == order]
+  end
+  return [Oscar._as_subgroup(G, x)[1] for x = C]
+end
+
+"""
+Computes the action of G on the right cosets
+"""
+function right_coset_action(G::PermGroup, U::PermGroup)
+  mp = GAP.Globals.FactorCosetAction(G.X, U.X)
+  if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
+  H = PermGroup(GAP.Globals.Range(mp))
+  return GAPGroupHomomorphism(G, H, mp)
+end

@@ -5,7 +5,7 @@ import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
-export galois_group, slpoly_ring, elementary_symmetric,
+export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field,
        extension_field
 
@@ -391,7 +391,6 @@ mutable struct GaloisCtx{T}
     Qts, s = PolynomialRing(Qt, "s", cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
-    #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     
     vl = roots_upper_bound(f)
@@ -480,6 +479,7 @@ used in the algorithm. The roots are returned up to a precision of `pr`
 p-adic digits, thus they are correct modulo ``p^pr``
 
 For non-monic polynomials they roots are scaled by the leading coefficient.
+If `raw` is set to true, the scaling is omitted.
 The bound in the `GaloisCtx` is also adjusted.
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
@@ -518,6 +518,8 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::T
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
   end
+  #TODO: truncate precision where neccessary, working with an insane
+  #      series precision is costly
   while precision(C)[2] < pr[2]
     Hecke.MPolyFact.lift(C)
   end
@@ -1237,7 +1239,7 @@ function map_coeff(C::GaloisCtx{Hecke.qAdicRootCtx}, x)
 end
 
 @doc Markdown.doc"""
-    starting_group(GC::GaloisCtx, K::AnticNumberField) 
+    starting_group(GC::GaloisCtx, K::SimpleNumberField) 
 
 Finds a _starting group_, that is a group `G` as a subgroup of the
 symmetric group acting on the roots in the explicit ordering in the
@@ -1323,7 +1325,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
     L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]),
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
-    bs = minimal_elements(L)
+    bs = map(Oscar.data, minimal_elements(L))
     @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
   end
   GC.start = (1, bs)
@@ -1526,7 +1528,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 end
 
 @doc Markdown.doc"""
-    find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = -1, pStart::Int = 2*degree(f)) -> p, c
+    find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f)) -> p, c
 
 Tries to find a useful prime for the computation of Galois group. Useful means
   - degree of the splitting field not too small
@@ -1535,7 +1537,7 @@ Starts searching at `pStart`, returns the prime as well as the cycle types ident
 
 If `prime` is given, no search is performed.
 """
-function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f))
+function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
   if prime != 0
     p = prime
     lf = factor(f, GF(p))
@@ -1562,6 +1564,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 
   # careful: group could be (C_2)^n hence d_min might be small...
   no_p = 0
   for p = Hecke.PrimesSet(pStart, -1)
+    filter_prime(p) || continue
     k = GF(p)
     if k(leading_coefficient(f)) == 0
       continue
@@ -1570,6 +1573,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 
     if any(x->x>1, values(lf.fac))
       continue
     end
+    filter_pattern(lf) || continue
     no_p +=1 
     push!(ct, sort(map(degree, collect(keys(lf.fac))))) # ct = cycle types as vector of cycle lengths
     d = lcm([degree(x) for x = keys(lf.fac)])
@@ -2058,6 +2062,69 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   return k
 end
 
+"""
+Finds all(?) subfields of the splitting field s.th. the galois
+group will be permutation isomorphic to Q.
+"""
+function galois_quotient(C::GaloisCtx, Q::PermGroup)
+  G = C.G
+  if order(G) % degree(Q) != 0
+    return []
+  end
+  s = subgroup_reps(G, order = divexact(order(G), degree(Q)))
+  res = []
+  for U = s
+    phi = right_coset_action(G, U)
+    if isisomorphic(Q, image(phi)[1])[1]
+      push!(res, fixed_field(C, U))
+    end
+  end
+  return res
+end
+
+"""
+Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
+with isomorphic galois group.
+"""
+function galois_quotient(C::GaloisCtx, d::Int)
+  G = C.G
+  if order(G) % d != 0
+    return []
+  end
+  s = subgroup_reps(G, order = divexact(order(G), d))
+  res = []
+  for U = s
+    phi = right_coset_action(G, U)
+    if order(image(phi)[1]) == order(G)
+      push!(res, fixed_field(C, U))
+    end
+  end
+  return res
+end
+
+"""
+Finds all subfields of the splitting field with galois group the n-th
+transitive group in degree d
+"""
+galois_quotient(C::GaloisCtx, d::Int, n::Int) = 
+            galois_quotient(C, transitive_group(d, n))
+
+"""
+    galois_quotient(f::PolyElem, p::Vector{Int})
+
+Equivalent to
+
+  galois_quotient(galois_group(f)[2], p[1], p[2])
+
+Finds all subfields of the splitting field of f with galois group
+the p[2]-th transitive group of degree p[1]
+"""
+function galois_quotient(f::PolyElem, p::Vector{Int})
+  G, C = galois_group(f)
+  @assert length(p) == 2
+  return galois_quotient(C, p[1], p[2])
+end
+
 #based on 
 #  doi:10.1006/jsco.2000.0376
 # Using Galois Ideals for Computing Relative Resolvents
@@ -2089,6 +2156,8 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   #we need to go down (by hand) to the starting group.
   #This is either C.G (if there was no descent in Stauduhar)
   #or the 1st group in the descent chain (C.chn)...
+  #TODO: the subfields use, implicitly, special invariants, so
+  #      we should be able to avoid the chain
   if length(C.chn) == 0
     c = maximal_subgroup_chain(symmetric_group(n), C.G)
   else
@@ -2257,6 +2326,7 @@ AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{T}) where {T <: Integ
 
 include("Group.jl")
 include("POSet.jl")
+include("Subfields.jl")
 include("SeriesEval.jl")
 include("Qt.jl")
 include("RelGalois.jl")
@@ -2264,7 +2334,7 @@ include("RelGalois.jl")
 end
 
 using .GaloisGrp
-export galois_group, slpoly_ring, elementary_symmetric,
+export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, 
        maximal_subgroup_reps, extension_field
        
