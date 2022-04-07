@@ -1,6 +1,7 @@
 export default_ordering, singular_assure, saturated_modulus, kernel, singular_gens, oscar_assure
 export MapFromFreeModule, domain, codomain, img_gens, base_ring_map
 export SubQuo
+export minimal_power_such_that
 
 #promotion for scalar multiplication
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MET}) where {RET<:RingElem, MET<:ModuleElem} = MET
@@ -472,7 +473,7 @@ function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
     # For now, we do a manual storage of this data:
     set_attribute!(M, :generator_denominators, d)
   end
-  return get_attribute(M, :base_ring_module)::SubQuo{elem_type(base_ring(base_ring(F)))}
+  return get_attribute(M, :base_ring_module)::SubQuo{elem_type(base_ring(base_ring(ambient_free_module(M))))}
 end
 
 function generator_denominators(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
@@ -503,41 +504,43 @@ function saturated_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
     R = base_ring(L)
     Mb = base_ring_module(M)
     U = inverted_set(L)
-    Qsat, uQ, AQ = saturation(relations(Mb), U)
-    Gsat, u, A = saturation(ambient_representatives_generators(Mb), Qsat, U)
-    F = ambient_free_module(M)
-    Fb = base_ring_module(F)
-    Mbsat = SubQuo(Fb, Gsat, Qsat)
-    set_attribute!(M, :saturated_module, Mbsat)
+    Mb_sat, u, A = saturation(Mb, U)
+    set_attribute!(M, :saturated_module, Mb_sat)
     set_attribute!(M, :saturation_transitions, (u, A))
   end
   return get_attribute(M, :saturated_module)::SubQuo{base_ring_elem_type(T)}
 end
 
+base_ring_elem_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRET
+base_ring_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRT
+
+base_ring_elem_type(L::AbsLocalizedRing) = base_ring_elem_type(typeof(L))
+base_ring_type(L::AbsLocalizedRing) = base_ring_type(typeof(L))
+
 function saturation_transitions(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(M, :saturation_transitions)
     saturated_module(M)
   end
-  return get_attribute(M, :saturation_transitions)::Tuple{Vector{base_ring_elem_type(T)}, dense_matrix_type{base_ring_elem_type(T)}}
+  return get_attribute(M, :saturation_transitions)::Tuple{Vector{base_ring_elem_type(T)}, dense_matrix_type(base_ring_elem_type(T))}
 end
 
 @Markdown.doc """
-    saturation(G::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:AbsLocalizedRingElem}
+    saturation(G::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:RingElem}
 
-For a submodule ``G ⊂ F ≅ Rʳ`` with generators ``gⱼ`` and a multiplicative set ``U ⊂ R``
-this computes a set of generators ``fᵢ`` for the submodule
+For a submodule ``G ⊂ F ≅ Rʳ`` with generators ``gⱼ``, ``j = 1,…,m`` and a 
+multiplicative set ``U ⊂ R`` this computes a set of generators ``fᵢ``, ``i = 1,…,n``
+for the submodule
 
     G' = { v ∈ F : ∃ u ∈ U : u ⋅ v ∈ G}
 
-and returns the triple ``(G', u, A)`` where ``u = (u₁,…,uₘ) ∈ Uᵐ`` is a vector and 
-``A = (aⱼᵢ) ∈ Rⁿˣᵐ`` is a matrix such that ``uᵢ⋅fᵢ = ∑ⱼ aⱼᵢ⋅ gⱼ``.
-
+and returns the triple ``(G', u, A)`` where ``u = (u₁,…,uₙ) ∈ Uⁿ`` is a vector and 
+``A = (aᵢⱼ) ∈ Rᵐˣⁿ`` is a matrix such that ``uᵢ⋅fᵢ = ∑ⱼ aᵢⱼ⋅ gⱼ``.
 """
-function saturation(G::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:AbsLocalizedRingElem}
+function saturation(G::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:RingElem}
   error("not implemented; see the documentation for the required functionality")
 end
 
-function saturation(G::Oscar.SubModuleOfFreeModule{T}, Q::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:AbsLocalizedRingElem}
+function saturation(G::Oscar.SubModuleOfFreeModule{T}, Q::Oscar.SubModuleOfFreeModule{T}, U::AbsMultSet) where {T<:RingElem}
   error("not implemented; see the documentation for the required functionality")
 end
 
@@ -561,10 +564,15 @@ function (M::SubQuo{T})(a::FreeModElem) where {T<:AbsLocalizedRingElem}
 end
 
 function coordinates(a::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  L = base_ring(M)
   b, d = clear_denominators(a)
   Mb = base_ring_module(M)
-  error("not implemented")
-  #return sparse_row(base_ring(M), [i for (i,a) in v], [d[i]*a for (i, a) in v])
+  Mb_sat = saturated_module(M)
+  (u, A) = saturation_transitions(M)
+  denom_g = generator_denominators(M)
+  c = coordinates(b, Mb_sat)
+  res = [sum([L(c[i]*A[i,j]*denom_g[j], u[i], check=false) for i in 1:ngens(Mb_sat)]) for j in 1:ngens(M)]
+  return sparse_row(L, [(i, c) for (i, c) in zip(1:length(res), res) if !iszero(c)])
 end
 
 # internal routine to get rid of denominators. 
@@ -614,3 +622,133 @@ function tensor_product(L::AbsLocalizedRing, G::SubQuo)
   return Gl #TODO: add the inclusion morphism once the required type exists.
 end
   
+function minimal_power_such_that(f::RingElemType, P::PropertyType) where {RingElemType<:RingElem, PropertyType}
+  P(one(parent(f))) && return (0, one(f))
+  P(f) && return (1, f)
+  f_powers = [(1,f)]
+
+  while !P(last(f_powers)[2])
+    push!(f_powers, (last(f_powers)[1]*2, last(f_powers)[2]^2))
+  end
+  upper = pop!(f_powers)
+  lower = pop!(f_powers)
+  while upper[1]!=lower[1]+1
+    middle = pop!(f_powers)
+    middle = (lower[1]+middle[1], lower[2]*middle[2])
+    if P(middle[2])
+      upper = middle
+    else
+      lower = middle
+    end
+  end
+  return upper
+end
+
+### Some additional getters, so that I don't have to write G.(...) 
+generating_submodule(G::SubQuo) = G.sub
+
+function modulus(G::SubQuo) 
+  if isdefined(G, :quo) 
+    return G.quo
+  else 
+    F = ambient_free_module(G)
+    return Oscar.SubModuleOfFreeModule(F) # Should this be cached???
+  end
+end
+
+Oscar.SubModuleOfFreeModule(F::FreeMod) = Oscar.SubModuleOfFreeModule(F, Vector{elem_type(F)}())
+module_gens(M::Oscar.SubModuleOfFreeModule) = M.gens
+ambient_free_module(M::Oscar.SubModuleOfFreeModule) = M.F
+
+function Base.in(v::FreeModElem{T}, M::Oscar.SubModuleOfFreeModule{T}) where {T<:MPolyElem}
+  v in ambient_free_module(M) || return false
+  return iszero(Oscar.reduce(v, groebner_basis(M)))
+end
+  
+function coordinates(v::FreeModElem{T}, M::Oscar.SubModuleOfFreeModule{T}) where {T<:MPolyElem}
+  if iszero(v)
+    return sparse_row(base_ring(parent(v)))
+  end
+  F = ambient_free_module(M)
+  R = base_ring(M)
+  g = module_gens(M)
+  oscar_assure(g)
+  S = singular_generators(g)
+  b = Oscar.ModuleGens([v], F)
+  singular_assure(b)
+  s, r = Singular.lift(S, singular_generators(b))
+  if Singular.ngens(s) == 0 || iszero(s[1])
+    return nothing
+  end
+  return sparse_row(R, s[1], 1:ngens(M))
+end
+
+function saturation(
+    M::SubQuo{T},
+    U::MPolyPowersOfElement{<:Any, <:Any, <:Any, T}
+  ) where {T<:MPolyElem}
+  R = base_ring(M)
+  R === ambient_ring(U) || error("multiplicative set does not belong to the base_ring of the module")
+  d = denominators(U)
+  Qsat = modulus(M)
+  for f in d
+    Qsat = sat(Qsat, ideal(R, [f]))[1]
+  end
+  GQsat = sum(generating_submodule(M), modulus(M))
+  for f in d
+    GQsat = sat(GQsat, ideal(R, [f]))[1]
+  end
+  V = gens(GQsat)
+  f = prod(d)
+  U = [minimal_power_such_that(f, (x->(represents_element(x*v, M))))[2] for v in V]
+  g = ambient_representatives_generators(M)
+  n = length(g)
+  m = length(V)
+  A = zero(MatrixSpace(R, m, n))
+  for i in 1:m
+    w = coordinates(U[i]*V[i], M)
+    for j in 1:n
+      A[i, j] = w[j]
+    end
+  end
+  return SubQuo(GQsat, Qsat), U, A
+end
+
+function saturation(G::Oscar.SubModuleOfFreeModule{T}, U::MPolyPowersOfElement) where {T<:MPolyElem}
+  R = base_ring(G)
+  R === ambient_ring(U) || error("multiplicative set does not belong to the base_ring of the module")
+  d = denominators(U)
+  Gsat = G
+  for f in d
+    Gsat = sat(Gsat, ideal(R, [f]))[1]
+  end
+  V = gens(Gsat)
+  f = prod(d)
+  U = [minimal_power_such_that(f, (x->(x*v in G)))[2] for v in V]
+  g = gens(G)
+  n = length(g)
+  m = length(V)
+  A = zero(MatrixSpace(R, m, n))
+  for i in 1:m
+    w = coordinates(U[i]*V[i], G)
+    for j in 1:n
+      A[i, j] = w[j]
+    end
+  end
+  return Gsat, U, A
+end
+
+# A wrapper for the singular functionality
+function sat(G::Oscar.SubModuleOfFreeModule{T}, J::MPolyIdeal{T}) where {T<:MPolyElem}
+  R = base_ring(G)
+  g = module_gens(G)
+  singular_assure(g)
+  gS = singular_gens(g)
+  S = singular_poly_ring(R)
+  JS = Singular.Ideal(S, S.(gens(J)))
+  (gS_sat, k) = Singular.LibElim.sat(S, gS, JS)
+  g_sat = Oscar.ModuleGens(ambient_free_module(G), gS_sat)
+  G_sat = Oscar.SubModuleOfFreeModule(ambient_free_module(G), g_sat)
+  return G_sat, k
+end
+

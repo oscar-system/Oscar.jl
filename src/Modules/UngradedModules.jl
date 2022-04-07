@@ -3213,7 +3213,7 @@ end
 Reduce the element `v` with respect to the Gröbner basis `GB` 
 """
 function reduce(v::AbstractFreeModElem, GB::ModuleGB)
-  return reduce(ModuleGens(parent(v), [v]), GB).O[1]
+  return reduce(ModuleGens([v], parent(v)), GB).O[1]
 end
 
 @doc Markdown.doc"""

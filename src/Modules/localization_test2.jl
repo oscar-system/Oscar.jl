@@ -11,6 +11,10 @@ for g in ambient_representatives_generators(K)
   @show f(g)
 end
 
+U = MPolyPowersOfElement(R, [x, y])
+L = Localization(U)
+F = FreeMod(L, 2)
+
 g = [x//y^2*F[1], 1//y*F[1]] 
 q = [(x-1)*(y+1)*F[1]]
 M = SubQuo(F, g, q)
