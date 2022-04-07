@@ -22,6 +22,7 @@ msolve_jll = "6d01cc9a-e8f6-580e-8c54-544227e08205"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 TOPCOM_jll = "36f60fef-b880-50dc-9289-4aaecee93cc3"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 
 [compat]
 AbstractAlgebra = "0.25.0"
