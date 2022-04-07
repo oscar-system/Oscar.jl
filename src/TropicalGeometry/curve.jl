@@ -148,6 +148,14 @@ function Base.show(io::IO, tc::TropicalCurve{M,EMB}) where {M,EMB}
     end
 end
 
+struct DivisorOnTropicalCurve{M, EMB}
+    base_curve::TropicalCurve{M, EMB}
+    coefficients::Vector{Int}
+
+    DivisorOnTropicalCurve{M, EMB}(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB} = new{M, EMB}(tc, coeffs)
+end
+
+
 @doc Markdown.doc"""
     DivisorOnTropicalCurve(tc::TropicalCurve, coeffs::Vector{Int})
 
@@ -166,18 +174,14 @@ julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
 DivisorOnTropicalCurve{min, false}(An abstract min tropical curve, [0, 1, 1, 1])
 ```
 """
-struct DivisorOnTropicalCurve{M, EMB}
-    base_curve::TropicalCurve{M, EMB}
-    coefficients::Vector{Int}
-    function DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB}
-        if EMB
-            error("Not implemented yet")
-        else
-            if n_nodes(tc) != length(coeffs)
-                throw(ArgumentError("Wrong number coefficients"))
-            end
-            return new{M, EMB}(tc, coeffs)
+function DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB}
+    if EMB
+        error("Not implemented yet")
+    else
+        if n_nodes(tc) != length(coeffs)
+            throw(ArgumentError("Wrong number coefficients"))
         end
+        return DivisorOnTropicalCurve{M, EMB}(tc, coeffs)
     end
 end
 
