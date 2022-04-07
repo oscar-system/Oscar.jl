@@ -597,4 +597,15 @@ end
       @test f^h==f
    end
    @test order(H)==order(GU(2,3))*order(GL(2,9))*9^4
+
+   @testset "orthogonal sign" begin
+      @test orthogonal_sign(orthogonal_group(+1, 4, 2)) == +1
+      @test orthogonal_sign(orthogonal_group(-1, 4, 2)) == -1
+      @test orthogonal_sign(orthogonal_group(+1, 4, 3)) == +1
+      @test orthogonal_sign(orthogonal_group(-1, 4, 3)) == -1
+      @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
+      # Odd dimensional orthogonal groups in char. 2 are not irreducible.
+      @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
+      @test orthogonal_sign(general_linear_group(4, 2)) == nothing
+   end
 end
