@@ -1,6 +1,7 @@
 #TODO: do this properly, with indexed types and such
 # Partially Ordered Set ...
 mutable struct POSet{T}
+  "list of all elements in the POset"
   elem::Vector{T}
   "for two elements that are comparable, return -1, 0, 1"
   cmp::Function #(::T, ::T) -> -1, 0, 1
@@ -16,6 +17,25 @@ mutable struct POSet{T}
   end
 end
 
+function Base.show(io::IO, P::POSet)
+  print(io, "POset on $(P.elem)")
+end
+
+function Base.push!(P::POSet{T}, a::T; check::Bool = true) where {T}
+  if check
+    @assert !any(x->P.can_cmp(x, a) && P.cmp(x, a) == 0, P.elem)
+  end
+  push!(P.elem, a)
+end
+
+function Base.in(a::T, P::POSet{T}) where T
+  return any(x->P.can_cmp(x, a) && P.cmp(x, a) == 0, P.elem)
+end
+
+function Base.length(P::POSet)
+  return length(P.elem)
+end
+
 POSet(elem::Vector{S}, can_cmp::Function, cmp::Function) where {S} = POSet{S}(elem, can_cmp, cmp)
 
 struct POSetElem{T}
@@ -25,8 +45,39 @@ struct POSetElem{T}
     return new{S}(i, L)
   end
   function POSetElem(L::POSet{S}, e::Any) where {S}
-    return new{S}(findfirst(x->L>can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
+    return new{S}(findfirst(i->L.can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
   end
+end
+
+function (P::POSet{T})(a::T) where {T}
+  return POSetElem(P, a)
+end
+Base.getindex(P::POSet, i::Int) = POSetElem(P, i)
+
+Oscar.parent(E::POSetElem) = E.p
+Oscar.data(E::POSetElem) = parent(E).elem[E.e]
+
+function Base.show(io::IO, E::POSetElem)
+  print(io, "$(E.e)-th element")
+end
+
+function Base.iterate(P::POSet)
+  length(P) == 0 && return nothing
+  return POSetElem(P, 1), 1
+end
+
+function Base.iterate(P::POSet, i::Int)
+  i >= length(P) && return nothing
+  return POSetElem(P, i+1), i+1
+end
+
+Base.eltype(P::POSet{T}) where T = POSetElem{T}
+
+function Base.isless(e::POSetElem{T}, f::POSetElem{T}) where T
+  P = parent(e)
+  @assert P == parent(f)
+  @assert P.can_cmp(P.elem[e.e], P.elem[f.e])
+  return P.cmp(P.elem[e,e], P.elem[f,e]) < 0
 end
 
 function maximal_elements(L::POSet)
@@ -43,7 +94,7 @@ function maximal_elements(L::POSet)
       end
     end
   end
-  return [x for (x,v) = d if length(v) == 0]
+  return [L(x) for (x,v) = d if length(v) == 0]
 end
 
 function minimal_elements(L::POSet)
@@ -60,7 +111,7 @@ function minimal_elements(L::POSet)
       end
     end
   end
-  return [x for (x,v) = d if length(v) == 0]
+  return [L(x) for (x,v) = d if length(v) == 0]
 end
 
 
