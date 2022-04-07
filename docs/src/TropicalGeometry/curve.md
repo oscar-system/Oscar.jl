@@ -27,19 +27,19 @@ The *tropical Jacobian* of an abstract tropical curve is the group of divisors o
 ## Construction
 
 ```@docs
-TropicalCurve{M}(PC::PolyhedralComplex) where {M}
-DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M, EMB}
+TropicalCurve(PC::PolyhedralComplex)
+DivisorOnTropicalCurve(tc::TropicalCurve, coeffs::Vector{Int})
 ```
 
 ## Auxiliary functions
 ```@docs
-graph(tc::TropicalCurve{M, EMB}) where {M, EMB}
-n_nodes(tc::TropicalCurve{M, EMB}) where {M, EMB}
-coefficients(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB}
-degree(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB}
-is_effective(dtc::DivisorOnTropicalCurve{M, EMB}) where {M, EMB}
-chip_firing_move(dtc::DivisorOnTropicalCurve{M, EMB}, position::Int) where {M, EMB}
-v_reduced(dtc::DivisorOnTropicalCurve{M, EMB}, vertex::Int) where {M, EMB}
-is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB}) where {M, EMB}
-structure_tropical_jacobian(tc::TropicalCurve{M, EMB}) where {M, EMB}
+graph(tc::TropicalCurve)
+n_nodes(tc::TropicalCurve)
+coefficients(dtc::DivisorOnTropicalCurve)
+degree(dtc::DivisorOnTropicalCurve)
+is_effective(dtc::DivisorOnTropicalCurve)
+chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
+v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
+is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
+structure_tropical_jacobian(tc::TropicalCurve) 
 ```

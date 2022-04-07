@@ -398,7 +398,7 @@ julia> is_linearly_equivalent(dtc1, dtc2)
 true
 ```
 """
-function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve{M, EMB}, dtc2::DivisorOnTropicalCurve{M, EMB}) where {M, EMB}
+function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
     @assert is_effective(dtc1) "The divisor $dtc1 is not effective"
     @assert is_effective(dtc2) "The divisor $dtc2 is not effective"
     @assert base_curve(dtc1) === base_curve(dtc2) "The input curve needs to be the same for both divisors"
