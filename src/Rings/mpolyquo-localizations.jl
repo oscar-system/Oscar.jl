@@ -1291,7 +1291,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   J = saturated_ideal(I)
   singular_assure(J)
   R = base_ring(L)
-  SR = singular_ring(R)
+  SR = singular_poly_ring(R)
   SJ = J.gens.S
 
   # collect the output from elimpart in Singular

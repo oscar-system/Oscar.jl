@@ -12,27 +12,28 @@ export empty_covered_scheme
 export coverings, refinements, default_covering, set_name!, name_of, has_name, dim
 export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
-import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
+import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
 
 export CoveredSchemeMorphism, domain, codomain, covering_morphism
 
 export simplify
 
 @Markdown.doc """
-    Covering{SpecType<:Spec, GlueingType<:Glueing}
+    Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
 
 A covering of a scheme ``X`` by affine patches ``Uᵢ`` which are glued 
 along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
 
  * `SpecType` is the type of the affine patches;
- * `GlueingType` is the type of the glueings.
+ * `GlueingType` is the type of the glueings;
+ * `SpecOpenType` is the type of the affine refinements of the ``Uᵢ``.
 
 **Note:** The distinction between the different affine patches of the scheme 
 is made from their hashes. Thus, an affine scheme must not appear more than once 
 in any covering!
 """
 mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
-  patches::Vector{SpecType}
+  patches::Vector{SpecType} # the basic affine patches of X
   glueings::Dict{Tuple{SpecType, SpecType}, GlueingType}
   affine_refinements::Dict{SpecType, Vector{SpecOpenType}}
 
@@ -275,16 +276,6 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
     pU[patch] = restrict(pY, patch, Y, check=false)
   end
   result = Covering(U)
-  # manually glue sufficiently many patches.
-  # TODO: this needs adjustment since the patches might not be sufficiently dense one in another.
-# for i in 2:r+1
-#   x = gens(base_ring(OO(U[1])))
-#   y = gens(base_ring(OO(U[i])))
-#   f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r], x[r+1:end]))
-#   g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r], y[r+1:end]))
-#   add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
-# end
-
   for i in 1:r
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
@@ -409,6 +400,17 @@ function disjoint_union(C1::T, C2::T) where {T<:Covering}
   return C
 end
 
+@Markdown.doc """
+    CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorType<:SpecMor}
+
+A morphism ``f : C → D`` of two coverings. For every patch ``U`` of ``C`` this 
+provides a map `f[U']` of type `SpecMorType` from ``U' ⊂ U`` to 
+some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``.
+
+**Note:** For two affine patches ``U₁, U₂ ⊂ U`` the codomains of `f[U₁]` and `f[U₂]`
+do not need to coincide! However, given the glueings in `C` and `D`, all affine maps 
+have to coincide on their overlaps.
+"""
 mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorType<:SpecMor}
   domain::CoveringType
   codomain::CoveringType
@@ -427,7 +429,8 @@ mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorT
              SpecMorType<:SpecMor
             }
     # TODO: check domain/codomain compatibility
-    # TODO: if check is true, check that all morphisms glue.
+    # TODO: if check is true, check that all morphisms glue and that the domain patches 
+    # cover the basic patches of `dom`.
     for U in keys(mor)
       U in patches(dom) || error("domain patch not found")
       codomain(mor[U]) in patches(cod) || error("codomain patch not found")
