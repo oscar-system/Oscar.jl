@@ -3,16 +3,23 @@
   G = symmetric_group(n)
   
   cc = conjugacy_class(G, G[1])
+  @test acting_group(cc) === G
+  @test representative(cc) == G[1]
   cc1 = conjugacy_class(G, G[1]^G[2])
+  @test length(cc) == length(cc1)
   @test length(cc) == length(cc1)
   @test cc == cc1
   
   ccid = conjugacy_class(G,one(G))
+  @test acting_group(ccid) === G
+  @test representative(ccid) == one(G)
   @test length(ccid)==1
   @test collect(ccid) == [one(G)]
   
   x = perm(G,vcat(2:n,[1]))
   cc = conjugacy_class(G,x)
+  @test acting_group(cc) === G
+  @test representative(cc) == x
   @test length(cc) == factorial(n-1)
   @test x == representative(cc)
   y = rand(cc)
@@ -43,6 +50,7 @@
 
   C = conjugacy_classes(G)
   @test length(C) == 5
+  @test all(cc -> acting_group(cc) === G, C)
   @test cc in C
   @test sum(length, C) == order(G)
   @test count(c -> x in c, C) == 1          # x belongs to a unique conjugacy class
@@ -64,6 +72,7 @@
 
   CC = @inferred conjugacy_classes_subgroups(G)
   @test length(CC)==11
+  @test all(cc -> acting_group(cc) === G, CC)
   @testset for C in CC
      @test C == conjugacy_class(G, representative(C))
      @test length(C) == index(G, normalizer(G, representative(C))[1])

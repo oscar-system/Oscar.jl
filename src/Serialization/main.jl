@@ -100,7 +100,7 @@ end
 
 ################################################################################
 # High level
-function save(s::SerializerState, obj::T) where T
+function save_type_dispatch(s::SerializerState, obj::T) where T
     if !isprimitivetype(T) && !Base.issingletontype(T)
         # if obj is already serialzed, just output
         # a backref
@@ -114,10 +114,10 @@ function save(s::SerializerState, obj::T) where T
     # invoke the actual serializer
     encodedType = encodeType(T)
     s.depth += 1
-    result = Dict(
+    result = Dict{Symbol, Any}(
         :type => encodedType,
         :id => string(ref),
-        :data => save_intern(s, obj)
+        :data => save_internal(s, obj),
     )
     s.depth -= 1
     if s.depth == 0
@@ -126,7 +126,7 @@ function save(s::SerializerState, obj::T) where T
     return result
 end
 
-function load(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
     decodedType = decodeType(dict[:type])
     id = dict[:id]
     if id != "-1"
@@ -136,12 +136,14 @@ function load(s::DeserializerState, ::Type{T}, dict::Dict) where T
     if decodedType == backref_sym
         return s.objs[id]
     end
-    result = load_intern(s, T, dict[:data])
-    s.objs[id] = result
+    result = load_internal(s, T, dict[:data])
+    if id != "-1"
+        s.objs[id] = result
+    end
     return result
 end
 
-function load(s::DeserializerState, dict::Dict; check_namespace=true)
+function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=true)
     if check_namespace
         haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
         _ns = dict[:_ns]
@@ -154,30 +156,37 @@ function load(s::DeserializerState, dict::Dict; check_namespace=true)
 
     encodedType = dict[:type]
     T = decodeType(encodedType)
+    if T == backref_sym
+        return s.objs[UUID(dict[:id])]
+    end
 
     Base.issingletontype(T) && return T()
 
     # TODO: offer a generic handler for primitive
     # types e.g. storing them as byte strings or so
     #Base.isprimitivetype(T) && return load_primitivetype(T, dict) #
-    return load(s, T, dict)
+    return load_type_dispatch(s, T, dict)
 end
 
 
 ################################################################################
-# Default generic save_intern, load_intern
-function save_intern(s::SerializerState, obj::T) where T
+# Default generic save_internal, load_internal
+function save_internal(s::SerializerState, obj::T) where T
     result = Dict{Symbol, Any}()
     for (n,t) in zip(fieldnames(T), T.types)
-        result[n] = save(s, getfield(obj, n))
+        if n != :__attrs
+            result[n] = save_type_dispatch(s, getfield(obj, n))
+        end
     end
     return result
 end
 
-function load_intern(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
     for (n,t) in zip(fieldnames(T), T.types)
-        push!(fields, load(s, t, dict[n]))
+        if n!= :__attrs
+            push!(fields, load_type_dispatch(s, t, dict[n]))
+        end
     end
     return T(fields...)
 end
@@ -192,7 +201,7 @@ Save an object `T` to a file.
 """
 function save(obj::T, filename::String) where T
     state = SerializerState()
-    jsoncompatible = save(state, obj)
+    jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)
     open(filename, "w") do file
         write(file, jsonstr)
@@ -208,7 +217,7 @@ function load(filename::String)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parsefile(filename, dicttype=Dict{Symbol, Any})
-    return load(state, jsondict)
+    return load_type_dispatch(state, jsondict)
 end
 
 
@@ -219,6 +228,7 @@ include("containers.jl")
 include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
 include("Fields.jl")
+include("ToricGeometry.jl")
 
 @deprecate save_cone(Obj::Cone, filename::String) save(Obj, filename)
 @deprecate load_cone(filename::String) load(Obj, filename)

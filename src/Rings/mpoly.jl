@@ -159,28 +159,30 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
+default_ordering(R::MPolyRing) = degrevlex(gens(R))
+
 mutable struct BiPolyArray{S}
-  Ox::MPolyRing #Oscar Poly Ring
+  Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
-  Sx # Singular Poly Ring, poss. with different ordering
+  Sx # Singular Poly Ring or Algebra, poss. with different ordering
   S::Singular.sideal
   isGB::Bool #if the Singular side (the sideal) will be a GB
   ord::Orderings.AbsOrdering #for this ordering
   keep_ordering::Bool
 
-  function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
+  function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
     return BiPolyArray(parent(O[1]), O; keep_ordering = keep_ordering,
                                         isGB = isGB)
   end
 
-  function BiPolyArray(Ox::MPolyRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
+  function BiPolyArray(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
     r = new{T}(Ox, O)
     r.isGB = isGB
     r.keep_ordering = keep_ordering
     return r
   end
 
-  function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: MPolyRing}
+  function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
     O = Vector{elem_type(T)}(undef, Singular.ngens(S))
     Sx = base_ring(S)
     r = new{elem_type(T)}(Ox, O, Sx, S)

@@ -5,9 +5,9 @@ include("PlaneCurve.jl")
 include("InvariantTheory.jl")
 include("GITFans.jl")
 include("GModule.jl")
+include("MPolyRingSparse.jl")
 
 include("Schemes/AffineSchemes.jl")
 include("Schemes/SpecOpen.jl")
 include("Schemes/Glueing.jl")
 include("Schemes/ProjectiveSchemes.jl")
-

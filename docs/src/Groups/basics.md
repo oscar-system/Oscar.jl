@@ -58,9 +58,9 @@ Oscar supports the following operations and functions on group elements.
   if `n < 0`, the `-n`-th power of the inverse of `x` is returned.
 * `isone(x)` returns whether `x` is the identity of the group.
 * `conj(x,y)` and `x^y`, the conjugate of `x` by `y`,
-  i. e., the element `y^-1 x y`.
+  i.e., the element `y^-1 x y`.
 * `comm(x,y)`, the commutator of `x` and `y`,
-  i. e., the element `x^-1 y^-1 x y`.
+  i.e., the element `x^-1 y^-1 x y`.
 
 !!! note
     In Oscar, the expression `x^y^z` is equivalent to `x^(y^z)`.

@@ -5,6 +5,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
 export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, inradical, isprime, isprimary
 export ngens, gens
+export minimal_generating_set
 
 # constructors #######################################################
 
@@ -910,7 +911,7 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where T
+function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
   groebner_assure(I, ordering)
   GI = I.gb[ordering]
   singular_assure(GI)
@@ -1238,3 +1239,63 @@ function ismonomial(I::MPolyIdeal)
   end
   return false
 end 
+
+################################################################################
+#
+# Minimal generating set
+#
+################################################################################
+
+@doc Markdown.doc"""
+    minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
+
+Given a homogeneous ideal `I` in a graded multivariate polynomial ring
+over a field, return an array containing a minimal set of generators of `I`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> V = [x, z^2, x^3+y^3, y^4, y*z^5];
+
+julia> I = ideal(R, V)
+ideal(x, z^2, x^3 + y^3, y^4, y*z^5)
+
+julia> minimal_generating_set(I)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ z^2
+ x^3 + y^3
+```
+"""
+function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+  # This only works / makes sense for homogeneous ideals. So far ideals in an
+  # MPolyRing_dec are forced to be homogeneous though.
+
+  R = base_ring(I)
+
+  @assert isgraded(R)
+  
+  if !(base_ring(R) isa AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
+  end
+  
+  singular_assure(I, ordering)
+  IS = I.gens.S
+  RS = I.gens.Sx
+  GC.@preserve IS RS begin
+    ptr = Singular.libSingular.idMinBase(IS.ptr, RS.ptr)
+    gensS = gens(typeof(IS)(RS, ptr))
+  end
+
+  i = 1
+  while i <= length(gensS)
+    if iszero(gensS[i])
+      deleteat!(gensS, i)
+    else
+      i += 1
+    end
+  end
+
+  return elem_type(R)[ R(f) for f in gensS ]
+end

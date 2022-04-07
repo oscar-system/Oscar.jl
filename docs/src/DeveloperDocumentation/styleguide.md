@@ -49,7 +49,7 @@ to a minimum. Here is a general principle:
 > Do not use Unicode characters inside functions. See below for the exception
 > concerning printing.
 
-Per default output should be ANSI only (no Unicode). Implementors of 
+Per default output should be ANSI only (no Unicode). Implementors of
 `Base.show` and related functions can branch on the output of
 `Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
 This will then be used for users which enabled Unicode using
@@ -167,5 +167,8 @@ However, as always, rules sometimes should be broken.
 
 ## Documentation
 
-In general we try to follow the list of recommendations in the
-[Documentation section of the Julia manual](https://docs.julialang.org/en/v1/manual/documentation/).
+ - In general we try to follow the list of recommendations in the
+   [Documentation section of the Julia manual](https://docs.julialang.org/en/v1/manual/documentation/).
+
+ - Via the MathJax integration it is possible to use LaTeX code, and this is the
+   preferred way to denote the mathematical symbols in the docstrings.

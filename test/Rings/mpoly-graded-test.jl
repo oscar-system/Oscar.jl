@@ -199,6 +199,13 @@ end
   @test isisomorphic(D, abelian_group([0]))
 end
 
+@testset "Minimal generating set" begin
+  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  I = ideal(R, [ x^2, y, x^2 + y ])
+  @test minimal_generating_set(I) == [ y, x^2 ]
+  @test minimal_generating_set(ideal(R, [ R() ])) == elem_type(R)[]
+end
+
 # Conversion bug
 
 begin
@@ -223,4 +230,12 @@ begin
   D = Dict(u => 1)
   @test haskey(D, u)
   @test !haskey(D, v)
+end
+
+begin
+  R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+  M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
+  t = h(zero(M))
+  @assert iszero(t)
+  @assert parent(t) == R
 end
