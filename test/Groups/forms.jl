@@ -488,6 +488,9 @@ end
       @test g.elm*B*conjugate_transpose(g.elm)==B
    end
 
+   G = general_linear_group(2, 3)
+   @test_throws ArgumentError Oscar.invariant_sesquilinear_form(G)
+
    @testset for q in [2,3,4,5]
       G = GU(5,q)
       x = rand(GL(5,base_ring(G)))
