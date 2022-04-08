@@ -86,10 +86,7 @@ julia> nonbases(fano_matroid())
  [1, 2, 3]
 ```
 """
-function nonbases(M::Matroid)
-    Bases = bases(M)
-    return filter(set -> set ∉ Bases, Oscar.Hecke.subsets(Vector(1:length(M.groundset)),rank(M)))
-end 
+nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_BASES] 
 
 
 @doc Markdown.doc"""
@@ -1009,8 +1006,12 @@ function revlex_basis_encoding(M::Matroid)
 	indicies = findall(x->x=='*', rvlx)
 	v = zeros(Int,length(rvlx))
 	[v[i]=1 for i in indicies]
-	hy = Polymake.polytope.hypersimplex(rank(M),size_groundset(M), group=1);
-	Polymake.Shell.pair = Polymake.group.lex_minimal(hy.GROUP.VERTICES_ACTION, v)
+	n = M.pm_matroid.N_ELEMENTS;
+	A = revlex_bases_matrix(rank(M),n)
+	P = Polymake.group.PermutationAction(GENERATORS=[[[1,0];Vector(2:n-1)],[[n-1];Vector(0:n-2)]])
+	G = Polymake.group.Group(HOMOGENEOUS_COORDINATE_ACTION=P)
+	poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
+	Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
 	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
 	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
 end
