@@ -37,12 +37,12 @@ The following computes the chow ring of the Fano matroid including variables for
 ```jldoctest
 julia> M = uniform_matroid(3,3);
 
-julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f","g","h"]);
+julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f"]);
 
 julia> R = chow_ring(M, GR);
 
 julia> hilbert_series_reduced(R)
-(t^2 + 4*t + 1, t^2 - 2*t + 1) 
+(t^2 + 4*t + 1, 1) 
 
 ```
 """
@@ -65,7 +65,9 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
 		else
 			tR = ring
 		end
-		tR.nvars != length(proper_flats) || error("the ring has the wrong number of variables")
+		println(tR.nvars)
+		println(length(proper_flats))
+		tR.nvars == length(proper_flats) || error("the ring has the wrong number of variables")
 		vars = [ring[i] for i in 1:tR.nvars]
 	end
 
