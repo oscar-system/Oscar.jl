@@ -390,11 +390,15 @@ Return an isomorphism from `G` to a group of type `T`.
 An exception is thrown if no such isomorphism exists.
 """
 function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
-   fun = _get_iso_function(T)
-   f = fun(G.X)::GapObj
-   f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
-   H = T(GAP.Globals.ImagesSource(f)::GapObj)
-   return GAPGroupHomomorphism(G, H, f)
+   # Known isomorphism are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(() -> Dict{Type,GAPGroupHomomorphism}(), G, :isomorphisms)
+   return get!(isos, T) do
+     fun = _get_iso_function(T)
+     f = fun(G.X)::GapObj
+     f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
+     H = T(GAP.Globals.ImagesSource(f)::GapObj)
+     return GAPGroupHomomorphism(G, H, f)
+   end
 end
 
 
