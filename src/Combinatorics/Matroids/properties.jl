@@ -30,16 +30,11 @@ julia> isomorphism(fano_matroid(), [2,3,4,1,5,6,7])
 Matroid of rank 3 on 7 elements
 ```
 """
-function isomorphism(M::Matroid, gs::AbstractVector)
+function isomorphism(M::Matroid, gs::GroundsetType)
     if length(M.groundset)!=length(gs)
         error("Sets of different size")
     end
-    gs2num = Dict{Any,Int}()
-    i = 1
-    for elem in gs
-        gs2num[elem] = i
-        i+=1
-    end
+    gs2num = create_gs2num(gs)
     return Matroid(M.pm_matroid,gs,gs2num)
 end
 
@@ -263,7 +258,7 @@ julia> closure(fano_matroid(), [1,2])
  3
 ```
 """
-function closure(M::Matroid, set::Union{AbstractVector,Set})
+function closure(M::Matroid, set::GroundsetType)
     cl = M.groundset
     for flat in flats(M)
         if issubset(set,flat) && issubset(flat,cl)
@@ -299,7 +294,7 @@ julia> rank(M, [1,2,3])
 2
 ```
 """
-function rank(M::Matroid, set::Union{AbstractVector,Set})
+function rank(M::Matroid, set::GroundsetType)
     if length(set)==0
         return 0
     else
@@ -321,7 +316,7 @@ julia> nullity(M, [1,2,3])
 1
 ```
 """
-nullity(M::Matroid, set::Union{AbstractVector,Set}) = length(set)-Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
+nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
 
 
 @doc Markdown.doc"""
@@ -350,7 +345,7 @@ julia> fundamental_circuit(M, [1,2,4], 3)
  3
 ```
 """
-function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::ElementType)
+function fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType)
     if !(basis in bases(M))
         error("The set is not a basis of M")
     end
@@ -381,7 +376,7 @@ julia> fundamental_cocircuit(fano_matroid(), [1,2,4], 4)
  7
 ```
 """
-fundamental_cocircuit(M::Matroid, basis::AbstractVector, elem::ElementType) = fundamental_circuit(dual_matroid(M), setdiff(M.groundset, basis), elem)
+fundamental_cocircuit(M::Matroid, basis::GroundsetType, elem::ElementType) = fundamental_circuit(dual_matroid(M), setdiff(M.groundset, basis), elem)
 
 @doc Markdown.doc"""
     independet_sets(M::matroid)
@@ -440,7 +435,7 @@ julia> spanning_sets(uniform_matroid(2, 3))
 function spanning_sets(M::Matroid)
     # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
     coindependent_sets = independent_sets(dual_matroid(M))
-    span_sets = [filter(k -> k ∉ set, 1:size_groundset(M)) for set in coindependent_sets]
+    span_sets = [filter(k -> !(k in set), 1:size_groundset(M)) for set in coindependent_sets]
     return reverse(span_sets)
 end
 
@@ -459,7 +454,7 @@ julia> cobases(uniform_matroid(2, 3))
  [1]
 ```
 """
-cobases(M::Matroid) = bases( dual_matroid(M) )
+cobases(M::Matroid) = bases(dual_matroid(M))
 
 @doc Markdown.doc"""
     cocircuits(M::matroid)
@@ -478,7 +473,7 @@ julia> cocircuits(uniform_matroid(2, 5))
  [2, 3, 4, 5]
 ```
 """
-cocircuits(M::Matroid) = circuits( dual_matroid(M) )
+cocircuits(M::Matroid) = circuits(dual_matroid(M))
 
 @doc Markdown.doc"""
     cohyperplanes(M::matroid)
@@ -506,7 +501,7 @@ julia> cohyperplanes(fano_matroid())
  [1, 2, 3]
 ```
 """
-cohyperplanes(M::Matroid) = hyperplanes( dual_matroid(M) )
+cohyperplanes(M::Matroid) = hyperplanes(dual_matroid(M))
 
 @doc Markdown.doc"""
     corank(M::matroid, set::Vector)
@@ -519,7 +514,7 @@ julia> corank(fano_matroid(), [1,2,3])
 4
 ```
 """
-corank(M::Matroid, set::Vector) = length(set)-rank(M, set) + rank(M, setdiff(M.groundset,set))
+corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, set) + rank(M, setdiff(M.groundset, set))
 
 @doc Markdown.doc"""
     is_clutter(sets)
@@ -537,7 +532,7 @@ julia> is_clutter(circuits(fano_matroid()))
 true
 ```
 """
-function is_clutter(sets::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}})
+function is_clutter(sets::AbstractVector{T}) where T <: GroundsetType
     for A in sets
         for B in sets
             if A!=B && (issubset(A,B) || issubset(B,A))
@@ -782,8 +777,8 @@ julia> connectivity_function(fano_matroid(), [1,2,4])
 
 ```
 """
-function connectivity_function(M::Matroid, set::Union{AbstractVector, Set})
-    return rank(M,set) + rank(M,setdiff( Set(M.groundset), set)) - rank(M)
+function connectivity_function(M::Matroid, set::GroundsetType)
+    return rank(M,set) + rank(M,setdiff(Set(M.groundset), set)) - rank(M)
 end
 
 @doc Markdown.doc"""
@@ -799,7 +794,7 @@ false
 
 ```
 """
-function is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::Union{AbstractVector,Set}) 
+function is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType) 
     return k<=rank(M,set) && k<=rank(M,setdiff( Set(M.groundset), set)) && k> connectivity_function(M,set)
 end
 
@@ -816,7 +811,7 @@ false
 
 ```
 """
-function is_k_separation(M::Matroid,k::IntegerUnion, set::Union{AbstractVector,Set})
+function is_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType)
     return k<=length(set) && k<=length(setdiff( Set(M.groundset), set)) && k> connectivity_function(M,set)
 end
 
@@ -865,7 +860,7 @@ julia> girth(fano_matroid(), [1,2,3,4])
 
 ```
 """
-girth(M::Matroid, set::Vector=M.groundset) = minimum([inf; [issubset(C,set) ? length(C) : inf for C in circuits(M)]])
+girth(M::Matroid, set::GroundsetType=M.groundset) = minimum([inf; [issubset(C,set) ? length(C) : inf for C in circuits(M)]])
 
 @doc Markdown.doc"""
     tutte_connectivity(M::Matroid)
