@@ -31,7 +31,7 @@ julia> f==0
 true
 ```
 """
-function chow_ring(M::Matroid; extended=false)
+function chow_ring(M::Matroid; extended::Bool=false)
         Flats = flats(M)
         number_flats = length(Flats)
         n = size_groundset(M)
