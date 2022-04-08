@@ -978,10 +978,8 @@ function revlex_bases_matrix(r::Int64,n::Int64)
     all_bases = Oscar.Hecke.subsets(Vector(1:n),r)
     sort!(all_bases, lt=revlex_order)
     M = zeros(Int64,length(all_bases),n)
-    for i in 1:length(all_bases)
-        for j in 1:r
-            M[i,all_bases[i][j]] = 1
-        end
+    for i in 1:length(all_bases), j in 1:r
+        M[i,all_bases[i][j]] = 1
     end
     # Add columns of ones for polymake
     M = hcat(ones(Int64,length(all_bases)),M)
@@ -989,6 +987,7 @@ function revlex_bases_matrix(r::Int64,n::Int64)
 end
 
 @doc Markdown.doc"""
+    revlex_basis_encoding(M::Matroid)
 Computes the ``revlex basis encoding`` and the ``minimal revlex basis encoding`` among isomorphic matroids 
 
 # Examples
@@ -1014,4 +1013,27 @@ function revlex_basis_encoding(M::Matroid)
 	Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
 	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
 	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+end
+
+@doc Markdown.doc"""
+    isomorphic_matroids(M1::Matroid, M2::Matroid)
+Checks if the matroids M1 and M2 are isomorphic under the action of the symmetric group that acts on their groundset.
+
+# Examples
+To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
+```jldoctest
+julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
+
+julia> M = matroid_from_nonbases(H,7);
+
+julia> isomorphic_matroids(M,fano_matroid())
+true
+
+```
+"""
+function isomorphic_matroids(M1::Matroid, M2::Matroid)
+    if size_groundset(M1) != size_groundset(M2)
+        return false
+    end
+    return revlex_basis_encoding(M1)[2] == revlex_basis_encoding(M2)[2]
 end
