@@ -35,12 +35,8 @@ function chow_ring(M::Matroid; extended=false)
         Flats = flats(M)
         number_flats = length(Flats)
         n = size_groundset(M)
-        if !is_loopless(M)
-                error("Matroid has loops")
-        end
-        if number_flats<2
-                error("matroid has to few flats")
-        end
+        is_loopless(M) || error("Matroid has loops")
+        number_flats >= 2 || error("matroid has to few flats")
         proper_flats = Flats[2:number_flats-1]
         var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
         if extended
