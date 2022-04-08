@@ -5,8 +5,7 @@ export chow_ring, augmented_chow_ring, select
 
 Return the Chow ring of a matroid, optional also with the simplicial generators.
 
-See AHK18 (@cite) and BES21 (@cite) 
-
+See AHK18 (@cite) and BES21 (@cite). 
 
 # Examples
 The following computes the chow ring of the Fano matroid.
@@ -33,21 +32,24 @@ julia> f==0
 true
 ```
 """
-function chow_ring(M::Matroid; extended::Bool=false)
-        Flats = flats(M)
-        number_flats = length(Flats)
-        n = size_groundset(M)
+function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended::Bool=false)
         is_loopless(M) || error("Matroid has loops")
+	Flats = flats(M)
+	number_flats = length(Flats)
         number_flats >= 2 || error("matroid has to few flats")
         proper_flats = Flats[2:number_flats-1]
-        var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
-        if extended
-                var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] #addeds the variables for the simplicial generators
-        end
 
-        ring, vars = GradedPolynomialRing(QQ, var_names)
-        #ring, vars = PolynomialRing(ZZ, var_names) $which ring do we want here
-        
+	if(ring==nothing)
+		var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
+        	if extended
+                	var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] #add the variables for the simplicial generators
+        	end
+		ring, vars = PolynomialRing(QQ, var_names, cached=false)
+	else
+		ring.vars != length(proper_flats) || error("the ring has the wrong number of variables")
+		vars = [ring[i] for i in 1:ring.nvars]
+	end
+
 	I = linear_relations(ring, proper_flats, vars, M)
         J = quadratic_relations(ring, proper_flats, vars)
         Ex = []
@@ -55,14 +57,13 @@ function chow_ring(M::Matroid; extended::Bool=false)
                 Ex = relations_extended_ring(ring, proper_flats, vars)
         end
         chow_modulus = ideal(ring, vcat(I, J, Ex))
-        #chow_ring = ResidueRing(ring, chow_modulus)# is this a better choice?
         chow_ring, projection = quo(ring, chow_modulus)
         return chow_ring
 end
 
-function linear_relations(ring, proper_flats, vars, M)
-        alpha = zero(R)
-        relations = []
+function linear_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector, M::Matroid)
+        alpha = zero(ring)
+        relations = elem_type(ring)[]
         for i in M.groundset
                 poly = ring(0)
                 for index in findall(issubset([i],F) for F in proper_flats)
@@ -77,23 +78,22 @@ function linear_relations(ring, proper_flats, vars, M)
         return relations
 end
 
-function quadratic_relations(ring, proper_flats, indeterminates)
-        relations = Vector()
-        s = size(proper_flats)[1]
-        for i in 1:s
+function quadratic_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector)
+        relations = elem_type(ring)[]
+        for i in 1:length(proper_flats)
                 F = proper_flats[i]
                 for j in 1:i-1
                         G = proper_flats[j]
                         if !issubset(F,G) && !issubset(G,F)
-                                push!(relations, indeterminates[i]*indeterminates[j])
+                                push!(relations, vars[i]*vars[j])
                         end
                 end
         end
         return relations
 end
 
-function relations_extended_ring(ring, proper_flats, vars)
-        relations = Vector()
+function relations_extended_ring(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector)
+        relations = elem_type(ring)[]
         s = length(proper_flats)
         # h_E = alpha = -x_E
         poly = ring(0)
