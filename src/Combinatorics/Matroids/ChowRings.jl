@@ -1,7 +1,9 @@
 export chow_ring, augmented_chow_ring, select
 
 @doc Markdown.doc"""
-The Chow ring of a matroid, optional also with the simplical generators.
+    chow_ring(M::Matroid; extended=false)
+
+Return the Chow ring of a matroid, optional also with the simplicial generators.
 
 See AHK18 (@cite) and BES21 (@cite) 
 
