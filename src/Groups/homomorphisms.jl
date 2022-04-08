@@ -388,10 +388,33 @@ _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 Return an isomorphism from `G` to a group of type `T`.
 An exception is thrown if no such isomorphism exists.
+
+Isomorphisms are cached in `G`, subsequent calls of `isomorphism` with the
+same `T` yield identical results.
+
+If only the image of such an isomorphism is needed, use `T(G)`.
+
+# Examples
+```jldoctest
+julia> G = dihedral_group(6)
+<pc group of size 6 with 2 generators>
+
+julia> iso = isomorphism(PermGroup, G)
+Group homomorphism from
+<pc group of size 6 with 2 generators>
+to
+Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
+
+julia> PermGroup(G)
+Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
+
+julia> codomain(iso) === ans
+true
+```
 """
 function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
    # Known isomorphism are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(() -> Dict{Type,GAPGroupHomomorphism}(), G, :isomorphisms)
+   isos = get_attribute!(() -> Dict{Type, Any}(), G, :isomorphisms)
    return get!(isos, T) do
      fun = _get_iso_function(T)
      f = fun(G.X)::GapObj
@@ -409,26 +432,30 @@ Return a map from `G` to an isomorphic (additive) group of type `GrpAbFinGen`.
 An exception is thrown if `G` is not abelian or not finite.
 """
 function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
-  isabelian(G) || throw(ArgumentError("the group is not abelian"))
-  isfinite(G) || throw(ArgumentError("the group is not finite"))
+   # Known isomorphism are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(() -> Dict{Type, Any}(), G, :isomorphisms)
+   return get!(isos, GrpAbFinGen) do
+     isabelian(G) || throw(ArgumentError("the group is not abelian"))
+     isfinite(G) || throw(ArgumentError("the group is not finite"))
 #T this restriction is not nice
 
-  indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)
-  orders = [GAP.Globals.Order(x) for x in indep]
-  n = length(indep)
-  A = abelian_group(GrpAbFinGen, orders)
+     indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)
+     orders = [GAP.Globals.Order(x) for x in indep]
+     n = length(indep)
+     A = abelian_group(GrpAbFinGen, orders)
 
-  f(g) = A(Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X)))
+     f(g) = A(Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X)))
 
-  finv = function(g::elem_type(GrpAbFinGen))
-     res = Oscar.GAPWrap.One(G.X)
-     for i in 1:n
-       res = res * indep[i]^GAP.Obj(g.coeff[i])
+     finv = function(g::elem_type(GrpAbFinGen))
+       res = Oscar.GAPWrap.One(G.X)
+       for i in 1:n
+         res = res * indep[i]^GAP.Obj(g.coeff[i])
+       end
+       return group_element(G, res)
      end
-     return group_element(G, res)
-  end
 
-  return MapFromFunc(f, finv, G, A)
+     return MapFromFunc(f, finv, G, A)
+   end
 end
 
 """
@@ -438,55 +465,65 @@ Return an isomorphism from `A` to a group of type `T`.
 An exception is thrown if no such isomorphism exists or if `A` is not finite.
 """
 function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
-  # find independent generators
-  if isdiagonal(rels(A))
-    exponents = diagonal(rels(A))
-    A2 = A
-    A2_to_A = identity_map(A)
-    A_to_A2 = identity_map(A)
-  else
-    exponents = elementary_divisors(A)
-    A2, A2_to_A = snf(A)
-    A_to_A2 = inv(A2_to_A)
-  end
-  # the isomorphic gap group
-  G = abelian_group(T, exponents)
-  # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
-  # of the orders in `exponents`.
-  # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
-  # that may differ from these generators,
-  # and that belong to the exponent vectors returned by
-  # `GAP.Globals.IndependentGeneratorExponents(G.X, g)`.
-  # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
-  # we let `hom` compute elements in `A2` that correspond to
-  # `GAP.Globals.IndependentGenerators(G.X)`.
-  Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
-  gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-  Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
+   # Known isomorphism are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(() -> Dict{Type, Any}(), A, :isomorphisms)
+   return get!(isos, T) do
+     # find independent generators
+     if isdiagonal(rels(A))
+       exponents = diagonal(rels(A))
+       A2 = A
+       A2_to_A = identity_map(A)
+       A_to_A2 = identity_map(A)
+     else
+       exponents = elementary_divisors(A)
+       A2, A2_to_A = snf(A)
+       A_to_A2 = inv(A2_to_A)
+     end
+     # the isomorphic gap group
+     G = abelian_group(T, exponents)
+     # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
+     # of the orders in `exponents`.
+     # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
+     # that may differ from these generators,
+     # and that belong to the exponent vectors returned by
+     # `GAP.Globals.IndependentGeneratorExponents(G.X, g)`.
+     # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
+     # we let `hom` compute elements in `A2` that correspond to
+     # `GAP.Globals.IndependentGenerators(G.X)`.
+     Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
+     gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
+     Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
 
-  imgs = [Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
-  A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
-  Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
-  n = length(exponents)
+     imgs = [Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
+     A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
+     Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
+     n = length(exponents)
 
-  f = function(a::elem_type(GrpAbFinGen))
-    exp = A_to_A2(a)
-    img = GAP.Globals.One(G.X)
-    for i in 1:n
-      img = img * Ggens[i]^GAP.Obj(exp[i])
-    end
-    return group_element(G, img)
-  end
+     f = function(a::elem_type(GrpAbFinGen))
+       exp = A_to_A2(a)
+       img = GAP.Globals.One(G.X)
+       for i in 1:n
+         img = img * Ggens[i]^GAP.Obj(exp[i])
+       end
+       return group_element(G, img)
+     end
 
-  finv = function(g)
-    exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X))
-    return Aindep_to_A(Aindep(exp))
-  end
+     finv = function(g)
+       exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X))
+       return Aindep_to_A(Aindep(exp))
+     end
 
-  return MapFromFunc(f, finv, A, G)
+     return MapFromFunc(f, finv, A, G)
+   end
 end
 
-isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen) = identity_map(A)
+function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
+   # Known isomorphism are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(() -> Dict{Type, Any}(), A, :isomorphisms)
+   return get!(isos, T) do
+     return identity_map(A)
+   end
+end
 
 """
     FPGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
