@@ -16,7 +16,10 @@ export denest, renest
 
 # from Q(t1, t2)[x1, x2] to S = Q[x1, x2, t1, t2]
 # the product of the two outputs should be equal to the input
-function _remove_denominators(S::MPolyRing, f::MPolyElem)
+function _remove_denominators(
+  S::Union{MPolyRing, PolyRing},
+  f::Union{MPolyElem, PolyElem})
+
   R = parent(f)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
   den = one(R2)
@@ -25,7 +28,7 @@ function _remove_denominators(S::MPolyRing, f::MPolyElem)
     cont = gcd(cont, numerator(c1))
     den = lcm(den, denominator(c1))
   end
-  num = MPolyBuildCtx(S)
+  num = MPolyBuildCtx(S)  # PolyElem should satisfy the exponent vector interface
   for (c1, e1) in zip(coefficients(f), exponent_vectors(f))
     cf = divexact(den, denominator(c1))
     if !iszero(cont)
@@ -40,7 +43,10 @@ end
 
 # from Q[x1, x2, t1, t2] to R = Q(t1, t2)[x1, x2]
 # the output is equal to the input
-function _restore_numerators(R::MPolyRing, g::MPolyElem)
+function _restore_numerators(
+  R::Union{MPolyRing, PolyRing},
+  g::Union{MPolyElem, PolyElem})
+
   S = parent(g)                   # Q[x1, x2, t1, t2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
   n = nvars(R)
@@ -75,9 +81,9 @@ end
 
 
 function Oscar.gcd(
-  a::AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{T}},
-  b::AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{T}}
-) where T <: MPolyElem
+  a::AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}},
+  b::AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}}
+) where T <: Union{PolyElem, MPolyElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -88,6 +94,19 @@ function Oscar.gcd(
   return _restore_numerators(R, gcd(A, B))    # not nec monic
 end
 
+function Oscar.gcd(
+  a::AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}},
+  b::AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}
+) where T <: Union{PolyElem, MPolyElem}
+
+  R = parent(a)                   # Q(t1, t2)[x1, x2]
+  R2 = base_ring(base_ring(R))    # Q[t1, t2]
+  R == parent(b) || error("parents do not match")
+  S = _add_variables(R2, nvars(R))
+  A = _remove_denominators(S, a)[1]
+  B = _remove_denominators(S, b)[1]
+  return _restore_numerators(R, gcd(A, B))    # not nec monic
+end
 
 function _convert_frac_fac(R, u, fac)
   Rfac = Fac{elem_type(R)}()
@@ -104,8 +123,9 @@ function _convert_frac_fac(R, u, fac)
 end
 
 function Oscar.factor(
-  a::AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{T}}
-) where T <: MPolyElem
+  a::Union{AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}},
+           AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}}
+) where T <: Union{PolyElem, MPolyElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
@@ -115,8 +135,9 @@ function Oscar.factor(
 end
 
 function Oscar.factor_squarefree(
-  a::AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{T}}
-) where T <: MPolyElem
+  a::Union{AbstractAlgebra.MPolyElem{AbstractAlgebra.Generic.Frac{T}},
+           AbstractAlgebra.PolyElem{AbstractAlgebra.Generic.Frac{T}}}
+) where T <: Union{PolyElem, MPolyElem}
 
   R = parent(a)                   # Q(t1, t2)[x1, x2]
   R2 = base_ring(base_ring(R))    # Q[t1, t2]

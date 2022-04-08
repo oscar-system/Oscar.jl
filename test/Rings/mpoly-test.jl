@@ -236,3 +236,10 @@ end
   @test issubset(I, I)
   @test I == I
 end
+
+@testset "#975" begin
+  A, t = PolynomialRing(QQ, ["t"])
+  R, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
+  I = ideal(R, [x])
+  @test x in I
+end

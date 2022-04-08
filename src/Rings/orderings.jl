@@ -4,8 +4,9 @@ using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
-       negwdeglex, negwdegrevlex, weights, isweighted,
-       MonomialOrdering, ModuleOrdering, singular
+       negwdeglex, negwdegrevlex, matrix_ordering, weights, isweighted,
+       MonomialOrdering, ModuleOrdering, singular,
+       isglobal, islocal, ismixed
 
 abstract type AbsOrdering end
 
@@ -126,10 +127,10 @@ function weights(a::GenOrdering)
   if a.ord == :degrevlex || a.ord == Symbol("Singular(dp)")
     return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
             zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
-  end              
+  end
   if a.ord == :revlex || a.ord == Symbol("Singular(rp)")
     return anti_diagonal(ZZ, length(a.vars))
-  end              
+  end
   if a.ord == :wdeglex || a.ord == Symbol("Singular(Wp)")
     return [matrix(ZZ, 1, length(a.vars), a.w);
             identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
@@ -137,39 +138,33 @@ function weights(a::GenOrdering)
   if a.ord == :wdegrevlex || a.ord == Symbol("Singular(wp)")
     return [matrix(ZZ, 1, length(a.vars), a.w);
             zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
-  end              
+  end
   if a.ord == :neglex || a.ord == Symbol("Singular(ls)")
-   return -identity_matrix(ZZ, length(a.vars))
- end
- if a.ord == :negdeglex || a.ord == Symbol("Singular(Ds)")
-   return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
-           -identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
- end
- if a.ord == :negdegrevlex || a.ord == Symbol("Singular(ds)")
-   return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-           zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
- end              
- if a.ord == :negrevlex || a.ord == Symbol("Singular(rs)")
-   return -anti_diagonal(ZZ, length(a.vars))
- end              
- if a.ord == :negwdeglex || a.ord == Symbol("Singular(Ws)")
-   return [-matrix(ZZ, 1, length(a.vars), a.w);
-           -identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
- end
- if a.ord == :negwdegrevlex || a.ord == Symbol("Singular(ws)")
-   return [-matrix(ZZ, 1, length(a.vars), a.w);
-           zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
- end              
- if a.ord == Symbol("Singular(ls)")
     return -identity_matrix(ZZ, length(a.vars))
   end
-  if a.ord == Symbol("Singular(ds)")
+  if a.ord == :negdeglex || a.ord == Symbol("Singular(Ds)")
+    return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
+            -identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
+  end
+  if a.ord == :negdegrevlex || a.ord == Symbol("Singular(ds)")
     return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
-  end              
-  if a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
+            zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
+  end
+  if a.ord == :negrevlex || a.ord == Symbol("Singular(rs)")
+    return -anti_diagonal(ZZ, length(a.vars))
+  end
+  if a.ord == :negwdeglex || a.ord == Symbol("Singular(Ws)")
+    return [-matrix(ZZ, 1, length(a.vars), a.w);
+            -identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
+  end
+  if a.ord == :negwdegrevlex || a.ord == Symbol("Singular(ws)")
+    return [-matrix(ZZ, 1, length(a.vars), a.w);
+            zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
+  end
+  if a.ord == :weight || a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
     return a.wgt
-  end              
+  end
+  error("Ordering not recognized")
 end
 
 #not user facing
@@ -356,6 +351,15 @@ function negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   return MonomialOrdering(parent(first(v)), ordering(v, :negwdegrevlex, w))
 end
 @doc Markdown.doc"""
+    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat) -> MonomialOrdering
+
+Defines the matrix ordering on the variables given with the matrix `M`.
+"""
+function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat)
+  return MonomialOrdering(parent(first(v)), ordering(v, M))
+end
+
+@doc Markdown.doc"""
     singular(ord::Symbol, v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular primitives on the variables given.
@@ -448,6 +452,68 @@ end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
   return hash(Hecke.simplify(M).o.wgt, u)
+end
+
+@doc Markdown.doc"""
+    isglobal(M::MonomialOrdering)
+
+Return `true` if the given ordering is global, i.e. if $1 < x$ for
+each variable $x$ in the ring `M.R` for which `M` is defined.
+"""
+function isglobal(M::MonomialOrdering)
+  fl = flat(M.o)
+  R = M.R
+  for o in fl
+    for i in o.vars
+      if isone(leading_monomial(gens(R)[i] + one(R), M))
+        return false
+      end
+    end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
+    islocal(M::MonomialOrdering)
+
+Return `true` if the given ordering is local, i.e. if $1 > x$ for
+each variable $x$ in the ring `M.R` for which `M` is defined.
+"""
+function islocal(M::MonomialOrdering)
+  fl = flat(M.o)
+  R = M.R
+  for o in fl
+    for i in o.vars
+      if !isone(leading_monomial(gens(R)[i] + one(R), M))
+        return false
+      end
+    end
+  end
+  return true
+end
+
+@doc Markdown.doc"""
+    ismixed(M::MonomialOrdering)
+
+Return `true` if the given ordering is mixed, i.e. if $1 < x_i$ for
+a variable $x_i$ and $1 > x_j$ for another variable $x_j$ in the ring `M.R`
+for which `M` is defined.
+"""
+ismixed(M::MonomialOrdering) = !isglobal(M) && !islocal(M)
+
+# Return two arrays of indices containing the variables which are > 1 and < 1
+# respectively.
+function _global_and_local_vars(M::MonomialOrdering)
+  globals = Int[]
+  locals = Int[]
+  for i in 1:ngens(M.R)
+    if isone(leading_monomial(gens(M.R)[i] + 1, M))
+      push!(locals, i)
+    else
+      push!(globals, i)
+    end
+  end
+  return globals, locals
 end
 
 ###################################################
@@ -907,6 +973,12 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
            return 1
          end
        end
+   elseif o.ord == :weight
+     if _isless_matrix(f, k, l, o.wgt)
+       return -1
+     elseif _isless_matrix(f, l, k, o.wgt)
+       return 1
+     end
    else
       dk = weighted_degree(f, k, o.vars, o.w)
       dl = weighted_degree(f, l, o.vars, o.w)

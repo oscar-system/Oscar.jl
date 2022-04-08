@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["The OSCAR Team <oscar@mathematik.uni-kl.de>"]
-version = "0.8.2-DEV"
+version = "0.8.3-DEV"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -19,6 +19,9 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 msolve_jll = "6d01cc9a-e8f6-580e-8c54-544227e08205"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
+TOPCOM_jll = "36f60fef-b880-50dc-9289-4aaecee93cc3"
 
 [compat]
 AbstractAlgebra = "0.25.0"
@@ -28,7 +31,8 @@ Hecke = "0.13.0"
 Nemo = "0.30.0"
 Polymake = "0.7.1"
 RandomExtensions = "0.4.3"
-Singular = "0.9.2"
+Singular = "0.10.1"
 julia = "1.6"
-msolve_jll = "0.1.7"
+msolve_jll = "0.2.3"
 Preferences = "1"
+JSON = "^0.20, ^0.21"

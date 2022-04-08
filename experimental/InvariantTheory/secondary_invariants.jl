@@ -308,7 +308,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   @assert !ismodular(RG)
   p_invars = primary_invariants(RG)
   I = ideal_of_primary_invariants(RG)
-  LI = leading_ideal(I)
+  LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
 
   fg = molien_series(RG)
   f = numerator(fg)
@@ -409,11 +409,11 @@ end
     secondary_invariants(IR::InvRing)
 
 Return a system of secondary invariants for `IR` as a `Vector` sorted by
-increasing degree. The result is cached, so calling this function again will be
-fast and give the same result.
+increasing degree. The result is cached, so calling this function again 
+with argument `IR` will be fast and give the same result.
 Note that the secondary invariants are defined with respect to the currently
 cached system of primary invariants for `IR` (if no system of primary invariants
-for `IR` is cached, compute and cache such a system first).
+for `IR` is cached, such a system is computed and cached first).
 
 The implemented algorithms are Algorithm 3.7.5 in [DK15](@cite) for the modular case and
 Algorithm 3.7.2 in [DK15](@cite) for the non-modular case.
@@ -453,8 +453,8 @@ invariants.
 
 Note that the secondary invariants and hence the irreducible secondary invariants
 are defined with respect to the currently cached system of primary invariants for
-`IR` (if no system of primary invariants for `IR` is cached, compute and cache
-such a system first).
+`IR` (if no system of primary invariants for `IR` is cached, such a system is 
+computed and cached first).
 
 # Examples
 ```jldoctest

@@ -1,6 +1,8 @@
 using Oscar
 using Test
 
+# Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
+const SLP = Oscar.StraightLinePrograms
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
@@ -21,6 +23,7 @@ include("Rings/integer-localizations.jl")
 include("Rings/nmod-localizations.jl")
 include("Rings/mpoly-nested-test.jl")
 include("Rings/MPolyQuo_test.jl")
+include("Rings/groebner-test.jl")
 include("Rings/msolve-test.jl")
 include("Rings/FractionalIdeal-test.jl")
 include("Rings/mpoly_affine_algebras_test.jl")
@@ -35,6 +38,8 @@ include("Rings/MPolyAnyMap/MPolyRing.jl")
 include("Rings/MPolyAnyMap/MPolyQuo.jl")
 include("Rings/MPolyAnyMap/AffineAlgebras.jl")
 
+include("Rings/FreeAssAlgIdeal-test.jl")
+
 if Oscar.is_dev
   include("Examples/GITFans-test.jl")
 end
@@ -46,6 +51,7 @@ include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
+include("Experimental/MPolyRingSparse-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")
@@ -56,3 +62,10 @@ include("ToricVarieties/runtests.jl")
 
 include("Schemes/AffineSchemes.jl")
 include("Schemes/SpecOpen.jl")
+include("Schemes/Glueing.jl")
+include("Schemes/ProjectiveSchemes.jl")
+
+include("TropicalGeometry/runtests.jl")
+include("Serialization/runtests.jl")
+
+include("StraightLinePrograms/runtests.jl")

@@ -3,7 +3,7 @@
 
 Return the common refinement of two polyhedral complexes. 
 
-# Example 
+# Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2,3]])
 1×3 IncidenceMatrix

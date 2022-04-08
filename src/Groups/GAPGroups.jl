@@ -1,6 +1,7 @@
 export GroupConjClass
 
 export
+    acting_group,
     comm,
     comm!,
     complement_system, hascomplement_system, setcomplement_system,
@@ -183,7 +184,7 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
-i. e., the smallest positive integer $e$ such that
+i.e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """
 @gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
@@ -230,7 +231,11 @@ relatively quickly converges to a uniform distribution.
 """
 rand_pseudo(G::GAPGroup) = group_element(G, GAP.Globals.PseudoRandom(G.X))
 
-function _maxgroup(x::T, y::T) where T <: GAPGroup
+function rand_pseudo(G::FPGroup; radius::Int)
+  return group_element(G, GAP.Globals.PseudoRandom(G.X, radius = radius))
+end
+
+function _common_parent_group(x::T, y::T) where T <: GAPGroup
    # A typical situation should be that the two groups are identical,
    # but GAP's `IsSubset` check is not as cheap as one wants;
    # there is an `IsSubset` method that checks for identity,
@@ -248,7 +253,7 @@ end
 
 #We need a lattice of groups to implement this properly
 function _prod(x::T, y::T) where T <: GAPGroupElem
-  G = _maxgroup(parent(x), parent(y))
+  G = _common_parent_group(parent(x), parent(y))
   return group_element(G, x.X*y.X)
 end
 
@@ -456,9 +461,19 @@ end
 
 Base.length(C::GroupConjClass) = fmpz(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default fmpz
 
+"""
+    representative(C::GroupConjClass)
+
+Return a representative of the conjugacy class `C`.
+"""
 representative(C::GroupConjClass) = C.repr
 
-@gapattribute number_conjugacy_classes(G::GAPGroup) = fmpz(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default fmpz
+"""
+    acting_group(C::GroupConjClass)
+
+Return the acting group of the conjugacy class `C`.
+"""
+acting_group(C::GroupConjClass) = C.X
 
 # START elements conjugation
 
@@ -482,9 +497,16 @@ end
 @deprecate elements(C::GroupConjClass) collect(C)
 
 """
+    number_conjugacy_classes(G::GAPGroup)
+
+Return the number of conjugacy classes of elements in `G`.
+"""
+@gapattribute number_conjugacy_classes(G::GAPGroup) = fmpz(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default fmpz
+
+"""
     conjugacy_classes(G::Group)
 
-Return the vector of all conjugacy classes of elements in G.
+Return the vector of all conjugacy classes of elements in `G`.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
@@ -492,13 +514,13 @@ function conjugacy_classes(G::GAPGroup)
    return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)::GapObj),cc) for cc in L]
 end
 
-Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
+Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), x.X ^ y.X)
 
 @doc Markdown.doc"""
     isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
+i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
 isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
 
@@ -627,7 +649,7 @@ end
     normalizer(G::Group, H::Group)
 
 Return `N, f`, where `N` is the normalizer of `H` in `G`,
-i. e., the largest subgroup of `G` in which `H` is normal,
+i.e., the largest subgroup of `G` in which `H` is normal,
 and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalizer(G.X,H.X))
@@ -885,7 +907,7 @@ Return whether `G` is a simple group, i.e.,
     isalmostsimple(G)
 
 Return whether `G` is an almost simple group,
-i. e., `G` is isomorphic to a group $H$ with the property
+i.e., `G` is isomorphic to a group $H$ with the property
 $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 """
 @gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
@@ -938,7 +960,7 @@ false
 @doc Markdown.doc"""
     relators(G::FPGroup)
 
-Return a vector of relators for the finitely presented group, i. e.,
+Return a vector of relators for the finitely presented group, i.e.,
 elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
 `G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
 """

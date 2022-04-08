@@ -146,14 +146,16 @@ end
         dim_test = dims[RR]
 
         if base_ring(R) isa AbstractAlgebra.Field
-          grp_elem = d_Elem
-          H = homogeneous_component(RR, grp_elem)
-          @test Oscar.hasrelshp(H[1], RR) !== nothing
-          for g in gens(H[1])
-            @test degree(H[2](g)) == grp_elem
-            @test (H[2].g)(RR(g)) == g
-          end
-          @test dim(H[1]) == dim_test # j
+	  if isfree(grading_group(RR))
+             grp_elem = d_Elem
+             H = homogeneous_component(RR, grp_elem)
+             @test Oscar.hasrelshp(H[1], RR) !== nothing
+             for g in gens(H[1])
+               @test degree(H[2](g)) == grp_elem
+               @test (H[2].g)(RR(g)) == g
+             end
+             @test dim(H[1]) == dim_test #
+	  end
         end
         #H_quo = homogeneous_component(R_quo, grp_elem)
         #Oscar.hasrelshp(H_quo[1], R_quo) !== nothing
@@ -197,6 +199,13 @@ end
   @test isisomorphic(D, abelian_group([0]))
 end
 
+@testset "Minimal generating set" begin
+  R, (x, y) = grade(PolynomialRing(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  I = ideal(R, [ x^2, y, x^2 + y ])
+  @test minimal_generating_set(I) == [ y, x^2 ]
+  @test minimal_generating_set(ideal(R, [ R() ])) == elem_type(R)[]
+end
+
 # Conversion bug
 
 begin
@@ -221,4 +230,12 @@ begin
   D = Dict(u => 1)
   @test haskey(D, u)
   @test !haskey(D, v)
+end
+
+begin
+  R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+  M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
+  t = h(zero(M))
+  @assert iszero(t)
+  @assert parent(t) == R
 end

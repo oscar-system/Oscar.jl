@@ -1,4 +1,3 @@
-const SLP = Oscar.StraightLinePrograms
 using Oscar: SLPolynomialRing
 
 replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)

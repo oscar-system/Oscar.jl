@@ -14,7 +14,7 @@ Pages = ["rings.md"]
 
 In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
 while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
-rings with gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
+rings with (multi)gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
 and their elements, we refer to the chapters on rings and fields. 
 
 ## Types
@@ -125,8 +125,13 @@ ZZ
 
 ## Gradings
 
-Given a polynomial ring $R = C[x_1, \dots, x_n]$ and a finitely generated abelian group $G$,
-a *(multi)grading* on $R$ by $G$, or a *$G$-grading*, corresponds to a semigroup homomorphism
+Given a polynomial ring $R = C[x_1, \dots, x_n]$, we may endow $R$ with various gradings.
+The *standard $\mathbb Z$-grading*  on $R$ is the decomposition
+$R=\bigoplus_{d\in \mathbb Z} R_d=\bigoplus_{d\geq 0} R_d$ by the usual degree of polynomials.
+More general $\mathbb Z$-gradings are obtained by assigning integer weights to the variables
+and considering the corresponding weighted degrees. Even more generally, we may consider
+multigradings: Given a finitely generated abelian group $G$, a *multigrading* on $R$ by $G$,
+or a *$G$-grading*, or simply a *grading*, corresponds to a semigroup homomorphism
 $\phi: \mathbb N^n \rightarrow G$: Given $\phi$, the *degree* of a monomial $x^\alpha$
 is the image $\deg(x^\alpha):=\phi(\alpha)\in G$; the induced $G$-grading on $R$
 is the decomposition $R = \bigoplus_{g\in G} R_g$ satisfying $R_g\cdot R_h\subset R_{g+h}$,
@@ -141,11 +146,12 @@ We refer to the textbooks [MS05](@cite) and [KR05](@cite) for details on multigr
 we follow the former book.
 
 !!! note
-    Given a $G$-grading on $R$, we say that $R$ is *$G$-graded*, or simply that $R$  is *graded*.
-    We say that $R$ is *positively graded (by $G$)* if $G$ is torsion-free and each graded part $R_g$
-	has finite rank. The latter condition is equivalent to the condition that the degree zero
-	part consists of the constants only (see Theorem 8.6 in [MS05](@cite).
-
+    Given a $G$-grading on $R$, we also say that $R$ is *$G$-graded*, or simply that $R$ is *graded*.
+    If $R$ is a polynomial ring over a field, we say that a $G$-grading on $R$ is *positive* if $G$ is torsion-free
+	and each graded part $R_g$, $g\in G$, has finite dimension. We then also say that say that $R$ is
+	*positively graded (by $G$)*. Note that the positivity condition can be equivalently expressed by
+	asking that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
+		
 
 ### Types
 
@@ -154,10 +160,21 @@ Multivariate rings with gradings are modelled by objects of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
 
+!!! note
+    The types `MPolyRing_dec{T, S}` and `MPolyRingElem_dec{T, S}` are
+    also meant to eventually model multivariate rings with filtrations
+	and their elements.
+
+
+The following function allows one to distinguish between graded and filtered rings:
+
+```@docs
+isgraded(R::MPolyRing_dec)
+```
 
 ### Constructors for Graded Rings
 
-There are two basic ways of creating graded polynomial rings:
+There are two basic ways of creating multivariate rings with gradings:
 While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
 the `GradedPolynomialRing` function is meant to create a graded polynomial ring all at once.
 
@@ -201,7 +218,7 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
 - `ngens(R)` to the number of these generators, and
-- `gen(R, i)` as well as `R[i]` to the `i`-th generator.
+- `gen(R, i)` as well as `R[i]` to the `i`-th such generator.
 
 ###### Examples
 
@@ -322,7 +339,22 @@ ishomogeneous(f::MPolyElem_dec)
 degree(f::MPolyElem_dec)
 ```
 
-## Homomorphisms of Multivariate Rings
+## Homomorphisms From Multivariate Rings
 
-How to handle homomorphisms of multivariate polynomial rings and their graded versions is described in
-a more general context in the section on affine algebras. 
+If $R$ is a multivariate polynomial ring, and $S$ is any ring, then a ring homomorphism
+$R \rightarrow S$ is determined by specifying its restriction to the coefficient ring of $R$,
+and by assigning an image to each variable of $R$.
+In OSCAR, such homomorphisms are created by using the following constructor:
+
+```@docs
+hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+```
+
+Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
+refer to `R` and `S`, respectively.
+
+!!! note
+    The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
+    the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
+    `U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+                                                       
