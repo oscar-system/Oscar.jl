@@ -441,12 +441,14 @@ end
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
-is not absolutely irreducible.
+is not absolutely irreducible or if the group is defined over a finite field
+of odd degree over the prime field.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
+   isodd(degree(base_ring(G))) && throw(ArgumentError("group is defined over a field of odd degree"))
    V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
    return preimage_matrix(G.ring_iso, B)
