@@ -14,12 +14,11 @@ for the Milnor algebra.
 
 The default argument for `point` is the origin.
 """
-function milnor(f::MPolyElem; point::Vector=[])
+function milnor(f::MPolyElem; point::Vector{T}=Vector{elem_type(base_ring(parent(f)))}()) where {T}
   iszero(f) && error("polynomial is zero")
   R = parent(f)
   kk = coefficient_ring(f)
-  # check whether we are working over a field of coefficients
-  typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
+  all((x->(parent(x) == kk)), point) || return milnor(f, point=kk.(point))
 
   # We can not provide a full default vector of zeroes in the 
   # signature of the function, because we would need a full 
@@ -61,18 +60,17 @@ end
     tjurina(f::MPolyElem; point::Vector=[])
 
 For an isolated hypersurface singularity `f` at a point `point`,
-compute the triple `(gb,\tau,g)` where `gb` is a standard basis for the
-Tjurina ideal. `\tau` is the Tjurina number, and `g` is a ``k``-base of the
+compute the triple `(gb,τ,g)` where `gb` is a standard basis for the
+Tjurina ideal. `τ` is the Tjurina number, and `g` is a ``k``-base of the
 Tjurina algebra.
 
 The default argument for `point` is the origin.
 """
-function tjurina(f::MPolyElem; point::Vector=[])
+function tjurina(f::MPolyElem; point::Vector{T}=Vector{elem_type(base_ring(parent(f)))}()) where {T}
   iszero(f) && error("input polynomial is zero")
   R = parent(f)
   kk = coefficient_ring(f)
-  # make sure that kk is a field
-  typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
+  all((x->(parent(x) == kk)), point) || return tjurina(f, point=kk.(point))
 
   # Set sanity check on point or creation of vector of point, if default point 
   k_point = kk.(point)
@@ -109,12 +107,10 @@ end
 Computes the global Milnor number of the affine hypersurface 
 defined by `f` with at most isolated singularities.
 """
-function global_milnor_number(f::MPolyElem)
+function global_milnor_number(f::MPolyElem{T}) where {T<:FieldElem}
   iszero(f) && error("polynomial is zero")
   R = parent(f)
   kk = coefficient_ring(f)
-  # check whether we are working over a field of coefficients
-  typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
 
   # set up Singular-ring, because we need it later on
   RS=Oscar.singular_ring(R)
@@ -138,12 +134,10 @@ end
 Computes the global Tjurina number of the affine hypersurface
 defined by `f` with at most isolated singularities
 """
-function global_tjurina_number(f::MPolyElem)
+function global_tjurina_number(f::MPolyElem{T}) where {T<:FieldElem}
   iszero(f) && error("polynomial is zero")
   R = parent(f)
   kk = coefficient_ring(f)
-  # check whether we are working over a field of coefficients
-  typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
 
   # set up Singular-ring, because we need it later on
   RS=Oscar.singular_ring(R)
@@ -168,7 +162,7 @@ For an isolated complete intersection singularity given by
 the regular sequence ``f₁,…,fₖ`` compute the Milnor number 
 at `point` by means of the Le-Greuel-formula.
 """
-function milnor(f::Vector{T}; point::Vector=[]) where {T<:MPolyElem}
+function milnor(f::Vector{T}; point::Vector{E}=Vector{elem_type(base_ring(parent(f[1])))}()) where {T<:MPolyElem, E}
   length(f) == 0 && error("not an ICIS")
   R = parent(f[1])
   k = length(f)
@@ -178,8 +172,7 @@ function milnor(f::Vector{T}; point::Vector=[]) where {T<:MPolyElem}
   n = ngens(R)
 
   kk = coefficient_ring(R)
-  # check whether we are working of a field of coefficients
-  typeof(kk)<:AbstractAlgebra.Field || error("coefficient domain is not a field")
+  all((x->(parent(x) == kk)), point) || return milnor(f, point=kk.(point))
 
   # We can not provide a full default vector of zeroes in the 
   # signature of the function, because we would need a full 
@@ -194,7 +187,7 @@ function milnor(f::Vector{T}; point::Vector=[]) where {T<:MPolyElem}
     k_point = elem_type(kk)[zero(kk) for i in 1:ngens(R)]
   end
 
-  rem_f = f
+  rem_f = copy(f)
   summands = Int[]
   W = Localization(MPolyComplementOfKPointIdeal(R, k_point))
   sign = 1
