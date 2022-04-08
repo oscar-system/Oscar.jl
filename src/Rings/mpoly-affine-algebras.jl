@@ -638,10 +638,13 @@ end
 
 Given an affine algebra `A` over a perfect field,
 return `true` if `A` is normal, `false` otherwise.
-This function may be more efficient than computing the full normalization of `A`.
+
+!!! note This function performs the first step of the normalization algorithm
+of Greuel, Laplagne, and Seelisch [GLS10](@cite) and may, thus, be more
+efficient than computing the full normalization of `A`.
 """
 function isnormal(A::MPolyQuo)
-  if !(base_ring(A.R) isa AbstractAlgebra.Field)
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
   end
   if A.R isa MPolyRing_dec

@@ -39,6 +39,9 @@
 
   @test !isnormal(quo(R, ideal(R, [x^2 - y^3]))[1])
   @test isnormal(quo(R, ideal(R, [x - y^3]))[1])
+
+  R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+  @test_throws ArgumentError isnormal(quo(R, ideal(R, [x - y^3]))[1])
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin
