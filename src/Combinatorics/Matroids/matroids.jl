@@ -14,10 +14,12 @@ export
 ##  Constructing
 ################################################################################
 ElementType = Union{IntegerUnion,Char,String}
+GroundsetType = Union{AbstractVector, AbstractSet} 
+
 
 struct Matroid
     pm_matroid::Polymake.BigObject
-    groundset::Vector{ElementType} # groundset of the matroid 
+    groundset::GroundsetType # groundset of the matroid 
     gs2num::Dict{Any, IntegerUnion}# dictionary to map the groundset to the integers from 1 to its size
 end
 
@@ -29,14 +31,19 @@ function Base.show(io::IO, M::Matroid)
     print(io, "Matroid of rank $(r) on $(n) elements")
 end
 
+# function that generates the dictionary which maps the groundset to integers
+function create_gs2num(E::GroundsetType)
+    gs2num = Dict{Any,IntegerUnion}()
+    [gs2num[i] = i for i in 1:length(E)]
+    return gs2num
+end
+
 """
 Matroid(M)
 Construct a `matroid` from a ``polymake matroid M`` on the default ground set `{1,...,n}`.
 """
-function Matroid(pm_matroid::Polymake.BigObjectAllocated)
-    gs2num = Dict{Any,IntegerUnion}()
-    [gs2num[i] = i for i in 1:pm_matroid.N_ELEMENTS]
-    return Matroid(pm_matroid, 1:pm_matroid.N_ELEMENTS, gs2num)
+function Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vector{Integer}(1:pm_matroid.N_ELEMENTS))
+    return Matroid(pm_matroid, E, create_gs2num(E))
 end
 
 """
@@ -83,18 +90,13 @@ julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion; check::Bool=true) = matroid_from_bases(bases,Vector(1:nelements);check=check)
+matroid_from_bases(bases::AbstractVector{T}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_bases(bases,Vector(1:nelements);check=check)
 
-function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}}, groundset::AbstractVector; check::Bool=true)
+function matroid_from_bases(bases::AbstractVector{T}, groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in groundset
-        gs2num[elem] = i
-        i+=1
-    end
+    gs2num = create_gs2num(groundset)
     pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
     M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
@@ -135,20 +137,12 @@ function matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector},
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in groundset
-        gs2num[elem] = i
-        i+=1
-    end
+    gs2num = create_gs2num(groundset)
     if length(nonbases)==0
         error("The collection of nonbases should not be empty.")
     end
-
-    rk = length(nonbases[1])
-    Bases = filter(set -> set ∉ nonbases, Oscar.Hecke.subsets(Vector(1:length(groundset)),rk))
-    pm_bases = [[gs2num[i]-1 for i in B] for B in Bases]
-    M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
+    pm_non_bases = [[gs2num[i]-1 for i in B] for B in nonbases]
+    M = Polymake.matroid.Matroid(NON_BASES=pm_non_bases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
         error("Input is not a collection of nonbases")
     end
@@ -193,12 +187,7 @@ function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector},
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in groundset
-        gs2num[elem] = i
-        i+=1
-    end
+    gs2num = create_gs2num(groundset)
     pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
     M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=length(groundset))
     #TODO check_circuit_exchange_axiom (requires an update of polymake)
@@ -239,12 +228,7 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVe
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in groundset
-        gs2num[elem] = i
-        i+=1
-    end
+    gs2num = create_gs2num(groundset)
     pm_hyperplanes = [[gs2num[i]-1 for i in H] for H in hyperplanes]
     M = Polymake.matroid.Matroid(MATROID_HYPERPLANES=pm_hyperplanes,N_ELEMENTS=length(groundset))
     #TODO implement a check if these are actually the hyperplanes of a matroid
@@ -607,7 +591,7 @@ julia> N = principal_extension(M,[1,2],5)
 Matroid of rank 3 on 5 elements
 ```
 """
-function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::ElementType)
+function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
     if elem in M.groundset
         error("The element you are about to add is already contained in the ground set")
     end
