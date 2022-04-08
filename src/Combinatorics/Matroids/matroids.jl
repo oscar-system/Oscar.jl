@@ -72,7 +72,7 @@ Construct a `matroid` with bases `B` on the ground set `E` (which can be the emp
 The set `B` is a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
 
-See Section 1.2 of Oxl11 (@cite).
+See Section 1.2 of [Oxl11](@cite).
 
 # Examples
 To construct a rank two matroid with five bases on four elements you can write:
@@ -119,7 +119,7 @@ The set `N` can't be empty in this function.
 The described complement of `N` needs to be a non-empty collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`.
 
-See Section 1.2 of Oxl11 (@cite).
+See Section 1.2 of [Oxl11](@cite).
 
 # Examples
 To construct the Fano matroid you may write:
@@ -161,7 +161,7 @@ A matroid with circuits `C` on the ground set `E` (which can be the empty set).
 The set `C` is a collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
 
-See Section 1.1 of Oxl11 (@cite).
+See Section 1.1 of [Oxl11](@cite).
 
 # Examples
 To construct a rank two matroid with five bases on four elements by its circuits you may write:
@@ -210,7 +210,7 @@ A hyperplane is a flat of rank `r-1`.
 The set `H` is a collection of subsets of the ground set `E` satisfying an exchange property,
 and the default value for `E` is the set `{1,..n}` for a non-negative value `n`. 
 
-See Section 1.4 of Oxl11 (@cite).
+See Section 1.4 of [Oxl11](@cite).
 
 # Examples
 To construct the Fano matroid you may write:
@@ -240,7 +240,7 @@ end
 
 A matroid represented by the column vectors of a matrix `A`.
 
-See Section 1.1 of Oxl11 (@cite).
+See Section 1.1 of [Oxl11](@cite).
 
 # Examples
 To construct the vector matroid (a.k.a linear matroid) of the matrix `A` over the field with two elements write:
@@ -275,7 +275,7 @@ end
 
 A matroid represented by the row vectors of a matrix.
 
-See Section 1.1 of Oxl11 (@cite).
+See Section 1.1 of [Oxl11](@cite).
 
 # Examples
 To construct the linear matroid of the rows of the matrix `A` over the field with two elements write:
@@ -293,7 +293,7 @@ matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matri
 
 The cycle matroid of a graph `g`.
 
-See Section 1.1 of Oxl11 (@cite).
+See Section 1.1 of [Oxl11](@cite).
 
 # Examples
 To construct the cycle matroid of the complete graph of 4 vertices write:
@@ -317,7 +317,7 @@ end
 
 The `bond matroid` or `cocylce matroid` of a graph `g` which is the dual of a cycle matroid, e.g, cographic.
 
-See Section 2.3 of Oxl11 (@cite).
+See Section 2.3 of [Oxl11](@cite).
 
 # Examples
 To construct the bond or cocycle matroid of the complete graph of 4 vertices write:
@@ -350,7 +350,7 @@ cocycle_matroid(g::Oscar.Graphs.Graph) = bond_matroid(g::Oscar.Graphs.Graph)
 
 The `dual matroid` of a given matroid `M`.
 
-See page 65 and Sectrion 2 in Oxl11 (@cite).
+See page 65 and Sectrion 2 in [Oxl11](@cite).
 
 # Examples
 To construct the dual of the fano matroid write:
@@ -387,7 +387,7 @@ matroid_groundset(M::Matroid) = M.groundset
 The `direct sum` of the matroids `M` and `N`.
 Optionally one can also pass a vector of matroids.
 
-See Section 4.2 of Oxl11 (@cite).
+See Section 4.2 of [Oxl11](@cite).
 
 To obtain the direct sum of the fano and a uniform matroid type:
 # Example
@@ -430,7 +430,7 @@ direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
 
 The `deletion M\S` of an element `e` or a subset `S` of the ground set `E` of the matroid `M`.
 
-See Section 3 of Oxl11 (@cite).
+See Section 3 of [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -482,7 +482,7 @@ deletion(M::Matroid,elem::ElementType) = deletion(M,Vector([elem]))
 
 The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
 
-See Section 3 of Oxl11 (@cite).
+See Section 3 of [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -512,7 +512,7 @@ end
 
 The `contraction M/S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
 
-See Section 3 of Oxl11 (@cite).
+See Section 3 of [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -547,7 +547,7 @@ contraction(M::Matroid,elem::ElementType) = contraction(M,Vector([elem]))
 
 The 'minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
 
-See also ``contraction`` and ``deletion``. You can find more in Section 3 of Oxl11 (@cite).
+See also ``contraction`` and ``deletion``. You can find more in Section 3 of [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -573,7 +573,7 @@ end
 
 The `principal extension M +_F e` of a matroid `M` where the element `e` is freely added to the flat `F`.
 
-See Section 7.2 of Oxl11 (@cite).
+See Section 7.2 of [Oxl11](@cite).
 
 # Example
 To add `4` freely to the flat `{1,2}` of the uniform matroid U_{3,4} do
@@ -597,7 +597,7 @@ end
     free_extension(M::Matroid, e::ElementType)
 The `free extension M +_E e` of a matroid `M` where the element `e`.
 
-See ``principal_extension`` and Section 7.2 of Oxl11 (@cite).
+See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
 
 # Example
 To add `4` freely to the uniform matroid U_{3,4} do
@@ -615,7 +615,7 @@ free_extension(M::Matroid, elem::ElementType) = principal_extension(M, M.grounds
 
 The `series extension` of a matroid `M` where the element `e` is added in series to `f`.
 
-This is actually a coextension see also Section 7.2 of Oxl11 (@cite).
+This is actually a coextension see also Section 7.2 of [Oxl11](@cite).
 
 # Example
 To add `e` in series to `1` in the uniform matroid U_{3,4} do
@@ -641,7 +641,7 @@ end
 
 The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is added parallel to `f`.
 
-See Section 7.2 of Oxl11 (@cite).
+See Section 7.2 of [Oxl11](@cite).
 
 # Example
 To add `e` parallel to `1` in the uniform matroid U_{3,4} do
@@ -727,7 +727,7 @@ end
 The projective plane of order `q`.
 Note that this only works for prime numbers `q` for now.
 
-See Section 6.1 of Oxl11 (@cite).
+See Section 6.1 of [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -750,7 +750,7 @@ end
 The projective geometry of order `q` and rank `r`.
 Note that this only works for prime numbers `q` for now.
 
-See Section 6.1 of Oxl11 (@cite).
+See Section 6.1 of [Oxl11](@cite).
 Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
 
 # Example
@@ -787,7 +787,7 @@ end
 The affine geometry of order `q` and rank `r`.
 Note that this only works for prime numbers `q` for now.
 
-See Section 6.1 of Oxl11 (@cite).
+See Section 6.1 of [Oxl11](@cite).
 Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
 
 # Example
