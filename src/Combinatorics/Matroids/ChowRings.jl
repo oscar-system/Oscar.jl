@@ -1,7 +1,7 @@
 export chow_ring, augmented_chow_ring, select
 
 @doc Markdown.doc"""
-    chow_ring(M::Matroid; extended=false)
+    chow_ring(M::Matroid, ring::MPolyRing=nothing; extended=false)
 
 Return the Chow ring of a matroid, optional also with the simplicial generators.
 
@@ -31,6 +31,19 @@ x_{1,2,3} + h_{1,2,3} - h_{1,2,3,4,5,6,7}
 julia> f==0
 true
 ```
+
+# Examples
+The following computes the chow ring of the Fano matroid including variables for the simplicial generators.
+```jldoctest
+julia> M = uniform_matroid(3,3);
+
+julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f","g","h"]);
+
+julia> R = chow_ring(M, GR);
+
+julia> f = 
+
+```
 """
 function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended::Bool=false)
         is_loopless(M) || error("Matroid has loops")
@@ -39,20 +52,25 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         number_flats >= 2 || error("matroid has to few flats")
         proper_flats = Flats[2:number_flats-1]
 
-	if(ring==nothing)
+	if ring==nothing
 		var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
         	if extended
                 	var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] #add the variables for the simplicial generators
         	end
 		ring, vars = PolynomialRing(QQ, var_names, cached=false)
 	else
-		ring.vars != length(proper_flats) || error("the ring has the wrong number of variables")
-		vars = [ring[i] for i in 1:ring.nvars]
+		if typeof(ring)<:MPolyRing_dec
+			tR = ring.R
+		else
+			tR = ring
+		end
+		tR.nvars != length(proper_flats) || error("the ring has the wrong number of variables")
+		vars = [ring[i] for i in 1:tR.nvars]
 	end
 
 	I = linear_relations(ring, proper_flats, vars, M)
         J = quadratic_relations(ring, proper_flats, vars)
-        Ex = []
+	Ex = elem_type(ring)[]
         if extended
                 Ex = relations_extended_ring(ring, proper_flats, vars)
         end
@@ -79,6 +97,7 @@ function linear_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Ve
 end
 
 function quadratic_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector)
+	println(typeof(vars[1]))
         relations = elem_type(ring)[]
         for i in 1:length(proper_flats)
                 F = proper_flats[i]
@@ -117,12 +136,9 @@ end
 @doc Markdown.doc"""
     augmented_chow_ring(M::Matroid)
 
-Return an augmented Chow ring of a matroid. As described in the paper
-"A semi-small decomposition of the Chow ring of a matroid" by 
-Tom Braden, June Huh, et. al.
+Return an augmented Chow ring of a matroid. As described in BHM+ (@cite). 
 
 # Examples
-The following computes the augmented chow ring of the Fano matroid.
 ```jldoctest
 julia> M = fano_matroid();
 
@@ -134,21 +150,17 @@ function augmented_chow_ring(M::Matroid)
         sizeFlats = length(Flats)
         n = size_groundset(M)
 
-        if(!is_loopless(M))
-                throw("Matroid has loops")
-        end
-        if(sizeFlats<2)
-                throw("Matroid has too few flats")
-        end
-        proper_flats = Flats[1:sizeFlats-1]
+        is_loopless(M) || error("Matroid has loops")
+        sizeFlats>3 || error("Matroid has too few flats")
 
+        proper_flats = Flats[1:sizeFlats-1]
         element_var_names = [string("y_", S) for S in M.groundset]
         flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
         flat_var_names[1] = "x_{}" # Override "x_Any{}"
         var_names = vcat(element_var_names, flat_var_names)
         s = length(var_names)
 
-        ring, vars = GradedPolynomialRing(QQ, var_names)
+        ring, vars = PolynomialRing(QQ, var_names)
         element_vars = vars[1:n]
         flat_vars = vars[n+1:s]
 
@@ -161,10 +173,9 @@ function augmented_chow_ring(M::Matroid)
         return chow_ring
 end
 
-function augmented_linear_relations(ring, proper_flats, element_vars, flat_vars, M)
+function augmented_linear_relations(ring::MPolyRing, proper_flats::GroundsetType, element_vars::Vector, flat_vars::Vector, M::Matroid)
         n = size_groundset(M)
-
-        relations = Array{MPolyElem_dec{fmpq, fmpq_mpoly}}(undef, n)
+        relations = elem_type(ring)[]
         i = 1
         for element in M.groundset
                 relations[i] = element_vars[i]
@@ -180,9 +191,9 @@ function augmented_linear_relations(ring, proper_flats, element_vars, flat_vars,
         return relations
 end
 
-function augmented_quadratic_relations(ring, proper_flats, element_vars, flat_vars, M)
+function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector, element_vars::Vector, flat_vars::Vector, M::Matroid)
         incomparable_polynomials = quadratic_relations(ring, proper_flats, flat_vars)
-        xy_polynomials = Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}()
+        xy_polynomials = elem_type(ring)[]
 
         i = 1
         for element in M.groundset
@@ -203,9 +214,6 @@ end
 A helper function to select indicies of a vector that do `include` elments of a given set and `exclude` anothers
 """
 function select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
-        all = []
-        for e in set
-                all = union(all,e)
-        end
+        all = union(all...)
         return findall(s->issubset(include,s)&&issubset(s,setdiff(all,exclude)),set);
 end
