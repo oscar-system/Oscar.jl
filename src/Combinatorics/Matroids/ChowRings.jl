@@ -41,7 +41,8 @@ julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f","g","h"]);
 
 julia> R = chow_ring(M, GR);
 
-julia> f = 
+julia> hilbert_series_reduced(R)
+(t^2 + 4*t + 1, t^2 - 2*t + 1) 
 
 ```
 """
