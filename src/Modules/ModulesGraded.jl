@@ -417,9 +417,9 @@ end
 # FreeModuleHom_dec constructors
 ###############################################################################
 
-FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, a::Vector) where {T} = FreeModuleHom_dec{T}(F, G, a)
+#FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, a::Vector) where {T} = FreeModuleHom_dec{T}(F, G, a)
 
-FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
+#FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
 
 function forget_decoration_on_morphism(f::FreeModuleHom_dec)
   return f.f
@@ -437,8 +437,16 @@ end
 
 (h::FreeModuleHom_dec)(a::FreeModElem_dec) = image(h, a)
 
-hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
-hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
+function hom(F::FreeMod_dec, G::ModuleFP_dec, V::Vector{<:FreeModElem_dec}) 
+  base_ring(F) === base_ring(G) || return FreeModuleHom_dec(F, G, V, base_ring(G))
+  return FreeModuleHom_dec(F, G, V) 
+end
+function hom(F::FreeMod_dec, G::ModuleFP_dec{T}, A::MatElem{T}) where T 
+  base_ring(F) === base_ring(G) || return FreeModuleHom_dec(F, V, A, base_ring(G))
+  return FreeModuleHom_dec(F, G, A)
+end
+hom(F::FreeMod_dec, G::ModuleFP_dec, V::Vector{<:FreeModElem_dec}, h::RingMapType) where {RingMapType} = FreeModuleHom_dec(F, G, V, h) 
+hom(F::FreeMod_dec, G::ModuleFP_dec{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = FreeModuleHom_dec(F, G, A, h)
 
 
 function hom(F::FreeMod_dec, G::FreeMod_dec)

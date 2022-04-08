@@ -566,7 +566,7 @@ const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will b
 
 
 @doc Markdown.doc"""
-    FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+    FreeModuleHom{T1, T2, RingMapType} <: ModuleMap{T1, T2} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
 `T1` and `T2` are the types of domain and codomain respectively.
@@ -574,17 +574,21 @@ Data structure for morphisms where the domain is a free module (`FreeMod`).
 When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 (in case there exists one) (via `inv()`) are cached.
 """
-@attributes mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+@attributes mutable struct FreeModuleHom{
+    T1 <: AbstractFreeMod,
+    T2 <: ModuleFP,
+    RingMapType <: Any} <: ModuleMap{T1, T2} 
   matrix::MatElem
   header::MapHeader
+  ring_map::RingMapType
   inverse_isomorphism::ModuleMap
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
-  function FreeModuleHom{T,S}(F::AbstractFreeMod{T}, G::S, a::Vector) where {T, S}
+  function FreeModuleHom(F::AbstractFreeMod, G::S, a::Vector) where {S}
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
-    r = new{typeof(F), typeof(G)}()
+    r = new{typeof(F), typeof(G), Nothing}()
     function im_func(x::AbstractFreeModElem)
       b = zero(G)
       for (i,v) = x.coords
@@ -602,7 +606,25 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     return r
   end
 
-  function FreeModuleHom{T,S}(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
+  function FreeModuleHom(F::AbstractFreeMod, G::T2, a::Vector, h::RingMapType) where {T2, RingMapType}
+    @assert all(x->parent(x) === G, a)
+    @assert length(a) == ngens(F)
+    @assert h(one(base_ring(F))) == one(base_ring(G))
+    r = new{typeof(F), T2, RingMapType}()
+    function im_func(x::AbstractFreeModElem)
+      b = zero(G)
+      for (i,v) = x.coords
+        b += h(v)*a[i]
+      end
+      return b
+    end
+    r.header = MapHeader{typeof(T1), T2}(F, G, im_func)
+    r.ring_map = h
+
+    return r
+  end
+
+  function FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
     @assert nrows(mat) == ngens(F)
     @assert ncols(mat) == ngens(G)
     if typeof(G) <: AbstractFreeMod
@@ -613,22 +635,50 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     hom.matrix = mat
     return hom
   end
+
+  function FreeModuleHom(F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType) where {S,RingMapType}
+    @assert nrows(mat) == ngens(F)
+    @assert ncols(mat) == ngens(G)
+    @assert base_ring(mat) === base_ring(G)
+    if typeof(G) <: AbstractFreeMod
+      hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+    else
+      hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+    end
+    hom.matrix = mat
+    return hom
+  end
 end
 
-struct FreeModuleHom_dec{T1, T2} <: ModuleMap{T1, T2}
-  f::FreeModuleHom{T1,T2}
+struct FreeModuleHom_dec{
+    T1 <: AbstractFreeMod,
+    T2 <: ModuleFP,
+    RingMapType <: Any} <: ModuleMap{T1, T2}
+  f::FreeModuleHom{T1,T2, RingMapType}
   header::MapHeader
   # TODO degree and homogeneity
 
-  function FreeModuleHom_dec{T}(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
+  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
     f = FreeModuleHom(F,G,a)
-    r = new{typeof(F), typeof(G)}(f, f.header)
+    r = new{typeof(F), typeof(G), Nothing}(f, f.header)
     return r
   end
 
-  function FreeModuleHom_dec{T}(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, mat::MatElem{T}) where {T}
+  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, mat::MatElem{T}) where {T}
     f = FreeModuleHom(F,G,mat)
-    r = new{typeof(F), typeof(G)}(f, f.header)
+    r = new{typeof(F), typeof(G), Nothing}(f, f.header)
+    return r
+  end
+
+  function FreeModuleHom_dec(F::FreeMod_dec, G::ModuleFP_dec, a::Vector, h::RingMapType) where {RingMapType}
+    f = FreeModuleHom(F,G,a,h)
+    r = new{typeof(F), typeof(G), RingMapType}(f, f.header)
+    return r
+  end
+
+  function FreeModuleHom_dec(F::FreeMod_dec, G::ModuleFP_dec{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+    f = FreeModuleHom(F,G,mat,h)
+    r = new{typeof(F), typeof(G), RingMapType}(f, f.header)
     return r
   end
 end
