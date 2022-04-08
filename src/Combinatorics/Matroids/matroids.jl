@@ -34,7 +34,7 @@ end
 # function that generates the dictionary which maps the groundset to integers
 function create_gs2num(E::GroundsetType)
     gs2num = Dict{Any,IntegerUnion}()
-    [gs2num[i] = i for i in 1:length(E)]
+    [gs2num[E[i]] = i for i in 1:length(E)]
     return gs2num
 end
 
@@ -131,9 +131,9 @@ Matroid of rank 3 on 7 elements
 
 ```
 """
-matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion; check::Bool=true) = matroid_from_nonbases(nonbases,Vector(1:nelements); check)
+matroid_from_nonbases(nonbases::AbstractVector{T}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_nonbases(nonbases,Vector(1:nelements); check)
 
-function matroid_from_nonbases(nonbases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
+function matroid_from_nonbases(nonbases::AbstractVector{T},groundset::AbstractVector; check::Bool=true) where T<:GroundsetType
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
@@ -181,9 +181,9 @@ julia> M = matroid_from_circuits(C,[1,2,'i','j'])
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_circuits(circuits,Vector(1:nelements))
+matroid_from_circuits(circuits::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_circuits(circuits,Vector(1:nelements))
 
-function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
+function matroid_from_circuits(circuits::AbstractVector{T},groundset::AbstractVector; check::Bool=true) where T<:GroundsetType
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
@@ -222,9 +222,9 @@ Matroid of rank 3 on 7 elements
 
 ```
 """
-matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVector{<:IntegerUnion}}, AbstractVector{<:AbstractSet{<:IntegerUnion}}}, nelements::IntegerUnion) = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
+matroid_from_hyperplanes(hyperplanes::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
 
-function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector; check::Bool=true)
+function matroid_from_hyperplanes(hyperplanes::AbstractVector{T},groundset::AbstractVector; check::Bool=true) where T<:GroundsetType
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
@@ -308,12 +308,7 @@ function cycle_matroid(g::Oscar.Graphs.Graph)
     pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
     M = Polymake.matroid.matroid_from_graph(pm_Graph)
     n = Oscar.Graphs.ne(g)
-    gs2num = Dict{Any,IntegerUnion}()
-    i = 1
-    for elem in 1:n
-        gs2num[elem] = i
-        i+=1
-    end
+    gs2num = create_gs2num(Vector{Int}(1:n))
     return Matroid(M,1:n,gs2num)
 end
 
@@ -375,7 +370,7 @@ To obtain the ground set of the fano matroid type:
 # Example
 ```jldoctest
 julia> matroid_groundset(fano_matroid())
-7-element Vector{Union{Char, Integer, String, fmpz}}:
+7-element Vector{Int64}:
  1
  2
  3
@@ -418,12 +413,7 @@ function direct_sum(M::Matroid, N::Matroid)
             gsN[i] = string(gsN[i],'\'')
         end
     end
-    new_gs2num = Dict{Any,IntegerUnion}()
-    i = length(M.groundset)+1
-    for elem in gsN
-        new_gs2num[elem] = i
-        i+=1
-    end
+    new_gs2num = create_gs2num(gsN)
     gs2num = merge(M.gs2num,new_gs2num)
     return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],gs2num)
 end
@@ -435,7 +425,7 @@ direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
 
 # Arguments
 - `M::Matroid`: A matroid `M`.
-- `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
+- `S::GroundsetType`: A subset `S` of the ground set of `M`.
 - `e::ElementType`: An element `e` of the ground set of `M`.
 
 The `deletion M\S` of an element `e` or a subset `S` of the ground set `E` of the matroid `M`.
@@ -458,12 +448,15 @@ julia> N = deletion(M,['i','j'])
 Matroid of rank 2 on 2 elements
 
 julia> matroid_groundset(N)
-2-element Vector{Union{Char, Integer, String, fmpz}}:
+2-element Vector{Any}:
  1
  2
 ```
 """
-function deletion(M::Matroid,set::Union{AbstractVector, Set})
+function deletion(M::Matroid,set::GroundsetType)
+    if length(set) == 0
+        return M
+    end
     sort_set = Vector(undef,length(M.groundset)-length(set))
     gs2num = Dict{Any,IntegerUnion}()
     i = 1
@@ -485,7 +478,7 @@ deletion(M::Matroid,elem::ElementType) = deletion(M,Vector([elem]))
 
 # Arguments
 - `M::Matroid`: A matroid `M`.
-- `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
+- `S::GroundSetType`: A subset `S` of the ground set of `M`.
 
 The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
 
@@ -499,13 +492,13 @@ julia> N = restriction(M,[1,2])
 Matroid of rank 2 on 2 elements
 
 julia> matroid_groundset(N)
-2-element Vector{Union{Char, Integer, String, fmpz}}:
+2-element Vector{Any}:
  1
  2
 ```
 """
-function restriction(M::Matroid, set::Union{AbstractVector, Set})
-    deleted_elems = filter(x -> x ∉ set, M.groundset)
+function restriction(M::Matroid, set::GroundsetType)
+    deleted_elems = filter(x -> !(x in set, M.groundset))
     return deletion(M, deleted_elems)
 end
 
@@ -514,7 +507,7 @@ end
 
 # Arguments
 - `M::Matroid`: A matroid `M`.
-- `S::Union{AbstractVector,Set}`: A subset `S` of the ground set of `M`.
+- `S::GroundSetType`: A subset `S` of the ground set of `M`.
 - `e::ElementType`: An element `e` of the ground set of `M`.
 
 The `contraction M/S` of an element or a subset `S` of the ground set `E` of the matroid `M`.
@@ -537,12 +530,12 @@ julia> N = contraction(M,['i','j'])
 Matroid of rank 1 on 2 elements
 
 julia> matroid_groundset(N)
-2-element Vector{Union{Char, Integer, String, fmpz}}:
+2-element Vector{Any}:
  1
  2
 ```
 """
-function contraction(M::Matroid,set::Union{AbstractVector, Set})
+function contraction(M::Matroid,set::GroundsetType)
     # We use that the contraction by set is the dual of the deletion of set in the dual matroid. 
     return dual_matroid(deletion(dual_matroid(M), set))
 end
@@ -550,7 +543,7 @@ end
 contraction(M::Matroid,elem::ElementType) = contraction(M,Vector([elem]))
 
 @doc Markdown.doc"""
-    minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{AbstractVector, Set})
+    minor(M::Matroid, set_del::GroundsetType, set_cont::GroundsetType)
 
 The 'minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
 
@@ -568,7 +561,7 @@ julia>  N = minor(M,S,T)
 Matroid of rank 2 on 3 elements
 ```
 """
-function minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{AbstractVector, Set})
+function minor(M::Matroid, set_del::GroundsetType, set_cont::GroundsetType)
     if any(in(set_del), set_cont)
         error("The two sets are not disjoined, which is required")
     end
@@ -576,7 +569,7 @@ function minor(M::Matroid, set_del::Union{AbstractVector, Set}, set_cont::Union{
 end
 
 @doc Markdown.doc"""
-    principal_extension(M::Matroid, F::Union{AbstractVector,Set}, e::ElementType)
+    principal_extension(M::Matroid, F::GroundsetType, e::ElementType)
 
 The `principal extension M +_F e` of a matroid `M` where the element `e` is freely added to the flat `F`.
 
