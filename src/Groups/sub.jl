@@ -382,7 +382,7 @@ function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
 end
 
 """
-    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup)
+    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, GrpAbFinGen}
 
 Return `F, epi` such that `F` is the largest abelian factor group of `G`
 and `epi` is an epimorphism from `G` to `F`.
@@ -425,7 +425,7 @@ function maximal_abelian_quotient(G::GAPGroup)
   return F, GAPGroupHomomorphism(G, F, map)
 end
 
-function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: GAPGroup
+function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, GrpAbFinGen}
   F, epi = maximal_abelian_quotient(G)
   if !(F isa Q)
     map = isomorphism(Q, F)
