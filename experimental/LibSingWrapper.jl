@@ -207,3 +207,38 @@ function milnor(f::Vector{T}; point::Vector{E}=Vector{elem_type(base_ring(parent
   end
   return sum(summands)
 end
+
+#function tjurina(f::Vector{T}; 
+#    point::Vector{E}=[zero(base_ring(parent(f[1]))) for i in 1:ngens(base_ring(parent(f[1])))]
+#  ) where {T<:MPolyElem, E}
+#  length(f) == 0 && error("not an ICIS")
+#  R = parent(f[1])
+#  k = length(f)
+#  all((x-> (parent(f[x]) == R)), 2:k) || error("elements do not have the same parent")
+#  n = ngens(R)
+#
+#  kk = coefficient_ring(R)
+#  all((x->(parent(x) == kk)), point) || return milnor(f, point=kk.(point))
+#
+#  W = Localization(MPolyComplementOfKPointIdeal(R, k_point))
+##  I = ideal(R, f)
+#  IW = W(I)
+#  # N = SubQuo(F, IF)
+#  N = Hom(IW, SubQuo(W, W, IW))
+#  F = ambient_free_module(N)
+#  Df = jacobi_matrix(f)
+#  Tj = N//SubQuo(F, Df)
+#  std_Tj = std(Tj) # Compute a relative standard basis; 
+#                   # adapted from standard basis in localized rings 
+#                   # from Greuel-Pfister, Def. 2.3.2.
+#  kbase(Tj)
+#end
+#
+#function kbase(Q::MPolyQuoLocalizedRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyElem, MST}) where {MST<:Union{MPolyComplementOfKPointIdeal}}
+#  # Sei Q = S/I, S = R[U⁻¹], R ein Polynomring, U das 
+#  # Komplement von einem K-Punkt.
+#  # Sei L(I) das Leitideal vom modulus von Q in R
+#  # Schaue, ob der Quotient R/L(I) endlich ist und 
+#  # gebe das Komplement von L(I) in der Menge der 
+#  # Monome von R zurueck. 
+#end
