@@ -61,7 +61,7 @@ function chow_ring(M::Matroid; extended::Bool=false)
 end
 
 function linear_relations(ring, proper_flats, vars, M)
-        alpha = 0
+        alpha = zero(R)
         relations = []
         for i in M.groundset
                 poly = ring(0)
