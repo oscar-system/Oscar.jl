@@ -959,6 +959,38 @@ function reduced_characteristic_polynomial(M::Matroid)
     return R(c)
 end
 
+# This function compares two sets A and B in reverse lexicographic order.
+# It assumes that both sets are of the same length and ordered.
+# It returns true if A is less than B in this order
+function revlex_order(A::AbstractVector{Int64}, B::AbstractVector{Int64})
+    @assert length(A) == length(B)
+    r = length(A)
+    if A[end] < B[end]
+        return true
+    elseif A[end] < B[end]
+        return false
+    elseif r > 1
+        return revlex_order(view(A,1:(r-1)),view(B,1:(r-1)))
+    else
+        return false
+    end
+end
+
+#This functions computes the matrix of characteristic vectors of all r element subsets of [n] in revlex order.
+function revlex_bases_matrix(r::Int64,n::Int64)
+    all_bases = Oscar.Hecke.subsets(Vector(1:n),r)
+    sort!(all_bases, lt=revlex_order)
+    M = zeros(Int64,length(all_bases),n)
+    for i in 1:length(all_bases)
+        for j in 1:r
+            M[i,all_bases[i][j]] = 1
+        end
+    end
+    # Add columns of ones for polymake
+    M = hcat(ones(Int64,length(all_bases)),M)
+    return M
+end
+
 @doc Markdown.doc"""
 Computes the ``revlex basis encoding`` and the ``minimal revlex basis encoding`` among isomorphic matroids 
 
