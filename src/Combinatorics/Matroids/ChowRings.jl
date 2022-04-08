@@ -117,6 +117,8 @@ function relations_extended_ring(ring, proper_flats, vars)
 end
 
 @doc Markdown.doc"""
+    augmented_chow_ring(M::Matroid)
+
 Return an augmented Chow ring of a matroid. As described in the paper
 "A semi-small decomposition of the Chow ring of a matroid" by 
 Tom Braden, June Huh, et. al.
