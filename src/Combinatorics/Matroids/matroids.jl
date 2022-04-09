@@ -498,7 +498,7 @@ julia> matroid_groundset(N)
 ```
 """
 function restriction(M::Matroid, set::GroundsetType)
-    deleted_elems = filter(x -> !(x in set, M.groundset))
+    deleted_elems = filter(x -> !(x in set), M.groundset)
     return deletion(M, deleted_elems)
 end
 

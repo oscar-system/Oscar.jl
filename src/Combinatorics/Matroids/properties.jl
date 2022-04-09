@@ -12,7 +12,7 @@ export
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
     tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
-    revlex_basis_encoding
+    revlex_basis_encoding, isomorphic_matroids
 
 ################################################################################
 ##  Properties and basic functions
@@ -77,13 +77,14 @@ Return the list of nonbases of the matroid `M`.
 ```jldoctest
 julia> nonbases(fano_matroid())
 7-element Vector{Vector{Int64}}:
+ [1, 2, 3]
+ [1, 4, 5]
  [1, 6, 7]
+ [2, 4, 6]
  [2, 5, 7]
  [3, 4, 7]
  [3, 5, 6]
- [2, 4, 6]
- [1, 4, 5]
- [1, 2, 3]
+ 
 ```
 """
 nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_BASES] 
@@ -139,7 +140,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> flats(M)
-16-element Vector{Vector}:
+16-element Vector{Vector{T} where T}:
  Any[]
  [1]
  [2]
@@ -158,7 +159,7 @@ julia> flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> flats(M, 2)
-7-element Vector{Vector}:
+7-element Vector{Vector{T} where T}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -190,7 +191,7 @@ end
 
 Return the list of cyclic flats of the matroid `M`.
 These are the flats that are the union of cycles.
-See Section 2.1 in Oxl11 (@cite).
+See Section 2.1 in [Oxl11](@cite).
 
 By default all cylic flats are returned.
 One may specify a rank `r` as the second parameter.
@@ -202,7 +203,7 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> cyclic_flats(M)
-9-element Vector{Vector}:
+9-element Vector{Vector{T} where T}:
  Any[]
  [1, 2, 3]
  [1, 4, 5]
@@ -214,7 +215,7 @@ julia> cyclic_flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> cyclic_flats(M, 2)
-7-element Vector{Vector}:
+7-element Vector{Vector{T} where T}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -320,7 +321,7 @@ nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank( M.p
     fundamental_circuit(M::matroid, basis::Vector, elem::ElementType)
 
 Return the unique circuit contained in the union of `basis` and `elem` of the matroid `M`.
-See Section 1.2 of Oxl11 (@cite).
+See Section 1.2 of [Oxl11](@cite).
 Note that `elem` needs to be in the complement of the `basis` in this case.
 
 
@@ -359,7 +360,7 @@ end
     fundamental_cocircuit(M::matroid, cobasis::Vector, elem::ElementType)
 
 Return the unique circuit of the dual matroid of `M` in the union of the complement of `basis` and `elem`.
-See Section 2.1 of Oxl11 (@cite).
+See Section 2.1 of [Oxl11](@cite).
 Note that `elem` needs to be an element of the `basis` in this case.
 
 
@@ -440,7 +441,7 @@ end
     cobases(M::matroid)
 
 Return the bases of the dual matroid of `M`.
-See Section 2 in Oxl11 (@cite).
+See Section 2 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -457,7 +458,7 @@ cobases(M::Matroid) = bases(dual_matroid(M))
     cocircuits(M::matroid)
 
 Return the circuits of the dual matroid of `M`.
-See Section 2 in Oxl11 (@cite).
+See Section 2 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -476,7 +477,7 @@ cocircuits(M::Matroid) = circuits(dual_matroid(M))
     cohyperplanes(M::matroid)
 
 Return the hyperplanes of the dual matroid of `M`.
-See Section 2 in Oxl11 (@cite).
+See Section 2 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -518,7 +519,7 @@ corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, set) + rank(M, setd
 
 Checks if the collection of subsets `sets` is a clutter.
 A collection of subsets is a clutter if none of the sets is a proper subset of another.
-See Section 2.1 in Oxl11 (@cite).
+See Section 2.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -544,7 +545,7 @@ end
     is_regular(M::Matroid)
 
 Checks if the matroid `M` is regular, that is representable over every field.
-See Section 6.6 in Oxl11 (@cite).
+See Section 6.6 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -561,7 +562,7 @@ is_regular(M::Matroid) = M.pm_matroid.REGULAR
     is_binary(M::Matroid)
 
 Checks if the matroid `M` is binary, that is representable over the finite field F2.
-See Section 6.5 in Oxl11 (@cite).
+See Section 6.5 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -578,7 +579,7 @@ is_binary(M::Matroid) = M.pm_matroid.BINARY
     is_ternary(M::Matroid)
 
 Checks if the matroid `M` is ternary, that is representable over the finite field F3.
-See Section 4.1 in Oxl11 (@cite).
+See Section 4.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -595,7 +596,7 @@ is_ternary(M::Matroid) = M.pm_matroid.TERNARY
     n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
-See Section 4.1 in Oxl11 (@cite).
+See Section 4.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -612,7 +613,7 @@ n_connected_components(M::Matroid) = length(M.pm_matroid.CONNECTED_COMPONENTS)
     connected_components(M::Matroid)
 
 Return the connected components of `M`. The function returns a partition of the ground set where each part corresponds to one connected component. 
-See Section 4.1 in Oxl11 (@cite).
+See Section 4.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -633,7 +634,7 @@ connected_components(M::Matroid) = [[M.groundset[i+1] for i in comp] for comp in
     is_connected(M::Matroid)
 
 Check if the matroid `M` is connected, that is has one connected component
-See Section 4.1 in Oxl11 (@cite).
+See Section 4.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -738,7 +739,7 @@ is_simple(M::Matroid) = M.pm_matroid.SIMPLE
     direct_sum_components(M::Matroid)
 
 Return the connected components of `M` as a list of matroids.
-See Section 4.1 in Oxl11 (@cite).
+See Section 4.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -765,7 +766,7 @@ end
     connectivity_function(M::Matroid, set::Vector)
 
 Return the value of the connectivity function of `set` in the matroid `M`.
-See Section 8.1 in Oxl11 (@cite).
+See Section 8.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -782,7 +783,7 @@ end
     is_vertical_k_separation(M::Matroid, k::Int, set::Vector)
 
 Check if `set` together with its complement defines a `k` separation in `M`
-See Section 8.6 in Oxl11 (@cite).
+See Section 8.6 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -799,7 +800,7 @@ end
     is_k_separation(M::Matroid, k::Int, set::Vector)
 
 Check if `set` together with its complement defines a `k` separation in `M`
-See Section 8.1 in Oxl11 (@cite).
+See Section 8.1 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -817,7 +818,7 @@ end
 
 If 'M' has two disjoint cocircuits, its vertical connectivity is defined to be least positive integer k such that `M` has a vertical k separation.
 Otherwise its vertical connectivity is defined to be the rank of `M`.
-See Section 8.6 in Oxl11 (@cite).
+See Section 8.6 in [Oxl11](@cite).
 # Example
 ```jldoctest
 julia> vertical_connectivity(fano_matroid())
@@ -848,7 +849,7 @@ end
 
 Return the girth of `set` in the matroid `M`.
 This is the size of the smalles circuit contained in `set` and infintie otherwise.
-See Section 8.6 in Oxl11 (@cite).
+See Section 8.6 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -863,7 +864,7 @@ girth(M::Matroid, set::GroundsetType=M.groundset) = minimum([inf; [issubset(C,se
     tutte_connectivity(M::Matroid)
 
 The Tutte connectivity of `M` is the least integer k such that `M` has a k separation. It can be infinte if no k separation exists.
-See Section 8.6 in Oxl11 (@cite).
+See Section 8.6 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -895,7 +896,7 @@ end
     tutte_polynomial(M::Matroid)
 
 Return the Tutte polynomial of `M`. This is polynomial in the variables x and y with integral coefficients.
-See Section 15.3 in Oxl11 (@cite).
+See Section 15.3 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -916,7 +917,7 @@ end
 
 Return the characteristic polynomial of `M`. This is polynomial in the variable q with integral coefficients.
 It is computed as an evaluation of the Tutte polynmomial.
-See Section 15.2 in Oxl11 (@cite).
+See Section 15.2 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -935,7 +936,7 @@ charpoly(M::Matroid) = characteristic_polynomial(M)
     reduced_characteristic_polynomial(M::Matroid)
 
 Return the reduced characteristic polynomial of `M`. This is the quotient of the characteristic polynomial by (q-1).
-See Section 15.2 in Oxl11 (@cite).
+See Section 15.2 in [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -994,7 +995,7 @@ Computes the ``revlex basis encoding`` and the ``minimal revlex basis encoding``
 To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
 ```jldoctest
 julia> string1, string2 = revlex_basis_encoding(fano_matroid())
-("0******0******0***0******0*0**0****", "000****0**0**0***0*****************")
+("0******0******0***0******0*0**0****", "0******0******0***0******0*0**0****")
 
 julia> matroid_from_revlex_basis_encoding(string2, 3, 7)
 Matroid of rank 3 on 7 elements
