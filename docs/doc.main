@@ -156,7 +156,8 @@
         "AlgebraicGeometry/AffineSchemes.md",
      ],
      "Tropical Geometry" => [
-         "TropicalGeometry/intro.md",
+        "TropicalGeometry/intro.md",
+        "TropicalGeometry/curve.md",
      ]
   ],
 

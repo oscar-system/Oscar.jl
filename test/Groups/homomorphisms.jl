@@ -121,6 +121,41 @@ end
       end
    end
 
+   @testset "Finite GrpAbFinGen to GAPGroup" begin
+      @testset for Agens in [[2, 4, 8], [2, 3, 4], [ 2, 12 ],
+                             [1, 6], matrix(ZZ, 2, 2, [2, 3, 2, 6])]
+         A = abelian_group(Agens)
+         for T in [FPGroup, PcGroup, PermGroup]
+            iso = isomorphism(T, A)
+            for x in gens(A)
+               for y in gens(A)
+                  z = x+y
+                  @test iso(x) * iso(y) == iso(z)
+                  @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+               end
+            end
+         end
+      end
+   end
+
+   @testset "Group types as constructors" begin
+      G = symmetric_group(4)
+      for T in [FPGroup, PcGroup, PermGroup]
+        H = T(G)
+        @test H isa T
+        @test isisomorphic(G, H)[1]
+      end
+
+      G = cyclic_group(5)
+      T = GrpAbFinGen
+      H = T(G)
+      @test H isa T
+      @test order(H) == order(G)
+      K = PermGroup(H)
+      @test K isa PermGroup
+      @test order(K) == order(H)
+   end
+
    @testset "Abelian_as_permutation" for n in 15:20
       G = symmetric_group(n)
       for j in 2:n-2
@@ -135,31 +170,45 @@ end
 
    @testset "Change type" begin
        S = symmetric_group(4)
-       (S1,f)=isomorphic_perm_group(S)
-       @test S1==S
-       (G,f)=isomorphic_pc_group(S)
+       f = isomorphism(PermGroup, S)
+       @test codomain(f) == S
+
+       f = isomorphism(PcGroup, S)
+       G = codomain(f)
        @test G isa PcGroup
-       @test domain(f)==S
-       @test codomain(f)==G
+       @test domain(f) == S
        @test isinjective(f)
        @test issurjective(f)
 
-       (S,g)=isomorphic_pc_group(G)
-       @test S isa PcGroup
-       @test domain(g)==G
-       @test codomain(g)==S
-       @test isinjective(g)
-       @test issurjective(g)
+       f = isomorphism(PcGroup, G)
+       @test codomain(f) isa PcGroup
+       @test domain(f) == G
+       @test isinjective(f)
+       @test issurjective(f)
 
-       (F,g)=isomorphic_fp_group(G)
-       @test F isa FPGroup
-       @test domain(g)==G
-       @test codomain(g)==F
-       @test isinjective(g)
-       @test issurjective(g)
+       f = isomorphism(FPGroup, G)
+       @test codomain(f) isa FPGroup
+       @test domain(f) == G
+       @test isinjective(f)
+       @test issurjective(f)
 
-       @test_throws ArgumentError isomorphic_pc_group(symmetric_group(5))   
-   end   
+       G = abelian_group(PermGroup, [2, 2])
+       f = isomorphism(GrpAbFinGen, G)
+       @test codomain(f) isa GrpAbFinGen
+       @test domain(f) == G
+     # @test isinjective(f)
+     # @test issurjective(f)
+
+       @test_throws ArgumentError isomorphism(GrpAbFinGen, symmetric_group(5))
+       @test_throws ArgumentError isomorphism(PcGroup, symmetric_group(5))
+       @test_throws ArgumentError isomorphism(PermGroup, free_group(1))
+
+       G = symmetric_group(4)
+       @test PermGroup(G) isa PermGroup
+       @test PcGroup(G) isa PcGroup
+       @test FPGroup(G) isa FPGroup
+       @test_throws ArgumentError GrpAbFinGen(G)
+   end
 end
 
 TestDirectProds=function(G1,G2)
@@ -346,7 +395,7 @@ end
 @testset "Composition of mappings" begin
    g = symmetric_group(4)
    q, epi = quo(g, pcore(g, 2)[1])
-   F, iso = isomorphic_perm_group(q)
+   iso = isomorphism(PermGroup, q)
    comp = compose(epi, iso)
    @test domain(comp) == domain(epi)
    @test codomain(comp) == codomain(iso)

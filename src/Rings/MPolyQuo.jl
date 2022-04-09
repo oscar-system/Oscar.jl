@@ -33,6 +33,7 @@ ngens(Q::MPolyQuo) = ngens(Q.R)
 gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
 Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
+coefficient_ring(W::MPolyQuo) = coefficient_ring(base_ring(W))
 modulus(W::MPolyQuo) = W.I
 
 default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
@@ -1215,7 +1216,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
 
   @assert isgraded(Q)
   
-  if !(base_ring(base_ring(Q)) isa AbstractAlgebra.Field)
+  if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
   end
   

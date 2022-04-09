@@ -376,10 +376,10 @@ julia> multi_hilbert_series(A)
 function multi_hilbert_series(A::MPolyQuo)
    R = A.R
    I = A.I
-   if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
    end
-   if !(typeof(R) <: MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
        throw(ArgumentError("The base ring must be positively graded."))
    end
    if !(is_zm_graded(R))
@@ -567,8 +567,8 @@ julia> multi_hilbert_function(A, 7*g)
 """
 function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
     R = A.R
-    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of must be a field."))
     end
     LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
@@ -720,14 +720,8 @@ julia> subalgebra_membership(f, V)
 """
 function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
    r = parent(f)
-   if r isa MPolyRing
-      if !(base_ring(r) isa AbstractAlgebra.Field)
-          throw(ArgumentError("The coefficient ring must be a field."))
-      end
-   else
-      if !(base_ring(r.R) isa AbstractAlgebra.Field)
-         throw(ArgumentError("The coefficient ring of the base ring must be a field."))
-      end
+   if !(coefficient_ring(r) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
    end
    @assert !isempty(v)
    @assert all(x->parent(x) == r, v)
@@ -789,23 +783,17 @@ julia> minimal_subalgebra_generators(V)
 function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
   p = parent(V[1])
   @assert all(x->parent(x) == p, V)
-  if p isa MPolyRing
-       if !(base_ring(p) isa AbstractAlgebra.Field)
-          throw(ArgumentError("The coefficient ring must be a field."))
-      end
-      p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
-      all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
-      # iterate over the generators, starting with those in lowest degree, then work up
-      W = sort(V, by = x -> degree(x)[1])
-  else
-      if !(base_ring(p.R) isa AbstractAlgebra.Field)
-         throw(ArgumentError("The coefficient ring of the base ring must be a field."))
-      end
-      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
-      all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
-      # iterate over the generators, starting with those in lowest degree, then work up
-      W = sort(V, by = x -> degree(x.f)[1])
+  if !(coefficient_ring(p) isa AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
   end
+  if p isa MPolyRing
+      p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
+  else
+      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
+  end
+  all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+  # iterate over the generators, starting with those in lowest degree, then work up
+  W = sort(V, by = x -> degree(x)[1])
   result = [ W[1] ]
   for elm in W
     if !subalgebra_membership(elm, result)[1]
@@ -913,10 +901,10 @@ julia> LL[1][3]
 ```
 """
 function normalization(A::MPolyQuo; alg=:equidimDec)
-  if !(typeof(base_ring(A.R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
   end
-  if typeof(A.R) <: MPolyRing_dec
+  if A.R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
@@ -980,10 +968,10 @@ Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Fi
 ```
 """
 function normalization_with_delta(A::MPolyQuo; alg=:equidimDec)
-  if !(typeof(base_ring(A.R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
   end
-  if typeof(A.R) <: MPolyRing_dec
+  if A.R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
@@ -1014,10 +1002,10 @@ $l_i$ to the the last $d$ variables of $R$; and $G = F^{-1}$.
 
 """
 function noether_normalization(A::MPolyQuo)
- if !(typeof(base_ring(A.R)) <: AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+ if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
  end
- if typeof(A.R) <: MPolyRing_dec && !(is_standard_graded(A.R))
+ if A.R isa MPolyRing_dec && !(is_standard_graded(A.R))
    throw(ArgumentError("If the base ring is decorated, it must be standard graded."))
  end
  I = A.I
@@ -1079,11 +1067,11 @@ julia> integral_basis(f, 2)
 function integral_basis(f::MPolyElem, i::Int)
   R = parent(f)
 
-  if typeof(R) <: MPolyRing_dec
+  if R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for decorated rings."))
   end
   
-  if !(nvars(R) == 2)
+  if nvars(R) != 2
     throw(ArgumentError("The parent ring must be a polynomial ring in two variables."))
   end
 

@@ -324,7 +324,8 @@ end
 function quo(::Type{Q}, G::T, elements::Vector{S}) where {Q <: GAPGroup, T <: GAPGroup, S <: GAPGroupElem}
   F, epi = quo(G, elements)
   if !(F isa Q)
-    F, map = isomorphic_group(Q, F)
+    map = isomorphism(Q, F)
+    F = codomain(map)
     epi = compose(epi, map)
   end
   return F, epi
@@ -373,7 +374,8 @@ end
 function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
   F, epi = quo(G, N)
   if !(F isa Q)
-    F, map = isomorphic_group(Q, F)
+    map = isomorphism(Q, F)
+    F = codomain(map)
     epi = compose(epi, map)
   end
   return F, epi
@@ -426,7 +428,8 @@ end
 function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: GAPGroup
   F, epi = maximal_abelian_quotient(G)
   if !(F isa Q)
-    F, map = isomorphic_group(Q, F)
+    map = isomorphism(Q, F)
+    F = codomain(map)
     epi = compose(epi, map)
   end
   return F, epi
@@ -500,22 +503,3 @@ function intersect(V::AbstractVector{T}) where T<:GAPGroup
    return Arr
 end
 #T why duplicate this code?
-
-
-################################################################################
-#
-#  Conversions between types
-#
-################################################################################
-
-_get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
-_get_iso_function(::Type{FPGroup}) = GAP.Globals.IsomorphismFpGroup
-_get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
-
-function isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
-  f = _get_iso_function(T)
-  mp = f(G.X)::GapObj
-  G1 = T(GAP.Globals.ImagesSource(mp)::GapObj)
-  fmap = GAPGroupHomomorphism(G, G1, mp)
-  return G1, fmap
-end
