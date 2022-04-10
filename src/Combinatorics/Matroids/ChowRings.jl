@@ -58,7 +58,7 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         	end
 		ring, vars = PolynomialRing(QQ, var_names, cached=false)
 	else
-		if typeof(ring)<:MPolyRing_dec
+		if ring isa MPolyRing_dec
 			tR = ring.R
 		else
 			tR = ring
