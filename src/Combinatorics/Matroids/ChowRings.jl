@@ -19,7 +19,7 @@ julia> R[1]*R[8]
 ```
 
 # Examples
-The following computes the chow ring of the Fano matroid including variables for the simplicial generators.
+The following computes the Chow ring of the Fano matroid including variables for the simplicial generators.
 ```jldoctest
 julia> M = fano_matroid();
 
