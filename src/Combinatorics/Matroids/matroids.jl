@@ -88,11 +88,14 @@ julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_bases(bases::AbstractVector{T}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_bases(bases,Vector(1:nelements);check=check)
+matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_bases(bases,Vector(1:nelements);check=check)
 
-function matroid_from_bases(bases::AbstractVector{T}, groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
+function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
+    end
+    if check && !all([e in groundset for S in bases for e in S])
+        error("The bases contain elements that are not in the groundset")
     end
     gs2num = create_gs2num(groundset)
     pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
