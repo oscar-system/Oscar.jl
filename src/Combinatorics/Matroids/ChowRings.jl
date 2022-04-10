@@ -32,7 +32,6 @@ julia> f==0
 true
 ```
 
-# Examples
 The following computes the chow ring of the Fano matroid including variables for the simplicial generators.
 ```jldoctest
 julia> M = uniform_matroid(3,3);
