@@ -8,7 +8,7 @@ Return the Chow ring of a matroid, optional also with the simplicial generators.
 See [AHK18](@cite) and [BES21](@cite). 
 
 # Examples
-The following computes the chow ring of the Fano matroid.
+The following computes the Chow ring of the Fano matroid.
 ```jldoctest
 julia> M = fano_matroid();
 
