@@ -304,7 +304,7 @@ end
     nullity(M::matroid, set::Vector)
 
 Return the nullity of `set` in the matroid `M`.
-This is defined to be |set| - rk(set).
+This is defined to be `|set| - rk(set)`.
 
 # Example
 ```jldoctest
@@ -561,7 +561,7 @@ is_regular(M::Matroid) = M.pm_matroid.REGULAR
 @doc Markdown.doc"""
     is_binary(M::Matroid)
 
-Checks if the matroid `M` is binary, that is representable over the finite field F2.
+Checks if the matroid `M` is binary, that is representable over the finite field `F_2`.
 See Section 6.5 in [Oxl11](@cite).
 
 # Example
@@ -578,7 +578,7 @@ is_binary(M::Matroid) = M.pm_matroid.BINARY
 @doc Markdown.doc"""
     is_ternary(M::Matroid)
 
-Checks if the matroid `M` is ternary, that is representable over the finite field F3.
+Checks if the matroid `M` is ternary, that is representable over the finite field `F_3`.
 See Section 4.1 in [Oxl11](@cite).
 
 # Example
@@ -989,7 +989,7 @@ end
 
 @doc Markdown.doc"""
     revlex_basis_encoding(M::Matroid)
-Computes the ``revlex basis encoding`` and the ``minimal revlex basis encoding`` among isomorphic matroids 
+Computes the revlex basis encoding and the minimal revlex basis encoding among isomorphic matroids 
 
 # Examples
 To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
@@ -1018,7 +1018,7 @@ end
 
 @doc Markdown.doc"""
     isisomorphic(M1::Matroid, M2::Matroid)
-Checks if the matroids M1 and M2 are isomorphic under the action of the symmetric group that acts on their groundset.
+Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
 
 # Example
 To compare two matrods write:

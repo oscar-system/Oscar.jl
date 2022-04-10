@@ -38,17 +38,25 @@ function create_gs2num(E::GroundsetType)
     return gs2num
 end
 
-"""
-Matroid(M)
-Construct a `matroid` from a ``polymake matroid M`` on the default ground set `{1,...,n}`.
+@doc Markdown.doc"""
+    Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType)
+
+Construct a `matroid` from a `polymake` matroid `M` on the default ground set `{1,...,n}`.
 """
 function Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vector{Integer}(1:pm_matroid.N_ELEMENTS))
     return Matroid(pm_matroid, E, create_gs2num(E))
 end
 
-"""
-matroid_from_revlex_encoding(M, r, n)
-Construct a `matroid` from a ``polymake matroid M`` of rank `r` on the default ground set `{1,...,n}`.
+@doc Markdown.doc"""
+    matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
+
+Construct a `matroid` from a revlex-basis-encoding-string `rvlx` of rank `r` and size `n`.
+
+# Examples
+```jldoctest
+julia> matroid_from_revlex_basis_encoding("0******0******0***0******0*0**0****", 3, 7)
+Matroid of rank 3 on 7 elements
+```
 """
 function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
     if match(r"[^*0]",rvlx)!=nothing
@@ -340,7 +348,7 @@ Matroid of rank 3 on 6 elements
 bond_matroid(g::Oscar.Graphs.Graph) = dual_matroid(cycle_matroid(g))
 
 @doc Markdown.doc"""
-See bond_matroid
+See bond_matroid.
 """
 cocycle_matroid(g::Oscar.Graphs.Graph) = bond_matroid(g::Oscar.Graphs.Graph)
 
@@ -353,7 +361,7 @@ The `dual matroid` of a given matroid `M`.
 See page 65 and Sectrion 2 in [Oxl11](@cite).
 
 # Examples
-To construct the dual of the fano matroid write:
+To construct the dual of the Fano matroid write:
 ```jldoctest
 julia> M = dual_matroid(fano_matroid())
 Matroid of rank 4 on 7 elements
@@ -366,7 +374,7 @@ dual_matroid(M::Matroid) = Matroid(M.pm_matroid.DUAL,M.groundset,M.gs2num)
 
 The ground set `E` of a matroid `M`.
 
-To obtain the ground set of the fano matroid type:
+To obtain the ground set of the Fano matroid write:
 # Example
 ```jldoctest
 julia> matroid_groundset(fano_matroid())
@@ -389,7 +397,7 @@ Optionally one can also pass a vector of matroids.
 
 See Section 4.2 of [Oxl11](@cite).
 
-To obtain the direct sum of the fano and a uniform matroid type:
+To obtain the direct sum of the Fano and a uniform matroid type:
 # Example
 ```jldoctest
 julia> direct_sum(fano_matroid(), uniform_matroid(2,4))
@@ -545,9 +553,9 @@ contraction(M::Matroid,elem::ElementType) = contraction(M,Vector([elem]))
 @doc Markdown.doc"""
     minor(M::Matroid, set_del::GroundsetType, set_cont::GroundsetType)
 
-The 'minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
+The `minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the matroid `M`.
 
-See also ``contraction`` and ``deletion``. You can find more in Section 3 of [Oxl11](@cite).
+See also `contraction` and `deletion`. You can find more in Section 3 of [Oxl11](@cite).
 
 # Example
 ```jldoctest
@@ -576,7 +584,7 @@ The `principal extension M +_F e` of a matroid `M` where the element `e` is free
 See Section 7.2 of [Oxl11](@cite).
 
 # Example
-To add `4` freely to the flat `{1,2}` of the uniform matroid U_{3,4} do
+To add `4` freely to the flat `{1,2}` of the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
 
@@ -600,7 +608,7 @@ The `free extension M +_E e` of a matroid `M` where the element `e`.
 See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
 
 # Example
-To add `4` freely to the uniform matroid U_{3,4} do
+To add `4` freely to the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
 
@@ -644,7 +652,7 @@ The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is add
 See Section 7.2 of [Oxl11](@cite).
 
 # Example
-To add `e` parallel to `1` in the uniform matroid U_{3,4} do
+To add `e` parallel to `1` in the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
 
@@ -675,14 +683,14 @@ uniform_matroid(r::IntegerUnion,n::IntegerUnion) = Matroid(Polymake.matroid.unif
 """
     fano_matroid()
 
-Construct the fano_matroid.
+Construct the Fano matroid.
 """
 fano_matroid() = matroid_from_matrix_rows(matrix(GF(2),[[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]))
 
 """
     non_fano_matroid()
 
-Construct the non-fano matroid.
+Construct the non-Fano matroid.
 """
 non_fano_matroid() = matroid_from_matrix_rows(matrix(QQ,[[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]]))
 
@@ -696,7 +704,7 @@ non_pappus_matroid() = Matroid(Polymake.matroid.non_pappus_matroid())
 """
     pappus_matroid()
 
-Construct the non-Pappus matroid.
+Construct the Pappus matroid.
 """
 pappus_matroid() = Matroid(Polymake.matroid.pappus_matroid())
 
@@ -710,7 +718,7 @@ vamos_matroid() = Matroid(Polymake.matroid.vamos_matroid())
 """
     all_subsets_matroid(r)
 
-Construct the all-subsets-matroid of rank r, a.k.a. the matroid underlying the resonance arrangement.
+Construct the all-subsets-matroid of rank `r`, a.k.a. the matroid underlying the resonance arrangement or rank `r`.
 """
 function all_subsets_matroid(r::Int)
     M = []
