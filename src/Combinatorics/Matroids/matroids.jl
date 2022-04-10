@@ -111,7 +111,7 @@ function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, grou
 
     gs2num = create_gs2num(groundset)
     if length(bases)==1 && length(first(bases))==0
-        M = Polymake.matroid.Matroid(BASES=Polymake.Array{Polymake.Set{Int}}(1),N_ELEMENTS=length(groundset))
+        M = Polymake.matroid.Matroid(BASES=Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int)}}(1),N_ELEMENTS=length(groundset))
     else
         pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
         M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
