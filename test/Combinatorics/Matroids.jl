@@ -1,6 +1,7 @@
 @testset "Matroids" begin
     @testset "standard examples" begin
         for (M, values) in ((uniform_matroid(3,5), [3, 5, 10]),
+			    (uniform_matroid(0,2), [0, 2, 1]),
 			    (fano_matroid(), [3,7,28]),
 			    (non_fano_matroid(), [3,7,29]),
 			    (pappus_matroid(), [3,9,75]),
@@ -36,13 +37,20 @@
 	@test rank(mb4) == 2
 	@test length(matroid_groundset(mb4)) == 4
 	@test length(bases(mb4)) == 5
-	@test rank(mb1,['i','j']) == 1
+	@test rank(mb4,['i','j']) == 1
 
-	#TODO matroid with empty groundset, and  matroids with rank 0 
-	
-	@test_throws ERROR matroid_from_bases([[1,2],[3]], 3)
-	@test_throws ERROR matroid_from_bases([[1,2],[1,3],[1,4],[3,4]], 4)
-	@test_throws ERROR matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 3)
+	mb5 = matroid_from_bases(Set{Set{Int}}([Set()]),1)
+	@test mb5 isa Matroid
+	@test length(bases(mb5)) == 1
+
+	mb6 = matroid_from_bases(Set{Set{Int}}([Set()]),0)
+	@test mb6 isa Matroid
+	@test length(bases(mb6)) == 1
+
+	@test_throws ErrorException matroid_from_bases(Set{Set{Int}}([]),1)
+	@test_throws ErrorException matroid_from_bases([[1,2],[3]], 3)
+	@test_throws ErrorException matroid_from_bases([[1,2],[1,3],[1,4],[3,4]], 4)
+	@test_throws ErrorException matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 3)
 
 	#TODO matroids from nonbases
 
