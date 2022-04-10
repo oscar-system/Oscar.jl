@@ -82,8 +82,6 @@ julia> B = [[1,2],[1,3],[1,4],[2,3],[2,4]];
 julia> M = matroid_from_bases(B,4)
 Matroid of rank 2 on 4 elements
 ```
-
-# Examples
 To construct the same matroid on the four elements 1,2,i,j you may write:
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j'])
@@ -172,7 +170,6 @@ julia> M = matroid_from_circuits(C,4)
 Matroid of rank 2 on 4 elements
 ```
 
-# Examples
 To construct the same matroid on the ground set `{1,2,i,j}` you may write:
 ```jldoctest
 julia> C = [[1,2,'j'],[1,2,'i'],['i','j']];
