@@ -1,7 +1,7 @@
 export chow_ring, augmented_chow_ring, select
 
 @doc Markdown.doc"""
-    chow_ring(M::Matroid, ring::MPolyRing=nothing; extended=false)
+    chow_ring(M::Matroid, ring::MPolyRing=nothing; extended::Bool=false)
 
 Return the Chow ring of a matroid, optional also with the simplicial generators.
 
