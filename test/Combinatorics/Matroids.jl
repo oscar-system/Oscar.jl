@@ -4,7 +4,7 @@
 			    (fano_matroid(), [3,7,28]),
 			    (non_fano_matroid(), [3,7,29]),
 			    (pappus_matroid(), [3,9,75]),
-			    (non_pappus_matroid(), [3,9,76])
+			    (non_pappus_matroid(), [3,9,76]),
 			    (vamos_matroid(), [4,8,65]))
 	    @test M isa Matroid
 	    @test rank(M) == values[1]
