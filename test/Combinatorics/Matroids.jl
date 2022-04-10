@@ -40,9 +40,9 @@
 
 	#TODO matroid with empty groundset, and  matroids with rank 0 
 	
-	@test_throws matroid_from_bases([[1,2],[3]], 3)
-	@test_throws matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 4)
-	@test_throws matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 3)
+	@test_throws ERROR matroid_from_bases([[1,2],[3]], 3)
+	@test_throws ERROR matroid_from_bases([[1,2],[1,3],[1,4],[3,4]], 4)
+	@test_throws ERROR matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 3)
 
 	#TODO matroids from nonbases
 
