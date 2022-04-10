@@ -177,7 +177,7 @@ end
 
 function augmented_linear_relations(ring::MPolyRing, proper_flats::GroundsetType, element_vars::Vector, flat_vars::Vector, M::Matroid)
     n = size_groundset(M)
-    relations = elem_type(ring)[]
+    relations = Vector{elem_type(ring)}(undef,n)
     i = 1
     for element in M.groundset
         relations[i] = element_vars[i]
