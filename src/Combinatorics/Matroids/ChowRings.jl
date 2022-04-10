@@ -46,7 +46,7 @@ julia> hilbert_series_reduced(R)
 """
 function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended::Bool=false)
     is_loopless(M) || error("Matroid has loops")
-	Flats = flats(M)
+    Flats = flats(M)
 	number_flats = length(Flats)
         number_flats >= 2 || error("matroid has to few flats")
         proper_flats = Flats[2:number_flats-1]
