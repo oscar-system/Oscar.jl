@@ -53,9 +53,17 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
 
     #construct polynomial ring and extract variables
     if ring==nothing
-        var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
+        # create variable names, indexed by the proper flats of M
+	replacements = ["["=>"{", "]"=>"}", ", "=>","]
+	fcts = [x->replace(x,y) for y in replacements]
+	var_names = [∘(fcts...)(string("x_",S)) for S in proper_flats]
+	#fix for the three lines above: usage of replace when 1.6 eol
+	#var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] 
         if extended
-            var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] #add the variables for the simplicial generators
+            #add the variables for the simplicial generators
+	    var_names = [var_names; [∘(fcts...)(string("h_",S)) for S in proper_flats]]
+	    #fix same as above when 1.6 eol
+	    #var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] 
         end
             ring, vars = PolynomialRing(QQ, var_names, cached=false)
     else
@@ -157,7 +165,12 @@ function augmented_chow_ring(M::Matroid)
 
     proper_flats = Flats[1:sizeFlats-1]
     element_var_names = [string("y_", S) for S in M.groundset]
-    flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
+
+    replacements = ["["=>"{", "]"=>"}", ", "=>","]
+    fcts = [x->replace(x,y) for y in replacements]
+    flat_var_names = [∘(fcts...)(string("x_",S)) for S in proper_flats]
+    #fix for the three lines above: usage of replace when 1.6 eol
+    #flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
     flat_var_names[1] = "x_{}" # Override "x_Any{}"
     var_names = vcat(element_var_names, flat_var_names)
     s = length(var_names)
