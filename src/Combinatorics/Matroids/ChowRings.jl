@@ -3,7 +3,7 @@ export chow_ring, augmented_chow_ring, select
 @doc Markdown.doc"""
     chow_ring(M::Matroid, ring::MPolyRing=nothing; extended::Bool=false)
 
-Return the Chow ring of a matroid, optional also with the simplicial generators.
+Return the Chow ring of a matroid, optional also with the simplicial generators and the polynomial ring.
 
 See [AHK18](@cite) and [BES21](@cite). 
 
@@ -51,7 +51,7 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
     number_flats >= 2 || error("matroid has to few flats")
     proper_flats = Flats[2:number_flats-1]
 
-    #construct polynomial ring
+    #construct polynomial ring and extract variables
     if ring==nothing
         var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] # create variable names, indexed by the proper flats of M
         if extended
@@ -68,7 +68,7 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         vars = [ring[i] for i in 1:tmp_ring.nvars]
     end
 
-    #construct ideal
+    #construct ideal and quotient
     I = linear_relations(ring, proper_flats, vars, M)
     J = quadratic_relations(ring, proper_flats, vars)
     Ex = elem_type(ring)[]
@@ -98,7 +98,6 @@ function linear_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Ve
 end
 
 function quadratic_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector)
-    println(typeof(vars[1]))
     relations = elem_type(ring)[]
     for i in 1:length(proper_flats)
         F = proper_flats[i]
@@ -138,6 +137,8 @@ end
     augmented_chow_ring(M::Matroid)
 
 Return an augmented Chow ring of a matroid. As described in BHMPW20(@cite). 
+
+Implemented by Fedor Glazov
 
 # Examples
 ```jldoctest
