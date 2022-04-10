@@ -12,7 +12,7 @@ export
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
     tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
-    revlex_basis_encoding, isomorphic_matroids
+    revlex_basis_encoding, isisomorphic
 
 ################################################################################
 ##  Properties and basic functions
@@ -1017,22 +1017,22 @@ function revlex_basis_encoding(M::Matroid)
 end
 
 @doc Markdown.doc"""
-    isomorphic_matroids(M1::Matroid, M2::Matroid)
+    isisomorphic(M1::Matroid, M2::Matroid)
 Checks if the matroids M1 and M2 are isomorphic under the action of the symmetric group that acts on their groundset.
 
-# Examples
-To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
+# Example
+To compare two matrods write:
 ```jldoctest
 julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
 
-julia> M = matroid_from_nonbases(H,7);
+julia> M = matroid_from_hyperplanes(H,7);
 
-julia> isomorphic_matroids(M,fano_matroid())
+julia> isisomorphic(M,fano_matroid())
 true
 
 ```
 """
-function isomorphic_matroids(M1::Matroid, M2::Matroid)
+function isisomorphic(M1::Matroid, M2::Matroid)
     if size_groundset(M1) != size_groundset(M2)
         return false
     end
