@@ -1021,6 +1021,7 @@ end
 
 @doc Markdown.doc"""
     isisomorphic(M1::Matroid, M2::Matroid)
+
 Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
 
 # Example
