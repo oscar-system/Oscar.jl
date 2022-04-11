@@ -1,4 +1,4 @@
-export chow_ring, augmented_chow_ring, select
+export chow_ring, augmented_chow_ring, _select
 
 @doc Markdown.doc"""
     chow_ring(M::Matroid, ring::MPolyRing=nothing; extended::Bool=false)
@@ -57,13 +57,15 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         var_names = ["x_{" * join(S, ",") * "}" for S in proper_flats]
         if extended
             #add the variables for the simplicial generators
-            var_names = [var_names; ["h_{" * join(S, ",") * "}" for S in proper_flats]]
+            var_names = [var_names; ["h_{" * join(S, ",") * "}" for S in [proper_flats;[Flats[number_flats]]]]]
         end
         ring, vars = PolynomialRing(QQ, var_names, cached=false)
     else
         nvars(ring) == length(proper_flats) || error("the ring has the wrong number of variables")
         vars = gens(ring)
     end
+
+println(var_names)
 
     #construct ideal and quotient
     I = linear_relations(ring, proper_flats, vars, M)
@@ -209,9 +211,9 @@ function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vec
 end
 
 """
-A helper function to select indicies of a vector that do `include` elments of a given set and `exclude` anothers
+A helper function to select indicies of a vector that do `include` elements of a given set and `exclude` anothers
 """
 function _select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
-    all = union(all...)
+    all = union(set...)
     return findall(s->issubset(include,s)&&issubset(s,setdiff(all,exclude)),set);
 end
