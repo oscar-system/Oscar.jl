@@ -106,14 +106,10 @@ function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, grou
     end
 
     gs2num = create_gs2num(groundset)
-    if length(bases)==1 && length(first(bases))==0
-        M = Polymake.matroid.Matroid(BASES=Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int)}}(1),N_ELEMENTS=length(groundset))
-    else
-        pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
-        M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
-        if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
-            error("Input is not a collection of bases")
-        end
+    pm_bases = Vector{Int}[[gs2num[i]-1 for i in B] for B in bases]
+    M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
+    if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
+        error("Input is not a collection of bases")
     end
     return Matroid(M,groundset,gs2num)
 end
