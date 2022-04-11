@@ -1,5 +1,5 @@
 export
-    isomorphism, size_groundset,
+    isomorphic_matroid, size_groundset,
     bases, nonbases, circuits, hyperplanes, flats, cyclic_flats, closure, 
     rank, nullity, 
     fundamental_circuit, fundamental_cocircuit,
@@ -20,17 +20,17 @@ export
 
 
 @doc Markdown.doc"""
-    isomorphism(M::matroid, gs::AbstractVector)
+    isomorphic_matroid(M::matroid, gs::AbstractVector)
 
 Return a matroid isomorphic to `M` on the groundset `gs`.
 
 # Example
 ```jldoctest
-julia> isomorphism(fano_matroid(), [2,3,4,1,5,6,7])
+julia> isomorphic_matroid(fano_matroid(), [2,3,4,1,5,6,7])
 Matroid of rank 3 on 7 elements
 ```
 """
-function isomorphism(M::Matroid, gs::GroundsetType)
+function isomorphic_matroid(M::Matroid, gs::GroundsetType)
     if length(M.groundset)!=length(gs)
         error("Sets of different size")
     end
@@ -188,7 +188,8 @@ function flats(M::Matroid, r::Union{Int,Nothing}=nothing)
 end
 
 @doc Markdown.doc"""
-    cyclic_flats(M::matroid, r::Union{Int,Nothing})
+    cyclic_flats(M::matroid)
+    cyclic_flats(M::matroid, r::Int)
 
 Return the list of cyclic flats of the matroid `M`.
 These are the flats that are the union of cycles.
@@ -297,7 +298,7 @@ function rank(M::Matroid, set::GroundsetType)
     if length(set)==0
         return 0
     else
-        return Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
+        return Polymake.matroid.rank(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))::Int
     end
 end
 
@@ -315,7 +316,7 @@ julia> nullity(M, [1,2,3])
 1
 ```
 """
-nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
+nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))::Int
 
 
 @doc Markdown.doc"""
