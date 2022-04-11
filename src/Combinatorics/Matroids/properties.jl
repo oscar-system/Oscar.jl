@@ -976,7 +976,7 @@ end
 
 #This functions computes the matrix of characteristic vectors of all r element subsets of [n] in revlex order.
 function revlex_bases_matrix(r::Int64,n::Int64)
-    all_bases = Oscar.Hecke.subsets(Vector(1:n),r)
+    all_bases = subsets(Vector(1:n),r)
     sort!(all_bases, lt=revlex_order)
     M = zeros(Int64,length(all_bases),n)
     for i in 1:length(all_bases), j in 1:r
