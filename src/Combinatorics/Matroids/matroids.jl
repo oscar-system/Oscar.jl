@@ -32,11 +32,7 @@ function Base.show(io::IO, M::Matroid)
 end
 
 # function that generates the dictionary which maps the groundset to integers
-function create_gs2num(E::GroundsetType)
-    gs2num = Dict{Any,IntegerUnion}()
-    [gs2num[E[i]] = i for i in 1:length(E)]
-    return gs2num
-end
+create_gs2num(E::GroundsetType) = Dict{Any,IntegerUnion}(E[i] => i for i in 1:length(E))
 
 @doc Markdown.doc"""
     Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType)
