@@ -23,6 +23,8 @@ on these things online.
      [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
    - Have a look at [our community page](https://oscar.computeralgebra.de/community/).
 4. Please also read our page on [Documenting OSCAR code](@ref).
+5. Look at existing code that does similar things to your project to get an
+   idea of what OSCAR code should look like. Try to look at multiple examples.
 
 ## Overview
 In general you have to do
