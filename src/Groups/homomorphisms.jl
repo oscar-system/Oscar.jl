@@ -413,15 +413,16 @@ true
 ```
 """
 function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
-   # Known isomorphism are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(() -> Dict{Type, Any}(), G, :isomorphisms)
-   return get!(isos, T) do
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
+   result = get!(isos, T) do
      fun = _get_iso_function(T)
      f = fun(G.X)::GapObj
      f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
      H = T(GAP.Globals.ImagesSource(f)::GapObj)
      return GAPGroupHomomorphism(G, H, f)
-   end
+   end::GAPGroupHomomorphism{typeof(G), T}
+   return result
 end
 
 
@@ -432,9 +433,9 @@ Return a map from `G` to an isomorphic (additive) group of type `GrpAbFinGen`.
 An exception is thrown if `G` is not abelian or not finite.
 """
 function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
-   # Known isomorphism are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(() -> Dict{Type, Any}(), G, :isomorphisms)
-   return get!(isos, GrpAbFinGen) do
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
+   result = get!(isos, GrpAbFinGen) do
      isabelian(G) || throw(ArgumentError("the group is not abelian"))
      isfinite(G) || throw(ArgumentError("the group is not finite"))
 #T this restriction is not nice
@@ -455,7 +456,8 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
      end
 
      return MapFromFunc(f, finv, G, A)
-   end
+   end::MapFromFunc{typeof(G), GrpAbFinGen}
+   return result
 end
 
 """
@@ -465,9 +467,9 @@ Return an isomorphism from `A` to a group of type `T`.
 An exception is thrown if no such isomorphism exists or if `A` is not finite.
 """
 function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
-   # Known isomorphism are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(() -> Dict{Type, Any}(), A, :isomorphisms)
-   return get!(isos, T) do
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   result = get!(isos, T) do
      # find independent generators
      if isdiagonal(rels(A))
        exponents = diagonal(rels(A))
@@ -514,15 +516,17 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      end
 
      return MapFromFunc(f, finv, A, G)
-   end
+   end::MapFromFunc{GrpAbFinGen, T}
+   return result
 end
 
 function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
-   # Known isomorphism are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(() -> Dict{Type, Any}(), A, :isomorphisms)
-   return get!(isos, T) do
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   result = get!(isos, GrpAbFinGen) do
      return identity_map(A)
-   end
+   end::AbstractAlgebra.Generic.IdentityMap{GrpAbFinGen}
+   return result
 end
 
 """
