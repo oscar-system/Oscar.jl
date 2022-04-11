@@ -348,7 +348,7 @@ Matroid of rank 3 on 6 elements
 bond_matroid(g::Oscar.Graphs.Graph) = dual_matroid(cycle_matroid(g))
 
 @doc Markdown.doc"""
-See bond_matroid.
+See `bond_matroid`.
 """
 cocycle_matroid(g::Oscar.Graphs.Graph) = bond_matroid(g::Oscar.Graphs.Graph)
 
