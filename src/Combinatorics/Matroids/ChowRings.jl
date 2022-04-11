@@ -65,8 +65,6 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         vars = gens(ring)
     end
 
-println(var_names)
-
     #construct ideal and quotient
     I = linear_relations(ring, proper_flats, vars, M)
     J = quadratic_relations(ring, proper_flats, vars)
@@ -124,7 +122,7 @@ function relations_extended_ring(ring::MPolyRing, proper_flats::Vector{Vector}, 
     for i in 1:s
         F = proper_flats[i]
         poly = ring(0)
-        for index in findall(issubset(F,G) for G in proper_flats)
+        for index in findall(G->issubset(F,G), proper_flats)
             poly+= vars[index]
         end
         push!(relations, poly+vars[s+i]-vars[2*s+1]) #add h_F and subtract h_E
