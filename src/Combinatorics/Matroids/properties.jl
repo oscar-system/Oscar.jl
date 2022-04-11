@@ -128,7 +128,8 @@ julia> hyperplanes(fano_matroid())
 hyperplanes(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.MATROID_HYPERPLANES)]
 
 @doc Markdown.doc"""
-    flats(M::matroid, r::Union{Int,Nothing})
+    flats(M::matroid)
+    flats(M::matroid, r::Int)
 
 Return the list of flats of the matroid `M`.
 By default all flats are returned.
