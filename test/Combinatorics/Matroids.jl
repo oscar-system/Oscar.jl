@@ -14,7 +14,7 @@
         end      
     end
 
-    @testset "constructors" begin
+    @testset "constructors (bases)" begin
 	mb1 = matroid_from_revlex_basis_encoding("*****0",2,4)
 	@test mb1 isa Matroid
 	@test rank(mb1) == 2
@@ -57,11 +57,9 @@
 	@test_throws ErrorException matroid_from_bases([[1,2]], [1,2,1])
 
 	#TODO matroids from nonbases
-
-	#TODO circuits
-	
-	#TODO rest
-
     end
+
+    #TODO circuits
+    #TODO rest
 
 end
