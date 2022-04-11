@@ -323,7 +323,7 @@ end
 @doc Markdown.doc"""
     bond_matroid(g::Oscar.Graphs.Graph)
 
-The `bond matroid` or `cocylce matroid` of a graph `g` which is the dual of a cycle matroid, e.g, cographic.
+The "bond matroid" or "cocycle matroid" of a graph `g` which is the dual of a cycle matroid, e.g. cographic.
 
 See Section 2.3 of [Oxl11](@cite).
 
