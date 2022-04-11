@@ -54,16 +54,16 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
     #construct polynomial ring and extract variables
     if ring==nothing
         # create variable names, indexed by the proper flats of M
-	replacements = ["["=>"{", "]"=>"}", ", "=>","]
-	fcts = [x->replace(x,y) for y in replacements]
-	var_names = [∘(fcts...)(string("x_",S)) for S in proper_flats]
-	#fix for the three lines above: usage of replace when 1.6 eol
-	#var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] 
+    replacements = ["["=>"{", "]"=>"}", ", "=>","]
+    fcts = [x->replace(x,y) for y in replacements]
+    var_names = [∘(fcts...)(string("x_",S)) for S in proper_flats]
+    #fix for the three lines above: usage of replace when 1.6 eol
+    #var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats] 
         if extended
             #add the variables for the simplicial generators
-	    var_names = [var_names; [∘(fcts...)(string("h_",S)) for S in proper_flats]]
-	    #fix same as above when 1.6 eol
-	    #var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] 
+        var_names = [var_names; [∘(fcts...)(string("h_",S)) for S in proper_flats]]
+        #fix same as above when 1.6 eol
+        #var_names = [var_names; [replace(string("h_",S), "["=>"{", "]"=>"}", ", "=>",") for S in [proper_flats;[Flats[number_flats]]]]] 
         end
             ring, vars = PolynomialRing(QQ, var_names, cached=false)
     else
