@@ -61,13 +61,8 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         end
         ring, vars = PolynomialRing(QQ, var_names, cached=false)
     else
-        if ring isa MPolyRing_dec
-            tmp_ring = ring.R  
-        else
-            tmp_ring = ring
-        end
-        tmp_ring.nvars == length(proper_flats) || error("the ring has the wrong number of variables")
-        vars = [ring[i] for i in 1:tmp_ring.nvars]
+        nvars(ring) == length(proper_flats) || error("the ring has the wrong number of variables")
+        vars = gens(ring)
     end
 
     #construct ideal and quotient
