@@ -40,7 +40,8 @@ end
 
 
 @doc Markdown.doc"""
-    size_groundset(M::matroid)
+    length(M::Matroid)
+    size_groundset(M::Matroid)
 
 Return the size of the ground set of the matroid `M`.
 
@@ -50,7 +51,10 @@ julia> size_groundset(fano_matroid())
 7
 ```
 """
+length(M::Matroid) = length(M.groundset)
 size_groundset(M::Matroid) = length(M.groundset)
+
+
 
 @doc Markdown.doc"""
     bases(M::matroid)

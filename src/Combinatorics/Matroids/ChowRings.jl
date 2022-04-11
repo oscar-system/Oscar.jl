@@ -211,7 +211,7 @@ end
 """
 A helper function to select indicies of a vector that do `include` elments of a given set and `exclude` anothers
 """
-function select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
+function _select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
     all = union(all...)
     return findall(s->issubset(include,s)&&issubset(s,setdiff(all,exclude)),set);
 end
