@@ -135,8 +135,6 @@ end
 
 Return an augmented Chow ring of a matroid. As described in [BHMPW20](@cite). 
 
-Implemented by Fedor Glazov
-
 # Example
 ```jldoctest
 julia> M = fano_matroid();
@@ -144,6 +142,7 @@ julia> M = fano_matroid();
 julia> R = augmented_chow_ring(M);
 ```
 """
+#This function was implemented by Fedor Glazov
 function augmented_chow_ring(M::Matroid)
     Flats = flats(M)
     sizeFlats = length(Flats)

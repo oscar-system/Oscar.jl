@@ -102,7 +102,7 @@ function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, grou
         error("The bases contain elements that are not in the groundset")
     end
     if length(bases)==0
-        error("The cloecction of bases can not be empty")
+        error("The collection of bases can not be empty")
     end
 
     gs2num = create_gs2num(groundset)

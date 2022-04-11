@@ -21,6 +21,9 @@
 	@test length(matroid_groundset(mb1)) == 4
 	@test length(bases(mb1)) == 5
 	@test rank(mb1,[3,4]) == 1
+
+	@test_throws ErrorException matroid_from_revlex_basis_encoding("*****",2,4)
+	@test_throws ErrorException matroid_from_revlex_basis_encoding("123",2,4)
 	
 	#bases
 	mb2 = matroid_from_bases([[1,2],[1,3],[1,4],[2,3],[2,4]], 4)
@@ -51,6 +54,7 @@
 	@test_throws ErrorException matroid_from_bases([[1,2],[3]], 3)
 	@test_throws ErrorException matroid_from_bases([[1,2],[1,3],[1,4],[3,4]], 4)
 	@test_throws ErrorException matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 3)
+	@test_throws ErrorException matroid_from_bases([[1,2]], [1,2,1])
 
 	#TODO matroids from nonbases
 
