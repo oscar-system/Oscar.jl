@@ -160,12 +160,7 @@ function augmented_chow_ring(M::Matroid)
     proper_flats = Flats[1:sizeFlats-1]
     element_var_names = [string("y_", S) for S in M.groundset]
 
-    replacements = ["["=>"{", "]"=>"}", ", "=>","]
-    fcts = [x->replace(x,y) for y in replacements]
-    flat_var_names = [∘(fcts...)(string("x_",S)) for S in proper_flats]
-    #fix for the three lines above: usage of replace when 1.6 eol
-    #flat_var_names = [replace(string("x_",S), "["=>"{", "]"=>"}", ", "=>",") for S in proper_flats]
-    flat_var_names[1] = "x_{}" # Override "x_Any{}"
+    flat_var_names = ["x_{" * join(S, ",") * "}" for S in proper_flats]
     var_names = vcat(element_var_names, flat_var_names)
     s = length(var_names)
 
