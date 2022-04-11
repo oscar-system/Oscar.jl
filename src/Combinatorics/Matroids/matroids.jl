@@ -320,7 +320,7 @@ function cycle_matroid(g::Oscar.Graphs.Graph)
     pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
     M = Polymake.matroid.matroid_from_graph(pm_Graph)
     n = Oscar.Graphs.ne(g)
-    gs2num = create_gs2num(Vector{Int}(1:n))
+    gs2num = create_gs2num(1:n)
     return Matroid(M,1:n,gs2num)
 end
 
