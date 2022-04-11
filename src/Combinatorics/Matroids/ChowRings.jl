@@ -82,7 +82,7 @@ function linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars::V
     relations = elem_type(ring)[]
     for i in M.groundset
         poly = ring(0)
-        for index in findall(issubset([i],F) for F in proper_flats)
+        for index in findall(F->issubset([i], F), proper_flats)
             poly+= vars[index]
         end
         if i==M.groundset[1]
@@ -113,7 +113,7 @@ function relations_extended_ring(ring::MPolyRing, proper_flats::Vector{Vector}, 
     s = length(proper_flats)
     # h_E = alpha = -x_E
     poly = ring(0)
-    for index in findall(issubset([1],F) for F in proper_flats)
+    for index in findall(F->issubset([1], F), proper_flats)
         poly+= vars[index]
     end
     push!(relations, poly-vars[2*s+1])
