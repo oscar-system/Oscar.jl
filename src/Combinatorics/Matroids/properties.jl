@@ -1,5 +1,5 @@
 export
-    isomorphic_matroid, size_groundset,
+    isomorphic_matroid, size_groundset, length,
     bases, nonbases, circuits, hyperplanes, flats, cyclic_flats, closure, 
     rank, nullity, 
     fundamental_circuit, fundamental_cocircuit,
@@ -47,13 +47,17 @@ Return the size of the ground set of the matroid `M`.
 
 # Example
 ```jldoctest
-julia> size_groundset(fano_matroid())
+julia> length(fano_matroid())
 7
 ```
 """
 length(M::Matroid) = length(M.groundset)
-size_groundset(M::Matroid) = length(M.groundset)
 
+@doc Markdown.doc"""
+    See `length`
+```
+"""
+size_groundset(M::Matroid) = length(M.groundset)
 
 
 @doc Markdown.doc"""
