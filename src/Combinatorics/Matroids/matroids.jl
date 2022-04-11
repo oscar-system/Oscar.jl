@@ -13,8 +13,8 @@ export
 ################################################################################
 ##  Constructing
 ################################################################################
-ElementType = Union{IntegerUnion,Char,String}
-GroundsetType = Union{AbstractVector, AbstractSet} 
+const ElementType = Union{IntegerUnion,Char,String}
+const GroundsetType = Union{AbstractVector, AbstractSet} 
 
 
 struct Matroid
