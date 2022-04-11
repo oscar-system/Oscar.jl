@@ -110,7 +110,7 @@ end
       for invs in [[2, 3, 4], [6, 8, 9, 15]]
          for T in [PermGroup, PcGroup, FPGroup]
             G = abelian_group(T, invs)
-            iso = isomorphism(GrpAbFinGen, G)
+            iso = @inferred isomorphism(GrpAbFinGen, G)
             A = codomain(iso)
             @test order(G) == order(A)
             for x in gens(G)
@@ -126,7 +126,7 @@ end
                              [1, 6], matrix(ZZ, 2, 2, [2, 3, 2, 6])]
          A = abelian_group(Agens)
          for T in [FPGroup, PcGroup, PermGroup]
-            iso = isomorphism(T, A)
+            iso = @inferred isomorphism(T, A)
             for x in gens(A)
                for y in gens(A)
                   z = x+y
@@ -136,6 +136,11 @@ end
             end
          end
       end
+   end
+
+   @testset "GrpAbFinGen to GrpAbFinGen" begin
+      A = abelian_group([2, 3, 4])
+      iso = @inferred isomorphism(GrpAbFinGen, A)
    end
 
    @testset "Group types as constructors" begin
@@ -170,30 +175,30 @@ end
 
    @testset "Change type" begin
        S = symmetric_group(4)
-       f = isomorphism(PermGroup, S)
+       f = @inferred isomorphism(PermGroup, S)
        @test codomain(f) == S
 
-       f = isomorphism(PcGroup, S)
+       f = @inferred isomorphism(PcGroup, S)
        G = codomain(f)
        @test G isa PcGroup
        @test domain(f) == S
        @test isinjective(f)
        @test issurjective(f)
 
-       f = isomorphism(PcGroup, G)
+       f = @inferred isomorphism(PcGroup, G)
        @test codomain(f) isa PcGroup
        @test domain(f) == G
        @test isinjective(f)
        @test issurjective(f)
 
-       f = isomorphism(FPGroup, G)
+       f = @inferred isomorphism(FPGroup, G)
        @test codomain(f) isa FPGroup
        @test domain(f) == G
        @test isinjective(f)
        @test issurjective(f)
 
        G = abelian_group(PermGroup, [2, 2])
-       f = isomorphism(GrpAbFinGen, G)
+       f = @inferred isomorphism(GrpAbFinGen, G)
        @test codomain(f) isa GrpAbFinGen
        @test domain(f) == G
      # @test isinjective(f)
@@ -395,7 +400,7 @@ end
 @testset "Composition of mappings" begin
    g = symmetric_group(4)
    q, epi = quo(g, pcore(g, 2)[1])
-   iso = isomorphism(PermGroup, q)
+   iso = @inferred isomorphism(PermGroup, q)
    comp = compose(epi, iso)
    @test domain(comp) == domain(epi)
    @test codomain(comp) == codomain(iso)
