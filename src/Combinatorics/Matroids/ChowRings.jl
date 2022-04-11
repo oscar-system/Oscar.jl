@@ -77,7 +77,7 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
     return chow_ring
 end
 
-function linear_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector, M::Matroid)
+function linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars::Vector, M::Matroid)
     alpha = zero(ring)
     relations = elem_type(ring)[]
     for i in M.groundset
@@ -94,7 +94,7 @@ function linear_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Ve
     return relations
 end
 
-function quadratic_relations(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector)
+function quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector}, vars::Vector)
     relations = elem_type(ring)[]
     for i in 1:length(proper_flats)
         F = proper_flats[i]
@@ -108,7 +108,7 @@ function quadratic_relations(ring::MPolyRing, proper_flats::GroundsetType, vars:
     return relations
 end
 
-function relations_extended_ring(ring::MPolyRing, proper_flats::GroundsetType, vars::Vector)
+function relations_extended_ring(ring::MPolyRing, proper_flats::Vector{Vector}, vars::Vector)
     relations = elem_type(ring)[]
     s = length(proper_flats)
     # h_E = alpha = -x_E
@@ -172,7 +172,7 @@ function augmented_chow_ring(M::Matroid)
     return chow_ring
 end
 
-function augmented_linear_relations(ring::MPolyRing, proper_flats::GroundsetType, element_vars::Vector, flat_vars::Vector, M::Matroid)
+function augmented_linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, element_vars::Vector, flat_vars::Vector, M::Matroid)
     n = size_groundset(M)
     relations = Vector{elem_type(ring)}(undef,n)
     i = 1
@@ -190,7 +190,7 @@ function augmented_linear_relations(ring::MPolyRing, proper_flats::GroundsetType
     return relations
 end
 
-function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector, element_vars::Vector, flat_vars::Vector, M::Matroid)
+function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vector}, element_vars::Vector, flat_vars::Vector, M::Matroid)
     incomparable_polynomials = quadratic_relations(ring, proper_flats, flat_vars)
     xy_polynomials = elem_type(ring)[]
 
