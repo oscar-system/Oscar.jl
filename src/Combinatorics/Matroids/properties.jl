@@ -991,6 +991,7 @@ end
 
 @doc Markdown.doc"""
     revlex_basis_encoding(M::Matroid)
+
 Computes the revlex basis encoding and the minimal revlex basis encoding among isomorphic matroids 
 
 # Examples
