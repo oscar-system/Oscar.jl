@@ -19,7 +19,7 @@ const GroundsetType = Union{AbstractVector, AbstractSet}
 
 struct Matroid
     pm_matroid::Polymake.BigObject
-    groundset::GroundsetType # groundset of the matroid 
+    groundset::AbstractVector # groundset of the matroid 
     gs2num::Dict{Any, IntegerUnion}# dictionary to map the groundset to the integers from 1 to its size
 end
 
@@ -421,9 +421,7 @@ function direct_sum(M::Matroid, N::Matroid)
             gsN[i] = string(gsN[i],'\'')
         end
     end
-    new_gs2num = create_gs2num(gsN)
-    gs2num = merge(M.gs2num,new_gs2num)
-    return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],gs2num)
+    return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],create_gs2num([M.groundset;gsN]))
 end
 
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
