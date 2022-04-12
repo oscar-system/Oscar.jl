@@ -80,7 +80,9 @@ end
   
   @test isa(cyclic_group(5), PcGroup)
   @test isa(cyclic_group(PermGroup, 5), PermGroup)
-  
+  @test_throws ArgumentError cyclic_group(-1)
+  @test_throws ArgumentError cyclic_group(PermGroup, -1)
+
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
   @test iscyclic(G)
@@ -97,6 +99,12 @@ end
   
   @test mathieu_group(10) isa PermGroup
   @test order(mathieu_group(10))==720
+  @test_throws ArgumentError mathieu_group(-1)
+  @test_throws ArgumentError mathieu_group(8)
+  @test_throws ArgumentError mathieu_group(13)
+  @test_throws ArgumentError mathieu_group(20)
+  @test_throws ArgumentError mathieu_group(25)
+
 
   F = free_group("x","y")
   @test F isa FPGroup
@@ -131,7 +139,9 @@ end
   
   F = free_group(3,:y)
   @test F isa FPGroup
-  
+
+  @test_throws ArgumentError free_group(-1)
+
   Q8 = quaternion_group(8)
   @test isa(Q8, PcGroup)
   
