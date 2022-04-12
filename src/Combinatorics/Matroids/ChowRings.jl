@@ -146,7 +146,7 @@ function augmented_chow_ring(M::Matroid)
     #This function was implemented by Fedor Glazov
     Flats = flats(M)
     sizeFlats = length(Flats)
-    n = size_groundset(M)
+    n = length(M)
 
     is_loopless(M) || error("Matroid has loops")
     sizeFlats>3 || error("Matroid has too few flats")
@@ -172,7 +172,7 @@ function augmented_chow_ring(M::Matroid)
 end
 
 function augmented_linear_relations(ring::MPolyRing, proper_flats::Vector{Vector}, element_vars::Vector, flat_vars::Vector, M::Matroid)
-    n = size_groundset(M)
+    n = length(M)
     relations = Vector{elem_type(ring)}(undef,n)
     i = 1
     for element in M.groundset

@@ -73,7 +73,7 @@ parallel_extension(M::Matroid, old::ElementType, new::ElementType)
 ## Properties
 ```@docs
 matroid_groundset(M::Matroid)
-size_groundset(M::Matroid)
+length(M::Matroid)
 rank(M::Matroid)
 rank(M::Matroid, set::GroundsetType)
 bases(M::Matroid)

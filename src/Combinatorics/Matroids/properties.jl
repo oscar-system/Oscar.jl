@@ -1,5 +1,5 @@
 export
-    isomorphic_matroid, size_groundset, length,
+    isomorphic_matroid, length,
     bases, nonbases, circuits, hyperplanes, flats, cyclic_flats, closure, 
     rank, nullity, 
     fundamental_circuit, fundamental_cocircuit,
@@ -41,7 +41,6 @@ end
 
 @doc Markdown.doc"""
     length(M::Matroid)
-    size_groundset(M::Matroid)
 
 Return the size of the ground set of the matroid `M`.
 
@@ -52,12 +51,6 @@ julia> length(fano_matroid())
 ```
 """
 length(M::Matroid) = length(M.groundset)
-
-@doc Markdown.doc"""
-    See `length`
-```
-"""
-size_groundset(M::Matroid) = length(M.groundset)
 
 
 @doc Markdown.doc"""
@@ -443,7 +436,7 @@ julia> spanning_sets(uniform_matroid(2, 3))
 function spanning_sets(M::Matroid)
     # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
     coindependent_sets = independent_sets(dual_matroid(M))
-    span_sets = [filter(k -> !(k in set), 1:size_groundset(M)) for set in coindependent_sets]
+    span_sets = [filter(k -> !(k in set), 1:length(M)) for set in coindependent_sets]
     return reverse(span_sets)
 end
 
@@ -1045,7 +1038,7 @@ true
 ```
 """
 function isisomorphic(M1::Matroid, M2::Matroid)
-    if size_groundset(M1) != size_groundset(M2)
+    if length(M1) != length(M2)
         return false
     end
     return revlex_basis_encoding(M1)[2] == revlex_basis_encoding(M2)[2]
