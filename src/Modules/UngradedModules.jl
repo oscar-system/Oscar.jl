@@ -180,8 +180,12 @@ function (F::AbstractFreeMod{T})(v::AbstractFreeModElem{T}) where T
   return v
 end
 
-function in(v::AbstractFreeModElem, M::ModuleFP)
-  return parent(v) === M
+function in(v::AbstractFreeModElem, F::AbstractFreeMod)
+  return parent(v) === F
+end
+
+function in(v::AbstractFreeModElem, M::SubQuo)
+  return represents_element(v, M)
 end
 
 @doc Markdown.doc"""
@@ -1632,8 +1636,13 @@ parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
-function in(v::SubQuoElem, M::ModuleFP)
-  return parent(v) === M
+function in(v::SubQuoElem, F::FreeMod)
+  return false
+end
+
+function in(v::SubQuoElem, M::SubQuo)
+  ambient_free_module(parent(v)) === ambient_free_module(M) || return false
+  return represents_element(coefficients(v), M)
 end
 
 @doc Markdown.doc"""
@@ -3427,10 +3436,22 @@ Additionally, return
 - none of the above if `task = :none`.
 """
 function direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where {T}
-  return direct_product(M...; task)
+  res = direct_product(M...; task)
+  if task == :sum || task == :prod
+    ds, f = res
+    set_attribute!(ds, :show => Hecke.show_direct_sum, :direct_sum => M)
+    return ds, f
+  elseif task == :both
+    ds, p, i = res
+    set_attribute!(ds, :show => Hecke.show_direct_sum, :direct_sum => M)
+    return ds, i, p
+  else
+    set_attribute!(res, :show => Hecke.show_direct_sum, :direct_sum => M)
+    return res
+  end
 end
 
-⊕(M::ModuleFP...) = direct_product(M..., task = :none)
+⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
 
 
 @doc Markdown.doc"""

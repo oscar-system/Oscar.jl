@@ -466,7 +466,7 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	M2 = SubQuo(F3,A2,B2)
 
-	prod_M, proj, emb = direct_sum(M1,M2,task=:both)
+	prod_M, emb, proj = direct_sum(M1,M2,task=:both)
 	@test length(proj) == length(emb) == 2
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
