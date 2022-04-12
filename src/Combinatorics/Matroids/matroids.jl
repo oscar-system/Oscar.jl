@@ -95,6 +95,9 @@ Matroid of rank 2 on 4 elements
 matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_bases(bases,Vector(1:nelements);check=check)
 
 function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
+    groundset = collect(groundset)
+    bases = collect(bases)
+
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
@@ -140,18 +143,30 @@ Matroid of rank 3 on 7 elements
 
 ```
 """
-matroid_from_nonbases(nonbases::AbstractVector{T}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_nonbases(nonbases,Vector(1:nelements); check)
+matroid_from_nonbases(nonbases::Union{AbstractVector{T},AbstractSet{T}}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType = matroid_from_nonbases(nonbases,Vector(1:nelements);check=check)
 
-function matroid_from_nonbases(nonbases::AbstractVector{T},groundset::AbstractVector; check::Bool=true) where T<:GroundsetType
+function matroid_from_nonbases(nonbases::Union{AbstractVector{T},AbstractSet{T}},groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
+    groundset = collect(groundset)
+    nonbases = collect(nonbases)
+    
     if check && length(groundset)!=length(Set(groundset))
-        error("Input is not a valid groundset of a matroid")
+        error("Input is not a valid groundset of a matroid.")
     end
-    gs2num = create_gs2num(groundset)
+    if check && !all([e in groundset for S in nonbases for e in S])
+        error("The bases contain elements that are not in the groundset.")
+    end
     if length(nonbases)==0
         error("The collection of nonbases should not be empty.")
     end
-    pm_non_bases = [[gs2num[i]-1 for i in B] for B in nonbases]
-    M = Polymake.matroid.Matroid(NON_BASES=pm_non_bases,N_ELEMENTS=length(groundset))
+    r = length(nonbases[1])
+    if check && !all([length(nb)==r for nb in nonbases])
+        error("The nonbasis elements all need to be of the same length.")
+    end
+
+    gs2num = create_gs2num(groundset)
+    
+    pm_nonbases = [[gs2num[i]-1 for i in B] for B in nonbases]
+    M = Polymake.matroid.Matroid(NON_BASES=pm_nonbases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
         error("Input is not a collection of nonbases")
     end
@@ -189,12 +204,19 @@ julia> M = matroid_from_circuits(C,[1,2,'i','j'])
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_circuits(circuits::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_circuits(circuits,Vector(1:nelements))
+matroid_from_circuits(circuits::Union{AbstractVector{T},AbstractSet{T}}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_circuits(circuits,Vector(1:nelements))
 
-function matroid_from_circuits(circuits::AbstractVector{T},groundset::AbstractVector; check::Bool=true) where T<:GroundsetType
+function matroid_from_circuits(circuits::Union{AbstractVector{T},AbstractSet{T}},groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
+    groundset = collect(groundset)
+    circuits = collect(circuits)
+
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
+    if check && !all([e in groundset for S in circuits for e in S])
+        error("The bases contain elements that are not in the groundset")
+    end
+
     gs2num = create_gs2num(groundset)
     pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
     M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=length(groundset))
@@ -230,12 +252,23 @@ Matroid of rank 3 on 7 elements
 
 ```
 """
-matroid_from_hyperplanes(hyperplanes::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
+matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractSet{T}}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
 
-function matroid_from_hyperplanes(hyperplanes::AbstractVector{T},groundset::AbstractVector; check::Bool=true) where T<:GroundsetType
+function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractSet{T}},groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
+    groundset = collect(groundset)
+    hyperplanes = collect(hyperplanes)
+
     if check && length(groundset)!=length(Set(groundset))
         error("Input is not a valid groundset of a matroid")
     end
+    if check && !all([e in groundset for S in hyperplanes for e in S])
+        error("The bases contain elements that are not in the groundset")
+    end
+    if length(hyperplanes) == 0
+        error("The collection of hyperplanes should not be empty!")
+    end
+
+    groundset = collect(groundset)
     gs2num = create_gs2num(groundset)
     pm_hyperplanes = [[gs2num[i]-1 for i in H] for H in hyperplanes]
     M = Polymake.matroid.Matroid(MATROID_HYPERPLANES=pm_hyperplanes,N_ELEMENTS=length(groundset))

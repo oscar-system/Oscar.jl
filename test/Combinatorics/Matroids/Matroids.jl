@@ -35,7 +35,7 @@
         @test mb3 isa Matroid
         @test sort(bases(mb1)) == sort(bases(mb3))
 
-        mb4 = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j'])
+        mb4 = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],Set([1,2,'i','j']))
         @test mb4 isa Matroid
         @test rank(mb4) == 2
         @test length(mb4) == 4
@@ -56,7 +56,18 @@
         @test_throws ErrorException matroid_from_bases([[1,2],[1,3],[2,4],[3,4]], 3)
         @test_throws ErrorException matroid_from_bases([[1,2]], [1,2,1])
 
-        #TODO matroids from nonbases
+        mb7 = matroid_from_nonbases([[3,4]],4)
+        @test mb7 isa Matroid
+        @test sort(bases(mb2)) == sort(bases(mb7))
+
+        mb8 = matroid_from_nonbases(Set([Set([3,4])]),Set([3,4,5,6]))
+        @test isisomorphic(mb7,mb8) == true
+
+        @test_throws ErrorException matroid_from_nonbases(Set{Set{Int}}([]),1)
+        @test_throws ErrorException matroid_from_nonbases([[1,2],[3]], 3)
+        @test_throws ErrorException matroid_from_nonbases([[2,3],[2,4]], 4)
+        @test_throws ErrorException matroid_from_nonbases([[1,2],[1,3],[2,4],[3,4]], 3)
+        @test_throws ErrorException matroid_from_nonbases([[1,2]], [1,2,1])
     end
 
     #TODO circuits
@@ -97,7 +108,7 @@
 
     @test_throws ErrorException flats(uniform_matroid(2,3),4)
     @test_throws ErrorException cyclic_flats(uniform_matroid(2,3),-1)
-
+    
     @test fundamental_circuit(N,Set([1, 2]),'i') == [1, 2, 'i']
     @test fundamental_circuit(N,Set([1,'i',]),'j') == ['i','j']
     @test_throws ErrorException fundamental_circuit(N,Set(['i','j']),1)
