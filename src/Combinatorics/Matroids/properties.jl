@@ -31,7 +31,7 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function isomorphic_matroid(M::Matroid, gs::GroundsetType)
-    if length(M.groundset)!=length(gs)
+    if length(M.groundset)!=length(gs) || length(M.groundset)!=length(Set(gs))
         error("Sets of different size")
     end
     gs2num = create_gs2num(gs)
@@ -85,7 +85,6 @@ julia> nonbases(fano_matroid())
  [2, 5, 7]
  [3, 4, 7]
  [3, 5, 6]
- 
 ```
 """
 nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_BASES] 
@@ -171,9 +170,9 @@ julia> flats(M, 2)
  [3, 4, 7]
 ```
 """
-function flats(M::Matroid, r::Union{Int,Nothing}=nothing)
-    num_flats = M.pm_matroid.LATTICE_OF_FLATS.N_NODES
-    pm_flats = M.pm_matroid.LATTICE_OF_FLATS.FACES
+flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, M.pm_matroid.LATTICE_OF_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_FLATS.FACES)
+
+function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats::Polymake.NodeMapAllocated{Polymake.Directed, Polymake.Set{Int64}})
     jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
     if M.pm_matroid.LATTICE_OF_FLATS.TOP_NODE==0
         jl_flats = reverse(jl_flats)
@@ -228,22 +227,7 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-function cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing)
-    num_flats = M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES
-    pm_flats = M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES
-    jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
-    if M.pm_matroid.LATTICE_OF_FLATS.TOP_NODE==0
-        jl_flats = reverse(jl_flats)
-    end
-    matroid_flats = [[M.groundset[i] for i in flat] for flat in jl_flats]
-    if r!=nothing
-        if r<0 || r>rank(M)
-            error("The specified rank needs to be between 0 and the rank of the matroid.")
-        end
-        matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
-    end
-    return matroid_flats
-end
+cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc Markdown.doc"""
     closure(M::matroid, set::Vector)
@@ -347,7 +331,7 @@ julia> fundamental_circuit(M, [1,2,4], 3)
 ```
 """
 function fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType)
-    if !(basis in bases(M))
+    if !(basis in [Set(B) for B in bases(M)])
         error("The set is not a basis of M")
     end
     if !(elem in M.groundset)
@@ -356,7 +340,7 @@ function fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType
     if elem in basis
         error("The element is in the basis, but has to be in the complement")
     end
-    return circuits(restriction(M,[elem; basis]))[1]
+    return circuits(restriction(M,[elem; collect(basis)]))[1]
 end
 
 @doc Markdown.doc"""
