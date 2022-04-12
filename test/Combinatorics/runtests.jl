@@ -1,4 +1,5 @@
 using Oscar
 
 include("SimplicialComplexes.jl")
-include("Matroids.jl")
+include("Matroids/Matroids.jl")
+include("Matroids/Chow_Ring.jl")
