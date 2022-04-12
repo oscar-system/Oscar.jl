@@ -155,14 +155,14 @@ end
 function Oscar.relations(G::Oscar.GAPGroup)
    f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
-   H = FPGroup(GAP.Globals.Image(f))
+   H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
 function Oscar.relations(G::PcGroup)
    f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.julia_to_gap("g"))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
-   H = FPGroup(GAP.Globals.Image(f))
+   H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 

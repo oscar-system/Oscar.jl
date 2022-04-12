@@ -441,7 +441,7 @@ end
 
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)
-    el = GAP.Globals.Image(mp, x.X)
+    el = GAPWrap.Image(mp, x.X)
     return group_element(codom, el)
   end
   return mp_julia
