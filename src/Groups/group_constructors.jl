@@ -41,9 +41,7 @@ as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
 symmetric_group(n::Int) = symmetric_group(PermGroup, n)
 
 function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
   return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n)::GapObj)
 end
 
@@ -72,9 +70,7 @@ as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
 alternating_group(n::Int) = alternating_group(PermGroup, n)
 
 function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
   return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n)::GapObj)
 end
 
@@ -102,6 +98,7 @@ Return the cyclic group of order `n`, as an instance of `T`.
 cyclic_group(n::Int) = cyclic_group(PcGroup, n)
 
 function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
   return T(GAP.Globals.CyclicGroup(_gap_filter(T), n)::GapObj)
 end
 
@@ -155,7 +152,7 @@ that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 @gapattribute isabelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
 
 function mathieu_group(n::Int)
-  @assert n in Int[9, 10, 11, 12, 21, 22, 23, 24]
+  9 <= n <= 12 || 21 <= n <= 24 || throw(ArgumentError("n must be a 9-12 or 21-24"))
   return PermGroup(GAP.Globals.MathieuGroup(n), n)
 end
 
@@ -185,6 +182,7 @@ where the `i`-th generator is printed as `L[i]`.
     Variables named like the group generators are *not* created by this function.
 """
 function free_group(n::Int, s::Union{String, Symbol} = "f")
+   n >= 0 || throw(ArgumentError("n must be a non-negative integer"))
    return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
 end
 
