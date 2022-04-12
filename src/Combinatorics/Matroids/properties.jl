@@ -950,15 +950,14 @@ end
 function revlex_order(A::AbstractVector{Int64}, B::AbstractVector{Int64})
     @assert length(A) == length(B)
     r = length(A)
-    if A[end] < B[end]
-        return true
-    elseif A[end] < B[end]
-        return false
-    elseif r > 1
-        return revlex_order(view(A,1:(r-1)),view(B,1:(r-1)))
-    else
-        return false
+    for i in 0:r-1
+        if A[r-i] < B[r-i]
+            return true
+        elseif A[r-i] > B[r-i]
+            return false
+        end
     end
+    return false
 end
 
 #This functions computes the matrix of characteristic vectors of all r element subsets of [n] in revlex order.
