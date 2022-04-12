@@ -142,8 +142,8 @@ julia> M = fano_matroid();
 julia> R = augmented_chow_ring(M);
 ```
 """
-#This function was implemented by Fedor Glazov
 function augmented_chow_ring(M::Matroid)
+    #This function was implemented by Fedor Glazov
     Flats = flats(M)
     sizeFlats = length(Flats)
     n = size_groundset(M)
