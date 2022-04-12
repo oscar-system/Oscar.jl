@@ -172,7 +172,7 @@ julia> flats(M, 2)
 """
 flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, M.pm_matroid.LATTICE_OF_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_FLATS.FACES)
 
-function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats::Polymake.NodeMapAllocated{Polymake.Directed, Polymake.Set{Int64}})
+function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats::Polymake.NodeMapAllocated{Polymake.Directed, Polymake.Set{Int}})
     jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
     if M.pm_matroid.LATTICE_OF_FLATS.TOP_NODE==0
         jl_flats = reverse(jl_flats)
