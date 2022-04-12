@@ -27,7 +27,7 @@
 	
 	    #bases
 	    mb2 = matroid_from_bases([[1,2],[1,3],[1,4],[2,3],[2,4]], 4)
-    	@test mb2 isa Matroid
+        @test mb2 isa Matroid
         @test sort(bases(mb1)) == sort(bases(mb2))
 
         B = Set{Set{Int}}([Set([1,2]), Set([1,3]), Set([1,4]), Set([2,3]), Set([2,4])])
