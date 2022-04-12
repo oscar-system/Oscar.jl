@@ -56,10 +56,10 @@ Matroid of rank 3 on 7 elements
 """
 function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
     if match(r"[^*0]",rvlx)!=nothing
-	    error("The revlex encoding uses only `*` and `0`")
+        error("The revlex encoding uses only `*` and `0`")
     end
     if length(rvlx)!= binomial(n,r)
-	    error("The length of the string does not match the rank and number of elements")
+        error("The length of the string does not match the rank and number of elements")
     end
     return Matroid(Polymake.matroid.Matroid(N_ELEMENTS=n, RANK=r, REVLEX_BASIS_ENCODING=rvlx))
 end
@@ -640,7 +640,7 @@ julia> cocircuits(N)[1]
 ```
 """
 function series_extension(M::Matroid, old::ElementType, new::ElementType)
-	return dual_matroid(principal_extension(dual_matroid(M),[old], new))
+    return dual_matroid(principal_extension(dual_matroid(M),[old], new))
 end
 
 
@@ -666,10 +666,10 @@ julia> circuits(N)[1]
 ```
 """
 function parallel_extension(M::Matroid, old::ElementType, new::ElementType)
-	if !(old in M.groundset)
-		error("The element ".old." is not in the ground set")
-	end
-	return principal_extension(M,closure(M,[old]), new)
+    if !(old in M.groundset)
+        error("The element ".old." is not in the ground set")
+    end
+    return principal_extension(M,closure(M,[old]), new)
 end
 
 

@@ -1006,18 +1006,18 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function revlex_basis_encoding(M::Matroid)
-	rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
-	indicies = findall(x->x=='*', rvlx)
-	v = zeros(Int,length(rvlx))
-	[v[i]=1 for i in indicies]
-	n = M.pm_matroid.N_ELEMENTS;
-	A = revlex_bases_matrix(rank(M),n)
-	P = Polymake.group.PermutationAction(GENERATORS=[[[1,0];Vector(2:n-1)],[[n-1];Vector(0:n-2)]])
-	G = Polymake.group.Group(HOMOGENEOUS_COORDINATE_ACTION=P)
-	poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
-	Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
-	Polymake.shell_execute(raw"""$min_v = $pair->first;""")
-	return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+    rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
+    indicies = findall(x->x=='*', rvlx)
+    v = zeros(Int,length(rvlx))
+    [v[i]=1 for i in indicies]
+    n = M.pm_matroid.N_ELEMENTS;
+    A = revlex_bases_matrix(rank(M),n)
+    P = Polymake.group.PermutationAction(GENERATORS=[[[1,0];Vector(2:n-1)],[[n-1];Vector(0:n-2)]])
+    G = Polymake.group.Group(HOMOGENEOUS_COORDINATE_ACTION=P)
+    poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
+    Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
+    Polymake.shell_execute(raw"""$min_v = $pair->first;""")
+    return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
 end
 
 @doc Markdown.doc"""
