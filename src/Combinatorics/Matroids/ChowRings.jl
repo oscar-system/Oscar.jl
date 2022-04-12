@@ -213,5 +213,6 @@ A helper function to select indicies of a vector that do `include` elements of a
 """
 function _select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
     all = union(set...)
-    return findall(s->issubset(include,s)&&issubset(s,setdiff(all,exclude)),set);
+    compl = setdiff(all,exclude)
+    return findall(s->issubset(include,s)&&issubset(s,compl),set);
 end
