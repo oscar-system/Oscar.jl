@@ -111,6 +111,28 @@ InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
     od;
     return v;
 end);
+
+InstallOtherMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
+    local hom, f, f_inv, ele, GAPGenerators, i, gens, GAPGroup, JuliaGAPMap;
+    
+        gens := GeneratorsOfGroup(G);
+        ele := gens[1];
+        hom := Julia.Oscar._iso_oscar_gap(ele!.m.base_ring);
+        
+        GAPGenerators := [1..Size(gens)];
+        for i in [1..Size(gens)] do
+            GAPGenerators[i] := Julia.AbstractAlgebra.map_entries(hom,gens[i]!.m);
+        od;
+        
+        GAPGroup := GroupByGenerators(GAPGenerators);
+        
+        f := function(m) return Julia.AbstractAlgebra.map_entries(hom,m!.m); end;
+        f_inv := function(m) return MakeJuliaMatrixRep(Julia.Oscar.preimage_matrix(hom,m)); end;
+
+        JuliaGAPMap := GroupHomomorphismByFunction(G,GAPGroup,f,f_inv);
+        SetNiceMonomorphism(G,JuliaGAPMap);
+        SetIsHandledByNiceMonomorphism(G, true);
+    end);
     
 InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         return m1!.m = m2!.m;

@@ -4,7 +4,7 @@
     m = matrix(ZZ, [0 1 ; -1 0])
     gapM = _wrap_for_gap(m)
     G = GAP.Globals.Group(gapM)
+    GAP.SetNiceMorphismForJuliaMatrixRepGroup(G)
     @test GAP.Globals.Size(G) == 4
     
-    print("Hello World!")
 end
