@@ -37,14 +37,14 @@ julia> M = uniform_matroid(3,3);
 
 julia> GR, _ = GradedPolynomialRing(QQ,["a","b","c","d","e","f"]);
 
-julia> R = chow_ring(M, GR);
+julia> R = chow_ring(M, ring=GR);
 
 julia> hilbert_series_reduced(R)
 (t^2 + 4*t + 1, 1) 
 
 ```
 """
-function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended::Bool=false)
+function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=false)
     is_loopless(M) || error("Matroid has loops")
     Flats = flats(M)
     number_flats = length(Flats)
@@ -61,7 +61,11 @@ function chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended:
         end
         ring, vars = PolynomialRing(QQ, var_names, cached=false)
     else
-        nvars(ring) == length(proper_flats) || error("the ring has the wrong number of variables")
+        if extended
+            nvars(ring) == 2*length(proper_flats)+1 || error("the ring has the wrong number of variables")
+        else
+            nvars(ring) == length(proper_flats) || error("the ring has the wrong number of variables")
+        end
         vars = gens(ring)
     end
 
