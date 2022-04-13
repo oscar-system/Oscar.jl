@@ -112,7 +112,9 @@ InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
     return v;
 end);
 
-InstallOtherMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
+DeclareOperation("SetNiceMorphismForJuliaMatrixRepGroup", [IsGroup]);
+
+InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
     local hom, f, f_inv, ele, GAPGenerators, i, gens, GAPGroup, JuliaGAPMap;
     
         gens := GeneratorsOfGroup(G);
