@@ -989,13 +989,6 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function revlex_basis_encoding(M::Matroid)
-    if rank(M) == 0
-        return "*", "*"
-    elseif rank(M) == 1
-        rvlx = String([[i] in bases(M) ? '*' : '0' for i in 1:length(M)])
-        min_rvlx = String(sort(collect(rvlx)))
-        return rvlx, min_rvlx
-    end
     rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
     indicies = findall(x->x=='*', rvlx)
     v = zeros(Int,length(rvlx))
@@ -1003,6 +996,9 @@ function revlex_basis_encoding(M::Matroid)
     n = M.pm_matroid.N_ELEMENTS;
     A = revlex_bases_matrix(rank(M),n)
     P = Polymake.group.PermutationAction(GENERATORS=[[[1,0];Vector(2:n-1)],[[n-1];Vector(0:n-2)]])
+    if n<2
+        P = Polymake.group.PermutationAction(GENERATORS=[Vector{Int}(0:n-1)])
+    end
     G = Polymake.group.Group(HOMOGENEOUS_COORDINATE_ACTION=P)
     poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
     Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
