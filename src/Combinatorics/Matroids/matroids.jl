@@ -791,15 +791,15 @@ end
 @doc Markdown.doc"""
     projective_geometry(r::Int, q::Int)
 
-The projective geometry of order `q` and rank `r`.
+The projective geometry of order `q` and rank `r+1`.
 Note that this only works for prime numbers `q` for now.
 
 See Section 6.1 of [Oxl11](@cite).
-Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
+Warning: Following the book of Oxley, the rank of the resulting matroid is `r+1`.
 
 # Example
 ```jldoctest
-julia> M = projective_geometry(3, 3)
+julia> M = projective_geometry(2, 3)
 Matroid of rank 3 on 13 elements
 
 ```
@@ -808,35 +808,35 @@ function projective_geometry(r::Int, q::Int; check::Bool=false)
     if !isprime(q)
         error("q is not a prime.")
     end
-    if r<3
-        error("The rank should be at least 3")
-    elseif r==3
+    if r<2
+        error("The projective rank should be at least 2")
+    elseif r==2
         return projective_plane(q)
     end
     M=[]
-    n=Int((q^r-1)/(q-1))
-    for i in 1:(q^r-1)
-        new_column = digits(i, base=q, pad=r)
+    n=Int((q^(r+1)-1)/(q-1))
+    for i in 1:(q^(r+1)-1)
+        new_column = digits(i, base=q, pad=r+1)
         if new_column[findfirst(k->k!=0, new_column)]==1
             M = vcat(M, new_column)
         end
     end
-    M = convert(Array{Int64,2},reshape(M, r, n))
+    M = convert(Array{Int64,2},reshape(M, r+1, n))
     return matroid_from_matrix_columns(matrix(GF(q), M); check=check)
 end
 
 @doc Markdown.doc"""
     affine_geometry(r::Int, q::Int)
 
-The affine geometry of order `q` and rank `r`.
+The affine geometry of order `q` and rank `r+1`.
 Note that this only works for prime numbers `q` for now.
 
 See Section 6.1 of [Oxl11](@cite).
-Warning: Unlike in the book of Oxley, `r` is the actual rank of the matroid.
+Warning: Following the book of Oxley, the rank of the resulting matroid is `r+1`.
 
 # Example
 ```jldoctest
-julia> M = affine_geometry(3, 3)
+julia> M = affine_geometry(2, 3)
 Matroid of rank 3 on 9 elements
 ```
 """
@@ -844,8 +844,8 @@ function affine_geometry(r::Int, q::Int; check::Bool=false)
     if !isprime(q)
         error("q is not a prime.")
     end
-    if r<3
-        error("The rank should be at least 3")
+    if r<2
+        error("The projective rank should be at least 2")
     end
 
     PG = projective_geometry(r, q; check=check)

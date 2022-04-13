@@ -198,15 +198,15 @@
         @test length(bases(projective_plane(3))) == 234
         @test_throws ErrorException projective_plane(6)
 
-        @test length(bases(projective_geometry(3,3))) == 234
-        @test length(bases(projective_geometry(4,3))) == 63180
-        @test_throws ErrorException projective_geometry(2,3)
-        @test_throws ErrorException projective_geometry(4,6)
+        @test length(bases(projective_geometry(2,3))) == 234
+        @test length(bases(projective_geometry(3,3))) == 63180
+        @test_throws ErrorException projective_geometry(1,3)
+        @test_throws ErrorException projective_geometry(3,6)
 
-        @test length(bases(affine_geometry(3,3))) == 72
-        @test length(bases(affine_geometry(4,3))) == 40743
-        @test_throws ErrorException affine_geometry(2,3)
-        @test_throws ErrorException affine_geometry(4,6)
+        @test length(bases(affine_geometry(2,3))) == 72
+        @test length(bases(affine_geometry(3,3))) == 40743
+        @test_throws ErrorException affine_geometry(1,3)
+        @test_throws ErrorException affine_geometry(3,6)
     end
 
     @testset "properties" begin
