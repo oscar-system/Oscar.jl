@@ -31,7 +31,7 @@ julia> f==0
 true
 ```
 
-The following computes the chow ring of the free matroid on three elements in a given graded polynomial ring.
+The following computes the Chow ring of the free matroid on three elements in a given graded polynomial ring.
 ```jldoctest
 julia> M = uniform_matroid(3,3);
 
