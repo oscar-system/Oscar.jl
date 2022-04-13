@@ -120,6 +120,6 @@ isisomorphic(M1::Matroid, M2::Matroid)
 
 ### Chow Rings
 ```@docs
-chow_ring(M::Matroid, ring::Union{MPolyRing,Nothing}=nothing; extended::Bool=false)
+chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=false)
 augmented_chow_ring(M::Matroid)
 ```
