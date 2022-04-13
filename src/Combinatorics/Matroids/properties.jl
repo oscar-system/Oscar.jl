@@ -331,7 +331,7 @@ julia> fundamental_circuit(M, [1,2,4], 3)
 ```
 """
 function fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType)
-    if !(basis in [Set(B) for B in bases(M)])
+    if !(Set(basis) in [Set(B) for B in bases(M)])
         error("The set is not a basis of M")
     end
     if !(elem in M.groundset)
@@ -989,6 +989,13 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function revlex_basis_encoding(M::Matroid)
+    if rank(M) == 0
+        return "*", "*"
+    elseif rank(M) == 1
+        rvlx = String([[i] in bases(M) ? '*' : '0' for i in 1:length(M)])
+        min_rvlx = String(sort(collect(rvlx)))
+        return rvlx, min_rvlx
+    end
     rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
     indicies = findall(x->x=='*', rvlx)
     v = zeros(Int,length(rvlx))

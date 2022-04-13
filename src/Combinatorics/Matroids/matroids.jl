@@ -307,7 +307,8 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
         if rank(tmp_mat)==rk
             push!(bases, set);
         end
-    end
+    end    
+
     return matroid_from_bases(bases, ncols(A); check=check)
 end
 
@@ -493,8 +494,12 @@ julia> matroid_groundset(N)
 ```
 """
 function deletion(M::Matroid,set::GroundsetType)
+    set = unique(collect(set))
     if length(set) == 0
         return M
+    end
+    if !all([e in M.groundset for e in set])
+        error("The set of deleted element must be a subset of the groundset.")
     end
     sort_set = Vector(undef,length(M.groundset)-length(set))
     gs2num = Dict{Any,IntegerUnion}()
@@ -615,7 +620,7 @@ The `principal extension M +_F e` of a matroid `M` where the element `e` is free
 See Section 7.2 of [Oxl11](@cite).
 
 # Example
-To add `4` freely to the flat `{1,2}` of the uniform matroid `U_{3,4}` do
+To add `5` freely to the flat `{1,2}` of the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
 
@@ -639,7 +644,7 @@ The `free extension M +_E e` of a matroid `M` where the element `e`.
 See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
 
 # Example
-To add `4` freely to the uniform matroid `U_{3,4}` do
+To add `5` freely to the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
 
@@ -698,7 +703,7 @@ julia> circuits(N)[1]
 """
 function parallel_extension(M::Matroid, old::ElementType, new::ElementType)
     if !(old in M.groundset)
-        error("The element ".old." is not in the ground set")
+        error("The element "*string(old)*" is not in the ground set")
     end
     return principal_extension(M,closure(M,[old]), new)
 end
