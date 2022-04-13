@@ -301,7 +301,7 @@ julia> nullity(M, [1,2,3])
 1
 ```
 """
-nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))::Int
+nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank(M.pm_matroid, Set{Int}([M.gs2num[i]-1 for i in set]))::Int
 
 
 @doc Markdown.doc"""
@@ -386,7 +386,7 @@ function independent_sets(M::Matroid)
     pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
     n = length(M.groundset)
     gs = M.groundset
-    sets = Vector{Vector{Int64}}()
+    sets = Vector{typeof(matroid_groundset(M))}()
     push!(sets,[])
     for k in 1:rank(M)
         for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
@@ -420,7 +420,7 @@ julia> spanning_sets(uniform_matroid(2, 3))
 function spanning_sets(M::Matroid)
     # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
     coindependent_sets = independent_sets(dual_matroid(M))
-    span_sets = [filter(k -> !(k in set), 1:length(M)) for set in coindependent_sets]
+    span_sets = [filter(k -> !(k in set), matroid_groundset(M)) for set in coindependent_sets]
     return reverse(span_sets)
 end
 

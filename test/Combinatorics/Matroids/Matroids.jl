@@ -209,7 +209,7 @@
         @test_throws ErrorException affine_geometry(3,6)
     end
 
-    @testset "properties" begin
+@testset "properties" begin
     #isomorphic_matroid
     @test rank(isomorphic_matroid(fano_matroid(), ["001","010","011","100","101","110","111"])) == 3
     @test_throws ErrorException isomorphic_matroid(fano_matroid(), [1,2,3])
@@ -220,30 +220,43 @@
 
 
     N = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j'])
+    NN = direct_sum(N,N)
     O = matroid_from_bases(Set{Set{Int}}([Set()]),0)
 
     R, q = PolynomialRing(ZZ, 'q')
-    for (M, values) in ((uniform_matroid(3,5), [17, 2, 3, 4, inf, R(q^3-5q^2+10q-6)]),
-                        (uniform_matroid(0,2), [1, 1, 0, 1, 1, R(0)]),
-                        (vamos_matroid(), [79, 7, 3, 4, 3, R(q^4-8q^3+28q^2-51q+30)]),
-                        (N, [5, 3, 2, 2, 2, R(q^2-3q+2)]),
-                        (direct_sum(N,N), [25, 9, 2, 2 ,2, R(q^4-6q^3+13q^2-12q+4)]),
-                        (O, [1, 1, 0, inf, inf, R(1)]))
+    for (M, values) in ((uniform_matroid(3,5), [2, 17, 2, 3, 4, inf, R(q^3-5q^2+10q-6), false, false, false, true]),
+                        (uniform_matroid(0,2), [2, 1, 1, 0, 1, 1, R(0), true, true, true, false]),
+                        (vamos_matroid(), [4, 79, 7, 3, 4, 3, R(q^4-8q^3+28q^2-51q+30), false, false, false, true]),
+                        (N, [2, 5, 3, 2, 2, 2, R(q^2-3q+2), true, true, true, false]),
+                        (NN, [4, 25, 9, 2, 2 ,2, R(q^4-6q^3+13q^2-12q+4), true, true, true, false]),
+                        (O, [0, 1, 1, 0, inf, inf, R(1), true, true, true, true]))
 
-        @test length(flats(M)) == values[1]
-        @test length(cyclic_flats(M)) == values[2]
+        @test nullity(M,matroid_groundset(M)) == values[1]
+        @test length(flats(M)) == values[2]
+        @test length(cyclic_flats(M)) == values[3]
         r = rank(M)
         if(r!=0)
             @test Set{Vector{Any}}(flats(M,rank(M)-1)) == Set{Vector{Any}}(hyperplanes(M))
+#TODO            @test corank(M,[1,2]) == rank(dual_matroid(M),[1,2])
         end
-        @test vertical_connectivity(M) == values[3]
-        @test girth(M) == values[4]
-        @test tutte_connectivity(M) == values[5]
-        @test characteristic_polynomial(M) == values[6]
+        @test vertical_connectivity(M) == values[4]
+        @test girth(M) == values[5]
+        @test tutte_connectivity(M) == values[6]
+        @test characteristic_polynomial(M) == values[7]
+        @test length(cobases(M)) == length(bases(M))
+        @test cohyperplanes(M) == [setdiff(matroid_groundset(M),set) for set in circuits(M)]
+        @test is_regular(M) == values[8]
+        @test is_binary(M) == values[9]
+        @test is_ternary(M) == values[10]
+        @test n_connected_components(M) == length(connected_components(M))
+        @test is_connected(M) == (n_connected_components(M)<2)
+        @test is_simple(M) == values[11]
     end      
-
+    
     @test_throws ErrorException flats(uniform_matroid(2,3),4)
     @test_throws ErrorException cyclic_flats(uniform_matroid(2,3),-1)
+    @test nullity(N,['i','j']) == 1
+    @test nullity(N,Set(['i','j'])) == 1
 
     @test fundamental_circuit(N,Set([1, 2]),'i') == [1, 2, 'i']
     @test fundamental_circuit(N,Set([1,'i',]),'j') == ['i','j']
@@ -251,8 +264,40 @@
     @test_throws ErrorException fundamental_circuit(N,Set([1, 2]), 3)
     @test_throws ErrorException fundamental_circuit(N,Set([1, 2]), 1)
 
+    @test fundamental_cocircuit(N,Set([1, 2]),1) == [1,'i','j']
+    @test fundamental_cocircuit(N,Set([1,'i',]),'i') == [2,'i','j']
+    @test_throws ErrorException fundamental_cocircuit(N,Set(['i','j']),'i')
+    @test_throws ErrorException fundamental_cocircuit(N,Set([1, 2]), 'i')
+    @test_throws ErrorException fundamental_cocircuit(N,Set([1, 2]), 3)
 
-    end
+    @test independent_sets(N) == [[],[1],[2],['i'],['j'],[1,'j'], [2,'j'], [1,'i'], [2,'i'], [1,2]]
+    @test independent_sets(O) == [[]]
+    @test independent_sets(uniform_matroid(0,2)) == [[]]
+
+    @test spanning_sets(N) == [[1,'j'], [2,'j'], [1,2], [1,'i'], [2,'i'], [1,2,'i'], [1,2,'j'], [1,'i','j'], [2,'i','j'], [1,2,'i','j']]
+    @test spanning_sets(O) == [[]]
+    @test spanning_sets(uniform_matroid(0,2)) == [[], [1], [2], [1, 2]]
+
+    @test cobases(N) == [['i','j'], [2,'j'], [2,'i'], [1,'j'], [1,'i']]
+
+    @test is_clutter(bases(N)) == true
+    @test is_clutter(circuits(N)) == true
+    @test is_clutter(hyperplanes(N)) == true
+    @test is_clutter([[1],[1,2],[3,4]]) == false
+
+    @test is_regular(uniform_matroid(2,4)) == false
+    @test is_binary(uniform_matroid(2,4)) == false
+    @test is_ternary(uniform_matroid(2,4)) == true
+
+    @test [bases(M) for M in direct_sum_components(NN)] == [bases(N),bases(isomorphic_matroid(N,["1'","2'","i'","j'"]))]
+
+#TODO coloops is_coloopless
+#TODO connectivity_function
+#TODO is_vertical_k_separation
+#TODO is_k_separation
+#TODO isisomorphic
+
+end
 
 
 end
