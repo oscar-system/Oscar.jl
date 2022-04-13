@@ -372,7 +372,7 @@ These are all subsets of the bases.
 # Example
 ```jldoctest
 julia> independent_sets(uniform_matroid(2, 3))
-7-element Vector{Vector{Int64}}:
+7-element Vector{Vector{Integer}}:
  []
  [1]
  [2]
@@ -410,7 +410,7 @@ These are all sets containing a basis.
 # Example
 ```jldoctest
 julia> spanning_sets(uniform_matroid(2, 3))
-4-element Vector{Vector{Int64}}:
+4-element Vector{Vector{Integer}}:
  [1, 2]
  [1, 3]
  [2, 3]

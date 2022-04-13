@@ -229,6 +229,7 @@
                         (vamos_matroid(), [4, 79, 7, 3, 4, 3, R(q^4-8q^3+28q^2-51q+30), false, false, false, true]),
                         (N, [2, 5, 3, 2, 2, 2, R(q^2-3q+2), true, true, true, false]),
                         (NN, [4, 25, 9, 2, 2 ,2, R(q^4-6q^3+13q^2-12q+4), true, true, true, false]),
+                        #TODO (uniform_matroid(5,5), [0, 32, 1, 1, inf, 1, R(q^5-5q^4+10q^3-10q^2+5q-1), false, false, false, true]),
                         (O, [0, 1, 1, 0, inf, inf, R(1), true, true, true, true]))
 
         @test nullity(M,matroid_groundset(M)) == values[1]
@@ -247,7 +248,7 @@
         @test cohyperplanes(M) == [setdiff(matroid_groundset(M),set) for set in circuits(M)]
         @test is_regular(M) == values[8]
         @test is_binary(M) == values[9]
-        @test is_ternary(M) == values[10]
+        @test is_ternary(M) == values[10] #TODO seg fault here
         @test n_connected_components(M) == length(connected_components(M))
         @test is_connected(M) == (n_connected_components(M)<2)
         @test is_simple(M) == values[11]
