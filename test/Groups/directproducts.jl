@@ -31,9 +31,9 @@
    S1 = image(embedding(G,1))[1]
    C1 = image(embedding(G,2))[1]
    @test intersect(G,S1)[1]==S1
-   @test isisomorphic(S1,S)[1]
-   @test isisomorphic(quo(G,S1)[1],C)[1]
-   @test isisomorphic(quo(G,C1)[1],S1)[1]
+   @test isisomorphic(S1,S)
+   @test isisomorphic(quo(G,S1)[1],C)
+   @test isisomorphic(quo(G,C1)[1],S1)
 
    x = G(cperm([1,2]),C[1])
    @test x==G([cperm([1,2]),C[1]])
@@ -74,7 +74,7 @@
       C3 = cyclic_group(3)
       G = inner_direct_product(C2,C2,C3,C3)
       @test G isa PcGroup
-      @test isisomorphic(G,direct_product(C2,C2,C3,C3))[1]
+      @test isisomorphic(G,direct_product(C2,C2,C3,C3))
       A = alternating_group(3)
       G = inner_direct_product(A,A,A)
       @test G isa PermGroup
@@ -111,7 +111,7 @@
       @test number_of_factors(G)==5
       @test isabelian(G)
       @test factor_of_direct_product(G,5)==C
-      @test isisomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))[1]
+      @test isisomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))
       x1 = G(C[1],one(C),one(C),one(C),one(C))
       x2 = G(one(C),C[1],one(C),one(C),one(C))
       x3 = G(one(C),one(C),C[1],one(C),one(C))
@@ -135,7 +135,7 @@ end
    G = semidirect_product(Q,f,C)
    @test G isa SemidirectProductGroup{PcGroup,PcGroup}
    @test normal_subgroup(G)==Q
-   @test isisomorphic(acting_subgroup(G),C)[1]
+   @test isisomorphic(acting_subgroup(G),C)
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
    @test isfull_semidirect_product(G)
@@ -205,8 +205,8 @@ end
    W = wreath_product(C,C,a)
    @test W isa WreathProductGroup
    @test order(W)==81
-   @test isisomorphic(normal_subgroup(W),C)[1]
-   @test isisomorphic(acting_subgroup(W),C)[1]
+   @test isisomorphic(normal_subgroup(W),C)
+   @test isisomorphic(acting_subgroup(W),C)
    @test homomorphism_of_wreath_product(W)==a
    @test embedding(W,1)(C[1]) in W
    @test W(C[1],one(C),one(C),C[1]) isa elem_type(WreathProductGroup)

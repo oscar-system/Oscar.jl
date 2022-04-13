@@ -35,7 +35,7 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check=true)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
-  imgap = typeof(xgap)(domGap, GAP.Globals.Image(f.X,xgap.X))
+  imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
   return to_oscar(imgap)
 end
  

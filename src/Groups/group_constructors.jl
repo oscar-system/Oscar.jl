@@ -41,10 +41,8 @@ as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
 symmetric_group(n::Int) = symmetric_group(PermGroup, n)
 
 function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
-  return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n))
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n)::GapObj)
 end
 
 """
@@ -72,10 +70,8 @@ as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
 alternating_group(n::Int) = alternating_group(PermGroup, n)
 
 function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
-  return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n))
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n)::GapObj)
 end
 
 """
@@ -102,7 +98,8 @@ Return the cyclic group of order `n`, as an instance of `T`.
 cyclic_group(n::Int) = cyclic_group(PcGroup, n)
 
 function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
-  return T(GAP.Globals.CyclicGroup(_gap_filter(T), n))
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  return T(GAP.Globals.CyclicGroup(_gap_filter(T), n)::GapObj)
 end
 
 """
@@ -138,12 +135,12 @@ Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
     In future versions of Oscar, this may change.
 """
 function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
-  return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.GapObj(v)))
+  return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.GapObj(v))::GapObj)
 end
 
 function abelian_group(::Type{T}, v::Vector{fmpz}) where T <: GAPGroup
   vgap = GAP.julia_to_gap(v, recursive=true)
-  return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap))
+  return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap)::GapObj)
 end
 
 @doc Markdown.doc"""
@@ -155,7 +152,7 @@ that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 @gapattribute isabelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
 
 function mathieu_group(n::Int)
-  @assert n in Int[9, 10, 11, 12, 21, 22, 23, 24]
+  9 <= n <= 12 || 21 <= n <= 24 || throw(ArgumentError("n must be a 9-12 or 21-24"))
   return PermGroup(GAP.Globals.MathieuGroup(n), n)
 end
 
@@ -185,17 +182,18 @@ where the `i`-th generator is printed as `L[i]`.
     Variables named like the group generators are *not* created by this function.
 """
 function free_group(n::Int, s::Union{String, Symbol} = "f")
-   return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s)))
+   n >= 0 || throw(ArgumentError("n must be a non-negative integer"))
+   return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
 end
 
 function free_group(L::Vector{<:Union{String, Symbol}})
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J))
+   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
 end
 
 function free_group(L::Union{String, Symbol}...)
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J))
+   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
 end
 
 # FIXME: a function `free_abelian_group` with the same signature is
@@ -205,14 +203,14 @@ end
 #end
 
 function free_abelian_group(::Type{FPGroup}, n::Int)
- return FPGroup(GAP.Globals.FreeAbelianGroup(n))
+ return FPGroup(GAP.Globals.FreeAbelianGroup(n)::GapObj)
 end
 
 
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 
 function free_group(G::FPGroup)
-   return FPGroup(GAP.Globals.FreeGroupOfFpGroup(G.X))
+   return FPGroup(GAP.Globals.FreeGroupOfFpGroup(G.X)::GapObj)
 end
 
 ################################################################################
@@ -233,7 +231,7 @@ dihedral_group(n::Int) = dihedral_group(PcGroup, n)
 
 function dihedral_group(::Type{T}, n::Int) where T <: GAPGroup
   @assert iseven(n)
-  return T(GAP.Globals.DihedralGroup(_gap_filter(T), n))
+  return T(GAP.Globals.DihedralGroup(_gap_filter(T), n)::GapObj)
 end
 
 @doc Markdown.doc"""
@@ -274,7 +272,7 @@ quaternion_group(n::Int) = quaternion_group(PcGroup, n)
 
 function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup 
    @assert iszero(mod(n, 4))
-  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n))
+  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
 end
 
 @doc Markdown.doc"""

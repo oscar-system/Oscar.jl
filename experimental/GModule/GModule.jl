@@ -1503,7 +1503,7 @@ function lift(C::GModule, mp::Map)
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
     if get_assert_level(:BruecknerSQ) > 1
       _GG, _ = Oscar.GrpCoh.extension(z(chn))
-      @assert isisomorphic(GG, _GG)[1]
+      @assert isisomorphic(GG, _GG)
     end
 
     function reduce(g) #in G

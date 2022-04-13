@@ -155,14 +155,14 @@ end
 function Oscar.relations(G::Oscar.GAPGroup)
    f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
-   H = FPGroup(GAP.Globals.Image(f))
+   H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
 function Oscar.relations(G::PcGroup)
    f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.julia_to_gap("g"))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
-   H = FPGroup(GAP.Globals.Image(f))
+   H = FPGroup(GAPWrap.Image(f))
    return relations(H)
 end
 
@@ -1177,7 +1177,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
     return M(z)
   end
 
-  @assert isisomorphic(B, fp_group(M)[1])[1]
+  @assert isisomorphic(B, fp_group(M)[1])
 
   return B, MapFromFunc(
     x->image(mM, gap_to_julia(x.X)),

@@ -16,6 +16,7 @@ export
     isinvariant,
     isinvertible,
     isisomorphic,
+    isisomorphic_with_map,
     isomorphic_fp_group,
     isomorphic_pc_group,
     isomorphic_perm_group,
@@ -172,7 +173,7 @@ Base.:^(x::GAPGroupElem,f::GAPGroupHomomorphism) = image(f,x)
 Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
-  return group_element(codomain(f), GAP.Globals.Image(f.map,x.X))
+  return group_element(codomain(f), GAPWrap.Image(f.map,x.X))
 end
 
 """
@@ -236,7 +237,7 @@ or if `H` is not contained in `domain(f)`.
 function isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
   @assert domain(f) == codomain(f) "Not an endomorphism!"
   @assert GAPWrap.IsSubset(domain(f).X, H.X) "Not a subgroup of the domain"
-  return GAP.Globals.Image(f.map, H.X) == H.X
+  return GAPWrap.Image(f.map, H.X) == H.X
 end
 
 """
@@ -253,7 +254,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
   @assert issubgroup(domain(f), H)[1] "Not a subgroup!"
-  return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X))
+  return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X)::GapObj)
 end
 
 ################################################################################
@@ -268,7 +269,7 @@ end
 Return the kernel of `f`, together with its embedding into `domain`(`f`).
 """
 function kernel(f::GAPGroupHomomorphism)
-  K = GAP.Globals.Kernel(f.map)
+  K = GAP.Globals.Kernel(f.map)::GapObj
   return _as_subgroup(domain(f), K)
 end
 
@@ -278,7 +279,7 @@ end
 Return the image of `f` as subgroup of `codomain`(`f`), together with the embedding homomorphism.
 """
 function image(f::GAPGroupHomomorphism)
-  K = GAP.Globals.Image(f.map)
+  K = GAPWrap.Image(f.map)
   return _as_subgroup(codomain(f), K)
 end
 
@@ -289,7 +290,7 @@ end
 Return `f`(`H`), together with the embedding homomorphism into `codomain`(`f`).
 """
 function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
-  H1 = GAP.Globals.Image(f.map, H.X)
+  H1 = GAPWrap.Image(f.map, H.X)
   return _as_subgroup(codomain(f), H1)
 end
 
@@ -329,7 +330,7 @@ function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = tru
 # Until this problem gets fixed on the GAP side, we perform a membership test
 # before calling `GAP.Globals.PreImagesRepresentative`.
   check && ! (x in image(f)[1]) && return false, one(domain(f))
-  r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
+  r = GAP.Globals.PreImagesRepresentative(f.map, x.X)::GapObj
   if r == GAP.Globals.fail
     return false, one(domain(f))
   else
@@ -344,7 +345,7 @@ If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
 together with its embedding homomorphism into the domain of `f`.
 """
 function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
-  H1 = GAP.Globals.PreImage(f.map, H.X)
+  H1 = GAP.Globals.PreImage(f.map, H.X)::GapObj
   return _as_subgroup(domain(f), H1)
 end
 
@@ -356,19 +357,65 @@ end
 ################################################################################
 
 """
-    isisomorphic(G::Group, H::Group)
+    isisomorphic_with_map(G::Group, H::Group)
 
 Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group
 isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial
 homomorphism.
+
+# Examples
+```jldoctest
+julia> isisomorphic_with_map(symmetric_group(3), dihedral_group(6))
+(true, Group homomorphism from
+Sym( [ 1 .. 3 ] )
+to
+<pc group of size 6 with 2 generators>)
+```
 """
-function isisomorphic(G::GAPGroup, H::GAPGroup)
-  mp = GAP.Globals.IsomorphismGroups(G.X, H.X)
-  if mp == GAP.Globals.fail
+function isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
+  mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
+  if mp === GAP.Globals.fail
     return false, trivial_morphism(G, H)
   else
     return true, GAPGroupHomomorphism(G, H, mp)
   end
+end
+
+"""
+    isisomorphic(G::Group, H::Group)
+
+Return `true` if `G` and `H` are isomorphic groups, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> isisomorphic(symmetric_group(3), dihedral_group(6))
+true
+```
+"""
+function isisomorphic(G::GAPGroup, H::GAPGroup)
+  mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
+  return mp !== GAP.Globals.fail
+end
+
+"""
+    isomorphism(G::Group, H::Group)
+
+Return a group isomorphism between `G` and `H` if they are isomorphic groups.
+Otherwise throw an exception.
+
+# Examples
+```jldoctest
+julia> isomorphism(symmetric_group(3), dihedral_group(6))
+Group homomorphism from
+Sym( [ 1 .. 3 ] )
+to
+<pc group of size 6 with 2 generators>
+```
+"""
+function isomorphism(G::GAPGroup, H::GAPGroup)
+  mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
+  mp === GAP.Globals.fail && throw(ArgumentError("the groups are not isomorphic"))
+  return GAPGroupHomomorphism(G, H, mp)
 end
 
 
@@ -388,13 +435,40 @@ _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 Return an isomorphism from `G` to a group of type `T`.
 An exception is thrown if no such isomorphism exists.
+
+Isomorphisms are cached in `G`, subsequent calls of `isomorphism` with the
+same `T` yield identical results.
+
+If only the image of such an isomorphism is needed, use `T(G)`.
+
+# Examples
+```jldoctest
+julia> G = dihedral_group(6)
+<pc group of size 6 with 2 generators>
+
+julia> iso = isomorphism(PermGroup, G)
+Group homomorphism from
+<pc group of size 6 with 2 generators>
+to
+Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
+
+julia> PermGroup(G)
+Group([ (1,2)(3,6)(4,5), (1,3,5)(2,4,6) ])
+
+julia> codomain(iso) === ans
+true
+```
 """
 function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
-   fun = _get_iso_function(T)
-   f = fun(G.X)::GapObj
-   f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
-   H = T(GAP.Globals.ImagesSource(f)::GapObj)
-   return GAPGroupHomomorphism(G, H, f)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
+   return get!(isos, T) do
+     fun = _get_iso_function(T)
+     f = fun(G.X)::GapObj
+     f == GAP.Globals.fail && throw(ArgumentError("Could not convert group into a group of type $T"))
+     H = T(GAP.Globals.ImagesSource(f)::GapObj)
+     return GAPGroupHomomorphism(G, H, f)
+   end::GAPGroupHomomorphism{typeof(G), T}
 end
 
 
@@ -405,26 +479,30 @@ Return a map from `G` to an isomorphic (additive) group of type `GrpAbFinGen`.
 An exception is thrown if `G` is not abelian or not finite.
 """
 function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
-  isabelian(G) || throw(ArgumentError("the group is not abelian"))
-  isfinite(G) || throw(ArgumentError("the group is not finite"))
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
+   return get!(isos, GrpAbFinGen) do
+     isabelian(G) || throw(ArgumentError("the group is not abelian"))
+     isfinite(G) || throw(ArgumentError("the group is not finite"))
 #T this restriction is not nice
 
-  indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)
-  orders = [GAP.Globals.Order(x) for x in indep]
-  n = length(indep)
-  A = abelian_group(GrpAbFinGen, orders)
+     indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
+     orders = [GAPWrap.Order(x) for x in indep]
+     n = length(indep)
+     A = abelian_group(GrpAbFinGen, orders)
 
-  f(g) = A(Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X)))
+     f(g) = A(Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X)))
 
-  finv = function(g::elem_type(GrpAbFinGen))
-     res = Oscar.GAPWrap.One(G.X)
-     for i in 1:n
-       res = res * indep[i]^GAP.Obj(g.coeff[i])
+     finv = function(g::elem_type(GrpAbFinGen))
+       res = GAPWrap.One(G.X)
+       for i in 1:n
+         res = res * indep[i]^GAP.Obj(g.coeff[i])
+       end
+       return group_element(G, res)
      end
-     return group_element(G, res)
-  end
 
-  return MapFromFunc(f, finv, G, A)
+     return MapFromFunc(f, finv, G, A)
+   end::MapFromFunc{typeof(G), GrpAbFinGen}
 end
 
 """
@@ -434,55 +512,65 @@ Return an isomorphism from `A` to a group of type `T`.
 An exception is thrown if no such isomorphism exists or if `A` is not finite.
 """
 function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
-  # find independent generators
-  if isdiagonal(rels(A))
-    exponents = diagonal(rels(A))
-    A2 = A
-    A2_to_A = identity_map(A)
-    A_to_A2 = identity_map(A)
-  else
-    exponents = elementary_divisors(A)
-    A2, A2_to_A = snf(A)
-    A_to_A2 = inv(A2_to_A)
-  end
-  # the isomorphic gap group
-  G = abelian_group(T, exponents)
-  # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
-  # of the orders in `exponents`.
-  # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
-  # that may differ from these generators,
-  # and that belong to the exponent vectors returned by
-  # `GAP.Globals.IndependentGeneratorExponents(G.X, g)`.
-  # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
-  # we let `hom` compute elements in `A2` that correspond to
-  # `GAP.Globals.IndependentGenerators(G.X)`.
-  Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
-  gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-  Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   return get!(isos, T) do
+     # find independent generators
+     if isdiagonal(rels(A))
+       exponents = diagonal(rels(A))
+       A2 = A
+       A2_to_A = identity_map(A)
+       A_to_A2 = identity_map(A)
+     else
+       exponents = elementary_divisors(A)
+       A2, A2_to_A = snf(A)
+       A_to_A2 = inv(A2_to_A)
+     end
+     # the isomorphic gap group
+     G = abelian_group(T, exponents)
+     # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
+     # of the orders in `exponents`.
+     # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
+     # that may differ from these generators,
+     # and that belong to the exponent vectors returned by
+     # `GAPWrap.IndependentGeneratorExponents(G.X, g)`.
+     # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
+     # we let `hom` compute elements in `A2` that correspond to
+     # `GAP.Globals.IndependentGenerators(G.X)`.
+     Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
+     gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
+     Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
 
-  imgs = [Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
-  A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
-  Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
-  n = length(exponents)
+     imgs = [Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
+     A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
+     Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
+     n = length(exponents)
 
-  f = function(a::elem_type(GrpAbFinGen))
-    exp = A_to_A2(a)
-    img = GAP.Globals.One(G.X)
-    for i in 1:n
-      img = img * Ggens[i]^GAP.Obj(exp[i])
-    end
-    return group_element(G, img)
-  end
+     f = function(a::elem_type(GrpAbFinGen))
+       exp = A_to_A2(a)
+       img = GAP.Globals.One(G.X)
+       for i in 1:n
+         img = img * Ggens[i]^GAP.Obj(exp[i])
+       end
+       return group_element(G, img)
+     end
 
-  finv = function(g)
-    exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(G.X, g.X))
-    return Aindep_to_A(Aindep(exp))
-  end
+     finv = function(g)
+       exp = Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, g.X))
+       return Aindep_to_A(Aindep(exp))
+     end
 
-  return MapFromFunc(f, finv, A, G)
+     return MapFromFunc(f, finv, A, G)
+   end::MapFromFunc{GrpAbFinGen, T}
 end
 
-isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen) = identity_map(A)
+function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   return get!(isos, GrpAbFinGen) do
+     return identity_map(A)
+   end::AbstractAlgebra.Generic.IdentityMap{GrpAbFinGen}
+end
 
 """
     FPGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
@@ -559,7 +647,7 @@ julia> simplified_fp_group(G)[1]
 """
 function simplified_fp_group(G::FPGroup)
    f = GAP.Globals.IsomorphismSimplifiedFpGroup(G.X)
-   H = FPGroup(GAP.Globals.Image(f))
+   H = FPGroup(GAPWrap.Image(f))
    # TODO: remove the next line once https://github.com/gap-system/gap/pull/4810
    # is deployed to Oscar
    GAP.Globals.UseIsomorphismRelation(G.X, H.X)
@@ -585,7 +673,7 @@ of type `GAPGroupHomomorphism`; in this last case, the result has type
 `GAPGroupHomomorphism`.
 """
 function automorphism_group(G::GAPGroup)
-  AutGAP = GAP.Globals.AutomorphismGroup(G.X)
+  AutGAP = GAP.Globals.AutomorphismGroup(G.X)::GapObj
   return AutomorphismGroup(AutGAP, G)
 end
 
@@ -634,7 +722,7 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   if check
     @assert A.G == G || x.X in A.G.X "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
-  return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
+  return typeof(x)(G, GAPWrap.Image(f.X,x.X))
 end
 
 Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
@@ -681,7 +769,7 @@ Return whether `f`(`H`) == `H`.
 """
 function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
   @assert GAPWrap.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
-  return GAP.Globals.Image(f.X, H.X) == H.X
+  return GAPWrap.Image(f.X, H.X) == H.X
 end
 
 """
