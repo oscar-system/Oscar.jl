@@ -160,7 +160,7 @@
         @test length(m5) == 11
 
         m6 = deletion(m2,Set([]))
-        @test sort(bases(m6)) == sort(bases(m6))
+        @test sort(bases(m6)) == sort(bases(m2))
         @test_throws ErrorException deletion(m2,Set([1,9]))
         @test_throws ErrorException deletion(m2,42)
 
@@ -190,7 +190,7 @@
 
         @test length(circuits(free_extension(fano_matroid(),8))) == 42
         @test length(circuits(series_extension(fano_matroid(), 1,8))) == 14
-        @test  length(circuits(parallel_extension(fano_matroid(), 1,8))) == 22
+        @test length(circuits(parallel_extension(fano_matroid(), 1,8))) == 22
         @test_throws ErrorException parallel_extension(fano_matroid(), 8,9)
 
         @test length(circuits(all_subsets_matroid(3))) == 17
@@ -244,7 +244,7 @@
 
     @test_throws ErrorException flats(uniform_matroid(2,3),4)
     @test_throws ErrorException cyclic_flats(uniform_matroid(2,3),-1)
-    
+
     @test fundamental_circuit(N,Set([1, 2]),'i') == [1, 2, 'i']
     @test fundamental_circuit(N,Set([1,'i',]),'j') == ['i','j']
     @test_throws ErrorException fundamental_circuit(N,Set(['i','j']),1)

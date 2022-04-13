@@ -307,7 +307,7 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
         if rank(tmp_mat)==rk
             push!(bases, set);
         end
-    end    
+    end
 
     return matroid_from_bases(bases, ncols(A); check=check)
 end
