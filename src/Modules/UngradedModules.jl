@@ -759,11 +759,15 @@ function identity_map(M::ModuleFP)
   return hom(M, M, gens(M))
 end
 
+### type getters in accordance with the `hom`-constructors
 function morphism_type(F::AbstractFreeMod, G::ModuleFP)
-  base_ring(F) == base_ring(G) && return FreeModuleHom{typeof(F), typeof(G), Nothing}
+  base_ring(F) === base_ring(G) && return FreeModuleHom{typeof(F), typeof(G), Nothing}
   return FreeModuleHom{typeof(F), typeof(G), typeof(base_ring(G))}
 end
 
+### Careful here! Different base rings may still have the same type.
+# Whenever this is the case despite a non-trivial ring map, the appropriate 
+# type getter has to be called manually!
 function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:ModuleFP}
   base_ring_type(T) == base_ring_type(U) || return morphism_type(T, U, base_ring_type(U))
   return FreeModuleHom{T, U, Nothing}
@@ -779,8 +783,10 @@ function morphism_type(F::AbstractFreeMod, G::ModuleFP, h::RingMapType) where {R
   return FreeModuleHom{typeof(F), typeof(G), typeof(h)}
 end
 
-function morphism_type(::Type{T}, ::Type{U}, ::Type{H}) where {T<:AbstractFreeMod, U<:ModuleFP, H}
-  return FreeModuleHom{T, U, H}
+function morphism_type(
+    ::Type{DomainType}, ::Type{CodomainType}, ::Type{RingMapType}
+  ) where {DomainType<:AbstractFreeMod, CodomainType<:ModuleFP, RingMapType}
+  return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
 ###############################################################################
@@ -1435,7 +1441,10 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 ```
 """
-function subquotient(a::FreeModuleHom, b::FreeModuleHom)
+function subquotient(
+    a::FreeModuleHom{<:Any, <:Any, Nothing}, 
+    b::FreeModuleHom{<:Any, <:Any, Nothing}
+  )
   F = codomain(a)
   @assert F === codomain(b)
   A = matrix(a)
