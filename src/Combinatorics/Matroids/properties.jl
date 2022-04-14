@@ -496,10 +496,10 @@ Return the rank of `set` in the dual matroid of `M`.
 # Example
 ```jldoctest
 julia> corank(fano_matroid(), [1,2,3])
-4
+3
 ```
 """
-corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, set) + rank(M, setdiff(M.groundset, set))
+corank(M::Matroid, set::GroundsetType) = length(set)-rank(M, M.groundset) + rank(M, setdiff(M.groundset, set))
 
 @doc Markdown.doc"""
     is_clutter(sets)
@@ -543,7 +543,13 @@ julia> is_regular(fano_matroid())
 false
 ```
 """
-is_regular(M::Matroid) = M.pm_matroid.REGULAR
+function is_regular(M::Matroid)
+    #if statment to avoid bug in polymake (TODO remove when fixed)
+    if rank(M)==length(M)
+        return true
+    end
+    return M.pm_matroid.REGULAR
+end
 
 @doc Markdown.doc"""
     is_binary(M::Matroid)
@@ -577,7 +583,13 @@ julia> is_ternary(fano_matroid())
 false
 ```
 """
-is_ternary(M::Matroid) = M.pm_matroid.TERNARY
+function is_ternary(M::Matroid)
+    #if statment to avoid bug in polymake (TODO remove when fixed)
+    if rank(M)==length(M)
+        return true
+    end
+    return M.pm_matroid.TERNARY
+end
 
 @doc Markdown.doc"""
     n_connected_components(M::Matroid)
