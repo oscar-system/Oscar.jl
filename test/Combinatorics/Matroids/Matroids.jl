@@ -325,5 +325,6 @@
 
         @test isisomorphic(matroid_from_revlex_basis_encoding("**0***",2,4),N)
         @test !isisomorphic(matroid_from_nonbases([[1,2,3],[3,4,5]],6),matroid_from_nonbases([[1,2,3],[4,5,6]],6))
+        @test !isisomorphic(N,principal_extension(N,[],3))
     end
 end

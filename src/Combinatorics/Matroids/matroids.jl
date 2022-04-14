@@ -634,7 +634,7 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
     end
     gs2num = copy(M.gs2num)
     gs2num[elem] = length(M.groundset)
-    return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
+    return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set{Int}(set)),[M.groundset;elem],gs2num)
 end
 
 @doc Markdown.doc"""
