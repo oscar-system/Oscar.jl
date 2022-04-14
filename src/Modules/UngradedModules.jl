@@ -672,7 +672,7 @@ end
 # FreeModuleHom constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+#=@doc Markdown.doc"""
     FreeModuleHom(F::FreeMod{T}, G::S, a::Vector) where {T, S}
 
 Construct the morphism $F \to G$ where `F[i]` is mapped to `a[i]`.
@@ -685,7 +685,10 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, a::Vector) where {T, S} = FreeModuleH
 
 Construct the morphism $F \to G$ corresponding to the matrix `mat`.
 """
-FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)
+FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)=#
+
+im_gens(f::FreeModuleHom) = gens(image(f)[1])
+base_ring_map(f::FreeModuleHom) = f.ring_map
 
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
@@ -714,20 +717,44 @@ end
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
+    hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem})
 
 Given a vector `V` of `rank(F)` elements of `M`, 
 return the homomorphism `F` $\to$ `M` which sends the `i`-th
 basis vector of `F` to the `i`-th entry of `V`.
 
-    hom(F::FreeMod{T}, M::ModuleFP{T}, A::MatElem{T}) where T
+    hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T
 
 Given a matrix `A` with `rank(F)` rows and `ngens(M)` columns, return the
 homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
 the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 """
-hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = FreeModuleHom(F, G, V) 
-hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
+function hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}) 
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
+  return FreeModuleHom(F, M, V)
+end
+function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T 
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M))
+  return FreeModuleHom(F, M, A)
+end
+
+@doc Markdown.doc"""
+    hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType}
+
+Given a vector `V` of `rank(F)` elements of `M` and a ring map `h`
+from `base_ring(F)` to `base_ring(M)`, return the 
+`base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th
+basis vector of `F` to the `i`-th entry of `V`.
+
+    hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+
+Given a matrix `A` over `base_ring(M)` with `rank(F)` rows and `ngens(M)` columns
+and a ring map `h` from `base_ring(F)` to `base_ring(M)`, return the
+`base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
+the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
+"""
+hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType} = FreeModuleHom(F, M, V, h)
+hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
@@ -736,6 +763,36 @@ Return the identity map $id_M$.
 """
 function identity_map(M::ModuleFP)
   return hom(M, M, gens(M))
+end
+
+### type getters in accordance with the `hom`-constructors
+function morphism_type(F::AbstractFreeMod, G::ModuleFP)
+  base_ring(F) === base_ring(G) && return FreeModuleHom{typeof(F), typeof(G), Nothing}
+  return FreeModuleHom{typeof(F), typeof(G), typeof(base_ring(G))}
+end
+
+### Careful here! Different base rings may still have the same type.
+# Whenever this is the case despite a non-trivial ring map, the appropriate 
+# type getter has to be called manually!
+function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:ModuleFP}
+  base_ring_type(T) == base_ring_type(U) || return morphism_type(T, U, base_ring_type(U))
+  return FreeModuleHom{T, U, Nothing}
+end
+
+base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
+base_ring_elem_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = T
+
+base_ring_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_type(typeof(M))
+base_ring_elem_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_elem_type(typeof(M))
+
+function morphism_type(F::AbstractFreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
+  return FreeModuleHom{typeof(F), typeof(G), typeof(h)}
+end
+
+function morphism_type(
+    ::Type{DomainType}, ::Type{CodomainType}, ::Type{RingMapType}
+  ) where {DomainType<:AbstractFreeMod, CodomainType<:ModuleFP, RingMapType}
+  return FreeModuleHom{DomainType, CodomainType, RingMapType}
 end
 
 ###############################################################################
@@ -900,6 +957,15 @@ function base_ring(M::SubModuleOfFreeModule)
 end
 
 @doc Markdown.doc"""
+    get_default_ordering(M::SubModuleOfFreeModule)
+
+Get the default ordering of `M`.
+"""
+function default_ordering(M::SubModuleOfFreeModule)
+  return M.default_ordering
+end
+
+@doc Markdown.doc"""
     set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 
 Set the default ordering in `M` to `ord`.
@@ -916,7 +982,7 @@ end
 Compute a standard basis of `submod` with respect to its default odering.
 """
 function std_basis(submod::SubModuleOfFreeModule)
-  return std_basis(submod, submod.default_ordering)
+  return std_basis(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -926,7 +992,7 @@ Compute a Gröbner basis of `submod` with respect to its default odering.
 For this, the default ordering must be global.
 """
 function groebner_basis(submod::SubModuleOfFreeModule)
-  return groebner_basis(submod, submod.default_ordering)
+  return groebner_basis(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -960,7 +1026,7 @@ end
 Compute a reduced Gröbner basis. The return type is `ModuleGens`.
 """
 function reduced_groebner_basis(submod::SubModuleOfFreeModule)
-  return reduced_groebner_basis(submod, submod.default_ordering)
+  return reduced_groebner_basis(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -986,7 +1052,7 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
 end
 
 function leading_module(submod::SubModuleOfFreeModule)
-  return leading_module(submod, submod.default_ordering)
+  return leading_module(submod, default_ordering(submod))
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering)
@@ -1001,7 +1067,7 @@ end
 Compute a standard basis of `submod` and return it as a `ModuleGens`.
 """
 function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule)
-  return std_basis_as_ModuleGens(submod, submod.default_ordering)
+  return std_basis_as_ModuleGens(submod, default_ordering(submod))
 end
 
 @doc Markdown.doc"""
@@ -1022,7 +1088,7 @@ function std_basis_as_ModuleGens(submod::SubModuleOfFreeModule, ordering::Module
 end
 
 function leading_module_as_ModuleGens(M::SubModuleOfFreeModule)
-  ord = M.default_ordering
+  ord = default_ordering(M)
   return leading_module_as_ModuleGens(M, ord)
 end
 
@@ -1241,7 +1307,7 @@ SubQuo(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R} =
 Construct the module generated by the elements of `O` as a subquotient.
 The elements of `O` must live in `F`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -1301,7 +1367,7 @@ return the subquotient $(\text{im } A + \text{im }  B)/\text{im }  B.$
     not compatible with free modules defined by the user or by other functions. 
     For compatibility, use `SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R})`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -1336,7 +1402,7 @@ end
 
 #######################################################
 @doc Markdown.doc"""
-    subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where T
+    subquotient(a::FreeModuleHom, b::FreeModuleHom)
 
 Given homomorphisms `a` and `b` between free modules such that 
 `codomain(a) === codomain(b)`, 
@@ -1381,7 +1447,10 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 ```
 """
-function subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where {T}
+function subquotient(
+    a::FreeModuleHom{<:Any, <:Any, Nothing}, 
+    b::FreeModuleHom{<:Any, <:Any, Nothing}
+  )
   F = codomain(a)
   @assert F === codomain(b)
   A = matrix(a)
@@ -1442,7 +1511,7 @@ where `a` is the free module homomorphism with codomain `F` represented by `A`.
 
 Create a free module `F`, say, with rank `F` columns, and return `cokernel(F, A)`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -1508,6 +1577,15 @@ function cokernel(A::MatElem)
 end
 
 @doc Markdown.doc"""
+    default_ordering(M::SubQuo)    
+
+Return the default ordering of `M`.
+"""
+function default_ordering(M::SubQuo)
+  return default_ordering(M.sub)
+end
+
+@doc Markdown.doc"""
     set_default_ordering!(M::SubQuo, ord::ModuleOrdering)
 
 Set the default ordering in `M` to `ord`.
@@ -1550,15 +1628,15 @@ function groebner_basis(M::SubQuo, ord::ModuleOrdering)
 end
 
 function std_basis(M::SubQuo)
-  return std_basis(M, M.sub.default_ordering)
+  return std_basis(M, default_ordering(M))
 end
 
 function groebner_basis(M::SubQuo)
-  return groebner_basis(M, M.sub.default_ordering)
+  return groebner_basis(M, default_ordering(M))
 end
 
 function reduced_groebner_basis(M::SubQuo)
-  return reduced_groebner_basis(M, M.sub.default_ordering)
+  return reduced_groebner_basis(M, default_ordering(M))
 end
 
 function reduced_groebner_basis(M::SubQuo, ord::ModuleOrdering)
@@ -1596,7 +1674,7 @@ function leading_module(M::SubQuo, ord::ModuleOrdering)
 end
 
 function leading_module(M::SubQuo)
-  return leading_module(M, M.sub.default_ordering)
+  return leading_module(M, default_ordering(M))
 end
 
 @doc Markdown.doc"""
@@ -3195,7 +3273,7 @@ end
 Reduce `M` with respect to the Gröbner basis `GB`.
 """
 function reduce(M::SubModuleOfFreeModule, GB::ModuleGB)
-  return SubModuleOfFreeModule(M.F, reduce(M.gens, GB), M.default_ordering)
+  return SubModuleOfFreeModule(M.F, reduce(M.gens, GB), default_ordering(M))
 end
 
 @doc Markdown.doc"""
@@ -3204,7 +3282,7 @@ end
 Reduce `M` with respect to `N`, that is with respect to a Gröbner basis of `N` (the Gröbner basis is computed for this).
 """
 function reduce(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
-  return reduce(M, groebner_basis(N, M.default_ordering))
+  return reduce(M, groebner_basis(N, default_ordering(M)))
 end
 
 @doc Markdown.doc"""
@@ -3362,7 +3440,7 @@ Return the kernel of `a` as an object of type `SubQuo`.
 
 Additionally, if `K` denotes this kernel, return the inclusion map `K` $\rightarrow$ `domain(a)`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -3438,7 +3516,7 @@ Return the image of `a` as an object of type `SubQuo`.
 
 Additionally, if `I` denotes this image, return the inclusion map `I` $\rightarrow$ `codomain(a)`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -4587,10 +4665,10 @@ function dense_row(r::Hecke.SRow, n::Int)
   return A
 end
 
-function default_ordering(R::MPolyRing)
+#=function default_ordering(R::MPolyRing)
   dp = Singular.ordering_dp(nvars(R))
   return Singular.sordering([dp.data[1], Singular.ordering_C().data[1]])
-end
+end=#
 
 function default_ordering(F::FreeMod)
   if iszero(F)

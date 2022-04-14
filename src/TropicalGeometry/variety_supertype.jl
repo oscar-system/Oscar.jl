@@ -85,7 +85,7 @@ export intersect_stably
 Return the ambient dimension of `T` if it is embedded. Otherwise an error is thrown.
 
 # Examples
-A tropical hypersurface in RR^n is of ambient dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of ambient dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -118,7 +118,7 @@ end
 Return the codimension of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is always of dimension n-1
+A tropical hypersurface in $\mathbb{R}^n$ is always of dimension n-1
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -147,7 +147,7 @@ end
 Return the dimension of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is always of dimension n-1
+A tropical hypersurface in $\mathbb{R}^n$ is always of dimension n-1
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -176,7 +176,7 @@ end
 Return the f-Vector of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -207,7 +207,7 @@ end
 Return the dimension of the lineality space of `T` if it is embedded. Otherwise an error is thrown.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -240,7 +240,7 @@ end
 Return the lineality space of `T` if it is embedded. Otherwise an error is thrown.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality spaceension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality spaceension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -274,7 +274,7 @@ end
 Return the maximal polyhedra of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -307,7 +307,7 @@ end
 Return the number of maximal polyhedra of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -337,7 +337,7 @@ end
 Return the number of polyhedra of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -367,7 +367,7 @@ end
 Return the number of vertices of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -394,10 +394,10 @@ end
     ispure(T::TropicalHypersurface{M, EMB})
     ispure(T::TropicalLinearSpace{M, EMB})
 
-Return true if `T` is a pure polyhedral complex, false otherwise.
+Return `true` if `T` is a pure polyhedral complex, `false` otherwise.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -423,10 +423,10 @@ end
     issimplicial(T::TropicalHypersurface{M, EMB})
     issimplicial(T::TropicalLinearSpace{M, EMB})
 
-Return true if `T` is a simplicial polyhedral complex, false otherwise.
+Return `true` if `T` is a simplicial polyhedral complex, `false` otherwise.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 
@@ -506,7 +506,7 @@ end
 Return the weights of `T`.
 
 # Examples
-A tropical hypersurface in RR^n is of lineality dimension n
+A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
 ```jldoctest
 julia> RR = TropicalSemiring(min);
 

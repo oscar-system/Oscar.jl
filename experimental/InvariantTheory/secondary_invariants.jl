@@ -308,7 +308,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   @assert !ismodular(RG)
   p_invars = primary_invariants(RG)
   I = ideal_of_primary_invariants(RG)
-  LI = leading_ideal(I, ordering=degrevlex(gens(base_ring(I))))
+  LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
 
   fg = molien_series(RG)
   f = numerator(fg)

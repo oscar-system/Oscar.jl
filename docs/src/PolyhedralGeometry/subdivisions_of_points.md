@@ -63,3 +63,14 @@ The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
 
+
+## Auxiliary functions
+```@docs
+ambient_dim(SOP::SubdivisionOfPoints)
+isregular(SOP::SubdivisionOfPoints)
+maximal_cells
+min_weights
+n_maximal_cells(SOP::SubdivisionOfPoints)
+points(SOP::SubdivisionOfPoints)
+secondary_cone
+```

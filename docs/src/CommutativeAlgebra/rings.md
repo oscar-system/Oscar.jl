@@ -14,7 +14,7 @@ Pages = ["rings.md"]
 
 In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
 while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
-rings with gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
+rings with (multi)gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
 and their elements, we refer to the chapters on rings and fields. 
 
 ## Types
@@ -146,11 +146,12 @@ We refer to the textbooks [MS05](@cite) and [KR05](@cite) for details on multigr
 we follow the former book.
 
 !!! note
-    Given a $G$-grading on $R$, we also say that $R$ is *$G$-graded*, or simply that $R$  is *graded*.
-    We say that $R$ is *positively graded (by $G$)* if $G$ is torsion-free and each graded part $R_g$
-	has finite rank. Note that the latter condition can be equivalently expressed by asking that the
-	degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
-
+    Given a $G$-grading on $R$, we also say that $R$ is *$G$-graded*, or simply that $R$ is *graded*.
+    If $R$ is a polynomial ring over a field, we say that a $G$-grading on $R$ is *positive* if $G$ is torsion-free
+	and each graded part $R_g$, $g\in G$, has finite dimension. We then also say that say that $R$ is
+	*positively graded (by $G$)*. Note that the positivity condition can be equivalently expressed by
+	asking that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
+		
 
 ### Types
 
@@ -159,10 +160,21 @@ Multivariate rings with gradings are modelled by objects of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
 
+!!! note
+    The types `MPolyRing_dec{T, S}` and `MPolyRingElem_dec{T, S}` are
+    also meant to eventually model multivariate rings with filtrations
+	and their elements.
+
+
+The following function allows one to distinguish between graded and filtered rings:
+
+```@docs
+isgraded(R::MPolyRing_dec)
+```
 
 ### Constructors for Graded Rings
 
-There are two basic ways of creating graded polynomial rings:
+There are two basic ways of creating multivariate rings with gradings:
 While the `grade` function allows one to assign a grading to a polynomial ring already constructed,
 the `GradedPolynomialRing` function is meant to create a graded polynomial ring all at once.
 

@@ -112,3 +112,21 @@ end
     val = GAP.evalstr("(1,2,3)(4,5)")
     @test GAP.Obj(g) == val
 end
+
+@testset "Set($coll)" for coll in [
+                            [7, 1, 5, 3, 10],
+                            fmpz[7, 1, 5, 3, 10],
+                            [:c,:b,:a,:b],
+                            [ (1,:a), (1,:b), (2,:a), (2,:b) ],
+                        ]
+    # create a set
+    s = Set(coll)
+    # create sort duplicate free list (this is how GAP represents sets)
+    l = sort(unique(coll))
+
+    x = GAP.GapObj(s)
+    @test x == GAP.GapObj(l)
+
+    x = GAP.GapObj(s; recursive=true)
+    @test x == GAP.GapObj(l; recursive=true)
+end

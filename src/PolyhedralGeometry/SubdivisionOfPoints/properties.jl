@@ -5,10 +5,47 @@
 ###############################################################################
 
 
+@doc Markdown.doc"""
+    points(SOP::SubdivisionOfPoints)
+
+Return the points of the subdivision of points, `SOP`.
+
+# Examples
+Display the points of the "mother of all examples" non-regular triangulation.
+```jldoctest
+julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
+
+julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
+
+julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+
+julia> points(MOAE)
+6-element SubObjectIterator{PointVector{fmpq}}:
+ [4, 0, 0]
+ [0, 4, 0]
+ [0, 0, 4]
+ [2, 1, 1]
+ [1, 2, 1]
+ [1, 1, 2]
 """
+function points(SOP::SubdivisionOfPoints)
+    return SubObjectIterator{PointVector{fmpq}}(pm_object(SOP), _point, size(pm_object(SOP).POINTS, 1))
+end
+
+_point(::Type{PointVector{fmpq}}, SOP::Polymake.BigObject, i::Base.Integer) = PointVector{fmpq}(SOP.POINTS[i, 2:end])
+
+_point_matrix(::Val{_point}, SOP::Polymake.BigObject; homogenized=false) = SOP.POINTS[:, (homogenized ? 1 : 2):end]
+
+_matrix_for_polymake(::Val{_point}) = _point_matrix
+
+
+
+
+
+@doc Markdown.doc"""
     maximal_cells(SOP::SubdivisionOfPoints)
 
-Return the maximal cells of `SOP`.
+Return an iterator over the maximal cells of `SOP`.
 
 # Examples
 Display the cells of the "mother of all examples" non-regular triangulation.
@@ -23,60 +60,36 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
  1  1  2
 
 julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
-7×6 Matrix{Bool}:
- 0  0  0  1  1  1
- 1  1  0  1  0  0
- 0  1  0  1  1  0
- 0  1  1  0  1  0
- 0  0  1  0  1  1
- 1  0  1  0  0  1
- 1  0  0  1  0  1
+7×6 IncidenceMatrix
+[4, 5, 6]
+[1, 2, 4]
+[2, 4, 5]
+[2, 3, 5]
+[3, 5, 6]
+[1, 3, 6]
+[1, 4, 6]
+
 
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
 
-julia> for c in maximal_cells(MOAE)
-       println(c)
-       end
-pm::Set<long, pm::operations::cmp>
-{4 5 6}
-pm::Set<long, pm::operations::cmp>
-{1 2 4}
-pm::Set<long, pm::operations::cmp>
-{2 4 5}
-pm::Set<long, pm::operations::cmp>
-{2 3 5}
-pm::Set<long, pm::operations::cmp>
-{3 5 6}
-pm::Set<long, pm::operations::cmp>
-{1 3 6}
-pm::Set<long, pm::operations::cmp>
-{1 4 6}
+julia> maximal_cells(MOAE)
+7-element SubObjectIterator{Vector{Int64}}:
+ [4, 5, 6]
+ [1, 2, 4]
+ [2, 4, 5]
+ [2, 3, 5]
+ [3, 5, 6]
+ [1, 3, 6]
+ [1, 4, 6]
 ```
 """
-
-
-@doc Markdown.doc"""
-    maximal_cells(SOP::SubdivisionOfPoints)
-
-Return an iterator over the maximal cells of `SOP`.
-"""
-function maximal_cells(SOP::SubdivisionOfPoints)
-   MaximalCellIterator(SOP)
+maximal_cells(SOP::SubdivisionOfPoints) = maximal_cells(Vector{Int}, SOP)
+function maximal_cells(::Type{Vector{Int}}, SOP::SubdivisionOfPoints)
+    return SubObjectIterator{Vector{Int}}(pm_object(SOP), _maximal_cell, size(pm_object(SOP).MAXIMAL_CELLS, 1))
 end
 
-struct MaximalCellIterator
-    SOP::SubdivisionOfPoints
-end
+_maximal_cell(::Type{Vector{Int}}, SOP::Polymake.BigObject, i::Base.Integer) = Vector{Int}(Polymake.row(SOP.MAXIMAL_CELLS, i))
 
-function Base.iterate(iter::MaximalCellIterator, index = 1)
-    n_max_cells = n_maximal_cells(iter.SOP)
-    if index > n_max_cells
-        return nothing
-    end
-    current_cell = Polymake.row(pm_object(iter.SOP).MAXIMAL_CELLS, index)
-    return (current_cell, index + 1)
-end
-Base.length(iter::MaximalCellIterator) = n_maximal_cells(iter.SOP)
 
 ###############################################################################
 ###############################################################################
@@ -172,7 +185,7 @@ end
 
 
 @doc Markdown.doc"""
-    maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
+    maximal_cells(IncidenceMatrix, SOP::SubdivisionOfPoints)
 
 Return the maximal cells of `SOP` as an incidence matrix.
 
@@ -195,13 +208,13 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
 A subdivision of points in ambient dimension 3
 
-julia> maximal_cells_as_incidence_matrix(SOP)
+julia> maximal_cells(IncidenceMatrix, SOP)
 1×6 IncidenceMatrix
 [1, 2, 3, 4, 5, 6]
 ```
 """
-function maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
-   IncidenceMatrix(pm_object(SOP).MAXIMAL_CELLS)
+function maximal_cells(::Type{IncidenceMatrix}, SOP::SubdivisionOfPoints)
+    pm_object(SOP).MAXIMAL_CELLS
 end
 
 ###############################################################################

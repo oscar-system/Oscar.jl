@@ -10,27 +10,20 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     # Define helper function
     joincomma(list) = join([string(x) for x in list], ",")
     
-    # create dictionary from "our" variables to safe variable for use in cohomCalg
-    coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
-    coordinate_dictionary = Dict(coordinate_names[i] => "x$i" for i = 1:length(coordinate_names))
-    
     # Add information about grading of Cox ring to string_list
     divisors = gens(torusinvariant_divisor_group(v))
-    for i in 1:length(coordinate_names)
+    for i in 1:length(divisors)
         tmp = joincomma(map_from_weil_divisors_to_class_group(v)(divisors[i]).coeff)
-        push!(string_list, "vertex $(coordinate_dictionary[coordinate_names[i]])|GLSM:($(tmp))")
+        push!(string_list, "vertex x$i|GLSM:($(tmp))")
     end
     
     # Add information about the Stanley-Reisner ideal to string_list
+    current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
+    new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
+    set_coordinate_names(v, new_coordinate_names)
     generators = [string(g) for g in gens(stanley_reisner_ideal(v))]
-    for i in 1:length(generators)
-        new_g = generators[i]
-        for (key, value) in coordinate_dictionary
-            new_g = replace(new_g, key => value)
-        end
-        generators[i] = new_g
-    end
     push!(string_list, "srideal [" * joincomma(generators) * "]")
+    set_coordinate_names(v, current_coordinate_names)
     
     # Add line bundle information to string_list
     push!(string_list, "ambientcohom O(" * joincomma(c) * ");")
