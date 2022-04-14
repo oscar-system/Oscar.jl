@@ -639,12 +639,21 @@ end
 Given an affine algebra `A` over a perfect field,
 return `true` if `A` is normal, `false` otherwise.
 
-!!! warning
-    The function computes the normalization of `A`. This may take some time.
+!!! note This function performs the first step of the normalization algorithm
+of Greuel, Laplagne, and Seelisch [GLS10](@cite) and may, thus, be more
+efficient than computing the full normalization of `A`.
 """
 function isnormal(A::MPolyQuo)
-  _, _, d = normalization_with_delta(A)
-  return d == 0
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  end
+  if A.R isa MPolyRing_dec
+    throw(ArgumentError("Not implemented for quotients of decorated rings."))
+  end
+  I = A.I
+  singular_assure(I)
+  f = Singular.LibNormal.isNormal(I.gens.S)::Int
+  return Bool(f)
 end
 
 ##############################################################################
