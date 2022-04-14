@@ -8,7 +8,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
       subquotient, ambient_free_module, ambient_module, ambient_representative, 
-      ambient_representatives_generators, relations
+      ambient_representatives_generators, relations, img_gens
 
 # TODO replace asserts by error messages?
 
@@ -687,7 +687,7 @@ Construct the morphism $F \to G$ corresponding to the matrix `mat`.
 """
 FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)=#
 
-im_gens(f::FreeModuleHom) = gens(image(f)[1])
+img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
 
 @doc Markdown.doc"""

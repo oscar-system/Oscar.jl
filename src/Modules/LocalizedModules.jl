@@ -1,5 +1,4 @@
 export default_ordering, singular_assure, saturated_modulus, kernel, singular_gens, oscar_assure
-export MapFromFreeModule, domain, codomain, img_gens, base_ring_map
 export SubQuo
 export minimal_power_such_that
 
@@ -316,95 +315,11 @@ end
 # Therefore, we allow maximal flexibility here and a fallback to 
 # the case of modules defined over the same ring. 
 
-mutable struct MapFromFreeModule{
-    BRET<:RingElem, CodomainType<:ModuleFP, CodElemType<:ModuleElem, RingMapType<:Any
-  } 
-  dom::FreeMod
-  cod::CodomainType
-  v::Vector{CodElemType}
-  ring_map::RingMapType
+############# Now covered by the FreeModuleHom ########################
 
-  function MapFromFreeModule(F::FreeMod, G::CodomainType, v::Vector{CodElemType}) where {CodomainType<:ModuleFP, CodElemType<:ModuleElem}
-    base_ring(F) == base_ring(G) || error("modules are not defined over the same ring")
-    all(w->(parent(w) == G), v) || error("elements do not belong to the correct module")
-    return new{elem_type(base_ring(F)), CodomainType, CodElemType, Nothing}(F, G, v)
-  end
-
-  function MapFromFreeModule(F::FreeMod, G::CodomainType, v::Vector{CodElemType}, h::RingMapType) where {CodomainType<:ModuleFP, CodElemType<:ModuleElem, RingMapType}
-    # This is an implicit check of domain/codomain compatibility. 
-    # The given ring map might not implement the map interface 
-    # (for instance, it could just be coercion), so we do this check
-    # instead.
-    h(one(base_ring(F))) == one(base_ring(G)) || error("ring map is not compatible")
-    all(w->(parent(w) == G), v) || error("elements do not belong to the correct module")
-    return new{elem_type(base_ring(F)), CodomainType, CodElemType, typeof(h)}(F, G, v, h)
-  end
-end
-
-### getter methods 
-domain(f::MapFromFreeModule) = f.dom
-codomain(f::MapFromFreeModule) = f.cod
-img_gens(f::MapFromFreeModule) = f.v
-base_ring_map(f::MapFromFreeModule) = f.ring_map
-
-### external constructors 
-function hom(
-    F::FreeMod{RET}, G::ModuleFP, v::Vector{CodElemType}
-  ) where {RET<:RingElem, CodElemType<:ModuleFPElem}
-  base_ring(F) == base_ring(G) || return MapFromFreeModule(F, G, v, base_ring(G)) # try with coercion map
-  return MapFromFreeModule(F, G, v)
-end
-
-function hom(F::FreeMod{RET}, G::ModuleFP, 
-    v::Vector{CodElemType}, h::RingMapType
-  ) where {
-           RET<:RingElem,
-           CodElemType<:ModuleFPElem, 
-           RingMapType
-          }
-  return MapFromFreeModule(F, G, v, h)
-end
-
-### type getters in accordance with external constructors
-function morphism_type(F::FreeMod, G::ModuleFP) 
-  base_ring(F) == base_ring(G) && return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), Nothing}
-  return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(base_ring(G))}
-end
-
-function morphism_type(::Type{T}, ::Type{U}) where {T<:FreeMod, U<:ModuleFP}
-  base_ring_type(T) == base_ring_type(U) || return morphism_type(T, U, base_ring_type(U))
-  return MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), Nothing}
-end
-
-base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
-base_ring_elem_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = T
-
-base_ring_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_type(typeof(M))
-base_ring_elem_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_elem_type(typeof(M))
-
-function morphism_type(F::FreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
-  return MapFromFreeModule{elem_type(base_ring(F)), typeof(G), elem_type(G), typeof(h)}
-end
-
-morphism_type(::Type{T}, ::Type{U}, ::Type{H}) where {T<:FreeMod, U<:ModuleFP, H} = MapFromFreeModule{base_ring_elem_type(T), U, elem_type(U), H}
-
-### mapping functionality
-function (f::MapFromFreeModule{<:Any, <:Any, <:Any, Nothing})(a::ModuleElem)
-  parent(a) == domain(f)
-  return sum([b*g for (b, g) in zip(Vector(a), img_gens(f))])
-end
-
-function (f::MapFromFreeModule{<:Any, <:Any, <:Any, RingMapType})(a::ModuleElem) where {RingMapType}
-  h = base_ring_map(f)
-  parent(a) == domain(f)
-  return sum([h(b)*g for (b, g) in zip(Vector(a), img_gens(f))])
-end
-
-
-### An example for how one can implement the kernel routine based on 
-# the above type for localizations of polynomial rings
-
-function kernel(f::MapFromFreeModule{BRET, CodomainType}) where {BRET<:MPolyLocalizedRingElem, CodomainType<:ModuleFP}
+function kernel(
+    f::FreeModuleHom{DomainType, CodomainType}
+  ) where {DomainType<:AbstractFreeMod, CodomainType<:ModuleFP}
   Fl = domain(f)
   L = base_ring(Fl)
   Gl = codomain(f)
