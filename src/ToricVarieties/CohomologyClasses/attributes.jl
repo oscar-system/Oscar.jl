@@ -7,9 +7,7 @@
 
 Return the normal toric variety of the cohomology class `c`.
 """
-function toric_variety(c::CohomologyClass)
-    return c.toric_variety
-end
+toric_variety(c::CohomologyClass) = c.toric_variety
 export toric_variety
 
 
@@ -18,9 +16,7 @@ export toric_variety
 
 Return the coefficients of the cohomology class `c`.
 """
-function coefficients(c::CohomologyClass)
-    return [coefficient_ring(toric_variety(c))(k) for k in c.coeffs]
-end
+coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in c.coeffs]
 export coefficients
 
 
@@ -29,9 +25,7 @@ export coefficients
 
 Return the exponents of the cohomology class `c`.
 """
-function exponents(c::CohomologyClass)
-    return c.exponents
-end
+exponents(c::CohomologyClass) = c.exponents
 export exponents
 
 
@@ -41,9 +35,7 @@ export exponents
 Return the polynomial in the cohomology ring of the normal
 toric variety `toric_variety(c)` which corresponds to `c`.
 """
-function polynomial(c::CohomologyClass)
-    return polynomial(c, cohomology_ring(toric_variety(c)))
-end
+polynomial(c::CohomologyClass) = polynomial(c, cohomology_ring(toric_variety(c)))
 export polynomial
 
 
