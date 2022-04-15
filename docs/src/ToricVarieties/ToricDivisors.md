@@ -66,7 +66,7 @@ toric_variety(td::ToricDivisor)
 ## Special divisors
 
 ```@docs
-TrivialDivisor(v::AbstractNormalToricVariety)
-AnticanonicalDivisor(v::AbstractNormalToricVariety)
-CanonicalDivisor(v::AbstractNormalToricVariety)
+trivial_divisor(v::AbstractNormalToricVariety)
+anticanonical_divisor(v::AbstractNormalToricVariety)
+canonical_divisor(v::AbstractNormalToricVariety)
 ```

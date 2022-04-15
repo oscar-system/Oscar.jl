@@ -3,66 +3,54 @@
 ########################
 
 @doc Markdown.doc"""
-    TrivialDivisor(v::AbstractNormalToricVariety)
+    trivial_divisor(v::AbstractNormalToricVariety)
 
 Construct the trivial divisor of a normal toric variety.
-For convenience, we also support `trivial_divisor(variety)`.
 
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> TrivialDivisor(v)
+julia> trivial_divisor(v)
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor function TrivialDivisor(v::AbstractNormalToricVariety)
-    return ToricDivisor(v, zeros(fmpz, nrays(v)))
-end
-trivial_divisor(v::AbstractNormalToricVariety) = TrivialDivisor(v)
-export TrivialDivisor, trivial_divisor
+@attr ToricDivisor trivial_divisor(v::AbstractNormalToricVariety) = ToricDivisor(v, zeros(fmpz, nrays(v)))
+export trivial_divisor
 
 
 @doc Markdown.doc"""
-    AnticanonicalDivisor(v::AbstractNormalToricVariety)
+    anticanonical_divisor(v::AbstractNormalToricVariety)
 
 Construct the anticanonical divisor of a normal toric variety.
-For convenience, we also support `anticanonical_divisor(variety)`.
 
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> AnticanonicalDivisor(v)
+julia> anticanonical_divisor(v)
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor function AnticanonicalDivisor(v::AbstractNormalToricVariety)
-    return ToricDivisor(v, [fmpz(1) for i in 1:nrays(v)])
-end
-anticanonical_divisor(v::AbstractNormalToricVariety) = AnticanonicalDivisor(v)
-export AnticanonicalDivisor, anticanonical_divisor
+@attr ToricDivisor anticanonical_divisor(v::AbstractNormalToricVariety) = ToricDivisor(v, fill(fmpz(1), nrays(v)))
+export anticanonical_divisor
 
 
 @doc Markdown.doc"""
-    CanonicalDivisor(v::AbstractNormalToricVariety)
+    canonical_divisor(v::AbstractNormalToricVariety)
 
 Construct the canonical divisor of a normal toric variety.
-For convenience, we also support `canonical_divisor(variety)`.
 
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> CanonicalDivisor(v)
+julia> canonical_divisor(v)
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-@attr ToricDivisor function CanonicalDivisor(v::AbstractNormalToricVariety)
-    return ToricDivisor(v, fill(fmpz(-1), nrays(v)))
-end
-canonical_divisor(v::AbstractNormalToricVariety) = CanonicalDivisor(v)
-export CanonicalDivisor, canonical_divisor
+@attr ToricDivisor canonical_divisor(v::AbstractNormalToricVariety) = ToricDivisor(v, fill(fmpz(-1), nrays(v)))
+export canonical_divisor

@@ -54,7 +54,7 @@ toric_divisor(tdc::ToricDivisorClass)
 ## Special divisor classes
 
 ```@docs
-TrivialDivisorClass(v::AbstractNormalToricVariety)
-AnticanonicalDivisorClass(v::AbstractNormalToricVariety)
-CanonicalDivisorClass(v::AbstractNormalToricVariety)
+trivial_divisor_class(v::AbstractNormalToricVariety)
+anticanonical_divisor_class(v::AbstractNormalToricVariety)
+canonical_divisor_class(v::AbstractNormalToricVariety)
 ```
