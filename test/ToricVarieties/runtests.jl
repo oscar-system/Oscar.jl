@@ -253,14 +253,13 @@ p = polyhedron(D)
     @test ambient_dim(p) == 2
 end
 
-DC1 = ToricDivisorClass(H5, [0,0])
+DC = ToricDivisorClass(H5, [0,0])
 DC2 = ToricDivisorClass(H5, [1,2])
 
 @testset "Toric divisor classes" begin
-    @test istrivial(DC1) == true
-    @test istrivial(2 * DC1 + DC2) == false
-    @test toric_variety(DC1) === toric_variety(DC2)
-    @test (divisor_class(DC1) == divisor_class(DC2)) == false
+    @test istrivial(2*DC+DC2) == false
+    @test istrivial(2*DC-DC2) == false
+    @test (DC == DC2) == false
     @test canonical_divisor_class(dP3) - canonical_divisor_class(dP3) == trivial_divisor_class(dP3)
     @test anticanonical_divisor_class(dP3) + canonical_divisor_class(dP3) == trivial_divisor_class(dP3)
 end
