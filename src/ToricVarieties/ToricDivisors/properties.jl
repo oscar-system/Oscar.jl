@@ -36,7 +36,8 @@ false
 ```
 """
 @attr Bool isprincipal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
-export isprincipal
+istrivial(td::ToricDivisor) = isprincipal(td)
+export isprincipal, istrivial
 
 
 @doc Markdown.doc"""
