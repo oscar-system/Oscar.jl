@@ -105,26 +105,6 @@ CohomologyClass(l::ToricLineBundle) = CohomologyClass(toric_divisor(l))
 # 3: Addition, subtraction and scalar multiplication
 #################################
 
-@doc Markdown.doc"""
-    Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
-
-Return the sum of the cohomology classes `cc1` and `cc2`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> dc = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> cc = CohomologyClass(dc)
-A cohomology class on a normal toric variety given by x3
-
-julia> cc + cc
-A cohomology class on a normal toric variety given by 2*x3
-```
-"""
 function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
         throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
@@ -135,26 +115,6 @@ function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
 end
 
 
-@doc Markdown.doc"""
-    Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
-
-Return the difference of the cohomology classes `cc1` and `cc2`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> dc = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> cc = CohomologyClass(dc)
-A cohomology class on a normal toric variety given by x3
-
-julia> cc - cc
-A cohomology class on a normal toric variety given by 0
-```
-"""
 function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
         throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
@@ -165,23 +125,6 @@ function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
 end
 
 
-@doc Markdown.doc"""
-    Base.:*(c::fmpq, cc::CohomologyClass)
-
-Return `c`-times the cohomology class `cc`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> fmpq(5//2)*CohomologyClass(tdc)
-A cohomology class on a normal toric variety given by 5//2*x3
-```
-"""
 Base.:*(c::fmpq, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 Base.:*(c::fmpz, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
@@ -192,26 +135,6 @@ Base.:*(c::Int, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coeffi
 # 4: Wedge product
 #################################
 
-@doc Markdown.doc"""
-    Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
-
-Return the wedge product of the cohomology classes `cc1` and `cc2`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> dc = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> cc = CohomologyClass(dc)
-A cohomology class on a normal toric variety given by x3
-
-julia> cc * cc
-A cohomology class on a normal toric variety given by x3^2
-```
-"""
 function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
         throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
@@ -221,26 +144,7 @@ function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 
-@doc Markdown.doc"""
-    Base.:^(cc::CohomologyClass, p::fmpz)
 
-Return the p-th power of the cohomology class `cc`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> dc = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> cc = CohomologyClass(dc)
-A cohomology class on a normal toric variety given by x3
-
-julia> cc^2
-A cohomology class on a normal toric variety given by x3^2
-```
-"""
 function Base.:^(cc::CohomologyClass, p::fmpz)
     ring = cohomology_ring(toric_variety(cc))
     if p == 0
@@ -256,26 +160,6 @@ Base.:^(cc::CohomologyClass, p::Int) = cc^fmpz(p)
 # 5: Equality
 ########################
 
-@doc Markdown.doc"""
-    Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
-
-Returns true if the cohomology classes `cc1` and `cc2` are equal and false otherwise.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc1 = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> tdc2 = ToricDivisorClass(P2, [2])
-A divisor class on a normal toric variety
-
-julia> CohomologyClass(tdc1) == CohomologyClass(tdc2)
-false
-```
-"""
 function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
         return false

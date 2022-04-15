@@ -22,24 +22,26 @@ CohomologyClass(l::ToricLineBundle)
 
 ### Addition, subtraction and scalar multiplication
 
-```@docs
-Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
-Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
-Base.:*(c::fmpq, cc::CohomologyClass)
-```
+Addition of cohomology classes `cc1` and `cc2` is implemented by
+`cc1+cc2`. Similarly, we can subtract the classes by `cc1-cc2`.
+Scalar multiplication with `c` (this could be an integer,
+fmpz or even fmpq number) is supported by `c*cc1`.
 
 ### Wedge product
 
-```@docs
-Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
-Base.:^(cc::CohomologyClass, p::fmpz)
-```
+The wedge product of cohomology classes `cc1` and `cc2`
+is computed by `cc1*cc2`. This makes sense, since cohomology
+classes on toric varieties are elements of the cohomology ring, which
+in turn is (a certain) quotient of the Cox ring. Hence, internally,
+a cohomology class is just a polynomial in this ring and the wedge
+product corresponds to the product of two (equivalence classes of)
+polynomials. We also support `cc1^n`, which corresponds to
+computing the wedge product of `cc1` with itself `n`-times.
 
 ### Equality
 
-```@docs
-Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
-```
+Equality of cohomology classes `cc1` and `cc2` is
+implemented by `cc1 == cc2`.
 
 
 ## Properties
