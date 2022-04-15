@@ -17,10 +17,10 @@
         end
         coeffs = [k for k in coefficients(p.f)]
         expos = matrix(ZZ,[k for k in exponent_vectors(p.f)])
-        if (nrows(expos) !== length(coeffs))
+        if nrows(expos) != length(coeffs)
             throw(ArgumentError("There must be as many exponents as coefficients."))
         end
-        if ((iszero(p) == false) && (ncols(expos) !== ngens(cohomology_ring(v))))
+        if !iszero(p) && ncols(expos) != ngens(cohomology_ring(v))
             throw(ArgumentError("Each exponent must consist of as many numbers as generators of the cohomology ring of the toric variety."))
         end
         return new(v, coeffs, expos)
