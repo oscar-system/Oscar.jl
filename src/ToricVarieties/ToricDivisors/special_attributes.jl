@@ -62,7 +62,7 @@ A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor function CanonicalDivisor(v::AbstractNormalToricVariety)
-    return ToricDivisor(v, [fmpz(-1) for i in 1:nrays(v)])
+    return ToricDivisor(v, fill(fmpz(-1), nrays(v)))
 end
 canonical_divisor(v::AbstractNormalToricVariety) = CanonicalDivisor(v)
 export CanonicalDivisor, canonical_divisor
