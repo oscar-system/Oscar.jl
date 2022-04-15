@@ -152,6 +152,8 @@ cox_ring(v::AbstractNormalToricVariety)
 cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
 irrelevant_ideal(v::AbstractNormalToricVariety)
 irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+ideal_of_linear_relations(v::AbstractNormalToricVariety)
+ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
 stanley_reisner_ideal(v::AbstractNormalToricVariety)
 stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
@@ -160,14 +162,6 @@ coordinate_ring_of_torus(v::AbstractNormalToricVariety)
 coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
 character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
 character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
-```
-
-### Sheaves
-
-```@docs
-AnticanonicalBundle(v::AbstractNormalToricVariety)
-CanonicalBundle(v::AbstractNormalToricVariety)
-StructureSheaf(v::AbstractNormalToricVariety)
 ```
 
 ## Auxillary Methods

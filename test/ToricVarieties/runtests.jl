@@ -214,6 +214,9 @@ D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
 @testset "Toric divisors" begin
+    @test isprincipal(2*D+D2) == true
+    @test isprincipal(2*D-D2) == true
+    @test (D == D2) == false
     @test dim(toric_variety(D)) == 2
     @test isprime(D) == false
     @test iscartier(D) == true
@@ -239,6 +242,8 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test coefficients(D2+D2) == coefficients(2*D2)
     @test coefficients(D2-D2) == [0,0,0,0]
     @test (D == D2) == false
+    @test canonical_divisor(dP3) - canonical_divisor(dP3) == trivial_divisor(dP3)
+    @test anticanonical_divisor(dP3) + canonical_divisor(dP3) == trivial_divisor(dP3)    
 end
 
 p = polyhedron(D)
@@ -248,20 +253,24 @@ p = polyhedron(D)
     @test ambient_dim(p) == 2
 end
 
-DC1 = ToricDivisorClass(H5, [0,0])
+DC = ToricDivisorClass(H5, [0,0])
 DC2 = ToricDivisorClass(H5, [1,2])
 
 @testset "Toric divisor classes" begin
-    @test istrivial(DC1) == true
-    @test istrivial(2 * DC1 + DC2) == false
-    @test toric_variety(DC1) === toric_variety(DC2)
-    @test (divisor_class(DC1) == divisor_class(DC2)) == false
+    @test istrivial(2*DC+DC2) == false
+    @test istrivial(2*DC-DC2) == false
+    @test (DC == DC2) == false
+    @test canonical_divisor_class(dP3) - canonical_divisor_class(dP3) == trivial_divisor_class(dP3)
+    @test anticanonical_divisor_class(dP3) + canonical_divisor_class(dP3) == trivial_divisor_class(dP3)
 end
 
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])
 line_bundle2 = ToricLineBundle(D2)
 
 @testset "Toric line bundles" begin
+    @test istrivial(line_bundle) == false
+    @test istrivial(line_bundle^2) == false
+    @test istrivial(inv(line_bundle)*line_bundle) == true
     @test degree(line_bundle) == 10
     @test degree(line_bundle * line_bundle) == 20
     @test degree(line_bundle^(-1)) == -10
@@ -275,6 +284,7 @@ line_bundle2 = ToricLineBundle(D2)
     @test all_cohomologies(line_bundle) == [11,0,0]
     @test cohomology(line_bundle,0) == 11
     @test istrivial(canonical_bundle(dP3)) == false
+    @test istrivial(structure_sheaf(dP3)) == true
     @test inv(anticanonical_bundle(dP3)) == canonical_bundle(dP3)
 end
 
@@ -296,4 +306,24 @@ charges[1,3] = 1;
 @testset "ToricVarieties from triangulations and GLSMs" begin
     @test length(NormalToricVarietiesFromStarTriangulations(P)) == 2
     @test length(NormalToricVarietyFromGLSM(charges)) == 1
+end
+
+(x1,e1,x2,e3,x3,e2) = gens(cohomology_ring(dP3))
+c = CohomologyClass(dP3, x1)
+
+@testset "Topological intersection numbers" begin
+    @test ngens(ideal_of_linear_relations(v)) == 4
+    @test ngens(chow_ring(v).I) == 7
+    @test integrate(volume_form(v)) == 1
+    @test nrows(exponents(c)) == 1
+    @test length(coefficients(c)) == 1
+    @test istrivial(c) == false
+    @test integrate(c^2+c-3//4*c*c) == -1//4
+    @test integrate(CohomologyClass(dP3,e1*e1)) == -1
+    @test integrate(CohomologyClass(dP3,e2*e2)) == -1
+    @test integrate(CohomologyClass(dP3,e3*e3)) == -1
+    @test integrate(CohomologyClass(dP3,x1*x1)) == -1
+    @test integrate(CohomologyClass(dP3,x2*x2)) == -1
+    @test integrate(CohomologyClass(dP3,x3*x3)) == -1
+    @test length(intersection_form(dP3)) == 21
 end

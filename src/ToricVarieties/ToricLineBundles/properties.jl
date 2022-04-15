@@ -1,20 +1,3 @@
-@doc Markdown.doc"""
-    istrivial(l::ToricLineBundle)
-
-Return `true` if the toric line bundle `l` is trivial and `false` otherwise.
-
-# Examples
-```jldoctest
-julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
-
-julia> istrivial(ToricLineBundle(H, [1,0]))
-false
-
-julia> istrivial(ToricLineBundle(H, [0,0]))
-true
-```
-"""
 istrivial(l::ToricLineBundle) = isprincipal(toric_divisor(l))
 export istrivial
 
@@ -26,10 +9,10 @@ Return `true` if the toric line bundle `l` is basepoint free and `false` otherwi
 
 # Examples
 ```jldoctest
-julia> H = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> is_basepoint_free(ToricLineBundle(H, [1,0]))
+julia> is_basepoint_free(ToricLineBundle(F4, [0,1]))
 true
 ```
 """
@@ -44,10 +27,10 @@ Return `true` if the toric line bundle `l` is ample and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> H = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> isample(ToricLineBundle(H, [1,0]))
+julia> isample(ToricLineBundle(F4, [1,0]))
 false
 ```
 """
@@ -62,10 +45,10 @@ Return `true` if the toric line bundle `l` is very ample and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> H = hirzebruch_surface(4)
+julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> is_very_ample(ToricLineBundle(H, [1,0]))
+julia> is_very_ample(ToricLineBundle(F4, [1,0]))
 false
 ```
 """

@@ -13,7 +13,7 @@ The employed algorithm is derived from theorem 12.3.12 in
 toric variety `v` is both complete and simplicial.
 """
 function betti_number(v::AbstractNormalToricVariety, i::Int)
-    if (!iscomplete(v) || !issimplicial(v))
+    if !iscomplete(v) || !issimplicial(v)
         throw(ArgumentError("Currently, the computation of Betti numbers is limited to complete and simplicial toric varieties."))
     end
     

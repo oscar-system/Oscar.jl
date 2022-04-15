@@ -45,14 +45,25 @@ include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
 include("ToricDivisors/constructors.jl")
 include("ToricDivisors/properties.jl")
 include("ToricDivisors/attributes.jl")
+include("ToricDivisors/special_attributes.jl")
 
 include("ToricDivisorClasses/constructors.jl")
 include("ToricDivisorClasses/properties.jl")
 include("ToricDivisorClasses/attributes.jl")
+include("ToricDivisorClasses/special_attributes.jl")
 
 include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
+include("ToricLineBundles/special_attributes.jl")
+
+include("CohomologyClasses/constructors.jl")
+include("CohomologyClasses/properties.jl")
+include("CohomologyClasses/attributes.jl")
+include("CohomologyClasses/special_attributes.jl")
+include("CohomologyClasses/methods.jl")
+
+include("AlgebraicCycles/special_attributes.jl")
 
 include("cohomCalg.jl")
 
