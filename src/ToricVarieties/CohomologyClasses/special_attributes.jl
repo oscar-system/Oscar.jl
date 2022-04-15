@@ -51,7 +51,7 @@ julia> polynomial(volume_form(hirzebruch_surface(5)))
     mc = ray_indices(maximal_cones(v))
     exponents = [fmpz(mc[1,i]) for i in 1:length(mc[1,:])]
     indets = gens(cohomology_ring(v))
-    poly = fmpz(1) * prod([indets[k]^exponents[k] for k in 1:length(exponents)])
+    poly = fmpz(1) * prod(indets[k]^exponents[k] for k in 1:length(exponents))
     if iszero(poly) || degree(poly)[1] != dim(v)
         throw(ArgumentError("The volume class does not exist."))
     end
@@ -74,7 +74,7 @@ export volume_form
     # perform the integrals
     intersection_dict = Dict{fmpz_mat, fmpq}()
     for expos in combinations
-        cc = prod([generators[k]^expos[k] for k in 1:length(generators)])
+        cc = prod(generators[k]^expos[k] for k in 1:length(generators))
         intersection_dict[matrix(ZZ,[expos])] = integrate(cc)
     end
     
@@ -103,7 +103,7 @@ function intersection_form(v::NormalToricVariety)
     monoms_of_prime_divisors = gens(cox_ring(v))    
     intersection_dict_for_user = Dict{MPolyElem, fmpq}()
     for (expos,v) in intersection_dict
-        monom = prod([monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors)])
+        monom = prod(monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors))
         intersection_dict_for_user[monom] = v
     end
     return intersection_dict_for_user

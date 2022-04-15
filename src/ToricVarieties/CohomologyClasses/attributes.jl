@@ -60,7 +60,7 @@ function polynomial(c::CohomologyClass, ring::MPolyQuo)
     end
     expos = exponents(c)
     indets = gens(ring)
-    monoms = [prod([indets[j]^expos[k,j] for j in 1:ncols(expos)]) for k in 1:nrows(expos)]
-    return sum([coeffs[k]*monoms[k] for k in 1:length(monoms)])
+    monoms = [prod(indets[j]^expos[k,j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
+    return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
 end
 export polynomial

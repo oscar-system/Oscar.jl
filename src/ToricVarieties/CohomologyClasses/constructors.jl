@@ -54,7 +54,7 @@ A cohomology class on a normal toric variety given by 6*x3
 function CohomologyClass(d::ToricDivisor)
     indets = gens(cohomology_ring(toric_variety(d)))
     coeff_ring = coefficient_ring(toric_variety(d))
-    poly = sum([coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets)])
+    poly = sum(coeff_ring(coefficients(d)[k]) * indets[k] for k in 1:length(indets))
     return CohomologyClass(toric_variety(d), poly)
 end
 
@@ -250,7 +250,7 @@ function Base.:^(cc::CohomologyClass, p::fmpz)
     if p == 0
         return CohomologyClass(toric_variety(cc), one(ring))
     end
-    poly = prod([polynomial(cc, ring) for i in 1:p])
+    poly = prod(polynomial(cc, ring) for i in 1:p)
     return CohomologyClass(toric_variety(cc), poly)
 end
 Base.:^(cc::CohomologyClass, p::Int) = cc^fmpz(p)

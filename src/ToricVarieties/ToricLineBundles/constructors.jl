@@ -70,7 +70,7 @@ function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
         throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle."))
     end
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
-    class = f(sum([coefficients(d)[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))]))
+    class = f(sum(coefficients(d)[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))))
     return ToricLineBundle(v, class)
 end
 ToricLineBundle(d::ToricDivisor) = ToricLineBundle(toric_variety(d), d)
