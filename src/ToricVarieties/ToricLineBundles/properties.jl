@@ -1,20 +1,3 @@
-@doc Markdown.doc"""
-    istrivial(l::ToricLineBundle)
-
-Return `true` if the toric line bundle `l` is trivial and `false` otherwise.
-
-# Examples
-```jldoctest
-julia> F4 = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
-
-julia> istrivial(ToricLineBundle(F4, [1,0]))
-false
-
-julia> istrivial(ToricLineBundle(F4, [0,0]))
-true
-```
-"""
 istrivial(l::ToricLineBundle) = isprincipal(toric_divisor(l))
 export istrivial
 

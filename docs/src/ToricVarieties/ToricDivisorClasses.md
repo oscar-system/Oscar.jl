@@ -39,9 +39,8 @@ a principal toric divisor. This is implemented via `tdc1 == tdc2`.
 
 ## Properties of toric divisor classes
 
-```@docs
-istrivial(tdc::ToricDivisorClass)
-```
+To check if a toric divisor class `tdc` is trivial, one can invoke `istrivial(tdc)`.
+
 
 ## Operations for toric divisor classes
 

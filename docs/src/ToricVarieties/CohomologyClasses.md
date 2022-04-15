@@ -46,9 +46,7 @@ implemented by `cc1 == cc2`.
 
 ## Properties
 
-```@docs
-istrivial(c::CohomologyClass)
-```
+To check if a cohomology class `c` is trivial, one can invoke `istrivial(c)`.
 
 
 ## Attributes

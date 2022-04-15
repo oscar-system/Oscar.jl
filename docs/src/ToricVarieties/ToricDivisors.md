@@ -41,6 +41,12 @@ This is implemented via `td1 == td2`.
 
 ## Properties of toric divisors
 
+To check if a toric divisor `td` is trivial, one can invoke `istrivial(td)`.
+Internally, this executes the following method:
+```@docs
+isprincipal(td::ToricDivisor)
+```
+Beyond this, we support the following properties of toric divisors:
 ```@docs
 isample(td::ToricDivisor)
 is_basepoint_free(td::ToricDivisor)
@@ -49,7 +55,6 @@ iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor)
 isnef(td::ToricDivisor)
 isprime(td::ToricDivisor)
-isprincipal(td::ToricDivisor)
 is_q_cartier(td::ToricDivisor)
 is_very_ample(td::ToricDivisor)
 ```
