@@ -27,17 +27,16 @@ ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 
 ### Special constructors
 
-```@docs
-Base.:+(td1::ToricDivisor, td2::ToricDivisor)
-Base.:-(td1::ToricDivisor, td2::ToricDivisor)
-Base.:*(c::fmpz, td::ToricDivisor)
-```
+Addition of toric divisors `td1` and `td2` (on the same toric variety) and
+scalar multiplication with `c` (it can be either valued in `Int64` or `fmpz`)
+is supported via `c * td1 + td2`. One can subtract them via `td1 - td2`.
+
 
 ### Equality
 
-```@docs
-Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
-```
+Equality of two toric divisors `td1` and `td2` (on the same toric variety)
+is achieved by checking if their coefficients are identical.
+This is implemented via `td1 == td2`.
 
 
 ## Properties of toric divisors

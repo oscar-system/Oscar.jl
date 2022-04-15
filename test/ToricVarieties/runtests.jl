@@ -214,6 +214,9 @@ D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
 @testset "Toric divisors" begin
+    @test isprincipal(2*D+D2) == true
+    @test isprincipal(2*D-D2) == true
+    @test (D == D2) == false
     @test dim(toric_variety(D)) == 2
     @test isprime(D) == false
     @test iscartier(D) == true
