@@ -18,7 +18,7 @@ A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor function TrivialDivisor(v::AbstractNormalToricVariety)
-    return ToricDivisor(v, [fmpz(0) for i in 1:nrays(v)])
+    return ToricDivisor(v, zeros(fmpz, nrays(v)))
 end
 trivial_divisor(v::AbstractNormalToricVariety) = TrivialDivisor(v)
 export TrivialDivisor, trivial_divisor
