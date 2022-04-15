@@ -80,74 +80,13 @@ ToricLineBundle(d::ToricDivisor) = ToricLineBundle(toric_variety(d), d)
 # 4: Tensor products
 ########################
 
-@doc Markdown.doc"""
-    Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
-
-Return the tensor product of two line bundles `l1` and `l2`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> l1 = ToricLineBundle(P2, [1])
-A toric line bundle on a normal toric variety
-
-julia> l2 = ToricLineBundle(P2, [2])
-A toric line bundle on a normal toric variety
-
-julia> l1*l2
-A toric line bundle on a normal toric variety
-```
-"""
 function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
-    # check input
     if toric_variety(l1) !== toric_variety(l2)
         throw(ArgumentError("The line bundles must be defined on identically the same toric variety."))
     end
-    
-    # return the new divisor class
     return ToricLineBundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
 end
-
-
-@doc Markdown.doc"""
-    Base.:inv(l::ToricLineBundle)
-
-Return the inverse of the toric line bundle `l`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> l = ToricLineBundle(P2, [1])
-A toric line bundle on a normal toric variety
-
-julia> inv(l)
-A toric line bundle on a normal toric variety
-```
-"""
 Base.:inv(l::ToricLineBundle) = ToricLineBundle(toric_variety(l), (-1)*divisor_class(l))
-
-
-@doc Markdown.doc"""
-    Base.:^(l::ToricLineBundle, p::fmpz)
-
-Return the `p`-th tensor power of the toric line bundle `l`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> l = ToricLineBundle(P2, [1])
-A toric line bundle on a normal toric variety
-
-julia> l^(-1)
-A toric line bundle on a normal toric variety
-```
-"""
 Base.:^(l::ToricLineBundle, p::fmpz) = ToricLineBundle(toric_variety(l), p * divisor_class(l))
 Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
 
@@ -156,26 +95,6 @@ Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
 # 5: Equality
 ########################
 
-@doc Markdown.doc"""
-    Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
-
-Return `true` if the toric line bundles `l1` and `l2` are isomorphic and `false` otherwise.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> l1 = ToricLineBundle(P2, [0])
-A toric line bundle on a normal toric variety
-
-julia> l2 = l1^(-1)
-A toric line bundle on a normal toric variety
-
-julia> l1 == l2
-true
-```
-"""
 function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
     if toric_variety(l1) !== toric_variety(l2)
         return false

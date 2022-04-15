@@ -268,6 +268,9 @@ line_bundle = ToricLineBundle(dP3, [1,2,3,4])
 line_bundle2 = ToricLineBundle(D2)
 
 @testset "Toric line bundles" begin
+    @test istrivial(line_bundle) == false
+    @test istrivial(line_bundle^2) == false
+    @test istrivial(inv(line_bundle)*line_bundle) == true
     @test degree(line_bundle) == 10
     @test degree(line_bundle * line_bundle) == 20
     @test degree(line_bundle^(-1)) == -10
