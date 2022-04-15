@@ -77,9 +77,7 @@ julia> CohomologyClass(tdc)
 A cohomology class on a normal toric variety given by 2*x3
 ```
 """
-function CohomologyClass(c::ToricDivisorClass)
-    return CohomologyClass(toric_divisor(c))
-end
+CohomologyClass(c::ToricDivisorClass) = CohomologyClass(toric_divisor(c))
 
 
 @doc Markdown.doc"""
@@ -100,9 +98,7 @@ julia> polynomial(CohomologyClass(l))
 2*x3
 ```
 """
-function CohomologyClass(l::ToricLineBundle)
-    return CohomologyClass(toric_divisor(l))
-end
+CohomologyClass(l::ToricLineBundle) = CohomologyClass(toric_divisor(l))
 
 
 #################################
