@@ -163,6 +163,7 @@
 
   "Combinatorics" => [
       "Combinatorics/graphs.md",
+      "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
   ],
 
