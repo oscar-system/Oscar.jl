@@ -114,9 +114,9 @@ A polyhedral fan in ambient dimension 2
 julia> ntv = NormalToricVariety(nf)
 A normal toric variety
 ```
-"""    
+"""
 function NormalToricVariety(PF::PolyhedralFan)
-    # construct the variety    
+    # construct the variety
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
     variety = NormalToricVariety(pmntv)
@@ -147,7 +147,7 @@ A polyhedron in ambient dimension 2
 julia> ntv = NormalToricVariety(square)
 A normal toric variety
 ```
-"""    
+"""
 function NormalToricVariety(P::Polyhedron)
     fan = normal_fan(P)
     variety = NormalToricVariety(fan)
@@ -209,11 +209,7 @@ A normal, affine, 2-dimensional toric variety
 """
 function affine_space(::Type{NormalToricVariety}, d::Int)
     # construct the cone of the variety
-    m = zeros(Int, d, d)
-    for i in 1:d
-        m[i,i] = 1
-    end
-    C = positive_hull(m)
+    C = positive_hull(identity_matrix(ZZ, d))
     
     # construct the variety
     fan = PolyhedralFan(C)
@@ -386,22 +382,22 @@ function del_pezzo(b::Int)
     end
     
     # special case of projective space
-    if b == 0 
+    if b == 0
         return projective_space(NormalToricVariety, 2)
     end
     
     # construct the "true" toric del Pezzo surfaces
     if b == 1
-        fan_rays = [1 0; 0 1; -1 -1; -1 0]
-        cones = IncidenceMatrix([[1,2],[2,4],[4,3],[3,1]])
+        fan_rays = [1 0; 0 1; -1 -1; 1 1]
+        cones = IncidenceMatrix([[1,4],[2,4],[1,3],[2,3]])
     end
     if b == 2
-        fan_rays = [1 0; 0 1; -1 -1; -1 0; 0 -1]
-        cones = IncidenceMatrix([[1,2],[2,4],[4,3],[3,5],[5,1]])
+        fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1]
+        cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,3]])
     end
     if b == 3
-        fan_rays = [1 0; 0 1; -1 -1; -1 0; 0 -1; 1 1]
-        cones = IncidenceMatrix([[1,6],[6,2],[2,4],[4,3],[3,5],[5,1]])
+        fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
+        cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,6],[6,3]])
     end
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
     new_rays = matrix(ZZ, Oscar.rays(variety))
@@ -508,7 +504,7 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
     # return the result
-    return variety    
+    return variety
 end
 export del_pezzo
 
@@ -531,7 +527,7 @@ julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2,1,"e")
 A normal toric variety over QQ
 
 julia> cox_ring(bP2)
-Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by 
+Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by
   x2 -> [1 0]
   x3 -> [0 1]
   x1 -> [1 0]
@@ -552,7 +548,7 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     old_vars = [string(x) for x in gens(cox_ring(v))]
     isnothing(findfirst(x->occursin(coordinate_name, x), old_vars)) ||
         throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety."))
-    
+
     # set up Cox ring of new variety
     new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]
     set_attribute!(new_variety, :coordinate_names, new_vars)
@@ -642,16 +638,16 @@ export NormalToricVarietiesFromStarTriangulations
 
 Witten's Generalized-Sigma models (GLSM) [Wit88](@cite)
 originally sparked interest in the physics community in toric varieties.
-On a mathematical level, this establishes a construction of toric 
-varieties for  which a Z^n grading of the Cox ring is provided. See 
-for example [FJR17](@cite), which describes this as GIT 
+On a mathematical level, this establishes a construction of toric
+varieties for  which a Z^n grading of the Cox ring is provided. See
+for example [FJR17](@cite), which describes this as GIT
 construction [CLS11](@cite).
 
 Explicitly, given the grading of the Cox ring, the map from
 the group of torus invariant Weil divisors to the class group
 is known. Under the assumption that the variety in question
-has no torus factor, we can then identify the map from the 
-lattice to the group of torus invariant Weil divisors as the 
+has no torus factor, we can then identify the map from the
+lattice to the group of torus invariant Weil divisors as the
 kernel of the map from the torus invariant Weil divisor to the
 class group. The latter is a map between free Abelian groups, i.e.
 is provided by an integer valued matrix. The rows of this matrix
@@ -695,7 +691,7 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat)
     end
     zero = [0 for i in 1:ncols(charges)-nrows(charges)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
-
+    
     # construct polyhedron
     p = convex_hull(pts)
     return NormalToricVarietiesFromStarTriangulations(p)
@@ -711,18 +707,18 @@ export NormalToricVarietyFromGLSM
 function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
     properties_string = ["A normal"]
-
+    
     affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
-
+    
     simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :isorbifold, "simplicial")
     push_attribute_if_exists!(properties_string, v, :issmooth, "smooth"; callback=simplicial_cb!)
-
+    
     projective = nothing
     if isnothing(affine) || !affine
         complete_cb!(a,b) = push_attribute_if_exists!(a, b, :iscomplete, "complete")
         projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective"; callback=complete_cb!)
     end
-
+    
     q_gor_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
     gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein"; callback=q_gor_cb!)
     

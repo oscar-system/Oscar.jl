@@ -71,7 +71,9 @@ function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
     end
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
     class = f(sum(coefficients(d)[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))))
-    return ToricLineBundle(v, class)
+    l = ToricLineBundle(v, class)
+    set_attribute!(l, :toric_divisor, d)
+    return l
 end
 ToricLineBundle(d::ToricDivisor) = ToricLineBundle(toric_variety(d), d)
 
@@ -97,7 +99,7 @@ Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
 
 function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
     if toric_variety(l1) !== toric_variety(l2)
-        return false
+        throw(ArgumentError("The line bundles must be defined on identically the same toric variety."))
     end
     return iszero(divisor_class(l1) - divisor_class(l2))
 end
@@ -108,21 +110,21 @@ end
 ########################
 
 function Base.show(io::IO, line_bundle::ToricLineBundle)
-    
+
     # initiate properties string
     properties_string = ["A toric"]
-    
+
     # collect known properties
     if has_attribute(line_bundle, :toric_divisor)
-        td = toric_divisor(line_bundle)        
+        td = toric_divisor(line_bundle)
         push_attribute_if_exists!(properties_string, td, :isprincipal, "trivial")
         push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
         ample_cb!(a,b) = push_attribute_if_exists!(a, b, :isample, "ample")
         push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
     end
-    
+
     # print
     push!(properties_string, "line bundle on a normal toric variety")
     join(io, properties_string, ", ", " ")
-    
+
 end
