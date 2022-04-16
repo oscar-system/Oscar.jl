@@ -11,6 +11,18 @@ simplicial homology group (with rational coefficients) of `v`.
 The employed algorithm is derived from theorem 12.3.12 in 
 [CLS11](@cite). Note that this theorem requires that the normal 
 toric variety `v` is both complete and simplicial.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety,3)
+A normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+
+julia> betti_number(P3,0)
+1
+
+julia> betti_number(P3,1)
+0
+```
 """
 function betti_number(v::AbstractNormalToricVariety, i::Int)
     if !iscomplete(v) || !issimplicial(v)
@@ -22,10 +34,10 @@ function betti_number(v::AbstractNormalToricVariety, i::Int)
     if i > 2*d || i < 0 || isodd(i)
         return fmpz(0)
     end
-
+    
     # extract vector of currently-known Betti numbers (or create it if necessary)
     betti_numbers = get_attribute!(() -> fill(fmpz(-1),d+1), v, :betti_number)::Vector{fmpz}
-
+    
     # compute the Betti number if needed
     k = i >> 1 # i is even, so divide by two and use that as index
     if betti_numbers[k+1] == -1

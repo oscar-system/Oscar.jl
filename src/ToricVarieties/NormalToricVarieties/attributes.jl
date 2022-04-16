@@ -7,6 +7,16 @@
     dim(v::AbstractNormalToricVariety)
 
 Return the dimension of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> dim(antv)
+1
+```
 """
 @attr Int function dim(v::AbstractNormalToricVariety)
     return pm_object(v).FAN_DIM
@@ -18,6 +28,16 @@ export dim
     dim_of_torusfactor(v::AbstractNormalToricVariety)
 
 Return the dimension of the torus factor of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> dim_of_torusfactor(antv)
+1
+```
 """
 @attr Int function dim_of_torusfactor(v::AbstractNormalToricVariety)
     if hastorusfactor(v) == false
@@ -34,6 +54,16 @@ export dim_of_torusfactor
     euler_characteristic(v::AbstractNormalToricVariety)
 
 Return the Euler characteristic of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> euler_characteristic(antv)
+1
+```
 """
 @attr Int function euler_characteristic(v::AbstractNormalToricVariety)
     f_vector = Vector{Int}(pm_object(v).F_VECTOR)
@@ -53,6 +83,18 @@ export euler_characteristic
 Allows to set the coefficient_ring. If the Cox ring of the variety has
 already been computed, we do not allow this to be changed.
 In this case an error is triggered.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> set_coefficient_ring(antv, ZZ)
+
+julia> coefficient_ring(antv) == ZZ
+true
+```
 """
 function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
     set_attribute!(v, :coefficient_ring, coefficient_ring)
@@ -65,6 +107,16 @@ export set_coefficient_ring
 
 This method returns the coefficient_ring of the normal toric variety `v`.
 The default is the ring `QQ`.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> coefficient_ring(antv) == QQ
+true
+```
 """
 coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient_ring, QQ)
 
@@ -73,6 +125,19 @@ coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
 Allows to set the names of the homogeneous coordinates.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> set_coordinate_names(antv, ["u"])
+
+julia> coordinate_names(antv)
+1-element Vector{String}:
+ "u"
+```
 """
 function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
     if length(coordinate_names) != nrays(v)
@@ -88,6 +153,17 @@ export set_coordinate_names
 
 This method returns the names of the homogeneous coordinates of 
 the normal toric variety `v`. The default is `x1,...,xn`.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> coordinate_names(antv)
+1-element Vector{String}:
+ "x1"
+```
 """
 @attr Vector{String} function coordinate_names(v::AbstractNormalToricVariety)
     return ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))]
@@ -100,6 +176,7 @@ function _cox_ring_weights(v::AbstractNormalToricVariety)
         return [map_from_torusinvariant_weil_divisor_group_to_class_group(v)(x) for x in gens(torusinvariant_weil_divisor_group(v))]
     end
 end
+
 
 @doc Markdown.doc"""
     cox_ring(v::AbstractNormalToricVariety)
@@ -162,6 +239,7 @@ export cox_ring
     return minimal_nonfaces(IncidenceMatrix, K)
 end
 
+
 @doc Markdown.doc"""
     stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 
@@ -184,6 +262,7 @@ function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     mnf = _minimal_nonfaces(v)
     return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
 end
+
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(v::AbstractNormalToricVariety)
@@ -230,6 +309,7 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
     R = cox_ring(v)
     return irrelevant_ideal(R, v)
 end
+
 
 @doc Markdown.doc"""
     irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
@@ -332,6 +412,7 @@ function toric_ideal(antv::AffineNormalToricVariety)
     R,_ = PolynomialRing(coefficient_ring(antv), n, cached=false)
     return toric_ideal(R, antv)
 end
+
 
 @doc Markdown.doc"""
     toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
@@ -657,19 +738,19 @@ GrpAb: Z^3
     if hastorusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
-
+    
     # identify fan_rays and cones
     fan_rays = transpose(matrix(ZZ, rays(v)))
     max_cones = ray_indices(maximal_cones(v))
     number_of_rays = ncols(fan_rays)
     number_of_cones = size(max_cones)[1]
-
+    
     # compute quantities needed to construct the matrices
     rc = rank(character_lattice(v))
     number_ray_is_part_of_max_cones = [length(max_cones[:,k].s) for k in 1:number_of_rays]
     s = sum(number_ray_is_part_of_max_cones)
     cones_ray_is_part_of = [filter(x -> max_cones[x,r], 1:number_of_cones) for r in 1:number_of_rays]
-
+    
     # compute the matrix for the scalar products
     map_for_scalar_products = zero_matrix(ZZ, number_of_cones * rc, s)
     col = 1
@@ -697,7 +778,7 @@ GrpAb: Z^3
     for i in 1:number_of_rays
         map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:,i]]
     end
-
+    
     # compute the total map
     mapping_matrix = map_for_scalar_products * map_for_difference_of_elements
     source = free_abelian_group(nrows(mapping_matrix))
@@ -707,11 +788,12 @@ GrpAb: Z^3
     # identify the embedding of the cartier_data_group
     ker = kernel(total_map)
     embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_weil_divisor_group(v), map_to_weil_divisors)
-
+    
     # return the image of this embedding
     return image(embedding)[2]
 end
 export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group
+
 
 @doc Markdown.doc"""
     torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
@@ -791,7 +873,6 @@ export picard_group
 ############################
 # Cones and fans
 ############################
-
 
 """
     nef_cone(v::NormalToricVariety)
