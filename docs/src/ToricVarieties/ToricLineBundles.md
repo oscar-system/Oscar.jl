@@ -57,9 +57,9 @@ toric_variety(l::ToricLineBundle)
 ### Special line bundles
 
 ```@docs
-AnticanonicalBundle(v::AbstractNormalToricVariety)
-CanonicalBundle(v::AbstractNormalToricVariety)
-StructureSheaf(v::AbstractNormalToricVariety)
+anticanonical_bundle(v::AbstractNormalToricVariety)
+canonical_bundle(v::AbstractNormalToricVariety)
+structure_sheaf(v::AbstractNormalToricVariety)
 ```
 
 

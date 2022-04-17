@@ -79,3 +79,4 @@ include("cohomCalg/special_attributes.jl")
 @deprecate map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety) map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
 @deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
+@deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
