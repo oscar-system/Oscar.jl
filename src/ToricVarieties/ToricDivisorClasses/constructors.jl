@@ -110,7 +110,7 @@ Base.:*(c::Int, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), 
 
 function Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
     if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The toric classes must be defined on identically the same toric variety."))
+        return false
     end
     return iszero(divisor_class(tdc1) - divisor_class(tdc2))
 end

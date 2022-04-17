@@ -385,10 +385,6 @@ DC4 = canonical_divisor_class(dP3)
 DC5 = anticanonical_divisor_class(dP3)
 DC6 = trivial_divisor_class(dP3)
 
-@testset "Argument errors for toric divisor classes" begin
-    @test_throws ArgumentError (DC == DC3)
-end
-
 @testset "Attributes of toric divisor classes" begin
     istrivial(toric_divisor(DC2)) == false
     rank(parent(divisor_class(DC2))) == 2
@@ -400,6 +396,7 @@ end
     @test istrivial(2*DC-DC2) == false
     @test (DC == DC2) == false
     @test (DC4 - DC5 == DC6) == false
+    @test (DC == DC3) == false
 end
 
 
@@ -419,7 +416,6 @@ l6 = ToricLineBundle(dP3, trivial_divisor(dP3))
 l7 = structure_sheaf(dP3)
 
 @testset "Argument errors for toric line bundles" begin
-    @test_throws ArgumentError l == l3
     @test_throws ArgumentError l * l3
 end
 
@@ -434,6 +430,7 @@ end
 end
 
 @testset "Arithmetics of torlc line bundles" begin
+    @test (l == l3) == false
     @test (l4 * l5 == l7) == true
     @test (l * l6 * inv(l) == l7) == true
     @test degree(l^(-1)) == -10
@@ -502,7 +499,6 @@ c3 = CohomologyClass(dP1, u1)
 @testset "Argument errors for cohomology classes" begin
     @test_throws ArgumentError cohomology_ring(antv)
     @test_throws ArgumentError chow_ring(antv)
-    @test_throws ArgumentError c == c3
     @test_throws ArgumentError istrivial(c - c3)
     @test_throws ArgumentError istrivial(c + c3)
     @test_throws ArgumentError ideal_of_linear_relations(R, dP3)
@@ -520,6 +516,7 @@ end
     @test length(coefficients(c)) == 1
     @test fmpq(3) * c == fmpz(3) * c
     @test 2 * c != fmpz(3) * c2
+    @test (c == c3) == false
 end
 
 @testset "Computing topological intersection numbers" begin

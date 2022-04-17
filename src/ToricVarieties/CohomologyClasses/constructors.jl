@@ -162,7 +162,7 @@ Base.:^(cc::CohomologyClass, p::Int) = cc^fmpz(p)
 
 function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
+        return false
     end
     return iszero(polynomial(cc1-cc2))
 end
