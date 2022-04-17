@@ -662,7 +662,7 @@ export NormalToricVarietiesFromStarTriangulations
 
 
 ############################
-# 5: Toric varieties from GLSMs
+# 6: Toric varieties from GLSMs
 ############################
 
 @doc Markdown.doc"""
@@ -734,7 +734,7 @@ export NormalToricVarietyFromGLSM
 
 
 ############################
-### 6: Display
+### 7: Display
 ############################
 function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
