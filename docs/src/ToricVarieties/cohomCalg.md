@@ -10,7 +10,7 @@ Pages = ["CohomCalg.md"]
 # Line bundle cohomology with cohomCalg
 
 We employ the cohomCalg algorithm [cohomCalg:Implementation](@cite)
-to compute the dimension of line bundle cohomologies and vanishing sets.
+to compute the dimension of line bundle cohomologies as well as vanishing sets.
 
 
 ## Dimensions of line bundle cohomology
