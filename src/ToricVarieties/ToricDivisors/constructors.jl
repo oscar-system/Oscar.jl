@@ -14,6 +14,7 @@ function pm_tdivisor(td::ToricDivisor)
     return td.polymake_divisor
 end
 
+
 ######################
 # 2: Generic constructors
 ######################

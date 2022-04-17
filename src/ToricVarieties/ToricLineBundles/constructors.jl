@@ -16,11 +16,19 @@ export ToricLineBundle
 # 2: Generic constructors
 ########################
 
-
 @doc Markdown.doc"""
     ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l = ToricLineBundle(v, [fmpz(2)])
+A toric line bundle on a normal toric variety
+```
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{fmpz})
     class = picard_group(v)(input_class)
@@ -37,7 +45,7 @@ Convenience method for ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle( v, [ 2 ] )
+julia> l = ToricLineBundle(v, [2])
 A toric line bundle on a normal toric variety
 ```
 """
