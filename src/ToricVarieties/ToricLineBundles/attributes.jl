@@ -134,6 +134,12 @@ julia> basis_of_global_sections_via_rational_functions(l)
 ```
 """
 @attr function basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
+    if has_attribute(toric_variety(l), :vanishing_sets)
+        tvs = vanishing_sets(toric_variety(l))[1]
+        if contains(tvs, l)
+            return []
+        end
+    end
     characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
     return [character_to_rational_function(toric_variety(l), vec([fmpz(c) for c in characters[i,:]])) for i in 1:nrows(characters)]
 end
@@ -176,6 +182,12 @@ julia> basis_of_global_sections(l)
 ```
 """
 @attr function basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
+    if has_attribute(toric_variety(l), :vanishing_sets)
+        tvs = vanishing_sets(toric_variety(l))[1]
+        if contains(tvs, l)
+            return []
+        end
+    end
     hc = homogeneous_component(cox_ring(toric_variety(l)), divisor_class(l))
     generators = gens(hc[1])
     return [hc[2](x) for x in generators]

@@ -481,6 +481,8 @@ end
     @test length(basis_of_global_sections_via_rational_functions(l)) == 11
     @test length(basis_of_global_sections(l)) == 11
     @test length(basis_of_global_sections(l5^2)) == 19
+    @test length(basis_of_global_sections_via_rational_functions(l4)) == 0
+    @test length(basis_of_global_sections(l4)) == 0
 end
 
 
