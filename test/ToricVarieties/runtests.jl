@@ -10,7 +10,7 @@ antv2 = NormalToricVariety(Oscar.positive_hull([1 1; -1 1]))
 antv3 = AffineNormalToricVariety(antv2)
 antv4 = AffineNormalToricVariety(Oscar.positive_hull([1 0]))
 antv5 = AffineNormalToricVariety(Oscar.positive_hull([1 0; 0 1]))
-antv6 = NormalToricVariety(PolyhedralFan([1 0 0; 1 0 1; 1 1 1; 1 1 0], IncidenceMatrix([[1,2,3,4]])))
+antv6 = NormalToricVariety([[1,0,0], [1,0,1], [1,1,1], [1,1,0]], [[1,2,3,4]])
 
 set_coefficient_ring(antv4, ZZ)
 
@@ -144,7 +144,7 @@ end
 #####################
 
 F0 = hirzebruch_surface(0)
-F5 = NormalToricVariety(PolyhedralFan([1 0; 0 1; -1 5; 0 -1], IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])))
+F5 = NormalToricVariety([[1,0], [0,1], [-1,5], [0,-1]], [[1,2],[2,3],[3,4],[4,1]])
 
 @testset "Hirzebruch surface F0" begin
     @test isfano(F0) == true
@@ -194,9 +194,9 @@ end
 #####################
 
 dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
-dP1 = NormalToricVariety(PolyhedralFan([1 0; 0 1; -1 0; -1 -1], IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])))
-dP2 = NormalToricVariety(PolyhedralFan([1 0; 0 1; -1 0; -1 -1; 0 -1], IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])))
-dP3 = NormalToricVariety(PolyhedralFan([1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1], IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])))
+dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,1]])
+dP2 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,1]])
+dP3 = NormalToricVariety([[1,0], [1,1], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
 
 @testset "Argument errors for del Pezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)

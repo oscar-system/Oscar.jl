@@ -98,6 +98,38 @@ end
 
 
 @doc Markdown.doc"""
+    NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
+
+Construct a normal toric variety $X$ by providing the rays and maximal cones
+as vector of vectors.
+
+# Examples
+```jldoctest
+julia> ray_generators = [[1,0],[0,1],[-1,5],[0,-1]]
+4-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+ [-1, 5]
+ [0, -1]
+
+julia> max_cones = [[1,2],[2,3],[3,4],[4,1]]
+4-element Vector{Vector{Int64}}:
+ [1, 2]
+ [2, 3]
+ [3, 4]
+ [4, 1]
+
+julia> NormalToricVariety(ray_generators, max_cones)
+A normal toric variety
+```
+"""
+function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
+    fan = PolyhedralFan(transpose(hcat(rays...)), IncidenceMatrix(max_cones))
+    return NormalToricVariety(fan)
+end
+
+
+@doc Markdown.doc"""
     NormalToricVariety(PF::PolyhedralFan)
 
 Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
