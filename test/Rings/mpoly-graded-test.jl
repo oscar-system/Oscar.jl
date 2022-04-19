@@ -206,6 +206,14 @@ end
   @test minimal_generating_set(ideal(R, [ R() ])) == elem_type(R)[]
 end
 
+@testset "Division" begin
+  R, (x, y) = GradedPolynomialRing(QQ, [ "x", "y" ], [ 1, 2 ])
+  f = x^2 + y
+  g = x^2
+  @test div(f, g) == one(R)
+  @test divrem(f, g) == (one(R), y)
+end
+
 # Conversion bug
 
 begin
