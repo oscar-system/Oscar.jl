@@ -107,7 +107,7 @@ end
    end
 
    @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
-      for invs in [[2, 3, 4], [6, 8, 9, 15]]
+      for invs in [[1], [2, 3, 4], [6, 8, 9, 15]]
          for T in [PermGroup, PcGroup, FPGroup]
             G = abelian_group(T, invs)
             iso = @inferred isomorphism(GrpAbFinGen, G)
