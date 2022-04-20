@@ -39,7 +39,7 @@ a principal toric divisor. This is implemented via `tdc1 == tdc2`.
 
 ## Properties of toric divisor classes
 
-To check if a toric divisor class `tdc` is trivial, one can invoke `istrivial(tdc)`.
+To check if a toric divisor class `tdc` is trivial, one can invoke `is_trivial(tdc)`.
 
 
 ## Operations for toric divisor classes

@@ -51,9 +51,9 @@ function AffineNormalToricVariety(C::Cone)
     # set known attributes
     set_attribute!(variety, :cone, C)
     set_attribute!(variety, :fan, fan)
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :picard_group, free_abelian_group(0))
     
@@ -86,9 +86,9 @@ function NormalToricVariety(C::Cone)
     
     # set known attributes
     set_attribute!(variety, :fan, fan)
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :picard_group, free_abelian_group(0))
     
@@ -208,15 +208,15 @@ A normal, affine toric variety
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
     # check input
-    isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
+    is_affine(v) || error("Cannot construct affine toric variety from non-affine input")
     
     # set variety
     variety = AffineNormalToricVariety(pm_object(v))
     
     # set properties of variety
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :is_projective_space, false)
     
     # construct the affine variety and copy all cached information from v
@@ -249,10 +249,10 @@ function affine_space(::Type{NormalToricVariety}, d::Int)
     variety = NormalToricVariety(pmntv)
     
     # set known properties
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
-    set_attribute!(variety, :isprojective_space, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
+    set_attribute!(variety, :is_projective_space, false)
     
     # set attributes
     set_attribute!(variety, :fan, fan)
@@ -283,17 +283,17 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     variety = NormalToricVariety(pm_object)
     
     # set properties
-    set_attribute!(variety, :isaffine, false)
-    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
     set_attribute!(variety, :is_projective_space, true)
-    set_attribute!(variety, :issmooth, true)
-    set_attribute!(variety, :iscomplete, true)
-    set_attribute!(variety, :hastorusfactor, false)
-    set_attribute!(variety, :isorbifold, true)
-    set_attribute!(variety, :issimplicial, true)
-    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :is_smooth, true)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+    set_attribute!(variety, :is_gorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
-    set_attribute!(variety, :isfano, true)
+    set_attribute!(variety, :is_fano, true)
     
     # set general attributes
     set_attribute!(variety, :dim, d)
@@ -332,20 +332,20 @@ function hirzebruch_surface(r::Int)
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
-    set_attribute!(variety, :isaffine, false)
-    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
     set_attribute!(variety, :is_projective_space, false)
-    set_attribute!(variety, :issmooth, true)
-    set_attribute!(variety, :iscomplete, true)
-    set_attribute!(variety, :hastorusfactor, false)
-    set_attribute!(variety, :isorbifold, true)
-    set_attribute!(variety, :issimplicial, true)
-    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :is_smooth, true)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+    set_attribute!(variety, :is_gorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
     if abs(r) <= 1
-        set_attribute!(variety, :isfano, true)
+        set_attribute!(variety, :is_fano, true)
     else
-        set_attribute!(variety, :isfano, false)
+        set_attribute!(variety, :is_fano, false)
     end
     
     # assign meaningful variables according to the rays
@@ -435,17 +435,17 @@ function del_pezzo(b::Int)
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
-    set_attribute!(variety, :isaffine, false)
-    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
     set_attribute!(variety, :is_projective_space, false)
-    set_attribute!(variety, :issmooth, true)
-    set_attribute!(variety, :iscomplete, true)
-    set_attribute!(variety, :hastorusfactor, false)
-    set_attribute!(variety, :isorbifold, true)
-    set_attribute!(variety, :issimplicial, true)
-    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :is_smooth, true)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+    set_attribute!(variety, :is_gorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
-    set_attribute!(variety, :isfano, true)
+    set_attribute!(variety, :is_fano, true)
     
     # assign meaningful variables according to the rays
     vars_dict = Dict()
@@ -740,21 +740,21 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
     properties_string = ["A normal"]
     
-    affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
+    affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
     
-    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :isorbifold, "simplicial")
-    push_attribute_if_exists!(properties_string, v, :issmooth, "smooth"; callback=simplicial_cb!)
+    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
+    push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
     
     projective = nothing
     if isnothing(affine) || !affine
-        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :iscomplete, "complete")
-        projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective"; callback=complete_cb!)
+        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
+        projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
     end
     
     q_gor_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
-    gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein"; callback=q_gor_cb!)
+    gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
     
-    push_attribute_if_exists!(properties_string, v, :isfano, "fano")
+    push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
     
     # dimension?
     if has_attribute(v, :dim)
@@ -776,7 +776,7 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     else
         push!(properties_string, "toric variety")
     end
-    push_attribute_if_exists!(properties_string, v, :hastorusfactor, "with torusfactor", "without torusfactor")
+    push_attribute_if_exists!(properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor")
     
     # print string
     join(io, properties_string, " ")

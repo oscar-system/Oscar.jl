@@ -16,7 +16,7 @@ julia> ngens(cohomology_ring(p2))
 ```
 """
 function cohomology_ring(v::AbstractNormalToricVariety)
-    if !issimplicial(v) || !iscomplete(v)
+    if !is_simplicial(v) || !is_complete(v)
         throw(ArgumentError("The cohomology ring is (currently) only supported for simplicial and complete toric varieties."))
     end
     R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached = false)

@@ -66,7 +66,7 @@ A toric line bundle on a normal toric variety
 julia> toric_divisor(l)
 A torus-invariant, cartier, non-prime divisor on a normal toric variety
 
-julia> iscartier(toric_divisor(l))
+julia> is_cartier(toric_divisor(l))
 true
 ```
 """
@@ -77,7 +77,7 @@ true
     image = map2(preimage(map1, class)).coeff
     coeffs = vec([fmpz(x) for x in image])
     td = ToricDivisor(toric_variety(l), coeffs)
-    set_attribute!(td, :iscartier, true)
+    set_attribute!(td, :is_cartier, true)
     return td
 end
 export toric_divisor

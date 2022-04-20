@@ -80,3 +80,33 @@ include("cohomCalg/special_attributes.jl")
 @deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
 @deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
+
+# deprecated properties
+@deprecate isnormal(v::AbstractNormalToricVariety) is_normal(v)
+@deprecate isaffine(v::AbstractNormalToricVariety) is_affine(v)
+@deprecate isprojective(v::AbstractNormalToricVariety) is_projective(v)
+@deprecate issmooth(v::AbstractNormalToricVariety) is_smooth(v)
+@deprecate iscomplete(v::AbstractNormalToricVariety) is_complete(v)
+@deprecate hastorusfactor(v::AbstractNormalToricVariety) has_torusfactor(v)
+@deprecate isorbifold(v::AbstractNormalToricVariety) is_orbifold(v)
+@deprecate issimplicial(v::AbstractNormalToricVariety) is_simplicial(v)
+@deprecate isgorenstein(v::AbstractNormalToricVariety) is_gorenstein(v)
+@deprecate isfano(v::AbstractNormalToricVariety) is_fano(v)
+
+@deprecate iscartier(td::ToricDivisor) is_cartier(td)
+@deprecate isprincipal(td::ToricDivisor) is_principal(td)
+@deprecate istrivial(td::ToricDivisor) is_trivial(td)
+@deprecate iseffective(td::ToricDivisor) is_effective(td)
+@deprecate isintegral(td::ToricDivisor) is_integral(td)
+@deprecate isample(td::ToricDivisor) is_ample(td)
+@deprecate isnef(td::ToricDivisor) is_nef(td)
+@deprecate isprime(td::ToricDivisor) is_prime(td)
+
+@deprecate istrivial(tdc::ToricDivisorClass) is_trivial(tdc)
+
+@deprecate istrivial(l::ToricLineBundle) is_trivial(l)
+@deprecate isample(l::ToricLineBundle) is_ample(l)
+
+@deprecate istrivial(cc::CohomologyClass) is_trivial(cc)
+
+@deprecate isfull(tvs::ToricVanishingSet) is_full(tvs)

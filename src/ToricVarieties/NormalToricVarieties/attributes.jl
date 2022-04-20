@@ -40,7 +40,7 @@ julia> dim_of_torusfactor(antv)
 ```
 """
 @attr Int function dim_of_torusfactor(v::AbstractNormalToricVariety)
-    if hastorusfactor(v) == false
+    if has_torusfactor(v) == false
         return 0
     end
     dimension_of_fan = pm_object(v).FAN_DIM::Int
@@ -371,7 +371,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !(iscomplete(v) && issimplicial(v))
+    if !(is_complete(v) && is_simplicial(v))
         throw(ArgumentError("The variety must be both complete and simplicial for the computation of the ideal of linear relations"))
     end
     if ngens(R) != nrays(v)
@@ -445,7 +445,7 @@ function toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 end
 
 function toric_ideal(ntv::NormalToricVariety)
-    isaffine(ntv) || error("Cannot construct affine toric variety from non-affine input")
+    is_affine(ntv) || error("Cannot construct affine toric variety from non-affine input")
     return toric_ideal(AffineNormalToricVariety(ntv))
 end
 export toric_ideal
@@ -735,7 +735,7 @@ GrpAb: Z^3
 """
 @attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     # check input
-    if hastorusfactor(v)
+    if has_torusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
     
@@ -838,7 +838,7 @@ Abelian group with structure: Z
 """
 @attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
     # check input
-    if hastorusfactor(v)
+    if has_torusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
     
