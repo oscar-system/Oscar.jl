@@ -647,7 +647,7 @@ return `true` if `A` is normal, `false` otherwise.
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
-julia> A, _ = quo(R, ideal(R, [z^2-x*y]));
+julia> A, _ = quo(R, ideal(R, [z^2-x*y]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2), Map from
 Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2) defined by a julia-function with inverse)
 
