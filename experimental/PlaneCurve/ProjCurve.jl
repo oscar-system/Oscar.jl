@@ -72,7 +72,7 @@ end
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
@@ -132,7 +132,7 @@ end
 
 Return `true` if `C` is irreducible, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
@@ -166,7 +166,7 @@ end
 
 Return the projective curve defined by the radical of the defining ideal of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
@@ -200,7 +200,7 @@ end
 
 Return the Jacobian ideal of the defining ideal of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
