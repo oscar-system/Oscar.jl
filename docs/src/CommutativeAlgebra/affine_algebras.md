@@ -403,15 +403,7 @@ isreduced(Q::MPolyQuo)
 isnormal(A::MPolyQuo)
 ```
 
-###### Examples
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z^2-x*y]))
-isnormal(A)
-```
-
-#### Cohen-Macaulayness Test
+### Cohen-Macaulayness Test
 
 iscohenmacaulay(R)
 
