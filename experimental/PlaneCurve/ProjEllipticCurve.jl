@@ -141,7 +141,7 @@ Return the Projective Elliptic Curve defined by the equation `eq`, with `P` as
 infinity point. If no point is specified it is expected that `eq` is in
 Weierstrass form, and the infinity point is `(0:1:0)`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -260,7 +260,7 @@ end
 Return the equation of a projective elliptic curve defined by an equation in
 Weierstrass form and which is linearly equivalent to `E`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -343,7 +343,7 @@ end
 
 Create the point `P` on the elliptic curve `E`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -553,7 +553,7 @@ Given a smooth plane cubic projective curve `C` and a point `P` on the curve,
 return an elliptic curve birationally equivalent to `C` given by an equation in
 long Weierstrass form.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])

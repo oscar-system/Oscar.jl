@@ -64,7 +64,7 @@ end
 
 Return the maximal ideal associated to the point `P` in the ring `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -130,7 +130,7 @@ end
 
 Return the Projective Plane Curve defined by the homogeneous polynomial in three variables `eq`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -265,7 +265,7 @@ end
 
 Return the Jacobian ideal of the defining polynomial of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -289,7 +289,7 @@ end
 
 Return a dictionary containing the irreducible components of `C` and their multiplicity.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -321,7 +321,7 @@ end
 
 Return `true` if `C` is irreducible, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -351,7 +351,7 @@ end
 
 Return `true` if `C` is reduced, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -387,7 +387,7 @@ end
 
 Return the plane curve defined by the squarefree part of the equation of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -429,7 +429,7 @@ end
 
 Return the union of `C` and `D` (with multiplicity).
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -454,7 +454,7 @@ Base.union(C::T, D::T) where T <: PlaneCurve = T(C.eq*D.eq)
 
 Return the coordinate ring of the curve `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])

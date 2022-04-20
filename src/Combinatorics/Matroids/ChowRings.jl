@@ -139,7 +139,7 @@ end
 
 Return an augmented Chow ring of a matroid. As described in [BHMPW20](@cite). 
 
-# Example
+# Examples
 ```jldoctest
 julia> M = fano_matroid();
 

@@ -409,7 +409,7 @@ dual_matroid(M::Matroid) = Matroid(M.pm_matroid.DUAL,M.groundset,M.gs2num)
 The ground set `E` of a matroid `M`.
 
 To obtain the ground set of the Fano matroid write:
-# Example
+# Examples
 ```jldoctest
 julia> matroid_groundset(fano_matroid())
 7-element Vector{Int64}:
@@ -432,14 +432,14 @@ Optionally one can also pass a vector of matroids.
 See Section 4.2 of [Oxl11](@cite).
 
 To obtain the direct sum of the Fano and a uniform matroid type:
-# Example
+# Examples
 ```jldoctest
 julia> direct_sum(fano_matroid(), uniform_matroid(2,4))
 Matroid of rank 5 on 11 elements
 ```
 
 To take the sum of three uniform matroids use:
-# Example
+# Examples
 ```jldoctest
 julia> matroids = Vector([uniform_matroid(2,4), uniform_matroid(1,3), uniform_matroid(3,4)]);
 
@@ -472,7 +472,7 @@ The `deletion M\S` of an element `e` or a subset `S` of the ground set `E` of th
 
 See Section 3 of [Oxl11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
@@ -480,7 +480,7 @@ julia> N = deletion(M,'i')
 Matroid of rank 2 on 3 elements
 ```
 
-# Example
+# Examples
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
@@ -528,7 +528,7 @@ The `restriction M|S` on a subset `S` of the ground set `E` of the matroid `M`.
 
 See Section 3 of [Oxl11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
@@ -558,7 +558,7 @@ The `contraction M/S` of an element or a subset `S` of the ground set `E` of the
 
 See Section 3 of [Oxl11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
@@ -566,7 +566,7 @@ julia> N = contraction(M,'i')
 Matroid of rank 1 on 3 elements
 ```
 
-# Example
+# Examples
 ```jldoctest
 julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j']);
 
@@ -593,7 +593,7 @@ The `minor M\S/T` of disjoint subsets  `S` and `T` of the ground set `E` of the 
 
 See also `contraction` and `deletion`. You can find more in Section 3 of [Oxl11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> M = fano_matroid();
 
@@ -619,7 +619,7 @@ The `principal extension M +_F e` of a matroid `M` where the element `e` is free
 
 See Section 7.2 of [Oxl11](@cite).
 
-# Example
+# Examples
 To add `5` freely to the flat `{1,2}` of the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
@@ -643,7 +643,7 @@ The `free extension M +_E e` of a matroid `M` where the element `e`.
 
 See ``principal_extension`` and Section 7.2 of [Oxl11](@cite).
 
-# Example
+# Examples
 To add `5` freely to the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
@@ -661,7 +661,7 @@ The `series extension` of a matroid `M` where the element `e` is added in series
 
 This is actually a coextension see also Section 7.2 of [Oxl11](@cite).
 
-# Example
+# Examples
 To add `e` in series to `1` in the uniform matroid U_{3,4} do
 ```jldoctest
 julia> M = uniform_matroid(1,4);
@@ -687,7 +687,7 @@ The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is add
 
 See Section 7.2 of [Oxl11](@cite).
 
-# Example
+# Examples
 To add `e` parallel to `1` in the uniform matroid `U_{3,4}` do
 ```jldoctest
 julia> M = uniform_matroid(3,4);
@@ -773,7 +773,7 @@ Note that this only works for prime numbers `q` for now.
 
 See Section 6.1 of [Oxl11](@cite).
 
-# Example
+# Examples
 ```jldoctest
 julia> M = projective_plane(3)
 Matroid of rank 3 on 13 elements
@@ -797,7 +797,7 @@ Note that this only works for prime numbers `q` for now.
 See Section 6.1 of [Oxl11](@cite).
 Warning: Following the book of Oxley, the rank of the resulting matroid is `r+1`.
 
-# Example
+# Examples
 ```jldoctest
 julia> M = projective_geometry(2, 3)
 Matroid of rank 3 on 13 elements
@@ -834,7 +834,7 @@ Note that this only works for prime numbers `q` for now.
 See Section 6.1 of [Oxl11](@cite).
 Warning: Following the book of Oxley, the rank of the resulting matroid is `r+1`.
 
-# Example
+# Examples
 ```jldoctest
 julia> M = affine_geometry(2, 3)
 Matroid of rank 3 on 9 elements
