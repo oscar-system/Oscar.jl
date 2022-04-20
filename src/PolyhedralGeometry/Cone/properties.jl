@@ -397,3 +397,23 @@ _hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Int
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
+
+
+@doc Markdown.doc"""
+    contains(C::Cone, v::AbstractVector)
+
+Check whether `C` contains `v`.
+
+# Examples
+The positive orthant only contains vectors with non-negative entries:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains(C, [1, 2])
+true
+
+julia> contains(C, [1, -2])
+false
+```
+"""
+contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool
