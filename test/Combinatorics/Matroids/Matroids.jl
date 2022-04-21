@@ -61,7 +61,7 @@
         @test sort(bases(mb2)) == sort(bases(mb7))
 
         mb8 = matroid_from_nonbases(Set([Set([3,4])]),Set([3,4,5,6]))
-        @test isisomorphic(mb7,mb8) == true
+        @test is_isomorphic(mb7,mb8) == true
 
         @test_throws ErrorException matroid_from_nonbases(Set{Set{Int}}([]),1)
         @test_throws ErrorException matroid_from_nonbases([[1,2],[3]], 3)
@@ -75,7 +75,7 @@
         @test length(bases(mc1)) == 5
 
         mc2 = matroid_from_circuits([[3,4],[1,2,3],[1,2,4]],Set([2,3,1,4]))
-        @test isisomorphic(mc1,mc2)
+        @test is_isomorphic(mc1,mc2)
 
         @test_throws ErrorException matroid_from_circuits([[1,2],[1,3],[2,4],[3,4]], 3)
         @test_throws ErrorException matroid_from_circuits([[1,2]], [1,2,1])
@@ -85,7 +85,7 @@
 
         mc4 = matroid_from_hyperplanes(Set([Set([1]),Set([2]),Set(['a','b'])]),Set(['b',2,1,'a']))
         @test length(cyclic_flats(mc3)) == 3
-        @test isisomorphic(mc3,mc4)
+        @test is_isomorphic(mc3,mc4)
 
         @test_throws ErrorException matroid_from_hyperplanes(Set{Set{Int}}([]),1)
         @test_throws ErrorException matroid_from_hyperplanes([[1,2],[1,3],[2,4],[3,4]], 3)
@@ -105,7 +105,7 @@
         @test bases(mm3) == [[1],[4],[5]]
 
         mm4 = matroid_from_matrix_rows(matrix(GF(5),[1 2]))
-        @test isisomorphic(mm2,mm4)
+        @test is_isomorphic(mm2,mm4)
 
         mm5 = matroid_from_matrix_columns(matrix(QQ,[[]]))
         @test mm5 isa Matroid
@@ -215,8 +215,8 @@
         @test_throws ErrorException isomorphic_matroid(fano_matroid(), [1,2,3])
         @test_throws ErrorException isomorphic_matroid(fano_matroid(), [1,2,3,1,2,3,4])
 
-        @test isisomorphic(fano_matroid(), isomorphic_matroid(fano_matroid(), ["001","010","011","100","101","110","111"]))
-        @test  !isisomorphic(fano_matroid(), non_fano_matroid())
+        @test is_isomorphic(fano_matroid(), isomorphic_matroid(fano_matroid(), ["001","010","011","100","101","110","111"]))
+        @test  !is_isomorphic(fano_matroid(), non_fano_matroid())
 
 
         N = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j'])
@@ -323,15 +323,15 @@
         @test is_k_separation(K23,2,[1,2])
         @test !is_k_separation(K23,3,[1,2])
 
-        @test isisomorphic(matroid_from_revlex_basis_encoding("**0***",2,4),N)
-        @test !isisomorphic(matroid_from_nonbases([[1,2,3],[3,4,5]],6),matroid_from_nonbases([[1,2,3],[4,5,6]],6))
-        @test !isisomorphic(N,principal_extension(N,[],3))
+        @test is_isomorphic(matroid_from_revlex_basis_encoding("**0***",2,4),N)
+        @test !is_isomorphic(matroid_from_nonbases([[1,2,3],[3,4,5]],6),matroid_from_nonbases([[1,2,3],[4,5,6]],6))
+        @test !is_isomorphic(N,principal_extension(N,[],3))
 
-        @test isminor(N,N)
-        @test isminor(uniform_matroid(1,3),N)
-        @test isminor(direct_sum(uniform_matroid(1,2),uniform_matroid(0,1)),N)
-        @test isminor(N,NN)
-        @test !isminor(NN,N)
-        @test !isminor(fano_matroid(), uniform_matroid(2,4))
+        @test is_minor(N,N)
+        @test is_minor(uniform_matroid(1,3),N)
+        @test is_minor(direct_sum(uniform_matroid(1,2),uniform_matroid(0,1)),N)
+        @test is_minor(N,NN)
+        @test !is_minor(NN,N)
+        @test !is_minor(fano_matroid(), uniform_matroid(2,4))
    end
 end

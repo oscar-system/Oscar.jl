@@ -12,7 +12,7 @@ export
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
     tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
-    revlex_basis_encoding, isisomorphic, isminor
+    revlex_basis_encoding, is_isomorphic, is_minor
 
 ################################################################################
 ##  Properties and basic functions
@@ -1019,7 +1019,7 @@ function revlex_basis_encoding(M::Matroid)
 end
 
 @doc Markdown.doc"""
-    isisomorphic(M1::Matroid, M2::Matroid)
+    is_isomorphic(M1::Matroid, M2::Matroid)
 
 Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.
 
@@ -1030,12 +1030,12 @@ julia> H = [[1,2,4],[2,3,5],[1,3,6],[3,4,7],[1,5,7],[2,6,7],[4,5,6]];
 
 julia> M = matroid_from_hyperplanes(H,7);
 
-julia> isisomorphic(M,fano_matroid())
+julia> is_isomorphic(M,fano_matroid())
 true
 
 ```
 """
-function isisomorphic(M1::Matroid, M2::Matroid)
+function is_isomorphic(M1::Matroid, M2::Matroid)
     if length(M1) != length(M2)
         return false
     end
@@ -1043,20 +1043,20 @@ function isisomorphic(M1::Matroid, M2::Matroid)
 end
 
 @doc Markdown.doc"""
-    isminor(M::Matroid, N::Matroid)
+    is_minor(M::Matroid, N::Matroid)
 
 Checks if the matroid `M` is isomorphic to a minor of the matroid `N`.
 
 # Examples
 ```jldoctest
-julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), fano_matroid())
+julia> is_minor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), fano_matroid())
 false
 
-julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), parallel_extension(uniform_matroid(3,4), 1, 5))
+julia> is_minor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), parallel_extension(uniform_matroid(3,4), 1, 5))
 true
 ```
 """
-function isminor(Minor::Matroid, M::Matroid)
+function is_minor(Minor::Matroid, M::Matroid)
     n = length(M)
     c = rank(M)-rank(Minor)
     d = n-length(Minor)-c
