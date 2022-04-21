@@ -7,7 +7,8 @@ const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq),
                                 ("QuadraticExtension<Rational>", nf_elem)])
 
 const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational),
-                                    (nf_elem, Polymake.QuadraticExtension{Polymake.Rational})])
+                                    (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
+                                    (Union{fmpq, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational})])    # needed for Halfspace{nf_elem} etc
 
 const scalar_types_extended = Union{scalar_types, fmpz}
 
@@ -116,6 +117,8 @@ end
 Halfspace(a, b) = AffineHalfspace(a, b)
 Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
 
+invert(H::AffineHalfspace{T}) where T<:scalar_types = AffineHalfspace{T}(-normal_vector(H), -negbias(H))
+
 ################################################################################
 
 struct LinearHalfspace{T} <: Halfspace{T}
@@ -127,6 +130,8 @@ end
 
 Halfspace(a) = LinearHalfspace(a)
 Halfspace{T}(a) where T<:scalar_types = LinearHalfspace{T}(a)
+
+invert(H::LinearHalfspace{T}) where T<:scalar_types = LinearHalfspace{T}(-normal_vector(H))
 
 ################################################################################
 
@@ -243,7 +248,7 @@ Base.size(iter::SubObjectIterator) = (iter.n,)
 ################################################################################
 
 # Incidence matrices
-for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"))
+for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin

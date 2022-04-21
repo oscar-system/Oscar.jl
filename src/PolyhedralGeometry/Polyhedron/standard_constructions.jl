@@ -228,7 +228,21 @@ function newton_polytope(f)
 end
 
 
+Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(permutedims(normal_vector(H)), negbias(H))
 
+Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(permutedims(normal_vector(H)), negbias(H))
+
+function Polyhedron(H::Hyperplane{T}) where T<:scalar_types
+   n = permutedims(normal_vector(H))
+   b = negbias(H)
+   return Polyhedron{T}(nothing, (n, [b]))
+end
+
+function Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}})
+   n = permutedims(normal_vector(H))
+   b = negbias(H)
+   return Polyhedron{nf_elem}(nothing, (n, [b]))
+end
 
 @doc Markdown.doc"""
     intersect(P::Polyhedron, Q::Polyhedron)
@@ -255,7 +269,6 @@ julia> rays(PO)
 function intersect(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
    return Polyhedron{T}(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
 end
-
 
 @doc Markdown.doc"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
