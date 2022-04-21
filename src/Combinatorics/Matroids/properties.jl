@@ -1052,7 +1052,7 @@ Checks if the matroid `M` is isomorphic to a minor of the matroid `N`.
 julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), fano_matroid())
 false
 
-julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), parallel_extension(uniform_matroid(2,4), 1, 5))
+julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), parallel_extension(uniform_matroid(3,4), 1, 5))
 true
 ```
 """
