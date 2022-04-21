@@ -12,7 +12,7 @@ export
     connectivity_function, is_vertical_k_separation, is_k_separation,
     vertical_connectivity, girth, tutte_connectivity,
     tutte_polynomial, characteristic_polynomial, charpoly, reduced_characteristic_polynomial,
-    revlex_basis_encoding, isisomorphic
+    revlex_basis_encoding, isisomorphic, isminor
 
 ################################################################################
 ##  Properties and basic functions
@@ -1039,5 +1039,47 @@ function isisomorphic(M1::Matroid, M2::Matroid)
     if length(M1) != length(M2)
         return false
     end
-    return revlex_basis_encoding(M1)[2] == revlex_basis_encoding(M2)[2]
+    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)
+end
+
+@doc Markdown.doc"""
+    isminor(M::Matroid, N::Matroid)
+
+Checks if the matroid `M` is isomorphic to a minor of the matroid `N`.
+
+# Examples
+```jldoctest
+julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), fano_matroid())
+false
+
+julia> isminor(direct_sum(uniform_matroid(0,1), uniform_matroid(2,2)), parallel_extension(uniform_matroid(2,4), 1, 5))
+true
+```
+"""
+function isminor(Minor::Matroid, M::Matroid)
+    n = length(M)
+    c = rank(M)-rank(Minor)
+    d = n-length(Minor)-c
+    nB = length(bases(Minor))
+    if(c<0 || d<0 || length(bases(M))< nB)
+        return false
+    end
+    basesM = [[M.gs2num[i] for i in B] for B in bases(M)]
+    basesMinor = [[Minor.gs2num[i] for i in B] for B in bases(Minor)]
+
+    for set_C in Oscar.Hecke.subsets(Vector(1:n), c) # set to contract
+        bases_C = filter(B->issubset(set_C,B), basesM)
+        for set_R in Oscar.Hecke.subsets(setdiff(Set(1:n), set_C), n-c-d) # set t restrict on
+            bases_R = filter(B->issubset(B,union(set_R, set_C)), bases_C)
+            if length(bases_R) == nB
+                # push a large element to guarantee the correct size of the matrix
+                I = Polymake.IncidenceMatrix(push!(bases_R,[n+1]))[1:nB, collect(set_R)]
+                Iminor = Polymake.IncidenceMatrix(push!(basesMinor,[length(Minor)+1]))[1:nB, 1:length(Minor)]
+                if !isnothing(Polymake.graph.find_row_col_permutation(I,Iminor))
+                    return true
+                end
+            end
+        end
+    end
+    return false
 end

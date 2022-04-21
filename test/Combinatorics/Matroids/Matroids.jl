@@ -184,7 +184,7 @@
 
         m12 = principal_extension(fano_matroid(),Set([1,2,3]),8)
         @test m12 isa Matroid
-        @test length(nonbases(principal_extension(fano_matroid(),Set([1,2,3]),8))) == 7
+        @test length(nonbases(principal_extension(fano_matroid(),Set([1,2,3]),8))) == 10
 
         @test_throws ErrorException principal_extension(fano_matroid(),Set([1,2]),5)
 
@@ -326,5 +326,12 @@
         @test isisomorphic(matroid_from_revlex_basis_encoding("**0***",2,4),N)
         @test !isisomorphic(matroid_from_nonbases([[1,2,3],[3,4,5]],6),matroid_from_nonbases([[1,2,3],[4,5,6]],6))
         @test !isisomorphic(N,principal_extension(N,[],3))
-    end
+
+        @test isminor(N,N)
+        @test isminor(uniform_matroid(1,3),N)
+        @test isminor(direct_sum(uniform_matroid(1,2),uniform_matroid(0,1)),N)
+        @test isminor(N,NN)
+        @test !isminor(NN,N)
+        @test !isminor(fano_matroid(), uniform_matroid(2,4))
+   end
 end

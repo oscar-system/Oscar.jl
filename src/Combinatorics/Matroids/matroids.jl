@@ -633,8 +633,9 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
         error("The element you are about to add is already contained in the ground set")
     end
     gs2num = copy(M.gs2num)
-    gs2num[elem] = length(M.groundset)
-    return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set{Int}(set)),[M.groundset;elem],gs2num)
+    gs2num[elem] = length(M.groundset)+1
+    pm_set = Set{Int}([gs2num[i]-1 for i in set])
+    return Matroid(Polymake.matroid.principal_extension(M.pm_matroid, pm_set),[M.groundset;elem],gs2num)
 end
 
 @doc Markdown.doc"""
@@ -671,7 +672,7 @@ Matroid of rank 2 on 5 elements
 
 julia> cocircuits(N)[1]
 2-element Vector{Any}:
- 2
+ 1
   'e': ASCII/Unicode U+0065 (category Ll: Letter, lowercase)
 ```
 """
@@ -683,7 +684,7 @@ end
 @doc Markdown.doc"""
     parallel_extension(M::Matroid, f::ElementType, e::ElementType)
 
-The `parallel extension M +_{f} e` of a matroid `M` where the element `e` is added parallel to `f`.
+The `parallel extension M +_{cl(f)} e` of a matroid `M` where the element `e` is added parallel to (the closure of) `f`.
 
 See Section 7.2 of [Oxl11](@cite).
 
@@ -697,7 +698,7 @@ Matroid of rank 3 on 5 elements
 
 julia> circuits(N)[1]
 2-element Vector{Any}:
- 2
+ 1
   'e': ASCII/Unicode U+0065 (category Ll: Letter, lowercase)
 ```
 """

@@ -116,6 +116,7 @@ characteristic_polynomial(M::Matroid)
 reduced_characteristic_polynomial(M::Matroid)
 revlex_basis_encoding(M::Matroid)
 isisomorphic(M1::Matroid, M2::Matroid)
+isminor(M::Matroid, N::Matroid)
 ```
 
 ### Chow Rings
