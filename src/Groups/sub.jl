@@ -1,23 +1,23 @@
 export
     centralizer,
-    center, hascenter, setcenter,
-    characteristic_subgroups, hascharacteristic_subgroups, setcharacteristic_subgroups,
-    derived_series, hasderived_series, setderived_series,
-    derived_subgroup, hasderived_subgroup, setderived_subgroup,
+    center, has_center, set_center,
+    characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups,
+    derived_series, has_derived_series, set_derived_series,
+    derived_subgroup, has_derived_subgroup, set_derived_subgroup,
     embedding,
     index,
     ischaracteristic,
-    isnilpotent, hasisnilpotent, setisnilpotent,
-    issolvable, hasissolvable, setissolvable,
-    issupersolvable, hasissupersolvable, setissupersolvable,
-    maximal_abelian_quotient, hasmaximal_abelian_quotient, setmaximal_abelian_quotient,
-    maximal_normal_subgroups, hasmaximal_normal_subgroups, setmaximal_normal_subgroups,
-    maximal_subgroups, hasmaximal_subgroups, setmaximal_subgroups,
-    minimal_normal_subgroups, hasminimal_normal_subgroups, setminimal_normal_subgroups,
-    normal_subgroups, hasnormal_subgroups, setnormal_subgroups,
+    isnilpotent, has_isnilpotent, set_isnilpotent,
+    issolvable, has_issolvable, set_issolvable,
+    issupersolvable, has_issupersolvable, set_issupersolvable,
+    maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient,
+    maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups,
+    maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups,
+    minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups,
+    normal_subgroups, has_normal_subgroups, set_normal_subgroups,
     quo,
     sub,
-    trivial_subgroup, hastrivial_subgroup, settrivial_subgroup
+    trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 
 ################################################################################
 #
@@ -214,7 +214,7 @@ function centralizer(G::T, H::T) where T <: GAPGroup
 end
 
 @doc Markdown.doc"""
-    centralizer(G::Group, x::GroupElem) 
+    centralizer(G::Group, x::GroupElem)
 
 Return the centralizer of `x` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
@@ -435,8 +435,8 @@ function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGr
   return F, epi
 end
 
-@gapwrap hasmaximal_abelian_quotient(G::GAPGroup) = GAP.Globals.HasMaximalAbelianQuotient(G.X)::Bool
-@gapwrap setmaximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T,S}}) where T <: GAPGroup where S = GAP.Globals.SetMaximalAbelianQuotient(G.X, val[2].map)::Nothing
+@gapwrap has_maximal_abelian_quotient(G::GAPGroup) = GAP.Globals.HasMaximalAbelianQuotient(G.X)::Bool
+@gapwrap set_maximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T,S}}) where T <: GAPGroup where S = GAP.Globals.SetMaximalAbelianQuotient(G.X, val[2].map)::Nothing
 
 
 function __create_fun(mp, codom, ::Type{S}) where S
@@ -450,7 +450,7 @@ end
 ################################################################################
 #
 #  Derived subgroup and derived series
-#  
+#
 ################################################################################
 
 """

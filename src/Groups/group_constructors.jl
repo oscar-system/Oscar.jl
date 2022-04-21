@@ -1,7 +1,7 @@
 ################################################################################
 #
 #  Some basic constructors
-#  
+#
 ################################################################################
 
 export
@@ -11,14 +11,14 @@ export
     dihedral_group,
     free_abelian_group,
     free_group,
-    isabelian, hasisabelian, setisabelian,
-    iscyclic, hasiscyclic, setiscyclic,
-    isdihedral_group, hasisdihedral_group, setisdihedral_group,
-    isisomorphic_with_alternating_group, hasisisomorphic_with_alternating_group, setisisomorphic_with_alternating_group,
-    isisomorphic_with_symmetric_group, hasisisomorphic_with_symmetric_group, setisisomorphic_with_symmetric_group,
-    isnatural_alternating_group, hasisnatural_alternating_group, setisnatural_alternating_group,
-    isnatural_symmetric_group, hasisnatural_symmetric_group, setisnatural_symmetric_group,
-    isquaternion_group, hasisquaternion_group, setisquaternion_group,
+    isabelian, has_isabelian, set_isabelian,
+    iscyclic, has_iscyclic, set_iscyclic,
+    isdihedral_group, has_isdihedral_group, set_isdihedral_group,
+    isisomorphic_with_alternating_group, has_isisomorphic_with_alternating_group, set_isisomorphic_with_alternating_group,
+    isisomorphic_with_symmetric_group, has_isisomorphic_with_symmetric_group, set_isisomorphic_with_symmetric_group,
+    isnatural_alternating_group, has_isnatural_alternating_group, set_isnatural_alternating_group,
+    isnatural_symmetric_group, has_isnatural_symmetric_group, set_isnatural_symmetric_group,
+    isquaternion_group, has_isquaternion_group, set_isquaternion_group,
     mathieu_group,
     quaternion_group,
     symmetric_group
@@ -270,7 +270,7 @@ julia> relators(g)
 """
 quaternion_group(n::Int) = quaternion_group(PcGroup, n)
 
-function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup 
+function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup
    @assert iszero(mod(n, 4))
   return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
 end

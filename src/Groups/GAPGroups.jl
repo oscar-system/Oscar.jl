@@ -4,7 +4,7 @@ export
     acting_group,
     comm,
     comm!,
-    complement_system, hascomplement_system, setcomplement_system,
+    complement_system, has_complement_system, set_complement_system,
     conjugacy_class,
     conjugacy_classes_maximal_subgroups,
     conjugacy_classes_subgroups,
@@ -21,46 +21,46 @@ export
     div_right,
     div_right!,
     elements,
-    hasexponent, setexponent,
-    fitting_subgroup, hasfitting_subgroup, setfitting_subgroup,
-    frattini_subgroup, hasfrattini_subgroup, setfrattini_subgroup,
+    has_exponent, set_exponent,
+    fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup,
+    frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup,
     gap_perm, # HACK
     gen,
-    gens, hasgens,
+    gens, has_gens,
     hall_subgroup,
     hall_subgroups_representatives,
-    hall_system, hashall_system, sethall_system,
+    hall_system, has_hall_system, set_hall_system,
     inv!,
-    isalmostsimple, hasisalmostsimple, setisalmostsimple,
+    isalmostsimple, has_isalmostsimple, set_isalmostsimple,
     isconjugate,
-    isfinite, hasisfinite, setisfinite,
-    isfinitelygenerated, hasisfinitelygenerated, setisfinitelygenerated,
+    isfinite, has_isfinite, set_isfinite,
+    isfinitelygenerated, has_isfinitelygenerated, set_isfinitelygenerated,
     isfiniteorder,
-    isperfect, hasisperfect, setisperfect,
+    isperfect, has_isperfect, set_isperfect,
     ispgroup,
-    issimple, hasissimple, setissimple,
-    moved_points, hasmoved_points, setmoved_points,
+    issimple, has_issimple, set_issimple,
+    moved_points, has_moved_points, set_moved_points,
     mul,
     mul!,
-    nilpotency_class, hasnilpotency_class, setnilpotency_class,
+    nilpotency_class, has_nilpotency_class, set_nilpotency_class,
     ngens,
     normal_closure,
     normalizer,
-    number_conjugacy_classes, hasnumber_conjugacy_classes, setnumber_conjugacy_classes,
-    number_moved_points, hasnumber_moved_points, setnumber_moved_points,
+    number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes,
+    number_moved_points, has_number_moved_points, set_number_moved_points,
     one!,
-    order, hasorder, setorder,
+    order, has_order, set_order,
     pcore,
-    radical_subgroup, hasradical_subgroup, setradical_subgroup,
+    radical_subgroup, has_radical_subgroup, set_radical_subgroup,
     rand_pseudo,
     relators,
     representative_action,
     right_coset,
     right_cosets ,
     right_transversal,
-    socle, hassocle, setsocle,
+    socle, has_socle, set_socle,
     sylow_subgroup,
-    sylow_system, hassylow_system, setsylow_system
+    sylow_system, has_sylow_system, set_sylow_system
 
 
 # TODO: as soon as GAP packages like `polycyclic` or `rcwa` are loaded,
@@ -173,8 +173,8 @@ end
 
 order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
-@gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
-@gapwrap setorder(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
+@gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)
+@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
 
 
 @gapattribute istrivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
@@ -375,7 +375,7 @@ function gens(G::GAPGroup)
 end
 
 """
-    hasgens(G::Group)
+    has_gens(G::Group)
 
 Return whether generators for the group `G` are known.
 
@@ -384,17 +384,17 @@ Return whether generators for the group `G` are known.
 julia> F = free_group(2)
 <free group on the generators [ f1, f2 ]>
 
-julia> hasgens(F)
+julia> has_gens(F)
 true
 
 julia> H = derived_subgroup(F)[1]
 Group(<free, no generators known>)
 
-julia> hasgens(H)
+julia> has_gens(H)
 false
 ```
 """
-hasgens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
+has_gens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
 
 """
     gen(G::GAPGroup, i::Int)
@@ -417,7 +417,7 @@ Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
 Return the length of the vector [`gens`](@ref)`(G)`.
 
-!!! warning "WARNING:" 
+!!! warning "WARNING:"
     this is *NOT*, in general, the minimum number of generators for G.
 """
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
@@ -457,7 +457,7 @@ function Base.show(io::IO, x::GroupConjClass)
             String(GAP.Globals.StringViewObj(x.X.X)))
 end
 
-==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC 
+==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC
 
 Base.length(C::GroupConjClass) = fmpz(GAPWrap.Size(C.CC)) # TODO: allow specifying return type, default fmpz
 
@@ -539,7 +539,7 @@ function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
       return false, nothing
    end
 end
-# END elements conjugation 
+# END elements conjugation
 
 # START subgroups conjugation
 """
@@ -1085,14 +1085,14 @@ function describe(G::GAPGroup)
    isfinitelygenerated(G) || return "a non-finitely generated group"
 
    # handle groups whose finiteness is known
-   if hasisfinite(G)
+   if has_isfinite(G)
       # finite groups: pass them to GAP
       if isfinite(G)
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
 
       # infinite groups known to be abelian can still be dealt with by GAP
-      if hasisabelian(G) && isabelian(G)
+      if has_isabelian(G) && isabelian(G)
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
 
@@ -1123,9 +1123,9 @@ function describe(G::FPGroup)
 
    # abelian groups can be dealt with by GAP
    extra = ""
-   if !hasisabelian(G)
+   if !has_isabelian(G)
       if isobviouslyabelian(G)
-         setisabelian(G, true) # TODO: Claus won't like this...
+         set_isabelian(G, true) # TODO: Claus won't like this...
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
    elseif isabelian(G)
@@ -1134,7 +1134,7 @@ function describe(G::FPGroup)
       extra *= " non-abelian"
    end
 
-   if !hasisfinite(G)
+   if !has_isfinite(G)
       # try to obtain an isomorphic permutation group, but don't try too hard
       iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAP.Globals.Range(iso)))
