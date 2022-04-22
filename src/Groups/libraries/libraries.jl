@@ -1,3 +1,4 @@
+include("atlasgroups.jl")
 include("perfectgroups.jl")
 include("primitivegroups.jl")
 include("smallgroups.jl")
