@@ -7,14 +7,10 @@
     ps::Vector{Polyhedron{fmpq}}
     i::Int
     function ToricVanishingSet(toric_variety::AbstractNormalToricVariety, ps::Vector{Polyhedron{fmpq}}, i::Int)
-        ambient_dimension = unique([ambient_dim(p) for p in ps])
-        if (length(ambient_dimension) > 1)
-            throw(ArgumentError("The ambient dimensions of the polyhedra must all agree."))
-        end
-        if (ambient_dimension[1] != rank(picard_group(toric_variety)))
+        if !all(p -> ambient_dim(p) == rank(picard_group(toric_variety)), ps)
             throw(ArgumentError("The ambient dimensions of the polyhedra must match the rank as the picard group of the toric variety."))
         end
-        if ((i < 0) || (i > dim(toric_variety)))
+        if !(0 <= i <= dim(toric_variety))
             throw(ArgumentError("The cohomology index must not be negative and not larger than $(dim(toric_variety))."))
         end
         return new(toric_variety, ps, i)

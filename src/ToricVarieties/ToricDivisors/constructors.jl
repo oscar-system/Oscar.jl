@@ -114,10 +114,7 @@ Base.:*(c::Int, td::ToricDivisor) = ToricDivisor(toric_variety(td), [fmpz(c)*x f
 ######################s
 
 function Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
-    if toric_variety(td1) !== toric_variety(td2)
-        return false
-    end
-    return coefficients(td1) == coefficients(td2)
+    return toric_variety(td1) === toric_variety(td2) && coefficients(td1) == coefficients(td2)
 end
 
 

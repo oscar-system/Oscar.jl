@@ -106,10 +106,7 @@ Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
 ########################
 
 function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
-    if toric_variety(l1) !== toric_variety(l2)
-        return false
-    end
-    return iszero(divisor_class(l1) - divisor_class(l2))
+    return toric_variety(l1) === toric_variety(l2) && iszero(divisor_class(l1) - divisor_class(l2))
 end
 
 

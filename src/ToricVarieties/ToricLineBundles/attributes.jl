@@ -133,7 +133,7 @@ julia> basis_of_global_sections_via_rational_functions(l)
  1
 ```
 """
-@attr function basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
+@attr Vector function basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
     if has_attribute(toric_variety(l), :vanishing_sets)
         tvs = vanishing_sets(toric_variety(l))[1]
         if contains(tvs, l)
@@ -181,7 +181,7 @@ julia> basis_of_global_sections(l)
  x1^2
 ```
 """
-@attr function basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
+@attr Vector function basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
     if has_attribute(toric_variety(l), :vanishing_sets)
         tvs = vanishing_sets(toric_variety(l))[1]
         if contains(tvs, l)

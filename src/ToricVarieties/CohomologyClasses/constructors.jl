@@ -161,10 +161,7 @@ Base.:^(cc::CohomologyClass, p::Int) = cc^fmpz(p)
 ########################
 
 function Base.:(==)(cc1::CohomologyClass, cc2::CohomologyClass)
-    if toric_variety(cc1) !== toric_variety(cc2)
-        return false
-    end
-    return iszero(polynomial(cc1-cc2))
+    return toric_variety(cc1) === toric_variety(cc2) && iszero(polynomial(cc1-cc2))
 end
 
 

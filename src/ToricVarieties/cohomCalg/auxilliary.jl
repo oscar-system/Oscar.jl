@@ -59,10 +59,10 @@ function contributing_denominators(variety::AbstractNormalToricVariety)
     start = findfirst("Final list of contributing monomials with factors:", stdout)[1]
     diff = findfirst("Verbose Level 1:", stdout)[1]
     output_string_reduced = [strip(s) for s in split(SubString(stdout, start, diff),"\n")]
-    output_string_reduced = [output_string_reduced[i] for i in 4:length(output_string_reduced)-3]
+    output_string_reduced = output_string_reduced[4:length(output_string_reduced)-3]
     
     # ambiguous monomial contributions found during execution?
-    if !(output_string_reduced[length(output_string_reduced)] == "There are no ambiguous contribution monomials to the variety.")
+    if last(output_string_reduced) != "There are no ambiguous contribution monomials to the variety."
         throw(ArgumentError("cohomCalg experienced ambiguous monomial contributions."))
     end
     

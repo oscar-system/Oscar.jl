@@ -31,7 +31,7 @@ function betti_number(v::AbstractNormalToricVariety, i::Int)
     
     # check input
     d = dim(v)::Int
-    if i > 2*d || i < 0 || isodd(i)
+    if !(0 <= i <= 2*d) || isodd(i)
         return fmpz(0)
     end
     
