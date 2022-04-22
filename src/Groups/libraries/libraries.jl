@@ -14,10 +14,13 @@ function find_index_function(f, isapg)
    if f == isabelian return Bool, GAP.Globals.IsAbelian
    elseif f == isalmostsimple return Bool, GAP.Globals.IsAlmostSimpleGroup
    elseif f == iscyclic return Bool, GAP.Globals.IsCyclic
+   elseif f == is_duplicate_table return Bool, GAP.Globals.IsDuplicateTable
    elseif f == isnilpotent return Bool, GAP.Globals.IsNilpotentGroup
    elseif f == isperfect return Bool, GAP.Globals.IsPerfectGroup
+   elseif f == is_quasisimple return Bool, GAP.Globals.IsQuasisimple
    elseif f == issimple return Bool, GAP.Globals.IsSimpleGroup
    elseif f == issolvable return Bool, GAP.Globals.IsSolvableGroup
+   elseif f == is_sporadic_simple return Bool, GAP.Globals.IsSporadicSimple
    elseif f == issupersolvable return Bool, GAP.Globals.IsSupersolvableGroup
    elseif f == istransitive return Bool, GAP.Globals.IsTransitive
    elseif f == number_moved_points || f == degree
@@ -27,6 +30,8 @@ function find_index_function(f, isapg)
          throw(ArgumentError("Function not supported"))
       end
    elseif f == order return Union{Int, AbstractVector{Int}}, GAP.Globals.Size
+   elseif f == number_conjugacy_classes
+     return Union{Int, AbstractVector{Int}}, GAP.Globals.NrConjugacyClasses
    else throw(ArgumentError("Function not supported"))
    end
 end

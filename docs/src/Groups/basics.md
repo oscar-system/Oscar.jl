@@ -80,8 +80,10 @@ isnilpotent
 issupersolvable
 issolvable
 isperfect
-issimple
+issimple(G::GAPGroup)
 isalmostsimple
+is_quasisimple
+is_sporadic_simple
 isfinitelygenerated
 ```
 

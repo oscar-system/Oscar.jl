@@ -38,7 +38,9 @@ export
     isfiniteorder,
     isperfect, has_isperfect, set_isperfect,
     ispgroup,
+    is_quasisimple, hasis_quasisimple, setis_quasisimple,
     issimple, has_issimple, set_issimple,
+    is_sporadic_simple, hasis_sporadic_simple, setis_sporadic_simple,
     moved_points, has_moved_points, set_moved_points,
     mul,
     mul!,
@@ -889,28 +891,94 @@ end
 ################################################################################
 
 """
-    isperfect(G)
+    isperfect(G::GAPGroup)
 
 Return whether `G` is a perfect group, i.e., equal to its derived subgroup.
+
+# Examples
+```jldoctest
+julia> isperfect(special_linear_group(2, 5))
+true
+
+julia> isperfect(symmetric_group(5))
+false
+
+```
 """
 @gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
 
 """
-    issimple(G)
+    issimple(G::GAPGroup)
 
 Return whether `G` is a simple group, i.e.,
 `G` is not trivial and has no non-trivial normal subgroups.
+
+# Examples
+```jldoctest
+julia> issimple(alternating_group(5))
+true
+
+julia> issimple(symmetric_group(5))
+false
+
+```
 """
 @gapattribute issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
 @doc Markdown.doc"""
-    isalmostsimple(G)
+    isalmostsimple(G::GAPGroup)
 
 Return whether `G` is an almost simple group,
 i.e., `G` is isomorphic to a group $H$ with the property
 $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
+
+# Examples
+```jldoctest
+julia> isalmostsimple(symmetric_group(5))
+true
+
+julia> isalmostsimple(special_linear_group(2, 5))
+false
+
+```
 """
 @gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
+
+@doc Markdown.doc"""
+    is_quasisimple(G::GAPGroup)
+
+Return whether `G` is a quasisimple group,
+i.e., `G` is perfect such that the factor group modulo its centre is
+a non-abelian simple group.
+
+# Examples
+```jldoctest
+julia> is_quasisimple(special_linear_group(2, 5))
+true
+
+julia> is_quasisimple(symmetric_group(5))
+false
+
+```
+"""
+@gapattribute is_quasisimple(G::GAPGroup) = GAP.Globals.IsQuasisimpleGroup(G.X)::Bool
+
+@doc Markdown.doc"""
+    is_sporadic_simple(G::GAPGroup)
+
+Return whether `G` is a sporadic simple group.
+
+# Examples
+```jldoctest
+julia> is_sporadic_simple(mathieu_group(11))
+true
+
+julia> is_sporadic_simple(mathieu_group(10))
+false
+
+```
+"""
+@gapattribute is_sporadic_simple(G::GAPGroup) = GAP.Globals.IsSporadicSimpleGroup(G.X)::Bool
 
 """
     ispgroup(G)
