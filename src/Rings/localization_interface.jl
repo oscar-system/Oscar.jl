@@ -101,6 +101,13 @@ function inverted_set(W::AbsLocalizedRing)
   error("`inverted_set` is not implemented for localized rings of type $(typeof(W))")
 end
 
+### type getters
+base_ring_type(::Type{LocRingType}) where {RT, RET, MST, LocRingType<:AbsLocalizedRing{RT, RET, MST}} = RT
+base_ring_type(S::AbsLocalizedRing) = base_ring_type(typeof(S))
+base_ring_elem_type(::Type{LocRingType}) where {RT, RET, MST, LocRingType<:AbsLocalizedRing{RT, RET, MST}} = RET
+base_ring_elem_type(S::AbsLocalizedRing) = base_ring_elem_type(typeof(S))
+
+
 ### required functionality
 @Markdown.doc """
     Localization(S::AbsMultSet)
@@ -188,6 +195,12 @@ Return the parent ring R[S⁻¹] of `f`.
 function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
+
+### type getters
+base_ring_type(::Type{LocRingElemType}) where {RT, RET, MST, LocRingElemType<:AbsLocalizedRingElem{RT, RET, MST}} = RT
+base_ring_type(a::AbsLocalizedRingElem) = base_ring_type(typeof(a))
+base_ring_elem_type(::Type{LocRingElemType}) where {RT, RET, MST, LocRingElemType<:AbsLocalizedRingElem{RT, RET, MST}} = RET
+base_ring_elem_type(a::AbsLocalizedRingElem) = base_ring_elem_type(typeof(a))
 
 expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
 

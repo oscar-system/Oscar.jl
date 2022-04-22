@@ -483,7 +483,7 @@ function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
   return get_attribute(M, :base_ring_module)::base_ring_module_type(M)
 end
 
-base_ring_module_type(::Type{SubQuo{T}}) where {T<:AbsLocalizedRingElem} = SubQuo{base_ring_type(parent_type(T))}
+base_ring_module_type(::Type{SubQuo{T}}) where {T<:AbsLocalizedRingElem} = SubQuo{base_ring_elem_type(T)}
 base_ring_module_type(F::SubQuo{T}) where {T<:AbsLocalizedRingElem} = base_ring_module_type(typeof(F))
 
 
