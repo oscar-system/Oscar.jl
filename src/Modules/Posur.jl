@@ -187,14 +187,18 @@ function has_nonepmty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   P = prime_ideal(U)
-  for (f, i) in zip(gens(I), 1:ngens(I))
-    if !(f in P)
-      A = zero(MatrixSpace(R, 1, ngens(I)))
-      A[1, i] = 1
-      return true, f, A
+  candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(f in P)]
+  length(candidates) == 0 && return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  d = maximum([total_degree(f) for (f, i) in candidates])
+  (g, j) = candidates[1]
+  for (h, k) in candidates
+    if total_degree(h) < total_degree(g) 
+      (g, j) = (h, k)
     end
   end
-  return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  A = zero(MatrixSpace(R, 1, ngens(I)))
+  A[1, j] = 1
+  return true, g, A
 end
 
 # missing functionality to write an element f ∈ I of an ideal as 
@@ -218,10 +222,10 @@ function coordinates(f::MPolyElem, I::MPolyIdeal)
 end
 
 # missing functionality for maps of modules; check again with the definitions of `representing_matrix`!
-#compose(f::FreeModuleHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-#compose(f::SubQuoHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-#compose(f::SubQuoHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-#compose(f::FreeModuleHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
+compose(f::FreeModuleHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
+compose(f::SubQuoHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
+compose(f::SubQuoHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
+compose(f::FreeModuleHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
 
 ########################################################################
 # 
@@ -276,36 +280,43 @@ end
 
 # When the codomain is a SubQuo, return a matrix A whose rows represent the 
 # images of the base vectors in the ambient free module of the codomain.
+function ambient_representing_matrix(
+    f::FreeModuleHom{DomType, CodType, Nothing}
+  ) where {DomType<:FreeMod, CodType<:SubQuo}
+  return matrix(f)*generator_matrix(codomain(f))
+end
+
 function representing_matrix(
     f::FreeModuleHom{DomType, CodType, Nothing}
   ) where {DomType<:FreeMod, CodType<:SubQuo}
   return matrix(f)
-  # the code below is non-functional at the moment because of 
-  # internals of `UngradedModules.jl`.
-  F = domain(f)
+  A = ambient_representing_matrix(f)
   G = ambient_free_module(codomain(f))
-  R = base_ring(domain(f))
-  A = zero(MatrixSpace(R, rank(F), rank(G)))
-  for i in 1:rank(F)
-    v = repres(f(F[i]))
-    for j in 1:rank(G)
-      A[i, j] = v[j]
+  h = hom(domain(f), G, A)
+  n = ngens(codomain(f))
+  m = rank(domain(f))
+  B = zero(MatrixSpace(base_ring(G), m, n))
+  for i in 1:m
+    c = Posur_coordinates(G(vec(A[i,:])), codomain(f))
+    for j in 1:n
+      B[i, j] = c[j]
     end
   end
-  return A
+  return B
 end
 
 # When both the domain and the codomain are SubQuos, return the matrix 
 # A whose rows represent the images of the generators in the ambient 
 # free module of the codomain.
-function representing_matrix(
+function ambient_representing_matrix(
     f::SubQuoHom{DomType, CodType}
   ) where {DomType<:SubQuo, CodType<:SubQuo}
+  return matrix(f)*generator_matrix(codomain(f))
   F = domain(f)
   G = ambient_free_module(codomain(f))
   R = base_ring(domain(f))
-  A = zero(MatrixSpace(R, rank(F), rank(G)))
-  for i in 1:rank(F)
+  A = zero(MatrixSpace(R, ngens(F), rank(G)))
+  for i in 1:ngens(F)
     v = repres(f(F[i]))
     for j in 1:rank(G)
       A[i, j] = v[j]
@@ -316,7 +327,31 @@ end
 
 function representing_matrix(
     f::SubQuoHom{DomType, CodType}
+  ) where {DomType<:SubQuo, CodType<:SubQuo}
+  return matrix(f)
+  M = domain(f)
+  m = ngens(M)
+  R = base_ring(M)
+  F = FreeMod(R, m)
+  A = ambient_representing_matrix(f)
+  G = ambient_free_module(codomain(f))
+  h = hom(F, G, A) 
+  n = ngens(codomain(f))
+  B = zero(MatrixSpace(R, m, n))
+  for i in 1:m
+    v = G(vec(A[i,:]))
+    c = Posur_coordinates(v, codomain(f))
+    for j in 1:n
+      B[i, j] = c[j]
+    end
+  end
+  return B
+end
+
+function representing_matrix(
+    f::SubQuoHom{DomType, CodType}
   ) where {DomType<:SubQuo, CodType<:FreeMod}
+  return matrix(f)
   F = domain(f)
   G = codomain(f)
   R = base_ring(domain(f))
@@ -371,6 +406,23 @@ function as_matrix(v::FreeModElem)
   end
   return A
 end
+
+function as_matrix(F::FreeMod, v::Vector{T}) where {T<:FreeModElem}
+  all(x->parent(x) === F, v) || error("elements do not belong to the same module")
+  R = base_ring(F)
+  n = rank(F)
+  m = length(v)
+  m == 0 && return zero(MatrixSpace(R, m, n))
+  A = zero(MatrixSpace(R, m, n))
+  for i in 1:m
+    for j in 1:n
+      A[i, j] = v[i][j]
+    end
+  end
+  return A
+end
+
+as_matrix(F::FreeMod, v::Vector{T}) where {T<:SubQuoElem} = as_matrix(F, repres.(v))
 
 function sub(F::FreeMod{T}, A::MatElem{T}) where {T} 
   M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
@@ -440,12 +492,8 @@ function Posur_kernel(
     CodType<:SubQuo{T}
   }
   F = domain(f)
-  S = base_ring(F)
-  G = ambient_free_module(codomain(f))
-  R = base_ring(S)
-  Fb = base_ring_module(F)
-  Gb = base_ring_module(G)
-  M = representing_matrix(f)
+  S = base_ring(domain(f))
+  M = ambient_representing_matrix(f)
   B = relations_matrix(codomain(f))
   MB = vcat(M, B)
   Lext = syz(MB)
@@ -454,22 +502,22 @@ function Posur_kernel(
   return K, inc
 end
   
-#function Posur_kernel(
-#    f::SubQuoHom{DomType, CodType}
-#  ) where {
-#    T<:AbsLocalizedRingElem,
-#    DomType<:SubQuo{T},
-#    CodType<:ModuleFP{T}
-#  }
-#  F = ambient_free_module(domain(f))
-#  S = base_ring(F)
-#  A = generator_matrix(domain(f))
-#  H = FreeMod(S, nrows(A))
-#  h = hom(H, domain(f), one(MatrixSpace(S, rank(H), rank(H))))
-#  K, iK = Posur_kernel(hom(H, codomain(f), representing_matrix(f)))
-#  result = SubQuo(F, representing_matrix(compose(iK, h)), relations_matrix(domain(f)))
-#  return result, hom(result, domain(f), generator_matrix(result))
-#end
+function Posur_kernel(
+    f::SubQuoHom{DomType, CodType}
+  ) where {
+    T<:AbsLocalizedRingElem,
+    DomType<:SubQuo{T},
+    CodType<:ModuleFP{T}
+  }
+  F = ambient_free_module(domain(f))
+  S = base_ring(F)
+  A = generator_matrix(domain(f))
+  H = FreeMod(S, nrows(A))
+  h = hom(H, domain(f), one(MatrixSpace(S, rank(H), rank(H))))
+  K, iK = Posur_kernel(hom(H, codomain(f), representing_matrix(f)))
+  result = SubQuo(F, representing_matrix(iK)*generator_matrix(domain(f)), relations_matrix(domain(f)))
+  return result, hom(result, domain(f), representing_matrix(iK))
+end
 
 
 

@@ -2709,7 +2709,7 @@ base_ring(M::SubQuo) = base_ring(M.F)
 
 Return the zero element of `M`.
 """
-zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
+zero(M::SubQuo) = SubQuoElem(SRow(base_ring(M)), M)
 
 @doc Markdown.doc"""
     iszero(M::SubQuo)
