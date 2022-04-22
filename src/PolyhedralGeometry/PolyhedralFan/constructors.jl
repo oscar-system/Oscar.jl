@@ -75,18 +75,33 @@ julia> PF=PolyhedralFan(R,IM)
 A polyhedral fan in ambient dimension 2
 ```
 """
-function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
-   PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
-      INPUT_RAYS = Rays,
-      INPUT_CONES = Incidence,
-   ))
+function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
+   if non_redundant
+      return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
+         RAYS = Rays,
+         MAXIMAL_CONES = Incidence,
+      ))
+   else
+      return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
+         INPUT_RAYS = Rays,
+         INPUT_CONES = Incidence,
+      ))
+   end
 end
-function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
-   PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
-      INPUT_RAYS = Rays,
-      INPUT_LINEALITY = LS,
-      INPUT_CONES = Incidence,
-   ))
+function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
+   if non_redundant
+      return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
+         RAYS = Rays,
+         LINEALITY_SPACE = LS,
+         MAXIMAL_CONES = Incidence,
+      ))
+   else
+      return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
+         INPUT_RAYS = Rays,
+         INPUT_LINEALITY = LS,
+         INPUT_CONES = Incidence,
+      ))
+   end
 end
 
 """
