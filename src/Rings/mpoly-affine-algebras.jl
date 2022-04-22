@@ -664,7 +664,12 @@ function isnormal(A::MPolyQuo)
   end
   I = A.I
   singular_assure(I)
+  # TODO remove old1 & old2 once new Singular jll is out
+  old1 = Singular.libSingular.set_option("OPT_REDSB", false)
+  old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
   f = Singular.LibNormal.isNormal(I.gens.S)::Int
+  Singular.libSingular.set_option("OPT_REDSB", old1)
+  Singular.libSingular.set_option("OPT_RETURN_SB", old2)
   return Bool(f)
 end
 
