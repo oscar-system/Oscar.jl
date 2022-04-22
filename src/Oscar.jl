@@ -339,6 +339,7 @@ include("Groups/group_characters.jl")  # needs some Rings functionality
 include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")
 include("Modules/LocalizedModules.jl")
+include("Modules/Posur.jl")
 #include("Modules/FreeModules-graded.jl")
 include("Modules/ModulesGraded.jl")
 

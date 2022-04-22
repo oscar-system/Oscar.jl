@@ -1,5 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
-export rand, sets, issubset, units_of, simplify!, is_trivial
+export rand, sets, issubset, units_of, simplify!, is_trivial, prime_ideal
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens

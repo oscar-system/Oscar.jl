@@ -55,6 +55,7 @@ include("Experimental/MPolyRingSparse-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")
+include("Modules/Posur.jl")
 
 include("InvariantTheory/runtests.jl")
 

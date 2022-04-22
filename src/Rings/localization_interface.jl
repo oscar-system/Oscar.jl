@@ -539,3 +539,6 @@ function ==(f::T, g::T) where {T<:AbsLocalizedRingHom}
   codomain(f) === codomain(g) || return false
   return restricted_map(f) == restricted_map(g)
 end
+
+(S::AbsLocalizedRing)(A::MatrixElem) = MatrixSpace(S, nrows(A), ncols(A))(S.(A))
+

@@ -1,6 +1,5 @@
 export default_ordering, singular_assure, saturated_modulus, kernel, singular_gens, oscar_assure
 export SubQuo
-export minimal_power_such_that
 
 #promotion for scalar multiplication
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MET}) where {RET<:RingElem, MET<:ModuleElem} = MET
@@ -317,9 +316,57 @@ end
 
 ############# Now covered by the FreeModuleHom ########################
 
+########################################################################
+# 
+# kernel of a homomorphism f : F -> G for a free module F over a 
+# localization R[U⁻¹] of a polynomial ring R.
+#
+# Let eᵢ be the generators of F, vᵢ ∈  G their images.
+# Let F' be the free module over R such that F = F'[U⁻¹]. Similarly, 
+# there exists an R-module G' such that G = G'[U⁻¹] (but usually, 
+# there is no canonical choice!)
+# We refer to F' and G' as the `base_ring_module`s of F and G, 
+# respectively; see the documentation of the corresponding function 
+# for details. 
+#
+# Then we can write 
+#
+#   vᵢ = 1//dᵢ ⋅ wᵢ  with wᵢ ∈ G' and dᵢ ∈ R
+#
+# which provides us with a map 
+#
+#   f' : F' → G',  eᵢ ↦ wᵢ.
+#
+# Note that f is *not* the localization of f'! Nevertheless, we have:
+#
+#
+# Lemma: Let K ⊂ F be the kernel of f. Then K = K'[U⁻¹] where 
+# K' ⊂ F' is the kernel of f'.
+#
+#
+# proof: It is sufficient to show that for every element a ∈ K 
+# without denominators we have a ∈ K'[U⁻¹]. 
+# Suppose a = (a₁, a₂, …, aᵣ) ∈ K. Then 
+#
+#   a₁ ⋅ w₁//d₁ + a₂ ⋅ w₂//d₂ + … + aᵣ ⋅ wᵣ//dᵣ = 0 ∈ G.
+#
+# We may clear denominators and multiply by a further suitable 
+# unit u ∈ U such that 
+#
+#   u ⋅ (a₁ ⋅ q₁ ⋅ w₁ + a₂ ⋅ q₂ ⋅ w₂ + … + aᵣ ⋅ qᵣ ⋅ wᵣ) = 0 ∈ G'
+#
+# where qᵢ = lcm(d₁,…,dᵣ)//dᵢ. Then the element 
+#
+#   a' := u ⋅ (a₁ ⋅ q₁, a₂ ⋅ q₂, …, aᵣ ⋅ qᵣ) ∈ K'
+#
+# and a = 1//(u ⋅lcm(d₁,…,dᵣ)) ⋅ a' ∈ K'[U⁻¹].                         
+#                                                                      ⊡
+#
+# We may therefore compute K' and return its localization.
+
 function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
-  ) where {DomainType<:AbstractFreeMod, CodomainType<:ModuleFP}
+  ) where {LRT<:MPolyLocalizedRing, DomainType<:FreeMod{LRT}, CodomainType<:ModuleFP}
   Fl = domain(f)
   L = base_ring(Fl)
   Gl = codomain(f)
@@ -327,17 +374,9 @@ function kernel(
   w, d = clear_denominators(v)
   F = base_ring_module(Fl)
   G = base_ring_module(Gl)
-  R = base_ring(G)
-  A = zero(MatrixSpace(R, rank(F), rank(G)))
-  for i in 1:length(v)
-    for j in 1:rank(G)
-      A[i,j] = w[i][j]
-    end
-  end
-  g = hom(F, G, A)
+  g = hom(F, G, w)
+  set_attribute!(f, :base_ring_map, g)
   K, inc = kernel(g)
-  # the inclusion of F into its localization
-  inc_F = hom(F, Fl, gens(Fl), L)
   u = [sum([u[i]*d[i]*Fl[i] for i in 1:ngens(Fl)]) for u in ambient_representatives_generators(K)]
   Kl = SubQuo(Fl, u)
   set_attribute!(Kl, :base_ring_module, K)
@@ -345,17 +384,64 @@ function kernel(
   return Kl, hom(Kl, Fl, ambient_representatives_generators(Kl))
 end
 
+@doc Markdown.doc"""
+    base_ring_map(
+        f::FreeModuleHom{DomainType, CodomainType}
+      ) where {LRT<:MPolyLocalizedRing, DomainType<:FreeMod{LRT}, CodomainType<:ModuleFP}
+
+Let ``f : F → G`` be a map from a free module ``F`` over a localization ``R[U⁻¹]`` 
+of a polynomial ring ``R``. Let ``eᵢ`` be the generators of ``F``, ``vᵢ ∈  G`` their images.
+Let ``F'`` be the free module over ``R`` such that ``F = F'[U⁻¹]``. Similarly, 
+there exists an ``R``-module ``G'`` such that ``G = G'[U⁻¹]`` (but usually, 
+there is no canonical choice!). We refer to ``F'`` and ``G'`` as the 
+`base_ring_module`s of ``F`` and ``G``, respectively; see the documentation 
+of the corresponding function for details. 
+
+Then we can `clear_denominators` and write 
+
+  ``vᵢ = 1//dᵢ ⋅ wᵢ``  with ``wᵢ ∈ G'`` and ``dᵢ ∈ R``
+
+(for some minimal ``dᵢ``) which provides us with a map 
+
+  ``f' : F' → G',  eᵢ ↦ wᵢ``.
+
+This procedure returns the map ``f'``.
+
+**Warning**: In general, the `base_ring_map` involves choices. When using it, make 
+sure the final output does not depend on these!
+"""
+function base_ring_map(
+    f::FreeModuleHom{DomainType, CodomainType}
+  ) where {LRT<:MPolyLocalizedRing, DomainType<:FreeMod{LRT}, CodomainType<:ModuleFP}
+  if !has_attribute(f, :base_ring_map)
+    Fl = domain(f)
+    L = base_ring(Fl)
+    Gl = codomain(f)
+    v = [f(Fl[i]) for i in 1:ngens(Fl)]
+    w, d = clear_denominators(v)
+    F = base_ring_module(Fl)
+    G = base_ring_module(Gl)
+    g = hom(F, G, w)
+    set_attribute!(f, :base_ring_map, g)
+  end
+  return get_attribute(f, :base_ring_map)::morphism_type(base_ring_module_type(domain(f)), base_ring_module_type(codomain(f)))
+end
+
 # the associated module over the base ring is stored as an attribute; 
 # no new fields required, but type stability provided by assertion via type getters.
-function base_ring_module(F::FreeMod{<:MPolyLocalizedRingElem})
+function base_ring_module(F::FreeMod{T}) where {T<:MPolyLocalizedRingElem}
   if !has_attribute(F, :base_ring_module) 
     L = base_ring(F)
     R = base_ring(L)
     Fb = FreeMod(R, ngens(F))
     set_attribute!(F, :base_ring_module, Fb)
   end
-  return get_attribute(F, :base_ring_module)::FreeMod{elem_type(base_ring(base_ring(F)))}
+  return get_attribute(F, :base_ring_module)::base_ring_module_type(F)
 end
+
+base_ring_type(::Type{FreeMod{T}}) where {T<:MPolyLocalizedRingElem} = parent_type(T)
+base_ring_type(F::FreeMod{T}) where {T<:MPolyLocalizedRingElem} = base_ring_type(typeof(F))
+
 
 function map_from_base_ring_module(F::FreeMod{<:MPolyLocalizedRingElem})
   if !has_attribute(F, :map_from_base_ring_module)
@@ -394,8 +480,12 @@ function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
     # For now, we do a manual storage of this data:
     set_attribute!(M, :generator_denominators, d)
   end
-  return get_attribute(M, :base_ring_module)::SubQuo{elem_type(base_ring(base_ring(ambient_free_module(M))))}
+  return get_attribute(M, :base_ring_module)::base_ring_module_type(M)
 end
+
+base_ring_module_type(::Type{SubQuo{T}}) where {T<:AbsLocalizedRingElem} = SubQuo{base_ring_type(parent_type(T))}
+base_ring_module_type(F::SubQuo{T}) where {T<:AbsLocalizedRingElem} = base_ring_module_type(typeof(F))
+
 
 function generator_denominators(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(M, :generator_denominators)
@@ -543,7 +633,7 @@ function tensor_product(L::AbsLocalizedRing, G::SubQuo)
   return Gl #TODO: add the inclusion morphism once the required type exists.
 end
   
-function minimal_power_such_that(f::RingElemType, P::PropertyType) where {RingElemType<:RingElem, PropertyType}
+function _minimal_power_such_that(f::RingElemType, P::PropertyType) where {RingElemType<:RingElem, PropertyType}
   P(one(parent(f))) && return (0, one(f))
   P(f) && return (1, f)
   f_powers = [(1,f)]
@@ -619,7 +709,7 @@ function saturation(
   end
   V = gens(GQsat)
   f = prod(d)
-  U = [minimal_power_such_that(f, (x->(represents_element(x*v, M))))[2] for v in V]
+  U = [_minimal_power_such_that(f, (x->(represents_element(x*v, M))))[2] for v in V]
   g = ambient_representatives_generators(M)
   n = length(g)
   m = length(V)
@@ -643,7 +733,7 @@ function saturation(G::Oscar.SubModuleOfFreeModule{T}, U::MPolyPowersOfElement) 
   end
   V = gens(Gsat)
   f = prod(d)
-  U = [minimal_power_such_that(f, (x->(x*v in G)))[2] for v in V]
+  U = [_minimal_power_such_that(f, (x->(x*v in G)))[2] for v in V]
   g = gens(G)
   n = length(g)
   m = length(V)
