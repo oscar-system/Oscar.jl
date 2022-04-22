@@ -47,7 +47,7 @@ struct PolyhedralFan{T} <:_FanLikeType{T}
 end
 
 # default scalar type: `fmpq`
-PolyhedralFan(x...) = PolyhedralFan{fmpq}(x...)
+PolyhedralFan(x...; non_redundant::Bool = false) = PolyhedralFan{fmpq}(x...; non_redundant = non_redundant)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability

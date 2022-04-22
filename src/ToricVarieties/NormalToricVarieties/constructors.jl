@@ -328,7 +328,7 @@ function hirzebruch_surface(r::Int)
     # construct the variety
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
+    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
@@ -431,7 +431,7 @@ function del_pezzo(b::Int)
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
         cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,6],[6,3]])
     end
-    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
+    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones); non_redundant = true)
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
@@ -656,7 +656,7 @@ function NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
     max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
     
     # construct the varieties
-    return [NormalToricVariety(PolyhedralFan(integral_rays, cones)) for cones in max_cones]
+    return [NormalToricVariety(PolyhedralFan(integral_rays, cones; non_redundant = true)) for cones in max_cones]
 end
 export NormalToricVarietiesFromStarTriangulations
 
