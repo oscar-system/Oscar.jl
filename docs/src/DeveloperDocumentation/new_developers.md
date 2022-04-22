@@ -23,6 +23,8 @@ on these things online.
      [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
    - Have a look at [our community page](https://oscar.computeralgebra.de/community/).
 4. Please also read our page on [Documenting OSCAR code](@ref).
+5. Look at existing code that does similar things to your project to get an
+   idea of what OSCAR code should look like. Try to look at multiple examples.
 
 ## Overview
 In general you have to do
@@ -82,6 +84,8 @@ bug this is probably a minor question).
 There are two places where documentation can be added:
 1. In the docstrings above the functions in the `src` folder;
 2. In the documentation files in the `docs/src` folder.
+3. The overall structure is fixed in the file `docs/doc.main`. If you create a
+   new file in `docs/src`, you will have to add an entry in `docs/doc.main`.
 
 In general, 1 is preferred to 2, i.e. any explanation of the functions and
 objects should go there and the files in `docs/src` should remain relatively
