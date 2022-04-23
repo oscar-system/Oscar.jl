@@ -110,7 +110,7 @@ function __init__()
     windows_error()
   end
 
-  if isinteractive()
+  if isinteractive() && Base.JLOptions().banner != 0
     println(" -----    -----    -----      -      -----   ")
     println("|     |  |     |  |     |    | |    |     |  ")
     println("|     |  |        |         |   |   |     |  ")
