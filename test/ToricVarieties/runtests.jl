@@ -504,7 +504,7 @@ c3 = CohomologyClass(dP1, u1)
     @test_throws ArgumentError ideal_of_linear_relations(R, dP3)
 end
 
-@testset "Cohomology ring, Chow ring and volume for of direct product space" begin
+@testset "Cohomology ring, Chow ring and volume form of direct product space" begin
     @test ngens(ideal_of_linear_relations(ntv6)) == 4
     @test ngens(chow_ring(ntv6).I) == 7
     @test istrivial(volume_form(ntv6)) == false
