@@ -3,7 +3,7 @@
 ########################
 
 @doc Markdown.doc"""
-    StructureSheaf(v::AbstractNormalToricVariety)
+    structure_sheaf(v::AbstractNormalToricVariety)
 
 Construct the structure sheaf of a normal toric variety.
 For convenience, we also support `structure_sheaf(variety)`.
@@ -13,20 +13,16 @@ For convenience, we also support `structure_sheaf(variety)`.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> StructureSheaf(v)
+julia> structure_sheaf(v)
 A toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle function StructureSheaf(v::AbstractNormalToricVariety)
-    class = zero(picard_group(v))
-    return ToricLineBundle(v, class)
-end
-structure_sheaf(v::AbstractNormalToricVariety) = StructureSheaf(v)
-export StructureSheaf, structure_sheaf
+@attr ToricLineBundle structure_sheaf(v::AbstractNormalToricVariety) = ToricLineBundle(v, zero(picard_group(v)))
+export structure_sheaf
 
 
 @doc Markdown.doc"""
-    AnticanonicalBundle(v::AbstractNormalToricVariety)
+    anticanonical_bundle(v::AbstractNormalToricVariety)
 
 Construct the anticanonical bundle of a normal toric variety.
 For convenience, we also support `anticanonical_bundle(variety)`.
@@ -36,19 +32,16 @@ For convenience, we also support `anticanonical_bundle(variety)`.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> AnticanonicalBundle(v)
+julia> anticanonical_bundle(v)
 A toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle function AnticanonicalBundle(v::AbstractNormalToricVariety)
-    return ToricLineBundle(v, sum(cox_ring(v).d))
-end
-anticanonical_bundle(v::AbstractNormalToricVariety) = AnticanonicalBundle(v)
-export AnticanonicalBundle, anticanonical_bundle
+@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(ToricLineBundle(v,d) for d in torusinvariant_prime_divisors(v))
+export anticanonical_bundle
 
 
 @doc Markdown.doc"""
-    CanonicalBundle(v::AbstractNormalToricVariety)
+    canonical_bundle(v::AbstractNormalToricVariety)
 
 Construct the canonical bundle of a normal toric variety.
 For convenience, we also support `canonical_bundle(variety)`.
@@ -58,12 +51,9 @@ For convenience, we also support `canonical_bundle(variety)`.
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> CanonicalBundle(v)
+julia> canonical_bundle(v)
 A toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle function CanonicalBundle(v::AbstractNormalToricVariety)
-    return ToricLineBundle(v, (-1)*sum(cox_ring(v).d))
-end
-canonical_bundle(v::AbstractNormalToricVariety) = CanonicalBundle(v)
-export CanonicalBundle, canonical_bundle
+@attr ToricLineBundle canonical_bundle(v::AbstractNormalToricVariety) = inv(anticanonical_bundle(v))
+export canonical_bundle

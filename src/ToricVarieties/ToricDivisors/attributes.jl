@@ -11,7 +11,7 @@ if the ambient variety is complete. Changing the coefficients corresponds to
 moving hyperplanes. One direction moves the hyperplane away from the origin,
 the other moves it across. In the latter case there are no global sections
 anymore and the polyhedron becomes empty.
-```
+```jldoctest
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
@@ -47,7 +47,7 @@ export polyhedron
 Identify the coefficients of a toric divisor in the group of torus invariant Weil divisors.
 
 # Examples
-```
+```jldoctest
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
@@ -72,6 +72,16 @@ export coefficients
     toric_variety(td::ToricDivisor)
 
 Return the toric variety of a torus-invariant Weil divisor.
+
+# Examples
+```jldoctest
+julia> F4 = hirzebruch_surface(4);
+
+julia> D = ToricDivisor(F4, [1,2,3,4]);
+
+julia> toric_variety(D)
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+```
 """
 function toric_variety(td::ToricDivisor)
     return td.toric_variety

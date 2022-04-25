@@ -33,6 +33,7 @@ AffineNormalToricVariety(v::NormalToricVariety)
 ### Normal Toric Varieties
 
 ```@docs
+NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
 ```
@@ -128,7 +129,7 @@ coordinate_names(v::AbstractNormalToricVariety)
 set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 ```
 
-Likewise, a coefficient ring for the Cox ring must be chosen. The default value is 
+Likewise, a coefficient ring for the Cox ring must be chosen. The default value is
 the field of rational numbers. The user can overwrite this at any time.
 
 ```@docs

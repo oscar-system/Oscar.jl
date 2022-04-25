@@ -20,9 +20,10 @@ export iscartier
 
 
 @doc Markdown.doc"""
-    isprincipal(td::ToricDivisor) 
+    isprincipal(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is principal.
+
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
@@ -41,9 +42,10 @@ export isprincipal, istrivial
 
 
 @doc Markdown.doc"""
-    is_basepoint_free(td::ToricDivisor) 
+    is_basepoint_free(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is basepoint free.
+
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
@@ -61,9 +63,10 @@ export is_basepoint_free
 
 
 @doc Markdown.doc"""
-    iseffective(td::ToricDivisor) 
+    iseffective(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is effective.
+
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(4)
@@ -81,7 +84,7 @@ export iseffective
 
 
 @doc Markdown.doc"""
-    isintegral(td::ToricDivisor) 
+    isintegral(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is integral.
 # Examples
@@ -101,7 +104,7 @@ export isintegral
 
 
 @doc Markdown.doc"""
-    isample(td::ToricDivisor) 
+    isample(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is ample.
 # Examples
@@ -121,7 +124,7 @@ export isample
 
 
 @doc Markdown.doc"""
-    is_very_ample(td::ToricDivisor) 
+    is_very_ample(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is very ample.
 # Examples
@@ -141,7 +144,7 @@ export is_very_ample
 
 
 @doc Markdown.doc"""
-    isnef(td::ToricDivisor) 
+    isnef(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is nef.
 # Examples
@@ -161,7 +164,7 @@ export isnef
 
 
 @doc Markdown.doc"""
-    is_q_cartier(td::ToricDivisor) 
+    is_q_cartier(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
@@ -181,7 +184,7 @@ export is_q_cartier
 
 
 @doc Markdown.doc"""
-    isprime(td::ToricDivisor) 
+    isprime(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is a prime divisor.
 

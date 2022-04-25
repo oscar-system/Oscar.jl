@@ -57,23 +57,13 @@ toric_variety(l::ToricLineBundle)
 ### Special line bundles
 
 ```@docs
-AnticanonicalBundle(v::AbstractNormalToricVariety)
-CanonicalBundle(v::AbstractNormalToricVariety)
-StructureSheaf(v::AbstractNormalToricVariety)
+anticanonical_bundle(v::AbstractNormalToricVariety)
+canonical_bundle(v::AbstractNormalToricVariety)
+structure_sheaf(v::AbstractNormalToricVariety)
 ```
 
 
-## Method
-
-We use [cohomCalg](https://github.com/BenjaminJurke/cohomCalg)
-to compute the dimension of line bundle cohomologies. This is achieved with the following methods.
-
-```@docs
-all_cohomologies(l::ToricLineBundle)
-cohomology(l::ToricLineBundle, i::Int)
-```
-
-We can also compute a basis of the global sections.
+## Methods
 
 ```@docs
 basis_of_global_sections_via_rational_functions(l::ToricLineBundle)

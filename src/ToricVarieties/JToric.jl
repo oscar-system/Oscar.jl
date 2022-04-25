@@ -65,7 +65,12 @@ include("CohomologyClasses/methods.jl")
 
 include("AlgebraicCycles/special_attributes.jl")
 
-include("cohomCalg.jl")
+include("cohomCalg/VanishingSets/constructors.jl")
+include("cohomCalg/VanishingSets/attributes.jl")
+include("cohomCalg/VanishingSets/methods.jl")
+
+include("cohomCalg/auxilliary.jl")
+include("cohomCalg/special_attributes.jl")
 
 # deprecated functions
 @deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
@@ -74,3 +79,4 @@ include("cohomCalg.jl")
 @deprecate map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety) map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
 @deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
+@deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf

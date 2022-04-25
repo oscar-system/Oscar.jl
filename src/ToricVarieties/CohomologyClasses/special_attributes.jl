@@ -41,7 +41,7 @@ julia> polynomial(volume_form(projective_space(NormalToricVariety, 2)))
 x3^2
 
 julia> polynomial(volume_form(del_pezzo(3)))
--e2^2
+-e3^2
 
 julia> polynomial(volume_form(hirzebruch_surface(5)))
 1//5*x2^2
@@ -100,7 +100,7 @@ julia> length(intersection_form(F3))
 """
 function intersection_form(v::NormalToricVariety)
     intersection_dict = _intersection_form_via_exponents(v)
-    monoms_of_prime_divisors = gens(cox_ring(v))    
+    monoms_of_prime_divisors = gens(cox_ring(v))
     intersection_dict_for_user = Dict{MPolyElem, fmpq}()
     for (expos,v) in intersection_dict
         monom = prod(monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors))

@@ -9,17 +9,17 @@ toric variety `toric_variety(c)`.
 julia> dP3 = del_pezzo(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> (x1,e1,x2,e3,x3,e2) = gens(cohomology_ring(dP3))
+julia> (x1,e1,x2,e2,x3,e3) = gens(cohomology_ring(dP3))
 6-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
  x1
  e1
  x2
- e3
- x3
  e2
+ x3
+ e3
 
 julia> c = CohomologyClass(dP3, e3*e3 + e3)
-A cohomology class on a normal toric variety given by e3 + e2^2
+A cohomology class on a normal toric variety given by e3^2 + e3
 
 julia> integrate(c)
 -1
@@ -46,7 +46,7 @@ function integrate(c::CohomologyClass)::fmpq
     if !issimplicial(toric_variety(c)) || !iscomplete(toric_variety(c))
         throw(ArgumentError("Integration only supported over complete and simplicial toric varieties."))
     end
-
+    
     # if the intersection form is known, we can use it
     if has_attribute(toric_variety(c),:_intersection_form_via_exponents)
         intersection_dict = _intersection_form_via_exponents(toric_variety(c))
