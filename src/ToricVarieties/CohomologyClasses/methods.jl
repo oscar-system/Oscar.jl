@@ -9,17 +9,17 @@ toric variety `toric_variety(c)`.
 julia> dP3 = del_pezzo(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> (x1,e1,x2,e2,x3,e3) = gens(cohomology_ring(dP3))
+julia> (x1,x2,x3,e3,e2,e1) = gens(cohomology_ring(dP3))
 6-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
  x1
- e1
  x2
- e2
  x3
  e3
+ e2
+ e1
 
 julia> c = CohomologyClass(dP3, e3*e3 + e3)
-A cohomology class on a normal toric variety given by e3^2 + e3
+A cohomology class on a normal toric variety given by e3 + e1^2
 
 julia> integrate(c)
 -1

@@ -431,7 +431,7 @@ function del_pezzo(b::Int)
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
         cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,6],[6,3]])
     end
-    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones); non_redundant = true)
+    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
