@@ -1,10 +1,10 @@
-export clear_denominators, base_ring_module, base_ring_module_map, has_solution
-
-export kernel, cokernel, coordinates
+export kernel, cokernel, image, coordinates, represents_element
+export syz, has_nonepmty_intersection, base_ring_module
 
 ########################################################################
 # 
-# Atomic building blocks from [1] for computability of localizations
+# Generic code for localizations of finitely generated modules 
+# following [1]
 #
 ########################################################################
 #
@@ -75,6 +75,13 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
+@doc Markdown.doc"""
+    syz(A::MatrixType) where {T<:RingElem, MatrixType<:MatrixElem{T}}
+
+For a matrix ``A ∈ Rᵐˣⁿ`` over a ring ``R`` this returns a matrix 
+``L ∈ Rᵖˣᵐ`` whose rows generate the kernel of the homomorphism of 
+free modules given by ``A``.
+"""
 function syz(A::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
   B, D = clear_denominators(A)
   L = syz(B)
@@ -107,6 +114,21 @@ end
 #
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
+@doc Markdown.doc"""
+    has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
+
+For a finitely generated ideal ``I ⊂ R`` and a multiplicative 
+set ``U ⊂ R``, this checks whether the intersection ``U ∩ I`` 
+is nonempty. In the affirmative case, it returns a triple 
+
+    (true, f, a)
+
+where ``f ∈ U ∩ I`` and ``a ∈ R¹ˣᵏ`` is a vector such that 
+``f = ∑ᵢaᵢ⋅gᵢ`` with ``gᵢ`` the elements in `gens(I)`.
+
+When the intersection is empty, this returns `(false, f, a)`
+with meaningless values for ``f`` and ``a``.
+"""
 function has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
   R = base_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
@@ -163,90 +185,6 @@ function has_solution(
   return (success, l[1, 2:end], l[1,1])
 end
 
-
-########################################################################
-#
-# a proof-of-concept implementation for localizations of modules over 
-# polynomial rings
-#
-########################################################################
-
-# compute the syzygies of a matrix
-function syz(A::MatrixType) where {T<:MPolyElem, MatrixType<:MatrixElem{T}}
-  R = base_ring(A)
-  m = nrows(A)
-  n = ncols(A)
-  F = FreeMod(R, m)
-  G = FreeMod(R, n)
-  f = hom(F, G, A)
-  K, inc = kernel(f)
-  return matrix(inc)
-# g = Vector.(ambient_representatives_generators(K))
-# p = length(g)
-# L = zero(MatrixSpace(R, p, m))
-# for i in 1:p
-#   for j in 1:m
-#     L[i, j] = g[i][j]
-#   end
-# end
-# return L
-end
-
-# concrete implementations of the above function
-function has_nonepmty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
-  R = ambient_ring(U)
-  R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
-
-  d = prod(denominators(U))
-  inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
-  (k, f) = Oscar._minimal_power_such_that(d, (x->x in I))
-  return true, f, coordinates(f, I)
-end
-
-function has_nonepmty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal)
-  R = ambient_ring(U)
-  R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
-  P = prime_ideal(U)
-  candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(f in P)]
-  length(candidates) == 0 && return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
-  d = maximum([total_degree(f) for (f, i) in candidates])
-  (g, j) = candidates[1]
-  for (h, k) in candidates
-    if total_degree(h) < total_degree(g) 
-      (g, j) = (h, k)
-    end
-  end
-  A = zero(MatrixSpace(R, 1, ngens(I)))
-  A[1, j] = 1
-  return true, g, A
-end
-
-# missing functionality to write an element f ∈ I of an ideal as 
-# a linear combination of the generators of I
-function coordinates(f::MPolyElem, I::MPolyIdeal)
-  R = parent(f)
-  R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
-  f in I || error("polynomial does not belong to the ideal")
-  singular_assure(I)
-  Rsing = I.gens.Sx
-  fsing = Singular.Ideal(Rsing, [Rsing(f)])
-  a_s, u_s = Singular.lift(I.gens.S, fsing)
-  A_s = Matrix(a_s)
-  U_s = Matrix(u_s)
-  (ncols(U_s) == nrows(U_s) == 1 && iszero(U_s[1,1])) || error("no suitable ordering was used")
-  A = zero(MatrixSpace(R, 1, ngens(I)))
-  for i in 1:ngens(I)
-    A[1, i] = R(A_s[i, 1])
-  end
-  return A
-end
-
-# missing functionality for maps of modules; check again with the definitions of `representing_matrix`!
-compose(f::FreeModuleHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-compose(f::SubQuoHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-compose(f::SubQuoHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-compose(f::FreeModuleHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-
 ########################################################################
 # 
 # Implementation of the generic code for the finitely presented modules
@@ -255,6 +193,17 @@ compose(f::FreeModuleHom, g::SubQuoHom) = hom(domain(f), codomain(g), representi
 
 # for a free module F ≅ Sʳ over a localized ring S = R[U⁻¹] this 
 # returns the module F♭ ≅ Rʳ.
+@doc Markdown.doc"""
+    base_ring_module(M::ModuleFP{T}) where {T<:AbsLocalizedRingElem}
+
+For a finitely presented module ``M`` over a localized ring ``S = R[U⁻¹]`` 
+this returns a module ``M'`` over ``R`` such that ``M ≅ M'[U⁻¹]``.
+
+** Note: ** Such a choice is not canonical in general! Whenever ``M`` is 
+not a free module, the user needs to specify a `base_ring_module` of ``M``.
+If ``M`` arises as a localization of some ``R``-module ``M'``, then 
+this connection is cached here. 
+"""
 function base_ring_module(F::FreeMod{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(F, :base_ring_module) 
     L = base_ring(F)
@@ -331,17 +280,7 @@ base_ring_module_map_type(F::FreeMod{T}) where {T<:AbsLocalizedRingElem} = base_
 # For a homomorphism of free modules over the same ring this returns the
 # representing matrix.
 function representing_matrix(f::FreeModuleHom{ModType, ModType, Nothing}) where {ModType<:FreeMod}
-  F = domain(f)
-  G = codomain(f)
-  R = base_ring(domain(f))
-  A = zero(MatrixSpace(R, rank(F), rank(G)))
-  for i in 1:rank(F)
-    v = f(F[i])
-    for j in 1:rank(G)
-      A[i, j] = v[j]
-    end
-  end
-  return A
+  return matrix(f)
 end
 
 # When the codomain is a SubQuo, return a matrix A whose rows represent the 
@@ -356,19 +295,6 @@ function representing_matrix(
     f::FreeModuleHom{DomType, CodType, Nothing}
   ) where {DomType<:FreeMod, CodType<:SubQuo}
   return matrix(f)
-  A = ambient_representing_matrix(f)
-  G = ambient_free_module(codomain(f))
-  h = hom(domain(f), G, A)
-  n = ngens(codomain(f))
-  m = rank(domain(f))
-  B = zero(MatrixSpace(base_ring(G), m, n))
-  for i in 1:m
-    c = coordinates(G(vec(A[i,:])), codomain(f))
-    for j in 1:n
-      B[i, j] = c[j]
-    end
-  end
-  return B
 end
 
 # When both the domain and the codomain are SubQuos, return the matrix 
@@ -378,57 +304,18 @@ function ambient_representing_matrix(
     f::SubQuoHom{DomType, CodType}
   ) where {DomType<:SubQuo, CodType<:SubQuo}
   return matrix(f)*generator_matrix(codomain(f))
-  F = domain(f)
-  G = ambient_free_module(codomain(f))
-  R = base_ring(domain(f))
-  A = zero(MatrixSpace(R, ngens(F), rank(G)))
-  for i in 1:ngens(F)
-    v = repres(f(F[i]))
-    for j in 1:rank(G)
-      A[i, j] = v[j]
-    end
-  end
-  return A
 end
 
 function representing_matrix(
     f::SubQuoHom{DomType, CodType}
   ) where {DomType<:SubQuo, CodType<:SubQuo}
   return matrix(f)
-  M = domain(f)
-  m = ngens(M)
-  R = base_ring(M)
-  F = FreeMod(R, m)
-  A = ambient_representing_matrix(f)
-  G = ambient_free_module(codomain(f))
-  h = hom(F, G, A) 
-  n = ngens(codomain(f))
-  B = zero(MatrixSpace(R, m, n))
-  for i in 1:m
-    v = G(vec(A[i,:]))
-    c = coordinates(v, codomain(f))
-    for j in 1:n
-      B[i, j] = c[j]
-    end
-  end
-  return B
 end
 
 function representing_matrix(
     f::SubQuoHom{DomType, CodType}
   ) where {DomType<:SubQuo, CodType<:FreeMod}
   return matrix(f)
-  F = domain(f)
-  G = codomain(f)
-  R = base_ring(domain(f))
-  A = zero(MatrixSpace(R, ngens(F), rank(G)))
-  for i in 1:ngens(F)
-    v = repres(f(F[i]))
-    for j in 1:rank(G)
-      A[i, j] = v[j]
-    end
-  end
-  return A
 end
 
 # For a SubQuo M = (im A + im B)/(im B) for matrices A and B this returns A.
@@ -498,22 +385,6 @@ function as_matrix(v::SRow{T}, n::Int) where {T<:RingElem}
   return w
 end
   
-
-function sub(F::FreeMod{T}, A::MatElem{T}) where {T} 
-  M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
-  inc = hom(M, F, ambient_representatives_generators(M))
-  inc.matrix = A
-  return M, inc
-end
-
-function quo(F::FreeMod{T}, A::MatElem{T}) where {T}
-  E = one(MatrixSpace(base_ring(F), rank(F), rank(F)))
-  M = SubQuo(F, E, A)
-  proj = hom(F, M, gens(M))
-  proj.matrix = E
-  return M, proj
-end
-
   
 function kernel(
     f::FreeModuleHom{DomType, CodType, Nothing}
@@ -536,6 +407,16 @@ function kernel(
 end
 
 function cokernel(
+    f::FreeModuleHom{DomType, CodType, Nothing}
+  ) where {
+    T<:AbsLocalizedRingElem, 
+    DomType<:FreeMod{T},
+    CodType<:FreeMod{T}
+  }
+  return quo(codomain(f), representing_matrix(f))
+end
+
+function image(
     f::FreeModuleHom{DomType, CodType, Nothing}
   ) where {
     T<:AbsLocalizedRingElem, 
@@ -693,3 +574,61 @@ function represents_element(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocali
 
   return true
 end
+
+### coercion of elements from modules over the base ring
+function (F::FreeMod{T})(a::FreeModElem) where {T<:AbsLocalizedRingElem}
+  G = parent(a) 
+  base_ring(F) == base_ring(G) || base_ring(base_ring(F)) == base_ring(G) || error("base rings are not compatible")
+  rank(F) == rank(G) || error("modules does not have the same rank as the parent of the vector")
+  c = Vector(a)
+  return sum([a*e for (a, e) in zip(c, gens(F))])
+end
+
+function (M::SubQuo{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocalizedRingElem}
+  F = ambient_free_module(M)
+  base_ring(f) == base_ring(base_ring(M)) && return M(F(f))
+  parent(f) == F || error("ambient free modules are not compatible")
+  (check && represents_element(f, M)) || error("not a representative of a module element")
+  v = coordinates(f, M) # This is not the cheapest way, but the only one for which 
+                        # the constructors in the module code are sufficiently generic.
+                        # Clean this up!
+  return sum([v*e for (v,e) in zip(v, gens(M))])
+end
+
+function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+  has_attribute(M, :base_ring_module) || error("there is no associated module over the base ring")
+  get_attribute(M, :base_ring_module)::SubQuo{base_ring_elem_type(T)}
+end
+
+function set_base_ring_module(F::FreeMod{LRET}, N::FreeMod{BRET}) where {LRET<:AbsLocalizedRingElem, BRET<:RingElem}
+  S = base_ring(F)
+  R = base_ring(N)
+  base_ring(S) == R || error("base rings are not compatible")
+  rank(F) == rank(N) || error("ranks are not compatible")
+  set_attribute!(F, :base_ring_module, N)
+  return N
+end
+
+function set_base_ring_module(
+    M::SubQuo{LRET}, N::SubQuo{BRET};
+    check::Bool=true
+  ) where {LRET<:AbsLocalizedRingElem, BRET<:RingElem}
+  S = base_ring(M)
+  R = base_ring(N)
+  base_ring(S) == R || error("base rings are not compatible")
+  F = ambient_free_module(M)
+  base_ring_module(F) == ambient_free_module(N) || error("ambient free modules are not compatible")
+  if check
+    for g in ambient_representatives_generators(N)
+      represents_element(F(g), M) || error("generators of the base ring module are not elements of the localization")
+    end
+    for g in relations(N)
+      iszero(M(g)) || error("relations are not preserved")
+    end
+  end
+  set_attribute!(F, :base_ring_module, N)
+  return N
+end
+
+
+
