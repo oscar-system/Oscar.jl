@@ -15,7 +15,7 @@ julia> ngens(chow_ring(p2))
 3
 ```
 """
-function chow_ring(v::AbstractNormalToricVariety)
+@attr MPolyQuo function chow_ring(v::AbstractNormalToricVariety)
     if !issimplicial(v) || !iscomplete(v)
         throw(ArgumentError("The Chow ring is (currently) only supported for simplicial and complete toric varieties."))
     end
