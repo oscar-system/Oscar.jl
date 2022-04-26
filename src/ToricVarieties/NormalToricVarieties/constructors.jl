@@ -448,15 +448,8 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :isfano, true)
     
     # assign meaningful variables according to the rays
-    vars_dict = Dict()
-    vars_dict[matrix(ZZ,[1 0])] = "x1"
-    vars_dict[matrix(ZZ,[0 1])] = "x2"
-    vars_dict[matrix(ZZ,[-1 -1])] = "x3"
-    vars_dict[matrix(ZZ,[1 1])] = "e1"
-    vars_dict[matrix(ZZ,[0 -1])] = "e2"
-    vars_dict[matrix(ZZ,[-1 0])] = "e3"
-    vars = [vars_dict[new_rays[i,:]] for i in 1:nrows(new_rays)]
-    set_coordinate_names(variety, vars)
+    vars = ["x1", "x2", "x3", "e1", "e2", "e3"]
+    set_coordinate_names(variety, vars[1:(3 + b)])
     
     # set attributes
     set_attribute!(variety, :dim, 2)
@@ -469,12 +462,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
         
         # determine weights of the Cox ring
-        weight_dict = Dict()
-        weight_dict[matrix(ZZ,[1 0])] = [1, 1]
-        weight_dict[matrix(ZZ,[0 1])] = [1, 1]
-        weight_dict[matrix(ZZ,[-1 -1])] = [1, 0]
-        weight_dict[matrix(ZZ,[1 1])] = [0, -1]
-        weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+        weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
         
         # use it to set more attributes
         set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
@@ -490,13 +478,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
         
         # determine weights of the Cox ring
-        weight_dict = Dict()
-        weight_dict[matrix(ZZ,[1 0])] = [1, 1, 1]
-        weight_dict[matrix(ZZ,[0 1])] = [1, 1, 0]
-        weight_dict[matrix(ZZ,[-1 -1])] = [1, 0, 1]
-        weight_dict[matrix(ZZ,[1 1])] = [0, -1, 0]
-        weight_dict[matrix(ZZ,[0 -1])] = [0, 0, -1]
-        weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+        weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
         
         # use it to set more attributes
         set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(5))
@@ -512,14 +494,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
         
         # determine weights of the Cox ring
-        weight_dict = Dict()
-        weight_dict[matrix(ZZ,[1 0])] = [1, 1, 1, 0]
-        weight_dict[matrix(ZZ,[0 1])] = [1, 1, 0, 1]
-        weight_dict[matrix(ZZ,[-1 -1])] = [1, 0, 1, 1]
-        weight_dict[matrix(ZZ,[1 1])] = [0, -1, 0, 0]
-        weight_dict[matrix(ZZ,[0 -1])] = [0, 0, -1, 0]
-        weight_dict[matrix(ZZ,[-1 0])] = [0, 0, 0, -1]
-        weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+        weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
         
         # use it to set more attributes
         set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(6))
