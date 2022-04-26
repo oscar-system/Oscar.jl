@@ -76,13 +76,13 @@ end
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
 @doc Markdown.doc"""
-    syz(A::MatrixType) where {T<:RingElem, MatrixType<:MatrixElem{T}}
+    syz(A::MatrixElem)
 
 For a matrix ``A ∈ Rᵐˣⁿ`` over a ring ``R`` this returns a matrix 
 ``L ∈ Rᵖˣᵐ`` whose rows generate the kernel of the homomorphism of 
 free modules given by ``A``.
 """
-function syz(A::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
+function syz(A::MatrixElem{<:AbsLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(B)
   return L*D
@@ -119,15 +119,21 @@ end
 
 For a finitely generated ideal ``I ⊂ R`` and a multiplicative 
 set ``U ⊂ R``, this checks whether the intersection ``U ∩ I`` 
-is nonempty. In the affirmative case, it returns a triple 
+is nonempty and returns a triple 
 
-    (true, f, a)
+    (success, f, a).
 
-where ``f ∈ U ∩ I`` and ``a ∈ R¹ˣᵏ`` is a vector such that 
-``f = ∑ᵢaᵢ⋅gᵢ`` with ``gᵢ`` the elements in `gens(I)`.
+In the affirmative case, `success` is `true`, ``f ∈ U ∩ I`` is 
+some element in the intersection and ``a ∈ R¹ˣᵏ`` is a 
+`Vector{elem_type(R)}` such that ``f = ∑ᵢ aᵢ⋅gᵢ`` where
+``gᵢ`` are the elements in `gens(I)`.
 
 When the intersection is empty, this returns `(false, f, a)`
 with meaningless values for ``f`` and ``a``.
+
+** Note: ** When implementing methods of this function, it is 
+recommended to choose ``f`` to be the 'least complex' in 
+an appropriate sense for ``R``.
 """
 function has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
   R = base_ring(U)

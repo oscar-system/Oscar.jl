@@ -119,6 +119,7 @@
      "CommutativeAlgebra/ideals.md",
      "CommutativeAlgebra/free_modules.md",
      "CommutativeAlgebra/modules.md",
+     "CommutativeAlgebra/module_localizations.md",
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
      "CommutativeAlgebra/localizations.md",
