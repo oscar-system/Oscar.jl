@@ -128,65 +128,64 @@ function _clear_row_denominators(
   return cleared_A, d
 end
 
-function kernel(f::FreeModuleHom{FreeMod{BRET}, FreeMod{BRET}}) where {BRET<:MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
-  F = domain(f)
-  L = base_ring(F)
-  R = base_ring(L)
-  G = codomain(f)
-  point_coordinates(inverted_set(L))
+#function kernel(f::FreeModuleHom{FreeMod{BRET}, FreeMod{BRET}}) where {BRET<:MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
+#  F = domain(f)
+#  L = base_ring(F)
+#  R = base_ring(L)
+#  G = codomain(f)
+#  point_coordinates(inverted_set(L))
+#
+#  A = matrix(f)
+#  cleared_A, denom_A = _clear_row_denominators(A)
+#  cAS = _to_singular_gens(cleared_A, shift=point_coordinates(inverted_set(L)))
+#  KS = Singular.syz(cAS)
+#  K = _to_oscar_gens(F, KS, denominators=denom_A)
+#  return K, hom(K, F, ambient_representatives_generators(K))
+#end
 
-  A = matrix(f)
-  cleared_A, denom_A = _clear_row_denominators(A)
-  cAS = _to_singular_gens(cleared_A, shift=point_coordinates(inverted_set(L)))
-  KS = Singular.syz(cAS)
-  K = _to_oscar_gens(F, KS, denominators=denom_A)
-  return K, hom(K, F, ambient_representatives_generators(K))
-end
+#function kernel(f::FreeModuleHom{FreeMod{BRET}, FreeMod{BRET}}) where {BRET<:MPolyLocalizedRingElem}
+#  F = domain(f)
+#  L = base_ring(F)
+#  R = base_ring(L)
+#  G = codomain(f)
+#
+#  A = matrix(f)
+#  cleared_A, denom_A = _clear_row_denominators(A)
+#  cAS = _to_singular_gens(cleared_A)
+#  KS = Singular.syz(cAS)
+#  K = _to_oscar_gens(F, KS, denominators=denom_A)
+#  return K, hom(K, F, ambient_representatives_generators(K))
+#end
 
-function kernel(f::FreeModuleHom{FreeMod{BRET}, FreeMod{BRET}}) where {BRET<:MPolyLocalizedRingElem}
-  F = domain(f)
-  L = base_ring(F)
-  R = base_ring(L)
-  G = codomain(f)
+#function kernel(f::FreeModuleHom{FreeMod{BRET}, SubQuo{BRET}}) where {BRET<:MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
+#  F = domain(f)
+#  L = base_ring(F)
+#  R = base_ring(L)
+#  G = codomain(f)
+#
+#  A = matrix(f)
+#  cleared_A, denom_A = _clear_row_denominators(A)
+#  A_smod = _to_singular_gens(cleared_A, shift=point_coordinates(inverted_set(L)))
+#  smodulus = _to_singular_gens(ambient_free_module(G), relations(G))
+#  sK = Singular.modulo(A_smod, smodulus)
+#  K = _to_oscar_gens(F, sK, denominators=denom_A)
+#  return K, hom(K, F, ambient_representatives_generators(K))
+#end
 
-  A = matrix(f)
-  cleared_A, denom_A = _clear_row_denominators(A)
-  cAS = _to_singular_gens(cleared_A)
-  KS = Singular.syz(cAS)
-  K = _to_oscar_gens(F, KS, denominators=denom_A)
-  return K, hom(K, F, ambient_representatives_generators(K))
-end
-
-using Infiltrator
-function kernel(f::FreeModuleHom{FreeMod{BRET}, SubQuo{BRET}}) where {BRET<:MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
-  F = domain(f)
-  L = base_ring(F)
-  R = base_ring(L)
-  G = codomain(f)
-
-  A = matrix(f)
-  cleared_A, denom_A = _clear_row_denominators(A)
-  A_smod = _to_singular_gens(cleared_A, shift=point_coordinates(inverted_set(L)))
-  smodulus = _to_singular_gens(ambient_free_module(G), relations(G))
-  sK = Singular.modulo(A_smod, smodulus)
-  K = _to_oscar_gens(F, sK, denominators=denom_A)
-  return K, hom(K, F, ambient_representatives_generators(K))
-end
-
-function kernel(f::FreeModuleHom{FreeMod{BRET}, SubQuo{BRET}}) where {BRET<:MPolyLocalizedRingElem}
-  F = domain(f)
-  L = base_ring(F)
-  R = base_ring(L)
-  G = codomain(f)
-
-  A = matrix(f)
-  cleared_A, denom_A = _clear_row_denominators(A)
-  A_smod = _to_singular_gens(cleared_A)
-  smodulus = _to_singular_gens(saturated_modulus(codomain(f)))
-  sK = Singular.modulo(A_smod, smodulus)
-  K = _to_oscar_gens(F, sK, denominators=denom_A)
-  return K, hom(K, F, ambient_representatives_generators(K))
-end
+#function kernel(f::FreeModuleHom{FreeMod{BRET}, SubQuo{BRET}}) where {BRET<:MPolyLocalizedRingElem}
+#  F = domain(f)
+#  L = base_ring(F)
+#  R = base_ring(L)
+#  G = codomain(f)
+#
+#  A = matrix(f)
+#  cleared_A, denom_A = _clear_row_denominators(A)
+#  A_smod = _to_singular_gens(cleared_A)
+#  smodulus = _to_singular_gens(saturated_modulus(codomain(f)))
+#  sK = Singular.modulo(A_smod, smodulus)
+#  K = _to_oscar_gens(F, sK, denominators=denom_A)
+#  return K, hom(K, F, ambient_representatives_generators(K))
+#end
 
 function saturated_modulus(M::SubQuo{BRET}) where {BRET<:MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   if !has_attribute(M, :saturated_modulus)
@@ -364,25 +363,25 @@ end
 #
 # We may therefore compute K' and return its localization.
 
-function kernel(
-    f::FreeModuleHom{DomainType, CodomainType}
-  ) where {LRT<:MPolyLocalizedRing, DomainType<:FreeMod{LRT}, CodomainType<:ModuleFP}
-  Fl = domain(f)
-  L = base_ring(Fl)
-  Gl = codomain(f)
-  v = [f(Fl[i]) for i in 1:ngens(Fl)]
-  w, d = clear_denominators(v)
-  F = base_ring_module(Fl)
-  G = base_ring_module(Gl)
-  g = hom(F, G, w)
-  set_attribute!(f, :base_ring_map, g)
-  K, inc = kernel(g)
-  u = [sum([u[i]*d[i]*Fl[i] for i in 1:ngens(Fl)]) for u in ambient_representatives_generators(K)]
-  Kl = SubQuo(Fl, u)
-  set_attribute!(Kl, :base_ring_module, K)
-  set_attribute!(Kl, :denominators, d)
-  return Kl, hom(Kl, Fl, ambient_representatives_generators(Kl))
-end
+#function kernel(
+#    f::FreeModuleHom{DomainType, CodomainType}
+#  ) where {LRT<:MPolyLocalizedRing, DomainType<:FreeMod{LRT}, CodomainType<:ModuleFP}
+#  Fl = domain(f)
+#  L = base_ring(Fl)
+#  Gl = codomain(f)
+#  v = [f(Fl[i]) for i in 1:ngens(Fl)]
+#  w, d = clear_denominators(v)
+#  F = base_ring_module(Fl)
+#  G = base_ring_module(Gl)
+#  g = hom(F, G, w)
+#  set_attribute!(f, :base_ring_map, g)
+#  K, inc = kernel(g)
+#  u = [sum([u[i]*d[i]*Fl[i] for i in 1:ngens(Fl)]) for u in ambient_representatives_generators(K)]
+#  Kl = SubQuo(Fl, u)
+#  set_attribute!(Kl, :base_ring_module, K)
+#  set_attribute!(Kl, :denominators, d)
+#  return Kl, hom(Kl, Fl, ambient_representatives_generators(Kl))
+#end
 
 @doc Markdown.doc"""
     base_ring_map(
@@ -574,17 +573,17 @@ function (M::SubQuo{T})(a::FreeModElem) where {T<:AbsLocalizedRingElem}
   return sum([v*d*e for (v,d,e) in zip(v, d, gens(M))])
 end
 
-function coordinates(a::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
-  L = base_ring(M)
-  b, d = clear_denominators(a)
-  Mb = base_ring_module(M)
-  Mb_sat = saturated_module(M)
-  (u, A) = saturation_transitions(M)
-  denom_g = generator_denominators(M)
-  c = coordinates(b, Mb_sat)
-  res = [sum([L(c[i]*A[i,j]*denom_g[j], u[i], check=false) for i in 1:ngens(Mb_sat)]) for j in 1:ngens(M)]
-  return sparse_row(L, [(i, c) for (i, c) in zip(1:length(res), res) if !iszero(c)])
-end
+#function coordinates(a::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
+#  L = base_ring(M)
+#  b, d = clear_denominators(a)
+#  Mb = base_ring_module(M)
+#  Mb_sat = saturated_module(M)
+#  (u, A) = saturation_transitions(M)
+#  denom_g = generator_denominators(M)
+#  c = coordinates(b, Mb_sat)
+#  res = [sum([L(c[i]*A[i,j]*denom_g[j], u[i], check=false) for i in 1:ngens(Mb_sat)]) for j in 1:ngens(M)]
+#  return sparse_row(L, [(i, c) for (i, c) in zip(1:length(res), res) if !iszero(c)])
+#end
 
 # internal routine to get rid of denominators. 
 # returns a pair of an element in the associated base_ring_module and the 
@@ -674,23 +673,23 @@ function Base.in(v::FreeModElem{T}, M::Oscar.SubModuleOfFreeModule{T}) where {T<
   return iszero(Oscar.reduce(v, groebner_basis(M)))
 end
   
-function coordinates(v::FreeModElem{T}, M::Oscar.SubModuleOfFreeModule{T}) where {T<:MPolyElem}
-  if iszero(v)
-    return sparse_row(base_ring(parent(v)))
-  end
-  F = ambient_free_module(M)
-  R = base_ring(M)
-  g = module_gens(M)
-  oscar_assure(g)
-  S = singular_generators(g)
-  b = Oscar.ModuleGens([v], F)
-  singular_assure(b)
-  s, r = Singular.lift(S, singular_generators(b))
-  if Singular.ngens(s) == 0 || iszero(s[1])
-    return nothing
-  end
-  return sparse_row(R, s[1], 1:ngens(M))
-end
+#function coordinates(v::FreeModElem{T}, M::Oscar.SubModuleOfFreeModule{T}) where {T<:MPolyElem}
+#  if iszero(v)
+#    return sparse_row(base_ring(parent(v)))
+#  end
+#  F = ambient_free_module(M)
+#  R = base_ring(M)
+#  g = module_gens(M)
+#  oscar_assure(g)
+#  S = singular_generators(g)
+#  b = Oscar.ModuleGens([v], F)
+#  singular_assure(b)
+#  s, r = Singular.lift(S, singular_generators(b))
+#  if Singular.ngens(s) == 0 || iszero(s[1])
+#    return nothing
+#  end
+#  return sparse_row(R, s[1], 1:ngens(M))
+#end
 
 function saturation(
     M::SubQuo{T},
