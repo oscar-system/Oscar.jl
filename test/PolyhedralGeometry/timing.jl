@@ -92,7 +92,7 @@
     end
     
 
-    function benchmark(poly, pref, fun)
+    function benchmark(poly, pref, fun, bound)
         # Since timings can be unstable, especially with the jit compiler, we
         # repeat every experiment and return the minimal running time.
         repeat = 5
@@ -101,43 +101,43 @@
             for i in 1:repeat
                 copy = deepcopy(poly)
                 result = min(@elapsed fun(copy), result)
-                if result <= 1.0
-                    return result
+                if result <= bound
+                    return true
                 end
             end
-            return result
+            return false
         end
     end
 
     @testset "convex hull" begin
         c4 = create_cutpoly(4)
-        @test benchmark(c4, "cdd", facets) <= 1.0
-        @test benchmark(c4, "libnormaliz", facets) <= 1.0
-        @test benchmark(c4, "ppl", facets) <= 1.0
+        @test benchmark(c4, "cdd", facets, 2.0)
+        @test benchmark(c4, "libnormaliz", facets, 1.0)
+        @test benchmark(c4, "ppl", facets, 1.0)
 
         ks_6_40 = create_knapsack_ch(6, 40)
-        @test benchmark(ks_6_40, "beneath_beyond", facets) <= 1.0
-        @test benchmark(ks_6_40, "libnormaliz", facets) <= 1.0
-        @test benchmark(ks_6_40, "ppl", facets) <= 1.0
+        @test benchmark(ks_6_40, "beneath_beyond", facets, 3.0)
+        @test benchmark(ks_6_40, "libnormaliz", facets, 1.0)
+        @test benchmark(ks_6_40, "ppl", facets, 1.0)
 
         voronoi_3_1500 = create_voronoi(3, 1500)
-        @test benchmark(voronoi_3_1500, "libnormaliz", vertices) <= 1.0
+        @test benchmark(voronoi_3_1500, "libnormaliz", vertices, 3.0)
     end
 
 
     @testset "lattice points" begin
         ks_10_60 = create_knapsack_lp(10, 60)
-        @test benchmark(ks_10_60, "projection", lattice_points) <= 1.0
-        @test benchmark(ks_10_60, "libnormaliz", lattice_points) <= 1.0
+        @test benchmark(ks_10_60, "projection", lattice_points, 2.0)
+        @test benchmark(ks_10_60, "libnormaliz", lattice_points, 1.0)
 
         m6 = create_matching(6)
-        @test benchmark(m6, "_4ti2", lattice_points) <= 1.0
-        @test benchmark(m6, "projection", lattice_points) <= 1.0
-        @test benchmark(m6, "libnormaliz", lattice_points) <= 1.0
+        @test benchmark(m6, "_4ti2", lattice_points, 1.0)
+        @test benchmark(m6, "projection", lattice_points, 1.0)
+        @test benchmark(m6, "libnormaliz", lattice_points, 1.0)
 
         rbx = create_randbox(4, 70)
-        @test benchmark(rbx, "bbox", lattice_points) <= 1.0
-        @test benchmark(rbx, "projection", lattice_points) <= 1.0
-        @test benchmark(rbx, "libnormaliz", lattice_points) <= 1.0
+        @test benchmark(rbx, "bbox", lattice_points, 2.0)
+        @test benchmark(rbx, "projection", lattice_points, 1.0)
+        @test benchmark(rbx, "libnormaliz", lattice_points, 1.0)
     end
 end
