@@ -2,11 +2,10 @@
 ######## Scalar types
 ################################################################################
 
-# actually name length + 2, corresponding to the index of the first character of the scalar type
-const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6), (PolyhedralFan, 15), (SubdivisionOfPoints, 21), (PolyhedralComplex, 19)])
 
 function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan, SubdivisionOfPoints, PolyhedralComplex}
-    typename = Polymake.type_name(p)[pm_name_length[n]:end-1]
+    scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(p)))
+    typename = scalar_regexp[1]
     return scalar_type_to_oscar[typename]
 end
 

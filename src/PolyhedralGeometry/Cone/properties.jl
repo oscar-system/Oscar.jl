@@ -100,7 +100,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_object(C).N_FACETS::Int
+nfacets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -118,7 +118,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_object(C).N_RAYS::Int
+nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)
@@ -300,7 +300,7 @@ julia> f = facets(Halfspace, c)
 -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
+facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
 _facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-C.FACETS[[i], :], 0)
 
