@@ -100,7 +100,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_object(C).N_FACETS::Int
+nfacets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -118,7 +118,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_object(C).N_RAYS::Int
+nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)

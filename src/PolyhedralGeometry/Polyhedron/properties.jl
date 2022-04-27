@@ -184,7 +184,7 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = pm_object(P).N_VERTICES::Int - nrays(P)
+nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - nrays(P)
 
 
 @doc Markdown.doc"""
@@ -252,7 +252,7 @@ julia> nfacets(cross(5))
 ```
 """
 function nfacets(P::Polyhedron)
-    n = pm_object(P).N_FACETS::Int
+    n = size(pm_object(P).FACETS, 1)::Int
     return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end
 
