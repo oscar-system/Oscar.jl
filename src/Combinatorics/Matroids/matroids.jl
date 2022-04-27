@@ -405,6 +405,8 @@ function dual_matroid(M::Matroid)
   GC.@preserve M begin
     dual = Matroid(pm_object(M).DUAL, M.groundset, M.gs2num)
     Polymake.give(pm_object(dual), "BASES|CIRCUITS")
+    Polymake.give(pm_object(dual), "N_ELEMENTS")
+    Polymake.give(pm_object(dual), "RANK")
   end
   return dual
 end
