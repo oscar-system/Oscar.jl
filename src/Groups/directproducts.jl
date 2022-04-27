@@ -264,7 +264,7 @@ where `f` is a group homomorphism from `H` to the automorphism group of `N`.
 """
 function semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
    sdp=GAP.Globals.SemidirectProduct(H.X,f.map,N.X)
-   return SemidirectProductGroup(sdp,N,H,f,sdp,true)
+   return SemidirectProductGroup{S,T}(sdp,N,H,f,sdp,true)
 end
 
 # return the element (a,b) in G
@@ -338,7 +338,7 @@ end
 
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
 #  t = G.X==H
-  return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, false)
+  return SemidirectProductGroup{S,T}(H, G.N, G.H, G.f, G.X, false)
 end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
