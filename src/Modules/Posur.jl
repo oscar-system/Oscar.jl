@@ -49,6 +49,17 @@ function clear_denominators(v::Vector{FreeModElem{RET}}) where {RET<:AbsLocalize
   return [a[1] for a in u], [a[2] for a in u]
 end
 
+# generic solution to the syzygy problem (thought of over the base ring)
+function syz(A::MatrixElem)
+  R = base_ring(A)
+  m = nrows(A)
+  n = ncols(A)
+  F = FreeMod(R, m)
+  G = FreeMod(R, n)
+  f = hom(F, G, A)
+  K, inc = kernel(f)
+  return matrix(inc)
+end
 
 # Following a modified version of Lemma 3.1 and Remark 3.2 in [1], 
 # we reduce the syzygy problem over a localization S = R[U⁻¹] 

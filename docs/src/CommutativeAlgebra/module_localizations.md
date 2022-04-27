@@ -24,15 +24,13 @@ computable, provided that there exists a solution to the *localization problem*
 (Definition 3.8, [Pos18](@cite) and below). 
 
 The user who wishes to use the generic code for 
-localizations therefore has to make sure the following three 
+localizations therefore has to make sure the following two 
 requirements are met: 
 
- 1) The code for finitely generated modules must be functional over ``R``. TODO: What precisely does this mean? Do we have a 'module interface' that the user needs to implement?
+ 1) The code for finitely generated modules must be functional over ``R``, including the computation of `coordinates` and `kernel`. TODO: What precisely does this mean? Do we have a 'module interface' that the user needs to implement?
 
- 2) In particular, the user has to implement the method for computing syzygies; see below. TODO: Can this be subsumed under 1)? For instance, it could be implemented generically via computation of kernels.
- 3) The user has to solve the *localization problem* by implementing `has_nonepmty_intersection(U::MultSetType, I::IdealType)` for the type `MultSetType` of multiplicative sets and the type `IdealType` of ideals in `R` that they would like to consider.
+ 2) The user has to solve the *localization problem* by implementing `has_nonepmty_intersection(U::MultSetType, I::IdealType)` for the type `MultSetType` of multiplicative sets and the type `IdealType` of ideals in `R` that they would like to consider.
 ```@docs
-    syz(A::MatrixElem{<:AbsLocalizedRingElem})
     has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
 ```
 

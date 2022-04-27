@@ -9,25 +9,13 @@
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 
 
-# compute the syzygies of a matrix
-function syz(A::MatrixType) where {T<:MPolyElem, MatrixType<:MatrixElem{T}}
-  R = base_ring(A)
-  m = nrows(A)
-  n = ncols(A)
-  F = FreeMod(R, m)
-  G = FreeMod(R, n)
-  f = hom(F, G, A)
-  K, inc = kernel(f)
-  return matrix(inc)
-end
-
 function has_nonepmty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
 
   d = prod(denominators(U))
   inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
-  (k, f) = Oscar._minimal_power_such_that(d, (x->x in I))
+  (k, f) = _minimal_power_such_that(d, (x->x in I))
   return true, f, coordinates(f, I)
 end
 
@@ -49,6 +37,11 @@ function has_nonepmty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
   return true, g, A
 end
 
+# For a `RingElem` f this computes a pair (k, h) where h = f^k and 
+# k is the minimal natural number such that the property P(f^k) is 
+# satisfied. 
+#
+# The algorithm is a simple implementation of logarithmic bisection.
 function _minimal_power_such_that(f::RingElemType, P::PropertyType) where {RingElemType<:RingElem, PropertyType}
   P(one(parent(f))) && return (0, one(f))
   P(f) && return (1, f)
