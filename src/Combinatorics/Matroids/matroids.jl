@@ -401,7 +401,13 @@ julia> M = dual_matroid(fano_matroid())
 Matroid of rank 4 on 7 elements
 ```
 """
-dual_matroid(M::Matroid) = Matroid(M.pm_matroid.DUAL,M.groundset,M.gs2num)
+function dual_matroid(M::Matroid)
+  GC.@preserve M begin
+    dual = Matroid(pm_object(M).DUAL, M.groundset, M.gs2num)
+    Polymake.give(pm_object(dual), "BASES|CIRCUITS")
+  end
+  return dual
+end
 
 @doc Markdown.doc"""
     matroid_groundset(M::Matroid)
