@@ -2,6 +2,34 @@
     using Oscar
     using Oscar.Graphs
 
+
+    lp_provide = ["FACETS", "VERTICES", "VERTICES_IN_FACETS", "LATTICE", "BOUNDED"]
+
+    function create_matching(n)
+        g = complete_graph(n)
+        p = Polymake.polytope.fractional_matching_polytope(g.pm_graph);
+        Polymake.prefer("ppl") do
+            for prop in lp_provide
+                Polymake.give(p, prop)
+            end
+        end
+        Polymake.setname!(p, "matching($n)")
+        return Polyhedron(p)
+    end
+
+
+    function create_randbox(d, n)
+        p = Polymake.polytope.rand_box(d, n, 5, seed=42)
+        Polymake.prefer("ppl") do
+            for prop in lp_provide
+                Polymake.give(p, prop)
+            end
+        end
+        Polymake.setname!(p, "rand_box($d,$n,5)")
+        return Polyhedron(p)
+    end
+
+
     function create_knapsack_lp(d, b)
         (first, second) = (2, 3)
         ineq = [b, -first, -second];
@@ -12,7 +40,6 @@
             push!(ineq, -third)
         end
         p = Polymake.polytope.fractional_knapsack(ineq);
-        lp_provide = ["FACETS", "VERTICES", "VERTICES_IN_FACETS", "LATTICE", "BOUNDED"]
         Polymake.prefer("ppl") do
             for prop in lp_provide
                 Polymake.give(p, prop)
@@ -66,9 +93,19 @@
     
 
     function benchmark(poly, pref, fun)
+        # Since timings can be unstable, especially with the jit compiler, we
+        # repeat every experiment and return the minimal running time.
+        repeat = 5
         Polymake.prefer("$pref"; application="polytope") do
-            copy = deepcopy(poly)
-            return @elapsed fun(copy)
+            result = 10
+            for i in 1:repeat
+                copy = deepcopy(poly)
+                result = min(@elapsed fun(copy), result)
+                if result <= 1.0
+                    return result
+                end
+            end
+            return result
         end
     end
 
@@ -87,4 +124,20 @@
         @test benchmark(voronoi_3_1500, "libnormaliz", vertices) <= 1.0
     end
 
+
+    @testset "lattice points" begin
+        ks_10_60 = create_knapsack_lp(10, 60)
+        @test benchmark(ks_10_60, "projection", lattice_points) <= 1.0
+        @test benchmark(ks_10_60, "libnormaliz", lattice_points) <= 1.0
+
+        m6 = create_matching(6)
+        @test benchmark(m6, "_4ti2", lattice_points) <= 1.0
+        @test benchmark(m6, "projection", lattice_points) <= 1.0
+        @test benchmark(m6, "libnormaliz", lattice_points) <= 1.0
+
+        rbx = create_randbox(4, 70)
+        @test benchmark(rbx, "bbox", lattice_points) <= 1.0
+        @test benchmark(rbx, "projection", lattice_points) <= 1.0
+        @test benchmark(rbx, "libnormaliz", lattice_points) <= 1.0
+    end
 end
