@@ -17,6 +17,9 @@ whose isomorphism type is given by `name` and have the type `T`.
 julia> atlas_group("A5")  # alternating group A5
 Group([ (1,2)(3,4), (1,3,5) ])
 
+julia> atlas_group(MatrixGroup, "A5")
+Matrix group of degree 4 over Galois field with characteristic 2
+
 julia> atlas_group("M11")  # Mathieu group M11
 Group([ (2,10)(4,11)(5,7)(8,9), (1,4,3,8)(2,5,6,9) ])
 
@@ -47,12 +50,15 @@ Return the number of groups from the Atlas of Group Representations
 whose isomorphism type is given by `name` and have the type `T`.
 
 # Examples
-```
+```jldoctest
 julia> number_atlas_groups("A5")
 18
 
 julia> number_atlas_groups(PermGroup, "A5")
 3
+
+julia> number_atlas_groups(MatrixGroup, "A5")
+15
 
 ```
 """
