@@ -861,3 +861,23 @@ julia> f_vector(DP)
 ```
 """
 delpezzo(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))
+
+
+
+@doc Markdown.doc"""
+    cyclic_polytope(d::Int, n::Int)
+
+Construct the cyclic polytope that is the convex hull of $n$ points on the
+moment curve in dimension $d$.
+
+
+# Examples
+```jldoctest
+julia> cp = cyclic_polytope(3, 20)
+A polyhedron in ambient dimension 3
+
+julia> nvertices(cp)
+20
+```
+"""
+cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))

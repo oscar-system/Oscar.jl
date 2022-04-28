@@ -109,8 +109,11 @@ birkhoff
 catalan_solid
 cross
 cube
+cyclic_polytope
 delpezzo
 fano_simplex
+fractional_cut_polytope
+fractional_matching_polytope
 gelfand_tsetlin
 simplex
 ```
