@@ -174,6 +174,11 @@
       @test @inferred b == T(-1)
       @test @inferred T(-1) == b
     end
+
+    a = z(5)
+    b = z(15)^3
+    @test @inferred a == b
+    @test hash(a, zero(UInt)) == hash(b, zero(UInt))
   end
 
   @testset "Roots" begin
