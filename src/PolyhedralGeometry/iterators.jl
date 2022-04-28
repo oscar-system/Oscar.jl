@@ -9,8 +9,8 @@ const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq),
 
 const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational),
                                     (nf_elem, Polymake.QuadraticExtension{Polymake.Rational}),
-                                    (Union{fmpq, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),
-                                    (Float64, Float64)])    # needed for Halfspace{nf_elem} etc
+                                    (Union{fmpq, nf_elem}, Polymake.QuadraticExtension{Polymake.Rational}),    # needed for Halfspace{nf_elem} etc
+                                    (Float64, Float64)])
 
 const scalar_types_extended = Union{scalar_types, fmpz}
 
