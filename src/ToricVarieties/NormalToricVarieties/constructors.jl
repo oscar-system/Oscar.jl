@@ -349,12 +349,7 @@ function hirzebruch_surface(r::Int)
     end
     
     # assign meaningful variables according to the rays
-    vars_dict = Dict()
-    vars_dict[matrix(ZZ,[1 0])] = "t1"
-    vars_dict[matrix(ZZ,[0 1])] = "x1"
-    vars_dict[matrix(ZZ,[-1 r])] = "t2"
-    vars_dict[matrix(ZZ,[0 -1])] = "x2"
-    vars = [vars_dict[new_rays[i,:]] for i in 1:nrows(new_rays)]
+    vars = ["t1", "x1", "t2", "x2"]
     set_coordinate_names(variety, vars)
     
     # set attributes
@@ -368,12 +363,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
     # find weights of the Cox ring
-    weight_dict = Dict()
-    weight_dict[matrix(ZZ,[1 0])] = [0, 1]
-    weight_dict[matrix(ZZ,[0 1])] = [1, 0]
-    weight_dict[matrix(ZZ,[-1 r])] = [0, 1]
-    weight_dict[matrix(ZZ,[0 -1])] = [1, 2]
-    weights = matrix(ZZ, [weight_dict[new_rays[i,:]] for i in 1:nrows(new_rays)])
+    weights = matrix(ZZ, [0 1; 1 0; 0 1; 1 2])
     
     # set map from torusinvariant weil divisors to class group
     set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
