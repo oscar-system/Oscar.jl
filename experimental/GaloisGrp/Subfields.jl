@@ -52,7 +52,7 @@ function GaloisCtx(S::SubfieldLattice)
   return S.G
 end
 
-function block_system(G::GaloisCtx, a)
+function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
   K = parent(a)
   kx = parent(defining_polynomial(K))
   f = kx(a)
@@ -257,6 +257,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if iszero(g(beta))
     k, a = number_field(g)
     h = hom(k, K, beta)
+    push!(S.P, bs)
     S.l[S.P(bs)] = (k, h)
     return k, h
   end
@@ -310,7 +311,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
 
   lf = factor_mod_pk(Array, H, 1)
   #the roots in G are of course roots of the lf[i]
-  #roots that beong to the same factor would give rise
+  #roots that belong to the same factor would give rise
   #to the same principal subfield. So we can save on LLL calls.
   r = roots(G, 1)
   F, mF = ResidueField(parent(r[1]))
@@ -351,13 +352,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the 
         #      van Hoeij factoring)
-        M = deepcopy(M)
-        @time r = ccall((:fmpz_lll_d_with_removal, Hecke.libflint), Cint, (Ref{fmpz_mat}, Clong, Ref{fmpz}, Ref{lll_ctx}), M, 0, B, lll_ctx(0.501, 0.75))
-        if r == -1
-          @show :darn
-          @show maximum(nbits, M), nbits(B), size(M)
-          @time r, M = lll_with_removal(M, B)
-        end
+        @time r, M = lll_with_removal(M, B, lll_ctx(0.501, 0.75))
         M = M[1:r, :]
         @show r, i, pr
 
