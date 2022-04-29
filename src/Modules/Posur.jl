@@ -142,7 +142,7 @@ some element in the intersection and ``a ∈ R¹ˣᵏ`` is a
 When the intersection is empty, this returns `(false, f, a)`
 with meaningless values for ``f`` and ``a``.
 
-** Note: ** When implementing methods of this function, it is 
+**Note:** When implementing methods of this function, it is 
 recommended to choose ``f`` to be the 'least complex' in 
 an appropriate sense for ``R``.
 """
@@ -172,7 +172,7 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:AbsLocalizedRingEl
   B, D = clear_denominators(A)
   c, u = clear_denominators(b)
   (success, y, v) = has_solution(B, c, inverted_set(S))
-  success || return (false, zero(MatrixSpace(S, 1, n)))
+  success || return (false, zero(MatrixSpace(S, 1, ncols(b))))
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D to be the solution x of x ⋅ A = b.
@@ -648,4 +648,43 @@ function set_base_ring_module(
 end
 
 
+########################################################################
+# 
+# Further generic implementations of module code
+#
+########################################################################
+
+function iszero(v::SubQuoElem{<:AbsLocalizedRingElem}) 
+  M = parent(v)
+  Mb = pre_saturated_module(M)
+  w = repres(v)
+  b = as_matrix(repres(v))
+  all(x->iszero(x), b) && return true
+
+  (u, d) = clear_denominators(w)
+  iszero(Mb(u)) && return true
+
+  B = relations_matrix(M)
+  success, y = has_solution(b, B)
+  !success && return false
+
+  # Cache the new relation in the pre_saturated_module
+  bb = as_matrix(u)
+  Mbext = SubQuo(ambient_free_module(Mb), 
+                 generator_matrix(Mb), 
+                 vcat(relations_matrix(Mb), bb))
+  # The matrix Tr ∈ Sᵖˣᵐ is the transition matrix from the 
+  # B = `relations_matrix(M)` to B' = `relations_matrix(Mb)`, i.e.
+  #
+  #   Tr ⋅ B = B'. 
+  #
+  # For the extended set of relations in the pre-saturation, we 
+  # need to extend this matrix by one more row given by d ⋅ y.
+  Tr = pre_saturation_data_rels(M)
+  set_attribute!(M, :pre_saturation_data_rels, 
+                 vcat(Tr, d*y)
+                )
+  set_attribute!(M, :pre_saturated_module, Mbext)
+  return true
+end
 

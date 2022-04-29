@@ -2916,7 +2916,8 @@ end
 Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
 In particular, `length(im) == ngens(D)` must hold.
 """
-SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{typeof(D), typeof(C)}(D, C, im)
+SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
+SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector, h::RingMapType) where {RingMapType} = SubQuoHom{typeof(D), typeof(C), typeof(h)}(D, C, im, h)
 
 @doc Markdown.doc"""
     SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
@@ -2932,6 +2933,18 @@ function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
     return hom
   else
     hom = SubQuoHom(D, C, [SubQuoElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    return hom
+  end
+end
+
+function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem, h::RingMapType) where {RingMapType}
+  @assert nrows(mat) == ngens(D)
+  @assert ncols(mat) == ngens(C)
+  if C isa FreeMod
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  else
+    hom = SubQuoHom(D, C, [SubQuoElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
     return hom
   end
 end
@@ -3050,7 +3063,9 @@ false
 ```
 """
 hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = SubQuoHom(M, N, V) 
+hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, V, h) 
 hom(M::SubQuo{T}, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
+hom(M::SubQuo{T}, N::ModuleFP{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, A, h)
 function iswelldefined(H::ModuleMap)
   if H isa Union{FreeModuleHom,FreeModuleHom_dec}
     return true
@@ -3310,7 +3325,7 @@ hom(D::SubQuo, C::ModuleFP, A::Vector) = SubQuoHom(D, C, A)
 
 Return the image $a(m)$.
 """
-function image(f::SubQuoHom, a::SubQuoElem)
+function image(f::SubQuoHom{<:Any, <:Any, <:Nothing}, a::SubQuoElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
   i = zero(codomain(f))
@@ -3320,6 +3335,22 @@ function image(f::SubQuoHom, a::SubQuoElem)
   end
   return i
 end
+
+ring_map(f::SubQuoHom{<:Any, <:Any, Nothing}) = base_ring(parent(domain(f)))
+ring_map(f::SubQuoHom{<:Any, <:Any, RingMapType}) where {RingMapType} = f.ring_map
+
+function image(f::SubQuoHom{<:Any, <:Any, RingMapType}, a::SubQuoElem) where {RingMapType}
+  # TODO matrix vector multiplication
+  @assert a.parent === domain(f)
+  i = zero(codomain(f))
+  b = coeffs(a)
+  h = ring_map(f)
+  for (p,v) = b
+    i += h(v)*f.im[p]
+  end
+  return i
+end
+
 
 @doc Markdown.doc"""
     image(f::SubQuoHom, a::FreeModElem)

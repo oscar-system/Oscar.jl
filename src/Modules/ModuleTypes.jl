@@ -478,30 +478,109 @@ struct SubQuoElem{T} <: AbstractSubQuoElem{T}
 end
 
 
-mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
+mutable struct SubQuoHom{
+    T1<:AbstractSubQuo, 
+    T2<:ModuleFP, 
+    RingMapType<:Any
+  } <: ModuleMap{T1, T2}
   matrix::MatElem
   header::Hecke.MapHeader
   im::Vector
   inverse_isomorphism::ModuleMap
+  ring_map::RingMapType
 
-  function SubQuoHom{T1,T2}(D::SubQuo, C::ModuleFP, im::Vector) where {T1,T2}
+  # Constructors for maps without change of base ring
+  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
-    r = new{T1, T2}()
+    r = new{T1, T2, Nothing}()
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    if C isa FreeMod
-      r.im = Vector{FreeModElem}(im)
-    elseif C isa SubQuo
-      r.im = Vector{SubQuoElem}(im)
-    else
-      r.im = im
-    end
-
+    r.im = Vector{FreeModElem}(im)
     return r
   end
+
+  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::SubQuo, im::Vector) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, Nothing}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = Vector{SubQuoElem}(im)
+    return r
+  end
+
+  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, Nothing}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = im
+    return r
+  end
+
+  # Constructors for maps with change of base ring
+  function SubQuoHom{T1,T2,RingMapType}(
+      D::SubQuo, 
+      C::FreeMod, 
+      im::Vector, 
+      h::RingMapType
+    ) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, RingMapType}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = Vector{FreeModElem}(im)
+    r.ring_map = h
+    return r
+  end
+
+  function SubQuoHom{T1,T2,RingMapType}(
+      D::SubQuo, 
+      C::SubQuo, 
+      im::Vector, 
+      h::RingMapType
+    ) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, RingMapType}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = Vector{SubQuoElem}(im)
+    r.ring_map = h
+    return r
+  end
+
+  function SubQuoHom{T1,T2,RingMapType}(
+      D::SubQuo, 
+      C::ModuleFP, 
+      im::Vector, 
+      h::RingMapType
+    ) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, RingMapType}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = im
+    r.ring_map = h
+    return r
+  end
+
 end
 
 
