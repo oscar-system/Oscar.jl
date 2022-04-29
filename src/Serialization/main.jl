@@ -61,7 +61,7 @@ const typeMap = Dict{Type, String}([
     Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
     fmpz => "fmpz",
     gfp_elem => "Nemo.gfp_elem",
-    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem",
+    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem"
 ])
 
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
@@ -229,6 +229,7 @@ include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
 include("Fields.jl")
 include("ToricGeometry.jl")
+include("Rings.jl")
 
 @deprecate save_cone(Obj::Cone, filename::String) save(Obj, filename)
 @deprecate load_cone(filename::String) load(Obj, filename)
