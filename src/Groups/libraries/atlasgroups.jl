@@ -1,5 +1,6 @@
 export
     atlas_group,
+    atlas_program,
     number_atlas_groups
 
 ###################################################################
@@ -26,7 +27,7 @@ Group([ (2,10)(4,11)(5,7)(8,9), (1,4,3,8)(2,5,6,9) ])
 ```
 """
 function atlas_group(name::String)
-  G = GAP.Globals.AtlasGroup(GAP.GapObj(name))
+  G = GAP.Globals.AtlasGroup(GapObj(name))
   G === GAP.Globals.fail && error("the group atlas does not provide a representation for $name")
   T = _get_type(G)
   return T(G)
@@ -34,9 +35,9 @@ end
 
 function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
   if T === PermGroup
-    G = GAP.Globals.AtlasGroup(GAP.GapObj(name), GAP.Globals.IsPermGroup, true)
+    G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsPermGroup, true)::GapObj
   else
-    G = GAP.Globals.AtlasGroup(GAP.GapObj(name), GAP.Globals.IsMatrixGroup, true)
+    G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
   end
   G === GAP.Globals.fail && error("the group atlas does not provide a representation of type $T for $name")
   TT = _get_type(G)
@@ -63,15 +64,27 @@ julia> number_atlas_groups(MatrixGroup, "A5")
 ```
 """
 function number_atlas_groups(name::String)
-  return length(GAP.Globals.AllAtlasGeneratingSetInfos(GAP.GapObj(name)))
+  return length(GAP.Globals.AllAtlasGeneratingSetInfos(GapObj(name))::GapObj)
 end
 
 function number_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
   if T === PermGroup
     return length(GAP.Globals.AllAtlasGeneratingSetInfos(
-                    GAP.GapObj(name), GAP.Globals.IsPermGroup, true))
+                    GapObj(name), GAP.Globals.IsPermGroup, true)::GapObj)
   else
     return length(GAP.Globals.AllAtlasGeneratingSetInfos(
-                    GAP.GapObj(name), GAP.Globals.IsMatrixGroup, true))
+                    GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj)
+  end
+end
+
+function atlas_program(name, paras...)
+  if length(paras) == 1 && paras[1] == :classes
+    slp = GAP.Globals.AtlasProgram(GapObj(name), GapObj("classes"))::GapObj
+    slp === GAP.Globals.fail && return nothing
+    gapcode = GAP.Globals.LinesOfStraightLineProgram(slp.program)::GapObj
+    juliacode = GAP.gap_to_julia(gapcode, recursive = true)
+    return Oscar.StraightLinePrograms.GAPSLProgram(juliacode)
+  else
+    error("not yet ...")
   end
 end
