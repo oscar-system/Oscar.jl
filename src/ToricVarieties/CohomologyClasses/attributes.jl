@@ -22,7 +22,7 @@ julia> toric_variety(cc)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety over QQ without torusfactor
 ```
 """
-toric_variety(c::CohomologyClass) = c.toric_variety
+toric_variety(c::CohomologyClass) = c.v
 export toric_variety
 
 
@@ -49,7 +49,7 @@ julia> coefficients(cc)
  7
 ```
 """
-coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in c.coeffs]
+coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in coefficients(polynomial(c).f)]
 export coefficients
 
 
@@ -75,7 +75,7 @@ julia> exponents(cc)
 [0   0   0   0   1]
 ```
 """
-exponents(c::CohomologyClass) = c.exponents
+exponents(c::CohomologyClass) = matrix(ZZ,[k for k in exponent_vectors(polynomial(c).f)])
 export exponents
 
 
@@ -100,7 +100,7 @@ julia> polynomial(cc)
 6*x3 + e1 + 7*e2
 ```
 """
-polynomial(c::CohomologyClass) = polynomial(c, cohomology_ring(toric_variety(c)))
+polynomial(c::CohomologyClass) = c.p
 export polynomial
 
 
@@ -143,11 +143,12 @@ julia> polynomial(cc, R_quo)
 ```
 """
 function polynomial(c::CohomologyClass, ring::MPolyQuo)
-    coeffs = coefficients(c)
-    if length(coeffs) == 0
+    p = polynomial(c)
+    if iszero(p)
         return zero(ring)
     end
-    expos = exponents(c)
+    coeffs = [k for k in coefficients(p.f)]
+    expos = matrix(ZZ,[k for k in exponent_vectors(p.f)])
     indets = gens(ring)
     monoms = [prod(indets[j]^expos[k,j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
     return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))

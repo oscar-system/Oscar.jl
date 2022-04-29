@@ -3,27 +3,13 @@
 #############################
 
 @attributes mutable struct CohomologyClass
-    toric_variety::AbstractNormalToricVariety
-    coeffs::Vector
-    exponents::fmpz_mat
+    v::AbstractNormalToricVariety
+    p::MPolyQuoElem
     function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoElem)
-        if length(coordinate_names(v)) != ngens(parent(p))
+        if parent(p) != cohomology_ring(v)
             throw(ArgumentError("The polynomial must reside in the cohomology ring of the toric variety."))
         end
-        for k in 1:length(coordinate_names(v))
-            if string(gens(parent(p))[k]) !== coordinate_names(v)[k]
-                throw(ArgumentError("The names of the indeterminates must match the names of the homogeneous coordinates of the toric variety."))
-            end
-        end
-        coeffs = [k for k in coefficients(p.f)]
-        expos = matrix(ZZ,[k for k in exponent_vectors(p.f)])
-        if nrows(expos) != length(coeffs)
-            throw(ArgumentError("There must be as many exponents as coefficients."))
-        end
-        if !iszero(p) && ncols(expos) != ngens(cohomology_ring(v))
-            throw(ArgumentError("Each exponent must consist of as many numbers as generators of the cohomology ring of the toric variety."))
-        end
-        return new(v, coeffs, expos)
+        return new(v, p)
     end
 end
 export CohomologyClass

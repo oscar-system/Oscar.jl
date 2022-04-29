@@ -207,6 +207,7 @@ dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,1]])
 dP2 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,1]])
 dP3 = NormalToricVariety([[1,0], [1,1], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+set_coordinate_names(dP3,["x1","e1","x2","e3","x3","e2"])
 
 @testset "Argument errors for del Pezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
@@ -522,8 +523,8 @@ end
 
 @testset "Properties, attributes and arithmetics of cohomology classes" begin
     @test istrivial(c) == false
-    @test nrows(exponents(c)) == 1
-    @test length(coefficients(c)) == 1
+    @test nrows(exponents(c)) == 3
+    @test length(coefficients(c)) == 3
     @test fmpq(3) * c == fmpz(3) * c
     @test 2 * c != fmpz(3) * c2
     @test (c == c3) == false
