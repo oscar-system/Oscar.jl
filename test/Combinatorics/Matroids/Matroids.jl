@@ -137,8 +137,9 @@
 
         mg5 = dual_matroid(mg1)
         @test mg5 isa Matroid
+        GC.gc()
+        @test bases(mg5) isa Vector
         @test length(hyperplanes(mg5)) == 37
-
         @test matroid_groundset(mg1) == 1:10
     end
 
