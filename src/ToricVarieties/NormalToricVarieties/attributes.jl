@@ -93,15 +93,17 @@ false
 ```
 """
 function is_finalized(v::AbstractNormalToricVariety)
-    properties = [has_attribute(v, :cox_ring),
-                    has_attribute(v, :coordinate_ring_of_torus),
-                    has_attribute(v, :cohomology_ring),
-                    has_attribute(v, :chow_ring),
-                    has_attribute(v, :stanley_reisner_ideal),
-                    has_attribute(v, :irrelevant_ideal),
-                    has_attribute(v, :ideal_of_linear_relations),
-                    has_attribute(v, :toric_ideal)]
-    return any(properties)
+    properties = [
+        :cox_ring,
+        :coordinate_ring_of_torus,
+        :cohomology_ring,
+        :chow_ring,
+        :stanley_reisner_ideal,
+        :irrelevant_ideal,
+        :ideal_of_linear_relations,
+        :toric_ideal,
+    ]
+    return any(p -> has_attribute(v, p), properties)
 end
 export is_finalized
 
