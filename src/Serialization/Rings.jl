@@ -21,18 +21,18 @@ end
 # Polynomials
 function save_internal(s::SerializerState, p::fmpq_mpoly)
     ring = parent(p)
-    monomials = []
+    terms = []
     
     for (i, c) in enumerate(coeffs(p))
-        monomial = Dict(
+        term = Dict(
             :exponent => exponent_vector(p, i),
             :coeff => c
         )
-        push!(monomials, monomial)
+        push!(terms, term)
     end
 
     return Dict(
-        :monomials => monomials,
+        :terms => terms,
         :parent => save_type_dispatch(s, ring)
     )
 end
@@ -41,16 +41,13 @@ function load_internal(s::DeserializerState, ::Type{fmpq_mpoly}, dict::Dict)
     ring_dict = dict[:parent]
     ring_type = eval(Meta.parse(ring_dict[:type]))
     R, symbols = load_type_dispatch(s, ring_type, ring_dict)
-    polynomial = R(0)
-
-    for monomial in dict[:monomials]
-        c = monomial[:coeff][:num] // monomial[:coeff][:den]
-        term = reduce((a, (s, e)) -> a * s^e,
-                      zip(symbols, monomial[:exponent]),
-                      init=c)
-        polynomial += term
+    polynomial = MPolyBuildCtx(R)
+    
+    for term in dict[:terms]
+        c = fmpq(term[:coeff][:num], term[:coeff][:den])
+        push_term!(polynomial, c, Vector{Int}(term[:exponent]))
     end
-    return polynomial
+    return finish(polynomial)
 end
 
 
