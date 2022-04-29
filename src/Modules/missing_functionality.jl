@@ -42,12 +42,7 @@ Base.length(L::Singular.smodule) = ngens(L)
 
 # the default module ordering assumes that we're computing in a global ring
 function default_ordering(F::FreeMod{T}) where {T<:MPolyLocalizedRingElem}
-  # We need to set up a free module over the polynomial ring 
-  # so that the monomial ordering can be given.
-  L = base_ring(F)
-  R = base_ring(L)
-  helperF = FreeMod(R, ngens(F))
-  return degrevlex(gens(base_ring(base_ring(F))))*lex(gens(helperF))
+  return default_ordering(base_ring_module(F))
 end
 
 # missing functionality to write an element f ∈ I of an ideal as 
@@ -76,4 +71,11 @@ compose(f::SubQuoHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representi
 compose(f::SubQuoHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
 compose(f::FreeModuleHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
 
-
+### TODO: The following should not be necessary in the first place! 
+# If the module code is supposed to run over arbitrary rings, it also 
+# has to be possible to do without orderings. Up to now, defining 
+# a FreeMod over an MPolyQuoLocalizedRing requires me to implement this! Why????
+function default_ordering(F::FreeMod{T}) where {T<:MPolyQuoLocalizedRingElem}
+  return default_ordering(base_ring_module(F))
+end
+    
