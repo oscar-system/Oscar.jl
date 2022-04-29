@@ -137,10 +137,13 @@
 
         mg5 = dual_matroid(mg1)
         @test mg5 isa Matroid
+        # the next two lines delete the parent object of the dual matroid
+        # by reassiging mg1 and calling the garbage collector
+        mg1 = nothing
         GC.gc()
         @test bases(mg5) isa Vector
         @test length(hyperplanes(mg5)) == 37
-        @test matroid_groundset(mg1) == 1:10
+        @test matroid_groundset(mg5) == 1:10
     end
 
     @testset "matroid modifications" begin
