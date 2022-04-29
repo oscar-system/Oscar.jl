@@ -1,5 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
-export rand, sets, issubset, units_of, simplify!, is_trivial, prime_ideal
+export rand, sets, issubset, units_of, simplify!, is_trivial
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
@@ -621,7 +621,7 @@ end
 @Markdown.doc """
     product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 
-Return the product of the multiplicative sets `T` and `U`. 
+Returns the product of the multiplicative sets `T` and `U`. 
 """
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)
