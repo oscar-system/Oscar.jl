@@ -282,6 +282,18 @@ function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
     return tbl
 end
 
+
+# For character tables with stored group, we take the hash value of the group.
+# For character tables without stored group, we take the table identifier.
+function Base.hash(tbl::GAPGroupCharacterTable, h::UInt)
+  if isdefined(tbl, :GAPGroup)
+    return Base.hash(tbl.GAPGroup, h)
+  else
+    return Base.hash(identifier(tbl), h)
+  end
+end
+
+
 ##############################################################################
 #
 # admissible names of library character tables
@@ -294,16 +306,35 @@ that was constructed from another library character table by permuting rows
 and columns.
 
 One application of this function is to restrict the search with
-`all_character_table_names` to only one library character table for each
+[`all_character_table_names`](@ref) to only one library character table for each
 class of permutation equivalent tables.
 """
 @gapattribute is_duplicate_table(tbl::GAPGroupCharacterTable) = GAP.Globals.IsDuplicateTable(G.GAPTable)::Bool
 
 """
-    all_character_table_names(L...)
+    all_character_table_names(L...; ordered_by = nothing)
 
 Return an array of strings that contains all those names of character tables
 in the character table library that satisfy the conditions in the array `L`.
+
+# Examples
+```jldoctest
+julia> spor_names = all_character_table_names(is_sporadic_simple, true,
+         is_duplicate_table, false);
+
+julia> println(spor_names[1:5])
+["B", "Co1", "Co2", "Co3", "F3+"]
+
+julia> spor_names = all_character_table_names(is_sporadic_simple, true,
+         is_duplicate_table, false; ordered_by = order);
+
+julia> println(spor_names[1:5])
+["M11", "M12", "J1", "M22", "J2"]
+
+julia> length(all_character_table_names(number_conjugacy_classes, 1))
+1
+
+```
 """
 function all_character_table_names(L...; ordered_by = nothing)
     @assert CheckValidType(L)[1] "Wrong type inserted"
@@ -327,7 +358,7 @@ function all_character_table_names(L...; ordered_by = nothing)
       K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, L1...;
             OrderedBy = find_index_function(ordered_by, false)[2])
     else
-      K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, L1...)
+      K = GAP.Globals.AllCharacterTableNames(L1...)
     end
     return Vector{String}(K)
 end
@@ -702,6 +733,9 @@ stored on these tables.
 julia> println(maxes(character_table("M11")))
 ["A6.2_3", "L2(11)", "3^2:Q8.2", "A5.2", "2.S4"]
 
+julia> maxes(character_table("M")) == nothing  # not (yet) known
+true
+
 ```
 """
 function maxes(tbl::GAPGroupCharacterTable)
@@ -881,7 +915,7 @@ julia> possible_class_fusions(character_table("A5"), character_table("A6"))
 """
 function possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
   fus = GAP.Globals.PossibleClassFusions(subtbl.GAPTable, tbl.GAPTable)::GAP.GapObj
-  return [Vector{Int}(x) for x in fus]
+  return [Vector{Int}(x::GapObj) for x in fus]
 end
 
 #############################################################################
@@ -1111,6 +1145,22 @@ The default for the class fusion `fus` is given either by the fusion of the
 conjugacy classes of the two character tables (if groups are stored in the
 tables) or by the class fusion given by `known_class_fusion` for the two
 tables.
+
+# Examples
+```jldoctest
+julia> s = character_table("A5");  t = character_table("A6");
+
+julia> maps = possible_class_fusions(s, t);  length(maps)
+4
+
+julia> chi = trivial_character(s);
+
+julia> ind = [induced_class_function(chi, t, x) for x in maps];  length(ind)
+4
+julia> length(Set(ind))
+2
+
+```
 """
 function induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
   ind = GAP.Globals.InducedClassFunction(chi.values, tbl.GAPTable)::GapObj
@@ -1118,7 +1168,8 @@ function induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharact
 end
 
 function induced_class_function(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, fusion::Vector{Int})
-  ind = GAP.Globals.InducedClassFunctionsByFusionMap(GapObj([chi.values]), tbl.GAPTable)::GapObj
+  ind = GAP.Globals.InducedClassFunctionsByFusionMap(chi.table.GAPTable,
+          tbl.GAPTable, GapObj([chi.values]), GapObj(fusion))::GapObj
   return GAPGroupClassFunction(tbl, ind[1])
 end
 
@@ -1160,6 +1211,12 @@ function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     chi.table === psi.table || error("character tables must be identical")
 #T check_parent?
     return chi.values == psi.values
+end
+
+# Currently we cannot implement a `hash` method based on the values,
+# since `hash(::QabElem)` is based on `objectid`.
+function Base.hash(chi::GAPGroupClassFunction, h::UInt)
+  return Base.hash(chi.table, h)
 end
 
 function Base.:+(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
