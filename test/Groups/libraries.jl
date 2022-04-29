@@ -83,3 +83,7 @@ end
 @testset "Primitive groups" begin
    @test_throws AssertionError primitive_group(1, 1)
 end
+
+@testset "Atlas groups" begin
+   @test_throws ErrorException atlas_group(PermGroup, "B")
+end
