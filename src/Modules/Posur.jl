@@ -176,7 +176,7 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:AbsLocalizedRingEl
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D to be the solution x of x ⋅ A = b.
-  return (success, S(one(R), v*u[1,1])*S(y*D))
+  return (success, S(one(R), v*u[1,1])*change_base_ring(S, y*D))
 end
 
 # This second version solves over the base ring and checks compatibility with 
