@@ -21,8 +21,8 @@ correspond to the rays of the underlying fan.
 ### General constructors
 
 ```@docs
-DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
-ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors

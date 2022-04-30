@@ -693,8 +693,7 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat)
     p = convex_hull(pts)
     return NormalToricVarietiesFromStarTriangulations(p)
 end
-NormalToricVarietyFromGLSM(charges::Vector{Vector{Int}}) = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
-NormalToricVarietyFromGLSM(charges::Vector{Vector{fmpz}}) = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
+NormalToricVarietyFromGLSM(charges::Vector{Vector{T}}) where {T <: IntegerUnion} = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
 export NormalToricVarietyFromGLSM
 
 

@@ -113,8 +113,7 @@ end
 
 Base.:*(c::fmpq, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 Base.:*(c::Rational{Int64}, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
-Base.:*(c::fmpz, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
-Base.:*(c::Int, cc::CohomologyClass) = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
+Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), coefficient_ring(toric_variety(cc))(c) * polynomial(cc))
 
 
 #################################
@@ -131,15 +130,7 @@ function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
 end
 
 
-function Base.:^(cc::CohomologyClass, p::fmpz)
-    ring = cohomology_ring(toric_variety(cc))
-    if p == 0
-        return CohomologyClass(toric_variety(cc), one(ring))
-    end
-    poly = prod(polynomial(cc, ring) for i in 1:p)
-    return CohomologyClass(toric_variety(cc), poly)
-end
-Base.:^(cc::CohomologyClass, p::Int) = cc^fmpz(p)
+Base.:^(cc::CohomologyClass, p::T) where {T <: IntegerUnion} = CohomologyClass(toric_variety(cc), polynomial(cc)^p)
 
 
 ########################
