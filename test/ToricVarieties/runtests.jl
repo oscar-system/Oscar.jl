@@ -12,7 +12,6 @@ antv4 = AffineNormalToricVariety(Oscar.positive_hull([1 0]))
 antv5 = AffineNormalToricVariety(Oscar.positive_hull([1 0; 0 1]))
 antv6 = NormalToricVariety([[1,0,0], [1,0,1], [1,1,1], [1,1,0]], [[1,2,3,4]])
 
-set_coefficient_ring(antv4, ZZ)
 set_coordinate_names(antv4, ["u"])
 set_coordinate_names_of_torus(antv4, ["u1","u2"])
 
@@ -55,7 +54,6 @@ end
     @test is_finalized(antv4) == true
     @test_throws ErrorException set_coordinate_names(antv4, ["u"])
     @test_throws ErrorException set_coordinate_names_of_torus(antv4, ["u1", "u2"])
-    @test_throws ErrorException set_coefficient_ring(antv4, ZZ)
 end
 
 @testset "Affine toric varieties with trivial toric ideal" begin
@@ -97,8 +95,6 @@ ntv2 = NormalToricVariety(Oscar.cube(2))
 ntv3 = NormalToricVarietyFromGLSM(matrix(ZZ, [[1,1,1]]))
 ntv4 = NormalToricVarietiesFromStarTriangulations(convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1]))
 ntv5 = NormalToricVariety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42))))
-
-set_coefficient_ring(ntv5, GF(13))
 
 @testset "Normal toric varieties from fans, triangulations and GLSMs" begin
     @test iscomplete(ntv) == true

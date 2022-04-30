@@ -181,9 +181,13 @@ A normal toric variety
 ```
 """
 function NormalToricVariety(P::Polyhedron)
-    fan = normal_fan(P)
-    variety = NormalToricVariety(fan)
+    #construct the variety
+    variety = NormalToricVariety(normal_fan(P))
+    
+    # set attributes
     set_attribute!(variety, :polyhedron, P)
+    
+    # return
     return variety
 end
 
@@ -521,7 +525,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2,1,"e")
-A normal toric variety over QQ
+A normal toric variety
 
 julia> cox_ring(bP2)
 Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by
@@ -551,9 +555,6 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     set_attribute!(new_variety, :coordinate_names, new_vars)
     weights = [map_from_torusinvariant_weil_divisor_group_to_class_group(new_variety)(x) for x in gens(torusinvariant_weil_divisor_group(new_variety))]
     set_attribute!(new_variety, :cox_ring_weights, weights)
-    if has_attribute(v, :coefficient_ring)
-        set_attribute!(new_variety, :coefficient_ring, coefficient_ring(v))
-    end
     
     # return variety
     return new_variety
@@ -720,28 +721,14 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     
     push_attribute_if_exists!(properties_string, v, :isfano, "fano")
     
-    # dimension?
     if has_attribute(v, :dim)
         push!(properties_string, string(dim(v))*"-dimensional")
     end
     
-    # join with ","
     properties_string = [join(properties_string, ", ")]
+    push!(properties_string, "toric variety")
     
-    # add coefficient ring and torusfactor
-    if has_attribute(v, :coefficient_ring)
-        if coefficient_ring(v) == QQ
-            push!(properties_string, "toric variety over QQ")
-        elseif coefficient_ring(v) == ZZ
-            push!(properties_string, "toric variety over ZZ")
-        else
-            push!(properties_string, "toric variety over coefficient_ring(variety)")
-        end
-    else
-        push!(properties_string, "toric variety")
-    end
     push_attribute_if_exists!(properties_string, v, :hastorusfactor, "with torusfactor", "without torusfactor")
     
-    # print string
     join(io, properties_string, " ")
 end
