@@ -13,6 +13,8 @@ antv5 = AffineNormalToricVariety(Oscar.positive_hull([1 0; 0 1]))
 antv6 = NormalToricVariety([[1,0,0], [1,0,1], [1,1,1], [1,1,0]], [[1,2,3,4]])
 
 set_coefficient_ring(antv4, ZZ)
+set_coordinate_names(antv4, ["u"])
+set_coordinate_names_of_torus(antv4, ["u1","u2"])
 
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
@@ -40,12 +42,20 @@ end
 
 @testset "Affine toric varieties with torusfactor" begin
     @test_throws ArgumentError set_coordinate_names(antv4, ["u1", "u2"])
-    @test_throws ArgumentError ideal_of_linear_relations(antv4)
     @test_throws ArgumentError set_coordinate_names_of_torus(antv4, ["u"])
+    @test_throws ArgumentError ideal_of_linear_relations(antv4)
     @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(antv4)
     @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_picard_group(antv4)
     @test_throws ArgumentError betti_number(antv4, 0)
     @test dim_of_torusfactor(antv4) == 1
+end
+
+@testset "Errors from changes to coordinates and coefficients are variety is finalized" begin
+    @test ngens(cox_ring(antv4)) == 1
+    @test is_finalized(antv4) == true
+    @test_throws ErrorException set_coordinate_names(antv4, ["u"])
+    @test_throws ErrorException set_coordinate_names_of_torus(antv4, ["u1", "u2"])
+    @test_throws ErrorException set_coefficient_ring(antv4, ZZ)
 end
 
 @testset "Affine toric varieties with trivial toric ideal" begin
@@ -429,7 +439,7 @@ end
     @test dim(toric_variety(l)) == 2
 end
 
-@testset "Arithmetics of torlc line bundles" begin
+@testset "Arithmetics of toric line bundles" begin
     @test (l == l3) == false
     @test (l4 * l5 == l7) == true
     @test (l * l6 * inv(l) == l7) == true

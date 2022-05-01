@@ -72,9 +72,40 @@ end
 export euler_characteristic
 
 
-############################
-# Rings and ideals
-############################
+###############################
+# Setters for rings and ideals
+###############################
+
+
+@doc Markdown.doc"""
+    is_finalized(v::AbstractNormalToricVariety)
+
+Checks if the Cox ring, the coordinate ring of the torus,
+the cohomology_ring, the Chow ring, the Stanley-Reisner ideal,
+the irrelevant ideal, the ideal of linear relations
+or the toric ideal has been cached. If any of these has been
+cached, then this function returns `true` and otherwise `false`.
+
+# Examples
+```jldoctest
+julia> is_finalized(del_pezzo(3))
+false
+```
+"""
+function is_finalized(v::AbstractNormalToricVariety)
+    properties = [
+        :cox_ring,
+        :coordinate_ring_of_torus,
+        :cohomology_ring,
+        :chow_ring,
+        :stanley_reisner_ideal,
+        :irrelevant_ideal,
+        :ideal_of_linear_relations,
+        :toric_ideal,
+    ]
+    return any(p -> has_attribute(v, p), properties)
+end
+export is_finalized
 
 
 @doc Markdown.doc"""
@@ -97,9 +128,77 @@ true
 ```
 """
 function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
+    if is_finalized(v)
+        error("The coefficient ring cannot be modified since the toric variety is finalized.")
+    end
     set_attribute!(v, :coefficient_ring, coefficient_ring)
 end
 export set_coefficient_ring
+
+
+@doc Markdown.doc"""
+    set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+
+Allows to set the names of the homogeneous coordinates.
+
+# Examples
+```jldoctest
+julia> C = Oscar.positive_hull([1 0]);
+
+julia> antv = AffineNormalToricVariety(C);
+
+julia> set_coordinate_names(antv,["u"])
+
+julia> coordinate_names(antv)
+1-element Vector{String}:
+ "u"
+```
+"""
+function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    if is_finalized(v)
+        error("The coordinate names cannot be modified since the toric variety is finalized.")
+    end
+    if length(coordinate_names) != nrays(v)
+        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
+    end
+    set_attribute!(v, :coordinate_names, coordinate_names)
+end
+export set_coordinate_names
+
+
+@doc Markdown.doc"""
+    set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+
+Allows to set the names of the coordinates of the torus.
+
+# Examples
+```jldoctest
+julia> F3 = hirzebruch_surface(3);
+
+julia> set_coordinate_names_of_torus(F3,["u","v"])
+
+julia> coordinate_names_of_torus(F3)
+2-element Vector{String}:
+ "u"
+ "v"
+```
+"""
+function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    if is_finalized(v)
+        error("The coordinate names of the torus cannot be modified since the toric variety is finalized.")
+    end
+    if length(coordinate_names) != ambient_dim(v)
+        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan."))
+    end
+    set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
+end
+export set_coordinate_names_of_torus
+
+
+
+########################################
+# Cox ring
+########################################
 
 
 @doc Markdown.doc"""
@@ -119,33 +218,6 @@ true
 ```
 """
 coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient_ring, QQ)
-
-
-@doc Markdown.doc"""
-    set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-
-Allows to set the names of the homogeneous coordinates.
-
-# Examples
-```jldoctest
-julia> C = Oscar.positive_hull([1 0]);
-
-julia> antv = AffineNormalToricVariety(C);
-
-julia> set_coordinate_names(antv, ["u"])
-
-julia> coordinate_names(antv)
-1-element Vector{String}:
- "u"
-```
-"""
-function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-    if length(coordinate_names) != nrays(v)
-        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
-    end
-    set_attribute!(v, :coordinate_names, coordinate_names)
-end
-export set_coordinate_names
 
 
 @doc Markdown.doc"""
@@ -179,33 +251,6 @@ end
 
 
 @doc Markdown.doc"""
-    cox_ring(v::AbstractNormalToricVariety)
-
-Computes the Cox ring of the normal toric variety `v`.
-Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
-
-# Examples
-```jldoctest
-julia> p2 = projective_space(NormalToricVariety, 2);
-
-julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
-
-julia> set_coefficient_ring(p2, ZZ)
-
-julia> cox_ring(p2)
-Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by 
-  y1 -> [1]
-  y2 -> [1]
-  y3 -> [1]
-```
-"""
-function cox_ring(v::AbstractNormalToricVariety)
-    S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached=false)
-    return cox_ring(S, v)
-end
-
-
-@doc Markdown.doc"""
     cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`, in this case by adding
@@ -230,7 +275,39 @@ function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
     length(weights) == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     return grade(R, weights)[1]
 end
+
+
+@doc Markdown.doc"""
+    cox_ring(v::AbstractNormalToricVariety)
+
+Computes the Cox ring of the normal toric variety `v`.
+Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
+
+julia> set_coefficient_ring(p2, ZZ)
+
+julia> cox_ring(p2)
+Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by 
+  y1 -> [1]
+  y2 -> [1]
+  y3 -> [1]
+```
+"""
+@attr MPolyRing function cox_ring(v::AbstractNormalToricVariety)
+    S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached=false)
+    return cox_ring(S, v)
+end
 export cox_ring
+
+
+########################################
+# Stanley-Reisner ideal
+########################################
 
 
 @attr Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric} function _minimal_nonfaces(v::AbstractNormalToricVariety)
@@ -277,8 +354,15 @@ julia> ngens(stanley_reisner_ideal(p2))
 1
 ```
 """
-stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox_ring(v), v)
+@attr MPolyIdeal function stanley_reisner_ideal(v::AbstractNormalToricVariety)
+    return stanley_reisner_ideal(cox_ring(v), v)
+end
 export stanley_reisner_ideal
+
+
+########################################
+# Irrelevant ideal
+########################################
 
 
 @attr Vector{Vector{Int}} function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
@@ -289,25 +373,6 @@ export stanley_reisner_ideal
         push!(result, onesv - Vector{Int}(mc[i,:]))
     end
     return result
-end
-
-
-@doc Markdown.doc"""
-    irrelevant_ideal(v::AbstractNormalToricVariety)
-
-Return the irrelevant ideal of a normal toric variety `v`.
-
-# Examples
-```jldoctest
-julia> p2 = projective_space(NormalToricVariety, 2);
-
-julia> length(gens(irrelevant_ideal(p2)))
-3
-```
-"""
-function irrelevant_ideal(v::AbstractNormalToricVariety)
-    R = cox_ring(v)
-    return irrelevant_ideal(R, v)
 end
 
 
@@ -331,32 +396,35 @@ function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     nvars(R) == nrays(v) || throw(ArgumentError("Wrong number of variables in polynomial ring."))
     return ideal([R([1], [x]) for x in monoms])
 end
-export irrelevant_ideal
 
 
 @doc Markdown.doc"""
-    ideal_of_linear_relations(v::AbstractNormalToricVariety)
+    irrelevant_ideal(v::AbstractNormalToricVariety)
 
-Return the ideal of linear relations of the simplicial and complete toric variety `v`.
+Return the irrelevant ideal of a normal toric variety `v`.
 
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> ngens(ideal_of_linear_relations(p2))
-2
+julia> length(gens(irrelevant_ideal(p2)))
+3
 ```
 """
-function ideal_of_linear_relations(v::AbstractNormalToricVariety)
-    R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
-    weights = [1 for i in 1:ngens(R)]
-    grade(R, weights)
-    return ideal_of_linear_relations(R, v)
+@attr MPolyIdeal function irrelevant_ideal(v::AbstractNormalToricVariety)
+    R = cox_ring(v)
+    return irrelevant_ideal(R, v)
 end
+export irrelevant_ideal
+
+
+########################################
+# Ideal of linear relations
+########################################
 
 
 @doc Markdown.doc"""
-    ideal_of_linear_relations(v::AbstractNormalToricVariety)
+    ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
 
 Return the ideal of linear relations of the simplicial and complete toric variety `v` in the ring R.
 
@@ -382,36 +450,33 @@ function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
     generators = [sum([rays(v)[j][i] * indeterminates[j] for j in 1:nrays(v)]) for i in 1:d]
     return ideal(generators)
 end
-export ideal_of_linear_relations
 
 
 @doc Markdown.doc"""
-    toric_ideal(antv::AffineNormalToricVariety)
+    ideal_of_linear_relations(v::AbstractNormalToricVariety)
 
-Return the toric ideal defining the affine normal toric variety.
+Return the ideal of linear relations of the simplicial and complete toric variety `v`.
 
 # Examples
-Take the cone over the square at height one. The resulting toric variety has
-one defining equation. In projective space this corresponds to
-$\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
-ideal comes from the dual cone.
 ```jldoctest
-julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
-A polyhedral cone in ambient dimension 3
+julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> antv = AffineNormalToricVariety(C)
-A normal, affine toric variety
-
-julia> toric_ideal(antv)
-ideal(-x1*x2 + x3*x4)
+julia> ngens(ideal_of_linear_relations(p2))
+2
 ```
 """
-function toric_ideal(antv::AffineNormalToricVariety)
-    cone = Cone(pm_object(antv).WEIGHT_CONE)
-    n = length(hilbert_basis(cone))
-    R,_ = PolynomialRing(coefficient_ring(antv), n, cached=false)
-    return toric_ideal(R, antv)
+@attr MPolyIdeal function ideal_of_linear_relations(v::AbstractNormalToricVariety)
+    R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
+    weights = [1 for i in 1:ngens(R)]
+    grade(R, weights)
+    return ideal_of_linear_relations(R, v)
 end
+export ideal_of_linear_relations
+
+
+########################################
+# Toric ideal
+########################################
 
 
 @doc Markdown.doc"""
@@ -444,30 +509,50 @@ function toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
     return binomial_exponents_to_ideal(R, gens)
 end
 
-function toric_ideal(ntv::NormalToricVariety)
+
+@doc Markdown.doc"""
+    toric_ideal(antv::AffineNormalToricVariety)
+
+Return the toric ideal defining the affine normal toric variety.
+
+# Examples
+Take the cone over the square at height one. The resulting toric variety has
+one defining equation. In projective space this corresponds to
+$\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
+ideal comes from the dual cone.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
+A polyhedral cone in ambient dimension 3
+
+julia> antv = AffineNormalToricVariety(C)
+A normal, affine toric variety
+
+julia> toric_ideal(antv)
+ideal(-x1*x2 + x3*x4)
+```
+"""
+@attr MPolyIdeal function toric_ideal(antv::AffineNormalToricVariety)
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
+    n = length(hilbert_basis(cone))
+    R,_ = PolynomialRing(coefficient_ring(antv), n, cached=false)
+    return toric_ideal(R, antv)
+end
+
+
+@attr MPolyIdeal function toric_ideal(ntv::NormalToricVariety)
     isaffine(ntv) || error("Cannot construct affine toric variety from non-affine input")
     return toric_ideal(AffineNormalToricVariety(ntv))
 end
 export toric_ideal
 
 
-@doc Markdown.doc"""
-    set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-
-Allows to set the names of the coordinates of the torus.
-"""
-function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-    if length(coordinate_names) != ambient_dim(v)
-        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan."))
-    end
-    set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
-end
-export set_coordinate_names_of_torus
+########################################
+# Coordinate ring of torus
+########################################
 
 
 @doc Markdown.doc"""
     coordinate_names_of_torus(v::AbstractNormalToricVariety)
-
 This method returns the names of the coordinates of the torus of
 the normal toric variety `v`. The default is `x1,...,xn`.
 """
@@ -475,6 +560,22 @@ the normal toric variety `v`. The default is `x1,...,xn`.
     return ["x$(i)" for i in 1:ambient_dim(v)]
 end
 export coordinate_names_of_torus
+
+
+@doc Markdown.doc"""
+    coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+
+Computes the coordinate ring of the torus of the normal toric variety `v`
+in the given polynomial ring `R`.
+"""
+function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
+    n = length(coordinate_names_of_torus(v))
+    if length(gens(R)) < 2 * n
+        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates."))
+    end
+    relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
+    return quo(R, ideal(relations))[1]
+end
 
 
 @doc Markdown.doc"""
@@ -492,28 +593,16 @@ julia> coordinate_ring_of_torus(p2)
 Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field by ideal(y1*y1_ - 1, y2*y2_ - 1)
 ```
 """
-function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+@attr MPolyQuo function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
     S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
     return coordinate_ring_of_torus(S, v)
 end
 export coordinate_ring_of_torus
 
 
-@doc Markdown.doc"""
-    coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
-
-Computes the coordinate ring of the torus of the normal toric variety `v`
-in the given polynomial ring `R`.
-"""
-function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
-    n = length(coordinate_names_of_torus(v))
-    if length(gens(R)) < 2 * n
-        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates."))
-    end
-    relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
-    return quo(R, ideal(relations))[1]
-end
-export coordinate_ring_of_torus
+#########################################
+# Turn characters into rational functions
+#########################################
 
 
 @doc Markdown.doc"""
@@ -570,9 +659,9 @@ character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, char
 export character_to_rational_function
 
 
-############################
+##############################################
 # Characters, Weil divisor and the class group
-############################
+##############################################
 
 
 @doc Markdown.doc"""
