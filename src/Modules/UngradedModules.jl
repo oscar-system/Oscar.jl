@@ -7,7 +7,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
       subquotient, ambient_free_module, ambient_module, ambient_representative, 
-      ambient_representatives_generators, relations
+      ambient_representatives_generators, relations, img_gens
 
 # TODO replace asserts by error messages?
 
@@ -612,7 +612,7 @@ end
 # FreeModuleHom constructors
 ###############################################################################
 
-@doc Markdown.doc"""
+#=@doc Markdown.doc"""
     FreeModuleHom(F::FreeMod{T}, G::S, a::Vector) where {T, S}
 
 Construct the morphism $F \to G$ where `F[i]` is mapped to `a[i]`.
@@ -625,7 +625,10 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, a::Vector) where {T, S} = FreeModuleH
 
 Construct the morphism $F \to G$ corresponding to the matrix `mat`.
 """
-FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)
+FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)=#
+
+img_gens(f::FreeModuleHom) = gens(image(f)[1])
+base_ring_map(f::FreeModuleHom) = f.ring_map
 
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
@@ -654,20 +657,44 @@ end
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
+    hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem})
 
 Given a vector `V` of `rank(F)` elements of `M`, 
 return the homomorphism `F` $\to$ `M` which sends the `i`-th
 basis vector of `F` to the `i`-th entry of `V`.
 
-    hom(F::FreeMod{T}, M::ModuleFP{T}, A::MatElem{T}) where T
+    hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T
 
 Given a matrix `A` with `rank(F)` rows and `ngens(M)` columns, return the
 homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
 the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 """
-hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = FreeModuleHom(F, G, V) 
-hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
+function hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}) 
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
+  return FreeModuleHom(F, M, V)
+end
+function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T 
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M))
+  return FreeModuleHom(F, M, A)
+end
+
+@doc Markdown.doc"""
+    hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType}
+
+Given a vector `V` of `rank(F)` elements of `M` and a ring map `h`
+from `base_ring(F)` to `base_ring(M)`, return the 
+`base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th
+basis vector of `F` to the `i`-th entry of `V`.
+
+    hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+
+Given a matrix `A` over `base_ring(M)` with `rank(F)` rows and `ngens(M)` columns
+and a ring map `h` from `base_ring(F)` to `base_ring(M)`, return the
+`base_ring(F)`-homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
+the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
+"""
+hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType} = FreeModuleHom(F, M, V, h)
+hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
@@ -677,6 +704,37 @@ Return the identity map $id_M$.
 function identity_map(M::ModuleFP)
   return hom(M, M, gens(M))
 end
+
+### type getters in accordance with the `hom`-constructors
+function morphism_type(F::AbstractFreeMod, G::ModuleFP)
+  base_ring(F) === base_ring(G) && return FreeModuleHom{typeof(F), typeof(G), Nothing}
+  return FreeModuleHom{typeof(F), typeof(G), typeof(base_ring(G))}
+end
+
+### Careful here! Different base rings may still have the same type.
+# Whenever this is the case despite a non-trivial ring map, the appropriate 
+# type getter has to be called manually!
+function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:ModuleFP}
+  base_ring_type(T) == base_ring_type(U) || return morphism_type(T, U, base_ring_type(U))
+  return FreeModuleHom{T, U, Nothing}
+end
+
+base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
+base_ring_elem_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = T
+
+base_ring_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_type(typeof(M))
+base_ring_elem_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_elem_type(typeof(M))
+
+function morphism_type(F::AbstractFreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
+  return FreeModuleHom{typeof(F), typeof(G), typeof(h)}
+end
+
+function morphism_type(
+    ::Type{DomainType}, ::Type{CodomainType}, ::Type{RingMapType}
+  ) where {DomainType<:AbstractFreeMod, CodomainType<:ModuleFP, RingMapType}
+  return FreeModuleHom{DomainType, CodomainType, RingMapType}
+end
+
 
 ###############################################################################
 # SubModuleOfFreeModule
