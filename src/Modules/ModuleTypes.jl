@@ -140,7 +140,7 @@ end
 # The same could be done rather on the level of vectors, that might be preferable if 
 # performance is ok.
 #
-mutable struct ModuleGens{T}
+mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
   O::Vector{FreeModElem{T}}
   S::Singular.smodule
   F::FreeMod{T}
@@ -156,6 +156,14 @@ mutable struct ModuleGens{T}
     return r
   end
 
+  function ModuleGens{T}(O::Vector{FreeModElemType}, F::FreeMod{T}) where {T, FreeModElemType<:FreeModElem}
+    r = new{T}()
+    r.O = O
+    r.F = F
+    return r
+  end
+
+
   # ModuleGens from a Singular submodule
   function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is necessary due to type S
     r = new{S}()
@@ -169,7 +177,6 @@ mutable struct ModuleGens{T}
     return r
   end
 end
-
 
 
 @doc Markdown.doc"""
@@ -586,7 +593,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   # the generators of F
   function FreeModuleHom(
       F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
-    ) where {S, ModuleElemType<:ModuleElem}
+    ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
