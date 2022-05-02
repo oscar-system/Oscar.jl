@@ -112,19 +112,24 @@ InstallOtherMethod(Unpack, [IsJuliaMatrixRep], function(m)
     return v;
 end);
 
+
+# Method: SetNiceMorphismForJuliaMatrixRepGroup
+# Input: Matrix group G
+# Output: -
+# This function sets a nice morphism for G. The morphism is defined from the Julia matrix to the corresponding GAP matrix
+
 DeclareOperation("SetNiceMorphismForJuliaMatrixRepGroup", [IsGroup]);
 
 InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
     local hom, f, f_inv, ele, GAPGenerators, i, gens, GAPGroup, JuliaGAPMap;
     
         gens := GeneratorsOfGroup(G);
+        Assert(0, ForAll(gens, IsJuliaMatrixRep));
+        
         ele := gens[1];
         hom := Julia.Oscar._iso_oscar_gap(ele!.m.base_ring);
         
-        GAPGenerators := [1..Size(gens)];
-        for i in [1..Size(gens)] do
-            GAPGenerators[i] := Julia.AbstractAlgebra.map_entries(hom,gens[i]!.m);
-        od;
+        GAPGenerators := List(gens, g -> Julia.AbstractAlgebra.map_entries(hom, g!.m));
         
         GAPGroup := GroupByGenerators(GAPGenerators);
         
