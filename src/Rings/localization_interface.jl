@@ -193,6 +193,13 @@ expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressi
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
 
+# type getters
+base_ring_elem_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRET
+base_ring_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRT
+
+base_ring_elem_type(L::AbsLocalizedRing) = base_ring_elem_type(typeof(L))
+base_ring_type(L::AbsLocalizedRing) = base_ring_type(typeof(L))
+
 
 ########################################################################
 # Arithmetic; a dumb catchall implementation, NOT performant!          #
