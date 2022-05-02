@@ -37,6 +37,24 @@ function has_nonepmty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
   return true, g, A
 end
 
+function has_nonepmty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdeal)
+  R = ambient_ring(U)
+  R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
+  a = point_coordinates(U)
+  candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(iszero(evaluate(f, a)))]
+  length(candidates) == 0 && return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  d = maximum([total_degree(f) for (f, i) in candidates])
+  (g, j) = candidates[1]
+  for (h, k) in candidates
+    if total_degree(h) < total_degree(g) 
+      (g, j) = (h, k)
+    end
+  end
+  A = zero(MatrixSpace(R, 1, ngens(I)))
+  A[1, j] = 1
+  return true, g, A
+end
+
 # For a `RingElem` f this computes a pair (k, h) where h = f^k and 
 # k is the minimal natural number such that the property P(f^k) is 
 # satisfied. 

@@ -147,7 +147,7 @@ recommended to choose ``f`` to be the 'least complex' in
 an appropriate sense for ``R``.
 """
 function has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
-  R = base_ring(U)
+  R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   error("this method is not implemented for multiplicative sets of type $(typeof(U)) and ideals of type $(typeof(I)); see Posur: Linear systems over localizations of rings, arXiv:1709.08180v2, Definition 3.8 for the requirements of the implementation")
 end
@@ -458,7 +458,8 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
     # We have yc ⋅ A' ≡ uc with A' = Tr ⋅ generator_matrix(M) and d_u ⋅ u = uc.
     # Then (1//d_u) ⋅ yc ⋅ T are the coordinates of u in the original generators 
     # generator_matrix(M).
-    return S(one(R), d_u)*(yc*Tr) 
+    result = S(one(R), d_u)*(yc*Tr) 
+    return sparse_row(result)
   end
 
   # If u_clear was not yet found in the presaturated module, do the full search.
@@ -504,7 +505,8 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
   # finally, return the computed coordinates
-  return x[1, 1:r]
+  result = x[1, 1:r]
+  return sparse_row(result)
 end
 
 function kernel(
