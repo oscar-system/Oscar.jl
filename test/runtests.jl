@@ -53,7 +53,7 @@ include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
 include("Experimental/MPolyRingSparse-test.jl")
 
-#include("Modules/UngradedModules.jl")
+include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 

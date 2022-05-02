@@ -605,13 +605,13 @@ end
 
 function (M::SubQuo{T})(f::FreeModElem; check::Bool = true) where {T<:AbsLocalizedRingElem}
   F = ambient_free_module(M)
-  base_ring(f) == base_ring(base_ring(M)) && return M(F(f))
+  base_ring(parent(f)) == base_ring(base_ring(M)) && return M(F(f))
   parent(f) == F || error("ambient free modules are not compatible")
   (check && represents_element(f, M)) || error("not a representative of a module element")
   v = coordinates(f, M) # This is not the cheapest way, but the only one for which 
                         # the constructors in the module code are sufficiently generic.
                         # Clean this up!
-  return sum([v*e for (v,e) in zip(v, gens(M))])
+  return sum([a*M[i] for (i, a) in v])
 end
 
 function base_ring_module(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
