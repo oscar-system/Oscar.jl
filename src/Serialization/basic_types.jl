@@ -50,6 +50,6 @@ function save_internal(s::SerializerState, sym::Symbol)
     return string(sym)
 end
 
-function load_internal(s::SerializerState, ::Type{Symbol}, str::String)
+function load_internal(s::DeserializerState, ::Type{Symbol}, str::String)
     return Symbol(str)
 end
