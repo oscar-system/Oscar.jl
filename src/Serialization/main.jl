@@ -60,8 +60,10 @@ const typeMap = Dict{Type, String}([
     Nemo.GaloisField => "Nemo.GaloisField",
     Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
     fmpz => "fmpz",
+    fmpq => "fmpq",
     gfp_elem => "Nemo.gfp_elem",
-    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem"
+    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem",
+    fmpq_mpoly => "fmpq_mpoly",
 ])
 
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
