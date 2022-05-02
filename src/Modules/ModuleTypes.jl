@@ -26,11 +26,11 @@ abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 
 @doc Markdown.doc"""
-    ModuleFPElem{T}
+    ModuleFPElem{T} <: ModuleElem{T}
 
 The abstract supertype of all elements of finitely presented modules.
 """
-abstract type ModuleFPElem{T} end
+abstract type ModuleFPElem{T} <: ModuleElem{T} end
 
 @doc Markdown.doc"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
@@ -140,7 +140,7 @@ end
 # The same could be done rather on the level of vectors, that might be preferable if 
 # performance is ok.
 #
-mutable struct ModuleGens{T}
+mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
   O::Vector{FreeModElem{T}}
   S::Singular.smodule
   F::FreeMod{T}
@@ -155,6 +155,14 @@ mutable struct ModuleGens{T}
     r.F = F
     return r
   end
+
+  function ModuleGens{T}(O::Vector{FreeModElemType}, F::FreeMod{T}) where {T, FreeModElemType<:FreeModElem}
+    r = new{T}()
+    r.O = O
+    r.F = F
+    return r
+  end
+
 
   # ModuleGens from a Singular submodule
   function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is necessary due to type S
@@ -171,6 +179,39 @@ mutable struct ModuleGens{T}
 end
 
 
+###############################################################################
+# Gröbner basis
+###############################################################################
+mutable struct ModuleGB{T}
+  groebner_basis::ModuleGens{T}
+  quo_groebner_basis::ModuleGB{T}
+  reduced_groebner_basis::ModuleGens{T}
+
+  leading_monomials::ModuleGens{T}
+  ordering::ModuleOrdering
+  #ordering::Singular.sordering # Remove
+
+  #function ModuleGB{R}(gb::ModuleGens{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R
+  function ModuleGB{R}(gb::ModuleGens{R}, lm::ModuleGens{R}, ord::ModuleOrdering) where R
+    r = new{R}()
+    r.groebner_basis = gb
+    r.leading_monomials = lm
+    r.ordering = ord
+
+    return r
+  end
+
+  #function ModuleGB{R}(gb::ModuleGens{R}, qgb::ModuleGB{R}, lm::ModuleGens{R}, ord::Singular.sordering) where R # Remove
+  function ModuleGB{R}(gb::ModuleGens{R}, qgb::ModuleGB{R}, lm::ModuleGens{R}, ord::ModuleOrdering) where R
+    r = new{R}()
+    r.groebner_basis = gb
+    r.quo_groebner_basis = qgb
+    r.leading_monomials = lm
+    r.ordering = ord
+
+    return r
+  end
+end
 
 @doc Markdown.doc"""
     SubModuleOfFreeModule{T} <: ModuleFP{T}
@@ -182,44 +223,69 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
-  gens::ModuleGens
-  std_basis::ModuleGens
+  gens::ModuleGens{T}
+  #groebner_basis::Dict{Singular.sordering, ModuleGB{T}} # Remove
+  groebner_basis::Dict{ModuleOrdering, ModuleGB{T}}
+  #default_ordering::Singular.sordering # Remove
+  default_ordering::ModuleOrdering
   matrix::MatElem
 
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}, 
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {R}
+  #                                    default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R} # Remove
     @assert all(x -> parent(x) === F, gens)
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
+
     r = new{R}()
     r.F = F
-    r.gens = ModuleGens(gens, F)
+    r.gens = ModuleGens(gens, F, default_ordering)
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
 
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule,
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {R}
+  #                                    default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R} # Remove
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
+    
     r = new{R}()
     r.F = F
     r.gens = ModuleGens(F, singular_module)
-    if singular_module.isGB
-      r.std_basis = r.gens
-    end
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
   
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens,
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {R}
+#                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {R} # Remove
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
+
     r = new{R}()
     r.F = F
     r.gens = gens
-    if singular_generators(gens).isGB
-      r.std_basis = r.gens
-    end
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
 
-  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L}) where {L}
+  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L},
+                                       default_ordering::ModuleOrdering = default_ordering(base_ring(F))) where {L}
+#                                      default_ordering::Singular.sordering = default_ordering(base_ring(F))) where {L} # Remove
+    # @assert exactly_one_module_ordering(default_ordering) # Remove
+    # @assert ordering_compatible_with_ring(base_ring(F), default_ordering) # Remove
+
     r = new{L}()
     r.F = F
     O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
-    r.gens = ModuleGens(O, F)
+    r.gens = ModuleGens(O, F, default_ordering)
     r.matrix = A
+    r.default_ordering = default_ordering
+    r.groebner_basis = Dict()
     return r
   end
 end
@@ -245,6 +311,9 @@ option is set in suitable functions.
   quo::SubModuleOfFreeModule
   sum::SubModuleOfFreeModule
 
+  #groebner_basis::Dict{Singular.sordering, ModuleGB{T}} # Remove
+  groebner_basis::Dict{ModuleOrdering, ModuleGB{T}}
+
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
 
@@ -253,6 +322,8 @@ option is set in suitable functions.
     r.F = sub.F
     r.sub = sub
     r.sum = r.sub
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -267,6 +338,8 @@ option is set in suitable functions.
     r.quo = quo
     r.sum = sum(r.sub, r.quo)
 
+    r.groebner_basis = Dict()
+
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
 
@@ -277,6 +350,8 @@ option is set in suitable functions.
     r.F = F
     r.sub = SubModuleOfFreeModule(F, O)
     r.sum = r.sub
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -290,6 +365,8 @@ option is set in suitable functions.
     O_as_submodule = SubModuleOfFreeModule(S.F, O)
     r.quo = isdefined(S,:quo) ? sum(S.quo,O_as_submodule) : O_as_submodule
     r.sum = sum(r.sub, r.quo)
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -309,6 +386,8 @@ option is set in suitable functions.
     r.sub = SubModuleOfFreeModule(F, s)
     r.sum = r.sub
 
+    r.groebner_basis = Dict()
+
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
 
@@ -320,6 +399,8 @@ option is set in suitable functions.
     r.sub = SubModuleOfFreeModule(F, s)
     r.quo = SubModuleOfFreeModule(F, t)
     r.sum = sum(r.sub, r.quo)
+
+    r.groebner_basis = Dict()
 
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
@@ -397,30 +478,109 @@ struct SubQuoElem{T} <: AbstractSubQuoElem{T}
 end
 
 
-mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
+mutable struct SubQuoHom{
+    T1<:AbstractSubQuo, 
+    T2<:ModuleFP, 
+    RingMapType<:Any
+  } <: ModuleMap{T1, T2}
   matrix::MatElem
   header::Hecke.MapHeader
   im::Vector
   inverse_isomorphism::ModuleMap
+  ring_map::RingMapType
 
-  function SubQuoHom{T1,T2}(D::SubQuo, C::ModuleFP, im::Vector) where {T1,T2}
+  # Constructors for maps without change of base ring
+  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
-    r = new{T1, T2}()
+    r = new{T1, T2, Nothing}()
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    if C isa FreeMod
-      r.im = Vector{FreeModElem}(im)
-    elseif C isa SubQuo
-      r.im = Vector{SubQuoElem}(im)
-    else
-      r.im = im
-    end
-
+    r.im = Vector{FreeModElem}(im)
     return r
   end
+
+  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::SubQuo, im::Vector) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, Nothing}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = Vector{SubQuoElem}(im)
+    return r
+  end
+
+  function SubQuoHom{T1,T2,RingMapType}(D::SubQuo, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, Nothing}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = im
+    return r
+  end
+
+  # Constructors for maps with change of base ring
+  function SubQuoHom{T1,T2,RingMapType}(
+      D::SubQuo, 
+      C::FreeMod, 
+      im::Vector, 
+      h::RingMapType
+    ) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, RingMapType}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = Vector{FreeModElem}(im)
+    r.ring_map = h
+    return r
+  end
+
+  function SubQuoHom{T1,T2,RingMapType}(
+      D::SubQuo, 
+      C::SubQuo, 
+      im::Vector, 
+      h::RingMapType
+    ) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, RingMapType}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = Vector{SubQuoElem}(im)
+    r.ring_map = h
+    return r
+  end
+
+  function SubQuoHom{T1,T2,RingMapType}(
+      D::SubQuo, 
+      C::ModuleFP, 
+      im::Vector, 
+      h::RingMapType
+    ) where {T1,T2,RingMapType}
+    @assert length(im) == ngens(D)
+    @assert all(x-> parent(x) === C, im)
+
+    r = new{T1, T2, RingMapType}()
+    r.header = Hecke.MapHeader(D, C)
+    r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
+    r.im = im
+    r.ring_map = h
+    return r
+  end
+
 end
 
 
@@ -486,7 +646,7 @@ const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will b
 
 
 @doc Markdown.doc"""
-    FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+    FreeModuleHom{T1, T2, RingMapType} <: ModuleMap{T1, T2} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
 `T1` and `T2` are the types of domain and codomain respectively.
@@ -494,17 +654,24 @@ Data structure for morphisms where the domain is a free module (`FreeMod`).
 When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 (in case there exists one) (via `inv()`) are cached.
 """
-@attributes mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
-  matrix::MatElem
+@attributes mutable struct FreeModuleHom{
+    T1 <: AbstractFreeMod,
+    T2 <: ModuleFP,
+    RingMapType <: Any} <: ModuleMap{T1, T2} 
   header::MapHeader
+  ring_map::RingMapType
+  
+  matrix::MatElem
   inverse_isomorphism::ModuleMap
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
-  function FreeModuleHom{T,S}(F::AbstractFreeMod{T}, G::S, a::Vector) where {T, S}
+  function FreeModuleHom(
+      F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
+    ) where {S, ModuleElemType<:ModuleElem}
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
-    r = new{typeof(F), typeof(G)}()
+    r = new{typeof(F), typeof(G), Nothing}()
     function im_func(x::AbstractFreeModElem)
       b = zero(G)
       for (i,v) = x.coords
@@ -518,37 +685,102 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
-
     return r
   end
 
-  function FreeModuleHom{T,S}(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
-    @assert nrows(mat) == ngens(F)
-    @assert ncols(mat) == ngens(G)
-    if typeof(G) <: AbstractFreeMod
-      hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
-    else
-      hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  function FreeModuleHom(
+      F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType
+    ) where {T2, ModuleElemType<:ModuleElem, RingMapType}
+    @assert all(x->parent(x) === G, a)
+    @assert length(a) == ngens(F)
+    @assert h(one(base_ring(F))) == one(base_ring(G))
+    r = new{typeof(F), T2, RingMapType}()
+    function im_func(x::AbstractFreeModElem)
+      b = zero(G)
+      for (i,v) = x.coords
+        b += h(v)*a[i]
+      end
+      return b
     end
-    hom.matrix = mat
-    return hom
+    r.header = MapHeader{typeof(T1), T2}(F, G, im_func)
+    r.ring_map = h
+    return r
   end
+
 end
 
-struct FreeModuleHom_dec{T1, T2} <: ModuleMap{T1, T2}
-  f::FreeModuleHom{T1,T2}
+# Further constructors taking matrices as input
+function FreeModuleHom(
+    F::AbstractFreeMod{T}, G::S, mat::MatElem{T}
+  ) where {T<:RingElem,S<:AbstractFreeMod}
+  @assert nrows(mat) == ngens(F)
+  @assert ncols(mat) == ngens(G)
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom.matrix = mat
+  return hom
+end
+
+function FreeModuleHom(
+    F::AbstractFreeMod{T}, G::S, mat::MatElem{T}
+  ) where {T<:RingElem, S<:ModuleFP}
+  @assert nrows(mat) == ngens(F)
+  @assert ncols(mat) == ngens(G)
+  hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom.matrix = mat
+  return hom
+end
+
+function FreeModuleHom(
+    F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType
+  ) where {S<:AbstractFreeMod, RingMapType}
+  @assert nrows(mat) == ngens(F)
+  @assert ncols(mat) == ngens(G)
+  @assert base_ring(mat) === base_ring(G)
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom.matrix = mat
+  return hom
+end
+
+function FreeModuleHom(
+    F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType
+  ) where {S<:ModuleFP, RingMapType}
+  @assert nrows(mat) == ngens(F)
+  @assert ncols(mat) == ngens(G)
+  @assert base_ring(mat) === base_ring(G)
+  hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom.matrix = mat
+  return hom
+end
+
+struct FreeModuleHom_dec{
+    T1 <: AbstractFreeMod,
+    T2 <: ModuleFP,
+    RingMapType <: Any} <: ModuleMap{T1, T2}
+  f::FreeModuleHom{T1,T2, RingMapType}
   header::MapHeader
   # TODO degree and homogeneity
 
-  function FreeModuleHom_dec{T}(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
+  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
     f = FreeModuleHom(F,G,a)
-    r = new{typeof(F), typeof(G)}(f, f.header)
+    r = new{typeof(F), typeof(G), Nothing}(f, f.header)
     return r
   end
 
-  function FreeModuleHom_dec{T}(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, mat::MatElem{T}) where {T}
+  function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, mat::MatElem{T}) where {T}
     f = FreeModuleHom(F,G,mat)
-    r = new{typeof(F), typeof(G)}(f, f.header)
+    r = new{typeof(F), typeof(G), Nothing}(f, f.header)
+    return r
+  end
+
+  function FreeModuleHom_dec(F::FreeMod_dec, G::ModuleFP_dec, a::Vector, h::RingMapType) where {RingMapType}
+    f = FreeModuleHom(F,G,a,h)
+    r = new{typeof(F), typeof(G), RingMapType}(f, f.header)
+    return r
+  end
+
+  function FreeModuleHom_dec(F::FreeMod_dec, G::ModuleFP_dec{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+    f = FreeModuleHom(F,G,mat,h)
+    r = new{typeof(F), typeof(G), RingMapType}(f, f.header)
     return r
   end
 end
