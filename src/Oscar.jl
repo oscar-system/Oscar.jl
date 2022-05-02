@@ -340,6 +340,7 @@ include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")
 #include("Modules/FreeModules-graded.jl")
 include("Modules/ModulesGraded.jl")
+include("Modules/module-localizations.jl")
 
 include("Geometry/basics.jl")
 
