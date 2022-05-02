@@ -150,6 +150,22 @@ InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         return m1!.m < m2!.m;
     end);
 
-# InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
-#    return Julia.Base.
-# end);
+InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
+    return Julia.AbstractAlgebra.minpoly(m!.m);
+end);
+
+InstallOtherMethod(CharacteristicPolynomial, [IsJuliaMatrixRep], function(m)
+    return Julia.AbstractAlgebra.charpoly(m!.m);
+end);
+
+InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], function(m)
+    return Julia.AbstractAlgebra.issymmetric(m!.m);
+end);
+
+InstallOtherMethod(IsMonomial, [IsJuliaMatrixRep], function(m)
+    return Julia.AbstractAlgebra.ismonomial(m!.m);
+end);
+
+InstallOtherMethod(Rank, [IsJuliaMatrixRep], function(m)
+    return Julia.AbstractAlgebra.rank(m!.m);
+end);
