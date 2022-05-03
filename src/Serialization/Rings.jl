@@ -2,11 +2,11 @@
 #  base ring
 SimpleRingType = Union{FlintRationalField, FlintIntegerRing}
 
-function load_internal(s::SerializerState, t::Type{SimpleRingType}, dict::Dict)
+function load_internal(s::DeserializerState, t::Type{SimpleRingType}, dict::Dict)
     return t()
 end
 
-function load_internal(s::SerializerState, t::Type{Nemo.NmodRing}, dict::Dict)
+function load_internal(s::DeserializerState, t::Type{Nemo.NmodRing}, dict::Dict)
     return t(dict[:data][:n][:data])
 end
 
