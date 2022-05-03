@@ -165,17 +165,15 @@ julia> vertices(P)
  [3, 2, 1]
 ```
 """
-function orbit_polytope(V::AbstractMatrix, G::PermGroup)
-   if size(V)[2] != degree(G)
+function orbit_polytope(V::SomeMatrix, G::PermGroup)
+   Vhom = stack(homogenized_matrix(V, 1), nothing)
+   if size(Vhom, 2) != degree(G) + 1
       throw(ArgumentError("Dimension of points and group degree need to be the same."))
    end
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
-   pmPolytope = Polymake.polytope.orbit_polytope(homogenize(V,1), pmGroup)
+   pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
    return Polyhedron{fmpq}(pmPolytope)
-end
-function orbit_polytope(V::AbstractVector, G::PermGroup)
-   return orbit_polytope(Matrix(reshape(V,(1,length(V)))), G)
 end
 
 @doc Markdown.doc"""

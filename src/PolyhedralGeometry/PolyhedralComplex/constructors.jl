@@ -55,10 +55,9 @@ A polyhedral complex in ambient dimension 2
 """
 function PolyhedralComplex{T}(
                 polyhedra::IncidenceMatrix, 
-                vr::Union{SubObjectIterator{<:Union{PointVector,PointVector}}, Oscar.MatElem, AbstractMatrix}, 
+                vr::SomeMatrix, 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
-                L::Union{SubObjectIterator{<:RayVector}, 
-                Oscar.MatElem, AbstractMatrix, Nothing} = nothing;
+                L::Union{SomeMatrix, Nothing} = nothing;
                 non_redundant::Bool = false
             ) where T<:scalar_types
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L

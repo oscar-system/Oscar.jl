@@ -50,7 +50,7 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone{T}(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function Cone{T}(R::SomeMatrix, L::Union{SomeMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     if isnothing(L) || isempty(L)
         L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(R, 2))
     end
@@ -89,7 +89,7 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(::Type{T}, R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+function positive_hull(::Type{T}, R::SomeMatrix) where T<:scalar_types
     C=Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS =
       remove_zero_rows(R))
     Cone{T}(C)
@@ -119,7 +119,7 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(::Type{T}, I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function cone_from_inequalities(::Type{T}, I::SomeMatrix, E::Union{Nothing, SomeMatrix} = nothing; non_redundant::Bool = false) where T<:scalar_types
     IM = -linear_matrix_for_polymake(I)
     EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 

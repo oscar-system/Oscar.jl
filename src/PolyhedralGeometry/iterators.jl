@@ -323,3 +323,14 @@ function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
     end
     return matrix_for_polymake(x; homogenized=true)
 end
+
+################################################################################
+######## Unify matrices
+################################################################################
+
+# matrix_for_polymake
+# linear_matrix_for_polymake
+const SomeMatrix = Union{AnyVecOrMat, SubObjectIterator}
+
+# affine_matrix_for_polymake
+const LinearExpression = Union{SubObjectIterator, Tuple{SomeMatrix, Any}}

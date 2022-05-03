@@ -41,7 +41,7 @@ julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
 A subdivision of points in ambient dimension 3
 ```
 """
-function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::IncidenceMatrix) where T<:scalar_types
+function SubdivisionOfPoints{T}(Points::SomeMatrix, cells::IncidenceMatrix) where T<:scalar_types
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
    SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
       POINTS = homogenize(Points,1),
@@ -73,7 +73,7 @@ julia> n_maximal_cells(SOP)
 1
 ```
 """
-function SubdivisionOfPoints{T}(points::Union{Oscar.MatElem,AbstractMatrix}, weights::AbstractVector) where T<:scalar_types
+function SubdivisionOfPoints{T}(points::SomeMatrix, weights::AbstractVector) where T<:scalar_types
    SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
       POINTS = homogenize(points,1),
       WEIGHTS = weights,
@@ -89,7 +89,7 @@ pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
 #Same construction for when the user provides maximal cells
-function SubdivisionOfPoints{T}(Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Vector{Vector{Int64}}) where T<:scalar_types
+function SubdivisionOfPoints{T}(Points::SomeMatrix, cells::Vector{Vector{Int64}}) where T<:scalar_types
    SubdivisionOfPoints{T}(points, IncidenceMatrix(cells))
 end
 

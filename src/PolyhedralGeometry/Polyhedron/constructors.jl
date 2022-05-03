@@ -66,7 +66,7 @@ julia> vertices(P)
 """
 Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron{T}(I::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
+function Polyhedron{T}(I::Union{Nothing, LinearExpression}, E::Union{Nothing, LinearExpression} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
         IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
@@ -155,7 +155,7 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(::Type{T}, V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function convex_hull(::Type{T}, V::SomeMatrix, R::Union{SomeMatrix, Nothing} = nothing, L::Union{SomeMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
     points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))

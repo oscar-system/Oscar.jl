@@ -1,6 +1,6 @@
 using TOPCOM_jll
 
-function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function topcom_regular_triangulations(pts::SomeMatrix; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
     in = Pipe()
@@ -37,7 +37,7 @@ function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVecto
     return result
 end
 
-function topcom_regular_triangulation(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function topcom_regular_triangulation(pts::SomeMatrix; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
     in = Pipe()
@@ -139,7 +139,7 @@ julia> all_triangulations(V)
  [[1, 2, 4], [1, 3, 4]]
 ```
 """
-function all_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function all_triangulations(pts::SomeMatrix; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
@@ -192,7 +192,7 @@ a simplex as the set of indices of the vertices of the simplex. I.e. the
 `Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
 the first, second, and fourth input point.
 """
-function star_triangulations(pts::AnyVecOrMat; full::Bool=false, regular::Bool=false)
+function star_triangulations(pts::SomeMatrix; full::Bool=false, regular::Bool=false)
     if regular
         result = regular_triangulations(pts; full=full)
     else
@@ -292,7 +292,7 @@ julia> regular_triangulations(V)
  [[1, 3, 4], [1, 2, 4]]
 ```
 """
-function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function regular_triangulations(pts::SomeMatrix; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
@@ -374,7 +374,7 @@ julia> regular_triangulation(V)
  [[1, 2, 3], [2, 3, 4]]
 ```
 """
-function regular_triangulation(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function regular_triangulation(pts::SomeMatrix; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
@@ -458,7 +458,7 @@ julia> is_regular(vertices(c),cells)
 true
 ```
 """
-function is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+function isregular(pts::SomeMatrix,cells::Vector{Vector{Int64}})
     as_sop = SubdivisionOfPoints(pts,cells)
     is_regular(as_sop)
 end
