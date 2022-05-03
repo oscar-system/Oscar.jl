@@ -1051,6 +1051,16 @@ function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   return SubQuo(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
 
+@doc Markdown.doc"""
+    SubQuo(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
+
+Construct the subquotient with ambient free module `F`, generators `g`
+and relations `q`.
+"""
+function SubQuo(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
+  return SubQuo(Oscar.SubModuleOfFreeModule(F, g), Oscar.SubModuleOfFreeModule(F, q))
+end
+
 #######################################################
 @doc Markdown.doc"""
     subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where T
@@ -2739,7 +2749,35 @@ end
 Compute a sparse row `r` such that `a` is a representative of `SubQuoElem(r, SQ)`.
 If no such `r` exists, `nothing` is returned.
 """
+function coordinates(a::FreeModElem, M::SubModuleOfFreeModule)::Union{Nothing,Oscar.SRow}
+  if iszero(a)
+    return sparse_row(base_ring(parent(a)))
+  end
+  singular_assure(M.gens)
+  S = singular_generators(M.gens)
+  b = ModuleGens([a], M.gens.SF)
+  singular_assure(b)
+  s, r = Singular.lift(S, singular_generators(b))
+  if Singular.ngens(s) == 0 || iszero(s[1])
+    return nothing
+  end
+  Rx = base_ring(M)
+  return sparse_row(Rx, s[1], 1:ngens(M))
+end
+
+@doc Markdown.doc"""
+    coordinates(a::FreeModElem, SQ::SubQuo)::Union{Nothing,Oscar.SRow}
+
+Compute a sparse row `r` such that `a` is a representative of `SubQuoElem(r, SQ)`.
+If no such `r` exists, `nothing` is returned.
+"""
 function coordinates(a::FreeModElem, SQ::SubQuo)::Union{Nothing,Oscar.SRow}
+  coords = coordinates(a, SQ.sum)
+  if coords !== nothing
+    return return coords[1:ngens(SQ)]
+  else
+    return coords
+  end
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
@@ -3266,6 +3304,8 @@ function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{ModuleFPElem}([g(h(x)) for x = gens(domain(h))]))
 end
+
+compose(h::ModuleMap, g::ModuleMap) = h*g
 
 -(h::ModuleMap) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
 function -(h::ModuleMap, g::ModuleMap)

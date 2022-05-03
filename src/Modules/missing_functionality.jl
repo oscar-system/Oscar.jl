@@ -6,17 +6,6 @@
 # places, eventually.
 #
 
-# missing functionality for maps of modules
-compose(f::FreeModuleHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-compose(f::SubQuoHom, g::FreeModuleHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-compose(f::SubQuoHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-compose(f::FreeModuleHom, g::SubQuoHom) = hom(domain(f), codomain(g), representing_matrix(f)*representing_matrix(g))
-
-# missing (?) constructors for SubQuos
-function SubQuo(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
-  return SubQuo(Oscar.SubModuleOfFreeModule(F, g), Oscar.SubModuleOfFreeModule(F, q))
-end
-
 function sub(F::FreeMod{T}, A::MatElem{T}) where {T} 
   M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
   inc = hom(M, F, ambient_representatives_generators(M))
@@ -31,9 +20,6 @@ function quo(F::FreeMod{T}, A::MatElem{T}) where {T}
   proj.matrix = E
   return M, proj
 end
-
-#promotion for scalar multiplication
-AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MET}) where {RET<:RingElem, MET<:ModuleElem} = MET
 
 # iterators over singular modules
 Base.iterate(L::Singular.smodule) = iterate(L, 1)
