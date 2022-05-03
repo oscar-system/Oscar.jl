@@ -140,6 +140,7 @@ function __init__()
     GAP.Packages.load("forms")
     __init_IsoGapOscar()
     __init_group_libraries()
+    __init_JuliaData()
     __GAP_info_messages_off()
 end
 

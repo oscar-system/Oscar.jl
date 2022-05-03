@@ -762,7 +762,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
     O = orbits(U)
     for o in O
       #TODO: should use orbits of Set(o)...
-      f = sum(g[o])
+      f = sum(g[elements(o)])
       oH = probable_orbit(H, f)
       oG = probable_orbit(G, f, limit = length(oH)+5)
       if length(oH) < length(oG)
@@ -774,7 +774,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
             return true, I
           end
         end
-        f = prod(g[o])
+        f = prod(g[elements(o)])
         oH = probable_orbit(H, f)
         I = sum(oH)
         if isprobably_invariant(I, H) &&
@@ -809,8 +809,8 @@ function invariant(G::PermGroup, H::PermGroup)
 
   if !istransitive(G) 
     @vprint :GaloisInvariant 2 "both groups are intransitive\n"
-    OG = [sort(x) for x = orbits(G)]
-    OH = [sort(x) for x = orbits(H)]
+    OG = [sort(elements(x)) for x = orbits(G)]
+    OH = [sort(elements(x)) for x = orbits(H)]
     d = setdiff(OH, OG)
     if length(d) > 0
       @vprint :GaloisInvariant 2 "groups have different orbits\n"
@@ -825,7 +825,7 @@ function invariant(G::PermGroup, H::PermGroup)
         @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
         @hassert :GaloisInvariant 0 ismaximal(hG, hH)
         I = invariant(hG, hH)
-        return evaluate(I, g[o])
+        return evaluate(I, g[elements(o)])
       end
     end
     @vprint :GaloisInvariant 2 "going transitive...\n"
@@ -866,6 +866,8 @@ function invariant(G::PermGroup, H::PermGroup)
   bH = all_blocks(H)
 
   d = setdiff(bH, bG)
+#T GAP's AllBlocks: compatible for G and H?
+#T                  ("representatives" or "smallest representatives"?)
   @vprint :GaloisInvariant 2 "Have block systems, they differ at $d\n"
   if length(d) > 0
     @vprint :GaloisInvariant 3  "using F-invar\n"

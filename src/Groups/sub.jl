@@ -7,6 +7,7 @@ export
     embedding,
     index,
     ischaracteristic,
+    ismaximal,
     isnilpotent, has_isnilpotent, set_isnilpotent,
     issolvable, has_issolvable, set_issolvable,
     issupersolvable, has_issupersolvable, set_issupersolvable,
@@ -231,6 +232,34 @@ const centraliser = centralizer
 #  IsNormal, IsCharacteristic, IsSolvable, IsNilpotent
 #
 ################################################################################
+
+"""
+    ismaximal(G::T, H::T) where T <: GAPGroup
+
+Return whether `H` is a maximal subgroup of `G`, i. e.,
+whether `H` is a proper subgroup of `G` and there is no proper subgroup of `G`
+that properly contains `H`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> ismaximal(G, sylow_subgroup(G, 2)[1])
+true
+
+julia> ismaximal(G, sylow_subgroup(G, 3)[1])
+false
+
+```
+"""
+function ismaximal(G::T, H::T) where T <: GAPGroup
+  issubgroup(G, H)[1] || return false
+  if order(G) // order(H) < 100
+    t = right_transversal(G, H)[2:end] #drop the identity
+    return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
+  end
+  return any(M -> isconjugate(G, M, H), maximal_subgroup_reps(G))
+end
 
 """
     isnormal(G::T, H::T) where T <: GAPGroup
