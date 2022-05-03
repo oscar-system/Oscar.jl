@@ -110,4 +110,3 @@ function translate_group_library_args(args::Tuple; permgroups::Bool=false)
 
    return gapargs
 end
-

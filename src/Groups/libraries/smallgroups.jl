@@ -1,12 +1,11 @@
 export
     all_small_groups,
-    number_small_groups,
     has_number_small_groups,
-    has_small_group_ids,
+    has_small_group_identification,
     has_small_groups,
+    number_small_groups,
     small_group,
     small_group_identification
-
 
 
 ###################################################################
@@ -53,21 +52,21 @@ function has_small_groups(n::IntegerUnion)
 end
 
 """
-    has_small_group_ids(n::IntegerUnion)
+    has_small_group_identification(n::IntegerUnion)
 
 Return `true` if identification for groups of order `n` is available via
 `small_group_identification`, otherwise `false`.
 
 # Examples
 ```jldoctest
-julia> has_small_group_ids(256)
+julia> has_small_group_identification(256)
 true
 
-julia> has_small_group_ids(512)
+julia> has_small_group_identification(512)
 false
 ```
 """
-function has_small_group_ids(n::IntegerUnion)
+function has_small_group_identification(n::IntegerUnion)
     n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
     return GAP.Globals.IdGroupsAvailable(GAP.Obj(n))
 end
@@ -114,19 +113,22 @@ end
 """
     small_group_identification(G::Group)
 
-Return `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
+Return a pair of integer `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
 
 # Examples
 ```jldoctest
 julia> small_group_identification(alternating_group(5))
 (60, 5)
+
+julia> small_group_identification(symmetric_group(20))
+ERROR: identification is not available for groups of order 2432902008176640000
 ```
 """
 function small_group_identification(G::GAPGroup)
    isfinite(G) || error("group is not finite")
+   has_small_group_identification(order(G)) || error("identification is not available for groups of order $(order(G))")
    res = GAP.Globals.IdGroup(G.X)
-   res !== GAP.Globals.fail || error("identification is not available for groups of order $(order(G))")
-   return Tuple{Int,Int}(res)
+   return Tuple{fmpz,fmpz}(res)
 end
 
 
@@ -134,10 +136,22 @@ end
     number_small_groups(n::IntegerUnion)
 
 Return the number of groups of order `n`, up to isomorphism.
+
+# Examples
+```jldoctest
+julia> number_small_groups(8)
+5
+
+julia> number_small_groups(4096)
+ERROR: the number of groups of order 4096 is not available
+
+julia> number_small_groups(next_prime(fmpz(2)^64))
+1
+```
 """
 function number_small_groups(n::IntegerUnion)
-    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
-    return fmpz(GAP.Globals.NumberSmallGroups(n))
+  has_number_small_groups(n) || error("the number of groups of order $n is not available")
+  return fmpz(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
 end
 
 
@@ -145,20 +159,34 @@ end
     all_small_groups(L...)
 
 Return the list of all groups (up to isomorphism)
-satisfying the conditions describe by the arguments. These conditions
+satisfying the conditions described by the arguments. These conditions
 may be of one of the following forms:
 
 - `func => intval` selects groups for which the function `func` returns `intval`
 - `func => list` selects groups for which the function `func` returns any element inside `list`
-- `predicate` selects groups for which the function `predicate` returns `true`
-- `!predicate` selects groups for which the function `predicate` returns `false`
+- `func` selects groups for which the function `func` returns `true`
+- `!func` selects groups for which the function `func` returns `false`
 
 As a special case, the first argument may also be one of the following:
 - `intval` selects groups whose order equals `intval`; this is equivalent to `order => intval`
 - `intlist` selects groups whose order is in `intlist`; this is equivalent to `order => intlist`
 
 Note that at least one of the conditions must impose a limit on the group
-order, otherwise an error is raised.
+order, otherwise an exception is thrown.
+
+The following functions are currently supported as values for `func`:
+- `isabelian`
+- `isalmostsimple`
+- `iscyclic`
+- `isnilpotent`
+- `isperfect`
+- `is_quasisimple`
+- `issimple`
+- `is_sporadic_simple`
+- `issolvable`
+- `issupersolvable`
+- `number_conjugacy_classes`
+- `order`
 
 The type of the returned groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.
 
@@ -183,7 +211,7 @@ julia> all_small_groups(1:10, !isabelian)
 """
 function all_small_groups(L...)
    !isempty(L) || throw(ArgumentError("must specify at least one filter"))
-   if L[1] isa Int ||  L[1] isa AbstractVector{<:IntegerUnion}
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
       L = (order => L[1], L[2:end]...)
    end
    gapargs = translate_group_library_args(L)

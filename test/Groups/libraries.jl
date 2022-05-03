@@ -16,7 +16,7 @@
    for K in grps
       @test count(l -> isisomorphic(K,l), L) == 1
    end
-   @test sort([transitive_identification(l) for l in L]) == 1:5
+   @test sort([transitive_group_identification(l) for l in L]) == [(4,i) for i in 1:5]
    @test Set(L) == Set(all_transitive_groups(degree => 4))
    @test [H2] == all_transitive_groups(degree => 4, iscyclic)
    @test [H4] == all_transitive_groups(degree => 4, !iscyclic, isabelian)
@@ -79,7 +79,7 @@ end
    @test !isregular(H)
    @test isregular(H,[1,2])
 
-   @test_throws ErrorException transitive_group(1, 2)
+   @test_throws ArgumentError transitive_group(1, 2)
 end
 
 @testset "Perfect groups" begin
@@ -130,7 +130,7 @@ end
 
 @testset "Primitive groups" begin
    @test has_primitive_groups(50)
-   @test_throws AssertionError primitive_group(1, 1)
+   @test_throws ArgumentError primitive_group(1, 1)
    @test number_primitive_groups(50) == 9
 end
 
