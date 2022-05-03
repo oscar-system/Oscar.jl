@@ -183,7 +183,7 @@ BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
         
         res := Zero(hom.header.codomain);
         for i in [0..(pol.length-1)] do
-            res := res + x^i * Julia.AbstractAlgebra.map_entries(hom, coeff(pol,i))
+            res := res + x^i * hom(Julia.coeff(pol,i));
         od;
         
         return res;
