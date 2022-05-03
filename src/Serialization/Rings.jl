@@ -1,18 +1,28 @@
 ################################################################################
+#  base ring
+SimpleRingType = Union{FlintRationalField, FlintIntegerRing}
+
+function load_internal(s::SerializerState, t::Type{SimpleRingType}, dict::Dict)
+    return t()
+end
+
+function load_internal(s::SerializerState, t::Type{Nemo.NmodRing}, dict::Dict)
+    return t(dict[:data][:n][:data])
+end
+
+################################################################################
 #  polynomial ring
 function save_internal(s::SerializerState, R::MPolyRing)
     base_ring = R.base_ring
     return Dict(
         :symbols => save_type_dispatch(s, R.S),
         :base_ring => save_type_dispatch(s, base_ring),
-        :nvars => save_type_dispatch(s, R.nvars),
-        :nfields => save_type_dispatch(s, R.nfields),
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{MPolyRing}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: MPolyRing}, dict::Dict)
     ring_type = decodeType(dict[:base_ring][:type])
-    base_ring = ring_type()
+    base_ring = load_type_dispatch(s, ring_type, dict[:base_ring])
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
     
     return PolynomialRing(base_ring, symbols)
@@ -21,7 +31,8 @@ end
 ################################################################################
 # Polynomials
 function save_internal(s::SerializerState, p::MPolyElem)
-    ring = parent(p)
+    parent_ring = parent(p)
+    parent_ring = save_type_dispatch(s, parent_ring)
     terms = []
     
     for (i, c) in enumerate(coeffs(p))
@@ -34,13 +45,11 @@ function save_internal(s::SerializerState, p::MPolyElem)
 
     return Dict(
         :terms => terms,
-        :parent => save_type_dispatch(s, ring),
-        :content_den => save_type_dispatch(s, p.content_den),
-        :content_num => save_type_dispatch(s, p.content_num),
+        :parent => parent_ring,
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{MPolyElem}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
     ring_dict = dict[:parent]
     ring_type = decodeType(ring_dict[:type])
     R, symbols = load_type_dispatch(s, ring_type, ring_dict)
