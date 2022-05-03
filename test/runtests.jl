@@ -52,7 +52,7 @@ include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
 include("Experimental/MPolyRingSparse-test.jl")
-include("Experimental/MatrixGroupExperimental-test.jl")
+include("Experimental/MatrixGroups-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")

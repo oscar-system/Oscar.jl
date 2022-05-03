@@ -79,13 +79,22 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
 
        Fq, matrices_Fq, OtoFq = Oscar.good_reduction(matrices, 2)
 
-       G = Oscar.MatrixGroup(n, Fq, matrices_Fq)
-       N = order(G)
+       # G = Oscar.MatrixGroup(n, Fq, matrices_Fq)
+       #N = order(G)
+       ele = matrices_Fq[1]
+       hom = Oscar._iso_oscar_gap(ele.base_ring)
+        
+       gap_matrices_Fq = GAP.Globals.IdentityMat(length(matrices))
+       for i = 1:length(matrices_Fq)
+            gap_matrices_Fq[i] = AbstractAlgebra.map_entries(hom, matrices_Fq[i])
+       end
+       G2 = GAP.Globals.Group(gap_matrices_Fq)
+       N = fmpz(GAP.Globals.Order(G2))
        if !isdivisible_by(Hecke._minkowski_multiple(K, n), N)
           error("Group is not finite")
        end
 
-       G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
+       G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G2, GapObj([ g.X for g in gens(G) ]))
        F = GAP.Globals.Range(G_to_fin_pres)
        rels = GAP.Globals.RelatorsOfFpGroup(F)
 
@@ -99,8 +108,6 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
              error("Group is not finite")
           end
        end
-        
-       G2 = G.X
         
        gapMatrices = GAP.Globals.IdentityMat(length(matrices))
        for i = 1:length(matrices)
