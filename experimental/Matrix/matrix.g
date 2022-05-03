@@ -169,3 +169,24 @@ end);
 InstallOtherMethod(Rank, [IsJuliaMatrixRep], function(m)
     return Julia.AbstractAlgebra.rank(m!.m);
 end);
+
+InstallOtherMethod(Trace, [IsJuliaMatrixRep], function(m)
+    return Julia.AbstractAlgebra.tr(m!.m);
+end);
+
+
+DeclareOperation("TransformPolynomialFromJuliaToGAP", [IsJuliaObject]);
+
+InstallMethod(TransformPolynomialFromJuliaToGAP, [IsJuliaObject], function(pol)
+    local x, hom, res, i;
+    
+        hom := Julia.Oscar._iso_oscar_gap(pol.parent.base_ring);
+        x := Indeterminate(hom.header.codomain,"x");
+        
+        res := Zero(hom.header.codomain);
+        for i in [0..(pol.length-1)] do
+            res := res + x^i * Julia.AbstractAlgebra.map_entries(hom, coeff(pol,i))
+        od;
+        
+        return res;
+    end);
