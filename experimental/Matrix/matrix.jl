@@ -57,17 +57,25 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
     
        # One should probably check whether all matrices are n by n (and invertible
        # and such ...)
-
+       
+       n = nrows(matrices[1])
+       isinvertible(x) = applicable(inv, x) && isone(inv(x) * x)
+       isquadraticSameSize(x) = (nrows(x) == n) && (ncols(x) == n)
        K = base_ring(matrices[1])
+       for mat in matrices
+            if !(K == mat.base_ring)
+                error("Matrices are not from the same base ring.")
+            end
+            if !(isinvertible(mat))
+                error("At least one matrix is not invertible.")
+            end
+            if !(isquadraticSameSize(mat))
+                error("At least one matrix is not quadratic or not the same size.")
+            end
+       end
        if K isa FlintIntegerRing
           K = QQ
        end
-       for mat in matrices
-            if !(K == mat.base_ring)
-                error("Matrices are not from the same base ring")
-            end
-       end
-       n = nrows(matrices[1])
 
        Fq, matrices_Fq, OtoFq = Oscar.good_reduction(matrices, 2)
 
@@ -94,7 +102,10 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
         
        G2 = G.X
         
-       gapMatrices = [Oscar.MatrixGroups._wrap_for_gap(m) for m in matrices]
+       gapMatrices = GAP.Globals.IdentityMat(length(matrices))
+       for i = 1:length(matrices)
+            gapMatrices[i] = Oscar.MatrixGroups._wrap_for_gap(matrices[i])
+       end
        G = GAP.Globals.Group(gapMatrices)
        
        JuliaGAPMap = GAP.Globals.GroupHomomorphismByImagesNC(G,G2,GAP.Globals.GeneratorsOfGroup(G2))
