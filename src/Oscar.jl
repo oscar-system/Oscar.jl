@@ -135,6 +135,7 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     __init_IsoGapOscar()
