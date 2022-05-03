@@ -151,8 +151,8 @@ end
 
   # blocks
   bl = blocks(G8)
-  @test bl == [[1, 8], [2, 3], [4, 5], [6, 7]]
-  @test bl == blocks(G8, 1:degree(G8))
+  @test elements(bl) == [[1, 8], [2, 3], [4, 5], [6, 7]]
+  @test elements(bl) == elements(blocks(G8, 1:degree(G8)))
 
   # isprimitive
   @test ! isprimitive(G8)
@@ -176,9 +176,9 @@ end
 
   # maximal_blocks
   bl = maximal_blocks(G8)
-  @test bl == [[1, 2, 3, 8], [4, 5, 6, 7]]
-  @test bl == maximal_blocks(G8, 1:degree(G8))
-  @test maximal_blocks(S4) == [[1, 2, 3, 4]]
+  @test elements(bl) == [[1, 2, 3, 8], [4, 5, 6, 7]]
+  @test elements(bl) == elements(maximal_blocks(G8, 1:degree(G8)))
+  @test elements(maximal_blocks(S4)) == [[1, 2, 3, 4]]
 
   # representatives_minimal_blocks
   bl = representatives_minimal_blocks(G8)
