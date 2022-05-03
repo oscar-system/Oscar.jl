@@ -7,8 +7,7 @@
     @test GAP.Globals.Size(G) == 4
     
     m2 = matrix(QQ, [ -1 0; 0 1])
-    G = Oscar.MatrixGroups.MatrixGroup([m,m2])
-    @test_throws ERROR: MethodError: no method matching MatrixGroup(::Vector{MatElem})
+    @test_throws MethodError Oscar.MatrixGroups.MatrixGroup([m,m2])
     
     m1 = matrix(QQ, [0 1 ; -1 0])
     G = Oscar.MatrixGroups.MatrixGroup([m1,m2])

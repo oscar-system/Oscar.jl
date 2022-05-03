@@ -33,9 +33,11 @@ end
 
 
 ################################################################################
-# Computes a GAP Group where the generators are the JuliaMatrixRep of matrices.
-# Moreover, a nice morphism from G into a GAP matrix group over a finite field G2 is constructed
-# such that calculations in G can be handled by G2 automatically.
+# Construct a GAP group where the elements on the GAP side are wrappers of type
+# JuliaMatrixRep around the Oscar matrices.
+# Moreover, if G is finite then a nice morphism from G into a GAP matrix group G2
+# over a finite field is constructed such that calculations in G can be handled
+# automatically  by transferring them to G2.
 #
 #     MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, fmpq, nf_elem}
 #
@@ -75,20 +77,20 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
           error("Group is not finite")
        end
 
-       #G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
-       #F = GAP.Globals.Range(G_to_fin_pres)
-       #rels = GAP.Globals.RelatorsOfFpGroup(F)
+       G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
+       F = GAP.Globals.Range(G_to_fin_pres)
+       rels = GAP.Globals.RelatorsOfFpGroup(F)
 
-       #gens_and_invsF = [ g for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ]
-       #append!(gens_and_invsF, [ inv(g) for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ])
-       #matrices_and_invs = copy(matrices)
-       #append!(matrices_and_invs, [ inv(M) for M in matrices ])
-       #for i = 1:length(rels)
-       #   M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
-       #   if !isone(M)
-       #      error("Group is not finite")
-       #   end
-       #end
+       gens_and_invsF = [ g for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ]
+       append!(gens_and_invsF, [ inv(g) for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ])
+       matrices_and_invs = copy(matrices)
+       append!(matrices_and_invs, [ inv(M) for M in matrices ])
+       for i = 1:length(rels)
+          M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
+          if !isone(M)
+             error("Group is not finite")
+          end
+       end
         
        G2 = G.X
         

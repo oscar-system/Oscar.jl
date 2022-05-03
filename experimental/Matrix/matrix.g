@@ -175,13 +175,11 @@ InstallOtherMethod(Trace, [IsJuliaMatrixRep], function(m)
 end);
 
 
-DeclareOperation("TransformPolynomialFromJuliaToGAP", [IsJuliaObject]);
-
-InstallMethod(TransformPolynomialFromJuliaToGAP, [IsJuliaObject], function(pol)
+BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
     local x, hom, res, i;
     
         hom := Julia.Oscar._iso_oscar_gap(pol.parent.base_ring);
-        x := Indeterminate(hom.header.codomain,"x");
+        x := Indeterminate(Julia.codomain(hom),"x");
         
         res := Zero(hom.header.codomain);
         for i in [0..(pol.length-1)] do
