@@ -94,10 +94,7 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
         
        G2 = G.X
         
-       gapMatrices = GAP.Globals.IdentityMat(length(matrices))
-       for i = 1:length(matrices)
-           gapMatrices[i] = Oscar.MatrixGroups._wrap_for_gap(matrices[i])
-       end
+       gapMatrices = [Oscar.MatrixGroups._wrap_for_gap(m) for m in matrices]
        G = GAP.Globals.Group(gapMatrices)
        
        JuliaGAPMap = GAP.Globals.GroupHomomorphismByImagesNC(G,G2,GAP.Globals.GeneratorsOfGroup(G2))
