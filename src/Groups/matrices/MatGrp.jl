@@ -21,6 +21,7 @@ abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 # NOTE: always defined are deg, ring and at least one between { X, gens, descr }
 """
     MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 
 At the moment, only rings of type `FqNmodFiniteField` are supported.
