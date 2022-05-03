@@ -283,6 +283,16 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
   #if any fails, "t" was bad and I need to find a way of restarting
 end
 
+"""
+    subfields(FF:Generic.FunctionField{fmpq})
+
+For a finite extensino of the univariate function field over the rationals, 
+find all subfields. The implemented algorithm proceeds by substituting
+the trnascendental element to an integer, then computing the subfields
+of the resulting number field and lifting this information.
+
+It is an adaptaion of Klueners.
+"""
 function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   C, K, p = _galois_init(FF)
   f = C.C.f

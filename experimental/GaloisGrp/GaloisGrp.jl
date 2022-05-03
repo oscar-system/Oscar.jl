@@ -1904,6 +1904,16 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
   return G, GC
 end
 
+"""
+    isinteger(C::GaloisCtx, B::BoundRingElem, v)
+
+For an element `v` representing an integeral polynomial avaluated at the
+roots stored in `C`, known to be bounded from above by `B`, either return
+`true` and an explicit (algebraic) integer in the base ring of the context or
+return `false`.
+"""
+function isinteger end
+
 function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{fmpz}, e)
   p = GC.C.p
   if e.length<2
@@ -2135,6 +2145,14 @@ function cauchy_ideal(f::fmpz_poly; parent::MPolyRing = PolynomialRing(QQ, degre
   return cauchy_ideal(f(gen(Hecke.Globals.Qx)), parent=parent)
 end
 
+"""
+    cauchy_ideal(f::PolyElem{<:FieldElem})
+
+The coefficients of `f` are the elementary symmetry functions evaluated
+at the roots of `f`. The `cauchy_ideal` is the ideal generated
+by the differences between the elementary symmetric functions and the
+coefficients.
+"""
 function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRing(base_ring(f), degree(f), cached = false)[1])
   x = gens(parent)
   n = degree(f)
@@ -2147,6 +2165,14 @@ function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRi
   return ideal(c)
 end
 
+"""
+    galois_ideal(C::GaloisCtx, extra::Int = 5)
+
+The so called Galois ideal is a descriptio of the splitting field of `f` as
+a quotient by some maximal ideal. Algebraically, this ideal is an irreducible
+component of the Cauchy ideal, the ideal geberated by the elementary symmetric
+functions and the coefficients of the polynomial.
+"""
 function galois_ideal(C::GaloisCtx, extra::Int = 5)
   f = C.f
   id = gens(cauchy_ideal(f))
@@ -2252,6 +2278,13 @@ function galois_group(f::fmpz_poly; pStart::Int = 2*degree(f), prime::Int = 0)
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart, prime = prime)
 end
 
+"""
+    galois_group(f::PolyElem{<:FieldElem})
+
+Computes the automorphism group of a splitting field of `f` as an explicit
+group of permutations of the roots. Furthermore, the `GaloisCtx` is
+returned allowing algorithmic access to the splitting field.
+"""
 function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
   lf = [(k,v) for  (k,v) = factor(f).fac]
 
