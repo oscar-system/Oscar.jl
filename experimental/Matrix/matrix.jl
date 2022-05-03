@@ -60,6 +60,11 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
        if K isa FlintIntegerRing
           K = QQ
        end
+       for mat in matrices
+            if !(K == mat.base_ring)
+                error("Matrices are not from the same base ring")
+            end
+       end
        n = nrows(matrices[1])
 
        Fq, matrices_Fq, OtoFq = Oscar.good_reduction(matrices, 2)
