@@ -36,14 +36,11 @@
       isprimitive,
    ]
    @testset "all_transitive_groups filtering for $(prop)" for prop in props
-      @test length(all_transitive_groups(degree, 6, prop, true)) == count(prop, grps)
-      @test length(all_transitive_groups(degree, 6, prop, false)) == count(!prop, grps)
+      @test length(all_transitive_groups(degree => 6, prop => true)) == count(prop, grps)
+      @test length(all_transitive_groups(degree => 6, prop => false)) == count(!prop, grps)
 
-      @test length(all_transitive_groups(degree, 6, prop => true)) == count(prop, grps)
-      @test length(all_transitive_groups(degree, 6, prop => false)) == count(!prop, grps)
-
-      @test length(all_transitive_groups(degree, 6, prop)) == count(prop, grps)
-      @test length(all_transitive_groups(degree, 6, !prop)) == count(!prop, grps)
+      @test length(all_transitive_groups(degree => 6, prop)) == count(prop, grps)
+      @test length(all_transitive_groups(degree => 6, !prop)) == count(!prop, grps)
    end
 
    @test length(all_transitive_groups(degree => 6, order => 1:12)) == count(g -> order(g) in 1:12, grps)

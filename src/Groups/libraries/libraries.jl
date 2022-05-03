@@ -71,38 +71,20 @@ end
 # check whether the input of all_small_group is valid (see below)
 function translate_group_library_args(args::Tuple; permgroups::Bool=false)
    gapargs = []
-   i = 1
-   while i <= length(args)
-      arg = args[i]
+   for arg in args
       if arg isa Pair
          # handle e.g. `isabelian => false`
          func = arg[1]
          data = arg[2]
-         i += 1
          expected_type, gapfunc, _ = find_index_function(func, permgroups)
-         if data isa expected_type
-            push!(gapargs, gapfunc, GAP.Obj(data))
-         else
-            throw(ArgumentError("bad argument $(arg[2]) for function $(func)"))
-         end
+         data isa expected_type || throw(ArgumentError("bad argument $(arg[2]) for function $(func)"))
+         push!(gapargs, gapfunc, GAP.Obj(data))
       elseif arg isa Function
          # handle e.g. `isabelian` or `isabelian, false`
          func = arg
          expected_type, gapfunc, default = find_index_function(func, permgroups)
-         i += 1
-         if i <= length(args) && args[i] isa expected_type
-            push!(gapargs, gapfunc, GAP.Obj(args[i]))
-            i += 1
-         elseif default !== nothing
-            # no argument given: default to `true`
-            push!(gapargs, gapfunc, default)
-         else
-            if i <= length(args)
-               throw(ArgumentError("bad argument $(args[i]) for function $(func)"))
-            else
-               throw(ArgumentError("missing argument for function $(func)"))
-            end
-         end
+         default !== nothing || throw(ArgumentError("missing argument for function $(func)"))
+         push!(gapargs, gapfunc, default)
       else
          throw(ArgumentError("expected a function or a pair, got $arg"))
       end
