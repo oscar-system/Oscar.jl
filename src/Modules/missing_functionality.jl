@@ -6,21 +6,6 @@
 # places, eventually.
 #
 
-function sub(F::FreeMod{T}, A::MatElem{T}) where {T} 
-  M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
-  inc = hom(M, F, ambient_representatives_generators(M))
-  inc.matrix = A
-  return M, inc
-end
-
-function quo(F::FreeMod{T}, A::MatElem{T}) where {T}
-  E = one(MatrixSpace(base_ring(F), rank(F), rank(F)))
-  M = SubQuo(F, E, A)
-  proj = hom(F, M, gens(M))
-  proj.matrix = E
-  return M, proj
-end
-
 # iterators over singular modules
 Base.iterate(L::Singular.smodule) = iterate(L, 1)
 Base.eltype(::Type{Singular.smodule}) = Singular.svector
