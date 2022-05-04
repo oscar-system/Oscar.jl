@@ -94,20 +94,20 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
           error("Group is not finite")
        end
 
-       G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G2, GapObj([ g.X for g in gens(G) ]))
-       F = GAP.Globals.Range(G_to_fin_pres)
-       rels = GAP.Globals.RelatorsOfFpGroup(F)
+       #G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G2, GapObj([ g.X for g in gens(G) ]))
+       #F = GAP.Globals.Range(G_to_fin_pres)
+       #rels = GAP.Globals.RelatorsOfFpGroup(F)
 
-       gens_and_invsF = [ g for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ]
-       append!(gens_and_invsF, [ inv(g) for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ])
-       matrices_and_invs = copy(matrices)
-       append!(matrices_and_invs, [ inv(M) for M in matrices ])
-       for i = 1:length(rels)
-          M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
-          if !isone(M)
-             error("Group is not finite")
-          end
-       end
+       #gens_and_invsF = [ g for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ]
+       #append!(gens_and_invsF, [ inv(g) for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ])
+       #matrices_and_invs = copy(matrices)
+       #append!(matrices_and_invs, [ inv(M) for M in matrices ])
+       #for i = 1:length(rels)
+       #   M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
+       #   if !isone(M)
+       #      error("Group is not finite")
+       #   end
+       #end
         
        gapMatrices = GAP.Globals.IdentityMat(length(matrices))
        for i = 1:length(matrices)
@@ -121,6 +121,28 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
        GAP.Globals.SetIsHandledByNiceMonomorphism(G, true);
        
        return G
+end
+
+function _lex_isless(a::T,b::T) where T<:MatElem{S} where S <: Union{fmpz, fmpq}
+  @assert base_ring(a) === base_ring(b)
+  @assert size(a) == size(b)
+  for i in 1:nrows(a), j in 1:ncols(a)
+    if a[i,j] != b[i,j]
+      return a[i,j] < b[i,j]
+    end
+  end
+  return false
+end
+
+function _lex_isEqual(a::T,b::T) where T<:MatElem
+  @assert base_ring(a) === base_ring(b)
+  @assert size(a) == size(b)
+  for i in 1:nrows(a), j in 1:ncols(a)
+    if a[i,j] != b[i,j]
+      return false
+    end
+  end
+  return true
 end
 
 end #module MatrixGroups

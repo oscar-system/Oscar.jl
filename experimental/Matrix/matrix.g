@@ -145,9 +145,14 @@ InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
         return m1!.m = m2!.m;
     end);
     
-# TODO: Not working in all cases. Needs more checks?
 InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
-        return m1!.m < m2!.m;
+        if Julia.applicable(Julia.Oscar.MatrixGroups._lex_isless, m1!.m, m2!.m ) then
+            return Julia.Oscar.MatrixGroups._lex_isless(m1!.m,m2!.m);
+        fi;
+        if Julia.applicable(Julia.isless,m,m1) then
+            return m1!.m < m2!.m;
+        fi;
+        Error("comparing IsJuliaMatrixRep not supported");
     end);
 
 InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
