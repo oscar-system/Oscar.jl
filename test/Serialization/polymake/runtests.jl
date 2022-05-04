@@ -13,5 +13,9 @@
 
         g = load(joinpath(@__DIR__, "square_graph.graph"))
         @test g isa Graphs.Graph{Graphs.Undirected}
+        @test Graphs.ne(g) == 4
+
+        um = load(joinpath(@__DIR__, "um5.mat"))
+        @test um isa Polymake.PropertyValueAllocated
     end
 end

@@ -157,7 +157,8 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     elseif typename == "common::GraphAdjacency<Directed>"
         return load_from_polymake(Graphs.Graph{Graphs.Directed}, jsondict)
     else 
-        throw(ArgumentError("Invalid polymake object."))
+        # We just try to default to something from Polymake.jl
+        return Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     end
 end
 
