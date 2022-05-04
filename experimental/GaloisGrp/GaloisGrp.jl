@@ -2214,7 +2214,7 @@ end
 @doc Markdown.doc"""
     galois_ideal(C::GaloisCtx, extra::Int = 5)
 
-The so called Galois ideal is a descriptio of the splitting field of `f` as
+The so-called Galois ideal is a description of the splitting field of `f` as
 a quotient by some maximal ideal. Algebraically, this ideal is an irreducible
 component of the Cauchy ideal, the ideal geberated by the elementary symmetric
 functions and the coefficients of the polynomial.
