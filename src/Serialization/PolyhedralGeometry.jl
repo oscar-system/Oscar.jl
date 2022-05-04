@@ -48,11 +48,11 @@ end
 
 ##############################################################################
 """
-    load_from_polymake(::Type{Cone}, jsondict::Dict{String, Any})
+    load_from_polymake(::Type{Cone}, jsondict::Dict{Symbol, Any})
 
 Load a cone stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{Cone}, jsondict::Dict{String, Any})
+function load_from_polymake(::Type{Cone}, jsondict::Dict{Symbol, Any})
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     typename = Polymake.type_name(bigobject)
     if typename != "Cone<Rational>"
@@ -64,11 +64,11 @@ end
 
 ##############################################################################
 """
-    load_from_polymake(::Type{Polyhedron}, jsondict::Dict{String, Any})
+    load_from_polymake(::Type{Polyhedron}, jsondict::Dict{Symbol, Any})
 
 Load a polyhedron stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{Polyhedron}, jsondict::Dict{String, Any})
+function load_from_polymake(::Type{Polyhedron}, jsondict::Dict{Symbol, Any})
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     typename = Polymake.type_name(bigobject)
     if typename != "Polytope<Rational>"
@@ -82,11 +82,11 @@ end
 ##############################################################################
 
 """
-    load_from_polymake(::Type{PolyhedralFan}, jsondict::Dict{String, Any})
+    load_from_polymake(::Type{PolyhedralFan}, jsondict::Dict{Symbol, Any})
 
 Load a polyhedral fan stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{PolyhedralFan}, jsondict::Dict{String, Any})
+function load_from_polymake(::Type{PolyhedralFan}, jsondict::Dict{Symbol, Any})
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     typename = Polymake.type_name(bigobject)
     if typename != "PolyhedralFan<Rational>"
@@ -101,11 +101,11 @@ end
 ##############################################################################
 
 """
-    load_from_polymake(::Type{LinearProgram}, jsondict::Dict{String, Any})
+    load_from_polymake(::Type{LinearProgram}, jsondict::Dict{Symbol, Any})
 
 Load a linear program stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{LinearProgram}, jsondict::Dict{String, Any})
+function load_from_polymake(::Type{LinearProgram}, jsondict::Dict{Symbol, Any})
     fr = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     typename = Polymake.type_name(fr)
     if typename != "Polytope<Rational>"
@@ -133,11 +133,11 @@ end
 
 ##############################################################################
 """
-    load_from_polymake(::Type{SubdivisionOfPoints}, jsondict::Dict{String, Any})
+    load_from_polymake(::Type{SubdivisionOfPoints}, jsondict::Dict{Symbol, Any})
 
 Load a subdivision of points stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{SubdivisionOfPoints}, jsondict::Dict{String, Any})
+function load_from_polymake(::Type{SubdivisionOfPoints}, jsondict::Dict{Symbol, Any})
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     typename = Polymake.type_name(bigobject)
     if typename != "SubdivisionOfPoints<Rational>"
@@ -151,11 +151,11 @@ end
 ##############################################################################
 
 """
-    load_from_polymake(::Type{PolyhedralComplex}, jsondict::Dict{String, Any})
+    load_from_polymake(::Type{PolyhedralComplex}, jsondict::Dict{Symbol, Any})
 
 Load a polyhedral complex stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{PolyhedralComplex}, jsondict::Dict{String, Any})
+function load_from_polymake(::Type{PolyhedralComplex}, jsondict::Dict{Symbol, Any})
     bigobject = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     typename = Polymake.type_name(bigobject)
     if typename != "PolyhedralComplex<Rational>"
@@ -170,8 +170,8 @@ end
 
 
 # Distinguish between the various polymake datatypes.
-function load_polymake_object(jsondict::Dict{String, Any})
-    typename = jsondict["_type"]
+function load_from_polymake(jsondict::Dict{Symbol, Any})
+    typename = jsondict[:_type]
     if typename == "polytope::Cone<Rational>"
         return load_from_polymake(Cone, jsondict)
     elseif typename == "polytope::Polytope<Rational>"
