@@ -2228,7 +2228,7 @@ functions and the coefficients of the polynomial.
 ```jldoctest
 julia> Qx, x = QQ["x"];
 
-julia> i = galois_ideal(galois_group(x^4-2)[1])
+julia> i = galois_ideal(galois_group(x^4-2)[2])
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, -x1*x2 - x1*x3 - x2*x4 - x3*x4)
 
 julia> k, _ = number_field(i);
