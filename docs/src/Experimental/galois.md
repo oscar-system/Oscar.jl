@@ -125,7 +125,7 @@ julia> r[3]^2
 To illustrate the use as a splitting field, we will proof that `r[1]^2` is actually
 an integer - and that `r[1]+r[3]` is not.
 
-Any multivariate polynomial in 4 variables (and integer coefficients) defines, via evaluation at the
+Any multivariate polynomial in four variables and with integer coefficients defines via evaluation at the
 roots (the vector of roots) an element in the splitting field. In case the evaluation is 
 actually an integer, this can be proven with the tools provided.
 
