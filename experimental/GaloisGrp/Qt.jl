@@ -288,7 +288,7 @@ end
 
 For a finite extensino of the univariate function field over the rationals, 
 find all subfields. The implemented algorithm proceeds by substituting
-the trnascendental element to an integer, then computing the subfields
+the transcendental element to an integer, then computing the subfields
 of the resulting number field and lifting this information.
 
 It is an adaptaion of Klueners.
