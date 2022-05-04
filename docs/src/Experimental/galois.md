@@ -19,10 +19,10 @@ the literature we distinguish two concepts
  - the *Galois group*
  
 The automorphism group deals with the actual automorphism of `K` fixing `k`
-and thus is, in general trivial. Access to via two constructions:
+and thus is, in general trivial. Access is via two constructions:
 
  - a list of all automorphisms (usually only the identity)
- - the group of automorphisms, returned as an abstact group and
+ - the group of automorphisms, returned as an abstract group and
    a map linking group elements to actual automorphisms
 
 On the other hand, the Galois group is isomorphic to the automorphism
@@ -34,15 +34,12 @@ Galois group do not immediately give automorphisms at all.
 Currently, the computation of Galois groups is possible for
  
   - `K` a simple extension of the rationals (`AnticNumberField`)
-  - `K` a simple extension of an `AnticNumberField`
+  - `K` a simple extension of an `AnticNumberField` 
   - `K` a finite extension of the rational function field over the
-     rationals
-  - `f` a polynomial over the rationals, an `AnticNumberField` or 
-     the univariate function field over the rationals (here explicit
-     permutations of the roots in a suitable splitting field are returned).
-     Furthermore, in case of `f` over the rational function field, the
-     monodromy can be computed, ie. the automorphism group over the
+     rationals. In this case the
+     monodromy group can be computed as well, ie. the automorphism group over the
      complex numbers.
+  - `f` a polynomial over the rationals, or an `AnticNumberField`
 
 Independently of the Galois group, subfields, that is intermediate fields
 between `K` and `k` can be computed as well.
@@ -92,7 +89,44 @@ galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pSt
 galois_group(f::PolyElem{<:FieldElem})
 ```
 
-The information returned consists always of a group `G` and a `GaloisCtx`: `C`.
+Over the rational function field, we can also compute the monodromy group:
+```jldoctest galqt
+julia> Qt, t = RationalFunctionField(QQ, "t");
+julia> Qtx, x = Qt["x"];
+julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
+julia> subfields(F)
+4-element Vector{Any}:
+ (Function Field over Rational Field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
+ (Function Field over Rational Field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over Rational Field with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over Rational Field with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
+
+julia> galois_group(F)
+(Group([ (), (1,5)(2,3)(4,6), (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
+
+julia> G, C, k = galois_group(F, overC = true)
+(Group([ (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field over Rational Field with defining polynomial x^2 - 12*x + 6111)
+
+```
+So, while the splitting field over `Q(t)` has degree `6`, the galois group there
+is isomorphic to the `S(3)` or `D(3)` (on 6 points), the splitting field
+over `C(t)` is only of degree `3`. Here the group collapses to a cyclic group
+of degree `3`, the algebraic closure of `Q` in the splitting field is the
+quadratic field returned last. It can be seen to be isomorphic to a cyclotomic field:
+
+```jldoctest galqt
+julia> isisomorphic(k, cyclotomic_field(3)[1])
+(true, Map with following data
+Domain:
+=======
+k
+Codomain:
+=========
+Cyclotomic field of order 3)
+
+```
+
+The information returned consists always at least of a group `G` and a `GaloisCtx`: `C`.
 Jointly, they can be used to further work with the information:
 
 ```@docs
@@ -126,7 +160,7 @@ To illustrate the use as a splitting field, we will proof that `r[1]^2` is actua
 an integer - and that `r[1]+r[3]` is not.
 
 Any multivariate polynomial in four variables and with integer coefficients defines via evaluation at the
-roots (the vector of roots) an element in the splitting field. In case the evaluation is 
+roots an element in the splitting field. In case the evaluation is 
 actually an integer, this can be proven with the tools provided.
 
 ```jldoctest galois1
@@ -191,6 +225,32 @@ julia> for i=1:4
 
 So, `x^4-10x^2+1` should be the minimal polynomial to $\sqrt 3 + \sqrt 2$ - which it is.
 
+In the case of computations over the rational function field, both the
+precision and the bound are more complicated - but can be used in the same way:
+Here, the roots are power series with `q`-adic coefficients, thus the precision
+has to cover both the precision of the coefficient as well as the number
+of terms in the series. Similarly, in this context, an `isinteger` 
+is now a polynomial with integer coefficients. Thus the bound needs
+to bound the degree as well as the coefficient size.
+
+```jldoctest
+julia> Qt,t = RationalFunctionField(QQ, "t");
+julia> Qtx, x = Qt["x"];
+julia> F, a = function_field(x^3+t+2);
+julia> G, C = galois_group(F);
+julia> describe(G)
+"S(3)"
+
+julia> _, s = slpoly_ring(ZZ, 3);
+julia> B = Oscar.GaloisGrp.upper_bound(C, prod(s))
+(x <= (9261, 2, 1))
+
+julia> pr = Oscar.GaloisGrp.bound_to_precision(C, B)
+(2, 2)
+
+julia> Oscar.GaloisGrp.isinteger(C, B, evaluate(prod(s), roots(C, pr)))
+(true, -t - 2)
+```
 
 ```@docs
 galois_quotient(C::Oscar.GaloisGrp.GaloisCtx, Q::PermGroup)
