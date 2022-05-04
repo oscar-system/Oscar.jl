@@ -40,7 +40,7 @@ Currently, the computation of Galois groups is possible for
   - `f` a polynomial over the rationals, an `AnticNumberField` or 
      the univariate function field over the rationals (here explicit
      permutations of the roots in a suitable splitting field are returned).
-     Futhermore, the the case of `f` over the rational function field, the
+     Furthermore, in case of `f` over the rational function field, the
      monodromy can be computed, ie. the automorphism group over the
      complex numbers.
 
