@@ -129,11 +129,11 @@ InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
         ele := gens[1];
         hom := Julia.Oscar._iso_oscar_gap(ele!.m.base_ring);
         
-        GAPGenerators := List(gens, g -> Julia.AbstractAlgebra.map_entries(hom, g!.m));
+        GAPGenerators := List(gens, g -> Julia.Oscar.map_entries(hom, g!.m));
         
         GAPGroup := GroupByGenerators(GAPGenerators);
         
-        f := function(m) return Julia.AbstractAlgebra.map_entries(hom,m!.m); end;
+        f := function(m) return Julia.Oscar.map_entries(hom,m!.m); end;
         f_inv := function(m) return MakeJuliaMatrixRep(Julia.Oscar.preimage_matrix(hom,m)); end;
 
         JuliaGAPMap := GroupHomomorphismByFunction(G,GAPGroup,f,f_inv);
