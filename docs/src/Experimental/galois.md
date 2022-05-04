@@ -38,7 +38,7 @@ Currently, the computation of Galois groups is possible for
   - `K` a finite extension of the rational function field over the
      rationals
   - `f` a polynomial over the rationals, an `AnticNumberField` or 
-     the univarite function field over the rationals (here explicit
+     the univariate function field over the rationals (here explicit
      permutations of the roots in a suitable splitting field are returned).
      Futhermore, the the case of `f` over the rational function field, the
      monodromy can be computed, ie. the automorphism group over the
