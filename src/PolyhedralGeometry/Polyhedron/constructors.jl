@@ -6,11 +6,10 @@
 
 struct Polyhedron{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
-    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
     
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
-    Polyhedron{T}(p::Polymake.BigObject, b::Symbol) where T<:scalar_types = new{T}(p, b)
+    Polyhedron{T}(p::Polymake.BigObject) where T<:scalar_types = new{T}(p)
 end
 
 # default scalar type: `fmpq`
@@ -19,7 +18,6 @@ Polyhedron(x...) = Polyhedron{fmpq}(x...)
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
 Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
-Polyhedron(p::Polymake.BigObject, b::Symbol) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p, b)
 
 @doc Markdown.doc"""
 
