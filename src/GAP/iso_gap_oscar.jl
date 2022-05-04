@@ -41,6 +41,8 @@ function _iso_gap_oscar(F::GAP.GapObj)
        elseif GAP.Globals.IsCyclotomicCollection(F)
          if GAP.Globals.IsCyclotomicField(F)
            return _iso_gap_oscar_field_cyclotomic(F)
+         elseif F === GAP.Globals.Cyclotomics
+           return _iso_gap_oscar_abelian_closure(F)
          end
        end
      end
@@ -101,6 +103,13 @@ end
 function _iso_gap_oscar_field_cyclotomic(FG::GAP.GapObj)
    FO = CyclotomicField(GAPWrap.Conductor(FG))[1]
    finv, f = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
+
+   return MapFromFunc(f, finv, FG, FO)
+end
+
+function _iso_gap_oscar_abelian_closure(FG::GAP.GapObj)
+   FO, _ = abelian_closure(QQ)
+   finv, f = _iso_oscar_gap_abelian_closure_functions(FO, FG)
 
    return MapFromFunc(f, finv, FG, FO)
 end

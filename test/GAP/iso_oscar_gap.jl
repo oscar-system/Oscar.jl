@@ -179,6 +179,19 @@ end
    @test phi(-a^3 + a^2 + 1) == GAP.evalstr("-E(5)^2-E(5)^3")
 end
 
+@testset "abelian closure" begin
+  F, z = abelian_closure(QQ)
+  iso = Oscar.iso_oscar_gap(F)
+  for N in [1, 2, 5, 15]
+    x = z(N)
+    y = iso(x)
+    @test x == preimage(iso, y)
+  end
+  @test_throws ErrorException iso(CyclotomicField(2)[2])
+  @test_throws ErrorException image(iso, CyclotomicField(2)[2])
+  @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+end
+
 @testset "univariate polynomial rings" begin
    baserings = [QQ,                           # yields `FmpqPolyRing`
                 ZZ,                           # yields `FmpzPolyRing`
