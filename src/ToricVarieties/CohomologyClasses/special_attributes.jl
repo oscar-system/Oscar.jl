@@ -51,7 +51,7 @@ julia> polynomial(volume_form(hirzebruch_surface(5)))
     mc = ray_indices(maximal_cones(v))
     exponents = [fmpz(mc[1,i]) for i in 1:length(mc[1,:])]
     indets = gens(cohomology_ring(v))
-    poly = fmpz(1) * prod(indets[k]^exponents[k] for k in 1:length(exponents))
+    poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
     if iszero(poly) || degree(poly)[1] != dim(v)
         throw(ArgumentError("The volume class does not exist."))
     end

@@ -20,7 +20,7 @@ export ToricDivisorClass
 ######################
 
 @doc Markdown.doc"""
-    ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{fmpz})
+    ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 
 Construct the toric divisor class associated to a list of integers which specify an element of the class group of the normal toric variety `v`.
 
@@ -33,23 +33,7 @@ julia> tdc = ToricDivisorClass(P2, class_group(P2)([fmpz(1)]))
 A divisor class on a normal toric variety
 ```
 """
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{fmpz}) = ToricDivisorClass(v, class_group(v)(coeffs))
-
-@doc Markdown.doc"""
-    ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{Int})
-
-Construct the toric divisor class associated to a list of integers which specify an element of the class group of the normal toric variety `v`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc = ToricDivisorClass(P2, class_group(P2)([1]))
-A divisor class on a normal toric variety
-```
-"""
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{Int}) = ToricDivisorClass(v, class_group(v)([fmpz(c) for c in coeffs]))
+ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion} = ToricDivisorClass(v, class_group(v)([fmpz(c) for c in coeffs]))
 
 
 ######################
@@ -100,8 +84,7 @@ function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
 end
 
 
-Base.:*(c::fmpz, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), c * divisor_class(tdc))
-Base.:*(c::Int, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), fmpz(c) * divisor_class(tdc))
+Base.:*(c::T, tdc::ToricDivisorClass) where {T <: IntegerUnion} = ToricDivisorClass(toric_variety(tdc), fmpz(c) * divisor_class(tdc))
 
 
 ########################
