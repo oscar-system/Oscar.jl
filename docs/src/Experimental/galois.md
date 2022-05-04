@@ -12,7 +12,7 @@ Pages = ["galois.md"]
 
 # Galois Theory
 
-Let `K` be a finite (separable) extension of `k`. Then, in contrast to most of 
+Let `K` be a finite (separable) field extension of `k`. Then, in contrast to most of 
 the literature we distinguish two concepts
 
  - the *automorphism group*
