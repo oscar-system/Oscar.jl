@@ -95,6 +95,8 @@
     y = QQ(x^5)
     @test y isa fmpq
     @test y == 1
+    @test_throws ErrorException ZZ(x)
+    @test_throws ErrorException QQ(x)
   end
 
   @testset "Promote rule" begin
