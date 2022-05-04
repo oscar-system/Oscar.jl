@@ -119,6 +119,16 @@ function load_from_polymake(::Type{PolyhedralComplex}, jsondict::Dict{Symbol, An
 end
 
 
+##############################################################################
+"""
+    load_from_polymake(::Type{Graphs.Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+
+Load a graph stored in JSON format, given the filename as input.
+"""
+function load_from_polymake(::Type{Graphs.Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+    polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+    return Graphs.Graph{T}(polymake_object)
+end
 
 
 
