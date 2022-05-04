@@ -20,6 +20,7 @@ export
     character_field,
     character_parameters,
     character_table,
+    class_lengths,
     class_multiplication_coefficient,
     class_parameters,
     class_positions_of_kernel,
@@ -32,6 +33,7 @@ export
     is_duplicate_table,
     known_class_fusion,
     maxes,
+    names_of_fusion_sources,
     natural_character,
     orders_centralizers,
     orders_class_representatives,
@@ -83,12 +85,12 @@ julia> Oscar.with_unicode() do
 ```
 """
 function atlas_irrationality(F::AnticNumberField, description::String)
-    return F(GAP.Globals.AtlasIrrationality(GAP.GapObj(description)))
+    return F(GAP.Globals.AtlasIrrationality(GapObj(description))::GAP.Obj)
 end
 
 function atlas_irrationality(description::String)
     F = abelian_closure(QQ)[1]
-    return F(GAP.Globals.AtlasIrrationality(GAP.GapObj(description)))
+    return F(GAP.Globals.AtlasIrrationality(GapObj(description))::GAP.Obj)
 end
 
 
@@ -117,15 +119,15 @@ in an ordinary table, and to store the corresponding ordinary table
 in a `p`-modular table.
 """
 @attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
-    GAPTable::GAP.GapObj  # the character table object
+    GAPTable::GapObj  # the character table object
     characteristic::Int
     GAPGroup::GAPGroup    # the underlying group, if any
 
-    function GAPGroupCharacterTable(G::GAPGroup, tab::GAP.GapObj, char::Int)
+    function GAPGroupCharacterTable(G::GAPGroup, tab::GapObj, char::Int)
       return new(tab, char, G)
     end
 
-    function GAPGroupCharacterTable(tab::GAP.GapObj, char::Int)
+    function GAPGroupCharacterTable(tab::GapObj, char::Int)
       #GAPGroup is left undefined
       return new(tab, char)
     end
@@ -177,12 +179,12 @@ Sym( [ 1 .. 3 ] ) mod 2
 function character_table(G::GAPGroup, p::Int = 0)
     tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
     return get!(tbls, p) do
-      gaptbl = GAP.Globals.CharacterTable(G.X)
+      gaptbl = GAP.Globals.CharacterTable(G.X)::GapObj
       if p != 0
         # Create the `p`-modular table if possible.
         isprime(p) || error("p must be 0 or a prime integer")
-        gaptbl = GAP.Globals.mod(gaptbl, GAP.Obj(p))
-        gaptbl == GAP.Globals.fail && return nothing
+        gaptbl = GAP.Globals.mod(gaptbl, GAP.Obj(p))::GapObj
+        gaptbl === GAP.Globals.fail && return nothing
       end
       return GAPGroupCharacterTable(G, gaptbl, p)
     end
@@ -226,8 +228,8 @@ function character_table(id::String, p::Int = 0)
     end
 
     return get!(character_tables_by_id, modid) do
-      tbl = GAP.Globals.CharacterTable(GAP.GapObj(modid))
-      tbl == GAP.Globals.fail && return nothing
+      tbl = GAP.Globals.CharacterTable(GapObj(modid))::GapObj
+      tbl === GAP.Globals.fail && return nothing
       return GAPGroupCharacterTable(tbl, p)
     end
 end
@@ -275,8 +277,8 @@ Currently the following series are supported.
 function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
     hasproperty(GAP.Globals, :CTblLib) || error("no character table library available")
     args = GAP.Obj([string(series), parameter], recursive = true)
-    tbl = GAP.Globals.CallFuncList(GAP.Globals.CharacterTable, args)
-    tbl == GAP.Globals.fail && return nothing
+    tbl = GAP.Globals.CallFuncList(GAP.Globals.CharacterTable, args)::GapObj
+    tbl === GAP.Globals.fail && return nothing
     tbl = GAPGroupCharacterTable(tbl, 0)
     set_attribute!(tbl, :series, (series, parameter))
     return tbl
@@ -341,9 +343,9 @@ function all_character_table_names(L...; ordered_by = nothing)
 
     if ordered_by isa Function
       K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, gapargs...;
-            OrderedBy = find_index_function(ordered_by, false)[2])
+            OrderedBy = find_index_function(ordered_by, false)[2])::GapObj
     else
-      K = GAP.Globals.AllCharacterTableNames(gapargs...)
+      K = GAP.Globals.AllCharacterTableNames(gapargs...)::GapObj
     end
     return Vector{String}(K)
 end
@@ -526,7 +528,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
 
     # Compute the factored centralizer orders.
-    cents = Vector{fmpz}(GAP.Globals.SizesCentralizers(gaptbl))
+    cents = Vector{fmpz}(GAP.Globals.SizesCentralizers(gaptbl)::GapObj)
     fcents = [collect(factor(x)) for x in cents]
     d = Dict([p => fill(".", n) for p in primes]...)
     for i in 1:n
@@ -537,8 +539,8 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     cents_strings = [d[p] for p in primes]
 
     # Compute display format for power maps.
-    names = Vector{String}(GAP.Globals.ClassNames(gaptbl))
-    pmaps = Vector{Any}(GAP.Globals.ComputedPowerMaps(gaptbl))
+    names = Vector{String}(GAP.Globals.ClassNames(gaptbl)::GapObj)
+    pmaps = Vector{Any}(GAP.Globals.ComputedPowerMaps(gaptbl)::GapObj)
     power_maps_primes = String[]
     power_maps_strings = Vector{String}[]
     for i in 2:length(pmaps)
@@ -568,7 +570,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     OD = get(io, :OD, false)::Bool
     if OD && hasproperty(GAP.Globals, :OrthogonalDiscriminants)
       ODs = [replace(x -> isnothing(x) ? "" : string(x),
-                     Vector{Any}(GAP.Globals.OrthogonalDiscriminants(gaptbl)))]
+                     Vector{Any}(GAP.Globals.OrthogonalDiscriminants(gaptbl)::GapObj))]
       ODlabel = ["OD"]
       emptycor = ["" for i in 1:(length(ind)+1)]
     else
@@ -647,9 +649,10 @@ end
 
 ##############################################################################
 #
-length(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)
-Oscar.nrows(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)
-Oscar.ncols(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)
+length(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
+Oscar.nrows(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
+Oscar.ncols(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
+number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
 
 @doc Markdown.doc"""
     order(::Type{T} = fmpz, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
@@ -666,7 +669,7 @@ julia> order(character_table(symmetric_group(4)))
 order(tbl::GAPGroupCharacterTable) = order(fmpz, tbl)
 
 function order(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
-  return T(GAP.Globals.Size(tbl.GAPTable))
+  return T(GAP.Globals.Size(tbl.GAPTable)::GAP.Obj)
 end
 
 @doc Markdown.doc"""
@@ -701,6 +704,18 @@ fmpz[60, 4, 3, 5, 5]
 @gapattribute orders_centralizers(tbl::GAPGroupCharacterTable) = Vector{fmpz}(GAP.Globals.SizesCentralizers(tbl.GAPTable)::GAP.Obj)
 
 @doc Markdown.doc"""
+    class_lengths(tbl::GAPGroupCharacterTable)
+
+# Examples
+```jldoctest
+julia> println(class_lengths(character_table("A5")))
+fmpz[1, 15, 20, 12, 12]
+
+```
+"""
+@gapattribute class_lengths(tbl::GAPGroupCharacterTable) = Vector{fmpz}(GAP.Globals.SizesConjugacyClasses(tbl.GAPTable)::GapObj)
+
+@doc Markdown.doc"""
     maxes(tbl::GAPGroupCharacterTable)
 
 Return either nothing (if the value is not known) or an array of identifiers
@@ -724,8 +739,8 @@ true
 ```
 """
 function maxes(tbl::GAPGroupCharacterTable)
-  if GAP.Globals.HasMaxes(tbl.GAPTable)
-    return Vector{String}(GAP.Globals.Maxes(tbl.GAPTable))
+  if GAP.Globals.HasMaxes(tbl.GAPTable)::Bool
+    return Vector{String}(GAP.Globals.Maxes(tbl.GAPTable)::GapObj)
   end
   return nothing
 end
@@ -743,7 +758,7 @@ julia> identifier(character_table("A5"))
 
 ```
 """
-@gapattribute identifier(tbl::GAPGroupCharacterTable) = string(GAP.Globals.Identifier(tbl.GAPTable))
+@gapattribute identifier(tbl::GAPGroupCharacterTable) = string(GAP.Globals.Identifier(tbl.GAPTable)::GapObj)
 
 @doc Markdown.doc"""
     class_positions_of_pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
@@ -766,12 +781,14 @@ function class_positions_of_kernel(fus::Vector{Int})
 end
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
-    return group_class_function(tbl, GAP.Globals.Irr(tbl.GAPTable)[i])
+    irr = GAP.Globals.Irr(tbl.GAPTable)::GapObj
+    return group_class_function(tbl, irr[i])
 end
 #TODO: cache the irreducibles in the table
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
-    val = GAP.Globals.Irr(tbl.GAPTable)[i, j]
+    irr = GAP.Globals.Irr(tbl.GAPTable)::GapObj
+    val = irr[i, j]
     return QabElem(val)
 end
 #TODO: cache the values once they are known?
@@ -792,8 +809,8 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 
     modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
     if ! haskey(modtbls, p)
-      modtblgap = mod(tbl.GAPTable, p)
-      if modtblgap == GAP.Globals.fail
+      modtblgap = mod(tbl.GAPTable, p)::GapObj
+      if modtblgap === GAP.Globals.fail
         modtbls[p] = nothing
       elseif isdefined(tbl, :GAPGroup)
         modtbls[p] = GAPGroupCharacterTable(tbl.GAPGroup, modtblgap, p)
@@ -830,7 +847,7 @@ julia> decomposition_matrix(t2)
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
-    return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
+    return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable)::GapObj)
 end
 
 @doc Markdown.doc"""
@@ -899,7 +916,7 @@ julia> possible_class_fusions(character_table("A5"), character_table("A6"))
 ```
 """
 function possible_class_fusions(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
-  fus = GAP.Globals.PossibleClassFusions(subtbl.GAPTable, tbl.GAPTable)::GAP.GapObj
+  fus = GAP.Globals.PossibleClassFusions(subtbl.GAPTable, tbl.GAPTable)::GapObj
   return [Vector{Int}(x::GapObj) for x in fus]
 end
 
@@ -908,14 +925,14 @@ end
 ##  character parameters, class parameters
 ##
 function _translate_parameter(para)
-    if GAP.Globals.IsChar(para)
+    if GAP.Globals.IsChar(para)::Bool
       return Char(para)
-    elseif GAP.Globals.IsInt(para)
+    elseif GAP.Globals.IsInt(para)::Bool
       return para
-    elseif GAP.Globals.IsCyc(para)
+    elseif GAP.Globals.IsCyc(para)::Bool
       # happens for the `P:Q` table, only roots of unity occur
-      return [x for x in GAP.Globals.DescriptionOfRootOfUnity(para)]
-    elseif ! GAP.Globals.IsList(para)
+      return [x for x in GAP.Globals.DescriptionOfRootOfUnity(para)::GapObj]
+    elseif ! GAP.Globals.IsList(para)::Bool
       # What can this parameter be?
       return GAP.gap_to_julia(para)
     elseif length(para) == 0
@@ -926,7 +943,7 @@ function _translate_parameter(para)
 end
 
 function _translate_parameter_list(paras)
-    if all(x -> GAP.Globals.IsList(x) && length(x) == 2 && x[1] == 1, paras)
+    if all(x -> GAP.Globals.IsList(x)::Bool && length(x) == 2 && x[1] == 1, paras)
       # If all parameters are lists of length 2 with first entry `1` then
       # take the second entry.
       paras = [x[2] for x in paras]
@@ -963,7 +980,7 @@ julia> character_parameters(character_table("M11"))
 function character_parameters(tbl::GAPGroupCharacterTable)
     return get_attribute!(tbl, :character_parameters) do
       GAPt = tbl.GAPTable
-      GAP.Globals.HasCharacterParameters(GAPt) || return nothing
+      GAP.Globals.HasCharacterParameters(GAPt)::Bool || return nothing
       paras = Vector{GAP.Obj}(GAP.Globals.CharacterParameters(GAPt)::GapObj)
       return _translate_parameter_list(paras)
     end
@@ -994,7 +1011,7 @@ julia> class_parameters(character_table("M11"))
 function class_parameters(tbl::GAPGroupCharacterTable)
     return get_attribute!(tbl, :class_parameters) do
       GAPt = tbl.GAPTable
-      GAP.Globals.HasClassParameters(GAPt) || return nothing
+      GAP.Globals.HasClassParameters(GAPt)::Bool || return nothing
       paras = Vector{GAP.Obj}(GAP.Globals.ClassParameters(GAPt)::GapObj)
       return _translate_parameter_list(paras)
     end
@@ -1007,7 +1024,7 @@ Return the array of strings that are identifiers of those character tables
 which store a class fusion to `tbl`.
 """
 function names_of_fusion_sources(tbl::GAPGroupCharacterTable)
-    return [string(name) for name in GAP.Globals.NamesOfFusionSources(tbl.GAPTable)]
+    return [string(name) for name in GAP.Globals.NamesOfFusionSources(tbl.GAPTable)::GapObj]
 end
 
 @doc Markdown.doc"""
@@ -1017,7 +1034,7 @@ Return `(flag, fus)` where `flag == true` if a class fusion to `tbl2` is stored
 on `tbl1`, and `flag == false` otherwise.
 
 In the former case,
-`fus` is the vector of integers, of length `number_conjugacy_classes(tbl1)`,
+`fus` is the vector of integers, of length `ncols(tbl1)`,
 such that the $i$-th conjugacy class of `tbl1` corresponds to the `fus`[$i$]-th
 conjugacy class of `tbl2`, in the following sense.
 
@@ -1029,8 +1046,8 @@ the image of the $i$-th conjugacy class `tbl1` under the relevant epimorphism
 is the `fus`[$i$]-th conjugacy class of `tbl2`.
 """
 function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
-    map = GAP.Globals.GetFusionMap(subtbl.GAPTable, tbl.GAPTable)
-    if map == GAP.Globals.fail
+    map = GAP.Globals.GetFusionMap(subtbl.GAPTable, tbl.GAPTable)::GapObj
+    if map === GAP.Globals.fail
       return (false, Int[])
     else
       return (true, Vector{Int}(map))
@@ -1046,7 +1063,7 @@ abstract type GroupClassFunction end
 
 struct GAPGroupClassFunction <: GroupClassFunction
     table::GAPGroupCharacterTable
-    values::GAP.GapObj
+    values::GapObj
 end
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
@@ -1054,18 +1071,18 @@ function Base.show(io::IO, chi::GAPGroupClassFunction)
 end
 
 function values(chi::GAPGroupClassFunction)
-    gapvalues = GAP.Globals.ValuesOfClassFunction(chi.values)
+    gapvalues = GAP.Globals.ValuesOfClassFunction(chi.values)::GapObj
     return [QabElem(x) for x in gapvalues]
 end
 
-function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
+function group_class_function(tbl::GAPGroupCharacterTable, values::GapObj)
     GAPWrap.IsClassFunction(values) || error("values must be a class function")
     return GAPGroupClassFunction(tbl, values)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QabElem})
-    gapvalues = GAP.GapObj([GAP.Obj(x) for x in values])
-    return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues))
+    gapvalues = GapObj([GAP.Obj(x) for x in values])
+    return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues)::GapObj)
 end
 
 function group_class_function(G::GAPGroup, values::Vector{<:QabElem})
@@ -1165,7 +1182,7 @@ Return the array of permutation characters of `tbl` that are induced from
 cyclic subgroups.
 """
 function induced_cyclic(tbl::GAPGroupCharacterTable)
-    return [GAPGroupClassFunction(tbl, chi) for chi in GAP.Globals.InducedCyclic(tbl.GAPTable)]
+    return [GAPGroupClassFunction(tbl, chi) for chi in GAP.Globals.InducedCyclic(tbl.GAPTable)::GapObj]
 end
 
 Base.length(chi::GAPGroupClassFunction) = length(chi.values)
@@ -1189,7 +1206,10 @@ Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabEl
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(fmpz, chi))::T
 
 # access character values
-Base.getindex(chi::GAPGroupClassFunction, i::Int) = QabElem(GAP.Globals.ValuesOfClassFunction(chi.values)[i])
+function Base.getindex(chi::GAPGroupClassFunction, i::Int)
+  vals = GAP.Globals.ValuesOfClassFunction(chi.values)::GapObj
+  return QabElem(vals[i])
+end
 
 # arithmetics with class functions
 function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
@@ -1239,7 +1259,7 @@ scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_
 
 function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, fmpz, fmpq, QabElem}
     chi.table === psi.table || error("character tables must be identical")
-    return T(GAP.Globals.ScalarProduct(chi.values, psi.values))::T
+    return T(GAP.Globals.ScalarProduct(chi.values, psi.values)::GAP.Obj)::T
 end
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
@@ -1276,7 +1296,7 @@ Return the class function whose values are the complex conjugates of
 the values of `chi`.
 """
 function conj(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, -1))
+    return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, -1)::GAP.Obj)
 end
 
 @doc Markdown.doc"""
@@ -1286,7 +1306,7 @@ Return the class function whose values are the images of the values of `chi`
 under `sigma`.
 """
 function (sigma::QabAutomorphism)(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, sigma.exp))
+    return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, sigma.exp)::GAP.Obj)
 end
 
 Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QabAutomorphism) = sigma(chi)
@@ -1294,7 +1314,7 @@ Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QabAutomorphism) = sigma(chi)
 @doc Markdown.doc"""
     isirreducible(chi::GAPGroupClassFunction)
 
-Return `true` if `chi` is an irreducible character, and `alse` otherwise.
+Return `true` if `chi` is an irreducible character, and `false` otherwise.
 
 A character is irreducible if it cannot be written as the sum of two
 characters.
@@ -1303,7 +1323,7 @@ class functions (see [`scalar_product`](@ref).
 For Brauer characters there is no generic method for checking irreducibility.
 """
 function isirreducible(chi::GAPGroupClassFunction)
-    return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)
+    return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)::Bool
 end
 
 # Apply a class function to a group element.
@@ -1354,7 +1374,8 @@ If `chi` is irreducible then `indicator(chi)` is
 `-1` if `chi` is real-valued but not afforded by a real representation of $G$.
 """
 function indicator(chi::GAPGroupClassFunction, n::Int = 2)
-    return GAP.Globals.Indicator(chi.table.GAPTable, GAP.GapObj([chi.values]), n)[1]::Int
+    ind = GAP.Globals.Indicator(chi.table.GAPTable, GapObj([chi.values]), n)::GapObj
+    return ind[1]::Int
 end
 
 @doc Markdown.doc"""
@@ -1366,10 +1387,10 @@ by the character values of `chi`, and `phi` is the embedding of `F` into
 """
 function character_field(chi::GAPGroupClassFunction)
     values = chi.values  # a list of GAP cyclotomics
-    gapfield = GAP.Globals.Field(values)
-    N = GAP.Globals.Conductor(gapfield)
+    gapfield = GAP.Globals.Field(values)::GapObj
+    N = GAPWrap.Conductor(gapfield)
     FF, = abelian_closure(QQ)
-    if GAP.Globals.IsCyclotomicField(gapfield)
+    if GAP.Globals.IsCyclotomicField(gapfield)::Bool
       # In this case, the want to return a field that knows to be cyclotomic
       # (and the embedding is easy).
       F, z = Oscar.AbelianClosure.cyclotomic_field(FF, N)
@@ -1383,11 +1404,10 @@ function character_field(chi::GAPGroupClassFunction)
       end
     else
       # In the general case, we have to work for the embedding.
-      gapgens = GAP.Globals.GeneratorsOfField(gapfield)
+      gapgens = GAP.Globals.GeneratorsOfField(gapfield)::GapObj
       @assert length(gapgens) == 1
-      gappol = GAP.Globals.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
-      gapcoeffs = GAP.Globals.CoefficientsOfUnivariatePolynomial(gappol)
-      coeffscyc = Vector{fmpq}(GAP.Globals.COEFFS_CYC(gapgens[1]))
+      gappol = GAP.Globals.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])::GapObj
+      gapcoeffs = GAP.Globals.CoefficientsOfUnivariatePolynomial(gappol)::GapObj
       v = Vector{fmpq}(gapcoeffs)
       R, = PolynomialRing(QQ, "x")
       f = R(v)
@@ -1444,10 +1464,10 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     else
       # Compute the conductor of the largest cyclotomic field
       # that is contained in the character field of `chi`.
-      gapfield = GAP.Globals.Field(values)
-      N = GAP.Globals.Conductor(gapfield)
+      gapfield = GAP.Globals.Field(values)::GapObj
+      N = GAPWrap.Conductor(gapfield)
       for n in reverse(sort(divisors(N)))
-        if GAP.Globals.E(n) in gapfield
+        if GAP.Globals.E(n)::GAP.Obj in gapfield
           if isodd(n)
             bound = fmpz(2*n)
           else
@@ -1501,7 +1521,7 @@ end
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
     p == 1 || error("the case G(m,p,n) with p != 1 is not (yet) supported")
     tbl = GAP.Globals.CharacterTableWreathSymmetric(
-            GAP.Globals.CharacterTable(GAP.GapObj("Cyclic"), m), n)
+            GAP.Globals.CharacterTable(GapObj("Cyclic"), m)::GapObj, n):GapObj
     tbl = GAPGroupCharacterTable(tbl, 0)
     set_attribute!(tbl, :type, (m, p, n))
 

@@ -121,6 +121,7 @@ induced_cyclic(tbl::GAPGroupCharacterTable)
 is_duplicate_table
 maxes
 names_of_fusion_sources
+class_lengths
 orders_centralizers
 orders_class_representatives
 trivial_character(tbl::GAPGroupCharacterTable)
