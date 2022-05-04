@@ -48,8 +48,34 @@ will be available for modules over $S$, i.e. for `T = elem_type(S)`.
 As can easily be seen, having the first three of these methods
 is already equivalent to $S = R[U^{-1}]$ being computable; hence all higher methods can be derived 
 from these basic ones. 
+
+The generic code makes use of a simple caching mechanism for the `SubQuo`s as follows. 
+For a module ``M = (G + N)/N`` with submodules ``G, N \subset R^n`` of some free module, 
+the localization ``M[U^{-1}]`` over ``S = R[U^{-1}]`` has an associated *saturated module* over ``R``:
+```math
+   M' = (G' + N')/N', \quad
+   G' = \{ a \in R^n | \exists u \in U : u \cdot a \in G + N\},\quad
+   N' = \{ b \in R^n | \exists u \in U : u \cdot b \in N\}.
+```
+While it might be difficult to compute such saturations, we have a generic algorithm to check 
+membership for elements in ``M'`` (via `represents_element` for ``M[U^{-1}]``). 
+It is assumed that such membership tests are cheaper for modules over ``R`` compared to 
+modules over ``S``. For instance in the case where ``R`` is a multivariate polynomial ring, 
+once a (relative) groebner basis has been computed for ``M``, membership test for ``M`` 
+is merely a reduction while for the localization ``M[U^{-1}]`` it triggers 
+another groebner basis computation a priori. 
+
+But for every element ``a \in R^n`` that has 
+already been shown to represent an element in the saturation ``M'``, we can cache 
+the results of the computation in an intermediate *pre-saturated module* 
+``M \subset \tilde M \subset M'`` by adding the necessary generators to ``G`` and ``N`` 
+for a representation of ``a``. Then, checking membership for ``a`` a second time will 
+fall back to a membership test in ``\tilde M``. For the latter, we assume some caching 
+to already be implemented as, for instance, for the use of groebner bases in the polynomial 
+case.
+
     
 A sample implementation for various localizations of multivariate polynomial rings 
 can be found in `src/Modules/mpoly-localizations.jl`. A modified version for localizations 
-of affine algebras which also overwrites some of the generic methods is in 
-`src/Modules/mpolyquo-localizations.jl`
+of affine algebras which also overwrites some of the generic methods, is in 
+`src/Modules/mpolyquo-localizations.jl`.
