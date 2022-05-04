@@ -55,8 +55,7 @@ end
 function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, fmpq, nf_elem}
        @assert !isempty(matrices)
     
-       # One should probably check whether all matrices are n by n (and invertible
-       # and such ...)
+       # Check whether all matrices are n by n (and invertible and such ...)
        
        n = nrows(matrices[1])
        isinvertible(x) = isunit(det(x))
@@ -78,15 +77,10 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
 
        Fq, matrices_Fq, OtoFq = Oscar.good_reduction(matrices, 2)
 
-       # G = Oscar.MatrixGroup(n, Fq, matrices_Fq)
-       #N = order(G)
        ele = matrices_Fq[1]
        hom = Oscar._iso_oscar_gap(ele.base_ring)
         
-       gap_matrices_Fq = GAP.Globals.IdentityMat(length(matrices))
-       for i = 1:length(matrices_Fq)
-            gap_matrices_Fq[i] = AbstractAlgebra.map_entries(hom, matrices_Fq[i])
-       end
+       gap_matrices_Fq = GAP.Obj([map_entries(hom, m) for m in matrices_Fq])
        G2 = GAP.Globals.Group(gap_matrices_Fq)
        N = fmpz(GAP.Globals.Order(G2))
        if !isdivisible_by(Hecke._minkowski_multiple(K, n), N)
@@ -108,10 +102,7 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
           end
        end
         
-       gapMatrices = GAP.Globals.IdentityMat(length(matrices))
-       for i = 1:length(matrices)
-            gapMatrices[i] = Oscar.MatrixGroups._wrap_for_gap(matrices[i])
-       end
+       gapMatrices = GAP.Obj([Oscar.MatrixGroups._wrap_for_gap(m) for m in matrices])
        G = GAP.Globals.Group(gapMatrices)
        
        JuliaGAPMap = GAP.Globals.GroupHomomorphismByImagesNC(G,G2,GAP.Globals.GeneratorsOfGroup(G2))
