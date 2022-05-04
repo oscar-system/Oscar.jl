@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -90,10 +93,13 @@ galois_group(f::PolyElem{<:FieldElem})
 ```
 
 Over the rational function field, we can also compute the monodromy group:
-```jldoctest galqt
+```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
 julia> Qt, t = RationalFunctionField(QQ, "t");
+
 julia> Qtx, x = Qt["x"];
+
 julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
+
 julia> subfields(F)
 4-element Vector{Any}:
  (Function Field over Rational Field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
@@ -105,7 +111,7 @@ julia> galois_group(F)
 (Group([ (), (1,5)(2,3)(4,6), (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
 
 julia> G, C, k = galois_group(F, overC = true)
-(Group([ (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field over Rational Field with defining polynomial x^2 - 12*x + 6111)
+(Group([ (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field over Rational Field with defining polynomial x^2 + 12*x + 24336)
 
 ```
 So, while the splitting field over `Q(t)` has degree `6`, the galois group there
@@ -119,7 +125,7 @@ julia> isisomorphic(k, cyclotomic_field(3)[1])
 (true, Map with following data
 Domain:
 =======
-k
+Number field over Rational Field with defining polynomial x^2 + 12*x + 24336
 Codomain:
 =========
 Cyclotomic field of order 3)
@@ -137,9 +143,11 @@ Oscar.GaloisGrp.resolvent(C::Oscar.GaloisGrp.GaloisCtx, G::PermGroup, U::PermGro
 ```
 
 To illustrate:
-```jldoctest galois1
+```jldoctest galois1; setup = :(using Oscar, Random ; Random.seed!(1))
 julia> Qx, x = QQ["x"];
+
 julia> f = (x^2-2)*(x^2-3);
+
 julia> G, C = galois_group(f)
 (Group([ (1,2), (3,4) ]), Galois Context for x^4 - 5*x^2 + 6 and prime 11)
 
@@ -165,6 +173,7 @@ actually an integer, this can be proven with the tools provided.
 
 ```jldoctest galois1
 julia> I, s = PolynomialRing(ZZ, 4);
+
 julia> s[1]^2
 x1^2
 
@@ -186,15 +195,15 @@ julia> evaluate(s[1]^2, roots(C, 7))
 3*11^0 + O(11^7)
 
 julia> Oscar.GaloisGrp.isinteger(C, B, ans)
-true, 3
+(true, 3)
 ```
 Now, to show that `r[1] + r[3]` is not an integer:
 ```jldoctest galois1
 julia> B = Oscar.GaloisGrp.upper_bound(C, s[1] + s[3])
 (x <= 12)
 
-julia> isinteger(C, B, evaluate(s[1] + s[3], roots(C, 7)))
-false, 0
+julia> Oscar.GaloisGrp.isinteger(C, B, evaluate(s[1] + s[3], roots(C, 7)))
+(false, 0)
 ```
 More interestingly, we can use this to find the minimal polynomial of `r[1] + r[3]`.
 Generically, the Galois-conjugates of `r[1]+r[3]` should be the `G`-orbit
@@ -212,11 +221,11 @@ julia> o = collect(orbit(G, s[1]+s[3]))
  x2 + x3
 
 julia> for i=1:4
-   B = Oscar.GaloisGrp.upper_bound(C, elementary_symmetric, o, i)
-   pr = Oscar.GaloisGrp.bound_to_precision(C, B)
-   co = [evaluate(x, roots(C, pr)) for x = o]
-   println(i, ": ", Oscar.GaloisGrp.isinteger(C, B, elementary_symmetric(co, i)))
- end
+         B = Oscar.GaloisGrp.upper_bound(C, elementary_symmetric, o, i)
+         pr = Oscar.GaloisGrp.bound_to_precision(C, B)
+         co = [evaluate(x, roots(C, pr)) for x = o]
+         println(i, ": ", Oscar.GaloisGrp.isinteger(C, B, elementary_symmetric(co, i)))
+       end
 1: (true, 0)
 2: (true, -10)
 3: (true, 0)
@@ -229,19 +238,24 @@ In the case of computations over the rational function field, both the
 precision and the bound are more complicated - but can be used in the same way:
 Here, the roots are power series with `q`-adic coefficients, thus the precision
 has to cover both the precision of the coefficient as well as the number
-of terms in the series. Similarly, in this context, an `isinteger` 
+of terms in the series. Similarly, in this context, an `isinteger`
 is now a polynomial with integer coefficients. Thus the bound needs
 to bound the degree as well as the coefficient size.
 
 ```jldoctest
 julia> Qt,t = RationalFunctionField(QQ, "t");
+
 julia> Qtx, x = Qt["x"];
+
 julia> F, a = function_field(x^3+t+2);
+
 julia> G, C = galois_group(F);
+
 julia> describe(G)
-"S(3)"
+"S3"
 
 julia> _, s = slpoly_ring(ZZ, 3);
+
 julia> B = Oscar.GaloisGrp.upper_bound(C, prod(s))
 (x <= (9261, 2, 1))
 
