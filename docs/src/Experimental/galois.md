@@ -77,7 +77,7 @@ information about the progress can be obtained.
 The computation of Galois groups follows Stauduhars algorithm with many
 improvements, see ... for an overview.
 
-The entrire computation can also be thought of finding a describtion of the
+The entrire computation can also be thought of finding a description of the
 splitting field of the polynomial. In fact, the information returned
 can be used to verify any algebraic identity between the roots, and
 find explicit subfields of the splitting field as well.
@@ -164,7 +164,7 @@ julia> r[1]^2
 julia> r[3]^2
 2*11^0 + O(11^5)
 ```
-To illustrate the use as a splitting field, we will proof that `r[1]^2` is actually
+To illustrate the use as a splitting field, we will prove that `r[1]^2` is actually
 an integer - and that `r[1]+r[3]` is not.
 
 Any multivariate polynomial in four variables and with integer coefficients defines via evaluation at the
@@ -209,7 +209,7 @@ More interestingly, we can use this to find the minimal polynomial of `r[1] + r[
 Generically, the Galois-conjugates of `r[1]+r[3]` should be the `G`-orbit
 of `s[1]+s[3]` evaluated at the roots.
 
-Once the orbit is known, the coefficients of the minmal polynomial are just the elementary
+Once the orbit is known, the coefficients of the minimal polynomial are just the elementary
 symmetric functions evaluated at the roots: 
 
 ```jldoctest galois1
