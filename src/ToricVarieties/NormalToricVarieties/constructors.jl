@@ -92,7 +92,6 @@ function NormalToricVariety(C::Cone)
     set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :picard_group, free_abelian_group(0))
     
-    # return
     return variety
 end
 
@@ -148,15 +147,10 @@ A normal toric variety
 ```
 """
 function NormalToricVariety(PF::PolyhedralFan)
-    # construct the variety
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
     variety = NormalToricVariety(pmntv)
-    
-    # set attributes
     set_attribute!(variety, :fan, PF)
-    
-    # return
     return variety
 end
 
@@ -181,13 +175,8 @@ A normal toric variety
 ```
 """
 function NormalToricVariety(P::Polyhedron)
-    #construct the variety
     variety = NormalToricVariety(normal_fan(P))
-    
-    # set attributes
     set_attribute!(variety, :polyhedron, P)
-    
-    # return
     return variety
 end
 
@@ -244,26 +233,21 @@ A normal, affine, 2-dimensional toric variety
 ```
 """
 function affine_space(::Type{NormalToricVariety}, d::Int)
-    # construct the cone of the variety
-    C = positive_hull(identity_matrix(ZZ, d))
-    
     # construct the variety
+    C = positive_hull(identity_matrix(ZZ, d))
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv)
     
-    # set known properties
+    # set known properties and attributes
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
     set_attribute!(variety, :isprojective_space, false)
-    
-    # set attributes
     set_attribute!(variety, :fan, fan)
     set_attribute!(variety, :dim, d)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     
-    # return the variety
     return variety
 end
 export affine_space
@@ -281,12 +265,9 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 ```
 """
 function projective_space(::Type{NormalToricVariety}, d::Int)
-    # construct the variety
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
     variety = NormalToricVariety(pm_object)
-    
-    # set properties
     set_attribute!(variety, :isaffine, false)
     set_attribute!(variety, :isprojective, true)
     set_attribute!(variety, :is_projective_space, true)
@@ -298,20 +279,14 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :isgorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
     set_attribute!(variety, :isfano, true)
-    
-    # set general attributes
     set_attribute!(variety, :dim, d)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, d+1)
     set_attribute!(variety, :betti_number, fill(fmpz(1), d+1))
-    
-    # set groups and mappings
     set_attribute!(variety, :character_lattice, free_abelian_group(d))
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_weil_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
-    
-    # return the variety
     return variety
 end
 export projective_space
@@ -352,7 +327,7 @@ function hirzebruch_surface(r::Int)
         set_attribute!(variety, :isfano, false)
     end
     
-    # assign meaningful variables according to the rays
+    # assign *meaningful* variables
     vars = ["t1", "x1", "t2", "x2"]
     set_coordinate_names(variety, vars)
     
@@ -361,8 +336,6 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, 4)
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
-    
-    # set class and torusinvariant weil divisor group
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
@@ -381,7 +354,6 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
-    # return the result
     return variety
 end
 export hirzebruch_surface
@@ -504,7 +476,6 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_weil_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
-    # return the result
     return variety
 end
 export del_pezzo
@@ -556,7 +527,6 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     weights = [map_from_torusinvariant_weil_divisor_group_to_class_group(new_variety)(x) for x in gens(torusinvariant_weil_divisor_group(new_variety))]
     set_attribute!(new_variety, :cox_ring_weights, weights)
     
-    # return variety
     return new_variety
 end
 export blowup_on_ith_minimal_torus_orbit
