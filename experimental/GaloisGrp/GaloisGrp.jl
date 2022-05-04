@@ -1925,7 +1925,7 @@ end
 """
     isinteger(C::GaloisCtx, B::BoundRingElem, v)
 
-For an element `v` representing an integeral polynomial avaluated at the
+For an element `v` representing an integral polynomial evaluated at the
 roots stored in `C`, known to be bounded from above by `B`, either return
 `true` and an explicit (algebraic) integer in the base ring of the context or
 return `false`.
