@@ -1721,7 +1721,7 @@ extension of the p-adics.
 # Example
 ```jldoctest
 julia> K, a = cyclotomic_field(5);
-julia> G, C = galois_group(K)
+
 julia> G, C = galois_group(K)
 (Group([ (1,4,2,3), (1,2)(3,4) ]), Galois Context for x^4 + x^3 + x^2 + x + 1 and prime 19)
 
@@ -2121,7 +2121,9 @@ with galois group isomorphic to the original one.
 # Example
 ```jldoctest
 julia> Qx, x = QQ["x"];
+
 julia> G, C = galois_group(x^3-2);
+
 julia> galois_quotient(C, 6)
 1-element Vector{Any}:
  Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
@@ -2194,9 +2196,11 @@ coefficients.
 
 # Example
 ```jldoctest
-julia> Qx, x = QQ["x"]
+julia> Qx, x = QQ["x"];
+
 julia> cauchy_ideal(x^4-2)
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4)
+
 ```
 """
 function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRing(base_ring(f), degree(f), cached = false)[1])
@@ -2222,13 +2226,16 @@ functions and the coefficients of the polynomial.
 
 # Example
 ```jldoctest
-julia> Qx, x = QQ["x"]
+julia> Qx, x = QQ["x"];
+
 julia> i = galois_ideal(galois_group(x^4-2)[1])
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, -x1*x2 - x1*x3 - x2*x4 - x3*x4)
 
 julia> k, _ = number_field(i);
+
 julia> length(roots(x^4-2, k))
 4
+
 ```
 """
 function galois_ideal(C::GaloisCtx, extra::Int = 5)
