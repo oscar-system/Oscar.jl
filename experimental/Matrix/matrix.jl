@@ -59,17 +59,16 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
        # and such ...)
        
        n = nrows(matrices[1])
-       isinvertible(x) = applicable(inv, x) && isone(inv(x) * x)
-       isquadraticSameSize(x) = (nrows(x) == n) && (ncols(x) == n)
+       isinvertible(x) = isunit(det(x))
        K = base_ring(matrices[1])
        for mat in matrices
-            if !(K == mat.base_ring)
+            if K != mat.base_ring
                 error("Matrices are not from the same base ring.")
             end
-            if !(isinvertible(mat))
+            if !isinvertible(mat)
                 error("At least one matrix is not invertible.")
             end
-            if !(isquadraticSameSize(mat))
+            if size(mat) != (n, n)
                 error("At least one matrix is not quadratic or not the same size.")
             end
        end
