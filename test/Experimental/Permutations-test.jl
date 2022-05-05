@@ -8,6 +8,8 @@
   p = Oscar.Permutations.@perm (a,f(a),b)(a+1,b*2)
   @test p == cperm([1,5,4,2])
   
+  @test_throws ErrorException Oscar.Permutations.@perm (-1, 1)
+  
   gens = Oscar.Permutations.@perm 14 [
          (1,10)
         (2,11)
@@ -30,6 +32,8 @@
   p[8] = cperm(symmetric_group(14),[1,2,3,4,5,6,7],[8,9,10,11,12,13,14])
   p[9] = cperm(symmetric_group(14),[1,2],[10,11])
   @test gens == p
+  
+  @test_throws ArgumentError Oscar.Permutations.@perm 10 [(1,11)]
   
   G = Oscar.Permutations.permgroup(14,gens)
   @test Oscar.Permutations.size(G) == 645120
