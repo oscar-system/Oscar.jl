@@ -28,7 +28,7 @@ export
     gen,
     gens, has_gens,
     hall_subgroup,
-    hall_subgroups_representatives,
+    hall_subgroup_reps,
     hall_system, has_hall_system, set_hall_system,
     inv!,
     isalmostsimple, has_isalmostsimple, set_isalmostsimple,
@@ -42,7 +42,7 @@ export
     is_quasisimple, hasis_quasisimple, setis_quasisimple,
     issimple, has_issimple, set_issimple,
     is_sporadic_simple, hasis_sporadic_simple, setis_sporadic_simple,
-    low_index_subgroups,
+    low_index_subgroup_reps,
     maximal_subgroup_reps,
     moved_points, has_moved_points, set_moved_points,
     mul,
@@ -483,6 +483,7 @@ julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 julia> representative(C)
 (1,2)
 
+```
 """
 representative(C::GroupConjClass) = C.repr
 
@@ -501,6 +502,7 @@ julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 julia> acting_group(C) === G
 true
 
+```
 """
 acting_group(C::GroupConjClass) = C.X
 
@@ -518,6 +520,7 @@ julia> G = symmetric_group(4);
 julia> C = conjugacy_class(G, G([2, 1, 3, 4]))
 (1,2) ^ Sym( [ 1 .. 4 ] )
 
+```
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
    return GroupConjClass(G, g, GAP.Globals.ConjugacyClass(G.X,g.X)::GapObj)
@@ -613,6 +616,7 @@ julia> conjugacy_classes_subgroups(G)
  Group([ (1,2,3) ]) ^ Sym( [ 1 .. 3 ] )
  Group([ (1,2,3), (2,3) ]) ^ Sym( [ 1 .. 3 ] )
 
+```
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesSubgroups(G.X)::GapObj)
@@ -640,6 +644,7 @@ julia> subgroup_reps(G, order = fmpz(2))
 1-element Vector{PermGroup}:
  Group([ (2,3) ])
 
+```
 """
 function subgroup_reps(G::GAPGroup; order::fmpz = fmpz(-1))
   C = GAP.Globals.ConjugacyClassesSubgroups(G.X)
@@ -657,7 +662,14 @@ Return the vector of all conjugacy classes of maximal subgroups of G.
 
 # Examples
 ```jldoctest
+julia> G = symmetric_group(3);
 
+julia> conjugacy_classes_maximal_subgroups(G)
+2-element Vector{GroupConjClass{PermGroup, PermGroup}}:
+ Group([ (1,2,3) ]) ^ Sym( [ 1 .. 3 ] )
+ Group([ (2,3) ]) ^ Sym( [ 1 .. 3 ] )
+
+```
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)::GapObj)
@@ -678,13 +690,14 @@ julia> maximal_subgroup_reps(symmetric_group(4))
  Group([ (3,4), (1,4)(2,3), (1,3)(2,4) ])
  Group([ (3,4), (2,4,3) ])
 
+```
 """
 function maximal_subgroup_reps(G::GAPGroup)
   return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
 end
 
 """
-    low_index_subgroups(G::GAPGroup, n::Int)
+    low_index_subgroup_reps(G::GAPGroup, n::Int)
 
 Return a vector of representatives (under conjugation) for all subgroups
 of index at most `n` in `G`.
@@ -693,14 +706,15 @@ of index at most `n` in `G`.
 ```jldoctest
 julia> G = symmetric_group(5);
 
-julia> low_index_subgroups(G, 5)
+julia> low_index_subgroup_reps(G, 5)
 3-element Vector{PermGroup}:
  Sym( [ 1 .. 5 ] )
  Alt( [ 1 .. 5 ] )
  Sym( [ 1 .. 4 ] )
 
+```
 """
-function low_index_subgroups(G::PermGroup, n::Int)
+function low_index_subgroup_reps(G::PermGroup, n::Int)
   ll = GAP.Globals.LowIndexSubgroups(G.X, n)
   return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
@@ -720,6 +734,7 @@ Group([ (1,2,3) ])
 julia> conjugate_group(H, gen(G, 1))
 Group([ (2,3,4) ])
 
+```
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
   check_parent(G, x) || error("G and x are not compatible")
@@ -757,6 +772,7 @@ Group([ (1,2)(3,4) ])
 julia> isconjugate(G, H, K)
 false
 
+```
 """
 isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
@@ -1061,7 +1077,7 @@ function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
    return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p)))
 end
 
-# no longer documented, better use `hall_subgroups_representatives`
+# no longer documented, better use `hall_subgroup_reps`
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(isprime, P) || throw(ArgumentError("The integers must be prime"))
@@ -1070,7 +1086,7 @@ function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
 end
 
 """
-    hall_subgroups_representatives(G::Group, P::AbstractVector{<:IntegerUnion})
+    hall_subgroup_reps(G::Group, P::AbstractVector{<:IntegerUnion})
 
 Return a vector that contains representatives of conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
@@ -1085,7 +1101,7 @@ up to conjugacy.
 ```jldoctest
 julia> g = dihedral_group(30);
 
-julia> h = hall_subgroups_representatives(g, [2, 3]);
+julia> h = hall_subgroup_reps(g, [2, 3]);
 
 julia> (length(h), order(h[1]))
 (1, 6)
@@ -1093,17 +1109,17 @@ julia> (length(h), order(h[1]))
 julia> g = GL(3, 2)
 GL(3,2)
 
-julia> h = hall_subgroups_representatives(g, [2, 3]);
+julia> h = hall_subgroup_reps(g, [2, 3]);
 
 julia> (length(h), order(h[1]))
 (2, 24)
 
-julia> h = hall_subgroups_representatives(g, [2, 7]); length(h)
+julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
 0
 
 ```
 """
-function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(isprime, P) || throw(ArgumentError("The integers must be prime"))
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))::GapObj
@@ -1115,6 +1131,9 @@ function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:Integer
      return [_as_subgroup_bare(G, res_gap)]
    end
 end
+
+hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion}) = hall_subgroup_reps(G,P)
+# use @alias?
 
 @doc Markdown.doc"""
     sylow_system(G::Group)
