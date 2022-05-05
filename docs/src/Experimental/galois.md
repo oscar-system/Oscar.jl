@@ -54,12 +54,11 @@ algorithms: lifting the roots of the defining polynomial in the
 given field modulo suitable prime ideal powers and
 recovering the true roots from this information.
 
-The main information is included in the number field chaper, see
+The main information is included in the number field chaper, see for example
 
   - [`automorphisms(::Hecke.NumFieldMor)`](@ref)
   - [`automorphism_group(::NumField)`](@ref)
   - [`automorphism_group(::NumField, ::NumField)`](@ref)
-  - [`absolute_automorphism_group(::NumField)`](@ref)
 
 ## Subfields
 
