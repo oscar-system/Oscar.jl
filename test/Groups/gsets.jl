@@ -180,11 +180,11 @@ end
   @test elements(bl) == elements(maximal_blocks(G8, 1:degree(G8)))
   @test elements(maximal_blocks(S4)) == [[1, 2, 3, 4]]
 
-  # representatives_minimal_blocks
-  bl = representatives_minimal_blocks(G8)
+  # minimal_block_reps
+  bl = minimal_block_reps(G8)
   @test bl == [[1,i] for i in 2:8]
-  @test bl == representatives_minimal_blocks(G8, 1:degree(G8))
-  @test representatives_minimal_blocks(S4) == [[1, 2, 3, 4]]
+  @test bl == minimal_block_reps(G8, 1:degree(G8))
+  @test minimal_block_reps(S4) == [[1, 2, 3, 4]]
 
   # transitivity
   @test transitivity(G8) == 1

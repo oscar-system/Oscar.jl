@@ -14,7 +14,7 @@ export
     issemiregular,
     istransitive,
     maximal_blocks,
-    representatives_minimal_blocks,
+    minimal_block_reps,
     transitivity
 
 export GSet, gset, orbits, as_gset, unwrap, permutation, action_homomorphism,
@@ -303,7 +303,7 @@ Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
 
 julia> orbs = orbits(gset(G));
 
-julia> map(elements, orbs)
+julia> map(collect, orbs)
 2-element Vector{Vector{Int64}}:
  [1, 2, 3, 4]
  [5, 6]
@@ -349,7 +349,7 @@ julia> map(length, orbs)
 
 @attr Any function elements(Omega::GSetByElements)
   orbs = orbits(Omega)
-  elms = union(map(elements, orbs)...)
+  elms = union(map(collect, orbs)...)
   return elms
 end
 
@@ -358,6 +358,27 @@ end
 ##
 
 # In fact, '<:GAPGroup' is not used at all in this function.
+"""
+    permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<:GAPGroup
+
+Return the element of the permutation group that desribes the action
+of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
+
+# Example
+
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> Omega = gset(G, [[1, 2]]);
+
+julia> x = gen(G, 1)
+(1,2,3,4)
+
+julia> permutation(Omega, x)
+(1,2,4,7)(3,6,9,12)(5,8,10,11)
+
+```
+"""
 function permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<:GAPGroup
     omega_list = GAP.julia_to_gap(elements(Omega))
     gfun = GAP.julia_to_gap(Omega.action_function)
@@ -402,8 +423,8 @@ Return the group homomorphism `act` with domain `G = Omega.group`
 and codomain `symmetric_group(n)` that describes the action of `G` on `Omega`,
 where `Omega` has `n` elements.
 
-This means that if an element `g` in `G` maps `elements(Omega)[i]` to
-`elements(Omega)[j]` then `act(g)` maps `i` to `j`.
+This means that if an element `g` in `G` maps `collect(Omega)[i]` to
+`collect(Omega)[j]` then `act(g)` maps `i` to `j`.
 
 # Examples
 ```jldoctest
@@ -420,7 +441,7 @@ Sym( [ 1 .. 15 ] )
 julia> g = gens(G)[1]
 (1,2,3,4,5,6)
 
-julia> elms = elements(Omega);
+julia> elms = collect(Omega);
 
 julia> actg = acthom(g)
 (1,2,3,5,7,10)(4,6,8,11,14,13)(9,12,15)
@@ -435,7 +456,7 @@ true
 """
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = Omega.group
-  omega_list = GAP.julia_to_gap(elements(Omega))
+  omega_list = GAP.julia_to_gap(collect(Omega))
   gap_gens = map(x -> x.X, gens(G))
   gfun = GAP.julia_to_gap(Omega.action_function)
 
@@ -532,7 +553,7 @@ function representative_action(Omega::GSet, omega1, omega2)
     # Computing the orbit of `omega1` or `omega2` would in principle suffice.)
     G = Omega.group
     acthom = action_homomorphism(Omega)
-    elms = elements(Omega)
+    elms = collect(Omega)
     pos1 = findfirst(isequal(omega1), elms)
     pos1 == nothing && return false, one(G)
     pos2 = findfirst(isequal(omega2), elms)
@@ -553,15 +574,19 @@ representative(Omega::GSet) = first(Omega.seeds)
 
 acting_domain(Omega::GSet) = Omega.group
 
+function Base.iterate(Omega::GSet, state = 1)
+  elms = elements(Omega)
+  state > length(elms) && return nothing
+  return (elms[state], state+1)
+end
+
+Base.eltype(Omega::GSetByElements) = eltype(Omega.seeds)
+
 Base.getindex(Omega::GSet, i::Int) = elements(Omega)[i]
-
-# TODO:
-# - Base.iterate
-
 
 blocks(G::GSet) = error("not implemented")
 maximal_blocks(G::GSet) = error("not implemented")
-representatives_minimal_blocks(G::GSet) = error("not implemented")
+minimal_block_reps(G::GSet) = error("not implemented")
 all_blocks(G::GSet) = error("not implemented")
 
 function istransitive(Omega::GSet)
@@ -596,7 +621,7 @@ An exception is thrown if this action is not transitive.
 julia> g = sylow_subgroup(symmetric_group(4), 2)[1]
 Group([ (1,2), (3,4), (1,3)(2,4) ])
 
-julia> elements(blocks(g))
+julia> collect(blocks(g))
 2-element Vector{Vector{Int64}}:
  [1, 2]
  [3, 4]
@@ -628,7 +653,7 @@ An exception is thrown if this action is not transitive.
 julia> G = transitive_group(8, 2)
 4[x]2
 
-julia> elements(maximal_blocks(G))
+julia> collect(maximal_blocks(G))
 2-element Vector{Vector{Int64}}:
  [1, 2, 3, 8]
  [4, 5, 6, 7]
@@ -645,7 +670,7 @@ end
 
 
 """
-    representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+    minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
 Return a vector of block representatives for all minimal non-trivial block
 systems for the action of `G` on `L`.
@@ -661,7 +686,7 @@ An exception is thrown if this action is not transitive.
 julia> G = transitive_group(8, 2)
 4[x]2
 
-julia> representatives_minimal_blocks(G)
+julia> minimal_block_reps(G)
 3-element Vector{Vector{Int64}}:
  [1, 3]
  [1, 5]
@@ -669,7 +694,7 @@ julia> representatives_minimal_blocks(G)
 
 ```
 """
-function representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+function minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert istransitive(G, L) "The group action is not transitive"
    return Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(G.X, GapObj(L))::GapObj)
 end
@@ -678,8 +703,8 @@ end
 """
     all_blocks(G::PermGroup)
 
-Return a vector of representatives of all block systems for the action of
-`G` on the set of moved points of `G`.
+Return a vector of smallest representatives of all block systems
+for the action of `G` on the set of moved points of `G`.
 
 # Examples
 ```jldoctest

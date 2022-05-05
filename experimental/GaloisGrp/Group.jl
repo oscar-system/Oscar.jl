@@ -19,7 +19,7 @@ function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
 end
 
 function block_system(G::PermGroup, B::Vector{Int})
-  return elements(orbit(G, on_sets, B))
+  return collect(orbit(G, on_sets, B))
 end
 
 # given a perm group G and a block B, compute a homomorphism into Sym(B^G)

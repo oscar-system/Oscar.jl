@@ -63,6 +63,7 @@ see [`action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup`](@ref).
 
 ```@docs
 gset(G::GAPGroup, fun::Function, Omega)
+permutation
 action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
 orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
 orbit(G::PermGroup, omega)

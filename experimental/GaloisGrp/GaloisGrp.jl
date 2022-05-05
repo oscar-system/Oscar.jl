@@ -754,7 +754,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   #    http://dblp.uni-trier.de/db/journals/jsc/jsc79.html#Elsenhans17
   # https://doi.org/10.1016/j.jsc.2016.02.005
 
-  l = low_index_subgroups(H, 2*degree(G)^2)
+  l = low_index_subgroup_reps(H, 2*degree(G)^2)
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   sort!(l, lt = (a,b) -> isless(order(b), order(a)))
@@ -762,7 +762,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
     O = orbits(U)
     for o in O
       #TODO: should use orbits of Set(o)...
-      f = sum(g[elements(o)])
+      f = sum(g[collect(o)])
       oH = probable_orbit(H, f)
       oG = probable_orbit(G, f, limit = length(oH)+5)
       if length(oH) < length(oG)
@@ -774,7 +774,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
             return true, I
           end
         end
-        f = prod(g[elements(o)])
+        f = prod(g[collect(o)])
         oH = probable_orbit(H, f)
         I = sum(oH)
         if isprobably_invariant(I, H) &&
@@ -809,8 +809,8 @@ function invariant(G::PermGroup, H::PermGroup)
 
   if !istransitive(G) 
     @vprint :GaloisInvariant 2 "both groups are intransitive\n"
-    OG = [sort(elements(x)) for x = orbits(G)]
-    OH = [sort(elements(x)) for x = orbits(H)]
+    OG = [sort(collect(x)) for x = orbits(G)]
+    OH = [sort(collect(x)) for x = orbits(H)]
     d = setdiff(OH, OG)
     if length(d) > 0
       @vprint :GaloisInvariant 2 "groups have different orbits\n"
@@ -825,7 +825,7 @@ function invariant(G::PermGroup, H::PermGroup)
         @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
         @hassert :GaloisInvariant 0 ismaximal(hG, hH)
         I = invariant(hG, hH)
-        return evaluate(I, g[elements(o)])
+        return evaluate(I, g[collect(o)])
       end
     end
     @vprint :GaloisInvariant 2 "going transitive...\n"
@@ -840,7 +840,7 @@ function invariant(G::PermGroup, H::PermGroup)
     I = invariant(GG, HH)
     ex = 1
     while true
-      J = evaluate(I, [sum(g[o])^ex for o = elements(os)])
+      J = evaluate(I, [sum(g[o])^ex for o = collect(os)])
       if !isprobably_invariant(J, G)
         I = J
         break
@@ -866,8 +866,6 @@ function invariant(G::PermGroup, H::PermGroup)
   bH = all_blocks(H)
 
   d = setdiff(bH, bG)
-#T GAP's AllBlocks: compatible for G and H?
-#T                  ("representatives" or "smallest representatives"?)
   @vprint :GaloisInvariant 2 "Have block systems, they differ at $d\n"
   if length(d) > 0
     @vprint :GaloisInvariant 3  "using F-invar\n"
