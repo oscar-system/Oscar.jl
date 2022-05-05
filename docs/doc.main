@@ -94,6 +94,7 @@
         "Hecke/orders/frac_ideals.md",
      ],
      "NumberTheory/abelian_closure.md",
+     "Experimental/galois.md",
   ],
 
   "Polyhedral Geometry" => [
