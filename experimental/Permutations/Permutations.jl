@@ -50,9 +50,11 @@ end
 
 function permgroup(n::Int64,gens::Vector{PermGroupElem})
 
-    print(GAP.Obj([GAP.Obj(x) for x in gens ]))
-
     return PermGroup(GAP.Globals.Subgroup(GAP.Globals.SymmetricGroup(GAP.Obj(n)),GAP.Obj([GAP.Obj(x) for x in gens ])))
+end
+
+function size(G::PermGroup)
+    return GAP.Globals.Size(G.X)
 end
 
        
