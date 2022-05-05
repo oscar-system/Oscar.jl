@@ -2,7 +2,6 @@ module Permutations
 
  using GAP
  using Oscar
- using MacroTools
 
 macro perm(ex)
     h = (ex).head
@@ -18,7 +17,7 @@ macro perm(ex)
     
     insert!(res,1,Expr(:vect,arg...))
 
-    return :(Oscar.cperm($(res...)))
+    return esc(:(Oscar.cperm($(res...))))
 end
 
 
