@@ -21,10 +21,38 @@ macro perm(ex)
 end
 
 
-macro permGens(n, gens)
+macro perm(n,gens)
 
-    return [permNew(g) for g in gens]
+    s = symmetric_group(n)
+    ores = Vector{Expr}(undef,length(gens.args))
+    i = 1
+    for g in gens.args
+        h = g.head
+        arg = g.args
+        res = []
+        
+        while h != :tuple
+            arg1 = arg[1]
+            insert!(res,1,Expr(:vect,arg[2:length(arg)]...))
+            h = (arg1).head
+            arg = (arg1).args
+        end
+        
+        insert!(res,1,Expr(:vect,arg...))
 
+        ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
+        i = i + 1
+    end
+
+    return Expr(:vect,ores...)
+end
+
+
+function permgroup(n::Int64,gens::Vector{PermGroupElem})
+
+    print(GAP.Obj([GAP.Obj(x) for x in gens ]))
+
+    return PermGroup(GAP.Globals.Subgroup(GAP.Globals.SymmetricGroup(GAP.Obj(n)),GAP.Obj([GAP.Obj(x) for x in gens ])))
 end
 
        
