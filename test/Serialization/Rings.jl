@@ -27,5 +27,15 @@
             loaded = load(filename)
             @test p == loaded
         end
+
+        @testset "Uni Polynomials Over ZZ Residue Ring" begin
+            R = ResidueRing(ZZ, 6)
+            MR, y = PolynomialRing(R, "y")
+            p = 3 * y^2 - 2 * y + 5
+            filename = joinpath(path, "polynomial_rr.uv")
+            save(p, filename)
+            loaded = load(filename)
+            @test p == loaded
+        end
     end
 end
