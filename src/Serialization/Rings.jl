@@ -7,7 +7,15 @@ function load_internal(s::DeserializerState, t::Type{SimpleRingType}, dict::Dict
 end
 
 function load_internal(s::DeserializerState, t::Type{Nemo.NmodRing}, dict::Dict)
-    return t(dict[:data][:n][:data])
+    n = load_type_dispatch(s, UInt64, dict[:n])
+    
+    return t(n)
+end
+
+function save_internal(s::SerializerState, R::Type{Nemo.NmodRing})
+    return Dict(
+        :n => save_type_dispatch(s, R.n)
+    )
 end
 
 ################################################################################
