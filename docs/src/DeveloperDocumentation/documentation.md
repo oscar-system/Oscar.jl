@@ -1,5 +1,12 @@
 # Documenting OSCAR code
 
+The general philosophy of the OSCAR documentation is to put as much of the
+information as possible into the docstrings and only use the doc pages for
+collecting this information and provide some additional general context.
+Exceptions to this philosophy are the developer and general pages.
+
+## Docstrings of exported functions
+
 Exported function should have docstrings, which look like
 ```julia
 Markdown.@doc doc"""
@@ -34,6 +41,21 @@ This allows the user to immediately see how the function can be used, gives
 them some code that they can copy-paste and manipulate, and, as a bonus,
 provides a testcase as well.
 
+
+## The folder `docs`
+
+The folder `docs/src` contains the OSCAR documentation website. Most of the
+pages are relatively sparse and consist of
+````
+```@docs
+some_function
+some_other_function
+[...]
+```
+````
+blocks that simply pull in the docstring from the corresponding source file. If
+you add a new page in `docs/src`, you will have to modify `docs/doc.main` to
+include your new page in the appropriate place.
 
 
 ## Building the OSCAR documentation

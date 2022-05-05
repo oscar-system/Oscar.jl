@@ -94,6 +94,7 @@
         "Hecke/orders/frac_ideals.md",
      ],
      "NumberTheory/abelian_closure.md",
+     "Experimental/galois.md",
   ],
 
   "Polyhedral Geometry" => [
@@ -151,6 +152,9 @@
         "ToricVarieties/ToricDivisors.md",
         "ToricVarieties/ToricDivisorClasses.md",
         "ToricVarieties/ToricLineBundles.md",
+        "ToricVarieties/cohomCalg.md",
+        "ToricVarieties/CohomologyClasses.md",
+        "ToricVarieties/AlgebraicCycles.md",
      ],
      "Schemes" => [
         "AlgebraicGeometry/AffineSchemes.md",
@@ -163,6 +167,7 @@
 
   "Combinatorics" => [
       "Combinatorics/graphs.md",
+      "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
   ],
 

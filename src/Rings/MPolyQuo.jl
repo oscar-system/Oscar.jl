@@ -455,28 +455,20 @@ function simplify(a::MPolyQuoIdeal)
    J = R.I
    GJ = groebner_assure(J)
    singular_assure(GJ)
-   oscar_assure(a)
    singular_assure(a.I)
    red  = reduce(a.I.gens.S, GJ.S)
    SR   = singular_poly_ring(R)
-   si   = Singular.Ideal(SR, gens(red))
+   si   = Singular.Ideal(SR, unique!(gens(red)))
    red  = MPolyQuoIdeal(R, si)
    return red
 end
+
 function simplify!(a::MPolyQuoIdeal)
-    R   = base_ring(a)
-    oscar_assure(a)
-    RI  = base_ring(a.I)
-    J = R.I
-    GJ = groebner_assure(J)
-    singular_assure(GJ)
-    oscar_assure(a)
-    singular_assure(a.I)
-    red  = reduce(a.I.gens.S, GJ.S)
-    SR   = singular_poly_ring(R)
-    a.SI = Singular.Ideal(SR, gens(red))
-    a.I  = ideal(RI, RI.(gens(a.SI)))
-    return a
+  b = simplify(a)
+  a.SI = b.SI
+  RI = base_ring(a.I)
+  a.I = ideal(RI, RI.(gens(a.SI)))
+  return a
 end
 
 @doc Markdown.doc"""

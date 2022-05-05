@@ -15,30 +15,28 @@ Pages = ["ToricLineBundles.md"]
 ### Generic constructors
 
 ```@docs
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
+ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
 ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
 ```
 
 ### Tensor products
 
-```@docs
-Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
-Base.:^(l::ToricLineBundle, p::fmpz)
-Base.:inv(l::ToricLineBundle)
-```
+Toric line bundles `l1` and `l2` (on the same toric variety) can be tensored
+by `l1*l2`. We support the `k`-th tensor power by `l1^k`. `k` can be either
+an integer or valued in fmpz. The inverse of `l1` is computed by `inv(l1)`.
+
 
 ### Equality
 
-```@docs
-Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
-```
+Equality of toric line bundles `l1` and `l2` (on the same toric variety) is
+implemented by `l1 == l2`.
 
 
 ## Properties
 
+To check if a line bundle `l` is trivial, one can invoke `istrivial(l)`. Beyond this,
+we support the following properties of toric line bundles:
 ```@docs
-istrivial(l::ToricLineBundle)
 is_basepoint_free(l::ToricLineBundle)
 isample(l::ToricLineBundle)
 is_very_ample(l::ToricLineBundle)
@@ -54,17 +52,17 @@ toric_divisor(l::ToricLineBundle)
 toric_variety(l::ToricLineBundle)
 ```
 
-## Method
 
-We use [cohomCalg](https://github.com/BenjaminJurke/cohomCalg)
-to compute the dimension of line bundle cohomologies. This is achieved with the following methods.
+### Special line bundles
 
 ```@docs
-all_cohomologies(l::ToricLineBundle)
-cohomology(l::ToricLineBundle, i::Int)
+anticanonical_bundle(v::AbstractNormalToricVariety)
+canonical_bundle(v::AbstractNormalToricVariety)
+structure_sheaf(v::AbstractNormalToricVariety)
 ```
 
-We can also compute a basis of the global sections.
+
+## Methods
 
 ```@docs
 basis_of_global_sections_via_rational_functions(l::ToricLineBundle)

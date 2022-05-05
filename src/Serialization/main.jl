@@ -233,6 +233,8 @@ include("Combinatorics.jl")
 include("Fields.jl")
 include("ToricGeometry.jl")
 include("Rings.jl")
+include("polymake.jl")
+
 
 @deprecate save_cone(Obj::Cone, filename::String) save(Obj, filename)
 @deprecate load_cone(filename::String) load(Obj, filename)

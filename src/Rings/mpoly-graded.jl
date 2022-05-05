@@ -675,7 +675,6 @@ function factor(x::Oscar.MPolyElem_dec)
   #end
 end
 
-
 function gcd(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
   R = parent(x)
   return R(gcd(x.f, y.f))
@@ -684,6 +683,12 @@ end
 function div(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
   R = parent(x)
   return R(div(x.f, y.f))
+end
+
+function divrem(x::MPolyElem_dec, y::MPolyElem_dec)
+  R = parent(x)
+  q, r = divrem(x.f, y.f)
+  return R(q), R(r)
 end
 
 ################################################################################

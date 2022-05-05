@@ -487,7 +487,7 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 #T this restriction is not nice
 
      indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     orders = [GAPWrap.Order(x) for x in indep]
+     orders = fmpz[GAPWrap.Order(x) for x in indep]
      n = length(indep)
      A = abelian_group(GrpAbFinGen, orders)
 
