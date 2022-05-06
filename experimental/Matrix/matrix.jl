@@ -135,6 +135,26 @@ function _lex_isEqual(a::T,b::T) where T<:MatElem
   return true
 end
 
+function size(G::GapObj)
+    return fmpz(GAP.Globals.Size(G))
+end
+
+function maximalsubgroups(G::GapObj)
+    return GAP.Globals.MaximalSubgroups(G)
+end
+
+function smallgeneratingset(G::GapObj)
+    return GAP.Globals.SmallGeneratingSet(G)
+end
+
+function isomorphismpermgroup(G::GapObj)
+    return GAP.Globals.IsomorphismPermGroup(G)
+end
+
+function idsmallgroup(G::GapObj)
+    return GAP.Globals.IdSmallGroup(G)
+end
+
 end #module MatrixGroups
 
 
