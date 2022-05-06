@@ -317,7 +317,7 @@ end
   H^0(G, M)
 
 Returns a module (same type as M) that abstractly represent
-the 0-cohomology group as well as a map realsing this via explicit
+the 0-cohomology group as well as a map realizing this via explicit
 co-chains
 """
 function H_zero(C::GModule)
@@ -342,7 +342,7 @@ end
  - break out coboundaries and cochains
  - depending on the module type:
    - intersect yields an embedding (Z-module) or not GrpAb
-   - make sure that image/ kernel are consisten
+   - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
    - issubgroup has the "wrong" order of arguments (and cannot apply
@@ -356,7 +356,7 @@ end
 
 
 """
-Code of the H^1(G, M) conputation:
+Code of the H^1(G, M) computation:
 returns homomorphisms A and B s.th.
 
    M_1 -A-> M_2 -B-> M_3
@@ -435,7 +435,7 @@ end
 """
   H^1(G, M)
 
-Returns an abstrct module (of the same type as M) describing the
+Returns an abstract module (of the same type as M) describing the
 first co-homology group. Furthermore, the second return value
 is a map realising elements of H^1 as explicit co-cycles.
 """
@@ -1083,7 +1083,7 @@ end
 =#
 
 """
-Compute an isomorphic pc-group (amd the isomorphism). If `refine` is true,
+Compute an isomorphic pc-group (and the isomorphism). If `refine` is true,
 the pc-generators will all have prime relative order, thus the
 group should be safe to use.
 If `refine` is false, then the relative orders are just used from the hnf
