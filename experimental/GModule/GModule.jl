@@ -3,6 +3,141 @@ using Oscar
 using Hecke
 import Hecke: data
 
+
+"""
+    restriction_of_scalars(M::GModule, phi::Map)
+
+Return the `S`-module obtained by restricting the scalars of `M`
+from `R` to `S`, where `phi` is an embedding of `S` into `R`.
+
+If `R` has `S`-rank `d` and `M` has rank `n` then the returned module
+has rank `d*n`.
+
+# Examples
+
+(cases that `R` is a finite field or a number field, and `S` is a subfield)
+"""
+function restriction_of_scalars(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    extension_of_scalars(M::GModule, phi::Map)
+
+Return the `S`-module obtained by extending the scalars of `M`
+from `R` to `S`, where `phi` is an embedding of `R` into `S`.
+
+If `M` has `R`-rank `d` then the returned module has `S`-rank `d`.
+
+The syntax `M ⊗ phi` is supported.
+
+# Examples
+
+(cases that `S` is a finite field or a number field, and `R` is a subfield;
+case that `S` is a number field and `R` is the ring of integers in `S`,
+for example `R = ZZ` and `S = QQ`)
+"""
+function extension_of_scalars(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    is_defined_over(M::GModule, phi::Map)
+
+Return `true` if there is an `S`-module `N` such that
+`extension_of_scalars(N, phi)` is isomorphic with `M`,
+and `false` otherwise.
+
+`phi` is an embedding of `S` into `R` and `M` is a module over `R`.
+
+# Examples
+
+(case that `R` is a number field and `S` is the ring of integers in `R`)
+"""
+function is_defined_over(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    is_defined_over_with_data(M::GModule, phi::Map)
+
+Is similar to [`is_defined_over`](@ref), but the return value is
+a triple `(true, N, psi)` if there is an `S`-module `N` such that
+`extension_of_scalars(N, phi)` is isomorphic with `M`
+and `psi` is a map from `N` to `M`.
+
+`phi` is an embedding of `S` into `R` and `M` is a module over `R`.
+
+# Examples
+
+(same as for `is_defined_over`)
+"""
+function is_defined_over_with_data(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    write_over(M::GModule, phi::Map)
+
+Return an `S`-module `N` such that
+`extension_of_scalars(N, phi)` is isomorphic with `M` if such an `S`-module
+exists, otherwise throw an exception.
+
+`phi` is an embedding of `S` into `R` and `M` is a module over `R`.
+
+Use [`is_defined_over`](@ref) in order to check whether `M` can be
+written over `S`.
+Use [`is_defined_over_with_data`](@ref) in order to check whether `M` can be
+written over `S` and to get `N` if it exists.
+
+# Examples
+
+(case that `R` is a number field and `S` is the ring of integers in `R`)
+"""
+function write_over(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    write_over_minimal_degree_field(M::GModule)
+
+Return a module `N` over a field `S` of minimal degree such that
+`extension_of_scalars(N, phi)` and `extension_of_scalars(M, psi)`
+are isomorphic, where `phi` and `psi` are maps from `S` and `R`,
+respectively, to the compositum of `S` and `R`,
+where `M` is a module over `R`.
+
+(In general, `S` need not be a subfield of `R`.)
+
+# Examples
+
+(modules over finite fields or number fields)
+"""
+function write_over_minimal_degree_field(M::GModule)
+  error("not yet ...")
+end
+
+
+"""
+    invariant_lattices(M::GModule, phi::Map)
+
+Return the `G`-invariant `S`-lattices in the `R`-module `M`,
+where `phi` is an embedding of `S` into `R`.
+
+# Examples
+
+(case that `R` is a number field and `S` is the ring of integers in `R`)
+"""
+function invariant_lattices(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
 #XXX: clash of names!
 #   gmodule(k, C) vs gmodule_ver(k, C)
 #   first does a "restriction of scalars" or blow up with the rep mat
