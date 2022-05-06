@@ -1,10 +1,5 @@
 ################################################################################
-#  base ring
-SimpleRingType = Union{FlintRationalField, FlintIntegerRing}
-
-function load_internal(s::DeserializerState, t::Type{SimpleRingType}, dict::Dict)
-    return t()
-end
+#  non simpleton base rings
 
 function load_internal(s::DeserializerState, t::Type{Nemo.NmodRing}, dict::Dict)
     n = load_type_dispatch(s, UInt64, dict[:n])
@@ -29,8 +24,7 @@ function save_internal(s::SerializerState, R::MPolyRing)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyRing}, dict::Dict)
-    ring_type = decodeType(dict[:base_ring][:type])
-    base_ring = load_type_dispatch(s, ring_type, dict[:base_ring])
+    base_ring = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
     
     return PolynomialRing(base_ring, symbols)
@@ -76,9 +70,8 @@ function save_internal(s::SerializerState, p::MPolyElem)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
-    ring_dict = dict[:parent]
-    ring_type = decodeType(ring_dict[:type])
-    R, symbols = load_type_dispatch(s, ring_type, ring_dict)
+    R, symbols = load_type_dispatch(s, dict[:parent], check_namespace=false)
+
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(R)
@@ -104,9 +97,7 @@ function save_internal(s::SerializerState, p::PolyElem)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: PolyElem}, dict::Dict)
-    ring_dict = dict[:parent]
-    ring_type = decodeType(ring_dict[:type])
-    R, _ = load_type_dispatch(s, ring_type, ring_dict)
+    R, _ = load_type_dispatch(s, dict[:parent], check_namespace=false)
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs])
@@ -114,4 +105,21 @@ function load_internal(s::DeserializerState, ::Type{<: PolyElem}, dict::Dict)
     return polynomial(coeff_ring, coeffs, String(R.S))
 end
 
+################################################################################
+# Polynomial Ideals
+function save_internal(s::SerializerState, i::MPolyIdeal)
+    gens = i.gens.O
+    parent_ring = save_type_dispatch(s, parent(gens[1]))
+    
+    return Dict(
+        :parent => parent_ring,
+        :gens => save_type_dispatch(s, gens),
+    )
+end
+                       
+function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
+    parent_ring, _ = load_type_dispatch(s, dict[:parent], check_namespace=false)
+    gens = load_type_dispatch(s, Vector{MPolyElem}, dict[:gens])
 
+    return ideal(parent_ring, gens)
+end
