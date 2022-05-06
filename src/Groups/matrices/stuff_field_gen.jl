@@ -27,14 +27,3 @@ function _centralizer(f::PolyElem{T}) where T <: FinFieldElem
   g = mU(U[1])
   return mL\g
 end
-
-# TODO very bold discrete log, waiting for a better one. Don't try with large fields!!
-# return g such that a^g = b
-function _disc_log(a,b)
-   for g in 0:order(parent(a))
-      if a^g==b
-         return g
-      end
-   end
-   error("Second element is not a power of the first one")
-end

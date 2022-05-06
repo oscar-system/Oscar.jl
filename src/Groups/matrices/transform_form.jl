@@ -212,7 +212,7 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
       # turn the elements on the main diagonal into 1
       for i in 1:n
          if A[i,i]!=0
-            lambda = _disc_log(w^(q+1),A[i,i])
+            lambda = disc_log(w^(q+1),A[i,i])
             Z[i,i] = w^-lambda
             A[i,i] = 1
          end

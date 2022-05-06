@@ -141,8 +141,8 @@ end
    F = GF(17, 1)
    a = F(3)
    b = F(13)
-   @test a^Oscar._disc_log(a,b)==b
-   @test_throws ErrorException Oscar._disc_log(b,a)
-   @test Oscar._disc_log(F(16),F(1))==0
-   @test_throws ErrorException Oscar._disc_log(b,F(0))
+   @test a^Oscar.disc_log(a,b)==b
+   @test_throws ErrorException Oscar.disc_log(b,a)
+   @test Oscar.disc_log(F(16),F(1))==0
+   @test_throws ErrorException Oscar.disc_log(b,F(0))
 end

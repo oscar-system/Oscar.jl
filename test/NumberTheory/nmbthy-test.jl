@@ -22,7 +22,7 @@ end
   F = GF(3,4);
   a = gen(F)^21;
   @test disc_log(gen(F), a) == 21
-  @test_throws "disc_log failed" Oscar.DiscreteLog.disc_log(one(F), a)
+  @test_throws "disc_log failed" disc_log(one(F), a)
 
   F2 = GF(3,5);
   @test_throws AssertionError disc_log(gen(F), gen(F2))
