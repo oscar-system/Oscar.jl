@@ -4,7 +4,6 @@ include("ModStd.jl")
 include("PlaneCurve.jl")
 include("InvariantTheory.jl")
 include("GITFans.jl")
-include("DiscreteLog/DiscreteLog.jl")
 include("GModule.jl")
 
 include("Schemes/AffineSchemes.jl")
