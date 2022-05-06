@@ -43,7 +43,6 @@ end
 include("Rings/binomial-ideals-test.jl")
 
 include("Experimental/PlaneCurve-test.jl")
-include("Experimental/DiscreteLog-test.jl")
 include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
