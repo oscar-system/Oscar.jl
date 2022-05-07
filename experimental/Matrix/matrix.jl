@@ -67,7 +67,7 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
             if !isinvertible(mat)
                 error("At least one matrix is not invertible.")
             end
-            if size(mat) != (n, n)
+            if Oscar.size(mat) != (n, n)
                 error("At least one matrix is not quadratic or not the same size.")
             end
        end
