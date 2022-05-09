@@ -381,6 +381,28 @@ function isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
   end
 end
 
+function isisomorphic_with_map(G::GAPGroup, H::GrpGen)
+  HtoP = isomorphism(PermGroup, H)
+  P = codomain(HtoP)
+  fl, GtoP = isisomorphic_with_map(G, P)
+  if !fl
+    return false, nothing
+  else
+    return true, GtoP * inv(HtoP)
+  end
+end
+
+function isisomorphic_with_map(G::GrpGen, H::GAPGroup)
+  GtoP = isomorphism(PermGroup, G)
+  P = codomain(GtoP)
+  fl, PtoH = isisomorphic_with_map(P, H)
+  if !fl
+    return false, nothing
+  else
+    return true, GtoP * PtoH
+  end
+end
+
 """
     isisomorphic(G::Group, H::Group)
 
@@ -395,6 +417,16 @@ true
 function isisomorphic(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
   return mp !== GAP.Globals.fail
+end
+
+function isisomorphic(G::GAPGroup, H::GrpGen)
+  P = PermGroup(H)
+  return isisomorphic(G, P)
+end
+
+function isisomorphic(G::GrpGen, H::GAPGroup)
+  P = PermGroup(G)
+  return isisomorphic(P, H)
 end
 
 """
@@ -418,6 +450,21 @@ function isomorphism(G::GAPGroup, H::GAPGroup)
   return GAPGroupHomomorphism(G, H, mp)
 end
 
+function isomorphism(G::GAPGroup, H::GrpGen)
+  HtoP = isomorphism(PermGroup, H)
+  P = codomain(HtoP)
+  fl, GtoP = isisomorphic_with_map(G, P)
+  !fl && throw(ArgumentError("the groups are not isomorphic"))
+  return GtoP * inv(HtoP)
+end
+
+function isomorphism(G::GrpGen, H::GAPGroup)
+  GtoP = isomorphism(PermGroup, G)
+  P = codomain(GtoP)
+  fl, PtoH = isisomorphic_with_map(P, H)
+  !fl && throw(ArgumentError("the groups are not isomorphic"))
+  return GtoP * PtoH
+end
 
 ################################################################################
 #
@@ -591,6 +638,63 @@ function (::Type{T})(G::GrpAbFinGen) where T <: GAPGroup
    return codomain(isomorphism(T, G))
 end
 
+# Now for GrpGen
+
+# Remove once Hecke lower bound is >= 0.14.1
+@attributes GrpGen
+
+function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   return get!(isos, T) do
+     S = symmetric_group(order(A))
+     gensA = gens(A)
+     newgens = elem_type(S)[]
+     for g in gensA
+       j = g.i
+       p = S(A.mult_table[j, :])
+       push!(newgens, p)
+     end
+
+     GP, m = sub(S, newgens)
+
+     GPgens = map(x -> preimage(m, x), newgens)
+
+     tospin = [(gensA[i], GPgens[i]) for i in 1:length(GPgens)]
+     cl = Hecke.closure(tospin, (x, y) -> (x[1] * y[1], x[2] * y[2]),
+                        eq = (x, y) -> x[1] == y[1])
+
+     fwd = Dict{elem_type(A), elem_type(GP)}(c[1] => c[2] for c in cl)
+     bwd = Dict{elem_type(GP), elem_type(A)}(c[2] => c[1] for c in cl)
+
+     if T === PermGroup
+       f = function(a::elem_type(GrpGen))
+         return fwd[a]
+       end
+
+       finv = function(g)
+         return bwd[g]
+       end
+       return MapFromFunc(f, finv, A, GP)
+     else
+       m = isomorphism(T, GP)
+
+       f = function(a::elem_type(GrpGen))
+         return m(fwd[a])
+       end
+
+       finv = function(g)
+         return bwd[preimage(m, g)]
+       end
+
+       return MapFromFunc(f, finv, A, codomain(m))
+     end
+   end::MapFromFunc{GrpGen, T}
+end
+
+function (::Type{T})(G::GrpGen) where T <: GAPGroup
+   return codomain(isomorphism(T, G))
+end
 
 ################################################################################
 #
