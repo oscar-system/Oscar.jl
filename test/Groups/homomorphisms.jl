@@ -143,6 +143,59 @@ end
       iso = @inferred isomorphism(GrpAbFinGen, A)
    end
 
+   @testset "GrpGen to GAPGroups" begin
+      G = Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB())
+      for T in [FPGroup, PcGroup, PermGroup]
+         iso = @inferred isomorphism(T, G)
+         for x in gens(G), y in gens(G)
+            z = x * y
+            @test iso(x) * iso(y) == iso(z)
+            @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+         end
+      end
+
+      H = small_group(64, 14)
+      @test isisomorphic(G, H)
+      f = isomorphism(G, H)
+      for x in gens(G), y in gens(G)
+         @test f(x) * f(y) == f(x * y)
+         @test preimage(f, f(x)) == x
+         @test preimage(f, f(y)) == y
+      end
+      fl, f = isisomorphic_with_map(G, H)
+      @test fl
+      for x in gens(G), y in gens(G)
+         @test f(x) * f(y) == f(x * y)
+         @test preimage(f, f(x)) == x
+         @test preimage(f, f(y)) == y
+      end
+
+      @test isisomorphic(H, G)
+      f = isomorphism(H, G)
+      for x in gens(H), y in gens(H)
+         @test f(x) * f(y) == f(x * y)
+         @test preimage(f, f(x)) == x
+         @test preimage(f, f(y)) == y
+      end
+      fl, f = isisomorphic_with_map(H, G)
+      @test fl
+      for x in gens(H), y in gens(H)
+         @test f(x) * f(y) == f(x * y)
+         @test preimage(f, f(x)) == x
+         @test preimage(f, f(y)) == y
+      end
+
+      H = cyclic_group(2)
+      @test !isisomorphic(G, H)
+      @test_throws ArgumentError isomorphism(G, H)
+      fl, _ = isisomorphic_with_map(G, H)
+      @test !fl
+      @test !isisomorphic(H, G)
+      @test_throws ArgumentError isomorphism(H, G)
+      fl, _ = isisomorphic_with_map(H, G)
+      @test !fl
+   end
+
    @testset "Group types as constructors" begin
       G = symmetric_group(4)
       for T in [FPGroup, PcGroup, PermGroup]
