@@ -606,7 +606,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     function pr_func(x)
       @assert parent(x) === G
-      c = coordinates(repres(x), sub(G, a))
+      c = coordinates(repres(x), sub(G, a, :module))
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)

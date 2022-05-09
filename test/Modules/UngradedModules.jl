@@ -26,8 +26,8 @@ end
 	v = [x, x^2*y+z^3, R(-1)]
 	@test v == Vector(F(v))
 
-	M = sub(F, [F(v), F([z, R(1), R(0)])])
-	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)])
+	M = sub(F, [F(v), F([z, R(1), R(0)])], :none)
+	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)], :none)
 	AN, ai = ambient_module(N, :with_morphism)
 	@test AN.quo === N.quo
 	for i=1:ngens(N)
@@ -280,7 +280,7 @@ end
   N3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 2*x*y-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
   Q3,p3 = quo(M3,N3,:cache_morphism)
 
-  @test iszero(quo(M3,M3))
+  @test iszero(quo(M3,M3, :none))
   @test iszero(Q3)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
@@ -740,9 +740,9 @@ end
 		H = homomorphism(H)
 
 		u = [SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
-		image_of_u = sub(M,map(x -> H(x),u))
-		preimage_test_module = image_of_u + sub(M,[M[1]])
+		image_of_u = sub(M,map(x -> H(x),u), :none)
+		preimage_test_module = image_of_u + sub(M,[M[1]], :none)
 		_,emb = preimage(H,preimage_test_module,:with_morphism)
-		@test issubset(sub(N,u), image(emb)[1])
+		@test issubset(sub(N,u, :none), image(emb)[1])
 	end
 end
