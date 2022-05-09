@@ -2,53 +2,41 @@
 #  non simpleton base rings
 
 function load_internal(s::DeserializerState, t::Type{Nemo.NmodRing}, dict::Dict)
-    n = load_type_dispatch(s, UInt64, dict[:n])
+    modulus = load_type_dispatch(s, UInt64, dict[:modulus])
     
-    return t(n)
+    return t(modulus)
 end
 
-function save_internal(s::SerializerState, R::Type{Nemo.NmodRing})
+function save_internal(s::SerializerState, R::Nemo.NmodRing)
     return Dict(
-        :n => save_type_dispatch(s, R.n)
+        :modulus => save_type_dispatch(s, modulus(R))
     )
 end
 
 ################################################################################
-# Multi  Variate Polynomial Ring
-function save_internal(s::SerializerState, R::MPolyRing)
-    base_ring = R.base_ring
+#  Polynomial Rings
+function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
     return Dict(
-        :symbols => save_type_dispatch(s, R.S),
-        :base_ring => save_type_dispatch(s, base_ring),
-    )
-end
-
-function load_internal(s::DeserializerState, ::Type{<: MPolyRing}, dict::Dict)
-    base_ring = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
-    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
-    
-    return PolynomialRing(base_ring, symbols)
-end
-
-################################################################################
-# Uni Variate Polynomial Ring
-function save_internal(s::SerializerState, R::PolyRing)
-    return Dict(
-        :symbol => save_type_dispatch(s, symbols(R)),
+        :symbols => save_type_dispatch(s, symbols(R)),
         :base_ring => save_type_dispatch(s, base_ring(R)),
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: PolyRing}, dict::Dict)
-    ring_type = decodeType(dict[:base_ring][:type])
-    base_ring = load_type_dispatch(s, ring_type, dict[:base_ring])
-    symbol = load_type_dispatch(s, Symbol, dict[:symbol]) 
-    
-    return PolynomialRing(base_ring, symbol)
+function load_internal(s::DeserializerState,
+                       ::Type{<: Union{MPolyRing, PolyRing}},
+                       dict::Dict)
+    base_ring = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
+    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
+
+    if length(symbols) == 1
+        return PolynomialRing(base_ring, symbols...)
+    end
+
+    return PolynomialRing(base_ring, symbols)
 end
 
 ################################################################################
-# Multi Variate Polynomials
+# Multivariate Polynomials
 function save_internal(s::SerializerState, p::MPolyElem)
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)
@@ -96,23 +84,23 @@ function save_internal(s::SerializerState, p::PolyElem)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: PolyElem}, dict::Dict)
-    R, _ = load_type_dispatch(s, dict[:parent], check_namespace=false)
+    R, y = load_type_dispatch(s, dict[:parent], check_namespace=false)
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs])
 
-    return polynomial(coeff_ring, coeffs, String(R.S))
+    return polynomial(coeff_ring, coeffs, String(symbols(R)[1]))
 end
 
 ################################################################################
 # Polynomial Ideals
 function save_internal(s::SerializerState, i::MPolyIdeal)
-    gens = i.gens.O
-    parent_ring = save_type_dispatch(s, parent(gens[1]))
+    generators = gens(i)
+    parent_ring = save_type_dispatch(s, parent(generators[1]))
     
     return Dict(
         :parent => parent_ring,
-        :gens => save_type_dispatch(s, gens),
+        :gens => save_type_dispatch(s, generators),
     )
 end
                        
