@@ -471,7 +471,9 @@ julia> G = abelian_group([0])
 GrpAb: Z
 
 julia> g = gen(G, 1)
-Element of G with components [1]
+Element of
+GrpAb: Z
+with components [1]
 
 julia> S, (t, x, y) = grade(R, [-g, g, g])
 (Multivariate Polynomial Ring in t, x, y over Rational Field graded by

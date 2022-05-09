@@ -567,6 +567,8 @@ julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
 
 julia> A, _ = quo(R, I);
 
+julia> H = multi_hilbert_series_reduced(A);
+
 julia> H[1][1]
 -t[1]^5*t[2]^-1 + t[1]^3 + t[1]^3*t[2]^-3 + t[1]^2 + t[1]^2*t[2]^-1 + t[1]^2*t[2]^-2 + t[1] + t[1]*t[2]^-1 + 1
 
