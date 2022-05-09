@@ -33,10 +33,9 @@ end
 ################################################################################
 # Uni Variate Polynomial Ring
 function save_internal(s::SerializerState, R::PolyRing)
-    base_ring = R.base_ring
     return Dict(
-        :symbol => save_type_dispatch(s, R.S),
-        :base_ring => save_type_dispatch(s, base_ring),
+        :symbol => save_type_dispatch(s, symbols(R)),
+        :base_ring => save_type_dispatch(s, base_ring(R)),
     )
 end
 
