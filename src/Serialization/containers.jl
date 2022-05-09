@@ -14,16 +14,17 @@ end
 
 ################################################################################
 # Saving and loading tuples
-function save_internal(s::SerializerState, tup::NTuple{n, T}) where {n, T}
+function save_internal(s::SerializerState, tup::Tuple)
     return Dict(
         :content => [save_type_dispatch(s, x) for x in tup]
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{NTuple{n, T}}, dict::Dict) where {n, T}
-    content = [load_type_dispatch(s, T, x) for x in dict[:content]]
+function load_internal(s::DeserializerState, T::Type{<:Tuple}, dict::Dict)
+    n = fieldcount(T)
+    content = dict[:content]
     @assert length(content) == n "Wrong length of tuple, data may be corrupted."
-    return NTuple{n, T}(content)
+    return T(load_type_dispatch(s, fieldtype(T, i), content[i]) for i in 1:n)
 end
 
 
