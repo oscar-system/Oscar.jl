@@ -1109,8 +1109,8 @@ end
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyElem_dec, g::GrpAbFinGenElem)
 
-Given an element `f` of a graded multivariate ring `R`, say, and given an element 
-`g` of the grading group of `R`, return the homogeneous component of `f` of degree `g`.
+Given an element `f` of a graded multivariate ring, and given an element 
+`g` of the grading group of that ring, return the homogeneous component of `f` of degree `g`.
 
     homogeneous_component(f::MPolyElem_dec, g::Vector{<:IntegerUnion})
 

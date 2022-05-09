@@ -432,7 +432,7 @@ function multi_hilbert_series(A::MPolyQuo)
    end
    G = grading_group(R)
    if !(is_zm_graded(R))
-      
+      H, iso = snf(G)
       V = [preimage(iso, x) for x in gens(G)]
       isoinv = hom(G, H, V)
       W = R.d
