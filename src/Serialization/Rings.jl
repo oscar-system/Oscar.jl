@@ -85,7 +85,7 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
 end
 
 ################################################################################
-# Uni Variate Polynomials
+# Univariate Polynomials
 function save_internal(s::SerializerState, p::PolyElem)
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)
