@@ -96,12 +96,12 @@ vertexindices(K::SimplicialComplex) = _vertexindices(pm_object(K))
 _reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x] for x in M ]
 
 function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
-    vec = ones(Int, Polymake.betti_number(A))
+    vec = zeros(Int, Polymake.betti_number(A))
     torsion_i = Polymake.torsion(A)
     for (p,k) in torsion_i
         append!(vec, fill(p,k))
     end
-    return vec
+    return abelian_group(vec)
 end
 
 ################################################################################
@@ -216,7 +216,7 @@ julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
  GrpAb: Z/1
 ```
 """
-homology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1])) # index shift
+homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1]) # index shift
 
 @doc Markdown.doc"""
     cohomology(K::SimplicialComplex, i::Int)
@@ -232,7 +232,7 @@ julia> cohomology(K,1)
 [1]
 ```
 """
-cohomology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1])) # index shift
+cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
 
 @doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
