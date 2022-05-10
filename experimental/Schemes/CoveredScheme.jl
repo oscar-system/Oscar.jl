@@ -32,10 +32,17 @@ along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
 is made from their hashes. Thus, an affine scheme must not appear more than once 
 in any covering!
 """
-mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
+mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, PolyType<:MPolyElem}
   patches::Vector{SpecType} # the basic affine patches of X
-  glueings::Dict{Tuple{SpecType, SpecType}, GlueingType}
-  affine_refinements::Dict{SpecType, Vector{SpecOpenType}}
+  glueings::Dict{Tuple{SpecType, SpecType}, GlueingType} # the glueings of the basic affine patches
+  affine_refinements::Dict{SpecType, Vector{Tuple{SpecOpenType, Vector{PolyType}}}} # optional lists of refinements 
+      # of the basic affine patches.
+      # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen, 
+      # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty 
+      # intersection in the basic affine patch X and hence satisfies 
+      # some equality 1 ≡ a₁⋅f₁ + a₂⋅f₂ + … + aᵣ⋅fᵣ on X. 
+      # Since the coefficients aᵢ of this equality are crucial for computations, 
+      # we store them in an extra tuple. 
 
   # fields for caching
   glueing_graph::Graph{Undirected}
@@ -45,9 +52,12 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
   function Covering(
       patches::Vector{SpecType},
       glueings::Dict{Tuple{SpecType, SpecType}, GlueingType};
-      affine_refinements::Dict{SpecType, Vector{SpecOpenType}}=Dict{SpecType, Vector{open_subset_type(SpecType)}}(),
+      affine_refinements::Dict{
+          SpecType, 
+          Vector{Tuple{SpecOpenType, Vector{PolyType}}}
+        }=Dict{SpecType, Vector{Tuple{open_subset_type(SpecType), Vector{poly_type(SpecType)}}}}(),
       check::Bool=true
-    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
+    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, PolyType<:MPolyElem}
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
     kk = coefficient_ring(base_ring(OO(patches[1])))
@@ -74,17 +84,15 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
 
     # check the affine refinements
     for U in keys(affine_refinements)
-      for V in affine_refinements[U]
+      for (V, a) in affine_refinements[U]
         ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
         U in patches && error("the ambient scheme of the refinement can not be found in the affine patches")
-      end
-      if check
-        l = vcat([gens(U) for U in collect(values(affine_refinements))]...)
-        W = localized_ring(OO(U))
-        one(W) in ideal(W, l) || error("the given refinement is not a covering of the original patch")
+        if check
+          isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("the patch $V does not cover $U")
+        end
       end
     end
-    return new{SpecType, GlueingType, SpecOpenType}(patches, glueings, affine_refinements)
+    return new{SpecType, GlueingType, SpecOpenType, PolyType}(patches, glueings, affine_refinements)
   end
 end
 
@@ -102,13 +110,29 @@ edge_dict(C::Covering) = C.edge_dict
 
 affine_refinements(C::Covering) = C.affine_refinements
 
-function add_affine_refinement!(C::Covering, U::SpecOpen)
+function add_affine_refinement!(
+    C::Covering, U::SpecOpen; 
+    a::Vector{PolyType}=Vector{poly_type(U)}(), 
+    check::Bool=true
+  ) where {PolyType<:MPolyElem}
   X = ambient(U)
   X in patches(C) || error("ambient scheme not found in the basic patches of the covering")
+  if check
+    if all(x->iszero(x), a) # in case of default argument, do the computations now
+      g = gens(U)
+      R = base_ring(OO(X))
+      F = FreeMod(OO(X), 1)
+      A = MatrixSpace(OO(X), 1, length(g))(g)
+      M = sub(F, A)
+      represents_element(F[1], M) || error("patches of $U do not cover $X")
+      a = coordinates(F[1], M)
+    end
+    isone(OO(X)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("patches of $U do not cover $X")
+  end
   if !haskey(affine_refinements(C), X)
-    affine_refinements(C)[X] = [U]
+    affine_refinements(C)[X] = [(U, a)]
   else
-    push!(affine_refinements(C)[X], U)
+    push!(affine_refinements(C)[X], (U, a))
   end
   return C
 end
