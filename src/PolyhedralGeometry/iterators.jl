@@ -340,7 +340,7 @@ ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 
 # homogenized_matrix -> matrix_for_polymake
 # linear_matrix_for_polymake
-const SomeMatrix = Union{AnyVecOrMat, SubObjectIterator}
+const MatrixUnion = Union{AnyVecOrMat, SubObjectIterator}
 
 # affine_matrix_for_polymake
-const LinearExpressionSet = Union{SubObjectIterator, Tuple{SomeMatrix, Any}}
+const TupleUnion = Union{SubObjectIterator, Tuple{MatrixUnion, Any}}

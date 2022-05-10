@@ -27,7 +27,7 @@ Polyhedron(x...) = Polyhedron{fmpq}(x...)
 Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
 
 @doc Markdown.doc"""
-    Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types
+    Polyhedron{T}(A::MatrixUnion, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
 
@@ -64,9 +64,9 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
+Polyhedron{T}(A::MatrixUnion, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron{T}(I::Union{Nothing, LinearExpressionSet}, E::Union{Nothing, LinearExpressionSet} = nothing) where T<:scalar_types
+function Polyhedron{T}(I::Union{Nothing, TupleUnion}, E::Union{Nothing, TupleUnion} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
         IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
@@ -102,9 +102,9 @@ Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
 
 # Arguments
-- `V::Union{Matrix, SubObjectIterator}`: Points whose convex hull is to be computed.
-- `R::Union{Matrix, SubObjectIterator}`: Rays completing the set of points.
-- `L::Union{Matrix, SubObjectIterator}`: Generators of the Lineality space.
+- `V::MatrixUnion`: Points whose convex hull is to be computed.
+- `R::MatrixUnion`: Rays completing the set of points.
+- `L::MatrixUnion`: Generators of the Lineality space.
 
 If an argument is given as a matrix, its content has to be encoded row-wise.
 
@@ -155,7 +155,7 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(::Type{T}, V::SomeMatrix, R::Union{SomeMatrix, Nothing} = nothing, L::Union{SomeMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function convex_hull(::Type{T}, V::MatrixUnion, R::Union{MatrixUnion, Nothing} = nothing, L::Union{MatrixUnion, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
     points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))

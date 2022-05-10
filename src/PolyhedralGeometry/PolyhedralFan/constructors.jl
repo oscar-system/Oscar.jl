@@ -54,10 +54,10 @@ PolyhedralFan(x...; non_redundant::Bool = false) = PolyhedralFan{fmpq}(x...; non
 PolyhedralFan(p::Polymake.BigObject) = PolyhedralFan{detect_scalar_type(PolyhedralFan, p)}(p)
 
 @doc Markdown.doc"""
-    PolyhedralFan{T}(Rays, Cones) where T<:scalar_types
+    PolyhedralFan{T}(Rays, Cones; non_redundant = false) where T<:scalar_types
 
 # Arguments
-- `R::Matrix`: Rays generating the cones of the fan; encoded row-wise as representative vectors.
+- `Rays::MatrixUnion`: Rays generating the cones of the fan; encoded row-wise as representative vectors.
 - `Cones::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cone i has ray j as extremal ray, and 0 otherwise.
 
 A polyhedral fan formed from rays and cones made of these rays. The cones are
@@ -75,7 +75,7 @@ julia> PF=PolyhedralFan(R,IM)
 A polyhedral fan in ambient dimension 2
 ```
 """
-function PolyhedralFan{T}(Rays::SomeMatrix, Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
+function PolyhedralFan{T}(Rays::MatrixUnion, Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
    if non_redundant
       return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
          RAYS = Rays,
@@ -88,7 +88,7 @@ function PolyhedralFan{T}(Rays::SomeMatrix, Incidence::IncidenceMatrix; non_redu
       ))
    end
 end
-function PolyhedralFan{T}(Rays::SomeMatrix, LS::SomeMatrix, Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
+function PolyhedralFan{T}(Rays::MatrixUnion, LS::MatrixUnion, Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
    if non_redundant
       return PolyhedralFan{T}(Polymake.fan.PolyhedralFan{scalar_type_to_polymake[T]}(
          RAYS = Rays,
@@ -114,10 +114,10 @@ pm_object(PF::PolyhedralFan) = PF.pm_fan
 PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types = PolyhedralFan{T}(Polymake.fan.check_fan_objects(pm_object.(itr)...))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function PolyhedralFan{T}(Rays::SomeMatrix, LS::SomeMatrix, Incidence::Matrix{Bool}) where T<:scalar_types
+function PolyhedralFan{T}(Rays::MatrixUnion, LS::MatrixUnion, Incidence::Matrix{Bool}) where T<:scalar_types
    PolyhedralFan(Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
-function PolyhedralFan{T}(Rays::SomeMatrix, Incidence::Matrix{Bool}) where T<:scalar_types
+function PolyhedralFan{T}(Rays::MatrixUnion, Incidence::Matrix{Bool}) where T<:scalar_types
    PolyhedralFan(Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
 

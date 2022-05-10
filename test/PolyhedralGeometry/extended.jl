@@ -112,7 +112,7 @@
         @test Oscar.ambient_dim(vertices(Pos_poly)) == 3
         @test Oscar.ambient_dim(collect(vertices(Pos_poly))) == 3
         
-        @test convex_hull([-1 -1 -1], rays(po)) == Pos_poly + [-1, -1, -1]
+        @test convex_hull([-1 -1 -1], rays(Pos_cone)) == Pos_poly + [-1, -1, -1]
         @test positive_hull(rays(Pos_poly)) == Pos_cone
         
         # Here the content of the SubObjectIterator does not fit the idea of the

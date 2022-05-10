@@ -140,7 +140,7 @@ end
 
 
 @doc Markdown.doc"""
-    orbit_polytope(V::AbstractVecOrMat, G::PermGroup)
+    orbit_polytope(V::MatrixUnion, G::PermGroup)
 
 Construct the convex hull of the orbit of one or several points (given row-wise
 in `V`) under the action of `G`.
@@ -165,7 +165,7 @@ julia> vertices(P)
  [3, 2, 1]
 ```
 """
-function orbit_polytope(V::SomeMatrix, G::PermGroup)
+function orbit_polytope(V::MatrixUnion, G::PermGroup)
    Vhom = stack(homogenized_matrix(V, 1), nothing)
    if size(Vhom, 2) != degree(G) + 1
       throw(ArgumentError("Dimension of points and group degree need to be the same."))
