@@ -82,18 +82,14 @@ end
 ##  Auxiliary
 ################################################################################
 
-function _vertexindices(K::Polymake.BigObject)
-    if Polymake.exists(K,"VERTEX_INDICES")
-        return Vector{Int}(K.VERTEX_INDICES)
+function vertexindices(K::SimplicialComplex) 
+    bigobject = pm_object(K)
+    if Polymake.exists(bigobject,"VERTEX_INDICES")
+        return Vector{Int}(bigobject.VERTEX_INDICES)
     else
-        return Vector{Int}(1:K.N_VERTICES)
+        return Vector{Int}(1:bigobject.N_VERTICES)
     end
 end
-
-vertexindices(K::SimplicialComplex) = _vertexindices(pm_object(K))
-
-# currently unused
-_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x] for x in M ]
 
 function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
     vec = zeros(Int, Polymake.betti_number(A))
