@@ -177,6 +177,8 @@ negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types
 negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
 normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
+ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
+
 # TODO: abstract notion of equality
 Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
 
@@ -324,13 +326,21 @@ function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
     return matrix_for_polymake(x; homogenized=true)
 end
 
+homogenized_matrix(::SubObjectIterator, v::Number) = throw(ArgumentError("Content of SubObjectIterator not suitable for homogenized_matrix."))
+
+unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
+
+unhomogenized_matrix(x::SubObjectIterator{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
+
+ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
+
 ################################################################################
 ######## Unify matrices
 ################################################################################
 
-# matrix_for_polymake
+# homogenized_matrix -> matrix_for_polymake
 # linear_matrix_for_polymake
 const SomeMatrix = Union{AnyVecOrMat, SubObjectIterator}
 
 # affine_matrix_for_polymake
-const LinearExpression = Union{SubObjectIterator, Tuple{SomeMatrix, Any}}
+const LinearExpressionSet = Union{SubObjectIterator, Tuple{SomeMatrix, Any}}

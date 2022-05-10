@@ -66,7 +66,7 @@ julia> vertices(P)
 """
 Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron{T}(I::Union{Nothing, LinearExpression}, E::Union{Nothing, LinearExpression} = nothing) where T<:scalar_types
+function Polyhedron{T}(I::Union{Nothing, LinearExpressionSet}, E::Union{Nothing, LinearExpressionSet} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
         IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))

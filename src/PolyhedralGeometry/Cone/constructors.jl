@@ -51,14 +51,15 @@ A polyhedral cone in ambient dimension 2
 ```
 """
 function Cone{T}(R::SomeMatrix, L::Union{SomeMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+    inputrays = unhomogenized_matrix(R)
     if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(R, 2))
+        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, ambient_dim(R))
     end
 
     if non_redundant
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = R, LINEALITY_SPACE = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = L,))
     else
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = L,))
     end
 end
 
@@ -91,7 +92,7 @@ A polyhedral cone in ambient dimension 2
 """
 function positive_hull(::Type{T}, R::SomeMatrix) where T<:scalar_types
     C=Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS =
-      remove_zero_rows(R))
+      remove_zero_rows(unhomogenized_matrix(R)))
     Cone{T}(C)
 end
 

@@ -33,6 +33,8 @@ _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{fmpq}, typeof(x
 
 linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
 
+matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
+
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
     for i in eachindex(x)
@@ -133,6 +135,8 @@ homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) = ho
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
 
+unhomogenized_matrix(x::Union{AbstractVecOrMat,MatElem}) = assure_matrix_polymake(x)
+
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
 
@@ -187,6 +191,10 @@ function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     return M
 end
 =#
+
+ambient_dim(x::AbstractVector) = length(x)
+ambient_dim(x::AbstractMatrix) = size(x, 2)
+ambient_dim(x::AbstractVector{<:AbstractVector}) = ambient_dim(x[1])
 
 """
     decompose_vdata(A::AbstractMatrix)

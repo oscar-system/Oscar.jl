@@ -98,13 +98,32 @@
         @test rhs == [1, -3]
     end
     
-    @testset "SubObjectIterator compatibility" begin
+    @testset "SubObjectIterator/Matrix compatibility" begin
         Pos_poly = convex_hull([0 0 0], [1 0 0; 0 1 0; 0 0 1])
         Pos_cone = positive_hull([1 0 0; 0 1 0; 0 0 1])
         @test cone_from_inequalities(facets(Pos_cone)) == Pos_cone
         @test cone_from_inequalities(facets(Pos_poly)) == Pos_cone
         @test Polyhedron(facets(Pos_cone)) == Pos_poly
         @test Polyhedron(facets(Pos_poly)) == Pos_poly
+        
+        @test Oscar.ambient_dim([1, 2, 3, 4, 5]) == 5
+        @test Oscar.ambient_dim([1 2 3 4; 5 6 7 8]) == 4
+        @test Oscar.ambient_dim([[1, 2, 3], [4, 5, 6], [7, 8, 9], [0, 1, 2]]) == 3
+        @test Oscar.ambient_dim(vertices(Pos_poly)) == 3
+        @test Oscar.ambient_dim(collect(vertices(Pos_poly))) == 3
+        
+        @test convex_hull([-1 -1 -1], rays(po)) == Pos_poly + [-1, -1, -1]
+        @test positive_hull(rays(Pos_poly)) == Pos_cone
+        
+        # Here the content of the SubObjectIterator does not fit the idea of the
+        # methods; we want ArgumentErrors to be thrown
+        @test_throws ArgumentError convex_hull(facets(Pos_poly))
+        @test_throws ArgumentError Polyhedron(vertices(Pos_poly))
+        @test_throws ArgumentError convex_hull(rays(Pos_poly))
+        @test_throws ArgumentError convex_hull(rays(Pos_poly), [-1 -1 -1])
+        @test_throws ArgumentError convex_hull([0 0 0], vertices(Pos_poly))
+        @test_throws ArgumentError positive_hull(vertices(Pos_poly))
+        
     end
 
 end # of @testset "OscarPolytope"
