@@ -216,7 +216,7 @@ If no such `x` exists, an exception is thrown.
 # Examples
 ```jldoctest
 julia> F = GF(3,4); a = gen(F)^21;
-julia> Oscar.DiscreteLog.disc_log(gen(F), a)
+julia> disc_log(gen(F), a)
 21
 ```
 """
