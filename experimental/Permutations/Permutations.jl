@@ -130,6 +130,7 @@ function size(G::PermGroup)
     return GAP.Globals.Size(G.X)
 end
 
+ export @perm
 
 end #module Permutations
 
