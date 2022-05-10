@@ -228,8 +228,7 @@ Return `i`-th reduced integral cohomology group of `K`.
 julia> K = SimplicialComplex([[0,1],[1,2],[0,2]]);
 
 julia> cohomology(K,1)
-(General) abelian group with relation matrix
-[1]
+GrpAb: Z
 ```
 """
 cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
