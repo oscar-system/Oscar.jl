@@ -6,9 +6,9 @@
   m = ideal(R, [x, y])
   I = ideal(R, f)
   S = MPolyComplementOfPrimeIdeal(I)
-  V = Localization(S)
+  V, _ = Localization(S)
   T = MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
-  W = Localization(T)
+  W, _ = Localization(T)
   
   k = QQ
   R, var = k["x", "y"]
@@ -23,7 +23,7 @@
   @test ambient_ring(S) == R
   @test !( f in S )
   @test x in S
-  V = Localization(S)
+  V, _ = Localization(S)
   @test base_ring(V) == R
   @test inverted_set(V) == S
 
@@ -32,7 +32,7 @@
   @test typeof(point_coordinates(T)) == Vector{elem_type(k)}
   @test x in T
   @test !(x-p in T)
-  W = Localization(T)
+  W, _ = Localization(T)
 
   a = W(R(1))
   b = W(2)
@@ -90,7 +90,7 @@
 
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   o = degrevlex([x, y])*negdegrevlex([z])
-  S = Localization(R, o)
+  S, _ = Localization(R, o)
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
@@ -117,7 +117,7 @@ end
   @test (5*f in S)
   @test x^3*y in S
   @test !(x^19*(x+y) in S)
-  W = Localization(S)
+  W, _ = Localization(S)
   @test x*y^2 in S
   @test !(x*(x+y) in S)
   @test W(1//x) == 1//W(x)
@@ -137,9 +137,9 @@ end
   @test f in S
   @test !(5*f in S)
 
-  U = Localization(R, f)
-  V = Localization(U, x)
-  W = Localization(V, 5*f)
+  U, _ = Localization(R, f)
+  V, _ = Localization(U, x)
+  W, _ = Localization(V, 5*f)
 
   phi = MPolyLocalizedRingHom(R, W, [W(1//x), W(y//f)])
   @test phi(x*f) == phi(domain(phi)(x*f))
@@ -170,9 +170,9 @@ end
 # T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
 # U = MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(Localization(S))
-# test_Ring_interface_recursive(Localization(T))
-# test_Ring_interface_recursive(Localization(U))
+# test_Ring_interface_recursive(Localization(S)[1])
+# test_Ring_interface_recursive(Localization(T)[1])
+# test_Ring_interface_recursive(Localization(U)[1])
   
   AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
   AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
@@ -193,9 +193,9 @@ end
   T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
   U = MPolyComplementOfPrimeIdeal(I)
 
-  test_Ring_interface_recursive(Localization(S))
-  test_Ring_interface_recursive(Localization(T))
-  test_Ring_interface_recursive(Localization(U))
+  test_Ring_interface_recursive(Localization(S)[1])
+  test_Ring_interface_recursive(Localization(T)[1])
+  test_Ring_interface_recursive(Localization(U)[1])
 
 # kk = ZZ
 # R, v = kk["x", "y"]
@@ -210,7 +210,7 @@ end
 # T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
 # U = MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(Localization(S))
-# test_Ring_interface_recursive(Localization(T))
-# test_Ring_interface_recursive(Localization(U))
+# test_Ring_interface_recursive(Localization(S)[1])
+# test_Ring_interface_recursive(Localization(T)[1])
+# test_Ring_interface_recursive(Localization(U)[1])
 end

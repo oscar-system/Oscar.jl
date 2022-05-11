@@ -8,62 +8,73 @@ using Oscar
 
 # Localizations of commutative rings
 
-Suppose ``R`` is a commutative ring with unit and ``S \subset R`` is a *multiplicatively 
-closed set* containing ``1 \in R``. Then we can form the *localization* of ``R`` at ``S``
+Suppose ``R`` is a commutative ring with unit and ``U \subset R`` is a
+*multiplicatively closed subset,* that is,
 ```math
-    R[S^{-1}] = \left\{ \frac{p}{q} : p,q \in R, \, q \in S \right\},
+s, t \in U \;\Rightarrow \; s\cdot t \in U \;\text{ and }\; 1 \in U.
 ```
-with its standard arithmetic for fractions. See, for instance, [Eis95] for an account on localizations.
+Then we can form the *localization* of ``R`` at ``U,``
+```math
+    R[U^{-1}] = \left\{ \frac{p}{q} : p,q \in R, \, q \in U \right\},
+```
+which comes equipped with its standard arithmetic for fractions. See, for instance, [Eis95](@cite).
 
-Oscar provides a general framework for such localizations, originally intended to be used 
+Oscar provides a general  localization framework, originally intended to be used 
 with multivariate polynomial rings ``R`` over some base field ``\mathbb k``, but also 
 applicable to more general commutative rings.
 
-In the case of polynomials, the localization framework provides the structure for 
-certain algorithms using standard bases. Note that, in general, localizations of 
-polynomial algebras are not finitely generated 
-as algebras over ``\mathbb k``; for instance when localizing at some maximal 
-ideal ``\mathfrak m \subset R``. However, many ideal- and module-theoretic questions in the localization 
-``R[S^{-1}]``, such as e.g. the ideal membership, can be transformed to questions on 
-ideals and modules over the base ring ``R`` and then solved using Groebner- or standard-basis 
-techniques. This makes it important to regard localizations ``R[S^{-1}]`` as rings with 
-a history of creation from the original pair ``S \subset R``. 
+In the case of  a polynomial ring ``R``, the localization framework provides
+the structure to integrate algorithms which, using Gröbner bases, allow one to solve  ideal- and module-theoretic
+questions concerning ``R[U^{-1}]`` by computations over ``R``. This makes it important to regard localizations
+``R[U^{-1}]`` as rings with a history of creation from the original pair ``U \subset R``. 
 
-## The localization interface
+!!! note
+    In the local context, following Hironaka and Grauert, it is also common to use the name
+    *standard basis* instead of Gröbner basis. See, for example, [GP08](@cite).
 
-### Localized rings
+## The Localization Interface
 
-The interface that needs to be implemented for any concrete 
-instance of localized rings is the following. 
-Multiplicatively closed sets are derived from the abstract type
+For the convenience of developers, we describe the interface that needs to be implemented in order
+to create a concrete instance of localized rings. At the same time, we illustrate the use of the interface
+by examples featuring localizations of multivariate polynomial rings, a concrete instance already
+realized in OSCAR. Functionality for this instance, which includes functions such as
+`MPolyComplementOfPrimeIdeal` for creating multiplicatively closed subsets, will be
+discussed in a subsequent section. 
+
+### Localized Rings
+
+Multiplicatively closed subsets are derived from the abstract type
 ```@docs
     AbsMultSet{RingType, RingElemType}
 ```
 The basic functionality that has to be implemented for any concrete type derived from 
-this is to be able to check containment of elements via
+this is to be able to check containment of elements in multiplicatively closed subsets via
 ```@docs
-    in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+    in(f::RingElemType, U::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
 ```
 This is supposed to be an extension of the methods of the function `Base.in`.
 
-A localized ring should then be derived from 
+Any concrete type of localized rings should then be a subtype of
 ```@docs
     AbsLocalizedRing{RingType, RingElemType, MultSetType}
 ```
 The basic way to construct localized rings is to first 
-specify a multiplicative set `S` and then call 
+specify a multiplicative set `U`, and then call 
 ```@docs
-    Localization(S::AbsMultSet)
+    Localization(U::AbsMultSet)
 ```
 This method must be implemented with a dispatch depending on 
-the concrete type of `S`.
+the concrete type of `U`.
 
-For any concrete instance of type `AbsLocalizedRing`
+For any concrete instance of type `AbsLocalizedRing`,
 the following methods must be implemented:
 ```@docs
-    base_ring(W::AbsLocalizedRing) 
-    inverted_set(W::AbsLocalizedRing)
+    base_ring(Rloc::AbsLocalizedRing) 
+    inverted_set(Rloc::AbsLocalizedRing)
 ```
+
+### Elements of Localized Rings
+
 Also, conversion of fractions to elements of localized rings must be implemented in the form 
 `(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}`, taking ``a`` to the element ``\frac{a}{1}``.
 For more general fractions one needs
@@ -74,7 +85,7 @@ The *elements* of localized rings must be derived from
 ```@docs
     AbsLocalizedRingElem{RingType, RingElemType, MultSetType}
 ```
-For any concrete instance `F` of `AbsLocalizedRingElem` there must be the following 
+For any concrete instance `f` of `AbsLocalizedRingElem` there must be the following 
 methods:
 ```@docs
     numerator(f::AbsLocalizedRingElem) 
@@ -101,7 +112,7 @@ the general [Ring Interface](@ref) of Oscar! This has not been done to a full ex
 for the previous two examples, but for `MPolyLocalizedRing`; see below.
 
  
-### Homomorphisms for localized rings
+### Homomorphisms From Localized Rings
 
 Homomorphisms from localized rings to arbitrary algebras are of type 
 ```@docs
@@ -119,7 +130,7 @@ The getters associated to this type which need to be implemented are
 Any concrete instance `f` of `AbsLocalizedRingHom` can then be applied to elements 
 `a` of `domain(f)` by calling `f(a)`. 
 
-### Ideals in localized rings
+### Ideals in Localized Rings
 
 One of the main reasons to implement localizations in the first place 
 is that this process preserves the property of a ring to be Noetherian; 
@@ -159,7 +170,7 @@ Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
 Everything else, such as e.g. intersections of ideals, has to be implemented for the specific 
 types by the user.
 
-## Localizations of multivariate polynomial rings
+## Localizations of Multivariate Rings
 
 Various primitive types of multiplicative sets are available, such as 
 ```@docs
