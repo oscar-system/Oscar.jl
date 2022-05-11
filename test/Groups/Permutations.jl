@@ -38,7 +38,7 @@
   @test_throws ArgumentError @perm 10 [(1,11)]
   
   G = permgroup(14,gens)
-  @test size(G) == 645120
+  @test order(G) == 645120
 end
 
 
