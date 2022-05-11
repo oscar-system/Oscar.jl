@@ -31,6 +31,7 @@ include("Groups/runtests.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
+include("Groups/Permutations.jl")
 
 include("Rings/MPolyAnyMap/MPolyRing.jl")
 include("Rings/MPolyAnyMap/MPolyQuo.jl")
@@ -42,7 +43,6 @@ end
 
 include("Rings/binomial-ideals-test.jl")
 
-include("Experimental/Permutations-test.jl")
 include("Experimental/PlaneCurve-test.jl")
 include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
