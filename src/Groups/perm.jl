@@ -407,14 +407,18 @@ macro perm(ex)
     arg = (ex).args
     res = []
     
-    while h != :tuple
+    while h == :call
         arg1 = arg[1]
-        insert!(res,1,Expr(:vect,arg[2:length(arg)]...))
+        pushfirst!(res, Expr(:vect,arg[2:end]...))
         h = (arg1).head
         arg = (arg1).args
     end
     
-    insert!(res,1,Expr(:vect,arg...))
+    if h != :tuple
+        error("Input is not a permutation.")
+    end
+    
+    pushfirst!(res, Expr(:vect,arg...))
 
     return esc(:(Oscar.cperm($(res...))))
 end
@@ -457,14 +461,18 @@ macro perm(n,gens)
         arg = g.args
         res = []
         
-        while h != :tuple
+        while h == :call
             arg1 = arg[1]
-            insert!(res,1,Expr(:vect,arg[2:length(arg)]...))
+            pushfirst!(res, Expr(:vect,arg[2:end]...))
             h = (arg1).head
             arg = (arg1).args
         end
         
-        insert!(res,1,Expr(:vect,arg...))
+        if h != :tuple
+           error("Input is not a permutation.")
+        end
+        
+        pushfirst!(res, Expr(:vect,arg...))
 
         ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
         i = i + 1
@@ -514,7 +522,7 @@ end
 # > 645120
 #
 function size(G::PermGroup)
-    return GAP.Globals.Size(G.X)
+    return order(G)
 end
 
 export @perm,permgroup,size
