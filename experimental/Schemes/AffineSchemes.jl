@@ -214,7 +214,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   iszero(f) && return subscheme(X, [one(R)])
   f in inverted_set(OO(X)) && return X
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
-  W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
+  W, _ = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   if keep_cache
     IX = localized_modulus(OO(X))
     DIX = groebner_bases(IX)
@@ -251,7 +251,7 @@ function hypersurface_complement(
     X::Spec{BRT, BRET, RT, RET, MST}, 
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f))))
+  return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f)))[1])
 end
 
 function hypersurface_complement(
@@ -259,7 +259,7 @@ function hypersurface_complement(
     f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   parent(f) == OO(X) || error("the element does not belong to the correct ring")
-  return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f))))
+  return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f)))[1])
 end
 
 
@@ -398,7 +398,7 @@ function closure(
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   issubset(X, Y) || error("the first argument is not a subset of the second")
   is_closed_embedding(X, Y) && return X
-  W = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
+  W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
   lbpa = groebner_basis(I) # takes care of the saturation
   R = base_ring(OO(Y))

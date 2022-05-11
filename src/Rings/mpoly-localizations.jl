@@ -836,7 +836,12 @@ inverted_set(W::MPolyLocalizedRing) = W.S
 gens(W::MPolyLocalizedRing) = W.(gens(base_ring(W)))
 
 ### required extension of the localization function
-Localization(S::AbsMPolyMultSet) = MPolyLocalizedRing(ambient_ring(S), S)
+function Localization(S::AbsMPolyMultSet)
+    R = ambient_ring(S)
+    Rloc = MPolyLocalizedRing(R, S)
+    iota = MapFromFunc(x -> Rloc(x), R, Rloc)
+    return Rloc, iota
+end
 
 function Localization(R::MPolyRing, ord::MonomialOrdering)
   @assert R === ord.R
@@ -849,7 +854,9 @@ function Localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   issubset(S, inverted_set(W)) && return W
-  return Localization(S*inverted_set(W))
+  U = S*inverted_set(W)
+  L, _ = Localization(U)
+  return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
 end
 
 ### additional constructors
@@ -870,7 +877,8 @@ function Localization(
   end
   g = denominators(S)
   h = gcd(prod(g), f)
-  return MPolyLocalizedRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
+  L = MPolyLocalizedRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
+  return L, MapFromFunc((x->L(numerator(x), denominator(x), check=false)), W, L)
 end
 
 function Localization(
@@ -881,7 +889,7 @@ function Localization(
   for f in v
     V = Localization(V, f)
   end
-  return V
+  return V, MapFromFunc((x->V(numerator(x), denominator(x), check=false)), W, V)
 end
 
 ### generation of random elements 
@@ -1533,7 +1541,7 @@ function saturated_ideal(
     R = base_ring(W)
     J = ideal(R, numerator.(gens(I)))
     for U in sets(inverted_set(W))
-      L = Localization(U)
+      L, _ = Localization(U)
       J = saturated_ideal(L(J))
     end
     set_attribute!(I, :saturated_ideal, J)
@@ -2021,7 +2029,8 @@ function MPolyLocalizedRingHom(
       a::Vector{RingElemType}
   ) where {RingElemType<:RingElem}
   res = hom(R, S, a)
-  return MPolyLocalizedRingHom(Localization(units_of(R)), S, res)
+  W, _ = Localization(units_of(R))
+  return MPolyLocalizedRingHom(W, S, res)
 end
 
 function MPolyLocalizedRingHom(

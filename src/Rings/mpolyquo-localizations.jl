@@ -224,7 +224,7 @@ function quo(
 end
 
 function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
-  L = MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, Localization(S))
+  L = MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, Localization(S)[1])
   return L, MapFromFunc((x->L(lift(x))), Q, L)
 end
 
@@ -235,7 +235,7 @@ function Localization(
   ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
   issubset(S, inverted_set(L)) && return L
   U = inverted_set(L)*S
-  W = MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U))
+  W = MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U)[1])
   return W, MapFromFunc((x->W(lifted_numerator(x), lifted_denominator(x), check=false)), L, W)
 end
 
