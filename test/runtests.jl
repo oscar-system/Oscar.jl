@@ -51,9 +51,11 @@ include("Experimental/galois-test.jl")
 include("Experimental/gmodule-test.jl")
 include("Experimental/ModStdQt-test.jl")
 include("Experimental/ModStdNF-test.jl")
+include("Experimental/MPolyRingSparse-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")
+include("Modules/module-localizations.jl")
 
 include("InvariantTheory/runtests.jl")
 

@@ -394,7 +394,7 @@ end
     ispure(T::TropicalHypersurface{M, EMB})
     ispure(T::TropicalLinearSpace{M, EMB})
 
-Return true if `T` is a pure polyhedral complex, false otherwise.
+Return `true` if `T` is a pure polyhedral complex, `false` otherwise.
 
 # Examples
 A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n
@@ -423,7 +423,7 @@ end
     issimplicial(T::TropicalHypersurface{M, EMB})
     issimplicial(T::TropicalLinearSpace{M, EMB})
 
-Return true if `T` is a simplicial polyhedral complex, false otherwise.
+Return `true` if `T` is a simplicial polyhedral complex, `false` otherwise.
 
 # Examples
 A tropical hypersurface in $\mathbb{R}^n$ is of lineality dimension n

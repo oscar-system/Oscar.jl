@@ -15,7 +15,7 @@ abstract type CurveDivisor end
 
 Given a curve `C` which is assumed to be smooth and irreducible, return the divisor on the curve `C` defined by `D`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -67,7 +67,7 @@ end
 
 Given a curve `C` which is assumed to be smooth and irreducible, return the divisor on the curve `C` defined by `D`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -248,7 +248,7 @@ end
 
 Return `true` if `D` is an effective divisor, `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -288,7 +288,7 @@ end
 
 Return the multiplicity of the rational function `phi` on the curve `C` at the point `P`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -435,7 +435,7 @@ end
 
 Return the divisor defined by the rational function `phi` on the curve `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -582,7 +582,7 @@ end
 
 Return a set of generators of the global sections of the sheaf associated to the divisor `D` of a smooth and irreducible projective curve.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -681,7 +681,7 @@ end
 Return `true` if the divisors `D` and `E` are linearly equivalent, and `false`
 otherwise
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -725,7 +725,7 @@ end
 
 Return `true` if the divisor `D` is principal, and `false` otherwise
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -767,7 +767,7 @@ end
 If the divisor `D` is principal, return a rational function `phi` such that `D`
 is linearly equivalent to the divisor defined by `phi`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])

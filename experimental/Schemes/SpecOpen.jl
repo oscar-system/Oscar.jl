@@ -60,6 +60,9 @@ open_subset_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RE
 ambient_type(U::SpecOpen{SpecType, BRT, BRET}) where {SpecType<:Spec, BRT, BRET} = SpecType
 ambient_type(::Type{SpecOpen{SpecType, BRT, BRET}}) where {SpecType<:Spec, BRT, BRET} = SpecType
 
+poly_type(::Type{SpecOpenType}) where {SpecOpenType<:SpecOpen} = poly_type(ambient_type(SpecOpenType))
+poly_type(U::SpecOpen) = poly_type(typeof(U))
+
 @Markdown.doc """
     ambient(U::SpecOpen)
 

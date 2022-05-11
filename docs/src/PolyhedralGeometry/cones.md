@@ -54,6 +54,7 @@ both polymake and Oscar.
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)
+contains(C::Cone, v::AbstractVector)
 f_vector(C::Cone)
 hilbert_basis(C::Cone{fmpq})
 codim(C::Cone)

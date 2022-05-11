@@ -916,7 +916,7 @@ function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = d
   GI = I.gb[ordering]
   singular_assure(GI)
   Sx = base_ring(GI.S)
-  return Singular.iszero(reduce(Sx(f), GI.S))
+  return Singular.iszero(Singular.reduce(Sx(f), GI.S))
 end
 Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
@@ -1276,7 +1276,7 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec}; ordering::Monomi
 
   @assert isgraded(R)
   
-  if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
+  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
      throw(ArgumentError("The coefficient ring must be a field."))
   end
   

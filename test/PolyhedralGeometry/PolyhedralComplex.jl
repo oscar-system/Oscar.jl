@@ -11,6 +11,7 @@
         @test PolyhedralComplex{T}(I, P) isa PolyhedralComplex{T}
         @test PolyhedralComplex{T}(I, P, F) isa PolyhedralComplex{T}
         @test PolyhedralComplex{T}(I, P2, F, L) isa PolyhedralComplex{T}
+        @test PolyhedralComplex{T}(I, P2, F, L; non_redundant = true) isa PolyhedralComplex{T}
         @test PolyhedralComplex{T}(I, P2, nothing, L) isa PolyhedralComplex{T}
         
     end
@@ -18,6 +19,7 @@
      PC = PolyhedralComplex{T}(I, P)
      PCF = PolyhedralComplex{T}(I, -P, F)
      PCFL = PolyhedralComplex{T}(I, P2, F, L)
+     PCFLN = PolyhedralComplex{T}(I, P2, F, L; non_redundant = true)
      PCL = PolyhedralComplex{T}(I, P2, nothing, L)
      
      @test common_refinement(PC, PCF) isa PolyhedralComplex{T}
@@ -87,6 +89,12 @@
          @test npolyhedra(PCL) == 9
          @test codim(PCF) == 0
          @test isembedded(PC)
+         
+         @test vertices(PCFLN) == [P2[i, :] for i in 1:3]
+         @test rays(PCFLN) == [P2[4, :]]
+         @test lineality_space(PCFLN) == [L[1, :]]
+         # TODO: include when index methods have been been implemented
+         # @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
          
      end
     

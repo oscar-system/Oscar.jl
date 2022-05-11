@@ -32,10 +32,10 @@ along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
 is made from their hashes. Thus, an affine scheme must not appear more than once 
 in any covering!
 """
-mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, PolyType<:MPolyElem}
+mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem}
   patches::Vector{SpecType} # the basic affine patches of X
   glueings::Dict{Tuple{SpecType, SpecType}, GlueingType} # the glueings of the basic affine patches
-  affine_refinements::Dict{SpecType, Vector{Tuple{SpecOpenType, Vector{PolyType}}}} # optional lists of refinements 
+  affine_refinements::Dict{SpecType, Vector{Tuple{SpecOpenType, Vector{RingElemType}}}} # optional lists of refinements 
       # of the basic affine patches.
       # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen, 
       # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty 
@@ -54,10 +54,10 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
       glueings::Dict{Tuple{SpecType, SpecType}, GlueingType};
       affine_refinements::Dict{
           SpecType, 
-          Vector{Tuple{SpecOpenType, Vector{PolyType}}}
-        }=Dict{SpecType, Vector{Tuple{open_subset_type(SpecType), Vector{poly_type(SpecType)}}}}(),
+          Vector{Tuple{SpecOpenType, Vector{RingElemType}}}
+         }=Dict{SpecType, Vector{Tuple{open_subset_type(SpecType), Vector{elem_type(ring_type(SpecType))}}}}(),
       check::Bool=true
-    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, PolyType<:MPolyElem}
+    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem}
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
     kk = coefficient_ring(base_ring(OO(patches[1])))
@@ -92,7 +92,7 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
         end
       end
     end
-    return new{SpecType, GlueingType, SpecOpenType, PolyType}(patches, glueings, affine_refinements)
+    return new{SpecType, GlueingType, SpecOpenType, RingElemType}(patches, glueings, affine_refinements)
   end
 end
 
@@ -101,6 +101,7 @@ covering_type(::Type{T}) where {T<:Spec} = Covering{T, glueing_type(T)}
 covering_type(X::Spec) = covering_type(typeof(X))
 
 patches(C::Covering) = C.patches
+basic_patches(C::Covering) = C.patches
 npatches(C::Covering) = length(C.patches)
 glueings(C::Covering) = C.glueings
 getindex(C::Covering, i::Int) = C.patches[i]
@@ -112,9 +113,9 @@ affine_refinements(C::Covering) = C.affine_refinements
 
 function add_affine_refinement!(
     C::Covering, U::SpecOpen; 
-    a::Vector{PolyType}=Vector{poly_type(U)}(), 
+    a::Vector{RingElemType}=Vector{poly_type(ambient_type(U))}(), 
     check::Bool=true
-  ) where {PolyType<:MPolyElem}
+  ) where {RingElemType<:RingElem}
   X = ambient(U)
   X in patches(C) || error("ambient scheme not found in the basic patches of the covering")
   if check
@@ -122,10 +123,10 @@ function add_affine_refinement!(
       g = gens(U)
       R = base_ring(OO(X))
       F = FreeMod(OO(X), 1)
-      A = MatrixSpace(OO(X), 1, length(g))(g)
-      M = sub(F, A)
+      A = MatrixSpace(OO(X), length(g), 1)(g)
+      M, inc_M = sub(F, A)
       represents_element(F[1], M) || error("patches of $U do not cover $X")
-      a = coordinates(F[1], M)
+      a = as_vector(coordinates(F[1], M), length(g))
     end
     isone(OO(X)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("patches of $U do not cover $X")
   end
@@ -135,6 +136,48 @@ function add_affine_refinement!(
     push!(affine_refinements(C)[X], (U, a))
   end
   return C
+end
+
+# functions for handling sets in coverings
+
+using Infiltrator
+function Base.intersect(U::SpecType, V::SpecType, C::Covering) where {SpecType<:Spec}
+  U in C || error("first patch not found in covering")
+  V in C || error("second patch not found in covering")
+  (i, j, k) = indexin(U, C)
+  (l, m, n) = indexin(V, C)
+  if i == l # U and V are affine opens of the same patch X in C
+    X = C[i]
+    if X == U == V 
+      iso = identity_map(SpecOpen(X))
+      return iso, iso, iso, iso
+    end
+    f = one(base_ring(OO(X))) # For the case where U is already a basic patch
+    if j != 0 # In this case, U appears in some refinement
+      f = gens(affine_refinements(C)[C[i]][j][1])[k]
+    end
+    g = one(base_ring(OO(X)))
+    if m != 0
+      g = gens(affine_refinements(C)[C[l]][m][1])[n]
+    end
+    W = SpecOpen(X, [f*g])
+    isoW = identity_map(W)
+    incWtoU = inclusion_morphism(W, SpecOpen(U), check=false)
+    incWtoV = inclusion_morphism(W, SpecOpen(V), check=false)
+    return isoW, isoW, incWtoU, incWtoV
+  else
+    G = C[i, l]
+    (f, g) = glueing_morphisms(G)
+    preimV = preimage(f, V)
+    preimU = preimage(g, U)
+    WU = intersect(preimV, U)
+    WV = intersect(preimU, V)
+    isoWUtoWV = restriction(f, WU, WV, check=false)
+    isoWVtoWU = restriction(g, WV, WU, check=false)
+    incWUtoU = inclusion_morphism(WU, SpecOpen(U), check=false)
+    incWVtoV = inclusion_morphism(WV, SpecOpen(V), check=false)
+    return isoWUtoWV, isoWVtoWU, incWUtoU, incWVtoV
+  end
 end
 
 function neighbor_patches(C::Covering, U::Spec)
@@ -196,7 +239,7 @@ function Base.in(U::Spec, C::Covering)
   for i in 1:npatches(C)
     if haskey(affine_refinements(C), C[i])
       V = affine_refinements(C)[C[i]]
-      for V in affine_refinements(C)[C[i]]
+      for (V, a) in affine_refinements(C)[C[i]]
         U in affine_patches(V) && return true
       end
     end
@@ -212,7 +255,7 @@ function Base.indexin(U::Spec, C::Covering)
     if haskey(affine_refinements(C), C[i])
       V = affine_refinements(C)[C[i]]
       for j in 1:length(V)
-        W = V[j]
+        (W, a) = V[j]
         for k in 1:length(gens(W))
           U == W[k] && return (i, j, k)
         end
@@ -456,8 +499,19 @@ mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorT
     # TODO: if check is true, check that all morphisms glue and that the domain patches 
     # cover the basic patches of `dom`.
     for U in keys(mor)
-      U in patches(dom) || error("domain patch not found")
-      codomain(mor[U]) in patches(cod) || error("codomain patch not found")
+      U in dom || error("patch $U of the map not found in domain")
+      codomain(mor[U]) in cod || error("codomain patch not found")
+    end
+    # check that the whole domain is covered
+    for U in basic_patches(dom)
+      if !haskey(mor, U)
+        !haskey(affine_refinements(dom), U) || error("patch $U of the domain not covered")
+        found = false
+        for (V, a) in affine_refinements(dom)[U] 
+          all(x->(haskey(mor, x)), affine_patches(V)) && (found = true)
+        end
+        !found && error("patch $U of the domain not covered")
+      end
     end
     return new{SpecType, CoveringType, SpecMorType}(dom, cod, mor)
   end
@@ -861,3 +915,13 @@ function Base.iterate(C::Covering, s::Int=1)
 end
 
 Base.eltype(C::Covering) = affine_patch_type(C)
+
+### Miscellaneous helper routines
+function as_vector(v::SRow{T}, n::Int) where {T<:RingElem}
+  R = base_ring(v)
+  result = elem_type(R)[zero(R) for i in 1:n]
+  for (i, a) in v
+    result[i] = a
+  end
+  return result
+end

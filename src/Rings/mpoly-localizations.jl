@@ -1622,7 +1622,7 @@ function Base.in(
   iszero(numerator(f)) && return true
   parent(f) == base_ring(I) || return false
   lbpa = groebner_basis(I)
-  return iszero(reduce(f, lbpa))
+  return iszero(Base.reduce(f, lbpa))
   #return numerator(f) in saturated_ideal(I)
 end
 

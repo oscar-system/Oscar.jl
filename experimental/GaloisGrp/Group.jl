@@ -102,11 +102,21 @@ end
 function action_on_blocks(G::PermGroup, B::Vector{Int})
   orb = GAP.Globals.Orbit(G.X, GAP.GapObj(B), GAP.Globals.OnSets)
   act = GAP.Globals.ActionHomomorphism(G.X, orb, GAP.Globals.OnSets)
-  H = GAP.Globals.Image(act)
+  H = GAPWrap.Image(act)
   T = Oscar._get_type(H)
   H = T(H)
   return Oscar.GAPGroupHomomorphism(G, H, act)
 end
+
+function action_on_block_system(G::PermGroup, B::Vector{Vector{Int}})
+  orb = GAP.GapObj(B, recursive = true)
+  act = GAP.Globals.ActionHomomorphism(G.X, orb, GAP.Globals.OnSets)
+  H = GAPWrap.Image(act)
+  T = Oscar._get_type(H)
+  H = T(H)
+  return Oscar.GAPGroupHomomorphism(G, H, act)
+end
+
 
 @doc Markdown.doc"""
     short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem) ->
@@ -146,3 +156,26 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   return S
 end
 
+"""
+Computes representatives (under conjugation) for all subgroups of
+the given group. If geven, only subgroups of a certain order
+are returned.
+"""
+function subgroup_reps(G::PermGroup; order::fmpz = fmpz(-1))
+  C = GAP.Globals.ConjugacyClassesSubgroups(G.X)
+  C = map(GAP.Globals.Representative, C)
+  if order != -1
+    C = [x for x = C if GAP.Globals.Order(x) == order]
+  end
+  return [Oscar._as_subgroup(G, x)[1] for x = C]
+end
+
+"""
+Computes the action of G on the right cosets
+"""
+function right_coset_action(G::PermGroup, U::PermGroup)
+  mp = GAP.Globals.FactorCosetAction(G.X, U.X)
+  if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
+  H = PermGroup(GAP.Globals.Range(mp))
+  return GAPGroupHomomorphism(G, H, mp)
+end

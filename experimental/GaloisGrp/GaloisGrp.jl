@@ -3,9 +3,9 @@ module GaloisGrp
 using Oscar, Markdown
 import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP
-using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
+using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
-export galois_group, slpoly_ring, elementary_symmetric,
+export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field,
        extension_field
 
@@ -337,7 +337,7 @@ mutable struct GaloisCtx{T}
     #             == 2  start[2] is a list of the orbits of the msum-poly, ie. a list of a list of pairs
     #                            where the pairs are Vector{Int} of length 2
   data::Any #whatever else is needed in special cases
-  #= the descent chain, recodring
+  #= the descent chain, recording
    - the group
    - the invariant
    - the tschirnhaus transformation
@@ -345,8 +345,15 @@ mutable struct GaloisCtx{T}
    should probably also record if the step was proven or not
     the starting group  and the block systems used to get them
   =#
+  prime::Any #=can be
+   - fmpz/ Int: prime number, used over Q
+   - NfOrdIdl : prime ideal , used over NfAbs
+   - (Int, Int): evaluation point, prime number used over Q(t)
+   =#
+
   function GaloisCtx(f::fmpz_poly, p::Int)
     r = new{Hecke.qAdicRootCtx}()
+    r.prime = p
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
     r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
@@ -356,7 +363,7 @@ mutable struct GaloisCtx{T}
 
   function GaloisCtx(f::fmpq_poly, p::Int)
     d = map_reduce(denominator, lcm, coefficients(f))
-    return GaloisCtx(Hecke.Globals.Zx(d*f))
+    return GaloisCtx(Hecke.Globals.Zx(d*f), p)
   end
   #=
   Roots in F_q[[t]] for q = p^d
@@ -379,11 +386,11 @@ mutable struct GaloisCtx{T}
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
+    r.prime = (shft, p)
     Qt, t = RationalFunctionField(QQ, "t", cached = false)
     Qts, s = PolynomialRing(Qt, "s", cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
-    #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     
     vl = roots_upper_bound(f)
@@ -472,6 +479,7 @@ used in the algorithm. The roots are returned up to a precision of `pr`
 p-adic digits, thus they are correct modulo ``p^pr``
 
 For non-monic polynomials they roots are scaled by the leading coefficient.
+If `raw` is set to true, the scaling is omitted.
 The bound in the `GaloisCtx` is also adjusted.
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
@@ -510,6 +518,8 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::T
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
   end
+  #TODO: truncate precision where neccessary, working with an insane
+  #      series precision is costly
   while precision(C)[2] < pr[2]
     Hecke.MPolyFact.lift(C)
   end
@@ -1204,7 +1214,6 @@ is a V_4 group.
 This computes (in a dumb way) the 3rd group
 """
 function index2sum(G::PermGroup, H::PermGroup, V::PermGroup)
-  global last_meet = (G, H, V)
   @assert index(G, H) == index(G, V) == 2
   U = intersect(H, V)[1]
   @assert index(G, U) == 4
@@ -1230,7 +1239,7 @@ function map_coeff(C::GaloisCtx{Hecke.qAdicRootCtx}, x)
 end
 
 @doc Markdown.doc"""
-    starting_group(GC::GaloisCtx, K::AnticNumberField) 
+    starting_group(GC::GaloisCtx, K::SimpleNumberField) 
 
 Finds a _starting group_, that is a group `G` as a subgroup of the
 symmetric group acting on the roots in the explicit ordering in the
@@ -1258,7 +1267,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 
   #compute the block system for all subfields...
   bs = Vector{Vector{Int}}[]
-  fld = Dict{Vector{Vector{Int}}, T}()
+  fld = Dict{Vector{Vector{Int}}, Any}()
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
       continue
@@ -1268,7 +1277,6 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #TODO: maybe also use cycle_types for lower bounds?
     while true
       c = roots(GC, pr, raw = true)
-
       g = ms(gen(s))
       gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(g))
       d = map(gg, c)
@@ -1305,7 +1313,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     # - see below in starting_group
     sort!(v, lt = (x,y) -> minimum(x) < minimum(y))
     push!(bs, v)
-    fld[v] = s
+    fld[v] = (s, ms)
   end
 
   F = GroupFilter()
@@ -1317,21 +1325,87 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
     L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]),
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
-    bs = minimal_elements(L)
+    bs = map(Oscar.data, minimal_elements(L))
     @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
   end
   GC.start = (1, bs)
+
+  G = symmetric_group(degree(K))
+  if degree(K) == 1
+    return G, F, one(G)
+  end
+  S = G
 
   #we only need groups that allow the subfield to keep the
   #"correct" galois group. Up to isomorphism, the subfield galois group
   #is the operation on the block-system (permuting of blocks)
   for v = bs
-    s = fld[v]
+    s, ms = fld[v] #it appears that principal_subfields are maximal..
+                   #(all others are via field intersection, hence smaller)
     if degree(s) > 2
       #no point in checking C_2
-      i = transitive_identification(galois_group(s)[1])
+      local gc, bs
+      # TODO: infer the subfields of s from the ones in K
+      #       the poset should make this trivial.
+      @vprint :GaloisGroup 1 "computing group of subfield of degree $(degree(s))\n"
+      local g, gc
+      if valuation(discriminant(s), GC.prime) > 0
+        throw(Hecke.BadPrime(GC.prime))
+      end
+      g, gc = try
+          Hecke.pushindent()
+          galois_group(s, prime = GC.prime)
+        catch e  #can "legally" be BadPrime, will be dealt with one level up
+          Hecke.popindent()
+          rethrow()
+        end
+      Hecke.popindent()
+
+      i = order(g)
+
+      pr = 5
+      r = roots(gc, pr, raw = true)
+      R = roots(GC,pr, raw = true)
+
+      gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(ms(gen(s))))
+      d = map(gg, R)
+      f, mf = ResidueField(parent(r[1]))
+      _F, mF = ResidueField(parent(R[1]))
+      mfF = find_morphism(f, _F)
+      #we should have
+      # - d == r (in the approriate setting)
+      # - order(Set(map(mF, d))) == order(Set(map(mf, r))) == degree(s)
+      # - Set(map(mfF, map(mf, r))) == Set(map(mF, d))
+      # - d is partitioned
+      # and g (the small Galois group) operates on the blocks in d
+      # Now we need to create the wreath_product(sym(deg(K)), g)
+      # that produces THIS block system
+      # The ambiguity of the different possible embeddings (mfF)
+      # should be harmless as they are linked by the Frobenius
+      # and Frobenius in g, so g^Frobenius == g....
+      r = map(mf, r)
+      r = map(mfF, r)
+      @assert parent(R[1]) == parent(d[1])
+      d = map(mF, d)
+      R = map(mF, R)
+      if length(Set(r)) == length(r) &&
+         length(Set(d)) == divexact(length(d), length(r))
+         length(Set(R)) == length(R) #no problems with precision, 
+                                     #we can proceed.
+        @assert Set(r) == Set(d)
+        #assuming wreath_product(A, B) has block system [[1..l], [l+1..2l]...]
+        # the re-ordering is easy: W^s for s = vcat(bs)
+        bs = map(x->findall(isequal(x), d), r)
+        @assert all(x->length(x) == length(bs[1]), bs)
+        W = isomorphic_perm_group(wreath_product(symmetric_group(length(bs[2])), g))[1]
+        #should have the block system as above..
+        W = W^symmetric_group(degree(W))(vcat(bs...))
+        G = intersect(G, W)[1]
+      else
+        @vprint :GaloisGroup 2 "precision problem in wreath product, using size only\n"
+      end
       let _v = v, _i = i 
-        push!(F, x->transitive_identification(image(action_on_blocks(x, _v[1]))[1]) == _i, "subfield for $(_v[1]) would have wrong group")
+        push!(F, x->order(image(action_on_blocks(x, _v[1]))[1]) % _i == 0 , "subfield for $(_v[1]) would have wrong group (too small)")
       end
     end
   end
@@ -1341,14 +1415,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
-  G = symmetric_group(degree(K))
-  if degree(K) == 1
-    return G, F, one(G)
-  end
-  S = G
-
   in_br = false
-
   if issquare(discriminant(K))
     G = intersect(G, alternating_group(degree(K)))[1]
     in_br = true
@@ -1378,7 +1445,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     # and the product then is one for the 3rd case.
     s = S(vcat(b...))
 
-    wr = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
+    wr = PermGroup(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))
     br = intersect(wr, alternating_group(degree(K)))[1]
     wr = wr^s
     br = br^s
@@ -1388,20 +1455,24 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     can_use_wr = length(b) > 2
     #for length(b) == 2, the bottom field is quadratic and thus always S2
     #the wreath product would not be transitive here
+    #TODO: the new stuff above shoudl guarantee that the induced action
+    #  on a block system can never be too large:
+    #    (sym(l) wr gal(k) is constructed above
+    #    does this part still make sense????
     if can_use_wr
-      ar = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), alternating_group(length(b))))[1]
+      ar = PermGroup(wreath_product(symmetric_group(length(b[1])), alternating_group(length(b))))
       ar = ar^s
       cr = index2sum(wr, ar, br)
     end
 
 
     in_ar = false
-    if issquare(discriminant(fld[b]))
+    if issquare(discriminant(fld[b][1]))
       in_ar = true
     end
     #in_ar == true iff galois <= ar
     #in_br == true iff galois <= br
-    in_cr = issquare(discriminant(K)*discriminant(fld[b]))
+    in_cr = issquare(discriminant(K)*discriminant(fld[b][1]))
 
     if can_use_wr
       if in_ar 
@@ -1457,7 +1528,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 end
 
 @doc Markdown.doc"""
-    find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = -1, pStart::Int = 2*degree(f)) -> p, c
+    find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f)) -> p, c
 
 Tries to find a useful prime for the computation of Galois group. Useful means
   - degree of the splitting field not too small
@@ -1466,17 +1537,17 @@ Starts searching at `pStart`, returns the prime as well as the cycle types ident
 
 If `prime` is given, no search is performed.
 """
-function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f))
+function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
   if prime != 0
     p = prime
     lf = factor(f, GF(p))
-    return p, Set([sort(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
   end
   if pStart < 0
     error("should no longer happen")
     p = -pStart
     lf = factor(f, GF(p))
-    return p, Set([sort(map(degree, collect(keys(lf.fac))))])
+    return p, Set([CycleType(map(degree, collect(keys(lf.fac))))])
   end
 
   d_max = degree(f)^2
@@ -1493,6 +1564,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 
   # careful: group could be (C_2)^n hence d_min might be small...
   no_p = 0
   for p = Hecke.PrimesSet(pStart, -1)
+    filter_prime(p) || continue
     k = GF(p)
     if k(leading_coefficient(f)) == 0
       continue
@@ -1501,6 +1573,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 
     if any(x->x>1, values(lf.fac))
       continue
     end
+    filter_pattern(lf) || continue
     no_p +=1 
     push!(ct, sort(map(degree, collect(keys(lf.fac))))) # ct = cycle types as vector of cycle lengths
     d = lcm([degree(x) for x = keys(lf.fac)])
@@ -1534,114 +1607,26 @@ function find_prime(f::fmpq_poly, extra::Int = 5; prime::Int = 0, pStart::Int = 
 
   @vprint :GaloisGroup 1 "using prime $p_best with degree $d_max\n"
   @vprint :GaloisGroup 2 "and cycle types $ct\n"
-  return p_best, ct
-end
-
-#TODO: decide what a cycle type (and a colelction of them) should be
-#      in Gap/Oscar: cycle_structure -> [(l=>n) ...] sorted by 
-#                                  cycle length (l)
-#
-mutable struct CycleType
-  s::Vector{Pair{Int, Int}}
-  function CycleType(c::Vector{Int})
-    ct = CycleType()
-    for i = c
-      _push!(ct, i)
-    end
-    sort!(ct.s, lt = (x,y) -> x[1] < y[1])
-    return ct
-  end
-  function CycleType()
-    return new(Pair{Int, Int}[])
-  end
-  function CycleType(v::Vector{Pair{Int, Int}})
-    return new(sort(v, lt = (x,y) -> x[1] < y[1]))
-  end
-end
-
-function Base.hash(c::CycleType, u::UInt = UInt(121324))
-  return hash(c.s, u)
-end
-
-function _push!(ct::CycleType, i::Int)
-  f = findfirst(x->x[1] == i, ct.s)
-  if f === nothing
-    push!(ct.s, i=>1)
-  else
-    ct.s[f] = ct.s[f][1]=>ct.s[f][2] + 1
-  end
-end
-
-function ^(c::CycleType, e::Int)
-  t = Vector{Pair{Int, Int}}()
-  for (i,j) = c.s
-    g = gcd(i, e)
-    push!(t, (divexact(i, g)=>g*j))
-  end
-  return CycleType(t)
-end
-
-function Oscar.order(c::CycleType)
-  return reduce(lcm, map(x->fmpz(x[1]), c.s), init = fmpz(1))
+  return p_best, Set(CycleType(x) for x = ct)
 end
 
 #given cycle types, try to find a divisor (large) of the transitive
 #group. Used for sieving.
-function order_from_shape(ct::Set{Vector{Int}}, n)
-  o1 = fmpz(1)
-  o  = fmpz(1)
-  for p = PrimesSet(1, n)
-    #find cycletypes that would correpond to elt of order a multiple of p
-    #the exact order is lcm(x) for x in ct
-    ct_p = [x for x = ct if any(t->t % p == 0, x)]
-    #so ct_t contains all cycle types belongign to elements where the
-    #order is divisible by p
-    length(ct_p) == 0 && continue
-    #now x in ct_p is is the cycle type of an element where the order is a multiple
-    #of p. I need the type of x^f (which is of maximal order p-power order)
-    #e.g. a cycle of length 6 will produce 3 of length 2
-    ct_pp = Set{Vector{Int}}()
-    for x = ct_p
-      l = []
-      for y = x
-        e = valuation(y, p)
-        append!(l, [p^e for i=1:divexact(y, p^e)])
-      end
-      sort!(l)
-      #we divide by the min <=> cycle type of power by min
-      #this is min expo to get a fixed point.
-      ll = Int[]
-      for i=1:length(l)
-        for j=1:l[1]
-          push!(ll, divexact(l[i], l[1]))
-        end
-      end
-      push!(ct_pp, ll)
-    end
-    # Now everything has a fixed point, so we can bound the
-    # size of Stab_G(1) from below (we're transitive, so the fixed point
-    # is 1)
-    # the plan is to take to 2 different largest ones
-
-    mu = [(y[end], sum(x for x = y if x == y[end])) for y = ct_pp]
-    sort!(mu, lt = (a,b) -> a[1] < b[1])
-    if length(mu) == 1
-      p_part = mu[1][1]
-      o1 *= p_part
-    else
-      p_part = maximum([x[1]*y[1] for x = mu for y = mu if x[2] != y[2]], init = maximum(x[1] for x = mu))
-      o1 *= p_part
-    end
-  end
-  return lcm(n*o1, o)
-end
+# Elsenhans-Klueners:
+# Computing subfields of number fields and
+# applications to Galois group computations
 function order_from_shape(ct::Set{CycleType}, n)
   o1 = fmpz(1)
-  o  = fmpz(1)
+  #Lemma 15:
+  o  = n * reduce(lcm, fmpz[divexact(
+           reduce(lcm, fmpz[l for (l,v) = x]),
+           reduce(gcd, fmpz[l for (l,v) = x])) for x = ct if length(x) > 0], 
+           init = fmpz(1))
+  #Lemma 16:         
   for p = PrimesSet(1, n)
     #find cycletypes that would correpond to elt of order a multiple of p
     #the exact order is lcm(x) for x in ct
-    ct_p = [x for x = ct if any(t->t[1] % p == 0, x.s)]
+    ct_p = [x for x = ct if any(t->t[1] % p == 0, x)]
     #so ct_t contains all cycle types belongign to elements where the
     #order is divisible by p
     length(ct_p) == 0 && continue
@@ -1674,37 +1659,9 @@ end
 
 #https://mathoverflow.net/questions/286316/recognition-of-symmetric-groups-in-gap
 #show primitivity by finding a permutation which has a p cycle for n/2<p<n−1
-function primitive_by_shape(ct::Set{Vector{Int}}, n::Int)
-  for p = PrimesSet(div(n, 2)+1, n-2)
-    if any(y->any(x->x % p == 0, y), ct)
-      return true
-    end
-  end
-  return false
-end
-function primitive_by_shape(ct::Set{CycleType})
+function primitive_by_shape(ct::Set{CycleType}, n::Int)
   for p = PrimesSet(div(n, 2)+1, n-2)
     if any(y->any(x->x[1] % p == 0, y), ct)
-      return true
-    end
-  end
-  return false
-end
-
-function an_sn_by_shape(ct::Set{Vector{Int}}, n::Int)
-  n <= 3 && return true
-
-  ub = n > 8 ? n-3 : n-2
-  lp = reduce(lcm, map(fmpz, collect(PrimesSet(div(n, 2)+1, ub))), init = fmpz(1))
-
-  if any(x->any(y ->gcd(y, lp) > 1, x), ct)
-    n != 6 && return true
-    #from Elsenhans (ask Max???) need the 5-cycle and 
-    #    [1,1,1,3] or [1,2,3] ie. not [3,3]
-    # Elsenhans also tries to seperate Sn/An but there I am not certain
-    # I think if there is a type proving odd, then we have Sn, hower
-    # not finding one does not prove anyhting
-    if any(x->3 in x && length(x) > 2, ct)
       return true
     end
   end
@@ -1732,19 +1689,12 @@ function an_sn_by_shape(ct::Set{CycleType}, n::Int)
 end
 
 function Oscar.cycle_structure(x::GroupConjClass{PermGroup, PermGroupElem})
-  c = cycle_structure(x.repr)
-  s = reduce(+, [v*k for (k,v) = c], init = 0)
-  if s < degree(parent(x.repr))
-    @assert !any(x->x[1] == 1, c)
-    insert!(c, 1, 1=>(degree(parent(x.repr))-s))
-  end
-
-  return c
+  return cycle_structure(representative(x))
 end
 
 function cycle_structures(G::PermGroup)
   r = conjugacy_classes(G)
-  return Set([cycle_structure(x) for x = r])
+  return Set(cycle_structure(x) for x = r)
 end
 
 #
@@ -1772,7 +1722,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
   if prime != 0
     p = prime
-    ct = Set{Vector{Int}}()
+    ct = Set{CycleType}()
   else
     p, ct = find_prime(K.pol, pStart = pStart, prime = prime)
   end
@@ -1781,44 +1731,67 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   #       primitive: done.
   #       2-transitive: ????
   # TODO: sieve (filter) by 
-  #       - cycle_structure
-  #       - primitive/ transitive/ 2-transitive/ ...
-  #       - blocks
+  #       - cycle_structure (done)
+  #       - primitive/ transitive/ 2-transitive/ ... (partly done)
+  #       - blocks (not sure: we're using the subfield group and wreath prods)
 
-  GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
-  if an_sn_by_shape(ct, degree(K))
-    @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
-    if issquare(discriminant(K))
-      G = alternating_group(degree(K))
-    else
-      G = symmetric_group(degree(K))
+  # TODO: this too needs to be made either generic or replicated in the 
+  #       relative case
+  #       or the RootCtx needs to learn to deal with bad primes
+ 
+  while true
+    GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
+    r = roots(GC, 5)
+    if length(r) < degree(K) 
+      @vprint :GaloisGroup 1 "in recursion: bad prime detected\n"
+      prime == 0 || throw(Hecke.BadPrime(p))
+      p, _ = find_prime(K.pol, pStart = p+1)
+      continue
     end
-    GC.G = G
-    return G, GC
+
+    if an_sn_by_shape(ct, degree(K))
+      @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
+      if issquare(discriminant(K))
+        G = alternating_group(degree(K))
+      else
+        G = symmetric_group(degree(K))
+      end
+      GC.G = G
+      return G, GC
+    end
+
+    G, F, si = try
+      starting_group(GC, K, useSubfields = useSubfields && !primitive_by_shape(ct, degree(K)))
+    catch e
+      if isa(e, Hecke.BadPrime)
+        @vprint :GaloisGroup 1 "in recursion: bad prime detected\n"
+        prime == 0 || rethrow()
+        p, _ = find_prime(K.pol, pStart = p+1)
+        continue
+      else
+        rethrow(e)
+      end
+    end
+    # the filter will filter at least on 
+    #   size (have a lower bound from cycles)
+    #   even/odd
+    #   some subgroups of the wreath products
+    if degree(K) == 1
+      GC.G = G
+      return G, GC
+    end
+
+    os = order_from_shape(ct, degree(K))
+    @vprint :GaloisGroup 2 "using lower bound $os for order to sieve\n"
+    push!(F, x->order(x) % os == 0, "group too small")
+    if degree(K) < 20 #arbitrary....
+      push!(F, x->issubset(ct, cycle_structures(x)), "by cycle structures")
+    end
+
+    # TODO: here we know if we are primitive; can we detect 2-transitive (inside starting_group)?
+
+    return descent(GC, G, F, si, extra = extra)
   end
-
-  G, F, si = starting_group(GC, K, useSubfields = useSubfields && !primitive_by_shape(ct, degree(K)))
-  # the filter will filter at least on 
-  #   size (have a lower bound from cycles)
-  #   even/odd
-  #   some subgroups of the wreath products
-  if degree(K) == 1
-    GC.G = G
-    return G, GC
-  end
-
-  os = order_from_shape(ct, degree(K))
-  @vprint :GaloisGroup 2 "using lower bound $os for order to sieve\n"
-  push!(F, x->order(x) % os == 0, "group too small")
-  if degree(K) < 20 #arbitrary....
-    cct = Set([CycleType(x).s for x = ct])
-    push!(F, x->issubset(cct, cycle_structures(x)), "by cycle structures")
-  end
-
-  # TODO: here we know if we are primitive; can we detect 2-transitive (inside starting_group)?
-
-  return descent(GC, G, F, si, extra = extra)
-
 end
 
 @doc Markdown.doc"""
@@ -2089,6 +2062,69 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   return k
 end
 
+"""
+Finds all(?) subfields of the splitting field s.th. the galois
+group will be permutation isomorphic to Q.
+"""
+function galois_quotient(C::GaloisCtx, Q::PermGroup)
+  G = C.G
+  if order(G) % degree(Q) != 0
+    return []
+  end
+  s = subgroup_reps(G, order = divexact(order(G), degree(Q)))
+  res = []
+  for U = s
+    phi = right_coset_action(G, U)
+    if isisomorphic(Q, image(phi)[1])[1]
+      push!(res, fixed_field(C, U))
+    end
+  end
+  return res
+end
+
+"""
+Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
+with isomorphic galois group.
+"""
+function galois_quotient(C::GaloisCtx, d::Int)
+  G = C.G
+  if order(G) % d != 0
+    return []
+  end
+  s = subgroup_reps(G, order = divexact(order(G), d))
+  res = []
+  for U = s
+    phi = right_coset_action(G, U)
+    if order(image(phi)[1]) == order(G)
+      push!(res, fixed_field(C, U))
+    end
+  end
+  return res
+end
+
+"""
+Finds all subfields of the splitting field with galois group the n-th
+transitive group in degree d
+"""
+galois_quotient(C::GaloisCtx, d::Int, n::Int) = 
+            galois_quotient(C, transitive_group(d, n))
+
+"""
+    galois_quotient(f::PolyElem, p::Vector{Int})
+
+Equivalent to
+
+  galois_quotient(galois_group(f)[2], p[1], p[2])
+
+Finds all subfields of the splitting field of f with galois group
+the p[2]-th transitive group of degree p[1]
+"""
+function galois_quotient(f::PolyElem, p::Vector{Int})
+  G, C = galois_group(f)
+  @assert length(p) == 2
+  return galois_quotient(C, p[1], p[2])
+end
+
 #based on 
 #  doi:10.1006/jsco.2000.0376
 # Using Galois Ideals for Computing Relative Resolvents
@@ -2120,6 +2156,8 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   #we need to go down (by hand) to the starting group.
   #This is either C.G (if there was no descent in Stauduhar)
   #or the 1st group in the descent chain (C.chn)...
+  #TODO: the subfields use, implicitly, special invariants, so
+  #      we should be able to avoid the chain
   if length(C.chn) == 0
     c = maximal_subgroup_chain(symmetric_group(n), C.G)
   else
@@ -2214,7 +2252,7 @@ function galois_group(f::fmpz_poly; pStart::Int = 2*degree(f), prime::Int = 0)
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart, prime = prime)
 end
 
-function galois_group(f::PolyElem{<:FieldElem}; pStart::Int = 2*degree(f))
+function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
   lf = [(k,v) for  (k,v) = factor(f).fac]
 
   if length(lf) == 1
@@ -2228,7 +2266,7 @@ function galois_group(f::PolyElem{<:FieldElem}; pStart::Int = 2*degree(f))
   lg = [x[1] for x = lf]
   
   g = prod(lg)
-  p, ct = find_prime(g, pStart = pStart)
+  p, ct = find_prime(g, pStart = pStart, prime = prime)
 
   C = [galois_group(number_field(x, cached = false)[1], prime = p)[2] for x = lg]
   G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
@@ -2288,6 +2326,7 @@ AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{T}) where {T <: Integ
 
 include("Group.jl")
 include("POSet.jl")
+include("Subfields.jl")
 include("SeriesEval.jl")
 include("Qt.jl")
 include("RelGalois.jl")
@@ -2295,7 +2334,7 @@ include("RelGalois.jl")
 end
 
 using .GaloisGrp
-export galois_group, slpoly_ring, elementary_symmetric,
+export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, 
        maximal_subgroup_reps, extension_field
        

@@ -663,7 +663,7 @@ function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) 
   h = lift(f)
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  h = reduce(h, groebner_basis(localized_modulus(parent(f))))
+  h = Base.reduce(h, groebner_basis(localized_modulus(parent(f))))
   return parent(f)(h, is_reduced=true, check=false)
 end
 

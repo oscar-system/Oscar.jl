@@ -7,59 +7,8 @@ AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem
 AbTorElem = Union{GrpAbFinGenElem,TorQuadModElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
-  # find independent generators
-  if isdiagonal(rels(A))
-    exponents = diagonal(rels(A))
-    A2 = A
-    A2_to_A = identity_map(A)
-    A_to_A2 = identity_map(A)
-  else
-    exponents = elementary_divisors(A)
-    A2, A2_to_A = snf(A)
-    A_to_A2 = inv(A2_to_A)
-  end
-  # the isomorphic gap group
-  Agap = abelian_group(T, exponents)
-  G = GAP.Globals
-  # the gap IndependentGenerators may differ from
-  # the generators even if the generators are independent
-  gensindep = G.IndependentGeneratorsOfAbelianGroup(Agap.X)
-  Aindep = abelian_group(fmpz[G.Order(g) for g in gensindep])
-
-  imgs = [Vector{fmpz}(G.IndependentGeneratorExponents(Agap.X, a.X)) for a in gens(Agap)]
-  A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
-  Aindep_to_A2 = inv(A2_to_Aindep)
-  Aindep_to_A = compose(Aindep_to_A2, A2_to_A)
-
-  function Agap_to_A(a)
-      return Aindep_to_A(_gap_to_oscar(a, Aindep))
-  end
-
-  function A_to_Agap(a)
-      return _oscar_to_gap(A_to_A2(a), Agap)
-  end
-
-  to_gap = Hecke.map_from_func(A_to_Agap, A, Agap)
-  to_oscar = Hecke.map_from_func(Agap_to_A, Agap, A)
-
-  return Agap, to_gap, to_oscar
-end
-
-function _oscar_to_gap(a::GrpAbFinGenElem, B::GAPGroup)
-  gensB = gens(B)
-  n = length(a.coeff)
-  @assert length(gensB) == n
-  img = one(B)
-  for i in 1:n
-    img *= gensB[i]^a[i]
-  end
-  return img
-end
-
-function _gap_to_oscar(a::Oscar.BasicGAPGroupElem, B::GrpAbFinGen)
-  A = parent(a)
-  exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(A.X, a.X))
-  return B(exp)
+  iso = isomorphism(T, A)
+  return codomain(iso), iso, inv(iso)
 end
 
 """
@@ -86,7 +35,7 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check=true)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
-  imgap = typeof(xgap)(domGap, GAP.Globals.Image(f.X,xgap.X))
+  imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
   return to_oscar(imgap)
 end
  

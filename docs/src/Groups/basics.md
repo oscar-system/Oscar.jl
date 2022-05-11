@@ -27,7 +27,7 @@ one(x::GAPGroup)
 one(x::GAPGroupElem)
 isfiniteorder(x::GAPGroupElem)
 gens(::GAPGroup)
-hasgens(::GAPGroup)
+has_gens(::GAPGroup)
 ngens(G::GAPGroup)
 gen(::GAPGroup, i::Int)
 Base.rand(G::GAPGroup)
@@ -80,8 +80,10 @@ isnilpotent
 issupersolvable
 issolvable
 isperfect
-issimple
+issimple(G::GAPGroup)
 isalmostsimple
+is_quasisimple
+is_sporadic_simple
 isfinitelygenerated
 ```
 

@@ -13,6 +13,7 @@ export
     preserved_sesquilinear_forms,
     automorphism_group,
     orthogonal_group,
+    orthogonal_sign,
     unitary_group
 
 ########################################################################
@@ -67,7 +68,7 @@ over its prime subfield.
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
+   @assert F isa FinField "At the moment, only finite fields are considered"
    @assert iseven(degree(F)) "Base ring has no even degree"
    n = degree(G)
    M = T[]
@@ -202,7 +203,7 @@ over its prime subfield.
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
+   @assert F isa FinField "At the moment, only finite fields are considered"
    n = degree(G)
    M = T[]
 
@@ -440,12 +441,14 @@ end
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
-is not absolutely irreducible.
+is not absolutely irreducible or if the group is defined over a finite field
+of odd degree over the prime field.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
+   isodd(degree(base_ring(G))) && throw(ArgumentError("group is defined over a field of odd degree"))
    V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
    return preimage_matrix(G.ring_iso, B)
@@ -454,7 +457,7 @@ end
 """
     invariant_quadratic_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`.
+Return an invariant quadratic form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
@@ -523,6 +526,27 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(R,f)
    end
    return R
+end
+
+
+"""
+    orthogonal_sign(G::MatrixGroup)
+
+For absolutely irreducible `G` of degree `n` and such that `base_ring(G)`
+is a finite field, return
+- `nothing` if `G` does not preserve a nonzero quadratic form,
+- `0` if `n` is odd and `G` preserves a nonzero quadratic form,
+- `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
+- `-1` if `n` is even and `G` preserves a nonzero quadratic form of `-` type.
+"""
+function orthogonal_sign(G::MatrixGroup)
+    R = base_ring(G)
+    R isa FinField || error("G must be a matrix group over a finite field")
+    M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X),
+                                  codomain(iso_oscar_gap(R)))
+    sign = GAP.Globals.MTX.OrthogonalSign(M)
+    sign == GAP.Globals.fail && return nothing
+    return sign
 end
 
 

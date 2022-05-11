@@ -92,14 +92,14 @@
 
             @test A != B
 
-            @test Oscar.normal_vector(A) isa Vector{U}
-            @test Oscar.normal_vector(A) == a
-            @test Oscar.negbias(A) isa U
-            @test Oscar.negbias(A) == 0
+            @test normal_vector(A) isa Vector{U}
+            @test normal_vector(A) == a
+            @test negbias(A) isa U
+            @test negbias(A) == 0
             
             
-            @test Oscar.normal_vector(B) == b
-            @test Oscar.negbias(B) == 2
+            @test normal_vector(B) == b
+            @test negbias(B) == 2
         end
         
         @test T(a, 0) isa T{fmpq}
@@ -119,18 +119,32 @@
 
             @test A != B
 
-            @test Oscar.normal_vector(A) isa Vector{U}
-            @test Oscar.normal_vector(A) == a
-            @test Oscar.negbias(A) isa U
-            @test Oscar.negbias(A) == 0
+            @test normal_vector(A) isa Vector{U}
+            @test normal_vector(A) == a
+            @test negbias(A) isa U
+            @test negbias(A) == 0
             
             
-            @test Oscar.normal_vector(B) == b
-            @test Oscar.negbias(B) == 0
+            @test normal_vector(B) == b
+            @test negbias(B) == 0
         end
         
         @test T(a) isa T{fmpq}
         
+    end
+    
+    for U in [fmpq]
+        let A = LinearHalfspace{U}(a)
+            @test invert(A) isa LinearHalfspace{U}
+            Ai = invert(A)
+            @test normal_vector(Ai) == -a
+        end
+        let A = AffineHalfspace{U}(a, 8)
+            @test invert(A) isa AffineHalfspace{U}
+            Ai = invert(A)
+            @test normal_vector(Ai) == -a
+            @test negbias(Ai) == -8
+        end
     end
     
     @test Halfspace(a) isa LinearHalfspace{fmpq}

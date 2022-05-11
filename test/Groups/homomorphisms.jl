@@ -38,7 +38,7 @@ n = 6
    @test g^(og+1) == g
    @test g^(1-og) == g
 
-   @test !isisomorphic(symmetric_group(4), symmetric_group(3))[1]
+   @test !isisomorphic(symmetric_group(4), symmetric_group(3))
 
    A = alternating_group(n)
    x = cperm(G,[1,2,3])
@@ -107,10 +107,10 @@ end
    end
 
    @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
-      for invs in [[2, 3, 4], [6, 8, 9, 15]]
+      for invs in [[1], [2, 3, 4], [6, 8, 9, 15]]
          for T in [PermGroup, PcGroup, FPGroup]
             G = abelian_group(T, invs)
-            iso = isomorphism(GrpAbFinGen, G)
+            iso = @inferred isomorphism(GrpAbFinGen, G)
             A = codomain(iso)
             @test order(G) == order(A)
             for x in gens(G)
@@ -119,6 +119,46 @@ end
             end
          end
       end
+   end
+
+   @testset "Finite GrpAbFinGen to GAPGroup" begin
+      @testset for Agens in [[2, 4, 8], [2, 3, 4], [ 2, 12 ],
+                             [1, 6], matrix(ZZ, 2, 2, [2, 3, 2, 6])]
+         A = abelian_group(Agens)
+         for T in [FPGroup, PcGroup, PermGroup]
+            iso = @inferred isomorphism(T, A)
+            for x in gens(A)
+               for y in gens(A)
+                  z = x+y
+                  @test iso(x) * iso(y) == iso(z)
+                  @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+               end
+            end
+         end
+      end
+   end
+
+   @testset "GrpAbFinGen to GrpAbFinGen" begin
+      A = abelian_group([2, 3, 4])
+      iso = @inferred isomorphism(GrpAbFinGen, A)
+   end
+
+   @testset "Group types as constructors" begin
+      G = symmetric_group(4)
+      for T in [FPGroup, PcGroup, PermGroup]
+        H = T(G)
+        @test H isa T
+        @test isisomorphic(G, H)[1]
+      end
+
+      G = cyclic_group(5)
+      T = GrpAbFinGen
+      H = T(G)
+      @test H isa T
+      @test order(H) == order(G)
+      K = PermGroup(H)
+      @test K isa PermGroup
+      @test order(K) == order(H)
    end
 
    @testset "Abelian_as_permutation" for n in 15:20
@@ -135,31 +175,45 @@ end
 
    @testset "Change type" begin
        S = symmetric_group(4)
-       (S1,f)=isomorphic_perm_group(S)
-       @test S1==S
-       (G,f)=isomorphic_pc_group(S)
+       f = @inferred isomorphism(PermGroup, S)
+       @test codomain(f) == S
+
+       f = @inferred isomorphism(PcGroup, S)
+       G = codomain(f)
        @test G isa PcGroup
-       @test domain(f)==S
-       @test codomain(f)==G
+       @test domain(f) == S
        @test isinjective(f)
        @test issurjective(f)
 
-       (S,g)=isomorphic_pc_group(G)
-       @test S isa PcGroup
-       @test domain(g)==G
-       @test codomain(g)==S
-       @test isinjective(g)
-       @test issurjective(g)
+       f = @inferred isomorphism(PcGroup, G)
+       @test codomain(f) isa PcGroup
+       @test domain(f) == G
+       @test isinjective(f)
+       @test issurjective(f)
 
-       (F,g)=isomorphic_fp_group(G)
-       @test F isa FPGroup
-       @test domain(g)==G
-       @test codomain(g)==F
-       @test isinjective(g)
-       @test issurjective(g)
+       f = @inferred isomorphism(FPGroup, G)
+       @test codomain(f) isa FPGroup
+       @test domain(f) == G
+       @test isinjective(f)
+       @test issurjective(f)
 
-       @test_throws ArgumentError isomorphic_pc_group(symmetric_group(5))   
-   end   
+       G = abelian_group(PermGroup, [2, 2])
+       f = @inferred isomorphism(GrpAbFinGen, G)
+       @test codomain(f) isa GrpAbFinGen
+       @test domain(f) == G
+     # @test isinjective(f)
+     # @test issurjective(f)
+
+       @test_throws ArgumentError isomorphism(GrpAbFinGen, symmetric_group(5))
+       @test_throws ArgumentError isomorphism(PcGroup, symmetric_group(5))
+       @test_throws ArgumentError isomorphism(PermGroup, free_group(1))
+
+       G = symmetric_group(4)
+       @test PermGroup(G) isa PermGroup
+       @test PcGroup(G) isa PcGroup
+       @test FPGroup(G) isa FPGroup
+       @test_throws ArgumentError GrpAbFinGen(G)
+   end
 end
 
 TestDirectProds=function(G1,G2)
@@ -191,10 +245,10 @@ TestDirectProds=function(G1,G2)
    end
    q1=p1*f1
    q2=p2*f2
-   @test isisomorphic(kernel(q1)[1],G2)[1]
-   @test isisomorphic(image(q1)[1],G1)[1]
-   @test isisomorphic(kernel(q2)[1],G1)[1]
-   @test isisomorphic(image(q2)[1],G2)[1]
+   @test isisomorphic(kernel(q1)[1],G2)
+   @test isisomorphic(image(q1)[1],G1)
+   @test isisomorphic(kernel(q2)[1],G1)
+   @test isisomorphic(image(q2)[1],G2)
 end
 
 @testset "Direct product" begin
@@ -277,7 +331,7 @@ end
    @test A isa AutomorphismGroup
    @test A isa AutomorphismGroup{PermGroup}
    @test A.G == G
-   @test isisomorphic(G,A)[1]
+   @test isisomorphic(G,A)
    @test order(A) == 24
    @test A==inner_automorphisms_group(A)[1]
 
@@ -312,7 +366,7 @@ end
    @test g1 in A
    g2 = A(inner_automorphism(G(alt[2])))
    AA,phi = sub(A,[g1,g2])
-   @test isisomorphic(AA,alt)[1]
+   @test isisomorphic(AA,alt)
    @test index(A,AA)==2
    @test isnormal(A,AA)
    @test phi(AA[1])==AA[1]
@@ -339,14 +393,14 @@ end
    G = direct_product(C,C)
    A = automorphism_group(G)
 
-   @test isisomorphic(A,GL(2,3))[1]
+   @test isisomorphic(A,GL(2,3))
    @test order(inner_automorphisms_group(A)[1])==1
 end
 
 @testset "Composition of mappings" begin
    g = symmetric_group(4)
    q, epi = quo(g, pcore(g, 2)[1])
-   F, iso = isomorphic_perm_group(q)
+   iso = @inferred isomorphism(PermGroup, q)
    comp = compose(epi, iso)
    @test domain(comp) == domain(epi)
    @test codomain(comp) == codomain(iso)

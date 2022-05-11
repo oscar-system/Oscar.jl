@@ -84,85 +84,22 @@ end
 # 4: Addition and scalar multiplication
 ########################
 
-@doc Markdown.doc"""
-    Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-
-Return the sum of the toric divisor classes `tdc1` and `tdc2`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc1 = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> tdc2 = ToricDivisorClass(P2, [2])
-A divisor class on a normal toric variety
-
-julia> tdc1+tdc2
-A divisor class on a normal toric variety
-```
-"""
 function Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    # check input
     if toric_variety(tdc1) !== toric_variety(tdc2)
         throw(ArgumentError("The toric classes must be defined on identically the same toric variety."))
     end
-    
-    # return the new divisor class
     return ToricDivisorClass(toric_variety(tdc1), divisor_class(tdc1) + divisor_class(tdc2))
 end
 
 
-@doc Markdown.doc"""
-    Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-
-Return the difference of the toric divisor classes `tdc1` and `tdc2`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc1 = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> tdc2 = ToricDivisorClass(P2, [2])
-A divisor class on a normal toric variety
-
-julia> tdc1-tdc2
-A divisor class on a normal toric variety
-```
-"""
 function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    # check input
     if toric_variety(tdc1) !== toric_variety(tdc2)
         throw(ArgumentError("The toric classes must be defined on identically the same toric variety."))
     end
-    
-    # return the new divisor class
     return ToricDivisorClass(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end
 
 
-@doc Markdown.doc"""
-    Base.:*(c::fmpz, td::ToricDivisorClass)
-
-Return `c`-times the toric divisor `tdc`.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> fmpz(2)*tdc
-A divisor class on a normal toric variety
-```
-"""
 Base.:*(c::fmpz, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), c * divisor_class(tdc))
 Base.:*(c::Int, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), fmpz(c) * divisor_class(tdc))
 
@@ -171,31 +108,8 @@ Base.:*(c::Int, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), 
 # 5: Equality
 ########################
 
-@doc Markdown.doc"""
-    Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-
-Returns true if the toric divisor classes `tdc1` and `tdc2` are equal and false otherwise.
-
-# Examples
-```jldoctest
-julia> P2 = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> tdc1 = ToricDivisorClass(P2, [1])
-A divisor class on a normal toric variety
-
-julia> tdc2 = ToricDivisorClass(P2, [2])
-A divisor class on a normal toric variety
-
-julia> tdc1 == tdc2
-false
-```
-"""
 function Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-    if toric_variety(tdc1) !== toric_variety(tdc2)
-        return false
-    end
-    return iszero(divisor_class(tdc1) - divisor_class(tdc2))
+    return toric_variety(tdc1) === toric_variety(tdc2) && iszero(divisor_class(tdc1) - divisor_class(tdc2))
 end
 
 

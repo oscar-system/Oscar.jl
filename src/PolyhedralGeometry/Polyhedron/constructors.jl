@@ -72,9 +72,14 @@ julia> vertices(P)
 """
 Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron{T}(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
-    IM = -affine_matrix_for_polymake(I)
-    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+function Polyhedron{T}(I::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
+    if isnothing(I) || _isempty_halfspace(I)
+        EM = affine_matrix_for_polymake(E)
+        IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
+    else
+        IM = -affine_matrix_for_polymake(I)
+        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+    end
 
     return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
 end
