@@ -4,11 +4,18 @@
 ###############################################################################
 ###############################################################################
 
-struct Polyhedron{T} #a real polymake polyhedron
+struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
-    
+
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
+
+    @doc Markdown.doc"""
+        Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
+
+    Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
+    The type parameter `T` is optional but recommended for type stability.
+    """
     Polyhedron{T}(p::Polymake.BigObject) where T<:scalar_types = new{T}(p)
 end
 
@@ -20,17 +27,6 @@ Polyhedron(x...) = Polyhedron{fmpq}(x...)
 Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
 
 @doc Markdown.doc"""
-
-    Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
-
-Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
-"""
-function Polyhedron{T}(pm_polytope::Polymake.BigObject) where T<:scalar_types
-    Polyhedron{T}(pm_polytope, :unknown)
-end
-
-@doc Markdown.doc"""
-
     Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
