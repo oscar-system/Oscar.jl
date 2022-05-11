@@ -414,10 +414,24 @@ julia> @perm (1,2,3)(4,5)(6,7,8)
 """
 macro perm(ex)
     res = []
+    
+    if typeof(ex) != Expr
+        error("Input is not a permutation.")
+    end
+    
+    if (ex).head != :call && (ex).head != :tuple
+        error("Input is not a permutation.")
+    end
    
     while (ex).head == :call
         pushfirst!(res, Expr(:vect, (ex).args[2:end]...))
         ex = (ex).args[1]
+        if typeof(ex) != Expr
+            error("Input is not a permutation.")
+        end
+        if (ex).head != :call && (ex).head != :tuple
+            error("Input is not a permutation.")
+        end
     end
     
     if (ex).head != :tuple
@@ -472,10 +486,25 @@ macro perm(n,gens)
     i = 1
     for ex in gens.args
         res = []
+        
+        if typeof(ex) != Expr
+            throw(ArgumentError("Input is not a permutation."))
+            error("Input is not a permutation.")
+        end
+        
+        if (ex).head != :call && (ex).head != :tuple
+            error("Input is not a permutation.")
+        end
        
         while (ex).head == :call
             pushfirst!(res, Expr(:vect, (ex).args[2:end]...))
             ex = (ex).args[1]
+            if typeof(ex) != Expr
+                error("Input is not a permutation.")
+            end
+            if (ex).head != :call && (ex).head != :tuple
+                error("Input is not a permutation.")
+            end
         end
         
         if (ex).head != :tuple
