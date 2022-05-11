@@ -413,22 +413,18 @@ julia> @perm (1,2,3)(4,5)(6,7,8)
 ```
 """
 macro perm(ex)
-    h = (ex).head
-    arg = (ex).args
     res = []
-    
-    while h == :call
-        arg1 = arg[1]
-        pushfirst!(res, Expr(:vect,arg[2:end]...))
-        h = (arg1).head
-        arg = (arg1).args
+   
+    while (ex).head == :call
+        pushfirst!(res, Expr(:vect, (ex).args[2:end]...))
+        ex = (ex).args[1]
     end
     
-    if h != :tuple
+    if (ex).head != :tuple
         error("Input is not a permutation.")
     end
     
-    pushfirst!(res, Expr(:vect,arg...))
+    pushfirst!(res, Expr(:vect,(ex).args...))
 
     return esc(:(Oscar.cperm($(res...))))
 end
@@ -474,23 +470,19 @@ macro perm(n,gens)
     s = symmetric_group(n)
     ores = Vector{Expr}(undef,length(gens.args))
     i = 1
-    for g in gens.args
-        h = g.head
-        arg = g.args
+    for ex in gens.args
         res = []
-        
-        while h == :call
-            arg1 = arg[1]
-            pushfirst!(res, Expr(:vect,arg[2:end]...))
-            h = (arg1).head
-            arg = (arg1).args
+       
+        while (ex).head == :call
+            pushfirst!(res, Expr(:vect, (ex).args[2:end]...))
+            ex = (ex).args[1]
         end
         
-        if h != :tuple
-           error("Input is not a permutation.")
+        if (ex).head != :tuple
+            error("Input is not a permutation.")
         end
         
-        pushfirst!(res, Expr(:vect,arg...))
+        pushfirst!(res, Expr(:vect,(ex).args...))
 
         ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
         i = i + 1
