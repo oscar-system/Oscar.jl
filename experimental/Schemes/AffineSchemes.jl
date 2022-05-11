@@ -2,7 +2,7 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Scheme
-export Spec, OO, defining_ideal
+export Spec, OO, defining_ideal, ambient_ring
 export spec_type, ring_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
@@ -94,6 +94,7 @@ spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = 
 For ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` this returns ``(𝕜[x₁,…,xₙ]/I)[S⁻¹]``.
 """
 OO(X::Spec) = X.OO
+ambient_ring(X::Spec) = base_ring(OO(X))
 
 function name_of(X::Spec) 
   if isdefined(X, :name)

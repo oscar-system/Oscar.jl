@@ -636,6 +636,14 @@ codomain(f::SpecOpenMor) = f.codomain
 maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
 getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
 
+function getindex(f::SpecOpenMor, D::Spec)
+  U = affine_patches(domain(f))
+  D in U || error("affine patch not found in the domain")
+  for i = 1:length(U)
+    D == U[i] && return f[i]
+  end
+end
+
 function Base.show(io::IO, f::SpecOpenMor) 
   print(io, "Morphism from $(domain(f)) to $(codomain(f)) given by the rational map $(generic_fractions(f))")
 end

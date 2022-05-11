@@ -6,15 +6,14 @@ export ideal_sheaf_type
 
 export is_regular_sequence, as_smooth_lci, is_defined_on
 
-using Infiltrator
 @attributes mutable struct IdealSheaf{
     CoveredSchemeType<:CoveredScheme,
     CoveringType<:Covering,
     SpecType<:Spec,
     RingElemType<:MPolyElem
   }
-  X::CoveredSchemeType # Der parent
-  C::CoveringType
+  X::CoveredSchemeType # the parent
+  C::CoveringType # the covering on which this sheaf is defined
   ideal_gens::Dict{SpecType, Vector{RingElemType}}
 
   # fields for caching
@@ -38,25 +37,60 @@ using Infiltrator
         parent(f) == base_ring(OO(X)) || error("element does not belong to the correct ring")
       end
     end
-    if check
-      for ((X, Y), G) in glueings(C)
-        # We also allow ideal sheaves that are not fully specified on all 
-        # patches, assuming that canonical extension is possible.
-        X in keys(I) || continue
-        Y in keys(I) || continue
-        (U, V) = glueing_domains(G)
-        (f, g) = glueing_morphisms(G)
-        for i in 1:npatches(U)
-          inc = inclusion_map(U[i], X)
-          pullback(inc)(ideal(OO(X), I[X])) == pullback(f[i])(ideal(OO(Y), I[Y])) || error("ideals do not coincide on the glueing of $X and $Y")
+
+    # make sure that all of X is indeed covered by patches on which the sheaf is defined
+    for U in basic_patches(C)
+      if !haskey(I, U) 
+        haskey(affine_refinements(C), U) || error("patch $U not covered by the given ideal sheaf")
+        Uref = affine_refinements(C)[U]
+        found = false
+        for (V, a) in Uref
+          if all(x->haskey(I, x), affine_patches(V)) 
+            found = true
+            break
+          end
         end
-        for j in 1:npatches(V)
-          inc = inclusion_map(V[j], Y)
-          I1 = pullback(inc)(ideal(OO(Y), I[Y])) 
-          I2 = pullback(g[j])(ideal(OO(X), I[X]))
-          pullback(inc)(ideal(OO(Y), I[Y])) == pullback(g[j])(ideal(OO(X), I[X])) || error("ideals do not coincide on the glueing of $X and $Y")
+        !found && error("patch $U not covered by the given ideal sheaf")
+      end
+    end
+
+    if check # Do the more expensive checks whether the generated ideals coincide on the overlaps
+      for U in keys(I)
+        for V in keys(I)
+          f, g, incU, incV = intersect(U, V, C)
+          fext = compose(f, incV)
+          gext = compose(g, incU)
+          WU = domain(f)
+          WV = domain(g)
+          for D in affine_patches(WU) 
+            incD = inclusion_map(D, U)
+            pullback(incD)(ideal(OO(U), I[U])) == pullback(fext[D])(ideal(OO(V), I[V])) || error("ideals do not coincide on the patches $U and $V")
+            #IU = ideal(OO(D), OO(D).(I[U]))
+            #IV = ideal(OO(D), pullback(fext[D]).(I[V]))
+            #IU == IV || error("ideals do not coincide on the patches $U and $V")
+          end
         end
       end
+
+
+#      for ((X, Y), G) in glueings(C)
+#        # We also allow ideal sheaves that are not fully specified on all 
+#        # patches, assuming that canonical extension is possible.
+#        X in keys(I) || continue
+#        Y in keys(I) || continue
+#        (U, V) = glueing_domains(G)
+#        (f, g) = glueing_morphisms(G)
+#        for i in 1:npatches(U)
+#          inc = inclusion_map(U[i], X)
+#          pullback(inc)(ideal(OO(X), I[X])) == pullback(f[i])(ideal(OO(Y), I[Y])) || error("ideals do not coincide on the glueing of $X and $Y")
+#        end
+#        for j in 1:npatches(V)
+#          inc = inclusion_map(V[j], Y)
+#          I1 = pullback(inc)(ideal(OO(Y), I[Y])) 
+#          I2 = pullback(g[j])(ideal(OO(X), I[X]))
+#          pullback(inc)(ideal(OO(Y), I[Y])) == pullback(g[j])(ideal(OO(X), I[X])) || error("ideals do not coincide on the glueing of $X and $Y")
+#        end
+#      end
     end
     return new{CoveredSchemeType, CoveringType, SpecType, RingElemType}(X, C, I)
   end

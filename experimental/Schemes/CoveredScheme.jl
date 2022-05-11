@@ -900,7 +900,7 @@ function all_patches(C::Covering)
   for U in patches(C)
     push!(result, U)
     if haskey(affine_refinements(C), U)
-      for W in affine_refinements(C)[U]
+      for (W, a) in affine_refinements(C)[U]
         result = vcat(result, affine_patches(W))
       end
     end
