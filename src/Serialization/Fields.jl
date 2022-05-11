@@ -48,3 +48,18 @@ function load_internal(s::DeserializerState, ::Type{gfp_fmpz_elem}, dict::Dict)
     F = load_type_dispatch(s, Nemo.GaloisFmpzField, dict[:parent])
     return F(load_type_dispatch(s, fmpz, dict[:data]))
 end
+
+################################################################################
+# AnticNumberfield
+function save_internal(s::SerializerState, K::AnticNumberField)
+    return Dict(
+        :def_pol => save_type_dispatch(s, defining_polynomial(K))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{AnticNumberField}, dict::Dict)
+    def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
+
+    return NumberField(def_pol)
+end
+
