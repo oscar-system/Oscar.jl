@@ -70,14 +70,16 @@ function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString
 end
 
 @doc Markdown.doc"""
-    Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false)
+    Oscar.versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit=false, full=false)
 
 Print the versions of all Oscar-related dependencies.
 
 # Arguments
 - `branch::Bool=false`: include git branch name in the output
+- `commit::Bool=false`: include git commit hash and date where applicable
 - `jll::Bool=false`   : include binary packages (jll) in the output
 - `julia::Bool=false` : include julia `versioninfo` output
+- `full::Bool=false`  : include all of the above
 """
 function versioninfo(io::IO=stdout; branch=false, jll=false, julia=false, commit=false, full=false)
    if full
