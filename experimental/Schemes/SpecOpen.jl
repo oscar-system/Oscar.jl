@@ -343,7 +343,7 @@ domain(R::SpecOpenRing) = R.domain
 OO(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 OO(X::Spec, U::SpecOpen) = SpecOpenRing(X, U)
 
-function ==(R::T, S::T) where {T<:SpecOpenRing}
+function is_canonically_isomorphic(R::T, S::T) where {T<:SpecOpenRing}
   return is_canonically_isomorphic(scheme(R), scheme(S)) && is_canonically_isomorphic(domain(R), domain(S))
 end
 
@@ -357,7 +357,10 @@ an open set ``U`` of an affine scheme ``X``.
  * `RestrictionType` is the type of the restrictions of ``f`` to
 the affine patches of ``U``.
 """
-mutable struct SpecOpenRingElem{SpecOpenRingType, RestrictionType} <: RingElem
+mutable struct SpecOpenRingElem{
+      SpecOpenRingType<:SpecOpenRing, 
+      RestrictionType<:MPolyQuoLocalizedRingElem
+    } <: RingElem
   parent::SpecOpenRingType
   restrictions::Vector{RestrictionType}
 
@@ -365,11 +368,22 @@ mutable struct SpecOpenRingElem{SpecOpenRingType, RestrictionType} <: RingElem
       R::SpecOpenRingType,
       f::Vector{RestrictionType};
       check::Bool=true
-    ) where {SpecOpenRingType<:SpecOpenRing, RestrictionType<:RingElem}
+    ) where {
+        SpecOpenRingType<:SpecOpenRing, 
+        RestrictionType<:MPolyQuoLocalizedRingElem
+    }
     n = length(f)
     U = domain(R)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
-    g = elem_type(ring_type(scheme(R)))[OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
+    g = RestrictionType[OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
+    if check
+      for i in 1:n-1
+        for j in i+1:n
+          W = intersections(U)[(i,j)]
+          OO(W)(f[i], check=false) == OO(W)(f[j], check=false) || error("elements are not compatible on overlap")
+        end
+      end
+    end
     return new{SpecOpenRingType, RestrictionType}(R, g)
   end
 end
@@ -478,10 +492,7 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem}
 end
 
 function isunit(a::SpecOpenRingElem) 
-  for i in 1:length(restrictions(a))
-    isunit(a[i]) || return false
-  end
-  return true
+  return all(x->isunit(x), restrictions(a))
 end
 
 inv(a::SpecOpenRingElem) = SpecOpenRingElem(parent(a), [inv(f) for f in restrictions(a)], check=false)
