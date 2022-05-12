@@ -58,7 +58,6 @@ end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
     R, symbols = load_type_dispatch(s, dict[:parent], check_namespace=false)
-
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(R)

@@ -1,6 +1,6 @@
 @testset "Rings" begin
     mktempdir() do path
-        @testset "MV Polynomial Ideals Over QQ" begin
+        @testset "MV Polynomial Over QQ" begin
             R, (x, y) = PolynomialRing(QQ, ["x", "y"])
             p = x^2 + 3//4*x*y + y + 1//2
             filename = joinpath(path, "polynomial_q.mv")
