@@ -499,7 +499,7 @@ macro perm(n,gens)
        
         while ex.head == :call
             pushfirst!(res, Expr(:vect, ex.args[2:end]...))
-            ex = (ex).args[1]
+            ex = ex.args[1]
             if typeof(ex) != Expr
                 error("Input is not a permutation.")
             end
