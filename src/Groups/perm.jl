@@ -402,12 +402,13 @@ end
 #   perm
 #
 @doc Markdown.doc"""
- @perm(ex)
+    @perm(ex)
 Macro to input a permutation as
-pi = @perm (1,2,3)(4,5)(6,7,8) to obtain
-(1,2,3)(4,5)(6,7,8)
-# Examples (jldoctest)
-```
+`pi = @perm (1,2,3)(4,5)(6,7,8)` to obtain
+the permutation `(1,2,3)(4,5)(6,7,8)`, that is, the output of
+`cperm([1,2,3],[4,5],[6,7,8])`.
+# Examples
+```jldoctest
 julia> @perm (1,2,3)(4,5)(6,7,8)
 (1,2,3)(4,5)(6,7,8)
 ```
@@ -419,26 +420,26 @@ macro perm(ex)
         error("Input is not a permutation.")
     end
     
-    if (ex).head != :call && (ex).head != :tuple
+    if ex.head != :call && ex.head != :tuple
         error("Input is not a permutation.")
     end
    
-    while (ex).head == :call
-        pushfirst!(res, Expr(:vect, (ex).args[2:end]...))
-        ex = (ex).args[1]
+    while ex.head == :call
+        pushfirst!(res, Expr(:vect, ex.args[2:end]...))
+        ex = ex.args[1]
         if typeof(ex) != Expr
             error("Input is not a permutation.")
         end
-        if (ex).head != :call && (ex).head != :tuple
+        if ex.head != :call && ex.head != :tuple
             error("Input is not a permutation.")
         end
     end
     
-    if (ex).head != :tuple
+    if ex.head != :tuple
         error("Input is not a permutation.")
     end
     
-    pushfirst!(res, Expr(:vect,(ex).args...))
+    pushfirst!(res, Expr(:vect,ex.args...))
 
     return esc(:(Oscar.cperm($(res...))))
 end
@@ -449,11 +450,11 @@ end
 #   perm(n,gens)
 #
 @doc Markdown.doc"""
- @perm(n,gens)
-Macro to input a list of permutation which are generated as elements of
-the symmetric_group(n)
-# Examples (jldoctest)
-```
+    @perm(n,gens)
+Macro to input a list of permutations which are generated as elements of
+the `symmetric_group(n)` with the function `cperm`.
+# Examples
+```jldoctest
 julia> gens = Oscar.Permutations.@perm 14 [
                (1,10)
               (2,11)
@@ -492,26 +493,26 @@ macro perm(n,gens)
             error("Input is not a permutation.")
         end
         
-        if (ex).head != :call && (ex).head != :tuple
+        if ex.head != :call && ex.head != :tuple
             error("Input is not a permutation.")
         end
        
-        while (ex).head == :call
-            pushfirst!(res, Expr(:vect, (ex).args[2:end]...))
+        while ex.head == :call
+            pushfirst!(res, Expr(:vect, ex.args[2:end]...))
             ex = (ex).args[1]
             if typeof(ex) != Expr
                 error("Input is not a permutation.")
             end
-            if (ex).head != :call && (ex).head != :tuple
+            if ex.head != :call && ex.head != :tuple
                 error("Input is not a permutation.")
             end
         end
         
-        if (ex).head != :tuple
+        if ex.head != :tuple
             error("Input is not a permutation.")
         end
         
-        pushfirst!(res, Expr(:vect,(ex).args...))
+        pushfirst!(res, Expr(:vect,ex.args...))
 
         ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
         i = i + 1
@@ -526,10 +527,10 @@ end
 #   permgroup(n::Int64,gens::Vector{PermGroupElem})
 #
 @doc Markdown.doc"""
- permgroup(n::Int64,gens::Vector{PermGroupElem})
-Generates a PermGroup with generators gens as a subgroup of symmetric_group(n)
-# Examples (jldoctest)
-```
+    permgroup(n::Int64,gens::Vector{PermGroupElem})
+Generates a `PermGroup` with generators gens as a subgroup of `symmetric_group(n)`.
+# Examples
+```jldoctest
 julia> gens = Oscar.Permutations.@perm 14 [
                (1,10)
               (2,11)
@@ -550,4 +551,4 @@ function permgroup(n::Int64,gens::Vector{PermGroupElem})
     return PermGroup(GAP.Globals.Subgroup(GAP.Globals.SymmetricGroup(GAP.Obj(n)),GAP.Obj([GAP.Obj(x) for x in gens ])))
 end
 
-export @perm,permgroup,size
+export @perm,permgroup

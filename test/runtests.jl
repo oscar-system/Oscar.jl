@@ -31,7 +31,6 @@ include("Groups/runtests.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
-include("Groups/Permutations.jl")
 
 include("Rings/MPolyAnyMap/MPolyRing.jl")
 include("Rings/MPolyAnyMap/MPolyQuo.jl")

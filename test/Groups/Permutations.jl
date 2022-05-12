@@ -1,6 +1,6 @@
 @testset "Examples.Permutations" begin
   p = @perm (1,2)(3,4)(5,6)
-  @test p  == cperm([1,2],[3,4],[5,6])
+  @test p == cperm([1,2],[3,4],[5,6])
   p = @perm (1,2)(3,4,5)(7,8,9)
   @test p == cperm([1,2],[3,4,5],[7,8,9])
 
