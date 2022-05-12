@@ -33,9 +33,23 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
                         "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
                         "polymake_jll", "Singular_jll"];
 
+function _lookup_commit_from_cache(url::AbstractString, tree::AbstractString)
+   if Sys.which("git") != nothing
+      try
+         path = Pkg.Types.add_repo_cache_path(url)
+         if isdir(path)
+            commit = readchomp(`sh -c "git -C $path log --oneline --all --pretty='tree %T;%H' | grep \"^tree $tree\" | cut -d\; -f2 | head -n1"`)
+            return readchomp(`git -C $path show -s --format=", %h -- %ci" $commit`)
+         end
+      catch
+      end
+   end
+   return ""
+end
+
 function _lookup_git_branch(dir::AbstractString; commit=false)
    info = ""
-   if length(Sys.which("git")) != nothing &&
+   if Sys.which("git") != nothing &&
          isdir(joinpath(dir,".git"))
       try
          ref = readchomp(`git -C $dir rev-parse --abbrev-ref HEAD`)
@@ -52,7 +66,8 @@ end
 
 function _deps_git_info(dep::Pkg.API.PackageInfo; commit=false)
    if dep.is_tracking_repo
-      return " - #$(dep.git_revision)"
+      info = commit ? _lookup_commit_from_cache(dep.git_source, dep.tree_hash) : ""
+      return " - #$(dep.git_revision)$info"
    elseif dep.is_tracking_path
       return _lookup_git_branch(dep.source; commit=commit)
    end
