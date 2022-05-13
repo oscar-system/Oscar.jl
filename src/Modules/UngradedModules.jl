@@ -4676,8 +4676,10 @@ function change_base_ring(S::Ring, M::SubQuo)
 end
 
 function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubQuo) where {DomType<:Ring, CodType<:Ring}
-  domain(f) == base_ring(F) || error("ring map not compatible with the module")
+  domain(f) == base_ring(M) || error("ring map not compatible with the module")
   S = codomain(f)
+  F = ambient_free_module(M)
+  R = base_ring(M)
   FS, mapF = change_base_ring(S, F)
   g = ambient_representatives_generators(M)
   rels = relations(M)

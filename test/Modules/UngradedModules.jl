@@ -766,7 +766,7 @@ end
   @test iszero(mapM(M[1]))
 
   f = MapFromFunc(x->S(x), R, S)
-  MS, mapM = change_base_ring(S, M)
+  MS, mapM = change_base_ring(f, M)
   @test iszero(mapM(M[1]))
 end
 
