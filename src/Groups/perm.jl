@@ -403,6 +403,7 @@ end
 #
 @doc Markdown.doc"""
     @perm(ex)
+    
 Macro to input a permutation as
 `pi = @perm (1,2,3)(4,5)(6,7,8)` to obtain
 the permutation `(1,2,3)(4,5)(6,7,8)`, that is, the output of
@@ -451,11 +452,12 @@ end
 #
 @doc Markdown.doc"""
     @perm(n,gens)
+    
 Macro to input a list of permutations which are generated as elements of
 the `symmetric_group(n)` with the function `cperm`.
 # Examples
 ```jldoctest
-julia> gens = Oscar.Permutations.@perm 14 [
+julia> gens = @perm 14 [
                (1,10)
               (2,11)
               (3,12)
@@ -476,13 +478,13 @@ julia> gens = Oscar.Permutations.@perm 14 [
  (7,9)
  (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
  (1,2)(10,11)
-julia> gens[1].parent
+ 
+julia> parent(gens[1])
 Sym( [ 1 .. 14 ] )
 ```
 """
 macro perm(n,gens)
 
-    s = symmetric_group(n)
     ores = Vector{Expr}(undef,length(gens.args))
     i = 1
     for ex in gens.args
@@ -528,11 +530,12 @@ end
 #
 @doc Markdown.doc"""
     permgroup(n::Int64,gens::Vector{PermGroupElem})
+    
 Generates a `PermGroup` with generators gens as a subgroup of `symmetric_group(n)`.
 # Examples
 ```jldoctest
 julia> gens = Oscar.Permutations.@perm 14 [
-               (1,10)
+              (1,10)
               (2,11)
               (3,12)
               (4,13)
