@@ -44,7 +44,7 @@ end
 
 
 """
-    is_defined_over(M::GModule, phi::Map)
+    can_be_defined_over(M::GModule, phi::Map)
 
 Return `true` if there is an `S`-module `N` such that
 `extension_of_scalars(N, phi)` is isomorphic with `M`,
@@ -56,15 +56,15 @@ and `false` otherwise.
 
 (case that `R` is a number field and `S` is the ring of integers in `R`)
 """
-function is_defined_over(M::GModule, phi::Map)
+function can_be_defined_over(M::GModule, phi::Map)
   error("not yet ...")
 end
 
 
 """
-    is_defined_over_with_data(M::GModule, phi::Map)
+    can_be_defined_over_with_data(M::GModule, phi::Map)
 
-Is similar to [`is_defined_over`](@ref), but the return value is
+Is similar to [`can_be_defined_over`](@ref), but the return value is
 a triple `(true, N, psi)` if there is an `S`-module `N` such that
 `extension_of_scalars(N, phi)` is isomorphic with `M`
 and `psi` is a map from `N` to `M`.
@@ -73,15 +73,15 @@ and `psi` is a map from `N` to `M`.
 
 # Examples
 
-(same as for `is_defined_over`)
+(same as for `can_be_defined_over`)
 """
-function is_defined_over_with_data(M::GModule, phi::Map)
+function can_be_defined_over_with_data(M::GModule, phi::Map)
   error("not yet ...")
 end
 
 
 """
-    write_over(M::GModule, phi::Map)
+    descent_to(M::GModule, phi::Map)
 
 Return an `S`-module `N` such that
 `extension_of_scalars(N, phi)` is isomorphic with `M` if such an `S`-module
@@ -89,22 +89,22 @@ exists, otherwise throw an exception.
 
 `phi` is an embedding of `S` into `R` and `M` is a module over `R`.
 
-Use [`is_defined_over`](@ref) in order to check whether `M` can be
+Use [`can_be_defined_over`](@ref) in order to check whether `M` can be
 written over `S`.
-Use [`is_defined_over_with_data`](@ref) in order to check whether `M` can be
+Use [`can_be_defined_over_with_data`](@ref) in order to check whether `M` can be
 written over `S` and to get `N` if it exists.
 
 # Examples
 
 (case that `R` is a number field and `S` is the ring of integers in `R`)
 """
-function write_over(M::GModule, phi::Map)
+function descent_to(M::GModule, phi::Map)
   error("not yet ...")
 end
 
 
 """
-    write_over_minimal_degree_field(M::GModule)
+    descent_to_minimal_degree_field(M::GModule)
 
 Return a module `N` over a field `S` of minimal degree such that
 `extension_of_scalars(N, phi)` and `extension_of_scalars(M, psi)`
@@ -118,22 +118,23 @@ where `M` is a module over `R`.
 
 (modules over finite fields or number fields)
 """
-function write_over_minimal_degree_field(M::GModule)
+function descent_to_minimal_degree_field(M::GModule)
   error("not yet ...")
 end
 
 
 """
-    invariant_lattices(M::GModule, phi::Map)
+    invariant_lattice_classes(M::GModule, phi::Map)
 
-Return the `G`-invariant `S`-lattices in the `R`-module `M`,
+Return representatives of the equivalence classes of `G`-invariant
+`S`-lattices in the `R`-module `M`,
 where `phi` is an embedding of `S` into `R`.
 
 # Examples
 
 (case that `R` is a number field and `S` is the ring of integers in `R`)
 """
-function invariant_lattices(M::GModule, phi::Map)
+function invariant_lattice_classes(M::GModule, phi::Map)
   error("not yet ...")
 end
 
