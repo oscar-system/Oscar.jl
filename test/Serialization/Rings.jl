@@ -10,13 +10,14 @@
 
         end
 
-        @testset "MV Polynomial Over ZZ" begin
-            R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
-            p = x^2 + 3*x*y + y + 12
+        @testset "MV One Variable Polynomial Over ZZ" begin
+            R, x = PolynomialRing(ZZ, ["x"])
+            p = x[1]^2 + 3*x[1]+ 12
             filename = joinpath(path, "polynomial_z.mv")
             save(p, filename)
             loaded = load(filename)
             @test p == loaded
+            @test typeof(loaded) == fmpz_mpoly
 
         end
 

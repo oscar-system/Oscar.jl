@@ -28,7 +28,7 @@ function load_internal(s::DeserializerState,
     base_ring = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
 
-    if T isa PolyRing
+    if T <: PolyRing
         return PolynomialRing(base_ring, symbols...)
     end
 
@@ -42,10 +42,10 @@ function save_internal(s::SerializerState, p::MPolyElem)
     parent_ring = save_type_dispatch(s, parent_ring)
     terms = []
     
-    for (i, c) in enumerate(coeffs(p))
+    for i in 1:length(p)
         term = Dict(
             :exponent => save_type_dispatch(s, exponent_vector(p, i)),
-            :coeff => save_type_dispatch(s, c)
+            :coeff => save_type_dispatch(s, coeff(p, i))
         )
         push!(terms, term)
     end
@@ -78,7 +78,7 @@ function save_internal(s::SerializerState, p::PolyElem)
 
     return Dict(
         :parent => parent_ring,
-        :coeffs => save_type_dispatch(s, [c for c in coefficients(p)])
+        :coeffs => save_type_dispatch(s, collect(coefficients(p)))
     )
 end
 
