@@ -33,6 +33,11 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
                         "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
                         "polymake_jll", "Singular_jll"];
 
+# When a specific branch is loaded via `]add Package#branch` julia will only
+# create a checkout and keep a bare git repo in a separate directory.
+# In a bare repo HEAD will not point to the correct commit so we use the git
+# tree-hash that Pkg.jl provides and manually map this to a corresponding
+# commit.
 function _lookup_commit_from_cache(url::AbstractString, tree::AbstractString)
    if Sys.which("git") != nothing
       try
