@@ -458,7 +458,7 @@ the `symmetric_group(n)` with the function `cperm`.
 # Examples
 ```jldoctest
 julia> gens = @perm 14 [
-               (1,10)
+              (1,10)
               (2,11)
               (3,12)
               (4,13)
