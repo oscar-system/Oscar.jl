@@ -50,21 +50,39 @@ function load_internal(s::DeserializerState, ::Type{gfp_fmpz_elem}, dict::Dict)
 end
 
 ################################################################################
-# AnticNumberfield
-function save_internal(s::SerializerState, K::AnticNumberField)
+# FqNmodFiniteField
+
+
+
+################################################################################
+# AnticNumberfield, Hecke.NfRel{nf_elem}
+function save_internal(s::SerializerState,
+                       K::Union{SimpleNumField{T}, FqNmodFiniteField}) where T
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K))
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{AnticNumberField}, dict::Dict)
+function load_internal(s::DeserializerState,
+                       ::Type{<: SimpleNumField{T}},
+                       dict::Dict) where T
     def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
     K, _ = NumberField(def_pol)
+    
+    return K
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{FqNmodFiniteField},
+                       dict::Dict) where T
+    def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
+    K, _ = FiniteField(def_pol)
+    
     return K
 end
 
 #elements
-function save_internal(s::SerializerState, k::nf_elem)
+function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
     K_dict = save_type_dispatch(s, K)
@@ -75,15 +93,15 @@ function save_internal(s::SerializerState, k::nf_elem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{nf_elem}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: Union{nf_elem, fq_nmod}}, dict::Dict)
     K = load_type_dispatch(s, dict[:parent], check_namespace=false)
     polynomial = load_type_dispatch(s, dict[:polynomial], check_namespace=false)
     return K(polynomial)
 end
 
 ################################################################################
-# NfAbsNS
-function save_internal(s::SerializerState, K::NfAbsNS)
+# NfAbsNS 
+function save_internal(s::SerializerState, K::Union{NfAbsNS})
     return Dict(
         :def_pols => save_type_dispatch(s, defining_polynomials(K))
     )
