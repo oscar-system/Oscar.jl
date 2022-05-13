@@ -29,3 +29,14 @@ end
 function load_internal(s::DeserializerState, ::Type{String}, str::String)
     return str
 end
+
+
+################################################################################
+# Symbol
+function save_internal(s::SerializerState, sym::Symbol)
+   return string(sym)
+end
+
+function load_internal(s::DeserializerState, ::Type{Symbol}, str::String)
+   return Symbol(str)
+end

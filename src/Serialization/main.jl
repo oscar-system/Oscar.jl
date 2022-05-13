@@ -101,7 +101,7 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if !isprimitivetype(T) && !Base.issingletontype(T)
+    if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
