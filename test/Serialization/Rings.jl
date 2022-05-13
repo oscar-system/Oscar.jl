@@ -2,7 +2,7 @@
     mktempdir() do path
         @testset "MV Polynomial Over QQ" begin
             R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-            p = x^2 + 3//4*x*y + y + 1//2
+            p = x^2 + fmpq(3, 4)*x*y + y + fmpq(1, 2)
             filename = joinpath(path, "polynomial_q.mv")
             save(p, filename)
             loaded = load(filename)
