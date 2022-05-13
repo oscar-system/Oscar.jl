@@ -405,13 +405,12 @@ end
 function _perm_helper(ex::Expr)
     res = []
 
-    while ex.head == :call
+    while ex isa Expr && ex.head == :call
         pushfirst!(res, Expr(:vect, ex.args[2:end]...))
         ex = ex.args[1]
-        ex isa Expr || error("Input is not a permutation expression")
     end
 
-    if ex.head != :tuple
+    if !(ex isa Expr) || ex.head != :tuple
         error("Input is not a permutation.")
     end
 
