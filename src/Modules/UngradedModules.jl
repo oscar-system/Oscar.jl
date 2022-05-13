@@ -4664,7 +4664,6 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {Dom
   return FS, map
 end
 
-using Infiltrator
 function change_base_ring(S::Ring, M::SubQuo)
   F = ambient_free_module(M)
   R = base_ring(M)
