@@ -523,35 +523,4 @@ macro perm(n,gens)
     return Expr(:vect,ores...)
 end
 
-
-################################################################################
-#
-#   permgroup(n::Int64,gens::Vector{PermGroupElem})
-#
-@doc Markdown.doc"""
-    permgroup(n::Int64,gens::Vector{PermGroupElem})
-    
-Generates a `PermGroup` with generators gens as a subgroup of `symmetric_group(n)`.
-# Examples
-```jldoctest
-julia> gens = Oscar.Permutations.@perm 14 [
-              (1,10)
-              (2,11)
-              (3,12)
-              (4,13)
-              (5,14)
-              (6,8)
-              (7,9)
-              (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
-              (1,2)(10,11)
-             ];
-julia> G = Oscar.Permutations.permgroup(14,gens)
-<permutation group with 9 generators>
-```
-"""
-function permgroup(n::Int64,gens::Vector{PermGroupElem})
-
-    return PermGroup(GAP.Globals.Subgroup(GAP.Globals.SymmetricGroup(GAP.Obj(n)),GAP.Obj([GAP.Obj(x) for x in gens ])))
-end
-
-export @perm,permgroup
+export @perm

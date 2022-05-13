@@ -9,8 +9,8 @@
   @test p == cperm([1,5,4,2])
   
   @test_throws ErrorException @perm (-1, 1)
-  @test_throws LoadError @perm "bla"
-  @test_throws LoadError @perm 1 + 1
+  @test_throws LoadError @eval @perm "bla"
+  @test_throws LoadError @eval @perm 1 + 1
   
   gens = @perm 14 [
          (1,10)
@@ -37,7 +37,7 @@
   
   @test_throws ArgumentError @perm 10 [(1,11)]
   
-  G = permgroup(14,gens)
+  G = sub(symmetric_group(14),gens)[1]
   @test order(G) == 645120
 end
 
