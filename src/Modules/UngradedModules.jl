@@ -2497,6 +2497,7 @@ Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `i
 In particular, `length(im) == ngens(D)` must hold.
 """
 SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
+SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector, h::RingMapType) where {RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
 
 @doc Markdown.doc"""
     SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
@@ -2630,6 +2631,7 @@ false
 ```
 """
 hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = SubQuoHom(M, N, V) 
+hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem}, h::RingMapType) where {RingMapType, T} = SubQuoHom(M, N, V, h) 
 hom(M::SubQuo{T}, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
 function iswelldefined(H::ModuleMap)
   if H isa Union{FreeModuleHom,FreeModuleHom_dec}
@@ -4643,4 +4645,44 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
 
     return SQ, to_hom_map
   end
+end
+
+function change_base_ring(S::Ring, F::FreeMod)
+  R = base_ring(F)
+  r = ngens(F)
+  FS = FreeMod(S, r)
+  map = hom(F, FS, gens(FS), MapFromFunc(x->S(x), R, S))
+  return FS, map
+end
+
+function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {DomType<:Ring, CodType<:Ring}
+  domain(f) == base_ring(F) || error("ring map not compatible with the module")
+  S = codomain(f)
+  r = ngens(F)
+  FS = FreeMod(S, r)
+  map = hom(F, FS, gens(FS), f)
+  return FS, map
+end
+
+using Infiltrator
+function change_base_ring(S::Ring, M::SubQuo)
+  F = ambient_free_module(M)
+  R = base_ring(M)
+  FS, mapF = change_base_ring(S, F)
+  g = ambient_representatives_generators(M)
+  rels = relations(M)
+  MS = SubQuo(FS, mapF.(g), mapF.(rels))
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(x->S(x), R, S))
+  return MS, map
+end
+
+function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubQuo) where {DomType<:Ring, CodType<:Ring}
+  domain(f) == base_ring(F) || error("ring map not compatible with the module")
+  S = codomain(f)
+  FS, mapF = change_base_ring(S, F)
+  g = ambient_representatives_generators(M)
+  rels = relations(M)
+  MS = SubQuo(FS, mapF.(g), mapF.(rels))
+  map = SubQuoHom(M, MS, gens(MS), f)
+  return MS, map
 end

@@ -746,3 +746,28 @@ end
 		@test issubset(sub(N,u, :none), image(emb)[1])
 	end
 end
+
+@testset "change of base rings" begin
+  R, (x,y) = QQ["x", "y"]
+  U = MPolyPowersOfElement(x)
+  S = MPolyLocalizedRing(R, U)
+  F = FreeMod(R, 2)
+  FS, mapF = change_base_ring(S, F)
+  @test 1//x*mapF(x*F[1]) == FS[1]
+
+  shift = hom(R, R, [x-1, y-2])
+  FSshift, mapFSshift = change_base_ring(shift, F)
+  @test mapFSshift(x*F[1]) == (x-1)*FSshift[1]
+
+  A = R[x y]
+  B = R[x^2 x*y]
+  M = SubQuo(F, A, B)
+  MS, mapM = change_base_ring(S, M)
+  @test iszero(mapM(M[1]))
+
+  f = MapFromFunc(x->S(x), R, S)
+  MS, mapM = change_base_ring(S, M)
+  @test iszero(mapM(M[1]))
+end
+
+

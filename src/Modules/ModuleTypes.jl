@@ -615,7 +615,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 
   function FreeModuleHom(
       F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType
-    ) where {T2, ModuleElemType<:ModuleElem, RingMapType}
+    ) where {T2, ModuleElemType<:ModuleFPElem, RingMapType}
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     @assert h(one(base_ring(F))) == one(base_ring(G))
@@ -627,7 +627,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       end
       return b
     end
-    r.header = MapHeader{typeof(T1), T2}(F, G, im_func)
+    r.header = MapHeader{typeof(F), T2}(F, G, im_func)
     r.ring_map = h
     return r
   end
