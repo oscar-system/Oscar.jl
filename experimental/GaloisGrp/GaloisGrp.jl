@@ -362,7 +362,7 @@ mutable struct GaloisCtx{T}
   end
 
   function GaloisCtx(f::fmpq_poly, p::Int)
-    d = map_reduce(denominator, lcm, coefficients(f))
+    d = mapreduce(denominator, lcm, coefficients(f))
     return GaloisCtx(Hecke.Globals.Zx(d*f), p)
   end
   #=
@@ -542,7 +542,7 @@ upon evaluation at the roots implicit in `G`.
    allowing `evaluate`
  - `elementary_symmetric` or `power_sum`, in which case more arguments are
    needed: the array with the values and the index.
-   `upper_bound(G, power_sum, A, i)` is equivalent to `bound(G, power_sum(A, i))`
+   `upper_bound(G, power_sum, A, i)` is equivalent to `upper_bound(G, power_sum(A, i))`
    but more efficient.
 
 In every case a univariate polynomial (over the integers) can be added, it
@@ -754,7 +754,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   #    http://dblp.uni-trier.de/db/journals/jsc/jsc79.html#Elsenhans17
   # https://doi.org/10.1016/j.jsc.2016.02.005
 
-  l = low_index_subgroups(H, 2*degree(G)^2)
+  l = low_index_subgroup_reps(H, 2*degree(G)^2)
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   sort!(l, lt = (a,b) -> isless(order(b), order(a)))
@@ -762,7 +762,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
     O = orbits(U)
     for o in O
       #TODO: should use orbits of Set(o)...
-      f = sum(g[o])
+      f = sum(g[collect(o)])
       oH = probable_orbit(H, f)
       oG = probable_orbit(G, f, limit = length(oH)+5)
       if length(oH) < length(oG)
@@ -774,7 +774,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
             return true, I
           end
         end
-        f = prod(g[o])
+        f = prod(g[collect(o)])
         oH = probable_orbit(H, f)
         I = sum(oH)
         if isprobably_invariant(I, H) &&
@@ -809,8 +809,8 @@ function invariant(G::PermGroup, H::PermGroup)
 
   if !istransitive(G) 
     @vprint :GaloisInvariant 2 "both groups are intransitive\n"
-    OG = [sort(x) for x = orbits(G)]
-    OH = [sort(x) for x = orbits(H)]
+    OG = [sort(collect(x)) for x = orbits(G)]
+    OH = [sort(collect(x)) for x = orbits(H)]
     d = setdiff(OH, OG)
     if length(d) > 0
       @vprint :GaloisInvariant 2 "groups have different orbits\n"
@@ -825,7 +825,7 @@ function invariant(G::PermGroup, H::PermGroup)
         @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
         @hassert :GaloisInvariant 0 ismaximal(hG, hH)
         I = invariant(hG, hH)
-        return evaluate(I, g[o])
+        return evaluate(I, g[collect(o)])
       end
     end
     @vprint :GaloisInvariant 2 "going transitive...\n"
@@ -840,7 +840,7 @@ function invariant(G::PermGroup, H::PermGroup)
     I = invariant(GG, HH)
     ex = 1
     while true
-      J = evaluate(I, [sum(g[o])^ex for o = elements(os)])
+      J = evaluate(I, [sum(g[o])^ex for o = collect(os)])
       if !isprobably_invariant(J, G)
         I = J
         break
@@ -993,7 +993,7 @@ Computes the minimal polynomial of `I` evaluated at the roots
 stored in `C`.
 """
 function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
-  O = probable_orbit(C.G, I)
+  O = collect(probable_orbit(C.G, I))
   n = length(O)
   rt = roots(C)
   #make square-free (in residue field)
@@ -1717,6 +1717,24 @@ Currently the polynomial needs to be monic.
 The group is returned as an explicit permutation group permuting the roots as contained
 in the contex object (the 2nd return value). The roots live in a suitable unramifed
 extension of the p-adics.
+
+# Example
+```jldoctest
+julia> K, a = cyclotomic_field(5);
+
+julia> G, C = galois_group(K)
+(Group([ (1,4,2,3), (1,2)(3,4) ]), Galois Context for x^4 + x^3 + x^2 + x + 1 and prime 19)
+
+julia> describe(G)
+"C4"
+
+julia> roots(C, 2)
+4-element Vector{qadic}:
+ (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
+ (4*19^0 + 2*19^1 + O(19^2))*a + 5*19^0 + 9*19^1 + O(19^2)
+ (18*19^0 + 18*19^1 + O(19^2))*a + 12*19^0 + O(19^2)
+ (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
+```
 """
 function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
 
@@ -1795,7 +1813,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 end
 
 @doc Markdown.doc"""
-    descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_identification, extra::Int = 5)
+    descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
 
 Performs a generic Stauduhar descent: starting with the group `G` that needs to be a 
 supergroup of the Galois group, operating on the roots in `GC`, the context object.
@@ -1803,7 +1821,7 @@ supergroup of the Galois group, operating on the roots in `GC`, the context obje
 The groups are filtered by `F` and the result needs to contain the permutation `si`.
 For verbose output, the groups are printed through `grp_id`.
 """
-function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_identification, extra::Int = 5)
+function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
   @vprint :GaloisGroup 2 "Have starting group with id $(grp_id(G))\n"
 
   n = degree(GC.f)
@@ -1903,6 +1921,16 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
   GC.G = G
   return G, GC
 end
+
+"""
+    isinteger(C::GaloisCtx, B::BoundRingElem, v)
+
+For an element `v` representing an integral polynomial evaluated at the
+roots stored in `C`, known to be bounded from above by `B`, either return
+`true` and an explicit (algebraic) integer in the base ring of the context or
+return `false`.
+"""
+function isinteger end
 
 function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{fmpz}, e)
   p = GC.C.p
@@ -2063,6 +2091,8 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
 end
 
 """
+    galois_quotient(C::GaloisCtx, Q::PermGroup)
+
 Finds all(?) subfields of the splitting field s.th. the galois
 group will be permutation isomorphic to Q.
 """
@@ -2083,8 +2113,27 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
 end
 
 """
+    galois_quotient(C::GaloisCtx, d::Int)
+
 Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
-with isomorphic galois group.
+with galois group isomorphic to the original one.
+
+# Example
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> G, C = galois_group(x^3-2);
+
+julia> galois_quotient(C, 6)
+1-element Vector{Any}:
+ Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
+
+julia> galois_group(ans[1])
+(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+
+julia> isisomorphic(ans[1], G)
+true
+```
 """
 function galois_quotient(C::GaloisCtx, d::Int)
   G = C.G
@@ -2103,6 +2152,8 @@ function galois_quotient(C::GaloisCtx, d::Int)
 end
 
 """
+    galois_quotient(C::GaloisCtx, d::Int, n::Int)
+
 Finds all subfields of the splitting field with galois group the n-th
 transitive group in degree d
 """
@@ -2114,7 +2165,7 @@ galois_quotient(C::GaloisCtx, d::Int, n::Int) =
 
 Equivalent to
 
-  galois_quotient(galois_group(f)[2], p[1], p[2])
+    galois_quotient(galois_group(f)[2], p[1], p[2])
 
 Finds all subfields of the splitting field of f with galois group
 the p[2]-th transitive group of degree p[1]
@@ -2135,6 +2186,23 @@ function cauchy_ideal(f::fmpz_poly; parent::MPolyRing = PolynomialRing(QQ, degre
   return cauchy_ideal(f(gen(Hecke.Globals.Qx)), parent=parent)
 end
 
+@doc Markdown.doc"""
+    cauchy_ideal(f::PolyElem{<:FieldElem})
+
+The coefficients of `f` are the elementary symmetric functions evaluated
+at the roots of `f`. The `cauchy_ideal` is the ideal generated
+by the differences between the elementary symmetric functions and the
+coefficients.
+
+# Example
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> cauchy_ideal(x^4-2)
+ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4)
+
+```
+"""
 function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRing(base_ring(f), degree(f), cached = false)[1])
   x = gens(parent)
   n = degree(f)
@@ -2147,6 +2215,29 @@ function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRi
   return ideal(c)
 end
 
+@doc Markdown.doc"""
+    galois_ideal(C::GaloisCtx, extra::Int = 5)
+
+The so-called Galois ideal is a description of the splitting field of the polynomial
+underlying `C`as
+a quotient by some maximal ideal. Algebraically, this ideal is an irreducible
+component of the Cauchy ideal, the ideal generated by the elementary symmetric
+functions and the coefficients of the polynomial.
+
+# Example
+```jldoctest
+julia> Qx, x = QQ["x"];
+
+julia> i = galois_ideal(galois_group(x^4-2)[2])
+ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, -x1*x2 - x1*x3 - x2*x4 - x3*x4)
+
+julia> k, _ = number_field(i);
+
+julia> length(roots(x^4-2, k))
+4
+
+```
+"""
 function galois_ideal(C::GaloisCtx, extra::Int = 5)
   f = C.f
   id = gens(cauchy_ideal(f))
@@ -2198,6 +2289,20 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
     end
   end
   return ideal(id)
+end
+
+function Hecke.absolute_primitive_element(K::Oscar.NfNSGen{fmpq, fmpq_mpoly})
+  while true
+    a = rand(K, -10:10)
+    f = minpoly(a)
+    if degree(f) == degree(K)
+      return a
+    end
+  end
+end
+
+function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{fmpq, fmpq_mpoly})
+  return minpoly(a)
 end
 
 #TODO copied from MPolyFact in Hecke....
@@ -2252,6 +2357,13 @@ function galois_group(f::fmpz_poly; pStart::Int = 2*degree(f), prime::Int = 0)
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart, prime = prime)
 end
 
+@doc Markdown.doc"""
+    galois_group(f::PolyElem{<:FieldElem})
+
+Computes the automorphism group of a splitting field of `f` as an explicit
+group of permutations of the roots. Furthermore, the `GaloisCtx` is
+returned allowing algorithmic access to the splitting field.
+"""
 function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(f))
   lf = [(k,v) for  (k,v) = factor(f).fac]
 

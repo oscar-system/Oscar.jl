@@ -19,10 +19,9 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     # Add information about the Stanley-Reisner ideal to string_list
     current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
     new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
-    set_coordinate_names(v, new_coordinate_names)
-    generators = [string(g) for g in gens(stanley_reisner_ideal(v))]
+    new_ring, _ = PolynomialRing(coefficient_ring(v), new_coordinate_names, cached=false)
+    generators = [string(g) for g in gens(stanley_reisner_ideal(new_ring,v))]
     push!(string_list, "srideal [" * joincomma(generators) * "]")
-    set_coordinate_names(v, current_coordinate_names)
     
     # Add line bundle information to string_list
     push!(string_list, "ambientcohom O(" * joincomma(c) * ");")

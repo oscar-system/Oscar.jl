@@ -197,7 +197,7 @@ end
 
 function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, extra::Int = 0)
   #the bound is a bound on the sqrt(T_2(x)). This needs to be used with the norm_change stuff
-  #and possible denominators and such. Possibly using Kronnecker...
+  #and possible denominators and such. Possibly using Kronecker...
   c1, c2 = C.data[4] # the norm-change-const
   @show v = value(y) + iroot(ceil(fmpz, length(C.data[5])), 2)+1 #correct for den
   #want to be able to detect x in Z_k of T_2(x) <= v^2

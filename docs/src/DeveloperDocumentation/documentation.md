@@ -90,3 +90,27 @@ then run [bibtool](http://www.gerd-neugebauer.de/software/TeX/BibTool/en/)
 by invoking it as follows from the root directory of the Oscar.jl repository:
 
     bibtool docs/oscar_references.bib -o docs/oscar_references.bib
+
+
+## Automatically repairing `jldoctest`s
+
+It is possible to have julia fix the output of all `jldoctest`s when your
+changes to the code entail changes to the output. Just run the following
+command:
+```
+build_doc(doctest = :fix)
+```
+!!! danger
+    Please use this command carefully:
+    - Make sure to only commit the changes to the doctests originating from
+      your changes to the code.
+    - The doctests also serve as actual tests, so make absolutely sure that the
+      output is still mathematically correct.
+
+!!! tip
+    If this command fails with an error message indicating lacking permissions
+    to change `AbtractAlgebra.jl` related docs, it may help to run the
+    following command:
+    ```
+    ]dev AbstractAlgebra
+    ```

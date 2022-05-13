@@ -50,56 +50,6 @@ function irreducible_modules(G::Oscar.GAPGroup)
   return IM
 end
 
-function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
-  fl, c = Hecke.iscyclotomic_type(parent(a[1]))
-  @assert all(x->parent(x) == parent(a[1]), a)
-  @assert fl
-  for p = keys(factor(c).fac)
-    while c % p == 0
-      K, _ = cyclotomic_field(Int(div(c, p)), cached = false)
-      b = similar(a)
-      OK = true
-      for x = eachindex(a)
-        y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
-        if y === nothing 
-          OK = false
-        else
-          b[x] = y
-        end
-      end
-      if OK
-        a = b
-        c = div(c, p)
-      else
-        break
-      end
-    end
-  end
-  return a
-end
-
-function minimize(::typeof(CyclotomicField), a::MatElem{nf_elem})
-  return matrix(minimize(CyclotomicField, a.entries))
-end
-
-function minimize(::typeof(CyclotomicField), a::nf_elem)
-  return minimize(CyclotomicField, [a])[1]
-end
-
-function Oscar.conductor(a::nf_elem)
-  return conductor(parent(minimize(CyclotomicField, a)))
-end
-
-function Oscar.conductor(k::AnticNumberField)
-  f, c = Hecke.iscyclotomic_type(k)
-  f || error("field is not of cyclotomic type")
-  return c
-end
-
-function Oscar.conductor(a::QabElem)
-  return conductor(data(a))
-end
-
 function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
   z = irreducible_modules(G)
   Z = GModule[]

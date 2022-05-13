@@ -52,7 +52,7 @@ function GaloisCtx(S::SubfieldLattice)
   return S.G
 end
 
-function block_system(G::GaloisCtx, a)
+function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
   K = parent(a)
   kx = parent(defining_polynomial(K))
   f = kx(a)
@@ -257,6 +257,9 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if iszero(g(beta))
     k, a = number_field(g)
     h = hom(k, K, beta)
+    if !(bs in S.P)
+      push!(S.P, bs)
+    end
     S.l[S.P(bs)] = (k, h)
     return k, h
   end
@@ -293,7 +296,8 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   pr = 5
   nf = sum(x*x for x = coefficients(f))
   B = degree(f)^2*(iroot(nf, 2)+1) #from Paper: bound on the coeffs we need
-  B = B^2 # Nemo works with norm-squared....
+  @show B = B^2 # Nemo works with norm-squared....
+  @show "using ", p
   @show pr = clog(B, p) 
   @show pr *= div(n,2)
   @show pr += 2*clog(2*n, p)
@@ -308,6 +312,13 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   @assert parent(f) == parent(bz[1])
 
   lf = factor_mod_pk(Array, H, 1)
+  #the roots in G are of course roots of the lf[i]
+  #roots that belong to the same factor would give rise
+  #to the same principal subfield. So we can save on LLL calls.
+  r = roots(G, 1)
+  F, mF = ResidueField(parent(r[1]))
+  r = map(mF, r)
+  rt_to_lf = [findall(x->iszero(f[1](x)), r) for f = lf]
   done = zeros(Int, length(lf))
   while true
     lf = factor_mod_pk(Array, H, pr)
@@ -336,16 +347,19 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
       end
       M = [M identity_matrix(ZZ, n); ppr*identity_matrix(ZZ, di) zero_matrix(ZZ, di, n)]
       D = diagonal_matrix(vcat([B for j=1:di], [fmpz(1) for j=1:n]))
-      M = M*D
+#      M = M*D
       while true
-        @show maximum(nbits, M), nbits(B)
-        @time r, M = lll_with_removal(M, B)
+        @show maximum(nbits, M), nbits(B), size(M)
+        global last_M = M
+        #TODO: possible scale (and round) by 1/sqrt(B) so that
+        #      the lattice entries are smaller (ie like in the 
+        #      van Hoeij factoring)
+        @time r, M = lll_with_removal(M, B, lll_ctx(0.501, 0.75))
         M = M[1:r, :]
         @show r, i, pr
 
         if iszero(M[:, 1:di])
           if n % r == 0
-            global last_M = M[1:r, di+1:di+n]
             gens = [sum(M[k, di+j] * b[j] for j=1:n) for k=1:r]
             #need the subfield poly - or a guess...
             #this is an upper bound.
@@ -389,6 +403,11 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
               elseif subfield(E) === nothing
                 @show :no_subfield
               else
+                for j in T
+                  for h in rt_to_lf[j]
+                    done[j] = 1
+                  end
+                end
                 done[i] = 1
               end
             end

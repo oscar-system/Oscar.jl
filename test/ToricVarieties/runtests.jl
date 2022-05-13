@@ -12,7 +12,8 @@ antv4 = AffineNormalToricVariety(Oscar.positive_hull([1 0]))
 antv5 = AffineNormalToricVariety(Oscar.positive_hull([1 0; 0 1]))
 antv6 = NormalToricVariety([[1,0,0], [1,0,1], [1,1,1], [1,1,0]], [[1,2,3,4]])
 
-set_coefficient_ring(antv4, ZZ)
+set_coordinate_names(antv4, ["u"])
+set_coordinate_names_of_torus(antv4, ["u1","u2"])
 
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
@@ -40,12 +41,19 @@ end
 
 @testset "Affine toric varieties with torusfactor" begin
     @test_throws ArgumentError set_coordinate_names(antv4, ["u1", "u2"])
-    @test_throws ArgumentError ideal_of_linear_relations(antv4)
     @test_throws ArgumentError set_coordinate_names_of_torus(antv4, ["u"])
+    @test_throws ArgumentError ideal_of_linear_relations(antv4)
     @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(antv4)
     @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_picard_group(antv4)
     @test_throws ArgumentError betti_number(antv4, 0)
     @test dim_of_torusfactor(antv4) == 1
+end
+
+@testset "Errors from changes to coordinates and coefficients are variety is finalized" begin
+    @test ngens(cox_ring(antv4)) == 1
+    @test is_finalized(antv4) == true
+    @test_throws ErrorException set_coordinate_names(antv4, ["u"])
+    @test_throws ErrorException set_coordinate_names_of_torus(antv4, ["u1", "u2"])
 end
 
 @testset "Affine toric varieties with trivial toric ideal" begin
@@ -87,8 +95,6 @@ ntv2 = NormalToricVariety(Oscar.cube(2))
 ntv3 = NormalToricVarietyFromGLSM(matrix(ZZ, [[1,1,1]]))
 ntv4 = NormalToricVarietiesFromStarTriangulations(convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1]))
 ntv5 = NormalToricVariety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42))))
-
-set_coefficient_ring(ntv5, GF(13))
 
 @testset "Normal toric varieties from fans, triangulations and GLSMs" begin
     @test iscomplete(ntv) == true
@@ -197,6 +203,7 @@ dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,1]])
 dP2 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,1]])
 dP3 = NormalToricVariety([[1,0], [1,1], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+set_coordinate_names(dP3,["x1","e1","x2","e3","x3","e2"])
 
 @testset "Argument errors for del Pezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
@@ -429,7 +436,7 @@ end
     @test dim(toric_variety(l)) == 2
 end
 
-@testset "Arithmetics of torlc line bundles" begin
+@testset "Arithmetics of toric line bundles" begin
     @test (l == l3) == false
     @test (l4 * l5 == l7) == true
     @test (l * l6 * inv(l) == l7) == true
@@ -512,8 +519,8 @@ end
 
 @testset "Properties, attributes and arithmetics of cohomology classes" begin
     @test istrivial(c) == false
-    @test nrows(exponents(c)) == 1
-    @test length(coefficients(c)) == 1
+    @test nrows(exponents(c)) == 3
+    @test length(coefficients(c)) == 3
     @test fmpq(3) * c == fmpz(3) * c
     @test 2 * c != fmpz(3) * c2
     @test (c == c3) == false
