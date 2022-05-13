@@ -403,6 +403,7 @@ end
 #
 
 function _perm_helper(ex::Expr)
+
     res = []
 
     while ex isa Expr && ex.head == :call
@@ -438,6 +439,7 @@ julia> @perm (1,2,3)(4,5)(6,7,8)
 ```
 """
 macro perm(ex)
+    ex != :( () ) || return cperm()
     ex isa Expr || error("Input is not a permutation expression")
     res = _perm_helper(ex)
     return esc(:(Oscar.cperm($(res...))))
@@ -486,11 +488,16 @@ macro perm(n,gens)
     ores = Vector{Expr}(undef,length(gens.args))
     i = 1
     for ex in gens.args
-        ex isa Expr || error("Input is not a permutation expression")
-        res = _perm_helper(ex)
+        if ex == :( () )
+            ores[i] = esc(:(Oscar.cperm(symmetric_group($n))))
+            i = i + 1
+        else
+            ex isa Expr || error("Input is not a permutation expression")
+            res = _perm_helper(ex)
 
-        ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
-        i = i + 1
+            ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
+            i = i + 1
+        end
     end
 
     return Expr(:vect,ores...)

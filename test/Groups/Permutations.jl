@@ -7,6 +7,8 @@
   a=1;b=2;f=x->3*x + 2;
   p = @perm (a,f(a),b)(a+1,b*2)
   @test p == cperm([1,5,4,2])
+  p = @perm ()
+  @test p == cperm()
   
   @test_throws ErrorException @perm (-1, 1)
   @test_throws LoadError @eval @perm "bla"
