@@ -1,11 +1,11 @@
 ################################################################################
 # fmpz
-function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
-    return fmpz(str)
-end
-
 function save_internal(s::SerializerState, z::fmpz)
     return string(z)
+end
+
+function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
+    return fmpz(str)
 end
 
 
