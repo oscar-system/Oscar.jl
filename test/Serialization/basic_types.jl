@@ -3,9 +3,11 @@
     mktempdir() do path
         @testset "Testing (de)serialization of $(T)" for T in 
             (
-                UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
-                Int, Int128, Int16, Int32, Int64, Int8,
-                Float16, Float32, Float64
+                UInt, UInt8, UInt16, UInt32, UInt64, UInt128,
+                Int, Int8, Int16, Int32, Int64, Int128,
+                Float16, Float32, Float64,
+                BigInt,
+                fmpz,
             )
             original = T(1)
             filename = joinpath(path, string(T)*".json")
