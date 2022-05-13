@@ -399,6 +399,30 @@ end
 
 ################################################################################
 #
+#   _perm_helper
+#
+
+function _perm_helper(ex::Expr)
+    res = []
+
+    while ex.head == :call
+        pushfirst!(res, Expr(:vect, ex.args[2:end]...))
+        ex = ex.args[1]
+        ex isa Expr || error("Input is not a permutation expression")
+    end
+
+    if ex.head != :tuple
+        error("Input is not a permutation.")
+    end
+
+    pushfirst!(res, Expr(:vect,ex.args...))
+
+    return res
+end
+
+
+################################################################################
+#
 #   perm
 #
 @doc Markdown.doc"""
@@ -415,33 +439,8 @@ julia> @perm (1,2,3)(4,5)(6,7,8)
 ```
 """
 macro perm(ex)
-    res = []
-    
-    if typeof(ex) != Expr
-        error("Input is not a permutation.")
-    end
-    
-    if ex.head != :call && ex.head != :tuple
-        error("Input is not a permutation.")
-    end
-   
-    while ex.head == :call
-        pushfirst!(res, Expr(:vect, ex.args[2:end]...))
-        ex = ex.args[1]
-        if typeof(ex) != Expr
-            error("Input is not a permutation.")
-        end
-        if ex.head != :call && ex.head != :tuple
-            error("Input is not a permutation.")
-        end
-    end
-    
-    if ex.head != :tuple
-        error("Input is not a permutation.")
-    end
-    
-    pushfirst!(res, Expr(:vect,ex.args...))
-
+    ex isa Expr || error("Input is not a permutation expression")
+    res = _perm_helper(ex)
     return esc(:(Oscar.cperm($(res...))))
 end
 
@@ -488,33 +487,8 @@ macro perm(n,gens)
     ores = Vector{Expr}(undef,length(gens.args))
     i = 1
     for ex in gens.args
-        res = []
-        
-        if typeof(ex) != Expr
-            throw(ArgumentError("Input is not a permutation."))
-            error("Input is not a permutation.")
-        end
-        
-        if ex.head != :call && ex.head != :tuple
-            error("Input is not a permutation.")
-        end
-       
-        while ex.head == :call
-            pushfirst!(res, Expr(:vect, ex.args[2:end]...))
-            ex = ex.args[1]
-            if typeof(ex) != Expr
-                error("Input is not a permutation.")
-            end
-            if ex.head != :call && ex.head != :tuple
-                error("Input is not a permutation.")
-            end
-        end
-        
-        if ex.head != :tuple
-            error("Input is not a permutation.")
-        end
-        
-        pushfirst!(res, Expr(:vect,ex.args...))
+        ex isa Expr || error("Input is not a permutation expression")
+        res = _perm_helper(ex)
 
         ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
         i = i + 1
