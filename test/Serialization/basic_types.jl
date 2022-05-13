@@ -23,5 +23,14 @@
             @test loaded isa String
             @test loaded == original
         end
+
+        @testset "Symbol" begin
+            original = :original
+            filename = joinpath(path, "original.json")
+            save(original, filename)
+            loaded = load(filename)
+            @test loaded isa Symbol
+            @test loaded == original
+        end
     end
 end
