@@ -456,6 +456,12 @@ function cycle_structure(g::PermGroupElem)
 end
 
 
+
+
+################################################################################
+#
+#   _perm_helper
+#
 # The following code implements a new way to input permutations in Julia. For example
 # it is possible to create a permutation as follow
 # pi = Oscar.Permutations.@perm (1,2,3)(4,5)(6,7,8)
@@ -463,18 +469,14 @@ end
 # For this we use macros to modify the syntax tree of (1,2,3)(4,5)(6,7,8) such that
 # Julia can deal with the expression.
 
-
-################################################################################
-#
-#   _perm_helper
-#
-
 function _perm_helper(ex::Expr)
 
-    res = []
+    ex == :( () ) && return []
+    ex isa Expr || error("Input is not a permutation expression")
 
+    res = []
     while ex isa Expr && ex.head == :call
-        pushfirst!(res, Expr(:vect, ex.args[2:end]...))
+        push!(res, Expr(:vect, ex.args[2:end]...))
         ex = ex.args[1]
     end
 
@@ -482,7 +484,11 @@ function _perm_helper(ex::Expr)
         error("Input is not a permutation.")
     end
 
-    pushfirst!(res, Expr(:vect,ex.args...))
+    push!(res, Expr(:vect,ex.args...))
+
+    # reverse `res` to match the original order; this ensures
+    # the evaluation order is as the user expects
+    reverse!(res)
 
     return res
 end
@@ -493,21 +499,21 @@ end
 #   perm
 #
 @doc Markdown.doc"""
-    @perm(ex)
+    @perm ex
     
-Macro to input a permutation as
-`pi = @perm (1,2,3)(4,5)(6,7,8)` to obtain
-the permutation `(1,2,3)(4,5)(6,7,8)`, that is, the output of
-`cperm([1,2,3],[4,5],[6,7,8])`.
+Input a permutation in cycle notation. Supports arbitrary expressions for
+generating the integer entries of the cycles.
+
+The actual work is done by [`cperm`](@ref). Thus, for the time being,
+cycles which are *not* disjoint actually are supported.
+
 # Examples
 ```jldoctest
-julia> @perm (1,2,3)(4,5)(6,7,8)
+julia> @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 ```
 """
 macro perm(ex)
-    ex != :( () ) || return cperm()
-    ex isa Expr || error("Input is not a permutation expression")
     res = _perm_helper(ex)
     return esc(:(Oscar.cperm($(res...))))
 end
@@ -518,10 +524,12 @@ end
 #   perm(n,gens)
 #
 @doc Markdown.doc"""
-    @perm(n,gens)
+    @perm n gens
     
-Macro to input a list of permutations which are generated as elements of
-the `symmetric_group(n)` with the function `cperm`.
+Input a list of permutations in cycle notation, created as elements of the
+symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
+[`cperm`](@ref) suitably..
+
 # Examples
 ```jldoctest
 julia> gens = @perm 14 [
@@ -552,22 +560,17 @@ Sym( [ 1 .. 14 ] )
 """
 macro perm(n,gens)
 
-    ores = Vector{Expr}(undef,length(gens.args))
-    i = 1
+    ores = Expr[]
     for ex in gens.args
-        if ex == :( () )
-            ores[i] = esc(:(Oscar.cperm(symmetric_group($n))))
-            i = i + 1
-        else
-            ex isa Expr || error("Input is not a permutation expression")
-            res = _perm_helper(ex)
-
-            ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
-            i = i + 1
-        end
+        res = _perm_helper(ex)
+        push!(ores, esc(:(  [$(res...)]  )))
     end
 
-    return Expr(:vect,ores...)
+    return quote
+       let g = symmetric_group($n)
+           [ cperm(g, pi...) for pi in [$(ores...)] ]
+       end
+    end
 end
 
 export @perm
