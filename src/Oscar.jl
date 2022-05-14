@@ -407,6 +407,9 @@ end
 
 include("Serialization/main.jl")
 
+include("Aliases.jl")
+
+
 const global OSCAR = Oscar
 const global oscar = Oscar
 
