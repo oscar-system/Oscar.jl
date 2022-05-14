@@ -430,7 +430,7 @@ function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.Proj
    E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
    L = E.maps
    K = P.parent.base_field
-   if P.isinfinite
+   if isinfinite(P)
       V = [K(0), K(1), K(0)]
    else
       V = [P.coordx, P.coordy, K(1)]
