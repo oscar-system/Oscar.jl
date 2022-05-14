@@ -132,7 +132,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   if length(S) == 0
     return []
   end
-  @assert all(isprime, S)
+  @assert all(is_prime, S)
   #TODO: try to get a better bound - in general if S is too large
   #      it cannot work 
   

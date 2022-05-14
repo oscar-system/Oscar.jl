@@ -182,7 +182,7 @@ mutable struct MPolyComplementOfPrimeIdeal{
       check::Bool=false
     ) where {RingElemType}
     R = base_ring(P)
-    check && (isprime(P) || error("the ideal $P is not prime"))
+    check && (is_prime(P) || error("the ideal $P is not prime"))
     return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R, P)
   end
 end

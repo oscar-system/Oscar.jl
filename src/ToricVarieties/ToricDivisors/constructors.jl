@@ -47,9 +47,9 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T
     
     # set attributes
     if sum(coeffs) != 1
-        set_attribute!(td, :isprime, false)
+        set_attribute!(td, :is_prime, false)
     else
-        set_attribute!(td, :isprime, all(y -> (y == 1 || y == 0), coeffs))
+        set_attribute!(td, :is_prime, all(y -> (y == 1 || y == 0), coeffs))
     end
     
     # return the result
@@ -138,7 +138,7 @@ function Base.show(io::IO, td::ToricDivisor)
     push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
     
     push_attribute_if_exists!(properties_string, td, :isnef, "nef")
-    push_attribute_if_exists!(properties_string, td, :isprime, "prime")
+    push_attribute_if_exists!(properties_string, td, :is_prime, "prime")
     
     # print
     push!(properties_string, "divisor on a normal toric variety")

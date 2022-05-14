@@ -88,7 +88,7 @@
          @test nvertices(PCFL) == 3
          @test npolyhedra(PCL) == 9
          @test codim(PCF) == 0
-         @test isembedded(PC)
+         @test is_embedded(PC)
          
          @test vertices(PCFLN) == [P2[i, :] for i in 1:3]
          @test rays(PCFLN) == [P2[4, :]]

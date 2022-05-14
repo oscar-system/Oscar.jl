@@ -126,13 +126,13 @@ the three possible return values of `-1`, `0`, or `1`.
 * `isodd(n::fmpz) -> Bool`
 * `iseven(n::fmpz) -> Bool`
 * `is_square(n::fmpz) -> Bool`
-* `isprime(n::fmpz) -> Bool`
+* `is_prime(n::fmpz) -> Bool`
 * `is_probable_prime(n::fmpz) -> Bool`
 
-The `isprime` predicate will prove primality, whereas `is_probable_prime` may
+The `is_prime` predicate will prove primality, whereas `is_probable_prime` may
 declare a composite number to be prime with very low probability.
 
-Negative numbers, ``0`` and ``1`` are not considered prime by `isprime` and
+Negative numbers, ``0`` and ``1`` are not considered prime by `is_prime` and
 `is_probable_prime`.
 
 ```@repl oscar

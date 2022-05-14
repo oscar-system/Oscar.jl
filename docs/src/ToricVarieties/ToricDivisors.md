@@ -54,7 +54,7 @@ iscartier(td::ToricDivisor)
 iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor)
 isnef(td::ToricDivisor)
-isprime(td::ToricDivisor)
+is_prime(td::ToricDivisor)
 is_q_cartier(td::ToricDivisor)
 is_very_ample(td::ToricDivisor)
 ```

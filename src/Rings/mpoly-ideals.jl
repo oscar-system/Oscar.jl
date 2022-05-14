@@ -3,7 +3,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
 export absolute_primary_decomposition
-export iszero, isone, issubset, ideal_membership, radical_membership, inradical, isprime, isprimary
+export iszero, isone, issubset, ideal_membership, radical_membership, inradical, is_prime, isprimary
 export ngens, gens
 export minimal_generating_set
 
@@ -956,7 +956,7 @@ end
 inradical(f::MPolyElem, I::MPolyIdeal) = radical_membership(f,I)
 ################################################################################
 @doc Markdown.doc"""
-    isprime(I::MPolyIdeal)
+    is_prime(I::MPolyIdeal)
 
 Return `true` if `I` is prime, `false` otherwise. 
 
@@ -971,11 +971,11 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal(R, [x, y])^2
 ideal(x^2, x*y, y^2)
 
-julia> isprime(I)
+julia> is_prime(I)
 false
 ```
 """
-function isprime(I::MPolyIdeal)
+function is_prime(I::MPolyIdeal)
   D = minimal_primes(I)
   return length(D) == 1 && issubset(D[1], I)
 end

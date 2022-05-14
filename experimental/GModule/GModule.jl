@@ -1085,7 +1085,7 @@ function reps(K, G::Oscar.GAPGroup)
   gG = [Oscar.group_element(G, x) for x = pcgs]
   s, ms = sub(G, [gG[end]])
   o = Int(order(s))
-  @assert isprime(o)
+  @assert is_prime(o)
   z = roots(K(1), o)
   @assert characteristic(K) == o || length(z) == o
   F = free_module(K, 1)
@@ -1097,7 +1097,7 @@ function reps(K, G::Oscar.GAPGroup)
     ns, mns = sub(G, gG[i:end])
     @assert mns(ns[1]) == h
     p = Int(divexact(order(ns), order(s)))
-    @assert isprime(p)
+    @assert is_prime(p)
     new_R = []
     todo = trues(length(R)) # which entries in `R` have to be handled
     #TODO: use extend below

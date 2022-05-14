@@ -436,7 +436,7 @@ radical_membership(f::T, I::MPolyIdeal{T}) where T
 ### Primality Test
 
 ```@docs
-isprime(I::MPolyIdeal)
+is_prime(I::MPolyIdeal)
 ```
 
 ### Primary Test

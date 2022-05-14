@@ -126,7 +126,7 @@ import Nemo:
     fq_nmod,
     FractionField,
     height,
-    isprime,
+    is_prime,
     is_probable_prime,
     isqrtrem,
     is_square,

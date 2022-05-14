@@ -306,12 +306,12 @@ end
    Lo = [order(l) for l in L]
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
-   @test [isprime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+   @test [is_prime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
    L = complement_system(G)
    Lo = [index(G,l) for l in L]
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
-   @test [isprime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+   @test [is_prime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
 
    L = hall_system(symmetric_group(4))
    @test issubgroup(symmetric_group(4),L[1])[1]

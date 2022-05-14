@@ -203,8 +203,8 @@
       @test length(bs) == n
       @test all(c -> c^n == b, bs)
 
-      @test isroot_of_unity(z(5))
-      @test !isroot_of_unity(z(5) + 1)
+      @test is_root_of_unity(z(5))
+      @test !is_root_of_unity(z(5) + 1)
     end
 
     @test length(roots(8*b, 3)) == 3

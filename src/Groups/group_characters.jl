@@ -182,7 +182,7 @@ function character_table(G::GAPGroup, p::Int = 0)
       gaptbl = GAP.Globals.CharacterTable(G.X)::GapObj
       if p != 0
         # Create the `p`-modular table if possible.
-        isprime(p) || error("p must be 0 or a prime integer")
+        is_prime(p) || error("p must be 0 or a prime integer")
         gaptbl = GAP.Globals.mod(gaptbl, GAP.Obj(p))::GapObj
         gaptbl === GAP.Globals.fail && return nothing
       end
@@ -223,7 +223,7 @@ function character_table(id::String, p::Int = 0)
     if p == 0
       modid = id
     else
-      isprime(p) || error("p must be 0 or a prime integer")
+      is_prime(p) || error("p must be 0 or a prime integer")
       modid = "$(id)mod$(p)"
     end
 
@@ -804,7 +804,7 @@ or `nothing` if this table cannot be computed.
 An exception is thrown if `tbl` is not an ordinary character table.
 """
 function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
-    isprime(p) || error("p must be a prime integer")
+    is_prime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
     modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
@@ -846,7 +846,7 @@ julia> decomposition_matrix(t2)
 ```
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
-    isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
+    is_prime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable)::GapObj)
 end
 

@@ -68,7 +68,7 @@ mutable struct FmpzComplementOfPrimeIdeal <: AbsMultSet{FlintIntegerRing, fmpz}
   p::fmpz
 
   function FmpzComplementOfPrimeIdeal(p::fmpz)
-    isprime(p) || error("$(p) is not prime")
+    is_prime(p) || error("$(p) is not prime")
     return new(p)
   end
 end

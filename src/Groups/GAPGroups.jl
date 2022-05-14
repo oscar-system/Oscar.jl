@@ -990,7 +990,7 @@ Return `C, f`, where `C` is the `p`-core
 and `f` is the embedding morphism of `C` into `G`.
 """
 function pcore(G::GAPGroup, p::IntegerUnion)
-   isprime(p) || throw(ArgumentError("p is not a prime"))
+   is_prime(p) || throw(ArgumentError("p is not a prime"))
    return _as_subgroup(G, GAP.Globals.PCore(G.X,GAP.Obj(p)))
 end
 
@@ -1073,14 +1073,14 @@ julia> s = sylow_subgroup(g, 3); order(s[1])
 ```
 """
 function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
-   isprime(p) || throw(ArgumentError("p is not a prime"))
+   is_prime(p) || throw(ArgumentError("p is not a prime"))
    return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p)))
 end
 
 # no longer documented, better use `hall_subgroup_reps`
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   all(isprime, P) || throw(ArgumentError("The integers must be prime"))
+   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
    issolvable(G) || throw(ArgumentError("The group is not solvable"))
    return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P, recursive=true)))
 end
@@ -1121,7 +1121,7 @@ julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
 """
 function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   all(isprime, P) || throw(ArgumentError("The integers must be prime"))
+   all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]

@@ -333,7 +333,7 @@ D6 = trivial_divisor(dP3)
 end
 
 @testset "Toric divisor D" begin
-    @test isprime(D) == false
+    @test is_prime(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
     @test istrivial(D) == true
@@ -343,7 +343,7 @@ end
     @test isnef(D) == true
     @test isintegral(D) == true
     @test is_q_cartier(D) == true
-    @test isprime(D) == false
+    @test is_prime(D) == false
     @test dim(toric_variety(D)) == 2
     @test coefficients(D) == [0,0,0,0]
     @test dim(polyhedron(D)) == 0
@@ -351,7 +351,7 @@ end
 end
 
 @testset "Toric divisor D2" begin
-    @test isprime(D2) == false
+    @test is_prime(D2) == false
     @test iscartier(D2) == true
     @test isprincipal(D2) == true
     @test is_basepoint_free(D2) == true
@@ -360,12 +360,12 @@ end
     @test isnef(D2) == true
     @test isintegral(D2) == true
     @test is_q_cartier(D2) == true
-    @test isprime(D2) == false
+    @test is_prime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
 end
 
 @testset "Toric divisor D3" begin
-    @test isprime(D3) == true
+    @test is_prime(D3) == true
 end
 
 @testset "Arithmetics of toric divisors" begin

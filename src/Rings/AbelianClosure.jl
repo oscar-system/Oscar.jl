@@ -30,7 +30,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 #import ..Oscar.AbstractAlgebra: promote_rule
 
 import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
-                root, divexact, mul!, roots, isroot_of_unity, promote_rule,
+                root, divexact, mul!, roots, is_root_of_unity, promote_rule,
                 AbstractAlgebra
 using Hecke
 import Hecke: conductor, data
@@ -620,7 +620,7 @@ AbstractAlgebra.promote_rule(::Type{QabElem}, ::Type{fmpq}) = QabElem
 ###############################################################################
 
 function Oscar.root(a::QabElem, n::Int)
-  Hecke.@req isroot_of_unity(a) "Element must be a root of unity"
+  Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
   mu = root_of_unity2(parent(a), Int(l))
@@ -696,7 +696,7 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
 
   corr = one(parent(a))
 
-  if !isroot_of_unity(a) 
+  if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
@@ -706,7 +706,7 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
     c.data = b
     corr = Hecke.inv(c)
     a *= c^n
-    fl = isroot_of_unity(a)
+    fl = is_root_of_unity(a)
     fl || return (corr .* roots(x^n-a))::Vector{QabElem{T}}
   end
   
@@ -726,7 +726,7 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
   return [x*corr for x = A]::Vector{QabElem{T}}
 end
 
-function isroot_of_unity(a::QabElem)
+function is_root_of_unity(a::QabElem)
   return istorsion_unit(a.data, true)
   #=
   b = a^a.c

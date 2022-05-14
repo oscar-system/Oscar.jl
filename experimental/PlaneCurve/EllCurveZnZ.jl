@@ -655,7 +655,7 @@ function atkin_morain(
     pos::Int = 1,
     res::Vector{Tuple{fmpz,Int}} = Vector{Tuple{fmpz,Int}}(),
 )
-    N < ZZ(10)^15 && return isprime(N)
+    N < ZZ(10)^15 && return is_prime(N)
     if length(Arr) == 0
         L = funddiscriminant(10^5)
     else
