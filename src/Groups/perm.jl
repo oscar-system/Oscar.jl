@@ -454,3 +454,120 @@ function cycle_structure(g::PermGroupElem)
     end
     return CycleType(ct, sorted = true)
 end
+
+
+# The following code implements a new way to input permutations in Julia. For example
+# it is possible to create a permutation as follow
+# pi = Oscar.Permutations.@perm (1,2,3)(4,5)(6,7,8)
+# > (1,2,3)(4,5)(6,7,8)
+# For this we use macros to modify the syntax tree of (1,2,3)(4,5)(6,7,8) such that
+# Julia can deal with the expression.
+
+
+################################################################################
+#
+#   _perm_helper
+#
+
+function _perm_helper(ex::Expr)
+
+    res = []
+
+    while ex isa Expr && ex.head == :call
+        pushfirst!(res, Expr(:vect, ex.args[2:end]...))
+        ex = ex.args[1]
+    end
+
+    if !(ex isa Expr) || ex.head != :tuple
+        error("Input is not a permutation.")
+    end
+
+    pushfirst!(res, Expr(:vect,ex.args...))
+
+    return res
+end
+
+
+################################################################################
+#
+#   perm
+#
+@doc Markdown.doc"""
+    @perm(ex)
+    
+Macro to input a permutation as
+`pi = @perm (1,2,3)(4,5)(6,7,8)` to obtain
+the permutation `(1,2,3)(4,5)(6,7,8)`, that is, the output of
+`cperm([1,2,3],[4,5],[6,7,8])`.
+# Examples
+```jldoctest
+julia> @perm (1,2,3)(4,5)(6,7,8)
+(1,2,3)(4,5)(6,7,8)
+```
+"""
+macro perm(ex)
+    ex != :( () ) || return cperm()
+    ex isa Expr || error("Input is not a permutation expression")
+    res = _perm_helper(ex)
+    return esc(:(Oscar.cperm($(res...))))
+end
+
+
+################################################################################
+#
+#   perm(n,gens)
+#
+@doc Markdown.doc"""
+    @perm(n,gens)
+    
+Macro to input a list of permutations which are generated as elements of
+the `symmetric_group(n)` with the function `cperm`.
+# Examples
+```jldoctest
+julia> gens = @perm 14 [
+              (1,10)
+              (2,11)
+              (3,12)
+              (4,13)
+              (5,14)
+              (6,8)
+              (7,9)
+              (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
+              (1,2)(10,11)
+             ]
+9-element Vector{PermGroupElem}:
+ (1,10)
+ (2,11)
+ (3,12)
+ (4,13)
+ (5,14)
+ (6,8)
+ (7,9)
+ (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
+ (1,2)(10,11)
+ 
+julia> parent(gens[1])
+Sym( [ 1 .. 14 ] )
+```
+"""
+macro perm(n,gens)
+
+    ores = Vector{Expr}(undef,length(gens.args))
+    i = 1
+    for ex in gens.args
+        if ex == :( () )
+            ores[i] = esc(:(Oscar.cperm(symmetric_group($n))))
+            i = i + 1
+        else
+            ex isa Expr || error("Input is not a permutation expression")
+            res = _perm_helper(ex)
+
+            ores[i] = esc(:(Oscar.cperm(symmetric_group($n),$(res...))))
+            i = i + 1
+        end
+    end
+
+    return Expr(:vect,ores...)
+end
+
+export @perm
