@@ -31,16 +31,16 @@ export
     hall_subgroup_reps,
     hall_system, has_hall_system, set_hall_system,
     inv!,
-    isalmostsimple, has_isalmostsimple, set_isalmostsimple,
+    isalmostsimple, has_is_almostsimple, set_is_almostsimple,
     is_conjugate,
     isconjugate_subgroup,
-    isfinite, has_isfinite, set_isfinite,
-    isfinitelygenerated, has_isfinitelygenerated, set_isfinitelygenerated,
+    isfinite, has_is_finite, set_is_finite,
+    isfinitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
     isfiniteorder,
-    isperfect, has_isperfect, set_isperfect,
+    isperfect, has_is_perfect, set_is_perfect,
     ispgroup,
     is_quasisimple, hasis_quasisimple, setis_quasisimple,
-    is_simple, has_issimple, set_issimple,
+    is_simple, has_is_simple, set_is_simple,
     is_sporadic_simple, hasis_sporadic_simple, setis_sporadic_simple,
     low_index_subgroup_reps,
     maximal_subgroup_reps,
@@ -1448,14 +1448,14 @@ function describe(G::GAPGroup)
    isfinitelygenerated(G) || return "a non-finitely generated group"
 
    # handle groups whose finiteness is known
-   if has_isfinite(G)
+   if has_is_finite(G)
       # finite groups: pass them to GAP
       if isfinite(G)
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
 
       # infinite groups known to be abelian can still be dealt with by GAP
-      if has_isabelian(G) && is_abelian(G)
+      if has_is_abelian(G) && is_abelian(G)
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
 
@@ -1486,9 +1486,9 @@ function describe(G::FPGroup)
 
    # abelian groups can be dealt with by GAP
    extra = ""
-   if !has_isabelian(G)
+   if !has_is_abelian(G)
       if isobviouslyabelian(G)
-         set_isabelian(G, true) # TODO: Claus won't like this...
+         set_is_abelian(G, true) # TODO: Claus won't like this...
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
    elseif is_abelian(G)
@@ -1497,7 +1497,7 @@ function describe(G::FPGroup)
       extra *= " non-abelian"
    end
 
-   if !has_isfinite(G)
+   if !has_is_finite(G)
       # try to obtain an isomorphic permutation group, but don't try too hard
       iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAP.Globals.Range(iso)))
