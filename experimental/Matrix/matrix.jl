@@ -68,7 +68,7 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
                 error("At least one matrix is not invertible.")
             end
             if Oscar.size(mat) != (n, n)
-                error("At least one matrix is not quadratic or not the same size.")
+                error("At least one matrix is not square or not of the same size.")
             end
        end
        if K isa FlintIntegerRing
@@ -133,26 +133,6 @@ function _lex_isEqual(a::T,b::T) where T<:MatElem
     end
   end
   return true
-end
-
-function size(G::GapObj)
-    return fmpz(GAP.Globals.Size(G))
-end
-
-function maximalsubgroups(G::GapObj)
-    return GAP.Globals.MaximalSubgroups(G)
-end
-
-function smallgeneratingset(G::GapObj)
-    return GAP.Globals.SmallGeneratingSet(G)
-end
-
-function isomorphismpermgroup(G::GapObj)
-    return GAP.Globals.IsomorphismPermGroup(G)
-end
-
-function idsmallgroup(G::GapObj)
-    return GAP.Globals.IdSmallGroup(G)
 end
 
 end #module MatrixGroups
