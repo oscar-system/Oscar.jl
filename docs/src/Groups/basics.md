@@ -74,13 +74,13 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 
 ```@docs
 Base.isfinite(G::GAPGroup)
-isabelian(G::GAPGroup)
+is_abelian(G::GAPGroup)
 ispgroup
-isnilpotent
+is_nilpotent
 issupersolvable
 issolvable
 isperfect
-issimple(G::GAPGroup)
+is_simple(G::GAPGroup)
 isalmostsimple
 is_quasisimple
 is_sporadic_simple

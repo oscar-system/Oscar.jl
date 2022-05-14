@@ -5,7 +5,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
-      matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
+      matrix_kernel, simplify, map, is_injective, is_surjective, is_bijective, iswelldefined,
       subquotient, ambient_free_module, ambient_module, ambient_representative, 
       ambient_representatives_generators, relations
 
@@ -3255,7 +3255,7 @@ function inv(H::ModuleMap)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
-  @assert isbijective(H)
+  @assert is_bijective(H)
   N = domain(H)
   M = codomain(H)
 
@@ -4332,30 +4332,30 @@ function map(A::MatElem)
 end
 
 @doc Markdown.doc"""
-    isinjective(f::ModuleMap)
+    is_injective(f::ModuleMap)
 
 Test if `f` is injective.
 """
-function isinjective(f::ModuleMap)
+function is_injective(f::ModuleMap)
   return iszero(kernel(f)[1])
 end
 
 @doc Markdown.doc"""
-    issurjective(f::ModuleMap)
+    is_surjective(f::ModuleMap)
 
 Test if `f` is surjective.
 """
-function issurjective(f::ModuleMap)
+function is_surjective(f::ModuleMap)
   return image(f)[1] == codomain(f)
 end
 
 @doc Markdown.doc"""
-    isbijective(f::ModuleMap)
+    is_bijective(f::ModuleMap)
 
 Test if `f` is bijective.
 """
-function isbijective(f::ModuleMap)
-  return isinjective(f) && issurjective(f)
+function is_bijective(f::ModuleMap)
+  return is_injective(f) && is_surjective(f)
 end
 
 

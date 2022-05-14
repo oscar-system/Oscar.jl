@@ -55,7 +55,7 @@ gram_matrix(f::SesquilinearForm)
 defining_polynomial(f::SesquilinearForm)
 radical(f::SesquilinearForm{T}) where T
 witt_index(f::SesquilinearForm{T}) where T
-isdegenerate(f::SesquilinearForm{T}) where T
+is_degenerate(f::SesquilinearForm{T}) where T
 issingular(f::SesquilinearForm{T}) where T
 iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 ```

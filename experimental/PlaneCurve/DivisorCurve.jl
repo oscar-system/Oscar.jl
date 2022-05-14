@@ -1,7 +1,7 @@
 import Oscar: iseffective
 export AffineCurveDivisor, ProjCurveDivisor, iseffective, multiplicity,
        divisor, curve, degree, divisor_ideals, global_sections,
-       dimension_global_sections, islinearly_equivalent, isprincipal,
+       dimension_global_sections, islinearly_equivalent, is_principal,
        curve_zero_divisor, principal_divisor
 
 ################################################################################
@@ -721,7 +721,7 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    isprincipal(D::ProjCurveDivisor{S}) where S <: FieldElem
+    is_principal(D::ProjCurveDivisor{S}) where S <: FieldElem
 
 Return `true` if the divisor `D` is principal, and `false` otherwise
 
@@ -749,11 +749,11 @@ julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 julia> E = Oscar.ProjCurveDivisor(C, P)
 (0 : 1 : 0)
 
-julia> Oscar.isprincipal(E)
+julia> Oscar.is_principal(E)
 false
 ```
 """
-function Oscar.isprincipal(D::ProjCurveDivisor{S}) where S <: FieldElem
+function Oscar.is_principal(D::ProjCurveDivisor{S}) where S <: FieldElem
     if !isdefined(D, :prin_div)
         D.prin_div = _linearly_equivalent(D, curve_zero_divisor(D.C))
     end
@@ -805,7 +805,7 @@ x^2//z^2
 ```
 """
 function principal_divisor(D::ProjCurveDivisor{S}) where S <: FieldElem
-    isprincipal(D) || error("the divisor is not principal")
+    is_principal(D) || error("the divisor is not principal")
     return D.prin_div
 end
 ################################################################################

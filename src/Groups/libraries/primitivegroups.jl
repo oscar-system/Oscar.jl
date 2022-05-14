@@ -130,10 +130,10 @@ true
 julia> S = stabilizer(G, 1)[1]
 Group([ (2,7,6,5,4,3), (6,7) ])
 
-julia> isprimitive(S)
+julia> is_primitive(S)
 false
 
-julia> isprimitive(S, moved_points(S))
+julia> is_primitive(S, moved_points(S))
 true
 
 julia> m = primitive_group_identification(S)
@@ -153,7 +153,7 @@ ERROR: group is not primitive on its moved points
 """
 function primitive_group_identification(G::PermGroup)
   moved = moved_points(G)
-  isprimitive(G, moved) || error("group is not primitive on its moved points")
+  is_primitive(G, moved) || error("group is not primitive on its moved points")
   deg = length(moved)
   has_primitive_groups(deg) || error("identification of primitive permutation groups of degree $(deg) is not available")
   res = GAP.Globals.PrimitiveIdentification(G.X)::Int
@@ -174,14 +174,14 @@ may be of one of the following forms:
 
 The following functions are currently supported as values for `func`:
 - `degree`
-- `isabelian`
+- `is_abelian`
 - `isalmostsimple`
-- `iscyclic`
-- `isnilpotent`
+- `is_cyclic`
+- `is_nilpotent`
 - `isperfect`
-- `isprimitive`
+- `is_primitive`
 - `is_quasisimple`
-- `issimple`
+- `is_simple`
 - `is_sporadic_simple`
 - `issolvable`
 - `issupersolvable`
@@ -195,7 +195,7 @@ The type of the returned groups is `PermGroup`.
 
 # Examples
 ```jldoctest
-julia> all_primitive_groups(degree => 3:5, isabelian)
+julia> all_primitive_groups(degree => 3:5, is_abelian)
 2-element Vector{PermGroup}:
  A(3)
  C(5)

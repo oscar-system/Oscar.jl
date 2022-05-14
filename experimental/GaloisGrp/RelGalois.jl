@@ -34,7 +34,7 @@ function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
   C.prime = P
   C.f = f
   C.C = V
-  if Hecke.ismaximal_order_known(k)
+  if Hecke.is_maximal_order_known(k)
     den = k(1)
   else
     den = derivative(defining_polynomial(k))(gen(k))
@@ -64,7 +64,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
 
   local zk::NfOrd
   local den::nf_elem
-  if Hecke.ismaximal_order_known(k)
+  if Hecke.is_maximal_order_known(k)
     zk = maximal_order(k)
     if isdefined(zk, :lllO)
       zk = zk.lllO::NfOrd
@@ -81,7 +81,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
   while true
     @vprint :PolyFactor 3 "Trying with $p\n "
     p = next_prime(p)
-    if !Hecke.isprime_nice(zk, p)
+    if !Hecke.is_prime_nice(zk, p)
       continue
     end
     P = prime_decomposition(zk, p, 1) #not quite sure... but lets stick with it

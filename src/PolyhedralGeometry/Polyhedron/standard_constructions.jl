@@ -836,7 +836,7 @@ A polyhedron in ambient dimension 3
 julia> X = NormalToricVariety(face_fan(S))
 A normal toric variety
 
-julia> issmooth(X)
+julia> is_smooth(X)
 true
 ```
 """

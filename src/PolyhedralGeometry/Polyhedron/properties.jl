@@ -809,7 +809,7 @@ contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_objec
 
 
 @doc Markdown.doc"""
-    issmooth(P::Polyhedron{fmpq})
+    is_smooth(P::Polyhedron{fmpq})
 
 Check whether `P` is smooth.
 
@@ -818,15 +818,15 @@ A cube is always smooth.
 ```jldoctest
 julia> C = cube(8);
 
-julia> issmooth(C)
+julia> is_smooth(C)
 true
 ```
 """
-issmooth(P::Polyhedron{fmpq}) = pm_object(P).SMOOTH::Bool
+is_smooth(P::Polyhedron{fmpq}) = pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
-    isnormal(P::Polyhedron{fmpq})
+    is_normal(P::Polyhedron{fmpq})
 
 Check whether `P` is normal.
 
@@ -836,18 +836,18 @@ The 3-cube is normal.
 julia> C = cube(3)
 A polyhedron in ambient dimension 3
 
-julia> isnormal(C)
+julia> is_normal(C)
 true
 ```
 But this pyramid is not:
 ```jldoctest
 julia> P = convex_hull([0 0 0; 0 1 1; 1 1 0; 1 0 1]);
 
-julia> isnormal(P)
+julia> is_normal(P)
 false
 ```
 """
-isnormal(P::Polyhedron{fmpq}) = pm_object(P).NORMAL::Bool
+is_normal(P::Polyhedron{fmpq}) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
@@ -867,7 +867,7 @@ isbounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
 
 
 @doc Markdown.doc"""
-    issimple(P::Polyhedron)
+    is_simple(P::Polyhedron)
 
 Check whether `P` is simple.
 
@@ -876,11 +876,11 @@ Check whether `P` is simple.
 julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
-julia> issimple(c)
+julia> is_simple(c)
 true
 ```
 """
-issimple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
+is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
 
 @doc Markdown.doc"""

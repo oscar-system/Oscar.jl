@@ -7,7 +7,7 @@ export
     corresponding_quadratic_form,
     hermitian_form,
     isalternating_form,
-    isdegenerate,
+    is_degenerate,
     ishermitian_form,
     isquadratic_form,
     issingular,
@@ -409,12 +409,12 @@ The Witt Index is the dimension of a maximal totally isotropic (singular for qua
 witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
 
 """
-    isdegenerate(f::SesquilinearForm{T})
+    is_degenerate(f::SesquilinearForm{T})
 
 Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic
 form is degenerate if the corresponding bilinear form is.
 """
-function isdegenerate(f::SesquilinearForm{T}) where T
+function is_degenerate(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && return det(gram_matrix(f))==0
    return det(gram_matrix(f)+transpose(gram_matrix(f)))==0
 end

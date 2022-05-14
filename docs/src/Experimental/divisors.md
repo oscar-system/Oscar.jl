@@ -45,7 +45,7 @@ curve(D::Oscar.PlaneCurveModule.CurveDivisor)
 degree(D::Oscar.PlaneCurveModule.CurveDivisor)
 iseffective(D::Oscar.PlaneCurveModule.CurveDivisor)
 islinearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
-isprincipal(D::ProjCurveDivisor{S}) where S <: FieldElem
+is_principal(D::ProjCurveDivisor{S}) where S <: FieldElem
 principal_divisor(D::ProjCurveDivisor{S}) where S <: FieldElem
 global_sections(D::ProjCurveDivisor)
 dimension_global_sections(D::ProjCurveDivisor)

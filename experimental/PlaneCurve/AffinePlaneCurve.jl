@@ -4,7 +4,7 @@
 include("Variety.jl")
 using .VarietyModule
 
-export issmooth, tangent, common_components, curve_intersect, intersect,
+export is_smooth, tangent, common_components, curve_intersect, intersect,
        curve_singular_locus, multiplicity, tangent_lines, singular_locus,
        intersection_multiplicity, aretransverse, issmooth_curve,
        arithmetic_genus, geometric_genus
@@ -15,7 +15,7 @@ export issmooth, tangent, common_components, curve_intersect, intersect,
 # curve.
 
 @doc Markdown.doc"""
-    issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+    is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
@@ -30,11 +30,11 @@ Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 julia> P = Oscar.Point([QQ(0), QQ(0)])
 Point with coordinates fmpq[0, 0]
 
-julia> Oscar.issmooth(C, P)
+julia> Oscar.is_smooth(C, P)
 false
 ```
 """
-function Oscar.issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+function Oscar.is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
   iszero(evaluate(C.eq, P.coord)) || error("The point is not on the curve defined by ", C.eq)
   J = jacobi_ideal(C)
@@ -469,7 +469,7 @@ true
 ```
 """
 function aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
-  return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
+  return is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################

@@ -98,7 +98,7 @@ end
 Checks if the action maps satisfy the same relations 
 as the generators of `G`.
 """  
-function isconsistent(M::GModule)
+function is_consistent(M::GModule)
   G, mG = fp_group(M)
   V = Module(M)
   R = relators(G)
@@ -345,7 +345,7 @@ end
    - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
-   - issubgroup has the "wrong" order of arguments (and cannot apply
+   - is_subgroup has the "wrong" order of arguments (and cannot apply
      to modules)
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
    - mat or matrix is used to get "the matrix" from a hom
@@ -449,7 +449,7 @@ function H_one(C::GModule)
 
   K = kernel(gg)[1]
   D = domain(gg)
-  lf, lft = issubgroup(D, K)
+  lf, lft = is_subgroup(D, K)
 
   Q, mQ = quo(K, image(g)[1])
 
@@ -1266,7 +1266,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
     end
     GAP.Globals.SetPower(C, i, GAP.Globals.Identity(F))
   end
-  @assert isabelian(B)
+  @assert is_abelian(B)
   @assert order(B) == order(M)
 
   return B, MapFromFunc(
@@ -1466,8 +1466,8 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
   @assert domain(mfM) ==fM 
   @assert codomain(mfM) == M
-#  @assert issurjective(QtoG)
-#  @assert isinjective(MtoQ)
+#  @assert is_surjective(QtoG)
+#  @assert is_injective(MtoQ)
 
   mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
   fG = FPGroup(GAP.Globals.Source(mfG))

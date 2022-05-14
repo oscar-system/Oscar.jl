@@ -442,7 +442,7 @@ function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
 end
 
 @doc Markdown.doc"""
-    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
+    is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
@@ -454,13 +454,13 @@ A polyhedron in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 
-julia> isregular(vertices(c),cells)
+julia> is_regular(vertices(c),cells)
 true
 ```
 """
-function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+function is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
     as_sop = SubdivisionOfPoints(pts,cells)
-    isregular(as_sop)
+    is_regular(as_sop)
 end
 
 

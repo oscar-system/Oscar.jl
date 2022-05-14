@@ -59,14 +59,14 @@ end
 
   P,i = intersect(SubQuo(F2, A1, B1), SubQuo(F2, A2, B1))
   @test iswelldefined(i)
-  @test isinjective(i)
+  @test is_injective(i)
   @test SubQuo(F2, res, B1) == P #macaulay2
 
   A1 = R[x y; x^2 y^2]
   A2 = R[x+x^2 y+y^2]
   P,i = intersect(SubQuo(F2, A1,B1), SubQuo(F2, A2,B1))
   @test iswelldefined(i)
-  @test isinjective(i)
+  @test is_injective(i)
   @test SubQuo(F2, A2, B1) == P
 
   #Test that no obvious zeros are in the generator set
@@ -100,8 +100,8 @@ end
 		p = i.inverse_isomorphism
 		@test iswelldefined(i)
 		@test iswelldefined(p)
-		@test isbijective(i)
-		@test isbijective(p)
+		@test is_bijective(i)
+		@test is_bijective(p)
 	end
 
 
@@ -120,8 +120,8 @@ end
     	p = i.inverse_isomorphism
 		@test iswelldefined(i)
 		@test iswelldefined(p)
-		@test isbijective(i)
-		@test isbijective(p)
+		@test is_bijective(i)
+		@test is_bijective(p)
 	end
 end
 
@@ -198,8 +198,8 @@ end
 
 	@test iswelldefined(i2)
 	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
@@ -214,8 +214,8 @@ end
 
 	@test iswelldefined(i2)
 	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
@@ -231,8 +231,8 @@ end
 
 	@test iswelldefined(i2)
 	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	M1 = SubQuo(B1,A1)
 	M2,i2,p2 = simplify(M1)
@@ -245,8 +245,8 @@ end
 
 	@test iswelldefined(i2)
 	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 end
 
 @testset "quotient modules" begin
@@ -597,7 +597,7 @@ end
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -611,7 +611,7 @@ end
 	#######################################################################
 
 	# test, if H is bijective with inverse Hinv:
-	@test isbijective(H)
+	@test is_bijective(H)
 	@test all([inv(H)(H(g))==g for g in gens(N)])
 	@test all([H(inv(H)(g))==g for g in gens(M)])
 	@test inv(H) === Hinv
@@ -638,7 +638,7 @@ end
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -678,7 +678,7 @@ end
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -711,7 +711,7 @@ end
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 

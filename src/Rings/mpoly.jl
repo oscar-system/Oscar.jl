@@ -1,7 +1,7 @@
 #module MPolyModule
 
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
-       jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, is_prime
+       jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime
 
 ##############################################################################
 #

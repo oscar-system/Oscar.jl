@@ -318,7 +318,7 @@ end
 #
 ################################################################################
 
-function isconductor(n::Int)
+function is_conductor(n::Int)
   if isodd(n)
     return true
   end
@@ -359,7 +359,7 @@ end
 
 
 function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
-  fl, c = Hecke.iscyclotomic_type(parent(a[1]))
+  fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
   @assert all(x->parent(x) == parent(a[1]), a)
   @assert fl
   for p = keys(factor(c).fac)
@@ -397,7 +397,7 @@ end
 conductor(a::nf_elem) = conductor(parent(minimize(CyclotomicField, a)))
 
 function conductor(k::AnticNumberField)
-  f, c = Hecke.iscyclotomic_type(k)
+  f, c = Hecke.is_cyclotomic_type(k)
   f || error("field is not of cyclotomic type")
   return c
 end
@@ -727,7 +727,7 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
 end
 
 function is_root_of_unity(a::QabElem)
-  return istorsion_unit(a.data, true)
+  return is_torsion_unit(a.data, true)
   #=
   b = a^a.c
   return b.data == 1 || b.data == -1

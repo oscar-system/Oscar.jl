@@ -18,22 +18,22 @@
    end
    @test sort([transitive_group_identification(l) for l in L]) == [(4,i) for i in 1:5]
    @test Set(L) == Set(all_transitive_groups(degree => 4))
-   @test [H2] == all_transitive_groups(degree => 4, iscyclic)
-   @test [H4] == all_transitive_groups(degree => 4, !iscyclic, isabelian)
+   @test [H2] == all_transitive_groups(degree => 4, is_cyclic)
+   @test [H4] == all_transitive_groups(degree => 4, !is_cyclic, is_abelian)
 
    grps = all_transitive_groups(degree => 6)
    @test length(grps)==16
    props = [
-      isabelian,
+      is_abelian,
       isalmostsimple,
-      iscyclic,
-      isnilpotent,
+      is_cyclic,
+      is_nilpotent,
       isperfect,
-      issimple,
+      is_simple,
       issolvable,
       issupersolvable,
       istransitive,
-      isprimitive,
+      is_primitive,
    ]
    @testset "all_transitive_groups filtering for $(prop)" for prop in props
       @test length(all_transitive_groups(degree => 6, prop => true)) == count(prop, grps)
@@ -69,12 +69,12 @@ end
    @test istransitive(H,1:3)
 
    @test [issemiregular(l) for l in L]==[0,0,1,0,1]
-   @test [isregular(l) for l in L]==[0,0,1,0,1]
+   @test [is_regular(l) for l in L]==[0,0,1,0,1]
 
    H = sub(G,[G([2,1,4,3])])[1]
    @test issemiregular(H)
-   @test !isregular(H)
-   @test isregular(H,[1,2])
+   @test !is_regular(H)
+   @test is_regular(H,[1,2])
 
    @test_throws ArgumentError transitive_group(1, 2)
 end
@@ -117,8 +117,8 @@ end
    end
    @test length(all_small_groups(16))==14
    @test length(all_small_groups(order => 16))==14
-   @test length(all_small_groups(16, isabelian))==5
-   @test length(all_small_groups(order => 16, !isabelian))==9
+   @test length(all_small_groups(16, is_abelian))==5
+   @test length(all_small_groups(order => 16, !is_abelian))==9
    @test number_small_groups(16)==14
    @test number_small_groups(17)==1
 

@@ -394,7 +394,7 @@ as a sum of multiples of powers of the primitive root which is printed as
 """
 function as_sum_of_roots(val::nf_elem, root::String)
     F = parent(val)
-    flag, N = Hecke.iscyclotomic_type(F)
+    flag, N = Hecke.is_cyclotomic_type(F)
     flag || error("$val is not an element of a cyclotomic field")
 
     # `string` yields an expression of the right structure,

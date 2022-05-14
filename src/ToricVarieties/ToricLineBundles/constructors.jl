@@ -103,7 +103,7 @@ function Base.show(io::IO, line_bundle::ToricLineBundle)
     # collect known properties
     if has_attribute(line_bundle, :toric_divisor)
         td = toric_divisor(line_bundle)
-        push_attribute_if_exists!(properties_string, td, :isprincipal, "trivial")
+        push_attribute_if_exists!(properties_string, td, :is_principal, "trivial")
         push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
         ample_cb!(a,b) = push_attribute_if_exists!(a, b, :isample, "ample")
         push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)

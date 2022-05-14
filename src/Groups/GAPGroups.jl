@@ -32,7 +32,7 @@ export
     hall_system, has_hall_system, set_hall_system,
     inv!,
     isalmostsimple, has_isalmostsimple, set_isalmostsimple,
-    isconjugate,
+    is_conjugate,
     isconjugate_subgroup,
     isfinite, has_isfinite, set_isfinite,
     isfinitelygenerated, has_isfinitelygenerated, set_isfinitelygenerated,
@@ -40,7 +40,7 @@ export
     isperfect, has_isperfect, set_isperfect,
     ispgroup,
     is_quasisimple, hasis_quasisimple, setis_quasisimple,
-    issimple, has_issimple, set_issimple,
+    is_simple, has_issimple, set_issimple,
     is_sporadic_simple, hasis_sporadic_simple, setis_sporadic_simple,
     low_index_subgroup_reps,
     maximal_subgroup_reps,
@@ -557,12 +557,12 @@ end
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), x.X ^ y.X)
 
 @doc Markdown.doc"""
-    isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+    is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
 i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
-isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
+is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
 
 """
     representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
@@ -749,7 +749,7 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 @deprecate conjugate_subgroup(G::GAPGroup, x::GAPGroupElem) conjugate_group(G, x)
 
 """
-    isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+    is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 
 Return whether `H` and `K` are conjugate subgroups in `G`.
 
@@ -763,18 +763,18 @@ Group([ (1,2) ])
 julia> K = sub(G, [G([1, 2, 4, 3])])[1]
 Group([ (3,4) ])
 
-julia> isconjugate(G, H, K)
+julia> is_conjugate(G, H, K)
 true
 
 julia> K = sub(G, [G([2, 1, 4, 3])])[1]
 Group([ (1,2)(3,4) ])
 
-julia> isconjugate(G, H, K)
+julia> is_conjugate(G, H, K)
 false
 
 ```
 """
-isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
+is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
 """
     representative_action(G::Group, H::Group, K::Group)
@@ -851,7 +851,7 @@ function isconjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
   end
   s = short_right_transversal(G, U, sigma)
   for t = s
-    if issubgroup(U, V^inv(t))[1]
+    if is_subgroup(U, V^inv(t))[1]
       return true, inv(t)
     end
   end
@@ -1203,22 +1203,22 @@ false
 @gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
 
 """
-    issimple(G::GAPGroup)
+    is_simple(G::GAPGroup)
 
 Return whether `G` is a simple group, i.e.,
 `G` is not trivial and has no non-trivial normal subgroups.
 
 # Examples
 ```jldoctest
-julia> issimple(alternating_group(5))
+julia> is_simple(alternating_group(5))
 true
 
-julia> issimple(symmetric_group(5))
+julia> is_simple(symmetric_group(5))
 false
 
 ```
 """
-@gapattribute issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
+@gapattribute is_simple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
 @doc Markdown.doc"""
     isalmostsimple(G::GAPGroup)
@@ -1342,7 +1342,7 @@ the smallest integer $n$ such that `G` has a central series of length $n$.
 An exception is thrown if `G` is not nilpotent.
 """
 @gapattribute function nilpotency_class(G::GAPGroup)
-   @assert isnilpotent(G) "The group is not nilpotent."
+   @assert is_nilpotent(G) "The group is not nilpotent."
    return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
 end
 
@@ -1455,7 +1455,7 @@ function describe(G::GAPGroup)
       end
 
       # infinite groups known to be abelian can still be dealt with by GAP
-      if has_isabelian(G) && isabelian(G)
+      if has_isabelian(G) && is_abelian(G)
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
 
@@ -1491,7 +1491,7 @@ function describe(G::FPGroup)
          set_isabelian(G, true) # TODO: Claus won't like this...
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
-   elseif isabelian(G)
+   elseif is_abelian(G)
       return String(GAP.Globals.StructureDescription(G.X)::GapObj)
    else
       extra *= " non-abelian"

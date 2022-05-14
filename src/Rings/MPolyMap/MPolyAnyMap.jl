@@ -162,7 +162,7 @@ end
 #
 ################################################################################
 
-function isinjective(F::MPolyAnyMap)
+function is_injective(F::MPolyAnyMap)
   error("Cannot decide injectivity!")
 end
 
@@ -172,7 +172,7 @@ end
 #
 ################################################################################
 
-function issurjective(F::MPolyAnyMap)
+function is_surjective(F::MPolyAnyMap)
   error("Cannot decide surjectivity!")
 end
 
@@ -182,7 +182,7 @@ end
 #
 ################################################################################
 
-function isbijective(F::MPolyAnyMap)
+function is_bijective(F::MPolyAnyMap)
   error("Cannot decide bijectivity!")
 end
 

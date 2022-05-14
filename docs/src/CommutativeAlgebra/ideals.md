@@ -442,7 +442,7 @@ is_prime(I::MPolyIdeal)
 ### Primary Test
 
 ```@docs
-isprimary(I::MPolyIdeal)
+is_primary(I::MPolyIdeal)
 ```
 
 ## Decomposition of Ideals

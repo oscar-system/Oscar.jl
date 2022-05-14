@@ -3,7 +3,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
 export absolute_primary_decomposition
-export iszero, isone, issubset, ideal_membership, radical_membership, inradical, is_prime, isprimary
+export iszero, isone, issubset, ideal_membership, radical_membership, inradical, is_prime, is_primary
 export ngens, gens
 export minimal_generating_set
 
@@ -982,7 +982,7 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    isprimary(I::MPolyIdeal)
+    is_primary(I::MPolyIdeal)
 
 Return `true` if `I` is primary, `false` otherwise. 
 
@@ -997,11 +997,11 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal(R, [x, y])^2
 ideal(x^2, x*y, y^2)
 
-julia> isprimary(I)
+julia> is_primary(I)
 true
 ```
 """
-function isprimary(I::MPolyIdeal)
+function is_primary(I::MPolyIdeal)
   D = primary_decomposition(I)
   return length(D) == 1
 end

@@ -68,7 +68,7 @@ end
 
 
 function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=true)
-  !check || (domain(f) === codomain(f) === domain(aut) && isbijective(f)) || error("Map does not define an automorphism of the abelian group.")
+  !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   Agap = domain(to_oscar)
@@ -113,7 +113,7 @@ matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
 """ 
-defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) = isbijective(hom(G,G,M))
+defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) = is_bijective(hom(G,G,M))
 
 
 
@@ -178,7 +178,7 @@ If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorph
 """
 function defines_automorphism(G::TorQuadMod, M::fmpz_mat)
   g = hom(G, G, M)
-  if !isbijective(g)
+  if !is_bijective(g)
     return false
   end
   # check that the form is preserved
@@ -214,7 +214,7 @@ end
 Return the full orthogonal group of this torsion quadratic module.
 """
 @attr AutomorphismGroup function orthogonal_group(T::TorQuadMod)
-  !isdegenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
+  !is_degenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
   N, i = normal_form(T)
   j = inv(i)
   gensOT = _compute_gens(N)

@@ -304,7 +304,7 @@ ispointed(PF::_FanLikeType) = pm_object(PF).POINTED::Bool
 
 
 @doc Markdown.doc"""
-    issmooth(PF::PolyhedralFan{fmpq})
+    is_smooth(PF::PolyhedralFan{fmpq})
 
 Determine whether `PF` is smooth.
 
@@ -314,14 +314,14 @@ these und thus the whole fan is not smooth.
 ```jldoctest
 julia> PF = PolyhedralFan([0 1; 2 1; 1 0], IncidenceMatrix([[1, 2], [2, 3]]));
 
-julia> issmooth(PF)
+julia> is_smooth(PF)
 false
 ```
 """
-issmooth(PF::_FanLikeType{fmpq}) = pm_object(PF).SMOOTH_FAN::Bool
+is_smooth(PF::_FanLikeType{fmpq}) = pm_object(PF).SMOOTH_FAN::Bool
 
 @doc Markdown.doc"""
-    isregular(PF::PolyhedralFan)
+    is_regular(PF::PolyhedralFan)
 
 Determine whether `PF` is regular, i.e. the normal fan of a polytope.
 
@@ -330,11 +330,11 @@ This fan is not complete and thus not regular.
 ```jldoctest
 julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
 
-julia> isregular(PF)
+julia> is_regular(PF)
 false
 ```
 """
-isregular(PF::_FanLikeType) = pm_object(PF).REGULAR::Bool
+is_regular(PF::_FanLikeType) = pm_object(PF).REGULAR::Bool
 
 @doc Markdown.doc"""
     iscomplete(PF::PolyhedralFan)

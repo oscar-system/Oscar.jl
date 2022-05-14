@@ -131,7 +131,7 @@ end
    @test f*F(3)==F(3)*f;
    @test issymmetric_form(f*F(3))
    @test gram_matrix(f*F(3))==F(3)*(x+transpose(x))
-   @test isdegenerate(f)
+   @test is_degenerate(f)
    x[1,2]=1;
 
    f = symmetric_form(x+transpose(x))
@@ -140,7 +140,7 @@ end
    @test radical(Q)[1]==radical(f)[1]
    @test witt_index(f)==3
    @test witt_index(Q)==3
-   @test !isdegenerate(f)
+   @test !is_degenerate(f)
 
    F = GF(2,1)
    x = matrix(F,2,2,[1,0,0,0])
@@ -356,21 +356,21 @@ end
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test isconjugate(G,H,Op)[1]
+   @test is_conjugate(G,H,Op)[1]
    B[2,2]=1; B[3,3]=1;
    f = quadratic_form(B)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test isconjugate(G,H,Om)[1]
+   @test is_conjugate(G,H,Om)[1]
    Q = f
    f = corresponding_bilinear_form(Q)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test isconjugate(G,H,Sp(4,2))[1]
+   @test is_conjugate(G,H,Sp(4,2))[1]
 
    G = GL(5,9)
    F = base_ring(G)

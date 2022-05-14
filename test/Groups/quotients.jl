@@ -78,10 +78,10 @@ end
    G,f = quo(F, [x^2,y^n,(x*y)^2] )           # dihedral group D(2n)
    @test isfinite(G)
    @test order(G) == 2*n
-   @test !isabelian(G)
+   @test !is_abelian(G)
    @test is_isomorphic(G, dihedral_group(2*n))
-   @test !isinjective(f)
-   @test issurjective(f)
+   @test !is_injective(f)
+   @test is_surjective(f)
    @test exponent(G) == 2*n
    if order(G[2])==n
       @test G[2]^G[1] == G[2]^-1
@@ -92,9 +92,9 @@ end
    G,f = quo(F, [x^n,y^n,comm(x,y)])          # group C(n) x C(n)
    @test isfinite(G)
    @test order(G) == n^2
-   @test isabelian(G)
-   @test !isinjective(f)
-   @test issurjective(f)
+   @test is_abelian(G)
+   @test !is_injective(f)
+   @test is_surjective(f)
    @test exponent(G) == n
    @test isone(G[1]^n)
    @test relators(G)==[x^n,y^n,comm(x,y)]

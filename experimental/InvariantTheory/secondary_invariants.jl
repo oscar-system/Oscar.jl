@@ -305,7 +305,7 @@ end
 
 # DK15, Algorithm 3.7.2
 function secondary_invariants_nonmodular(RG::InvRing)
-  @assert !ismodular(RG)
+  @assert !is_modular(RG)
   p_invars = primary_invariants(RG)
   I = ideal_of_primary_invariants(RG)
   LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
@@ -397,7 +397,7 @@ function _secondary_invariants(IR::InvRing)
   if isdefined(IR, :secondary)
     return nothing
   end
-  if ismodular(IR)
+  if is_modular(IR)
     IR.secondary = secondary_invariants_modular(IR)
   else
     IR.secondary = secondary_invariants_nonmodular(IR)

@@ -89,7 +89,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: I
   Qt, t = PowerSeriesRing(QQ, d + 1, "t")
   F = molien_series(R)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
-  @assert isintegral(k)
+  @assert is_integral(k)
   return T(numerator(k))::T
 end
 
@@ -179,7 +179,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   @assert d >= 0 "Degree must be non-negativ"
 
   if algo == :default
-    if ismodular(R)
+    if is_modular(R)
       algo = :linear_algebra
     else
       # Use the estimate in KS99, Section 17.2
@@ -213,7 +213,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
 end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
-  @assert !ismodular(R)
+  @assert !is_modular(R)
   @assert d >= 0 "Degree must be non-negativ"
 
   monomials = all_monomials(polynomial_ring(R), d)

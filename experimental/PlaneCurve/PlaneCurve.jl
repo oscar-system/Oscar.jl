@@ -3,7 +3,7 @@ using Oscar, Markdown
 import Base.==
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, is_irreducible, isreduced, reduction,
+       jacobi_ideal, curve_components, is_irreducible, is_reduced, reduction,
        union, defining_equation, ring, ProjectivePlaneCurve
 
 ################################################################################
@@ -347,7 +347,7 @@ end
 # Check reducedness by computing a factorization
 
 @doc Markdown.doc"""
-    isreduced(C::PlaneCurve{S}) where S <: FieldElem
+    is_reduced(C::PlaneCurve{S}) where S <: FieldElem
 
 Return `true` if `C` is reduced, and `false` otherwise.
 
@@ -359,17 +359,17 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
-julia> Oscar.isreduced(C)
+julia> Oscar.is_reduced(C)
 true
 
 julia> D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
-julia> Oscar.isreduced(D)
+julia> Oscar.is_reduced(D)
 false
 ```
 """
-function Oscar.isreduced(C::PlaneCurve{S}) where S <: FieldElem
+function Oscar.is_reduced(C::PlaneCurve{S}) where S <: FieldElem
   if isempty(C.components)
      L = factor_squarefree(defining_equation(C))
      return all(isone, values(L.fac))
@@ -488,10 +488,10 @@ end
 using .PlaneCurveModule
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, is_irreducible, isreduced, reduction,
+       jacobi_ideal, curve_components, is_irreducible, is_reduced, reduction,
        union, defining_equation, ring, ProjectivePlaneCurve
 
-export issmooth, tangent, common_components, curve_intersect,
+export is_smooth, tangent, common_components, curve_intersect,
        curve_singular_locus, issmooth_curve, multiplicity,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus

@@ -86,8 +86,8 @@
 
       G,Le,Lp = inner_direct_product(A,A,A; morphisms=true)
       @test G==G1
-      @test isinjective(Le[1])
-      @test issurjective(Lp[1])
+      @test is_injective(Le[1])
+      @test is_surjective(Lp[1])
       @testset for i in 1:3
          @test domain(Le[i])==L[i]
          @test codomain(Le[i])==G
@@ -110,7 +110,7 @@
       @test G isa DirectProductGroup
       @test order(G)==243
       @test number_of_factors(G)==5
-      @test isabelian(G)
+      @test is_abelian(G)
       @test factor_of_direct_product(G,5)==C
       @test is_isomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))
       @test PermGroup(G) isa PermGroup
@@ -147,7 +147,7 @@ end
    H = sub(G,[x])[1]
    @test H(Q[1]*Q[2],C[1])==x
    @test_throws ArgumentError H(Q[1],C[1])
-   @test issubgroup(G,H)[1]
+   @test is_subgroup(G,H)[1]
    @test index(G,H)==4
    @test !isfull_semidirect_product(H)
    @test projection(G)(x)==projection(H)(x)
@@ -182,7 +182,7 @@ end
 
    @test W isa WreathProductGroup
    @test order(W)==2^4*3
-   @test !isabelian(W)
+   @test !is_abelian(W)
    @test rand(W) isa elem_type(WreathProductGroup)
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
@@ -200,7 +200,7 @@ end
    @test K==sub(x)[1]
    @test K isa WreathProductGroup
    @test order(K)==6
-   @test iscyclic(K)
+   @test is_cyclic(K)
    @test index(W,K)==8
    @test_throws ArgumentError embedding(K,1)(f1) in K
 

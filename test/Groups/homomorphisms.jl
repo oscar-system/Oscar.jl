@@ -27,10 +27,10 @@ n = 6
    @test Set([y for y in centralizer(G,x)[1]]) == Set([y for y in G if g(y)==y])
    z = rand(G)
    @test g(z) == z^x
-   @test isinjective(g)
-   @test issurjective(g)
+   @test is_injective(g)
+   @test is_surjective(g)
    @test is_invertible(g)
-   @test isbijective(g)
+   @test is_bijective(g)
    og = order(g)
    @test og isa Integer
    @test og == order(x)
@@ -56,8 +56,8 @@ end
    x = cperm(G,[1,2,3])
    Hx,fx = sub(G,[x])
 
-   @test isinjective(fx)
-   @test !issurjective(fx)
+   @test is_injective(fx)
+   @test !is_surjective(fx)
    @test fx(Hx[1])==x
    @test image(fx)[1] == Hx
    @test image(fx)[2] == fx
@@ -68,7 +68,7 @@ end
    Hz,fz = sub(G,[z])
    f = hom(Hx,Hy,gens(Hx),gens(Hy))
    g = hom(Hy,Hz,gens(Hy),gens(Hz))
-   @test isbijective(f)
+   @test is_bijective(f)
    @test domain(f)==Hx
    @test codomain(f)==Hy
    @test image(f)[1]==Hy
@@ -222,7 +222,7 @@ end
 
          @test H == D
          @test order(D) == j*(n-j)
-         @test (gcd(j,n-j)==1 && iscyclic(D)) || (gcd(j,n-j)>1 && !iscyclic(D))
+         @test (gcd(j,n-j)==1 && is_cyclic(D)) || (gcd(j,n-j)>1 && !is_cyclic(D))
       end
    end
 
@@ -235,27 +235,27 @@ end
        G = codomain(f)
        @test G isa PcGroup
        @test domain(f) == S
-       @test isinjective(f)
-       @test issurjective(f)
+       @test is_injective(f)
+       @test is_surjective(f)
 
        f = @inferred isomorphism(PcGroup, G)
        @test codomain(f) isa PcGroup
        @test domain(f) == G
-       @test isinjective(f)
-       @test issurjective(f)
+       @test is_injective(f)
+       @test is_surjective(f)
 
        f = @inferred isomorphism(FPGroup, G)
        @test codomain(f) isa FPGroup
        @test domain(f) == G
-       @test isinjective(f)
-       @test issurjective(f)
+       @test is_injective(f)
+       @test is_surjective(f)
 
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(GrpAbFinGen, G)
        @test codomain(f) isa GrpAbFinGen
        @test domain(f) == G
-     # @test isinjective(f)
-     # @test issurjective(f)
+     # @test is_injective(f)
+     # @test is_surjective(f)
 
        @test_throws ArgumentError isomorphism(GrpAbFinGen, symmetric_group(5))
        @test_throws ArgumentError isomorphism(PcGroup, symmetric_group(5))
@@ -276,10 +276,10 @@ TestDirectProds=function(G1,G2)
    p1 = projection(G,1)
    p2 = projection(G,2)
 
-   @test isinjective(f1)
-   @test isinjective(f2)
-   @test issurjective(p1)
-   @test issurjective(p2)
+   @test is_injective(f1)
+   @test is_injective(f2)
+   @test is_surjective(p1)
+   @test is_surjective(p2)
    @test domain(f1)==G1
    @test codomain(f1)==G
    @test domain(f2)==G2
@@ -310,8 +310,8 @@ end
    G = direct_product(C2,C4)
    TestDirectProds(C2,C4)
    @test order(G)==8
-   @test isabelian(G)
-   @test !iscyclic(G)
+   @test is_abelian(G)
+   @test !is_cyclic(G)
    @test typeof(G)==DirectProductGroup
    @test Set([order(Int, x) for x in G])==Set([1,2,4])
 
@@ -320,8 +320,8 @@ end
    G = direct_product(C3,C7)
    TestDirectProds(C3,C7)
    @test order(G)==21
-   @test isabelian(G)
-   @test iscyclic(G)
+   @test is_abelian(G)
+   @test is_cyclic(G)
    @test typeof(G)==DirectProductGroup
    @test Set([order(Int, x) for x in G])==Set([1,3,7,21])
 
@@ -343,15 +343,15 @@ TestKernels = function(G,H,f)
    @test haspreimage(f,z)[1]
    @test f(haspreimage(f,z)[2])==z
 
-   @test isinjective(i)
+   @test is_injective(i)
    for j in 1:ngens(K)
       @test i(K[j]) in G
       @test (i*f)(K[j])==one(H)
       @test index(G,K)==order(Im)
    end
-   if isnormal(H,Im) 
+   if is_normal(H,Im) 
       C,p = cokernel(f)
-        @test issurjective(p)
+        @test is_surjective(p)
       for j in 1:ngens(G)
          @test (f*p)(G[j])==one(C)
       end
@@ -421,7 +421,7 @@ end
    AA,phi = sub(A,[g1,g2])
    @test is_isomorphic(AA,alt)
    @test index(A,AA)==2
-   @test isnormal(A,AA)
+   @test is_normal(A,AA)
    @test phi(AA[1])==AA[1]
    @test phi(AA[2])==AA[2]
    @test order(quo(A,AA)[1])==2

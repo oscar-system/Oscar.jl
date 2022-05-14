@@ -3,20 +3,20 @@
 ######################
 
 @doc Markdown.doc"""
-    isnormal(v::AbstractNormalToricVariety)
+    is_normal(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
 # Examples
 ```jldoctest
-julia> isnormal(projective_space(NormalToricVariety, 2))
+julia> is_normal(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-function isnormal(v::AbstractNormalToricVariety)
+function is_normal(v::AbstractNormalToricVariety)
     return true
 end
-export isnormal
+export is_normal
 
 
 @doc Markdown.doc"""
@@ -67,7 +67,7 @@ true
 ```
 """
 @attr Bool function is_projective_space(v::AbstractNormalToricVariety)
-    if issmooth(v) == false
+    if is_smooth(v) == false
         return false
     end
     if isprojective(v) == false
@@ -92,18 +92,18 @@ export is_projective_space
 
 
 @doc Markdown.doc"""
-    issmooth(v::AbstractNormalToricVariety)
+    is_smooth(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is smooth.
 
 # Examples
 ```jldoctest
-julia> issmooth(projective_space(NormalToricVariety, 2))
+julia> is_smooth(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool issmooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
-export issmooth
+@attr Bool is_smooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
+export is_smooth
 
 
 @doc Markdown.doc"""
@@ -167,18 +167,18 @@ export issimplicial
 
 
 @doc Markdown.doc"""
-    isgorenstein(v::AbstractNormalToricVariety)
+    is_gorenstein(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is Gorenstein.
 
 # Examples
 ```jldoctest
-julia> isgorenstein(projective_space(NormalToricVariety, 2))
+julia> is_gorenstein(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool isgorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
-export isgorenstein
+@attr Bool is_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
+export is_gorenstein
 
 
 @doc Markdown.doc"""

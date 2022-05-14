@@ -33,8 +33,8 @@
             @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
             @test length(boundary_lattice_points(square)) == 8
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
-            @test issmooth(Q0)
-            @test isnormal(Q0)
+            @test is_smooth(Q0)
+            @test is_normal(Q0)
         end
         @test isfeasible(Q0)
         @test isbounded(Q0)

@@ -151,7 +151,7 @@ mutable struct MPolyInterpolateCtx{T}
   end
 end
 
-isintegral(M::MPolyInterpolateCtx) = isa(M.parent, MPolyRing)
+is_integral(M::MPolyInterpolateCtx) = isa(M.parent, MPolyRing)
 
 function set_status!(M::MPolyInterpolateCtx, s::Symbol)
   @vprint :ModStdQt 2 "setting status to $s\n"
@@ -184,7 +184,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
     for x = val
       f = interpolate(x, M.I)
       i += 1
-      if isintegral(M)
+      if is_integral(M)
         mu = (true, f, parent(f)(1))
       else
         mu = rational_reconstruction(f, M.I, ErrorTolerant = true)
@@ -247,7 +247,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
     return false, zero(M.R)
   end
   set_status!(M, :OK)
-  if isintegral(M)
+  if is_integral(M)
     Val.G = R[1]
     @assert isone(R[2])
   else
@@ -423,7 +423,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
 end
 
 #TODO: for fmpq_mat: don't copy
-function iszero_entry(M::MatElem, i::Int, j::Int)
+function is_zero_entry(M::MatElem, i::Int, j::Int)
   return iszero(M[i,j])
 end
 
@@ -435,7 +435,7 @@ function ref_ff!(M::MatElem)
   rk = 0
   for i=1:nrows(M)
     j = i
-    while j <= ncols(M) && iszero_entry(M, i,j)
+    while j <= ncols(M) && is_zero_entry(M, i,j)
       j += 1
     end
     if j<=ncols(M)
@@ -470,7 +470,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyElem})
       best_i = 0
       best_t = 0
       for ii = i:nrows(M)
-        if iszero_entry(M, ii, j)
+        if is_zero_entry(M, ii, j)
           continue
         end
         if best_i == 0

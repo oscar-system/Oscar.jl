@@ -172,14 +172,14 @@ may be of one of the following forms:
 
 The following functions are currently supported as values for `func`:
 - `degree`
-- `isabelian`
+- `is_abelian`
 - `isalmostsimple`
-- `iscyclic`
-- `isnilpotent`
+- `is_cyclic`
+- `is_nilpotent`
 - `isperfect`
-- `isprimitive`
+- `is_primitive`
 - `is_quasisimple`
-- `issimple`
+- `is_simple`
 - `is_sporadic_simple`
 - `issolvable`
 - `issupersolvable`
@@ -193,7 +193,7 @@ The type of the returned groups is `PermGroup`.
 
 # Examples
 ```jldoctest
-julia> all_transitive_groups(degree => 3:5, isabelian)
+julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
  A3
  C(4) = 4

@@ -7,7 +7,7 @@
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
   @test istransitive(Omega)
-  @test ! isregular(Omega)
+  @test ! is_regular(Omega)
   @test ! issemiregular(Omega)
 
   Omega = gset(G, [Set([1, 2])])  # action on unordered pairs
@@ -15,7 +15,7 @@
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
   @test istransitive(Omega)
-  @test ! isregular(Omega)
+  @test ! is_regular(Omega)
   @test ! issemiregular(Omega)
 
   Omega = gset(G, [[1, 2]])  # action on ordered pairs
@@ -23,7 +23,7 @@
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
   @test istransitive(Omega)
-  @test ! isregular(Omega)
+  @test ! is_regular(Omega)
   @test ! issemiregular(Omega)
 
   Omega = gset(G, [(1, 2)])  # action on ordered pairs (repres. by tuples)
@@ -31,7 +31,7 @@
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
   @test istransitive(Omega)
-  @test ! isregular(Omega)
+  @test ! is_regular(Omega)
   @test ! issemiregular(Omega)
 
   # constructions by explicit action functions
@@ -40,7 +40,7 @@
   @test length(Omega) == 740
   @test length(orbits(Omega)) == 2
   @test ! istransitive(Omega)
-  @test ! isregular(Omega)
+  @test ! is_regular(Omega)
   @test ! issemiregular(Omega)
 
   R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
@@ -51,7 +51,7 @@
   @test length(Omega) == 3
   @test length(orbits(Omega)) == 1
   @test istransitive(Omega)
-  @test ! isregular(Omega)
+  @test ! is_regular(Omega)
   @test ! issemiregular(Omega)
 
   # seeds can be anything iterable
@@ -120,11 +120,11 @@
   @test haspreimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
 
-  # isconjugate
+  # is_conjugate
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  @test isconjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
-  @test ! isconjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
+  @test is_conjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
+  @test ! is_conjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
 
   # representative_action
   G = symmetric_group(6)
@@ -154,16 +154,16 @@ end
   @test elements(bl) == [[1, 8], [2, 3], [4, 5], [6, 7]]
   @test elements(bl) == elements(blocks(G8, 1:degree(G8)))
 
-  # isprimitive
-  @test ! isprimitive(G8)
-  @test ! isprimitive(G8, 1:degree(G8))
-  @test isprimitive(S4)
-  @test isprimitive(S4, 1:3)
+  # is_primitive
+  @test ! is_primitive(G8)
+  @test ! is_primitive(G8, 1:degree(G8))
+  @test is_primitive(S4)
+  @test is_primitive(S4, 1:3)
 
-  # isregular
-  @test isregular(G8)
-  @test ! isregular(G8, 1:9)
-  @test ! isregular(S4)
+  # is_regular
+  @test is_regular(G8)
+  @test ! is_regular(G8, 1:9)
+  @test ! is_regular(S4)
 
   # issemiregular
   @test issemiregular(G8)

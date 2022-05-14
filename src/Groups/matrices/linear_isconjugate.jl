@@ -6,7 +6,7 @@
 export
     generalized_jordan_block,
     generalized_jordan_form,
-    isconjugate,
+    is_conjugate,
     issemisimple,
     isunipotent,
     pol_elementary_divisors,
@@ -44,7 +44,7 @@ end
 
 Return whether `x` is semisimple, i.e. has order coprime with the characteristic of its base ring.
 """
-issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = iscoprime(order(Int, x), Int(characteristic(x.parent.ring)))
+issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(Int, x), Int(characteristic(x.parent.ring)))
 
 """
     isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
@@ -142,7 +142,7 @@ function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
 end
 
 
-function isconjugate(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
+function is_conjugate(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
    isdefined(G,:descr) || throw(ArgumentError("Group must be general or special linear group"))
    if G.descr==:GL || G.descr==:SL
       Jx,ax = jordan_normal_form(x.elm)
@@ -160,6 +160,6 @@ function isconjugate(G::MatrixGroup, x::MatrixGroupElem, y::MatrixGroupElem)
       else return false, nothing
       end
    else
-      return isconjugate(G,x,y)
+      return is_conjugate(G,x,y)
    end
 end

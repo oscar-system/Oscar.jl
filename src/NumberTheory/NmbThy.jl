@@ -1,7 +1,7 @@
 export norm_equation_fac_elem, norm_equation, irreducibles, factorisations
 
 function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
-  @assert Hecke.ismaximal(R)
+  @assert Hecke.is_maximal(R)
   lp = factor(k)
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{fmpz_mat}}[]
   for (p, k) = lp.fac
@@ -15,7 +15,7 @@ function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
     for i = 1:length(S)
       I *= prod(Hecke.ideal_type(R)[S[i][1][j][1]^Int(x[i][j]) for j=1:length(S[i][1])])
     end
-    fl, g = Hecke.isprincipal_fac_elem(I::Hecke.ideal_type(R))
+    fl, g = Hecke.is_principal_fac_elem(I::Hecke.ideal_type(R))
     if fl
       push!(sol, g)
     end
@@ -45,7 +45,7 @@ norm_equation(R::NfAbsOrd, k::Base.Integer; abs::Bool = false) = norm_equation(R
 
 function norm_equation_fac_elem(R::Hecke.NfRelOrd{nf_elem,Hecke.NfOrdFracIdl}, a::NfAbsOrdElem{AnticNumberField,nf_elem})
 
-  @assert Hecke.ismaximal(R)
+  @assert Hecke.is_maximal(R)
   Ka, mKa, mkK = absolute_field(nf(R))
   Ra = maximal_order(Ka)
   class_group(Ra)

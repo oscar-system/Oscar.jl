@@ -104,7 +104,7 @@ ring(C::Oscar.PlaneCurveModule.PlaneCurve)
 curve_components(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
 is_irreducible(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
-isreduced(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
+is_reduced(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 union(C::T, D::T) where T <: Oscar.PlaneCurveModule.PlaneCurve
 arithmetic_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
 arithmetic_genus(C::AffinePlaneCurve)
@@ -116,8 +116,8 @@ geometric_genus(C::AffinePlaneCurve)
 
 ```@docs
 jacobi_ideal(C::Oscar.PlaneCurveModule.PlaneCurve)
-issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-issmooth(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+is_smooth(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 tangent(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 curve_singular_locus(C::AffinePlaneCurve)

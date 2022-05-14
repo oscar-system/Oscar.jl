@@ -73,8 +73,8 @@
 
   @testset "Coercion" begin
     K, z = abelian_closure(QQ)
-    @test Oscar.AbelianClosure.isconductor(3)
-    @test !Oscar.AbelianClosure.isconductor(2)
+    @test Oscar.AbelianClosure.is_conductor(3)
+    @test !Oscar.AbelianClosure.is_conductor(2)
     a, b = z(4), z(3)
     c, d = @inferred Oscar.AbelianClosure.make_compatible(a, b)
     fa = minpoly(Oscar.AbelianClosure.data(a))

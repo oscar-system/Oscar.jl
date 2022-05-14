@@ -16,7 +16,7 @@ set_coordinate_names(antv4, ["u"])
 set_coordinate_names_of_torus(antv4, ["u1","u2"])
 
 @testset "Affine toric varieties" begin
-    @test issmooth(antv) == false
+    @test is_smooth(antv) == false
     @test isorbifold(antv) == true
     @test dim(fan( antv )) == 2
     @test dim(cone(antv)) == 2
@@ -76,7 +76,7 @@ cyc = CyclicQuotientSingularity(2,1)
 
 @testset "Cyclic quotient singularities" begin
     @test isaffine(cyc) == true
-    @test issmooth( cyc ) == false
+    @test is_smooth( cyc ) == false
     @test issimplicial( cyc ) == true
     @test continued_fraction_hirzebruch_jung( cyc )[1] == 2
     @test dual_continued_fraction_hirzebruch_jung(cyc)[1] == 2
@@ -123,10 +123,10 @@ end
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 
 @testset "Projective space P2" begin
-    @test isnormal(P2) == true
+    @test is_normal(P2) == true
     @test isaffine(P2) == false
     @test isprojective(P2) == true
-    @test issmooth(P2) == true
+    @test is_smooth(P2) == true
     @test iscomplete(P2) == true
     @test hastorusfactor(P2) == false
     @test isorbifold(P2) == true
@@ -157,15 +157,15 @@ F5 = NormalToricVariety([[1,0], [0,1], [-1,5], [0,-1]], [[1,2],[2,3],[3,4],[4,1]
 end
 
 @testset "Hirzebruch surface F5" begin
-    @test isnormal(F5) == true
+    @test is_normal(F5) == true
     @test isaffine(F5) == false
     @test isprojective(F5) == true
-    @test issmooth(F5) == true
+    @test is_smooth(F5) == true
     @test iscomplete(F5) == true
     @test hastorusfactor(F5) == false
     @test isorbifold(F5) == true
     @test issimplicial(F5) == true
-    @test isgorenstein(F5) == true
+    @test is_gorenstein(F5) == true
     @test is_q_gorenstein(F5) == true
     @test isfano(F5) == false
     @test dim(F5) == 2
@@ -231,10 +231,10 @@ end
 blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 
 @testset "Blowup of projective space" begin
-    @test isnormal(blowup_variety) == true
+    @test is_normal(blowup_variety) == true
     @test isaffine(blowup_variety) == false
     @test isprojective(blowup_variety) == true
-    @test issmooth(blowup_variety) == true
+    @test is_smooth(blowup_variety) == true
     @test iscomplete(blowup_variety) == true
     @test hastorusfactor(blowup_variety) == false
     @test isorbifold(blowup_variety) == true
@@ -259,10 +259,10 @@ end
 ntv6 = F5 * P2
 
 @testset "Direct product of toric varieties" begin
-    @test isnormal(ntv6) == true
+    @test is_normal(ntv6) == true
     @test isaffine(ntv6) == false
     @test isprojective(ntv6) == true
-    @test issmooth(ntv6) == true
+    @test is_smooth(ntv6) == true
     @test iscomplete(ntv6) == true
     @test hastorusfactor(ntv6) == false
     @test isorbifold(ntv6) == true
@@ -335,13 +335,13 @@ end
 @testset "Toric divisor D" begin
     @test is_prime(D) == false
     @test iscartier(D) == true
-    @test isprincipal(D) == true
+    @test is_principal(D) == true
     @test istrivial(D) == true
     @test is_basepoint_free(D) == true
     @test isample(D) == false
     @test is_very_ample(D) == false
     @test isnef(D) == true
-    @test isintegral(D) == true
+    @test is_integral(D) == true
     @test is_q_cartier(D) == true
     @test is_prime(D) == false
     @test dim(toric_variety(D)) == 2
@@ -353,12 +353,12 @@ end
 @testset "Toric divisor D2" begin
     @test is_prime(D2) == false
     @test iscartier(D2) == true
-    @test isprincipal(D2) == true
+    @test is_principal(D2) == true
     @test is_basepoint_free(D2) == true
     @test isample(D2) == false
     @test is_very_ample(D2) == false
     @test isnef(D2) == true
-    @test isintegral(D2) == true
+    @test is_integral(D2) == true
     @test is_q_cartier(D2) == true
     @test is_prime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
@@ -371,8 +371,8 @@ end
 @testset "Arithmetics of toric divisors" begin
     @test (D == D2) == false
     @test (D4 + D5 == D6) == true
-    @test isprincipal(fmpz(2)*D+D2) == true
-    @test isprincipal(2*D-D2) == true
+    @test is_principal(fmpz(2)*D+D2) == true
+    @test is_principal(2*D-D2) == true
     @test coefficients(D2+D2) == coefficients(2*D2)
     @test coefficients(D2-D2) == [0,0,0,0]
 end

@@ -60,9 +60,9 @@ dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
 iscomplete(PF::PolyhedralFan)
 ispointed(PF::PolyhedralFan)
-isregular(PF::PolyhedralFan)
+is_regular(PF::PolyhedralFan)
 issimplicial(PF::PolyhedralFan)
-issmooth(PF::PolyhedralFan{fmpq})
+is_smooth(PF::PolyhedralFan{fmpq})
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
 maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types

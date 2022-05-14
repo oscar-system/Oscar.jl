@@ -1,4 +1,4 @@
-istrivial(l::ToricLineBundle) = isprincipal(toric_divisor(l))
+istrivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
 export istrivial
 
 

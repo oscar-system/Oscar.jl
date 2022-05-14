@@ -823,7 +823,7 @@ function invariant(G::PermGroup, H::PermGroup)
       hH = image(h, H)[1]
       if order(hG) > order(hH)
         @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
-        @hassert :GaloisInvariant 0 ismaximal(hG, hH)
+        @hassert :GaloisInvariant 0 is_maximal(hG, hH)
         I = invariant(hG, hH)
         return evaluate(I, g[collect(o)])
       end
@@ -853,7 +853,7 @@ function invariant(G::PermGroup, H::PermGroup)
     return I
   end
 
-  if isprimitive(G) && isprimitive(H)
+  if is_primitive(G) && is_primitive(H)
     if isodd(G) && iseven(H)
       @vprint :GaloisInvariant 3 "using sqrt_disc\n"
       return sqrt_disc(g)
@@ -1479,28 +1479,28 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         G = intersect(G, ar)[1]
       else
         let ar = ar 
-          push!(F, x->!issubgroup(ar, x)[1], "subfield is even/odd")
+          push!(F, x->!is_subgroup(ar, x)[1], "subfield is even/odd")
         end
       end
     end
     if in_br
       #G = intersect(G, br)[1] #already done above
     else
-      #push!(F, x->!issubgroup(br, x)[1]) #already done above
+      #push!(F, x->!is_subgroup(br, x)[1]) #already done above
     end
     if can_use_wr
       if in_cr
         G = intersect(G, cr)[1]
       else
         let cr = cr
-          push!(F, x->!issubgroup(cr, x)[1], "third subgroup of wreath product")
+          push!(F, x->!is_subgroup(cr, x)[1], "third subgroup of wreath product")
         end
       end
     end
   end
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
-    push!(F, isprimitive, "primitivity")
+    push!(F, is_primitive, "primitivity")
     pc = parent(c[1])
     k, mk = ResidueField(pc)
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
@@ -1860,7 +1860,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       local lt
       if index(G, s) < 100
         @vtime :GaloisGroup 2 lt = right_transversal(G, s)
-      elseif isnormal(G, s)
+      elseif is_normal(G, s)
         lt = [one(G)] # I don't know how to get the identity
       else
         @vtime :GaloisGroup 2 lt = short_right_transversal(G, s, si)
@@ -2347,7 +2347,7 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
   GG, _ = sub(S, map(S, gs))
 
   h = hom(G, GG, gens(G), gens(GG))
-  @assert isinjective(h) && issurjective(h)
+  @assert is_injective(h) && is_surjective(h)
   return GG, C
 end
 

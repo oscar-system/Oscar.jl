@@ -282,8 +282,8 @@ function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
    if NC
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else
-      @assert issubgroup(G,H)[1] "H is not a subgroup of G"
-      @assert issubgroup(G,K)[1] "K is not a subgroup of G"
+      @assert is_subgroup(G,H)[1] "H is not a subgroup of G"
+      @assert is_subgroup(G,K)[1] "K is not a subgroup of G"
       dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
    end
    res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))

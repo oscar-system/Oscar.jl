@@ -10,8 +10,8 @@ export
     induced_automorphism,
     inner_automorphism,
     inner_automorphisms_group,
-    isbijective,
-    isinjective,
+    is_bijective,
+    is_injective,
     isinner_automorphism,
     isinvariant,
     is_invertible,
@@ -21,7 +21,7 @@ export
     isomorphic_pc_group,
     isomorphic_perm_group,
     isomorphism,
-    issurjective,
+    is_surjective,
     kernel,
     order,
     restrict_automorphism,
@@ -190,20 +190,20 @@ function preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 end
 
 """
-    issurjective(f::GAPGroupHomomorphism)
+    is_surjective(f::GAPGroupHomomorphism)
 
 Return whether `f` is surjective.
 """
-function issurjective(f::GAPGroupHomomorphism)
+function is_surjective(f::GAPGroupHomomorphism)
   return GAPWrap.IsSurjective(f.map)
 end
 
 """
-    isinjective(f::GAPGroupHomomorphism)
+    is_injective(f::GAPGroupHomomorphism)
 
 Return whether `f` is injective.
 """
-function isinjective(f::GAPGroupHomomorphism)
+function is_injective(f::GAPGroupHomomorphism)
   return GAPWrap.IsInjective(f.map)
 end
 
@@ -217,11 +217,11 @@ function is_invertible(f::GAPGroupHomomorphism)
 end
 
 """
-    isbijective(f::GAPGroupHomomorphism)
+    is_bijective(f::GAPGroupHomomorphism)
 
 Return whether `f` is bijective.
 """
-function isbijective(f::GAPGroupHomomorphism)
+function is_bijective(f::GAPGroupHomomorphism)
   return GAPWrap.IsBijective(f.map)
 end
 
@@ -253,7 +253,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # (The GAP documentation does not claim anything about the result
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
-  @assert issubgroup(domain(f), H)[1] "Not a subgroup!"
+  @assert is_subgroup(domain(f), H)[1] "Not a subgroup!"
   return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X)::GapObj)
 end
 
@@ -529,7 +529,7 @@ function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
    return get!(isos, GrpAbFinGen) do
-     isabelian(G) || throw(ArgumentError("the group is not abelian"))
+     is_abelian(G) || throw(ArgumentError("the group is not abelian"))
      isfinite(G) || throw(ArgumentError("the group is not finite"))
 #T this restriction is not nice
 
@@ -563,7 +563,7 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
    isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
    return get!(isos, T) do
      # find independent generators
-     if isdiagonal(rels(A))
+     if is_diagonal(rels(A))
        exponents = diagonal(rels(A))
        A2 = A
        A2_to_A = identity_map(A)
@@ -816,7 +816,7 @@ Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAP
 
 function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
-   @assert isbijective(f) "f not in A"
+   @assert is_bijective(f) "f not in A"
    return group_element(A, f.map)
 end
 

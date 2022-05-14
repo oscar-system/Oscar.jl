@@ -197,7 +197,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     #either, if block-systems are there, find the subfields
     #or verify the factorisation of the resolvent:
     if isdefined(S, :start) && S.start[1] == 1 && length(S.start) > 0
-      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
+      if !all(x->is_subfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
         @vprint :GaloisGroup 2 "bad evaluation point: subfields don't exist\n"
         continue
       end
@@ -343,7 +343,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
       r = map(ts, rc)
     end
     @vprint :Subfields 2 "... with block system $bs\n"
-    fl = issubfield(FF, C, bs, ts = ts)
+    fl = is_subfield(FF, C, bs, ts = ts)
     if fl === nothing
       continue
     end
@@ -353,7 +353,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   return res
 end 
 
-function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
+function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
 
   SL = SLPolyRing(ZZ, length(bs)*length(bs[1]))
   sx = gens(SL)

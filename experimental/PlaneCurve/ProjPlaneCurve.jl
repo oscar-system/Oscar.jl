@@ -1,6 +1,6 @@
 #module ProjPlaneCurveModule
 
-export issmooth, tangent, common_components, curve_intersect,
+export is_smooth, tangent, common_components, curve_intersect,
        curve_singular_locus, issmooth_curve, multiplicity,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
@@ -14,7 +14,7 @@ export issmooth, tangent, common_components, curve_intersect,
 # curve.
 
 @doc Markdown.doc"""
-    issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+    is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
@@ -39,11 +39,11 @@ julia> PP = proj_space(QQ, 2)
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
 
-julia> Oscar.issmooth(C, P)
+julia> Oscar.is_smooth(C, P)
 false
 ```
 """
-function Oscar.issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function Oscar.is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
   iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve defined by ", C.eq)
   J = jacobi_ideal(C)
@@ -440,7 +440,7 @@ end
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """
 function aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-  return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
+  return is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################

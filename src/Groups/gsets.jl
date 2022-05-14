@@ -9,8 +9,8 @@ import Hecke.orbit
 export
     all_blocks,
     blocks,
-    isprimitive,
-    isregular,
+    is_primitive,
+    is_regular,
     issemiregular,
     istransitive,
     maximal_blocks,
@@ -497,7 +497,7 @@ end
 
 
 """
-    isconjugate(Omega::GSet, omega1, omega2)
+    is_conjugate(Omega::GSet, omega1, omega2)
 
 Return `true` if `omega1`, `omega2` are in the same orbit of `Omega`,
 and `false` otherwise.
@@ -509,15 +509,15 @@ Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
 
 julia> Omega = gset(G);
 
-julia> isconjugate(Omega, 1, 2)
+julia> is_conjugate(Omega, 1, 2)
 true
 
-julia> isconjugate(Omega, 1, 5)
+julia> is_conjugate(Omega, 1, 5)
 false
 
 ```
 """
-isconjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
+is_conjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
 
 
 """
@@ -594,14 +594,14 @@ function istransitive(Omega::GSet)
     return length(orbits(Omega)) == 1
 end
 
-isregular(Omega::GSet) = istransitive(Omega) && length(Omega) == order(Omega.group)
+is_regular(Omega::GSet) = istransitive(Omega) && length(Omega) == order(Omega.group)
 
 function issemiregular(Omega::GSet)
     ord = order(Omega.group)
     return all(orb -> length(orb) == ord, orbits(Omega))
 end
 
-isprimitive(G::GSet) = error("not implemented")
+is_primitive(G::GSet) = error("not implemented")
 
 
 """
@@ -768,7 +768,7 @@ istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTra
 
 
 """
-    isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+    is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
 Return whether the action of `G` on `L` is primitive, that is,
 the action is transitive and the point stabilizers are maximal in `G`.
@@ -783,7 +783,7 @@ julia> mx = filter(istransitive, maximal_subgroup_reps(G))
  Group([ (1,2,3), (4,5,6), (1,2)(4,5), (1,5,2,4)(3,6) ])
  PSL(2,5)
 
-julia> [(order(H), isprimitive(H)) for H in mx]
+julia> [(order(H), is_primitive(H)) for H in mx]
 3-element Vector{Tuple{fmpz, Bool}}:
  (24, 0)
  (36, 0)
@@ -791,11 +791,11 @@ julia> [(order(H), isprimitive(H)) for H in mx]
 
 ```
 """
-isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsPrimitive(G.X, GapObj(L))
+is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsPrimitive(G.X, GapObj(L))
 
 
 """
-    isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+    is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
 Return whether the action of `G` on `L` is regular
 (i.e., transitive and semiregular).
@@ -807,15 +807,15 @@ julia> G = symmetric_group(6);
 julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
 Group([ (1,2,3,4,5,6) ])
 
-julia> isregular(H)
+julia> is_regular(H)
 true
 
-julia> isregular(G)
+julia> is_regular(G)
 false
 
 ```
 """
-isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegular(G.X, GapObj(L))
+is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegular(G.X, GapObj(L))
 
 
 """
@@ -834,7 +834,7 @@ Group([ (1,2,3)(4,5,6) ])
 julia> issemiregular(H)
 true
 
-julia> isregular(H)
+julia> is_regular(H)
 false
 
 ```

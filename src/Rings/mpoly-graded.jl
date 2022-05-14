@@ -225,7 +225,7 @@ end
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
 
 !!! note
-    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z$-graded if `isfree(G) && ngens(G) == rank(G) == 1` evaluates to `true`.
+    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z$-graded if `is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`.
 
 # Examples
 ```jldoctest
@@ -247,7 +247,7 @@ true
 function is_z_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   A = grading_group(R)
-  return ngens(A) == 1 && rank(A) == 1 && isfree(A)
+  return ngens(A) == 1 && rank(A) == 1 && is_free(A)
 end
 
 @doc Markdown.doc"""
@@ -256,7 +256,7 @@ end
 Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
 
 !!! note
-    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z^m$-graded if `isfree(G) && ngens(G) == rank(G) == m` evaluates to `true`.
+    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z^m$-graded if `is_free(G) && ngens(G) == rank(G) == m` evaluates to `true`.
 
 # Examples
 ```jldoctest
@@ -294,7 +294,7 @@ julia> W = [g, g, g, g];
 
 julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
 
-julia> isfree(G)
+julia> is_free(G)
 true
 
 julia> is_zm_graded(R)
@@ -304,7 +304,7 @@ false
 function is_zm_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   A = grading_group(R)
-  return isfree(A) && ngens(A) == rank(A)
+  return is_free(A) && ngens(A) == rank(A)
 end
 
 @doc Markdown.doc"""
@@ -363,7 +363,7 @@ false
 function is_positively_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   G = grading_group(R)
-  isfree(G) || return false
+  is_free(G) || return false
   try 
     homogeneous_component(R, zero(G))
   catch e
@@ -1357,7 +1357,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
        throw(ArgumentError("The coefficient ring must be a field."))
   end
   D = W.D
-  isfree(D) || error("Grading group must be free")
+  is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
   R = base_ring(W)

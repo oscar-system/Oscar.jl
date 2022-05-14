@@ -37,7 +37,7 @@ The cyclic quotient singularity Y(7, 5)
 julia> isaffine(cqs)
 true
 
-julia> issmooth(cqs)
+julia> is_smooth(cqs)
 false
 ```
 """

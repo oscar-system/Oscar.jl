@@ -106,7 +106,7 @@ end
     j = ideal(R, [R(1)])
     for (q, p) in primary_decomposition(i, alg=method)
       j = intersect(j, q)
-      @test isprimary(q)
+      @test is_primary(q)
       @test is_prime(p)
       @test p == radical(q)
     end
@@ -218,12 +218,12 @@ end
   L = primary_decomposition(I)
   Q = ideal(R, [R(1)])
   @test is_prime(I) == false
-  @test isprimary(I) == false
+  @test is_primary(I) == false
   @test is_prime(J) == false
-  @test isprimary(J) == true
+  @test is_primary(J) == true
   for (q, p) in L
     Q = intersect(Q, q)
-    @test isprimary(q)
+    @test is_primary(q)
     @test is_prime(p)
     @test p == radical(q)
   end

@@ -19,11 +19,11 @@ The following functions are available in Oscar for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem})
-issubgroup
+is_subgroup
 embedding(G::T, H::T) where T <: GAPGroup
 index(G::T, H::T) where T <: GAPGroup
-isnormal(G::T, H::T) where T <: GAPGroup
-ischaracteristic(G::T, H::T) where T <: GAPGroup
+is_normal(G::T, H::T) where T <: GAPGroup
+is_characteristic(G::T, H::T) where T <: GAPGroup
 ```
 
 ## Standard subgroups
@@ -72,8 +72,8 @@ complement_system
 ## Conjugation action of elements and subgroups
 
 ```@docs
-isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
-isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 centralizer(G::GAPGroup, x::GAPGroupElem)

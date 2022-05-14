@@ -85,7 +85,7 @@ end
 
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
-  @test iscyclic(G)
+  @test is_cyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
   @test is_isomorphic(G, G1)
   G = abelian_group(PcGroup, [ZZ(2)^70])
@@ -94,7 +94,7 @@ end
 #=
   H = free_abelian_group(2)
   @test !isfinite(H)
-  @test isabelian(H)
+  @test is_abelian(H)
 =#
   
   @test mathieu_group(10) isa PermGroup
@@ -112,7 +112,7 @@ end
   @test_throws ErrorException index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
   @test !isfinite(F)
-  @test !isabelian(F)
+  @test !is_abelian(F)
 
   F = free_group(:x,:y)
   @test F isa FPGroup
@@ -120,7 +120,7 @@ end
   @test_throws ErrorException index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
   @test !isfinite(F)
-  @test !isabelian(F)
+  @test !is_abelian(F)
 
   F = free_group("x",:y)
   @test F isa FPGroup

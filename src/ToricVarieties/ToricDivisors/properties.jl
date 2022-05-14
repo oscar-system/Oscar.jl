@@ -20,7 +20,7 @@ export iscartier
 
 
 @doc Markdown.doc"""
-    isprincipal(td::ToricDivisor)
+    is_principal(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is principal.
 
@@ -32,13 +32,13 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isprincipal(td)
+julia> is_principal(td)
 false
 ```
 """
-@attr Bool isprincipal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
-istrivial(td::ToricDivisor) = isprincipal(td)
-export isprincipal, istrivial
+@attr Bool is_principal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
+istrivial(td::ToricDivisor) = is_principal(td)
+export is_principal, istrivial
 
 
 @doc Markdown.doc"""
@@ -84,7 +84,7 @@ export iseffective
 
 
 @doc Markdown.doc"""
-    isintegral(td::ToricDivisor)
+    is_integral(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is integral.
 # Examples
@@ -95,12 +95,12 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isintegral(td)
+julia> is_integral(td)
 true
 ```
 """
-@attr Bool isintegral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
-export isintegral
+@attr Bool is_integral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
+export is_integral
 
 
 @doc Markdown.doc"""

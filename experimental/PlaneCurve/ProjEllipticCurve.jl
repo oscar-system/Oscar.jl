@@ -1,4 +1,4 @@
-export ProjEllipticCurve, discriminant, issmooth, j_invariant,
+export ProjEllipticCurve, discriminant, is_smooth, j_invariant,
        Point_EllCurve, curve, weierstrass_form, toweierstrass,
        iselliptic, list_rand
 
@@ -319,7 +319,7 @@ function Oscar.discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
    return Hecke.discriminant(E.Hecke_ec)
 end
 
-function Oscar.issmooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
+function Oscar.is_smooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
    return true
 end
 
@@ -434,7 +434,7 @@ function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.Proj
    end
    L = E.maps
    K = P.parent.base_field
-   if isinfinite(P)
+   if is_infinite(P)
       V = [K(0), K(1), K(0)]
    else
       V = [P.coordx, P.coordy, K(1)]
@@ -722,12 +722,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    istorsion_point(P::Point_EllCurve{fmpq})
+    is_torsion_point(P::Point_EllCurve{fmpq})
 
 Return whether the point `P` is a torsion point.
 """
-function Oscar.istorsion_point(P::Point_EllCurve{fmpq})
-   return Hecke.istorsion_point(P.Hecke_Pt)
+function Oscar.is_torsion_point(P::Point_EllCurve{fmpq})
+   return Hecke.is_torsion_point(P.Hecke_Pt)
 end
 
 ################################################################################

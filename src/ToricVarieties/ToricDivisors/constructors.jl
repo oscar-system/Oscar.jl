@@ -129,10 +129,10 @@ function Base.show(io::IO, td::ToricDivisor)
     
     q_car_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_cartier, "q_cartier")
     push_attribute_if_exists!(properties_string, td, :iscartier, "cartier"; callback=q_car_cb!)
-    push_attribute_if_exists!(properties_string, td, :isprincipal, "principal")
+    push_attribute_if_exists!(properties_string, td, :is_principal, "principal")
     push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
     push_attribute_if_exists!(properties_string, td, :iseffective, "effective")
-    push_attribute_if_exists!(properties_string, td, :isintegral, "integral")
+    push_attribute_if_exists!(properties_string, td, :is_integral, "integral")
     
     ample_cb!(a,b) = push_attribute_if_exists!(a, b, :isample, "ample")
     push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)

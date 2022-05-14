@@ -8,7 +8,7 @@ function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   l = [G]
   while order(l[end]) > order(U)
     m = maximal_subgroups(l[end])
-    push!(l, m[findfirst(x -> issubgroup(x, U)[1], m)])
+    push!(l, m[findfirst(x -> is_subgroup(x, U)[1], m)])
   end
   return reverse(l)
 

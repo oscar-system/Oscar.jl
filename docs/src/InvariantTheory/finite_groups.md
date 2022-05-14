@@ -73,7 +73,7 @@ If `IR` is the invariant ring $K[x_1,..., x_n]^G$ of a finite matrix group $G$, 
 - `coefficient_ring(IR)` to $K$, and
 - `polynomial_ring(IR)` to $K[x_1,..., x_n]$.
 
-Moreover, `ismodular(IR)` returns `true` in the modular case, and
+Moreover, `is_modular(IR)` returns `true` in the modular case, and
 `false` otherwise.
 
 ###### Examples
@@ -88,7 +88,7 @@ group(IR)
 coefficient_ring(IR)
 R = polynomial_ring(IR)
 x = gens(R)
-ismodular(IR)
+is_modular(IR)
 ```
 
 ## The Reynolds Operator

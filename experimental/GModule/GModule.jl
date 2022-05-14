@@ -107,7 +107,7 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
   d = dim(C)
   l = 1
   for g = C.ac
-    l = lcm(l, lcm(collect(map_entries(x->Hecke.iscyclotomic_type(parent(x.data))[2], mat(g)))))
+    l = lcm(l, lcm(collect(map_entries(x->Hecke.is_cyclotomic_type(parent(x.data))[2], mat(g)))))
   end
   K = cyclotomic_field(base_ring(C), l)[1]
   F = free_module(K, dim(C))
@@ -200,7 +200,7 @@ function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   c = Hecke.norm(conductor(A)[1])
   Qab = abelian_closure(QQ)[1]
   K = cyclotomic_field(Qab, Int(c))[1]
-  fl, em = issubfield(k, K)
+  fl, em = is_subfield(k, K)
   return Oscar.group_class_function(group(C), [Qab(em(preimage(mkK, x[2]))) for x = chr])
 end
 
@@ -772,7 +772,7 @@ function gmodule(K::AnticNumberField, M::GModule{<:Any, <:Generic.FreeModule{nf_
 end
 
 function (K::QabField)(a::nf_elem)
-  fl, f = Hecke.iscyclotomic_type(parent(a))
+  fl, f = Hecke.is_cyclotomic_type(parent(a))
   @assert fl
   return QabElem(a, f)
 end
@@ -780,9 +780,9 @@ end
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QabElem}}
   C1 = gmodule(CyclotomicField, C)
   D1 = gmodule(CyclotomicField, D)
-  fl, Cf = Hecke.iscyclotomic_type(base_ring(C1))
+  fl, Cf = Hecke.is_cyclotomic_type(base_ring(C1))
   @assert fl
-  fl, Df = Hecke.iscyclotomic_type(base_ring(D1))
+  fl, Df = Hecke.is_cyclotomic_type(base_ring(D1))
   @assert fl
   l = lcm(Cf, Df)
   K, _ = cyclotomic_field(base_ring(C), l)
@@ -1090,7 +1090,7 @@ function reps(K, G::Oscar.GAPGroup)
   @assert characteristic(K) == o || length(z) == o
   F = free_module(K, 1)
   R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
-  @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(R[1])
+  @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
 
   for i=length(gG)-1:-1:1
     h = gG[i]
@@ -1107,7 +1107,7 @@ function reps(K, G::Oscar.GAPGroup)
         F = r.M
         @assert group(r) == s
         rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
-        @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(rh)
+        @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(rh)
         l = Oscar.GModuleFromGap.hom_base(r, rh)
         @assert length(l) <= 1
         Y = mat(action(r, preimage(ms, h^p)))
@@ -1142,7 +1142,7 @@ function reps(K, G::Oscar.GAPGroup)
           Y = r.ac
           for x = rt
             nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
-            @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nw)
+            @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(nw)
             push!(new_R, nw)
           end
         else #need to extend dim
@@ -1192,7 +1192,7 @@ function reps(K, G::Oscar.GAPGroup)
           end
 
           push!(new_R, gmodule(F, ns, md))
-          @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(new_R[end])
+          @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(new_R[end])
         end
       end
     end
@@ -1312,7 +1312,7 @@ function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
       iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
       @vtime :BruecknerSQ 2 l = lift(iii, mQ)
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
-      append!(allR, [x for x in l])# if issurjective(x)])
+      append!(allR, [x for x in l])# if is_surjective(x)])
     end
   end
   return allR
@@ -1321,20 +1321,20 @@ end
 Base.getindex(M::AbstractAlgebra.FPModule, i::Int) = i==0 ? zero(M) : gens(M)[i]
 Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 
-Oscar.isfree(M::Generic.FreeModule) = true
-Oscar.isfree(M::Generic.DirectSumModule) = all(isfree, M.m)
+Oscar.is_free(M::Generic.FreeModule) = true
+Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
 
 function Oscar.dual(h::Map{GrpAbFinGen, GrpAbFinGen})
   A = domain(h)
   B = codomain(h)
-  @assert isfree(A) && isfree(B)
+  @assert is_free(A) && is_free(B)
   return hom(B, A, transpose(h.map))
 end
 
 function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{fmpz}, <:AbstractAlgebra.FPModule{fmpz}})
   A = domain(h)
   B = codomain(h)
-  @assert isfree(A) && isfree(B)
+  @assert is_free(A) && is_free(B)
   return hom(B, A, transpose(mat(h)))
 end
 
@@ -1475,7 +1475,7 @@ function lift(C::GModule, mp::Map)
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
 
     h = hom(G, GG, gens(G), [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)])
-    if !issurjective(h)
+    if !is_surjective(h)
       @show :darn
       continue
     else
