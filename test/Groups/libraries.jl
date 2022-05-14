@@ -14,7 +14,7 @@
    L = [G,H1,H2,H3,H4]
    grps = all_transitive_groups(degree => 4)
    for K in grps
-      @test count(l -> isisomorphic(K,l), L) == 1
+      @test count(l -> is_isomorphic(K,l), L) == 1
    end
    @test sort([transitive_group_identification(l) for l in L]) == [(4,i) for i in 1:5]
    @test Set(L) == Set(all_transitive_groups(degree => 4))
@@ -94,10 +94,10 @@ end
    @test_throws ArgumentError perfect_group(60, 0)
    @test_throws ArgumentError perfect_group(60, 2)
 
-   @test isisomorphic(perfect_group(60,1),G)
+   @test is_isomorphic(perfect_group(60,1),G)
    @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_group_identification(alternating_group(5))
-   @test isisomorphic(perfect_group(x[1],x[2]),alternating_group(5))
+   @test is_isomorphic(perfect_group(x[1],x[2]),alternating_group(5))
    @test_throws ErrorException perfect_group_identification(symmetric_group(5))
 
    @test sum(number_perfect_groups, 1:59) == 1
@@ -111,7 +111,7 @@ end
    LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
    @test length(L)==5
    @testset for G in LG
-      arr = [i for i in 1:5 if isisomorphic(L[i],G)]
+      arr = [i for i in 1:5 if is_isomorphic(L[i],G)]
       @test length(arr)==1
       @test small_group_identification(G)==(8,arr[1])
    end

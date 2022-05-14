@@ -725,7 +725,7 @@ end
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function isinvertible_with_inverse(a::MPolyQuoElem)
+function is_invertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
@@ -744,9 +744,9 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
+is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
 function inv(a::MPolyQuoElem)
-  fl, b = isinvertible_with_inverse(a)
+  fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
@@ -1053,7 +1053,7 @@ function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+    is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 
 Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
@@ -1066,16 +1066,16 @@ julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 true
 
 julia> f
 z^4
 ```
 """
-function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
+function is_homogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return ishomogeneous(a.f)
+  return is_homogeneous(a.f)
 end
 
 @doc Markdown.doc"""

@@ -336,7 +336,7 @@ homogeneous_component(f::MPolyElem_dec, g::GrpAbFinGenElem)
 ```
 
 ```@docs
-ishomogeneous(f::MPolyElem_dec)
+is_homogeneous(f::MPolyElem_dec)
 ```
 
 ```@docs

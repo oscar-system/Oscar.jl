@@ -1027,7 +1027,7 @@ end
 #########################################################
 #XXX: should be in AA and supplemented by a proper quo
 function Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement 
-  fl = issubmodule(N, M)
+  fl = is_submodule(N, M)
   if fl
     return fl, hom(M, N, elem_type(N)[N(m) for m = gens(M)])
   else
@@ -1177,7 +1177,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
     return M(z)
   end
 
-  @assert isisomorphic(B, fp_group(M)[1])
+  @assert is_isomorphic(B, fp_group(M)[1])
 
   return B, MapFromFunc(
     x->image(mM, gap_to_julia(x.X)),

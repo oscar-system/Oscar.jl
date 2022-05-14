@@ -17,7 +17,7 @@ import AbstractAlgebra: base_ring, change_base_ring, change_coefficient_ring,
                         check_parent, coeff, combine_like_terms!,
                         degree, divexact, divides, elem_type, exponent, exponent_vector,
                         expressify, fit!, gen, gens,
-                        isconstant, isgen, ishomogeneous, issquare, isunit,
+                        is_constant, is_gen, is_homogeneous, is_square, is_unit,
                         map_coefficients, monomial, monomial!,
                         nvars, parent_type, setcoeff!, set_exponent_vector!,
                         sort_terms!, symbols, term, total_degree, vars, zero!
@@ -124,7 +124,7 @@ function vars(p::MPolySparse{T}) where {T <: RingElement}
 end
 
 function var_index(x::MPolySparse{T}) where {T <: RingElement}
-    !isgen(x) && error("Not a variable in var_index")
+    !is_gen(x) && error("Not a variable in var_index")
     return x.exps[1][1][1]
  end
 
@@ -290,9 +290,9 @@ function Base.hash(x::MPolySparse{T}, h::UInt) where {T <: RingElement}
     return b
 end
 
-isunit(x::MPolySparse) = x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0) && isunit(x.coeffs[1])
+is_unit(x::MPolySparse) = x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0) && is_unit(x.coeffs[1])
 
-function isgen(x::MPolySparse{T}) where {T <: RingElement}
+function is_gen(x::MPolySparse{T}) where {T <: RingElement}
     if length(x) != 1
         return false
     end
@@ -305,7 +305,7 @@ function isgen(x::MPolySparse{T}) where {T <: RingElement}
     return x.exps[1][1][2] == 1
 end
 
-function ishomogeneous(x::MPolySparse{T}) where {T <: RingElement}
+function is_homogeneous(x::MPolySparse{T}) where {T <: RingElement}
     last_deg = 0
     is_first = true
  
@@ -383,7 +383,7 @@ isone(x::MPolySparse) = x.length == 1 && x.coeffs[1] == 1 && x.exps[1] == Vector
 
 iszero(x::MPolySparse) = x.length == 0
 
-isconstant(x::MPolySparse) = x.length == 0 || (x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0))
+is_constant(x::MPolySparse) = x.length == 0 || (x.length == 1 && x.exps[1] == Vector{Tuple{Int,Int}}(undef, 0))
 
 function Base.deepcopy_internal(a::MPolySparse{T}, dict::IdDict) where {T <: RingElement}
     Re = deepcopy_internal(a.exps[1:a.length], dict)
@@ -596,9 +596,9 @@ function Base.sqrt(a::MPolySparse{T}; check::Bool=true) where {T <: RingElement}
     return q
 end
 
-function issquare(a::MPolySparse{T}) where {T <: RingElement}
+function is_square(a::MPolySparse{T}) where {T <: RingElement}
     (da,), _ = sparse_to_dense(a)
-    return issquare(da)
+    return is_square(da)
 end
 
 
@@ -627,7 +627,7 @@ end
 
 function Base.isless(a::MPolySparse{T}, b::MPolySparse{T}) where {T <: RingElement}
     check_parent(a, b)
-    (!ismonomial(a) || !ismonomial(b)) && error("Not monomials in comparison")
+    (!is_monomial(a) || !is_monomial(b)) && error("Not monomials in comparison")
     return monomial_isless(a.exps[1], b.exps[1], parent(a))
 end
 

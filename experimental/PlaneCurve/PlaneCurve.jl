@@ -3,7 +3,7 @@ using Oscar, Markdown
 import Base.==
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, isirreducible, isreduced, reduction,
+       jacobi_ideal, curve_components, is_irreducible, isreduced, reduction,
        union, defining_equation, ring, ProjectivePlaneCurve
 
 ################################################################################
@@ -107,7 +107,7 @@ mutable struct AffinePlaneCurve{S} <: PlaneCurve{S}
   components::Dict{AffinePlaneCurve{S}, Int}
   function AffinePlaneCurve{S}(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 2 || error("The defining equation must belong to a ring with two variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
+    !is_constant(eq) || error("The defining equation must be non constant")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
             Dict{AffinePlaneCurve{S}, Int}())
@@ -154,8 +154,8 @@ mutable struct ProjPlaneCurve{S} <: ProjectivePlaneCurve{S}
   components::Dict{ProjPlaneCurve{S}, Int}
   function ProjPlaneCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
             Dict{ProjPlaneCurve{S}, Int}())
@@ -317,7 +317,7 @@ end
 # Check irreducibility.
 
 @doc Markdown.doc"""
-    isirreducible(C::PlaneCurve{S}) where S <: FieldElem
+    is_irreducible(C::PlaneCurve{S}) where S <: FieldElem
 
 Return `true` if `C` is irreducible, and `false` otherwise.
 
@@ -329,18 +329,18 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
-julia> Oscar.isirreducible(C)
+julia> Oscar.is_irreducible(C)
 true
 
 julia> D = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
-julia> Oscar.isirreducible(D)
+julia> Oscar.is_irreducible(D)
 false
 ```
 """
-function Oscar.isirreducible(C::PlaneCurve{S}) where S <: FieldElem
-   return isirreducible(defining_equation(C))
+function Oscar.is_irreducible(C::PlaneCurve{S}) where S <: FieldElem
+   return is_irreducible(defining_equation(C))
 end
 
 ################################################################################
@@ -488,7 +488,7 @@ end
 using .PlaneCurveModule
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, isirreducible, isreduced, reduction,
+       jacobi_ideal, curve_components, is_irreducible, isreduced, reduction,
        union, defining_equation, ring, ProjectivePlaneCurve
 
 export issmooth, tangent, common_components, curve_intersect,
@@ -496,7 +496,7 @@ export issmooth, tangent, common_components, curve_intersect,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
 
-export ProjCurve, defining_ideal, curve_components, reduction, isirreducible,
+export ProjCurve, defining_ideal, curve_components, reduction, is_irreducible,
        jacobi_ideal
        
 export parametrization_plane_curve, adjoint_ideal, rational_point_conic,

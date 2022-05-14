@@ -29,7 +29,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
+import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, isroot_of_unity, promote_rule,
                 AbstractAlgebra
 using Hecke
@@ -421,7 +421,7 @@ conductor(a::QabElem) = conductor(data(a))
 #
 ################################################################################
 
-isunit(a::QabElem) = !iszero(a)
+is_unit(a::QabElem) = !iszero(a)
 
 ################################################################################
 #
@@ -597,7 +597,7 @@ function Base.deepcopy_internal(a::QabElem, dict::IdDict)
   return QabElem(deepcopy_internal(data(a), dict), a.c)
 end
 
-#Oscar.isnegative(::QabElem) = false
+#Oscar.is_negative(::QabElem) = false
 
 ################################################################################
 #
@@ -698,7 +698,7 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
 
   if !isroot_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
-    fl, i = ispower(a.data*zk, n)
+    fl, i = is_power(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
     fl || return roots(x^n-a)::Vector{QabElem{T}}
     b = gens(Hecke.inv(i))[end]

@@ -107,8 +107,8 @@
 
   @testset "Arithmetic" begin
     K, z = abelian_closure(QQ)
-    @test isunit(z(1))
-    @test !isunit(zero(K))
+    @test is_unit(z(1))
+    @test !is_unit(zero(K))
     rand_elem() = begin n = rand([3, 4, 5]); sum(rand(-1:1) * z(n) for i in 1:3) end
     a = one(K)
     @test isone(inv(a))

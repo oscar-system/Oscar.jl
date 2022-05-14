@@ -87,7 +87,7 @@ end
 
 norm_equation(R::Hecke.NfRelOrd{nf_elem,Hecke.NfOrdFracIdl}, a::NfAbsOrdElem{AnticNumberField,nf_elem}) = map(x -> R(evaluate(x)), norm_equation_fac_elem(R, a))
 
-function isirreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
+function is_irreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   if iszero(a)
     return false
   end

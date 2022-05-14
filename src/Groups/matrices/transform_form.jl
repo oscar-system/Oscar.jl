@@ -17,13 +17,13 @@ export
 # returns x,y such that ax^2+by^2 = c
 # at the moment, it simply search for x such that (c-ax^2)/b is a square
 # TODO: is there a faster way to find x and y?
-# TODO: it would be better if this is deterministic. This depends on gen(F) and issquare(F).
+# TODO: it would be better if this is deterministic. This depends on gen(F) and is_square(F).
 
 function _solve_eqn(a::T, b::T, c::T) where T <: FinFieldElem
    F = parent(a)  
    for x in F
       s = (c - a*x^2)*b^-1
-      fl, t = issquare_with_sqrt(s)
+      fl, t = is_square_with_sqrt(s)
       if fl
         return x, t
       end
@@ -335,15 +335,15 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
       # TODO: assure that the function _elim_hyp_lines actually modifies A1 and A2
       D1 = _elim_hyp_lines(A1)*D1
       D2 = _elim_hyp_lines(A2)*D2
-      issquare( prod(diagonal(A1))*prod(diagonal(A2)) )[1] || return false, nothing
+      is_square( prod(diagonal(A1))*prod(diagonal(A2)) )[1] || return false, nothing
       # move all the squares on the diagonal at the begin
-      _squares = [i for i in 1:n if issquare(A1[i,i])[1]]
+      _squares = [i for i in 1:n if is_square(A1[i,i])[1]]
       our_perm = vcat(_squares, setdiff(1:n, _squares))
       P = permutation_matrix(F,our_perm)
       s1 = length(_squares)
       D1 = P*D1
       A1 = P*A1*transpose(P)
-      _squares = [i for i in 1:n if issquare(A2[i,i])[1]]
+      _squares = [i for i in 1:n if is_square(A2[i,i])[1]]
       our_perm = vcat(_squares, setdiff(1:n, _squares))
       P = permutation_matrix(F,our_perm)
       s2 = length(_squares)

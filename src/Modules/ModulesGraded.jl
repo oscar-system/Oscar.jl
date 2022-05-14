@@ -287,7 +287,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
   ww = W.D[0]
   local w
   for (p,v) in coords(u)
-    if !ishomogeneous(v)
+    if !is_homogeneous(v)
       if isgraded(W)
         return nothing,false
       else
@@ -363,11 +363,11 @@ function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(a::FreeModElem_dec)
+    is_homogeneous(a::FreeModElem_dec)
 
 Check if `a` is homogeneous.
 """
-function ishomogeneous(a::FreeModElem_dec)
+function is_homogeneous(a::FreeModElem_dec)
   return degree_homogeneous_helper(a)[2]
 end
 

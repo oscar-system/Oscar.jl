@@ -24,18 +24,18 @@ end
     F = Oscar.AffinePlaneCurve((x^2 + y^2))
     P = Oscar.Point([QQ(0), QQ(0)])
 
-    @test Oscar.isirreducible(F)
+    @test Oscar.is_irreducible(F)
     @test Oscar.isreduced(F)
     @test Oscar.reduction(F) == F
 
     G = Oscar.AffinePlaneCurve(y^2)
-    @test !Oscar.isirreducible(G)
+    @test !Oscar.is_irreducible(G)
     @test !Oscar.isreduced(G)
     @test Oscar.reduction(G) == Oscar.AffinePlaneCurve(y)
 
     H = Oscar.AffinePlaneCurve(x * y)
 
-    @test !Oscar.isirreducible(H)
+    @test !Oscar.is_irreducible(H)
     @test Oscar.isreduced(H)
     @test Oscar.reduction(H) == H
 
@@ -139,18 +139,18 @@ end
     F = Oscar.ProjPlaneCurve(T(x^2 + y^2))
     P = Oscar.Point([QQ(0), QQ(0), QQ(1)])
 
-    @test Oscar.isirreducible(F)
+    @test Oscar.is_irreducible(F)
     @test Oscar.isreduced(F)
     @test Oscar.reduction(F) == F
 
     G = Oscar.ProjPlaneCurve(T(y^2))
-    @test !Oscar.isirreducible(G)
+    @test !Oscar.is_irreducible(G)
     @test !Oscar.isreduced(G)
     @test Oscar.reduction(G) == Oscar.ProjPlaneCurve(T(y))
 
     H = Oscar.ProjPlaneCurve(T(x * y))
 
-    @test !Oscar.isirreducible(H)
+    @test !Oscar.is_irreducible(H)
     @test Oscar.isreduced(H)
     @test Oscar.reduction(H) == H
 
@@ -481,7 +481,7 @@ end
     PP = proj_space(QQ, 3)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
     @test P in C
-    @test Oscar.isirreducible(C)
+    @test Oscar.is_irreducible(C)
     J = Oscar.jacobi_ideal(C)
     L = gens(J)
     @test length(L) == 4

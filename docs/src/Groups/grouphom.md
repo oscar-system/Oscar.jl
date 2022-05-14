@@ -143,7 +143,7 @@ in addition to the usual `domain` and `codomain`.
 isinjective(f::GAPGroupHomomorphism)
 issurjective(f::GAPGroupHomomorphism)
 isbijective(f::GAPGroupHomomorphism)
-isinvertible(f::GAPGroupHomomorphism)
+is_invertible(f::GAPGroupHomomorphism)
 isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
@@ -162,7 +162,7 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 ## Group isomorphisms
 
 ```@docs
-isisomorphic(G::GAPGroup, H::GAPGroup)
+is_isomorphic(G::GAPGroup, H::GAPGroup)
 isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
 isomorphism(G::GAPGroup, H::GAPGroup)
 ```

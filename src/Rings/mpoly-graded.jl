@@ -1,8 +1,8 @@
-export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
+export weight, decorate, is_homogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
 homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
-export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
+export MPolyRing_dec, MPolyElem_dec, is_homogeneous, isgraded
 
 @attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -580,7 +580,7 @@ mutable struct MPolyElem_dec{T, S} <: MPolyElem{T}
   function MPolyElem_dec(f::S, p) where {S}
     r = new{elem_type(base_ring(f)), S}(f, p)
 #    if isgraded(p) && length(r) > 1
-#      if !ishomogeneous(r)
+#      if !is_homogeneous(r)
 #        error("element not homogeneous")
 #      end
 #both wrong and undesired.
@@ -815,7 +815,7 @@ function ideal(g::Vector{T}) where {T <: MPolyElem_dec}
   @assert length(g) > 0
   @assert all(x->parent(x) == parent(g[1]), g)
   if isgraded(parent(g[1]))
-     if !(all(ishomogeneous, g))
+     if !(all(is_homogeneous, g))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
      end
   end
@@ -966,7 +966,7 @@ function degree(::Type{Vector{Int}}, a::MPolyElem_dec)
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyElem_dec)
+    is_homogeneous(f::MPolyElem_dec)
 
 Given an element `f` of a graded multivariate ring, return `true` if `f` is homogeneous, `false` otherwise.
 
@@ -981,7 +981,7 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
 julia> f = x^2+y*z
 x^2 + y*z
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 false
 
 julia> W = [1 2 1 0; 3 4 0 1]
@@ -999,11 +999,11 @@ julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
 julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 
-julia> ishomogeneous(F)
+julia> is_homogeneous(F)
 true
 ```
 """
-function ishomogeneous(F::MPolyElem_dec)
+function is_homogeneous(F::MPolyElem_dec)
   D = parent(F).D
   d = parent(F).d
   S = Set{elem_type(D)}()
@@ -1511,7 +1511,7 @@ mutable struct HilbertData
        throw(ArgumentError("The base ring must be graded."))
     end
     
-    if !(all(ishomogeneous, gens(I)))
+    if !(all(is_homogeneous, gens(I)))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end
     

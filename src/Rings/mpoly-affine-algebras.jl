@@ -299,7 +299,7 @@ end
 
 function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m)
    ###for use in _multi_hilbert_series only
-   ###if !ismonomial(I)
+   ###if !is_monomial(I)
    ###      throw(ArgumentError("The ideal is not monomial"))
    ###end
    ### V = minimal_monomial_generators(I)  ### to be written
@@ -325,7 +325,7 @@ end
 ### TODO: use following version once build complex is completely adapted to Laurent polynomial case
 #function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
    ###for use in _multi_hilbert_series only
-   ###if !ismonomial(I)
+   ###if !is_monomial(I)
    ###      throw(ArgumentError("The ideal is not monomial"))
    ###end
    ### V = minimal_monomial_generators(I)  ### to be written
@@ -957,7 +957,7 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem,
   else
       p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
   end
-  all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+  all(is_homogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
   # iterate over the generators, starting with those in lowest degree, then work up
   W = sort(V, by = x -> degree(x)[1])
   result = [ W[1] ]
@@ -1253,7 +1253,7 @@ function integral_basis(f::MPolyElem, i::Int)
     throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))
   end
 
-  if !isirreducible(f)
+  if !is_irreducible(f)
     throw(ArgumentError("The input polynomial must be irreducible"))
   end
 

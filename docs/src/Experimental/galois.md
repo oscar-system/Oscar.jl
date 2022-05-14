@@ -120,7 +120,7 @@ of degree `3`, the algebraic closure of `Q` in the splitting field is the
 quadratic field returned last. It can be seen to be isomorphic to a cyclotomic field:
 
 ```jldoctest galqt
-julia> isisomorphic(k, cyclotomic_field(3)[1])
+julia> is_isomorphic(k, cyclotomic_field(3)[1])
 true
 ```
 

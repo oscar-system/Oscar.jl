@@ -256,7 +256,7 @@
       b = rand(K, -2:2)
       f = @inferred minpoly(b)
       @test iszero(f(b))
-      @test isirreducible(f)
+      @test is_irreducible(f)
 
       f = @inferred charpoly(b)
       @test iszero(f(b))

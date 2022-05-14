@@ -1,4 +1,4 @@
-export ProjCurve, defining_ideal, curve_components, reduction, isirreducible,
+export ProjCurve, defining_ideal, curve_components, reduction, is_irreducible,
        jacobi_ideal
 
 import Oscar.defining_ideal
@@ -128,7 +128,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isirreducible(C::ProjCurve)
+    is_irreducible(C::ProjCurve)
 
 Return `true` if `C` is irreducible, and `false` otherwise.
 
@@ -150,11 +150,11 @@ ideal(x^2, y^2*z, z^2)
 julia> C = Oscar.ProjCurve(I)
 Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
-julia> Oscar.isirreducible(C)
+julia> Oscar.is_irreducible(C)
 true
 ```
 """
-function Oscar.isirreducible(C::ProjCurve)
+function Oscar.is_irreducible(C::ProjCurve)
     L = curve_components(C)
     return length(L) == 1
 end

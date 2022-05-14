@@ -122,24 +122,24 @@ the three possible return values of `-1`, `0`, or `1`.
 
 * `iszero(n::fmpz) -> Bool`
 * `isone(n::fmpz) -> Bool`
-* `isunit(n::fmpz) -> Bool`
+* `is_unit(n::fmpz) -> Bool`
 * `isodd(n::fmpz) -> Bool`
 * `iseven(n::fmpz) -> Bool`
-* `issquare(n::fmpz) -> Bool`
+* `is_square(n::fmpz) -> Bool`
 * `isprime(n::fmpz) -> Bool`
-* `isprobable_prime(n::fmpz) -> Bool`
+* `is_probable_prime(n::fmpz) -> Bool`
 
-The `isprime` predicate will prove primality, whereas `isprobable_prime` may
+The `isprime` predicate will prove primality, whereas `is_probable_prime` may
 declare a composite number to be prime with very low probability.
 
 Negative numbers, ``0`` and ``1`` are not considered prime by `isprime` and
-`isprobable_prime`.
+`is_probable_prime`.
 
 ```@repl oscar
 isone(ZZ(1))
-isunit(ZZ(-1))
-issquare(ZZ(16))
-isprobable_prime(ZZ(23))
+is_unit(ZZ(-1))
+is_square(ZZ(16))
+is_probable_prime(ZZ(23))
 ```
 
 ## Properties

@@ -4221,7 +4221,7 @@ function simplify(M::SubQuo)
     corresponding_row_index::Vector{Int} = []
     K = matrix_kernel(A)
     for i=1:size(K)[1], j=1:max_index
-      if isunit(K[i,j])
+      if is_unit(K[i,j])
         deletion_possible = true
         for k in to_delete_indices
           if !iszero(K[i,k])

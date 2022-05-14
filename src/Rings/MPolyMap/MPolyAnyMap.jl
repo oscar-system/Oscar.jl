@@ -112,7 +112,7 @@ _isgraded(R::MPolyQuo) = _isgraded(R.R)
 function _check_homo(S::NCRing, images)
   if _isgraded(S)
     for i in images
-      @req ishomogeneous(i) "Images must be homogenous"
+      @req is_homogeneous(i) "Images must be homogenous"
     end
   end
 end

@@ -87,7 +87,7 @@ for analysis of the denominator and the infinite valuations
 
 function _galois_init(F::Generic.FunctionField{fmpq}; tStart::Int = -1)
   f = defining_polynomial(F)
-  @assert ismonic(f)
+  @assert is_monic(f)
   Zxy, (x, y) = PolynomialRing(FlintZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
@@ -124,7 +124,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   while true
     t += 1
     g = evaluate(f, [gen(Zx), Zx(t)])
-    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && isirreducible(g)
+    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && is_irreducible(g)
       break
     end
     if t > 10
@@ -160,7 +160,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     end
     C, K, p = _galois_init(FF, tStart = tStart)
 
-    if issquare(discriminant(K)) != issquare(discriminant(FF))
+    if is_square(discriminant(K)) != is_square(discriminant(FF))
       @vprint :GaloisGroup 2 "bad evaluation point: parity changed\n"
       tStart += 1
       continue

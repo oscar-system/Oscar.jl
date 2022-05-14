@@ -841,7 +841,7 @@ end
 =#
 
 # generic fallback since this is not implemented specifically anywhere yet
-function isirreducible(a::MPolyElem)
+function is_irreducible(a::MPolyElem)
   af = factor(a)
   return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
 end

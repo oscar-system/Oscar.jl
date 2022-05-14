@@ -179,8 +179,8 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
 
   function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
     isweierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
@@ -194,8 +194,8 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
      nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
      iszero(evaluate(eq, P.v)) || error("The point is not on the curve")
-     !isconstant(eq) || error("The defining equation must be non constant")
-     ishomogeneous(eq) || error("The defining equation is not homogeneous")
+     !is_constant(eq) || error("The defining equation must be non constant")
+     is_homogeneous(eq) || error("The defining equation is not homogeneous")
      isinflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
      _iselliptic(eq) || error("Not an elliptic curve")
      T = parent(eq)
@@ -208,8 +208,8 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
 
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
     isweierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
     v[1] || error("Not in short Weierstrass form")

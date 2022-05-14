@@ -94,7 +94,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
     if degree(fp) < degree(f) || iszero(constant_coefficient(fp)) 
       continue
     end
-    if !issquarefree(fp)
+    if !is_squarefree(fp)
       continue
     end
     lf = factor_shape(fp)
@@ -127,7 +127,7 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0)
 
   if an_sn_by_shape(ct, degree(K))
     @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
-    if issquare(discriminant(K))
+    if is_square(discriminant(K))
       G = alternating_group(degree(K))
     else
       G = symmetric_group(degree(K))

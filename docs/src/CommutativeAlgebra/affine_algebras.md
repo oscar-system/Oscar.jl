@@ -116,7 +116,7 @@ simplify(f::MPolyQuoElem)
 In the graded case, we additionally have:
 
 ```@docs
-ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ### Data associated to Elements of Affine Algebras

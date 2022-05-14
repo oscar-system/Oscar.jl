@@ -406,7 +406,7 @@ isone(I::MPolyIdeal)
 ```
 
 ```@docs
-ismonomial(f::MPolyElem)
+is_monomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals

@@ -500,13 +500,13 @@ function hilbert90_generic(X::Dict, mA)
       #Glasby shows that this approach, over a finite field,
       #has a high success probability.
       Y = matrix(K, n, n, [rand(K, -5:5) for i=1:n*n])
-      fl = isinvertible(Y)
+      fl = is_invertible(Y)
       fl && break
       cnt += 1
       if cnt > 10 error("s.th. wiered") end
     end
     S = sum(map_entries(mA(g), Y)*v for (g,v) = X)
-    fl, Si = isinvertible_with_inverse(S)
+    fl, Si = is_invertible_with_inverse(S)
     fl && return S, Si
   end
 end
@@ -529,7 +529,7 @@ function _norm_equation(K::FinField, a::FinFieldElem)
   kt, t = PolynomialRing(k, cached = false)
   while true
     f = t^os + a + sum(t^rand(1:os-1)*rand(k) for i=1:rand(1:os-1))
-    isirreducible(f) || continue
+    is_irreducible(f) || continue
     r = roots(map_coefficients(fkK, f))[1]
     return r
   end
@@ -614,7 +614,7 @@ function Gap(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}, h=Oscar.is
   return z
 end
 
-function Oscar.isirreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function Oscar.is_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsIrreducible(G)
 end
@@ -1453,7 +1453,7 @@ function lift(C::GModule, mp::Map)
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
     if get_assert_level(:BruecknerSQ) > 1
       _GG, _ = Oscar.GrpCoh.extension(z(chn))
-      @assert isisomorphic(GG, _GG)
+      @assert is_isomorphic(GG, _GG)
     end
 
     function reduce(g) #in G

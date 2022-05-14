@@ -20,7 +20,7 @@
         @test minimal_nonfaces(sphere) == [Set{Int}([1, 2, 3, 4])]
         R, _ = PolynomialRing(ZZ, ["a", "x", "i_7", "n"])
         @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
-        @test isisomorphic(fundamental_group(sphere), free_group())
+        @test is_isomorphic(fundamental_group(sphere), free_group())
         
     end
     

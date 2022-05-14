@@ -420,7 +420,7 @@ function simplify_weight_matrix(M::AbsOrdering)
   w = weights(M)
   ww = matrix(ZZ, 0, ncols(w), [])
   for i=1:nrows(w)
-    if iszero_row(w, i)
+    if is_zero_row(w, i)
       continue
     end
     nw = w[i, :]

@@ -344,7 +344,7 @@ function multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}
     f = divrem(F, C.eq)
     if iszero(f[2])
         return Inf
-    elseif isconstant(f[2])
+    elseif is_constant(f[2])
         return 0
     else
         return intersection_multiplicity(C, AffinePlaneCurve(f[2]), P)
@@ -355,7 +355,7 @@ function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.
     f = divrem(F.f, defining_equation(C))
     if iszero(f[2])
         return Inf
-    elseif isconstant(f[2])
+    elseif is_constant(f[2])
         return 0
     else
         R = parent(C.eq)
@@ -375,7 +375,7 @@ function divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: Field
     f = divrem(F, C.eq)
     !iszero(f[2]) || error("The polynomial is zero on the curve")
     E = Dict{Point{S}, Int}()
-    if !isconstant(f[2])
+    if !is_constant(f[2])
         CC = AffinePlaneCurve(f[2])
         L = curve_intersect(C, CC)
         for P in L[2]
@@ -411,7 +411,7 @@ function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, F::Oscar.M
     f = divrem(F.f, defining_equation(C))
     !iszero(f[2]) || error("The polynomial is zero on the curve")
     E = Dict{Oscar.Geometry.ProjSpcElem{S}, Int}()
-    if !isconstant(f[2])
+    if !is_constant(f[2])
         R = parent(C.eq)
         CC = ProjPlaneCurve(R(f[2]))
         L = curve_intersect(PP, C, CC)

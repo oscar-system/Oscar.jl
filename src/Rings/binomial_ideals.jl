@@ -487,7 +487,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   #saturation
   hnf!(vs)
   i = nrows(vs)
-  while iszero_row(vs, i)
+  while is_zero_row(vs, i)
     i -= 1
   end
   vs = view(vs, 1:i, 1:nvars(R))

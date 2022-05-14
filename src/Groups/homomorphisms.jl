@@ -14,8 +14,8 @@ export
     isinjective,
     isinner_automorphism,
     isinvariant,
-    isinvertible,
-    isisomorphic,
+    is_invertible,
+    is_isomorphic,
     isisomorphic_with_map,
     isomorphic_fp_group,
     isomorphic_pc_group,
@@ -208,11 +208,11 @@ function isinjective(f::GAPGroupHomomorphism)
 end
 
 """
-    isinvertible(f::GAPGroupHomomorphism)
+    is_invertible(f::GAPGroupHomomorphism)
 
 Return whether `f` is invertible.
 """
-function isinvertible(f::GAPGroupHomomorphism)
+function is_invertible(f::GAPGroupHomomorphism)
   return GAPWrap.IsBijective(f.map)
 end
 
@@ -404,17 +404,17 @@ function isisomorphic_with_map(G::GrpGen, H::GAPGroup)
 end
 
 """
-    isisomorphic(G::Group, H::Group)
+    is_isomorphic(G::Group, H::Group)
 
 Return `true` if `G` and `H` are isomorphic groups, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> isisomorphic(symmetric_group(3), dihedral_group(6))
+julia> is_isomorphic(symmetric_group(3), dihedral_group(6))
 true
 ```
 """
-function isisomorphic(G::GAPGroup, H::GAPGroup)
+function is_isomorphic(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
   return mp !== GAP.Globals.fail
 end

@@ -1312,7 +1312,7 @@ end
 Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QabAutomorphism) = sigma(chi)
 
 @doc Markdown.doc"""
-    isirreducible(chi::GAPGroupClassFunction)
+    is_irreducible(chi::GAPGroupClassFunction)
 
 Return `true` if `chi` is an irreducible character, and `false` otherwise.
 
@@ -1322,7 +1322,7 @@ For ordinary characters this can be checked using the scalar product of
 class functions (see [`scalar_product`](@ref).
 For Brauer characters there is no generic method for checking irreducibility.
 """
-function isirreducible(chi::GAPGroupClassFunction)
+function is_irreducible(chi::GAPGroupClassFunction)
     return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)::Bool
 end
 

@@ -212,7 +212,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
         set_status!(M, :BM_failed)
         return false, zero(M.R)
       end
-      if isconstant(bm[2])
+      if is_constant(bm[2])
         continue #why? but is necessary
       end
 
@@ -796,11 +796,11 @@ function Oscar.lift(f::PolyElem, g::PolyElem, a::nf_elem, b::nf_elem, V::Vector{
 
   ff = evaluate(f, gen(parent(f))*inv(S(d_a))) * d_a^(degree(f))
   @assert all(x->isone(denominator(x)), coefficients(ff))
-  @assert ismonic(ff)
+  @assert is_monic(ff)
 
   gg = evaluate(g, gen(parent(f))*inv(S(d_b))) * d_b^(degree(g))
   @assert all(x->isone(denominator(x)), coefficients(gg))
-  @assert ismonic(gg)
+  @assert is_monic(gg)
 
   q = ResidueField(parent(f), ff)
 

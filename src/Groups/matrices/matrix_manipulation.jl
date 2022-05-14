@@ -108,7 +108,7 @@ end
 Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is direct sum of `U` and `W`.
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
-   @assert issubmodule(V,W) "The second argument is not a subspace of the first one"
+   @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
    if dim(W)==0 return sub(V,basis(V)) end
 
    e = W.map

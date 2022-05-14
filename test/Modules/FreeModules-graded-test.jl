@@ -264,7 +264,7 @@ end
         t = gen(domain(f), 1)
         for deg in keys(D)
           gm = D[deg]
-          @test ishomogeneous(gm)
+          @test is_homogeneous(gm)
           @test degree(gm) == deg
           if first
             res = gm(t)
@@ -298,7 +298,7 @@ end
           D = homogeneous_components(f)
           for deg in keys(D)
             gm = D[deg]
-            @test ishomogeneous(gm)
+            @test is_homogeneous(gm)
             @test degree(gm) == deg
             @test _eq(kernel(gm + gm)[1], kernel(gm)[1])
           end

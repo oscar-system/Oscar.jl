@@ -9,7 +9,7 @@
    @test gram_matrix(f)==B
    @test f==alternating_form(gram_matrix(f))
    @test base_ring(B)==F
-   @test !issymmetric(B)
+   @test !is_symmetric(B)
    @test !ishermitian_matrix(B)
    @test isalternating_form(f)
    @test !isquadratic_form(f)
@@ -31,7 +31,7 @@
    @test_throws ErrorException f = SesquilinearForm(B,:unitary)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 z+2 0])
-   @test issymmetric(B)
+   @test is_symmetric(B)
    f = symmetric_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B

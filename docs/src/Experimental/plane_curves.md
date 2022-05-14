@@ -103,7 +103,7 @@ degree(C::Oscar.PlaneCurveModule.PlaneCurve)
 ring(C::Oscar.PlaneCurveModule.PlaneCurve)
 curve_components(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
-isirreducible(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
+is_irreducible(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 isreduced(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
 union(C::T, D::T) where T <: Oscar.PlaneCurveModule.PlaneCurve
 arithmetic_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)

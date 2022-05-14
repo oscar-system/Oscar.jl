@@ -188,7 +188,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
   Fa = dehomogenization(F, r, 3)
   Ha = dehomogenization(H, r, 3)
-  if !isconstant(Fa) && !isconstant(Ha)
+  if !is_constant(Fa) && !is_constant(Ha)
      Ca = AffinePlaneCurve(Fa)
      Da = AffinePlaneCurve(Ha)
      L = curve_intersect(Ca, Da)
@@ -258,7 +258,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
   # We compute the singular points in the chart z=1, then the ones of the form
   # (x:1:0) and then if (1:0:0) is singular.
   Fa = dehomogenization(D.eq, 3)
-  if !isconstant(Fa)
+  if !is_constant(Fa)
      Da = AffinePlaneCurve(Fa)
      L = curve_singular_locus(Da)
      if !isempty(L[2])

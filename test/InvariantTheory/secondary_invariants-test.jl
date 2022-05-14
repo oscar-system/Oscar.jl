@@ -93,7 +93,7 @@
     is_invars = irreducible_secondary_invariants(RG)
     for i = 1:length(RG.secondary.invars)
       f = RG.secondary.invars[i]
-      @test in(f, is_invars) == RG.secondary.isirreducible[i]
+      @test in(f, is_invars) == RG.secondary.is_irreducible[i]
       t = one(polynomial_ring(RG))
       for j = 1:length(is_invars)
         t *= is_invars[j]^RG.secondary.sec_in_irred[i][j]

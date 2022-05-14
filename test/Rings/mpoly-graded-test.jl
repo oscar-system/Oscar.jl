@@ -41,7 +41,7 @@ function _homogeneous_polys(polys::Vector{<:MPolyElem})
         g += temp
       end
     end
-    @test ishomogeneous(g)
+    @test is_homogeneous(g)
     push!(hom_polys, g)
   end
   return hom_polys
@@ -132,7 +132,7 @@ end
         D = homogeneous_components(f)
         for deg in [degree(R_quo(mon)) for mon  = Oscar.monomials(f.f)]
           h = get(D, deg, 'x')
-          @test ishomogeneous(R_quo(h))
+          @test is_homogeneous(R_quo(h))
           @test h == R_quo(homogeneous_component(f, deg))
         end
 
@@ -196,7 +196,7 @@ end
 @testset "Grading" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   D = grading_group(R)
-  @test isisomorphic(D, abelian_group([0]))
+  @test is_isomorphic(D, abelian_group([0]))
 end
 
 @testset "Minimal generating set" begin

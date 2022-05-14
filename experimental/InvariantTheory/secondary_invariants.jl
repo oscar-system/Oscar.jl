@@ -186,7 +186,7 @@ end
 
 function add_invariant!(C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}) where T
   push!(C.invars, f)
-  push!(C.isirreducible, isirred)
+  push!(C.is_irreducible, isirred)
   if isirred
     for exp in C.sec_in_irred
       push!(exp, 0)
@@ -495,7 +495,7 @@ function irreducible_secondary_invariants(IR::InvRing)
   _secondary_invariants(IR)
   is_invars = elem_type(polynomial_ring(IR))[]
   for i = 1:length(IR.secondary.invars)
-    IR.secondary.isirreducible[i] ? push!(is_invars, IR.secondary.invars[i]) : nothing
+    IR.secondary.is_irreducible[i] ? push!(is_invars, IR.secondary.invars[i]) : nothing
   end
   return is_invars
 end

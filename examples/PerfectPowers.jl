@@ -140,7 +140,7 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
 
   if iseven(p)
     @show "slow", p
-    fl, a = Hecke.ispower(a, p)
+    fl, a = Hecke.is_power(a, p)
     return fl ? a : fmpz(1)
   end
   n = nbits(a)
