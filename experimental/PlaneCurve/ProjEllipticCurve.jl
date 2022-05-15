@@ -427,7 +427,11 @@ end
 ################################################################################
 
 function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.ProjSpc{S}, P::Hecke.EllCrvPt{S}) where S <: FieldElem
-   E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
+   if length(E.Hecke_ec.coeff) == 2
+     E.Hecke_ec.coeff == P.parent.coeff[end-1:end] || error("not the same curve")
+   else
+     E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
+   end
    L = E.maps
    K = P.parent.base_field
    if isinfinite(P)
