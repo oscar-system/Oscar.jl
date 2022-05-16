@@ -29,10 +29,10 @@ function load_internal(s::DeserializerState,
     symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
 
     if T <: PolyRing
-        return PolynomialRing(base_ring, symbols...)
+        return PolynomialRing(base_ring, symbols..., cached=false)
     end
 
-    return PolynomialRing(base_ring, symbols)
+    return PolynomialRing(base_ring, symbols, cached=false)
 end
 
 ################################################################################
@@ -106,6 +106,6 @@ end
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
     parent_ring, _ = load_type_dispatch(s, dict[:parent], check_namespace=false)
     gens = load_type_dispatch(s, Vector{MPolyElem}, dict[:gens])
-
+    
     return ideal(parent_ring, gens)
 end

@@ -52,29 +52,37 @@ end
 ################################################################################
 # SimpleNumField
 function save_internal(s::SerializerState,
-                       K::Union{SimpleNumField{T}, FqNmodFiniteField}) where T
+                       K::SimpleNumField{T}) where T
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K)),
         :var => save_type_dispatch(s, String(var(K)))
     )
 end
-
+ 
 function load_internal(s::DeserializerState,
                        ::Type{<: SimpleNumField{T}},
                        dict::Dict) where T
     def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
     var = load_type_dispatch(s, dict[:var], check_namespace=false)
-    K, _ = NumberField(def_pol, var)
+    K, _ = NumberField(def_pol, var, cached=false)
     
     return K
+end
+
+################################################################################
+# Fqnmodfinitefield
+function save_internal(s::SerializerState,
+                       K::FqNmodFiniteField)
+    return Dict(
+        :def_pol => save_type_dispatch(s, defining_polynomial(K))
+    )
 end
 
 function load_internal(s::DeserializerState,
                        ::Type{FqNmodFiniteField},
                        dict::Dict) where T
     def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
-    var = load_type_dispatch(s, dict[:var], check_namespace=false)
-    K, _ = FiniteField(def_pol, var)
+    K, _ = FiniteField(def_pol, cached=false)
     
     return K
 end
@@ -104,13 +112,15 @@ end
 # NfAbsNS 
 function save_internal(s::SerializerState, K::Union{NfAbsNS})
     return Dict(
-        :def_pols => save_type_dispatch(s, defining_polynomials(K))
+        :def_pols => save_type_dispatch(s, defining_polynomials(K)),
+        :vars => save_type_dispatch(s, [String(a) for a in vars(K)])
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{NfAbsNS}, dict::Dict)
     def_pols = load_type_dispatch(s, dict[:def_pols], check_namespace=false)
-    K, _ = NumberField(def_pols)
+    vars = load_type_dispatch(s, dict[:vars], check_namespace=false)
+    K, _ = NumberField(def_pols, vars, cached=false)
     return K
 end
 

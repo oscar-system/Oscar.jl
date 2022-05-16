@@ -135,12 +135,19 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
 
     # TODO: compare T against decodedType ???
     #decodedType = decodeType(dict[:type])
-
-    result = load_internal(s, T, dict[:data])
     id = dict[:id]
+    
     if id != "-1"
-        s.objs[UUID(id)] = result
+        if UUID(id) in keys(s.objs)
+            result = s.objs[UUID(id)]
+        else
+            result = load_internal(s, T, dict[:data])    
+            s.objs[UUID(id)] = result
+        end
+    else
+        result = load_internal(s, T, dict[:data])    
     end
+    
     return result
 end
 
