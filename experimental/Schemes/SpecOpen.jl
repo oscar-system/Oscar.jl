@@ -57,6 +57,9 @@ end
 open_subset_type(X::Spec) = SpecOpen{typeof(X), typeof(coefficient_ring(base_ring(OO(X)))), elem_type(coefficient_ring(base_ring(OO(X))))}
 open_subset_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = SpecOpen{Spec{BRT, BRET, RT, RET, MST}, BRT, BRET}
 
+affine_patch_type(::Type{SpecOpen{SpecType, BRT, BRET}}) where {SpecType, BRT, BRET} = SpecType
+affine_patch_type(U::SpecOpen) = affine_patch_type(typeof(U))
+
 ambient_type(U::SpecOpen{SpecType, BRT, BRET}) where {SpecType<:Spec, BRT, BRET} = SpecType
 ambient_type(::Type{SpecOpen{SpecType, BRT, BRET}}) where {SpecType<:Spec, BRT, BRET} = SpecType
 
@@ -324,6 +327,9 @@ SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 
 spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
 spec_open_ring_type(X::Spec) = spec_open_ring_type(typeof(X))
+
+ring_type(::Type{SpecOpenType}) where {SpecOpenType<:SpecOpen} = SpecOpenRing{affine_patch_type(SpecOpenType), SpecOpenType}
+ring_type(U::SpecOpen) = ring_type(typeof(U))
 
 @Markdown.doc """
     scheme(R::SpecOpenRing)
@@ -947,3 +953,4 @@ function preimage(f::SpecMor, V::SpecOpen; check::Bool=true)
   new_gens = pullback(f).(gens(V))
   return SpecOpen(Z, lifted_numerator.(new_gens), check=check)
 end
+
