@@ -41,7 +41,7 @@ This is implemented via `td1 == td2`.
 
 ## Properties of toric divisors
 
-To check if a toric divisor `td` is trivial, one can invoke `istrivial(td)`.
+To check if a toric divisor `td` is trivial, one can invoke `is_trivial(td)`.
 Internally, this executes the following method:
 ```@docs
 is_principal(td::ToricDivisor)

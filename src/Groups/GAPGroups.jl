@@ -184,7 +184,7 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 @gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
 
 
-@gapattribute istrivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
+@gapattribute is_trivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
 
 
 @doc Markdown.doc"""

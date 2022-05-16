@@ -1,5 +1,5 @@
-istrivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
-export istrivial
+is_trivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
+export is_trivial
 
 
 @doc Markdown.doc"""

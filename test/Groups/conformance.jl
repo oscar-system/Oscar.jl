@@ -35,7 +35,7 @@ import Oscar.AbstractAlgebra.GroupsCore
       if isfinite(G)
          @test order(G) isa fmpz
          @test order(G) > 0
-         @test istrivial(G) == (order(G) == 1)
+         @test is_trivial(G) == (order(G) == 1)
       else
         @test_throws GroupsCore.InfiniteOrder{typeof(G)} order(G)
       end

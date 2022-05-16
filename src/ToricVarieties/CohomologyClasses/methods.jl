@@ -62,7 +62,7 @@ function integrate(c::CohomologyClass)::fmpq
     end
     
     # otherwise, proceed "by hand"
-    if istrivial(c)
+    if is_trivial(c)
         return 0
     end
     poly = polynomial(c)

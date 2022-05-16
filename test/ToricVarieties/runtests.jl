@@ -61,7 +61,7 @@ end
 end
 
 @testset "Affine toric varieties from fans" begin
-    @test istrivial(picard_group(antv6)) == true
+    @test is_trivial(picard_group(antv6)) == true
 end
 
 
@@ -336,7 +336,7 @@ end
     @test is_prime(D) == false
     @test is_cartier(D) == true
     @test is_principal(D) == true
-    @test istrivial(D) == true
+    @test is_trivial(D) == true
     @test is_basepoint_free(D) == true
     @test is_ample(D) == false
     @test is_very_ample(D) == false
@@ -393,14 +393,14 @@ DC5 = anticanonical_divisor_class(dP3)
 DC6 = trivial_divisor_class(dP3)
 
 @testset "Attributes of toric divisor classes" begin
-    istrivial(toric_divisor(DC2)) == false
+    is_trivial(toric_divisor(DC2)) == false
     rank(parent(divisor_class(DC2))) == 2
     dim(toric_variety(DC2)) == 2
 end
 
 @testset "Arithmetics of toric divisor classes" begin
-    @test istrivial(fmpz(2)*DC+DC2) == false
-    @test istrivial(2*DC-DC2) == false
+    @test is_trivial(fmpz(2)*DC+DC2) == false
+    @test is_trivial(2*DC-DC2) == false
     @test (DC == DC2) == false
     @test (DC4 - DC5 == DC6) == false
     @test (DC == DC3) == false
@@ -427,7 +427,7 @@ l7 = structure_sheaf(dP3)
 end
 
 @testset "Properties and attributes of toric line bundles" begin
-    @test istrivial(l) == false
+    @test is_trivial(l) == false
     @test is_basepoint_free(l) == false
     @test is_ample(l) == false
     @test is_very_ample(l) == false
@@ -506,19 +506,19 @@ c3 = CohomologyClass(dP1, u1)
 @testset "Argument errors for cohomology classes" begin
     @test_throws ArgumentError cohomology_ring(antv)
     @test_throws ArgumentError chow_ring(antv)
-    @test_throws ArgumentError istrivial(c - c3)
-    @test_throws ArgumentError istrivial(c + c3)
+    @test_throws ArgumentError is_trivial(c - c3)
+    @test_throws ArgumentError is_trivial(c + c3)
     @test_throws ArgumentError ideal_of_linear_relations(R, dP3)
 end
 
 @testset "Cohomology ring, Chow ring and volume form of direct product space" begin
     @test ngens(ideal_of_linear_relations(ntv6)) == 4
     @test ngens(chow_ring(ntv6).I) == 7
-    @test istrivial(volume_form(ntv6)) == false
+    @test is_trivial(volume_form(ntv6)) == false
 end
 
 @testset "Properties, attributes and arithmetics of cohomology classes" begin
-    @test istrivial(c) == false
+    @test is_trivial(c) == false
     @test nrows(exponents(c)) == 3
     @test length(coefficients(c)) == 3
     @test fmpq(3) * c == fmpz(3) * c
