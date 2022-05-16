@@ -186,9 +186,9 @@ function neighbor_patches(C::Covering, U::Spec)
   return [C[i] for i in n]
 end
 
-affine_patch_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = SpecType
+affine_patch_type(C::Covering) = affine_patch_type(typeof(C))
 glueing_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
-affine_patch_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = SpecType
+affine_patch_type(::Type{Covering{SpecType, GlueingType, SpecOpenType, RingElemType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
 glueing_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
 open_subset_type(::Type{Covering{R, S, T}}) where {R, S, T} = T
 open_subset_type(C::Covering) = open_subset_type(typeof(C))

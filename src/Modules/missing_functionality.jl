@@ -1,3 +1,4 @@
+export subquo_type
 ########################################################################
 #
 # This file contains hacks for functionality that was found missing. 
@@ -73,3 +74,5 @@ function default_ordering(F::FreeMod{T}) where {T<:MPolyQuoLocalizedRingElem}
   return default_ordering(base_ring_module(F))
 end
     
+subquo_type(::Type{RingType}) where {RingType<:Ring} = SubQuo{elem_type(RingType)}
+subquo_type(R::RingType) where {RingType<:Ring} = subquo_type(typeof(R))
