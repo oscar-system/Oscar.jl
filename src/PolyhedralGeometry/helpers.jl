@@ -131,11 +131,13 @@ homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(m
 homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
 homogenize(nothing,val::Number)=nothing
 homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) = homogenize(x, val)
+homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) = stack((homogenize(x[i], val) for i in 1:length(x))...)
 
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
 
-unhomogenized_matrix(x::Union{AbstractVecOrMat,MatElem}) = assure_matrix_polymake(x)
+unhomogenized_matrix(x::Union{AbstractVecOrMat,MatElem}) = assure_matrix_polymake(stack(x))
+unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) = unhomogenized_matrix(stack((x[i] for i in 1:length(x))...))
 
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
@@ -179,6 +181,8 @@ stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [permutedims(A); 
 stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [permutedims(A); permutedims(B)]
 stack(A::AbstractVector,nothing) = permutedims(A)
 stack(nothing,B::AbstractVector) = permutedims(B)
+stack(x, y, z...) = stack(stack(x, y), z[1], z[2:end]...)
+stack(x) = stack(x, nothing)
 #=
 function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2

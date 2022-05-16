@@ -112,8 +112,22 @@
         @test Oscar.ambient_dim(vertices(Pos_poly)) == 3
         @test Oscar.ambient_dim(collect(vertices(Pos_poly))) == 3
         
+        # test for correctness of input interpretation for different types
+        
+        @test convex_hull(vertices(Pos_poly), rays(Pos_poly)) == Pos_poly
+        @test positive_hull(rays(Pos_cone)) == Pos_cone
+        
         @test convex_hull([-1 -1 -1], rays(Pos_cone)) == Pos_poly + [-1, -1, -1]
         @test positive_hull(rays(Pos_poly)) == Pos_cone
+        
+        @test convex_hull([[0, 0, 0]], [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) == Pos_poly
+        @test positive_hull([[1, 0, 0], [0, 1, 0], [0, 0, 1]]) == Pos_cone
+        
+        @test convex_hull(collect(vertices(Pos_poly)), collect(rays(Pos_poly))) == Pos_poly
+        @test positive_hull(collect(rays(Pos_poly))) == Pos_cone
+        
+        @test convex_hull([0, 0, 0], rays(Pos_poly)) == Pos_poly
+        @test rays(positive_hull([1, 0, 0]))[] == [1, 0, 0]
         
         # Here the content of the SubObjectIterator does not fit the idea of the
         # methods; we want ArgumentErrors to be thrown
@@ -123,6 +137,9 @@
         @test_throws ArgumentError convex_hull(rays(Pos_poly), [-1 -1 -1])
         @test_throws ArgumentError convex_hull([0 0 0], vertices(Pos_poly))
         @test_throws ArgumentError positive_hull(vertices(Pos_poly))
+        @test_throws ArgumentError convex_hull(collect(rays(Pos_poly)))
+        @test_throws ArgumentError convex_hull(vertices(Pos_poly), collect(vertices(Pos_poly)))
+        @test_throws ArgumentError positive_hull(collect(vertices(Pos_poly)))
         
     end
 

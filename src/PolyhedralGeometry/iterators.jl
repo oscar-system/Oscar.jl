@@ -326,11 +326,24 @@ function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
     return matrix_for_polymake(x; homogenized=true)
 end
 
+function homogenized_matrix(x::AbstractVector{<:PointVector}, v::Number = 1)
+    if v != 1
+        throw(ArgumentError("PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first."))
+    end
+    return stack((homogenize(x[i], v) for i in 1:length(x))...)
+end
+function homogenized_matrix(x::AbstractVector{<:RayVector}, v::Number = 0)
+    if v != 0
+        throw(ArgumentError("RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first."))
+    end
+    return stack((homogenize(x[i], v) for i in 1:length(x))...)
+end
+
 homogenized_matrix(::SubObjectIterator, v::Number) = throw(ArgumentError("Content of SubObjectIterator not suitable for homogenized_matrix."))
 
 unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
 
-unhomogenized_matrix(x::SubObjectIterator{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
+unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
 
 ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 
