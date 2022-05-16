@@ -40,6 +40,7 @@
         @test isbounded(Q0)
         @test isfulldimensional(Q0)
         @test f_vector(Q0) == [3,3]
+        @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
         @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
@@ -179,9 +180,27 @@
     end
 
     @testset "standard_constructions" begin
+        @test convex_hull(T, pts, nothing, [1 1]) == Q2
+        @test Polyhedron{T}(nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
         nc = normal_cone(square, 1)
         @test nc isa Cone{T}
         @test rays(nc) == [[1, 0], [0, 1]]
+        let H = LinearHalfspace{T}([1, 1, 0])
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}([1 1 0], 0)
+        end
+        let H = AffineHalfspace{T}([1, 0, 1], 5)
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}([1 0 1], 5)
+        end
+        let H = LinearHyperplane{T}([0, 1, 1])
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
+        end
+        let H = AffineHyperplane{T}([1, 1, 1], 7)
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
+        end
         if T == fmpq
             @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
             @test upper_bound_g_vector(4,8) == [1, 3, 6]

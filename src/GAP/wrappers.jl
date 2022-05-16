@@ -25,6 +25,9 @@ GAP.@wrap DenominatorRat(x::Any)::GapInt
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
+GAP.@wrap Image(x::Any, y::Any)::GapObj
+GAP.@wrap Image(x::Any)::GapObj
+GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap IntFFE(x::Any)::GapInt
 GAP.@wrap IsAbelian(x::Any)::Bool

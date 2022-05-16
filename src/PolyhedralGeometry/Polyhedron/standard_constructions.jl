@@ -228,7 +228,21 @@ function newton_polytope(f)
 end
 
 
+Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(permutedims(normal_vector(H)), negbias(H))
 
+Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(permutedims(normal_vector(H)), negbias(H))
+
+function Polyhedron(H::Hyperplane{T}) where T<:scalar_types
+   n = permutedims(normal_vector(H))
+   b = negbias(H)
+   return Polyhedron{T}(nothing, (n, [b]))
+end
+
+function Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}})
+   n = permutedims(normal_vector(H))
+   b = negbias(H)
+   return Polyhedron{nf_elem}(nothing, (n, [b]))
+end
 
 @doc Markdown.doc"""
     intersect(P::Polyhedron, Q::Polyhedron)
@@ -255,7 +269,6 @@ julia> rays(PO)
 function intersect(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
    return Polyhedron{T}(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
 end
-
 
 @doc Markdown.doc"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
@@ -848,3 +861,23 @@ julia> f_vector(DP)
 ```
 """
 delpezzo(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))
+
+
+
+@doc Markdown.doc"""
+    cyclic_polytope(d::Int, n::Int)
+
+Construct the cyclic polytope that is the convex hull of $n$ points on the
+moment curve in dimension $d$.
+
+
+# Examples
+```jldoctest
+julia> cp = cyclic_polytope(3, 20)
+A polyhedron in ambient dimension 3
+
+julia> nvertices(cp)
+20
+```
+"""
+cyclic_polytope(d::Int, n::Int) = Polyhedron(Polymake.polytope.cyclic(d, n))

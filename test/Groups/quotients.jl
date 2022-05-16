@@ -55,6 +55,7 @@ end
    G = abelian_group(T, [2, 3, 4])
    @test maximal_abelian_quotient(G)[1] isa PcGroup
    @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   @test maximal_abelian_quotient(GrpAbFinGen, G)[1] isa GrpAbFinGen
    G = symmetric_group(4)
    @test maximal_abelian_quotient(G)[1] isa PcGroup
    @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
@@ -78,7 +79,7 @@ end
    @test isfinite(G)
    @test order(G) == 2*n
    @test !isabelian(G)
-   @test isisomorphic(G, dihedral_group(2*n))[1]
+   @test isisomorphic(G, dihedral_group(2*n))
    @test !isinjective(f)
    @test issurjective(f)
    @test exponent(G) == 2*n

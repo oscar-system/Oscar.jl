@@ -508,6 +508,24 @@ function structure_tropical_jacobian(TC::TropicalCurve)
     return G
 end
 
+"""
+This recipe allows to use `Plots` without having `Plots` as a dependency.
+
+Usage example:
+```julia
+julia> using Revise, Plots, Oscar, Test;
+
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> PC = PolyhedralComplex{fmpq}(IM, VR);
+
+julia> TC = TropicalCurve(PC);
+
+julia> plot(TC)
+```
+"""
 @recipe function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
     @assert EMB "Tropical curve is abstract."
     PC = tc.polyhedralComplex
@@ -527,5 +545,10 @@ end
             append!(list_vertices,V[1][1]+V[1][2]*im,B[1]+B[2]*im,Inf+0*im)
         end
     end
-    return list_vertices #(list_vertices,legend=false,axis=false,xlabel="",ylabel="")
+    # Set default options for plot
+    legend := false
+    axis := false
+    xlabel := ""
+    ylabel := ""
+    return list_vertices 
 end

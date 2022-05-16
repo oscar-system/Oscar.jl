@@ -19,7 +19,7 @@ export issmooth, tangent, common_components, curve_intersect, intersect,
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -53,7 +53,7 @@ end
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -92,7 +92,7 @@ end
 
 Return the affine plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -128,7 +128,7 @@ end
 
 Return a list whose first element is the affine plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -221,7 +221,7 @@ end
 
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -307,7 +307,7 @@ end
 
 Return the multiplicity of `C` at `P`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -343,7 +343,7 @@ end
 
 Return the tangent lines at `P` to `C` with their multiplicity.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -408,7 +408,7 @@ end
 
 Return the intersection multiplicity of `C` and `D` at `P`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -444,7 +444,7 @@ end
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -480,7 +480,7 @@ end
 
 Return `true` if `C` has no singular point, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -525,7 +525,7 @@ end
 
 Return the geometric genus of the projective closure of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])

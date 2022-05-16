@@ -120,15 +120,15 @@ end
 @doc Markdown.doc"""
     FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T
 
-Return the element of  `F`  whose coefficients with respect to the basis of 
+Return the element of `F` whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T = FreeModElem{T}(c, parent)
 
 @doc Markdown.doc"""
     FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
-    
-Return the element of  `F`  whose coefficients with respect to the basis of 
+
+Return the element of `F` whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
@@ -137,40 +137,40 @@ function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
   return FreeModElem{T}(sparse_coords,parent)
 end
 
-@doc Markdown.doc"""
-    (F::FreeMod{T})(c::SRow{T}) where T
-    
-Return the element of  `F`  whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
+#@doc Markdown.doc"""
+#    (F::FreeMod{T})(c::SRow{T}) where T
+#
+#Return the element of `F` whose coefficients with respect to the basis of
+#standard unit vectors of `F` are given by the entries of `c`.
+#"""
 function (F::FreeMod{T})(c::SRow{T}) where T
   return FreeModElem(c, F)
 end
 
-@doc Markdown.doc"""
-    (F::FreeMod{T})(c::Vector{T}) where T
-
-Return the element of  `F`  whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-
-# Examples
-```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-
-julia> F = FreeMod(R,3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
-
-julia> V = [x, zero(R), y]
-3-element Vector{fmpq_mpoly}:
- x
- 0
- y
-
-julia> f = F(V)
-x*e[1] + y*e[3]
-```
-"""
+#@doc Markdown.doc"""
+#    (F::FreeMod{T})(c::Vector{T}) where T
+#
+#Return the element of `F` whose coefficients with respect to the basis of
+#standard unit vectors of `F` are given by the entries of `c`.
+#
+## Examples
+#```jldoctest
+#julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+#(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+#
+#julia> F = FreeMod(R,3)
+#Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+#
+#julia> V = [x, zero(R), y]
+#3-element Vector{fmpq_mpoly}:
+# x
+# 0
+# y
+#
+#julia> f = F(V)
+#x*e[1] + y*e[3]
+#```
+#"""
 function (F::FreeMod{T})(c::Vector{T}) where T 
  return FreeModElem(c, F)
 end

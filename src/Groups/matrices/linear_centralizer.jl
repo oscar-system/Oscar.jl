@@ -369,7 +369,7 @@ function _centralizer_SL(x::MatElem)
    c = _centralizer(f)(companion_matrix(f))
    # Computes d such that det(c)^d = lambda and replace c by c^d.
    # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
-   c = c^(_disc_log(det(c),_lambda))
+   c = c^(disc_log(det(c),_lambda))
    # block_dim is a list of triples [d,m,c], where
    # d = dimension of the Jordan block, m = its multiplicity, c = el of max order determinant in centralizer of the companion matrix
    block_dim = [[ED[1][2],1,c]]
@@ -397,7 +397,7 @@ function _centralizer_SL(x::MatElem)
             c = _centralizer(f)(companion_matrix(f))
             # Computes d such that det(c)^d = lambda and replace c by c^d.
             # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
-            c = c^(_disc_log(det(c),_lambda))
+            c = c^(disc_log(det(c),_lambda))
             push!(block_dim, [ED[i][2],1,c])
          end
       end

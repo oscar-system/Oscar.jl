@@ -184,7 +184,7 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = pm_object(P).N_VERTICES::Int - nrays(P)
+nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - nrays(P)
 
 
 @doc Markdown.doc"""
@@ -252,7 +252,7 @@ julia> nfacets(cross(5))
 ```
 """
 function nfacets(P::Polyhedron)
-    n = pm_object(P).N_FACETS::Int
+    n = size(pm_object(P).FACETS, 1)::Int
     return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end
 
@@ -342,10 +342,11 @@ end
 
 function _facet_at_infinity(P::Polymake.BigObject)
     fai = Polymake.get_attachment(P, "_facet_at_infinity")
+    m = size(P.FACETS,1)
     if isnothing(fai)
-        F = [P.FACETS[i, :] for i in 1:P.N_FACETS]
+        F = [P.FACETS[i, :] for i in 1:m]
         i = findfirst(_is_facet_at_infinity, F)
-        fai = Int64(isnothing(i) ? P.N_FACETS + 1 : i)
+        fai = Int64(isnothing(i) ? m + 1 : i)
         Polymake.attach(P, "_facet_at_infinity", fai)
     end
     return fai::Int64

@@ -455,28 +455,20 @@ function simplify(a::MPolyQuoIdeal)
    J = R.I
    GJ = groebner_assure(J)
    singular_assure(GJ)
-   oscar_assure(a)
    singular_assure(a.I)
    red  = reduce(a.I.gens.S, GJ.S)
    SR   = singular_poly_ring(R)
-   si   = Singular.Ideal(SR, gens(red))
+   si   = Singular.Ideal(SR, unique!(gens(red)))
    red  = MPolyQuoIdeal(R, si)
    return red
 end
+
 function simplify!(a::MPolyQuoIdeal)
-    R   = base_ring(a)
-    oscar_assure(a)
-    RI  = base_ring(a.I)
-    J = R.I
-    GJ = groebner_assure(J)
-    singular_assure(GJ)
-    oscar_assure(a)
-    singular_assure(a.I)
-    red  = reduce(a.I.gens.S, GJ.S)
-    SR   = singular_poly_ring(R)
-    a.SI = Singular.Ideal(SR, gens(red))
-    a.I  = ideal(RI, RI.(gens(a.SI)))
-    return a
+  b = simplify(a)
+  a.SI = b.SI
+  RI = base_ring(a.I)
+  a.I = ideal(RI, RI.(gens(a.SI)))
+  return a
 end
 
 @doc Markdown.doc"""
@@ -645,6 +637,9 @@ MPolyQuo{fmpq_mpoly}
 
 julia> typeof(x)
 fmpq_mpoly
+
+julia> typeof(A(x))
+MPolyQuoElem{fmpq_mpoly}
 
 julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 
@@ -988,21 +983,19 @@ isgraded(q::MPolyQuo) = isgraded(q.R)
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
 
-Given an element `f` of an affine algebra which is graded by a finitely
-generated Abelian group, and given an element `g` of that group,
-return the homogeneous component of `f` of degree `g`.
+Given an element `f` of a graded affine algebra, and given an element `g` of the
+grading group of that algebra, return the homogeneous component of `f` of degree `g`.
 
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
 
-Given an element `f` of a $\mathbb  Z^m$-graded affine algebra, and given
-a vector `g` of $m$ integers, convert `g` into an element of the group 
-$\mathbb  Z^m$, and return the homogeneous component of `f` whose degree 
-is that element.
+Given an element `f` of a $\mathbb  Z^m$-graded affine algebra `A`, say, and given
+a vector `g` of $m$ integers, convert `g` into an element of the grading group of `A`,
+and return the homogeneous component of `f` whose degree is that element.
 
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
 
-Given an element `f` of a $\mathbb  Z$-graded affine algebra, and given
-an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
+Given an element `f` of a $\mathbb  Z$-graded affine algebra `A`, say, and given
+an integer `g`, convert `g` into an element of the grading group of `A`, 
 and return the homogeneous component of `f` whose degree is that element.
 
 # Examples
@@ -1036,7 +1029,7 @@ end
 @doc Markdown.doc"""
     homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
 
-Return the homogeneous components of `f`.
+Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
 
 # Examples
 ```jldoctest
@@ -1062,7 +1055,7 @@ end
 @doc Markdown.doc"""
     ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 
-Return `true` if `f` is homogeneous, `false` otherwise.
+Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
