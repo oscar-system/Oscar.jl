@@ -3731,14 +3731,14 @@ Apply $P \otimes \bullet$ to `C`.
 function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
-  tensor_modules = [tensor_product(P, domain(map(C,first(my_range(C)))), task=:cache_morphism)[1]]
-  tensor_modules = vcat(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in my_range(C)])
+  tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
+  tensor_modules = vcat(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in range(C)])
 
-  for i in 1:length(my_range(C))
+  for i in 1:length(range(C))
     A = tensor_modules[i]
     B = tensor_modules[i+1]
 
-    j = my_range(C)[i]
+    j = range(C)[i]
     push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
   end
 
@@ -3754,7 +3754,7 @@ Apply $\bullet \otimes P$ to `C`.
 function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
-  chain_range = my_range(C)
+  chain_range = range(C)
   tensor_modules = [tensor_product(domain(map(C,first(chain_range))), P, task=:cache_morphism)[1]]
   tensor_modules = vcat(tensor_modules, [tensor_product(codomain(map(C,i)), P, task=:cache_morphism)[1] for i in chain_range])
 
@@ -3845,7 +3845,7 @@ Apply $\text{Hom}(P,-)$ to `C`. Return the lifted chain complex.
 function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
-  chain_range = my_range(C)
+  chain_range = range(C)
   hom_modules = [hom(P, domain(map(C,first(chain_range))))]
   hom_modules = vcat(hom_modules, [hom(P, codomain(map(C,i))) for i in chain_range])
 
@@ -3869,7 +3869,7 @@ Apply $\text{Hom}(-,P)$ to `C`. Return the lifted chain complex.
 function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
-  chain_range = my_range(C)
+  chain_range = range(C)
   hom_modules = [hom(domain(map(C,first(chain_range))),P)]
   hom_modules = vcat(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
 
@@ -3894,7 +3894,7 @@ Compute all homology groups of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP})
   H = SubQuo[]
-  chain_range = my_range(C)
+  chain_range = range(C)
   next = iterate(chain_range)
   while next !== nothing
     (i, state) = next
@@ -3914,7 +3914,7 @@ end
 Compute the `i`-th homology of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
-  chain_range = my_range(C)
+  chain_range = range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
   if i == first(chain_range)
     return kernel(map(C,i))[1]
@@ -4529,21 +4529,4 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
 
     return SQ, to_hom_map
   end
-end
-
-###############################################################################
-# Until Hecke.jl is fixed
-###############################################################################
-function my_range(C::Hecke.ChainComplex) 
-  len = length(C.maps)
-  k = sort(collect(keys(C.maps)))
-  start = C.start
-  if length(k) == k[end] - k[1] + 1
-    if Hecke.ischain_complex(C)
-      return start-k[1]:-1:start-k[end]
-    else
-      return start .+ k[1]:k[end]
-    end
-  end
-  error("complex not connected")
 end
