@@ -22,5 +22,29 @@
             loaded = load(filename)
             @test q == loaded
         end
+
+        @testset "UV Polynomial Over Finite Field Extension" begin
+            T, t = PolynomialRing(ResidueRing(ZZ, 2), "t")
+            F, a = FiniteField(t^2 + t + 1)
+            Fx, x = PolynomialRing(F, "x")
+            p = a * x^2 + a^2
+            filename = joinpath(path, "polynomial_ffe.uv")
+            save(p, filename)
+            loaded = load(filename)
+            @test p == loaded
+        end
+
+        @testset "UV Polynomial Over Field Tower Extension" begin
+            Qx, x = QQ["x"]
+            K, a = NumberField(x^3 - 2, "a")
+            Ky, y = K["y"]
+            L, b = NumberField(y^2 + 1, "b")
+            Lz, z = L["z"]
+            p = a^2 * b * z^2 + a * z + b
+            filename = joinpath(path, "polynomial_ffe.uv")
+            save(p, filename)
+            loaded = load(filename)
+            @test p == loaded
+        end
     end
 end
