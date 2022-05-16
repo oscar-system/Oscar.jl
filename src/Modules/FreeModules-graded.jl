@@ -79,7 +79,7 @@ function show(io::IO, F::FreeModule_dec)
 
   print(io, "Free module of rank $(length(F.d)) over ")
   print(IOContext(io, :compact =>true), F.R)
-  if isgraded(F.R)
+  if is_graded(F.R)
     print(io, ", graded as ")
   else
     print(io, ", filtrated as ")
@@ -204,7 +204,7 @@ function degree(a::FreeModuleElem_dec)
     if first
       ww = w
       first = false
-    elseif isgraded(W)
+    elseif is_graded(W)
       if ww != w
         error("elem not homogeneous")
       end
@@ -380,8 +380,8 @@ function (F::FreeModule_dec)(s::Singular.svector)
     convert(F, s)
 end
 
-isgraded(F::FreeModule_dec) = isgraded(F.R)
-isfiltered(F::FreeModule_dec) = isfiltered(F.R)
+is_graded(F::FreeModule_dec) = is_graded(F.R)
+is_filtered(F::FreeModule_dec) = is_filtered(F.R)
 
 abstract type ModuleFPHom_dec end
 abstract type Map_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom_dec} end
@@ -390,7 +390,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::MapHeader
 
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector) where {T, S}
-#    @assert isfiltered(F) || all(is_homogeneous, a) #necessary and sufficient according to Hans XXX
+#    @assert is_filtered(F) || all(is_homogeneous, a) #necessary and sufficient according to Hans XXX
 #same as non-homogeneous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
@@ -455,7 +455,7 @@ function degree(h::T) where {T <: Map_dec}
       first = false
     end
     dd = degree(hi) - degree(i)
-    if isfiltered(R)
+    if is_filtered(R)
       if R.lt(d, dd)
         d = dd
       end

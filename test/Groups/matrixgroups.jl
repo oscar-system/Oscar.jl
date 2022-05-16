@@ -558,8 +558,8 @@ end
       @test parent(u)==G
       @test is_coprime(order(s),3)
       @test isone(u) || is_power(order(u))[2]==3
-      @test issemisimple(s)
-      @test isunipotent(u)
+      @test is_semisimple(s)
+      @test is_unipotent(u)
       @test s*u==G(x)
       @test s*u==u*s
 
@@ -573,7 +573,7 @@ end
    end
    
    x = one(G)
-   @test issemisimple(x) && isunipotent(x)
+   @test is_semisimple(x) && is_unipotent(x)
 
    F,z = FiniteField(5,3,"z")
    G = GL(6,F)

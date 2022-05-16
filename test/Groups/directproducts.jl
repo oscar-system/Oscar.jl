@@ -11,7 +11,7 @@
    @test factor_of_direct_product(G,2)==C
    @test_throws ArgumentError factor_of_direct_product(G,3)
    @test number_of_factors(G)==2
-   @test isfull_direct_product(G)
+   @test is_full_direct_product(G)
    @test PermGroup(G) isa PermGroup
 
    G,emb,proj = direct_product(S,C; morphisms=true)
@@ -119,10 +119,10 @@
       x3 = G(one(C),one(C),C[1],one(C),one(C))
       H = sub(G,[x1,x2,x3])[1]
       K = sub(G,[x1*x2*x3])[1]
-      @test !isfull_direct_product(H)
-      @test !isfull_direct_product(K)
+      @test !is_full_direct_product(H)
+      @test !is_full_direct_product(K)
       Hf = write_as_full(H)
-      @test isfull_direct_product(Hf)
+      @test is_full_direct_product(Hf)
       @test_throws ArgumentError write_as_full(K)
    end
 end
@@ -140,7 +140,7 @@ end
    @test is_isomorphic(acting_subgroup(G),C)
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
-   @test isfull_semidirect_product(G)
+   @test is_full_semidirect_product(G)
    @test PermGroup(G) isa PermGroup
    x = G(Q[1]*Q[2],C[1])
    @test parent(x)==G
@@ -149,12 +149,12 @@ end
    @test_throws ArgumentError H(Q[1],C[1])
    @test is_subgroup(G,H)[1]
    @test index(G,H)==4
-   @test !isfull_semidirect_product(H)
+   @test !is_full_semidirect_product(H)
    @test projection(G)(x)==projection(H)(x)
    @test H==center(G)[1]
    y=G(Q[1],one(C))
    K = sub(G,gens(G))[1]
-#   @test isfull_semidirect_product(K)
+#   @test is_full_semidirect_product(K)
    K = sub(G,[y])[1]
    @test K==sub(y)[1]
    @test K==sub(y)[1]
@@ -173,7 +173,7 @@ end
    W = wreath_product(C,H)
    @test W isa WreathProductGroup
    @test order(W)==48
-   @test isfull_wreath_product(W)
+   @test is_full_wreath_product(W)
    @test W==sub(W,gens(W))[1]
    @test PermGroup(W) isa PermGroup
 
@@ -194,7 +194,7 @@ end
    @test codomain(projection(W))==H
    @test domain(embedding(W,2))==C
    K = sub(W,gens(W))[1]
-#   @test isfull_wreath_product(K)
+#   @test is_full_wreath_product(K)
    K = sub(W,[x])[1]
    @test K==sub(x)[1]
    @test K==sub(x)[1]

@@ -453,7 +453,7 @@ end
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
 # And maybe some day we can also compute Molien series in some modular cases.
-ismolien_series_implemented(I::InvRing) = !is_modular(I)
+is_molien_series_implemented(I::InvRing) = !is_modular(I)
 
 ################################################################################
 #

@@ -45,17 +45,17 @@
   @test_throws ArgumentError symmetric_group(0)
   @test_throws ArgumentError alternating_group(-1)
 
-  @test isnatural_alternating_group(alternating_group(4))
-  @test ! isnatural_alternating_group(omega_group(3,3))
-  @test isisomorphic_with_alternating_group(alternating_group(4))
-  @test isisomorphic_with_alternating_group(omega_group(3,3))
-  @test !isisomorphic_with_alternating_group(symmetric_group(4))
+  @test is_natural_alternating_group(alternating_group(4))
+  @test ! is_natural_alternating_group(omega_group(3,3))
+  @test is_isomorphic_with_alternating_group(alternating_group(4))
+  @test is_isomorphic_with_alternating_group(omega_group(3,3))
+  @test !is_isomorphic_with_alternating_group(symmetric_group(4))
 
-  @test isnatural_symmetric_group(symmetric_group(4))
-  @test ! isnatural_symmetric_group(symmetric_group(PcGroup,4))
-  @test isisomorphic_with_symmetric_group(symmetric_group(4))
-  @test isisomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
-  @test !isisomorphic_with_symmetric_group(alternating_group(4))
+  @test is_natural_symmetric_group(symmetric_group(4))
+  @test ! is_natural_symmetric_group(symmetric_group(PcGroup,4))
+  @test is_isomorphic_with_symmetric_group(symmetric_group(4))
+  @test is_isomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
+  @test !is_isomorphic_with_symmetric_group(alternating_group(4))
 end
 
 @testset "Special Constructors" begin
@@ -71,7 +71,7 @@ end
   @test isa(symmetric_group(PcGroup,3), PcGroup)
   @test is_isomorphic(symmetric_group(4), symmetric_group(PcGroup,4))
 
-  @test isquaternion_group(small_group(8, 4))
+  @test is_quaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
   @test isa(small_group(60, 5), PermGroup)

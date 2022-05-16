@@ -773,7 +773,7 @@ is_very_ample(P::Polyhedron{fmpq}) = pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
-    isfeasible(P::Polyhedron)
+    is_feasible(P::Polyhedron)
 
 Check whether `P` is feasible, i.e. non-empty.
 
@@ -781,11 +781,11 @@ Check whether `P` is feasible, i.e. non-empty.
 ```jldoctest
 julia> P = Polyhedron([1 -1; -1 1; -1 0; 0 -1],[-1,-1,1,1]);
 
-julia> isfeasible(P)
+julia> is_feasible(P)
 false
 ```
 """
-isfeasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
+is_feasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
 
 
 @doc Markdown.doc"""
@@ -851,7 +851,7 @@ is_normal(P::Polyhedron{fmpq}) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
-    isbounded(P::Polyhedron)
+    is_bounded(P::Polyhedron)
 
 Check whether `P` is bounded.
 
@@ -859,11 +859,11 @@ Check whether `P` is bounded.
 ```jldoctest
 julia> P = Polyhedron([1 -3; -1 1; -1 0; 0 -1],[1,1,1,1]);
 
-julia> isbounded(P)
+julia> is_bounded(P)
 false
 ```
 """
-isbounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
+is_bounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
 
 
 @doc Markdown.doc"""
@@ -884,7 +884,7 @@ is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
 
 @doc Markdown.doc"""
-    isfulldimensional(P::Polyhedron)
+    is_fulldimensional(P::Polyhedron)
 
 Check whether `P` is full-dimensional.
 
@@ -892,11 +892,11 @@ Check whether `P` is full-dimensional.
 ```jldoctest
 julia> V = [1 2 3; 1 3 2; 2 1 3; 2 3 1; 3 1 2; 3 2 1];
 
-julia> isfulldimensional(convex_hull(V))
+julia> is_fulldimensional(convex_hull(V))
 false
 ```
 """
-isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
+is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
 
 @doc Markdown.doc"""
@@ -943,7 +943,7 @@ julia> h_vector(cross(3))
 ```
 """
 function h_vector(P::Polyhedron)::Vector{fmpz}
-    isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).H_VECTOR
 end
 
@@ -963,7 +963,7 @@ julia> g_vector(cross(3))
 ```
 """
 function g_vector(P::Polyhedron)::Vector{fmpz}
-    isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    is_bounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).G_VECTOR
 end
 

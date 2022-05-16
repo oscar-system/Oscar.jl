@@ -85,7 +85,7 @@ function candidates_primary_degrees(R::InvRing, k::Int, bad_prefixes::Vector{Vec
     end
     skip ? continue : nothing
 
-    if ismolien_series_implemented(R)
+    if is_molien_series_implemented(R)
       if !test_primary_degrees_via_hilbert_series(R, ds)
         continue
       end

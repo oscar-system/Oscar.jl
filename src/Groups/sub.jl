@@ -9,8 +9,8 @@ export
     is_characteristic,
     is_maximal,
     is_nilpotent, has_is_nilpotent, set_is_nilpotent,
-    issolvable, has_is_solvable, set_is_solvable,
-    issupersolvable, has_is_supersolvable, set_is_supersolvable,
+    is_solvable, has_is_solvable, set_is_solvable,
+    is_supersolvable, has_is_supersolvable, set_is_supersolvable,
     maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient,
     maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups,
     maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups,
@@ -286,13 +286,13 @@ function is_characteristic(G::T, H::T) where T <: GAPGroup
 end
 
 """
-    issolvable(G::GAPGroup)
+    is_solvable(G::GAPGroup)
 
 Return whether `G` is solvable,
 i.e., whether [`derived_series`](@ref)(`G`)
 reaches the trivial subgroup in a finite number of steps.
 """
-@gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
+@gapattribute is_solvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
 
 """
     is_nilpotent(G::GAPGroup)
@@ -304,12 +304,12 @@ in a finite number of steps.
 @gapattribute is_nilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
 
 """
-    issupersolvable(G::GAPGroup)
+    is_supersolvable(G::GAPGroup)
 
 Return whether `G` is supersolvable,
 i.e., `G` is finite and has a normal series with cyclic factors.
 """
-@gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
+@gapattribute is_supersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
 
 ################################################################################
 #

@@ -1,7 +1,7 @@
 #module ProjPlaneCurveModule
 
 export is_smooth, tangent, common_components, curve_intersect,
-       curve_singular_locus, issmooth_curve, multiplicity,
+       curve_singular_locus, is_smooth_curve, multiplicity,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
 
@@ -306,11 +306,11 @@ end
 #
 
 @doc Markdown.doc"""
-    issmooth_curve(C::ProjectivePlaneCurve)
+    is_smooth_curve(C::ProjectivePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
 """
-function issmooth_curve(C::ProjectivePlaneCurve)
+function is_smooth_curve(C::ProjectivePlaneCurve)
    F = defining_equation(C)
    R = parent(F)
    J = jacobi_ideal(F)

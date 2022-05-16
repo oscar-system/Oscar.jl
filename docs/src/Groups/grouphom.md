@@ -144,7 +144,7 @@ is_injective(f::GAPGroupHomomorphism)
 is_surjective(f::GAPGroupHomomorphism)
 is_bijective(f::GAPGroupHomomorphism)
 is_invertible(f::GAPGroupHomomorphism)
-isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
+is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
 ## Subgroups described by homomorphisms

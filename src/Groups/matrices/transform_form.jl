@@ -3,7 +3,7 @@
 
 
 export
-    iscongruent
+    is_congruent
 
 ###############################################################################################################
 
@@ -371,7 +371,7 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
 end
 
 """
-    iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
+    is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
 If `f` and `g` are sesquilinear forms, return (`true`, `C`) if there exists a
 matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B`
@@ -383,7 +383,7 @@ If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
 matrix `C` such that `f^A = ag` for some scalar `a`. If such `C` does not
 exist, then return (`false`, `nothing`).
 """
-function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
+function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
    @assert base_ring(f)==base_ring(g) "The forms have not the same base ring"
    @assert nrows(gram_matrix(f))==nrows(gram_matrix(g)) "The forms act on vector spaces of different dimensions"
@@ -404,7 +404,7 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
             return false, nothing
          end
       else
-         return iscongruent(corresponding_bilinear_form(f), corresponding_bilinear_form(g))
+         return is_congruent(corresponding_bilinear_form(f), corresponding_bilinear_form(g))
       end
    else
       rank_f = rank(gram_matrix(f))

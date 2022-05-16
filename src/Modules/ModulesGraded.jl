@@ -144,20 +144,20 @@ decoration(F::FreeMod_dec) = F.d
 decoration(R::MPolyRing_dec) = R.D
 
 @doc Markdown.doc"""
-    isgraded(F::FreeMod_dec)
+    is_graded(F::FreeMod_dec)
 
 Check if `F` is graded.
 """
-isgraded(F::FreeMod_dec) = isgraded(base_ring(F))
+is_graded(F::FreeMod_dec) = is_graded(base_ring(F))
 
 @doc Markdown.doc"""
-    isfiltered(F::FreeMod_dec)
+    is_filtered(F::FreeMod_dec)
 
 Check if `F` is filtered.
 """
-isfiltered(F::FreeMod_dec) = isfiltered(base_ring(F))
+is_filtered(F::FreeMod_dec) = is_filtered(base_ring(F))
 
-isdecorated(F::FreeMod_dec) = true
+is_decorated(F::FreeMod_dec) = true
 
 @doc Markdown.doc"""
     ==(F::FreeMod_dec, G::FreeMod_dec)
@@ -288,7 +288,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
   local w
   for (p,v) in coords(u)
     if !is_homogeneous(v)
-      if isgraded(W)
+      if is_graded(W)
         return nothing,false
       else
         homogeneous = false
@@ -298,7 +298,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
     if first
       ww = w
       first = false
-    elseif isgraded(W)
+    elseif is_graded(W)
       if ww != w
         return nothing, false
       end

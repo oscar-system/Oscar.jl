@@ -175,17 +175,17 @@ may be of one of the following forms:
 The following functions are currently supported as values for `func`:
 - `degree`
 - `is_abelian`
-- `isalmostsimple`
+- `is_almostsimple`
 - `is_cyclic`
 - `is_nilpotent`
-- `isperfect`
+- `is_perfect`
 - `is_primitive`
 - `is_quasisimple`
 - `is_simple`
 - `is_sporadic_simple`
-- `issolvable`
-- `issupersolvable`
-- `istransitive`
+- `is_solvable`
+- `is_supersolvable`
+- `is_transitive`
 - `number_conjugacy_classes`
 - `number_moved_points`
 - `order`

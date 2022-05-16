@@ -6,7 +6,7 @@ using .VarietyModule
 
 export is_smooth, tangent, common_components, curve_intersect, intersect,
        curve_singular_locus, multiplicity, tangent_lines, singular_locus,
-       intersection_multiplicity, aretransverse, issmooth_curve,
+       intersection_multiplicity, aretransverse, is_smooth_curve,
        arithmetic_genus, geometric_genus
 
 ################################################################################
@@ -476,7 +476,7 @@ end
 # Check if a reduced curve is smooth.
 
 @doc Markdown.doc"""
-    issmooth_curve(C::AffinePlaneCurve)
+    is_smooth_curve(C::AffinePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
 
@@ -488,11 +488,11 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
 
-julia> Oscar.issmooth_curve(C)
+julia> Oscar.is_smooth_curve(C)
 false
 ```
 """
-function issmooth_curve(C::AffinePlaneCurve)
+function is_smooth_curve(C::AffinePlaneCurve)
   S = curve_singular_locus(C)
   if isempty(S[1])
      return isempty(S[2])

@@ -1753,7 +1753,7 @@ function groebner_basis(
     return D[ordering]
   end
   # Check whether this ordering is admissible
-  !islocal(ordering) && error("The ordering has to be a local ordering.")
+  !is_local(ordering) && error("The ordering has to be a local ordering.")
   # set up a LocalizedBiPolyArray
   lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering.o)
   # compute the standard basis and cache the result.

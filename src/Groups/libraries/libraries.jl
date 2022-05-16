@@ -24,16 +24,16 @@ end
 function __init_group_libraries()
   props = [
     is_abelian => GAP.Globals.IsAbelian,
-    isalmostsimple => GAP.Globals.IsAlmostSimpleGroup,
+    is_almostsimple => GAP.Globals.IsAlmostSimpleGroup,
     is_cyclic => GAP.Globals.IsCyclic,
     is_duplicate_table => GAP.Globals.IsDuplicateTable,  # TODO: should be moved into a separate list
     is_nilpotent => GAP.Globals.IsNilpotentGroup,
-    isperfect => GAP.Globals.IsPerfectGroup,
+    is_perfect => GAP.Globals.IsPerfectGroup,
     is_quasisimple => GAP.Globals.IsQuasisimple,
     is_simple => GAP.Globals.IsSimpleGroup,
     is_sporadic_simple => GAP.Globals.IsSporadicSimple,
-    issolvable => GAP.Globals.IsSolvableGroup,
-    issupersolvable => GAP.Globals.IsSupersolvableGroup,
+    is_solvable => GAP.Globals.IsSolvableGroup,
+    is_supersolvable => GAP.Globals.IsSupersolvableGroup,
   ]
 
   empty!(_group_filter_attrs)
@@ -48,7 +48,7 @@ function __init_group_libraries()
 #  _add_bool_attr(_ctbl_filter_attrs, is_duplicate_table, GAP.Globals.IsDuplicateTable)
 
   copy!(_permgroup_filter_attrs, _group_filter_attrs)
-  _add_bool_attr(_permgroup_filter_attrs, istransitive, GAP.Globals.IsTransitive)
+  _add_bool_attr(_permgroup_filter_attrs, is_transitive, GAP.Globals.IsTransitive)
   _add_bool_attr(_permgroup_filter_attrs, is_primitive, GAP.Globals.IsPrimitive)
   _permgroup_filter_attrs[number_moved_points] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
   _permgroup_filter_attrs[degree] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)

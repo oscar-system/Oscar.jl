@@ -85,8 +85,8 @@ end
 
       for F in Mods
         
-        @test Oscar.isgraded(F) == Oscar.isgraded(RR)
-        @test Oscar.isfiltered(F) == Oscar.isfiltered(RR)
+        @test Oscar.is_graded(F) == Oscar.is_graded(RR)
+        @test Oscar.is_filtered(F) == Oscar.is_filtered(RR)
 
         G = grading_group(F)
         if j == 4

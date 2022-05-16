@@ -25,14 +25,14 @@
    @test length(grps)==16
    props = [
       is_abelian,
-      isalmostsimple,
+      is_almostsimple,
       is_cyclic,
       is_nilpotent,
-      isperfect,
+      is_perfect,
       is_simple,
-      issolvable,
-      issupersolvable,
-      istransitive,
+      is_solvable,
+      is_supersolvable,
+      is_transitive,
       is_primitive,
    ]
    @testset "all_transitive_groups filtering for $(prop)" for prop in props
@@ -63,16 +63,16 @@ end
    @test [transitivity(G,1:i) for i in 1:5]==[1,2,3,4,0]
    @test [transitivity(L[5],1:i) for i in 1:5]==[1,2,1,1,0]
 
-   @test istransitive(G)
+   @test is_transitive(G)
    H = sub(G,[G([2,3,1,4])])[1]
-   @test !istransitive(H)
-   @test istransitive(H,1:3)
+   @test !is_transitive(H)
+   @test is_transitive(H,1:3)
 
-   @test [issemiregular(l) for l in L]==[0,0,1,0,1]
+   @test [is_semiregular(l) for l in L]==[0,0,1,0,1]
    @test [is_regular(l) for l in L]==[0,0,1,0,1]
 
    H = sub(G,[G([2,1,4,3])])[1]
-   @test issemiregular(H)
+   @test is_semiregular(H)
    @test !is_regular(H)
    @test is_regular(H,[1,2])
 
@@ -81,8 +81,8 @@ end
 
 @testset "Perfect groups" begin
    G = alternating_group(5)
-   @test isperfect(G)
-   @test !isperfect(symmetric_group(5))
+   @test is_perfect(G)
+   @test !is_perfect(symmetric_group(5))
 
    @test perfect_group(120,1) isa PermGroup
    @test perfect_group(PermGroup,120,1) isa PermGroup

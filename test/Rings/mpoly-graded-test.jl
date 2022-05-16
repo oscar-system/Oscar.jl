@@ -99,8 +99,8 @@ end
       # The dimension should be dims[RR]
 
       for RR in decorated_rings
-        @test (RR in graded_rings) == Oscar.isgraded(RR)
-        @test (RR in filtered_rings) == Oscar.isfiltered(RR)
+        @test (RR in graded_rings) == Oscar.is_graded(RR)
+        @test (RR in filtered_rings) == Oscar.is_filtered(RR)
         polys = _random_poly(RR, 4) # create 4 random polynomials
         @test ngens(RR) == length(gens(RR))
         @test gen(RR, 1) == RR[1]
@@ -136,8 +136,8 @@ end
           @test h == R_quo(homogeneous_component(f, deg))
         end
 
-        @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
-        @test Oscar.isgraded(R_quo) == Oscar.isgraded(RR)
+        @test Oscar.is_filtered(R_quo) == Oscar.is_filtered(RR)
+        @test Oscar.is_graded(R_quo) == Oscar.is_graded(RR)
 
         @test grading_group(R_quo) == grading_group(RR)
 
@@ -149,7 +149,7 @@ end
 	  if is_free(grading_group(RR))
              grp_elem = d_Elem
              H = homogeneous_component(RR, grp_elem)
-             @test Oscar.hasrelshp(H[1], RR) !== nothing
+             @test Oscar.has_relshp(H[1], RR) !== nothing
              for g in gens(H[1])
                @test degree(H[2](g)) == grp_elem
                @test (H[2].g)(RR(g)) == g
@@ -158,7 +158,7 @@ end
 	  end
         end
         #H_quo = homogeneous_component(R_quo, grp_elem)
-        #Oscar.hasrelshp(H_quo[1], R_quo) !== nothing
+        #Oscar.has_relshp(H_quo[1], R_quo) !== nothing
         #for g in gens(H_quo[1])
         #    degree(H_quo[2](g)) == grp_elem
         #    (H_quo[2].g)(R_quo(g)) == g

@@ -13,12 +13,12 @@ export
     free_group,
     is_abelian, has_is_abelian, set_is_abelian,
     is_cyclic, has_is_cyclic, set_is_cyclic,
-    isdihedral_group, has_is_dihedral_group, set_is_dihedral_group,
-    isisomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group,
-    isisomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group,
-    isnatural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group,
-    isnatural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group,
-    isquaternion_group, has_is_quaternion_group, set_is_quaternion_group,
+    is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group,
+    is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group,
+    is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group,
+    is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group,
+    is_natural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group,
+    is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group,
     mathieu_group,
     quaternion_group,
     symmetric_group
@@ -46,20 +46,20 @@ function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
 end
 
 """
-    isnatural_symmetric_group(G::GAPGroup)
+    is_natural_symmetric_group(G::GAPGroup)
 
 Return `true` if `G` is a permutation group acting as the symmetric group
 on its moved points, and `false` otherwise.
 """
-@gapattribute isnatural_symmetric_group(G::GAPGroup) = GAP.Globals.IsNaturalSymmetricGroup(G.X)::Bool
+@gapattribute is_natural_symmetric_group(G::GAPGroup) = GAP.Globals.IsNaturalSymmetricGroup(G.X)::Bool
 
 """
-    isisomorphic_with_symmetric_group(G::GAPGroup)
+    is_isomorphic_with_symmetric_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with a symmetric group,
 and `false` otherwise.
 """
-@gapattribute isisomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
+@gapattribute is_isomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
 
 """
     alternating_group(::Type{T} = PermGroup, n::Int)
@@ -75,20 +75,20 @@ function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
 end
 
 """
-    isnatural_alternating_group(G::GAPGroup)
+    is_natural_alternating_group(G::GAPGroup)
 
 Return `true` if `G` is a permutation group acting as the alternating group
 on its moved points, and `false` otherwise.
 """
-@gapattribute isnatural_alternating_group(G::GAPGroup) = GAP.Globals.IsNaturalAlternatingGroup(G.X)::Bool
+@gapattribute is_natural_alternating_group(G::GAPGroup) = GAP.Globals.IsNaturalAlternatingGroup(G.X)::Bool
 
 """
-    isisomorphic_with_alternating_group(G::GAPGroup)
+    is_isomorphic_with_alternating_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with an alternating group,
 and `false` otherwise.
 """
-@gapattribute isisomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
+@gapattribute is_isomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
 
 """
     cyclic_group(::Type{T} = PcGroup, n::Int) where T <: GAPGroup
@@ -235,12 +235,12 @@ function dihedral_group(::Type{T}, n::Int) where T <: GAPGroup
 end
 
 @doc Markdown.doc"""
-    isdihedral_group(G::GAPGroup)
+    is_dihedral_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with a dihedral group,
 and `false` otherwise.
 """
-@gapattribute isdihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(G.X)::Bool
+@gapattribute is_dihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(G.X)::Bool
 
 """
     quaternion_group(::Type{T} = PcGroup, n::Int)
@@ -276,9 +276,9 @@ function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup
 end
 
 @doc Markdown.doc"""
-    isquaternion_group(G::GAPGroup)
+    is_quaternion_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with a (generalized) quaternion group
 of order $2^{k+1}, k \geq 2$, and `false` otherwise.
 """
-@gapattribute isquaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(G.X)::Bool
+@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(G.X)::Bool

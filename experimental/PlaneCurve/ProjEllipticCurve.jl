@@ -39,7 +39,7 @@ function _iselliptic(F::Oscar.MPolyElem_dec)
 end
 
 function iselliptic(C::ProjPlaneCurve)
-   return degree(C) == 3 && issmooth_curve(C)
+   return degree(C) == 3 && is_smooth_curve(C)
 end
 
 ################################################################################

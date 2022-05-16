@@ -12,8 +12,8 @@ export
     inner_automorphisms_group,
     is_bijective,
     is_injective,
-    isinner_automorphism,
-    isinvariant,
+    is_inner_automorphism,
+    is_invariant,
     is_invertible,
     is_isomorphic,
     isisomorphic_with_map,
@@ -227,14 +227,14 @@ end
 
 
 """
-    isinvariant(f::GAPGroupHomomorphism, H::Group)
-    isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+    is_invariant(f::GAPGroupHomomorphism, H::Group)
+    is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 
 Return whether `f(H) == H` holds.
 An exception is thrown if `domain(f)` and `codomain(f)` are not equal
 or if `H` is not contained in `domain(f)`.
 """
-function isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
+function is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
   @assert domain(f) == codomain(f) "Not an endomorphism!"
   @assert GAPWrap.IsSubset(domain(f).X, H.X) "Not a subgroup of the domain"
   return GAPWrap.Image(f.map, H.X) == H.X
@@ -842,17 +842,17 @@ function inner_automorphism(g::GAPGroupElem)
 end
 
 """
-    isinner_automorphism(f::GAPGroupHomomorphism)
-    isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}})
+    is_inner_automorphism(f::GAPGroupHomomorphism)
+    is_inner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}})
 
 Return whether `f` is an inner automorphism.
 """
-function isinner_automorphism(f::GAPGroupHomomorphism)
+function is_inner_automorphism(f::GAPGroupHomomorphism)
   @assert domain(f) == codomain(f) "Not an automorphism!"
   return GAPWrap.IsInnerAutomorphism(f.map)
 end
 
-function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
+function is_inner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   return GAPWrap.IsInnerAutomorphism(f.X)
 end
 
@@ -867,11 +867,11 @@ function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
-    isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+    is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 
 Return whether `f`(`H`) == `H`.
 """
-function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
+function is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
   @assert GAPWrap.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
   return GAPWrap.Image(f.X, H.X) == H.X
 end
@@ -886,7 +886,7 @@ homomorphism defined over `G` such that the kernel of `f` is invariant under
 `g`
 """
 function induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
-  @assert isinvariant(mH, kernel(f)[1]) "The kernel is not invariant under g!"
+  @assert is_invariant(mH, kernel(f)[1]) "The kernel is not invariant under g!"
   map = GAP.Globals.InducedAutomorphism(f.map, mH.map)
   A = automorphism_group(image(f)[1])
   return A(GAPGroupHomomorphism(codomain(f), codomain(f), map))
@@ -901,7 +901,7 @@ Return the restriction of `f` to `H` as an automorphism of `H`.
 An exception is thrown if `H` is not invariant under `f`.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
-  @assert isinvariant(f,H) "H is not invariant under f!"
+  @assert is_invariant(f,H) "H is not invariant under f!"
   fh = hom(H, H, gens(H), [f(x) for x in gens(H)], check = false)
   return A(fh)
 end

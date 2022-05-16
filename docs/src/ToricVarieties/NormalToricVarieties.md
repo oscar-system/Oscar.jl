@@ -60,16 +60,16 @@ NormalToricVarietyFromGLSM(charges::fmpz_mat)
 ## Properties of Toric Varieties
 
 ```@docs
-hastorusfactor(v::AbstractNormalToricVariety)
-isaffine(v::AbstractNormalToricVariety)
-iscomplete(v::AbstractNormalToricVariety)
-isfano(v::AbstractNormalToricVariety)
+has_torusfactor(v::AbstractNormalToricVariety)
+is_affine(v::AbstractNormalToricVariety)
+is_complete(v::AbstractNormalToricVariety)
+is_fano(v::AbstractNormalToricVariety)
 is_gorenstein(v::AbstractNormalToricVariety)
-issimplicial(v::AbstractNormalToricVariety)
+is_simplicial(v::AbstractNormalToricVariety)
 is_smooth(v::AbstractNormalToricVariety)
 is_normal(v::AbstractNormalToricVariety)
-isorbifold(v::AbstractNormalToricVariety)
-isprojective(v::AbstractNormalToricVariety)
+is_orbifold(v::AbstractNormalToricVariety)
+is_projective(v::AbstractNormalToricVariety)
 is_projective_space(v::AbstractNormalToricVariety)
 is_q_gorenstein(v::AbstractNormalToricVariety)
 ```

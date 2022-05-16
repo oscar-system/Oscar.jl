@@ -58,10 +58,10 @@ both polymake and Oscar.
 ambient_dim(PF::PolyhedralFan)
 dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
-iscomplete(PF::PolyhedralFan)
-ispointed(PF::PolyhedralFan)
+is_complete(PF::PolyhedralFan)
+is_pointed(PF::PolyhedralFan)
 is_regular(PF::PolyhedralFan)
-issimplicial(PF::PolyhedralFan)
+is_simplicial(PF::PolyhedralFan)
 is_smooth(PF::PolyhedralFan{fmpq})
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types

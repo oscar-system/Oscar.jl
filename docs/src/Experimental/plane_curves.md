@@ -126,8 +126,8 @@ multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 multiplicity(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 tangent_lines(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-issmooth_curve(C::AffinePlaneCurve)
-issmooth_curve(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
+is_smooth_curve(C::AffinePlaneCurve)
+is_smooth_curve(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
 ```
 
 ## Intersection of curves

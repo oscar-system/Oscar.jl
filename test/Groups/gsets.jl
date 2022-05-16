@@ -6,42 +6,42 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
+  @test is_transitive(Omega)
   @test ! is_regular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [Set([1, 2])])  # action on unordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
+  @test is_transitive(Omega)
   @test ! is_regular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [[1, 2]])  # action on ordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
+  @test is_transitive(Omega)
   @test ! is_regular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [(1, 2)])  # action on ordered pairs (repres. by tuples)
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
+  @test is_transitive(Omega)
   @test ! is_regular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_semiregular(Omega)
 
   # constructions by explicit action functions
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   @test isa(Omega, GSet)
   @test length(Omega) == 740
   @test length(orbits(Omega)) == 2
-  @test ! istransitive(Omega)
+  @test ! is_transitive(Omega)
   @test ! is_regular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_semiregular(Omega)
 
   R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
   f = x[1]*x[2] + x[2]*x[3]
@@ -50,9 +50,9 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 3
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
+  @test is_transitive(Omega)
   @test ! is_regular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_semiregular(Omega)
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -165,14 +165,14 @@ end
   @test ! is_regular(G8, 1:9)
   @test ! is_regular(S4)
 
-  # issemiregular
-  @test issemiregular(G8)
-  @test ! issemiregular(G8, 1:9)
-  @test ! issemiregular(S4)
+  # is_semiregular
+  @test is_semiregular(G8)
+  @test ! is_semiregular(G8, 1:9)
+  @test ! is_semiregular(S4)
 
-  # istransitive
-  @test istransitive(G8)
-  @test ! istransitive(G8, 1:9)
+  # is_transitive
+  @test is_transitive(G8)
+  @test ! is_transitive(G8, 1:9)
 
   # maximal_blocks
   bl = maximal_blocks(G8)

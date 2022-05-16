@@ -802,12 +802,12 @@ function invariant(G::PermGroup, H::PermGroup)
 
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
-  if istransitive(G) && !istransitive(H)
+  if is_transitive(G) && !is_transitive(H)
     @vprint :GaloisInvariant 2 "top group transitive, bottom not\n"
     return sum(probable_orbit(H, g[1]))
   end
 
-  if !istransitive(G) 
+  if !is_transitive(G) 
     @vprint :GaloisInvariant 2 "both groups are intransitive\n"
     OG = [sort(collect(x)) for x = orbits(G)]
     OH = [sort(collect(x)) for x = orbits(H)]
@@ -1317,7 +1317,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   end
 
   F = GroupFilter()
-  push!(F, istransitive, "not transitive") #poly is defining number field, hence irreducible
+  push!(F, is_transitive, "not transitive") #poly is defining number field, hence irreducible
 
 
   #selecting maximal block systems only...

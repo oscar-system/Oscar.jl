@@ -18,7 +18,7 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td0 = ToricDivisor(F4, [0,0,0,0])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> isfeasible(polyhedron(td0))
+julia> is_feasible(polyhedron(td0))
 true
 
 julia> dim(polyhedron(td0))
@@ -27,13 +27,13 @@ julia> dim(polyhedron(td0))
 julia> td1 = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isfeasible(polyhedron(td1))
+julia> is_feasible(polyhedron(td1))
 true
 
 julia> td2 = ToricDivisor(F4, [-1,0,0,0])
 A torus-invariant, non-prime divisor on a normal toric variety
 
-julia> isfeasible(polyhedron(td2))
+julia> is_feasible(polyhedron(td2))
 false
 ```
 """

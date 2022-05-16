@@ -977,8 +977,8 @@ function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-isfiltered(q::MPolyQuo) = isfiltered(q.R)
-isgraded(q::MPolyQuo) = isgraded(q.R)
+is_filtered(q::MPolyQuo) = is_filtered(q.R)
+is_graded(q::MPolyQuo) = is_graded(q.R)
 
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
@@ -1207,7 +1207,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
 
   Q = base_ring(I)
 
-  @assert isgraded(Q)
+  @assert is_graded(Q)
   
   if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))

@@ -180,7 +180,7 @@ n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
 @doc Markdown.doc"""
-    issimplicial(PC::PolyhedralComplex)
+    is_simplicial(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is simplicial.
 
@@ -193,15 +193,15 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> issimplicial(PC)
+julia> is_simplicial(PC)
 true
 ```
 """
-issimplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
+is_simplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
 
 
 @doc Markdown.doc"""
-    ispure(PC::PolyhedralComplex)
+    is_pure(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is pure.
 
@@ -214,11 +214,11 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> ispure(PC)
+julia> is_pure(PC)
 true
 ```
 """
-ispure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
+is_pure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
 
 
 @doc Markdown.doc"""

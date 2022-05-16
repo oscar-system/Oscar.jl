@@ -412,7 +412,7 @@ end
    @test f*g == fh*g
    @test kernel(f*g)==kernel(g)
 
-   @test isinner_automorphism(f)
+   @test is_inner_automorphism(f)
    g1 = inner_automorphism(G(alt[1]))
    @test !(g in A)
    g1 = A(g1)
@@ -425,7 +425,7 @@ end
    @test phi(AA[1])==AA[1]
    @test phi(AA[2])==AA[2]
    @test order(quo(A,AA)[1])==2
-   @test isinvariant(f,alt)
+   @test is_invariant(f,alt)
 
    H = alternating_group(4)
    x = cperm(G,[1,2,3])

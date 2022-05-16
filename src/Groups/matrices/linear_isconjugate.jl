@@ -7,8 +7,8 @@ export
     generalized_jordan_block,
     generalized_jordan_form,
     is_conjugate,
-    issemisimple,
-    isunipotent,
+    is_semisimple,
+    is_unipotent,
     pol_elementary_divisors,
     multiplicative_jordan_decomposition
 
@@ -40,18 +40,18 @@ function multiplicative_jordan_decomposition(x::MatrixGroupElem)
 end
 
 """
-    issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
+    is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is semisimple, i.e. has order coprime with the characteristic of its base ring.
 """
-issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(Int, x), Int(characteristic(x.parent.ring)))
+is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem = is_coprime(order(Int, x), Int(characteristic(x.parent.ring)))
 
 """
-    isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
+    is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 
 Return whether `x` is unipotent, i.e. its order is a power of the characteristic of its base ring.
 """
-isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_power(order(Int, x))[2]==Int(characteristic(x.parent.ring))
+is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || is_power(order(Int, x))[2]==Int(characteristic(x.parent.ring))
 
 
 

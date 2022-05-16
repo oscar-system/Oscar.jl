@@ -786,13 +786,13 @@ ambient space.
 julia> P = convex_hull([1 0 0; 0 0 0])
 A polyhedron in ambient dimension 3
 
-julia> isfulldimensional(P)
+julia> is_fulldimensional(P)
 false
 
 julia> p = project_full(P)
 A polyhedron in ambient dimension 1
 
-julia> isfulldimensional(p)
+julia> is_fulldimensional(p)
 true
 ```
 """
@@ -808,13 +808,13 @@ Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `la
 julia> P = gelfand_tsetlin([5,3,2])
 A polyhedron in ambient dimension 6
 
-julia> isfulldimensional(P)
+julia> is_fulldimensional(P)
 false
 
 julia> p = project_full(P)
 A polyhedron in ambient dimension 3
 
-julia> isfulldimensional(p)
+julia> is_fulldimensional(p)
 true
 
 julia> volume(p)

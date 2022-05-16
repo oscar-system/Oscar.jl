@@ -16,9 +16,9 @@ export
     homomorphism_of_wreath_product,
     inner_cartesian_power,
     inner_direct_product,
-    isfull_direct_product,
-    isfull_semidirect_product,
-    isfull_wreath_product,
+    is_full_direct_product,
+    is_full_semidirect_product,
+    is_full_wreath_product,
     normal_subgroup,
     number_of_factors,
     projection,
@@ -241,11 +241,11 @@ function write_as_full(G::DirectProductGroup)
 end
 
 """
-    isfull_direct_product(G::DirectProductGroup)
+    is_full_direct_product(G::DirectProductGroup)
 
 Return whether `G` is direct product of its factors (`false` if it is a proper subgroup).
 """
-isfull_direct_product(G::DirectProductGroup) = G.isfull
+is_full_direct_product(G::DirectProductGroup) = G.isfull
 
 Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)[1]
 
@@ -298,11 +298,11 @@ the group `H` acting on `N` via the homomorphism `h`.
 homomorphism_of_semidirect_product(G::SemidirectProductGroup) = G.f
 
 """
-    isfull_semidirect_product(G::SemidirectProductGroup)
+    is_full_semidirect_product(G::SemidirectProductGroup)
 
 Return whether `G` is a semidirect product of two groups, instead of a proper subgroup.
 """
-isfull_semidirect_product(G::SemidirectProductGroup) = G.isfull
+is_full_semidirect_product(G::SemidirectProductGroup) = G.isfull
 
 """
     embedding(G::SemidirectProductGroup, n::Int)
@@ -429,11 +429,11 @@ from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
 homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
 
 """
-    isfull_wreath_product(G::WreathProductGroup)
+    is_full_wreath_product(G::WreathProductGroup)
 
 Return whether `G` is a wreath product of two groups, instead of a proper subgroup.
 """
-isfull_wreath_product(G::WreathProductGroup) = G.isfull
+is_full_wreath_product(G::WreathProductGroup) = G.isfull
 
 """
     projection(G::WreathProductGroup)

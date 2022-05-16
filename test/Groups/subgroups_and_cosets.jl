@@ -150,7 +150,7 @@ end
    @test index(G, H) == 4
   
    C = right_coset(H, G[1])
-   @test isright(C)
+   @test is_right(C)
    @test order(C) == length(collect(C))
   
    @test length(right_transversal(G, H)) == index(G, H)
@@ -193,7 +193,7 @@ end
       @test r1 in dc
       @test issubset(rc,dc)
       @test issubset(left_coset(K,x),dc)
-      @test !isbicoset(rc)
+      @test !is_bicoset(rc)
 
       @test rc == H*x
       @test lc == x*H
@@ -251,23 +251,23 @@ end
    @test is_simple(alternating_group(5))
    @test is_simple(quo(SL(4,3), center(SL(4,3))[1])[1])
 
-   @test isalmostsimple(symmetric_group(5))
+   @test is_almostsimple(symmetric_group(5))
    @test !is_simple(symmetric_group(5))
 
-   @test isperfect(alternating_group(5))
-   @test !isperfect(alternating_group(4))
+   @test is_perfect(alternating_group(5))
+   @test !is_perfect(alternating_group(4))
    
-   @test !ispgroup(alternating_group(4))[1]
-   @test ispgroup(alternating_group(3)) == (true,3)
-   @test ispgroup(quaternion_group(8)) == (true,2)
-   @test ispgroup(alternating_group(1))==(true,nothing)
+   @test !is_pgroup(alternating_group(4))[1]
+   @test is_pgroup(alternating_group(3)) == (true,3)
+   @test is_pgroup(quaternion_group(8)) == (true,2)
+   @test is_pgroup(alternating_group(1))==(true,nothing)
 
-   @test issolvable(alternating_group(4))
-   @test !issolvable(alternating_group(5))
+   @test is_solvable(alternating_group(4))
+   @test !is_solvable(alternating_group(5))
    @test !is_nilpotent(symmetric_group(4))
-   @test !issupersolvable(symmetric_group(4))
+   @test !is_supersolvable(symmetric_group(4))
    @test is_nilpotent(quaternion_group(8))
-   @test issupersolvable(quaternion_group(8))
+   @test is_supersolvable(quaternion_group(8))
    @test nilpotency_class(quaternion_group(8))==2
    @test_throws AssertionError nilpotency_class(symmetric_group(4))
 end

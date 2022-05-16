@@ -619,12 +619,12 @@ function Oscar.is_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldE
   return GAP.Globals.MTX.IsIrreducible(G)
 end
 
-function isabsolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function is_absolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
 end
 
-function isdecomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function is_decomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return !GAP.Globals.MTX.IsIndecomposable(G)
 end
@@ -993,7 +993,7 @@ function Hecke.induce_rational_reconstruction(a::fmpz_mat, pg::fmpz)
 end
 
 
-export irreducible_modules, isabsolutely_irreducible, isdecomposable
+export irreducible_modules, is_absolutely_irreducible, is_decomposable
 
 ## Fill in some stubs for Hecke
 
@@ -1039,7 +1039,7 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
-export irreducible_modules, isabsolutely_irreducible, isdecomposable
+export irreducible_modules, is_absolutely_irreducible, is_decomposable
 
 module RepPc
 using Oscar

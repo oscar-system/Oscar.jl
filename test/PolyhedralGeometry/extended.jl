@@ -58,11 +58,11 @@
     @testset "standard constructions" begin
         @test size(point_matrix(vertices(C0))) == (4, 2)
         @test C0 == convex_hull(vertices(C0))
-        @test isbounded(C0)
+        @test is_bounded(C0)
         @test is_smooth(C0)
         @test is_normal(C0)
-        @test isfeasible(C0)
-        @test isfulldimensional(C0)
+        @test is_feasible(C0)
+        @test is_fulldimensional(C0)
         @test minkowski_sum(C0,C0) == cube(2,-2,2)
         @test minkowski_sum(C0,C0; algorithm=:fukuda) == cube(2,-2, 2)
         @test intersect(C0,C0) == C0

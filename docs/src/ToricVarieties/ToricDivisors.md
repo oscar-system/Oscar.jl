@@ -48,12 +48,12 @@ is_principal(td::ToricDivisor)
 ```
 Beyond this, we support the following properties of toric divisors:
 ```@docs
-isample(td::ToricDivisor)
+is_ample(td::ToricDivisor)
 is_basepoint_free(td::ToricDivisor)
-iscartier(td::ToricDivisor)
+is_cartier(td::ToricDivisor)
 iseffective(td::ToricDivisor)
 is_integral(td::ToricDivisor)
-isnef(td::ToricDivisor)
+is_nef(td::ToricDivisor)
 is_prime(td::ToricDivisor)
 is_q_cartier(td::ToricDivisor)
 is_very_ample(td::ToricDivisor)

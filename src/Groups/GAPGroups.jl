@@ -31,14 +31,14 @@ export
     hall_subgroup_reps,
     hall_system, has_hall_system, set_hall_system,
     inv!,
-    isalmostsimple, has_is_almostsimple, set_is_almostsimple,
+    is_almostsimple, has_is_almostsimple, set_is_almostsimple,
     is_conjugate,
-    isconjugate_subgroup,
+    is_conjugate_subgroup,
     isfinite, has_is_finite, set_is_finite,
-    isfinitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
-    isfiniteorder,
-    isperfect, has_is_perfect, set_is_perfect,
-    ispgroup,
+    is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
+    is_finiteorder,
+    is_perfect, has_is_perfect, set_is_perfect,
+    is_pgroup,
     is_quasisimple, hasis_quasisimple, setis_quasisimple,
     is_simple, has_is_simple, set_is_simple,
     is_sporadic_simple, hasis_sporadic_simple, setis_sporadic_simple,
@@ -140,23 +140,23 @@ false
 Base.isfinite(G::PcGroup) = true
 
 """
-    isfiniteorder(g::GAPGroupElem) -> Bool
+    is_finiteorder(g::GAPGroupElem) -> Bool
 
 Return `true` if `g` has finite order, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> isfiniteorder(gen(symmetric_group(5), 1))
+julia> is_finiteorder(gen(symmetric_group(5), 1))
 true
 
-julia> isfiniteorder(gen(free_group(2), 1))
+julia> is_finiteorder(gen(free_group(2), 1))
 false
 
 ```
 """
-isfiniteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
+is_finiteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
-@deprecate isfinite_order(x::GAPGroupElem) isfiniteorder(x)
+@deprecate is_finite_order(x::GAPGroupElem) is_finiteorder(x)
 
 """
     order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
@@ -813,7 +813,7 @@ function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 end
 
 """
-    isconjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
+    is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
 
 Return whether a conjugate of `V` by some element in `G` is a subgroup of `U`.
 
@@ -827,18 +827,18 @@ Alt( [ 1 .. 4 ] )
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Group([ (1,2) ])
 
-julia> isconjugate_subgroup(G, U, V)
+julia> is_conjugate_subgroup(G, U, V)
 (false, ())
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
 Group([ (1,2)(3,4) ])
 
-julia> isconjugate_subgroup(G, U, V)
+julia> is_conjugate_subgroup(G, U, V)
 (true, ())
 
 ```
 """
-function isconjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
+function is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
   if order(V) == 1
     return true, one(U)
   end
@@ -1081,7 +1081,7 @@ end
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
-   issolvable(G) || throw(ArgumentError("The group is not solvable"))
+   is_solvable(G) || throw(ArgumentError("The group is not solvable"))
    return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P, recursive=true)))
 end
 
@@ -1146,7 +1146,7 @@ Sylow systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function sylow_system(G::GAPGroup)
-   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
+   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
    return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
 end
 
@@ -1160,7 +1160,7 @@ Complement systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function complement_system(G::GAPGroup)
-   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
+   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
    return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
 end
 
@@ -1174,7 +1174,7 @@ Hall systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
 """
 @gapattribute function hall_system(G::GAPGroup)
-   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
+   if !is_solvable(G) throw(ArgumentError("The group is not solvable")) end
    return _as_subgroups(G, GAP.Globals.HallSystem(G.X))
 end
 
@@ -1186,21 +1186,21 @@ end
 ################################################################################
 
 """
-    isperfect(G::GAPGroup)
+    is_perfect(G::GAPGroup)
 
 Return whether `G` is a perfect group, i.e., equal to its derived subgroup.
 
 # Examples
 ```jldoctest
-julia> isperfect(special_linear_group(2, 5))
+julia> is_perfect(special_linear_group(2, 5))
 true
 
-julia> isperfect(symmetric_group(5))
+julia> is_perfect(symmetric_group(5))
 false
 
 ```
 """
-@gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
+@gapattribute is_perfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
 
 """
     is_simple(G::GAPGroup)
@@ -1221,7 +1221,7 @@ false
 @gapattribute is_simple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
 @doc Markdown.doc"""
-    isalmostsimple(G::GAPGroup)
+    is_almostsimple(G::GAPGroup)
 
 Return whether `G` is an almost simple group,
 i.e., `G` is isomorphic to a group $H$ with the property
@@ -1229,15 +1229,15 @@ $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 
 # Examples
 ```jldoctest
-julia> isalmostsimple(symmetric_group(5))
+julia> is_almostsimple(symmetric_group(5))
 true
 
-julia> isalmostsimple(special_linear_group(2, 5))
+julia> is_almostsimple(special_linear_group(2, 5))
 false
 
 ```
 """
-@gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
+@gapattribute is_almostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 
 @doc Markdown.doc"""
     is_quasisimple(G::GAPGroup)
@@ -1276,7 +1276,7 @@ false
 @gapattribute is_sporadic_simple(G::GAPGroup) = GAP.Globals.IsSporadicSimpleGroup(G.X)::Bool
 
 """
-    ispgroup(G)
+    is_pgroup(G)
 
 Return `(true, nothing)` if `G` is the trivial group,
 `(true, p)` if the order of every element in `G` is a power of a prime `p`,
@@ -1285,7 +1285,7 @@ and `(false, nothing)` otherwise.
 For finite groups `G`, the first return value is `true` if and only if
 the order of `G` is a prime power.
 """
-function ispgroup(G::GAPGroup)
+function is_pgroup(G::GAPGroup)
    if GAPWrap.IsPGroup(G.X)
       p = GAP.Globals.PrimePGroup(G.X)
       if p != GAP.Globals.fail
@@ -1298,7 +1298,7 @@ function ispgroup(G::GAPGroup)
 end
 
 """
-    isfinitelygenerated(G)
+    is_finitelygenerated(G)
 
 Return whether `G` is a finitely generated group.
 
@@ -1307,17 +1307,17 @@ Return whether `G` is a finitely generated group.
 julia> F = free_group(2)
 <free group on the generators [ f1, f2 ]>
 
-julia> isfinitelygenerated(F)
+julia> is_finitelygenerated(F)
 true
 
 julia> H = derived_subgroup(F)[1]
 Group(<free, no generators known>)
 
-julia> isfinitelygenerated(H)
+julia> is_finitelygenerated(H)
 false
 ```
 """
-@gapattribute isfinitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+@gapattribute is_finitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
 
 
 @doc Markdown.doc"""
@@ -1445,7 +1445,7 @@ julia> describe(free_group(3))
 ```
 """
 function describe(G::GAPGroup)
-   isfinitelygenerated(G) || return "a non-finitely generated group"
+   is_finitelygenerated(G) || return "a non-finitely generated group"
 
    # handle groups whose finiteness is known
    if has_is_finite(G)
@@ -1468,7 +1468,7 @@ end
 function describe(G::FPGroup)
    # despite the name, there are non-finitely generated (and hence non-finitely presented)
    # FPGroup instances
-   isfinitelygenerated(G) || return "a non-finitely generated group"
+   is_finitelygenerated(G) || return "a non-finitely generated group"
 
    if GAP.Globals.IsFreeGroup(G.X)::Bool
       r = GAP.Globals.RankOfFreeGroup(G.X)::GapInt
@@ -1487,7 +1487,7 @@ function describe(G::FPGroup)
    # abelian groups can be dealt with by GAP
    extra = ""
    if !has_is_abelian(G)
-      if isobviouslyabelian(G)
+      if is_obviouslyabelian(G)
          set_is_abelian(G, true) # TODO: Claus won't like this...
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
@@ -1511,7 +1511,7 @@ function describe(G::FPGroup)
 
 end
 
-function isobviouslyabelian(G::FPGroup)
+function is_obviouslyabelian(G::FPGroup)
     rels = relators(G)
     fgens = gens(free_group(G))
     signs = [(e1,e2,e3) for e1 in (-1,1) for e2 in (-1,1) for e3 in (-1,1)]

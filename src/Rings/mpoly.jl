@@ -137,7 +137,7 @@ using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
        matrix_ordering, weights, MonomialOrdering, singular,
-       isglobal, islocal, ismixed
+       is_global, is_local, is_mixed
 
 
 ##############################################################################

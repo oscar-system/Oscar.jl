@@ -148,7 +148,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   V = transpose(matrix(ZZ, [[valuation(ms(x), y) for y = S] for x = gens(s)]))
 
   cone = cone_from_inequalities(-V)
-  @assert ispointed(cone) # otherwise the Hilbert basis is not unique
+  @assert is_pointed(cone) # otherwise the Hilbert basis is not unique
   hb = hilbert_basis(cone)
   res = [O(evaluate(ms(s(map(fmpz, Array(v)))))) for v in hb]
   return res

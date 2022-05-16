@@ -11,8 +11,8 @@ export
     blocks,
     is_primitive,
     is_regular,
-    issemiregular,
-    istransitive,
+    is_semiregular,
+    is_transitive,
     maximal_blocks,
     minimal_block_reps,
     transitivity
@@ -589,14 +589,14 @@ maximal_blocks(G::GSet) = error("not implemented")
 minimal_block_reps(G::GSet) = error("not implemented")
 all_blocks(G::GSet) = error("not implemented")
 
-function istransitive(Omega::GSet)
+function is_transitive(Omega::GSet)
     length(Omega.seeds) == 1 && return true
     return length(orbits(Omega)) == 1
 end
 
-is_regular(Omega::GSet) = istransitive(Omega) && length(Omega) == order(Omega.group)
+is_regular(Omega::GSet) = is_transitive(Omega) && length(Omega) == order(Omega.group)
 
-function issemiregular(Omega::GSet)
+function is_semiregular(Omega::GSet)
     ord = order(Omega.group)
     return all(orb -> length(orb) == ord, orbits(Omega))
 end
@@ -629,7 +629,7 @@ julia> collect(blocks(g))
 ```
 """
 function blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-   @assert istransitive(G, L) "The group action is not transitive"
+   @assert is_transitive(G, L) "The group action is not transitive"
    bl = Vector{Vector{Int}}(GAP.Globals.Blocks(G.X, GapObj(L))::GapObj)
    omega = gset(G, bl)
    set_attribute!(omega, :elements => omega.seeds)
@@ -661,7 +661,7 @@ julia> collect(maximal_blocks(G))
 ```
 """
 function maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-   @assert istransitive(G, L) "The group action is not transitive"
+   @assert is_transitive(G, L) "The group action is not transitive"
    bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(G.X, GapObj(L))::GapObj)
    omega = gset(G, bl)
    set_attribute!(omega, :elements => omega.seeds)
@@ -695,7 +695,7 @@ julia> minimal_block_reps(G)
 ```
 """
 function minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-   @assert istransitive(G, L) "The group action is not transitive"
+   @assert is_transitive(G, L) "The group action is not transitive"
    return Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(G.X, GapObj(L))::GapObj)
 end
 
@@ -745,7 +745,7 @@ julia> transitivity(symmetric_group(6))
 transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Transitivity(G.X, GapObj(L))::Int
 
 """
-    istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+    is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
 Return whether the action of `G` on `L` is transitive.
 
@@ -753,15 +753,15 @@ Return whether the action of `G` on `L` is transitive.
 ```jldoctest
 julia> G = symmetric_group(6);
 
-julia> istransitive(G)
+julia> is_transitive(G)
 true
 
-julia> istransitive(sylow_subgroup(G, 2)[1])
+julia> is_transitive(sylow_subgroup(G, 2)[1])
 false
 
 ```
 """
-istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTransitive(G.X, GapObj(L))
+is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTransitive(G.X, GapObj(L))
 # Note that this definition does not coincide with that of the
 # property `GAP.Globals.IsTransitive`, for which the default domain
 # of the action is the set of moved points.
@@ -777,7 +777,7 @@ the action is transitive and the point stabilizers are maximal in `G`.
 ```jldoctest
 julia> G = alternating_group(6);
 
-julia> mx = filter(istransitive, maximal_subgroup_reps(G))
+julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
 3-element Vector{PermGroup}:
  Group([ (1,2)(3,4), (1,2)(5,6), (1,3,5)(2,4,6), (1,3)(2,4) ])
  Group([ (1,2,3), (4,5,6), (1,2)(4,5), (1,5,2,4)(3,6) ])
@@ -819,7 +819,7 @@ is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegul
 
 
 """
-    issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+    is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
 Return whether the action of `G` on `L` is semiregular
 (i.e., the stabilizer of each point is the identity).
@@ -831,7 +831,7 @@ julia> G = symmetric_group(6);
 julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
 Group([ (1,2,3)(4,5,6) ])
 
-julia> issemiregular(H)
+julia> is_semiregular(H)
 true
 
 julia> is_regular(H)
@@ -839,4 +839,4 @@ false
 
 ```
 """
-issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(G.X, GapObj(L))
+is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(G.X, GapObj(L))

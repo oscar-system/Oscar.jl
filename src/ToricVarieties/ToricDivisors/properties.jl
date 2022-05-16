@@ -1,5 +1,5 @@
 @doc Markdown.doc"""
-    iscartier(td::ToricDivisor)
+    is_cartier(td::ToricDivisor)
 
 Checks if the divisor `td` is Cartier.
 
@@ -11,12 +11,12 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> iscartier(td)
+julia> is_cartier(td)
 true
 ```
 """
-@attr Bool iscartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
-export iscartier
+@attr Bool is_cartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
+export is_cartier
 
 
 @doc Markdown.doc"""
@@ -104,7 +104,7 @@ export is_integral
 
 
 @doc Markdown.doc"""
-    isample(td::ToricDivisor)
+    is_ample(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is ample.
 # Examples
@@ -115,12 +115,12 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isample(td)
+julia> is_ample(td)
 false
 ```
 """
-@attr Bool isample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
-export isample
+@attr Bool is_ample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
+export is_ample
 
 
 @doc Markdown.doc"""
@@ -144,7 +144,7 @@ export is_very_ample
 
 
 @doc Markdown.doc"""
-    isnef(td::ToricDivisor)
+    is_nef(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is nef.
 # Examples
@@ -155,12 +155,12 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isnef(td)
+julia> is_nef(td)
 true
 ```
 """
-@attr Bool isnef(td::ToricDivisor) = pm_tdivisor(td).NEF
-export isnef
+@attr Bool is_nef(td::ToricDivisor) = pm_tdivisor(td).NEF
+export is_nef
 
 
 @doc Markdown.doc"""

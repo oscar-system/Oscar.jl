@@ -263,7 +263,7 @@ end
 ### TODO: Originally meant to be used in multi_hilbert_series; might be useful elsewhere
 function transform_to_positive_orthant(rs::Matrix{Int})   
     C = positive_hull(rs)
-    @assert isfulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
+    @assert is_fulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
     F = linear_inequality_matrix(facets(C))
     
     # Find a simplicial cone containing C
@@ -427,7 +427,7 @@ function multi_hilbert_series(A::MPolyQuo)
    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
    end
-   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+   if !(R isa MPolyRing_dec && is_graded(R) && is_positively_graded(R))
        throw(ArgumentError("The base ring must be positively graded."))
    end
    G = grading_group(R)
@@ -492,7 +492,7 @@ end
 #   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
 #       throw(ArgumentError("The coefficient ring must be a field."))
 #   end
-#   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+#   if !(R isa MPolyRing_dec && is_graded(R) && is_positively_graded(R))
 #       throw(ArgumentError("The base ring must be positively graded."))
 #   end
 #   if !(is_zm_graded(R))
@@ -955,7 +955,7 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem,
   if p isa MPolyRing
       p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
   else
-      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
+      p.R isa MPolyRing_dec && is_graded(p.R) || throw(ArgumentError("The base ring must be graded"))
   end
   all(is_homogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
   # iterate over the generators, starting with those in lowest degree, then work up

@@ -3,27 +3,27 @@
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
-   @test isskewsymmetric_matrix(B)
+   @test is_skewsymmetric_matrix(B)
    f = alternating_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test f==alternating_form(gram_matrix(f))
    @test base_ring(B)==F
    @test !is_symmetric(B)
-   @test !ishermitian_matrix(B)
-   @test isalternating_form(f)
-   @test !isquadratic_form(f)
-   @test !issymmetric_form(f)
-   @test !ishermitian_form(f)
+   @test !is_hermitian_matrix(B)
+   @test is_alternating_form(f)
+   @test !is_quadratic_form(f)
+   @test !is_symmetric_form(f)
+   @test !is_hermitian_form(f)
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = hermitian_form(B)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
-   @test ishermitian_matrix(B)
+   @test is_hermitian_matrix(B)
    f = hermitian_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test ishermitian_form(f)
+   @test is_hermitian_form(f)
    @test f.X isa GAP.GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
@@ -35,8 +35,8 @@
    f = symmetric_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test issymmetric_form(f)
-   @test !ishermitian_form(f)
+   @test is_symmetric_form(f)
+   @test !is_hermitian_form(f)
    @test_throws AssertionError f = alternating_form(B)
    Qf = corresponding_quadratic_form(f)
    R = PolynomialRing(F,4)[1]
@@ -61,9 +61,9 @@
    R,x = PolynomialRing(F,"x")
    p = x^2*z
    Q = quadratic_form(p)
-   @test isquadratic_form(Q)
+   @test is_quadratic_form(Q)
    f = corresponding_bilinear_form(Q)
-   @test issymmetric_form(f)
+   @test is_symmetric_form(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
    T,t = PolynomialRing(GF(2),"t")
@@ -71,10 +71,10 @@
    R = PolynomialRing(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
-   @test isquadratic_form(Q)
+   @test is_quadratic_form(Q)
    @test gram_matrix(Q)==matrix(F,4,4,[0 1 0 0; 0 0 0 0; 0 0 0 z; 0 0 0 0])
    f = corresponding_bilinear_form(Q)
-   @test isalternating_form(f)
+   @test is_alternating_form(f)
    @test gram_matrix(f)==matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z; 0 0 z 0])
    @test_throws ArgumentError corresponding_quadratic_form(f)
 
@@ -129,7 +129,7 @@ end
    f = symmetric_form(x+transpose(x))
    @test radical(f)[1]==sub(V,[V[1],V[2]])[1]
    @test f*F(3)==F(3)*f;
-   @test issymmetric_form(f*F(3))
+   @test is_symmetric_form(f*F(3))
    @test gram_matrix(f*F(3))==F(3)*(x+transpose(x))
    @test is_degenerate(f)
    x[1,2]=1;
@@ -159,7 +159,7 @@ end
    y = zero_matrix(F,6,6)
    y[1,3]=2;y[3,4]=1; y=y+transpose(y)
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -167,12 +167,12 @@ end
    x = diagonal_matrix(F.([1,4,2,3,6,5,4]))
    y = diagonal_matrix(F.([3,1,5,6,4,2,1]))
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    y = diagonal_matrix(F.([3,1,5,6,4,3,1]))
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test !is_true
    @test z==nothing
 
@@ -182,12 +182,12 @@ end
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
    y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    y = diagonal_matrix(F.([a,1,1,a+1,2,2*a]))
    g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test !is_true
 
    #alternating
@@ -197,7 +197,7 @@ end
    y = zero_matrix(F,6,6)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -207,7 +207,7 @@ end
    y = zero_matrix(F,6,6)
    y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    x = zero_matrix(F,8,8)
@@ -215,25 +215,25 @@ end
    y = zero_matrix(F,8,8)
    y[1,8]=1; y[2,7]=a; y[3,6]=a^2+1; y[4,5] = -a^2-a-1; y = y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    y = zero_matrix(F,8,8)
    y[1,8]=1; y[2,7]=a; y[3,6]=a^2+1; y = y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test !is_true
 
    y = zero_matrix(F,6,6)
    y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError iscongruent(f,g)
+   @test_throws AssertionError is_congruent(f,g)
 
    F = GF(3,1)
    y = zero_matrix(F,8,8)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError iscongruent(f,g)
+   @test_throws AssertionError is_congruent(f,g)
 
    #hermitian
    F,a = FiniteField(3,2,"a")
@@ -242,14 +242,14 @@ end
    y = zero_matrix(F,6,6)
    y[1,2]=2; y=y+conjugate_transpose(y)
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    x = diagonal_matrix(F.([1,2,1,1,1]))
    y = diagonal_matrix(F.([2,1,0,0,2]))
    y[3,4]=a; y[4,3]=a^3; y[4,5]=1+a; y[5,4]=(1+a)^3;
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -259,14 +259,14 @@ end
    y = zero_matrix(F,6,6)
    y[1,2]=1; y=y+conjugate_transpose(y)
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    x = diagonal_matrix(F.([1,1,1,1,1]))
    y = diagonal_matrix(F.([1,1,0,0,1]))
    y[3,4]=a; y[4,3]=a^2; y[4,5]=1+a; y[5,4]=(1+a)^2;
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -277,24 +277,24 @@ end
    p2 = R[4]*R[5]+3*R[4]^2
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p2 = R[4]*R[5]+3*R[4]^2+2*R[5]^2
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 
    p1 = R[1]^2+R[2]^2+R[3]^2+R[4]^2+R[5]*R[6]
    p2 = R[1]*R[6]+R[2]*R[5]+R[3]*R[4]
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p1 = R[1]^2+R[2]^2+R[3]^2+R[4]^2+R[5]^2+R[5]*R[6]+2*R[6]^2
    Q1 = quadratic_form(p1)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 
    F,a = FiniteField(2,2,"a")
@@ -303,23 +303,23 @@ end
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+a*R[6]^2
    Q1 = quadratic_form(p1)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
    p1 = R[1]*R[2]
    p2 = R[3]^2+(a+1)*R[3]*R[5]
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p2 = R[3]^2+R[3]*R[5]+(a+1)*R[5]^2
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 end
 
@@ -473,7 +473,7 @@ end
    end
    B = Oscar.invariant_quadratic_form(G)
    @testset for g in gens(G)
-      @test isskewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+      @test is_skewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
    end
 
    G = GU(4,5)

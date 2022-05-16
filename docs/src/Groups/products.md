@@ -30,7 +30,7 @@ as_polycyclic_group(G::DirectProductGroup)
 embedding(G::DirectProductGroup, j::Int)
 projection(G::DirectProductGroup, j::Int)
 write_as_full(G::DirectProductGroup)
-isfull_direct_product(G::DirectProductGroup)
+is_full_direct_product(G::DirectProductGroup)
 ```
 
 ## Semidirect products
@@ -41,7 +41,7 @@ semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) 
 normal_subgroup(G::SemidirectProductGroup)
 acting_subgroup(G::SemidirectProductGroup)
 homomorphism_of_semidirect_product(G::SemidirectProductGroup)
-isfull_semidirect_product(G::SemidirectProductGroup)
+is_full_semidirect_product(G::SemidirectProductGroup)
 embedding(G::SemidirectProductGroup, n::Int)
 projection(G::SemidirectProductGroup)
 ```
@@ -54,7 +54,7 @@ wreath_product(G::T, H::PermGroup) where T<: GAPGroup
 normal_subgroup(W::WreathProductGroup)
 acting_subgroup(W::WreathProductGroup)
 homomorphism_of_wreath_product(G::WreathProductGroup)
-isfull_wreath_product(G::WreathProductGroup)
+is_full_wreath_product(G::WreathProductGroup)
 projection(W::WreathProductGroup)
 embedding(W::WreathProductGroup, n::Int)
 ```

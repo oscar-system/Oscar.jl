@@ -30,8 +30,8 @@
         @test length(rays(NFsquare)) == 4
         @test rays(NFsquare) == [[1, 0], [-1, 0], [0, 1], [0, -1]]
         @test is_regular(NFsquare)
-        @test iscomplete(NFsquare)
-        @test !iscomplete(F0)
+        @test is_complete(NFsquare)
+        @test !is_complete(F0)
         @test length(rays(F0)) == 3
         @test nrays(F1) == 3
         @test dim(F1) == 2

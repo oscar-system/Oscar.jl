@@ -492,7 +492,7 @@ export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
        union, defining_equation, ring, ProjectivePlaneCurve
 
 export is_smooth, tangent, common_components, curve_intersect,
-       curve_singular_locus, issmooth_curve, multiplicity,
+       curve_singular_locus, is_smooth_curve, multiplicity,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
 

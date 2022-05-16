@@ -82,7 +82,7 @@ end
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
 function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion
-  if !ismolien_series_implemented(R)
+  if !is_molien_series_implemented(R)
     return -1
   end
 

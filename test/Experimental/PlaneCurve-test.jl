@@ -85,10 +85,10 @@ end
     F = Oscar.AffinePlaneCurve(x + y^2)
 
     @test Oscar.curve_singular_locus(F) == [[], []]
-    @test Oscar.issmooth_curve(F)
+    @test Oscar.is_smooth_curve(F)
 
     H = Oscar.AffinePlaneCurve(x * y * (x + y))
-    @test !Oscar.issmooth_curve(H)
+    @test !Oscar.is_smooth_curve(H)
 
     G = Oscar.AffinePlaneCurve(x^2 * (x + y) * (y^3 - x^2))
     S = Oscar.curve_singular_locus(G)
@@ -223,11 +223,11 @@ end
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(0), QQ(0)])
 
     @test Oscar.curve_singular_locus(F) == [[], []]
-    @test Oscar.issmooth_curve(F)
+    @test Oscar.is_smooth_curve(F)
     @test Oscar.multiplicity(F, P) == 1
 
     H = Oscar.ProjPlaneCurve(T(x * y * (x + y)))
-    @test !Oscar.issmooth_curve(H)
+    @test !Oscar.is_smooth_curve(H)
 
     G = Oscar.ProjPlaneCurve(x^2 * (x + y) * (y^3 - x^2 * z))
     S = Oscar.curve_singular_locus(G)

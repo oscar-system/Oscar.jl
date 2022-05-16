@@ -173,7 +173,7 @@ multivariate ring, and  `T` is the element type of its coefficient ring as above
 The following function allows one to distinguish between graded and filtered rings:
 
 ```@docs
-isgraded(R::MPolyRing_dec)
+is_graded(R::MPolyRing_dec)
 ```
 
 ### Constructors for Graded Rings

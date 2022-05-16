@@ -22,9 +22,9 @@ affine_hull(P::Polyhedron{T}) where T<:scalar_types
 ambient_dim(P::Polyhedron)
 dim(P::Polyhedron)
 codim(P::Polyhedron)
-isbounded(P::Polyhedron)
-isfeasible(P::Polyhedron)
-isfulldimensional(P::Polyhedron)
+is_bounded(P::Polyhedron)
+is_feasible(P::Polyhedron)
+is_fulldimensional(P::Polyhedron)
 lineality_dim(P::Polyhedron)
 lineality_space(P::Polyhedron{T}) where T<:scalar_types
 recession_cone(P::Polyhedron{T}) where T<:scalar_types

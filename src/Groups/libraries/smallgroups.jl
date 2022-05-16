@@ -176,15 +176,15 @@ order, otherwise an exception is thrown.
 
 The following functions are currently supported as values for `func`:
 - `is_abelian`
-- `isalmostsimple`
+- `is_almostsimple`
 - `is_cyclic`
 - `is_nilpotent`
-- `isperfect`
+- `is_perfect`
 - `is_quasisimple`
 - `is_simple`
 - `is_sporadic_simple`
-- `issolvable`
-- `issupersolvable`
+- `is_solvable`
+- `is_supersolvable`
 - `number_conjugacy_classes`
 - `order`
 

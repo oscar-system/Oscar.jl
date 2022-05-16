@@ -17,7 +17,7 @@ set_coordinate_names_of_torus(antv4, ["u1","u2"])
 
 @testset "Affine toric varieties" begin
     @test is_smooth(antv) == false
-    @test isorbifold(antv) == true
+    @test is_orbifold(antv) == true
     @test dim(fan( antv )) == 2
     @test dim(cone(antv)) == 2
     @test length(affine_open_covering(antv)) == 1
@@ -33,7 +33,7 @@ set_coordinate_names_of_torus(antv4, ["u1","u2"])
 end
 
 @testset "Affine toric varieties as normal toric varieties" begin
-    @test isaffine(antv2) == true
+    @test is_affine(antv2) == true
     @test ngens(toric_ideal(antv2)) == 1
     @test length(affine_open_covering(antv3)) == 1
     @test dim(cone(antv3)) == 2
@@ -75,9 +75,9 @@ end
 cyc = CyclicQuotientSingularity(2,1)
 
 @testset "Cyclic quotient singularities" begin
-    @test isaffine(cyc) == true
+    @test is_affine(cyc) == true
     @test is_smooth( cyc ) == false
-    @test issimplicial( cyc ) == true
+    @test is_simplicial( cyc ) == true
     @test continued_fraction_hirzebruch_jung( cyc )[1] == 2
     @test dual_continued_fraction_hirzebruch_jung(cyc)[1] == 2
 end
@@ -97,10 +97,10 @@ ntv4 = NormalToricVarietiesFromStarTriangulations(convex_hull([0 0 0; 0 0 1; 1 0
 ntv5 = NormalToricVariety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42))))
 
 @testset "Normal toric varieties from fans, triangulations and GLSMs" begin
-    @test iscomplete(ntv) == true
+    @test is_complete(ntv) == true
     @test rank(torusinvariant_cartier_divisor_group(ntv)) == 4
     @test rank(domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(ntv))) == 4
-    @test iscomplete(ntv2) == true
+    @test is_complete(ntv2) == true
     @test length(ntv3) == 1
     @test is_projective_space(ntv3[1]) == true
     @test length(ntv4) == 2
@@ -124,13 +124,13 @@ P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 
 @testset "Projective space P2" begin
     @test is_normal(P2) == true
-    @test isaffine(P2) == false
-    @test isprojective(P2) == true
+    @test is_affine(P2) == false
+    @test is_projective(P2) == true
     @test is_smooth(P2) == true
-    @test iscomplete(P2) == true
-    @test hastorusfactor(P2) == false
-    @test isorbifold(P2) == true
-    @test issimplicial(P2) == true
+    @test is_complete(P2) == true
+    @test has_torusfactor(P2) == false
+    @test is_orbifold(P2) == true
+    @test is_simplicial(P2) == true
     @test betti_number(P2, 0) == 1
     @test betti_number(P2, 1) == 0
     @test betti_number(P2, 2) == 1
@@ -153,21 +153,21 @@ F0 = hirzebruch_surface(0)
 F5 = NormalToricVariety([[1,0], [0,1], [-1,5], [0,-1]], [[1,2],[2,3],[3,4],[4,1]])
 
 @testset "Hirzebruch surface F0" begin
-    @test isfano(F0) == true
+    @test is_fano(F0) == true
 end
 
 @testset "Hirzebruch surface F5" begin
     @test is_normal(F5) == true
-    @test isaffine(F5) == false
-    @test isprojective(F5) == true
+    @test is_affine(F5) == false
+    @test is_projective(F5) == true
     @test is_smooth(F5) == true
-    @test iscomplete(F5) == true
-    @test hastorusfactor(F5) == false
-    @test isorbifold(F5) == true
-    @test issimplicial(F5) == true
+    @test is_complete(F5) == true
+    @test has_torusfactor(F5) == false
+    @test is_orbifold(F5) == true
+    @test is_simplicial(F5) == true
     @test is_gorenstein(F5) == true
     @test is_q_gorenstein(F5) == true
-    @test isfano(F5) == false
+    @test is_fano(F5) == false
     @test dim(F5) == 2
     @test dim_of_torusfactor(F5) == 0
     @test euler_characteristic(F5) == 4
@@ -232,13 +232,13 @@ blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 
 @testset "Blowup of projective space" begin
     @test is_normal(blowup_variety) == true
-    @test isaffine(blowup_variety) == false
-    @test isprojective(blowup_variety) == true
+    @test is_affine(blowup_variety) == false
+    @test is_projective(blowup_variety) == true
     @test is_smooth(blowup_variety) == true
-    @test iscomplete(blowup_variety) == true
-    @test hastorusfactor(blowup_variety) == false
-    @test isorbifold(blowup_variety) == true
-    @test issimplicial(blowup_variety) == true
+    @test is_complete(blowup_variety) == true
+    @test has_torusfactor(blowup_variety) == false
+    @test is_orbifold(blowup_variety) == true
+    @test is_simplicial(blowup_variety) == true
     @test betti_number(blowup_variety, 0) == 1
     @test betti_number(blowup_variety, 1) == 0
     @test betti_number(blowup_variety, 2) == 2
@@ -260,13 +260,13 @@ ntv6 = F5 * P2
 
 @testset "Direct product of toric varieties" begin
     @test is_normal(ntv6) == true
-    @test isaffine(ntv6) == false
-    @test isprojective(ntv6) == true
+    @test is_affine(ntv6) == false
+    @test is_projective(ntv6) == true
     @test is_smooth(ntv6) == true
-    @test iscomplete(ntv6) == true
-    @test hastorusfactor(ntv6) == false
-    @test isorbifold(ntv6) == true
-    @test issimplicial(ntv6) == true
+    @test is_complete(ntv6) == true
+    @test has_torusfactor(ntv6) == false
+    @test is_orbifold(ntv6) == true
+    @test is_simplicial(ntv6) == true
     @test betti_number(ntv6, 0) == 1
     @test betti_number(ntv6, 1) == 0
     @test betti_number(ntv6, 2) == 3
@@ -334,13 +334,13 @@ end
 
 @testset "Toric divisor D" begin
     @test is_prime(D) == false
-    @test iscartier(D) == true
+    @test is_cartier(D) == true
     @test is_principal(D) == true
     @test istrivial(D) == true
     @test is_basepoint_free(D) == true
-    @test isample(D) == false
+    @test is_ample(D) == false
     @test is_very_ample(D) == false
-    @test isnef(D) == true
+    @test is_nef(D) == true
     @test is_integral(D) == true
     @test is_q_cartier(D) == true
     @test is_prime(D) == false
@@ -352,12 +352,12 @@ end
 
 @testset "Toric divisor D2" begin
     @test is_prime(D2) == false
-    @test iscartier(D2) == true
+    @test is_cartier(D2) == true
     @test is_principal(D2) == true
     @test is_basepoint_free(D2) == true
-    @test isample(D2) == false
+    @test is_ample(D2) == false
     @test is_very_ample(D2) == false
-    @test isnef(D2) == true
+    @test is_nef(D2) == true
     @test is_integral(D2) == true
     @test is_q_cartier(D2) == true
     @test is_prime(D2) == false
@@ -429,7 +429,7 @@ end
 @testset "Properties and attributes of toric line bundles" begin
     @test istrivial(l) == false
     @test is_basepoint_free(l) == false
-    @test isample(l) == false
+    @test is_ample(l) == false
     @test is_very_ample(l) == false
     @test degree(l) == 10
     @test divisor_class(l).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])

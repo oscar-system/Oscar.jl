@@ -11,7 +11,7 @@
     @test typeof(Vector(y))==Vector{Int64}
     @test typeof(Vector{fmpz}(y))==Vector{fmpz}
     @test x==G(Vector(x))
-    @test isfiniteorder(x)
+    @test is_finiteorder(x)
     @test order(x) == lcm(15,n-8)
     for T in [Int, BigInt, fmpz]
       @test order(T, x) == lcm(15,n-8)
