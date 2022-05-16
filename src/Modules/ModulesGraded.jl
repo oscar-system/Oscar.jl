@@ -178,15 +178,15 @@ end
 @doc Markdown.doc"""
     FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T
 
-Return the element of `F` whose coefficients with respect to the basis of 
+Return the element of `F` whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T = FreeModElem_dec{T}(c, parent)
 
 @doc Markdown.doc"""
     FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
-    
-Return the element of `F` whose coefficients with respect to the basis of 
+
+Return the element of `F` whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 function FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
@@ -195,22 +195,22 @@ function FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
   return FreeModElem_dec{T}(sparse_coords,parent)
 end
 
-@doc Markdown.doc"""
-    (F::FreeMod_dec{T})(c::SRow{T}) where T
-    
-Return the element of `F` whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
+#@doc Markdown.doc"""
+#    (F::FreeMod_dec{T})(c::SRow{T}) where T
+#
+#Return the element of `F` whose coefficients with respect to the basis of
+#standard unit vectors of `F` are given by the entries of `c`.
+#"""
 function (F::FreeMod_dec{T})(c::SRow{T}) where T
   return FreeModElem_dec(c, F)
 end
 
-@doc Markdown.doc"""
-    (F::FreeMod_dec{T})(c::Vector{T}) where T
-
-Return the element of `F` whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
+#@doc Markdown.doc"""
+#    (F::FreeMod_dec{T})(c::Vector{T}) where T
+#
+#Return the element of `F` whose coefficients with respect to the basis of
+#standard unit vectors of `F` are given by the entries of `c`.
+#"""
 function (F::FreeMod_dec{T})(c::Vector{T}) where T 
   return FreeModElem_dec(c, F)
 end

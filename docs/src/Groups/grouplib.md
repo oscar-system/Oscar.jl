@@ -27,7 +27,7 @@ as `symmetric_group` and `alternating_group`) the generators for these groups al
 the only difference that 0 (which is not permitted in GAP for permutations to act on) is always replaced by
 the degree.
 
-The arrangement for all degrees is intended to be equal to the arangement within the systems GAP and Magma, thus it
+The arrangement for all degrees is intended to be equal to the arrangement within the systems GAP and Magma, thus it
 should be safe to refer to particular (classes of) groups by their index numbers.
 
 

@@ -84,19 +84,15 @@ end
 
 
 function decodeType(input::String)
-    if Symbol(input) == backref_sym
-        return backref_sym
+    if haskey(reverseTypeMap, input)
+        return reverseTypeMap[input]
     else
-        if haskey(reverseTypeMap, input)
-            return reverseTypeMap[input]
-        else
-            # As a default, parse the type from the string.
-            #
-            # WARNING: Never deserialize data from an untrusted source, as this
-            # parsing is insecure and potentially malicious code could be
-            # entered here.
-            eval(Meta.parse(input))
-        end
+        # As a default, parse the type from the string.
+        #
+        # WARNING: Never deserialize data from an untrusted source, as this
+        # parsing is insecure and potentially malicious code could be
+        # entered here.
+        eval(Meta.parse(input))
     end
 end
 
@@ -106,7 +102,7 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if !isprimitivetype(T) && !Base.issingletontype(T)
+    if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
@@ -132,18 +128,18 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
-    decodedType = decodeType(dict[:type])
+    # TODO: deal with versions? enforce their presence?
+    if dict[:type] == string(backref_sym)
+        return s.objs[UUID(dict[:id])]
+    end
+
+    # TODO: compare T against decodedType ???
+    #decodedType = decodeType(dict[:type])
+
+    result = load_internal(s, T, dict[:data])
     id = dict[:id]
     if id != "-1"
-        id = UUID(id)
-    end
-    # TODO: deal with versions? enforce their presence?
-    if decodedType == backref_sym
-        return s.objs[id]
-    end
-    result = load_internal(s, T, dict[:data])
-    if id != "-1"
-        s.objs[id] = result
+        s.objs[UUID(id)] = result
     end
     return result
 end
@@ -159,12 +155,11 @@ function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=tr
         haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
     end
 
-    encodedType = dict[:type]
-    T = decodeType(encodedType)
-    if T == backref_sym
+    if dict[:type] == string(backref_sym)
         return s.objs[UUID(dict[:id])]
     end
 
+    T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
 
     # TODO: offer a generic handler for primitive
@@ -178,7 +173,7 @@ end
 # Default generic save_internal, load_internal
 function save_internal(s::SerializerState, obj::T) where T
     result = Dict{Symbol, Any}()
-    for (n,t) in zip(fieldnames(T), T.types)
+    for n in fieldnames(T)
         if n != :__attrs
             result[n] = save_type_dispatch(s, getfield(obj, n))
         end
@@ -188,7 +183,7 @@ end
 
 function load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
-    for (n,t) in zip(fieldnames(T), T.types)
+    for (n,t) in zip(fieldnames(T), fieldtypes(T))
         if n!= :__attrs
             push!(fields, load_type_dispatch(s, t, dict[n]))
         end
