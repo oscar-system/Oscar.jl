@@ -359,11 +359,11 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 ############################################################################
 
 @Markdown.doc """
-    AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+    AbsLocalizedIdeal{LocRingElemType}
 
 Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
 """
-abstract type AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
+abstract type AbsLocalizedIdeal{LocRingElemType} <: Ideal{LocRingElemType} end
 
 ### required getter functions
 #Return a Vector of generators of `I`.
