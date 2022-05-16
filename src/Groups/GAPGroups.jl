@@ -69,6 +69,7 @@ export
     sylow_subgroup,
     sylow_system, has_sylow_system, set_sylow_system
 
+@alias is_finiteorder isfiniteorder
 
 # TODO: as soon as GAP packages like `polycyclic` or `rcwa` are loaded,
 # the custom group types and isos they define should be added to the arrays

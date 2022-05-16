@@ -97,7 +97,7 @@ import AbstractAlgebra:
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:
     hasgens,
-    is_finiteorder,
+    isfiniteorder,
     istrivial
 
 import GAP:

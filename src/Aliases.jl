@@ -26,7 +26,6 @@
 @alias isfiltered is_filtered
 @alias isfinite_order is_finite_order
 @alias isfinitelygenerated is_finitelygenerated
-@alias isfiniteorder is_finiteorder
 @alias isfull_direct_product is_full_direct_product
 @alias isfull_semidirect_product is_full_semidirect_product
 @alias isfull_wreath_product is_full_wreath_product
