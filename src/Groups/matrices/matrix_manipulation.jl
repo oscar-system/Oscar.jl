@@ -9,7 +9,6 @@
 export
     complement,
     conjugate_transpose,
-    is_conjugate_gl,
     is_hermitian_matrix,
     is_skewsymmetric_matrix,
     lower_triangular_matrix,

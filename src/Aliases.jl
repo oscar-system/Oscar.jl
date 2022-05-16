@@ -17,7 +17,6 @@
 @alias iscellular is_cellular
 @alias iscomplete is_complete
 @alias iscongruent is_congruent
-@alias isconjugate_gl is_conjugate_gl
 @alias isconjugate_subgroup is_conjugate_subgroup
 @alias isdecomposable is_decomposable
 @alias isdecorated is_decorated
