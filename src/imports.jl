@@ -128,10 +128,9 @@ import Nemo:
     height,
     is_prime,
     is_probable_prime,
-    isqrtrem,
     is_square,
     is_unit,
-    iszero,
+    isqrtrem,
     jacobi_symbol,
     MatrixSpace,
     moebius_mu,
@@ -145,7 +144,7 @@ import Nemo:
     ZZ
 
 exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer, :genus_symbol, :data,
-    :isdefintie, :narrow_class_group]
+    :narrow_class_group]
 
 for i in names(Hecke)
   i in exclude && continue
