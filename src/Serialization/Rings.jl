@@ -3,7 +3,7 @@
 
 function load_internal(s::DeserializerState, t::Type{Nemo.NmodRing}, dict::Dict)
     modulus = load_type_dispatch(s, UInt64, dict[:modulus])
-    
+
     return t(modulus)
 end
 
@@ -41,7 +41,7 @@ function save_internal(s::SerializerState, p::MPolyElem)
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)
     terms = []
-    
+
     for i in 1:length(p)
         term = Dict(
             :exponent => save_type_dispatch(s, exponent_vector(p, i)),
@@ -61,7 +61,7 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(R)
-    
+
     for term in dict[:terms]
         c = load_type_dispatch(s, coeff_type, term[:coeff])
         e = load_type_dispatch(s, Vector{Int}, term[:exponent])
@@ -96,16 +96,16 @@ end
 function save_internal(s::SerializerState, i::MPolyIdeal)
     generators = gens(i)
     parent_ring = save_type_dispatch(s, parent(generators[1]))
-    
+
     return Dict(
         :parent => parent_ring,
         :gens => save_type_dispatch(s, generators),
     )
 end
-                       
+
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
     parent_ring, _ = load_type_dispatch(s, dict[:parent], check_namespace=false)
     gens = load_type_dispatch(s, Vector{MPolyElem}, dict[:gens])
-    
+
     return ideal(parent_ring, gens)
 end
