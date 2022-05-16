@@ -50,12 +50,7 @@ function load_internal(s::DeserializerState, ::Type{gfp_fmpz_elem}, dict::Dict)
 end
 
 ################################################################################
-# FqNmodFiniteField
-
-
-
-################################################################################
-# AnticNumberfield, Hecke.NfRel{nf_elem}
+# SimpleNumField
 function save_internal(s::SerializerState,
                        K::Union{SimpleNumField{T}, FqNmodFiniteField}) where T
     return Dict(
