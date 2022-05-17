@@ -9,7 +9,6 @@
             filename = joinpath(path, "polynomial_se.uv")
             save(q, filename)
             loaded = load(filename)
-            m = is_isomorphic_with_map(K, prime_field(parent(loaded)))
         end
 
         @testset "MV Polynomial Over Non Simple Extension" begin
