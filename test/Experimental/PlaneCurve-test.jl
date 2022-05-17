@@ -262,8 +262,8 @@ end
     D = Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
     @test Oscar.AffineCurveDivisor(C, P, -3) + D == Oscar.AffineCurveDivisor(C, Q, -2)
     @test -2 * D == Oscar.AffineCurveDivisor(C, Dict(P => -6, Q => 4))
-    @test !Oscar.iseffective(D)
-    @test Oscar.iseffective(Oscar.AffineCurveDivisor(C, P, 3))
+    @test !Oscar.is_effective(D)
+    @test Oscar.is_effective(Oscar.AffineCurveDivisor(C, P, 3))
     phi = y // x
     @test Oscar.multiplicity(C, phi, P) == 1
     @test Oscar.divisor(C, phi) == Oscar.AffineCurveDivisor(C, Dict(P => 1, Q => -1))
@@ -279,8 +279,8 @@ end
     D = Oscar.ProjCurveDivisor(C, Dict(P => 3, Q => -2))
     @test Oscar.ProjCurveDivisor(C, P, -3) + D == Oscar.ProjCurveDivisor(C, Q, -2)
     @test -2 * D == Oscar.ProjCurveDivisor(C, Dict(P => -6, Q => 4))
-    @test !Oscar.iseffective(D)
-    @test Oscar.iseffective(Oscar.ProjCurveDivisor(C, P, 3))
+    @test !Oscar.is_effective(D)
+    @test Oscar.is_effective(Oscar.ProjCurveDivisor(C, P, 3))
     F = T(x)
     phi = T(x) // T(y)
     @test Oscar.multiplicity(C, F, P) == 1
@@ -306,13 +306,13 @@ end
 
     E = Oscar.ProjCurveDivisor(C, P)
     F = Oscar.ProjCurveDivisor(C, R)
-    @test !Oscar.islinearly_equivalent(E, F)
-    @test Oscar.islinearly_equivalent(2 * E, 2 * F)
+    @test !Oscar.is_linearly_equivalent(E, F)
+    @test Oscar.is_linearly_equivalent(2 * E, 2 * F)
     @test !Oscar.is_principal(E)
 
     G = 2 * E - 2 * F
     @test Oscar.is_principal(G)
-    @test Oscar.islinearly_equivalent(G, Oscar.divisor(C, Oscar.principal_divisor(G)))
+    @test Oscar.is_linearly_equivalent(G, Oscar.divisor(C, Oscar.principal_divisor(G)))
 end
 
 @testset "Weierstrass form" begin

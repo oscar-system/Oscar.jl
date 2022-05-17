@@ -16,7 +16,7 @@ export
     is_invariant,
     is_invertible,
     is_isomorphic,
-    isisomorphic_with_map,
+    is_isomorphic_with_map,
     isomorphic_fp_group,
     isomorphic_pc_group,
     isomorphic_perm_group,
@@ -357,7 +357,7 @@ end
 ################################################################################
 
 """
-    isisomorphic_with_map(G::Group, H::Group)
+    is_isomorphic_with_map(G::Group, H::Group)
 
 Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group
 isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial
@@ -365,14 +365,14 @@ homomorphism.
 
 # Examples
 ```jldoctest
-julia> isisomorphic_with_map(symmetric_group(3), dihedral_group(6))
+julia> is_isomorphic_with_map(symmetric_group(3), dihedral_group(6))
 (true, Group homomorphism from
 Sym( [ 1 .. 3 ] )
 to
 <pc group of size 6 with 2 generators>)
 ```
 """
-function isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
+function is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)::GapObj
   if mp === GAP.Globals.fail
     return false, trivial_morphism(G, H)
@@ -381,10 +381,10 @@ function isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
   end
 end
 
-function isisomorphic_with_map(G::GAPGroup, H::GrpGen)
+function is_isomorphic_with_map(G::GAPGroup, H::GrpGen)
   HtoP = isomorphism(PermGroup, H)
   P = codomain(HtoP)
-  fl, GtoP = isisomorphic_with_map(G, P)
+  fl, GtoP = is_isomorphic_with_map(G, P)
   if !fl
     return false, nothing
   else
@@ -392,10 +392,10 @@ function isisomorphic_with_map(G::GAPGroup, H::GrpGen)
   end
 end
 
-function isisomorphic_with_map(G::GrpGen, H::GAPGroup)
+function is_isomorphic_with_map(G::GrpGen, H::GAPGroup)
   GtoP = isomorphism(PermGroup, G)
   P = codomain(GtoP)
-  fl, PtoH = isisomorphic_with_map(P, H)
+  fl, PtoH = is_isomorphic_with_map(P, H)
   if !fl
     return false, nothing
   else
@@ -453,7 +453,7 @@ end
 function isomorphism(G::GAPGroup, H::GrpGen)
   HtoP = isomorphism(PermGroup, H)
   P = codomain(HtoP)
-  fl, GtoP = isisomorphic_with_map(G, P)
+  fl, GtoP = is_isomorphic_with_map(G, P)
   !fl && throw(ArgumentError("the groups are not isomorphic"))
   return GtoP * inv(HtoP)
 end
@@ -461,7 +461,7 @@ end
 function isomorphism(G::GrpGen, H::GAPGroup)
   GtoP = isomorphism(PermGroup, G)
   P = codomain(GtoP)
-  fl, PtoH = isisomorphic_with_map(P, H)
+  fl, PtoH = is_isomorphic_with_map(P, H)
   !fl && throw(ArgumentError("the groups are not isomorphic"))
   return GtoP * PtoH
 end

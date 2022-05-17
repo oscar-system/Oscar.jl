@@ -1,7 +1,7 @@
-import Oscar: iseffective
-export AffineCurveDivisor, ProjCurveDivisor, iseffective, multiplicity,
+import Oscar: is_effective
+export AffineCurveDivisor, ProjCurveDivisor, is_effective, multiplicity,
        divisor, curve, degree, divisor_ideals, global_sections,
-       dimension_global_sections, islinearly_equivalent, is_principal,
+       dimension_global_sections, is_linearly_equivalent, is_principal,
        curve_zero_divisor, principal_divisor
 
 ################################################################################
@@ -244,7 +244,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    iseffective(D::CurveDivisor)
+    is_effective(D::CurveDivisor)
 
 Return `true` if `D` is an effective divisor, `false` otherwise.
 
@@ -265,11 +265,11 @@ Point with coordinates fmpq[0, -1]
 julia> D = Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
 3*fmpq[0, 0] - 2*fmpq[0, -1]
 
-julia> Oscar.iseffective(D)
+julia> Oscar.is_effective(D)
 false
 ```
 """
-function iseffective(D::CurveDivisor)
+function is_effective(D::CurveDivisor)
     return all(v >= 0 for v in values(D.divisor))
 end
 
@@ -676,7 +676,7 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    islinearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
+    is_linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
 
 Return `true` if the divisors `D` and `E` are linearly equivalent, and `false`
 otherwise
@@ -711,11 +711,11 @@ julia> E = Oscar.ProjCurveDivisor(C, P)
 julia> F = Oscar.ProjCurveDivisor(C, R)
 (0 : 0 : 1)
 
-julia> Oscar.islinearly_equivalent(E, F)
+julia> Oscar.is_linearly_equivalent(E, F)
 false
 ```
 """
-function islinearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
+function is_linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
     return !iszero(_linearly_equivalent(D, E))
 end
 

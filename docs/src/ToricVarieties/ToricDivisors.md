@@ -51,7 +51,7 @@ Beyond this, we support the following properties of toric divisors:
 is_ample(td::ToricDivisor)
 is_basepoint_free(td::ToricDivisor)
 is_cartier(td::ToricDivisor)
-iseffective(td::ToricDivisor)
+is_effective(td::ToricDivisor)
 is_integral(td::ToricDivisor)
 is_nef(td::ToricDivisor)
 is_prime(td::ToricDivisor)

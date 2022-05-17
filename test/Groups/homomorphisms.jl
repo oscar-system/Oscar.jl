@@ -162,7 +162,7 @@ end
          @test preimage(f, f(x)) == x
          @test preimage(f, f(y)) == y
       end
-      fl, f = isisomorphic_with_map(G, H)
+      fl, f = is_isomorphic_with_map(G, H)
       @test fl
       for x in gens(G), y in gens(G)
          @test f(x) * f(y) == f(x * y)
@@ -177,7 +177,7 @@ end
          @test preimage(f, f(x)) == x
          @test preimage(f, f(y)) == y
       end
-      fl, f = isisomorphic_with_map(H, G)
+      fl, f = is_isomorphic_with_map(H, G)
       @test fl
       for x in gens(H), y in gens(H)
          @test f(x) * f(y) == f(x * y)
@@ -188,11 +188,11 @@ end
       H = cyclic_group(2)
       @test !isisomorphic(G, H)
       @test_throws ArgumentError isomorphism(G, H)
-      fl, _ = isisomorphic_with_map(G, H)
+      fl, _ = is_isomorphic_with_map(G, H)
       @test !fl
       @test !isisomorphic(H, G)
       @test_throws ArgumentError isomorphism(H, G)
-      fl, _ = isisomorphic_with_map(H, G)
+      fl, _ = is_isomorphic_with_map(H, G)
       @test !fl
    end
 

@@ -302,7 +302,7 @@ end
 
 function weights end
 
-function iseffective end
+function is_effective end
 
 include("printing.jl")
 

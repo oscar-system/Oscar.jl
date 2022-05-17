@@ -63,7 +63,7 @@ export is_basepoint_free
 
 
 @doc Markdown.doc"""
-    iseffective(td::ToricDivisor)
+    is_effective(td::ToricDivisor)
 
 Determine whether the toric divisor `td` is effective.
 
@@ -75,12 +75,12 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 julia> td = ToricDivisor(F4, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> iseffective(td)
+julia> is_effective(td)
 true
 ```
 """
-@attr Bool iseffective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE
-export iseffective
+@attr Bool is_effective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE
+export is_effective
 
 
 @doc Markdown.doc"""

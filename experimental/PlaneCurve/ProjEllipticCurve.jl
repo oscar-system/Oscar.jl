@@ -6,7 +6,7 @@ export ProjEllipticCurve, discriminant, is_smooth, j_invariant,
 # Helping functions
 ################################################################################
 
-function isweierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
+function is_weierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -44,7 +44,7 @@ end
 
 ################################################################################
 
-function isinflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function is_inflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    J = jacobi_matrix([jacobi_matrix(F)[i] for i in 1:3])
    H = det(J)
    return iszero(evaluate(F, P.v)) && iszero(evaluate(H, P.v))
@@ -99,7 +99,7 @@ function _change_coord(F::Oscar.MPolyElem_dec, P::Oscar.Geometry.ProjSpcElem)
    evaluate(F, P) == 0 || error("The point is not on the curve")
    D = ProjPlaneCurve(F)
    L = tangent(D, P)
-   isinflection(F, P) || error("The point is not an inflection point")
+   is_inflection(F, P) || error("The point is not an inflection point")
    R = parent(defining_equation(D))
    S = parent(F)
    Q = _point_line(L, P)
@@ -182,7 +182,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     !is_constant(eq) || error("The defining equation must be non constant")
     is_homogeneous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
+    is_weierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
@@ -196,12 +196,12 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
      iszero(evaluate(eq, P.v)) || error("The point is not on the curve")
      !is_constant(eq) || error("The defining equation must be non constant")
      is_homogeneous(eq) || error("The defining equation is not homogeneous")
-     isinflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
+     is_inflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
      _iselliptic(eq) || error("Not an elliptic curve")
      T = parent(eq)
      L = _change_coord(eq, P)
      H = L[1](eq)
-     isweierstrass_form(H) || error("Not in Weierstrass form")
+     is_weierstrass_form(H) || error("Not in Weierstrass form")
      v = shortformtest(H)
      new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], v[1]))
   end
@@ -210,7 +210,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !is_constant(eq) || error("The defining equation must be non constant")
     is_homogeneous(eq) || error("The defining equation is not homogeneous")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
+    is_weierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
     v[1] || error("Not in short Weierstrass form")
     d = _discr(eq)

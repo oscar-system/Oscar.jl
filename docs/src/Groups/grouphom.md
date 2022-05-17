@@ -163,7 +163,7 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 
 ```@docs
 is_isomorphic(G::GAPGroup, H::GAPGroup)
-isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
+is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
 isomorphism(G::GAPGroup, H::GAPGroup)
 ```
 
