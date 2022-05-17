@@ -412,20 +412,11 @@ end
 ### required functionality
 # Checks for ideal membership of `f` in `I`.
 function Base.in(
-    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
+    f::RingElem,
+    I::AbsLocalizedIdeal
+  )
   error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
-
-# Checks for ideal membership of `f` in `I`.
-function Base.in(
-    f::RingElemType, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
-  error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
-end
-
 
 ### A catchall implementation for the ideal arithmetic 
 # Return the product of the ideals `I` and `J`.

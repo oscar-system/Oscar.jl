@@ -1,5 +1,5 @@
 export kernel, cokernel, image, coordinates, represents_element
-export syz, has_nonepmty_intersection, base_ring_module
+export syz, has_nonempty_intersection, base_ring_module
 
 ########################################################################
 # 
@@ -126,7 +126,7 @@ end
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 #
 @doc Markdown.doc"""
-    has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
+    has_nonempty_intersection(U::AbsMultSet, I::Ideal)
 
 For a finitely generated ideal ``I ⊂ R`` and a multiplicative 
 set ``U ⊂ R``, this checks whether the intersection ``U ∩ I`` 
@@ -146,7 +146,7 @@ with meaningless values for ``f`` and ``a``.
 recommended to choose ``f`` to be the 'least complex' in 
 an appropriate sense for ``R``.
 """
-function has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
+function has_nonempty_intersection(U::AbsMultSet, I::Ideal)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   error("this method is not implemented for multiplicative sets of type $(typeof(U)) and ideals of type $(typeof(I)); see Posur: Linear systems over localizations of rings, arXiv:1709.08180v2, Definition 3.8 for the requirements of the implementation")
@@ -196,7 +196,7 @@ function has_solution(
   Aext = vcat(-b, A)
   L = syz(Aext)
   I = ideal(R, vec(L[:, 1]))
-  (success, u, a) = has_nonepmty_intersection(U, I)
+  (success, u, a) = has_nonempty_intersection(U, I)
   success || return (false, zero(MatrixSpace(R, 1, ngens(I))), zero(R))
   l = a*L 
   return (success, l[1, 2:end], l[1,1])

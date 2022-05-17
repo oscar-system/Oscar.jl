@@ -133,7 +133,7 @@ base_ring_elem_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BR
 mult_set_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
 mult_set_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(L))
 
-ideal_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+ideal_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyLocalizedIdeal{MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
 ideal_type(W::MPolyQuoLocalizedRing) = ideal_type(typeof(W))
 
 
@@ -192,21 +192,19 @@ end
 
 ### additional constructors
 function quo(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyLocalizedRing,
+    I::MPolyLocalizedIdeal
+  )
   R = base_ring(W)
   S = inverted_set(W)
-  #lbpa = groebner_basis(I) # In particular, this saturates the ideal
-  #J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
   J = ideal(R, numerator.(gens(I)))
   return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
 end
 
 function quo(
-    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST},
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
+    L::MPolyQuoLocalizedRing,
+    I::MPolyLocalizedIdeal
+  )
   R = base_ring(L)
   S = inverted_set(L)
   lbpa = groebner_basis(I) # In particular, this saturates the ideal
@@ -653,17 +651,16 @@ function isone(a::MPolyQuoLocalizedRingElem)
 end
 
 function iszero(a::MPolyQuoLocalizedRingElem)
-  is_reduced(a) || (a = reduce_fraction(a))
-  return iszero(lifted_numerator(a))
+  return lift(a) in localized_modulus(parent(a))
 end
 
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+  return f
   is_reduced(f) && return f
   h = lift(f)
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  h = Base.reduce(h, groebner_basis(localized_modulus(parent(f))))
   return parent(f)(h, is_reduced=true, check=false)
 end
 
@@ -744,6 +741,8 @@ function write_as_linear_combination(
   for a in g 
     parent(a) == L || error("elements do not belong to the same ring")
   end
+  return L.(vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
+
   (d, a) = bring_to_common_denominator(vcat([f], g))
   h = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
   lbpa = LocalizedBiPolyArray(W.(h))
@@ -1258,8 +1257,8 @@ function preimage(
   R = base_ring(domain(f))
   S = base_ring(codomain(f))
   Sc = helper_ring(f)
-  lbpa = groebner_basis(I) # saturation takes place in this computation
-  J = ideal(Sc, [helper_kappa(f)(g) for g in numerator.(oscar_gens(lbpa))]) + helper_ideal(f)
+  Isat = saturated_ideal(I)
+  J = ideal(Sc, [helper_kappa(f)(g) for g in gens(Isat)]) + helper_ideal(f)
   return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
 

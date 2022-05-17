@@ -51,19 +51,12 @@
   #@test W(f) in I_loc
   
   J = ideal(W, [W(x-3), W(y-4)])
-  lbpa = groebner_basis(J)
-  @test MonomialOrdering(R, ordering(lbpa)) == negdegrevlex(gens(base_ring(W)))
-  @test oscar_gens(lbpa)[1] == W(1)
 
   J = ideal(W, [f, y-q])
-  lbpa = groebner_basis(J)
-  @test MonomialOrdering(R, ordering(lbpa)) == negdegrevlex(gens(base_ring(W)))
-  @test oscar_gens(lbpa) == W.([x-p, y-q])
-
   @test I_loc + J isa MPolyLocalizedIdeal
   @test I_loc * J isa MPolyLocalizedIdeal
 
-  @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
+ # @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
 
   K = ideal(W, f)
   @test f*(x-p+4) in K
@@ -71,11 +64,7 @@
   @test f*(x-p+9) in I_loc
 
   K = ideal(V, [f*x, f*y])
-  lbpa = groebner_basis(K)
-  reduce(V(x), lbpa)
   K = ideal(V, [x, y])
-  lbpa = groebner_basis(K)
-  reduce(V(x), lbpa)
   
   R, v = ZZ["x", "y"]
   x = v[1]
@@ -94,7 +83,6 @@
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
-  @test collect(groebner_basis(I)) == [ S(x + y + z), S(-x*z + 2*y^2 + y*z + z^3) ]
 end
 
 @testset "mpoly-localizations PowersOfElements" begin

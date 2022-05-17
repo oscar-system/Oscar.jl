@@ -140,7 +140,7 @@ function empty_spec(kk::BRT) where {BRT<:AbstractAlgebra.Ring}
 end
 
 ### closed subschemes defined by ideals
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function subscheme(X::Spec, I::MPolyLocalizedIdeal)
   localized_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
   return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X))))
 end
@@ -400,9 +400,9 @@ function closure(
   is_closed_embedding(X, Y) && return X
   W = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
-  lbpa = groebner_basis(I) # takes care of the saturation
+  Isat = saturated_ideal(I)
   R = base_ring(OO(Y))
-  return Spec(MPolyQuoLocalizedRing(R, ideal(R, numerator.(oscar_gens(lbpa))), inverted_set(OO(Y))))
+  return Spec(MPolyQuoLocalizedRing(R, Isat, inverted_set(OO(Y))))
 end
 
 
