@@ -1,4 +1,4 @@
-import Oscar: is_effective
+import Oscar: is_effective, is_linearly_equivalent
 export AffineCurveDivisor, ProjCurveDivisor, is_effective, multiplicity,
        divisor, curve, degree, divisor_ideals, global_sections,
        dimension_global_sections, is_linearly_equivalent, is_principal,
