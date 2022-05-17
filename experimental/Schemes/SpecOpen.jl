@@ -116,8 +116,7 @@ Return the complement of the zero locus of ``I`` in ``X``.
 """
 function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
   base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
-  f = [reduce(f, groebner_basis(localized_modulus(OO(X)))) for f in gens(I)]
-  g = [numerator(a) for a in f if !iszero(numerator(a))]
+  g = [numerator(a) for a in gens(I) if !iszero(numerator(a))]
   return SpecOpen(X, g)
 end
 
