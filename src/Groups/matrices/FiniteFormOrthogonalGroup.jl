@@ -751,7 +751,7 @@ end
 #     ]
 # """
 function _compute_gens(T::TorQuadMod)
-  T.isnormal || error("T must be normal")
+  T.is_normal || error("T must be normal")
 
   # corner case
   invs = elementary_divisors(T)

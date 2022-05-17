@@ -243,3 +243,18 @@ end
   I = ideal(R, [x])
   @test x in I
 end
+
+@testset "Fraction fields over polynomial rings" begin
+  R, x = PolynomialRing(QQ, "x")
+  F = FractionField(R)
+  @test gen(F) == F(x)
+  @test gens(F) == elem_type(F)[ F(x) ]
+
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  F = FractionField(R)
+  @test ngens(F) == 3
+  @test gen(F, 2) == F(y)
+  @test gens(F) == elem_type(F)[ F(x), F(y), F(z) ]
+  @test F[1] == F(x)
+  @test F[0] == zero(F)
+end

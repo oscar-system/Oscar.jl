@@ -113,6 +113,25 @@ function Base.getindex(R::MPolyRing, i::Int)
   return gen(R, i)
 end
 
+ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyElem} = ngens(base_ring(F))
+
+function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyElem}
+  return F(gen(base_ring(F)))
+end
+
+function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyElem}
+  return F(gen(base_ring(F), i))
+end
+
+function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyElem, MPolyElem}}
+  return map(F, gens(base_ring(F)))
+end
+
+function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyElem}
+  i == 0 && return zero(F)
+  return gen(F, i)
+end
+
 ######################################################################
 # pretty printing for iJulia notebooks..
 #
