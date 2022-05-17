@@ -132,7 +132,7 @@
         # Here the content of the SubObjectIterator does not fit the idea of the
         # methods; we want ArgumentErrors to be thrown
         @test_throws ArgumentError convex_hull(facets(Pos_poly))
-        @test_throws ArgumentError Polyhedron(vertices(Pos_poly))
+        @test_throws MethodError Polyhedron(vertices(Pos_poly)) #TODO
         @test_throws ArgumentError convex_hull(rays(Pos_poly))
         @test_throws ArgumentError convex_hull(rays(Pos_poly), [-1 -1 -1])
         @test_throws ArgumentError convex_hull([0 0 0], vertices(Pos_poly))

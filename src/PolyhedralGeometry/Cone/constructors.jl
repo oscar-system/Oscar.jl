@@ -23,7 +23,7 @@ Cone(x...; kwargs...) = Cone{fmpq}(x...; kwargs...)
 Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
 @doc Markdown.doc"""
-    Cone{T}(R::MatrixUnion [, L::MatrixUnion]; non_redundant::Bool = false) where T<:scalar_types
+    Cone{T}(R::RayCollection [, L::RayCollection]; non_redundant::Bool = false) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -50,7 +50,7 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone{T}(R::MatrixUnion, L::Union{MatrixUnion, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function Cone{T}(R::RayCollection, L::Union{RayCollection, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     inputrays = unhomogenized_matrix(R)
     if isnothing(L) || isempty(L)
         L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, ambient_dim(R))
@@ -73,7 +73,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull([::Type{T} = fmpq,] R::MatrixUnion)
+    positive_hull([::Type{T} = fmpq,] R::RayCollection)
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -90,7 +90,7 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(::Type{T}, R::MatrixUnion) where T<:scalar_types
+function positive_hull(::Type{T}, R::RayCollection) where T<:scalar_types
     C=Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS =
       remove_zero_rows(unhomogenized_matrix(R)))
     Cone{T}(C)
@@ -100,7 +100,7 @@ positive_hull(x...) = positive_hull(fmpq, x...)
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities([::Type{T} = fmpq,] I::MatrixUnion [, E::MatrixUnion]; non_redundant::Bool = false)
+    cone_from_inequalities([::Type{T} = fmpq,] I::LinearHalfspaceCollection [, E::LinearHyperplaneCollection]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
@@ -120,7 +120,7 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(::Type{T}, I::MatrixUnion, E::Union{Nothing, MatrixUnion} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function cone_from_inequalities(::Type{T}, I::LinearHalfspaceCollection, E::Union{Nothing, LinearHyperplaneCollection} = nothing; non_redundant::Bool = false) where T<:scalar_types
     IM = -linear_matrix_for_polymake(I)
     EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 

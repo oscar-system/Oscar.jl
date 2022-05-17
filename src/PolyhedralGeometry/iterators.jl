@@ -352,8 +352,13 @@ ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 ################################################################################
 
 # homogenized_matrix -> matrix_for_polymake
+const RayCollection = AnyVecOrMat
+const PointCollection = AnyVecOrMat
+
 # linear_matrix_for_polymake
-const MatrixUnion = Union{AnyVecOrMat, SubObjectIterator}
+const LinearHalfspaceCollection = Union{SubObjectIterator{<:Halfspace}, AnyVecOrMat}
+const LinearHyperplaneCollection = Union{SubObjectIterator{<:Hyperplane}, AnyVecOrMat}
 
 # affine_matrix_for_polymake
-const TupleUnion = Union{SubObjectIterator, Tuple{MatrixUnion, Any}}
+const AffineHalfspaceCollection = Union{SubObjectIterator{<:Halfspace}, Tuple{AnyVecOrMat, Any}}
+const AffineHyperplaneCollection = Union{SubObjectIterator{<:Hyperplane}, Tuple{AnyVecOrMat, Any}}
