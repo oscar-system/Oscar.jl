@@ -6,8 +6,9 @@
             filename = joinpath(path, "polynomial_q.mv")
             save(p, filename)
             loaded = load(filename)
-            @test p == loaded
-
+            S = parent(loaded)
+            h = hom(R, S, gens(S))
+            @test h(p) == loaded
         end
 
         @testset "MV One Variable Polynomial Over ZZ" begin
@@ -16,7 +17,9 @@
             filename = joinpath(path, "polynomial_z.mv")
             save(p, filename)
             loaded = load(filename)
-            @test p == loaded
+            S = parent(loaded)
+            h = hom(R, S, gens(S))
+            @test h(p) == loaded
             @test typeof(loaded) == fmpz_mpoly
 
         end
@@ -28,7 +31,8 @@
             filename = joinpath(path, "polynomial_rr.uv")
             save(p, filename)
             loaded = load(filename)
-            @test p == loaded
+            S = parent(loaded)
+            @test S(collect(coefficients(p))) == loaded
         end
 
         @testset "MV Polynomial Ideal" begin
@@ -38,14 +42,18 @@
             filename = joinpath(path, "polynomial_rr.mv")
             save(p, filename)
             loaded = load(filename)
-            @test p == loaded
+            S = parent(loaded)
+            h = hom(MR, S, gens(S))
+            @test h(p) == loaded
 
             q = y^2 - x
             i = ideal(MR, [p, q])
             filename = joinpath(path, "ideal_q.i")
             save(i, filename)
             loaded_i = load(filename)
-            @test i == loaded_i
+            S = parent(loaded_i[1])
+            h = hom(MR, S, gens(S))
+            @test h(i) == loaded_i
         end
     end
 end
