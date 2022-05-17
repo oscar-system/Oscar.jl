@@ -24,12 +24,12 @@ end
 
 # given a perm group G and a block B, compute a homomorphism into Sym(B^G)
 function action_on_blocks(G::PermGroup, B::Vector{Int})
-  Omega = gset(G, [B])
+  Omega = gset(G, on_sets, [B])
   return action_homomorphism(Omega)
 end
 
 function action_on_block_system(G::PermGroup, B::Vector{Vector{Int}})
-  Omega = gset(G, B)
+  Omega = gset(G, on_sets, B)
   set_attribute!(Omega, :elements => Omega.seeds)
   return action_homomorphism(Omega)
 end
