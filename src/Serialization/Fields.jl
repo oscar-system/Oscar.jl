@@ -111,13 +111,17 @@ end
 ################################################################################
 # NfAbsNS 
 function save_internal(s::SerializerState, K::Union{NfAbsNS})
+    def_pols = defining_polynomials(K)
+    pols_parent = parent(def_pols[1])
     return Dict(
-        :def_pols => save_type_dispatch(s, defining_polynomials(K)),
+        :pols_parent => save_type_dispatch(s, pols_parent),
+        :def_pols => save_type_dispatch(s, def_pols),
         :vars => save_type_dispatch(s, [String(a) for a in vars(K)])
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{NfAbsNS}, dict::Dict)
+    pols_parent = load_type_dispatch(s, dict[:pols_parent], check_namespace=false)
     def_pols = load_type_dispatch(s, dict[:def_pols], check_namespace=false)
     vars = load_type_dispatch(s, dict[:vars], check_namespace=false)
     K, _ = NumberField(def_pols, vars, cached=false)
@@ -139,6 +143,7 @@ end
 function load_internal(s::DeserializerState, ::Type{NfAbsNSElem}, dict::Dict)
     K = load_type_dispatch(s, dict[:parent], check_namespace=false)
     polynomial = load_type_dispatch(s, dict[:polynomial], check_namespace=false)
+    polynomial = evaluate(polynomial, gens(parent(K.pol[1])))
 
     return K(polynomial)
 end
