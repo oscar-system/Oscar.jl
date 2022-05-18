@@ -96,7 +96,7 @@ h = ZZ[40 1 -1 ]*basis_matrix(S)  #an ample vector
 Q = Hecke.orthogonal_submodule(S, lattice(V, h))
 @test minimum(rescale(Q, -1)) > 2
 
-weyl = oscar.nondeg_weyl_new(L,S,weyl,weyl,h)
+weyl,_ = oscar.nondeg_weyl_new(L,S,weyl,weyl,h)
 
 Gamma, W, DD, B = oscar.alg61(L,S,weyl)
 
