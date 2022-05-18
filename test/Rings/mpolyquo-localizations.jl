@@ -76,7 +76,7 @@
   @test x//(y*(x-1)) in L
 
   I = ideal(L, (x-1)*(y-1))
-  @test one(W) in I
+  @test one(L) in I
   @test isunit(L(y-1))
 
   h = x^4+23*x*y^3-15

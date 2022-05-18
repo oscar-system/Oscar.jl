@@ -616,7 +616,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
       end
       I = ideal(localized_ring(OO(Y)), gens(V))
       for g in f
-	one(localized_ring(OO(domain(g)))) in pullback(g)(I) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
+        one(localized_ring(OO(domain(g)))) in Oscar.pre_image_ideal(pullback(g)(I)) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
       end
     end
     return new{DomainType, CodomainType, SpecMorType}(U, V, f)

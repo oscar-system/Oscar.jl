@@ -133,7 +133,10 @@ base_ring_elem_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BR
 mult_set_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
 mult_set_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(L))
 
-ideal_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyLocalizedIdeal{MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+localized_ring_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyLocalizedRing{BRT, BRET, RT, RET, MST}
+localized_ring_type(L::MPolyQuoLocalizedRing) = localized_ring_type(typeof(L))
+
+ideal_type(::Type{MPolyQuoLocalizedRingType}) where {MPolyQuoLocalizedRingType<:MPolyQuoLocalizedRing} = MPolyQuoLocalizedIdeal{MPolyQuoLocalizedRingType, elem_type(MPolyQuoLocalizedRingType), ideal_type(localized_ring_type(MPolyQuoLocalizedRingType))}
 ideal_type(W::MPolyQuoLocalizedRing) = ideal_type(typeof(W))
 
 
@@ -161,7 +164,7 @@ function localized_modulus(L::MPolyQuoLocalizedRing)
   if !has_attribute(L, :localized_modulus)
     set_attribute!(L, :localized_modulus, localized_ring(L)(modulus(L)))
   end
-  return get_attribute(L, :localized_modulus)::ideal_type(L)
+  return get_attribute(L, :localized_modulus)::ideal_type(localized_ring_type(L))
 end
 
 @Markdown.doc """
@@ -684,21 +687,6 @@ parent_type(W::MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingTyp
 parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
 
-### ideal constructors
-# Note that by convention an ideal J in a localized algebra 
-# L = (𝕜[x₁,…,xₙ]/I)[S⁻¹] is an ideal in 𝕜[x₁,…,xₙ][S⁻¹] 
-# containing IS⁻¹. We provide the constructors here.
-
-function ideal(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    g::Vector{T}
-  ) where {BRT, BRET, RT, RET, MST, T<:RingElement}
-  gconv = L.(g)
-  W = localized_ring(L)
-  return ideal(W, lift.(gconv)) + localized_modulus(L)
-end
-
-ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:RingElement} = ideal(L, [g])
-ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:MPolyQuoLocalizedRingElem} = ideal(L, [g])
 
 @Markdown.doc """
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
@@ -732,9 +720,9 @@ end
 Write ``f = ∑ᵢ λᵢ⋅gᵢ`` for some ``λᵢ`` and return the vector ``[λ₁,…,λₙ]``.
 """
 function write_as_linear_combination(
-    f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}},
-    g::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}}
-  ) where {BRT, BRET, RT, RET}
+    f::RingElemType,
+    g::Vector{RingElemType}
+  ) where {RingElemType<:MPolyQuoLocalizedRingElem}
   n = length(g)
   L = parent(f)
   W = localized_ring(L)
@@ -742,78 +730,9 @@ function write_as_linear_combination(
     parent(a) == L || error("elements do not belong to the same ring")
   end
   return L.(vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
-
-  (d, a) = bring_to_common_denominator(vcat([f], g))
-  h = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
-  lbpa = LocalizedBiPolyArray(W.(h))
-  p = a[1]*lifted_numerator(f)
-  p_sing = to_singular_side(lbpa, p)
-  S = singular_poly_ring(lbpa)
-  I = modulus(L)
-  SI = to_singular_side(lbpa, gens(I))
-  
-  M, N, U = Singular.lift(
-			  Singular.Module(S, vcat([Singular.vector(S, g) for g in gens(singular_gens(lbpa))], [Singular.vector(S, g) for g in SI])...),
-			  Singular.Module(S, Singular.vector(S, p_sing)),
-			  false, false, false)
-  A = Singular.Matrix(M)
-  iszero(N) || error("the first argument is not contained in the span of the second")
-  u = L(one(base_ring(W)),to_oscar_side(lbpa, U[1,1]))
-  lambda = [L(to_oscar_side(lbpa, A[i, 1]))*u for i in 1:n]
-  return lambda
-end
-
-function write_as_linear_combination(
-    f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}},
-    g::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}}
-  ) where {BRT, BRET, RT, RET}
-  n = length(g)
-  L = parent(f)
-  for a in g 
-    parent(a) == L || error("elements do not belong to the same ring")
-  end
-  (d, a) = bring_to_common_denominator(vcat([f], g))
-  hg = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
-  hf = lifted_numerator(f)*a[1]
-  A, I, q, phi, theta = as_affine_algebra(L)
-  SA, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(A)), 
-				  String.(symbols(A)),  
-				  ordering=Singular.ordering_dp(1)
-				  *Singular.ordering_dp(nvars(A)-1))
-  Shg_ext = Singular.Ideal(SA, SA.(vcat(phi.(hg), gens(I))))
-  M, N, U = Singular.lift(
-                          Singular.Module(SA, [Singular.vector(SA, g) for g in gens(Shg_ext)]...),
-			  Singular.Module(SA, Singular.vector(SA, SA(phi(hf)))),
-			  false, false, false)
-  iszero(N) || error("the first argument is not contained in the span of the second")
-  W = localized_ring(L)
-  evaluation_list = vcat([W(one(base_ring(L)), q)], gens(W))
-  l = [Singular.Matrix(M)[i, 1] for i in 1:n]
-  lambda = L.([evaluate(A(a), evaluation_list) for a in l])
-  return lambda
 end
 
 write_as_linear_combination(f::MPolyQuoLocalizedRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
-
-function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyQuoElem}
-  Q = parent(f)
-  R = base_ring(Q)
-  I = modulus(Q)
-  for b in g
-    parent(b) == Q || error("elements do not belong to the same ring")
-  end
-  SR, _ = Singular.PolynomialRing(Oscar.singular_coeff_ring(base_ring(R)), 
-				  String.(symbols(R)),  
-				  ordering=Singular.ordering_dp(ngens(R)))
-  Sg_ext = SR.(vcat(lift.(g), gens(I)))
-  Sf = SR(lift(f))
-  M, N, U = Singular.lift(
-                          Singular.Module(SR, [Singular.vector(SR, a) for a in Sg_ext]...),
-			  Singular.Module(SR, Singular.vector(SR, Sf)),
-			  false, false, false)
-  iszero(N) || error("the first argument is not contained in the span of the second")
-  return Q.(R.([Singular.Matrix(M)[i, 1] for i in 1:length(g)]))
-end
 
 
 ########################################################################
@@ -1332,5 +1251,115 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
 
   return Lnew, floc, flocinv
+end
+
+@Markdown.doc """
+    MPolyQuoLocalizedIdeal{
+        LocRingType<:MPolyQuoLocalizedRing, 
+        LocRingElemType<:MPolyQuoLocalizedRingElem
+      } <: AbsLocalizedIdeal{LocRingElemType}
+
+Ideals in localizations of affine algebras.
+"""
+@attributes mutable struct MPolyQuoLocalizedIdeal{
+     LocRingType<:MPolyQuoLocalizedRing, 
+     LocRingElemType<:MPolyQuoLocalizedRingElem, 
+     MPolyLocalizedIdealType<:MPolyLocalizedIdeal
+    } <: AbsLocalizedIdeal{LocRingElemType}
+  # the initial set of generators, not to be changed ever!
+  gens::Vector{LocRingElemType}
+  # the ambient ring for this ideal
+  W::LocRingType
+
+  # fields for caching 
+  map_from_base_ring::Hecke.Map
+
+  J::MPolyLocalizedIdealType
+ 
+  function MPolyQuoLocalizedIdeal(
+      W::MPolyQuoLocalizedRing, 
+      g::Vector{LocRingElemType};
+      map_from_base_ring::Hecke.Map = MapFromFunc(
+          x->W(x),
+          y->(isone(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
+          base_ring(W), 
+          W
+        )
+    ) where {LocRingElemType<:MPolyQuoLocalizedRingElem}
+    for f in g
+      parent(f) == W || error("generator is not an element of the given ring")
+    end
+
+    L = localized_ring(W)
+    J = ideal(L, vcat(lift.(g), gens(localized_modulus(W))))
+    I = new{typeof(W), LocRingElemType, typeof(J)}()
+    I.gens = g
+    I.W = W
+    I.map_from_base_ring = map_from_base_ring
+    I.J = J
+    return I
+  end
+end
+ 
+### required getter functions
+gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
+ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
+base_ring(I::MPolyQuoLocalizedIdeal) = I.W
+
+### additional getter functions 
+map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
+pre_image_ideal(I) = I.J
+
+function Base.in(a::RingElem, I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  parent(a) == L || return L(a) in I
+  return lift(a) in pre_image_ideal(I)
+end
+
+function coordinates(a::RingElem, I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  parent(a) == L || return coordinates(L(a), I)
+  a in I || error("the given element is not in the ideal")
+  x = coordinates(lift(a), pre_image_ideal(I))
+  return map_entries(L, x[1, 1:ngens(I)])
+end
+
+function saturated_ideal(I::MPolyQuoLocalizedIdeal)
+  return saturated_ideal(pre_image_ideal(I))
+end
+
+
+### Conversion of ideals in the original ring to localized ideals
+function (W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
+  return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
+end
+
+### required constructors 
+function ideal(
+    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyQuoLocalizedIdeal(W, [f])
+end
+
+function ideal(
+    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    gens::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyQuoLocalizedIdeal(W, gens)
+end
+
+function ideal(
+    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    f::RET
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyQuoLocalizedIdeal(W, [W(f)])
+end
+
+function ideal(
+    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    gens::Vector{RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyQuoLocalizedIdeal(W, W.(gens))
 end
 
