@@ -292,10 +292,7 @@ as localizations of modules over free polynomial rings:
 and apply the following 
 
 **Convention:** For localizations of affine algebras 
-``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` 
-
-  * ideals in ``L`` are given by ideals in ``W = 𝕜[x₁,…,xₙ][S⁻¹]`` containing ``I\cdot S^{-1}``.
-  * the available multiplicative sets for ``L`` are exclusively those for ``𝕜[x₁,…,xₙ]``.
+``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` the available multiplicative sets for ``L`` are exclusively those for ``𝕜[x₁,…,xₙ]``.
 
 Note that this leads to the following differences compared to the 
 standard usage of the localization interface:
@@ -309,7 +306,7 @@ the computational backends.
 
  * The type returned by `numerator` and `denominator` 
    on an element of type `MPolyQuoLocalizedRingElem` is 
-   not `RingElemType`, but the type of ``P``. 
+   not `RingElemType`, but the type of elements of ``P``. 
 
 This is to comply with the purely mathematical viewpoint
 where elements of localized rings are fractions of 
