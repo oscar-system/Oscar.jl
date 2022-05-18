@@ -15,9 +15,33 @@
 ###
 
 abstract type TropicalVarietySupertype{M,EMB} end
-function pm_object(v::TropicalVarietySupertype)
-  return v.polymakeTV
+
+@doc Markdown.doc"""
+    underlying_polyhedral_complex(TV)
+
+Return the underlying polyhedral complex of a tropical variety. 
+
+#Examples
+```jldoctest
+julia> RR = TropicalSemiring(min)
+Tropical semiring (min)
+
+julia> S,(x,y) = RR["x","y"];
+
+julia> f = x^2+y^2+2
+x^2 + y^2 + (2)
+
+julia> hyp1 = TropicalHypersurface(f)
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
+
+julia> pc = underlying_polyhedral_complex(hyp1)
+A polyhedral complex in ambient dimension 2
+``` 
+"""
+function underlying_polyhedral_complex(TV::TropicalVarietySupertype)
+    return TV.polyhedralComplex
 end
+export underlying_polyhedral_complex
 
 
 ###
