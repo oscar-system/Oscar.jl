@@ -55,6 +55,7 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
               src = normpath(joinpath(root, file))
               dst = normpath(joinpath(dstbase, relpath(root, srcbase), file))
               cp(src, dst; force = true)
+              chmod(dst, 0o644)
           end
       end
   end

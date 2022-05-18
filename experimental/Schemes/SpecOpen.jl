@@ -49,6 +49,7 @@ this is an open subset;
       end
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
+    U.intersections = Dict{Tuple{Int, Int}, SpecType}()
     length(name) > 0 && set_name!(U, name)
     return U
   end
@@ -107,6 +108,15 @@ function getindex(U::SpecOpen, X::Spec)
   error("scheme $X not found among the open patches in $U")
 end
 
+function getindex(U::SpecOpen, i::Int, j::Int) 
+  if !haskey(intersections(U), (i, j))
+    intersections(U)[(i, j)] = hypersurface_complement(U[i], gens(U)[j])
+    intersections(U)[(j, i)] = intersections(U)[(i, j)]
+  end
+  return intersections(U)[(i,j)]
+end
+
+
 function Base.show(io::IO, U::SpecOpen)
   if isdefined(U, :name) 
     print(io, name(U))
@@ -122,8 +132,7 @@ Return the complement of the zero locus of ``I`` in ``X``.
 """
 function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
   base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
-  f = [reduce(f, groebner_basis(localized_modulus(OO(X)))) for f in gens(I)]
-  g = [numerator(a) for a in f if !iszero(numerator(a))]
+  g = [numerator(a) for a in gens(I) if !iszero(numerator(a))]
   return SpecOpen(X, g)
 end
 
@@ -226,7 +235,7 @@ function issubset(
     Y::Spec, 
     U::SpecOpen
   )
-  return one(localized_ring(OO(Y))) in ideal(OO(Y), gens(U))
+  return one(OO(Y)) in ideal(OO(Y), gens(U))
 end
 
 function issubset(
@@ -385,7 +394,7 @@ mutable struct SpecOpenRingElem{
     if check
       for i in 1:n-1
         for j in i+1:n
-          W = intersections(U)[(i,j)]
+          W = U[i,j]
           OO(W)(f[i], check=false) == OO(W)(f[j], check=false) || error("elements are not compatible on overlap")
         end
       end
@@ -430,7 +439,8 @@ function restrict(
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
-  return dot(l, OO(V).(lifted_numerator.(g)))
+  a = dot(l, OO(V).(lifted_numerator.(g)))
+  return a
 end
 
 (R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
@@ -638,7 +648,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
       end
       I = ideal(localized_ring(OO(Y)), gens(V))
       for g in f
-	one(localized_ring(OO(domain(g)))) in pullback(g)(I) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
+        one(localized_ring(OO(domain(g)))) in Oscar.pre_image_ideal(pullback(g)(I)) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
       end
     end
     return new{DomainType, CodomainType, SpecMorType}(U, V, f)
@@ -789,15 +799,17 @@ function maximal_extension(
   for i in 1:n
     push!(maps, SpecMor(affine_patches(U)[i], Y, [restrictions(a)[i] for a in g]))
   end
-  return SpecOpenMor(U, SpecOpen(Y), maps)
+  h = SpecOpenMor(U, SpecOpen(Y), maps)
+  return h
 end
 
 function maximal_extension(
     X::T, 
     Y::T, 
-    f::Vector
+    f::Vector{<:RingElem}
   ) where {T<:Spec}
-  return maximal_extension(X, Y, FractionField(base_ring(OO(X))).(f))
+  h = maximal_extension(X, Y, FractionField(base_ring(OO(X))).(f))
+  return h
 end
 
 ### the restriction of a morphism to open subsets in domain and codomain
@@ -867,15 +879,18 @@ function preimage(f::SpecOpenMor, V::SpecOpen)
   R = base_ring(OO(X))
   I = ideal(R, one(R))
   for i in 1:npatches(U)
-    I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
+    I = intersect(I, saturated_ideal(Oscar.pre_image_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V))))))
   end
   return intersect(U, SpecOpen(X, I))
 end
 
 function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
   for V in affine_patches(U)
-    zero_ideal = ideal(OO(V), [zero(OO(V))])
-    zero_ideal == quotient(zero_ideal, ideal(OO(V), [f])) || return false
+    I = ideal(OO(V), [zero(OO(V))])
+    zero_ideal = Oscar.pre_image_ideal(I)
+    J = Oscar.pre_image_ideal(ideal(OO(V), [f]))
+    Q = quotient(zero_ideal, J)
+    zero_ideal == Q || return false
   end
   return true
 end
@@ -915,12 +930,13 @@ function generic_fractions(f::SpecOpenMor)
   d = find_non_zero_divisor(U)
   V = hypersurface_complement(X, d)
   result = fraction.([restrict(pullback(f, y), V) for y in gens(base_ring(OO(Y)))])
+  return result
 end
 
 function is_dense(U::SpecOpen)
   X = ambient(U)
   I = [localized_modulus(OO(closure(V, X))) for V in affine_patches(U)]
-  J = ideal(OO(X), [one(OO(X))])
+  J = pre_image_ideal(ideal(OO(X), [one(OO(X))]))
   for i in I
     J = intersect(J, i)
   end

@@ -8,62 +8,73 @@ using Oscar
 
 # Localizations of commutative rings
 
-Suppose ``R`` is a commutative ring with unit and ``S \subset R`` is a *multiplicatively 
-closed set* containing ``1 \in R``. Then we can form the *localization* of ``R`` at ``S``
+Suppose ``R`` is a commutative ring with unit and ``U \subset R`` is a
+*multiplicatively closed subset,* that is,
 ```math
-    R[S^{-1}] = \left\{ \frac{p}{q} : p,q \in R, \, q \in S \right\},
+s, t \in U \;\Rightarrow \; s\cdot t \in U \;\text{ and }\; 1 \in U.
 ```
-with its standard arithmetic for fractions. See, for instance, [Eis95] for an account on localizations.
+Then we can form the *localization* of ``R`` at ``U,``
+```math
+    R[U^{-1}] = \left\{ \frac{p}{q} : p,q \in R, \, q \in U \right\},
+```
+which comes equipped with its standard arithmetic for fractions. See, for instance, [Eis95](@cite).
 
-Oscar provides a general framework for such localizations, originally intended to be used 
+Oscar provides a general  localization framework, originally intended to be used 
 with multivariate polynomial rings ``R`` over some base field ``\mathbb k``, but also 
 applicable to more general commutative rings.
 
-In the case of polynomials, the localization framework provides the structure for 
-certain algorithms using standard bases. Note that, in general, localizations of 
-polynomial algebras are not finitely generated 
-as algebras over ``\mathbb k``; for instance when localizing at some maximal 
-ideal ``\mathfrak m \subset R``. However, many ideal- and module-theoretic questions in the localization 
-``R[S^{-1}]``, such as e.g. the ideal membership, can be transformed to questions on 
-ideals and modules over the base ring ``R`` and then solved using Groebner- or standard-basis 
-techniques. This makes it important to regard localizations ``R[S^{-1}]`` as rings with 
-a history of creation from the original pair ``S \subset R``. 
+In the case of  a polynomial ring ``R``, the localization framework provides
+the structure to integrate algorithms which, using Gröbner bases, allow one to solve  ideal- and module-theoretic
+questions concerning ``R[U^{-1}]`` by computations over ``R``. This makes it important to regard localizations
+``R[U^{-1}]`` as rings with a history of creation from the original pair ``U \subset R``. 
 
-## The localization interface
+!!! note
+    In the local context, following Hironaka and Grauert, it is also common to use the name
+    *standard basis* instead of Gröbner basis. See, for example, [GP08](@cite).
 
-### Localized rings
+## The Localization Interface
 
-The interface that needs to be implemented for any concrete 
-instance of localized rings is the following. 
-Multiplicatively closed sets are derived from the abstract type
+For the convenience of developers, we describe the interface that needs to be implemented in order
+to create a concrete instance of localized rings. At the same time, we illustrate the use of the interface
+by examples featuring localizations of multivariate polynomial rings, a concrete instance already
+realized in OSCAR. Functionality for this instance, which includes functions such as
+`MPolyComplementOfPrimeIdeal` for creating multiplicatively closed subsets, will be
+discussed in a subsequent section. 
+
+### Localized Rings
+
+Multiplicatively closed subsets are derived from the abstract type
 ```@docs
     AbsMultSet{RingType, RingElemType}
 ```
 The basic functionality that has to be implemented for any concrete type derived from 
-this is to be able to check containment of elements via
+this is to be able to check containment of elements in multiplicatively closed subsets via
 ```@docs
-    in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+    in(f::RingElemType, U::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
 ```
 This is supposed to be an extension of the methods of the function `Base.in`.
 
-A localized ring should then be derived from 
+Any concrete type of localized rings should then be a subtype of
 ```@docs
     AbsLocalizedRing{RingType, RingElemType, MultSetType}
 ```
 The basic way to construct localized rings is to first 
-specify a multiplicative set `S` and then call 
+specify a multiplicative set `U`, and then call 
 ```@docs
-    Localization(S::AbsMultSet)
+    Localization(U::AbsMultSet)
 ```
 This method must be implemented with a dispatch depending on 
-the concrete type of `S`.
+the concrete type of `U`.
 
-For any concrete instance of type `AbsLocalizedRing`
+For any concrete instance of type `AbsLocalizedRing`,
 the following methods must be implemented:
 ```@docs
-    base_ring(W::AbsLocalizedRing) 
-    inverted_set(W::AbsLocalizedRing)
+    base_ring(Rloc::AbsLocalizedRing) 
+    inverted_set(Rloc::AbsLocalizedRing)
 ```
+
+### Elements of Localized Rings
+
 Also, conversion of fractions to elements of localized rings must be implemented in the form 
 `(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}`, taking ``a`` to the element ``\frac{a}{1}``.
 For more general fractions one needs
@@ -74,7 +85,7 @@ The *elements* of localized rings must be derived from
 ```@docs
     AbsLocalizedRingElem{RingType, RingElemType, MultSetType}
 ```
-For any concrete instance `F` of `AbsLocalizedRingElem` there must be the following 
+For any concrete instance `f` of `AbsLocalizedRingElem` there must be the following 
 methods:
 ```@docs
     numerator(f::AbsLocalizedRingElem) 
@@ -101,7 +112,7 @@ the general [Ring Interface](@ref) of Oscar! This has not been done to a full ex
 for the previous two examples, but for `MPolyLocalizedRing`; see below.
 
  
-### Homomorphisms for localized rings
+### Homomorphisms From Localized Rings
 
 Homomorphisms from localized rings to arbitrary algebras are of type 
 ```@docs
@@ -119,47 +130,31 @@ The getters associated to this type which need to be implemented are
 Any concrete instance `f` of `AbsLocalizedRingHom` can then be applied to elements 
 `a` of `domain(f)` by calling `f(a)`. 
 
-### Ideals in localized rings
+### Ideals in Localized Rings
 
-One of the main reasons to implement localizations in the first place 
-is that this process preserves the property of a ring to be Noetherian; 
-which is crucial for computer algebra. In this regard, we have 
+Finitely generated ideals in localizations should be of type
 ```@docs
-    AbsLocalizedIdeal{RingType, RingElemType, MultSetType} 
+    AbsLocalizedIdeal{LocRingElemType<:AbsLocalizedRingElem}
 ```
 The required getter methods are
-```@docs
+```julia
     gens(I::AbsLocalizedIdeal)
     base_ring(I::AbsLocalizedIdeal)
 ```
 The constructors to be implemented are
 ```
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, f::RingElemType) where {RingType, RingElemType, MultSetType}
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, v::Vector{AbsLocalizedRingElem{RingType, RingElemType, MultSetType}}) where {RingType, RingElemType, MultSetType}
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, v::Vector{RingElemType}) where {RingType, RingElemType, MultSetType}
+   ideal(W::AbsLocalizedRing, f::AbsLocalizedRingElem) 
+   ideal(W::AbsLocalizedRing, v::Vector{LocalizedRingElemType}) where {LocalizedRingElemType<:AbsLocalizedRingElem}
 ```
-for a single and a list of generators from both the `base_ring` of `W` and from `W` itself.
 
-The minimal functionality which should be implemented for ideals is the test 
-for ideal membership
+The minimal functionality which must be implemented for ideals is the following
+for ideal membership and writing elements as linear combinations of the generators:
 ```
-Base.in(
-    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
+    Base.in(f::AbsLocalizedRingElem, I::AbsLocalizedIdeal)
+    coordinates(f::AbsLocalizedRingElem, I::AbsLocalizedIdeal)
 ```
-and again the same for elements `f` of type `RingElemType`.
 
-Basic operations on ideals which are already implemented on the generic level are 
-```
-Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
-Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
-```
-Everything else, such as e.g. intersections of ideals, has to be implemented for the specific 
-types by the user.
-
-## Localizations of multivariate polynomial rings
+## Localizations of Multivariate Rings
 
 Various primitive types of multiplicative sets are available, such as 
 ```@docs
@@ -253,96 +248,26 @@ MPolyLocalizedRingElem{
 ```
 
 Ideals in localized polynomial rings are of type 
-```@docs
-MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+```julia
+    MPolyLocalizedIdeal{
+        LocRingType<:MPolyLocalizedRing, 
+        LocRingElemType<:MPolyLocalizedRingElem
+      } <: AbsLocalizedIdeal{LocRingElemType}
 ```
 Recall (see e.g. [Eis95]) that 
 if ``\mathbb k`` is a Noetherian ring, any localization ``W = R[U^{-1}]`` of a 
 multivariate polynomial ring ``R = \mathbb k[x_1,\dots,x_n]`` is again Noetherian and 
-any ideal ``I \subset W`` is of the form ``I = I'\cdot W`` for some ideal ``I' \subset R``. 
-This correspondence is not 1:1 but for any ideal ``I \subset W`` we always 
-have that 
+any ideal ``I \subset W`` is of the form ``I = J\cdot W`` for some ideal ``J \subset R``. 
+There is an ambiguity in the choice of such ``J``, but we always have that
+for any choice of ``J`` as above
 ```math
-  J = \left\{ x\in R : \exists u \in U : u\cdot x \in I \right\}
+  J:U = \left\{ x\in R : \exists u \in U : u\cdot x \in J \right\} = \left\{ x \in R : x//1 \in I \right\}
 ```
-is the unique element which is maximal among all ideals ``I'`` in ``R`` for 
-which ``I = I'\cdot W``. We call this the *saturated ideal* of the localization 
+is the unique element which is maximal among all ideals ``J'`` in ``R`` for 
+which ``I = J'\cdot W``. We call this the *saturated ideal* ``J' = J:U`` of ``I``
 and it can be obtained using 
 ```@docs
 saturated_ideal(I::MPolyLocalizedIdeal)
-```
-Groebner bases for the saturated ideal can be used to bring the numerators 
-of any fraction ``\frac{a}{b} \in R[S^{-1}]`` into normal form and check for 
-ideal membership and/or equality of elements modulo ideals in ``R[S^{-1}]``.
-But for some cases, e.g. when using local orderings for localizations at 
-``\mathbb k``-points, it is desirable, to have the groebner- and standard 
-basis functionality available directly in the localized ring.  
-To this end we have 
-```@docs
-LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
-```
-which has a monomial ordering and a `Singular` ring associated to it. 
-
-**Note:** Transfering an element ``\frac{a}{b} \in R[S^{-1}]`` of a localized 
-ring to the `Singular`-side drops all denominators and only 
-the numerators appear as polynomials in `Singular`! 
-Hence, a `LocalizedBiPolyArray` is not really a 1:1-correspondence 
-of elements and in particular, the `Oscar` fractions can not be recovered 
-from the `Singular` side. 
-
-This is also the type returned by any Groebner- or standard basis 
-computation. We make the following convention: 
-
-**Definition:** Let ``\mathbb k[x_1,\dots,x_n][S^{-1}]`` be 
-a localized polynomial ring with ``R = \mathbb k[x_1,\dots,x_n]``. 
-A monomial ordering ``\geq`` is *compatible* with the localization, if 
-every unit in the localization ``R_{\geq}`` is also a unit in ``R[S^{-1}]``. 
-
-For an ideal ``I \subset R[S^{-1}]`` and a compatible monomial ordering ``\geq`` 
-we say that a set of elements ``\frac{g_1}{1},\dots,\frac{g_r}{1} \in R[S^{-1}]`` is a 
-groebner/standard basis for ``I`` if the elements ``g_1,\dots,g_r`` are 
-a standard basis for the saturated ideal ``J`` of ``I`` in ``R``. 
-
-
-**Note:** When localizing at ``\mathbb k``-points ``a = (a_1,\dots,a_n) \in \mathbb k^n``
-outside the origin, the transfer of polynomials from the `Oscar` to the 
-`Singular` side in `LocalizedBiPolyArray` shifts the coordinates such that 
-``a`` becomes zero. A monomial ordering is always considered after application 
-of such shifts. 
-
-
-Groebner and standard bases of ideals can be computed for explicit 
-orderings using 
-```
-    groebner_basis(I::MPolyLocalizedIdeal, ord::Symbol)
-```
-Note that depending on the type parameters of `I`, this method 
-is dispatched differently, which will also lead to different 
-interpretations of the ordering. For instance, for multiplicative 
-sets of type `MPolyComplementOfKPointIdeal`, a shift of variables 
-taking the geometric point to the origin is applied to all polynomials 
-when passing to the singular side. 
-
-If the second argument is omitted, a default ordering 
-will be chosen, depending on the type of the multiplicative set. 
-
-**Remark:** Why bother introducing Groebner and standard basis for 
-localized ideals in the first place and not only work with the 
-saturated ideal? The main reason is that for localizations at 
-``\mathbb k``-points, the computation of the saturated ideal is 
-quite expensive: It involves a primary decomposition using a 
-global ordering and discarding components outside the point 
-at which has been localized. Using local orderings, on the other hand, 
-we can decide ideal membership or equality of elements without 
-computing the saturated ideal explicitly.
-
-The following method might be of practical interest: 
-```@docs
-as_affine_algebra(
-  L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
-  MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
-  inverse_name::String="θ"
-) where {BRT, BRET, RT, RET}
 ```
 
 ## Localizations of affine algebras
@@ -367,10 +292,7 @@ as localizations of modules over free polynomial rings:
 and apply the following 
 
 **Convention:** For localizations of affine algebras 
-``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` 
-
-  * ideals in ``L`` are given by ideals in ``W = 𝕜[x₁,…,xₙ][S⁻¹]`` containing ``I\cdot S^{-1}``.
-  * the available multiplicative sets for ``L`` are exclusively those for ``𝕜[x₁,…,xₙ]``.
+``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` the available multiplicative sets for ``L`` are exclusively those for ``𝕜[x₁,…,xₙ]``.
 
 Note that this leads to the following differences compared to the 
 standard usage of the localization interface:
@@ -384,7 +306,7 @@ the computational backends.
 
  * The type returned by `numerator` and `denominator` 
    on an element of type `MPolyQuoLocalizedRingElem` is 
-   not `RingElemType`, but the type of ``P``. 
+   not `RingElemType`, but the type of elements of ``P``. 
 
 This is to comply with the purely mathematical viewpoint
 where elements of localized rings are fractions of 

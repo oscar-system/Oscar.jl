@@ -78,7 +78,10 @@ base_ring(W::NmodLocalizedRing) = W.R::NmodRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
-Localization(S::NmodComplementOfPrimeIdeal) = NmodLocalizedRing(S)
+function Localization(S::NmodComplementOfPrimeIdeal) 
+  L = NmodLocalizedRing(S)
+  return L, MapFromFunc(x->(L(x)), base_ring(L), L)
+end
 
 
 #######################################################################
@@ -155,7 +158,7 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == R
-  W = Localization(U)
+  W, _ = Localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)

@@ -1,0 +1,27 @@
+{
+    "_ns": {
+        "polymake": [
+            "https://polymake.org",
+            "4.6"
+        ]
+    },
+    "_type": "common::GraphAdjacency<Undirected>",
+    "data": [
+        [
+            1,
+            2
+        ],
+        [
+            0,
+            3
+        ],
+        [
+            0,
+            3
+        ],
+        [
+            1,
+            2
+        ]
+    ]
+}

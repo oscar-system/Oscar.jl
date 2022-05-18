@@ -848,6 +848,7 @@ false
 """
 function ==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   I === J && return true
+  gens(I) == gens(J) && return true
   return issubset(I, J) && issubset(J, I)
 end
 

@@ -109,34 +109,6 @@ export is_finalized
 
 
 @doc Markdown.doc"""
-    set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
-
-Allows to set the coefficient_ring. If the Cox ring of the variety has
-already been computed, we do not allow this to be changed.
-In this case an error is triggered.
-
-# Examples
-```jldoctest
-julia> C = Oscar.positive_hull([1 0]);
-
-julia> antv = AffineNormalToricVariety(C);
-
-julia> set_coefficient_ring(antv, ZZ)
-
-julia> coefficient_ring(antv) == ZZ
-true
-```
-"""
-function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
-    if is_finalized(v)
-        error("The coefficient ring cannot be modified since the toric variety is finalized.")
-    end
-    set_attribute!(v, :coefficient_ring, coefficient_ring)
-end
-export set_coefficient_ring
-
-
-@doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
 Allows to set the names of the homogeneous coordinates.
@@ -203,10 +175,7 @@ export set_coordinate_names_of_torus
 
 @doc Markdown.doc"""
     coefficient_ring(v::AbstractNormalToricVariety)
-
-This method returns the coefficient_ring of the normal toric variety `v`.
-The default is the ring `QQ`.
-
+This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
@@ -217,7 +186,7 @@ julia> coefficient_ring(antv) == QQ
 true
 ```
 """
-coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient_ring, QQ)
+coefficient_ring(v::AbstractNormalToricVariety) = QQ
 
 
 @doc Markdown.doc"""
@@ -289,10 +258,8 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
 
-julia> set_coefficient_ring(p2, ZZ)
-
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by 
+Multivariate Polynomial Ring in y1, y2, y3 over Rational Field graded by
   y1 -> [1]
   y2 -> [1]
   y3 -> [1]

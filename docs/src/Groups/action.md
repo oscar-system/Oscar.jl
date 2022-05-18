@@ -51,6 +51,26 @@ permuted
 on_indeterminates
 ```
 
+
+## G-Sets
+
+The idea behind G-sets is to have objects that encode the permutation action
+induced by a group (that need not be a permutation group) on a given set.
+A G-set provides an explicit bijection between the elements of the set and
+the corresponding set of positive integers on which the induced permutation
+group acts,
+see [`action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup`](@ref).
+
+```@docs
+gset(G::GAPGroup, fun::Function, Omega)
+permutation
+action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
+orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
+orbit(G::PermGroup, omega)
+orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
+```
+
+
 ## Stabilizers
 
 ```@docs

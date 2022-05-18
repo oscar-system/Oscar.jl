@@ -31,7 +31,7 @@ requirements are met:
 
  2) The user has to solve the *localization problem* by implementing `has_nonepmty_intersection(U::MultSetType, I::IdealType)` for the type `MultSetType` of multiplicative sets and the type `IdealType` of ideals in `R` that they would like to consider.
 ```@docs
-    has_nonepmty_intersection(U::AbsMultSet, I::Ideal)
+    has_nonempty_intersection(U::AbsMultSet, I::Ideal)
 ```
 **Note:** In order to clear denominators of row vectors, the generic code uses the method `lcm(v::Vector{T})` where `T = elem_type(R)`. 
 If no such method already exists, this has to also be provided; in the worst case by simply returning the product of the denominators. 

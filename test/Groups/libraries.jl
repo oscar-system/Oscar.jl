@@ -1,22 +1,65 @@
-@testset "Transitivity" begin
-   @test number_transitive_groups(10)==45
-   
+@testset "Transitive groups" begin
    @test number_transitive_groups(4)==5
+   @test number_transitive_groups(10)==45
+
+   for i in 1:10
+       @test number_transitive_groups(i) == length(all_transitive_groups(degree => i))
+   end
+
    G = symmetric_group(4)
    H1 = alternating_group(4)
-   H2 = sub(G,[G([2,3,4,1])])[1]                 #cyclic
-   H3 = sub(G,[G([2,3,4,1]), G([2,1,4,3])])[1]         #dihedral
-   H4 = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]         #Klein subgroup
+   H2 = sub(G,[G([2,3,4,1])])[1]                # cyclic
+   H3 = sub(G,[G([2,3,4,1]), G([2,1,4,3])])[1]  # dihedral
+   H4 = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]  # Klein subgroup
    L = [G,H1,H2,H3,H4]
-   for i in 1:5
-      @test sum([isisomorphic(transitive_group(4,i),l) for l in L])==1
+   grps = all_transitive_groups(degree => 4)
+   for K in grps
+      @test count(l -> isisomorphic(K,l), L) == 1
    end
-   @test Set([transitive_identification(l) for l in L])==Set(1:5)
-   @test Set(L)==Set(all_transitive_groups(degree,4))
-   @test [H2]==all_transitive_groups(degree,4, iscyclic)
-   @test [H4]==all_transitive_groups(degree,4, iscyclic, false, isabelian)
-   @test length(all_transitive_groups(degree,6))==16
+   @test sort([transitive_group_identification(l) for l in L]) == [(4,i) for i in 1:5]
+   @test Set(L) == Set(all_transitive_groups(degree => 4))
+   @test [H2] == all_transitive_groups(degree => 4, iscyclic)
+   @test [H4] == all_transitive_groups(degree => 4, !iscyclic, isabelian)
 
+   grps = all_transitive_groups(degree => 6)
+   @test length(grps)==16
+   props = [
+      isabelian,
+      isalmostsimple,
+      iscyclic,
+      isnilpotent,
+      isperfect,
+      issimple,
+      issolvable,
+      issupersolvable,
+      istransitive,
+      isprimitive,
+   ]
+   @testset "all_transitive_groups filtering for $(prop)" for prop in props
+      @test length(all_transitive_groups(degree => 6, prop => true)) == count(prop, grps)
+      @test length(all_transitive_groups(degree => 6, prop => false)) == count(!prop, grps)
+
+      @test length(all_transitive_groups(degree => 6, prop)) == count(prop, grps)
+      @test length(all_transitive_groups(degree => 6, !prop)) == count(!prop, grps)
+   end
+
+   @test length(all_transitive_groups(degree => 6, order => 1:12)) == count(g -> order(g) in 1:12, grps)
+
+   @test length(all_transitive_groups(degree => 1:6)) == sum([length(all_transitive_groups(degree => i)) for i in 1:6])
+
+end
+
+@testset "Transitivity" begin
+
+   G = symmetric_group(4)
+   H1 = alternating_group(4)
+   H2 = sub(G,[G([2,3,4,1])])[1]                # cyclic
+   H3 = sub(G,[G([2,3,4,1]), G([2,1,4,3])])[1]  # dihedral
+   H4 = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]  # Klein subgroup
+   L = [G,H1,H2,H3,H4]
+
+   # FIXME: the following two tests are fishy. The first couple calls
+   # really should result in errors ?!?
    @test [transitivity(G,1:i) for i in 1:5]==[1,2,3,4,0]
    @test [transitivity(L[5],1:i) for i in 1:5]==[1,2,1,1,0]
 
@@ -33,7 +76,7 @@
    @test !isregular(H)
    @test isregular(H,[1,2])
 
-   @test_throws AssertionError transitive_group(1, 2)
+   @test_throws ArgumentError transitive_group(1, 2)
 end
 
 @testset "Perfect groups" begin
@@ -73,15 +116,19 @@ end
       @test small_group_identification(G)==(8,arr[1])
    end
    @test length(all_small_groups(16))==14
+   @test length(all_small_groups(order => 16))==14
    @test length(all_small_groups(16, isabelian))==5
+   @test length(all_small_groups(order => 16, !isabelian))==9
    @test number_small_groups(16)==14
-   @test number_small_groups(17)==1   
+   @test number_small_groups(17)==1
 
-   @test_throws AssertionError small_group(1, 2)
+   @test_throws ArgumentError small_group(1, 2)
 end
 
 @testset "Primitive groups" begin
-   @test_throws AssertionError primitive_group(1, 1)
+   @test has_primitive_groups(50)
+   @test_throws ArgumentError primitive_group(1, 1)
+   @test number_primitive_groups(50) == 9
 end
 
 @testset "Atlas groups" begin

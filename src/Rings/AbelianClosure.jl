@@ -41,9 +41,13 @@ import Hecke: conductor, data
 #
 ################################################################################
 
-mutable struct QabField{T} <: Nemo.Field # union of cyclotomic fields
+@attributes mutable struct QabField{T} <: Nemo.Field # union of cyclotomic fields
   s::String
   fields::Dict{Int, T} # Cache for the cyclotomic fields
+
+  function QabField{T}(s::String, fields::Dict{Int, T}) where T
+    return new(s, fields)
+  end
 end
 
 const _Qab = QabField{AnticNumberField}("ζ", Dict{Int, AnticNumberField}())
@@ -399,6 +403,16 @@ function conductor(k::AnticNumberField)
 end
 
 conductor(a::QabElem) = conductor(data(a))
+
+
+################################################################################
+#
+#  Conversions to `fmpz` and `fmpq` (like for `nf_elem`)
+#
+################################################################################
+
+(R::FlintRationalField)(a::QabElem) = R(a.data)
+(R::FlintIntegerRing)(a::QabElem) = R(a.data)
 
 
 ################################################################################

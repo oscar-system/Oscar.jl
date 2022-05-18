@@ -14,7 +14,7 @@
 
  f = sum f_i(t) x^i
 
- By standart bounds on polynomials (assume f monic)
+ By standard bounds on polynomials (assume f monic)
 
  roots of f(z)(x) are bounded in abs. value by |f_i(z)| + 1 
  (or even 2*|f_i(z)|^(1/(n-i)) or so, 
@@ -283,6 +283,16 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
   #if any fails, "t" was bad and I need to find a way of restarting
 end
 
+"""
+    subfields(FF:Generic.FunctionField{fmpq})
+
+For a finite extension of the univariate function field over the rationals, 
+find all subfields. The implemented algorithm proceeds by substituting
+the transcendental element to an integer, then computing the subfields
+of the resulting number field and lifting this information.
+
+It is an adaptation of Klueners.
+"""
 function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   C, K, p = _galois_init(FF)
   f = C.C.f
@@ -465,7 +475,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
       we have (bound for) alpha (the conjugates), for g_j (above), then *n are
       bounds for b_j
 
-      On 2nd thougts I might also just compute the g_i via division in F[x]  
+      On 2nd thoughts I might also just compute the g_i via division in F[x]  
 
       Darn: need to think again: need estimates for poly * series.
   =#

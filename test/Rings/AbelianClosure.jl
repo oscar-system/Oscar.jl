@@ -86,6 +86,19 @@
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
   end
 
+  @testset "Conversion" begin
+    K, z = abelian_closure(QQ)
+    x  = z(5)
+    y = ZZ(x^5)
+    @test y isa fmpz
+    @test y == 1
+    y = QQ(x^5)
+    @test y isa fmpq
+    @test y == 1
+    @test_throws ErrorException ZZ(x)
+    @test_throws ErrorException QQ(x)
+  end
+
   @testset "Promote rule" begin
     @test Oscar.AbstractAlgebra.promote_rule(QabElem, Int) == QabElem
     @test Oscar.AbstractAlgebra.promote_rule(QabElem, fmpz) == QabElem

@@ -30,7 +30,7 @@ functions allow extracting the underlying `Polymake.jl` object from a
 polyhedron into a high-level `Polyhedron` object.
 
 ```@docs
-Polyhedron(::Polymake.BigObject)
+Polyhedron{T}(::Polymake.BigObject) where T<:scalar_types
 ```
 
 The following shows all the data currently known for a `Polyhedron`.

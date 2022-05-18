@@ -15,8 +15,7 @@ Pages = ["ToricLineBundles.md"]
 ### Generic constructors
 
 ```@docs
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
-ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
+ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
 ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
 ```
 
