@@ -124,7 +124,7 @@ iszero(f::AbstractFreeModElem)
 iszero(F::AbstractFreeMod)
 ```
 
-## Homomorphisms From Free Modules
+## Homomorphisms from Free Modules
 
 A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
@@ -132,7 +132,7 @@ of the basis vectors of $F$ in $M$. In OSCAR, such homomorphisms have type `Free
 by using one of the following constructors:
 
 ```@docs
-hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}) 
 ```
 
 Given a homomorphism of type `FreeModuleHom`, a matrix `A` as above is

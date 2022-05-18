@@ -278,6 +278,13 @@ expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressi
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
 
+# type getters
+base_ring_elem_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRET
+base_ring_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRT
+
+base_ring_elem_type(L::AbsLocalizedRing) = base_ring_elem_type(typeof(L))
+base_ring_type(L::AbsLocalizedRing) = base_ring_type(typeof(L))
+
 
 ########################################################################
 # Arithmetic; a dumb catchall implementation, NOT performant!          #
@@ -437,11 +444,11 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 ############################################################################
 
 @Markdown.doc """
-    AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+    AbsLocalizedIdeal{LocRingElemType}
 
 Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
 """
-abstract type AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
+abstract type AbsLocalizedIdeal{LocRingElemType} <: Ideal{LocRingElemType} end
 
 ### required getter functions
 #Return a Vector of generators of `I`.
@@ -490,20 +497,11 @@ end
 ### required functionality
 # Checks for ideal membership of `f` in `I`.
 function Base.in(
-    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
+    f::RingElem,
+    I::AbsLocalizedIdeal
+  )
   error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
-
-# Checks for ideal membership of `f` in `I`.
-function Base.in(
-    f::RingElemType, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
-  error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
-end
-
 
 ### A catchall implementation for the ideal arithmetic 
 # Return the product of the ideals `I` and `J`.

@@ -116,8 +116,7 @@ Return the complement of the zero locus of ``I`` in ``X``.
 """
 function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
   base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
-  f = [reduce(f, groebner_basis(localized_modulus(OO(X)))) for f in gens(I)]
-  g = [numerator(a) for a in f if !iszero(numerator(a))]
+  g = [numerator(a) for a in gens(I) if !iszero(numerator(a))]
   return SpecOpen(X, g)
 end
 
@@ -617,7 +616,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
       end
       I = ideal(localized_ring(OO(Y)), gens(V))
       for g in f
-	one(localized_ring(OO(domain(g)))) in pullback(g)(I) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
+        one(localized_ring(OO(domain(g)))) in Oscar.pre_image_ideal(pullback(g)(I)) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
       end
     end
     return new{DomainType, CodomainType, SpecMorType}(U, V, f)

@@ -30,7 +30,6 @@
   W = MPolyQuoLocalizedRing(S, J, U)
 
   h = MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
-  reduce_fraction(h(W(f//(f-1)^9)))
   @test preimage(h, ideal(localized_ring(V), [x*(x-1), y*(y-3)])) == ideal(localized_ring(W), [x, y])
   
   ### second round of tests
@@ -77,7 +76,7 @@
   @test x//(y*(x-1)) in L
 
   I = ideal(L, (x-1)*(y-1))
-  @test one(W) in I
+  @test one(L) in I
   @test isunit(L(y-1))
 
   h = x^4+23*x*y^3-15
