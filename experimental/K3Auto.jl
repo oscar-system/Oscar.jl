@@ -7,19 +7,28 @@ Input:
 - `b` - vector
 - `c` - rational number
 """
-function quadratic_triple(Q, b, c, algorithm=:short_vector)
-  L, p, dist = Hecke.convert_type(Q, b, QQ(c))
-  cv = Hecke.closest_vectors(L, p, dist)
+function quadratic_triple(Q, b, c, algorithm=:short_vectors)
+  if algorithm == :short_vectors
+    L, p, dist = Hecke.convert_type(Q, b, QQ(c))
+    #@show ambient_space(L), basis_matrix(L), p, dist
+    cv = Hecke.closest_vectors(L, p, dist)
+  end
+  if algorithm == :pqt
+    cv = Hecke.closest_vectors(Q,b,c)
+  end
   return cv
 end
 
 function alg22(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
-  # find a solution <x,v> = alpha with x in L
+  # find a solution <x,v> = alpha with x in L if it exists
   w = gram*transpose(v)
   tmp = FakeFmpqMat(w)
   wn = numerator(tmp)
   wd = denominator(tmp)
-  x = solve(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]))
+  b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]))
+  if !b
+    return fmpq_mat[]
+  end
   _, K = left_kernel(wn)
   # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
   GK = gram*transpose(K)
@@ -66,7 +75,7 @@ function alg23(gram::fmpq_mat, v::fmpq_mat, h::fmpq_mat, d)
 
   S_W = quadratic_triple(Q, zero_matrix(QQ,n-1,1), d)
   S_W = [transpose(matrix(x))*bW for x in S_W]
-  S = []
+  S = fmpq_mat[]
   h = change_base_ring(QQ,h)
   for rp in S_W
     rho = abs(d - (rp*gram*transpose(rp))[1,1])*ch^-1
@@ -90,6 +99,9 @@ Return ${x in S : x^2=d, x.v>0, x.h<0}$.
 - `v`,`h` - vectors of positive square
 """
 function alg23(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
+  V = ambient_space(S)
+  @assert inner_product(V,v,v)[1,1]>0
+  @assert inner_product(V,h,h)[1,1]>0
   gram = gram_matrix(S)
   B = basis_matrix(S)
   vS = solve_left(B,v)
@@ -147,15 +159,15 @@ Return if the isometry `g` acts as +-1 on the discriminant group `S`.
 function is_in_G(S::ZLat,g::fmpq_mat)
   D = discriminant_group(S)
   OD = orthogonal_group(D)
-  g1 = hom(D,D,[D(g*lift(d)) for d in gens(D)])
+  g1 = hom(D,D,[D(lift(d)*g) for d in gens(D)])
   gg = OD(g1)
   return isone(gg) || gg == OD(-matrix(one(OD)))
 end
 
 @doc Markdown.doc"""
-Return hom_G(D,E) for two chambers D and E.
+Return $hom_G(D,E)$ for two chambers D and E.
 
-For D=E we get hom(D,D) = Aut_G(D).
+For D = E we get $hom_G(D,D) = Aut_G(D)$.
 """
 function alg319(gram::fmpq_mat, raysD::Vector{fmpq_mat}, raysE::Vector{fmpq_mat}, membership_test)
   n = ncols(gram)
@@ -177,7 +189,7 @@ function alg319(gram::fmpq_mat, raysD::Vector{fmpq_mat}, raysE::Vector{fmpq_mat}
   basisinv = inv(basis)
   imgs = [basisinv*f for f in imgs]
   is_in_hom_D_E(f) = all(r*f in raysD for r in raysE) # can be made faster using an interior point as in Remark 3.20
-  imgs = [f for f in imgs if membership_test(f) && is_in_hom_D_E(f)]
+  imgs = [f for f in imgs if denominator(f)==1 && membership_test(f) && is_in_hom_D_E(f)]
   return imgs
 end
 
@@ -252,6 +264,8 @@ function alg58(L::ZLat, S::ZLat, w)
       end
     end
   end
+  # the chamber should intersect the boundary only at the QQ-rational points
+  @assert rank(S) == rank(reduce(vcat,[s[1] for s in delta_w]))
   return delta_w
 end
 
@@ -366,12 +380,18 @@ function alg61(L, S, w0)
   Wl = W[1]
   Dl = DD[1]
   while length(Wl)>0
-    Dlnew = []
-    Wlnew = []
+    Dlnew = Vector{fmpq_mat}[]
+    Wlnew = Tuple{fmpq_mat,fmpq_mat}[]
+    push!(W,Wlnew)
+    push!(DD,Dlnew)
     for (w,backv) in Wl
       @assert inner_product(V,w,w)[1,1] > 0
       Delta = alg511(L,S,w)
       autD = alg319(L, S, Delta, Delta)
+      autD = [a for a in autD if !isone(a)]
+      if length(autD)>0
+        @show length(autD)
+      end
       # TODO: iterate over orbit representatives only
       for v in Delta
         if v == backv || v ==-backv
@@ -382,25 +402,25 @@ function alg61(L, S, w0)
           continue
         end
         w_new = alg514(L, S, w, v)
-        @show w_new
         Delta_new = alg511(L, S, w_new)
         # check G-congruence
-        flag = false
+        is_G_cong = false
         for Di in DD
           for D in Di
             gg = alg319(L, S, Delta_new, D)
             if length(gg) > 0
               append!(Gamma, gg)
-              flag = true
+              is_G_cong = true
               break
             end
           end
-          if flag
+          if is_G_cong
             break
           end
         end
-        if !flag
+        if !is_G_cong
           # not G congruent to anything before
+          @show w_new
           push!(Wlnew, (w_new,v))
           push!(Dlnew, Delta_new)
           append!(Gamma, alg319(L, S, Delta_new, Delta_new))
@@ -408,8 +428,7 @@ function alg61(L, S, w0)
       end
     end
     Dl, Wl = Dlnew, Wlnew
-    push!(W,Wl)
-    push!(DD,Dl)
+    @show length(W),length(Wl)
   end
   return Gamma, W, DD,B
 end
@@ -449,7 +468,7 @@ Input:
 `weyl0` - a weyl vector
 `ample` - ample vector in S
 """
-function nondeg_weyl(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, ample::fmpq_mat;max_trys=200)
+function nondeg_weyl_shimada(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, ample::fmpq_mat;max_trys=200)
   V = ambient_space(L)
   weyl = weyl0
   ntry = 0
@@ -476,8 +495,104 @@ function nondeg_weyl(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, ample::fmp
   # does not check S-nondegenerateness ... so the output may be randomly wrong sometimes ... then retry again.
 end
 
+
+function dist(V::Hecke.QuadSpace, r::fmpq_mat, h1::fmpq_mat, h2::fmpq_mat)
+  if inner_product(V,h1-h2,r)!=0
+    return inner_product(V, h1, r)[1,1]//inner_product(V, h1 - h2, r)[1,1]
+  else
+    return PosInf()
+  end
+end
+
+function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{fmpq_mat})
+  @assert inner_product(V,h1,h2)[1,1]>0
+  @assert all(inner_product(V,h1,r)[1,1]>=0 for r in separating_walls)
+  @assert all(inner_product(V,h2,r)[1,1]<=0 for r in separating_walls)
+  di(r) = dist(V, r, h1, h2)
+  sort!(separating_walls, by=di)
+  separating_walls0 = copy(separating_walls)
+  for k in 1:length(separating_walls)
+    _,i = findmax(di(r) for r in separating_walls)
+    r = separating_walls[i]
+    deleteat!(separating_walls,i)
+    h2 = h2 + inner_product(V, h2, r)*r
+    w = w + inner_product(V, w, r)*r
+    # should be decreasing
+    # @show length([s for s in separating_walls0 if 0>sign(inner_product(V,h2,s)[1,1])])
+  end
+  # confirm output
+  @assert all(inner_product(V,h2,r)[1,1]>=0 for r in separating_walls0)
+  return h2, w
+end
+
+# returns QQ(D(weyl)\cap S)
+function span_in_S(L, S, weyl)
+  V = ambient_space(L)
+  Delta_w = alg58(L, S, weyl)
+  G = gram_matrix(V)
+  prSDelta_w = [v[1]*G for v in Delta_w]
+  i = zero_matrix(QQ, 0, degree(S))
+  R = Hecke.orthogonal_submodule(L, S)
+  Ddual = reduce(vcat, prSDelta_w, init=i)
+  Ddual = vcat(Ddual, basis_matrix(R))
+  Ddual = vcat(Ddual, -basis_matrix(R))
+  Ddual = positive_hull(Ddual)
+  D = polarize(Ddual)
+  gensN = [matrix(QQ, 1, degree(S), v) for v in vcat(rays(D),lineality_space(D))]
+  gensN = reduce(vcat, gensN, init=i)
+  r = Hecke.rref!(gensN)
+  gensN = gensN[1:r,:]
+  QQDcapS = lattice(V, gensN)
+  return QQDcapS
+end
+
+function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0::fmpq_mat, perturbation_factor=1000)
+  V = ambient_space(L)
+  ample = ample0
+  u = u0
+  separating_walls = alg23(L, u, ample, -2)
+
+
+  u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
+
+  QQDcapS = span_in_S(L,S,weyl)
+
+  N = Hecke.orthogonal_submodule(L, QQDcapS)
+  sv = short_vectors(N^(-1//1), 2)
+  relevant_roots = [matrix(QQ,1,rank(N),a[1])*basis_matrix(N) for a in sv]
+  T = Hecke.orthogonal_submodule(S, QQDcapS)
+  if rank(T)==0
+    return weyl,u
+  end
+  @show rank(T)
+  h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-2:2,rank(T)))*basis_matrix(T)
+  separating = fmpq_mat[r for r in relevant_roots if sign(inner_product(V, h, r)[1,1])*sign(inner_product(V, u, r)[1,1])<0]
+  # fix signs
+  for i in 1:length(separating)
+    r = separating[i]
+    if inner_product(V, u, r)[1,1]>0
+      separating[i] = -r
+    end
+    r = separating[i]
+  end
+  @assert all(inner_product(V,h,r)[1,1] > 0 for r in separating)
+  @assert all(inner_product(V,u,r)[1,1] < 0 for r in separating)
+
+  u, weyl = chain_reflect(V, h, u, weyl, separating)
+  @assert all(inner_product(V,u,r)[1,1] < 0 for r in separating)
+
+
+  return weyl, u, h
+end
+
+isless(::PosInf, ::fmpq) = false
+isless(::fmpq, ::PosInf) = true
+
 @doc Markdown.doc"""
-Embed `S` into an hyperbolic, even unimodular lattice of rank $n$.
+Embed `S` into an hyperbolic, even unimodular lattice `L` of rank $n$.
+
+If `n` is `26`, then the orthogonal complement $R = S^\perp$ in `L` has a (-2)-vector.
+Or an error is produced (does not enumerate the genus of $R$).
 """
 function embed_in_unimodular(S::ZLat, n)
   r = n - rank(S)
@@ -485,6 +600,9 @@ function embed_in_unimodular(S::ZLat, n)
   DR = rescale(DS, -1)  # discriminant group of R = S^\perp in L as predicted by Nikulin
   G = genus(DR, (0, r))  # genus of R
   R = representative(G)
+  if n==26
+    @assert minimum(rescale(R,-1))==2
+  end
   SR, iS, iR = orthogonal_sum(S, R)
   V = ambient_space(SR)
   S = lattice(V,basis_matrix(S)*iS.matrix)
@@ -497,9 +615,205 @@ function embed_in_unimodular(S::ZLat, n)
   glue = reduce(vcat, [matrix(QQ,1,degree(SR),gensDS[i]+imgsDS[i]) for i in 1:length(gensDS)],init=zero_matrix(QQ,0,degree(S)))
   gensL = vcat(basis_matrix(SR), glue)
   L = lattice(V, gensL, isbasis=false)
-  return L,iS,iR
+  @assert abs(det(L))==1
+  @assert denominator(gram_matrix(L))==1
+  return L, S, iS, R, iR
 end
 
+
+# instead of doing neighbor steps to the one lattice we know
+# we can do the 24 constructions of the leech lattice
+# so basically hardcoding the neighbor steps
+function weyl_vector(L, U0)
+  @assert gram_matrix(U0) == QQ[0 1; 1 -2]
+  V = ambient_space(L)
+  U = U0
+  R = Hecke.orthogonal_submodule(L,U)
+  R0 = Hecke.orthogonal_submodule(L,U)
+  if rank(L)==10
+    E8 = R0
+    # normalize the basis
+    e8 = rescale(root_lattice(:E,8), -1)
+    _, T = isisometric(e8, E8, ambient_representation=false)
+    E8 = lattice(V, T * basis_matrix(E8))
+    B = vcat(basis_matrix(U), basis_matrix(E8))
+    Bdual = inv(gram_matrix(V) * transpose(B))
+    # this one does not have ample projection
+    weyl = QQ[30 1 1 1 1 1 1 1 1 1] * Bdual
+    @assert inner_product(V, weyl, weyl)[1,1] == 1240
+    return weyl, weyl
+  elseif rank(L) == 18
+    # normalize the basis
+    e8 = rescale(root_lattice(:E,8), -1)
+    e8e8,_,_ = orthogonal_sum(e8, e8)
+    while true
+      R = Hecke.orthogonal_submodule(L,U)
+      @show "starting isometry test"
+      isiso, T = isisometric(e8e8, R, ambient_representation=false)
+      @show "done"
+      if isiso
+        E8E8 = R
+        break
+      end
+      U = U0
+      R = R0
+
+      # compute a 2-neighbor
+      v = zero_matrix(QQ,1,rank(R))
+      while true
+        v = matrix(QQ,1,rank(R),rand(0:1,rank(R)))
+        if !iszero(v) && mod(numerator((v*gram_matrix(R)*transpose(v))[1,1]),4)==0
+          break
+        end
+      end
+      b = change_base_ring(ZZ, v*gram_matrix(R)*transpose(v)*1//4)
+      A = change_base_ring(ZZ, gram_matrix(R)*transpose(v))
+      b = change_base_ring(GF(2), b)
+      A = change_base_ring(GF(2), A)
+      x = lift(solve_left(A, b))
+      v = (v + 2*x)*basis_matrix(R)
+      @assert mod(inner_product(V,v,v)[1,1],8)==0
+      u = basis_matrix(U)
+      f1 = u[1,:]
+      e1 = u[2,:] + u[1,:]
+      f2 = -inner_product(V, v, v)*1//4*f1 + 2*e1 + v
+      @assert inner_product(V, f2, f2)==0
+
+      e2 = find_section(L, f2)
+
+      #s = change_base_ring(ZZ, basis_matrix(R)*gram_matrix(V)*transpose(f2))
+      #e2 = solve_left(s, matrix(ZZ,1,1,[1]))*basis_matrix(R)
+      #@assert inner_product(V, f2, e2)[1,1] == 1
+      #e2 = e2 - (inner_product(V,e2,e2)[1,1]*(1//2) + 1)*f2
+      u = vcat(f2,e2)
+      U = lattice(V,u)
+      @assert gram_matrix(U) == QQ[0 1; 1 -2]
+    end
+    E8E8 = lattice(V, T * basis_matrix(E8E8))
+    B = vcat(basis_matrix(U), basis_matrix(E8E8))
+    Bdual = inv(gram_matrix(V) * transpose(B))
+    # this one does not have ample projection
+    weyl = QQ[30 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1] * Bdual
+    @assert inner_product(V, weyl, weyl)[1,1] == 620
+    return weyl, weyl
+  elseif rank(L)==26
+    while true
+        R = Hecke.orthogonal_submodule(L,U)
+        m = minimum(rescale(R,-1))
+        @show m
+        if m==4
+          # R is isomorphic to the Leech lattice
+          # how to get u0?
+          return basis_matrix(U)[1,:]
+        end
+        e8 = rescale(root_lattice(:E,8), -1)
+        e8e8,_,_ = orthogonal_sum(e8, e8)
+        e8e8e8,_,_ = orthogonal_sum(e8e8, e8)
+        isiso,T = isisometric(e8e8e8, R, ambient_representation=false)
+        if isiso
+          break
+        end
+        U = U0
+        R = R0
+
+        # compute a 2-neighbor
+        v = zero_matrix(QQ,1,rank(R))
+        while true
+          v = matrix(QQ,1,rank(R),rand(0:1,rank(R)))
+          if !iszero(v) && mod(numerator((v*gram_matrix(R)*transpose(v))[1,1]),4)==0
+            break
+          end
+        end
+        b = change_base_ring(ZZ, v*gram_matrix(R)*transpose(v)*1//4)
+        A = change_base_ring(ZZ, gram_matrix(R)*transpose(v))
+        b = change_base_ring(GF(2), b)
+        A = change_base_ring(GF(2), A)
+        x = lift(solve_left(A, b))
+        v = (v + 2*x)*basis_matrix(R)
+        @assert mod(inner_product(V,v,v)[1,1],8)==0
+        u = basis_matrix(U)
+        f1 = u[1,:]
+        e1 = u[2,:] + u[1,:]
+        f2 = -inner_product(V, v, v)*1//4*f1 + 2*e1 + v
+        @assert inner_product(V, f2, f2)==0
+
+        s = change_base_ring(ZZ, basis_matrix(R)*gram_matrix(V)*transpose(f2))
+        e2 = solve_left(s, matrix(ZZ,1,1,[1]))*basis_matrix(R)
+        @assert inner_product(V, f2, e2)[1,1] == 1
+        e2 = e2 - (inner_product(V,e2,e2)[1,1]*(1//2) + 1)*f2
+        u = vcat(f2,e2)
+        U = lattice(V,u)
+        @show u
+        @assert gram_matrix(U) == QQ[0 1; 1 -2]
+      end
+      E8E8E8 = lattice(V, T * basis_matrix(R))
+      B = vcat(basis_matrix(U), basis_matrix(E8E8E8))
+      Bdual = inv(gram_matrix(V) * transpose(B))
+      # this one does not have ample projection
+      weyl = QQ[30 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1] * Bdual
+      @assert inner_product(V, weyl, weyl)[1,1] == 0
+      s = find_section(L,weyl)
+      u0 = 3*weyl + s
+      @assert inner_product(V, u0,u0)[1,1] == 4
+      @assert inner_product(V, u0,weyl)[1,1] == 1
+      return weyl, u0
+    end
+  error("L must be even, hyperbolic unimodular of rank 10,18,26")
+end
+
+
+# TODO: find a section with small coefficients (this is a cvp) ... as otherwise
+# the close_vector algorithms searching for separating hyperplanes die.
+function find_section(L,f)
+  V = ambient_space(L)
+  @assert inner_product(V,f,f)==0
+  A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
+  s = solve_left(A,identity_matrix(ZZ,1))
+  @show s
+  s = s*basis_matrix(L)
+  k, K = left_kernel(A)
+
+  @assert inner_product(V,s,f)[1,1]==1
+  #return s,f
+  s = s - (inner_product(V,s,s)[1,1]//2+1) * f
+  @assert inner_product(V,s,s)[1,1]==-2
+  return s
+end
+
+function preprocessingK3Auto(S, n)
+  # another example
+  S = Zlattice(gram=gram_matrix(S))
+  L,S,iS, R,iR = oscar.embed_in_unimodular(S::ZLat, n)
+  V = ambient_space(L)
+  # find a hyperbolic plane
+  G = gram_matrix(L)
+  g,u = oscar.lll_gram_indefgoon(change_base_ring(ZZ,G))
+  B = transpose(u)*basis_matrix(L)
+  B = vcat(B[1,:],B[end,:]-B[1,:])
+  U = lattice(V, B)
+  @assert inner_product(V,B,B) == QQ[0 1; 1 -2]
+  weyl, u0 = oscar.weyl_vector(L, U)
+
+  #find a random ample vector ... or use a perturbation of the weyl vector?
+  while true
+    h = matrix(ZZ,1,rank(S),rand(-10:10, rank(S)))*basis_matrix(S)
+    # confirm that h is in the interior of a weyl chamber,
+    # i.e. check that Q does not contain any -2 vector and h^2>0
+    if inner_product(V,h,h)[1,1]<=0
+      continue
+    end
+    @assert 0 < inner_product(V,h,h)[1,1]
+    Q = Hecke.orthogonal_submodule(S, lattice(V, h))
+    if minimum(rescale(Q, -1)) > 2
+      break
+    end
+  end
+  if inner_product(V,weyl,h)[1,1]<0
+    h = -h
+  end
+  weyl1,u,hh = oscar.nondeg_weyl_new(L,S,u0, weyl,h)
+  return L,S,weyl1#L,S,u0, weyl,weyl1, h
+end
 
 # might be worth to introduce this data structure
 mutable struct InducedChamber
@@ -507,4 +821,14 @@ mutable struct InducedChamber
   walls::Vector{fmpq_mat}
   aut::Vector{fmpq_mat}
   stairs::fmpq_mat  # wall to the previous level
+end
+
+function find_isotropic(L)
+  V = ambient_space(L)
+  while true
+    v = matrix(QQ, 1, rank(L), rand(-10:10,rank(L)))*basis_matrix(L)
+    if inner_product(V,v,v)==0 && v!=0
+      return v
+    end
+  end
 end

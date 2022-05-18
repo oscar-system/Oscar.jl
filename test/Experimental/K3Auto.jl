@@ -53,27 +53,56 @@ weylS = hcat(weyl[1,1:4],zero_matrix(QQ,1,6))
 @assert weyl == QQ[30 61 146//3 136//3 11//3 -11//3 3 -7//3 -20//3 -1]
 # the weyl vector is S-degenerate
 # make weyl S-nondegenerate as follows
-weyl = oscar.nondeg_weyl(L,S,weyl,weyl,h)
+weyl,_,_ = oscar.nondeg_weyl_new(L,S,weyl,weyl,h)
 # since the output is not deterministic we hardcode:
 #weyl = QQ[30   61   51   42   5   2   -4   -5   -3   -1]
 
 Gamma, W, DD, B = oscar.alg61(L,S,weyl)
 
 
-
-# unfinished ...
-
 # Another example with finite automorphism group
 S,iU,_=orthogonal_sum(Zlattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
-L,iS,iR = embed_in_unimodular(S::ZLat, 10)
+L,S,iS, R,iR = oscar.embed_in_unimodular(S::ZLat, 10)
 V = ambient_space(L)
+# find a hyperbolic plane
 U = lattice(V, iU.matrix*iS.matrix)
-E8 = Hecke.orthogonal_submodule(L,U)
+weyl = oscar.weyl_vector(L, U)
 
-# normalize the basis
-e8 = rescale(root_lattice(:E,8),-1)
-_,T = isisometric(e8,E8, ambient_representation=false)
-E8 = lattice(ambient_space(E8),T*basis_matrix(E8))
-B = hcat(basis_matrix(U),basis_matrix(E8))
-Bdual = inv(B)
+h = ZZ[25 6 -10 -9 -16 -10]*basis_matrix(S)  #an ample vector
+@assert inner_product(V,h,h)[1,1]>0
+@assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
+# confirm that h is in the interior of a weyl chamber,
+# i.e. check that Q does not contain any -2 vector and h^2>0
+Q = Hecke.orthogonal_submodule(S, lattice(V, h))
+@test minimum(rescale(Q, -1)) > 2
 
+weyl,_,_ = oscar.nondeg_weyl_new(L,S,weyl,weyl,h)
+
+Gamma, W, DD, B = oscar.alg61(L,S,weyl)
+
+# another example
+S,iU,_=orthogonal_sum(Zlattice(gram=ZZ[0 1; 1 -2]),Zlattice(gram=ZZ[-50;]))
+L,S,iS, R,iR = oscar.embed_in_unimodular(S::ZLat, 18)
+V = ambient_space(L)
+# find a hyperbolic plane
+U = lattice(V, iU.matrix*iS.matrix)
+weyl,u0 = oscar.weyl_vector(L, U)
+
+h = ZZ[40 1 -1 ]*basis_matrix(S)  #an ample vector
+@assert inner_product(V,h,h)[1,1]>0
+@assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
+# confirm that h is in the interior of a weyl chamber,
+# i.e. check that Q does not contain any -2 vector and h^2>0
+Q = Hecke.orthogonal_submodule(S, lattice(V, h))
+@test minimum(rescale(Q, -1)) > 2
+
+weyl = oscar.nondeg_weyl_new(L,S,weyl,weyl,h)
+
+Gamma, W, DD, B = oscar.alg61(L,S,weyl)
+
+function common_invariant(Gamma)
+  return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
+end
+
+C = lattice(V,common_invariant(Gamma)[2])
+diagonal(rational_span(C))
