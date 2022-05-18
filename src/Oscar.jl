@@ -302,7 +302,7 @@ end
 
 function weights end
 
-function iseffective end
+function is_effective end
 
 include("printing.jl")
 
@@ -388,12 +388,12 @@ include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
-include("../experimental/Experimental.jl")
-include("Rings/binomial_ideals.jl")
-
 include("ToricVarieties/JToric.jl")
 
 include("TropicalGeometry/main.jl")
+
+include("../experimental/Experimental.jl")
+include("Rings/binomial_ideals.jl") # uses QabModule from experimental/Rings/QabAndPChars.jl
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
@@ -406,6 +406,9 @@ if is_dev
 end
 
 include("Serialization/main.jl")
+
+include("Aliases.jl")
+
 
 const global OSCAR = Oscar
 const global oscar = Oscar

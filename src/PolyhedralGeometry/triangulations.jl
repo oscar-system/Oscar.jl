@@ -173,8 +173,8 @@ julia> all_triangulations(c)
 ```
 """
 function all_triangulations(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return all_triangulations(vertices(P); full=false)
 end
 
@@ -244,8 +244,8 @@ julia> star_triangulations(P)
 ```
 """
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     zero = [0 for i in 1:ambient_dim(P)]
     contains(P, zero) || throw(ArgumentError("Input polyhedron must contain origin."))
     V = vertices(P)
@@ -329,8 +329,8 @@ julia> regular_triangulations(c)
 ```
 """
 function regular_triangulations(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return regular_triangulations(vertices(P); full=false)
 end
 
@@ -412,8 +412,8 @@ julia> regular_triangulation(c)
 ```
 """
 function regular_triangulation(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return regular_triangulation(vertices(P); full=false)
 end
 
@@ -442,7 +442,7 @@ function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
 end
 
 @doc Markdown.doc"""
-    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
+    is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
@@ -454,13 +454,13 @@ A polyhedron in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 
-julia> isregular(vertices(c),cells)
+julia> is_regular(vertices(c),cells)
 true
 ```
 """
-function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+function is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
     as_sop = SubdivisionOfPoints(pts,cells)
-    isregular(as_sop)
+    is_regular(as_sop)
 end
 
 

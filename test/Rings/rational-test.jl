@@ -89,9 +89,9 @@ end
    @test !iszero(QQ(-1, 3))
    @test isone(one(QQ))
    @test !isone(-one(QQ))
-   @test isunit(QQ(2, 3))
-   @test isunit(QQ(-1, 3))
-   @test !isunit(zero(QQ))
+   @test is_unit(QQ(2, 3))
+   @test is_unit(QQ(-1, 3))
+   @test !is_unit(zero(QQ))
 
    @test numerator(QQ(2, 1)) == 2
    @test denominator(QQ(2, 1)) == 1

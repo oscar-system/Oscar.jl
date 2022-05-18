@@ -807,7 +807,7 @@ TODO
 function _compute_gens_degenerate_p(T::TorQuadMod, p)
   invs = elementary_divisors(T)
   p = invs[1]
-  (isdegenerate(T) && isprime(p)) || error("")
+  (is_degenerate(T) && is_prime(p)) || error("")
   n = length(invs)
   q = gram_matrix_quadratic(N)
   k = count(i -> q[:,i]==0, 1:n)

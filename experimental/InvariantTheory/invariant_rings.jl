@@ -1,6 +1,6 @@
 export invariant_ring, fundamental_invariants, affine_algebra
 export coefficient_ring, polynomial_ring, action, group
-export ismodular
+export is_modular
 export reynolds_operator, molien_series
 
 ################################################################################
@@ -19,7 +19,7 @@ _action_singular(I::InvRing) = I.action_singular
 
 group(I::InvRing) = I.group
 
-ismodular(I::InvRing) = I.modular
+is_modular(I::InvRing) = I.modular
 
 function invariant_ring(M::Vector{<: MatrixElem})
   return invariant_ring(base_ring(M[1]), M)
@@ -113,7 +113,7 @@ function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRat
 end
 
 function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
   if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
     singular_matrices = _action_singular(IR)
 
@@ -132,7 +132,7 @@ end
 # Singular.LibFinvar.reynolds_molien does not work for finite fields which are
 # not prime fields.
 function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteField, FqFiniteField}}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
   if !isdefined(IR, :reynolds_singular)
     singular_matrices = _action_singular(IR)
 
@@ -143,7 +143,7 @@ function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteFie
 end
 
 function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
     return nothing
@@ -250,7 +250,7 @@ julia> reynolds_operator(IR, f)
 ```
 """
 function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
   if !isdefined(IR, :reynolds_operator)
@@ -434,7 +434,7 @@ function molien_series(S::PolyRing, I::InvRing)
   if characteristic(coefficient_ring(I)) == 0
     return _molien_series_char0(S, I)
   else
-    if !ismodular(I)
+    if !is_modular(I)
       return _molien_series_charp_nonmodular_via_gap(S, I)
     else
       throw(Hecke.NotImplemented())
@@ -453,7 +453,7 @@ end
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
 # And maybe some day we can also compute Molien series in some modular cases.
-ismolien_series_implemented(I::InvRing) = !ismodular(I)
+is_molien_series_implemented(I::InvRing) = !is_modular(I)
 
 ################################################################################
 #

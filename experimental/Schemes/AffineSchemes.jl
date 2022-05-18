@@ -287,7 +287,7 @@ function issubset(
   if !issubset(UY, UX) 
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
-      isunit(OO(X)(a)) || return false
+      is_unit(OO(X)(a)) || return false
     end
   end
   J = localized_ring(OO(X))(modulus(OO(Y)))

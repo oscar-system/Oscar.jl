@@ -78,7 +78,7 @@
 
   I = ideal(L, (x-1)*(y-1))
   @test one(W) in I
-  @test isunit(L(y-1))
+  @test is_unit(L(y-1))
 
   h = x^4+23*x*y^3-15
   Q, _ = quo(R, f)

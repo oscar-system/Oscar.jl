@@ -106,7 +106,7 @@ character_field
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator
-isirreducible(chi::GAPGroupClassFunction)
+is_irreducible(chi::GAPGroupClassFunction)
 schur_index
 ```
 

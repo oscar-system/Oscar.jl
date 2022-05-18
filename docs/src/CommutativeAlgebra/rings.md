@@ -151,10 +151,10 @@ we follow the former book.
 	asking that $G$ is free and that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
 		
 !!! note
-    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `isfree(G) && ngens(G) == rank(G) == m`
+    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && ngens(G) == rank(G) == m`
 	evaluates to `true`. In this case, conversion routines allow one to switch back and forth between elements
 	of `G` and integer vectors of length `m`. Specifically, if `R` is *$\mathbb Z$-graded*, that is,
-	`isfree(G) && ngens(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
+	`is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
 	to integers and vice versa.
 
 ### Types
@@ -173,7 +173,7 @@ multivariate ring, and  `T` is the element type of its coefficient ring as above
 The following function allows one to distinguish between graded and filtered rings:
 
 ```@docs
-isgraded(R::MPolyRing_dec)
+is_graded(R::MPolyRing_dec)
 ```
 
 ### Constructors for Graded Rings
@@ -336,7 +336,7 @@ homogeneous_component(f::MPolyElem_dec, g::GrpAbFinGenElem)
 ```
 
 ```@docs
-ishomogeneous(f::MPolyElem_dec)
+is_homogeneous(f::MPolyElem_dec)
 ```
 
 ```@docs

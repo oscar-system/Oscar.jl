@@ -2,7 +2,7 @@
   g = ZZ[-1 0 0 0; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1]
   G =  diagonal_matrix(fmpq[2, 3//2, 4//3, 5//4])
   s = Oscar.spin(G, g)
-  @test issquare(s//5)
+  @test is_square(s//5)
 
   L = 2*root_lattice(:A,4)
   Oscar.sigma_sharp(L, 5)

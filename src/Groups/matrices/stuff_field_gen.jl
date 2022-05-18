@@ -8,7 +8,7 @@
 
 # changes the base ring of a polynomial ring into fq_nmod
 function _change_type(f::PolyElem{T}) where T <: FinFieldElem
-   e,p = ispower(order(base_ring(f)))
+   e,p = is_power(order(base_ring(f)))
    F = GF(Int(p),Int(e))
    t = PolynomialRing(F,"t")[2]
    return sum([t^i*F(lift(coeff(f,i))) for i in 0:degree(f)])

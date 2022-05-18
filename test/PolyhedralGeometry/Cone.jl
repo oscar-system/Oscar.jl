@@ -13,8 +13,8 @@ const pm = Polymake
     Cone6 = positive_hull(T, [1//3 1//2; 4//5 2])
 
     @testset "core functionality" begin
-        @test ispointed(Cone1)
-        @test isfulldimensional(Cone1)
+        @test is_pointed(Cone1)
+        @test is_fulldimensional(Cone1)
         if T == fmpq
             @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{fmpz}}
             @test length(hilbert_basis(Cone1)) == 2
@@ -72,10 +72,10 @@ const pm = Polymake
             @test linear_equation_matrix(linear_span(Cone4)) == [0 1 0]
         end
 
-        @test !ispointed(Cone2)
-        @test !ispointed(Cone3)
-        @test !isfulldimensional(Cone4)
-        @test isfulldimensional(Cone2)
+        @test !is_pointed(Cone2)
+        @test !is_pointed(Cone3)
+        @test !is_fulldimensional(Cone4)
+        @test is_fulldimensional(Cone2)
         @test Cone2 == Cone3
         @test Cone4 != Cone2
         @test dim(Cone4) == 2

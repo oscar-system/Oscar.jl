@@ -43,7 +43,7 @@ julia> integrate(c)
 """
 function integrate(c::CohomologyClass)::fmpq
     # can only integrate if the variety is simplicial, complete
-    if !issimplicial(toric_variety(c)) || !iscomplete(toric_variety(c))
+    if !is_simplicial(toric_variety(c)) || !is_complete(toric_variety(c))
         throw(ArgumentError("Integration only supported over complete and simplicial toric varieties."))
     end
     
@@ -62,7 +62,7 @@ function integrate(c::CohomologyClass)::fmpq
     end
     
     # otherwise, proceed "by hand"
-    if istrivial(c)
+    if is_trivial(c)
         return 0
     end
     poly = polynomial(c)

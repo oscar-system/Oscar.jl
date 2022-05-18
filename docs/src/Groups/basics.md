@@ -25,7 +25,7 @@ BasicGAPGroupElem{T<:GAPGroup}
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
-isfiniteorder(x::GAPGroupElem)
+is_finiteorder(x::GAPGroupElem)
 gens(::GAPGroup)
 has_gens(::GAPGroup)
 ngens(G::GAPGroup)
@@ -74,17 +74,17 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 
 ```@docs
 Base.isfinite(G::GAPGroup)
-isabelian(G::GAPGroup)
-ispgroup
-isnilpotent
-issupersolvable
-issolvable
-isperfect
-issimple(G::GAPGroup)
-isalmostsimple
+is_abelian(G::GAPGroup)
+is_pgroup
+is_nilpotent
+is_supersolvable
+is_solvable
+is_perfect
+is_simple(G::GAPGroup)
+is_almostsimple
 is_quasisimple
 is_sporadic_simple
-isfinitelygenerated
+is_finitelygenerated
 ```
 
 

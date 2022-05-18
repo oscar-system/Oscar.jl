@@ -9,9 +9,8 @@
 export
     complement,
     conjugate_transpose,
-    isconjugate_gl,
-    ishermitian_matrix,
-    isskewsymmetric_matrix,
+    is_hermitian_matrix,
+    is_skewsymmetric_matrix,
     lower_triangular_matrix,
     permutation_matrix,
     upper_triangular_matrix
@@ -108,7 +107,7 @@ end
 Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is direct sum of `U` and `W`.
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
-   @assert issubmodule(V,W) "The second argument is not a subspace of the first one"
+   @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
    if dim(W)==0 return sub(V,basis(V)) end
 
    e = W.map
@@ -159,13 +158,13 @@ permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
 # TODO: not sure whether this definition of skew-symmetric is standard (for fields of characteristic 2)
 """
-    isskewsymmetric_matrix(B::MatElem{T}) where T <: Ring
+    is_skewsymmetric_matrix(B::MatElem{T}) where T <: Ring
 
 Return whether the matrix `B` is skew-symmetric,
 i.e. `B = -transpose(B)` and `B` has zeros on the diagonal.
 Return `false` if `B` is not a square matrix.
 """
-function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
+function is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
    n = nrows(B)
    n==ncols(B) || return false
 
@@ -180,12 +179,12 @@ function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
 end
 
 """
-    ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+    is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
 Return `false` if `B` is not a square matrix, or the field has not even degree.
 """
-function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+function is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)
    n==ncols(B) || return false
    e = degree(base_ring(B))

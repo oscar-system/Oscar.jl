@@ -21,9 +21,9 @@
   @test coefficient_ring(RGp) == F
   @test coefficient_ring(RGm) == F
 
-  @test !ismodular(RG0)
-  @test !ismodular(RGp)
-  @test ismodular(RGm)
+  @test !is_modular(RG0)
+  @test !is_modular(RGp)
+  @test is_modular(RGm)
 
   R0 = polynomial_ring(RG0)
   Rp = polynomial_ring(RGp)

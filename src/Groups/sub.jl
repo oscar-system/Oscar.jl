@@ -6,11 +6,11 @@ export
     derived_subgroup, has_derived_subgroup, set_derived_subgroup,
     embedding,
     index,
-    ischaracteristic,
-    ismaximal,
-    isnilpotent, has_isnilpotent, set_isnilpotent,
-    issolvable, has_issolvable, set_issolvable,
-    issupersolvable, has_issupersolvable, set_issupersolvable,
+    is_characteristic,
+    is_maximal,
+    is_nilpotent, has_is_nilpotent, set_is_nilpotent,
+    is_solvable, has_is_solvable, set_is_solvable,
+    is_supersolvable, has_is_supersolvable, set_is_supersolvable,
     maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient,
     maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups,
     maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups,
@@ -67,12 +67,12 @@ function sub(gens::GAPGroupElem...)
 end
 
 """
-    issubgroup(G::T, H::T) where T <: GAPGroup
+    is_subgroup(G::T, H::T) where T <: GAPGroup
 
 Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding
 homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 """
-function issubgroup(G::T, H::T) where T <: GAPGroup
+function is_subgroup(G::T, H::T) where T <: GAPGroup
    if !all(h -> h in G, gens(H))
       return (false, nothing)
    else
@@ -87,7 +87,7 @@ Return the embedding morphism of `H` into `G`.
 An exception is thrown if `H` is not a subgroup of `G`.
 """
 function embedding(G::T, H::T) where T <: GAPGroup
-   a, f = issubgroup(G,H)
+   a, f = is_subgroup(G,H)
    a || throw(ArgumentError("H is not a subgroup of G"))
    return f
 end
@@ -141,7 +141,7 @@ end
 """
     normal_subgroups(G::Group)
 
-Return the vector of normal subgroups of `G` (see [`isnormal`](@ref)).
+Return the vector of normal subgroups of `G` (see [`is_normal`](@ref)).
 """
 @gapattribute normal_subgroups(G::GAPGroup) =
   _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
@@ -234,7 +234,7 @@ const centraliser = centralizer
 ################################################################################
 
 """
-    ismaximal(G::T, H::T) where T <: GAPGroup
+    is_maximal(G::T, H::T) where T <: GAPGroup
 
 Return whether `H` is a maximal subgroup of `G`, i. e.,
 whether `H` is a proper subgroup of `G` and there is no proper subgroup of `G`
@@ -244,72 +244,72 @@ that properly contains `H`.
 ```jldoctest
 julia> G = symmetric_group(4);
 
-julia> ismaximal(G, sylow_subgroup(G, 2)[1])
+julia> is_maximal(G, sylow_subgroup(G, 2)[1])
 true
 
-julia> ismaximal(G, sylow_subgroup(G, 3)[1])
+julia> is_maximal(G, sylow_subgroup(G, 3)[1])
 false
 
 ```
 """
-function ismaximal(G::T, H::T) where T <: GAPGroup
-  issubgroup(G, H)[1] || return false
+function is_maximal(G::T, H::T) where T <: GAPGroup
+  is_subgroup(G, H)[1] || return false
   if order(G) // order(H) < 100
     t = right_transversal(G, H)[2:end] #drop the identity
     return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
   end
-  return any(M -> isconjugate(G, M, H), maximal_subgroup_reps(G))
+  return any(M -> is_conjugate(G, M, H), maximal_subgroup_reps(G))
 end
 
 """
-    isnormal(G::T, H::T) where T <: GAPGroup
+    is_normal(G::T, H::T) where T <: GAPGroup
 
 Return whether the group `H` is normalized by `G`, i.e.,
 whether `H` is invariant under conjugation with elements of `G`.
 
 !!! note
-    To test whether `H` is a normal subgroup, use `isnormal(G, H) && issubset(H, G)`
+    To test whether `H` is a normal subgroup, use `is_normal(G, H) && issubset(H, G)`
 """
-isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
+is_normal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
 
 """
-    ischaracteristic(G::T, H::T) where T <: GAPGroup
+    is_characteristic(G::T, H::T) where T <: GAPGroup
 
 Return whether the subgroup `H` is characteristic in `G`,
 i.e., `H` is invariant under all automorphisms of `G`.
 
 !!! note
-    To test whether `H` is a characteristic subgroup, use `ischaracteristic(G, H) && issubset(H, G)`
+    To test whether `H` is a characteristic subgroup, use `is_characteristic(G, H) && issubset(H, G)`
 """
-function ischaracteristic(G::T, H::T) where T <: GAPGroup
+function is_characteristic(G::T, H::T) where T <: GAPGroup
   return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
 end
 
 """
-    issolvable(G::GAPGroup)
+    is_solvable(G::GAPGroup)
 
 Return whether `G` is solvable,
 i.e., whether [`derived_series`](@ref)(`G`)
 reaches the trivial subgroup in a finite number of steps.
 """
-@gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
+@gapattribute is_solvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
 
 """
-    isnilpotent(G::GAPGroup)
+    is_nilpotent(G::GAPGroup)
 
 Return whether `G` is nilpotent,
 i.e., whether the lower central series of `G` reaches the trivial subgroup
 in a finite number of steps.
 """
-@gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
+@gapattribute is_nilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
 
 """
-    issupersolvable(G::GAPGroup)
+    is_supersolvable(G::GAPGroup)
 
 Return whether `G` is supersolvable,
 i.e., `G` is finite and has a normal series with cyclic factors.
 """
-@gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
+@gapattribute is_supersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
 
 ################################################################################
 #

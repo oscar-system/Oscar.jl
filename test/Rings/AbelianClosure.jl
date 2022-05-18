@@ -73,8 +73,8 @@
 
   @testset "Coercion" begin
     K, z = abelian_closure(QQ)
-    @test Oscar.AbelianClosure.isconductor(3)
-    @test !Oscar.AbelianClosure.isconductor(2)
+    @test Oscar.AbelianClosure.is_conductor(3)
+    @test !Oscar.AbelianClosure.is_conductor(2)
     a, b = z(4), z(3)
     c, d = @inferred Oscar.AbelianClosure.make_compatible(a, b)
     fa = minpoly(Oscar.AbelianClosure.data(a))
@@ -107,8 +107,8 @@
 
   @testset "Arithmetic" begin
     K, z = abelian_closure(QQ)
-    @test isunit(z(1))
-    @test !isunit(zero(K))
+    @test is_unit(z(1))
+    @test !is_unit(zero(K))
     rand_elem() = begin n = rand([3, 4, 5]); sum(rand(-1:1) * z(n) for i in 1:3) end
     a = one(K)
     @test isone(inv(a))
@@ -203,8 +203,8 @@
       @test length(bs) == n
       @test all(c -> c^n == b, bs)
 
-      @test isroot_of_unity(z(5))
-      @test !isroot_of_unity(z(5) + 1)
+      @test is_root_of_unity(z(5))
+      @test !is_root_of_unity(z(5) + 1)
     end
 
     @test length(roots(8*b, 3)) == 3
