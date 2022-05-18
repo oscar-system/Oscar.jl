@@ -3277,24 +3277,6 @@ function inv(H::ModuleMap)
 end
 
 ##################################################
-# direct sum
-##################################################
-@doc Markdown.doc"""
-    direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where T
-
-Given free modules $F_1\dots F_n$, say, return the direct sum $\bigoplus_{i=1}^n F_i$.
-
-Additionally, return 
-- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum` (default),
-- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :prod`,
-- two vectors containing the canonical injections and projections, respectively, if `task = :both`,
-- none of the above if `task = :none`.
-"""
-function direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where {T}
-  return direct_product(F...; task = task)
-end
-
-##################################################
 # direct product
 ##################################################
 @doc Markdown.doc"""
