@@ -8,7 +8,7 @@ function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   l = [G]
   while order(l[end]) > order(U)
     m = maximal_subgroups(l[end])
-    push!(l, m[findfirst(x -> issubgroup(x, U)[1], m)])
+    push!(l, m[findfirst(x -> is_subgroup(x, U)[1], m)])
   end
   return reverse(l)
 
@@ -24,12 +24,12 @@ end
 
 # given a perm group G and a block B, compute a homomorphism into Sym(B^G)
 function action_on_blocks(G::PermGroup, B::Vector{Int})
-  Omega = gset(G, [B])
+  Omega = gset(G, on_sets, [B])
   return action_homomorphism(Omega)
 end
 
 function action_on_block_system(G::PermGroup, B::Vector{Vector{Int}})
-  Omega = gset(G, B)
+  Omega = gset(G, on_sets, B)
   set_attribute!(Omega, :elements => Omega.seeds)
   return action_homomorphism(Omega)
 end

@@ -79,17 +79,17 @@ end
    f = t^4+2*t^3+4*t+1
    @test f(identity_matrix(F,6))==f(1)*identity_matrix(F,6)
    @test_throws ArgumentError conjugate_transpose(x)
-   @test issymmetric(P+transpose(P))
-   @test isskewsymmetric_matrix(P-transpose(P))
+   @test is_symmetric(P+transpose(P))
+   @test is_skewsymmetric_matrix(P-transpose(P))
 
    F,z = FiniteField(2,2)
    x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
    y=x+transpose(x)
-   @test issymmetric(y)
-   @test ishermitian_matrix(x+conjugate_transpose(x))
-   @test isskewsymmetric_matrix(y)
+   @test is_symmetric(y)
+   @test is_hermitian_matrix(x+conjugate_transpose(x))
+   @test is_skewsymmetric_matrix(y)
    y[1,1]=1
-   @test !isskewsymmetric_matrix(y)
+   @test !is_skewsymmetric_matrix(y)
    @test conjugate_transpose(x)==transpose(matrix(F,4,4,[1,z+1,0,0,0,1,z,z+1,z+1,0,0,1,0,0,z,0]))
 
 end

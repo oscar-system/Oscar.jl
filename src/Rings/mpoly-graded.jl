@@ -1,8 +1,8 @@
-export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
+export weight, decorate, is_homogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
 homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded, is_standard_graded
-export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
+export MPolyRing_dec, MPolyElem_dec, is_homogeneous, is_graded
 
 @attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
@@ -49,19 +49,19 @@ grading_group(R::MPolyRing_dec) = R.D
 
 @doc Markdown.doc"""
 
-    isgraded(R::MPolyRing_dec)
+    is_graded(R::MPolyRing_dec)
 
 Return `true` if `R` is graded, `false` otherwise.
 """
-function isgraded(R::MPolyRing_dec)
+function is_graded(R::MPolyRing_dec)
    return !isdefined(R, :lt)
 end
-isfiltered(R::MPolyRing_dec) = isdefined(R, :lt)
+is_filtered(R::MPolyRing_dec) = isdefined(R, :lt)
 
 function show(io::IO, W::MPolyRing_dec)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
-  if isfiltered(W)
+  if is_filtered(W)
     println(io, "$(W.R) filtrated by ")
   else
     println(io, "$(W.R) graded by ")
@@ -225,7 +225,7 @@ end
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
 
 !!! note
-    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z$-graded if `isfree(G) && ngens(G) == rank(G) == 1` evaluates to `true`.
+    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z$-graded if `is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`.
 
 # Examples
 ```jldoctest
@@ -245,9 +245,9 @@ true
 ```
 """
 function is_z_graded(R::MPolyRing_dec)
-  isgraded(R) || return false
+  is_graded(R) || return false
   A = grading_group(R)
-  return ngens(A) == 1 && rank(A) == 1 && isfree(A)
+  return ngens(A) == 1 && rank(A) == 1 && is_free(A)
 end
 
 @doc Markdown.doc"""
@@ -256,7 +256,7 @@ end
 Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
 
 !!! note
-    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z^m$-graded if `isfree(G) && ngens(G) == rank(G) == m` evaluates to `true`.
+    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z^m$-graded if `is_free(G) && ngens(G) == rank(G) == m` evaluates to `true`.
 
 # Examples
 ```jldoctest
@@ -294,7 +294,7 @@ julia> W = [g, g, g, g];
 
 julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
 
-julia> isfree(G)
+julia> is_free(G)
 true
 
 julia> is_zm_graded(R)
@@ -302,9 +302,9 @@ false
 ```
 """
 function is_zm_graded(R::MPolyRing_dec)
-  isgraded(R) || return false
+  is_graded(R) || return false
   A = grading_group(R)
-  return isfree(A) && ngens(A) == rank(A)
+  return is_free(A) && ngens(A) == rank(A)
 end
 
 @doc Markdown.doc"""
@@ -361,9 +361,9 @@ false
 ```
 """
 function is_positively_graded(R::MPolyRing_dec)
-  isgraded(R) || return false
+  is_graded(R) || return false
   G = grading_group(R)
-  isfree(G) || return false
+  is_free(G) || return false
   try 
     homogeneous_component(R, zero(G))
   catch e
@@ -579,8 +579,8 @@ mutable struct MPolyElem_dec{T, S} <: MPolyElem{T}
   parent
   function MPolyElem_dec(f::S, p) where {S}
     r = new{elem_type(base_ring(f)), S}(f, p)
-#    if isgraded(p) && length(r) > 1
-#      if !ishomogeneous(r)
+#    if is_graded(p) && length(r) > 1
+#      if !is_homogeneous(r)
 #        error("element not homogeneous")
 #      end
 #both wrong and undesired.
@@ -814,8 +814,8 @@ end
 function ideal(g::Vector{T}) where {T <: MPolyElem_dec}
   @assert length(g) > 0
   @assert all(x->parent(x) == parent(g[1]), g)
-  if isgraded(parent(g[1]))
-     if !(all(ishomogeneous, g))
+  if is_graded(parent(g[1]))
+     if !(all(is_homogeneous, g))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
      end
   end
@@ -945,7 +945,7 @@ function degree(a::MPolyElem_dec)
     if first
       first = false
       w = u
-    elseif isfiltered(W)
+    elseif is_filtered(W)
       w = W.lt(w, u) ? u : w
     else
       w == u || error("element not homogeneous")
@@ -966,7 +966,7 @@ function degree(::Type{Vector{Int}}, a::MPolyElem_dec)
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyElem_dec)
+    is_homogeneous(f::MPolyElem_dec)
 
 Given an element `f` of a graded multivariate ring, return `true` if `f` is homogeneous, `false` otherwise.
 
@@ -981,7 +981,7 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
 julia> f = x^2+y*z
 x^2 + y*z
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 false
 
 julia> W = [1 2 1 0; 3 4 0 1]
@@ -999,11 +999,11 @@ julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
 julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 
-julia> ishomogeneous(F)
+julia> is_homogeneous(F)
 true
 ```
 """
-function ishomogeneous(F::MPolyElem_dec)
+function is_homogeneous(F::MPolyElem_dec)
   D = parent(F).D
   d = parent(F).d
   S = Set{elem_type(D)}()
@@ -1357,7 +1357,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
        throw(ArgumentError("The coefficient ring must be a field."))
   end
   D = W.D
-  isfree(D) || error("Grading group must be free")
+  is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
   R = base_ring(W)
@@ -1454,7 +1454,7 @@ end
 ###########################################
 # needs re-thought
 function (W::MPolyRing_dec)(m::Generic.FreeModuleElem) 
-  h = hasrelshp(parent(m), W)
+  h = has_relshp(parent(m), W)
   if h !== nothing
     return h(m)
   end
@@ -1471,7 +1471,7 @@ function add_relshp(R, S, h)
   D[S] = h
 end
 
-function hasrelshp(R, S)
+function has_relshp(R, S)
   r = get_attribute(R, :relshp)
   if r === nothing
     return r
@@ -1507,11 +1507,11 @@ mutable struct HilbertData
        throw(ArgumentError("The coefficient ring must be a field."))
     end
 
-    if !((R isa Oscar.MPolyRing_dec) && (isgraded(R)))
+    if !((R isa Oscar.MPolyRing_dec) && (is_graded(R)))
        throw(ArgumentError("The base ring must be graded."))
     end
     
-    if !(all(ishomogeneous, gens(I)))
+    if !(all(is_homogeneous, gens(I)))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end
     

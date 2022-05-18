@@ -103,7 +103,7 @@ end
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
       @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == one(G).elm
       if F isa AnticNumberField
-         flag, n = Hecke.iscyclotomic_type(F)
+         flag, n = Hecke.is_cyclotomic_type(F)
          @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
       end
    end
@@ -489,7 +489,7 @@ end
    O = GO(1,2,F)
    H = intersect(S,O)[1]
    @test H==SO(1,2,F)
-   @test isnormal(O,H)
+   @test is_normal(O,H)
    @test index(O,H)==2
 #   @test index(GO(0,3,3), omega_group(0,3,3))==4
    @test index(GO(1,2,8), omega_group(1,2,8))==2
@@ -556,10 +556,10 @@ end
       s, u = multiplicative_jordan_decomposition(G(x))
       @test parent(s)==G
       @test parent(u)==G
-      @test iscoprime(order(s),3)
-      @test isone(u) || ispower(order(u))[2]==3
-      @test issemisimple(s)
-      @test isunipotent(u)
+      @test is_coprime(order(s),3)
+      @test isone(u) || is_power(order(u))[2]==3
+      @test is_semisimple(s)
+      @test is_unipotent(u)
       @test s*u==G(x)
       @test s*u==u*s
 
@@ -573,7 +573,7 @@ end
    end
    
    x = one(G)
-   @test issemisimple(x) && isunipotent(x)
+   @test is_semisimple(x) && is_unipotent(x)
 
    F,z = FiniteField(5,3,"z")
    G = GL(6,F)

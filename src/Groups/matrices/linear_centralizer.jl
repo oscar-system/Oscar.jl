@@ -443,7 +443,7 @@ end
 
 Return (`C`,`f`), where `C` is the centralizer of `x` in `C` and `f` is the embedding of `C` into `G`.
 If `G` = `GL(n,F)` or `SL(n,F)`, then `f` = `nothing`. In this case, to get the embedding homomorphism of `C` into `G`, use
-> `issubgroup(G,C)[2]`
+> `is_subgroup(G,C)[2]`
 """
 function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)

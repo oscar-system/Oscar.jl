@@ -1,9 +1,9 @@
 
 export normalization_with_delta
 export noether_normalization, normalization, integral_basis
-export isreduced, subalgebra_membership, minimal_subalgebra_generators
+export is_reduced, subalgebra_membership, minimal_subalgebra_generators
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
-export issurjective, isinjective, isbijective, inverse, preimage, isfinite
+export is_surjective, is_injective, is_bijective, inverse, preimage, isfinite
 export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
 
 ##############################################################################
@@ -263,7 +263,7 @@ end
 ### TODO: Originally meant to be used in multi_hilbert_series; might be useful elsewhere
 function transform_to_positive_orthant(rs::Matrix{Int})   
     C = positive_hull(rs)
-    @assert isfulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
+    @assert is_fulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
     F = linear_inequality_matrix(facets(C))
     
     # Find a simplicial cone containing C
@@ -299,7 +299,7 @@ end
 
 function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m)
    ###for use in _multi_hilbert_series only
-   ###if !ismonomial(I)
+   ###if !is_monomial(I)
    ###      throw(ArgumentError("The ideal is not monomial"))
    ###end
    ### V = minimal_monomial_generators(I)  ### to be written
@@ -325,7 +325,7 @@ end
 ### TODO: use following version once build complex is completely adapted to Laurent polynomial case
 #function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
    ###for use in _multi_hilbert_series only
-   ###if !ismonomial(I)
+   ###if !is_monomial(I)
    ###      throw(ArgumentError("The ideal is not monomial"))
    ###end
    ### V = minimal_monomial_generators(I)  ### to be written
@@ -427,7 +427,7 @@ function multi_hilbert_series(A::MPolyQuo)
    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
    end
-   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+   if !(R isa MPolyRing_dec && is_graded(R) && is_positively_graded(R))
        throw(ArgumentError("The base ring must be positively graded."))
    end
    G = grading_group(R)
@@ -492,7 +492,7 @@ end
 #   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
 #       throw(ArgumentError("The coefficient ring must be a field."))
 #   end
-#   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+#   if !(R isa MPolyRing_dec && is_graded(R) && is_positively_graded(R))
 #       throw(ArgumentError("The base ring must be positively graded."))
 #   end
 #   if !(is_zm_graded(R))
@@ -748,7 +748,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isreduced(A::MPolyQuo)
+    is_reduced(A::MPolyQuo)
 
 Given an affine algebra `A`, return `true` if `A` is reduced, `false` otherwise.
 
@@ -764,17 +764,17 @@ julia> A, _ = quo(R, ideal(R, [x^4]))
 (Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4), Map from
 Multivariate Polynomial Ring in x over Rational Field to Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4) defined by a julia-function with inverse)
 
-julia> isreduced(A)
+julia> is_reduced(A)
 false
 ```
 """
-function isreduced(A::MPolyQuo) 
+function is_reduced(A::MPolyQuo) 
   I = A.I
   return I == radical(I)
 end
 
 @doc Markdown.doc"""
-    isnormal(A::MPolyQuo)
+    is_normal(A::MPolyQuo)
 
 Given an affine algebra `A` over a perfect field,
 return `true` if `A` is normal, `false` otherwise.
@@ -791,11 +791,11 @@ julia> A, _ = quo(R, ideal(R, [z^2-x*y]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2), Map from
 Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2) defined by a julia-function with inverse)
 
-julia> isnormal(A)
+julia> is_normal(A)
 true
 ```
 """
-function isnormal(A::MPolyQuo)
+function is_normal(A::MPolyQuo)
   if !(coefficient_ring(A) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
   end
@@ -955,9 +955,9 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem,
   if p isa MPolyRing
       p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
   else
-      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
+      p.R isa MPolyRing_dec && is_graded(p.R) || throw(ArgumentError("The base ring must be graded"))
   end
-  all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+  all(is_homogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
   # iterate over the generators, starting with those in lowest degree, then work up
   W = sort(V, by = x -> degree(x)[1])
   result = [ W[1] ]
@@ -1032,7 +1032,7 @@ as the prime decomposition of the radical ideal $I$.
 See [GLS10](@cite).
 
 !!! warning
-    The function does not check whether $A$ is reduced. Use `isreduced(A)` in case you are unsure (this may take some time).
+    The function does not check whether $A$ is reduced. Use `is_reduced(A)` in case you are unsure (this may take some time).
 
 # Examples
 ```jldoctest
@@ -1253,7 +1253,7 @@ function integral_basis(f::MPolyElem, i::Int)
     throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))
   end
 
-  if !isirreducible(f)
+  if !is_irreducible(f)
     throw(ArgumentError("The input polynomial must be irreducible"))
   end
 

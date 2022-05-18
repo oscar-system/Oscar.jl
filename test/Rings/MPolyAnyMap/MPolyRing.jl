@@ -113,9 +113,9 @@
     @test (@inferred h(x)) == x^2
     @test (@inferred h(x)) == x^2
 
-    @test_throws ErrorException isinjective(h)
-    @test_throws ErrorException issurjective(h)
-    @test_throws ErrorException isbijective(h)
+    @test_throws ErrorException is_injective(h)
+    @test_throws ErrorException is_surjective(h)
+    @test_throws ErrorException is_bijective(h)
     @test_throws ErrorException kernel(h)
 
     # composition

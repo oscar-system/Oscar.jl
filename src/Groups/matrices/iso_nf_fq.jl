@@ -16,7 +16,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}) 
 
    G = MatrixGroup(n, Fq, matrices_Fq)
    N = order(G)
-   if !isdivisible_by(Hecke._minkowski_multiple(K, n), N)
+   if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
       error("Group is not finite")
    end
 

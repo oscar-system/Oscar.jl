@@ -570,8 +570,8 @@ function general_linear_group(n::Int, F::Ring)
 end
 
 function general_linear_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return general_linear_group(n, GF(b, a))
 end
 
@@ -589,8 +589,8 @@ function special_linear_group(n::Int, F::Ring)
 end
 
 function special_linear_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return special_linear_group(n, GF(b, a))
 end
 
@@ -610,8 +610,8 @@ function symplectic_group(n::Int, F::Ring)
 end
 
 function symplectic_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return symplectic_group(n, GF(b, a))
 end
 
@@ -644,8 +644,8 @@ function orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return orthogonal_group(e, n, GF(b, a))
 end
 
@@ -682,8 +682,8 @@ function special_orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function special_orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return special_orthogonal_group(e, n, GF(b, a))
 end
 
@@ -719,8 +719,8 @@ function omega_group(e::Int, n::Int, F::Ring)
 end
 
 function omega_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return omega_group(e, n, GF(b, a))
 end
 
@@ -734,8 +734,8 @@ omega_group(n::Int, F::Ring) = omega_group(0,n,F)
 Return the unitary group of dimension `n` over the field `GF(q^2)`.
 """
 function unitary_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -748,8 +748,8 @@ end
 Return the special unitary group of dimension `n` over the field `GF(q^2)`.
 """
 function special_unitary_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G

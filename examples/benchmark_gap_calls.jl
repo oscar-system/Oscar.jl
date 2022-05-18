@@ -9,7 +9,7 @@ G = cyclic_group(10)
 function test_isabelian_0()
   x = true
   for i = 1:reps
-    x = x && isabelian(G)
+    x = x && is_abelian(G)
   end
 end
 

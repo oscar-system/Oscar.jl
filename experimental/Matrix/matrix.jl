@@ -58,13 +58,13 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
        # Check whether all matrices are n by n (and invertible and such ...)
        
        n = nrows(matrices[1])
-       isinvertible(x) = isunit(det(x))
+       is_invertible(x) = is_unit(det(x))
        K = base_ring(matrices[1])
        for mat in matrices
             if K != mat.base_ring
                 error("Matrices are not from the same base ring.")
             end
-            if !isinvertible(mat)
+            if !is_invertible(mat)
                 error("At least one matrix is not invertible.")
             end
             if size(mat) != (n, n)
@@ -83,7 +83,7 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
        gap_matrices_Fq = GAP.Obj([map_entries(hom, m) for m in matrices_Fq])
        G2 = GAP.Globals.Group(gap_matrices_Fq)
        N = fmpz(GAP.Globals.Order(G2))
-       if !isdivisible_by(Hecke._minkowski_multiple(K, n), N)
+       if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
           error("Group is not finite")
        end
 

@@ -64,8 +64,8 @@
          @test length(maximal_polyhedra(PC)) == 2
          @test maximal_polyhedra(PC) == convex_hull.(T, [P[1:3, :], P[[2, 4], :]])
          @test n_maximal_polyhedra(PC) == 2
-         @test issimplicial(PC)
-         @test !ispure(PCL)
+         @test is_simplicial(PC)
+         @test !is_pure(PCL)
          @test dim(PCL) == 3
          @test polyhedra_of_dim(PC, 1) isa SubObjectIterator{Polyhedron{T}}
          @test length(polyhedra_of_dim(PC, 1)) == 4
@@ -88,7 +88,7 @@
          @test nvertices(PCFL) == 3
          @test npolyhedra(PCL) == 9
          @test codim(PCF) == 0
-         @test isembedded(PC)
+         @test is_embedded(PC)
          
          @test vertices(PCFLN) == [P2[i, :] for i in 1:3]
          @test rays(PCFLN) == [P2[4, :]]

@@ -748,7 +748,7 @@ function Hecke.MaximalOrder(K::NfNSGen)
   return Hecke._maximal_order_round_four(E)
 end
 
-Hecke.isdefining_polynomial_nice(::NfNSGen) = false
+Hecke.is_defining_polynomial_nice(::NfNSGen) = false
 
 ################################################################################
 #

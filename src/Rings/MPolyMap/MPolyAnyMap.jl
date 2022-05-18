@@ -106,13 +106,13 @@ end
 
 # if the codomain is graded, the images must be homogenous?!
 _isgraded(::NCRing) = false
-_isgraded(R::MPolyRing_dec) = isgraded(R) # filtered not considered graded
+_isgraded(R::MPolyRing_dec) = is_graded(R) # filtered not considered graded
 _isgraded(R::MPolyQuo) = _isgraded(R.R)
 
 function _check_homo(S::NCRing, images)
   if _isgraded(S)
     for i in images
-      @req ishomogeneous(i) "Images must be homogenous"
+      @req is_homogeneous(i) "Images must be homogenous"
     end
   end
 end
@@ -162,7 +162,7 @@ end
 #
 ################################################################################
 
-function isinjective(F::MPolyAnyMap)
+function is_injective(F::MPolyAnyMap)
   error("Cannot decide injectivity!")
 end
 
@@ -172,7 +172,7 @@ end
 #
 ################################################################################
 
-function issurjective(F::MPolyAnyMap)
+function is_surjective(F::MPolyAnyMap)
   error("Cannot decide surjectivity!")
 end
 
@@ -182,7 +182,7 @@ end
 #
 ################################################################################
 
-function isbijective(F::MPolyAnyMap)
+function is_bijective(F::MPolyAnyMap)
   error("Cannot decide bijectivity!")
 end
 

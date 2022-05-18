@@ -106,8 +106,8 @@ end
     j = ideal(R, [R(1)])
     for (q, p) in primary_decomposition(i, alg=method)
       j = intersect(j, q)
-      @test isprimary(q)
-      @test isprime(p)
+      @test is_primary(q)
+      @test is_prime(p)
       @test p == radical(q)
     end
     @test j == i
@@ -217,14 +217,14 @@ end
   J = ideal(R, [x, y^2])
   L = primary_decomposition(I)
   Q = ideal(R, [R(1)])
-  @test isprime(I) == false
-  @test isprimary(I) == false
-  @test isprime(J) == false
-  @test isprimary(J) == true
+  @test is_prime(I) == false
+  @test is_primary(I) == false
+  @test is_prime(J) == false
+  @test is_primary(J) == true
   for (q, p) in L
     Q = intersect(Q, q)
-    @test isprimary(q)
-    @test isprime(p)
+    @test is_primary(q)
+    @test is_prime(p)
     @test p == radical(q)
   end
   @test Q == I
@@ -242,4 +242,19 @@ end
   R, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
   I = ideal(R, [x])
   @test x in I
+end
+
+@testset "Fraction fields over polynomial rings" begin
+  R, x = PolynomialRing(QQ, "x")
+  F = FractionField(R)
+  @test gen(F) == F(x)
+  @test gens(F) == elem_type(F)[ F(x) ]
+
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  F = FractionField(R)
+  @test ngens(F) == 3
+  @test gen(F, 2) == F(y)
+  @test gens(F) == elem_type(F)[ F(x), F(y), F(z) ]
+  @test F[1] == F(x)
+  @test F[0] == zero(F)
 end

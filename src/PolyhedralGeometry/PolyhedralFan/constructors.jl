@@ -37,7 +37,7 @@ julia> Cones = IncidenceMatrix([[1, 2], [1, 4], [3, 2], [3, 4]])
 julia> PF = PolyhedralFan(Rays, Cones)
 A polyhedral fan in ambient dimension 2
 
-julia> iscomplete(PF)
+julia> is_complete(PF)
 true
 """
 struct PolyhedralFan{T} <:_FanLikeType{T}

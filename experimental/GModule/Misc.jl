@@ -53,7 +53,7 @@ end
 
 function cyclo_fixed_group_gens(a::nf_elem)
   C = parent(a)
-  fl, f = Hecke.iscyclotomic_type(C)
+  fl, f = Hecke.is_cyclotomic_type(C)
   @assert fl
   if isone(f)
     return [(1,1)]
@@ -124,7 +124,7 @@ end
 
 function Hecke.preimage(h::GrpAbFinGenMap, u::GrpAbFinGen, L::Hecke.GrpAbLattice = Hecke.GroupLattice)
 
-  fl, f = issubgroup(u, codomain(h))
+  fl, f = is_subgroup(u, codomain(h))
   @assert fl
   k, mk = kernel(h)
   return sub(domain(h), vcat(map(mk, gens(k)), [preimage(h, x) for x = map(f, gens(u))]))
@@ -146,7 +146,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
     Q = intersect(Q, preimage(h, u)[1])
   end
   s, ms = snf(Q)
-  _, sR = issubgroup(Q, R)
+  _, sR = is_subgroup(Q, R)
   Qgen = map(sR, map(ms, gens(s)))
   lf = factor(F)
   for p = keys(lf.fac)
@@ -171,7 +171,7 @@ function Hecke.number_field(::FlintRationalField, a::AbstractVector{QabElem}; ca
   if length(a) == 0
     return Hecke.rationals_as_number_field()[1]
   end
-  f = lcm([Hecke.iscyclotomic_type(parent(data(x)))[2] for x = a])
+  f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = a])
   K = cyclotomic_field(f)[1]
   k, mkK = Hecke.subfield(K, [K(data(x)) for x = a])
   return k, gen(k)

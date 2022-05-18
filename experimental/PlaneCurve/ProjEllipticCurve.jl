@@ -1,4 +1,4 @@
-export ProjEllipticCurve, discriminant, issmooth, j_invariant,
+export ProjEllipticCurve, discriminant, is_smooth, j_invariant,
        Point_EllCurve, curve, weierstrass_form, toweierstrass,
        iselliptic, list_rand
 
@@ -6,7 +6,7 @@ export ProjEllipticCurve, discriminant, issmooth, j_invariant,
 # Helping functions
 ################################################################################
 
-function isweierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
+function is_weierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -39,12 +39,12 @@ function _iselliptic(F::Oscar.MPolyElem_dec)
 end
 
 function iselliptic(C::ProjPlaneCurve)
-   return degree(C) == 3 && issmooth_curve(C)
+   return degree(C) == 3 && is_smooth_curve(C)
 end
 
 ################################################################################
 
-function isinflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function is_inflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    J = jacobi_matrix([jacobi_matrix(F)[i] for i in 1:3])
    H = det(J)
    return iszero(evaluate(F, P.v)) && iszero(evaluate(H, P.v))
@@ -99,7 +99,7 @@ function _change_coord(F::Oscar.MPolyElem_dec, P::Oscar.Geometry.ProjSpcElem)
    evaluate(F, P) == 0 || error("The point is not on the curve")
    D = ProjPlaneCurve(F)
    L = tangent(D, P)
-   isinflection(F, P) || error("The point is not an inflection point")
+   is_inflection(F, P) || error("The point is not an inflection point")
    R = parent(defining_equation(D))
    S = parent(F)
    Q = _point_line(L, P)
@@ -179,10 +179,10 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
 
   function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
+    is_weierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
@@ -194,23 +194,23 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
      nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
      iszero(evaluate(eq, P.v)) || error("The point is not on the curve")
-     !isconstant(eq) || error("The defining equation must be non constant")
-     ishomogeneous(eq) || error("The defining equation is not homogeneous")
-     isinflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
+     !is_constant(eq) || error("The defining equation must be non constant")
+     is_homogeneous(eq) || error("The defining equation is not homogeneous")
+     is_inflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
      _iselliptic(eq) || error("Not an elliptic curve")
      T = parent(eq)
      L = _change_coord(eq, P)
      H = L[1](eq)
-     isweierstrass_form(H) || error("Not in Weierstrass form")
+     is_weierstrass_form(H) || error("Not in Weierstrass form")
      v = shortformtest(H)
      new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], v[1]))
   end
 
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
+    is_weierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
     v[1] || error("Not in short Weierstrass form")
     d = _discr(eq)
@@ -319,7 +319,7 @@ function Oscar.discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
    return Hecke.discriminant(E.Hecke_ec)
 end
 
-function Oscar.issmooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
+function Oscar.is_smooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
    return true
 end
 
@@ -427,10 +427,14 @@ end
 ################################################################################
 
 function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.ProjSpc{S}, P::Hecke.EllCrvPt{S}) where S <: FieldElem
-   E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
+   if length(E.Hecke_ec.coeff) == 2
+     E.Hecke_ec.coeff == P.parent.coeff[end-1:end] || error("not the same curve")
+   else
+     E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
+   end
    L = E.maps
    K = P.parent.base_field
-   if P.isinfinite
+   if is_infinite(P)
       V = [K(0), K(1), K(0)]
    else
       V = [P.coordx, P.coordy, K(1)]
@@ -718,12 +722,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    istorsion_point(P::Point_EllCurve{fmpq})
+    is_torsion_point(P::Point_EllCurve{fmpq})
 
 Return whether the point `P` is a torsion point.
 """
-function Oscar.istorsion_point(P::Point_EllCurve{fmpq})
-   return Hecke.istorsion_point(P.Hecke_Pt)
+function Oscar.is_torsion_point(P::Point_EllCurve{fmpq})
+   return Hecke.is_torsion_point(P.Hecke_Pt)
 end
 
 ################################################################################

@@ -182,7 +182,7 @@ function character_table(G::GAPGroup, p::Int = 0)
       gaptbl = GAP.Globals.CharacterTable(G.X)::GapObj
       if p != 0
         # Create the `p`-modular table if possible.
-        isprime(p) || error("p must be 0 or a prime integer")
+        is_prime(p) || error("p must be 0 or a prime integer")
         gaptbl = GAP.Globals.mod(gaptbl, GAP.Obj(p))::GapObj
         gaptbl === GAP.Globals.fail && return nothing
       end
@@ -223,7 +223,7 @@ function character_table(id::String, p::Int = 0)
     if p == 0
       modid = id
     else
-      isprime(p) || error("p must be 0 or a prime integer")
+      is_prime(p) || error("p must be 0 or a prime integer")
       modid = "$(id)mod$(p)"
     end
 
@@ -394,7 +394,7 @@ as a sum of multiples of powers of the primitive root which is printed as
 """
 function as_sum_of_roots(val::nf_elem, root::String)
     F = parent(val)
-    flag, N = Hecke.iscyclotomic_type(F)
+    flag, N = Hecke.is_cyclotomic_type(F)
     flag || error("$val is not an element of a cyclotomic field")
 
     # `string` yields an expression of the right structure,
@@ -804,7 +804,7 @@ or `nothing` if this table cannot be computed.
 An exception is thrown if `tbl` is not an ordinary character table.
 """
 function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
-    isprime(p) || error("p must be a prime integer")
+    is_prime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
     modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
@@ -846,7 +846,7 @@ julia> decomposition_matrix(t2)
 ```
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
-    isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
+    is_prime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable)::GapObj)
 end
 
@@ -1312,7 +1312,7 @@ end
 Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QabAutomorphism) = sigma(chi)
 
 @doc Markdown.doc"""
-    isirreducible(chi::GAPGroupClassFunction)
+    is_irreducible(chi::GAPGroupClassFunction)
 
 Return `true` if `chi` is an irreducible character, and `false` otherwise.
 
@@ -1322,7 +1322,7 @@ For ordinary characters this can be checked using the scalar product of
 class functions (see [`scalar_product`](@ref).
 For Brauer characters there is no generic method for checking irreducibility.
 """
-function isirreducible(chi::GAPGroupClassFunction)
+function is_irreducible(chi::GAPGroupClassFunction)
     return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)::Bool
 end
 

@@ -138,7 +138,7 @@ map_entries(R::Ring, obj::GapObj) = matrix(R, obj)
 
 ## single GAP cyclotomic to element of cyclotomic field
 function (F::AnticNumberField)(obj::GapInt)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsCyc(obj) || throw(ArgumentError("input is not a GAP cyclotomic"))
     N = get_attribute(F, :cyclo)
     mod(N, GAPWrap.Conductor(obj)) == 0 || throw(ArgumentError("obj does not embed into F"))
@@ -165,7 +165,7 @@ GAP.gap_to_julia(::Type{QabElem}, a::GapInt) = QabElem(a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AnticNumberField, gapmats::GapObj)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsList(gapmats) || throw(ArgumentError("gapmats is not a GAP list"))
     GAPWrap.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
     GAP.Globals.IsCyclotomicCollCollColl(gapmats) ||
@@ -190,7 +190,7 @@ matrices_over_cyclotomic_field(gapmats::GapObj) = matrices_over_field(gapmats)
 ## single GAP matrix of cyclotomics
 function matrix(F::AnticNumberField, mat::GapObj)
     __ensure_gap_matrix(mat)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsCyclotomicCollColl(mat) || throw(ArgumentError("mat is not a GAP matrix of cyclotomics"))
     m = GAPWrap.NrRows(mat)
     n = GAPWrap.NrCols(mat)

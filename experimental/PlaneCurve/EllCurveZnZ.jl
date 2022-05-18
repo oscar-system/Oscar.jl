@@ -221,11 +221,11 @@ function rand_pair_EllCurve_Point(
     n = modulus(A)
     i = 0
     L = _rand_point_curve(A)
-    while i < 100 && !isunit(4 * L[2][1]^3 + 27 * L[2][2]^2)
+    while i < 100 && !is_unit(4 * L[2][1]^3 + 27 * L[2][2]^2)
         i = i + 1
         L = _rand_list(A, 1)
     end
-    if isunit(4 * L[2][1]^3 + 27 * L[2][2]^2)
+    if is_unit(4 * L[2][1]^3 + 27 * L[2][2]^2)
         E = _toProjEllipticCurve(R, L[2])
         return [E, Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP, L[1]))]
     else
@@ -292,7 +292,7 @@ function cornacchia_algorithm(d::fmpz, m::fmpz)
     t = m - B^2
     L = divrem(t, D)
 
-    if !iszero(L[2]) || !issquare(L[1])
+    if !iszero(L[2]) || !is_square(L[1])
         return (false, (ZZ(0), ZZ(0)))
     end
 
@@ -336,12 +336,12 @@ function funddiscriminant(n::Int)
     D = ZZ(-3)
     L = Vector{fmpz}()
     while abs(D) <= n
-        if mod(D, 4) == 1 && issquarefree(D)
+        if mod(D, 4) == 1 && is_squarefree(D)
             h = class_number(D)
             push!(L, D)
         end
         if mod(D, 4) == 0 &&
-           issquarefree(div(D, 4)) &&
+           is_squarefree(div(D, 4)) &&
            (mod(div(D, 4), 4) == 2 || mod(div(D, 4), 4) == 3)
             h = class_number(D)
             push!(L, D)
@@ -655,7 +655,7 @@ function atkin_morain(
     pos::Int = 1,
     res::Vector{Tuple{fmpz,Int}} = Vector{Tuple{fmpz,Int}}(),
 )
-    N < ZZ(10)^15 && return isprime(N)
+    N < ZZ(10)^15 && return is_prime(N)
     if length(Arr) == 0
         L = funddiscriminant(10^5)
     else
