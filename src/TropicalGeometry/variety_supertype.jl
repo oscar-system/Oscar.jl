@@ -15,13 +15,9 @@
 ###
 
 abstract type TropicalVarietySupertype{M,EMB} end
-# function pm_object(v::TropicalVarietySupertype)
-#   return v.polymakeTV
-# end
-
 
 @doc Markdown.doc"""
-    get_unerlying_polyhedral_complex(TV)
+    underlying_polyhedral_complex(TV)
 
 Return the underlying polyhedral complex of a tropical variety. 
 
@@ -38,14 +34,14 @@ x^2 + y^2 + (2)
 julia> hyp1 = TropicalHypersurface(f)
 A min tropical hypersurface embedded in 2-dimensional Euclidian space
 
-julia> pc = get_underlying_polyhedral_complex(hyp1)
+julia> pc = underlying_polyhedral_complex(hyp1)
 A polyhedral complex in ambient dimension 2
 ``` 
 """
-function get_underlying_polyhedral_complex(TV::TropicalVarietySupertype)
+function underlying_polyhedral_complex(TV::TropicalVarietySupertype)
     return TV.polyhedralComplex
 end
-export get_underlying_polyhedral_complex
+export underlying_polyhedral_complex
 
 
 ###
