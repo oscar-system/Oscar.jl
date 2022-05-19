@@ -120,7 +120,7 @@ function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS{T}}) where 
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: Union{NfAbsNS, NfRelNS{T}}},
+                       ::Type{<: Union{NfAbsNS, Hecke.NfRelNS{T}}},
                        dict::Dict) where T
     load_type_dispatch(s, dict[:pols_parent]; check_namespace=false)
     def_pols = load_type_dispatch(s, dict[:def_pols]; check_namespace=false)
@@ -129,21 +129,20 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
-function save_internal(s::SerializerState, k::NfAbsNSElem)
-    K = parent(k)
-    polynomial = Oscar.Hecke.data(k)
-    K_dict = save_type_dispatch(s, K)
+function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem{T}}) where T
+  K = parent(k)
+  polynomial = Oscar.Hecke.data(k)
+  K_dict = save_type_dispatch(s, K)
 
-    return Dict(
-        :parent => K_dict,
-        :polynomial => save_type_dispatch(s, polynomial)
-    )
+  return Dict(:parent => K_dict, :polynomial => save_type_dispatch(s, polynomial))
 end
 
-function load_internal(s::DeserializerState, ::Type{NfAbsNSElem}, dict::Dict)
-    K = load_type_dispatch(s, dict[:parent], check_namespace=false)
-    polynomial = load_type_dispatch(s, dict[:polynomial], check_namespace=false)
-    polynomial = evaluate(polynomial, gens(parent(K.pol[1])))
+function load_internal(s::DeserializerState,
+                       ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem{T}}},
+                       dict::Dict) where T
+  K = load_type_dispatch(s, dict[:parent]; check_namespace=false)
+  polynomial = load_type_dispatch(s, dict[:polynomial]; check_namespace=false)
+  polynomial = evaluate(polynomial, gens(parent(K.pol[1])))
 
-    return K(polynomial)
+  return K(polynomial)
 end
