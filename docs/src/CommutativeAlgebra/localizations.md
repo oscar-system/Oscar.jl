@@ -75,11 +75,18 @@ the following methods must be implemented:
 
 ### Elements of Localized Rings
 
+The basic constructors for elements in localizations should be of the following form:
 Also, conversion of fractions to elements of localized rings must be implemented in the form 
-`(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}`, taking ``a`` to the element ``\frac{a}{1}``.
-For more general fractions one needs
-`(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {RingType, RingElemType, MultSetType}`, mapping a pair ``(a, b)`` to the fraction ``\frac{a}{b}``.
-
+```
+   (W::AbsLocalizedRing)(a::RingElem)
+   (W::AbsLocalizedRing)(a::RingElem, b::RingElem; check::Bool=true)
+```
+The first one maps an element `a` of the `base_ring` of `W` to the element `a//1` in the 
+localization. The second constructor takes a pair `(a, b)` to the element `a//b` in `W`. 
+Note that it should in general be checked whether or not `b` is an admissible denominator 
+for the particular localization. Since those checks are usually expensive, it is 
+customary to bypass such tests whenever `check=false` is set; for instance for 
+internal use within other routines.
 
 The *elements* of localized rings must be derived from 
 ```@docs
