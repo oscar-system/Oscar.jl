@@ -7,6 +7,8 @@ export fiber_product, inclusion_map
 
 export ==
 
+abstract type AbsProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType} <: Scheme{CoeffRingType, CoeffRingElemType} end
+
 @Markdown.doc """
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 
@@ -16,7 +18,17 @@ type `CoeffRingElemType`. The subscheme ``X`` is given by means of a homogeneous
 ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type 
 `RingType` with elements of type `RingElemType`.
 """
-@attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
+@attributes mutable struct ProjectiveScheme{
+    CoeffRingType, 
+    CoeffRingElemType, 
+    RingType, 
+    RingElemType
+  } <: AbsProjectiveScheme{
+    CoeffRingType, 
+    CoeffRingElemType, 
+    RingType, 
+    RingElemType
+  }
   A::CoeffRingType	# the base ring
   r::Int	# the relative dimension
   S::RingType   # A[s₀,…,sᵣ]
@@ -69,8 +81,6 @@ ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = U
 
 base_scheme_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = spec_type(S)
 base_scheme_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = spec_type(S)
-
-### type constructors 
 
 # the type of a relative projective scheme over a given base scheme
 projective_scheme_type(X::T) where {T<:Spec} = projective_scheme_type(ring_type(T))
@@ -205,7 +215,7 @@ function homogeneous_coordinates(P::ProjectiveScheme)
   return P.homog_coord
 end
 
-homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
+homogeneous_coordinate(P::AbsProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
 
 @Markdown.doc """
     defining_ideal(X::ProjectiveScheme)
@@ -218,6 +228,34 @@ defining_ideal(X::ProjectiveScheme) = X.I
 function Base.show(io::IO, P::ProjectiveScheme) 
   print(io, "subscheme of ℙ^$(fiber_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
 end
+
+### generic code for forwarding of essential getters
+underlying_scheme(P::AbsProjectiveScheme) = error("method is not yet implemented for projective schemes of type $(typeof(P))")
+
+base_ring(P::AbsProjectiveScheme) = base_ring(underlying_scheme(P))
+base_scheme(P::AbsProjectiveScheme) = base_scheme(underlying_scheme(P))
+set_base_scheme!(P::AbsProjectiveScheme, X::Spec) = set_base_scheme!(underlying_scheme(P), X)
+projection_to_base(P::AbsProjectiveScheme) = projection_to_base(underlying_scheme(P))
+fiber_dimension(P::AbsProjectiveScheme) = fiber_dimension(underlying_scheme(P))
+homog_poly_ring(P::AbsProjectiveScheme) = homog_poly_ring(underlying_scheme(P))
+homogeneous_coordinates(P::AbsProjectiveScheme) = homogeneous_coordinates(underlying_scheme(P))
+defining_ideal(P::AbsProjectiveScheme) = defining_ideal(underlying_scheme(P))
+Base.show(P::AbsProjectiveScheme) = Base.show(underlying_scheme(P))
+
+### generic code for forwarding the essential type-getters
+underlying_scheme_type(::Type{ProjectiveSchemeType}) where {ProjectiveSchemeType<:ProjectiveScheme} = error("method is not yet implemented for projective schemes of type $(typeof(P))")
+underlying_scheme_type(P::AbsProjectiveScheme) = underlying_scheme_type(typeof(P))
+
+base_ring_type(P::AbsProjectiveScheme) = base_ring_type(typeof(P))
+base_ring_type(::Type{ProjectiveSchemeType}) where {ProjectiveSchemeType<:AbsProjectiveScheme} = base_ring_type(underlying_scheme_type(ProjectiveSchemeType))
+
+base_scheme_type(P::AbsProjectiveScheme) = base_scheme_type(typeof(P))
+base_scheme_type(::Type{ProjectiveSchemeType}) where {ProjectiveSchemeType<:AbsProjectiveScheme} = base_scheme_type(underlying_scheme_type(ProjectiveSchemeType))
+
+affine_cone_type(P::AbsProjectiveScheme) = affine_cone_type(typeof(P))
+affine_cone_type(::Type{ProjectiveSchemeType}) where {ProjectiveSchemeType<:AbsProjectiveScheme} = affine_cone_type(underlying_scheme_type(ProjectiveSchemeType))
+
+
 
 original_ring(S::MPolyRing_dec) = S.R
 
