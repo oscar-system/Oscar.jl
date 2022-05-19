@@ -250,7 +250,7 @@ abstract type AbsLocalizedRingElem{
 @Markdown.doc """
     numerator(f::AbsLocalizedRingElem)
 
-Return the numerator of an internal representative of `f`.
+Return the numerator of the internal representative of `f`.
 """
 function numerator(f::AbsLocalizedRingElem)
   error("`numerator` is not implemented for elements of type $(typeof(f))")
@@ -259,7 +259,7 @@ end
 @Markdown.doc """
     denominator(f::AbsLocalizedRingElem)
 
-Return the denominator of an internal representative of `f`.
+Return the denominator of the internal representative of `f`.
 """
 function denominator(f::AbsLocalizedRingElem)
   error("`denominator` is not implemented for elements of type $(typeof(f))")
