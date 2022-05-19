@@ -70,7 +70,7 @@
   Localization(W, S)
   @test base_ring(W) == R
   @test inverted_set(W) == U
-  L = quo(W, ideal(W, f))
+  L, _ = quo(W, ideal(W, f))
   @test issubset(modulus(L), saturated_ideal(localized_modulus(L)))
   @test gens(L) == L.(gens(R))
   @test x//(y*(x-1)) in L

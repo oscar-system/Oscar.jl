@@ -201,7 +201,8 @@ function quo(
   R = base_ring(W)
   S = inverted_set(W)
   J = ideal(R, numerator.(gens(I)))
-  return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
+  L = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
+  return L, hom(R, L, gens(L))
 end
 
 function quo(
@@ -212,7 +213,8 @@ function quo(
   S = inverted_set(L)
   lbpa = groebner_basis(I) # In particular, this saturates the ideal
   J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
-  return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], localized_ring(L))
+  W = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], localized_ring(L))
+  return W, hom(L, W, gens(W))
 end
 
 function quo(
@@ -223,7 +225,8 @@ function quo(
   S = inverted_set(L)
   W = localized_ring(L) 
   J = J + modulus(L)
-  return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
+  P = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
+  return P, hom(L, P, gens(P))
 end
 
 function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}

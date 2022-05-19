@@ -145,12 +145,17 @@ end
 ### closed subschemes defined by ideals
 function subscheme(X::Spec, I::MPolyLocalizedIdeal)
   localized_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X))))
+  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X)))[1])
+end
+
+function subscheme(X::Spec, I::MPolyQuoLocalizedIdeal)
+  OO(X) == base_ring(I) || error("ideal does not live in the correct ring")
+  return Spec(quo(localized_ring(OO(X)), ideal(localized_ring(OO(X)), vcat(lift.(gens(I)), gens(localized_modulus(OO(X))))))[1])
 end
 
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   base_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(OO(X), I))
+  return Spec(quo(OO(X), I)[1])
 end
   
 @Markdown.doc """
@@ -159,48 +164,14 @@ end
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
 """
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
+function subscheme(X::Spec, f::RingElem)
+  parent(f) == OO(X) || return subscheme(X, OO(X)(f))
+  return subscheme(X, ideal(OO(X), [f]))
 end
 
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R(f))
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R.(f))
-  return subscheme(X, I)
+function subscheme(X::Spec, f::Vector{<:RingElem})
+  all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
+  return subscheme(X, ideal(OO(X), f))
 end
 
 ### open subschemes defined by complements of hypersurfaces
