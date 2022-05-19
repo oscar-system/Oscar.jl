@@ -69,7 +69,7 @@ end
   
   @test isa(alternating_group(PcGroup,3), PcGroup)
   @test isa(symmetric_group(PcGroup,3), PcGroup)
-  @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))[1]
+  @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))
 
   @test isquaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)
@@ -80,12 +80,14 @@ end
   
   @test isa(cyclic_group(5), PcGroup)
   @test isa(cyclic_group(PermGroup, 5), PermGroup)
-  
+  @test_throws ArgumentError cyclic_group(-1)
+  @test_throws ArgumentError cyclic_group(PermGroup, -1)
+
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
   @test iscyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
-  @test isisomorphic(G, G1)[1]
+  @test isisomorphic(G, G1)
   G = abelian_group(PcGroup, [ZZ(2)^70])
 
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
@@ -97,6 +99,12 @@ end
   
   @test mathieu_group(10) isa PermGroup
   @test order(mathieu_group(10))==720
+  @test_throws ArgumentError mathieu_group(-1)
+  @test_throws ArgumentError mathieu_group(8)
+  @test_throws ArgumentError mathieu_group(13)
+  @test_throws ArgumentError mathieu_group(20)
+  @test_throws ArgumentError mathieu_group(25)
+
 
   F = free_group("x","y")
   @test F isa FPGroup
@@ -131,7 +139,9 @@ end
   
   F = free_group(3,:y)
   @test F isa FPGroup
-  
+
+  @test_throws ArgumentError free_group(-1)
+
   Q8 = quaternion_group(8)
   @test isa(Q8, PcGroup)
   

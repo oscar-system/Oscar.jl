@@ -75,6 +75,7 @@ invariant_quadratic_form(G::MatrixGroup)
 preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
 preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
 isometry_group(f::SesquilinearForm{T}) where T
+orthogonal_sign(G::MatrixGroup)
 ```
 
 ## Utilities for matrices (replace by available functions, or document elsewhere?)

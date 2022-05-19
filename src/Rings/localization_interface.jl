@@ -26,8 +26,8 @@ import AbstractAlgebra: expressify, show_via_expressify
 @Markdown.doc """
     AbsMultSet{RingType, RingElemType}
 
-Abstract type for a multiplicatively closed set in a commutative (Noetherian) ring 
-R of type `RingType` with elements of type `RingElemType`.
+The abstract type for a multiplicatively closed subset of a commutative ring 
+of type `RingType` with elements of type `RingElemType`.
 """
 abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
@@ -43,12 +43,24 @@ end
 
 ### required functionality
 @Markdown.doc """
-    in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+    in(f::RingElemType, U::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
 
-Return `true` if `f` belongs to `S`; `false` otherwise.
+Return `true` if `f` belongs to `U`, `false` otherwise.
 
-**Note:** If this routine is not implemented, the function call will default to the 
-execution of an error message. 
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> P = ideal(R, [x])
+ideal(x)
+
+julia> U = MPolyComplementOfPrimeIdeal(P)
+complement of ideal(x)
+
+julia> x+1 in U
+true
+```
 """
 function Base.in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
   error("method not implemented for multiplicatively closed sets of type $(typeof(S))")
@@ -70,32 +82,70 @@ Base.iterate(U::T, i::Int) where {T<:AbsMultSet} = nothing
 @Markdown.doc """
     AbsLocalizedRing{RingType, RingElemType, MultSetType}
 
-The localization R[S⁻¹] of a ring R of type `RingType` with elements of type `RingElemType` at a 
-multiplicatively closed set S of type `MultSetType`. 
+The abstract type for modelling the localization R[U⁻¹] of a commutative ring R 
+of type `RingType` with elements of type `RingElemType` at a multiplicatively closed 
+subset S of type `MultSetType`. 
 
-In general, the arithmetic of such a localized ring R[S⁻¹] should be implemented using fractions 
-of elements in the original ring R. The methods provided for the multiplicatively closed set S 
-can be used to check whether a given denominator is admissible for the specific localization. 
+It is recommended to implement the arithmetic of a concrete instance of such a localized 
+ring R[U⁻¹] using the concept of fractions of elements in the original ring R. To check
+whether a given denominator is admissible for the specific localization, use the 
+`ìn` function.
 
-Depending on the actual type of R and S, further functionality can then be provided using 
-different Groebner-basis driven backends. 
+Depending on the actual type of R and U, further functionality can be provided using 
+various Gröbner basis driven backends. 
 """
 abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 
 ### required getter functions
 @Markdown.doc """
-    base_ring(W::AbsLocalizedRing)
+    base_ring(Rloc::AbsLocalizedRing)
 
-Return the base ring R for a localized ring of the form W = R[S⁻¹].
+If, say, Rloc = R[U⁻¹], return R.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> P = ideal(R, [x])
+ideal(x)
+
+julia> U = MPolyComplementOfPrimeIdeal(P)
+complement of ideal(x)
+
+julia> Rloc= Localization(U)
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+
+julia> R === base_ring(Rloc)
+true
+```
 """
 function base_ring(W::AbsLocalizedRing)
   error("`base_ring` is not implemented for localized rings of type $(typeof(W))")
 end
 
 @Markdown.doc """
-    inverted_set(W::AbsLocalizedRing)
+    inverted_set(Rloc::AbsLocalizedRing)
 
-Return the set S of at which has been localized for a localized ring W = R[S⁻¹].
+If, say, Rloc = R[U⁻¹], return U.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> P = ideal(R, [x])
+ideal(x)
+
+julia> U = MPolyComplementOfPrimeIdeal(P)
+complement of ideal(x)
+
+julia> Rloc= Localization(U)
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+
+julia> U === inverted_set(Rloc)
+true
+```
 """
 function inverted_set(W::AbsLocalizedRing)
   error("`inverted_set` is not implemented for localized rings of type $(typeof(W))")
@@ -103,12 +153,43 @@ end
 
 ### required functionality
 @Markdown.doc """
-    Localization(S::AbsMultSet)
+    Localization(U::AbsMultSet)
 
-Return the localization of the `ambient_ring` of `S` at `S` itself.
+Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
+return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\rightarrow`` ``R[U^{-1}]``.
+
+    Localization(R::Ring, U::AbsMultSet)
+
+Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> P = ideal(R, [x])
+ideal(x)
+
+julia> U = MPolyComplementOfPrimeIdeal(P)
+complement of ideal(x)
+
+julia> Rloc, iota = Localization(R, U);
+
+julia> Rloc
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+
+julia> iota
+Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x) defined by a julia-function
+```
 """
 function Localization(S::AbsMultSet)
   error("localizations at multiplicatively closed sets of type $(typeof(S)) are not implemented")
+end
+
+function Localization(R::Ring, U::AbsMultSet)
+  R == ambient_ring(U) || error("ring and multiplicative set are incompatible")
+  return Localization(U)
 end
 
 @Markdown.doc """
@@ -131,11 +212,15 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
 end
 
 @Markdown.doc """
-    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {RingType, RingElemType, MultSetType} 
+    (W::AbsLocalizedRing)(a::RingElem, b::RingElem; check::Bool=true)
 
-Converts a pair `(a, b)` to a fraction `a/b` in `W`.
+Converts a pair `(a, b)` to an element `a//b` in `W`.
+
+**Note:** When the flag `check=true` is set, then it will be checked 
+whether the fraction `a//b` is admissible for `W`. Since those checks 
+are usually expensive, it should be disabled for safe internal usage.
 """
-function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {RingType, RingElemType, MultSetType} 
+function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType; check::Bool=true) where {RingType, RingElemType, MultSetType} 
   error("conversion of pairs `(a, b)` of elements of type $(RingElemType) to fractions `a/b` in a ring of type $(typeof(W)) is not implemented")
 end
 
@@ -165,7 +250,7 @@ abstract type AbsLocalizedRingElem{
 @Markdown.doc """
     numerator(f::AbsLocalizedRingElem)
 
-Return the numerator of `f`.
+Return the numerator of the internal representative of `f`.
 """
 function numerator(f::AbsLocalizedRingElem)
   error("`numerator` is not implemented for elements of type $(typeof(f))")
@@ -174,7 +259,7 @@ end
 @Markdown.doc """
     denominator(f::AbsLocalizedRingElem)
 
-Return the denominator of `f`.
+Return the denominator of the internal representative of `f`.
 """
 function denominator(f::AbsLocalizedRingElem)
   error("`denominator` is not implemented for elements of type $(typeof(f))")
@@ -192,6 +277,13 @@ end
 expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
+
+# type getters
+base_ring_elem_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRET
+base_ring_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRT
+
+base_ring_elem_type(L::AbsLocalizedRing) = base_ring_elem_type(typeof(L))
+base_ring_type(L::AbsLocalizedRing) = base_ring_type(typeof(L))
 
 
 ########################################################################
@@ -352,11 +444,11 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 ############################################################################
 
 @Markdown.doc """
-    AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+    AbsLocalizedIdeal{LocRingElemType}
 
 Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
 """
-abstract type AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
+abstract type AbsLocalizedIdeal{LocRingElemType} <: Ideal{LocRingElemType} end
 
 ### required getter functions
 #Return a Vector of generators of `I`.
@@ -405,20 +497,11 @@ end
 ### required functionality
 # Checks for ideal membership of `f` in `I`.
 function Base.in(
-    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
+    f::RingElem,
+    I::AbsLocalizedIdeal
+  )
   error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
-
-# Checks for ideal membership of `f` in `I`.
-function Base.in(
-    f::RingElemType, 
-    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
-  ) where {RingType, RingElemType, MultSetType}
-  error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
-end
-
 
 ### A catchall implementation for the ideal arithmetic 
 # Return the product of the ideals `I` and `J`.

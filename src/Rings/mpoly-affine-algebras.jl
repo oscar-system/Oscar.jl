@@ -1,7 +1,7 @@
 
 export normalization_with_delta
 export noether_normalization, normalization, integral_basis
-export isreduced, subalgebra_membership
+export isreduced, subalgebra_membership, minimal_subalgebra_generators
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
 export issurjective, isinjective, isbijective, inverse, preimage, isfinite
 export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
@@ -53,9 +53,8 @@ end
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
-with respect to this grading, return a pair $(p,q)$, say, of univariate polynomials 
-$p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as 
+positive integer weights to the variables, return a pair $(p,q)$, say, of univariate 
+polynomials $p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as 
 a rational function with denominator 
 
 $q = (1-t^{w_1})\cdots (1-t^{w_n}),$
@@ -100,10 +99,9 @@ end
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
-with respect to this grading, return a pair $(p,q)$, say, of univariate polynomials 
-$p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as 
-a rational function written in lowest terms. 
+positive integer weights to the variables, return a pair $(p,q)$, say, of univariate 
+polynomials $p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of 
+$A$ as a rational function written in lowest terms. 
 
 See also `hilbert_series`.
 
@@ -140,8 +138,7 @@ end
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
-with respect to this grading, return the Hilbert series of $A$ to precision $d$. 
+positive integer weights to the variables, return the Hilbert series of $A$ to precision $d$. 
 
 # Examples
 ```jldoctest
@@ -170,8 +167,7 @@ end
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, and where $I$ is a homogeneous ideal of $R$ 
-with respect to this grading, return the value $H(A, d)$, where 
+positive integer weights to the variables, return the value $H(A, d),$ where 
 
 $H(A, \underline{\phantom{d}}): \N \rightarrow \N, \; d  \mapsto \dim_K A_d,$ 
 
@@ -264,6 +260,7 @@ end
 ### General Hilbert series stuff using Singular for computing ideal quotients
 ###############################################################################
 
+### TODO: Originally meant to be used in multi_hilbert_series; might be useful elsewhere
 function transform_to_positive_orthant(rs::Matrix{Int})   
     C = positive_hull(rs)
     @assert isfulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
@@ -300,7 +297,7 @@ function transform_to_positive_orthant(rs::Matrix{Int})
     return original * transformation, transformation
 end
 
-function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
+function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m)
    ###for use in _multi_hilbert_series only
    ###if !ismonomial(I)
    ###      throw(ArgumentError("The ideal is not monomial"))
@@ -309,20 +306,46 @@ function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
    V = gens(I)
    s = ngens(I)
    d = degree(Vector{Int}, V[s])
-   B = MPolyBuildCtx(S)
-   push_term!(B, 1, d)
-   p = finish(B)
+   p = one(S)
+   for j = 1:m
+        p = p*gen(S, j)^d[j]
+   end	
    if s == 1
       return 1-p
    end
    v = V[s]
    V = deleteat!(V, s)
    J = ideal(base_ring(I), V)
-   p1 = _numerator_monomial_multi_hilbert_series(J, S)
-   p2 = _numerator_monomial_multi_hilbert_series(J:v, S)
+   p1 = _numerator_monomial_multi_hilbert_series(J, S, m)
+   p2 = _numerator_monomial_multi_hilbert_series(J:v, S, m)
    ### TODO: Do I have the minimal set of monomial generators here?
    return p1-p*p2
 end
+
+### TODO: use following version once build complex is completely adapted to Laurent polynomial case
+#function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
+   ###for use in _multi_hilbert_series only
+   ###if !ismonomial(I)
+   ###      throw(ArgumentError("The ideal is not monomial"))
+   ###end
+   ### V = minimal_monomial_generators(I)  ### to be written
+#   V = gens(I)
+#   s = ngens(I)
+#   d = degree(Vector{Int}, V[s])
+#   B = MPolyBuildCtx(S)
+#   push_term!(B, 1, d)
+#   p = finish(B)
+#   if s == 1
+#      return 1-p
+#   end
+#   v = V[s]
+#   V = deleteat!(V, s)
+#   J = ideal(base_ring(I), V)
+#   p1 = _numerator_monomial_multi_hilbert_series(J, S)
+#   p2 = _numerator_monomial_multi_hilbert_series(J:v, S)
+   ### TODO: Do I have the minimal set of monomial generators here?
+#   return p1-p*p2
+#end
 
 @doc Markdown.doc"""
     multi_hilbert_series(A::MPolyQuo)
@@ -346,14 +369,20 @@ julia> A, _ = quo(R, I);
 julia> H = multi_hilbert_series(A);
 
 julia> H[1][1]
--t[1]^5*t[2]^2 + t[1]^5*t[2] + t[1]^4*t[2]^2 - t[1]^4 + t[1]^2*t[2]^2 - t[1]^2*t[2] + t[1]*t[2]^4 - t[1]*t[2]^2 - t[2]^4 + 1
+-t[1]^7*t[2]^-2 + t[1]^6*t[2]^-1 + t[1]^6*t[2]^-2 + t[1]^5*t[2]^-4 - t[1]^4 + t[1]^4*t[2]^-2 - t[1]^4*t[2]^-4 - t[1]^3*t[2]^-1 - t[1]^3*t[2]^-2 + 1
 
 julia> H[1][2]
--t[1]^2*t[2] + t[1]^2 + 2*t[1]*t[2] - 2*t[1] - t[2] + 1
+-t[1]^3*t[2]^-1 + t[1]^2 + 2*t[1]^2*t[2]^-1 - 2*t[1] - t[1]*t[2]^-1 + 1
 
-julia> H[2]
-[1    0]
-[1   -1]
+julia> H[2][1]
+GrpAb: Z^2
+
+julia> H[2][2]
+Identity map with
+
+Domain:
+=======
+GrpAb: Z^2
 
 julia> G = abelian_group(fmpz_mat([1 -1]));
 
@@ -369,21 +398,40 @@ julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
-julia> multi_hilbert_series(A)
-((2*t^3 - 3*t^2 + 1, t^4 - 4*t^3 + 6*t^2 - 4*t + 1), [1])
+julia> H = multi_hilbert_series(A);
+
+julia> H[1][1]
+2*t^3 - 3*t^2 + 1
+
+julia> H[1][2]
+t^4 - 4*t^3 + 6*t^2 - 4*t + 1
+
+julia> H[2][1]
+GrpAb: Z
+
+julia> H[2][2]
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z
+Codomain:
+=========
+(General) abelian group with relation matrix
+[1 -1]
+with structure of Abelian group with structure: Z
 ```
 """
 function multi_hilbert_series(A::MPolyQuo)
    R = A.R
    I = A.I
-   if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
    end
-   if !(typeof(R) <: MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
        throw(ArgumentError("The base ring must be positively graded."))
    end
+   G = grading_group(R)
    if !(is_zm_graded(R))
-      G = grading_group(R)
       H, iso = snf(G)
       V = [preimage(iso, x) for x in gens(G)]
       isoinv = hom(G, H, V)
@@ -393,6 +441,8 @@ function multi_hilbert_series(A::MPolyQuo)
       change = hom(R, S, gens(S))
       I = change(A.I)
       R = S
+   else
+      H, iso = G, identity_map(G)
    end
    m = ngens(grading_group(R))  
    n = ngens(R)
@@ -403,18 +453,12 @@ function multi_hilbert_series(A::MPolyQuo)
            MI[i, j] = Int(W[i][j])
        end
    end
-   minMI = minimum(MI)
-   if minMI<0
-      MI, T = transform_to_positive_orthant(MI)     
-   else
-      T = identity_matrix(ZZ, m)
-   end  
    if m == 1
       VAR = ["t"]
    else
       VAR = [_make_variable("t", i) for i = 1:m]
    end
-   S, _ = PolynomialRing(ZZ, VAR) 
+   S, _ = LaurentPolynomialRing(ZZ, VAR)
    q = one(S)
    for i = 1:n
       e = [Int(MI[i, :][j]) for j = 1:m]
@@ -422,18 +466,87 @@ function multi_hilbert_series(A::MPolyQuo)
       push_term!(B, 1, e)
       q = q*(1-finish(B))
    end
+#   q = elem_type(S)[]
+#   for i = 1:n
+#      e = [Int(MI[i, :][j]) for j = 1:m]
+#      qq = one(S)
+#      for j = 1:m
+#        qq = qq*gen(S, j)^e[j]
+#      end
+#      q = push!(q, 1-qq)
+#   end
    if iszero(I)
       p = one(S)
    else
       LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      if minMI<0
-         RNEW, _ = GradedPolynomialRing(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
-         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
-      end
-      p = _numerator_monomial_multi_hilbert_series(LI, S)
+      p = _numerator_monomial_multi_hilbert_series(LI, S, m)
    end
-   return  (p, q), T
+   return  (p, q), (H, iso)
 end
+
+### TODO: original version of multi_hilbert_series based on moving things to the positive orthant
+
+#function multi_hilbert_series(A::MPolyQuo)
+#   R = A.R
+#   I = A.I
+#   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+#       throw(ArgumentError("The coefficient ring must be a field."))
+#   end
+#   if !(R isa MPolyRing_dec && isgraded(R) && is_positively_graded(R))
+#       throw(ArgumentError("The base ring must be positively graded."))
+#   end
+#   if !(is_zm_graded(R))
+#      G = grading_group(R)
+#      H, iso = snf(G)
+#      V = [preimage(iso, x) for x in gens(G)]
+#      isoinv = hom(G, H, V)
+#      W = R.d
+#      W = [isoinv(W[i]) for i = 1:length(W)]
+#      S, _ = GradedPolynomialRing(coefficient_ring(R), map(string, symbols(R)), W)
+#      change = hom(R, S, gens(S))
+#      I = change(A.I)
+#      R = S
+#   end
+#   m = ngens(grading_group(R))  
+#   n = ngens(R)
+#   W = R.d
+#   MI = Matrix{Int}(undef, n, m)
+#   for i=1:n
+#       for j=1:m
+#           MI[i, j] = Int(W[i][j])
+#       end
+#   end
+#   minMI = minimum(MI)
+#   if minMI<0
+#      MI, T = transform_to_positive_orthant(MI)     
+#   else
+#      T = identity_matrix(ZZ, m)
+#   end  
+#   if m == 1
+#      VAR = ["t"]
+#   else
+#      VAR = [_make_variable("t", i) for i = 1:m]
+#   end
+#   S, _ = PolynomialRing(ZZ, VAR) 
+#   q = one(S)
+#   for i = 1:n
+#      e = [Int(MI[i, :][j]) for j = 1:m]
+#      B = MPolyBuildCtx(S)
+#      push_term!(B, 1, e)
+#      q = q*(1-finish(B))
+#   end
+#   if iszero(I)
+#      p = one(S)
+#   else
+#      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
+#     if minMI<0
+#         RNEW, _ = GradedPolynomialRing(coefficient_ring(R), [String(symbols(R)[i]) for i = 1:n], Matrix(transpose(MI)))
+#         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
+#      end
+#      p = _numerator_monomial_multi_hilbert_series(LI, S)
+#   end
+#   return  (p, q), T
+#end
 
 @doc Markdown.doc"""
     multi_hilbert_series_reduced(A::MPolyQuo)
@@ -457,18 +570,28 @@ julia> A, _ = quo(R, I);
 julia> H = multi_hilbert_series_reduced(A);
 
 julia> H[1][1]
--t[1]^4*t[2] + t[1]^3 + t[1]^2 + t[1]*t[2] + t[1] + t[2]^3 + t[2]^2 + t[2] + 1
+-t[1]^5*t[2]^-1 + t[1]^3 + t[1]^3*t[2]^-3 + t[1]^2 + t[1]^2*t[2]^-1 + t[1]^2*t[2]^-2 + t[1] + t[1]*t[2]^-1 + 1
 
 julia> H[1][2]
 -t[1] + 1
 
-julia> H[2]
-[1    0]
-[1   -1]
+julia> H[2][1]
+GrpAb: Z^2
+
+julia> H[2][2]
+Identity map with
+
+Domain:
+=======
+GrpAb: Z^2
 
 julia> G = abelian_group(fmpz_mat([1 -1]));
 
-julia> g = gen(G, 1);
+julia> g = gen(G, 1)
+Element of
+(General) abelian group with relation matrix
+[1 -1]
+with components [0 1]
 
 julia> W = [g, g, g, g];
 
@@ -476,16 +599,36 @@ julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
-julia> multi_hilbert_series_reduced(A)
-((2*t + 1, t^2 - 2*t + 1), [1])
+julia> H = multi_hilbert_series_reduced(A);
+
+julia> H[1][1]
+2*t + 1
+
+julia> H[1][2]
+t^2 - 2*t + 1
+
+julia> H[2][1]
+GrpAb: Z
+
+julia> H[2][2]
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z
+Codomain:
+=========
+(General) abelian group with relation matrix
+[1 -1]
+with structure of Abelian group with structure: Z
 ```
 """
 function multi_hilbert_series_reduced(A::MPolyQuo)
-   (p, q), T = multi_hilbert_series(A::MPolyQuo)
-   c = gcd(p, q)
-   p = divexact(p, c)
-   q = divexact(q, c)
-   return (constant_coefficient(q)*p, constant_coefficient(q)*q), T
+   (p, q), (H, iso) = multi_hilbert_series(A)
+   f = p//q
+   p = numerator(f)
+   q = denominator(f)
+   sig = coeff(q.mpoly, -1 .* q.mindegs)
+   return (sig*p, sig*q), (H, iso)
 end
 
 function _monomial_ideal_membership(m::MPolyElem, I::MPolyIdeal)
@@ -506,26 +649,23 @@ end
 @doc Markdown.doc"""
     multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 
-Given an element $g$ of a finitely generated Abelian group $G$, and given
-an affine algebra $A = R/I$ over a field $K$, where $R$ is positively graded
-by $G$, and where $I$ is homogeneous with respect to this grading, consider 
-the induced grading on $A$, and return the value $H(A, g)$ of 
-the Hilbert function
+Given a positively graded affine algebra $A$ over a field $K$ with grading group $G$,
+say, and given an element $g$ of $G$, return the value $H(A, g)$ of the Hilbert function
 
 $H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
 
     multi_hilbert_function(A::MPolyQuo, g::Vector{<:IntegerUnion})
 
-Given an affine algebra $A = R/I$ as above, where $G =\mathbb  Z^m$, 
+Given a positively $\mathbb  Z^m$-graded affine algebra $A$ over a field $K$,
 and given a vector $g$ of $m$ integers, convert $g$ into an element 
-of the group $\mathbb  Z^m$, and return the value $H(A, g)$
+of the grading group of $A$, and return the value $H(A, g)$
 as above.
 
     multi_hilbert_function(A::MPolyQuo, g::IntegerUnion)
 
-Given an affine algebra $A = R/I$ as above, where $G =\mathbb  Z$,
-and given an integer $g$, convert $g$ into an element of the group 
-$\mathbb  Z$, and return the value $H(A, g)$ as above.
+Given a positively $\mathbb  Z$-graded affine algebra $A$ over a field $K$,
+and given an integer $g$, convert $g$ into an element of the grading group 
+of $A$, and return the value $H(A, g)$ as above.
 
 # Examples
 ```jldoctest
@@ -567,8 +707,8 @@ julia> multi_hilbert_function(A, 7*g)
 """
 function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
     R = A.R
-    if !(typeof(base_ring(R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of must be a field."))
     end
     LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
@@ -582,7 +722,7 @@ function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
     cc = 0
     for i in 1:length(FG)
          if !(_monomial_ideal_membership(EMB(FG[i]), LI))
-	 ### if !(EMB(FG[i]) in LI)
+	 ### if !(EMB(FG[i]) in LI)  TODO: Make use of this as soon as available
 	    cc = cc +1
          end
     end
@@ -639,12 +779,38 @@ end
 Given an affine algebra `A` over a perfect field,
 return `true` if `A` is normal, `false` otherwise.
 
-!!! warning
-    The function computes the normalization of `A`. This may take some time.
+!!! note 
+    This function performs the first step of the normalization algorithm of Greuel, Laplagne, and Seelisch [GLS10](@cite) and may, thus, be more efficient than computing the full normalization of `A`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A, _ = quo(R, ideal(R, [z^2-x*y]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x*y + z^2) defined by a julia-function with inverse)
+
+julia> isnormal(A)
+true
+```
 """
 function isnormal(A::MPolyQuo)
-  _, _, d = normalization_with_delta(A)
-  return d == 0
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  end
+  if A.R isa MPolyRing_dec
+    throw(ArgumentError("Not implemented for quotients of decorated rings."))
+  end
+  I = A.I
+  singular_assure(I)
+  # TODO remove old1 & old2 once new Singular jll is out
+  old1 = Singular.libSingular.set_option("OPT_REDSB", false)
+  old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
+  f = Singular.LibNormal.isNormal(I.gens.S)::Int
+  Singular.libSingular.set_option("OPT_REDSB", old1)
+  Singular.libSingular.set_option("OPT_RETURN_SB", old2)
+  return Bool(f)
 end
 
 ##############################################################################
@@ -697,7 +863,9 @@ end
 @doc Markdown.doc"""
     subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
  
-If `f` is contained in the subalgebra generated by the entries of `V`, return `(true, h)`, where `h` is giving the polynomial relation.
+Given an element `f` of a graded multivariate polynomial ring over a field, or of a quotient ring of such a ring,
+and given a vector `V` of elements in the same ring, consider the subalgebra generated by the entries of `V` in
+that ring. If `f` is contained in the subalgebra, return `(true, h)`, where `h` is giving the polynomial relation.
 Return, `(false, 0)`, otherwise.
 
 # Examples
@@ -717,8 +885,11 @@ julia> subalgebra_membership(f, V)
 ```
 """
 function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
-   @assert !isempty(v)
    r = parent(f)
+   if !(coefficient_ring(r) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
+   end
+   @assert !isempty(v)
    @assert all(x->parent(x) == r, v)
    (R, I, W, F) = _ring_helper(r, f, v)
    n = length(W)
@@ -738,6 +909,64 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, M
    else
       return (false, TT(0))
    end
+end
+
+################################################################################
+#
+#  Minimalizing a set of subalgebra generators in graded case
+#
+################################################################################
+@doc Markdown.doc""" 
+    minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
+
+Given a vector `V` of homogeneous elements of a positively graded multivariate 
+polynomial ring, or of a quotient ring of such a ring, return a minimal
+subset of the elements in `V` which, in the given ring, generate the same subalgebra
+as all elements in `V`.
+
+!!! note
+    The conditions on `V` and the given ring are automatically checked.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = GradedPolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1]
+  y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia> V = [x, y, x^2+y^2]
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ y
+ x^2 + y^2
+
+julia> minimal_subalgebra_generators(V)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ y
+```
+"""
+function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
+  p = parent(V[1])
+  @assert all(x->parent(x) == p, V)
+  if !(coefficient_ring(p) isa AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
+  end
+  if p isa MPolyRing
+      p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
+  else
+      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
+  end
+  all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
+  # iterate over the generators, starting with those in lowest degree, then work up
+  W = sort(V, by = x -> degree(x)[1])
+  result = [ W[1] ]
+  for elm in W
+    if !subalgebra_membership(elm, result)[1]
+       push!(result, elm)
+    end
+  end
+  return result
 end
 
 ##############################################################################
@@ -838,10 +1067,10 @@ julia> LL[1][3]
 ```
 """
 function normalization(A::MPolyQuo; alg=:equidimDec)
-  if !(typeof(base_ring(A.R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
   end
-  if typeof(A.R) <: MPolyRing_dec
+  if A.R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
@@ -905,10 +1134,10 @@ Quotient of Multivariate Polynomial Ring in T(1), T(2), x, y, z over Rational Fi
 ```
 """
 function normalization_with_delta(A::MPolyQuo; alg=:equidimDec)
-  if !(typeof(base_ring(A.R)) <: AbstractAlgebra.Field)
-       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring must be a field."))
   end
-  if typeof(A.R) <: MPolyRing_dec
+  if A.R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
@@ -939,10 +1168,10 @@ $l_i$ to the the last $d$ variables of $R$; and $G = F^{-1}$.
 
 """
 function noether_normalization(A::MPolyQuo)
- if !(typeof(base_ring(A.R)) <: AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+ if !(coefficient_ring(A) isa AbstractAlgebra.Field)
+     throw(ArgumentError("The coefficient ring must be a field."))
  end
- if typeof(A.R) <: MPolyRing_dec && !(is_standard_graded(A.R))
+ if A.R isa MPolyRing_dec && !(is_standard_graded(A.R))
    throw(ArgumentError("If the base ring is decorated, it must be standard graded."))
  end
  I = A.I
@@ -1004,11 +1233,11 @@ julia> integral_basis(f, 2)
 function integral_basis(f::MPolyElem, i::Int)
   R = parent(f)
 
-  if typeof(R) <: MPolyRing_dec
+  if R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for decorated rings."))
   end
   
-  if !(nvars(R) == 2)
+  if nvars(R) != 2
     throw(ArgumentError("The parent ring must be a polynomial ring in two variables."))
   end
 

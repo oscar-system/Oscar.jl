@@ -1,37 +1,27 @@
-############################
-# Line bundle cohomologies with cohomCalg
-############################
+###########################
+# (1) Special attributes of toric varieties
+###########################
 
+@doc Markdown.doc"""
+    vanishing_sets(variety::AbstractNormalToricVariety)
 
-function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
-    # Initialize a list of strings, which we will eventually join to form the command string
-    string_list = Vector{String}()
-    
-    # Define helper function
-    joincomma(list) = join([string(x) for x in list], ",")
-    
-    # Add information about grading of Cox ring to string_list
-    divisors = gens(torusinvariant_divisor_group(v))
-    for i in 1:length(divisors)
-        tmp = joincomma(map_from_weil_divisors_to_class_group(v)(divisors[i]).coeff)
-        push!(string_list, "vertex x$i|GLSM:($(tmp))")
+Compute the vanishing sets of an abstract toric variety `v` by use of the cohomCalg algorithm.
+"""
+@attr function vanishing_sets(variety::AbstractNormalToricVariety)
+    denominator_contributions = contributing_denominators(variety)
+    vs = ToricVanishingSet[]
+    for i in 1:length(denominator_contributions)
+        list_of_polyhedra = [turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
+        push!(vs, ToricVanishingSet(variety, list_of_polyhedra, i-1))
     end
-    
-    # Add information about the Stanley-Reisner ideal to string_list
-    current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
-    new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
-    set_coordinate_names(v, new_coordinate_names)
-    generators = [string(g) for g in gens(stanley_reisner_ideal(v))]
-    push!(string_list, "srideal [" * joincomma(generators) * "]")
-    set_coordinate_names(v, current_coordinate_names)
-    
-    # Add line bundle information to string_list
-    push!(string_list, "ambientcohom O(" * joincomma(c) * ");")
-    
-    # Join and return
-    return join(string_list, ";")
+    return vs::Vector{ToricVanishingSet}
 end
+export vanishing_sets
 
+
+###########################
+# (2) Special attributes of toric line bundles
+###########################
 
 @doc Markdown.doc"""
     all_cohomologies(l::ToricLineBundle)
@@ -51,8 +41,8 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 
 julia> all_cohomologies(ToricLineBundle(dP3, [1,2,3,4]))
 3-element Vector{fmpz}:
- 11
  0
+ 16
  0
 ```
 """
@@ -183,9 +173,18 @@ toric line bundle `l` by use of the cohomCalg algorithm
 julia> dP3 = del_pezzo(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> cohomology(ToricLineBundle(dP3, [1,2,3,4]), 0)
-11
+julia> cohomology(ToricLineBundle(dP3, [4,1,1,1]), 0)
+12
 ```
 """
-cohomology(l::ToricLineBundle, i::Int) = all_cohomologies(l)[i+1]
+function cohomology(l::ToricLineBundle, i::Int)
+    v = toric_variety(l)
+    if has_attribute(v, :vanishing_sets)
+        tvs = vanishing_sets(v)[i+1]
+        if contains(tvs, l)
+            return 0
+        end
+    end
+    return all_cohomologies(l)[i+1]
+end
 export cohomology

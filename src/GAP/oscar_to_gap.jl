@@ -44,3 +44,28 @@ function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
     mat = [GAP.julia_to_gap(obj[i,j]) for i in 1:nrows(obj), j in 1:ncols(obj)]
     return GAP.julia_to_gap(mat)
 end
+
+## TODO: remove the following once GAP.jl has it
+function GAP.julia_to_gap(
+    obj::Set{T},
+    recursion_dict::IdDict{Any,Any} = IdDict();
+    recursive::Bool = false,
+) where {T}
+
+    gapset = GAP.NewPlist(length(obj))
+    if recursive
+        recursion_dict[obj] = gapset
+    end
+    for x in obj
+        if recursive
+            x = get!(recursion_dict, x) do
+                GAP.julia_to_gap(x, recursion_dict; recursive)
+            end
+        end
+        GAP.Globals.Add(gapset, x)
+    end
+    GAP.Globals.Sort(gapset)
+    @assert GAP.Globals.IsSet(gapset)
+
+    return gapset
+end

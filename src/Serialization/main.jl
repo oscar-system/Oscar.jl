@@ -156,6 +156,9 @@ function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=tr
 
     encodedType = dict[:type]
     T = decodeType(encodedType)
+    if T == backref_sym
+        return s.objs[UUID(dict[:id])]
+    end
 
     Base.issingletontype(T) && return T()
 
@@ -225,6 +228,8 @@ include("containers.jl")
 include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
 include("Fields.jl")
+include("ToricGeometry.jl")
+include("polymake.jl")
 
 @deprecate save_cone(Obj::Cone, filename::String) save(Obj, filename)
 @deprecate load_cone(filename::String) load(Obj, filename)

@@ -105,11 +105,6 @@ julia> haspreimage(f,x)
 !!! warning
     Do not confuse `haspreimage` with the function `has_preimage`, which works on variable of type `GrpGenToGrpGenMor`.
 
-A further function that produces isomorphisms is `isisomorphic`:
-```@docs
-isisomorphic(G::GAPGroup, H::GAPGroup)
-```
-
 ## Operations on homomorphisms
 
 Oscar supports the following operations on homomorphisms.
@@ -164,11 +159,16 @@ cokernel(f::GAPGroupHomomorphism)
 preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
 ```
 
-## Groups created by isomorphisms
+## Group isomorphisms
 
 ```@docs
-isomorphic_perm_group(G::GAPGroup)
-isomorphic_pc_group(G::GAPGroup)
-isomorphic_fp_group(G::GAPGroup)
+isisomorphic(G::GAPGroup, H::GAPGroup)
+isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
+isomorphism(G::GAPGroup, H::GAPGroup)
+```
+
+```@docs
+isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```

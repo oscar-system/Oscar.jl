@@ -4,6 +4,8 @@
 # but that local replacements by pure Julia code (independent of GAP)
 # are welcome.
 
+import Hecke.orbit
+
 export
     all_blocks,
     blocks,
@@ -12,7 +14,7 @@ export
     issemiregular,
     istransitive,
     maximal_blocks,
-    representatives_minimal_blocks,
+    minimal_block_reps,
     transitivity
 
 export GSet, gset, orbits, as_gset, unwrap, permutation, action_homomorphism,
@@ -57,11 +59,43 @@ abstract type GSet{T} end
 end
 #TODO: How can I specify that `seeds` should be an iterable object?
 
+# TODO: document `acting_group` and GSets in general
+acting_group(gset::GSetByElements) = gset.group
+
 
 #############################################################################
 ##
 ##  general method with explicit action function
 
+"""
+    gset(G::GAPGroup[, fun::Function], Omega)
+
+Return the G-set that consists of the closure of the seeds `Omega`
+under the action of `G` defined by `fun`.
+
+This means that the result contains all elements `fun(omega, g)`
+for `omega` in `Omega` and `g` in `G`.
+
+`fun` can be omitted if the element type of `Omega` implies
+a reasonable default,
+for example, if `G` is a `PermGroup` and `Omega` is a `Vector{T}` where
+`T` is one of `Int`, `Set{Int}`, `Vector{Int}`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> length(gset(G, [[1]]))  # natural action
+4
+
+julia> length(gset(G, [[1, 2]]))  # action on ordered pairs
+12
+
+julia> length(gset(G, on_sets, [[1, 2]]))  # action on unordered pairs
+6
+
+```
+"""
 gset(G::GAPGroup, fun::Function, Omega) = GSetByElements(G, fun, Omega)
 
 
@@ -150,7 +184,7 @@ end
 
 Base.in(omega::ElementOfGSet, Omega::GSet) = Base.in(omega.obj, Omega)
 
-Hecke.orbit(omega::ElementOfGSet) = Hecke.orbit(omega.gset, omega.obj)
+orbit(omega::ElementOfGSet) = orbit(omega.gset, omega.obj)
 
 
 unwrap(omega::Any) = omega
@@ -162,21 +196,72 @@ unwrap(omega::ElementOfGSet) = omega.obj
 ##
 ##  `:orbit`
 
-function Hecke.orbit(Omega::GSetByElements{<:GAPGroup}, omega)
+"""
+    orbit(G::PermGroup[, fun::Function], omega)
+
+Return the G-set that consists of the images of `omega`
+under the action of `G` defined by `fun`.
+
+This means that the result contains all elements `fun(omega, g)`
+for `g` in `G`.
+
+`fun` can be omitted if the type of `Omega` implies a reasonable default,
+for example, if `G` is a `PermGroup` and `omega` is
+one of `Int`, `Set{Int}`, `Vector{Int}`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> length(orbit(G, 1))
+4
+
+julia> length(orbit(G, [1, 2]))
+12
+
+julia> length(orbit(G, on_sets, [1, 2]))
+6
+
+```
+"""
+orbit(G::PermGroup, omega) = gset_by_type(G, [omega], typeof(omega))
+
+orbit(G::PermGroup, fun::Function, omega) = GSetByElements(G, fun, [omega])
+
+"""
+    orbit(Omega::GSet, omega::T) where T
+
+Return the G-set that consists of the elements `fun(omega, g)` where
+`g` is in the group of `Omega` and `fun` is the underlying action of `Omega`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> Omega = gset(G, [1, 5]);
+
+julia> length(orbit(Omega, 1))
+4
+
+```
+"""
+function orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
     G = Omega.group
-    acts = GAP.julia_to_gap(gens(G))
-    gfun = GAP.julia_to_gap(Omega.action_function)
+    acts = GapObj(gens(G))
+    gfun = GapObj(Omega.action_function)
 
     # The following works only because GAP does not check
     # whether the given (dummy) group 'G.X' fits to the given generators,
     # or whether the elements of 'acts' are group elements.
-    orb = GAP.gap_to_julia(GAP.Globals.Orbit(G.X, omega, acts, acts, gfun))
+    orb = Vector{T}(GAP.Globals.Orbit(G.X, omega, acts, acts, gfun)::GapObj)
 
     res = as_gset(Omega.group, Omega.action_function, orb)
     # We know that this G-set is transitive.
     set_attribute!(res, :orbits => [orb])
     return res
 end
+#T check whether omega lies in Omega?
 
 # simpleminded alternative directly in Julia
 # In fact, '<:GAPGroup' is not used at all in this function.
@@ -202,28 +287,60 @@ function orbit_via_Julia(Omega::GSetByElements{<:GAPGroup}, omega)
 end
 
 
-#TODO: - Currently this conflicts with a method in
-#        `experimental/GaloisGrp/Group.jl`
-#      - Provide more convenience methods for "natural" actions",
-#        as for `gset`?
-# Hecke.orbit(G::PermGroup, pt::T) where {T<:IntegerUnion} = GSetByElements(G, [pt])
-
-
 #############################################################################
 ##
 ##  `:orbits` a vector of G-sets
 
-@attr Vector{Any} function orbits(Omega::GSetByElements{<:GAPGroup})
+"""
+    orbits(Omega::GSet)
+
+Return the vector of transitive G-sets in `Omega`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> orbs = orbits(gset(G));
+
+julia> map(collect, orbs)
+2-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+ [5, 6]
+
+```
+"""
+@attr Vector{GSetByElements{TG}} function orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
   G = Omega.group
-  # TODO: tighten the return type
-  orbs = []
+  orbs = T[]
   for p in Omega.seeds
     if all(o -> !(p in o), orbs)
-      push!(orbs, Hecke.orbit(Omega, p))
+      push!(orbs, orbit(Omega, p))
     end
   end
   return orbs
 end
+
+"""
+    orbits(G::PermGroup)
+
+Return the orbits of the natural G-set of `G`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> orbs = orbits(G);
+
+julia> map(length, orbs)
+2-element Vector{Int64}:
+ 4
+ 2
+
+```
+"""
+@attr Vector{GSetByElements{PermGroup}} orbits(G::PermGroup) = orbits(gset(G))
 
 
 #############################################################################
@@ -232,7 +349,7 @@ end
 
 @attr Any function elements(Omega::GSetByElements)
   orbs = orbits(Omega)
-  elms = union(map(elements, orbs)...)
+  elms = union(map(collect, orbs)...)
   return elms
 end
 
@@ -241,6 +358,27 @@ end
 ##
 
 # In fact, '<:GAPGroup' is not used at all in this function.
+"""
+    permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<:GAPGroup
+
+Return the element of the permutation group that desribes the action
+of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
+
+# Example
+
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> Omega = gset(G, [[1, 2]]);
+
+julia> x = gen(G, 1)
+(1,2,3,4)
+
+julia> permutation(Omega, x)
+(1,2,4,7)(3,6,9,12)(5,8,10,11)
+
+```
+"""
 function permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<:GAPGroup
     omega_list = GAP.julia_to_gap(elements(Omega))
     gfun = GAP.julia_to_gap(Omega.action_function)
@@ -260,8 +398,9 @@ end
 ##
 ##  action homomorphisms
 
-# The following must be executed at runtime.
-# (Eventually put it into some `__init__`.)
+# Use a GAP attribute for caching the mapping.
+# The following must be executed at runtime,
+# the function gets called in Oscar's `__init__`.
 function __init_JuliaData()
     if ! hasproperty(GAP.Globals, :JuliaData)
       GAP.evalstr("""
@@ -277,9 +416,47 @@ end );
     end
 end
 
+"""
+    action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
+
+Return the group homomorphism `act` with domain `G = Omega.group`
+and codomain `symmetric_group(n)` that describes the action of `G` on `Omega`,
+where `Omega` has `n` elements.
+
+This means that if an element `g` in `G` maps `collect(Omega)[i]` to
+`collect(Omega)[j]` then `act(g)` maps `i` to `j`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
+
+julia> acthom = action_homomorphism(Omega)
+Group homomorphism from 
+Sym( [ 1 .. 6 ] )
+to
+Sym( [ 1 .. 15 ] )
+
+julia> g = gens(G)[1]
+(1,2,3,4,5,6)
+
+julia> elms = collect(Omega);
+
+julia> actg = acthom(g)
+(1,2,3,5,7,10)(4,6,8,11,14,13)(9,12,15)
+
+julia> elms[1]^g == elms[2]
+true
+
+julia> 1^actg == 2
+true
+
+```
+"""
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = Omega.group
-  omega_list = GAP.julia_to_gap(elements(Omega))
+  omega_list = GAP.julia_to_gap(collect(Omega))
   gap_gens = map(x -> x.X, gens(G))
   gfun = GAP.julia_to_gap(Omega.action_function)
 
@@ -301,7 +478,6 @@ end
   # (Yes, this is also overhead.
   # The alternative would be to create a new type of Oscar homomorphism,
   # which uses `permutation` or something better for mapping elements.)
-  __init_JuliaData()
   GAP.Globals.SetJuliaData(acthom, GAP.julia_to_gap([Omega, G]))
 
   sym = get_attribute!(Omega, :action_range) do
@@ -310,12 +486,36 @@ end
   return GAPGroupHomomorphism(G, sym, acthom)
 end
 
+# for convenience: create the G-set on the fly
+function action_homomorphism(G::PermGroup, Omega)
+  return action_homomorphism(gset_by_type(G, Omega, eltype(Omega)))
+end
+
+function action_homomorphism(G::PermGroup, fun::Function, Omega)
+  return action_homomorphism(GSetByElements(G, fun, Omega))
+end
+
 
 """
     isconjugate(Omega::GSet, omega1, omega2)
 
 Return `true` if `omega1`, `omega2` are in the same orbit of `Omega`,
 and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> Omega = gset(G);
+
+julia> isconjugate(Omega, 1, 2)
+true
+
+julia> isconjugate(Omega, 1, 5)
+false
+
+```
 """
 isconjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
 
@@ -327,6 +527,21 @@ Determine whether `omega1`, `omega2` are in the same orbit of `Omega`.
 If yes, return `true, g` where `g` is an element in the group `G` of
 `Omega` that maps `omega1` to `omega2`.
 If not, return `false, nothing`.
+
+# Examples
+```jldoctest
+julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> Omega = gset(G);
+
+julia> representative_action(Omega, 1, 2)
+(true, (1,2))
+
+julia> representative_action(Omega, 1, 5)
+(false, ())
+
+```
 """
 function representative_action(Omega::GSet, omega1, omega2)
     # We do not call GAP's 'RepresentativeAction' with points, generators,
@@ -338,7 +553,7 @@ function representative_action(Omega::GSet, omega1, omega2)
     # Computing the orbit of `omega1` or `omega2` would in principle suffice.)
     G = Omega.group
     acthom = action_homomorphism(Omega)
-    elms = elements(Omega)
+    elms = collect(Omega)
     pos1 = findfirst(isequal(omega1), elms)
     pos1 == nothing && return false, one(G)
     pos2 = findfirst(isequal(omega2), elms)
@@ -359,13 +574,19 @@ representative(Omega::GSet) = first(Omega.seeds)
 
 acting_domain(Omega::GSet) = Omega.group
 
-# TODO:
-# - Base.iterate
+function Base.iterate(Omega::GSet, state = 1)
+  elms = elements(Omega)
+  state > length(elms) && return nothing
+  return (elms[state], state+1)
+end
 
+Base.eltype(Omega::GSetByElements) = eltype(Omega.seeds)
+
+Base.getindex(Omega::GSet, i::Int) = elements(Omega)[i]
 
 blocks(G::GSet) = error("not implemented")
 maximal_blocks(G::GSet) = error("not implemented")
-representatives_minimal_blocks(G::GSet) = error("not implemented")
+minimal_block_reps(G::GSet) = error("not implemented")
 all_blocks(G::GSet) = error("not implemented")
 
 function istransitive(Omega::GSet)
@@ -386,43 +607,72 @@ isprimitive(G::GSet) = error("not implemented")
 """
     blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
-Return a block system for the action of `G` on `L`, i.e.,
-a non-trivial partition of `L` preserved by the action of `G`.
+Return a G-set that is a block system for the action of `G` on `L`,
+i.e., a non-trivial partition of `L` preserved by the action of `G`.
 
 Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
 `G` may move points outside `L`, in this case the restriction of the action
 of the set stabilizer of `L` in `G` to `L` is considered.
 
 An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> g = sylow_subgroup(symmetric_group(4), 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4) ])
+
+julia> collect(blocks(g))
+2-element Vector{Vector{Int64}}:
+ [1, 2]
+ [3, 4]
+
+```
 """
 function blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert istransitive(G, L) "The group action is not transitive"
-   return Vector{Vector{Int}}(GAP.Globals.Blocks(G.X, GAP.GapObj(L)))
+   bl = Vector{Vector{Int}}(GAP.Globals.Blocks(G.X, GapObj(L))::GapObj)
+   omega = gset(G, bl)
+   set_attribute!(omega, :elements => omega.seeds)
+   return omega
 end
-
 
 """
     maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
-Return a maximal block system for the action of `G` on `L`, i.e.,
-a maximal non-trivial partition of `L` preserved by the action of `G`.
+Return a G-set that is a maximal block system for the action of `G` on `L`,
+i.e., a maximal non-trivial partition of `L` preserved by the action of `G`.
 
 Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
 `G` may move points outside `L`, in this case the restriction of the action
 of the set stabilizer of `L` in `G` to `L` is considered.
 
 An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> G = transitive_group(8, 2)
+4[x]2
+
+julia> collect(maximal_blocks(G))
+2-element Vector{Vector{Int64}}:
+ [1, 2, 3, 8]
+ [4, 5, 6, 7]
+
+```
 """
 function maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert istransitive(G, L) "The group action is not transitive"
-   return Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(G.X, GAP.GapObj(L)))
+   bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(G.X, GapObj(L))::GapObj)
+   omega = gset(G, bl)
+   set_attribute!(omega, :elements => omega.seeds)
+   return omega
 end
 
 
 """
-    representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+    minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
-Return a list of block representatives for all minimal non-trivial block
+Return a vector of block representatives for all minimal non-trivial block
 systems for the action of `G` on `L`.
 
 Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
@@ -430,18 +680,47 @@ Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
 of the set stabilizer of `L` in `G` to `L` is considered.
 
 An exception is thrown if this action is not transitive.
+
+# Examples
+```jldoctest
+julia> G = transitive_group(8, 2)
+4[x]2
+
+julia> minimal_block_reps(G)
+3-element Vector{Vector{Int64}}:
+ [1, 3]
+ [1, 5]
+ [1, 7]
+
+```
 """
-function representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+function minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert istransitive(G, L) "The group action is not transitive"
-   return Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(G.X, GAP.GapObj(L)))
+   return Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(G.X, GapObj(L))::GapObj)
 end
 
 
 """
     all_blocks(G::PermGroup)
 
-Return a list of representatives of all block systems for the action of
-`G` on the set of moved points of `G`.
+Return a vector of smallest representatives of all block systems
+for the action of `G` on the set of moved points of `G`.
+
+# Examples
+```jldoctest
+julia> G = transitive_group(8, 2)
+4[x]2
+
+julia> all_blocks(G)
+6-element Vector{Vector{Int64}}:
+ [1, 2, 3, 8]
+ [1, 5]
+ [1, 3, 5, 7]
+ [1, 3]
+ [1, 3, 4, 6]
+ [1, 7]
+
+```
 """
 all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.AllBlocks(G.X))
 #TODO: Do we really want to act on the set of moved points?
@@ -452,15 +731,37 @@ all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.AllBlocks(G.X))
 
 Return the maximum `k` such that the action of `G` on `L` is
 `k`-transitive. The output is `0` if `G` is not transitive on `L`.
+
+# Examples
+```jldoctest
+julia> transitivity(mathieu_group(24))
+5
+
+julia> transitivity(symmetric_group(6))
+6
+
+```
 """
-transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Transitivity(G.X, GAP.GapObj(L))
+transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Transitivity(G.X, GapObj(L))::Int
 
 """
     istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
 Return whether the action of `G` on `L` is transitive.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> istransitive(G)
+true
+
+julia> istransitive(sylow_subgroup(G, 2)[1])
+false
+
+```
 """
-istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTransitive(G.X, GAP.GapObj(L))
+istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTransitive(G.X, GapObj(L))
 # Note that this definition does not coincide with that of the
 # property `GAP.Globals.IsTransitive`, for which the default domain
 # of the action is the set of moved points.
@@ -471,8 +772,26 @@ istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTra
 
 Return whether the action of `G` on `L` is primitive, that is,
 the action is transitive and the point stabilizers are maximal in `G`.
+
+# Examples
+```jldoctest
+julia> G = alternating_group(6);
+
+julia> mx = filter(istransitive, maximal_subgroup_reps(G))
+3-element Vector{PermGroup}:
+ Group([ (1,2)(3,4), (1,2)(5,6), (1,3,5)(2,4,6), (1,3)(2,4) ])
+ Group([ (1,2,3), (4,5,6), (1,2)(4,5), (1,5,2,4)(3,6) ])
+ PSL(2,5)
+
+julia> [(order(H), isprimitive(H)) for H in mx]
+3-element Vector{Tuple{fmpz, Bool}}:
+ (24, 0)
+ (36, 0)
+ (60, 1)
+
+```
 """
-isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsPrimitive(G.X, GAP.GapObj(L))
+isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsPrimitive(G.X, GapObj(L))
 
 
 """
@@ -480,8 +799,23 @@ isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsPrim
 
 Return whether the action of `G` on `L` is regular
 (i.e., transitive and semiregular).
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
+Group([ (1,2,3,4,5,6) ])
+
+julia> isregular(H)
+true
+
+julia> isregular(G)
+false
+
+```
 """
-isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegular(G.X, GAP.GapObj(L))
+isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegular(G.X, GapObj(L))
 
 
 """
@@ -489,5 +823,20 @@ isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegula
 
 Return whether the action of `G` on `L` is semiregular
 (i.e., the stabilizer of each point is the identity).
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
+Group([ (1,2,3)(4,5,6) ])
+
+julia> issemiregular(H)
+true
+
+julia> isregular(H)
+false
+
+```
 """
-issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(G.X, GAP.GapObj(L))
+issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(G.X, GapObj(L))

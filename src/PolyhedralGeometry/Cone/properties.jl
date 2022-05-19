@@ -100,7 +100,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_object(C).N_FACETS::Int
+nfacets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -118,7 +118,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_object(C).N_RAYS::Int
+nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)
@@ -300,7 +300,7 @@ julia> f = facets(Halfspace, c)
 -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
+facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
 _facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-C.FACETS[[i], :], 0)
 
@@ -397,3 +397,23 @@ _hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Int
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
+
+
+@doc Markdown.doc"""
+    contains(C::Cone, v::AbstractVector)
+
+Check whether `C` contains `v`.
+
+# Examples
+The positive orthant only contains vectors with non-negative entries:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains(C, [1, 2])
+true
+
+julia> contains(C, [1, -2])
+false
+```
+"""
+contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool

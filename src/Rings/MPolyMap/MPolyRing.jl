@@ -40,8 +40,10 @@ If no coefficient map is entered, invoke a canonical homomorphism of `C`
 to `S`, if such a homomorphism exists, and throw an error, otherwise.
 
 !!! note
-    If `S` is noncommutative, the assigned images must pairwise commute.
-    This is checked by the function in case `check = true` (default).
+    In case `check = true` (default), the function checks the conditions below:
+    - If `S` is graded, the assigned images must be homogeneous with respect to the given grading.
+    - If `S` is noncommutative, the assigned images must pairwise commute. 
+    
 
 # Examples
 ```jldoctest

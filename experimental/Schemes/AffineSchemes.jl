@@ -141,6 +141,7 @@ spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = 
 For ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` this returns ``(𝕜[x₁,…,xₙ]/I)[S⁻¹]``.
 """
 OO(X::Spec) = X.OO
+ambient_ring(X::Spec) = base_ring(OO(X))
 
 function name_of(X::Spec) 
   if isdefined(X, :name)
@@ -189,9 +190,19 @@ function empty_spec(kk::BRT) where {BRT<:AbstractAlgebra.Ring}
 end
 
 ### closed subschemes defined by ideals
+function subscheme(X::Spec, I::MPolyLocalizedIdeal)
+  localized_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
+  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X)))[1])
+end
+
+function subscheme(X::Spec, I::MPolyQuoLocalizedIdeal)
+  OO(X) == base_ring(I) || error("ideal does not live in the correct ring")
+  return Spec(quo(localized_ring(OO(X)), ideal(localized_ring(OO(X)), vcat(lift.(gens(I)), gens(localized_modulus(OO(X))))))[1])
+end
+
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   base_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(OO(X), I))
+  return Spec(quo(OO(X), I)[1])
 end
   
 @Markdown.doc """
@@ -200,53 +211,14 @@ end
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
 """
-function subscheme(X::AbsSpec, f::RingElem)
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
+function subscheme(X::Spec, f::RingElem)
+  parent(f) == OO(X) || return subscheme(X, OO(X)(f))
+  return subscheme(X, ideal(OO(X), [f]))
 end
 
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R(f))
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R.(f))
-  return subscheme(X, I)
+function subscheme(X::Spec, f::Vector{<:RingElem})
+  all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
+  return subscheme(X, ideal(OO(X), f))
 end
 
 ### open subschemes defined by complements of hypersurfaces
@@ -263,7 +235,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   iszero(f) && return subscheme(X, [one(R)])
   f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
-  W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
+  W, _ = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   if keep_cache
     IX = localized_modulus(OO(X))
     DIX = groebner_bases(IX)
@@ -300,7 +272,7 @@ function hypersurface_complement(
     X::Spec{BRT, BRET, RT, RET, MST}, 
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f))))
+  return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f)))[1])
 end
 
 function hypersurface_complement(
@@ -308,7 +280,7 @@ function hypersurface_complement(
     f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   parent(f) == OO(X) || error("the element does not belong to the correct ring")
-  return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f))))
+  return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f)))[1])
 end
 
 
@@ -447,11 +419,11 @@ function closure(
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   issubset(X, Y) || error("the first argument is not a subset of the second")
   is_closed_embedding(X, Y) && return X
-  W = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
+  W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
-  lbpa = groebner_basis(I) # takes care of the saturation
+  Isat = saturated_ideal(I)
   R = base_ring(OO(Y))
-  return Spec(MPolyQuoLocalizedRing(R, ideal(R, numerator.(oscar_gens(lbpa))), inverted_set(OO(Y))))
+  return Spec(MPolyQuoLocalizedRing(R, Isat, inverted_set(OO(Y))))
 end
 
 

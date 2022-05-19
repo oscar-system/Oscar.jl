@@ -21,17 +21,15 @@ functionality for handling such algebras in OSCAR.
     As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
 
 !!! note
-    In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
+    In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
     Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
 
 !!! note
-    If $A=R/I$ is an affine algebra such that $R$ is (multi)graded by a finitely generated  Abelian group
-    $G$, and such that $I$ is homogeneous with respect to this grading, then the grading descends
-    to a $G$-grading on $A$. Our notation and OSCAR functionality for dealing with such gradings carry over from
-    the case of multivariate polynomial rings to the case of affine algebras, wherever this is appropriate.
-    First examples are the functions `ìs_graded`, `ìs_standard_graded`,  `ìs_z_graded`,
-    `ìs_zm_graded`, and `ìs_positively_graded`. Further examples will be discussed in what follows.
-
+    Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
+    (recall that OSCAR ideals of graded polynomial rings are required to be homogeneous).
+    Functionality for dealing with such gradings and our notation for describing this functionality descend accordingly.
+	This applies, in particular, to the functions `ìs_graded`, `ìs_standard_graded`, `ìs_z_graded`, `ìs_zm_graded`,
+	and `ìs_positively_graded` which will not be discussed again here. 
 
 ## Types
 
@@ -89,7 +87,8 @@ parametrized form `MPolyQuo{T}`, where `T` is the element type of the polynomial
 
 ### Creating Elements of Affine Algebras
 
-Elements of an affine algebra $R/I$ are created as images of elements of $R$ under the projection map.
+Elements of an affine algebra $A = R/I$ are created as images of elements of $R$ under the projection map
+or by directly coercing elements of $R$ into $A$.
 
 ###### Examples
 
@@ -98,6 +97,8 @@ R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
 f = p(x^3*y^2-y^3*x^2+x*y)
 typeof(f)
+g = A(x^3*y^2-y^3*x^2+x*y)
+f == g
 ```
 
 ### Reducing Elements of Affine Algebras
@@ -403,15 +404,7 @@ isreduced(Q::MPolyQuo)
 isnormal(A::MPolyQuo)
 ```
 
-###### Examples
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z^2-x*y]))
-isnormal(A)
-```
-
-#### Cohen-Macaulayness Test
+### Cohen-Macaulayness Test
 
 iscohenmacaulay(R)
 
@@ -423,7 +416,7 @@ Given a multivariate polynomial ring $R$ over a field $K$ together with a (multi
 on $R$ by a finitely generated abelian group $G$, let $I$ be an ideal of $R$ which is
 homogeneous with respect to this grading. Then the affine $K-$algebra $A=R/I$
 inherits the grading: $A = \bigoplus_{g\in G} A_g$. Suppose now that $R$ is positively
-graded by $G$. That is, $G$ is torsion-free and each graded piece $R_g$ has finite dimension.
+graded by $G$. That is, $G$ is free and each graded piece $R_g$ has finite dimension.
 Then also $A_g$ is a finite dimensional $K$-vector space for each $g$, and we have the
 well-defined *Hilbert function* of $A$,
 
@@ -434,7 +427,7 @@ The *Hilbert series* of $A$ is the generating function
 $H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
 
 (see  Section 8.2 in [MS05](@cite) for a formal discussion extending the classical case of
-$\mathbb Z$-gradings with positive weights to the more general case considered here).
+$\mathbb Z$-gradings with positive weights to the more general case of multigradings).
 As in the classical case, the infinitely many values of the Hilbert function
 can be expressed in finite terms by representing the Hilbert series as a rational function
 (see Theorem 8.20 in [MS05](@cite) for a precise statement).
@@ -443,14 +436,14 @@ By a result of Macaulay, if $A = R/I$ is an affine algebra, and $L_{>}(I)$ is th
 ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert function of $A$
 equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
 Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
-the modulus of an affine algebra is a monomial ideal. In the latter case, we face a problem 
+the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem 
 of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)).
 The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expanded`,
 `hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
 $\mathbb Z$-gradings with positive weights, relying on corresponding Singular
 functionality. The functions `multi_hilbert_series`, `multi_hilbert_series_reduced `,
 and `multi_hilbert_function` use different strategies and allow one to handle
-positive gradings in full generality.
+positive gradings in general.
 
 ### $\mathbb Z$-Gradings With Positive Weights
 
@@ -488,13 +481,10 @@ hilbert_polynomial(A::MPolyQuo)
 degree(A::MPolyQuo)
 ```
 
-### Positive Gradings in Full Generality
+### Positive Gradings in General
 
 ```@docs
 multi_hilbert_series(A::MPolyQuo)
 multi_hilbert_series_reduced(A::MPolyQuo)
 multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 ```
-
-
-

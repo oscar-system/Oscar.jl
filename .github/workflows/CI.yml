@@ -32,10 +32,6 @@ jobs:
         os:
           - ubuntu-latest
           - macOS-latest
-        exclude:
-          # disable nightly tests due to https://github.com/JuliaLang/julia/issues/44800
-          - os: macos-latest
-            julia-version: 'nightly'
 
     steps:
       - uses: actions/checkout@v2
@@ -61,8 +57,7 @@ jobs:
             Pkg.instantiate()
             using Documenter
             using Oscar
-            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar, Oscar.Graphs); recursive = true)
-            doctest(Oscar)'
+            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar, Oscar.Graphs); recursive = true)'
       - name: "Process code coverage"
         uses: julia-actions/julia-processcoverage@v1
         with:

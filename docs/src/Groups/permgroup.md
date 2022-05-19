@@ -117,6 +117,6 @@ isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 all_blocks(G::PermGroup)
 ```

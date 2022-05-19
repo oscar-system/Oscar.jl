@@ -110,7 +110,7 @@ function __init__()
     windows_error()
   end
 
-  if isinteractive()
+  if isinteractive() && Base.JLOptions().banner != 0
     println(" -----    -----    -----      -      -----   ")
     println("|     |  |     |  |     |    | |    |     |  ")
     println("|     |  |        |         |   |   |     |  ")
@@ -135,9 +135,12 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
     __init_IsoGapOscar()
+    __init_group_libraries()
+    __init_JuliaData()
     __GAP_info_messages_off()
 end
 
@@ -283,11 +286,11 @@ include("Groups/group_constructors.jl")
 include("Groups/sub.jl")
 include("Groups/homomorphisms.jl")
 include("Groups/cosets.jl")
-include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/matrices/matrices.jl")
 include("Groups/matrices/FiniteFormOrthogonalGroup.jl")
+include("Groups/libraries/libraries.jl")
 include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
@@ -340,6 +343,7 @@ include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")
 #include("Modules/FreeModules-graded.jl")
 include("Modules/ModulesGraded.jl")
+include("Modules/module-localizations.jl")
 
 include("Geometry/basics.jl")
 
@@ -350,6 +354,8 @@ include("PolyhedralGeometry/main.jl")
 include("Combinatorics/Graphs.jl")
 export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
+
+include("Combinatorics/Matroids/JMatroids.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")

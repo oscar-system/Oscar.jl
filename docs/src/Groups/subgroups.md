@@ -56,7 +56,7 @@ minimal_normal_subgroups
 characteristic_subgroups
 derived_series
 sylow_system
-hall_subgroups_representatives
+hall_subgroup_reps
 hall_system
 complement_system
 ```
@@ -82,7 +82,13 @@ normalizer(G::GAPGroup, x::GAPGroupElem)
 normalizer(G::T, H::T) where T<:GAPGroup
 core(G::T, H::T) where T<:GAPGroup
 normal_closure(G::T, H::T) where T<:GAPGroup
+```
+
+```@docs
 GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
+representative(G::GroupConjClass)
+acting_group(G::GroupConjClass)
+number_conjugacy_classes(G::GAPGroup)
 conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)

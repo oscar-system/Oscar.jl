@@ -21,7 +21,6 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   r::Int	# the relative dimension
   S::RingType   # A[s₀,…,sᵣ]
   I::MPolyIdeal{RingElemType} # generators for the defining ideal
-  #TODO: Once MPolyIdeal is finally generic, use that instead of storing the generators.
 
   # fields used for caching
   C::Spec # The affine cone of this scheme.
@@ -356,7 +355,7 @@ end
 @Markdown.doc """
     poly_to_homog(X::ProjectiveScheme)
 
-Returns a map that converts an element of the `base_ring` of 
+Return a map that converts an element of the `base_ring` of 
 ring of functions `OO` of the `affine_cone` of `X` into 
 an element of the `homog_poly_ring` of `X`.
 """
@@ -370,7 +369,7 @@ end
 @Markdown.doc """
     function frac_to_homog_pair(X::ProjectiveScheme)
 
-Returns a map that converts an element ``f = p/q`` of the ring of 
+Return a map that converts an element ``f = p/q`` of the ring of 
 functions `OO` of the `affine_cone` of `X` into a pair 
 ``(a, b)`` of elements of the `homog_poly_ring` of `X`
 corresponding to ``p`` and ``q``, respectively.
@@ -384,7 +383,7 @@ end
 
     
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105
-Generic.ordering(S::MPolyRing_dec) = :lex
+Generic.ordering(S::MPolyRing_dec) = :degrevlex
 
 @Markdown.doc """
     affine_cone(X::ProjectiveScheme) 
@@ -410,7 +409,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     # use the map to convert ideals:
     #I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, I)
+    CX = subscheme(C, pre_image_ideal(I))
     set_attribute!(X, :affine_cone, CX)
     X.C = get_attribute(X, :affine_cone)
     pr_base_res = restrict(pr_base, CX, Y, check=false)
@@ -453,7 +452,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
                   )
 
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, I)
+    CX = subscheme(C, pre_image_ideal(I))
     pr_base_res = restrict(pr_base, CX, Y, check=false)
     pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
 
@@ -480,7 +479,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     S = homog_poly_ring(X)
     help_map = hom(S, OO(C), gens(OO(C)))
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, I)
+    CX = subscheme(C, pre_image_ideal(I))
 
     # store the various conversion maps
     set_attribute!(X, :homog_to_frac, hom(S, OO(CX), gens(OO(CX))))
@@ -656,7 +655,7 @@ function fiber_product(f::SpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRing})
                  gens(homog_poly_ring(Q_ambient))
                 )
   I = help_map(defining_ideal(P))
-  Q = subscheme(Q_ambient, I)
+  Q = subscheme(Q_ambient, pre_image_ideal(I))
   return Q, ProjectiveSchemeMor(Q, P, 
                                 hom(homog_poly_ring(P), 
                                     homog_poly_ring(Q),

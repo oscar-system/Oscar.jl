@@ -46,7 +46,10 @@ end
 ambient_ring(S::NmodComplementOfPrimeIdeal) = S.R
 
 ### additional constructors
-NmodComplementOfPrimeIdeal(R::NmodRing, i::Oscar.IntegerUnion) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::fmpz) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Int) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Int64) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Integer) = NmodComplementOfPrimeIdeal(R(i))
 
 ### additional functionality
 generator(S::NmodComplementOfPrimeIdeal) = S.gen
@@ -75,7 +78,10 @@ base_ring(W::NmodLocalizedRing) = W.R::NmodRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
-Localization(S::NmodComplementOfPrimeIdeal) = NmodLocalizedRing(S)
+function Localization(S::NmodComplementOfPrimeIdeal) 
+  L = NmodLocalizedRing(S)
+  return L, MapFromFunc(x->(L(x)), base_ring(L), L)
+end
 
 
 #######################################################################
@@ -122,7 +128,9 @@ end
 
 ### additional conversions
 (W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b))
-(W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)))
+(W::NmodLocalizedRing)(a::Int) = W(base_ring(W)(a), one(base_ring(W)))
+(W::NmodLocalizedRing)(a::Int64) = W(base_ring(W)(a), one(base_ring(W)))
+(W::NmodLocalizedRing)(a::fmpz) = W(base_ring(W)(a), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::fmpq) = W(numerator(q), denominator(q))
 (W::NmodLocalizedRing)(i::Int64) = W(base_ring(W)(i), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q))
@@ -150,7 +158,7 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == R
-  W = Localization(U)
+  W, _ = Localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)

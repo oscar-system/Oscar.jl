@@ -25,8 +25,7 @@
 
    H=sub(G,[G([2,3,1]),G([2,1])])[1]
    @test H != symmetric_group(3)
-   @test isisomorphic(H, symmetric_group(3))[1]
-   @test isisomorphic(H, symmetric_group(3))[2]==id_hom(H)       # TODO: this in future may change to false.
+   @test isisomorphic(H, symmetric_group(3))
    @test Vector(H[1])==[2,3,1,4,5,6,7]
    @test Vector(symmetric_group(3)(H[1]))==[2,3,1]
 
@@ -92,8 +91,8 @@ end
    end
    @test x in Cx
    @test one(G) in Cx
-   @test isisomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4)))[1]
-   @test isisomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2)))[1]
+   @test isisomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4)))
+   @test isisomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2)))
 
    Nx = normalizer(G,Cx)[1]
    Ny = normalizer(G,Cy)[1]
@@ -278,7 +277,7 @@ end
 
    P = sylow_subgroup(G,2)[1]
    @test order(P)==8
-   @test isisomorphic(P,dihedral_group(8))[1]
+   @test isisomorphic(P,dihedral_group(8))
    P = sylow_subgroup(G,3)[1]
    @test order(P)==3
    @test representative_action(G, P, sub(G, [cperm(1:3)])[1])[1]
@@ -293,15 +292,15 @@ end
    end
    L = [[2],[3],[5],[7],[2,3],[2,5],[2,7],[3,5],[3,7],[5,7],[2,3,5],[2,3,7],[2,5,7],[3,5,7],[2,3,5,7]]
    @testset for l in L
-      h = hall_subgroups_representatives(G, l)
+      h = hall_subgroup_reps(G, l)
       @test length(h) == 1
       @test h[1] == sub(G,[g^(210÷lcm(l))])[1]
    end
-   h = hall_subgroups_representatives(G, Int64[])
+   h = hall_subgroup_reps(G, Int64[])
    @test length(h) == 1
    @test h[1] == sub(G, [one(G)])[1]
-   @test length(hall_subgroups_representatives(symmetric_group(5), [2, 5])) == 0
-   @test_throws ArgumentError hall_subgroups_representatives(G, [4])
+   @test length(hall_subgroup_reps(symmetric_group(5), [2, 5])) == 0
+   @test_throws ArgumentError hall_subgroup_reps(G, [4])
 
    L = sylow_system(G)
    Lo = [order(l) for l in L]

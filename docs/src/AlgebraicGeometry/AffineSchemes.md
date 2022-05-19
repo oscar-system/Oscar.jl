@@ -14,7 +14,7 @@ of their affine patches and glueings are instances of
 Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement}
 ```
 
-## Affine schemes over noetherian base rings
+# Affine schemes over noetherian base rings
 
 Let ``\mathbb k`` be a commutative noetherian base ring 
 (in practice: an algebraic extension of ``\mathbb Q`` or ``\mathbb F_p``). 
@@ -71,3 +71,38 @@ Among the basic functionality for affine schemes we have
 ```@docs
 product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
 ```
+
+# Projective Schemes
+
+In Oscar we provide the functionality to handle *relative projective space* and their subschemes 
+over various base rings as presented in [Har77](@cite).
+```@docs
+    ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
+```
+Currently, one can take the ring ``A`` to be either a computable field such as `QQ` or `GF(p)`, 
+a multivariate polynomial ring over the latter, or, with a view towards the affine schemes 
+above, an instance of `MPolyQuoLocalizedRing`, the type of rings used for the structure 
+sheaves. This ring of coefficients can be asked for using 
+```@docs
+    base_ring(X::ProjectiveScheme)
+```
+and the various other getters are 
+```@docs
+    fiber_dimension(X::ProjectiveScheme)
+    homogeneous_coordinate_ring(X::ProjectiveScheme)
+    generators_of_defining_ideal(X::ProjectiveScheme)
+```
+Internally, projective varieties are modeled via their affine cones. 
+```@docs
+    affine_cone(X::ProjectiveScheme) 
+```
+In order to be able to fluently switch between the homogeneous coordinate 
+ring ``S`` of a projective scheme ``X`` and the coordinate ring ``R`` of 
+its affine cone ``C(X)``, we provide the following methods:
+```@docs
+    homogeneous_coordinates(X::ProjectiveScheme)
+    convert_to_fraction(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+    convert_to_homog_polys(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:MPolyRing, CRET, RT, RET}
+```
+
+  
