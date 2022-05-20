@@ -33,6 +33,13 @@ end
 	for i=1:ngens(N)
 		@test AN(repres(N[i])) == ai(N[i])
 	end
+
+	G = FreeMod(R,2)
+	@test F(v) in F
+	@test !(F(v) in G)
+	@test (F(v) + F([z, R(1), R(0)])) in M
+	@test !(F([R(1), R(0), R(0)]) in M)
+	@test N[1] in M
 end
 
 @testset "Intersection of modules" begin
@@ -123,8 +130,13 @@ end
 		@test is_bijective(i)
 		@test is_bijective(p)
 	end
-end
 
+	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	A = R[x; y]
+	B = R[x^2; x*y; y^2; z^4]
+	M = SubQuo(A, B)
+	@test all(iszero, homology(free_resolution(M)))
+end
 
 @testset "Test kernel" begin
 

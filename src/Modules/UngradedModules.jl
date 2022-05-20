@@ -1636,13 +1636,9 @@ parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
-function in(::SubQuoElem, ::FreeMod)
-  return false
-end
-
 function in(v::SubQuoElem, M::SubQuo)
   ambient_free_module(parent(v)) === ambient_free_module(M) || return false
-  return represents_element(coefficients(v), M)
+  return represents_element(repres(v), M)
 end
 
 @doc Markdown.doc"""
@@ -1985,7 +1981,7 @@ function sub(M::SubQuo, V::Vector{<:SubQuoElem}, task::Symbol = :none, check = t
   if check
     @assert all(x -> x.parent === M, V)
   end
-  t = SubQuo(M.F, Vector{FreeModElem}([repres(x) for x in V]))
+  t = SubQuo(M.F, FreeModElem[repres(x) for x in V])
   if isdefined(M, :quo)
     t.quo = M.quo
     t.sum = sum(t.sub, t.quo)
@@ -2142,7 +2138,7 @@ end
 Return the generators of `M`.
 """
 function gens(M::SubQuo{T}) where T
-  return Vector{SubQuoElem{T}}([gen(M,i) for i=1:ngens(M)])
+  return SubQuoElem{T}[gen(M,i) for i=1:ngens(M)]
 end
 
 @doc Markdown.doc"""
@@ -3033,8 +3029,7 @@ is only computed up to the `limit`-th free module.
 """
 function free_resolution(M::SubQuo, limit::Int = -1)
   p = presentation(M)
-  #mp = [map(p, j) for j in range(p)]
-  mp = [map(p, j) for j in 1:-1:-1]
+  mp = [map(p, j) for j in range(p)]
   while true
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
@@ -3724,7 +3719,7 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
   end
 
-  start = C.direction == :left ? C.start - length(tensor_chain) : C.start
+  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) : C.start
   return Hecke.ChainComplex(ModuleFP, tensor_chain, start=start, direction=C.direction)
 end
 
@@ -3748,7 +3743,7 @@ function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
   end
 
-  start = C.direction == :left ? C.start - length(tensor_chain) : C.start
+  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) : C.start
   return Hecke.ChainComplex(ModuleFP, tensor_chain, start=start, direction=C.direction)
 end
 
@@ -3839,7 +3834,7 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,j)))
   end
 
-  start = C.direction == :left ? C.start - length(hom_chain) : C.start
+  start = Hecke.is_chain_complex(C) ? C.start - length(hom_chain) : C.start
   return Hecke.ChainComplex(ModuleFP, hom_chain, start=start, direction=C.direction)
 end
 
@@ -3853,7 +3848,7 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   hom_chain = valtype(C.maps)[]
   chain_range = range(C)
   hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  hom_modules = vcat(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
@@ -3863,7 +3858,6 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  start = C.direction == :left ? C.start - length(hom_chain) : C.start
   start = -C.start
   return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=C.direction)
 end
@@ -3875,6 +3869,7 @@ end
 Compute all homology groups of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP})
+  return [homology(C,i) for i in range(C)]
   H = SubQuo[]
   chain_range = range(C)
   next = iterate(chain_range)
@@ -3904,7 +3899,7 @@ function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
     f = map(C,i)
     return quo(codomain(f),image(f)[1])
   elseif i in chain_range
-    next_index = C.direction == :left ? i-1 : i+1
+    next_index = Hecke.is_chain_complex(C) ? i-1 : i+1
     return quo(kernel(map(C,next_index))[1], image(map(C,i))[1])
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
