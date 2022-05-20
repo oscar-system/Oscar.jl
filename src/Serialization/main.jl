@@ -26,11 +26,11 @@ end
 
 const backref_sym = Symbol("#backref")
 function backref(ref::UUID)
-   return Dict(
-     :type=>backref_sym,
-     :version=>1, # ???
-     :id=>string(ref),
-     )
+    return Dict(
+        :type=>backref_sym,
+        :version=>1, # ???
+        :id=>string(ref),
+    )
 end
 
 ################################################################################
@@ -135,17 +135,11 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
 
     # TODO: compare T against decodedType ???
     #decodedType = decodeType(dict[:type])
+    result = load_internal(s, T, dict[:data])
     id = dict[:id]
     
     if id != "-1"
-        if UUID(id) in keys(s.objs)
-            result = s.objs[UUID(id)]
-        else
-            result = load_internal(s, T, dict[:data])    
-            s.objs[UUID(id)] = result
-        end
-    else
-        result = load_internal(s, T, dict[:data])    
+        s.objs[UUID(id)] = result
     end
     
     return result
