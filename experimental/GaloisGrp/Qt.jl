@@ -171,7 +171,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     @vprint :GaloisGroup 1 "specialising at t = $tStart, computing over Q\n"
     Gal, S = galois_group(K, prime = p)
 
-    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_identification(Gal))\n"
+    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_group_identification(Gal))\n"
 
 #    @show S.start, S.chn
 

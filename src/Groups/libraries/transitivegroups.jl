@@ -156,8 +156,6 @@ function transitive_group_identification(G::PermGroup)
   return deg, res
 end
 
-@deprecate transitive_identification(x) transitive_group_identification(x)[1]
-
 """
     all_transitive_groups(L...)
 
