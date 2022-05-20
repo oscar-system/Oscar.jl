@@ -1,10 +1,9 @@
 ################################################################################
 #  non simpleton base rings
 
-function load_internal(s::DeserializerState, t::Type{Nemo.NmodRing}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
     modulus = load_type_dispatch(s, UInt64, dict[:modulus])
-
-    return t(modulus)
+    return NmodRing(modulus)
 end
 
 function save_internal(s::SerializerState, R::Nemo.NmodRing)
