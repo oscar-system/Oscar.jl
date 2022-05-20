@@ -103,22 +103,23 @@ end
 
 ################################################################################
 # Non Simple Extension
-function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS{T}}) where T
+function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
     return Dict(
         :def_pols => save_type_dispatch(s, def_pols),
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{NfAbsNS}, dict::Dict)
+function load_internal(s::DeserializerState,
+                       ::Type{<: Union{NfAbsNS, NfRelNS}},
+                       dict::Dict)
     def_pols = load_type_dispatch(s, dict[:def_pols], check_namespace=false)
-    vars = load_type_dispatch(s, dict[:vars], check_namespace=false)
-    K, _ = NumberField(def_pols, vars, cached=false)
+    K, _ = NumberField(def_pols, cached=false)
     return K
 end
 
 #elements
-function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem{T}}) where T
+function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
   K = parent(k)
   polynomial = Oscar.Hecke.data(k)
   K_dict = save_type_dispatch(s, K)
@@ -127,8 +128,8 @@ function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSEl
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem{T}}},
-                       dict::Dict) where T
+                       ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
+                       dict::Dict)
   K = load_type_dispatch(s, dict[:parent]; check_namespace=false)
   polynomial = load_type_dispatch(s, dict[:polynomial]; check_namespace=false)
   polynomial = evaluate(polynomial, gens(parent(K.pol[1])))
