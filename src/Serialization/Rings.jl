@@ -8,7 +8,7 @@ end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
     modulus = load_type_dispatch(s, UInt64, dict[:modulus])
-    return NmodRing(modulus)
+    return Nemo.NmodRing(modulus)
 end
 
 ################################################################################
