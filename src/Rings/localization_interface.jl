@@ -503,6 +503,14 @@ function Base.in(
   error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
 
+function issubset(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
+  return all(x->(x in J), gens(I))
+end
+
+function ==(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
+  return issubset(I, J) && issubset(J, I)
+end
+
 ### A catchall implementation for the ideal arithmetic 
 # Return the product of the ideals `I` and `J`.
 function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}

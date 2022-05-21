@@ -20,6 +20,7 @@ end
 # missing functionality to write an element f ∈ I of an ideal as 
 # a linear combination of the generators of I
 function coordinates(f::MPolyElem, I::MPolyIdeal)
+  iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
   f in I || error("polynomial does not belong to the ideal")

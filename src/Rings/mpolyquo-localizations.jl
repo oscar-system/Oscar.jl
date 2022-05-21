@@ -1368,3 +1368,18 @@ function ideal(
   return MPolyQuoLocalizedIdeal(W, W.(gens))
 end
 
+function ideal(
+    W::MPolyQuoLocalizedRing,
+    I::MPolyLocalizedIdeal
+  )
+  return ideal(W, W.(gens(I)))
+end
+
+function ideal(
+    W::MPolyQuoLocalizedRing,
+    I::MPolyIdeal
+  )
+  return ideal(W, W.(gens(I)))
+end
+
+

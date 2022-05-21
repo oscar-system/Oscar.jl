@@ -164,14 +164,17 @@ end
 #
 
 # This first version reduces to the case of matrices without denominators.
-function has_solution(A::MatrixType, b::MatrixType) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
+function has_solution(
+    A::MatrixType, b::MatrixType;
+    check::Bool=true
+  ) where {T<:AbsLocalizedRingElem, MatrixType<:MatrixElem{T}}
   S = base_ring(A)
   R = base_ring(S)
   S === base_ring(b) || error("matrices must be defined over the same ring")
   nrows(b) == 1 || error("only matrices with one row are allowed!")
   B, D = clear_denominators(A)
   c, u = clear_denominators(b)
-  (success, y, v) = has_solution(B, c, inverted_set(S))
+  (success, y, v) = has_solution(B, c, inverted_set(S), check=check)
   success || return (false, zero(MatrixSpace(S, 1, ncols(b))))
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
@@ -182,7 +185,8 @@ end
 # This second version solves over the base ring and checks compatibility with 
 # the given units.
 function has_solution(
-    A::MatrixType, b::MatrixType, U::AbsMultSet
+    A::MatrixType, b::MatrixType, U::AbsMultSet;
+    check::Bool=true
   ) where {
     MatrixType<:MatrixElem
   }
@@ -196,7 +200,7 @@ function has_solution(
   Aext = vcat(-b, A)
   L = syz(Aext)
   I = ideal(R, vec(L[:, 1]))
-  (success, u, a) = has_nonempty_intersection(U, I)
+  (success, u, a) = has_nonempty_intersection(U, I, check=check)
   success || return (false, zero(MatrixSpace(R, 1, ngens(I))), zero(R))
   l = a*L 
   return (success, l[1, 2:end], l[1,1])

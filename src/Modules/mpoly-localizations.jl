@@ -9,12 +9,14 @@
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 
 
-function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check::Bool=true)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
 
   d = prod(denominators(U))
-  inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  if check
+    inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  end
   (k, f) = _minimal_power_such_that(d, (x->x in I))
   return true, f, coordinates(f, I)
 end
