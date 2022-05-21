@@ -30,7 +30,7 @@ matrix(x::MatrixGroupElem)
 base_ring(x::MatrixGroupElem)
 nrows(x::MatrixGroupElem)
 det(x::MatrixGroupElem)
-trace(x::MatrixGroupElem)
+tr(x::MatrixGroupElem)
 multiplicative_jordan_decomposition(x::MatrixGroupElem)
 is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
 is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
