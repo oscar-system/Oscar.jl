@@ -1654,7 +1654,6 @@ function saturated_ideal(
           end
         end
         if length(cache) > 0
-          @show "caching happens for $(length(cache)) elements"
           extend_pre_saturated_ideal!(I, 
                                       elem_type(R)[g for (g, x, u) in cache],
                                       vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
@@ -1677,7 +1676,6 @@ function saturated_ideal(
         end
       end
       if length(cache) > 0
-        @show "caching happens for $(length(cache)) elements"
         extend_pre_saturated_ideal!(I, 
                                     elem_type(R)[g for (g, x, u) in cache],
                                     vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
