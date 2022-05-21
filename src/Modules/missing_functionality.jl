@@ -1,3 +1,4 @@
+export subquo_type
 ########################################################################
 #
 # This file contains hacks for functionality that was found missing. 
@@ -19,6 +20,7 @@ end
 # missing functionality to write an element f ∈ I of an ideal as 
 # a linear combination of the generators of I
 function coordinates(f::MPolyElem, I::MPolyIdeal)
+  iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
   f in I || error("polynomial does not belong to the ideal")
@@ -44,3 +46,5 @@ function default_ordering(F::FreeMod{T}) where {T<:MPolyQuoLocalizedRingElem}
   return default_ordering(base_ring_module(F))
 end
     
+subquo_type(::Type{RingType}) where {RingType<:Ring} = SubQuo{elem_type(RingType)}
+subquo_type(R::RingType) where {RingType<:Ring} = subquo_type(typeof(R))

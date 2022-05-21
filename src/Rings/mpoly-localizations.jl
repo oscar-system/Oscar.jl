@@ -9,14 +9,10 @@ export numerator, denominator, fraction, parent, isunit, divexact
 export reduce_fraction
 
 export MPolyLocalizedIdeal
-export gens, base_ring, groebner_bases, default_ordering, default_shift, dim, saturated_ideal, intersect, quotient
+export gens, base_ring, saturated_ideal, intersect, quotient
 
 export Localization, ideal
 export bring_to_common_denominator, write_as_linear_combination
-
-export LocalizedBiPolyArray
-export oscar_gens, oscar_ring, singular_gens, ordering, shift, shift_hom, inv_shift_hom, to_singular_side, to_oscar_side
-export groebner_basis
 
 export MPolyLocalizedRingHom
 export domain, codomain, images
@@ -940,7 +936,7 @@ mutable struct MPolyLocalizedRingElem{
     base_ring(parent(f)) == base_ring(W) || error(
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
-    if check
+    if check && !iszero(f) && !isunit(denominator(f))
       denominator(f) in inverted_set(W) || error("the given denominator is not admissible for this localization")
     end
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(W, f)
@@ -958,7 +954,7 @@ parent(a::MPolyLocalizedRingElem) = a.W
 fraction(a::MPolyLocalizedRingElem) = a.frac
 
 ### required conversions
-(W::MPolyLocalizedRing{
+function (W::MPolyLocalizedRing{
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -970,7 +966,9 @@ fraction(a::MPolyLocalizedRingElem) = a.frac
     RingType, 
     RingElemType<:RingElem, 
     MultSetType
-  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=check)
+  } 
+  return MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=false)
+end
 
 (W::MPolyLocalizedRing{
     BaseRingType, 
@@ -1481,19 +1479,33 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([b]), inverted_set(L))
   !success && return false
   # cache the intermediate result
-  extend_pre_saturated_ideal!(I, b, x, u)
+  extend_pre_saturated_ideal!(I, b, x, u, check=false)
   return success
 end
 
-function coordinates(a::RingElem, I::MPolyLocalizedIdeal)
+function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
   L = base_ring(I)
-  parent(a) == L || return coordinates(L(a), I)
-  a in I || error("the given element is not in the ideal")
+  parent(a) == L || return coordinates(L(a), I, check=check)
+  if check 
+    a in I || error("the given element is not in the ideal")
+  else
+    J = pre_saturated_ideal(I)
+    R = base_ring(J)
+    b = numerator(a)
+    if !(numerator(a) in J)
+      (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([b]), inverted_set(L), check=false)
+      !success && error("check for membership was disabled, but element is not in the ideal")
+      # cache the intermediate result
+      result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
+      extend_pre_saturated_ideal!(I, b, x, u, check=false)
+      return result
+    end
+  end
   p = numerator(a)
   q = denominator(a)
   # caching has been done during the call of `in`, so the following will work
   x = coordinates(p, pre_saturated_ideal(I))
-  return L(one(q), q)*change_base_ring(L, x)*pre_saturation_data(I)
+  return L(one(q), q, check=false)*change_base_ring(L, x)*pre_saturation_data(I)
 end
 
 
@@ -1535,16 +1547,44 @@ function pre_saturation_data(I::MPolyLocalizedIdeal)
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::PT, x::MatrixElem{PT}, u::PT
+    I::MPolyLocalizedIdeal, f::PT, x::MatrixElem{PT}, u::PT;
+    check::Bool=true
   ) where {PT <: MPolyElem}
   nrows(x) == 1 || error("matrix must be a row vector")
   L = base_ring(I)
   R = base_ring(L)
   J = pre_saturated_ideal(I)
-  u*f == dot(x, gens(J)) || error("input is not coherent")
+  if check
+    u*f == dot(x, gens(J)) || error("input is not coherent")
+  end
   J_ext = ideal(R, vcat(gens(J), [f]))
   T = pre_saturation_data(I)
   T_ext = vcat(T, L(one(u), u, check=false)*change_base_ring(L, x)*T)
+  I.pre_saturated_ideal = J_ext
+  I.pre_saturation_data = T_ext
+  return I
+end
+
+function extend_pre_saturated_ideal!(
+    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatrixElem{PT}, u::Vector{PT};
+    check::Bool=true
+  ) where {PT <: MPolyElem}
+  L = base_ring(I)
+  R = base_ring(L)
+  J = pre_saturated_ideal(I)
+  n = length(f)
+  n == length(u) == nrows(x) || error("input dimensions are not compatible")
+  if check
+    for i in 1:n
+      u[i]*f[i] == dot(x[i, :], gens(J)) || error("input is not coherent")
+    end
+  end
+  J_ext = ideal(R, vcat(gens(J), f))
+  T = pre_saturation_data(I)
+  T_ext = vcat(T, 
+               diagonal_matrix([L(one(v), v, check=false) for v in u])*
+               change_base_ring(L, x)*T
+              )
   I.pre_saturated_ideal = J_ext
   I.pre_saturation_data = T_ext
   return I
@@ -1594,15 +1634,57 @@ function saturated_ideal(
 end
 
 function saturated_ideal(
-    I::MPolyLocalizedIdeal{LRT} 
+    I::MPolyLocalizedIdeal{LRT};
+    strategy::Symbol=:iterative_saturation
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   if !is_saturated(I)
     L = base_ring(I)
     R = base_ring(L)
-    J = pre_saturated_ideal(I)
-    Jsat = saturation(J, ideal(R, prod(denominators(inverted_set(L)))))
-    for g in gens(Jsat) 
-      g in I # assures caching with transitions
+    if strategy==:iterative_saturation
+      for d in denominators(inverted_set(L))
+        Jsat = pre_saturated_ideal(I)
+        if !isunit(d) && !iszero(pre_saturated_ideal(I))
+          Jsat = saturation(pre_saturated_ideal(I), ideal(R, d))
+        end
+        cache = Vector()
+        for g in gens(Jsat)
+          (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
+          if k > 0
+            push!(cache, (g, coordinates(dttk*g, pre_saturated_ideal(I)), dttk))
+          end
+        end
+        if length(cache) > 0
+          extend_pre_saturated_ideal!(I, 
+                                      elem_type(R)[g for (g, x, u) in cache],
+                                      vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
+                                      [u for (g, x, u) in cache], 
+                                      check=false
+                                     )
+        end
+      end
+    elseif strategy==:single_saturation
+      d = prod(denominators(inverted_set(L)))
+      Jsat = pre_saturated_ideal(I)
+      if !isunit(d) && !iszero(pre_saturated_ideal(I))
+        Jsat = saturation(pre_saturated_ideal(I), ideal(R, d))
+      end
+      cache = Vector()
+      for g in gens(Jsat)
+        (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
+        if k > 0
+          push!(cache, (g, coordinates(dttk*g, pre_saturated_ideal(I)), dttk))
+        end
+      end
+      if length(cache) > 0
+        extend_pre_saturated_ideal!(I, 
+                                    elem_type(R)[g for (g, x, u) in cache],
+                                    vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
+                                    [u for (g, x, u) in cache], 
+                                    check=false
+                                   )
+      end
+    else
+      error("strategy $strategy not implemented")
     end
     I.is_saturated = true
   end
@@ -1628,6 +1710,20 @@ function saturated_ideal(
   return pre_saturated_ideal(I)
 end
 
+# the following overwrites the membership test 
+# assuming that direct computation of the saturation 
+# is cheaper when localizing at powers of elements.
+function Base.in(
+    a::RingElem, 
+    I::MPolyLocalizedIdeal{LocRingType}
+  ) where {
+    LocRingType<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}
+  }
+  L = base_ring(I)
+  parent(a) == L || return L(a) in I
+  b = numerator(a)
+  return b in saturated_ideal(I)
+end
 
 
 ### Conversion of ideals in the original ring to localized ideals
@@ -1686,40 +1782,10 @@ end
 
 # TODO: The following method can probably be fine tuned for specific localizations.
 function quotient(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  #return base_ring(I)(quotient(saturated_ideal(I), saturated_ideal(J)))
   return base_ring(I)(quotient(pre_saturated_ideal(I), pre_saturated_ideal(J)))
 end
 
-
-### Default constructors 
-# The ordering and the shifts are determined from the type of the multiplicative set
-LocalizedBiPolyArray(
-    I::MPolyLocalizedIdeal
-  ) = LocalizedBiPolyArray(base_ring(I), gens(I), default_shift(I), default_ordering(I).o)
-
-function LocalizedBiPolyArray(
-    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
-  ) where {BRT, BRET, RT, RET, MST} 
-  length(g) > 0 || error("need at least one element to determine the parent")
-  W = parent(g[1])
-  for f in g
-    parent(f) == W || error("elements do not belong to the same ring")
-  end
-  return LocalizedBiPolyArray(W, g, default_shift(W), default_ordering(W).o)
-end
-
-LocalizedBiPolyArray(
-    g::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
-   ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray([g])
-
-LocalizedBiPolyArray(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    I::MPolyIdeal{RET}
-  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), default_shift(W), default_ordering(W).o)
-
-LocalizedBiPolyArray(
-    W::MPolyLocalizedRing, 
-    I::Singular.sideal
-   ) = LocalizedBiPolyArray(W, I, default_shift(W), default_ordering(W).o, false)
 
 function Base.show(io::IO, I::MPolyLocalizedIdeal) 
   print(io, "ideal in $(base_ring(I)) generated by the elements ") 
