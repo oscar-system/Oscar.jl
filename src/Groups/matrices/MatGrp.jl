@@ -491,13 +491,11 @@ ncols(x::MatrixGroupElem) = ncols(matrix(x))
 
 
 """
-    trace(x::MatrixGroupElem)
     tr(x::MatrixGroupElem)
 
-Return the trace of `x`.
+Return the trace of the underlying matrix of `x`.
 """
-trace(x::MatrixGroupElem) = trace(x.elm)
-tr(x::MatrixGroupElem) = tr(x.elm)
+tr(x::MatrixGroupElem) = tr(matrix(x))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
