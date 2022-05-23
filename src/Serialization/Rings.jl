@@ -86,7 +86,7 @@ function load_internal(s::DeserializerState, ::Type{<: PolyElem}, dict::Dict)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs])
 
-    return polynomial(coeff_ring, coeffs, String(symbols(R)[1]))
+    return R(coeffs)
 end
 
 ################################################################################
