@@ -421,7 +421,7 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    # if the underlying GAP matrices are both defined, but not both Oscar matrices,
    # then use the GAP matrices.
    # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
-   # by the Base.getproperty(::MatrixGroupElem, ::Symbil) method .
+   # by the Base.getproperty(::MatrixGroupElem, ::Symbol) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return T(G, x.X*y.X)
    else
@@ -429,8 +429,8 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    end
 end
 
-Base.:*(x::MatrixGroupElem, y::fq_nmod_mat) = x.elm*y
-Base.:*(x::fq_nmod_mat, y::MatrixGroupElem) = x*y.elm
+Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = x.elm*y
+Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*y.elm
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
 
