@@ -29,7 +29,5 @@ function action_on_blocks(G::PermGroup, B::Vector{Int})
 end
 
 function action_on_block_system(G::PermGroup, B::Vector{Vector{Int}})
-  Omega = gset(G, on_sets, B)
-  set_attribute!(Omega, :elements => Omega.seeds)
-  return action_homomorphism(Omega)
+  return action_homomorphism(gset(G, on_sets, B; closed = true))
 end

@@ -1342,7 +1342,7 @@ function coimage(h::Map)
   return quo(domain(h), kernel(h)[1])
 end
 
-function Base.iterate(M::Generic.Submodule{<:FinFieldElem})
+function Base.iterate(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem
   k = base_ring(M)
   if dim(M) == 0
     return zero(M), iterate([1])
@@ -1352,16 +1352,24 @@ function Base.iterate(M::Generic.Submodule{<:FinFieldElem})
   return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
 end
 
-function Base.iterate(::AbstractAlgebra.Generic.Submodule{fq_nmod}, ::Tuple{Int64, Int64})
+function Base.iterate(::Union{Generic.FreeModule{fq_nmod}, Generic.Submodule{fq_nmod}}, ::Tuple{Int64, Int64})
   return nothing
 end
 
-function Base.iterate(M::Generic.Submodule{<:FinFieldElem}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator})
+function Base.iterate(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator}) where T <: FinFieldElem
   n = iterate(st[2], st[1])
   if n === nothing
     return n
   end
   return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
+end
+
+function Base.length(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem
+  return Int(order(base_ring(M))^dim(M))
+end
+
+function Base.eltype(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem
+  return elem_type(M)
 end
 
 """
