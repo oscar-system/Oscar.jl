@@ -66,6 +66,8 @@ function Base.in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {
   error("method not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
 
+Base.in(a, U::AbsMultSet) = (ambient_ring(U)(a) in U)
+
 ### iterator over the multiplicative set
 # This can (and should) be used to iterate over some set of generators 
 # of the multiplicative set whenever possible. For instance, this is 
