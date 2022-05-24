@@ -183,6 +183,7 @@ stack(A::AbstractVector,nothing) = permutedims(A)
 stack(nothing,B::AbstractVector) = permutedims(B)
 stack(x, y, z...) = stack(stack(x, y), z[1], z[2:end]...)
 stack(x) = stack(x, nothing)
+stack(x::Union{fmpq_mat, fmpz_mat}, ::Nothing) = x
 #=
 function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2

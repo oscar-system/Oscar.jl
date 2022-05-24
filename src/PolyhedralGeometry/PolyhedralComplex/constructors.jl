@@ -24,11 +24,11 @@ pm_object(pc::PolyhedralComplex) = pc.pm_complex
 # Arguments
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
   (i,j) if the ith polytope contains point j and 0 otherwise.
-- `vr::PointCollection`: The points whose convex hulls make up the polyhedral
+- `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up the polyhedral
   complex. This matrix also contains the far vertices.
 - `far_vertices::Vector{Int}`: Vector containing the indices of the rows
   corresponding to the far vertices in `vr`.
-- `L::RayCollection`: Generators of the lineality space of the polyhedral complex.
+- `L::AbstractCollection[RayVector]`: Generators of the lineality space of the polyhedral complex.
 
 A polyhedral complex formed from points, rays, and lineality combined into
 polyhedra indicated by an incidence matrix, where the columns represent the
@@ -55,9 +55,9 @@ A polyhedral complex in ambient dimension 2
 """
 function PolyhedralComplex{T}(
                 polyhedra::IncidenceMatrix, 
-                vr::PointCollection, 
+                vr::AbstractCollection[PointVector], 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
-                L::Union{RayCollection, Nothing} = nothing;
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
                 non_redundant::Bool = false
             ) where T<:scalar_types
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L

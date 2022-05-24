@@ -66,7 +66,7 @@ julia> vertices(P)
 """
 Polyhedron{T}(A::AnyVecOrMat, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron{T}(I::Union{Nothing, AffineHalfspaceCollection}, E::Union{Nothing, AffineHyperplaneCollection} = nothing) where T<:scalar_types
+function Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
         IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
@@ -102,9 +102,9 @@ Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
 
 # Arguments
-- `V::PointCollection`: Points whose convex hull is to be computed.
-- `R::RayCollection`: Rays completing the set of points.
-- `L::RayCollection`: Generators of the Lineality space.
+- `V::AbstractCollection[PointVector]`: Points whose convex hull is to be computed.
+- `R::AbstractCollection[RayVector]`: Rays completing the set of points.
+- `L::AbstractCollection[RayVector]`: Generators of the Lineality space.
 
 If an argument is given as a matrix, its content has to be encoded row-wise.
 
@@ -155,7 +155,7 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(::Type{T}, V::PointCollection, R::Union{RayCollection, Nothing} = nothing, L::Union{RayCollection, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function convex_hull(::Type{T}, V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
     points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))

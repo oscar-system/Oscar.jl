@@ -351,14 +351,12 @@ ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 ######## Unify matrices
 ################################################################################
 
-# homogenized_matrix -> matrix_for_polymake
-const RayCollection = AnyVecOrMat
-const PointCollection = AnyVecOrMat
-
-# linear_matrix_for_polymake
-const LinearHalfspaceCollection = Union{SubObjectIterator{<:Halfspace}, AnyVecOrMat}
-const LinearHyperplaneCollection = Union{SubObjectIterator{<:Hyperplane}, AnyVecOrMat}
-
-# affine_matrix_for_polymake
-const AffineHalfspaceCollection = Union{SubObjectIterator{<:Halfspace}, Tuple{AnyVecOrMat, Any}}
-const AffineHyperplaneCollection = Union{SubObjectIterator{<:Hyperplane}, Tuple{AnyVecOrMat, Any}}
+# vector-like types: (un-)homogenized_matrix -> matrix_for_polymake
+# linear types: linear_matrix_for_polymake 
+# affine types: affine_matrix_for_polymake
+const AbstractCollection = Dict{UnionAll, Union}([(PointVector, AnyVecOrMat),
+                                                    (RayVector, AnyVecOrMat),
+                                                    (LinearHalfspace, Union{SubObjectIterator{<:Halfspace}, AnyVecOrMat}),
+                                                    (LinearHyperplane, Union{SubObjectIterator{<:Hyperplane}, AnyVecOrMat}),
+                                                    (AffineHalfspace, Union{SubObjectIterator{<:Halfspace}, Tuple{<:AnyVecOrMat, <:Any}}),
+                                                    (AffineHyperplane, Union{SubObjectIterator{<:Hyperplane}, Tuple{<:AnyVecOrMat, <:Any}})])
