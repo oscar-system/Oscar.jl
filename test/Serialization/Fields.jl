@@ -73,5 +73,16 @@
             h_2 = hom(L, PF, h_1, gens(PF))
             @test h_2(elem) == elem_loaded
         end
+
+        @testset "Fraction Fields" begin
+            Qx, x = QQ["x"]
+            Fy, y = FractionField(Qx)["y"]
+            elem = 1 // x * y + x^2 * y
+            filename = joinpath(path, "ff.elem")
+            save(elem, filename)
+            loaded_elem = load(filename)
+            parent_field = parent(loaded_elem)
+            h = hom(Fy, parent_field, gens(parent_field))
+        end
     end
 end

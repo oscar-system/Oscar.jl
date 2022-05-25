@@ -155,7 +155,7 @@ function load_internal(s::DeserializerState,
                        dict::Dict)
     R, _ = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
     
-    return FractionField(R)
+    return FractionField(R, cached=false)
 end
 
 # elements 
