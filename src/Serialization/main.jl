@@ -172,7 +172,7 @@ end
 
 ################################################################################
 # Default generic save_internal, load_internal
-function save_internal(s::SerializerState, obj::T) where T
+function save_internal_generic(s::SerializerState, obj::T) where T
     result = Dict{Symbol, Any}()
     for n in fieldnames(T)
         if n != :__attrs
@@ -182,7 +182,7 @@ function save_internal(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
     for (n,t) in zip(fieldnames(T), fieldtypes(T))
         if n!= :__attrs

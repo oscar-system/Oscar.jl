@@ -44,4 +44,18 @@ function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dic
     return LinearProgram{T}(fr, lp, Symbol(conv))
 end
 
+# use generic serialization for the other types:
+save_internal(s::SerializerState, obj::Cone) = save_internal_generic(s, obj)
+load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Cone = load_internal_generic(s, T, dict)
 
+save_internal(s::SerializerState, obj::PolyhedralComplex) = save_internal_generic(s, obj)
+load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralComplex = load_internal_generic(s, T, dict)
+
+save_internal(s::SerializerState, obj::Polyhedron) = save_internal_generic(s, obj)
+load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Polyhedron = load_internal_generic(s, T, dict)
+
+save_internal(s::SerializerState, obj::PolyhedralFan) = save_internal_generic(s, obj)
+load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralFan = load_internal_generic(s, T, dict)
+
+save_internal(s::SerializerState, obj::SubdivisionOfPoints) = save_internal_generic(s, obj)
+load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: SubdivisionOfPoints = load_internal_generic(s, T, dict)
