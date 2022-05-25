@@ -524,12 +524,13 @@ true
 end
 
 # for convenience: create the G-set on the fly
+# (Here we assume that `Omega` is closed, this is dangerous.)
 function action_homomorphism(G::PermGroup, Omega)
-  return action_homomorphism(gset_by_type(G, Omega, eltype(Omega)))
+  return action_homomorphism(gset_by_type(G, Omega, eltype(Omega); closed = true))
 end
 
 function action_homomorphism(G::PermGroup, fun::Function, Omega)
-  return action_homomorphism(GSetByElements(G, fun, Omega))
+  return action_homomorphism(GSetByElements(G, fun, Omega, closed = true))
 end
 
 
