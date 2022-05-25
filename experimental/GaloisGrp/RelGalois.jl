@@ -34,7 +34,7 @@ function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
   C.prime = P
   C.f = f
   C.C = V
-  if Hecke.ismaximal_order_known(k)
+  if Hecke.is_maximal_order_known(k)
     den = k(1)
   else
     den = derivative(defining_polynomial(k))(gen(k))
@@ -64,7 +64,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
 
   local zk::NfOrd
   local den::nf_elem
-  if Hecke.ismaximal_order_known(k)
+  if Hecke.is_maximal_order_known(k)
     zk = maximal_order(k)
     if isdefined(zk, :lllO)
       zk = zk.lllO::NfOrd
@@ -81,7 +81,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
   while true
     @vprint :PolyFactor 3 "Trying with $p\n "
     p = next_prime(p)
-    if !Hecke.isprime_nice(zk, p)
+    if !Hecke.is_prime_nice(zk, p)
       continue
     end
     P = prime_decomposition(zk, p, 1) #not quite sure... but lets stick with it
@@ -94,7 +94,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
     if degree(fp) < degree(f) || iszero(constant_coefficient(fp)) 
       continue
     end
-    if !issquarefree(fp)
+    if !is_squarefree(fp)
       continue
     end
     lf = factor_shape(fp)
@@ -127,7 +127,7 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0)
 
   if an_sn_by_shape(ct, degree(K))
     @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
-    if issquare(discriminant(K))
+    if is_square(discriminant(K))
       G = alternating_group(degree(K))
     else
       G = symmetric_group(degree(K))

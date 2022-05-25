@@ -248,7 +248,7 @@ function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP
 end
 
 function _iso_oscar_gap(FO::AnticNumberField)
-   flag, N = Hecke.iscyclotomic_type(FO)
+   flag, N = Hecke.is_cyclotomic_type(FO)
    flag || error("$FO is not a cyclotomic field")
 
    FG = GAPWrap.CF(GAP.Obj(N))

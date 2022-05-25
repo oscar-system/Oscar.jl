@@ -58,15 +58,15 @@ end
   @test image(i)[1] == M1
 
   P,i = intersect(SubQuo(F2, A1, B1), SubQuo(F2, A2, B1))
-  @test iswelldefined(i)
-  @test isinjective(i)
+  @test is_welldefined(i)
+  @test is_injective(i)
   @test SubQuo(F2, res, B1) == P #macaulay2
 
   A1 = R[x y; x^2 y^2]
   A2 = R[x+x^2 y+y^2]
   P,i = intersect(SubQuo(F2, A1,B1), SubQuo(F2, A2,B1))
-  @test iswelldefined(i)
-  @test isinjective(i)
+  @test is_welldefined(i)
+  @test is_injective(i)
   @test SubQuo(F2, A2, B1) == P
 
   #Test that no obvious zeros are in the generator set
@@ -98,10 +98,10 @@ end
 
 		pres_SQ, i = present_as_cokernel(SQ, :both)
 		p = i.inverse_isomorphism
-		@test iswelldefined(i)
-		@test iswelldefined(p)
-		@test isbijective(i)
-		@test isbijective(p)
+		@test is_welldefined(i)
+		@test is_welldefined(p)
+		@test is_bijective(i)
+		@test is_bijective(p)
 	end
 
 
@@ -118,10 +118,10 @@ end
 
 		pres_SQ, i = present_as_cokernel(SQ, :both)
     	p = i.inverse_isomorphism
-		@test iswelldefined(i)
-		@test iswelldefined(p)
-		@test isbijective(i)
-		@test isbijective(p)
+		@test is_welldefined(i)
+		@test is_welldefined(p)
+		@test is_bijective(i)
+		@test is_bijective(p)
 	end
 end
 
@@ -196,10 +196,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
@@ -212,10 +212,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
@@ -229,10 +229,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	M1 = SubQuo(B1,A1)
 	M2,i2,p2 = simplify(M1)
@@ -243,10 +243,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 end
 
 @testset "quotient modules" begin
@@ -404,7 +404,7 @@ end
 			v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
 			H = HomNM(v)
 			H = homomorphism(H)
-			@test iswelldefined(H)
+			@test is_welldefined(H)
 		end
 	end
 end
@@ -442,7 +442,7 @@ end
 		N,pure_N = tensor_product(M3,F4, task=:map)
 
 		M3_to_M1 = SubQuoHom(M3,M1, matrix([randpoly(R,0:2,2,2) for i=1:ngens(M3), j=1:ngens(M1)]))
-		@assert iswelldefined(M3_to_M1)
+		@assert is_welldefined(M3_to_M1)
 		F4_to_M2 = FreeModuleHom(F4,M2, matrix([randpoly(R,0:2,2,2) for i=1:ngens(F4), j=1:ngens(M2)]))
 
 		phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
@@ -509,10 +509,10 @@ end
 	M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : homomorphism(H12[1])
 	M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : homomorphism(H21[1])
 	M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
-	@assert iswelldefined(M1_to_N1)
-	@assert iswelldefined(M1_to_N2)
-	@assert iswelldefined(M2_to_N1)
-	@assert iswelldefined(M2_to_N2)
+	@assert is_welldefined(M1_to_N1)
+	@assert is_welldefined(M1_to_N2)
+	@assert is_welldefined(M2_to_N1)
+	@assert is_welldefined(M2_to_N2)
 
 	phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
 	for g in gens(M1)
@@ -586,7 +586,7 @@ end
 	M = SubQuo(F2,A1,B1)
 	N, H = present_as_cokernel(M, :cache_morphism)
 	Hinv = H.inverse_isomorphism
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -596,8 +596,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H))
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -611,7 +611,7 @@ end
 	#######################################################################
 
 	# test, if H is bijective with inverse Hinv:
-	@test isbijective(H)
+	@test is_bijective(H)
 	@test all([inv(H)(H(g))==g for g in gens(N)])
 	@test all([H(inv(H)(g))==g for g in gens(M)])
 	@test inv(H) === Hinv
@@ -621,7 +621,7 @@ end
 
 	#2) H: N --> M = N/(submodule of N) canonical projection
 	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:cache_morphism)
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
     ## test additon/subtraction of morphisms
     H_1 = H+H-H
@@ -637,8 +637,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -667,7 +667,7 @@ end
 	N,iN = sub(NN,[NN(sparse_row(u1)), NN(sparse_row(u2)), NN(sparse_row(u3))], :cache_morphism)
 	
 	H = restrict_domain(p1*iM,N)
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -677,8 +677,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -700,7 +700,7 @@ end
 	u1 = R[x^2*y^2 4*x^2*y^2 0 5*x*y^2]
 	H = HomNM(sparse_row(u1))
 	H = homomorphism(H)
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -710,8 +710,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 

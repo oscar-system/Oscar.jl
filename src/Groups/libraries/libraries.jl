@@ -23,17 +23,17 @@ end
 
 function __init_group_libraries()
   props = [
-    isabelian => GAP.Globals.IsAbelian,
-    isalmostsimple => GAP.Globals.IsAlmostSimpleGroup,
-    iscyclic => GAP.Globals.IsCyclic,
+    is_abelian => GAP.Globals.IsAbelian,
+    is_almostsimple => GAP.Globals.IsAlmostSimpleGroup,
+    is_cyclic => GAP.Globals.IsCyclic,
     is_duplicate_table => GAP.Globals.IsDuplicateTable,  # TODO: should be moved into a separate list
-    isnilpotent => GAP.Globals.IsNilpotentGroup,
-    isperfect => GAP.Globals.IsPerfectGroup,
+    is_nilpotent => GAP.Globals.IsNilpotentGroup,
+    is_perfect => GAP.Globals.IsPerfectGroup,
     is_quasisimple => GAP.Globals.IsQuasisimple,
-    issimple => GAP.Globals.IsSimpleGroup,
+    is_simple => GAP.Globals.IsSimpleGroup,
     is_sporadic_simple => GAP.Globals.IsSporadicSimple,
-    issolvable => GAP.Globals.IsSolvableGroup,
-    issupersolvable => GAP.Globals.IsSupersolvableGroup,
+    is_solvable => GAP.Globals.IsSolvableGroup,
+    is_supersolvable => GAP.Globals.IsSupersolvableGroup,
   ]
 
   empty!(_group_filter_attrs)
@@ -48,8 +48,8 @@ function __init_group_libraries()
 #  _add_bool_attr(_ctbl_filter_attrs, is_duplicate_table, GAP.Globals.IsDuplicateTable)
 
   copy!(_permgroup_filter_attrs, _group_filter_attrs)
-  _add_bool_attr(_permgroup_filter_attrs, istransitive, GAP.Globals.IsTransitive)
-  _add_bool_attr(_permgroup_filter_attrs, isprimitive, GAP.Globals.IsPrimitive)
+  _add_bool_attr(_permgroup_filter_attrs, is_transitive, GAP.Globals.IsTransitive)
+  _add_bool_attr(_permgroup_filter_attrs, is_primitive, GAP.Globals.IsPrimitive)
   _permgroup_filter_attrs[number_moved_points] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
   _permgroup_filter_attrs[degree] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
   _permgroup_filter_attrs[transitivity] = (_IntOrIntVec, GAP.Globals.Transitivity, nothing)
@@ -73,14 +73,14 @@ function translate_group_library_args(args::Tuple; permgroups::Bool=false)
    gapargs = []
    for arg in args
       if arg isa Pair
-         # handle e.g. `isabelian => false`
+         # handle e.g. `is_abelian => false`
          func = arg[1]
          data = arg[2]
          expected_type, gapfunc, _ = find_index_function(func, permgroups)
          data isa expected_type || throw(ArgumentError("bad argument $(arg[2]) for function $(func)"))
          push!(gapargs, gapfunc, GAP.Obj(data))
       elseif arg isa Function
-         # handle e.g. `isabelian` or `isabelian, false`
+         # handle e.g. `is_abelian` or `is_abelian, false`
          func = arg
          expected_type, gapfunc, default = find_index_function(func, permgroups)
          default !== nothing || throw(ArgumentError("missing argument for function $(func)"))

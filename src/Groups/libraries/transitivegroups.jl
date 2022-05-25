@@ -126,10 +126,10 @@ true
 julia> S = sub(G, [gap_perm([1, 3, 4, 5, 2])])[1]
 Group([ (2,3,4,5) ])
 
-julia> istransitive(S)
+julia> is_transitive(S)
 false
 
-julia> istransitive(S, moved_points(S))
+julia> is_transitive(S, moved_points(S))
 true
 
 julia> m = transitive_group_identification(S)
@@ -149,14 +149,12 @@ ERROR: group is not transitive on its moved points
 """
 function transitive_group_identification(G::PermGroup)
   moved = moved_points(G)
-  istransitive(G, moved) || error("group is not transitive on its moved points")
+  is_transitive(G, moved) || error("group is not transitive on its moved points")
   deg = length(moved)
   has_transitive_groups(deg) || error("identification of transitive groups of degree $(deg) are not available")
   res = GAP.Globals.TransitiveIdentification(G.X)::Int
   return deg, res
 end
-
-@deprecate transitive_identification(x) transitive_group_identification(x)[1]
 
 """
     all_transitive_groups(L...)
@@ -172,18 +170,18 @@ may be of one of the following forms:
 
 The following functions are currently supported as values for `func`:
 - `degree`
-- `isabelian`
-- `isalmostsimple`
-- `iscyclic`
-- `isnilpotent`
-- `isperfect`
-- `isprimitive`
+- `is_abelian`
+- `is_almostsimple`
+- `is_cyclic`
+- `is_nilpotent`
+- `is_perfect`
+- `is_primitive`
 - `is_quasisimple`
-- `issimple`
+- `is_simple`
 - `is_sporadic_simple`
-- `issolvable`
-- `issupersolvable`
-- `istransitive`
+- `is_solvable`
+- `is_supersolvable`
+- `is_transitive`
 - `number_conjugacy_classes`
 - `number_moved_points`
 - `order`
@@ -193,7 +191,7 @@ The type of the returned groups is `PermGroup`.
 
 # Examples
 ```jldoctest
-julia> all_transitive_groups(degree => 3:5, isabelian)
+julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
  A3
  C(4) = 4

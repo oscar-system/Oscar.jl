@@ -34,10 +34,10 @@ $0<q<n$ and $q,n$ coprime.
 julia> cqs = CyclicQuotientSingularity(7,5)
 The cyclic quotient singularity Y(7, 5)
 
-julia> isaffine(cqs)
+julia> is_affine(cqs)
 true
 
-julia> issmooth(cqs)
+julia> is_smooth(cqs)
 false
 ```
 """

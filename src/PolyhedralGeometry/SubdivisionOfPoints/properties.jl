@@ -222,7 +222,7 @@ end
 ###############################################################################
 
 """
-    isregular(SOP::SubdivisionOfPoints)
+    is_regular(SOP::SubdivisionOfPoints)
 
 Determine whether `SOP` is regular, i.e. can be given via a height function.
 
@@ -236,13 +236,13 @@ julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],
 
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
 
-julia> isregular(MOAE)
+julia> is_regular(MOAE)
 false
 
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
 
-julia> isregular(SOP)
+julia> is_regular(SOP)
 true
 ```
 """
-isregular(SOP::SubdivisionOfPoints) = pm_object(SOP).REGULAR::Bool
+is_regular(SOP::SubdivisionOfPoints) = pm_object(SOP).REGULAR::Bool

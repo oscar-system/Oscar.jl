@@ -39,7 +39,7 @@ julia> G,_=quo(F,[f1^2,f2^3,(f1*f2)^2]);
 julia> isfinite(G)
 true
 
-julia> isisomorphic(G,symmetric_group(3))
+julia> is_isomorphic(G,symmetric_group(3))
 true
 ```
 Similarly to the subgroups, the output consists of a pair (`Q`,`p`), where `Q` is the quotient group and `p` is the projection homomorphism of `G` into `Q`.

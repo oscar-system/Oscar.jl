@@ -30,8 +30,8 @@
    C1 = secondary_cone(SOP1)
 
     @testset "core functionality" begin
-        @test !isregular(MOAE)
-        @test isregular(SOP0)
+        @test !is_regular(MOAE)
+        @test is_regular(SOP0)
         @test n_maximal_cells(MOAE) == 7
         @test n_maximal_cells(SOP0) == 1
         @test n_maximal_cells(SOP1) == 1

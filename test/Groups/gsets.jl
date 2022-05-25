@@ -6,42 +6,42 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [Set([1, 2])])  # action on unordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [[1, 2]])  # action on ordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [(1, 2)])  # action on ordered pairs (repres. by tuples)
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   # constructions by explicit action functions
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   @test isa(Omega, GSet)
   @test length(Omega) == 740
   @test length(orbits(Omega)) == 2
-  @test ! istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
   f = x[1]*x[2] + x[2]*x[3]
@@ -50,9 +50,9 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 3
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -120,11 +120,11 @@
   @test haspreimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
 
-  # isconjugate
+  # is_conjugate
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  @test isconjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
-  @test ! isconjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
+  @test is_conjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
+  @test ! is_conjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
 
   # representative_action
   G = symmetric_group(6)
@@ -154,25 +154,25 @@ end
   @test elements(bl) == [[1, 8], [2, 3], [4, 5], [6, 7]]
   @test elements(bl) == elements(blocks(G8, 1:degree(G8)))
 
-  # isprimitive
-  @test ! isprimitive(G8)
-  @test ! isprimitive(G8, 1:degree(G8))
-  @test isprimitive(S4)
-  @test isprimitive(S4, 1:3)
+  # is_primitive
+  @test ! is_primitive(G8)
+  @test ! is_primitive(G8, 1:degree(G8))
+  @test is_primitive(S4)
+  @test is_primitive(S4, 1:3)
 
-  # isregular
-  @test isregular(G8)
-  @test ! isregular(G8, 1:9)
-  @test ! isregular(S4)
+  # is_regular
+  @test is_regular(G8)
+  @test ! is_regular(G8, 1:9)
+  @test ! is_regular(S4)
 
-  # issemiregular
-  @test issemiregular(G8)
-  @test ! issemiregular(G8, 1:9)
-  @test ! issemiregular(S4)
+  # is_semiregular
+  @test is_semiregular(G8)
+  @test ! is_semiregular(G8, 1:9)
+  @test ! is_semiregular(S4)
 
-  # istransitive
-  @test istransitive(G8)
-  @test ! istransitive(G8, 1:9)
+  # is_transitive
+  @test is_transitive(G8)
+  @test ! is_transitive(G8, 1:9)
 
   # maximal_blocks
   bl = maximal_blocks(G8)

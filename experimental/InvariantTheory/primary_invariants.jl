@@ -21,7 +21,7 @@ function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int
     if !isinteger(c)
       return false
     end
-    if !ismodular(R) && c < 0
+    if !is_modular(R) && c < 0
       return false
     end
   end
@@ -85,7 +85,7 @@ function candidates_primary_degrees(R::InvRing, k::Int, bad_prefixes::Vector{Vec
     end
     skip ? continue : nothing
 
-    if ismolien_series_implemented(R)
+    if is_molien_series_implemented(R)
       if !test_primary_degrees_via_hilbert_series(R, ds)
         continue
       end
@@ -311,7 +311,7 @@ end
 
 function _primary_invariants_via_successive_algo(IR::InvRing)
   P = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
-  if !ismodular(IR)
+  if !is_modular(IR)
     P = P[1]
   end
   R = polynomial_ring(IR)

@@ -1,7 +1,7 @@
 #module MPolyModule
 
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
-       jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
+       jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime
 
 ##############################################################################
 #
@@ -156,7 +156,7 @@ using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
        matrix_ordering, weights, MonomialOrdering, singular,
-       isglobal, islocal, ismixed
+       is_global, is_local, is_mixed
 
 
 ##############################################################################
@@ -860,7 +860,7 @@ end
 =#
 
 # generic fallback since this is not implemented specifically anywhere yet
-function isirreducible(a::MPolyElem)
+function is_irreducible(a::MPolyElem)
   af = factor(a)
   return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
 end
