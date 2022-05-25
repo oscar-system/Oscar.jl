@@ -14,5 +14,6 @@ include("Schemes/ProjectiveSchemes.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/IdealSheaves.jl")
 include("Schemes/CoherentSheaves.jl")
+include("Schemes/CoveredProjectiveSchemes.jl")
 
 include("Matrix/matrix.jl")

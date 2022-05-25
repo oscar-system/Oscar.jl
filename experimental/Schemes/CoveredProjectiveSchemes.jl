@@ -242,7 +242,7 @@ function blow_up(
     C = default_covering(covered_ambient)
     SpecType = affine_patch_type(covered_ambient)
     PolyType = poly_type(SpecType)
-    Idict = Dict{SpecType, Vector{PolyType}}()
+    Idict = Dict{SpecType, ideal_type(ring_type(SpecType))}()
     @show I
     for i in 1:npatches(C)
       @show i
@@ -250,7 +250,7 @@ function blow_up(
       phi = pullback(ambient_projection_map[C[i]])
       loc_eqns = vcat([v[j]*phi(I[i])-phi(I[j]) for j in 1:i-1], [v[j]*phi(I[i])-phi(I[j+1]) for j in i:length(I)-1])
       @show loc_eqns
-      Idict[C[i]] = lifted_numerator.(loc_eqns)
+      Idict[C[i]] = ideal(OO(C[i]), loc_eqns)
     end
     Itrans = IdealSheaf(covered_ambient, C, Idict, check=false)
     covered_version = subscheme(Itrans)

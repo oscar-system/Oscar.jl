@@ -88,7 +88,7 @@
 #  IB0_alt = IdealSheaf(PW, f)
 #  return
   
-  Z = subscheme(IB0)
+  #Z = subscheme(IB0)
 #  CZ = default_covering(Z)
 #  for i in 1:npatches(CZ)
 #    U = CZ[i]
@@ -118,7 +118,7 @@
 #D = as_smooth_local_complete_intersection(PW_cov[1][2], IB0[PW_cov[1][2]], verbose=true)
 #(P, PC, p, E) = blow_up(PW_cov[1][2], collect(values(D))[1][2], is_regular_sequence=true)
 #IB0_prep = as_smooth_lci(IB0, verbose=true, check=false)
-(P, PC, p, E) = blow_up(PW_cov[1][1], IB0[PW_cov[1][1]], var_names=var_names_V1, is_regular_sequence=true)
+(P, PC, p, E) = blow_up(PW_cov[1][1], lifted_numerator.(gens(IB0[PW_cov[1][1]])), var_names=var_names_V1, is_regular_sequence=true)
 #(P, PC, p, E) = blow_up(PW_cov[1][2], collect(values(D))[1][2])
 U = PC[1][1]
 #as_smooth_lci_of_cod(U, 6, verbose=true)
