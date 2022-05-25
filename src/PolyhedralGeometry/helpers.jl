@@ -136,8 +136,10 @@ homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) = stack((ho
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
 
-unhomogenized_matrix(x::Union{AbstractVecOrMat,MatElem}) = assure_matrix_polymake(stack(x))
-unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) = unhomogenized_matrix(stack((x[i] for i in 1:length(x))...))
+unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
+unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
+unhomogenized_matrix(x::MatElem) = Matrix(assure_matrix_polymake(x))
+unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) = unhomogenized_matrix(stack(x...))
 
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
@@ -173,17 +175,17 @@ julia> stack([1 2], [])
  1  2
 ```
 """
-stack(A::AbstractMatrix,nothing) = A
-stack(nothing,B::AbstractMatrix) = B
+stack(A::AbstractMatrix, ::Nothing) = A
+stack(::Nothing, B::AbstractMatrix) = B
 stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
 stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; permutedims(B)]
 stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [permutedims(A); B]
 stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [permutedims(A); permutedims(B)]
-stack(A::AbstractVector,nothing) = permutedims(A)
-stack(nothing,B::AbstractVector) = permutedims(B)
-stack(x, y, z...) = stack(stack(x, y), z[1], z[2:end]...)
+stack(A::AbstractVector, ::Nothing) = permutedims(A)
+stack(::Nothing, B::AbstractVector) = permutedims(B)
+stack(x, y, z...) = stack(stack(x, y), z...)
 stack(x) = stack(x, nothing)
-stack(x::Union{fmpq_mat, fmpz_mat}, ::Nothing) = x
+# stack(x::Union{fmpq_mat, fmpz_mat}, ::Nothing) = x
 #=
 function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2
