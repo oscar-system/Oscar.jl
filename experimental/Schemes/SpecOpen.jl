@@ -204,7 +204,8 @@ function intersect(
   )
   X = ambient(U)
   base_ring(OO(X)) === base_ring(OO(Y)) || error("Schemes can not be compared")
-  if !issubset(Y, X)
+  X == Y && return SpecOpen(Y, gens(U), check=check)
+  if check && !issubset(Y, X)
     Y = intersect(Y, X)
   end
   return SpecOpen(Y, gens(U), check=check)

@@ -876,6 +876,7 @@ function simplify!(X::CoveredScheme)
   C = default_covering(X)
   Csimp, i, j = simplify(C)
   push!(coverings(X), Csimp)
+  @infiltrate
   refinements(X)[(C, Csimp)] = j
   refinements(X)[(Csimp, C)] = i
   return (X, Csimp)

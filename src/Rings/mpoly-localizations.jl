@@ -1751,31 +1751,23 @@ end
 
 ### required constructors 
 function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, [f])
-end
-
-function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
-  ) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, gens)
-end
-
-function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    f::RET
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyLocalizedRing, f
+  )
   return MPolyLocalizedIdeal(W, [W(f)])
 end
 
 function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    gens::Vector{RET}
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyLocalizedRing,
+    gens::Vector
+  )
   return MPolyLocalizedIdeal(W, W.(gens))
+end
+
+function ideal(
+    W::MPolyLocalizedRing,
+    I::Ideal
+  )
+  return MPolyLocalizedIdeal(W, W.(gens(I)))
 end
 
 ### additional functionality

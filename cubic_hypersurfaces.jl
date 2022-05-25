@@ -124,7 +124,9 @@ U = PC[1][1]
 #as_smooth_lci_of_cod(U, 6, verbose=true)
 
 #l = _non_degeneration_cover(U, jacobi_matrix(gens(modulus(OO(U)))), 6, check=false, verbose=true);
+println("simplifying the cover")
 _, CS = simplify!(PC)
+println("done")
 
 
 S = homogeneous_coordinate_ring(P)

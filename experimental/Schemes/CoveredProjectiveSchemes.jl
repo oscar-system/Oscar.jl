@@ -251,14 +251,22 @@ function blow_up(
       loc_eqns = vcat([v[j]*phi(I[i])-phi(I[j]) for j in 1:i-1], [v[j]*phi(I[i])-phi(I[j+1]) for j in i:length(I)-1])
       @show loc_eqns
       Idict[C[i]] = ideal(OO(C[i]), loc_eqns)
+      @show "ideal saved"
     end
+    @show "computing ideal sheaf"
     Itrans = IdealSheaf(covered_ambient, C, Idict, check=false)
+    @show "computation done; getting subscheme"
     covered_version = subscheme(Itrans)
+    @show "computation done"
     set_attribute!(projective_version, :as_covered_scheme, covered_version)
+    @show "computing a default covering"
     set_attribute!(projective_version, :standard_covering, default_covering(covered_version))
+    @show "done"
 
     proj_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+    @show "doing some other stuff"
     for i in 1:length(I)
+      @show i
       Z = patches(default_covering(covered_version))[i]
       U = patches(default_covering(covered_ambient))[i]
       proj_dict[Z] = restrict(ambient_projection_map[U], Z, codomain(ambient_projection_map[U]), check=false)
@@ -267,11 +275,11 @@ function blow_up(
     projection_map = CoveringMorphism(default_covering(covered_version), Covering(W), proj_dict)
     set_attribute!(projective_version, :covered_projection_to_base, projection_map)
     @show 3
-    E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
+    E_dict = Dict{affine_patch_type(covered_version), ideal_type(ring_type(affine_patch_type(covered_version)))}()
     for i in 1:length(I)
       @show i
       U = default_covering(covered_version)[i]
-      E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
+      E_dict[U] = ideal(OO(U), pullback(projection_map[U])(I[i]))
     end
     @show 4
     exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)

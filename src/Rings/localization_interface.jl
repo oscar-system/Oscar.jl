@@ -462,31 +462,11 @@ function base_ring(I::AbsLocalizedIdeal)
 end
 
 ### required constructors
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType} 
-  ) where {RingType, RingElemType, MultSetType}
+function ideal(W::AbsLocalizedRing, f)
   error("`ideal(W, f)` has not been implemented for `W` of type $(typeof(W)) and `f` of type $(typeof(f))")
 end
 
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    v::Vector{AbsLocalizedRingElem{RingType, RingElemType, MultSetType}}
-  ) where {RingType, RingElemType, MultSetType}
-  error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
-end
-
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    f::RingElemType 
-  ) where {RingType, RingElemType, MultSetType}
-  error("`ideal(W, f)` has not been implemented for `W` of type $(typeof(W)) and `f` of type $(typeof(f))")
-end
-
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    v::Vector{RingElemType}
-  ) where {RingType, RingElemType, MultSetType}
+function ideal(W::AbsLocalizedRing, v::Vector)
   error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
 end
 
