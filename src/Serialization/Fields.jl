@@ -140,3 +140,41 @@ function load_internal(s::DeserializerState,
 
     return K(polynomial)
 end
+
+
+################################################################################
+# FracField
+function save_internal(s::SerializerState, K::FracField) 
+    return Dict(
+        :base_ring => save_type_dispatch(s, base_ring(K)),
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: FracField},
+                       dict::Dict)
+    R, _ = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
+    
+    return FractionField(R)
+end
+
+# elements 
+function save_internal(s::SerializerState, f::Frac)
+    parent_dict = save_type_dispatch(s, parent(f))
+    return Dict(
+        :parent => parent_dict,
+        :den => save_type_dispatch(s, denominator(f)),
+        :num => save_type_dispatch(s, numerator(f))
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: Frac},
+                       dict::Dict)
+    R = load_type_dispatch(s, dict[:parent], check_namespace=false)
+    num = load_type_dispatch(s, dict[:num], check_namespace=false)
+    den = load_type_dispatch(s, dict[:den], check_namespace=false)
+    
+    return num // den
+end
+
