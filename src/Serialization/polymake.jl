@@ -28,7 +28,7 @@ const polymake2OscarTypes = Dict{String, Type}([
 function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
         S<:scalar_types,
         T<:Union{Cone{S}, Polyhedron{S}, PolyhedralFan{S}, 
-            PolyhedralComplex{S}, SubdivisionOfPoints{S}}}
+            PolyhedralComplex{S}, SubdivisionOfPoints{S}, SimplicialComplex}}
     
     inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
     return T(inner_object)
