@@ -25,13 +25,6 @@ end
 
 
 const backref_sym = Symbol("#backref")
-function backref(ref::UUID)
-   return Dict(
-     :type=>backref_sym,
-     :version=>1, # ???
-     :id=>string(ref),
-     )
-end
 
 ################################################################################
 # Version info
@@ -101,21 +94,29 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
-        ref !== nothing && return backref(ref)
+        if ref !== nothing
+            return Dict{Symbol, Any}(
+              :type => backref_sym,
+              :id => string(ref),
+              :version => 1, # ???
+              )
+        end
         # otherwise, 
         ref = s.objmap[obj] = uuid4()
     else
-        ref = -1
+        ref = nothing
     end
-    # invoke the actual serializer
-    encodedType = encodeType(T)
-    s.depth += 1
-    result = Dict{Symbol, Any}(
-        :type => encodedType,
-        :id => string(ref),
-        :data => save_internal(s, obj),
-    )
-    s.depth -= 1
+
+    result = Dict{Symbol, Any}(:type => encodeType(T))
+    if ref !== nothing
+        result[:id] = string(ref)
+    end
+    if !Base.issingletontype(T)
+        s.depth += 1
+        # invoke the actual serializer
+        result[:data] = save_internal(s, obj)
+        s.depth -= 1
+    end
     if s.depth == 0
         result[:_ns] = versionInfo
     end
@@ -132,9 +133,8 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
     #decodedType = decodeType(dict[:type])
 
     result = load_internal(s, T, dict[:data])
-    id = dict[:id]
-    if id != "-1"
-        s.objs[UUID(id)] = result
+    if haskey(dict, :id)
+        s.objs[UUID(dict[:id])] = result
     end
     return result
 end
