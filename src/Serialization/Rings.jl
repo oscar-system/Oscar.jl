@@ -39,7 +39,7 @@ function load_internal(s::DeserializerState,
                        T::Type{<: Union{MPolyRing, PolyRing}},
                        dict::Dict)
     base_ring = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
-    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
+    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
 
     if T <: PolyRing
         return PolynomialRing(base_ring, symbols..., cached=false)

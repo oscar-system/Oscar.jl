@@ -57,12 +57,12 @@ function save_internal(s::SerializerState, K::SimpleNumField)
         :var => save_type_dispatch(s, String(var(K)))
     )
 end
- 
+
 function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Dict)
     def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
     var = load_type_dispatch(s, dict[:var], check_namespace=false)
     K, _ = NumberField(def_pol, var, cached=false)
-    
+
     return K
 end
 
@@ -77,16 +77,16 @@ end
 function load_internal(s::DeserializerState, ::Type{FqNmodFiniteField}, dict::Dict)
     def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
     K, _ = FiniteField(def_pol, cached=false)
-    
+
     return K
 end
 
 #elements
-function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem}) 
+function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
     K_dict = save_type_dispatch(s, K)
-    
+
     return Dict(
         :parent => K_dict,
         :polynomial => save_type_dispatch(s, polynomial)
@@ -144,7 +144,7 @@ end
 
 ################################################################################
 # FracField
-function save_internal(s::SerializerState, K::FracField) 
+function save_internal(s::SerializerState, K::FracField)
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(K)),
     )
@@ -154,11 +154,11 @@ function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
     R, _ = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
-    
+
     return FractionField(R, cached=false)
 end
 
-# elements 
+# elements
 function save_internal(s::SerializerState, f::FracElem)
     parent_dict = save_type_dispatch(s, parent(f))
     return Dict(
@@ -177,4 +177,3 @@ function load_internal(s::DeserializerState,
 
     return R(num) // R(den)
 end
-
