@@ -51,7 +51,10 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
-    R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
+
+    # We want to use divrem w.r.t. degrevlex e.g. for the computation of
+    # secondary invariants
+    R, = grade(PolynomialRing(K, "x" => 1:n, cached = false, ordering = :degrevlex)[1], ones(Int, n))
     R_sing = singular_poly_ring(R)
     if ActionT <: PermGroupElem
       m_action = [permutation_matrix(K, p) for p in action]
