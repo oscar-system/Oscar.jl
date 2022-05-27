@@ -3,7 +3,7 @@ export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_ty
 export projective_space, subscheme
 export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
 export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
-export fiber_product, inclusion_map
+export fiber_product, inclusion_map, identity_map
 
 export ==
 
@@ -644,6 +644,18 @@ end
 
 ### additional constructors
 
+function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
+  R = base_ring(P) 
+  R == domain(f) || error("rings not compatible")
+  Rnew = codomain(f)
+  S = homog_poly_ring(P)
+  Qambient = projective_space(Rnew, symbols(S))
+  Snew = homog_poly_ring(Qambient)
+  phi = hom(S, Snew, f, gens(Snew))
+  Q = subscheme(Qambient, phi(defining_ideal(P)))
+  return Q, ProjectiveSchemeMor(Q, P, hom(S, homog_poly_ring(Q), f, gens(homog_poly_ring(Q))))
+end
+
 function fiber_product(f::SpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRing})
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
   X = domain(f)
@@ -699,6 +711,13 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:AbstractAlgebra.
                                 )
                             )
 end
+
+identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P, 
+                                                        hom(homog_poly_ring(P),
+                                                            homog_poly_ring(P),
+                                                            gens(homog_poly_ring(P))
+                                                           )
+                                                       )
 
 function as_covered_scheme(P::ProjectiveScheme)
   if !has_attribute(P, :as_covered_scheme) 

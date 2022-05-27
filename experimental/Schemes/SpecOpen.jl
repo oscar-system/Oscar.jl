@@ -490,17 +490,17 @@ function *(a::T, b::T) where {T<:SpecOpenRingElem}
   return SpecOpenRingElem(parent(a), [a[i] * b[i] for i in 1:length(restrictions(a))], check=false)
 end
 
-function *(a::RingElem, b::T) where {T<:SpecOpenRingElem}
-  return b*(parent(b)(a))
-end
+#function *(a::RingElem, b::T) where {T<:SpecOpenRingElem}
+#  return b*(parent(b)(a))
+#end
 
 function *(a::Integer, b::T) where {T<:SpecOpenRingElem}
   return b*(parent(b)(a))
 end
 
-function *(b::T, a::RingElem) where {T<:SpecOpenRingElem}
-  return a*b
-end
+#function *(b::T, a::RingElem) where {T<:SpecOpenRingElem}
+#  return a*b
+#end
 
 function ==(a::T, b::T) where {T<:SpecOpenRingElem}
   parent(a) === parent(b) || return a == (parent(a)(b))

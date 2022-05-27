@@ -198,7 +198,7 @@ end
 # First consider the case where both coefficient maps are maps in the Map
 # sense
 function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, E, S <: Map, U <: Map}
-  @req codomain(F) === domain(F) "Incompatible (co)domain in composition"
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   f = coefficient_map(F)
   g = coefficient_map(G)
   if typeof(codomain(f)) === typeof(domain(g))

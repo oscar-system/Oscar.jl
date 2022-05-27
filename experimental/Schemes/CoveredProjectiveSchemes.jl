@@ -1,5 +1,5 @@
 export ProjectiveGlueing
-export glueing_type
+export glueing_type, underlying_glueing
 
 export CoveredProjectiveScheme
 export base_scheme, base_covering, projective_patches, as_covered_scheme
@@ -12,80 +12,50 @@ export prepare_smooth_center, as_smooth_local_complete_intersection, as_smooth_l
 
 mutable struct ProjectiveGlueing{
                                  GlueingType<:Glueing,
-                                 ProjectiveSchemeType<:ProjectiveScheme,
-                                 MorphismType<:ProjectiveSchemeMor
+                                 IsoType<:ProjectiveSchemeMor,
+                                 IncType<:ProjectiveSchemeMor
                                 }
   G::GlueingType # the underlying glueing of the base schemes
-  P::ProjectiveSchemeType # the projective scheme over the first patch
-  Q::ProjectiveSchemeType # the projective scheme over the second patch
-  P_on_U_patches::Vector{MorphismType} # restrictions of these 
-  Q_on_V_patches::Vector{MorphismType} # schemes to the patches
-  f::Vector{MorphismType} # the glueing maps on the affine
-  g::Vector{MorphismType} # patches of the glueing domain 
+  inc_to_P::IncType
+  inc_to_Q::IncType
+  f::IsoType
+  g::IsoType
 
   ### 
   # Given two relative projective schemes and a glueing 
   #
-  #       P           Q
-  #     π ↓           ↓ π
-  #   G : X ↩ U ≅ V ↪ Y 
-  #           ∪   ∪
-  #           Uᵢ  Vⱼ
+  #       PX ↩ PU ≅ QV ↪ QY
+  #     π ↓    ↓    ↓    ↓ π
+  #   G : X  ↩ U  ≅ V  ↪ Y 
   #
-  # together with compatible glueing data 
-  #
-  #   fᵢ: π⁻¹(Uᵢ) → Q,   gⱼ: π⁻¹(Vⱼ) → P
-  #
-  # on the affine patches Uᵢ of U (resp. Vⱼ of V), 
-  # glue together the projective schemes P and Q
-  function ProjectiveGlueing(G::GlueingType, P::T, Q::T, f::Vector{M}, g::Vector{M}; check::Bool=true) where {GlueingType<:Glueing, T<:ProjectiveScheme, M<:ProjectiveSchemeMor}
+  # this constructs the glueing of PX and QY along 
+  # their open subsets PU and QV, given the two inclusions 
+  # and isomorphisms over the glueing G in the base schemes.
+  function ProjectiveGlueing(
+      G::GlueingType, 
+      incP::IncType, incQ::IncType,
+      f::IsoType, g::IsoType;
+      check::Bool=true
+    ) where {GlueingType<:Glueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
-    (base_scheme(P) == X && base_scheme(Q) == Y) || error("base glueing is incompatible with the projective schemes")
-    P_on_U_patches = Vector{M}()
-    Q_on_V_patches = Vector{M}()
-    
-    length(f) == npatches(U) || error("base glueing is incompatible with the projective schemes")
-    # for every patch Uᵢ of U we need to set up and store 
-    # the inclusion map of π⁻¹(Uᵢ) ↪ P = π⁻¹(X)
-    for i in 1:length(f)
-      h = f[i]
-      base_scheme(domain(h)) == U[i] || error("base glueing is incompatible with morphisms of projective schemes")
-      push!(P_on_U_patches, inclusion_map(domain(h), P))
-    end
-    
-    length(g) == npatches(V) || error("base glueing is incompatible with the projective schemes")
-    # the same for V
-    for j in 1:length(g)
-      h = g[j]
-      base_scheme(domain(h)) == V[j] || error("base glueing is incompatible with morphisms of projective schemes")
-      push!(Q_on_V_patches, inclusion_map(domain(h), Q))
-    end
-
-    # in case a check is required, we assure that the maps on the 
-    # patches Uᵢ glue together on the overlaps.
+    (fb, gb) = glueing_morphisms(G)
+    (PX, QY) = (codomain(incP), codomain(incQ))
+    (PU, QV) = (domain(incP), domain(incQ))
+    (base_scheme(PX) == X && base_scheme(QY) == Y) || error("base glueing is incompatible with the projective schemes")
+    domain(f) == codomain(g) == PU && domain(g) == codomain(f) == QV || error("maps are not compatible")
+    SPU = homog_poly_ring(domain(f))
+    SQV = homog_poly_ring(codomain(f))
     if check
-      for i in 1:length(f)-1
-        for j = i+1:length(f)
-          W = intersect(U[i], U[j])
-          PW = fiber_product(W, P)
-          h1 = inclusion_map(PW, domain(P_on_U_patches[i]))
-          h2 = inclusion_map(PW, domain(P_on_U_patches[j]))
-          compose(h1, P_on_U_patches[i]) == compose(h2, P_on_U_patches[j]) || error("maps do not coincide on overlaps")
-        end
-      end
-      # same for V
-      for i in 1:length(g)-1
-        for j = i+1:length(g)
-          W = intersect(V[i], V[j])
-          QW = fiber_product(W, Q)
-          h1 = inclusion_map(QW, domain(Q_on_V_patches[i]))
-          h2 = inclusion_map(QW, domain(Q_on_V_patches[j]))
-          compose(h1, Q_on_V_patches[i]) == compose(h2, Q_on_V_patches[j]) || error("maps do not coincide on overlaps")
-        end
-      end
+      # check the commutativity of the pullbacks
+      all(y->(pullback(f)(SQV(OO(V)(y))) == SPU(pullback(fb)(OO(V)(y)))), gens(base_ring(OO(X)))) || error("maps do not commute")
+      all(x->(pullback(g)(SPU(OO(U)(x))) == SQV(pullback(gb)(OO(U)(x)))), gens(base_ring(OO(Y)))) || error("maps do not commute")
+      idPU = compose(f, g)
+      all(t->(pullback(idPU)(t) == t), gens(SPU)) || error("composition of maps is not the identity")
+      idQV = compose(g, f)
+      all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
-    return new{GlueingType, T, M}(G, P, Q, P_on_U_patches, Q_on_V_patches, f, g)
+    return new{GlueingType, IsoType, IncType}(G, incP, incQ, f, g)
   end
 end
 
@@ -93,6 +63,14 @@ end
 
 glueing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
 glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
+
+### essential getters
+
+underlying_glueing(PG::ProjectiveGlueing) = PG.G
+inclusion_maps(PG::ProjectiveGlueing) = (PG.inc_to_P, PG.inc_to_Q)
+glueing_domains(PG::ProjectiveGlueing) = (domain(PG.f), domain(PG.g))
+patches(PG::ProjectiveGlueing) = (codomain(PG.inc_to_P), codomain(PG.inc_to_Q))
+glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
 
 ### Proper schemes π : Z → X over a covered base scheme X
 # 
@@ -116,26 +94,22 @@ glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_
     BaseSchemeType<:CoveredScheme, 
     CoveringType<:Covering,
     SpecType<:Spec,
-    ProjectiveSchemeType<:ProjectiveScheme,
-    ProjectiveGlueingType<:ProjectiveGlueing,
     BRT, BRET} <: Scheme{BRT, BRET}
   Y::BaseSchemeType # the base scheme
   BC::CoveringType # the reference covering of the base scheme
-  patches::Dict{SpecType, ProjectiveSchemeType} # the projective spaces over the affine patches in the base covering
-  glueings::Dict{Tuple{SpecType, SpecType}, ProjectiveGlueingType} # the transitions sitting over the affine patches in the glueing domains of the base scheme
+  patches::Dict{SpecType, ProjectiveScheme} # the projective spaces over the affine patches in the base covering
+  glueings::Dict{Tuple{SpecType, SpecType}, ProjectiveGlueing} # the transitions sitting over the affine patches in the glueing domains of the base scheme
 
   function CoveredProjectiveScheme(
       Y::BaseSchemeType,
       C::CoveringType,
-      projective_patches::Dict{SpecType, ProjectiveSchemeType},
-      projective_glueings::Dict{Tuple{SpecType, SpecType}, ProjectiveGlueingType};
+      projective_patches::Dict{SpecType, ProjectiveScheme},
+      projective_glueings::Dict{Tuple{SpecType, SpecType}, ProjectiveGlueing};
       check::Bool=true
     ) where {
              BaseSchemeType<:CoveredScheme, 
              CoveringType<:Covering,
-             SpecType<:Spec,
-             ProjectiveSchemeType<:ProjectiveScheme,
-             ProjectiveGlueingType<:ProjectiveGlueing,
+             SpecType<:Spec
             }
     C in coverings(Y) || error("covering not listed")
     for P in values(projective_patches)
@@ -144,7 +118,7 @@ glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_
     for (U, V) in keys(glueings(C))
       (U, V) in keys(projective_glueings) || error("not all projective glueings were provided")
     end
-    return new{BaseSchemeType, CoveringType, SpecType, ProjectiveSchemeType, ProjectiveGlueingType, base_ring_type(SpecType), elem_type(base_ring_type(SpecType))}(Y, C, projective_patches, projective_glueings)
+    return new{BaseSchemeType, CoveringType, SpecType, base_ring_type(SpecType), elem_type(base_ring_type(SpecType))}(Y, C, projective_patches, projective_glueings)
   end
 end
 
@@ -160,11 +134,14 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   C = default_covering(Y)
   U = C[1]
   ST = affine_patch_type(Y)
-  pp = Dict{affine_patch_type(Y), projective_scheme_type(affine_patch_type(Y))}()
+  pp = Dict{affine_patch_type(Y), ProjectiveScheme}()
   P = projective_space(U, 0)
   pp[U] = P
-  tr = Dict{Tuple{ST, ST}, Vector{morphism_type(pp[U])}}
-  tr[(U, U)] = identity_map(P) 
+  tr = Dict{Tuple{ST, ST}, ProjectiveGlueing}()
+  W = SpecOpen(U)
+  PW, inc = fiber_product(restriction_map(U, W), P)
+  tr[(U, U)] = ProjectiveGlueing(Glueing(U, U, identity_map(W), identity_map(W)), 
+                                 inc, inc, identity_map(PW), identity_map(PW))
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 
