@@ -53,7 +53,12 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
     n = degree(G)
     R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
     R_sing = singular_poly_ring(R)
-    action_singular = identity.([change_base_ring(R_sing, g) for g in action])
+    if ActionT <: PermGroupElem
+      m_action = [permutation_matrix(K, p) for p in action]
+      action_singular = identity.([change_base_ring(R_sing, g) for g in m_action])
+    else
+      action_singular = identity.([change_base_ring(R_sing, g) for g in action])
+    end
     PolyRingT = typeof(R)
     PolyElemT = elem_type(R)
     SingularActionT = eltype(action_singular)
