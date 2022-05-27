@@ -34,5 +34,16 @@
             @test loaded isa Symbol
             @test loaded == original
         end
+
+        @testset "Singleton types" begin
+            original = [ZZ, QQ]
+            filename = joinpath(path, "original.json")
+            save(original, filename)
+            loaded = load(filename)
+            @test loaded[1] isa FlintIntegerRing
+            @test loaded[1] === ZZ
+            @test loaded[2] isa FlintRationalField
+            @test loaded[2] === QQ
+        end
     end
 end
