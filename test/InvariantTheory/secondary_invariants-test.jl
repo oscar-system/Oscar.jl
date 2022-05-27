@@ -4,6 +4,11 @@
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
 
+  # Should fail if the wrong monomial ordering is used in
+  # secondary_invariants_nonmodular
+  M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0])
+  RGQQ = invariant_ring(M)
+
   F3 = GF(3)
   N1 = matrix(F3, 3, 3, [ 0, 1, 0, 2, 0, 0, 0, 0, 2 ])
   N2 = matrix(F3, 3, 3, [ 2, 0, 0, 0, 2, 0, 0, 0, 2 ])
@@ -14,7 +19,7 @@
   N4 = matrix(F9, [ 1 0 0 0; 1 1 0 0; 1 0 1 0; b -b b 1 ])
   RGm = invariant_ring(N3, N4) # char p, modular
 
-  for RG in [ RG0, RGp ]
+  for RG in [ RG0, RGQQ, RGp ]
     s_invars = secondary_invariants(RG)
     m = molien_series(RG)
     S = base_ring(parent(m))
