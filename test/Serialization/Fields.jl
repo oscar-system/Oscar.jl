@@ -76,13 +76,14 @@
 
         @testset "Fraction Fields" begin
             Qx, x = QQ["x"]
-            Fy, y = FractionField(Qx)["y"]
+            F = FractionField(Qx)
+            Fy, y = F["y"]
             elem = 1 // x * y + x^2 * y
             filename = joinpath(path, "ff.elem")
             save(elem, filename)
             loaded_elem = load(filename)
-            parent_field = parent(loaded_elem)
-            h = hom(Fy, parent_field, gens(parent_field))
+            mapped_coeffs = map(i -> evaluate(i, x), coefficients(loaded_elem))
+            @test mapped_coeffs == collect(coefficients(elem))
         end
     end
 end

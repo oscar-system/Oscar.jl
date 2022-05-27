@@ -159,7 +159,7 @@ function load_internal(s::DeserializerState,
 end
 
 # elements 
-function save_internal(s::SerializerState, f::Frac)
+function save_internal(s::SerializerState, f::FracElem)
     parent_dict = save_type_dispatch(s, parent(f))
     return Dict(
         :parent => parent_dict,
@@ -169,12 +169,12 @@ function save_internal(s::SerializerState, f::Frac)
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: Frac},
+                       ::Type{<: FracElem},
                        dict::Dict)
     R = load_type_dispatch(s, dict[:parent], check_namespace=false)
     num = load_type_dispatch(s, dict[:num], check_namespace=false)
     den = load_type_dispatch(s, dict[:den], check_namespace=false)
-    
-    return num // den
+
+    return R(num) // R(den)
 end
 
