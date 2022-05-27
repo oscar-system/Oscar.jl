@@ -336,7 +336,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, 4)
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
-    set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
+    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
     # find weights of the Cox ring
@@ -351,7 +351,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :character_lattice, domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(variety)))
     
     # set maps from cartier divisors to torusinvariant weil divisors and the picard group
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_weil_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
     return variety
