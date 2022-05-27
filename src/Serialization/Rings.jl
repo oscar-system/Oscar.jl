@@ -11,6 +11,21 @@ function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
     return Nemo.NmodRing(modulus)
 end
 
+#elements
+function save_internal(s::SerializerState, r::nmod)
+    return Dict(
+        :parent => save_type_dispatch(s, parent(r)),
+        :class_val => save_type_dispatch(s, fmpz(r))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{nmod}, dict::Dict)
+    parent_ring = load_type_dispatch(s, UInt64, dict[:parent])
+    class_val = load_type_dispatch(s, fmpz, dict[:class_val])
+    return parent_ring(class_val)
+end
+
+
 ################################################################################
 #  Polynomial Rings
 function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
