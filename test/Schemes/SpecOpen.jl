@@ -94,3 +94,32 @@ end
   @test Oscar.is_identity_map(compose(resVU, resUV))
   @test Oscar.is_identity_map(compose(resUV, resVU))
 end
+
+@testset "pullbacks" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  X = Spec(R, ideal(R, [x^2-y*z]))
+  U = SpecOpen(X, [x, y])
+  V = SpecOpen(X, [(x+y)^2, x^2 - y^2, (x-y)^2])
+  f = SpecOpenMor(U, V, [x, y, z])
+  pbf = pullback(f)
+  @test pbf(OO(V)(x)) == OO(V)(x)
+  @test pbf(OO(V)(y)) == OO(V)(y)
+  @test pbf(OO(V)(z)) == OO(V)(z)
+  g = SpecOpenMor(V, U, [x, y, z])
+  @test Oscar.is_identity_map(compose(pullback(f), pullback(g)))
+  @test Oscar.is_identity_map(pullback(compose(f,g)))
+
+
+  S, (u, v) = QQ["u", "v"]
+  B = Spec(S)
+  p = SpecMor(X, B, [x, y])
+  U = SpecOpen(X, [x, y])
+  V = SpecOpen(B, [u, v])
+  pres = restrict(p, U, V)
+
+  g = pullback(pres)
+  @test g(OO(V)(u)) == OO(U)(x)
+  @test g(OO(V)(v)) == OO(U)(y)
+end
+
+

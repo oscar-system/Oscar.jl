@@ -1,4 +1,4 @@
-export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
+export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 export restriction_map
 
 export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_type, isexact_type
@@ -91,6 +91,7 @@ Return the generators ``[f₁,…,fᵣ]`` stored for the description
 of the complement of ``U``.
 """
 gens(U::SpecOpen) = U.gens::Vector{elem_type(base_ring(OO(ambient(U))))}
+ngens(U::SpecOpen) = length(U.gens)
 
 @Markdown.doc """
     affine_patch(U::SpecOpen, i::Int)
@@ -642,6 +643,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
 
   # fields used for caching
   inverse::SpecOpenMor
+  pullback::Hecke.Map
 
   function SpecOpenMor(
       U::DomainType,
@@ -709,6 +711,37 @@ function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; c
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
   return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
+end
+
+function pullback(f::SpecOpenMor)
+  if !isdefined(f, :pullback)
+    U = codomain(f)
+    V = domain(f)
+    pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
+    W = [SpecOpen(V[i], lifted_numerator.(pullback(f[i]).(gens(U))), check=false) for i in 1:ngens(V)]
+    pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=false)) for j in 1:ngens(U)] for i in 1:ngens(V)]
+    lift_maps = [restriction_map(W[i], V[i], one(base_ring(OO(V[i]))), check=false) for i in 1:ngens(V)]
+    function mymap(a::SpecOpenRingElem)
+      b = [lift_maps[i](
+              SpecOpenRingElem(
+                  OO(W[i]), 
+                  [pb_res[i][j](a[j]) for j in 1:ngens(U)],
+                  check=false)
+             ) for i in 1:ngens(V)
+          ]
+      return SpecOpenRingElem(OO(V), b, check=false)
+    end
+    f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
+  end
+  return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+end
+
+function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+  if check
+    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+  end
+  return SpecOpenMor(U, V, [restrict(f, W, ambient(V)) for W in affine_patches(U)])
 end
 
 
@@ -783,7 +816,7 @@ function compose(f::T, g::T; check::Bool=true) where {T<:SpecOpenMor}
   return SpecOpenMor(U, W, result_maps)
 end
 
-function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
+function pullback(f::SpecOpenMor, a::RingElem) where {RET<:RingElem}
   U = domain(f)
   X = ambient(U)
   V = codomain(f)
@@ -792,10 +825,6 @@ function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
   parent(a) == R || error("element does not belong to the correct ring")
   pb_a = elem_type(OO(X))[pullback(f[i])(a) for i in 1:npatches(U)]
   return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
-end
-
-function pullback(f::SpecOpenMor, a::SpecOpenRingElem)
-  error("not implemented")
 end
 
 @Markdown.doc """
@@ -1140,14 +1169,14 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
   if ambient(U) == ambient(V)
     g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
     function mysecondmap(f::SpecOpenRingElem)
-      return SpecOpenRingElem(OO(V), [h(f) for h in g], check=true)
+      return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
     end
     return Hecke.MapFromFunc(mysecondmap, OO(U), OO(V))
   end
   
   g = [restriction_map(U, W, check=false) for W in affine_patches(V)]
   function mythirdmap(f::SpecOpenRingElem)
-    return SpecOpenRingElem(OO(V), [g(f) for g in g], check=true)
+    return SpecOpenRingElem(OO(V), [g(f) for g in g], check=false)
   end
   return Hecke.MapFromFunc(mythirdmap, OO(U), OO(V))
 end
