@@ -306,7 +306,6 @@ function subscheme(I::IdealSheaf)
 end
 
 
-using Infiltrator
 @Markdown.doc """
     extend!(C::Covering, D::Dict{SpecType, IdealType}) where {SpecType<:Spec, IdealType<:Ideal}
 

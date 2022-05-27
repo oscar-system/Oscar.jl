@@ -1499,11 +1499,11 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
     x = coordinates(p, pre_saturated_ideal(I))
     return L(one(q), q, check=false)*change_base_ring(L, x)*pre_saturation_data(I)
   else
-    (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([b]), inverted_set(L), check=false)
+    (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([p]), inverted_set(L), check=false)
     !success && error("check for membership was disabled, but element is not in the ideal")
     # cache the intermediate result
     result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
-    extend_pre_saturated_ideal!(I, b, x, u, check=false)
+    extend_pre_saturated_ideal!(I, p, x, u, check=false)
     return result
   end
 end
