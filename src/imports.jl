@@ -49,6 +49,7 @@ import AbstractAlgebra:
     base_ring,
     canonical_unit,
     codomain,
+    data,
     degree,
     dim,
     domain,

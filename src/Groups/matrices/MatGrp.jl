@@ -351,7 +351,7 @@ end
 
 # embedding an element of type MatElem into a group G
 # if check=false, there are no checks on the condition `x in G`
-function (G::MatrixGroup)(x::MatElem; check=true)
+function (G::MatrixGroup)(x::MatElem; check::Bool=true)
    if check
       _is_true, x_gap = lies_in(x,G,nothing)
       _is_true || throw(ArgumentError("Element not in the group"))
@@ -362,7 +362,7 @@ end
 
 # embedding an element of type MatrixGroupElem into a group G
 # if check=false, there are no checks on the condition `x in G`
-function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
+function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    if !check
       z = x
       z.parent = G
@@ -386,8 +386,8 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
    end
 end
 
-# embedding a nxn array into a group G
-function (G::MatrixGroup)(L::AbstractVecOrMat; check=true)
+# embedding a n x n array into a group G
+function (G::MatrixGroup)(L::AbstractVecOrMat; check::Bool=true)
    x = matrix(G.ring, G.deg, G.deg, L)
    return G(x; check=check)
 end
@@ -421,7 +421,7 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    # if the underlying GAP matrices are both defined, but not both Oscar matrices,
    # then use the GAP matrices.
    # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
-   # by the Base.getproperty(::MatrixGroupElem, ::Symbil) method .
+   # by the Base.getproperty(::MatrixGroupElem, ::Symbol) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return T(G, x.X*y.X)
    else
@@ -429,8 +429,8 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    end
 end
 
-Base.:*(x::MatrixGroupElem, y::fq_nmod_mat) = x.elm*y
-Base.:*(x::fq_nmod_mat, y::MatrixGroupElem) = x*y.elm
+Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = x.elm*y
+Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*y.elm
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
 
@@ -453,14 +453,14 @@ comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
 """
     det(x::MatrixGroupElem)
     
-Return the determinant of `x`.
+Return the determinant of the underlying matrix of `x`.
 """
-det(x::MatrixGroupElem) = det(x.elm)
+det(x::MatrixGroupElem) = det(matrix(x))
 
 """
     base_ring(x::MatrixGroupElem)
 
-Return the base ring of `x`.
+Return the base ring of the underlying matrix of `x`.
 """
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
@@ -469,7 +469,7 @@ parent(x::MatrixGroupElem) = x.parent
 """
     matrix(x::MatrixGroupElem)
 
-Return the underlying `AbstractAlgebra` matrix of `x`.
+Return the underlying matrix of `x`.
 """
 matrix(x::MatrixGroupElem) = x.elm
 
@@ -478,18 +478,24 @@ Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 """
     nrows(x::MatrixGroupElem)
 
-Return the number of rows of the given matrix.
+Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = x.parent.deg
+nrows(x::MatrixGroupElem) = nrows(matrix(x))
 
 """
-    trace(x::MatrixGroupElem)
+    ncols(x::MatrixGroupElem)
+
+Return the number of columns of the underlying matrix of `x`.
+"""
+ncols(x::MatrixGroupElem) = ncols(matrix(x))
+
+
+"""
     tr(x::MatrixGroupElem)
 
-Return the trace of `x`.
+Return the trace of the underlying matrix of `x`.
 """
-trace(x::MatrixGroupElem) = trace(x.elm)
-tr(x::MatrixGroupElem) = tr(x.elm)
+tr(x::MatrixGroupElem) = tr(matrix(x))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=

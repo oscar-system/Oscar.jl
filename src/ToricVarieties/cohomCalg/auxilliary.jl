@@ -10,9 +10,9 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     joincomma(list) = join([string(x) for x in list], ",")
     
     # Add information about grading of Cox ring to string_list
-    divisors = gens(torusinvariant_divisor_group(v))
+    divisors = gens(torusinvariant_weil_divisor_group(v))
     for i in 1:length(divisors)
-        tmp = joincomma(map_from_weil_divisors_to_class_group(v)(divisors[i]).coeff)
+        tmp = joincomma(map_from_torusinvariant_weil_divisor_group_to_class_group(v)(divisors[i]).coeff)
         push!(string_list, "vertex x$i|GLSM:($(tmp))")
     end
     

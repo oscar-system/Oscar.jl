@@ -237,10 +237,8 @@ replacement algorithm. For most inputs, the resulting stream of elements
 relatively quickly converges to a uniform distribution.
 
 """
-rand_pseudo(G::GAPGroup) = group_element(G, GAP.Globals.PseudoRandom(G.X))
-
-function rand_pseudo(G::FPGroup; radius::Int)
-  return group_element(G, GAP.Globals.PseudoRandom(G.X, radius = radius))
+function rand_pseudo(G::GAPGroup; radius::Int = 10)
+  return group_element(G, GAP.Globals.PseudoRandom(G.X; radius = radius))
 end
 
 function _common_parent_group(x::T, y::T) where T <: GAPGroup

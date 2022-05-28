@@ -444,7 +444,7 @@ end
    @test !isone(x)
    @test det(x)==1
    @test det(y)==z+2
-   @test trace(x)==2
+   @test tr(x)==2
    @test tr(y)==z
    @test order(x)==3
    @test order(y)==8

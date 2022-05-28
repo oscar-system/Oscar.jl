@@ -32,7 +32,20 @@
             @test dim(square) == dim(loaded)
             @test square == loaded
         end
-        
+
+        @testset "PolyhedralComplex" begin
+            IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+            vr = [0 0; 1 0; 1 1; 0 1]
+            PC = PolyhedralComplex(IM, vr)
+            save(PC, joinpath(path, "docu.pc"))
+            loaded = load(joinpath(path, "docu.pc"))
+            @test loaded isa PolyhedralComplex
+            @test Base.propertynames(PC) == Base.propertynames(loaded)
+            @test nrays(PC) == nrays(loaded)
+            @test n_maximal_polyhedra(PC) == n_maximal_polyhedra(loaded)
+            @test dim(PC) == dim(loaded)
+        end
+
         @testset "PolyhedralFan" begin
             nfsquare = normal_fan(cube(2))
             save(nfsquare, joinpath(path, "nfsquare.fan"))
@@ -43,7 +56,7 @@
             @test n_maximal_cones(nfsquare) == n_maximal_cones(loaded)
             @test dim(nfsquare) == dim(loaded)
         end
-        
+
         @testset "LinearProgram" begin
             P = cube(3)
             LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)

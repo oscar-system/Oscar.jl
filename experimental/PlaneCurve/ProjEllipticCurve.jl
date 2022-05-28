@@ -188,7 +188,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     K = T.R.base_ring
     PP = proj_space(K, 2)
     V = gens(T)
-    new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], v[1]))
+    new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], check = v[1]))
   end
 
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
@@ -203,7 +203,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
      H = L[1](eq)
      is_weierstrass_form(H) || error("Not in Weierstrass form")
      v = shortformtest(H)
-     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], v[1]))
+     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], check = v[1]))
   end
 
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
@@ -224,7 +224,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     E.eq = eq
     E.degree = 3
     E.point = Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)])
-    E.Hecke_ec = Hecke.EllipticCurve(v[2], v[1])
+    E.Hecke_ec = Hecke.EllipticCurve(v[2], check = v[1])
     return E
   end
 end
