@@ -54,13 +54,13 @@ end
 function save_internal(s::SerializerState, K::SimpleNumField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K)),
-        :var => save_type_dispatch(s, String(var(K)))
+        :var => save_type_dispatch(s, var(K))
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Dict)
     def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
-    var = load_type_dispatch(s, dict[:var], check_namespace=false)
+    var = load_type_dispatch(s, Symbol, dict[:var])
     K, _ = NumberField(def_pol, var, cached=false)
 
     return K
