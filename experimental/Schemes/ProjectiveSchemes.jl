@@ -23,8 +23,8 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   I::MPolyIdeal{RingElemType} # generators for the defining ideal
 
   # fields used for caching
-  C::Spec # The affine cone of this scheme.
-  Y::Spec # the base scheme 
+  C::Scheme # The affine cone of this scheme.
+  Y::Scheme # the base scheme 
   projection_to_base::SpecMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
 
@@ -175,6 +175,13 @@ function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<
     affine_cone(X)
   end
   return X.projection_to_base
+end
+
+function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOpenRing, CRET, RT, RET}
+  if !isdefined(X, :projection_to_base)
+    affine_cone(X)
+  end
+  return get_attribute(X, :projection_to_base)
 end
 
 @Markdown.doc """
@@ -487,6 +494,30 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     set_attribute!(X, :poly_to_homog, pth)
     set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
     X.C = CX
+  end
+  return X.C
+end
+
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOpenRing, CRET, RT, RET}
+  if !isdefined(X, :C)
+    S = homog_poly_ring(X)
+    B = coefficient_ring(S)
+    Y = scheme(B)
+    U = domain(B)
+    R = base_ring(OO(Y))
+    kk = base_ring(R)
+    F = affine_space(kk, symbols(homog_poly_ring(X)))
+    C, pr_base, pr_fiber = product(U, F)
+    X.homog_coord = [pullback(pr_fiber)(u) 
+                           for u in OO(codomain(pr_fiber)).(gens(OO(F)))]
+    phi = hom(S, OO(C), pullback(pr_base), X.homog_coord)
+    g = phi.(gens(defining_ideal(X)))
+    CX = subscheme(C, g)
+    X.C = CX
+
+    set_attribute!(X, :homog_to_frac, compose(phi, restriction_map(C, CX)))
+    set_attribute!(X, :base_scheme, U)
+    set_attribute!(X, :projection_to_base, restrict(pr_base, CX, U, check=false))
   end
   return X.C
 end

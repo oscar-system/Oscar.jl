@@ -464,6 +464,8 @@ end
 (R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
 (R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
+(R::SpecOpenRing)(f::MPolyQuoLocalizedRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
+
 (R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
 
 function (R::SpecOpenRing)(f::SpecOpenRingElem) 
@@ -741,9 +743,26 @@ function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
     all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
   end
-  return SpecOpenMor(U, V, [restrict(f, W, ambient(V)) for W in affine_patches(U)])
+  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
 
+function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+  if check
+    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+  end
+  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+end
+
+function restrict(f::SpecOpenMor, W::Spec, Y::Spec; check::Bool=true)
+  if check
+    issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
+    issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
+  end
+  phi = restriction_map(domain(f), W)
+  fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(OO(Y)))]
+  return SpecMor(W, Y, fy, check=false)
+end
 
 
 
@@ -1208,4 +1227,26 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
 end
 
   
+function product(U::SpecOpen, Y::Spec)
+  X = ambient(U)
+  P, pX, pY = product(X, Y)
+  V = SpecOpen(P, lifted_numerator.(pullback(pX).(gens(U))))
+  res_pX = restrict(pX, V, U, check=false)
+  res_pY = restrict(pY, V, SpecOpen(Y), check=false)
+  return V, res_pX, res_pY
+end
+  
+function subscheme(U::SpecOpen, I::Ideal)
+  if !base_ring(I) == OO(ambient(U)) 
+    return subscheme(U, OO(ambient(U))(I))
+  end
+  Z = subscheme(ambient(U), I)
+  return SpecOpen(Z, gens(U))
+end
 
+function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
+  all(x->(parent(x)==OO(U)), g) || error("elements do not belong to the correct ring")
+  X = ambient(U)
+  Z = subscheme(X, vcat([[lifted_numerator(f[i]) for i in 1:ngens(U)] for f in g]...))
+  return SpecOpen(Z, gens(U))
+end
