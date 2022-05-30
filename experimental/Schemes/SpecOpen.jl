@@ -5,7 +5,7 @@ export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_typ
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
-export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
+export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension, canonical_isomorphism
 
 export adjoint
 
@@ -1187,4 +1187,25 @@ function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpe
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
 end
 
+function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
+  X = scheme(S)
+  Y = scheme(T)
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("rings can not be canonically compared")
+  if check
+    is_canonically_isomorphic(domain(S), domain(T)) || error("open domains are not isomorphic")
+  end
+
+  pb_to_Vs = [restriction_map(domain(S), V) for V in affine_patches(domain(T))]
+  pb_to_Us = [restriction_map(domain(T), U) for U in affine_patches(domain(S))]
+  function mymap(a::SpecOpenRingElem)
+    return SpecOpenRingElem(T, [g(a) for g in pb_to_Vs], check=false)
+  end
+  function myinvmap(b::SpecOpenRingElem)
+    return SpecOpenRingElem(S, [g(b) for g in pb_to_Us], check=false)
+  end
+  return Hecke.MapFromFunc(mymap, myinvmap, S, T)
+end
+
+  
 

@@ -122,4 +122,14 @@ end
   @test g(OO(V)(v)) == OO(U)(y)
 end
 
-
+@testset "SpecOpenRings" begin
+  R, (x, y, z) = QQ["x", "y", "z"]
+  I = ideal(R, [x^2-y*z])
+  X = Spec(R, I)
+  U = SpecOpen(X, [x, y])
+  V = SpecOpen(X, [x+y, x^2 - y^2, (x-y)^5])
+  f = canonical_isomorphism(OO(U), OO(V))
+  a = OO(U)([x//y, z//x])
+  b = f(a)
+  @test preimage(f, b) == a
+end
