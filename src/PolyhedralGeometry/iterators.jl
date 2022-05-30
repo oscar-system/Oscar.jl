@@ -356,7 +356,12 @@ ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 # affine types: affine_matrix_for_polymake
 const AbstractCollection = Dict{UnionAll, Union}([(PointVector, AnyVecOrMat),
                                                     (RayVector, AnyVecOrMat),
-                                                    (LinearHalfspace, Union{SubObjectIterator{<:Halfspace}, AnyVecOrMat}),
-                                                    (LinearHyperplane, Union{SubObjectIterator{<:Hyperplane}, AnyVecOrMat}),
-                                                    (AffineHalfspace, Union{SubObjectIterator{<:Halfspace}, Tuple{<:AnyVecOrMat, <:Any}}),
-                                                    (AffineHyperplane, Union{SubObjectIterator{<:Hyperplane}, Tuple{<:AnyVecOrMat, <:Any}})])
+                                                    (LinearHalfspace, Union{AbstractVector{<:Halfspace}, SubObjectIterator{<:Halfspace}, AnyVecOrMat}),
+                                                    (LinearHyperplane, Union{AbstractVector{<:Hyperplane}, SubObjectIterator{<:Hyperplane}, AnyVecOrMat}),
+                                                    (AffineHalfspace, Union{AbstractVector{<:Halfspace}, SubObjectIterator{<:Halfspace}, Tuple{<:AnyVecOrMat, <:Any}}),
+                                                    (AffineHyperplane, Union{AbstractVector{<:Hyperplane}, SubObjectIterator{<:Hyperplane}, Tuple{<:AnyVecOrMat, <:Any}})])
+
+affine_matrix_for_polymake(x::Union{Halfspace, Hyperplane}) = stack(augment(normal_vector(x), -negbias(x)))
+affine_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace, Hyperplane}}) = stack((affine_matrix_for_polymake(x[i]) for i in 1:length(x))...)
+linear_matrix_for_polymake(x::Union{Halfspace, Hyperplane}) = negbias(x) == 0 ? stack(normal_vector(x)) : throw(ArgumentError("Input not linear."))
+linear_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace, Hyperplane}}) = stack((linear_matrix_for_polymake(x[i]) for i in 1:length(x))...)
