@@ -1341,30 +1341,14 @@ end
 
 ### required constructors 
 function ideal(
-    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
-  return MPolyQuoLocalizedIdeal(W, [f])
-end
-
-function ideal(
-    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    gens::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
-  ) where {BRT, BRET, RT, RET, MST}
-  return MPolyQuoLocalizedIdeal(W, gens)
-end
-
-function ideal(
-    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    f::RET
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyQuoLocalizedRing, f
+  )
   return MPolyQuoLocalizedIdeal(W, [W(f)])
 end
 
 function ideal(
-    W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    gens::Vector{RET}
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyQuoLocalizedRing, gens::Vector
+  )
   return MPolyQuoLocalizedIdeal(W, W.(gens))
 end
 
@@ -1372,14 +1356,14 @@ function ideal(
     W::MPolyQuoLocalizedRing,
     I::MPolyLocalizedIdeal
   )
-  return ideal(W, W.(gens(I)))
+  return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
 end
 
 function ideal(
     W::MPolyQuoLocalizedRing,
     I::MPolyIdeal
   )
-  return ideal(W, W.(gens(I)))
+  return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
 end
 
 

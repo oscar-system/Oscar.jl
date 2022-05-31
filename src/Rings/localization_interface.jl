@@ -66,8 +66,6 @@ function Base.in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {
   error("method not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
 
-Base.in(a, U::AbsMultSet) = (ambient_ring(U)(a) in U)
-
 ### iterator over the multiplicative set
 # This can (and should) be used to iterate over some set of generators 
 # of the multiplicative set whenever possible. For instance, this is 
@@ -464,31 +462,11 @@ function base_ring(I::AbsLocalizedIdeal)
 end
 
 ### required constructors
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType} 
-  ) where {RingType, RingElemType, MultSetType}
+function ideal(W::AbsLocalizedRing, f)
   error("`ideal(W, f)` has not been implemented for `W` of type $(typeof(W)) and `f` of type $(typeof(f))")
 end
 
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    v::Vector{AbsLocalizedRingElem{RingType, RingElemType, MultSetType}}
-  ) where {RingType, RingElemType, MultSetType}
-  error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
-end
-
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    f::RingElemType 
-  ) where {RingType, RingElemType, MultSetType}
-  error("`ideal(W, f)` has not been implemented for `W` of type $(typeof(W)) and `f` of type $(typeof(f))")
-end
-
-function ideal(
-    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
-    v::Vector{RingElemType}
-  ) where {RingType, RingElemType, MultSetType}
+function ideal(W::AbsLocalizedRing, v::Vector)
   error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
 end
 
@@ -503,6 +481,14 @@ function Base.in(
     I::AbsLocalizedIdeal
   )
   error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
+end
+
+function issubset(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
+  return all(x->(x in J), gens(I))
+end
+
+function ==(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
+  return issubset(I, J) && issubset(J, I)
 end
 
 ### A catchall implementation for the ideal arithmetic 

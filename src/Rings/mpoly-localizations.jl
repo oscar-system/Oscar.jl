@@ -1432,6 +1432,7 @@ Ideals in localizations of polynomial rings.
   pre_saturation_data::MatrixElem
 
   is_saturated::Bool
+  saturated_ideal::MPolyIdeal
  
   function MPolyLocalizedIdeal(
       W::MPolyLocalizedRing, 
@@ -1488,26 +1489,24 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
   parent(a) == L || return coordinates(L(a), I, check=check)
   if check 
     a in I || error("the given element is not in the ideal")
-  else
-    J = pre_saturated_ideal(I)
-    R = base_ring(J)
-    b = numerator(a)
-    if !(numerator(a) in J)
-      (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([b]), inverted_set(L), check=false)
-      !success && error("check for membership was disabled, but element is not in the ideal")
-      # cache the intermediate result
-      result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
-      extend_pre_saturated_ideal!(I, b, x, u, check=false)
-      return result
-    end
   end
+  J = pre_saturated_ideal(I)
+  R = base_ring(J)
   p = numerator(a)
-  q = denominator(a)
-  # caching has been done during the call of `in`, so the following will work
-  x = coordinates(p, pre_saturated_ideal(I))
-  return L(one(q), q, check=false)*change_base_ring(L, x)*pre_saturation_data(I)
+  if p in J
+    q = denominator(a)
+    # caching has been done during the call of `in`, so the following will work
+    x = coordinates(p, pre_saturated_ideal(I))
+    return L(one(q), q, check=false)*change_base_ring(L, x)*pre_saturation_data(I)
+  else
+    (success, x, u) = has_solution(generator_matrix(J), MatrixSpace(R, 1, 1)([p]), inverted_set(L), check=false)
+    !success && error("check for membership was disabled, but element is not in the ideal")
+    # cache the intermediate result
+    result = L(one(R), u*denominator(a), check=false)*change_base_ring(L, x)*pre_saturation_data(I)
+    extend_pre_saturated_ideal!(I, p, x, u, check=false)
+    return result
+  end
 end
-
 
 generator_matrix(J::MPolyIdeal) = MatrixSpace(base_ring(J), ngens(J), 1)(gens(J))
 
@@ -1519,10 +1518,10 @@ the unique ideal ``J ⊂ R`` which is maximal among all those ideals
 ``I' ⊂ R`` for which ``I' ⋅ S⁻¹ = I``.
 """
 function saturated_ideal(I::MPolyLocalizedIdeal)
-  if !I.is_saturated || !isdefined(I, :pre_saturated_ideal)
+  if !isdefined(I, :saturated_ideal)
     error("method `saturated_ideal` is not implemented for ideals of type $(typeof(I))")
   end
-  return I.pre_saturated_ideal
+  return I.saturated_ideal
 end
 
 function pre_saturated_ideal(I::MPolyLocalizedIdeal)
@@ -1612,9 +1611,11 @@ end
 
 
 function saturated_ideal(
-    I::MPolyLocalizedIdeal{LRT} 
+    I::MPolyLocalizedIdeal{LRT};
+    with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
-  if !is_saturated(I)
+  if !isdefined(I, :saturated_ideal)
+    is_saturated(I) && return pre_saturated_ideal(I)
     J = pre_saturated_ideal(I)
     pdec = primary_decomposition(J)
     L = base_ring(I)
@@ -1625,27 +1626,57 @@ function saturated_ideal(
         result = intersect(result, Q)
       end
     end
-    for g in gens(result) 
-      g in I || error("generator not found") # assures caching with transitions
+    I.saturated_ideal = result
+    if with_generator_transition::Bool
+      for g in gens(result) 
+        g in I || error("generator not found") # assures caching with transitions
+      end
     end
-    I.is_saturated = true
   end
-  return pre_saturated_ideal(I)
+  return I.saturated_ideal
 end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
-    strategy::Symbol=:iterative_saturation
+    strategy::Symbol=:iterative_saturation,
+    with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
-  if !is_saturated(I)
+  if !isdefined(I, :saturated_ideal)
+    is_saturated(I) && return pre_saturated_ideal
     L = base_ring(I)
     R = base_ring(L)
     if strategy==:iterative_saturation
+      Jsat = pre_saturated_ideal(I)
       for d in denominators(inverted_set(L))
-        Jsat = pre_saturated_ideal(I)
-        if !isunit(d) && !iszero(pre_saturated_ideal(I))
-          Jsat = saturation(pre_saturated_ideal(I), ideal(R, d))
+        if !isunit(d) && !iszero(Jsat)
+          Jsat = saturation(Jsat, ideal(R, d))
         end
+        if with_generator_transition
+          cache = Vector()
+          for g in gens(Jsat)
+            (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
+            if k > 0
+              push!(cache, (g, coordinates(dttk*g, pre_saturated_ideal(I)), dttk))
+            end
+          end
+          if length(cache) > 0
+            extend_pre_saturated_ideal!(I, 
+                                        elem_type(R)[g for (g, x, u) in cache],
+                                        vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
+                                        [u for (g, x, u) in cache], 
+                                        check=false
+                                       )
+          end
+        end
+      end
+      I.saturated_ideal = Jsat
+    elseif strategy==:single_saturation
+      d = prod(denominators(inverted_set(L)))
+      Jsat = pre_saturated_ideal(I)
+      if !isunit(d) && !iszero(pre_saturated_ideal(I))
+        Jsat = saturation(Jsat, ideal(R, d))
+      end
+      if with_generator_transition
         cache = Vector()
         for g in gens(Jsat)
           (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
@@ -1662,33 +1693,12 @@ function saturated_ideal(
                                      )
         end
       end
-    elseif strategy==:single_saturation
-      d = prod(denominators(inverted_set(L)))
-      Jsat = pre_saturated_ideal(I)
-      if !isunit(d) && !iszero(pre_saturated_ideal(I))
-        Jsat = saturation(pre_saturated_ideal(I), ideal(R, d))
-      end
-      cache = Vector()
-      for g in gens(Jsat)
-        (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
-        if k > 0
-          push!(cache, (g, coordinates(dttk*g, pre_saturated_ideal(I)), dttk))
-        end
-      end
-      if length(cache) > 0
-        extend_pre_saturated_ideal!(I, 
-                                    elem_type(R)[g for (g, x, u) in cache],
-                                    vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
-                                    [u for (g, x, u) in cache], 
-                                    check=false
-                                   )
-      end
+      I.saturated_ideal = Jsat
     else
       error("strategy $strategy not implemented")
     end
-    I.is_saturated = true
   end
-  return pre_saturated_ideal(I)
+  return I.saturated_ideal
 end
 
 function saturated_ideal(
@@ -1709,6 +1719,14 @@ function saturated_ideal(
   end
   return pre_saturated_ideal(I)
 end
+
+function cache_transitions_for_saturation(I::MPolyLocalizedIdeal) 
+  for g in saturated_ideal(I)
+    g in I
+  end
+  return I
+end
+
 
 # the following overwrites the membership test 
 # assuming that direct computation of the saturation 
@@ -1733,31 +1751,23 @@ end
 
 ### required constructors 
 function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, [f])
-end
-
-function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
-  ) where {BRT, BRET, RT, RET, MST}
-  return MPolyLocalizedIdeal(W, gens)
-end
-
-function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    f::RET
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyLocalizedRing, f
+  )
   return MPolyLocalizedIdeal(W, [W(f)])
 end
 
 function ideal(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    gens::Vector{RET}
-  ) where {BRT, BRET, RT, RET, MST}
+    W::MPolyLocalizedRing,
+    gens::Vector
+  )
   return MPolyLocalizedIdeal(W, W.(gens))
+end
+
+function ideal(
+    W::MPolyLocalizedRing,
+    I::Ideal
+  )
+  return MPolyLocalizedIdeal(W, W.(gens(I)))
 end
 
 ### additional functionality
