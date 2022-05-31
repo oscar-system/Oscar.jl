@@ -107,6 +107,7 @@ function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
     return Dict(
         :def_pols => save_type_dispatch(s, def_pols),
+        :vars => save_type_dispatch(s, vars(K))
     )
 end
 
@@ -114,7 +115,8 @@ function load_internal(s::DeserializerState,
                        ::Type{<: Union{NfAbsNS, NfRelNS}},
                        dict::Dict)
     def_pols = load_type_dispatch(s, dict[:def_pols], check_namespace=false)
-    K, _ = NumberField(def_pols, cached=false)
+    vars = load_type_dispatch(s, Vector{Symbol}, dict[:vars])
+    K, _ = NumberField(def_pols, vars, cached=false)
     return K
 end
 

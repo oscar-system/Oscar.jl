@@ -62,7 +62,8 @@
             Qx, x = QQ["x"]
             K, a = NumberField(x^3 - 2, "a")
             Ky, y = K["y"]
-            L, b = NumberField([y^2 - 5 * a, y^2 - 7 * a])
+            initial_vars = [:y1, :y2]
+            L, b = NumberField([y^2 - 5 * a, y^2 - 7 * a], initial_vars)
             filename = joinpath(path, "nse_nfrel.elem")
             elem = b[1] + b[2] * a^2
             save(elem, filename)
@@ -72,6 +73,7 @@
             h_1 = hom(K, F, gen(F))
             h_2 = hom(L, PF, h_1, gens(PF))
             @test h_2(elem) == elem_loaded
+            @test initial_vars == vars(PF)
         end
 
         @testset "Fraction Fields" begin
