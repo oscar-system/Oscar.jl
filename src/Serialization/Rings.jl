@@ -77,7 +77,7 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
 
     for term in dict[:terms]
         c = load_type_dispatch(s, coeff_type, term[:coeff])
-        e = load_type_dispatch(s, Vector{fmpz}, term[:exponent])
+        e = load_type_dispatch(s, Vector{Int}, term[:exponent])
         push_term!(polynomial, c, e)
     end
     return finish(polynomial)
