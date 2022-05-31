@@ -261,4 +261,8 @@
     a = z(4)
     @test K(L(a)) == a
   end
+
+  K, z = abelian_closure(QQ)
+  S = [z(3)]
+  @test degree(NumberField(QQ, S)[1]) == 2
 end
