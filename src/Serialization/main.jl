@@ -106,7 +106,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
               :version => 1, # ???
               )
         end
-        # otherwise, 
+        # otherwise,
         ref = s.objmap[obj] = uuid4()
     else
         ref = nothing
@@ -136,11 +136,11 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
 
     # TODO: compare T against decodedType ???
     #decodedType = decodeType(dict[:type])
+
     result = load_internal(s, T, dict[:data])
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
     end
-    
     return result
 end
 
@@ -219,8 +219,6 @@ function load(filename::String)
     jsondict = JSON.parsefile(filename, dicttype=Dict{Symbol, Any})
     return load_type_dispatch(state, jsondict)
 end
-
-
 
 
 include("basic_types.jl")

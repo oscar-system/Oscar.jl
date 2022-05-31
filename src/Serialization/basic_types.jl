@@ -44,6 +44,7 @@ function load_internal(s::DeserializerState, ::Type{String}, str::String)
     return str
 end
 
+
 ################################################################################
 # Symbol
 function save_internal(s::SerializerState, sym::Symbol)
