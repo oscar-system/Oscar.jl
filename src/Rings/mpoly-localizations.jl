@@ -1730,3 +1730,13 @@ function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom)
   return true
 end
 
+function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
+  W = parent(a)
+  W == parent(b) || error("elements do not belong to the same ring")
+  F = FreeMod(W, 1)
+  A = MatrixSpace(W, 1, 1)([b])
+  M, _ = sub(F, A)
+  represents_element(a*F[1], M) || return (false, zero(W))
+  x = coordinates(a*F[1], M)
+  return true, W(x[1])
+end

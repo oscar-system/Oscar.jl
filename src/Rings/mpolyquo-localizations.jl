@@ -1367,4 +1367,13 @@ function ideal(
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
 end
 
-
+function divides(a::MPolyQuoLocalizedRingElem, b::MPolyQuoLocalizedRingElem)
+  W = parent(a)
+  W == parent(b) || error("elements do not belong to the same ring")
+  F = FreeMod(W, 1)
+  A = MatrixSpace(W, 1, 1)([b])
+  M, _ = sub(F, A)
+  represents_element(a*F[1], M) || return (false, zero(W))
+  x = coordinates(a*F[1], M)
+  return true, W(x[1])
+end
