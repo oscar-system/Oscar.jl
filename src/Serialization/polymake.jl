@@ -60,24 +60,15 @@ end
 
 function convert_to_oscar(p::Polymake.PolynomialAllocated{Polymake.Rational, Int64};
                           R::Union{MPolyRing, Nothing} = nothing)
-    coeff_vec = Polymake.coefficients_as_vector(p)
-    monomials = Polymake.monomials_as_matrix(p)
+    coeff_vec = convert(Vector{fmpq}, Polymake.coefficients_as_vector(p))
+    monomials = Matrix{Int}(Polymake.monomials_as_matrix(p))
     n_vars = length(monomials[:, 1])
-    n_terms = length(monomials[1, :])
     # not sure if the numbering is the best choice but it matches Polymake
     if isnothing(R)
         R, _ = PolynomialRing(QQ, "x" => 0:n_vars - 1, cached=false)
     end
-    
-    polynomial = MPolyBuildCtx(R)
-    
-    for i in 1:n_terms
-        c = convert(fmpq, coeff_vec[i])
-        e = Vector{Int}(monomials[i, :])
-        push_term!(polynomial, c, e)
-    end
 
-    return finish(polynomial)
+    return R(coeff_vec, [monomials[:, i] for i in 1:ncols(monomials)])
 end
 
 function convert_to_oscar(O::Polymake.BigObjectAllocated)
