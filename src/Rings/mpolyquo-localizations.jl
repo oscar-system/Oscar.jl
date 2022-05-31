@@ -1308,12 +1308,13 @@ end
  
 ### required getter functions
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
-ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
 pre_image_ideal(I) = I.J
+ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
+getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 function Base.in(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)

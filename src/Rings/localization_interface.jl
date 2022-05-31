@@ -507,6 +507,16 @@ function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
   return ideal(W, vcat(gens(I), gens(J)))
 end
 
+function Base.:^(I::T, k::IntegerUnion) where {T<:AbsLocalizedIdeal}
+  if k == 2
+    return ideal(base_ring(I), [a*b for a in gens(I) for b in gens(I)])
+  elseif k == 1
+    return I
+  else
+    q, r = divrem(k, 2)
+    return ideal(base_ring(I), [a*b for a in gens(I^q) for b in gens(I^(q+r))])
+  end
+end
 
 ########################################################################
 # Homomorphisms of localized rings                                     #

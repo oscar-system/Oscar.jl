@@ -68,7 +68,8 @@ function has_nonempty_intersection(U::MPolyProductOfMultSets, I::MPolyIdeal; che
 
   V = pop!(Usets)
   Iloc = MPolyLocalizedRing(R, V)(I)
-  J = saturated_ideal(Iloc)
+  saturated_ideal(Iloc, with_generator_transition=true)
+  J = pre_saturated_ideal(Iloc)
   (success, g, A) = has_nonempty_intersection(MPolyProductOfMultSets(R, Usets), J, check=check)
   if !success 
     return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))

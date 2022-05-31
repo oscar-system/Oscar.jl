@@ -898,6 +898,7 @@ end
 # Elements of localized polynomial rings                               #
 ########################################################################
 
+using Infiltrator
 @Markdown.doc """
     MPolyLocalizedRingElem{
         BaseRingType, 
@@ -937,6 +938,7 @@ mutable struct MPolyLocalizedRingElem{
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
     if check && !iszero(f) && !isunit(denominator(f))
+      @infiltrate !(denominator(f) in inverted_set(W))
       denominator(f) in inverted_set(W) || error("the given denominator is not admissible for this localization")
     end
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(W, f)
@@ -1468,6 +1470,8 @@ ideal_type(L::MPolyLocalizedRing) = ideal_type(typeof(L))
 ### additional getter functions 
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring
 is_saturated(I::MPolyLocalizedIdeal) = I.is_saturated
+ngens(I::MPolyLocalizedIdeal) = length(I.gens)
+getindex(I::MPolyLocalizedIdeal, k::Int) = copy(I.gens[k])
 
 function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   L = base_ring(I)
@@ -1481,7 +1485,7 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   !success && return false
   # cache the intermediate result
   extend_pre_saturated_ideal!(I, b, x, u, check=false)
-  return success
+  return true
 end
 
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
