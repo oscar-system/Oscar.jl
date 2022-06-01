@@ -84,7 +84,9 @@ function decodeType(input::String)
         #
         # WARNING: Never deserialize data from an untrusted source, as this
         # parsing is insecure and potentially malicious code could be
-        # entered here.
+        # entered here. (also computationally expensive)
+        # Standard Oscar tests should never pass this line
+        @warn "Serialization: Generic Decoding of Type: $input"
         eval(Meta.parse(input))
     end
 end
