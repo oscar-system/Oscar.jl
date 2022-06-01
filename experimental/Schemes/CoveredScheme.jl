@@ -203,7 +203,7 @@ end
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX = affine_cone(X)
   kk = base_ring(X)
-  S = homog_poly_ring(X)
+  S = homogeneous_poly_ring(X)
   r = fiber_dimension(X)
   U = Vector{affine_patch_type(X)}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
@@ -250,7 +250,7 @@ end
   W = localized_ring(L)
   R = base_ring(L)
   kk = coefficient_ring(R)
-  S = homog_poly_ring(X)
+  S = homogeneous_poly_ring(X)
   r = fiber_dimension(X)
   U = Vector{affine_patch_type(X)}()
   pU = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X), typeof(Y))}()
