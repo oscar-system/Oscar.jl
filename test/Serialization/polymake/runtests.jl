@@ -17,5 +17,8 @@
 
         um = load(joinpath(@__DIR__, "um5.mat"))
         @test um isa Polymake.PropertyValueAllocated
+
+        i = load(joinpath(@__DIR__, "ideal.mv"))
+        @test um isa 
     end
 end
