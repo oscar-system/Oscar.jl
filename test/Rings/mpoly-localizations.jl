@@ -202,3 +202,16 @@ end
 # test_Ring_interface_recursive(Localization(T)[1])
 # test_Ring_interface_recursive(Localization(U)[1])
 end
+
+@testset "localization_at_orderings" begin
+  R, (x,y) = QQ["x", "y"]
+  o = degrevlex([x])*negdegrevlex([y])
+  U = MPolyLeadingMonOne(R, o)
+  @test y-1 in U
+  @test !(x in U)
+  L, _ = Localization(R, U)
+  I = ideal(L, [x^2, y*(y-1)])
+  @test !(x in I)
+  @test x^2 in I
+  @test y in I
+end

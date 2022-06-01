@@ -1570,6 +1570,37 @@ function Base.show(io::IO, I::MPolyLocalizedIdeal)
   print(io, last(gens(I)))
 end
 
+########################################################################
+# special treatment of localization at orderings                       #
+########################################################################
+
+function Base.in(
+    a::RingElem,
+    I::MPolyLocalizedIdeal{LRT} 
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
+  parent(a) == base_ring(I) || return base_ring(I)(a) in I
+  J = pre_saturated_ideal(I)
+  p = numerator(a)
+  o = ordering(inverted_set(parent(a)))
+  # We have to call for that groebner basis once manually. 
+  # Otherwise the ideal membership will complain about the ordering not being global.
+  groebner_basis(J, ordering=o, enforce_global_ordering=false)
+  return ideal_membership(p, J, ordering=o)
+end
+
+function coordinates(
+    a::RingElem,
+    I::MPolyLocalizedIdeal{LRT} 
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyLeadingMonOne}}
+  L = base_ring(I)
+  L == parent(a) || return coordinates(L(a), I)
+  J = pre_saturated_ideal(I)
+  p = numerator(a)
+  o = ordering(inverted_set(parent(a)))
+  x, u = Oscar.coordinates_with_unit(p, J, o)
+  T = pre_saturation_data(I)
+  return L(one(base_ring(L)), u*denominator(a), check=false)*change_base_ring(L, x)*T
+end
 
 @Markdown.doc """
     bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
