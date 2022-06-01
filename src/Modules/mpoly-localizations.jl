@@ -9,7 +9,7 @@
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 
 
-function has_nonepmty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
 
@@ -19,7 +19,7 @@ function has_nonepmty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
   return true, f, coordinates(f, I)
 end
 
-function has_nonepmty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   P = prime_ideal(U)
@@ -37,7 +37,7 @@ function has_nonepmty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
   return true, g, A
 end
 
-function has_nonepmty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdeal)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   a = point_coordinates(U)
