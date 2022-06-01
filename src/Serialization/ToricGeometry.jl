@@ -22,7 +22,7 @@ function save_internal(s::SerializerState, td::ToricDivisor)
 end
 
 function load_internal(s::DeserializerState, ::Type{ToricDivisor}, dict::Dict)
-    tv = load_type_dispatch(s, dict[:toric_variety]; check_namespace=false)
+    tv = load_unknown_type(s, dict[:toric_variety])
     coeffs = load_type_dispatch(s, Vector{fmpz}, dict[:coeffs])
     all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
     index = 0

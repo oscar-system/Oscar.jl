@@ -59,7 +59,7 @@ function save_internal(s::SerializerState, K::SimpleNumField)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Dict)
-    def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
+    def_pol = load_unknown_type(s, dict[:def_pol])
     var = load_type_dispatch(s, Symbol, dict[:var])
     K, _ = NumberField(def_pol, var, cached=false)
 
@@ -75,7 +75,7 @@ function save_internal(s::SerializerState, K::FqNmodFiniteField)
 end
 
 function load_internal(s::DeserializerState, ::Type{FqNmodFiniteField}, dict::Dict)
-    def_pol = load_type_dispatch(s, dict[:def_pol], check_namespace=false)
+    def_pol = load_unknown_type(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
 
     return K
@@ -96,8 +96,8 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{nf_elem, fq_nmod, Hecke.NfRelElem}},
                        dict::Dict)
-    K = load_type_dispatch(s, dict[:parent], check_namespace=false)
-    polynomial = load_type_dispatch(s, dict[:polynomial], check_namespace=false)
+    K = load_unknown_type(s, dict[:parent])
+    polynomial = load_unknown_type(s, dict[:polynomial])
     return K(polynomial)
 end
 
@@ -114,7 +114,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{NfAbsNS, NfRelNS}},
                        dict::Dict)
-    def_pols = load_type_dispatch(s, dict[:def_pols], check_namespace=false)
+    def_pols = load_unknown_type(s, dict[:def_pols])
     vars = load_type_dispatch(s, Vector{Symbol}, dict[:vars])
     K, _ = NumberField(def_pols, vars, cached=false)
     return K
@@ -136,8 +136,8 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
                        dict::Dict)
-    K = load_type_dispatch(s, dict[:parent_field]; check_namespace=false)
-    polynomial = load_type_dispatch(s, dict[:polynomial]; check_namespace=false)
+    K = load_unknown_type(s, dict[:parent_field])
+    polynomial = load_unknown_type(s, dict[:polynomial])
     polynomial = evaluate(polynomial, gens(K))
 
     return K(polynomial)
@@ -155,7 +155,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R, _ = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
+    R, _ = load_unknown_type(s, dict[:base_ring])
 
     return FractionField(R, cached=false)
 end
@@ -170,12 +170,10 @@ function save_internal(s::SerializerState, f::FracElem)
     )
 end
 
-function load_internal(s::DeserializerState,
-                       ::Type{<: FracElem},
-                       dict::Dict)
-    R = load_type_dispatch(s, dict[:parent], check_namespace=false)
-    num = load_type_dispatch(s, dict[:num], check_namespace=false)
-    den = load_type_dispatch(s, dict[:den], check_namespace=false)
+function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
+    R = load_unknown_type(s, dict[:parent])
+    num = load_unknown_type(s, dict[:num])
+    den = load_unknown_type(s, dict[:den])
 
     return R(num) // R(den)
 end

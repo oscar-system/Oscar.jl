@@ -11,21 +11,6 @@ function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
     return Nemo.NmodRing(modulus)
 end
 
-#elements
-function save_internal(s::SerializerState, r::nmod)
-    return Dict(
-        :parent => save_type_dispatch(s, parent(r)),
-        :class_val => save_type_dispatch(s, fmpz(r))
-    )
-end
-
-function load_internal(s::DeserializerState, ::Type{nmod}, dict::Dict)
-    parent_ring = load_type_dispatch(s, UInt64, dict[:parent])
-    class_val = load_type_dispatch(s, fmpz, dict[:class_val])
-    return parent_ring(class_val)
-end
-
-
 ################################################################################
 #  Polynomial Rings
 function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
@@ -38,8 +23,8 @@ end
 function load_internal(s::DeserializerState,
                        T::Type{<: Union{MPolyRing, PolyRing}},
                        dict::Dict)
-    base_ring = load_type_dispatch(s, dict[:base_ring], check_namespace=false)
-    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
+    base_ring = load_type_dispatch(s, dict[:base_ring])
+    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
 
     if T <: PolyRing
         return PolynomialRing(base_ring, symbols..., cached=false)
@@ -70,7 +55,7 @@ function save_internal(s::SerializerState, p::MPolyElem)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyElem}, dict::Dict)
-    R, symbols = load_type_dispatch(s, dict[:parent], check_namespace=false)
+    R, symbols = load_type_dispatch(s, dict[:parent])
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(R)
@@ -96,7 +81,7 @@ function save_internal(s::SerializerState, p::PolyElem)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: PolyElem}, dict::Dict)
-    R, y = load_type_dispatch(s, dict[:parent], check_namespace=false)
+    R, y = load_type_dispatch(s, dict[:parent])
     coeff_ring = coefficient_ring(R)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs])
@@ -117,7 +102,7 @@ function save_internal(s::SerializerState, i::MPolyIdeal)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
-    parent_ring, _ = load_type_dispatch(s, dict[:parent], check_namespace=false)
+    parent_ring, _ = load_type_dispatch(s, dict[:parent])
     gens = load_type_dispatch(s, Vector{MPolyElem}, dict[:gens])
 
     return ideal(parent_ring, gens)

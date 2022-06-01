@@ -218,7 +218,7 @@ function load(filename::String)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parsefile(filename, dicttype=Dict{Symbol, Any})
-    return load_type_dispatch(state, jsondict)
+    return load_unknown_type(state, jsondict, check_namespace=true)
 end
 
 
