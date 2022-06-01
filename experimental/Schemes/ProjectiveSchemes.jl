@@ -356,7 +356,7 @@ end
 @Markdown.doc """
     poly_to_homog(X::ProjectiveScheme)
 
-Returns a map that converts an element of the `base_ring` of 
+Return a map that converts an element of the `base_ring` of 
 ring of functions `OO` of the `affine_cone` of `X` into 
 an element of the `homog_poly_ring` of `X`.
 """
@@ -370,7 +370,7 @@ end
 @Markdown.doc """
     function frac_to_homog_pair(X::ProjectiveScheme)
 
-Returns a map that converts an element ``f = p/q`` of the ring of 
+Return a map that converts an element ``f = p/q`` of the ring of 
 functions `OO` of the `affine_cone` of `X` into a pair 
 ``(a, b)`` of elements of the `homog_poly_ring` of `X`
 corresponding to ``p`` and ``q``, respectively.

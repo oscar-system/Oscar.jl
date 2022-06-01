@@ -79,7 +79,7 @@ function show(io::IO, F::FreeModule_dec)
 
   print(io, "Free module of rank $(length(F.d)) over ")
   print(IOContext(io, :compact =>true), F.R)
-  if isgraded(F.R)
+  if is_graded(F.R)
     print(io, ", graded as ")
   else
     print(io, ", filtrated as ")
@@ -204,7 +204,7 @@ function degree(a::FreeModuleElem_dec)
     if first
       ww = w
       first = false
-    elseif isgraded(W)
+    elseif is_graded(W)
       if ww != w
         error("elem not homogeneous")
       end
@@ -243,7 +243,7 @@ function homogeneous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
   return x
 end
 
-function ishomogeneous(a::FreeModuleElem_dec)
+function is_homogeneous(a::FreeModuleElem_dec)
   if iszero(a)
     return true
   end
@@ -251,7 +251,7 @@ function ishomogeneous(a::FreeModuleElem_dec)
   first = true
   local d::GrpAbFinGenElem
   for (p,v) = a.r
-    ishomogeneous(v) || return false
+    is_homogeneous(v) || return false
     if first
       d = F.d[p] + degree(v)
       first = false
@@ -380,8 +380,8 @@ function (F::FreeModule_dec)(s::Singular.svector)
     convert(F, s)
 end
 
-isgraded(F::FreeModule_dec) = isgraded(F.R)
-isfiltered(F::FreeModule_dec) = isfiltered(F.R)
+is_graded(F::FreeModule_dec) = is_graded(F.R)
+is_filtered(F::FreeModule_dec) = is_filtered(F.R)
 
 abstract type ModuleFPHom_dec end
 abstract type Map_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom_dec} end
@@ -390,7 +390,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::MapHeader
 
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector) where {T, S}
-#    @assert isfiltered(F) || all(ishomogeneous, a) #necessary and sufficient according to Hans XXX
+#    @assert is_filtered(F) || all(is_homogeneous, a) #necessary and sufficient according to Hans XXX
 #same as non-homogeneous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
@@ -426,7 +426,7 @@ function identity_map(M::ModuleFP_dec)
   return hom(M, M, gens(M))
 end
 
-function ishomogeneous(h::T) where {T <: Map_dec}
+function is_homogeneous(h::T) where {T <: Map_dec}
   first = true
   local d::GrpAbFinGenElem
   for i = gens(domain(h))
@@ -455,7 +455,7 @@ function degree(h::T) where {T <: Map_dec}
       first = false
     end
     dd = degree(hi) - degree(i)
-    if isfiltered(R)
+    if is_filtered(R)
       if R.lt(d, dd)
         d = dd
       end
@@ -617,12 +617,12 @@ end
 ==(a::SubQuoElem_dec, b::SubQuoElem_dec) = iszero(a-b)
 
 function sub(F::FreeModule_dec, O::Vector{<:FreeModuleElem_dec})
-  all(ishomogeneous, O) || error("generators have to be homogeneous")
+  all(is_homogeneous, O) || error("generators have to be homogeneous")
   s = SubQuo_dec(F, O)
 end
 
 function sub(F::FreeModule_dec, O::Vector{<:SubQuoElem_dec})
-  all(ishomogeneous, O) || error("generators have to be homogeneous")
+  all(is_homogeneous, O) || error("generators have to be homogeneous")
   return SubQuo_dec(F, [x.a for x = O])
 end
 
@@ -651,7 +651,7 @@ function quo(F::FreeModule_dec, O::Vector{<:SubQuoElem_dec})
 end
 
 function quo(F::SubQuo_dec, O::Vector{<:FreeModuleElem_dec})
-  all(ishomogeneous, O) || error("generators have to be homogeneous")
+  all(is_homogeneous, O) || error("generators have to be homogeneous")
   @assert parent(O[1]) == F.F
   if isdefined(F, :quo)
     F.sub[Val(:S), 1]
@@ -925,17 +925,17 @@ function degree(a::FreeModuleElem_dec, C::SubQuo_dec)
   return degree(convert(C.F, x))
 end
 
-function ishomogeneous(a::SubQuoElem_dec)
+function is_homogeneous(a::SubQuoElem_dec)
   C = parent(a)
   if !isdefined(C, :quo)
-    return ishomogeneous(a.a)
+    return is_homogeneous(a.a)
   end
   if !isdefined(C, :std_quo)
     singular_assure(C.quo)
     C.std_quo = BiModArray(C.quo.F, Singular.std(C.quo.S))
   end
   x = _reduce(convert(C.quo.SF, a.a), C.std_quo.S)
-  return ishomogeneous(convert(C.F, x))
+  return is_homogeneous(convert(C.F, x))
 end
 
 function iszero(a::SubQuoElem_dec)

@@ -60,7 +60,7 @@ function f4(
     reduce_gb       = Int(complete_reduction)
 
     # convert ideal to flattened arrays of ints
-    if !(isprime(field_char))
+    if !(is_prime(field_char))
         error("At the moment f4 only supports finite fields.")
     end
 
@@ -90,7 +90,7 @@ function f4(
     if 0 == field_char
         ptr   = reinterpret(Ptr{BigInt}, gb_cf[])
         jl_cf = Base.unsafe_wrap(Array, ptr, nr_terms)
-    elseif isprime(field_char)
+    elseif is_prime(field_char)
         ptr   = reinterpret(Ptr{Int32}, gb_cf[])
         jl_cf = Base.unsafe_wrap(Array, ptr, nr_terms)
     end

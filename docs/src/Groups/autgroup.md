@@ -66,7 +66,7 @@ typeof(g*f)
 
 The following functions are available for automorphisms, some of them similar to the corresponding functions for homomorphisms of groups.
 ```@docs
-isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
+is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
 restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
 hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
@@ -77,6 +77,6 @@ hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
 Oscar disposes of the following functions to handle inner automorphisms of a group.
 ```@docs
 inner_automorphism(g::GAPGroupElem)
-isinner_automorphism(f::GAPGroupHomomorphism)
+is_inner_automorphism(f::GAPGroupHomomorphism)
 inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
 ```

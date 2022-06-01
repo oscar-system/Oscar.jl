@@ -1,4 +1,4 @@
-@testset "Primary invariants" begin
+@testset "Primary invariants (for matrix groups)" begin
   # Char 0
   K, a = CyclotomicField(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
@@ -63,6 +63,53 @@
   M1 = diagonal_matrix([ matrix(QQ, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ]) for i = 1:3 ])
   M2 = diagonal_matrix([ matrix(QQ, 3, 3, [ 0, 1, 0, 0, 0, 1, 1, 0, 0 ]) for i = 1:3 ])
   RG = invariant_ring(M1, M2)
+  invars = primary_invariants_via_optimal_hsop(RG)
+  @test length(invars) == 9
+  @test sort([ total_degree(f.f) for f in invars ]) == [ 1, 1, 1, 2, 2, 2, 3, 3, 3 ]
+  @test dim(ideal(polynomial_ring(RG), invars)) == 0
+end
+
+@testset "Primary invariants (for permutation groups)" begin
+  # Char 0
+  K, a = CyclotomicField(3, "a")
+  G = symmetric_group(4)
+  for algo in [ :optimal_hsop, :successive_algo ]
+    RG = invariant_ring(K, G)
+    invars = primary_invariants(RG, algo)
+    @test dim(ideal(polynomial_ring(RG), invars)) == 0
+    for f in invars
+      @test reynolds_operator(RG, f) == f
+    end
+  end
+
+  # Char p, non-modular
+  F5 = GF(5)
+  G = symmetric_group(4)
+  for algo in [ :optimal_hsop, :successive_algo ]
+    RG = invariant_ring(F5, G)
+    invars = primary_invariants(RG, algo)
+    @test dim(ideal(polynomial_ring(RG), invars)) == 0
+    for f in invars
+      @test reynolds_operator(RG, f) == f
+    end
+  end
+
+  # Char p, modular
+  F9 = GF(3, 2)
+  for algo in [ :optimal_hsop, :successive_algo ]
+    RG = invariant_ring(F9, G)
+    invars = primary_invariants(RG, algo)
+    @test dim(ideal(polynomial_ring(RG), invars)) == 0
+    actions = [Oscar.right_action(polynomial_ring(RG), x) for x in gens(G)]
+    for f in invars
+      @test all(act -> act(f) == f, actions)
+    end
+  end
+
+  # Kem99, p. 183: S_3^3
+  s3 = symmetric_group(3)
+  G = PermGroup(direct_product(s3, s3, s3))
+  RG = invariant_ring(G)
   invars = primary_invariants_via_optimal_hsop(RG)
   @test length(invars) == 9
   @test sort([ total_degree(f.f) for f in invars ]) == [ 1, 1, 1, 2, 2, 2, 3, 3, 3 ]

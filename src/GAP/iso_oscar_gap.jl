@@ -248,7 +248,7 @@ function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP
 end
 
 function _iso_oscar_gap(FO::AnticNumberField)
-   flag, N = Hecke.iscyclotomic_type(FO)
+   flag, N = Hecke.is_cyclotomic_type(FO)
    flag || error("$FO is not a cyclotomic field")
 
    FG = GAPWrap.CF(GAP.Obj(N))
@@ -257,11 +257,21 @@ function _iso_oscar_gap(FO::AnticNumberField)
    return MapFromFunc(f, finv, FO, FG)
 end
 
+# Assume that `FO` is a `QabField` and `FG` is `GAP.Globals.Cyclotomics`.
+function _iso_oscar_gap_abelian_closure_functions(FO::QabField, FG::GAP.GapObj)
+   return (GAP.julia_to_gap, QabElem)
+end
+
+function _iso_oscar_gap(FO::QabField)
+   FG = GAP.Globals.Cyclotomics
+   f, finv = _iso_oscar_gap_abelian_closure_functions(FO, FG)
+
+   return MapFromFunc(f, finv, FO, FG)
+end
+
 @attr Map function iso_oscar_gap(F)
    return _iso_oscar_gap(F)
 end
-
-#TODO function iso_oscar_gap(F::T) where T <: QabField
 
 
 ################################################################################

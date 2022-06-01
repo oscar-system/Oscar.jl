@@ -142,7 +142,7 @@ function spin(gram_diag::MatElem, isometry::MatElem, check=true)
   G = gram_diag
   f = isometry
   @assert ncols(G) == nrows(G) == ncols(f) == nrows(f) "G and f must be square matrices"
-  @assert isdiagonal(G)
+  @assert is_diagonal(G)
   if check
     @assert G == f * G * transpose(f)  "f must be an isometry"
   end
@@ -482,7 +482,7 @@ julia> order(Oq)
 """
 @attr function image_in_Oq(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
-  if rank(L) > 2 && !isdefinite(L)
+  if rank(L) > 2 && !is_definite(L)
     # use strong approximation
     f = det_spin_homomorphism(L,signed=false)
     return kernel(f)
@@ -495,7 +495,7 @@ end
 
 @attr function image_in_Oq_signed(L::ZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadMod}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadMod}, AutomorphismGroup{Hecke.TorQuadMod}}}
   @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
-  @req rank(L) > 2 && !isdefinite(L) "L must be indefinite of rank at least 3"
+  @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
   # use strong approximation
   f = det_spin_homomorphism(L,signed=true)
   return kernel(f)

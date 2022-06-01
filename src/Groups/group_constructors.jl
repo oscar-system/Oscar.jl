@@ -1,7 +1,7 @@
 ################################################################################
 #
 #  Some basic constructors
-#  
+#
 ################################################################################
 
 export
@@ -11,14 +11,14 @@ export
     dihedral_group,
     free_abelian_group,
     free_group,
-    isabelian, hasisabelian, setisabelian,
-    iscyclic, hasiscyclic, setiscyclic,
-    isdihedral_group, hasisdihedral_group, setisdihedral_group,
-    isisomorphic_with_alternating_group, hasisisomorphic_with_alternating_group, setisisomorphic_with_alternating_group,
-    isisomorphic_with_symmetric_group, hasisisomorphic_with_symmetric_group, setisisomorphic_with_symmetric_group,
-    isnatural_alternating_group, hasisnatural_alternating_group, setisnatural_alternating_group,
-    isnatural_symmetric_group, hasisnatural_symmetric_group, setisnatural_symmetric_group,
-    isquaternion_group, hasisquaternion_group, setisquaternion_group,
+    is_abelian, has_is_abelian, set_is_abelian,
+    is_cyclic, has_is_cyclic, set_is_cyclic,
+    is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group,
+    is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group,
+    is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group,
+    is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group,
+    is_natural_symmetric_group, has_is_natural_symmetric_group, set_is_natural_symmetric_group,
+    is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group,
     mathieu_group,
     quaternion_group,
     symmetric_group
@@ -41,27 +41,25 @@ as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
 symmetric_group(n::Int) = symmetric_group(PermGroup, n)
 
 function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
-  return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n))
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n)::GapObj)
 end
 
 """
-    isnatural_symmetric_group(G::GAPGroup)
+    is_natural_symmetric_group(G::GAPGroup)
 
 Return `true` if `G` is a permutation group acting as the symmetric group
 on its moved points, and `false` otherwise.
 """
-@gapattribute isnatural_symmetric_group(G::GAPGroup) = GAP.Globals.IsNaturalSymmetricGroup(G.X)::Bool
+@gapattribute is_natural_symmetric_group(G::GAPGroup) = GAP.Globals.IsNaturalSymmetricGroup(G.X)::Bool
 
 """
-    isisomorphic_with_symmetric_group(G::GAPGroup)
+    is_isomorphic_with_symmetric_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with a symmetric group,
 and `false` otherwise.
 """
-@gapattribute isisomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
+@gapattribute is_isomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
 
 """
     alternating_group(::Type{T} = PermGroup, n::Int)
@@ -72,27 +70,25 @@ as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
 alternating_group(n::Int) = alternating_group(PermGroup, n)
 
 function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
-  return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n))
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n)::GapObj)
 end
 
 """
-    isnatural_alternating_group(G::GAPGroup)
+    is_natural_alternating_group(G::GAPGroup)
 
 Return `true` if `G` is a permutation group acting as the alternating group
 on its moved points, and `false` otherwise.
 """
-@gapattribute isnatural_alternating_group(G::GAPGroup) = GAP.Globals.IsNaturalAlternatingGroup(G.X)::Bool
+@gapattribute is_natural_alternating_group(G::GAPGroup) = GAP.Globals.IsNaturalAlternatingGroup(G.X)::Bool
 
 """
-    isisomorphic_with_alternating_group(G::GAPGroup)
+    is_isomorphic_with_alternating_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with an alternating group,
 and `false` otherwise.
 """
-@gapattribute isisomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
+@gapattribute is_isomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
 
 """
     cyclic_group(::Type{T} = PcGroup, n::Int) where T <: GAPGroup
@@ -102,16 +98,17 @@ Return the cyclic group of order `n`, as an instance of `T`.
 cyclic_group(n::Int) = cyclic_group(PcGroup, n)
 
 function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
-  return T(GAP.Globals.CyclicGroup(_gap_filter(T), n))
+  n >= 1 || throw(ArgumentError("n must be a positive integer"))
+  return T(GAP.Globals.CyclicGroup(_gap_filter(T), n)::GapObj)
 end
 
 """
-    iscyclic(G::GAPGroup)
+    is_cyclic(G::GAPGroup)
 
 Return `true` if `G` is cyclic,
 i.e., if `G` can be generated by one element.
 """
-@gapattribute iscyclic(G::GAPGroup) = GAP.Globals.IsCyclic(G.X)::Bool
+@gapattribute is_cyclic(G::GAPGroup) = GAP.Globals.IsCyclic(G.X)::Bool
 
 # already defined in Hecke
 #=
@@ -138,24 +135,24 @@ Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
     In future versions of Oscar, this may change.
 """
 function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
-  return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.GapObj(v)))
+  return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.GapObj(v))::GapObj)
 end
 
 function abelian_group(::Type{T}, v::Vector{fmpz}) where T <: GAPGroup
   vgap = GAP.julia_to_gap(v, recursive=true)
-  return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap))
+  return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap)::GapObj)
 end
 
 @doc Markdown.doc"""
-    isabelian(G::Group)
+    is_abelian(G::Group)
 
 Return `true` if `G` is abelian (commutative),
 that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 """
-@gapattribute isabelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
+@gapattribute is_abelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
 
 function mathieu_group(n::Int)
-  @assert n in Int[9, 10, 11, 12, 21, 22, 23, 24]
+  9 <= n <= 12 || 21 <= n <= 24 || throw(ArgumentError("n must be a 9-12 or 21-24"))
   return PermGroup(GAP.Globals.MathieuGroup(n), n)
 end
 
@@ -185,17 +182,18 @@ where the `i`-th generator is printed as `L[i]`.
     Variables named like the group generators are *not* created by this function.
 """
 function free_group(n::Int, s::Union{String, Symbol} = "f")
-   return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s)))
+   n >= 0 || throw(ArgumentError("n must be a non-negative integer"))
+   return FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
 end
 
 function free_group(L::Vector{<:Union{String, Symbol}})
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J))
+   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
 end
 
 function free_group(L::Union{String, Symbol}...)
    J = GAP.GapObj(L, recursive = true)
-   return FPGroup(GAP.Globals.FreeGroup(J))
+   return FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
 end
 
 # FIXME: a function `free_abelian_group` with the same signature is
@@ -205,14 +203,14 @@ end
 #end
 
 function free_abelian_group(::Type{FPGroup}, n::Int)
- return FPGroup(GAP.Globals.FreeAbelianGroup(n))
+ return FPGroup(GAP.Globals.FreeAbelianGroup(n)::GapObj)
 end
 
 
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 
 function free_group(G::FPGroup)
-   return FPGroup(GAP.Globals.FreeGroupOfFpGroup(G.X))
+   return FPGroup(GAP.Globals.FreeGroupOfFpGroup(G.X)::GapObj)
 end
 
 ################################################################################
@@ -233,16 +231,16 @@ dihedral_group(n::Int) = dihedral_group(PcGroup, n)
 
 function dihedral_group(::Type{T}, n::Int) where T <: GAPGroup
   @assert iseven(n)
-  return T(GAP.Globals.DihedralGroup(_gap_filter(T), n))
+  return T(GAP.Globals.DihedralGroup(_gap_filter(T), n)::GapObj)
 end
 
 @doc Markdown.doc"""
-    isdihedral_group(G::GAPGroup)
+    is_dihedral_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with a dihedral group,
 and `false` otherwise.
 """
-@gapattribute isdihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(G.X)::Bool
+@gapattribute is_dihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(G.X)::Bool
 
 """
     quaternion_group(::Type{T} = PcGroup, n::Int)
@@ -272,15 +270,15 @@ julia> relators(g)
 """
 quaternion_group(n::Int) = quaternion_group(PcGroup, n)
 
-function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup 
+function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup
    @assert iszero(mod(n, 4))
-  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n))
+  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
 end
 
 @doc Markdown.doc"""
-    isquaternion_group(G::GAPGroup)
+    is_quaternion_group(G::GAPGroup)
 
 Return `true` if `G` is isomorphic with a (generalized) quaternion group
 of order $2^{k+1}, k \geq 2$, and `false` otherwise.
 """
-@gapattribute isquaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(G.X)::Bool
+@gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(G.X)::Bool

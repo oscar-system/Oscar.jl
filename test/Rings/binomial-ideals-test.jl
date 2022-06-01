@@ -3,35 +3,35 @@
   @testset "Binomial and unital test" begin
     R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     f = x+y
-    @test isbinomial(f)
+    @test is_binomial(f)
     J = ideal(R, [x^2-y^3, z^2])
-    @test isbinomial(J)
+    @test is_binomial(J)
     Qxy, (x, y, z, t) = PolynomialRing(FlintQQ, 4)
     I = ideal(elem_type(Qxy)[x*y, z*t^2-t^3, z^2-y^2])
-    @test Oscar.isbinomial(I)
-    @test Oscar.isunital(I)
+    @test Oscar.is_binomial(I)
+    @test Oscar.is_unital(I)
 
     J = ideal([x*y - z*t^2 + t^3, z*t^2-t^3])
-    @test Oscar.isbinomial(J)
+    @test Oscar.is_binomial(J)
     J1 = ideal(Qxy, x^2+y^2+z^2)
-    @test !Oscar.isbinomial(J1)
+    @test !Oscar.is_binomial(J1)
   end
   
   @testset "Cellular decomposition" begin
   
     R, x = PolynomialRing(QQ, "x"=>1:5)
     I = ideal(R, [x[1]^3*x[3]-x[1]^3, x[1]^4, x[1]^2*x[2]*x[4]-x[1]^2*x[2], x[2]^2, x[4]^3-1])
-    @test iscellular(I)[1]
+    @test is_cellular(I)[1]
     I = ideal(R, [x[1]*x[4]^2-x[2]*x[5]^2, x[1]^3*x[3]^3-x[2]^4*x[4]^2, x[2]*x[4]^8-x[3]^3*x[5]^6])
-    @test !iscellular(I)[1]
+    @test !is_cellular(I)[1]
     Qxy, (x, y, z, t) = PolynomialRing(FlintQQ, 4)
     I = ideal(elem_type(Qxy)[x*y, z*t^2-t^3, z^2-y^2])
-    @test !Oscar.iscellular(I)[1]
+    @test !Oscar.is_cellular(I)[1]
     lI = Oscar.cellular_decomposition(I)
     lI2 = Oscar.cellular_decomposition_macaulay(I)
     @test length(lI) == length(lI2)
     for x in lI
-      @test iscellular(x)[1]
+      @test is_cellular(x)[1]
       @test x in lI2
     end
     R, x = PolynomialRing(QQ, "x"=>1:3)

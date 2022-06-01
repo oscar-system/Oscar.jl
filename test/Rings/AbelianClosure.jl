@@ -73,8 +73,8 @@
 
   @testset "Coercion" begin
     K, z = abelian_closure(QQ)
-    @test Oscar.AbelianClosure.isconductor(3)
-    @test !Oscar.AbelianClosure.isconductor(2)
+    @test Oscar.AbelianClosure.is_conductor(3)
+    @test !Oscar.AbelianClosure.is_conductor(2)
     a, b = z(4), z(3)
     c, d = @inferred Oscar.AbelianClosure.make_compatible(a, b)
     fa = minpoly(Oscar.AbelianClosure.data(a))
@@ -86,6 +86,19 @@
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
   end
 
+  @testset "Conversion" begin
+    K, z = abelian_closure(QQ)
+    x  = z(5)
+    y = ZZ(x^5)
+    @test y isa fmpz
+    @test y == 1
+    y = QQ(x^5)
+    @test y isa fmpq
+    @test y == 1
+    @test_throws ErrorException ZZ(x)
+    @test_throws ErrorException QQ(x)
+  end
+
   @testset "Promote rule" begin
     @test Oscar.AbstractAlgebra.promote_rule(QabElem, Int) == QabElem
     @test Oscar.AbstractAlgebra.promote_rule(QabElem, fmpz) == QabElem
@@ -94,8 +107,8 @@
 
   @testset "Arithmetic" begin
     K, z = abelian_closure(QQ)
-    @test isunit(z(1))
-    @test !isunit(zero(K))
+    @test is_unit(z(1))
+    @test !is_unit(zero(K))
     rand_elem() = begin n = rand([3, 4, 5]); sum(rand(-1:1) * z(n) for i in 1:3) end
     a = one(K)
     @test isone(inv(a))
@@ -174,6 +187,11 @@
       @test @inferred b == T(-1)
       @test @inferred T(-1) == b
     end
+
+    a = z(5)
+    b = z(15)^3
+    @test @inferred a == b
+    @test hash(a, zero(UInt)) == hash(b, zero(UInt))
   end
 
   @testset "Roots" begin
@@ -185,8 +203,8 @@
       @test length(bs) == n
       @test all(c -> c^n == b, bs)
 
-      @test isroot_of_unity(z(5))
-      @test !isroot_of_unity(z(5) + 1)
+      @test is_root_of_unity(z(5))
+      @test !is_root_of_unity(z(5) + 1)
     end
 
     @test length(roots(8*b, 3)) == 3
@@ -243,4 +261,8 @@
     a = z(4)
     @test K(L(a)) == a
   end
+
+  K, z = abelian_closure(QQ)
+  S = [z(3)]
+  @test degree(NumberField(QQ, S)[1]) == 2
 end

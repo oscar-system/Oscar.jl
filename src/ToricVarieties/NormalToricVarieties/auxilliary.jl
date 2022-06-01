@@ -24,6 +24,8 @@ function binomial_exponents_to_ideal(R::MPolyRing, binoms::Union{AbstractMatrix,
     end
     return ideal(terms)
 end
+
+
 @doc Markdown.doc"""
     binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
 

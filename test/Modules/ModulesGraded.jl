@@ -27,9 +27,9 @@ end
 
     @test degree(F[1]) == decoration(R)[0]
     @test degree(x[2]*x[3]^2*F[1]+x[1]^3*F[3]) == 3*decoration(R)[1]
-    @test !ishomogeneous((x[1]+x[2]^2)*F[1])
-    @test !ishomogeneous(F[1]+x[3]*F[3])
-    @test ishomogeneous(x[1]*x[2]*F[1]+x[3]^2*F[2])
+    @test !is_homogeneous((x[1]+x[2]^2)*F[1])
+    @test !is_homogeneous(F[1]+x[3]*F[3])
+    @test is_homogeneous(x[1]*x[2]*F[1]+x[3]^2*F[2])
     @test homogeneous_component(x[1]*F[1]+x[2]^2*F[2]+x[3]*F[3], decoration(R)[1]) == x[1]*F[1]+x[3]*F[3]
     D = homogeneous_components(x[1]*F[1]+x[2]^2*F[2]+x[3]*F[3])
     @test length(D) == 2
@@ -42,9 +42,9 @@ end
 
     @test degree(F[1]) == g[2]
     @test degree(x[1]*F[1]+x[2]^3*F[3]) == g[1]+g[2]
-    @test !ishomogeneous((x[1]+x[2]^2)*F[1])
-    @test !ishomogeneous(F[1]+x[2]*F[3])
-    @test ishomogeneous(x[1]*x[2]*F[1]+x[2]^2*F[2])
+    @test !is_homogeneous((x[1]+x[2]^2)*F[1])
+    @test !is_homogeneous(F[1]+x[2]*F[3])
+    @test is_homogeneous(x[1]*x[2]*F[1]+x[2]^2*F[2])
     @test homogeneous_component(x[1]*F[1]+x[2]^2*F[2]+x[2]*F[3], g[1]+g[2]) == x[1]*F[1]
     D = homogeneous_components(x[1]^2*F[1]+x[2]^2*F[2]+x[1]*x[2]^3*F[3])
     @test length(D) == 2
@@ -56,7 +56,7 @@ end
     Qx, x = PolynomialRing(QQ, 2)
     R, x = filtrate(Qx, [Z[1], Z[1]], (x,y) -> x[1] > y[1])
     F = FreeMod_dec(R, 2)
-    @test !ishomogeneous(x[1]*F[1] + x[2]^3*F[2])
+    @test !is_homogeneous(x[1]*F[1] + x[2]^3*F[2])
     @test degree(x[1]*F[1] + x[2]^3*F[2]) == Z[1]
 end
 
@@ -68,7 +68,7 @@ end
     F3 = FreeMod_dec(R, [Z[1], -2*Z[1], Z[0]])
 
     F6, pure = tensor_product(F2,F3, task=:map)
-    @test ishomogeneous(F6[1])
+    @test is_homogeneous(F6[1])
     v = pure((F2[1], F3[2]))
     @test degree(v) == -2*Z[1]
     v = pure(((x[1]^5+x[2])*F2[2], x[3]*F3[3]))

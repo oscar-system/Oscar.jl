@@ -45,9 +45,10 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
     function in case `check = true` (default).
 
 !!! note
-    If `S` is noncommutative, the assigned images must pairwise commute.
-    This is checked by the function in case `check = true` (default).
-
+    In case `check = true` (default), the function also checks the conditions below:
+    - If `S` is graded, the assigned images must be homogeneous with respect to the given grading.
+    - If `S` is noncommutative, the assigned images must pairwise commute. 
+ 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"] );

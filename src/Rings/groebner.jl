@@ -298,11 +298,9 @@ julia> Oscar.normal_form_internal(I,J)
 ```
 """
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
-    if !isdefined(J, :gb)
-        groebner_assure(J)
-    end
-    K = ideal(base_ring(J), reduce(I, collect(values(J.gb))[1].S))
-    return [J.gens.Ox(x) for x = gens(K.gens.S)]
+  groebner_assure(J)
+  K = ideal(base_ring(J), reduce(I, collect(values(J.gb))[1].S))
+  return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
 @doc Markdown.doc"""

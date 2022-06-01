@@ -16,7 +16,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}) 
 
    G = MatrixGroup(n, Fq, matrices_Fq)
    N = order(G)
-   if !isdivisible_by(Hecke._minkowski_multiple(K, n), N)
+   if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
       error("Group is not finite")
    end
 
@@ -68,7 +68,7 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
    gen = gens(G)
 
    preimg = function(y)
-     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAP.Globals.Image(GptoF, map_entries(Gp.ring_iso, y.elm))),
+     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(Gp.ring_iso, y.elm))),
                                    GAP.Globals.FreeGeneratorsOfFpGroup(F),
                                    GAP.GapObj(gen))
    end

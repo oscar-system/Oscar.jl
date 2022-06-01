@@ -36,6 +36,12 @@
       @test isa(delta, Int)
     end
   end
+
+  @test !is_normal(quo(R, ideal(R, [x^2 - y^3]))[1])
+  @test is_normal(quo(R, ideal(R, [x - y^3]))[1])
+
+  R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+  @test_throws ArgumentError is_normal(quo(R, ideal(R, [x - y^3]))[1])
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin

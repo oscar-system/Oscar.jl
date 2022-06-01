@@ -19,11 +19,11 @@ The following functions are available in Oscar for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem})
-issubgroup
+is_subgroup
 embedding(G::T, H::T) where T <: GAPGroup
 index(G::T, H::T) where T <: GAPGroup
-isnormal(G::T, H::T) where T <: GAPGroup
-ischaracteristic(G::T, H::T) where T <: GAPGroup
+is_normal(G::T, H::T) where T <: GAPGroup
+is_characteristic(G::T, H::T) where T <: GAPGroup
 ```
 
 ## Standard subgroups
@@ -56,7 +56,7 @@ minimal_normal_subgroups
 characteristic_subgroups
 derived_series
 sylow_system
-hall_subgroups_representatives
+hall_subgroup_reps
 hall_system
 complement_system
 ```
@@ -72,8 +72,8 @@ complement_system
 ## Conjugation action of elements and subgroups
 
 ```@docs
-isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
-isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 centralizer(G::GAPGroup, x::GAPGroupElem)
@@ -82,7 +82,13 @@ normalizer(G::GAPGroup, x::GAPGroupElem)
 normalizer(G::T, H::T) where T<:GAPGroup
 core(G::T, H::T) where T<:GAPGroup
 normal_closure(G::T, H::T) where T<:GAPGroup
+```
+
+```@docs
 GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
+representative(G::GroupConjClass)
+acting_group(G::GroupConjClass)
+number_conjugacy_classes(G::GAPGroup)
 conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)
@@ -97,9 +103,9 @@ conjugacy_classes_maximal_subgroups(G::GAPGroup)
 GroupCoset
 right_coset(H::GAPGroup, g::GAPGroupElem)
 left_coset(H::GAPGroup, g::GAPGroupElem)
-isright(c::GroupCoset)
-isleft(c::GroupCoset)
-isbicoset(C::GroupCoset)
+is_right(c::GroupCoset)
+is_left(c::GroupCoset)
+is_bicoset(C::GroupCoset)
 acting_domain(C::GroupCoset)
 representative(C::GroupCoset)
 right_cosets(G::GAPGroup, H::GAPGroup)

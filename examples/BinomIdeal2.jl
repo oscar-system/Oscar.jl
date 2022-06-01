@@ -8,7 +8,7 @@ import Oscar.lib4ti2_jll
 
 #using DelimitedFiles
 
-export isbinomial, iscellular, isunital, QabField, Binomial, Cellular
+export is_binomial, is_cellular, is_unital, QabField, Binomial, Cellular
 
 import Oscar: singular_assure, MPolyIdeal
 import Oscar.Singular: std, Ideal, lead_exponent
@@ -67,7 +67,7 @@ function saturate(I::Singular.sideal,J::Singular.sideal)
                 If=Iff
         end
 end
-function isbinomial(f::MPolyElem)
+function is_binomial(f::MPolyElem)
   return length(f) <= 2
 end
 function isBinomial(f::Singular.spoly)
@@ -78,7 +78,7 @@ function isBinomial(f::Singular.spoly)
                 return(false)
         end
 end
-function isbinomial(I::MPolyIdeal)
+function is_binomial(I::MPolyIdeal)
   singular_assure(I)
   return isBinomialIdeal(I.gens.S)
 end
@@ -91,7 +91,7 @@ function isBinomialIdeal(I::Singular.sideal)
         return all(isBinomial, Singular.gens(I))
 end
 
-function isunital(I::MPolyIdeal)
+function is_unital(I::MPolyIdeal)
   singular_assure(I)
   return isUnital(I.gens.S)
 end
@@ -406,7 +406,7 @@ function isCellular(I::Singular.sideal)
         end
 end
 
-function iscellular(I::MPolyIdeal)
+function is_cellular(I::MPolyIdeal)
   singular_assure(I)
   return isCellular(I.gens.S)
 end

@@ -53,27 +53,27 @@ Papers offering details on theory and algorithms as well as examples include:
 ### Binomiality Test
 
 ```@docs
-isbinomial(f::MPolyElem)
-isbinomial(I::MPolyIdeal)
+is_binomial(f::MPolyElem)
+is_binomial(I::MPolyIdeal)
 ```
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 f = 2*x+y
-isbinomial(f)
+is_binomial(f)
 J = ideal(R, [x^2-y^3, z^2])
-isbinomial(J)
+is_binomial(J)
 ```
 
 ### Cellularity Test
 
 ```@docs
-iscellular(I::MPolyIdeal)
+is_cellular(I::MPolyIdeal)
 ```
 
 ### Unitality Test
 
 ```@docs
-isunital(I::MPolyIdeal)
+is_unital(I::MPolyIdeal)
 ```
 
 

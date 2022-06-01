@@ -1,6 +1,6 @@
 export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_type, isexact_type
+export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, is_domain_type, is_exact_type
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
@@ -474,9 +474,9 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem}
   return SpecOpenRingElem(parent(a), [divexact(a[i], b[i]) for i in 1:length(restrictions(a))])
 end
 
-function isunit(a::SpecOpenRingElem) 
+function is_unit(a::SpecOpenRingElem) 
   for i in 1:length(restrictions(a))
-    isunit(a[i]) || return false
+    is_unit(a[i]) || return false
   end
   return true
 end
@@ -490,14 +490,14 @@ zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches
 (R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 (R::SpecOpenRing)(a::fmpz) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 
-isdomain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
-isdomain_type(a::SpecOpenRingElem) = isdomain_type(typeof(a))
-isexact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
-isexact_type(a::SpecOpenRingElem) = isexact_type(typeof(a))
-isdomain_type(::Type{T}) where {T<:SpecOpenRing} = true
-isdomain_type(R::SpecOpenRing) = isdomain_type(typeof(R))
-isexact_type(::Type{T}) where {T<:SpecOpenRing} = true
-isexact_type(R::SpecOpenRing) = isexact_type(typeof(R))
+is_domain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+is_domain_type(a::SpecOpenRingElem) = is_domain_type(typeof(a))
+is_exact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+is_exact_type(a::SpecOpenRingElem) = is_exact_type(typeof(a))
+is_domain_type(::Type{T}) where {T<:SpecOpenRing} = true
+is_domain_type(R::SpecOpenRing) = is_domain_type(typeof(R))
+is_exact_type(::Type{T}) where {T<:SpecOpenRing} = true
+is_exact_type(R::SpecOpenRing) = is_exact_type(typeof(R))
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T

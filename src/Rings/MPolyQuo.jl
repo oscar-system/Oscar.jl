@@ -33,6 +33,7 @@ ngens(Q::MPolyQuo) = ngens(Q.R)
 gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
 Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
+coefficient_ring(W::MPolyQuo) = coefficient_ring(base_ring(W))
 modulus(W::MPolyQuo) = W.I
 
 default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
@@ -454,28 +455,20 @@ function simplify(a::MPolyQuoIdeal)
    J = R.I
    GJ = groebner_assure(J)
    singular_assure(GJ)
-   oscar_assure(a)
    singular_assure(a.I)
    red  = reduce(a.I.gens.S, GJ.S)
    SR   = singular_poly_ring(R)
-   si   = Singular.Ideal(SR, gens(red))
+   si   = Singular.Ideal(SR, unique!(gens(red)))
    red  = MPolyQuoIdeal(R, si)
    return red
 end
+
 function simplify!(a::MPolyQuoIdeal)
-    R   = base_ring(a)
-    oscar_assure(a)
-    RI  = base_ring(a.I)
-    J = R.I
-    GJ = groebner_assure(J)
-    singular_assure(GJ)
-    oscar_assure(a)
-    singular_assure(a.I)
-    red  = reduce(a.I.gens.S, GJ.S)
-    SR   = singular_poly_ring(R)
-    a.SI = Singular.Ideal(SR, gens(red))
-    a.I  = ideal(RI, RI.(gens(a.SI)))
-    return a
+  b = simplify(a)
+  a.SI = b.SI
+  RI = base_ring(a.I)
+  a.I = ideal(RI, RI.(gens(a.SI)))
+  return a
 end
 
 @doc Markdown.doc"""
@@ -645,6 +638,9 @@ MPolyQuo{fmpq_mpoly}
 julia> typeof(x)
 fmpq_mpoly
 
+julia> typeof(A(x))
+MPolyQuoElem{fmpq_mpoly}
+
 julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> p
@@ -729,7 +725,7 @@ end
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function isinvertible_with_inverse(a::MPolyQuoElem)
+function is_invertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
@@ -748,9 +744,9 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
+is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
 function inv(a::MPolyQuoElem)
-  fl, b = isinvertible_with_inverse(a)
+  fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
@@ -981,27 +977,25 @@ function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-isfiltered(q::MPolyQuo) = isfiltered(q.R)
-isgraded(q::MPolyQuo) = isgraded(q.R)
+is_filtered(q::MPolyQuo) = is_filtered(q.R)
+is_graded(q::MPolyQuo) = is_graded(q.R)
 
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
 
-Given an element `f` of an affine algebra which is graded by a finitely
-generated Abelian group, and given an element `g` of that group,
-return the homogeneous component of `f` of degree `g`.
+Given an element `f` of a graded affine algebra, and given an element `g` of the
+grading group of that algebra, return the homogeneous component of `f` of degree `g`.
 
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
 
-Given an element `f` of a $\mathbb  Z^m$-graded affine algebra, and given
-a vector `g` of $m$ integers, convert `g` into an element of the group 
-$\mathbb  Z^m$, and return the homogeneous component of `f` whose degree 
-is that element.
+Given an element `f` of a $\mathbb  Z^m$-graded affine algebra `A`, say, and given
+a vector `g` of $m$ integers, convert `g` into an element of the grading group of `A`,
+and return the homogeneous component of `f` whose degree is that element.
 
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
 
-Given an element `f` of a $\mathbb  Z$-graded affine algebra, and given
-an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
+Given an element `f` of a $\mathbb  Z$-graded affine algebra `A`, say, and given
+an integer `g`, convert `g` into an element of the grading group of `A`, 
 and return the homogeneous component of `f` whose degree is that element.
 
 # Examples
@@ -1035,7 +1029,7 @@ end
 @doc Markdown.doc"""
     homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
 
-Return the homogeneous components of `f`.
+Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
 
 # Examples
 ```jldoctest
@@ -1059,9 +1053,9 @@ function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+    is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 
-Return `true` if `f` is homogeneous, `false` otherwise.
+Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -1072,16 +1066,16 @@ julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 true
 
 julia> f
 z^4
 ```
 """
-function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
+function is_homogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return ishomogeneous(a.f)
+  return is_homogeneous(a.f)
 end
 
 @doc Markdown.doc"""
@@ -1213,9 +1207,9 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
 
   Q = base_ring(I)
 
-  @assert isgraded(Q)
+  @assert is_graded(Q)
   
-  if !(typeof(base_ring(base_ring(Q))) <: AbstractAlgebra.Field)
+  if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
   end
   
@@ -1238,70 +1232,6 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
   end
 
   return elem_type(Q)[ Q(f) for f in gensS ]
-end
-
-################################################################################
-#
-#  Minimalizing a set of subalgebra generators in graded case
-#
-################################################################################
-@doc Markdown.doc""" 
-    minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
-
-Given a vector `V` of homogeneous elements of a graded ring `R`, say, where `R`  is a positively graded
-multivariate polynomial ring over a field, or a quotient ring of such a ring, return a minimal
-subset of the elements in `V` which still generate the subalgebra of `R`
-generated by all elements in `V`.
-
-!!! note
-    The conditions on `V` and `R` are automatically checked.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = GradedPolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field graded by 
-  x -> [1]
-  y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
-
-julia> V = [x, y, x^2+y^2]
-3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- x
- y
- x^2 + y^2
-
-julia> minimal_subalgebra_generators(V)
-2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- x
- y
-```
-"""
-function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
-  p = parent(V[1])
-  @assert all(x->parent(x) == p, V)
-  if typeof(p) <: MPolyRing
-      if !(typeof(base_ring(p)) <: AbstractAlgebra.Field)
-          throw(ArgumentError("The coefficient ring must be a field."))
-      end
-      p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
-      all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
-      # iterate over the generators, starting with those in lowest degree, then work up
-      W = sort(V, by = x -> degree(x)[1])
-  else
-      if !(typeof(base_ring(p.R)) <: AbstractAlgebra.Field)
-          throw(ArgumentError("The coefficient ring of the base ring must be a field."))
-      end
-      p.R isa MPolyRing_dec && isgraded(p.R) || throw(ArgumentError("The base ring must be graded"))
-      all(ishomogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
-      # iterate over the generators, starting with those in lowest degree, then work up
-      W = sort(V, by = x -> degree(x.f)[1])
-  end
-  result = [ W[1] ]
-  for elm in W
-    if !subalgebra_membership(elm, result)[1]
-       push!(result, elm)
-    end
-  end
-  return result
 end
 
 ################################################################################

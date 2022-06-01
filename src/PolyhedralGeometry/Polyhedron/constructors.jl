@@ -4,13 +4,19 @@
 ###############################################################################
 ###############################################################################
 
-struct Polyhedron{T} #a real polymake polyhedron
+struct Polyhedron{T<:scalar_types} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
-    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
-    
+
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
-    Polyhedron{T}(p::Polymake.BigObject, b::Symbol) where T<:scalar_types = new{T}(p, b)
+
+    @doc Markdown.doc"""
+        Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
+
+    Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
+    The type parameter `T` is optional but recommended for type stability.
+    """
+    Polyhedron{T}(p::Polymake.BigObject) where T<:scalar_types = new{T}(p)
 end
 
 # default scalar type: `fmpq`
@@ -19,20 +25,8 @@ Polyhedron(x...) = Polyhedron{fmpq}(x...)
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
 Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
-Polyhedron(p::Polymake.BigObject, b::Symbol) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p, b)
 
 @doc Markdown.doc"""
-
-    Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
-
-Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
-"""
-function Polyhedron{T}(pm_polytope::Polymake.BigObject) where T<:scalar_types
-    Polyhedron{T}(pm_polytope, :unknown)
-end
-
-@doc Markdown.doc"""
-
     Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
@@ -58,7 +52,7 @@ equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
 julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 A polyhedron in ambient dimension 2
 
-julia> isfeasible(P)
+julia> is_feasible(P)
 true
 
 julia> dim(P)
@@ -72,9 +66,14 @@ julia> vertices(P)
 """
 Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
-function Polyhedron{T}(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
-    IM = -affine_matrix_for_polymake(I)
-    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+function Polyhedron{T}(I::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
+    if isnothing(I) || _isempty_halfspace(I)
+        EM = affine_matrix_for_polymake(E)
+        IM = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(EM, 2))
+    else
+        IM = -affine_matrix_for_polymake(I)
+        EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+    end
 
     return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
 end

@@ -3,26 +3,33 @@
   G = symmetric_group(n)
   
   cc = conjugacy_class(G, G[1])
+  @test acting_group(cc) === G
+  @test representative(cc) == G[1]
   cc1 = conjugacy_class(G, G[1]^G[2])
+  @test length(cc) == length(cc1)
   @test length(cc) == length(cc1)
   @test cc == cc1
   
   ccid = conjugacy_class(G,one(G))
+  @test acting_group(ccid) === G
+  @test representative(ccid) == one(G)
   @test length(ccid)==1
   @test collect(ccid) == [one(G)]
   
   x = perm(G,vcat(2:n,[1]))
   cc = conjugacy_class(G,x)
+  @test acting_group(cc) === G
+  @test representative(cc) == x
   @test length(cc) == factorial(n-1)
   @test x == representative(cc)
   y = rand(cc)
   @test order(y) == order(x)
-  @test isconjugate(G,x,x^y)
+  @test is_conjugate(G,x,x^y)
   @test representative_action(G,x,x^y)[1]
   z = representative_action(G,x,x^y)[2]
   @test x^z == x^y
   z = cperm(G,[1,2])
-  @test !isconjugate(G,x,z)
+  @test !is_conjugate(G,x,z)
   @test !representative_action(G,x,z)[1]
 
 
@@ -43,6 +50,7 @@
 
   C = conjugacy_classes(G)
   @test length(C) == 5
+  @test all(cc -> acting_group(cc) === G, C)
   @test cc in C
   @test sum(length, C) == order(G)
   @test count(c -> x in c, C) == 1          # x belongs to a unique conjugacy class
@@ -53,17 +61,18 @@
      c = C[i]
      x = rand(c)
      y = rand(c)
-     @test isconjugate(G,x,y)
+     @test is_conjugate(G,x,y)
      @test representative_action(G,x,y)[1]
      z = representative_action(G,x,y)[2]
      @test x^z == y
      y = rand(C[(i%5)+1])
-     @test !isconjugate(G,x,y)
+     @test !is_conjugate(G,x,y)
      @test !representative_action(G,x,y)[1]
   end
 
   CC = @inferred conjugacy_classes_subgroups(G)
   @test length(CC)==11
+  @test all(cc -> acting_group(cc) === G, CC)
   @testset for C in CC
      @test C == conjugacy_class(G, representative(C))
      @test length(C) == index(G, normalizer(G, representative(C))[1])
@@ -76,12 +85,12 @@
      c = CC[i]
      x = rand(c)
      y = rand(c)
-     @test isconjugate(G,x,y)
+     @test is_conjugate(G,x,y)
      @test representative_action(G,x,y)[1]
      z = representative_action(G,x,y)[2]
      @test x^z == y
      y = rand(CC[(i % length(CC))+1])
-     @test !isconjugate(G,x,y)
+     @test !is_conjugate(G,x,y)
      @test !representative_action(G,x,y)[1]
   end
 
@@ -150,14 +159,14 @@ end
    y = generalized_jordan_block(t-1,8)
    x[7,8]=l
    x=S(x); y=S(y);
-   vero, z = isconjugate(G,x,y)
+   vero, z = is_conjugate(G,x,y)
    @test vero
    @test z in G
    @test x^z==y
-   vero, z = isconjugate(S,x,y)
+   vero, z = is_conjugate(S,x,y)
    @test !vero
    x.elm[7,8]=l^8
-   vero, z = isconjugate(S,x,y)
+   vero, z = is_conjugate(S,x,y)
    @test z in S
    @test x^z==y
 

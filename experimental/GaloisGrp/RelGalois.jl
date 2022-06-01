@@ -31,9 +31,10 @@ function GaloisCtx(f::PolyElem{nf_elem}, P::NfOrdIdl)
   V.P = P
   V.H = H
   C = GaloisCtx(typeof(V))
+  C.prime = P
   C.f = f
   C.C = V
-  if Hecke.ismaximal_order_known(k)
+  if Hecke.is_maximal_order_known(k)
     den = k(1)
   else
     den = derivative(defining_polynomial(k))(gen(k))
@@ -63,7 +64,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
 
   local zk::NfOrd
   local den::nf_elem
-  if Hecke.ismaximal_order_known(k)
+  if Hecke.is_maximal_order_known(k)
     zk = maximal_order(k)
     if isdefined(zk, :lllO)
       zk = zk.lllO::NfOrd
@@ -80,7 +81,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
   while true
     @vprint :PolyFactor 3 "Trying with $p\n "
     p = next_prime(p)
-    if !Hecke.isprime_nice(zk, p)
+    if !Hecke.is_prime_nice(zk, p)
       continue
     end
     P = prime_decomposition(zk, p, 1) #not quite sure... but lets stick with it
@@ -93,7 +94,7 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
     if degree(fp) < degree(f) || iszero(constant_coefficient(fp)) 
       continue
     end
-    if !issquarefree(fp)
+    if !is_squarefree(fp)
       continue
     end
     lf = factor_shape(fp)
@@ -126,7 +127,7 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0)
 
   if an_sn_by_shape(ct, degree(K))
     @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
-    if issquare(discriminant(K))
+    if is_square(discriminant(K))
       G = alternating_group(degree(K))
     else
       G = symmetric_group(degree(K))
@@ -196,7 +197,7 @@ end
 
 function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, extra::Int = 0)
   #the bound is a bound on the sqrt(T_2(x)). This needs to be used with the norm_change stuff
-  #and possible denominators and such. Possibly using Kronnecker...
+  #and possible denominators and such. Possibly using Kronecker...
   c1, c2 = C.data[4] # the norm-change-const
   @show v = value(y) + iroot(ceil(fmpz, length(C.data[5])), 2)+1 #correct for den
   #want to be able to detect x in Z_k of T_2(x) <= v^2
