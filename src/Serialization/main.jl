@@ -131,14 +131,16 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
-    # TODO: deal with versions? enforce their presence?
+    # File version to be dealt with on first breaking change
+    # A file without version number is treated as the "first" version
+    
     if dict[:type] == string(backref_sym)
-        return s.objs[UUID(dict[:id])]
+        backref = s.objs[UUID(dict[:id])]
+        backref isa T || throw(TypeError("Backref of incorrect type encountered"))
+        return backref
     end
 
-    # TODO: compare T against decodedType ???
-    #decodedType = decodeType(dict[:type])
-
+    string(T) == dict[:type] || throw(TypeError("Type in file doesn't match target type: $(dict[:type]) != $T"))
     result = load_internal(s, T, dict[:data])
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
@@ -146,7 +148,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
     return result
 end
 
-function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=true)
+function load_unknown_type(s::DeserializerState, dict::Dict; check_namespace=false)
     if check_namespace
         haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
         _ns = dict[:_ns]
@@ -164,9 +166,6 @@ function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=tr
     T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
 
-    # TODO: offer a generic handler for primitive
-    # types e.g. storing them as byte strings or so
-    #Base.isprimitivetype(T) && return load_primitivetype(T, dict) #
     return load_type_dispatch(s, T, dict)
 end
 
