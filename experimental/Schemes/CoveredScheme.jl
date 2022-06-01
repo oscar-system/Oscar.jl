@@ -9,7 +9,7 @@ export morphism_type, morphisms
 
 export CoveredScheme
 export empty_covered_scheme
-export coverings, refinements, default_covering, set_name!, name_of, has_name, dim
+export coverings, refinements, default_covering, name_of, has_name, dim
 export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
 import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
@@ -67,8 +67,8 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
         if check
           inverse(glueings[(X, Y)]) == glueings[(Y, X)] || error("glueings are not inverse of each other")
         end
-      else
-	glueings[(Y, X)] = inverse(glueings[(X, Y)])
+      else 
+        glueings[(Y, X)] = inverse(glueings[(X, Y)])
       end
     end
 
@@ -171,7 +171,6 @@ function Base.in(U::Spec, C::Covering)
   end
   for i in 1:npatches(C)
     if haskey(affine_refinements(C), C[i])
-      V = affine_refinements(C)[C[i]]
       for V in affine_refinements(C)[C[i]]
         U in affine_patches(V) && return true
       end
@@ -201,10 +200,7 @@ end
 
 ### standard constructors 
 
-function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
-  if has_attribute(X, :standard_covering) 
-    return get_attribute(X, :standard_covering)
-  end
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX = affine_cone(X)
   kk = base_ring(X)
   S = homog_poly_ring(X)
@@ -244,14 +240,10 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
       add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
     end
   end
-  set_attribute!(X, :standard_covering, result)
   return result
 end
 
-function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
-  if has_attribute(X, :standard_covering) 
-    return get_attribute(X, :standard_covering)
-  end
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
   CX = affine_cone(X)
   Y = base_scheme(X)
   L = OO(Y)
@@ -302,7 +294,6 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :standard_covering, result)
   set_attribute!(X, :covered_projection_to_base, covered_projection)
   return result
 end
@@ -532,32 +523,29 @@ end
 getindex(X::CoveredScheme, i::Int, j::Int) = X[X[i], X[j]]
 
 
-set_name!(X::CoveredScheme, name::String) = set_attribute!(X, :name, name)
+# TODO: Adjust to the framework for names from AA?
 name_of(X::CoveredScheme) = get_attribute(X, :name)::String
 has_name(X::CoveredScheme) = has_attribute(X, :name)
 
-function dim(X::CoveredScheme) 
-  if !has_attribute(X, :dim)
-    d = -1
-    is_equidimensional=true
-    for U in patches(default_covering(X))
-      e = dim(U)
-      if e > d
-        d == -1 || (is_equidimensional=false)
-        d = e
-      end
-    end
-    set_attribute!(X, :dim, d)
-    if !is_equidimensional
-      # the above is not an honest check for equidimensionality,
-      # because in each chart the output of `dim` is only the 
-      # supremum of all components. Thus we can only infer 
-      # non-equidimensionality in case this is already visible
-      # from comparing the diffent charts
-      set_attribute(X, :is_equidimensional, false)
+@attr function dim(X::CoveredScheme) 
+  d = -1
+  is_equidimensional=true
+  for U in patches(default_covering(X))
+    e = dim(U)
+    if e > d
+      d == -1 || (is_equidimensional=false)
+      d = e
     end
   end
-  return get_attribute(X, :dim)::Int
+  if !is_equidimensional
+    # the above is not an honest check for equidimensionality,
+    # because in each chart the output of `dim` is only the 
+    # supremum of all components. Thus we can only infer 
+    # non-equidimensionality in case this is already visible
+    # from comparing the diffent charts
+    set_attribute!(X, :is_equidimensional, false)
+  end
+  return d
 end
 
 function set_default_covering!(X::CoveredScheme, C::Covering) 
@@ -584,10 +572,7 @@ end
 
 
 function Base.show(io::IO, X::CoveredScheme)
-  if has_name(X)
-    print(io, name_of(X))
-    return
-  end
+  @show_name(io, X)
   print(io, "covered scheme with $(npatches(default_covering(X))) affine patches in its default covering")
 end
 

@@ -17,8 +17,8 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
 `RingType` with elements of type `RingElemType`.
 """
 @attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
-  A::CoeffRingType	# the base ring
-  r::Int	# the relative dimension
+  A::CoeffRingType # the base ring
+  r::Int # the relative dimension
   S::RingType   # A[s₀,…,sᵣ]
   I::MPolyIdeal{RingElemType} # generators for the defining ideal
   #TODO: Once MPolyIdeal is finally generic, use that instead of storing the generators.
