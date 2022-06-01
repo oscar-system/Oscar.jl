@@ -24,12 +24,12 @@
   @test x == representative(cc)
   y = rand(cc)
   @test order(y) == order(x)
-  @test isconjugate(G,x,x^y)
+  @test is_conjugate(G,x,x^y)
   @test representative_action(G,x,x^y)[1]
   z = representative_action(G,x,x^y)[2]
   @test x^z == x^y
   z = cperm(G,[1,2])
-  @test !isconjugate(G,x,z)
+  @test !is_conjugate(G,x,z)
   @test !representative_action(G,x,z)[1]
 
 
@@ -61,12 +61,12 @@
      c = C[i]
      x = rand(c)
      y = rand(c)
-     @test isconjugate(G,x,y)
+     @test is_conjugate(G,x,y)
      @test representative_action(G,x,y)[1]
      z = representative_action(G,x,y)[2]
      @test x^z == y
      y = rand(C[(i%5)+1])
-     @test !isconjugate(G,x,y)
+     @test !is_conjugate(G,x,y)
      @test !representative_action(G,x,y)[1]
   end
 
@@ -85,12 +85,12 @@
      c = CC[i]
      x = rand(c)
      y = rand(c)
-     @test isconjugate(G,x,y)
+     @test is_conjugate(G,x,y)
      @test representative_action(G,x,y)[1]
      z = representative_action(G,x,y)[2]
      @test x^z == y
      y = rand(CC[(i % length(CC))+1])
-     @test !isconjugate(G,x,y)
+     @test !is_conjugate(G,x,y)
      @test !representative_action(G,x,y)[1]
   end
 
@@ -159,14 +159,14 @@ end
    y = generalized_jordan_block(t-1,8)
    x[7,8]=l
    x=S(x); y=S(y);
-   vero, z = isconjugate(G,x,y)
+   vero, z = is_conjugate(G,x,y)
    @test vero
    @test z in G
    @test x^z==y
-   vero, z = isconjugate(S,x,y)
+   vero, z = is_conjugate(S,x,y)
    @test !vero
    x.elm[7,8]=l^8
-   vero, z = isconjugate(S,x,y)
+   vero, z = is_conjugate(S,x,y)
    @test z in S
    @test x^z==y
 

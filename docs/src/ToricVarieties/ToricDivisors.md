@@ -21,36 +21,40 @@ correspond to the rays of the underlying fan.
 ### General constructors
 
 ```@docs
-DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
-ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors
 
-```@docs
-Base.:+(td1::ToricDivisor, td2::ToricDivisor)
-Base.:-(td1::ToricDivisor, td2::ToricDivisor)
-Base.:*(c::fmpz, td::ToricDivisor)
-```
+Addition of toric divisors `td1` and `td2` (on the same toric variety) and
+scalar multiplication with `c` (it can be either valued in `Int64` or `fmpz`)
+is supported via `c * td1 + td2`. One can subtract them via `td1 - td2`.
+
 
 ### Equality
 
-```@docs
-Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
-```
+Equality of two toric divisors `td1` and `td2` (on the same toric variety)
+is achieved by checking if their coefficients are identical.
+This is implemented via `td1 == td2`.
 
 
 ## Properties of toric divisors
 
+To check if a toric divisor `td` is trivial, one can invoke `is_trivial(td)`.
+Internally, this executes the following method:
 ```@docs
-isample(td::ToricDivisor)
+is_principal(td::ToricDivisor)
+```
+Beyond this, we support the following properties of toric divisors:
+```@docs
+is_ample(td::ToricDivisor)
 is_basepoint_free(td::ToricDivisor)
-iscartier(td::ToricDivisor)
-iseffective(td::ToricDivisor)
-isintegral(td::ToricDivisor)
-isnef(td::ToricDivisor)
-isprime(td::ToricDivisor)
-isprincipal(td::ToricDivisor)
+is_cartier(td::ToricDivisor)
+is_effective(td::ToricDivisor)
+is_integral(td::ToricDivisor)
+is_nef(td::ToricDivisor)
+is_prime(td::ToricDivisor)
 is_q_cartier(td::ToricDivisor)
 is_very_ample(td::ToricDivisor)
 ```
@@ -61,4 +65,12 @@ is_very_ample(td::ToricDivisor)
 coefficients(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
 toric_variety(td::ToricDivisor)
+```
+
+## Special divisors
+
+```@docs
+trivial_divisor(v::AbstractNormalToricVariety)
+anticanonical_divisor(v::AbstractNormalToricVariety)
+canonical_divisor(v::AbstractNormalToricVariety)
 ```

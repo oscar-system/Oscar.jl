@@ -25,13 +25,13 @@ Here is a summary of the naming convention followed in Oscar:
   Similarly for `matrix_to_points`. Of course it is fine to use them internally, where
   useful.
 - Follow the mathematics. If your function needs a list of points, you should
-  create a point-type (or use the one already ehre) and then use this.
+  create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
 - If already existing types in Oscar are almost what you need, consider
   improving them instead of writing your own. While it might be
   tempting to create a new polynomial ring type for the new application because
-  some feature is missing, it causes a lot of work and compability issues: Will the new type support
+  some feature is missing, it causes a lot of work and compatibility issues: Will the new type support
   - normal functions (gcd, factor),
   - quotient fields,
   - modules and residue rings,

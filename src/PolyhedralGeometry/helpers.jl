@@ -3,8 +3,13 @@ import Polymake: IncidenceMatrix
 const nf_scalar = Union{nf_elem, fmpq}
 
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
-    i = findfirst(_cannot_convert_to_fmpq, m)
-    m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+    a, b = size(m)
+    if a > 0
+        i = findfirst(_cannot_convert_to_fmpq, m)
+        m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+    else
+        m = Polymake.Matrix{Polymake.Rational}(undef, a, b)
+    end
     return m
 end
 
@@ -54,7 +59,7 @@ Base.convert(::Type{nf_scalar}, x::nf_elem) = x
 nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
 
 function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
-    isq = Hecke.isquadratic_type(parent(x))
+    isq = Hecke.is_quadratic_type(parent(x))
     if !isq[1] || isq[2] < 0
         throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'."))
     end

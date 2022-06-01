@@ -58,7 +58,8 @@ function PolyhedralComplex{T}(
                 vr::Union{SubObjectIterator{<:Union{PointVector,PointVector}}, Oscar.MatElem, AbstractMatrix}, 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
                 L::Union{SubObjectIterator{<:RayVector}, 
-                Oscar.MatElem, AbstractMatrix, Nothing} = nothing
+                Oscar.MatElem, AbstractMatrix, Nothing} = nothing;
+                non_redundant::Bool = false
             ) where T<:scalar_types
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L
 
@@ -72,11 +73,19 @@ function PolyhedralComplex{T}(
     # Lineality is homogenized
     lineality = homogenize(LM, 0)
 
-    PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
-        POINTS = points,
-        INPUT_LINEALITY = lineality,
-        INPUT_CONES = polyhedra,
-    ))
+    if non_redundant
+        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
+            VERTICES = points,
+            LINEALITY_SPACE = lineality,
+            MAXIMAL_CONES = polyhedra,
+        ))
+    else
+        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
+            POINTS = points,
+            INPUT_LINEALITY = lineality,
+            INPUT_CONES = polyhedra,
+        ))
+    end
 end
 
 # TODO: Only works for this specific case; implement generalization using `iter.Acc`

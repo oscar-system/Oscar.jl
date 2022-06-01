@@ -96,6 +96,7 @@ the field `characteristic`; its value is `0` for ordinary tables and
 GAPGroupCharacterTable
 character_table
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
+all_character_table_names
 ```
 
 ## Attributes of group characters
@@ -105,7 +106,7 @@ character_field
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator
-isirreducible(chi::GAPGroupClassFunction)
+is_irreducible(chi::GAPGroupClassFunction)
 schur_index
 ```
 
@@ -115,8 +116,14 @@ schur_index
 character_parameters
 class_parameters
 decomposition_matrix
+identifier
 induced_cyclic(tbl::GAPGroupCharacterTable)
+is_duplicate_table
+maxes
 names_of_fusion_sources
+class_lengths
+orders_centralizers
+orders_class_representatives
 trivial_character(tbl::GAPGroupCharacterTable)
 ```
 
@@ -163,12 +170,16 @@ arithmetic operations:
 
 ```@docs
 scalar_product
+induced_class_function
 ```
 
 ## Operations for character tables
 
 ```@docs
+class_multiplication_coefficient
 known_class_fusion
+order(tbl::GAPGroupCharacterTable)
+possible_class_fusions
 ```
 
 ## Character tables and normal subgroups
@@ -181,4 +192,5 @@ conjugacy classes of ``G`` that contain the elements of ``N``.
 
 ```@docs
 class_positions_of_kernel
+class_positions_of_pcore
 ```

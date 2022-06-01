@@ -144,20 +144,20 @@ decoration(F::FreeMod_dec) = F.d
 decoration(R::MPolyRing_dec) = R.D
 
 @doc Markdown.doc"""
-    isgraded(F::FreeMod_dec)
+    is_graded(F::FreeMod_dec)
 
 Check if `F` is graded.
 """
-isgraded(F::FreeMod_dec) = isgraded(base_ring(F))
+is_graded(F::FreeMod_dec) = is_graded(base_ring(F))
 
 @doc Markdown.doc"""
-    isfiltered(F::FreeMod_dec)
+    is_filtered(F::FreeMod_dec)
 
 Check if `F` is filtered.
 """
-isfiltered(F::FreeMod_dec) = isfiltered(base_ring(F))
+is_filtered(F::FreeMod_dec) = is_filtered(base_ring(F))
 
-isdecorated(F::FreeMod_dec) = true
+is_decorated(F::FreeMod_dec) = true
 
 @doc Markdown.doc"""
     ==(F::FreeMod_dec, G::FreeMod_dec)
@@ -178,15 +178,15 @@ end
 @doc Markdown.doc"""
     FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T
 
-Return the element of `F` whose coefficients with respect to the basis of 
+Return the element of `F` whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T = FreeModElem_dec{T}(c, parent)
 
 @doc Markdown.doc"""
     FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
-    
-Return the element of `F` whose coefficients with respect to the basis of 
+
+Return the element of `F` whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 function FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
@@ -195,22 +195,22 @@ function FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
   return FreeModElem_dec{T}(sparse_coords,parent)
 end
 
-@doc Markdown.doc"""
-    (F::FreeMod_dec{T})(c::SRow{T}) where T
-    
-Return the element of `F` whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
+#@doc Markdown.doc"""
+#    (F::FreeMod_dec{T})(c::SRow{T}) where T
+#
+#Return the element of `F` whose coefficients with respect to the basis of
+#standard unit vectors of `F` are given by the entries of `c`.
+#"""
 function (F::FreeMod_dec{T})(c::SRow{T}) where T
   return FreeModElem_dec(c, F)
 end
 
-@doc Markdown.doc"""
-    (F::FreeMod_dec{T})(c::Vector{T}) where T
-
-Return the element of `F` whose coefficients with respect to the basis of 
-standard unit vectors of `F` are given by the entries of `c`.
-"""
+#@doc Markdown.doc"""
+#    (F::FreeMod_dec{T})(c::Vector{T}) where T
+#
+#Return the element of `F` whose coefficients with respect to the basis of
+#standard unit vectors of `F` are given by the entries of `c`.
+#"""
 function (F::FreeMod_dec{T})(c::Vector{T}) where T 
   return FreeModElem_dec(c, F)
 end
@@ -287,8 +287,8 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
   ww = W.D[0]
   local w
   for (p,v) in coords(u)
-    if !ishomogeneous(v)
-      if isgraded(W)
+    if !is_homogeneous(v)
+      if is_graded(W)
         return nothing,false
       else
         homogeneous = false
@@ -298,7 +298,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
     if first
       ww = w
       first = false
-    elseif isgraded(W)
+    elseif is_graded(W)
       if ww != w
         return nothing, false
       end
@@ -363,11 +363,11 @@ function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(a::FreeModElem_dec)
+    is_homogeneous(a::FreeModElem_dec)
 
 Check if `a` is homogeneous.
 """
-function ishomogeneous(a::FreeModElem_dec)
+function is_homogeneous(a::FreeModElem_dec)
   return degree_homogeneous_helper(a)[2]
 end
 

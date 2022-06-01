@@ -43,9 +43,9 @@ The following functions on divisors of curves are implemented.
 ```@docs
 curve(D::Oscar.PlaneCurveModule.CurveDivisor)
 degree(D::Oscar.PlaneCurveModule.CurveDivisor)
-iseffective(D::Oscar.PlaneCurveModule.CurveDivisor)
-islinearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
-isprincipal(D::ProjCurveDivisor{S}) where S <: FieldElem
+is_effective(D::Oscar.PlaneCurveModule.CurveDivisor)
+is_linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
+is_principal(D::ProjCurveDivisor{S}) where S <: FieldElem
 principal_divisor(D::ProjCurveDivisor{S}) where S <: FieldElem
 global_sections(D::ProjCurveDivisor)
 dimension_global_sections(D::ProjCurveDivisor)

@@ -1,9 +1,11 @@
 export
     all_small_groups,
+    has_number_small_groups,
+    has_small_group_identification,
+    has_small_groups,
     number_small_groups,
     small_group,
     small_group_identification
-    
 
 
 ###################################################################
@@ -11,83 +13,218 @@ export
 ###################################################################
 
 """
-    small_group(n::Int, i::Int)
+    has_number_small_groups(n::IntegerUnion)
 
-Return the `i`-th group of order `n` in the catalogue of GAP's
-Small Groups Library.
-The group is given of type `PcGroup` if the group is solvable,
-`PermGroup` otherwise.
+Return `true` if the number of groups of order `n` is known, otherwise `false`.
+
+# Examples
+```jldoctest
+julia> has_number_small_groups(1024)
+true
+
+julia> has_number_small_groups(2048)
+false
+```
 """
-function small_group(n::Int, m::Int)
-  N = number_small_groups(n)
-  @assert m <= N "There are only $N groups of order $n, up to isomorphism."
-  G = GAP.Globals.SmallGroup(n, m)
+function has_number_small_groups(n::IntegerUnion)
+    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    return GAP.Globals.NumberSmallGroupsAvailable(GAP.Obj(n))
+end
+
+"""
+    has_small_groups(n::IntegerUnion)
+
+Return `true` if the groups of order `n` are available via `small_group`
+and `all_small_groups`, otherwise `false`.
+
+# Examples
+```jldoctest
+julia> has_small_groups(512)
+true
+
+julia> has_small_groups(1024)
+false
+```
+"""
+function has_small_groups(n::IntegerUnion)
+    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    return GAP.Globals.SmallGroupsAvailable(GAP.Obj(n))
+end
+
+"""
+    has_small_group_identification(n::IntegerUnion)
+
+Return `true` if identification for groups of order `n` is available via
+`small_group_identification`, otherwise `false`.
+
+# Examples
+```jldoctest
+julia> has_small_group_identification(256)
+true
+
+julia> has_small_group_identification(512)
+false
+```
+"""
+function has_small_group_identification(n::IntegerUnion)
+    n >= 1 || throw(ArgumentError("group order must be positive, not $n"))
+    return GAP.Globals.IdGroupsAvailable(GAP.Obj(n))
+end
+
+"""
+    small_group(::Type{T}, n::IntegerUnion, i::IntegerUnion) where T
+    small_group(n::IntegerUnion, i::IntegerUnion)
+
+Return the `i`-th group of order `n` in the Small Groups Library. If a type
+`T` is specified then an attempt is made to return the result with that type.
+If `T` is omitted then the resulting group will have type `PcGroup` if it is
+solvable, otherwise it will be of type `PermGroup`.
+
+# Examples
+```jldoctest
+julia> small_group(60, 4)
+<pc group of size 60 with 4 generators>
+
+julia> small_group(60, 5)
+Group([ (1,2,3,4,5), (1,2,3) ])
+
+julia> small_group(PcGroup, 60, 4)
+<pc group of size 60 with 4 generators>
+```
+"""
+function small_group(::Type{T}, n::IntegerUnion, m::IntegerUnion) where T
+  G = _small_group(n, m)
+  return T(G)
+end
+
+function small_group(n::IntegerUnion, m::IntegerUnion)
+  G = _small_group(n, m)
   T = _get_type(G)
   return T(G)
 end
 
+function _small_group(n::IntegerUnion, m::IntegerUnion)
+  N = number_small_groups(n)
+  m <= N || throw(ArgumentError("There are only $N groups of order $n, up to isomorphism."))
+  return GAP.Globals.SmallGroup(GAP.Obj(n), GAP.Obj(m))
+end
+
+
 """
     small_group_identification(G::Group)
 
-Return `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
-"""
-function small_group_identification(G::GAPGroup)
-  r = GAP.Globals.IdGroup(G.X)
-  return (r[1], r[2])
-end
-
-"""
-    number_small_groups(n::Int)
-
-Return the number of groups of order `n`, up to isomorphism.
-"""
-number_small_groups(n::Int) = GAP.Globals.NumberSmallGroups(n)
-
-
-"""
-    all_small_groups(n::Int, L...)
-
-Return the list of all groups (up to isomorphism) of order `n` and satisfying
-the conditions in `L`. Here, `L` is a vector whose arguments are organized as
-`L` = [ `func1`, `arg1`, `func2`, `arg2`, ... ], and the function returns all
-the groups `G` satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) =
-`arg2`, etc. An argument can be omitted if it corresponds to the boolean value
-`true`.
-
-The following command returns the list of all abelian non-cyclic groups
-of order 12.
+Return a pair of integer `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
 
 # Examples
 ```jldoctest
-julia> all_small_groups(12, iscyclic, false, isabelian)
+julia> small_group_identification(alternating_group(5))
+(60, 5)
+
+julia> small_group_identification(symmetric_group(20))
+ERROR: identification is not available for groups of order 2432902008176640000
+```
+"""
+function small_group_identification(G::GAPGroup)
+   isfinite(G) || error("group is not finite")
+   has_small_group_identification(order(G)) || error("identification is not available for groups of order $(order(G))")
+   res = GAP.Globals.IdGroup(G.X)
+   return Tuple{fmpz,fmpz}(res)
+end
+
+
+"""
+    number_small_groups(n::IntegerUnion)
+
+Return the number of groups of order `n`, up to isomorphism.
+
+# Examples
+```jldoctest
+julia> number_small_groups(8)
+5
+
+julia> number_small_groups(4096)
+ERROR: the number of groups of order 4096 is not available
+
+julia> number_small_groups(next_prime(fmpz(2)^64))
+1
+```
+"""
+function number_small_groups(n::IntegerUnion)
+  has_number_small_groups(n) || error("the number of groups of order $n is not available")
+  return fmpz(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
+end
+
+
+"""
+    all_small_groups(L...)
+
+Return the list of all groups (up to isomorphism)
+satisfying the conditions described by the arguments. These conditions
+may be of one of the following forms:
+
+- `func => intval` selects groups for which the function `func` returns `intval`
+- `func => list` selects groups for which the function `func` returns any element inside `list`
+- `func` selects groups for which the function `func` returns `true`
+- `!func` selects groups for which the function `func` returns `false`
+
+As a special case, the first argument may also be one of the following:
+- `intval` selects groups whose order equals `intval`; this is equivalent to `order => intval`
+- `intlist` selects groups whose order is in `intlist`; this is equivalent to `order => intlist`
+
+Note that at least one of the conditions must impose a limit on the group
+order, otherwise an exception is thrown.
+
+The following functions are currently supported as values for `func`:
+- `is_abelian`
+- `is_almostsimple`
+- `is_cyclic`
+- `is_nilpotent`
+- `is_perfect`
+- `is_quasisimple`
+- `is_simple`
+- `is_sporadic_simple`
+- `is_solvable`
+- `is_supersolvable`
+- `number_conjugacy_classes`
+- `order`
+
+The type of the returned groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.
+
+# Examples
+
+List all abelian non-cyclic groups of order 12:
+```jldoctest
+julia> all_small_groups(12, !is_cyclic, is_abelian)
 1-element Vector{PcGroup}:
  <pc group of size 12 with 3 generators>
-
 ```
 
-The type of the groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.
+List groups of order 1 to 10 which are not abelian:
+```jldoctest
+julia> all_small_groups(1:10, !is_abelian)
+4-element Vector{PcGroup}:
+ <pc group of size 6 with 2 generators>
+ <pc group of size 8 with 3 generators>
+ <pc group of size 8 with 3 generators>
+ <pc group of size 10 with 2 generators>
+```
 """
-function all_small_groups(n::Int, L...)
-   @assert CheckValidType(L)[1] "Wrong type inserted"
-   
-   L1 = Vector(undef, length(L)+1)
-   L1[1] = n
-   for i in 1:length(L)
-      if typeof(L[i]) <: Function
-         L1[i+1] = find_index_function(L[i],false)[2]
-      else
-         L1[i+1] = GAP.julia_to_gap(L[i])
-      end
+function all_small_groups(L...)
+   !isempty(L) || throw(ArgumentError("must specify at least one filter"))
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
+      L = (order => L[1], L[2:end]...)
    end
+   gapargs = translate_group_library_args(L)
+   K = GAP.Globals.AllSmallGroups(gapargs...)
 
-   K = GAP.Globals.AllSmallGroups(L1...)
-   return [_get_type(x)(x) for x in K]          # GAP.julia_to_gap(K) does not work
+   # TODO: perhaps add an option so that ids are returned instead of groups,
+   # by calling GAP.Globals.IdsOfAllSmallGroups
+   return [_get_type(x)(x) for x in K]
 end
-#T what does this comment mean?
 
 #T problem:
 
-#T all_small_groups( 60, issimple ) -> Array{PermGroup,1}
+#T all_small_groups( 60, is_simple ) -> Array{PermGroup,1}
 #T all_small_groups( 60 )  -> Array{Oscar.GAPGroup,1}
 #T all_small_groups( 59 )  -> Array{PcGroup,1}
 

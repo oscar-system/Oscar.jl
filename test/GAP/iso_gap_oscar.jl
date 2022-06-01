@@ -124,6 +124,18 @@ end
   end
 end
 
+@testset "abelian closure" begin
+  iso = Oscar.iso_gap_oscar(GAP.Globals.Cyclotomics)
+  for N in [1, 2, 5, 15]
+    x = GAP.Globals.E(N)
+    y = iso(x)
+    @test x == preimage(iso, y)
+  end
+  @test_throws ErrorException iso(GAP.Globals.Z(2))
+  @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+  @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
+end
+
 @testset "univariate polynomial rings" begin
    baserings = [GAP.Globals.Rationals,
                 GAP.Globals.Integers,

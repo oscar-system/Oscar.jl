@@ -54,14 +54,15 @@ both polymake and Oscar.
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)
+contains(C::Cone, v::AbstractVector)
 f_vector(C::Cone)
 hilbert_basis(C::Cone{fmpq})
 codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types
 intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
-ispointed(C::Cone)
-isfulldimensional(C::Cone)
+is_pointed(C::Cone)
+is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)

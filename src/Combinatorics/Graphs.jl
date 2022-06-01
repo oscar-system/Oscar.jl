@@ -728,3 +728,39 @@ function visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Poly
     BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
     Polymake.visual(BigGraph)
 end
+
+
+
+# Some standard polytopes from graphs
+@doc Markdown.doc"""
+    fractional_cut_polytope(G::Graphs.Graph{Graphs.Undirected})
+
+Construct the fractional cut polytope of the graph $G$.
+
+
+# Examples
+```jldoctest
+julia> G = Graphs.complete_graph(4);
+
+julia> fractional_cut_polytope(G)
+A polyhedron in ambient dimension 6
+```
+"""
+fractional_cut_polytope(G::Graphs.Graph{Graphs.Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
+
+
+@doc Markdown.doc"""
+    fractional_matching_polytope(G::Graphs.Graph{Graphs.Undirected})
+
+Construct the fractional matching polytope of the graph $G$.
+
+
+# Examples
+```jldoctest
+julia> G = Graphs.complete_graph(4);
+
+julia> fractional_matching_polytope(G)
+A polyhedron in ambient dimension 6
+```
+"""
+fractional_matching_polytope(G::Graphs.Graph{Graphs.Undirected}) = Polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))

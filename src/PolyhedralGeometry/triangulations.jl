@@ -1,3 +1,81 @@
+using TOPCOM_jll
+
+function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+    input = homogenized_matrix(pts, 1)
+    inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
+    in = Pipe()
+    out = Pipe()
+    err = Pipe()
+    Base.link_pipe!(in, writer_supports_async=true)
+    Base.link_pipe!(out, reader_supports_async=true)
+    Base.link_pipe!(err, reader_supports_async=true)
+    cmd = Oscar.TOPCOM_jll.points2triangs()
+    if full
+        cmd = Oscar.TOPCOM_jll.points2finetriangs()
+    end
+    proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
+    task = @async begin
+        write(in, "[\n$inputstr\n]\n")
+        close(in)
+    end
+    close(in.out)
+    close(out.in)
+    close(err.in)
+    result = Vector{Vector{Vector{Int}}}()
+    for line in eachline(out)
+        m = match(r"{{.*}}", line)
+        triang = replace(m.match, "{"=>"[")
+        triang = replace(triang, "}"=>"]")
+        triang = convert(Vector{Vector{Int}},JSON.parse(triang))
+        push!(result, Polymake.to_one_based_indexing(triang))
+    end
+    wait(task)
+    if !success(proc)
+        error = eof(err) ? "unknown error" : readchomp(err)
+        throw("Failed to run TOPCOM: $error")
+    end
+    return result
+end
+
+function topcom_regular_triangulation(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+    input = homogenized_matrix(pts, 1)
+    inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
+    in = Pipe()
+    out = Pipe()
+    err = Pipe()
+    Base.link_pipe!(in, writer_supports_async=true)
+    Base.link_pipe!(out, reader_supports_async=true)
+    Base.link_pipe!(err, reader_supports_async=true)
+    cmd = Oscar.TOPCOM_jll.points2triangs()
+    if full
+        cmd = Oscar.TOPCOM_jll.points2finetriang()
+    else
+        cmd = Oscar.TOPCOM_jll.points2placingtriang()
+    end
+    proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
+    task = @async begin
+        write(in, "[\n$inputstr\n]\n")
+        close(in)
+    end
+    close(in.out)
+    close(out.in)
+    close(err.in)
+    result = Vector{Vector{Vector{Int}}}()
+    for line in eachline(out)
+        m = match(r"{{.*}}", line)
+        triang = replace(m.match, "{"=>"[")
+        triang = replace(triang, "}"=>"]")
+        triang = convert(Vector{Vector{Int}},JSON.parse(triang))
+        push!(result, Polymake.to_one_based_indexing(triang))
+    end
+    wait(task)
+    if !success(proc)
+        error = eof(err) ? "unknown error" : readchomp(err)
+        throw("Failed to run TOPCOM: $error")
+    end
+    return result
+end
+
 ################################################################################
 # TODO: Remove the following two functions after next polymake release 4.7
 function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
@@ -95,8 +173,8 @@ julia> all_triangulations(c)
 ```
 """
 function all_triangulations(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return all_triangulations(vertices(P); full=false)
 end
 
@@ -166,8 +244,8 @@ julia> star_triangulations(P)
 ```
 """
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     zero = [0 for i in 1:ambient_dim(P)]
     contains(P, zero) || throw(ArgumentError("Input polyhedron must contain origin."))
     V = vertices(P)
@@ -218,9 +296,7 @@ function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abs
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    triangs = Polymake.polytope.topcom_regular_triangulations(PC)
-    result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, nrows(input), full)
+    return topcom_regular_triangulations(pts; full=full)
 end
 
 
@@ -253,10 +329,95 @@ julia> regular_triangulations(c)
 ```
 """
 function regular_triangulations(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return regular_triangulations(vertices(P); full=false)
 end
+
+
+
+
+
+@doc Markdown.doc"""
+    regular_triangulation(pts::AnyVecOrMat; full=false)
+
+Computes ONE regular triangulations on the points given as the rows of `pts`.
+
+A triangulation is regular if it can be induced by weights, i.e. attach a
+weight to every point, take the convex hull of these new vectors and then take
+the subdivision corresponding to the facets visible from below (lower
+envelope). Optionally specify `full`, i.e. that every triangulation must use
+all points.
+
+As for `regular_triangulation(pts::AnyVecOrMat; full=false)` the return type is
+`Vector{Vector{Vector{Int}}}`. Here, only one triangulation is computed, so
+the outer vector is of length one. Its entry of type `Vector{Vector{Int}}`
+encodes the triangulation in question. Recall that a `Vector{Int}` encodes
+a simplex as the set of indices of the vertices of the simplex. I.e. the
+`Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
+the first, second, and fourth input point.
+
+# Examples
+```jldoctest
+julia> c = cube(2,0,1)
+A polyhedron in ambient dimension 2
+
+julia> V = vertices(c)
+4-element SubObjectIterator{PointVector{fmpq}}:
+ [0, 0]
+ [1, 0]
+ [0, 1]
+ [1, 1]
+
+julia> regular_triangulation(V)
+1-element Vector{Vector{Vector{Int64}}}:
+ [[1, 2, 3], [2, 3, 4]]
+```
+"""
+function regular_triangulation(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+    input = homogenized_matrix(pts, 1)
+    PC = Polymake.polytope.PointConfiguration(POINTS=input)
+    PC.FULL_DIM::Bool || error("Input points must have full rank.")
+    return topcom_regular_triangulation(pts; full=full)
+end
+
+
+@doc Markdown.doc"""
+    regular_triangulation(P::Polyhedron)
+
+Computes ONE regular triangulations that can be formed using the vertices of the
+given bounded and full-dimensional polytope `P`.
+
+A triangulation is regular if it can be induced by weights, i.e. attach a
+weight to every point, take the convex hull of these new vectors and then take
+the subdivision corresponding to the facets visible from below (lower
+envelope).
+
+As for `regular_triangulations(P::Polyhedron)` the return type is
+`Vector{Vector{Vector{Int}}}`. Here, only one triangulation is computed, so
+the outer vector is of length one. Its entry of type `Vector{Vector{Int}}`
+encodes the triangulation in question. Recall that a `Vector{Int}` encodes
+a simplex as the set of indices of the vertices of the simplex. I.e. the
+`Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
+the first, second, and fourth input point.
+
+# Examples
+```jldoctest
+julia> c = cube(2,0,1)
+A polyhedron in ambient dimension 2
+
+julia> regular_triangulation(c)
+1-element Vector{Vector{Vector{Int64}}}:
+ [[1, 2, 3], [2, 3, 4]]
+```
+"""
+function regular_triangulation(P::Polyhedron)
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
+    return regular_triangulation(vertices(P); full=false)
+end
+
+
 
 
 @doc Markdown.doc"""
@@ -281,7 +442,7 @@ function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
 end
 
 @doc Markdown.doc"""
-    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
+    is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
@@ -293,13 +454,13 @@ A polyhedron in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 
-julia> isregular(vertices(c),cells)
+julia> is_regular(vertices(c),cells)
 true
 ```
 """
-function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+function is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
     as_sop = SubdivisionOfPoints(pts,cells)
-    isregular(as_sop)
+    is_regular(as_sop)
 end
 
 

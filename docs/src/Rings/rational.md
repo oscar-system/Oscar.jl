@@ -79,14 +79,14 @@ one(QQ)
 
 * `iszero(n::fmpq) -> Bool`
 * `isone(n::fmpq) -> Bool`
-* `isunit(n::fmpq) -> Bool`
+* `is_unit(n::fmpq) -> Bool`
 
-The `isunit` function will return `true` iff ``n \neq 0``.
+The `is_unit` function will return `true` iff ``n \neq 0``.
 
 ```@repl oscar
 iszero(QQ())
 isone(one(QQ))
-isunit(QQ(-2, 3))
+is_unit(QQ(-2, 3))
 ```
 
 ## Properties
@@ -203,12 +203,12 @@ QQ(0)^0
 QQ(0)^-2
 ```
 
-* `ispower(a::fmpq, b::Int) -> Bool, fmpq`
+* `is_power(a::fmpq, b::Int) -> Bool, fmpq`
 
 Test if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
 ```false``` and any rational otherwise.
 
-* `ispower(a::fmpq) -> Int, fmpq`
+* `is_power(a::fmpq) -> Int, fmpq`
 
 Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
 
@@ -217,9 +217,9 @@ Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and th
 Compute an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
 
 ```@repl oscar
-ispower(QQ(8), 3)
-ispower(QQ(8), 2)
-ispower(QQ(9//16))
+is_power(QQ(8), 3)
+is_power(QQ(8), 2)
+is_power(QQ(9//16))
 root(QQ(25//9), 2)
 ```
 

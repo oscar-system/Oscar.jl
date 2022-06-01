@@ -257,11 +257,15 @@ end
 
 Either direct product of two or more groups of any type, or subgroup of a direct product of groups.
 """
-struct DirectProductGroup <: GAPGroup
+@attributes mutable struct DirectProductGroup <: GAPGroup
   X::GapObj
   L::Vector{<:GAPGroup}   # list of groups
   Xfull::GapObj      # direct product of the GAP groups of L
   isfull::Bool     # true if G is direct product of the groups of L, false if it is a proper subgroup
+
+  function DirectProductGroup(X::GapObj, L::Vector{<:GAPGroup}, Xfull::GapObj, isfull::Bool)
+    return new(X, L, Xfull, isfull)
+  end
 end
 
 
@@ -271,13 +275,17 @@ end
 Semidirect product of two groups of type `S` and `T` respectively, or
 subgroup of a semidirect product of groups.
 """
-struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
+@attributes mutable struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
   X::GapObj
   N::S              # normal subgroup
   H::T              # group acting on N
   f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}        # action of H on N
-  Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull. 
+  Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull.
   isfull::Bool     # true if X==Xfull
+
+  function SemidirectProductGroup{S, T}(X::GapObj, N::S, H::T, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, Xfull::GapObj, isfull::Bool) where {S<:GAPGroup, T<:GAPGroup}
+    return new{S, T}(X, N, H, f, Xfull, isfull)
+  end
 end
 
 """
@@ -287,13 +295,17 @@ Wreath product of a group `G` and a group of permutations `H`, or a generic
 group `H` together with the homomorphism `a` from `H` to a permutation
 group.
 """
-struct WreathProductGroup <: GAPGroup
+@attributes mutable struct WreathProductGroup <: GAPGroup
   X::GapObj
   G::GAPGroup
   H::GAPGroup
   a::GAPGroupHomomorphism   # morphism from H to the permutation group
   Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(degree(H))
   isfull::Bool             # true if Xfull == X
+
+  function WreathProductGroup(X::GapObj, G::GAPGroup, H::GAPGroup, a::GAPGroupHomomorphism, Xfull::GapObj, isfull::Bool)
+    return new(X, G, H, a, Xfull, isfull)
+  end
 end
 
 

@@ -1,4 +1,4 @@
-export ProjCurve, defining_ideal, curve_components, reduction, isirreducible,
+export ProjCurve, defining_ideal, curve_components, reduction, is_irreducible,
        jacobi_ideal
 
 import Oscar.defining_ideal
@@ -72,7 +72,7 @@ end
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
@@ -128,11 +128,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isirreducible(C::ProjCurve)
+    is_irreducible(C::ProjCurve)
 
 Return `true` if `C` is irreducible, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
@@ -150,11 +150,11 @@ ideal(x^2, y^2*z, z^2)
 julia> C = Oscar.ProjCurve(I)
 Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
-julia> Oscar.isirreducible(C)
+julia> Oscar.is_irreducible(C)
 true
 ```
 """
-function Oscar.isirreducible(C::ProjCurve)
+function Oscar.is_irreducible(C::ProjCurve)
     L = curve_components(C)
     return length(L) == 1
 end
@@ -166,7 +166,7 @@ end
 
 Return the projective curve defined by the radical of the defining ideal of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
@@ -200,7 +200,7 @@ end
 
 Return the Jacobian ideal of the defining ideal of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
