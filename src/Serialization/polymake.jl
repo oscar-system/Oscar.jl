@@ -60,6 +60,8 @@ end
 
 function convert_to_oscar(p::Polymake.PolynomialAllocated{Polymake.Rational, Int64};
                           R::Union{MPolyRing, Nothing} = nothing)
+
+    # doesn't belong here should be moved outside of serialization
     coeff_vec = convert(Vector{fmpq}, Polymake.coefficients_as_vector(p))
     monomials = Matrix{Int}(Polymake.monomials_as_matrix(p))
     n_vars = length(monomials[:, 1])
