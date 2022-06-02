@@ -199,9 +199,9 @@ function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
 end
 =#
 
-ambient_dim(x::AbstractVector) = length(x)
-ambient_dim(x::AbstractMatrix) = size(x, 2)
-ambient_dim(x::AbstractVector{<:AbstractVector}) = ambient_dim(x[1])
+_ambient_dim(x::AbstractVector) = length(x)
+_ambient_dim(x::AbstractMatrix) = size(x, 2)
+_ambient_dim(x::AbstractVector{<:AbstractVector}) = _ambient_dim(x[1])
 
 """
     decompose_vdata(A::AbstractMatrix)

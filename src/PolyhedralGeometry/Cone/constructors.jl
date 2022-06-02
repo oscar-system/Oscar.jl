@@ -53,7 +53,7 @@ A polyhedral cone in ambient dimension 2
 function Cone{T}(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     inputrays = unhomogenized_matrix(R)
     if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, ambient_dim(R))
+        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, _ambient_dim(R))
     end
 
     if non_redundant

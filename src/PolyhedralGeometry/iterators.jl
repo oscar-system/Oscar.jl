@@ -177,7 +177,7 @@ negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types
 negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
 normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
-ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
+_ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
 
 # TODO: abstract notion of equality
 Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
@@ -345,7 +345,7 @@ unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
 
 unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
 
-ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
+_ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
 
 ################################################################################
 ######## Unify matrices

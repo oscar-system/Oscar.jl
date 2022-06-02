@@ -102,11 +102,11 @@
         Pos_poly = convex_hull([0 0 0], [1 0 0; 0 1 0; 0 0 1])
         Pos_cone = positive_hull([1 0 0; 0 1 0; 0 0 1])
         
-        @test Oscar.ambient_dim([1, 2, 3, 4, 5]) == 5
-        @test Oscar.ambient_dim([1 2 3 4; 5 6 7 8]) == 4
-        @test Oscar.ambient_dim([[1, 2, 3], [4, 5, 6], [7, 8, 9], [0, 1, 2]]) == 3
-        @test Oscar.ambient_dim(vertices(Pos_poly)) == 3
-        @test Oscar.ambient_dim(collect(vertices(Pos_poly))) == 3
+        @test Oscar._ambient_dim([1, 2, 3, 4, 5]) == 5
+        @test Oscar._ambient_dim([1 2 3 4; 5 6 7 8]) == 4
+        @test Oscar._ambient_dim([[1, 2, 3], [4, 5, 6], [7, 8, 9], [0, 1, 2]]) == 3
+        @test Oscar._ambient_dim(vertices(Pos_poly)) == 3
+        @test Oscar._ambient_dim(collect(vertices(Pos_poly))) == 3
         
         # test for correctness of input interpretation for different types
         
