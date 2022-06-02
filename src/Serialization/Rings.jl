@@ -20,7 +20,7 @@ function save_internal(s::SerializerState, r::nmod)
 end
 
 function load_internal(s::DeserializerState, ::Type{nmod}, dict::Dict)
-    parent_ring = load_type_dispatch(s, UInt64, dict[:parent])
+    parent_ring = load_type_dispatch(s, Nemo.NmodRing, dict[:parent])
     class_val = load_type_dispatch(s, fmpz, dict[:class_val])
     return parent_ring(class_val)
 end
@@ -118,7 +118,7 @@ end
 
 function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
     parent_ring, _ = load_unknown_type(s, dict[:parent])
-    gens = load_type_dispatch(s, Vector{MPolyElem}, dict[:gens])
+    gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
 
     return ideal(parent_ring, gens)
 end
