@@ -1151,6 +1151,13 @@ function AbstractAlgebra.promote_rule(::Type{MPolyLocalizedRingElem{BRT, BRET, R
   return AbstractAlgebra.promote_rule(BRET, T) == BRET ? MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST} : Union{}
 end
 
+@attr function base_ring_shifts(L::MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
+  a = point_coordinates(inverted_set(L))
+  R = base_ring(L)
+  shift = hom(R, R, gens(R)+R.(a))
+  back_shift = hom(R, R, gens(R)-R.(a))
+  return shift, back_shift
+end
 
 ########################################################################
 # Ideals in localizations of multivariate polynomial rings             #
@@ -1391,7 +1398,8 @@ function saturated_ideal(
       end
     end
     I.saturated_ideal = result
-    if with_generator_transition::Bool
+    if with_generator_transition
+      error("computation of the transition matrix for the generators is not planned to happen")
       for g in gens(result) 
         g in I || error("generator not found") # assures caching with transitions
       end
@@ -1568,6 +1576,50 @@ function Base.show(io::IO, I::MPolyLocalizedIdeal)
     print(io, "$(gens(I)[i]), ")
   end
   print(io, last(gens(I)))
+end
+
+@attr function shifted_ideal(
+    I::MPolyLocalizedIdeal{LRT, LRET}
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, LRET}
+  L = base_ring(I)
+  R = base_ring(L)
+  shift, tfihs = base_ring_shifts(L)
+  return ideal(R, shift.(gens(pre_saturated_ideal(I))))
+end
+
+function Base.in(
+    a::RingElem, 
+    I::MPolyLocalizedIdeal{LocRingType}
+  ) where {
+    LocRingType<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}
+  }
+  L = base_ring(I)
+  parent(a) == L || return L(a) in I
+  L = base_ring(I)
+  R = base_ring(L)
+  shift, tfihs = base_ring_shifts(L)
+  Is = shifted_ideal(I)
+  # We have to call for that groebner basis once manually. 
+  # Otherwise the ideal membership will complain about the ordering not being global.
+  o = negdegrevlex(gens(R))
+  groebner_basis(Is, ordering=o, enforce_global_ordering=false)
+  return ideal_membership(shift(numerator(a)), Is, ordering=o)
+end
+
+function coordinates(
+    a::RingElem,
+    I::MPolyLocalizedIdeal{LRT} 
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
+  L = base_ring(I)
+  L == parent(a) || return coordinates(L(a), I)
+  R = base_ring(L)
+  J = shifted_ideal(I)
+  shift, tfihs = base_ring_shifts(L)
+  p = shift(numerator(a))
+  o = negdegrevlex(gens(R))
+  x, u = Oscar.lift(p, J, o)
+  T = pre_saturation_data(I)
+  return L(one(base_ring(L)), tfihs(u)*denominator(a), check=false)*change_base_ring(L, map_entries(tfihs,x))*T
 end
 
 ########################################################################

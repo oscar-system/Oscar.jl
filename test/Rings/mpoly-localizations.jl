@@ -228,3 +228,16 @@ end
   @test f in I
   @test coordinates(f, I) == S[5 1//(z+1)]
 end
+
+@testset "localizations at k-points" begin
+  R, (x, y, z) = QQ["x", "y", "z"]
+  p = [-5, 8, 1//2]
+  U = MPolyComplementOfKPointIdeal(R, p)
+  I = ideal(R, [x*(x+5), (y-8)*y-z*(x+5)])
+  L, _ = Localization(R, U)
+  LI = L(I)
+  @test x+5 in LI
+  @test y-8 in LI
+  @test dot(coordinates(y-8, LI), gens(LI)) == L(y-8)
+  @test dot(coordinates(x+5, LI), gens(LI)) == L(x+5)
+end
