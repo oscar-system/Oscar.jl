@@ -27,7 +27,7 @@
    xg = GAP.GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
-   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == one(G).elm
+   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
    T,t = PolynomialRing(GF(3) ,"t")
@@ -63,13 +63,15 @@
    xg=GAP.julia_to_gap(xg)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
-   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == one(G).elm
+   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)])))==4
 end
 
 @testset "Oscar-GAP relationship for cyclotomic fields" begin
    fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, QQ(1)))
+   F, z = abelian_closure(QQ)
+   push!(fields, (F, z(5)))
 
    @testset for (F, z) in fields
       f = Oscar.iso_oscar_gap(F)
@@ -78,10 +80,10 @@ end
       mats = [matrix(F, [0 z 0; 0 0 1; 1 0 0]),
               matrix(F, [0 1 0; 1 0 0; 0 0 1])]
       G.gens = [MatrixGroupElem(G, m) for m in mats]
-      for a in gens(G)
-         for b in gens(G)
-            @test g(a.elm*b.elm) == g(a.elm)*g(b.elm)
-            @test g(a.elm - b.elm) == g(a.elm) - g(b.elm)
+      for a in map(matrix, gens(G))
+         for b in map(matrix, gens(G))
+            @test g(a * b) == g(a) * g(b)
+            @test g(a - b) == g(a) - g(b)
          end
       end
       @test G.ring_iso(z) isa GAP.Obj
@@ -101,7 +103,7 @@ end
       xg = GAP.GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
       @test map_entries(G.ring_iso, xo) == xg
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
-      @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == one(G).elm
+      @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == matrix(one(G))
       if F isa AnticNumberField
          flag, n = Hecke.is_cyclotomic_type(F)
          @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
@@ -143,7 +145,7 @@ end
    G = GL(5,5)
    x = rand(G)
    @test ring_elem_type(typeof(G))==typeof(one(base_ring(G)))
-   @test mat_elem_type(typeof(G))==typeof(x.elm)
+   @test mat_elem_type(typeof(G))==typeof(matrix(x))
    @test elem_type(typeof(G))==typeof(x)
    @test Oscar._gap_filter(typeof(G))(G.X)
 end
@@ -176,7 +178,7 @@ end
    x = G(x)
    @test !isdefined(x,:X)
    @test x.X isa GAP.GapObj
-   x = G[1].elm
+   x = matrix(G[1])
    x = G(x)
    @test !isdefined(x,:X)
    x = matrix(F,2,2,[1,z,z,1])
@@ -212,8 +214,8 @@ end
    @test H==K
    @test H.gens != K.gens
    @test K==matrix_group([x,x^2,y])
-   @test K==matrix_group(x.elm, (x^2).elm, y.elm)
-   @test K==matrix_group([x.elm, (x^2).elm, y.elm])
+   @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
+   @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
    G = MatrixGroup(nrows(x), F)
    G.gens = typeof(x)[]   # empty list of generators
@@ -315,7 +317,7 @@ end
    @test order(omega_group(1,5))==1
    G = omega_group(1,4,2)
    @testset for x in gens(G)
-       @test iseven(rank(x.elm-1))
+       @test iseven(rank(matrix(x)-1))
    end
 end
 
@@ -340,7 +342,7 @@ end
    H1 = matrix_group([x1,x2])
    @test H==H1
    @test !isdefined(H1,:X)
-   H1 = matrix_group([x1.elm,x2.elm])
+   H1 = matrix_group([matrix(x1),matrix(x2)])
    @test H==H1
    @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
@@ -348,12 +350,12 @@ end
    @test H==H1
    @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
-   H1 = matrix_group(x1.elm,x2.elm)
+   H1 = matrix_group(matrix(x1),matrix(x2))
    @test H==H1
    @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
    x3 = matrix(base_ring(G),3,3,[0,0,0,0,1,0,0,0,1])
-   @test_throws AssertionError matrix_group(x1.elm,x3)
+   @test_throws AssertionError matrix_group(matrix(x1),x3)
    @test parent(x1)==G
 
    G4 = GL(4,5)
@@ -383,7 +385,7 @@ end
    G = GL(2,F)
    S = SL(2,F)
    O = GO(1,2,F)
-   
+
    x = matrix(F,2,2,[1,z,0,z])
    @test x in G
    @test !(x in S)
@@ -411,7 +413,7 @@ end
    @test parent(G(x))==G
    @test parent(S(x))==S
 
-   x = (O[1]*O[2]).elm
+   x = matrix(O[1]*O[2])
    @test x in G
    @test x in O
    @test parent(O(x))==O
@@ -450,11 +452,10 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
-   @test x*y.elm isa fq_nmod_mat
-   @test (x*y).elm==x.elm*y
-   @test G(x*y.elm)==x*y   
+   @test x*matrix(y) isa fq_nmod_mat
+   @test matrix(x*y)==matrix(x)*y
+   @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
-
 
    xg = GAP.Globals.Random(G.X)
    yg = GAP.Globals.Random(G.X)
@@ -563,15 +564,15 @@ end
       @test s*u==G(x)
       @test s*u==u*s
 
-      z = rand(G).elm
+      z = matrix(rand(G))
       x = z^-1*x*z
       a,b = generalized_jordan_form(x)
       @test b^-1*a*b==x
-      z = rand(G).elm
+      z = matrix(rand(G))
       @test generalized_jordan_form(z^-1*x*z)[1]==a
       @test generalized_jordan_form(a)[1]==a
    end
-   
+
    x = one(G)
    @test is_semisimple(x) && is_unipotent(x)
 
@@ -656,22 +657,36 @@ end
    @test ! isdefined(c, :elm)
    @test c.X == m.X
 
-   m = MatrixGroupElem(g, gen(g, 1).elm, gen(g, 1).X)
+   m = MatrixGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
    @test isdefined(m, :X)
    @test isdefined(m, :elm)
    c = deepcopy(m);
    @test isdefined(c, :X)
    @test isdefined(c, :elm)
    @test c.X == m.X
-   @test c.elm == m.elm
+   @test matrix(c) == matrix(m)
 
-   m = MatrixGroupElem(g, gen(g, 1).elm)
+   m = MatrixGroupElem(g, matrix(gen(g, 1)))
    @test ! isdefined(m, :X)
    @test isdefined(m, :elm)
    c = deepcopy(m);
    @test ! isdefined(c, :X)
    @test isdefined(c, :elm)
-   @test c.elm == m.elm
+   @test matrix(c) == matrix(m)
 
    @test deepcopy([one(g)]) == [one(g)]
+end
+
+@testset "matrix action on vectors" begin
+   for R in [ZZ, QQ, GF(2,2)]
+     T = elem_type(R)
+     mat = matrix(R, [1 0; 0 1])
+     G = matrix_group([mat])
+     h = gens(G)[1]
+     v = [R(x) for x in [1, 1]]
+     @test v * h isa Vector{T}
+     @test v * h == v * mat
+     @test h * v isa Vector{T}
+     @test h * v == mat * v
+   end
 end
