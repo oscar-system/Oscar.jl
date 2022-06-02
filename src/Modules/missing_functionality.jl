@@ -38,24 +38,22 @@ function coordinates(f::MPolyElem, I::MPolyIdeal)
   return A
 end
 
-function coordinates_with_unit(f::MPolyElem, I::MPolyIdeal, o::MonomialOrdering)
+function lift(f::MPolyElem, I::MPolyIdeal, o::MonomialOrdering)
   iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
-  groebner_basis(I, ordering=o, enforce_global_ordering=false)
-  bpa = I.gb[o]
-  Rsing = bpa.Sx
+  Rsing = singular_poly_ring(R, o.o)
   fsing = Singular.Ideal(Rsing, [Rsing(f)])
   gsing = Singular.Ideal(Rsing, Rsing.(gens(I)))
-  a_s, u_s = Singular.lift(gsing, fsing)
+  a_s, rem_s, u_s = lift(gsing, fsing, false, false, false)
+  @show a_s, rem_s, u_s
   A_s = Matrix(a_s)
-  U_s = Matrix(u_s)
-  ncols(U_s) == nrows(U_s) == 1 || error("Singular output can not be processed")
+  u = R(u_s[1,1])
   A = zero(MatrixSpace(R, 1, ngens(I)))
   for i in 1:ngens(I)
     A[1, i] = R(A_s[i, 1])
   end
-  return A, R(U_s[1,1])
+  return A, u
 end
 
 ### TODO: The following should not be necessary in the first place! 

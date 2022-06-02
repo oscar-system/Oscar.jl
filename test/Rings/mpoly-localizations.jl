@@ -214,4 +214,5 @@ end
   @test !(x in I)
   @test x^2 in I
   @test y in I
+  @test dot(coordinates(y, I), gens(I)) == y
 end
