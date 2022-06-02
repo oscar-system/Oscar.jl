@@ -60,6 +60,7 @@ const typeMap = Dict{Type, String}([
     fmpz_mpoly => "fmpz_mpoly",
     Nemo.NmodRing => "Nemo.NmodRing",
     Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
+    Polymake.BigObjectAllocated => "Polymake.BigObject",
 ])
 
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
@@ -113,7 +114,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     else
         ref = nothing
     end
-
+    
     result = Dict{Symbol, Any}(:type => encodeType(T))
     if ref !== nothing
         result[:id] = string(ref)
@@ -136,11 +137,11 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
     
     if dict[:type] == string(backref_sym)
         backref = s.objs[UUID(dict[:id])]
-        backref isa T || throw(TypeError("Backref of incorrect type encountered"))
+        backref isa T || throw(ErrorException("Backref of incorrect type encountered"))
         return backref
     end
 
-    string(T) == dict[:type] || throw(TypeError("Type in file doesn't match target type: $(dict[:type]) != $T"))
+    encodeType(T) == dict[:type] || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) != $T"))
     result = load_internal(s, T, dict[:data])
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
