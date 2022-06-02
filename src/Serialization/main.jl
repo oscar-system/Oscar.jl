@@ -137,7 +137,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
     
     if dict[:type] == string(backref_sym)
         backref = s.objs[UUID(dict[:id])]
-        backref isa T || throw(ErrorException("Backref of incorrect type encountered"))
+        backref isa T || throw(ErrorException("Backref of incorrect type encountered: $backref !isa $T"))
         return backref
     end
 
