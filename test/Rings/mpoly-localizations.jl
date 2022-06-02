@@ -203,7 +203,7 @@ end
 # test_Ring_interface_recursive(Localization(U)[1])
 end
 
-@testset "localization_at_orderings" begin
+@testset "localization_at_orderings_1" begin
   R, (x,y) = QQ["x", "y"]
   o = degrevlex([x])*negdegrevlex([y])
   U = MPolyLeadingMonOne(R, o)
@@ -215,4 +215,16 @@ end
   @test x^2 in I
   @test y in I
   @test dot(coordinates(y, I), gens(I)) == y
+end
+
+@testset "localization_at_orderings_2" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  o = degrevlex([x, y])*negdegrevlex([z])
+  S, _ = Localization(R, o)
+  @test z + 1 in inverted_set(S)
+  @test !(x + 1 in inverted_set(S))
+  I = ideal(S, [x + y + z, (z+1)*(x^2 + y^2 + z^3)])
+  f = (x^2 + y^2 + z^3) + 5*(x + y + z)
+  @test f in I
+  @test coordinates(f, I) == S[5 1//(z+1)]
 end

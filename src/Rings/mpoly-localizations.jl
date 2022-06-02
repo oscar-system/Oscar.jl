@@ -1598,7 +1598,6 @@ function coordinates(
   p = numerator(a)
   o = ordering(inverted_set(parent(a)))
   x, u = Oscar.lift(p, J, o)
-  @show x, u
   T = pre_saturation_data(I)
   return L(one(base_ring(L)), u*denominator(a), check=false)*change_base_ring(L, x)*T
 end

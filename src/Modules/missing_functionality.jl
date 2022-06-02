@@ -46,7 +46,6 @@ function lift(f::MPolyElem, I::MPolyIdeal, o::MonomialOrdering)
   fsing = Singular.Ideal(Rsing, [Rsing(f)])
   gsing = Singular.Ideal(Rsing, Rsing.(gens(I)))
   a_s, rem_s, u_s = lift(gsing, fsing, false, false, false)
-  @show a_s, rem_s, u_s
   A_s = Matrix(a_s)
   u = R(u_s[1,1])
   A = zero(MatrixSpace(R, 1, ngens(I)))
