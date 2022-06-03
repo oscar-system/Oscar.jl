@@ -34,8 +34,10 @@ import Base:
     one,
     parent,
     print,
+    reduce,
     show,
     sum,
+    union,
     values,
     Vector,
     zero
