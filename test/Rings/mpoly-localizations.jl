@@ -259,9 +259,8 @@ end
   S = MPolyPowersOfElement(R, [y])
   RS, _ = Localization(R, S)
   RSI = RS(I)
-  @show saturated_ideal(RSI, with_generator_transition=true)
+  saturated_ideal(RSI, with_generator_transition=true)
   J = L(Oscar.pre_saturated_ideal(RSI))
-  @show J
   z in J
   W, _ = quo(L, LI)
   S = MPolyPowersOfElement(R, [y])
