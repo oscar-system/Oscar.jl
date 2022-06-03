@@ -168,7 +168,9 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   # The constant coefficient is stored as a mpoly to be used later in evaluate.
   for g in keys(Z.fac)
      if total_degree(g) == 1
-        f = g//leading_coefficient(g)
+        f = divexact(g, leading_coefficient(g))
+        @show typeof(f)
+        @show typeof(gen(R, 2))
         push!(Y, -f + gen(R, 2))
      end
   end
@@ -181,7 +183,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
         ZZ = factor(GG)
         for g in keys(ZZ.fac)
            if total_degree(g) == 1
-              f = g//leading_coefficient(g)
+              f = divexact(g, leading_coefficient(g))
               # We use lc to convert the mpoly into element of S.
               push!(L, [leading_coefficient(-f + gen(R, 1)), leading_coefficient(y)])
            end
