@@ -16,9 +16,9 @@ export pullback, domain, codomain, preimage, restrict, graph, identity_map, incl
 
 export strict_modulus
 
+export simplify
+
 # TODO for Tommy: Find out why the following are necessary
-AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
-AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
 AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{AbstractAlgebra.Generic.Frac{gfp_mpoly}}) = AbstractAlgebra.Generic.Frac{gfp_mpoly}
 
 @Markdown.doc """
@@ -212,7 +212,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   iszero(f) && return subscheme(X, [one(R)])
-  f in inverted_set(OO(X)) && return X
+  f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
   W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   if keep_cache
@@ -289,7 +289,7 @@ function issubset(
   if !issubset(UY, UX) 
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
-      isunit(OO(X)(a)) || return false
+      is_unit(OO(X)(a)) || return false
     end
   end
   J = localized_ring(OO(X))(modulus(OO(Y)))
@@ -465,7 +465,7 @@ function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   return SpecMor(U, V, images(pullback(f)), check=check)
 end
 
-function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
+function compose(f::SpecMor, g::SpecMor)
   codomain(f) == domain(g) || error("Morphisms can not be composed")
   return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
@@ -586,4 +586,14 @@ function dim(X::Spec)
   return get_attribute(X, :dimension)::Int64
 end
 
+function codim(X::Spec)
+  return ngens(base_ring(OO(X)))-dim(X)
+end
+
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
+
+function simplify(X::Spec)
+  L, f, g = simplify(OO(X))
+  Y = Spec(L)
+  return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
+end

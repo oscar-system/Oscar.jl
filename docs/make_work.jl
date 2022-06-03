@@ -52,9 +52,16 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
               mkpath(d)
           end
           for file in files
+              # HACK: delete Hecke's bibliography, to avoid warnings of the
+              # form "Warning: 'Eis95' is not unique" which actually turn into
+              # errors down the road
+              if file == "references.md"
+                continue
+              end
               src = normpath(joinpath(root, file))
               dst = normpath(joinpath(dstbase, relpath(root, srcbase), file))
               cp(src, dst; force = true)
+              chmod(dst, 0o644)
           end
       end
   end

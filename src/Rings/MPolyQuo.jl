@@ -638,6 +638,9 @@ MPolyQuo{fmpq_mpoly}
 julia> typeof(x)
 fmpq_mpoly
 
+julia> typeof(A(x))
+MPolyQuoElem{fmpq_mpoly}
+
 julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> p
@@ -722,7 +725,7 @@ end
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function isinvertible_with_inverse(a::MPolyQuoElem)
+function is_invertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
@@ -741,9 +744,9 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
+is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
 function inv(a::MPolyQuoElem)
-  fl, b = isinvertible_with_inverse(a)
+  fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
@@ -974,27 +977,25 @@ function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-isfiltered(q::MPolyQuo) = isfiltered(q.R)
-isgraded(q::MPolyQuo) = isgraded(q.R)
+is_filtered(q::MPolyQuo) = is_filtered(q.R)
+is_graded(q::MPolyQuo) = is_graded(q.R)
 
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
 
-Given an element `f` of an affine algebra which is graded by a finitely
-generated Abelian group, and given an element `g` of that group,
-return the homogeneous component of `f` of degree `g`.
+Given an element `f` of a graded affine algebra, and given an element `g` of the
+grading group of that algebra, return the homogeneous component of `f` of degree `g`.
 
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::Vector{<:IntegerUnion})
 
-Given an element `f` of a $\mathbb  Z^m$-graded affine algebra, and given
-a vector `g` of $m$ integers, convert `g` into an element of the group 
-$\mathbb  Z^m$, and return the homogeneous component of `f` whose degree 
-is that element.
+Given an element `f` of a $\mathbb  Z^m$-graded affine algebra `A`, say, and given
+a vector `g` of $m$ integers, convert `g` into an element of the grading group of `A`,
+and return the homogeneous component of `f` whose degree is that element.
 
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::IntegerUnion)
 
-Given an element `f` of a $\mathbb  Z$-graded affine algebra, and given
-an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
+Given an element `f` of a $\mathbb  Z$-graded affine algebra `A`, say, and given
+an integer `g`, convert `g` into an element of the grading group of `A`, 
 and return the homogeneous component of `f` whose degree is that element.
 
 # Examples
@@ -1028,7 +1029,7 @@ end
 @doc Markdown.doc"""
     homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
 
-Return the homogeneous components of `f`.
+Given an element `f` of a graded affine algebra, return the homogeneous components of `f`.
 
 # Examples
 ```jldoctest
@@ -1052,9 +1053,9 @@ function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+    is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 
-Return `true` if `f` is homogeneous, `false` otherwise.
+Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -1065,16 +1066,16 @@ julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 true
 
 julia> f
 z^4
 ```
 """
-function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
+function is_homogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return ishomogeneous(a.f)
+  return is_homogeneous(a.f)
 end
 
 @doc Markdown.doc"""
@@ -1206,7 +1207,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
 
   Q = base_ring(I)
 
-  @assert isgraded(Q)
+  @assert is_graded(Q)
   
   if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))

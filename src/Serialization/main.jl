@@ -25,13 +25,6 @@ end
 
 
 const backref_sym = Symbol("#backref")
-function backref(ref::UUID)
-   return Dict(
-     :type=>backref_sym,
-     :version=>1, # ???
-     :id=>string(ref),
-     )
-end
 
 ################################################################################
 # Version info
@@ -79,19 +72,15 @@ end
 
 
 function decodeType(input::String)
-    if Symbol(input) == backref_sym
-        return backref_sym
+    if haskey(reverseTypeMap, input)
+        return reverseTypeMap[input]
     else
-        if haskey(reverseTypeMap, input)
-            return reverseTypeMap[input]
-        else
-            # As a default, parse the type from the string.
-            #
-            # WARNING: Never deserialize data from an untrusted source, as this
-            # parsing is insecure and potentially malicious code could be
-            # entered here.
-            eval(Meta.parse(input))
-        end
+        # As a default, parse the type from the string.
+        #
+        # WARNING: Never deserialize data from an untrusted source, as this
+        # parsing is insecure and potentially malicious code could be
+        # entered here.
+        eval(Meta.parse(input))
     end
 end
 
@@ -101,25 +90,33 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if !isprimitivetype(T) && !Base.issingletontype(T)
+    if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
-        ref !== nothing && return backref(ref)
+        if ref !== nothing
+            return Dict{Symbol, Any}(
+              :type => backref_sym,
+              :id => string(ref),
+              :version => 1, # ???
+              )
+        end
         # otherwise, 
         ref = s.objmap[obj] = uuid4()
     else
-        ref = -1
+        ref = nothing
     end
-    # invoke the actual serializer
-    encodedType = encodeType(T)
-    s.depth += 1
-    result = Dict{Symbol, Any}(
-        :type => encodedType,
-        :id => string(ref),
-        :data => save_internal(s, obj),
-    )
-    s.depth -= 1
+
+    result = Dict{Symbol, Any}(:type => encodeType(T))
+    if ref !== nothing
+        result[:id] = string(ref)
+    end
+    if !Base.issingletontype(T)
+        s.depth += 1
+        # invoke the actual serializer
+        result[:data] = save_internal(s, obj)
+        s.depth -= 1
+    end
     if s.depth == 0
         result[:_ns] = versionInfo
     end
@@ -127,18 +124,17 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
-    decodedType = decodeType(dict[:type])
-    id = dict[:id]
-    if id != "-1"
-        id = UUID(id)
-    end
     # TODO: deal with versions? enforce their presence?
-    if decodedType == backref_sym
-        return s.objs[id]
+    if dict[:type] == string(backref_sym)
+        return s.objs[UUID(dict[:id])]
     end
+
+    # TODO: compare T against decodedType ???
+    #decodedType = decodeType(dict[:type])
+
     result = load_internal(s, T, dict[:data])
-    if id != "-1"
-        s.objs[id] = result
+    if haskey(dict, :id)
+        s.objs[UUID(dict[:id])] = result
     end
     return result
 end
@@ -154,12 +150,11 @@ function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=tr
         haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
     end
 
-    encodedType = dict[:type]
-    T = decodeType(encodedType)
-    if T == backref_sym
+    if dict[:type] == string(backref_sym)
         return s.objs[UUID(dict[:id])]
     end
 
+    T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
 
     # TODO: offer a generic handler for primitive
@@ -171,9 +166,9 @@ end
 
 ################################################################################
 # Default generic save_internal, load_internal
-function save_internal(s::SerializerState, obj::T) where T
+function save_internal_generic(s::SerializerState, obj::T) where T
     result = Dict{Symbol, Any}()
-    for (n,t) in zip(fieldnames(T), T.types)
+    for n in fieldnames(T)
         if n != :__attrs
             result[n] = save_type_dispatch(s, getfield(obj, n))
         end
@@ -181,9 +176,9 @@ function save_internal(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
-    for (n,t) in zip(fieldnames(T), T.types)
+    for (n,t) in zip(fieldnames(T), fieldtypes(T))
         if n!= :__attrs
             push!(fields, load_type_dispatch(s, t, dict[n]))
         end
@@ -229,6 +224,7 @@ include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
 include("Fields.jl")
 include("ToricGeometry.jl")
+include("polymake.jl")
 
 @deprecate save_cone(Obj::Cone, filename::String) save(Obj, filename)
 @deprecate load_cone(filename::String) load(Obj, filename)

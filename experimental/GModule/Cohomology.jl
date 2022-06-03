@@ -98,7 +98,7 @@ end
 Checks if the action maps satisfy the same relations 
 as the generators of `G`.
 """  
-function isconsistent(M::GModule)
+function is_consistent(M::GModule)
   G, mG = fp_group(M)
   V = Module(M)
   R = relators(G)
@@ -317,7 +317,7 @@ end
   H^0(G, M)
 
 Returns a module (same type as M) that abstractly represent
-the 0-cohomology group as well as a map realsing this via explicit
+the 0-cohomology group as well as a map realizing this via explicit
 co-chains
 """
 function H_zero(C::GModule)
@@ -342,10 +342,10 @@ end
  - break out coboundaries and cochains
  - depending on the module type:
    - intersect yields an embedding (Z-module) or not GrpAb
-   - make sure that image/ kernel are consisten
+   - make sure that image/ kernel are consistent
    - preimage 
    - issubset yields (for GrpAb) only true/ false, not the map
-   - issubgroup has the "wrong" order of arguments (and cannot apply
+   - is_subgroup has the "wrong" order of arguments (and cannot apply
      to modules)
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
    - mat or matrix is used to get "the matrix" from a hom
@@ -356,7 +356,7 @@ end
 
 
 """
-Code of the H^1(G, M) conputation:
+Code of the H^1(G, M) computation:
 returns homomorphisms A and B s.th.
 
    M_1 -A-> M_2 -B-> M_3
@@ -435,7 +435,7 @@ end
 """
   H^1(G, M)
 
-Returns an abstrct module (of the same type as M) describing the
+Returns an abstract module (of the same type as M) describing the
 first co-homology group. Furthermore, the second return value
 is a map realising elements of H^1 as explicit co-cycles.
 """
@@ -449,7 +449,7 @@ function H_one(C::GModule)
 
   K = kernel(gg)[1]
   D = domain(gg)
-  lf, lft = issubgroup(D, K)
+  lf, lft = is_subgroup(D, K)
 
   Q, mQ = quo(K, image(g)[1])
 
@@ -1027,7 +1027,7 @@ end
 #########################################################
 #XXX: should be in AA and supplemented by a proper quo
 function Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement 
-  fl = issubmodule(N, M)
+  fl = is_submodule(N, M)
   if fl
     return fl, hom(M, N, elem_type(N)[N(m) for m = gens(M)])
   else
@@ -1083,7 +1083,7 @@ end
 =#
 
 """
-Compute an isomorphic pc-group (amd the isomorphism). If `refine` is true,
+Compute an isomorphic pc-group (and the isomorphism). If `refine` is true,
 the pc-generators will all have prime relative order, thus the
 group should be safe to use.
 If `refine` is false, then the relative orders are just used from the hnf
@@ -1177,7 +1177,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
     return M(z)
   end
 
-  @assert isisomorphic(B, fp_group(M)[1])
+  @assert is_isomorphic(B, fp_group(M)[1])
 
   return B, MapFromFunc(
     x->image(mM, gap_to_julia(x.X)),
@@ -1266,7 +1266,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
     end
     GAP.Globals.SetPower(C, i, GAP.Globals.Identity(F))
   end
-  @assert isabelian(B)
+  @assert is_abelian(B)
   @assert order(B) == order(M)
 
   return B, MapFromFunc(
@@ -1466,8 +1466,8 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
   @assert domain(mfM) ==fM 
   @assert codomain(mfM) == M
-#  @assert issurjective(QtoG)
-#  @assert isinjective(MtoQ)
+#  @assert is_surjective(QtoG)
+#  @assert is_injective(MtoQ)
 
   mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
   fG = FPGroup(GAP.Globals.Source(mfG))

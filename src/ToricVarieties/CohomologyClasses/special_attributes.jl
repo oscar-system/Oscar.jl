@@ -16,7 +16,7 @@ julia> ngens(cohomology_ring(p2))
 ```
 """
 @attr MPolyQuo function cohomology_ring(v::AbstractNormalToricVariety)
-    if !issimplicial(v) || !iscomplete(v)
+    if !is_simplicial(v) || !is_complete(v)
         throw(ArgumentError("The cohomology ring is (currently) only supported for simplicial and complete toric varieties."))
     end
     R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached = false)
@@ -51,7 +51,7 @@ julia> polynomial(volume_form(hirzebruch_surface(5)))
     mc = ray_indices(maximal_cones(v))
     exponents = [fmpz(mc[1,i]) for i in 1:length(mc[1,:])]
     indets = gens(cohomology_ring(v))
-    poly = fmpz(1) * prod(indets[k]^exponents[k] for k in 1:length(exponents))
+    poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
     if iszero(poly) || degree(poly)[1] != dim(v)
         throw(ArgumentError("The volume class does not exist."))
     end

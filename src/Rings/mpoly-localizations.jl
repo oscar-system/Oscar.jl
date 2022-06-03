@@ -5,7 +5,7 @@ export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
 
 export MPolyLocalizedRingElem
-export numerator, denominator, fraction, parent, isunit, divexact
+export numerator, denominator, fraction, parent, is_unit, divexact
 export reduce_fraction
 
 export MPolyLocalizedIdeal
@@ -104,7 +104,7 @@ function Base.in(
   #   a⋅f = dᵏ.
   (i, o) = ppio(f, d)
   #return divides(one(R), o)[1]
-  return isunit(o)
+  return is_unit(o)
 end
 
 ### iteration 
@@ -182,7 +182,7 @@ mutable struct MPolyComplementOfPrimeIdeal{
       check::Bool=false
     ) where {RingElemType}
     R = base_ring(P)
-    check && (isprime(P) || error("the ideal $P is not prime"))
+    check && (is_prime(P) || error("the ideal $P is not prime"))
     return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R, P)
   end
 end
@@ -1111,7 +1111,7 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingEle
   return W(m, n, check=false)
 end
 
-isunit(f::MPolyLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
+is_unit(f::MPolyLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
 
 
 ########################################################################
@@ -1134,8 +1134,8 @@ parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingT
 (W::MPolyLocalizedRing)(a::Int64) = W(base_ring(W)(a), check=false)
 (W::MPolyLocalizedRing)(a::fmpz) = W(base_ring(W)(a), check=false)
 
-isdomain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
-isexact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
+is_domain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
+is_exact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
 ### promotion rules
 AbstractAlgebra.promote_rule(::Type{MPolyLocalizedRingElem{RT, RET, MST}}, ::Type{MPolyLocalizedRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{RT, RET, MST}
@@ -1753,7 +1753,7 @@ function groebner_basis(
     return D[ordering]
   end
   # Check whether this ordering is admissible
-  !islocal(ordering) && error("The ordering has to be a local ordering.")
+  !is_local(ordering) && error("The ordering has to be a local ordering.")
   # set up a LocalizedBiPolyArray
   lbpa = LocalizedBiPolyArray(base_ring(I), gens(I), point_coordinates(inverted_set(base_ring(I))), ordering.o)
   # compute the standard basis and cache the result.
@@ -2008,7 +2008,7 @@ mutable struct MPolyLocalizedRingHom{
     U = inverted_set(W)
     domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
     for f in U
-      isunit(S(res(f))) || error("image of $f is not a unit in the codomain")
+      is_unit(S(res(f))) || error("image of $f is not a unit in the codomain")
     end
     return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end

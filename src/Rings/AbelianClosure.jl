@@ -29,8 +29,8 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
-                root, divexact, mul!, roots, isroot_of_unity, promote_rule,
+import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
+                root, divexact, mul!, roots, is_root_of_unity, promote_rule,
                 AbstractAlgebra
 using Hecke
 import Hecke: conductor, data
@@ -41,9 +41,13 @@ import Hecke: conductor, data
 #
 ################################################################################
 
-mutable struct QabField{T} <: Nemo.Field # union of cyclotomic fields
+@attributes mutable struct QabField{T} <: Nemo.Field # union of cyclotomic fields
   s::String
   fields::Dict{Int, T} # Cache for the cyclotomic fields
+
+  function QabField{T}(s::String, fields::Dict{Int, T}) where T
+    return new(s, fields)
+  end
 end
 
 const _Qab = QabField{AnticNumberField}("ζ", Dict{Int, AnticNumberField}())
@@ -314,7 +318,7 @@ end
 #
 ################################################################################
 
-function isconductor(n::Int)
+function is_conductor(n::Int)
   if isodd(n)
     return true
   end
@@ -355,7 +359,7 @@ end
 
 
 function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
-  fl, c = Hecke.iscyclotomic_type(parent(a[1]))
+  fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
   @assert all(x->parent(x) == parent(a[1]), a)
   @assert fl
   for p = keys(factor(c).fac)
@@ -393,7 +397,7 @@ end
 conductor(a::nf_elem) = conductor(parent(minimize(CyclotomicField, a)))
 
 function conductor(k::AnticNumberField)
-  f, c = Hecke.iscyclotomic_type(k)
+  f, c = Hecke.is_cyclotomic_type(k)
   f || error("field is not of cyclotomic type")
   return c
 end
@@ -403,11 +407,21 @@ conductor(a::QabElem) = conductor(data(a))
 
 ################################################################################
 #
+#  Conversions to `fmpz` and `fmpq` (like for `nf_elem`)
+#
+################################################################################
+
+(R::FlintRationalField)(a::QabElem) = R(a.data)
+(R::FlintIntegerRing)(a::QabElem) = R(a.data)
+
+
+################################################################################
+#
 #  Ring interface functions
 #
 ################################################################################
 
-isunit(a::QabElem) = !iszero(a)
+is_unit(a::QabElem) = !iszero(a)
 
 ################################################################################
 #
@@ -583,7 +597,7 @@ function Base.deepcopy_internal(a::QabElem, dict::IdDict)
   return QabElem(deepcopy_internal(data(a), dict), a.c)
 end
 
-#Oscar.isnegative(::QabElem) = false
+#Oscar.is_negative(::QabElem) = false
 
 ################################################################################
 #
@@ -606,7 +620,7 @@ AbstractAlgebra.promote_rule(::Type{QabElem}, ::Type{fmpq}) = QabElem
 ###############################################################################
 
 function Oscar.root(a::QabElem, n::Int)
-  Hecke.@req isroot_of_unity(a) "Element must be a root of unity"
+  Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
   mu = root_of_unity2(parent(a), Int(l))
@@ -682,9 +696,9 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
 
   corr = one(parent(a))
 
-  if !isroot_of_unity(a) 
+  if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
-    fl, i = ispower(a.data*zk, n)
+    fl, i = is_power(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
     fl || return roots(x^n-a)::Vector{QabElem{T}}
     b = gens(Hecke.inv(i))[end]
@@ -692,7 +706,7 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
     c.data = b
     corr = Hecke.inv(c)
     a *= c^n
-    fl = isroot_of_unity(a)
+    fl = is_root_of_unity(a)
     fl || return (corr .* roots(x^n-a))::Vector{QabElem{T}}
   end
   
@@ -712,8 +726,8 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
   return [x*corr for x = A]::Vector{QabElem{T}}
 end
 
-function isroot_of_unity(a::QabElem)
-  return istorsion_unit(a.data, true)
+function is_root_of_unity(a::QabElem)
+  return is_torsion_unit(a.data, true)
   #=
   b = a^a.c
   return b.data == 1 || b.data == -1

@@ -60,16 +60,16 @@ NormalToricVarietyFromGLSM(charges::fmpz_mat)
 ## Properties of Toric Varieties
 
 ```@docs
-hastorusfactor(v::AbstractNormalToricVariety)
-isaffine(v::AbstractNormalToricVariety)
-iscomplete(v::AbstractNormalToricVariety)
-isfano(v::AbstractNormalToricVariety)
-isgorenstein(v::AbstractNormalToricVariety)
-issimplicial(v::AbstractNormalToricVariety)
-issmooth(v::AbstractNormalToricVariety)
-isnormal(v::AbstractNormalToricVariety)
-isorbifold(v::AbstractNormalToricVariety)
-isprojective(v::AbstractNormalToricVariety)
+has_torusfactor(v::AbstractNormalToricVariety)
+is_affine(v::AbstractNormalToricVariety)
+is_complete(v::AbstractNormalToricVariety)
+is_fano(v::AbstractNormalToricVariety)
+is_gorenstein(v::AbstractNormalToricVariety)
+is_simplicial(v::AbstractNormalToricVariety)
+is_smooth(v::AbstractNormalToricVariety)
+is_normal(v::AbstractNormalToricVariety)
+is_orbifold(v::AbstractNormalToricVariety)
+is_projective(v::AbstractNormalToricVariety)
 is_projective_space(v::AbstractNormalToricVariety)
 is_q_gorenstein(v::AbstractNormalToricVariety)
 ```
@@ -128,25 +128,24 @@ We support the following rings and ideals for toric varieties:
 - ideal of linear relations,
 - toric ideal.
 Of course, for any of these coordinate names and the coefficient ring
-have to be chosen. We provide the following setter and getter functions:
+have to be chosen. The coefficient ring is fixed to `Q`. Therefore, the
+method `coefficient_ring(v::AbstractNormalToricVariety)` always return
+the field of rational numbers. For the coordinate names, we provide the
+following setter functions:
+```@docs
+set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+```
+The following methods allow to etract the chosen coordinates:
 ```@docs
 coordinate_names(v::AbstractNormalToricVariety)
-set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-coefficient_ring(v::AbstractNormalToricVariety)
-set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
 coordinate_names_of_torus(v::AbstractNormalToricVariety)
-set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 ```
 In order to efficiently construct algebraic cycles (elements of the Chox ring),
 cohomology classes (elements of the cohomology ring), or in order to compare ideals,
-it is imperative to fix the choices of coordinates and coefficient rings. This happens
-once any of the above rings is computed for the variety. One can check the status as follows:
-```@docs
-is_finalized(v::AbstractNormalToricVariety)
-```
-The default value for coordinate names is `[x1, x2, ... ]`. The default for the coefficient
-ring is the field of rational numbers. The following methods provide access to the above rings
-and ideals:
+it is imperative to fix choices of the coordinate names. The default value for
+coordinate names is `[x1, x2, ... ]`. The choice of coordinate names is fixed,
+once one of the above-mentioned rings is computed via one the following methods:
 ```@docs
 cox_ring(v::AbstractNormalToricVariety)
 irrelevant_ideal(v::AbstractNormalToricVariety)
@@ -155,9 +154,13 @@ stanley_reisner_ideal(v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
 coordinate_ring_of_torus(v::AbstractNormalToricVariety)
 ```
-After the variety finalized, one can enforce obtain the above ideals in different rings.
+One can check the status as follows:
+```@docs
+is_finalized(v::AbstractNormalToricVariety)
+```
+After the variety finalized, one can enforce to obtain the above ideals in different rings.
 Also, one can opt to compute the above rings with a different choice of coordinate names
-or a different coefficient ring. To this end, once provides a custom ring (which
+and different coefficient ring. To this end, onc provides a custom ring (which
 reflects the desired choice of coordinate names and coefficient ring) as first argument.
 However, note that the cached ideals and rings are *not* altered.
 ```@docs

@@ -6,7 +6,7 @@ export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, 
 export Localization
 
 export MPolyQuoLocalizedRingElem
-export numerator, denominator, parent, lift, isunit, inv, convert, lifted_numerator, lifted_denominator, fraction
+export numerator, denominator, parent, lift, is_unit, inv, convert, lifted_numerator, lifted_denominator, fraction
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type, ideal_type
@@ -451,24 +451,24 @@ For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representati
 """
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
-function isunit(f::MPolyQuoLocalizedRingElem) 
+function is_unit(f::MPolyQuoLocalizedRingElem) 
   lifted_numerator(f) in inverted_set(parent(f)) && return true
   return one(localized_ring(parent(f))) in localized_modulus(parent(f)) + ideal(localized_ring(parent(f)), lift(f))
 end
 
-function isunit(L::MPolyQuoLocalizedRing, f::MPolyLocalizedRingElem) 
+function is_unit(L::MPolyQuoLocalizedRing, f::MPolyLocalizedRingElem) 
   parent(f) == localized_ring(L) || error("element does not belong to the correct ring")
   numerator(f) in inverted_set(L) && return true
   one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), f)
 end
 
-function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+function is_unit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   parent(f) == base_ring(L) || error("element does not belong to the correct ring")
   f in inverted_set(L) && return true
   return one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
-function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST}
+function is_unit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST}
   parent(f) == quotient_ring(L) || error("element does not belong to the correct ring")
   lift(f) in inverted_set(L) && return true
   one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
@@ -663,7 +663,7 @@ function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) 
   h = lift(f)
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  h = Base.reduce(h, groebner_basis(localized_modulus(parent(f))))
+  h = reduce(h, groebner_basis(localized_modulus(parent(f))))
   return parent(f)(h, is_reduced=true, check=false)
 end
 
@@ -913,7 +913,7 @@ constructor takes as input the triple
     U = inverted_set(L)
     if check
       for f in U
-        isunit(S(res(f))) || error("map is not well defined")
+        is_unit(S(res(f))) || error("map is not well defined")
       end
       for g in gens(modulus(L))
         iszero(S(res(g))) || error("map is not well defined")

@@ -21,8 +21,8 @@ correspond to the rays of the underlying fan.
 ### General constructors
 
 ```@docs
-DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
-ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
+ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors
@@ -41,20 +41,20 @@ This is implemented via `td1 == td2`.
 
 ## Properties of toric divisors
 
-To check if a toric divisor `td` is trivial, one can invoke `istrivial(td)`.
+To check if a toric divisor `td` is trivial, one can invoke `is_trivial(td)`.
 Internally, this executes the following method:
 ```@docs
-isprincipal(td::ToricDivisor)
+is_principal(td::ToricDivisor)
 ```
 Beyond this, we support the following properties of toric divisors:
 ```@docs
-isample(td::ToricDivisor)
+is_ample(td::ToricDivisor)
 is_basepoint_free(td::ToricDivisor)
-iscartier(td::ToricDivisor)
-iseffective(td::ToricDivisor)
-isintegral(td::ToricDivisor)
-isnef(td::ToricDivisor)
-isprime(td::ToricDivisor)
+is_cartier(td::ToricDivisor)
+is_effective(td::ToricDivisor)
+is_integral(td::ToricDivisor)
+is_nef(td::ToricDivisor)
+is_prime(td::ToricDivisor)
 is_q_cartier(td::ToricDivisor)
 is_very_ample(td::ToricDivisor)
 ```

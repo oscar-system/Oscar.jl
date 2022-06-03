@@ -1,6 +1,6 @@
 export invariant_ring, fundamental_invariants, affine_algebra
 export coefficient_ring, polynomial_ring, action, group
-export ismodular
+export is_modular
 export reynolds_operator, molien_series
 
 ################################################################################
@@ -19,7 +19,7 @@ _action_singular(I::InvRing) = I.action_singular
 
 group(I::InvRing) = I.group
 
-ismodular(I::InvRing) = I.modular
+is_modular(I::InvRing) = I.modular
 
 function invariant_ring(M::Vector{<: MatrixElem})
   return invariant_ring(base_ring(M[1]), M)
@@ -33,8 +33,9 @@ end
 
 @doc Markdown.doc"""
     invariant_ring(G::MatrixGroup)
+    invariant_ring(K::Field = QQ, G::PermGroup)
 
-Return the invariant ring of the finite matrix group `G`.
+Return the invariant ring of the finite matrix group or permutation group `G`.
 
 !!! note
     The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `primary_invariants` function).
@@ -49,18 +50,27 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
 julia> G = MatrixGroup(3, K, [M1, M2]);
 
-julia> IR = invariant_ring(G)
+julia> IRm = invariant_ring(G)
 Invariant ring of
 Matrix group of degree 3 over Cyclotomic field of order 3
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> IRp = invariant_ring(symmetric_group(3))
+Invariant ring of
+Sym( [ 1 .. 3 ] )
+with generators
+PermGroupElem[(1,2,3), (1,2)]
 ```
 """
 function invariant_ring(G::MatrixGroup)
-  n = degree(G)
   action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
   return InvRing(base_ring(G), G, action)
 end
+
+invariant_ring(K::Field, G::PermGroup) = InvRing(K, G, gens(G))
+
+invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 
 function Base.show(io::IO, IR::InvRing)
   print(io, "Invariant ring of\n")
@@ -95,6 +105,16 @@ right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M
 right_action(f::MPolyElem{T}, M::MatrixElem{T}) where T = right_action(parent(f), M)(f)
 right_action(f::MPolyElem{T}, M::MatrixGroupElem{T}) where T = right_action(f, M.elm)
 
+function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
+  n = nvars(R)
+  @assert n == degree(parent(p))
+
+  right_action_by_p = (f::MPolyElem{T}) -> on_indeterminates(f, p)
+
+  return MapFromFunc(right_action_by_p, R, R)
+end
+
+
 ################################################################################
 #
 #  Reynolds operator
@@ -113,7 +133,7 @@ function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRat
 end
 
 function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
   if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
     singular_matrices = _action_singular(IR)
 
@@ -132,7 +152,7 @@ end
 # Singular.LibFinvar.reynolds_molien does not work for finite fields which are
 # not prime fields.
 function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteField, FqFiniteField}}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
   if !isdefined(IR, :reynolds_singular)
     singular_matrices = _action_singular(IR)
 
@@ -143,7 +163,7 @@ function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteFie
 end
 
 function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
     return nothing
@@ -250,7 +270,7 @@ julia> reynolds_operator(IR, f)
 ```
 """
 function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
-  @assert !ismodular(IR)
+  @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
   if !isdefined(IR, :reynolds_operator)
@@ -365,14 +385,24 @@ basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo)
 function _molien_series_char0(S::PolyRing, I::InvRing)
   G = group(I)
   n = degree(G)
-  Gp, GtoGp = isomorphic_group_over_finite_field(G)
+  if G isa MatrixGroup{T, T1} where T1<:MatElem{T} where T<:Union{fmpq, fmpz, nf_elem}
+    Gp, GtoGp = isomorphic_group_over_finite_field(G)
+  else
+    Gp, GtoGp = (G, id_hom(G))
+  end
   K = coefficient_ring(I)
   Kt, _ = PolynomialRing(K, "t", cached = false)
   C = conjugacy_classes(Gp)
   res = zero(FractionField(Kt))
   for c in C
     g = (GtoGp\(representative(c)))::elem_type(G)
-    f = charpoly(Kt, g.elm)
+    if g isa MatrixGroupElem
+      f = charpoly(Kt, g.elm)
+    elseif g isa PermGroupElem
+      f = charpoly(Kt, permutation_matrix(K, g))
+    else
+      error("problem to compute the char. pol. of $g")
+    end
     res = res + length(c)::fmpz * 1//reverse(f)
   end
   res = divexact(res, order(Gp)::fmpz)
@@ -385,10 +415,16 @@ end
 
 function _molien_series_charp_nonmodular_via_gap(S::PolyRing, I::InvRing)
   G = group(I)
-  @assert G isa MatrixGroup
+  @assert G isa MatrixGroup || G isa PermGroup
   t = GAP.Globals.CharacterTable(G.X)
-  chi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
-         for c in GAP.Globals.ConjugacyClasses(t)]
+  if G isa MatrixGroup
+    chi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
+           for c in GAP.Globals.ConjugacyClasses(t)]
+  else
+    deg = GAP.Obj(degree(G))
+    chi = [deg - GAP.Globals.NrMovedPoints(GAP.Globals.Representative(c))
+           for c in GAP.Globals.ConjugacyClasses(t)]
+  end
   info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
                                                                GAP.GapObj(chi)))
   num = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer))::Vector{fmpz})
@@ -434,7 +470,7 @@ function molien_series(S::PolyRing, I::InvRing)
   if characteristic(coefficient_ring(I)) == 0
     return _molien_series_char0(S, I)
   else
-    if !ismodular(I)
+    if !is_modular(I)
       return _molien_series_charp_nonmodular_via_gap(S, I)
     else
       throw(Hecke.NotImplemented())
@@ -453,7 +489,7 @@ end
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
 # And maybe some day we can also compute Molien series in some modular cases.
-ismolien_series_implemented(I::InvRing) = !ismodular(I)
+is_molien_series_implemented(I::InvRing) = !is_modular(I)
 
 ################################################################################
 #

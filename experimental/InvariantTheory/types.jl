@@ -11,7 +11,7 @@ end
 
 mutable struct SecondaryInvarsCache{T}
   invars::Vector{T} # secondary invariants
-  isirreducible::BitVector # isirreducible[i] == true iff invars[i] is irreducible
+  is_irreducible::BitVector # is_irreducible[i] == true iff invars[i] is irreducible
   sec_in_irred::Vector{Vector{Int}}
   # sec_in_irred[i] gives the "exponent vector" for invars[i] in the irreducible
   # secondary invariants (hence length(sec_in_irred[i]) is equal to the number of
@@ -20,7 +20,7 @@ mutable struct SecondaryInvarsCache{T}
   function SecondaryInvarsCache{T}() where {T <: MPolyElem}
     z = new{T}()
     z.invars = T[]
-    z.isirreducible = BitVector()
+    z.is_irreducible = BitVector()
     z.sec_in_irred = Vector{Vector{Int}}()
     return z
   end
@@ -53,7 +53,12 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
     n = degree(G)
     R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
     R_sing = singular_poly_ring(R)
-    action_singular = identity.([change_base_ring(R_sing, g) for g in action])
+    if ActionT <: PermGroupElem
+      m_action = [permutation_matrix(K, p) for p in action]
+      action_singular = identity.([change_base_ring(R_sing, g) for g in m_action])
+    else
+      action_singular = identity.([change_base_ring(R_sing, g) for g in action])
+    end
     PolyRingT = typeof(R)
     PolyElemT = elem_type(R)
     SingularActionT = eltype(action_singular)

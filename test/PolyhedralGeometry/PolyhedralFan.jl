@@ -21,7 +21,7 @@
 
     @testset "core functionality" begin
         if T == fmpq
-            @test issmooth(NFsquare)
+            @test is_smooth(NFsquare)
             @test vector_matrix(rays(NFsquare)) == matrix(QQ, [1 0; -1 0; 0 1; 0 -1])
         else
             @test vector_matrix(rays(NFsquare)) == [1 0; -1 0; 0 1; 0 -1]
@@ -29,9 +29,9 @@
         @test rays(NFsquare) isa SubObjectIterator{RayVector{T}}
         @test length(rays(NFsquare)) == 4
         @test rays(NFsquare) == [[1, 0], [-1, 0], [0, 1], [0, -1]]
-        @test isregular(NFsquare)
-        @test iscomplete(NFsquare)
-        @test !iscomplete(F0)
+        @test is_regular(NFsquare)
+        @test is_complete(NFsquare)
+        @test !is_complete(F0)
         @test length(rays(F0)) == 3
         @test nrays(F1) == 3
         @test dim(F1) == 2
@@ -63,7 +63,7 @@
         FF0 = face_fan(C0)
         @test nrays(FF0) == 4
         if T == fmpq
-            @test !issmooth(FF0)
+            @test !is_smooth(FF0)
         end
         @test f_vector(NFsquare) == [4, 4]
         @test rays(F1NR) == collect(eachrow(I3))

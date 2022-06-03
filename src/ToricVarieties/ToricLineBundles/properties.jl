@@ -1,5 +1,5 @@
-istrivial(l::ToricLineBundle) = isprincipal(toric_divisor(l))
-export istrivial
+is_trivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
+export is_trivial
 
 
 @doc Markdown.doc"""
@@ -21,7 +21,7 @@ export is_basepoint_free
 
 
 @doc Markdown.doc"""
-    isample(l::ToricLineBundle)
+    is_ample(l::ToricLineBundle)
 
 Return `true` if the toric line bundle `l` is ample and `false` otherwise.
 
@@ -30,12 +30,12 @@ Return `true` if the toric line bundle `l` is ample and `false` otherwise.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> isample(ToricLineBundle(F4, [1,0]))
+julia> is_ample(ToricLineBundle(F4, [1,0]))
 false
 ```
 """
-isample(l::ToricLineBundle) = isample(toric_divisor(l))
-export isample
+is_ample(l::ToricLineBundle) = is_ample(toric_divisor(l))
+export is_ample
 
 
 @doc Markdown.doc"""

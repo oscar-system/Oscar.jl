@@ -14,7 +14,7 @@
 
  f = sum f_i(t) x^i
 
- By standart bounds on polynomials (assume f monic)
+ By standard bounds on polynomials (assume f monic)
 
  roots of f(z)(x) are bounded in abs. value by |f_i(z)| + 1 
  (or even 2*|f_i(z)|^(1/(n-i)) or so, 
@@ -87,7 +87,7 @@ for analysis of the denominator and the infinite valuations
 
 function _galois_init(F::Generic.FunctionField{fmpq}; tStart::Int = -1)
   f = defining_polynomial(F)
-  @assert ismonic(f)
+  @assert is_monic(f)
   Zxy, (x, y) = PolynomialRing(FlintZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
@@ -124,7 +124,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   while true
     t += 1
     g = evaluate(f, [gen(Zx), Zx(t)])
-    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && isirreducible(g)
+    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && is_irreducible(g)
       break
     end
     if t > 10
@@ -160,7 +160,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     end
     C, K, p = _galois_init(FF, tStart = tStart)
 
-    if issquare(discriminant(K)) != issquare(discriminant(FF))
+    if is_square(discriminant(K)) != is_square(discriminant(FF))
       @vprint :GaloisGroup 2 "bad evaluation point: parity changed\n"
       tStart += 1
       continue
@@ -171,7 +171,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     @vprint :GaloisGroup 1 "specialising at t = $tStart, computing over Q\n"
     Gal, S = galois_group(K, prime = p)
 
-    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_identification(Gal))\n"
+    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_group_identification(Gal))\n"
 
 #    @show S.start, S.chn
 
@@ -197,7 +197,7 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
     #either, if block-systems are there, find the subfields
     #or verify the factorisation of the resolvent:
     if isdefined(S, :start) && S.start[1] == 1 && length(S.start) > 0
-      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
+      if !all(x->is_subfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
         @vprint :GaloisGroup 2 "bad evaluation point: subfields don't exist\n"
         continue
       end
@@ -283,6 +283,16 @@ function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
   #if any fails, "t" was bad and I need to find a way of restarting
 end
 
+"""
+    subfields(FF:Generic.FunctionField{fmpq})
+
+For a finite extension of the univariate function field over the rationals, 
+find all subfields. The implemented algorithm proceeds by substituting
+the transcendental element to an integer, then computing the subfields
+of the resulting number field and lifting this information.
+
+It is an adaptation of Klueners.
+"""
 function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   C, K, p = _galois_init(FF)
   f = C.C.f
@@ -333,7 +343,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
       r = map(ts, rc)
     end
     @vprint :Subfields 2 "... with block system $bs\n"
-    fl = issubfield(FF, C, bs, ts = ts)
+    fl = is_subfield(FF, C, bs, ts = ts)
     if fl === nothing
       continue
     end
@@ -343,7 +353,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   return res
 end 
 
-function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
+function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
 
   SL = SLPolyRing(ZZ, length(bs)*length(bs[1]))
   sx = gens(SL)
@@ -465,7 +475,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
       we have (bound for) alpha (the conjugates), for g_j (above), then *n are
       bounds for b_j
 
-      On 2nd thougts I might also just compute the g_i via division in F[x]  
+      On 2nd thoughts I might also just compute the g_i via division in F[x]  
 
       Darn: need to think again: need estimates for poly * series.
   =#

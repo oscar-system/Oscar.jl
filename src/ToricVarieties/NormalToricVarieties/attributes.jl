@@ -40,7 +40,7 @@ julia> dim_of_torusfactor(antv)
 ```
 """
 @attr Int function dim_of_torusfactor(v::AbstractNormalToricVariety)
-    if hastorusfactor(v) == false
+    if has_torusfactor(v) == false
         return 0
     end
     dimension_of_fan = pm_object(v).FAN_DIM::Int
@@ -106,34 +106,6 @@ function is_finalized(v::AbstractNormalToricVariety)
     return any(p -> has_attribute(v, p), properties)
 end
 export is_finalized
-
-
-@doc Markdown.doc"""
-    set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
-
-Allows to set the coefficient_ring. If the Cox ring of the variety has
-already been computed, we do not allow this to be changed.
-In this case an error is triggered.
-
-# Examples
-```jldoctest
-julia> C = Oscar.positive_hull([1 0]);
-
-julia> antv = AffineNormalToricVariety(C);
-
-julia> set_coefficient_ring(antv, ZZ)
-
-julia> coefficient_ring(antv) == ZZ
-true
-```
-"""
-function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
-    if is_finalized(v)
-        error("The coefficient ring cannot be modified since the toric variety is finalized.")
-    end
-    set_attribute!(v, :coefficient_ring, coefficient_ring)
-end
-export set_coefficient_ring
 
 
 @doc Markdown.doc"""
@@ -203,10 +175,7 @@ export set_coordinate_names_of_torus
 
 @doc Markdown.doc"""
     coefficient_ring(v::AbstractNormalToricVariety)
-
-This method returns the coefficient_ring of the normal toric variety `v`.
-The default is the ring `QQ`.
-
+This method returns the coefficient_ring `QQ` of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> C = Oscar.positive_hull([1 0]);
@@ -217,7 +186,7 @@ julia> coefficient_ring(antv) == QQ
 true
 ```
 """
-coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient_ring, QQ)
+coefficient_ring(v::AbstractNormalToricVariety) = QQ
 
 
 @doc Markdown.doc"""
@@ -289,10 +258,8 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
 
-julia> set_coefficient_ring(p2, ZZ)
-
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by 
+Multivariate Polynomial Ring in y1, y2, y3 over Rational Field graded by
   y1 -> [1]
   y2 -> [1]
   y3 -> [1]
@@ -439,7 +406,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !(iscomplete(v) && issimplicial(v))
+    if !(is_complete(v) && is_simplicial(v))
         throw(ArgumentError("The variety must be both complete and simplicial for the computation of the ideal of linear relations"))
     end
     if ngens(R) != nrays(v)
@@ -540,7 +507,7 @@ end
 
 
 @attr MPolyIdeal function toric_ideal(ntv::NormalToricVariety)
-    isaffine(ntv) || error("Cannot construct affine toric variety from non-affine input")
+    is_affine(ntv) || error("Cannot construct affine toric variety from non-affine input")
     return toric_ideal(AffineNormalToricVariety(ntv))
 end
 export toric_ideal
@@ -824,7 +791,7 @@ GrpAb: Z^3
 """
 @attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     # check input
-    if hastorusfactor(v)
+    if has_torusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
     
@@ -927,7 +894,7 @@ Abelian group with structure: Z
 """
 @attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
     # check input
-    if hastorusfactor(v)
+    if has_torusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
     

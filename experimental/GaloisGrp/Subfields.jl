@@ -257,7 +257,9 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if iszero(g(beta))
     k, a = number_field(g)
     h = hom(k, K, beta)
-    push!(S.P, bs)
+    if !(bs in S.P)
+      push!(S.P, bs)
+    end
     S.l[S.P(bs)] = (k, h)
     return k, h
   end
@@ -294,7 +296,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   pr = 5
   nf = sum(x*x for x = coefficients(f))
   B = degree(f)^2*(iroot(nf, 2)+1) #from Paper: bound on the coeffs we need
-  B = B^2 # Nemo works with norm-squared....
+  @show B = B^2 # Nemo works with norm-squared....
   @show "using ", p
   @show pr = clog(B, p) 
   @show pr *= div(n,2)
@@ -322,7 +324,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
     lf = factor_mod_pk(Array, H, pr)
     ppr = fmpz(p)^pr
     @assert parent(lf[1][1]) == parent(f)
-    @assert all(x->ismonic(x[1]), lf)
+    @assert all(x->is_monic(x[1]), lf)
     rt = findfirst(x->degree(x[1]) == 1, lf)
     done[rt] = 1
     for i=1:length(lf)
@@ -358,7 +360,6 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
 
         if iszero(M[:, 1:di])
           if n % r == 0
-            global last_M = M[1:r, di+1:di+n]
             gens = [sum(M[k, di+j] * b[j] for j=1:n) for k=1:r]
             #need the subfield poly - or a guess...
             #this is an upper bound.
@@ -381,7 +382,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
             @show T
             #the paper says the (unknown) (algebraic) coefficients of
             # prod(f[i] i in T)
-            #have to generate the subfield and f in K[t] is isirreducible
+            #have to generate the subfield and f in K[t] is is_irreducible
             #so deg(poly)*deg(subfield) = deg(K)
             #deg subfield should be r, so
             #if precision is too low, then this poly will be too

@@ -17,19 +17,44 @@ Pages = ["grouplib.md"]
 
 ## Transitive permutation groups of small degree
 
+TODO: explain about the scope of this.
+
+TODO: give proper attribution to the transgrp package (in particular, cite it)
+
+The arrangement and the names of the groups of degree up to 15 is the same as given in
+[CHM98](@cite). With the exception of the symmetric and alternating group (which are represented
+as `symmetric_group` and `alternating_group`) the generators for these groups also conform to this paper with
+the only difference that 0 (which is not permitted in GAP for permutations to act on) is always replaced by
+the degree.
+
+The arrangement for all degrees is intended to be equal to the arrangement within the systems GAP and Magma, thus it
+should be safe to refer to particular (classes of) groups by their index numbers.
+
+
 ```@docs
+all_transitive_groups
+has_number_transitive_groups
+has_transitive_group_identification
+has_transitive_groups
 number_transitive_groups
 transitive_group
-transitive_identification
-all_transitive_groups
+transitive_group_identification
 ```
 
 ## Primitive permutation groups of small degree
 
+TODO: explain about the scope of this.
+
+TODO: give proper attribution to the primitive groups library (in particular, cite it)
+
 ```@docs
+all_primitive_groups
+has_number_primitive_groups
+has_primitive_group_identification
+has_primitive_groups
 number_primitive_groups
 primitive_group
-all_primitive_groups
+primitive_group_identification
 ```
 
 ## Perfect groups of small order
@@ -59,19 +84,29 @@ not have a faithful permutation representation of small degree.
 Computations in these groups may be rather time consuming.
 
 ```@docs
-orders_perfect_groups
+has_number_perfect_groups
+has_perfect_group_identification
+has_perfect_groups
 number_perfect_groups
+orders_perfect_groups
 perfect_group
 perfect_group_identification
 ```
 
 ## Groups of small order
 
+TODO: explain about the scope of this.
+
+TODO: give proper attribution to the smallgrp package and other things used (in particular, cite it)
+
 ```@docs
+all_small_groups
+has_number_small_groups
+has_small_group_identification
+has_small_groups
 number_small_groups
 small_group
 small_group_identification
-all_small_groups
 ```
 
 ## Atlas of Group Representations

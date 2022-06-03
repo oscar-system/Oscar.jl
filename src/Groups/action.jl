@@ -1,3 +1,10 @@
+export on_indeterminates,
+       on_sets,
+       on_sets_sets,
+       on_tuples,
+       permuted,
+       right_coset_action
+
 """
 A *group action* of a group G on a set Ω (from the right) is defined by
 a map μ: Ω × G → Ω that satisfies the compatibility conditions
@@ -33,8 +40,6 @@ The following ones are commonly used.
 ##  The idea is to delegate the action of `GAPGroupElem` objects
 ##  on `GAP.GapObj` objects to the corresponding GAP action,
 ##  and to implement the action on native Julia objects case by case.
-
-export on_tuples, on_sets, on_sets_sets, on_indeterminates, permuted
 
 """
 We try to avoid introducing `on_points` and `on_right`.
@@ -393,3 +398,33 @@ stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET
 stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_tuples)
 
 stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_sets)
+
+
+"""
+    right_coset_action(G::T, U::T) where T <: GAPGroup
+
+Compute the action of `G` on the right cosets of its subgroup `U`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sylow_subgroup(G, 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> index(G, H)
+45
+
+julia> act = right_coset_action(G, H);
+
+julia> degree(codomain(act)) == index(G, H)
+true
+
+```
+"""
+function right_coset_action(G::T, U::T) where T <: GAPGroup
+  mp = GAP.Globals.FactorCosetAction(G.X, U.X)
+  mp == GAP.Globals.fail && throw(ArgumentError("Invalid input"))
+  H = PermGroup(GAP.Globals.Range(mp))
+  return GAPGroupHomomorphism(G, H, mp)
+end

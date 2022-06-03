@@ -42,7 +42,7 @@ ambient_dim(PC::PolyhedralComplex)
 codim(PC::PolyhedralComplex)
 dim(PC::PolyhedralComplex)
 f_vector(PC::PolyhedralComplex)
-isembedded(PC::PolyhedralComplex)
+is_embedded(PC::PolyhedralComplex)
 maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types
 n_maximal_polyhedra(PC::PolyhedralComplex)
 npolyhedra(PC::PolyhedralComplex)

@@ -32,7 +32,7 @@ mutable struct NmodComplementOfPrimeIdeal <: AbsMultSet{NmodRing, nmod}
     n = ZZ(modulus(R))
     a = lift(gen)
     r = gcd(n, a)
-    isprime(r) || error("the given element does not generate a prime ideal")
+    is_prime(r) || error("the given element does not generate a prime ideal")
     return new{}(R, R(r))
   end
 end

@@ -56,7 +56,7 @@ end
    end
 
    @testset for (p,d) in [(2, 1), (5, 1), (2, 4), (3, 3)]
-      for F in [FqFiniteField(fmpz(p),d,:z), FqFiniteField(fmpz(p),d,:z)]
+      for F in [FqFiniteField(fmpz(p),d,:z), FqDefaultFiniteField(fmpz(p),d,:z)]
          f = Oscar.iso_oscar_gap(F)
          g = elm -> map_entries(f, elm)
          for a in F
@@ -179,14 +179,33 @@ end
    @test phi(-a^3 + a^2 + 1) == GAP.evalstr("-E(5)^2-E(5)^3")
 end
 
+@testset "abelian closure" begin
+  F, z = abelian_closure(QQ)
+  iso = Oscar.iso_oscar_gap(F)
+  for N in [1, 2, 5, 15]
+    x = z(N)
+    y = iso(x)
+    @test x == preimage(iso, y)
+  end
+  @test_throws ErrorException iso(CyclotomicField(2)[2])
+  @test_throws ErrorException image(iso, CyclotomicField(2)[2])
+  @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+end
+
 @testset "univariate polynomial rings" begin
    baserings = [QQ,                           # yields `FmpqPolyRing`
                 ZZ,                           # yields `FmpzPolyRing`
                 GF(2,2),                      # yields `FqNmodPolyRing`
+#               FqDefaultFiniteField(fmpz(2),3,:x), # yields `FqDefaultPolyRing`
+#TODO: This case fails due to a problem in AA/Nemo,
+#      see https://github.com/Nemocas/Nemo.jl/issues/1307
                 FqFiniteField(fmpz(2),2,:z),  # yields `FqPolyRing`
                 GF(fmpz(2)),                  # yields `GFPFmpzPolyRing`
                 GF(2),                        # yields `GFPPolyRing`
+                Nemo.NmodRing(UInt64(6)),     # yields `NmodPolyRing`
+                Nemo.FmpzModRing(fmpz(6)),    # yields `FmpzModPolyRing`
                ]
+#TODO: How to get `AbstractAlgebra.Generic.PolyRing`?
    @testset for R in baserings
       PR, x = PolynomialRing(R, "x")
       iso = Oscar.iso_oscar_gap(PR)
@@ -198,6 +217,30 @@ end
       @test map_entries(inv(iso), map_entries(iso, m)) == m
       @test_throws ErrorException iso(PolynomialRing(R, "y")[1]())
       @test_throws ErrorException image(iso, PolynomialRing(R, "y")[1]())
+      @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+   end
+end
+
+@testset "multivariate polynomial rings" begin
+   baserings = [QQ,                           # yields `FmpqMPolyRing`
+                ZZ,                           # yields `FmpzMPolyRing`
+                GF(2,2),                      # yields `FqNmodMPolyRing`
+                GF(fmpz(2)),                  # yields `AbstractAlgebra.Generic.MPolyRing{gfp_fmpz_elem}`
+                GF(2),                        # yields `GFPMPolyRing`
+                Nemo.NmodRing(UInt64(6)),     # yields `NmodMPolyRing`
+               ]
+#TODO: How to get `GFPFmpzMPolyRing`, `FqDefaultMPolyRing`?
+   @testset for R in baserings
+      PR, (x,y,z) = PolynomialRing(R, 3)
+      iso = Oscar.iso_oscar_gap(PR)
+      for pol in [zero(x), one(x), x, x^2*y + y*z^3 + x*y*z + 1]
+         img = iso(pol)
+         @test preimage(iso, img) == pol
+      end
+      m = matrix([x x; y z])
+      @test map_entries(inv(iso), map_entries(iso, m)) == m
+      @test_throws ErrorException iso(PolynomialRing(R, ["y"])[1]())
+      @test_throws ErrorException image(iso, PolynomialRing(R, ["y"])[1]())
       @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end

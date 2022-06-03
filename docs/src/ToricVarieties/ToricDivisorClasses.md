@@ -19,8 +19,7 @@ Toric divisor classes are equivalence classes of Weil divisors modulo linear equ
 ### General constructors
 
 ```@docs
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{fmpz})
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Special constructors
@@ -39,7 +38,7 @@ a principal toric divisor. This is implemented via `tdc1 == tdc2`.
 
 ## Properties of toric divisor classes
 
-To check if a toric divisor class `tdc` is trivial, one can invoke `istrivial(tdc)`.
+To check if a toric divisor class `tdc` is trivial, one can invoke `is_trivial(tdc)`.
 
 
 ## Operations for toric divisor classes

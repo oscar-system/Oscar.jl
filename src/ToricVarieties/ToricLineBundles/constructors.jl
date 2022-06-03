@@ -17,7 +17,7 @@ export ToricLineBundle
 ########################
 
 @doc Markdown.doc"""
-    ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
+    ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{T}) where {T <: IntegerUnion}
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`.
 
@@ -30,26 +30,7 @@ julia> l = ToricLineBundle(v, [fmpz(2)])
 A toric line bundle on a normal toric variety
 ```
 """
-function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{fmpz})
-    class = picard_group(v)(input_class)
-    return ToricLineBundle(v, class)
-end
-
-@doc Markdown.doc"""
-    ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
-
-Convenience method for ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz}).
-
-# Examples
-```jldoctest
-julia> v = projective_space(NormalToricVariety, 2)
-A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
-
-julia> l = ToricLineBundle(v, [2])
-A toric line bundle on a normal toric variety
-```
-"""
-function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{Int})
+function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{T}) where {T <: IntegerUnion}
     class = picard_group(v)(input_class)
     return ToricLineBundle(v, class)
 end
@@ -74,7 +55,7 @@ A toric line bundle on a normal toric variety
 ```
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
-    if !iscartier(d)
+    if !is_cartier(d)
         throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle."))
     end
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
@@ -122,9 +103,9 @@ function Base.show(io::IO, line_bundle::ToricLineBundle)
     # collect known properties
     if has_attribute(line_bundle, :toric_divisor)
         td = toric_divisor(line_bundle)
-        push_attribute_if_exists!(properties_string, td, :isprincipal, "trivial")
+        push_attribute_if_exists!(properties_string, td, :is_principal, "trivial")
         push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
-        ample_cb!(a,b) = push_attribute_if_exists!(a, b, :isample, "ample")
+        ample_cb!(a,b) = push_attribute_if_exists!(a, b, :is_ample, "ample")
         push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
     end
 

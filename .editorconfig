@@ -9,7 +9,7 @@ charset = utf-8
 end_of_line = lf
 indent_style = space
 insert_final_newline = true
-trim_trailing_whitespace = true
+#trim_trailing_whitespace = true  # as long as we don't enforce this, this option causes more trouble than it helps
 
 [*.jl]
 indent_size = 2
