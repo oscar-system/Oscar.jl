@@ -433,6 +433,7 @@ end
 
 ### default conversion passing through the base ring
 (L::AbsLocalizedRing)(f::RET) where {RET<:RingElem} = L(base_ring(L)(f))
+(L::AbsLocalizedRing)(f::AbsLocalizedRingElem; check::Bool=true) = L(numerator(f), denominator(f), check=check)
 
 
 ### Needs to be overwritten in case of zero divisors!

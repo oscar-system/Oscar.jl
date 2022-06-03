@@ -1399,7 +1399,7 @@ function saturated_ideal(
     end
     I.saturated_ideal = result
     if with_generator_transition
-      error("computation of the transition matrix for the generators is not planned to happen")
+      error("computation of the transition matrix for the generators is not supposed to happen because of using local orderings")
       for g in gens(result) 
         g in I || error("generator not found") # assures caching with transitions
       end
@@ -1474,7 +1474,8 @@ function saturated_ideal(
 end
 
 function saturated_ideal(
-    I::MPolyLocalizedIdeal{LRT} 
+    I::MPolyLocalizedIdeal{LRT};
+    with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
   if !is_saturated(I)
     W = base_ring(I)
@@ -1484,8 +1485,10 @@ function saturated_ideal(
       L, _ = Localization(U)
       J = saturated_ideal(L(J))
     end
-    for g in gens(J)
-      g in I
+    if with_generator_transition
+      for g in gens(J)
+        g in I
+      end
     end
     I.is_saturated = true
   end
@@ -1621,6 +1624,134 @@ function coordinates(
   T = pre_saturation_data(I)
   return L(one(base_ring(L)), tfihs(u)*denominator(a), check=false)*change_base_ring(L, map_entries(tfihs,x))*T
 end
+
+########################################################################
+# The next method is based on the following observation: 
+#
+#     p//q ∈ I ⋅ U⁻¹ ⋅ V⁻¹ ⊂ R[U⁻¹⋅V⁻¹] 
+#   ⇔ ∃ u ∈ U, v∈ V : u ⋅ v ⋅ p ∈ I
+#   ⇔ ∃ v ∈ V : v ⋅ p ∈ I : U 
+#
+# So, to compute the coordinates of p//q in I, we can proceed 
+# inductively, by caching J = I : U and computing the coordinates 
+# of p in J over R[V⁻¹]. 
+#
+# In particular for the case where U is the localization at a 
+# hypersurface and V the localization at the complement of a prime 
+# ideal, computing and working with the saturation in the first case 
+# is quicker, while using local orderings/ the Posur method is favourable 
+# in the second case. Since this situation will be of particular 
+# interest, we provide a special path for that.
+function coordinates(
+    a::RingElem,
+    I::MPolyLocalizedIdeal{LRT} 
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
+  L = base_ring(I)
+  parent(a) == L || return coordinates(L(a), I)
+
+  R = base_ring(L)
+  U = sets(inverted_set(base_ring(I)))
+
+  if length(U) == 1 
+    if !has_attribute(I, :popped_ideal)
+      W, _ = Localization(R, U[1])
+      popped_ideal = W(pre_saturated_ideal(I))
+      set_attribute!(I, :popped_ideal, popped_ideal)
+    end
+    popped_ideal = get_attribute(I, :popped_ideal)
+    return L(one(R), denominator(a), check=false)*map_entries(x->L(x, check=false), coordinates(numerator(a), popped_ideal))*pre_saturation_data(I)
+  end
+
+  numerator(a) in pre_saturated_ideal(I) && return L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I)))*pre_saturation_data(I)
+
+  i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
+  if !isnothing(i)
+    if !has_attribute(I, :popped_ideal)
+      S = popat!(U, i)
+      W, _ = Localization(base_ring(L), S)
+      popped_ideal = ideal(W, pre_saturated_ideal(I))
+      saturated_ideal(popped_ideal, with_generator_transition=true)
+      set_attribute!(I, :popped_ideal, popped_ideal)
+      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
+      set_attribute!(I, :next_ideal, next_ideal)
+    end
+    popped_ideal = get_attribute(I, :popped_ideal)
+    next_ideal = get_attribute(I, :next_ideal)
+    y = coordinates(numerator(a), next_ideal)
+    x = map_entries(x->L(x, check=false), y)*map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal))
+    return L(one(R), denominator(a), check=false)*x
+  else
+    if !has_attribute(I, :popped_ideal)
+      S = pop!(U)
+      W, _ = Localization(base_ring(L), S)
+      popped_ideal = ideal(W, pre_saturated_ideal(I))
+      saturated_ideal(popped_ideal, with_generator_transition=true)
+      set_attribute!(I, :popped_ideal, popped_ideal)
+      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
+      set_attribute!(I, :next_ideal, next_ideal)
+    end
+    popped_ideal = get_attribute(I, :popped_ideal)
+    next_ideal = get_attribute(I, :next_ideal)
+    y = coordinates(numerator(a), next_ideal)
+    x = map_entries(x->L(x, check=false), y)*map_entries(x->L(x, check=false), pre_saturation_data(popped_ideal))
+    return L(one(R), denominator(a), check=false)*x
+  end
+end
+
+function Base.in(
+    a::RingElem,
+    I::MPolyLocalizedIdeal{LRT} 
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyProductOfMultSets}}
+  L = base_ring(I)
+  parent(a) == L || return L(a) in I
+
+  R = base_ring(L)
+  U = sets(inverted_set(base_ring(I)))
+
+  if length(U) == 1 
+    if !has_attribute(I, :popped_ideal)
+      W, _ = Localization(R, U[1])
+      popped_ideal = W(pre_saturated_ideal(I))
+      set_attribute!(I, :popped_ideal, popped_ideal)
+    end
+    popped_ideal = get_attribute(I, :popped_ideal)
+    return numerator(a) in popped_ideal
+  end
+
+  numerator(a) in pre_saturated_ideal(I) && return true
+
+  i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
+  if !isnothing(i)
+    if !has_attribute(I, :popped_ideal)
+      S = popat!(U, i)
+      W, _ = Localization(base_ring(L), S)
+      popped_ideal = ideal(W, pre_saturated_ideal(I))
+      saturated_ideal(popped_ideal, with_generator_transition=true)
+      set_attribute!(I, :popped_ideal, popped_ideal)
+      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
+      set_attribute!(I, :next_ideal, next_ideal)
+    end
+    next_ideal = get_attribute(I, :next_ideal)
+    return numerator(a) in next_ideal
+  else
+    if !has_attribute(I, :popped_ideal)
+      S = pop!(U)
+      W, _ = Localization(base_ring(L), S)
+      popped_ideal = ideal(W, pre_saturated_ideal(I))
+      saturated_ideal(popped_ideal, with_generator_transition=true)
+      set_attribute!(I, :popped_ideal, popped_ideal)
+      Wnext, _ = Localization(R, MPolyProductOfMultSets(R, U))
+      next_ideal = Wnext(pre_saturated_ideal(popped_ideal))
+      set_attribute!(I, :next_ideal, next_ideal)
+    end
+    next_ideal = get_attribute(I, :next_ideal)
+    return numerator(a) in next_ideal
+  end
+end
+
 
 ########################################################################
 # special treatment of localization at orderings                       #

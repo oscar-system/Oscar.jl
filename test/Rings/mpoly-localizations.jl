@@ -240,4 +240,38 @@ end
   @test y-8 in LI
   @test dot(coordinates(y-8, LI), gens(LI)) == L(y-8)
   @test dot(coordinates(x+5, LI), gens(LI)) == L(x+5)
+
+  W, _ = quo(L, LI)
+  J = ideal(W, [(z-1//2)^4*y])
+  @test (z-1//2)^5 in J
+  @test !((z-1//2)^5 in LI)
+  @test coordinates((z-1//2)^5, J) == MatrixSpace(W, 1, 1)([W(z-1//2, y)])
+end
+
+@testset "successive localizations" begin
+  R, (x, y, z) = QQ["x", "y", "z"]
+  p = [0,0,0]
+  U = MPolyComplementOfKPointIdeal(R, p)
+  I = ideal(R, [x*(y-1)-z*(x-2), y*x])
+  L, _ = Localization(R, U)
+  LI = L(I)
+  W, _ = quo(L, LI)
+  S = MPolyPowersOfElement(R, [y])
+  RS, _ = Localization(R, S)
+  RSI = RS(I)
+  @show saturated_ideal(RSI, with_generator_transition=true)
+  J = L(Oscar.pre_saturated_ideal(RSI))
+  @show J
+  z in J
+  W, _ = quo(L, LI)
+  S = MPolyPowersOfElement(R, [y])
+  WS, _ = Localization(W, S)
+  @test !iszero(W(z))
+  @test iszero(WS(z))
+  LS, _ = Localization(L, S)
+  LSI = LS(LI)
+  @test dot(coordinates(z, LSI), gens(LSI)) == LS(z)
+  @test !(z in Oscar.pre_saturated_ideal(LSI))
+  @test z in LSI
+  @test !(z in Oscar.pre_saturated_ideal(LSI)) # caching is not supposed to happen, because of special routing.
 end

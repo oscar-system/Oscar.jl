@@ -239,7 +239,7 @@ function Localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
-  issubset(S, inverted_set(L)) && return L
+  issubset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
   U = inverted_set(L)*S
   W = MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U)[1])
   return W, MapFromFunc((x->W(lifted_numerator(x), lifted_denominator(x), check=false)), L, W)
