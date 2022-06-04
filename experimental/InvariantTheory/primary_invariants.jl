@@ -6,17 +6,10 @@ export primary_invariants, primary_invariants_via_optimal_hsop, primary_invarian
 # case.
 # See DK15, pp. 94, 95.
 function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int})
-  mol = molien_series(R)
-  f = numerator(mol)
-  g = denominator(mol)
-  for d in degrees
-    # multiply f by 1 - t^d
-    f -= shift_left(f, d)
-  end
-  if !iszero(mod(f, g))
+  fl, h = _reduce_hilbert_series_by_primary_degrees(R, degrees)
+  if !fl
     return false
   end
-  h = div(f, g)
   for c in coefficients(h)
     if !isinteger(c)
       return false
@@ -26,6 +19,23 @@ function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int
     end
   end
   return true
+end
+
+function reduce_hilbert_series_by_primary_degrees(R::InvRing)
+  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(f.f) for f in primary_invariants(R) ])
+  @assert fl
+  return h
+end
+
+function _reduce_hilbert_series_by_primary_degrees(R::InvRing, degrees::Vector{Int})
+  mol = molien_series(R)
+  f = numerator(mol)
+  g = denominator(mol)
+  for d in degrees
+    # multiply f by 1 - t^d
+    f -= shift_left(f, d)
+  end
+  return divides(f, g)
 end
 
 # Return possible degrees of primary invariants d_1, ..., d_n with
@@ -248,7 +258,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
           continue
         end
       end
-      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars_cache, iters, ideals, ensure_minimality, k - 1)
+      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars_cache, iters, ideals, ensure_minimality, max(0, k - 1))
       if b
         return true, 0
       end
@@ -273,7 +283,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
       k = 0
     end
   end
-  if iszero(n) && isone(k)
+  if is_zero(n) && is_one(k)
     invars_cache.ideal = ideals[Set(invars_cache.invars)][1]
     return true, k
   end
