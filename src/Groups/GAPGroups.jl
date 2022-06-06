@@ -43,6 +43,7 @@ export
     is_simple, has_is_simple, set_is_simple,
     is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple,
     low_index_subgroup_reps,
+    map_word,
     maximal_subgroup_reps,
     moved_points, has_moved_points, set_moved_points,
     mul,
@@ -351,7 +352,7 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = g.X in G.X
 """
     gens(G::Group)
 
-Return a vector of generators of the group `G`.
+Return a vector of generators of `G`.
 To get the `i`-th generator,
 use `G[i]` or `gen(G,i)` (see [`gen`](@ref)) instead of `gens(G)[i]`,
 as that is more efficient.
@@ -1331,6 +1332,128 @@ function relators(G::FPGroup)
    F=free_group(G)
    return [group_element(F,L[i]) for i in 1:length(L)]
 end
+
+
+@doc Markdown.doc"""
+    map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+
+Return the product $R_1 R_2 \cdots R_n$
+that is described by `g` or `v`, respectively.
+
+If `g` is an element of a free group $G$, say, then the rank of $G$ must be
+equal to the length of `genimgs`, `g` is a product of the form
+$g_{i_1}^{e_i} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
+where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
+and $R_j = $`imgs[`$i_j$`]`$^{e_j}$.
+
+If `g` is an element of a finitely presented group then the result is
+defined as `map_word` applied to a representing element of the underlying
+free group.
+
+If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
+respectively,
+then the absolute values of the $k_i$ must be at most the length of `genimgs`,
+and $R_j = $`imgs[`$|k_i|$`]`$^{\epsilon_i}$
+where $\epsilon_i$ is the `sign` of $k_i$ (times $e_i$).
+
+If a vector `genimgs_inv` is given then its assigned entries are expected
+to be the inverses of the corresponding entries in `genimgs`,
+and the function will use (and set) these entries in order to avoid
+calling `inv` (more than once) for entries of `genimgs`.
+
+If `v` has length zero then `init` is returned if also `genimgs` has length
+zero, otherwise `one(genimgs[1])` is returned.
+In all other cases, `init` is ignored.
+
+# Examples
+```jldoctest
+julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+
+julia> imgs = gens(symmetric_group(4))
+2-element Vector{PermGroupElem}:
+ (1,2,3,4)
+ (1,2)
+
+julia> map_word(F1^2, imgs)
+(1,3)(2,4)
+
+julia> map_word(F2, imgs)
+(1,2)
+
+julia> map_word(one(F), imgs)
+()
+
+julia> invs = Vector(undef, 2);
+
+julia> map_word(F1^-2*F2, imgs, genimgs_inv = invs)
+(1,3,2,4)
+
+julia> invs
+2-element Vector{Any}:
+    (1,4,3,2)
+ #undef
+
+```
+"""
+function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  G = parent(g)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    return init
+  end
+  gX = g.X
+  if ! GAP.Globals.IsAssocWord(gX)
+    # element of a f.p. group
+    gX = GAP.Globals.UnderlyingElement(gX)
+  end
+  _names = GAP.evalstr("x -> x!.names")
+  @assert length(_names(GAP.Globals.FamilyObj(gX))) == length(genimgs)
+#TODO: improve this, see https://github.com/oscar-system/GAP.jl/issues/771
+  @assert GAP.Globals.IsAssocWord(gX)
+  if GAP.Globals.IsLetterAssocWordRep(gX)
+    ll = Vector{Int}(GAP.Globals.LetterRepAssocWord(gX))
+  elseif GAP.Globals.IsSyllableAssocWordRep(gX)
+    l = ExtRepOfObj(gX)
+    ll = Pairs{Int, Int}[]
+    for i in 1:2:length(l)
+      push!(ll, l[i] => l[i+1])
+    end
+  else
+    error("do not know the type of the element $gX")
+  end
+  return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
+end
+
+function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  length(genimgs) == 0 && (@assert length(v) == 0; return init)
+  length(v) == 0 && return one(genimgs[1])
+  return prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+end
+
+function _map_word_syllable(vi::Int, genimgs::Vector, genimgs_inv::Vector)
+  vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
+  vi = -vi
+  @assert vi <= length(genimgs)
+  isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
+  res = inv(genimgs[vi])
+  genimgs_inv[vi] = res
+  return res
+end
+
+function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Vector)
+  x = vi[1]
+  @assert (x > 0 && x <= length(genimgs))
+  e = vi[2]
+  e > 1 && return genimgs[x]^e
+  e == 1 && return genimgs[x]
+  isassigned(genimgs_inv, x) && return genimgs_inv[x]^-e
+  res = inv(genimgs[x])
+  genimgs_inv[x] = res
+  e == -1 && return res
+  return res^-e
+end
+
 
 @doc Markdown.doc"""
     nilpotency_class(G::GAPGroup) -> Int

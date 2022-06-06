@@ -96,6 +96,71 @@ end
    
 end
 
+@testset "map_word" begin
+   F = free_group(2)
+   F1 = gen(F, 1)
+   F2 = gen(F, 2)
+   rels = [F1^2, F2^2, comm(F1, F2)]
+   FP = quo(F, rels)[1]
+
+   # map an element of a free group or a f.p. group ...
+   for f in [F, FP]
+     f1 = gen(f, 1)
+     f2 = gen(f, 2)
+     of = one(f)
+
+     # ... to an element of a permutation group or to a rational number
+     for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+       g1 = imgs[1]
+       g2 = imgs[2]
+       for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3)]
+         @test map_word(x, imgs) == w
+       end
+       @test map_word(of, imgs, init = 0) == one(g1)  # `init` is ignored
+     end
+   end
+
+   # empty list of generators
+   T = free_group(0)
+   @test map_word(one(T), [], init = 1) == 1            # `init` is returned
+   @test map_word(one(F), gens(F), init = 1) == one(F)  # `init` is ignored
+
+   # wrong number of images
+   @test_throws AssertionError map_word(one(F), [])
+   @test_throws AssertionError map_word(one(F), [F1])
+   @test_throws AssertionError map_word(one(F), [F1, F1, F1])
+
+   # map according to a description of the word
+   for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+     g1 = imgs[1]
+     g2 = imgs[2]
+     for (v, w) in [
+       # via exponents
+       ([-1, 2, -1, 2], (g1^-1*g2)^2),
+       ([-1, -1, -1, 2, 2, 2], g1^-3*g2^3),
+       # via pairs
+       ([1 => -1, 2 => 1, 1 => -1, 2 => 1], (g1^-1*g2)^2),
+       ([1 => -3, 2 => 3], g1^-3*g2^3),
+       ]
+
+       @test map_word(v, imgs) == w
+       invs = Vector(undef, 2)
+       @test map_word(v, imgs, genimgs_inv = invs) == w
+       @test isassigned(invs, 1)
+       @test ! isassigned(invs, 2)
+     end
+   end
+
+   # empty list of generators
+   @test map_word([], [], init = 0) == 0        # `init` is returned
+   @test map_word([], [2, 3], init = 0) == 1    # `init` is ignored
+
+   # wrong number of images
+   @test_throws AssertionError map_word([3], [])
+   @test_throws AssertionError map_word([-3], [2, 3])
+   @test_throws AssertionError map_word([3 => 1], [2, 3])
+end
+
 @testset "Isomorphic groups" begin
    @testset "Dihedral_as_permutation" for n in 4:10
       G = symmetric_group(n)
