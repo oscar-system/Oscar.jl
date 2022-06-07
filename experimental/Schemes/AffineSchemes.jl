@@ -176,12 +176,14 @@ end
 
 ### open subschemes defined by complements of hypersurfaces
 @Markdown.doc """
-    hypersurface_complement(X::Spec, f::MPolyElem)
+    hypersurface_complement(X::Spec, f::RingElem)
 
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the open subscheme ``U = X ∖ V(f)`` defined by the complement of the vanishing 
 locus of ``f``.
 """
+hypersurface_complement(X::Spec, f::RingElem) = hypersurface_complement(X, base_ring(OO(X))(f))
+
 function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_cache::Bool=false) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
@@ -249,6 +251,10 @@ end
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
+function issubset(X::Spec, Y::Spec)
+  error("`issubset(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function issubset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -294,6 +300,10 @@ Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 Checks whether ``X`` is openly embedded in ``Y``.
 """
+function is_open_embedding(X::Spec, Y::Spec)
+  error("`is_open_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function is_open_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -312,6 +322,10 @@ end
 
 Checks whether ``X`` is closed embedded in ``Y``.
 """
+function is_closed_embedding(X::Spec, Y::Spec)
+  error("`is_closed_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function is_closed_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -363,6 +377,10 @@ end
 
 Returns the closure of ``X`` in ``Y``.
 """
+function closure(X::Spec, Y::Spec)
+  error("`closure(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function closure(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -489,6 +507,10 @@ end
 Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` and the two projections 
 ``p₁ : X×Y → X`` and ``p₂ : X×Y → Y``.
 """
+function product(X::Spec, Y::Spec)
+  error("`product(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   K = OO(X)
   L = OO(Y) 
