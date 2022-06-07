@@ -41,10 +41,10 @@ julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0)
 A subdivision of points in ambient dimension 3
 ```
 """
-function SubdivisionOfPoints{T}(Points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
+function SubdivisionOfPoints{T}(points::AbstractCollection[PointVector], cells::IncidenceMatrix) where T<:scalar_types
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
    SubdivisionOfPoints{T}(Polymake.fan.SubdivisionOfPoints{scalar_type_to_polymake[T]}(
-      POINTS = homogenize(Points,1),
+      POINTS = homogenize(points,1),
       MAXIMAL_CELLS = arr,
    ))
 end
