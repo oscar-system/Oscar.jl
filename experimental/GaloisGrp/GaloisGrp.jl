@@ -1941,10 +1941,10 @@ function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{fmpz}, e)
     if abs(lz) < value(B)
       return true, lz
     else
-      return false, lz
+      return false, nothing
     end
   else
-    return false, fmpz(0)
+    return false, nothing
   end
 end
 
@@ -1981,6 +1981,7 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
   Zx = Hecke.Globals.Zx
   ts = gen(Zx)
+  cnt = 0
   while true
     rt = map(ts, r)
     conj = [evaluate(I^t, rt) for t = T]
@@ -1988,7 +1989,9 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
       return ts
     end
     while true
-      ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
+      cnt += 1
+      cnt > 20 && error("no Tschirni found")
+      @show ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
       end
