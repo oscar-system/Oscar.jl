@@ -2137,7 +2137,7 @@ julia> Sprime, (X, Y) = PolynomialRing(QQ, ["X", "Y"])
 
 julia> S, p = quo(Sprime, ideal(Sprime, [X*Y-1]))
 (Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1), Map from
-Multivariate Polynomial Ring in X, Y over Rational Field to S defined by a julia-function with inverse)
+Multivariate Polynomial Ring in X, Y over Rational Field to Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1) defined by a julia-function with inverse)
 
 julia> PHI = hom(Rloc, S, [p(X)])
 morphism from the localized ring localization of Multivariate Polynomial Ring in x over Rational Field at the powers of fmpq_mpoly[x] to Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1)
