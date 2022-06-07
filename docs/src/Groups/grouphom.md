@@ -140,11 +140,11 @@ Oscar implements the following attributes of homomorphisms,
 in addition to the usual `domain` and `codomain`.
 
 ```@docs
-isinjective(f::GAPGroupHomomorphism)
-issurjective(f::GAPGroupHomomorphism)
-isbijective(f::GAPGroupHomomorphism)
-isinvertible(f::GAPGroupHomomorphism)
-isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
+is_injective(f::GAPGroupHomomorphism)
+is_surjective(f::GAPGroupHomomorphism)
+is_bijective(f::GAPGroupHomomorphism)
+is_invertible(f::GAPGroupHomomorphism)
+is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
 ## Subgroups described by homomorphisms
@@ -162,8 +162,8 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 ## Group isomorphisms
 
 ```@docs
-isisomorphic(G::GAPGroup, H::GAPGroup)
-isisomorphic_with_map(G::GAPGroup, H::GAPGroup)
+is_isomorphic(G::GAPGroup, H::GAPGroup)
+is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
 isomorphism(G::GAPGroup, H::GAPGroup)
 ```
 

@@ -113,7 +113,7 @@ function _convert_frac_fac(R, u, fac)
   Rfac.unit = R(u)*_restore_numerators(R, fac.unit)
   for (f, e) in fac
     t = _restore_numerators(R, f)
-    if isconstant(t)
+    if is_constant(t)
       Rfac.unit *= t^e
     else
       Rfac[t] = e

@@ -5,6 +5,33 @@
 
 sort = on
 
+# sort order for fields
+sort.order{* =
+    bibkey
+    author
+    title
+    editor
+    booktitle
+    mrnumber
+    zbl
+    journal
+    fjournal
+    series
+    volume
+    number
+    note
+    howpublished
+    address
+    organization
+    publisher
+    edition
+    pages
+    year
+    month
+    doi
+    url
+}
+
 print.align.key = 0
 preserve.key.case = on
 sort.cased = off

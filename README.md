@@ -42,7 +42,7 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -
 
 ...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 0.8.3-DEV ...
+Version 0.9.0 ...
 ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
 (c) 2019-2022 by The Oscar Development Team
@@ -129,7 +129,7 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 0.8.3-DEV The OSCAR Team, 2022. (https://oscar.computeralgebra.de)
+        OSCAR -- Open Source Computer Algebra Research system, Version 0.9.0 The OSCAR Team, 2022. (https://oscar.computeralgebra.de)
     [OSCAR-book]
         Christian Eder, Wolfram Decker, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
 
@@ -139,7 +139,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 0.8.3-DEV},
+                      Version 0.9.0},
       year         = {2022},
       url          = {https://oscar.computeralgebra.de},
       }

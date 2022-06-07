@@ -57,17 +57,17 @@ export AffineHalfspace,
     intersect,
     interior_lattice_points,
     invert,
-    isbounded,
-    iscomplete,
-    isembedded,
-    isfeasible,
-    isfulldimensional,
-    isnormal,
-    ispointed,
-    ispure,
-    isregular,
-    issimple,
-    issmooth,
+    is_bounded,
+    is_complete,
+    is_embedded,
+    is_feasible,
+    is_fulldimensional,
+    is_normal,
+    is_pointed,
+    is_pure,
+    is_regular,
+    is_simple,
+    is_smooth,
     is_very_ample,
     k_skeleton,
     lattice_points,
@@ -164,7 +164,7 @@ include("Visualization.jl")
 include("solving_integrally.jl")
 include("triangulations.jl")
 
-@deprecate bounded(Obj::Polyhedron) isbounded(Obj)
+@deprecate bounded(Obj::Polyhedron) is_bounded(Obj)
 
 # Some temporary aliases to avoid breaking all current PRs
 pm_cone(C::Cone) = pm_object(C)

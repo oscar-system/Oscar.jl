@@ -3,50 +3,50 @@
 ######################
 
 @doc Markdown.doc"""
-    isnormal(v::AbstractNormalToricVariety)
+    is_normal(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
 # Examples
 ```jldoctest
-julia> isnormal(projective_space(NormalToricVariety, 2))
+julia> is_normal(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-function isnormal(v::AbstractNormalToricVariety)
+function is_normal(v::AbstractNormalToricVariety)
     return true
 end
-export isnormal
+export is_normal
 
 
 @doc Markdown.doc"""
-    isaffine(v::AbstractNormalToricVariety)
+    is_affine(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is affine.
 
 # Examples
 ```jldoctest
-julia> isaffine(projective_space(NormalToricVariety, 2))
+julia> is_affine(projective_space(NormalToricVariety, 2))
 false
 ```
 """
-@attr Bool isaffine(v::AbstractNormalToricVariety) = pm_object(v).AFFINE
-export isaffine
+@attr Bool is_affine(v::AbstractNormalToricVariety) = pm_object(v).AFFINE
+export is_affine
 
 
 @doc Markdown.doc"""
-    isprojective(v::AbstractNormalToricVariety)
+    is_projective(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
 # Examples
 ```jldoctest
-julia> isprojective(projective_space(NormalToricVariety, 2))
+julia> is_projective(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool isprojective(v::AbstractNormalToricVariety) = pm_object(v).PROJECTIVE
-export isprojective
+@attr Bool is_projective(v::AbstractNormalToricVariety) = pm_object(v).PROJECTIVE
+export is_projective
 
 
 @doc Markdown.doc"""
@@ -67,10 +67,10 @@ true
 ```
 """
 @attr Bool function is_projective_space(v::AbstractNormalToricVariety)
-    if issmooth(v) == false
+    if is_smooth(v) == false
         return false
     end
-    if isprojective(v) == false
+    if is_projective(v) == false
         return false
     end
     if rank(class_group(v)) > 1
@@ -92,93 +92,93 @@ export is_projective_space
 
 
 @doc Markdown.doc"""
-    issmooth(v::AbstractNormalToricVariety)
+    is_smooth(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is smooth.
 
 # Examples
 ```jldoctest
-julia> issmooth(projective_space(NormalToricVariety, 2))
+julia> is_smooth(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool issmooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
-export issmooth
+@attr Bool is_smooth(v::AbstractNormalToricVariety) = pm_object(v).SMOOTH
+export is_smooth
 
 
 @doc Markdown.doc"""
-    iscomplete(v::AbstractNormalToricVariety)
+    is_complete(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is complete.
 
 # Examples
 ```jldoctest
-julia> iscomplete(projective_space(NormalToricVariety, 2))
+julia> is_complete(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool iscomplete(v::AbstractNormalToricVariety) = pm_object(v).COMPLETE
-export iscomplete
+@attr Bool is_complete(v::AbstractNormalToricVariety) = pm_object(v).COMPLETE
+export is_complete
 
 
 @doc Markdown.doc"""
-    hastorusfactor(v::AbstractNormalToricVariety)
+    has_torusfactor(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` has a torus factor.
 
 # Examples
 ```jldoctest
-julia> hastorusfactor(projective_space(NormalToricVariety, 2))
+julia> has_torusfactor(projective_space(NormalToricVariety, 2))
 false
 ```
 """
-@attr Bool hastorusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(v)) < ambient_dim(v)
-export hastorusfactor
+@attr Bool has_torusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(v)) < ambient_dim(v)
+export has_torusfactor
 
 
 @doc Markdown.doc"""
-    isorbifold(v::AbstractNormalToricVariety)
+    is_orbifold(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is an orbifold.
 
 # Examples
 ```jldoctest
-julia> isorbifold(projective_space(NormalToricVariety, 2))
+julia> is_orbifold(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool isorbifold(v::AbstractNormalToricVariety) = pm_object(v).SIMPLICIAL
-export isorbifold
+@attr Bool is_orbifold(v::AbstractNormalToricVariety) = pm_object(v).SIMPLICIAL
+export is_orbifold
 
 
 @doc Markdown.doc"""
-    issimplicial(v::AbstractNormalToricVariety)
+    is_simplicial(v::AbstractNormalToricVariety)
 
-Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `isorbifold`. It is implemented for user convenience.
+Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
 # Examples
 ```jldoctest
-julia> issimplicial(projective_space(NormalToricVariety, 2))
+julia> is_simplicial(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-issimplicial(v::AbstractNormalToricVariety) = isorbifold(v)
-export issimplicial
+is_simplicial(v::AbstractNormalToricVariety) = is_orbifold(v)
+export is_simplicial
 
 
 @doc Markdown.doc"""
-    isgorenstein(v::AbstractNormalToricVariety)
+    is_gorenstein(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is Gorenstein.
 
 # Examples
 ```jldoctest
-julia> isgorenstein(projective_space(NormalToricVariety, 2))
+julia> is_gorenstein(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool isgorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
-export isgorenstein
+@attr Bool is_gorenstein(v::AbstractNormalToricVariety) = pm_object(v).GORENSTEIN
+export is_gorenstein
 
 
 @doc Markdown.doc"""
@@ -197,15 +197,15 @@ export is_q_gorenstein
 
 
 @doc Markdown.doc"""
-    isfano(v::AbstractNormalToricVariety)
+    is_fano(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is fano.
 
 # Examples
 ```jldoctest
-julia> isfano(projective_space(NormalToricVariety, 2))
+julia> is_fano(projective_space(NormalToricVariety, 2))
 true
 ```
 """
-@attr Bool isfano(v::AbstractNormalToricVariety) = pm_object(v).FANO
-export isfano
+@attr Bool is_fano(v::AbstractNormalToricVariety) = pm_object(v).FANO
+export is_fano

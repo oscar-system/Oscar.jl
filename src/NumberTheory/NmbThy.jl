@@ -1,7 +1,7 @@
 export norm_equation_fac_elem, norm_equation, irreducibles, factorisations
 
 function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
-  @assert Hecke.ismaximal(R)
+  @assert Hecke.is_maximal(R)
   lp = factor(k)
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{fmpz_mat}}[]
   for (p, k) = lp.fac
@@ -15,7 +15,7 @@ function norm_equation_fac_elem(R::NfAbsOrd, k::fmpz; abs::Bool = false)
     for i = 1:length(S)
       I *= prod(Hecke.ideal_type(R)[S[i][1][j][1]^Int(x[i][j]) for j=1:length(S[i][1])])
     end
-    fl, g = Hecke.isprincipal_fac_elem(I::Hecke.ideal_type(R))
+    fl, g = Hecke.is_principal_fac_elem(I::Hecke.ideal_type(R))
     if fl
       push!(sol, g)
     end
@@ -45,7 +45,7 @@ norm_equation(R::NfAbsOrd, k::Base.Integer; abs::Bool = false) = norm_equation(R
 
 function norm_equation_fac_elem(R::Hecke.NfRelOrd{nf_elem,Hecke.NfOrdFracIdl}, a::NfAbsOrdElem{AnticNumberField,nf_elem})
 
-  @assert Hecke.ismaximal(R)
+  @assert Hecke.is_maximal(R)
   Ka, mKa, mkK = absolute_field(nf(R))
   Ra = maximal_order(Ka)
   class_group(Ra)
@@ -87,7 +87,7 @@ end
 
 norm_equation(R::Hecke.NfRelOrd{nf_elem,Hecke.NfOrdFracIdl}, a::NfAbsOrdElem{AnticNumberField,nf_elem}) = map(x -> R(evaluate(x)), norm_equation_fac_elem(R, a))
 
-function isirreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
+function is_irreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   if iszero(a)
     return false
   end
@@ -132,7 +132,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   if length(S) == 0
     return []
   end
-  @assert all(isprime, S)
+  @assert all(is_prime, S)
   #TODO: try to get a better bound - in general if S is too large
   #      it cannot work 
   
@@ -148,7 +148,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   V = transpose(matrix(ZZ, [[valuation(ms(x), y) for y = S] for x = gens(s)]))
 
   cone = cone_from_inequalities(-V)
-  @assert ispointed(cone) # otherwise the Hilbert basis is not unique
+  @assert is_pointed(cone) # otherwise the Hilbert basis is not unique
   hb = hilbert_basis(cone)
   res = [O(evaluate(ms(s(map(fmpz, Array(v)))))) for v in hb]
   return res
@@ -202,4 +202,28 @@ function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     push!(res, Fac(y, x))
   end
   return res
+end
+
+
+################################################################################
+#
+#   disc_log
+#
+@doc Markdown.doc"""
+    disc_log(b::T, x::T) where {T <: FinFieldElem}
+
+Return an integer `s` such that $b^s = x$.
+If no such `x` exists, an exception is thrown.
+
+# Examples
+```jldoctest
+julia> F = GF(3,4); a = gen(F)^21;
+
+julia> disc_log(gen(F), a)
+21
+```
+"""
+function disc_log(b::T, x::T) where {T <: FinFieldElem}
+  @assert parent(b) === parent(x)
+  return disc_log_bs_gs(b, x, order(parent(b)))
 end

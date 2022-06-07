@@ -33,12 +33,12 @@
             @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
             @test length(boundary_lattice_points(square)) == 8
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
-            @test issmooth(Q0)
-            @test isnormal(Q0)
+            @test is_smooth(Q0)
+            @test is_normal(Q0)
         end
-        @test isfeasible(Q0)
-        @test isbounded(Q0)
-        @test isfulldimensional(Q0)
+        @test is_feasible(Q0)
+        @test is_bounded(Q0)
+        @test is_fulldimensional(Q0)
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
@@ -48,7 +48,7 @@
         @test f_vector(L) == [0, 1, 2]
         @test codim(square) == 0
         @test codim(point) == 3
-        @test !isfulldimensional(point)
+        @test !is_fulldimensional(point)
         @test recession_cone(Pos) isa Cone{T}
         @test nrays(recession_cone(Pos)) == 3
         @test vertices(PointVector{T}, point) isa SubObjectIterator{PointVector{T}}
@@ -281,9 +281,9 @@
                 
             end
             
-            @test isfeasible(D)
-            @test isbounded(D)
-            @test isfulldimensional(D)
+            @test is_feasible(D)
+            @test is_bounded(D)
+            @test is_fulldimensional(D)
             @test f_vector(D) == [20, 30, 12]
             @test codim(D) == 0
             @test nrays(recession_cone(D)) == 0

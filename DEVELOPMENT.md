@@ -100,7 +100,7 @@ a result
  - IsSurjectiveMapForAbelianGroups
  - IsSurjectiveMapForRing
 is not necessary
- - issurjective
+ - is_surjective
 will do, the different calling signatures will add the type info. If you have a ring map
 and want to test it as a map between additive/ multiplicative groups, then you'll have to 
 first convert/coerce/wrap it (in)to a map between groups... (we can always discuss exceptions)

@@ -1,2 +1,2 @@
-@attr Bool istrivial(cc::CohomologyClass) = iszero(polynomial(cc))
-export istrivial
+@attr Bool is_trivial(cc::CohomologyClass) = iszero(polynomial(cc))
+export is_trivial

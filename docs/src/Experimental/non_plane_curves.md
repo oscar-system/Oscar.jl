@@ -29,7 +29,7 @@ ProjCurve
 defining_ideal(C::ProjCurve)
 in(P::Oscar.Geometry.ProjSpcElem, C::ProjCurve)
 curve_components(C::ProjCurve)
-isirreducible(C::ProjCurve)
+is_irreducible(C::ProjCurve)
 reduction(C::ProjCurve)
 jacobi_ideal(C::ProjCurve)
 invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyElem}

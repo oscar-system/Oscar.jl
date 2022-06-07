@@ -12,19 +12,19 @@ function check_gcd(a, b, gdiv)
   @test iszero(gdiv) || divides(g, gdiv)[1]
   a = divexact(a, g)
   b = divexact(b, g)
-  @test isunit(gcd(a, b))
+  @test is_unit(gcd(a, b))
 end
 
 function check_factor(a, esum)
   f = factor(a)
 
-  @test isunit(unit(f))
+  @test is_unit(unit(f))
   @test a == unit(f) * prod([p^e for (p, e) in f])
   @test esum == sum(e for (p, e) in f)
 
   f = factor_squarefree(a)
 
-  @test isunit(unit(f))
+  @test is_unit(unit(f))
   @test a == unit(f) * prod([p^e for (p, e) in f])
 end
 
@@ -52,14 +52,14 @@ end
   x = Fx(x)
   R, y = PolynomialRing(Fx, "y")
   check_factor((y*inv(x)+x)^2, 2)
-  @test isunit(gcd(x+y, x-y))
+  @test is_unit(gcd(x+y, x-y))
 
   Qx, (x,) = PolynomialRing(QQ, ["x"])
   Fx = FractionField(Qx)
   x = Fx(x)
   R, y = PolynomialRing(Fx, "y")
   check_factor((y*inv(x)+x)^2, 2)
-  @test isunit(gcd(x+y, x-y))
+  @test is_unit(gcd(x+y, x-y))
 
   if false  # enable only for long tests
     Qx, x = PolynomialRing(QQ, "x")
@@ -67,14 +67,14 @@ end
     x = Fx(x)
     R, (y, ) = PolynomialRing(Fx, ["y"])
     check_factor((y*inv(x)+x)^2, 2)
-    @test isunit(gcd(x+y, x-y))
+    @test is_unit(gcd(x+y, x-y))
 
     Qx, (x,) = PolynomialRing(QQ, ["x"])
     Fx = FractionField(Qx)
     x = Fx(x)
     R, (y, ) = PolynomialRing(Fx, ["y"])
     check_factor((y*inv(x)+x)^2, 2)
-    @test isunit(gcd(x+y, x-y))
+    @test is_unit(gcd(x+y, x-y))
   end
 end
 

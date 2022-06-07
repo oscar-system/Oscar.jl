@@ -180,7 +180,7 @@ n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
 @doc Markdown.doc"""
-    issimplicial(PC::PolyhedralComplex)
+    is_simplicial(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is simplicial.
 
@@ -193,15 +193,15 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> issimplicial(PC)
+julia> is_simplicial(PC)
 true
 ```
 """
-issimplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
+is_simplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
 
 
 @doc Markdown.doc"""
-    ispure(PC::PolyhedralComplex)
+    is_pure(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is pure.
 
@@ -214,11 +214,11 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> ispure(PC)
+julia> is_pure(PC)
 true
 ```
 """
-ispure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
+is_pure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
 
 
 @doc Markdown.doc"""
@@ -420,7 +420,7 @@ codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
 
 
 @doc Markdown.doc"""
-    isembedded(PC::PolyhedralComplex)
+    is_embedded(PC::PolyhedralComplex)
 
 Return `true` if `PC` is embedded, i.e. if its vertices can be computed as a
 subset of some $\mathbb{R}^n$.
@@ -434,11 +434,11 @@ julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> isembedded(PC)
+julia> is_embedded(PC)
 true
 ```
 """
-function isembedded(PC::PolyhedralComplex)
+function is_embedded(PC::PolyhedralComplex)
     pmo = pm_object(PC)
     schedule = Polymake.call_method(pmo,:get_schedule,"VERTICES")
     return schedule != nothing

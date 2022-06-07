@@ -406,7 +406,7 @@ isone(I::MPolyIdeal)
 ```
 
 ```@docs
-ismonomial(f::MPolyElem)
+is_monomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals
@@ -436,13 +436,13 @@ radical_membership(f::T, I::MPolyIdeal{T}) where T
 ### Primality Test
 
 ```@docs
-isprime(I::MPolyIdeal)
+is_prime(I::MPolyIdeal)
 ```
 
 ### Primary Test
 
 ```@docs
-isprimary(I::MPolyIdeal)
+is_primary(I::MPolyIdeal)
 ```
 
 ## Decomposition of Ideals

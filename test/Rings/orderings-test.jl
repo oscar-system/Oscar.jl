@@ -47,15 +47,15 @@
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
    @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
 
-   @test isglobal(lex([x, y]))
-   @test !islocal(lex([x, y]))
-   @test !ismixed(lex([x, y]))
-   @test !isglobal(neglex([y, z]))
-   @test islocal(neglex([y, z]))
-   @test !ismixed(neglex([y, z]))
-   @test !isglobal(lex([x, y])*neglex([z]))
-   @test !islocal(lex([x, y])*neglex([z]))
-   @test ismixed(lex([x, y])*neglex([z]))
+   @test is_global(lex([x, y]))
+   @test !is_local(lex([x, y]))
+   @test !is_mixed(lex([x, y]))
+   @test !is_global(neglex([y, z]))
+   @test is_local(neglex([y, z]))
+   @test !is_mixed(neglex([y, z]))
+   @test !is_global(lex([x, y])*neglex([z]))
+   @test !is_local(lex([x, y])*neglex([z]))
+   @test is_mixed(lex([x, y])*neglex([z]))
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
