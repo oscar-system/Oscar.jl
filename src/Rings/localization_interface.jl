@@ -113,8 +113,7 @@ ideal(x)
 julia> U = MPolyComplementOfPrimeIdeal(P)
 complement of ideal(x)
 
-julia> Rloc, _ = Localization(U)
-localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+julia> Rloc, _ = Localization(U);
 
 julia> R === base_ring(Rloc)
 true
@@ -140,8 +139,7 @@ ideal(x)
 julia> U = MPolyComplementOfPrimeIdeal(P)
 complement of ideal(x)
 
-julia> Rloc, _ = Localization(U)
-localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+julia> Rloc, _ = Localization(U);
 
 julia> U === inverted_set(Rloc)
 true
