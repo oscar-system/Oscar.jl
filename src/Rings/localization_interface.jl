@@ -177,8 +177,13 @@ julia> Rloc
 localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
 
 julia> iota
-Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x) defined by a julia-function
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
 ```
 """
 function Localization(S::AbsMultSet)
