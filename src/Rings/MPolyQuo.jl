@@ -1,5 +1,5 @@
 export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
-export quo, base_ring, modulus, gens, ngens, dim, simplify!
+export quo, base_ring, modulus, gens, ngens, dim, simplify!, default_ordering
 export issubset
 ##############################################################################
 #
