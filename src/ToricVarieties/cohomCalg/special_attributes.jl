@@ -49,7 +49,7 @@ julia> all_cohomologies(ToricLineBundle(dP3, [1,2,3,4]))
 function all_cohomologies(l::ToricLineBundle)
     # check if we can apply cohomCalg
     v = toric_variety(l)
-    if !((issmooth(v) && iscomplete(v)) || (issimplicial(v) && isprojective(v)))
+    if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
         throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective."))
     end
     

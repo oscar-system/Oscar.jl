@@ -68,7 +68,7 @@ end
    F = free_group(3)
    G, _ = quo(F, [gen(F,1)^2,gen(F,2)^2])
    @test describe(G) == "a finitely presented infinite group"
-   isabelian(G)
+   is_abelian(G)
    @test describe(G) == "a finitely presented non-abelian infinite group"
 
    @test describe(derived_subgroup(free_group(2))[1]) == "a non-finitely generated group"

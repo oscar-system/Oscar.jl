@@ -175,16 +175,16 @@ Note that at least one of the conditions must impose a limit on the group
 order, otherwise an exception is thrown.
 
 The following functions are currently supported as values for `func`:
-- `isabelian`
-- `isalmostsimple`
-- `iscyclic`
-- `isnilpotent`
-- `isperfect`
+- `is_abelian`
+- `is_almostsimple`
+- `is_cyclic`
+- `is_nilpotent`
+- `is_perfect`
 - `is_quasisimple`
-- `issimple`
+- `is_simple`
 - `is_sporadic_simple`
-- `issolvable`
-- `issupersolvable`
+- `is_solvable`
+- `is_supersolvable`
 - `number_conjugacy_classes`
 - `order`
 
@@ -194,14 +194,14 @@ The type of the returned groups is `PcGroup` if the group is solvable, `PermGrou
 
 List all abelian non-cyclic groups of order 12:
 ```jldoctest
-julia> all_small_groups(12, !iscyclic, isabelian)
+julia> all_small_groups(12, !is_cyclic, is_abelian)
 1-element Vector{PcGroup}:
  <pc group of size 12 with 3 generators>
 ```
 
 List groups of order 1 to 10 which are not abelian:
 ```jldoctest
-julia> all_small_groups(1:10, !isabelian)
+julia> all_small_groups(1:10, !is_abelian)
 4-element Vector{PcGroup}:
  <pc group of size 6 with 2 generators>
  <pc group of size 8 with 3 generators>
@@ -224,7 +224,7 @@ end
 
 #T problem:
 
-#T all_small_groups( 60, issimple ) -> Array{PermGroup,1}
+#T all_small_groups( 60, is_simple ) -> Array{PermGroup,1}
 #T all_small_groups( 60 )  -> Array{Oscar.GAPGroup,1}
 #T all_small_groups( 59 )  -> Array{PcGroup,1}
 

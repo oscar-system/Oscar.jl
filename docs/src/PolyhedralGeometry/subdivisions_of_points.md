@@ -57,7 +57,7 @@ moaeincidence = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6]
 MOAE = SubdivisionOfPoints(moaepts, moaeincidence)
 save(MOAE, "moae.sop");
 SOP = load("moae.sop");
-isregular(SOP)
+is_regular(SOP)
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
@@ -67,7 +67,7 @@ both polymake and Oscar.
 ## Auxiliary functions
 ```@docs
 ambient_dim(SOP::SubdivisionOfPoints)
-isregular(SOP::SubdivisionOfPoints)
+is_regular(SOP::SubdivisionOfPoints)
 maximal_cells
 min_weights
 n_maximal_cells(SOP::SubdivisionOfPoints)

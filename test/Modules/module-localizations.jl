@@ -2,7 +2,7 @@
   kk = QQ
   R, (x,y) = QQ["x", "y"]
   U = MPolyComplementOfKPointIdeal(R, [0, 0])
-  L = Localization(U)
+  L, _ = Localization(U)
   F = FreeMod(L, 3)
   A = L[x 0 1; 0 y y^2]
   B = L[x^2 0 x; 0 y^2 y^3]
@@ -18,7 +18,7 @@
   @test represents_element(x*F[3], K)
 
   T = MPolyPowersOfElement(R, [x, y])
-  W = Localization(T)
+  W, _ = Localization(T)
   F = FreeMod(W, 2)
   A = W[x 0; 0 y^2]
   B = W[x^2//y y]
@@ -29,7 +29,7 @@ end
 @testset "module localizations 2" begin
   R, (x,y) = QQ["x", "y"]
   U = MPolyPowersOfElement(x+y)
-  S = Localization(U)
+  S, _ = Localization(U)
   F = FreeMod(S, 2)
   Fb = base_ring_module(F)
   A = S[x//(x+y); y//(x+y)^2]
@@ -42,7 +42,7 @@ end
   @test v*A == b
 
   V = MPolyComplementOfPrimeIdeal(ideal(R, [x,y]))
-  S = Localization(V)
+  S, _ = Localization(V)
   A = S[x//(x+y+1); y*(x-5)^3]
   b = MatrixSpace(S, 1, 1)((x+y)*x + 5*y//(x+y+2)^10)
   success, v = Oscar.has_solution(A, b)
@@ -76,7 +76,7 @@ end
 @testset "module localizations 3" begin
   R, (x,y) = QQ["x", "y"]
   U = MPolyPowersOfElement(x^7)
-  S = Localization(U)
+  S, _ = Localization(U)
   F = FreeMod(S, 1)
   A = S[x^4*y^2; x^2*y]
   B = S[y^8; y^9]

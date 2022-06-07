@@ -20,7 +20,7 @@
         @test minimal_nonfaces(sphere) == [Set{Int}([1, 2, 3, 4])]
         R, _ = PolynomialRing(ZZ, ["a", "x", "i_7", "n"])
         @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
-        @test isisomorphic(fundamental_group(sphere), free_group())
+        @test is_isomorphic(fundamental_group(sphere), free_group())
         
     end
     
@@ -44,9 +44,9 @@
         H0 = homology(T, 0)
         H1 = homology(T, 1)
         H2 = homology(T, 2)
-        @test istrivial(H0)
-        @test !istrivial(H1)
-        @test !istrivial(H2)
+        @test is_trivial(H0)
+        @test !is_trivial(H1)
+        @test !is_trivial(H2)
         @test rank(H0) == 0
         @test rank(H1) == 2
         @test rank(H2) == 1

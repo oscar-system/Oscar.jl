@@ -1,4 +1,4 @@
-@testset "InvariantRings" begin
+@testset "InvariantRings of matrix groups" begin
   K, a = CyclotomicField(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
@@ -21,9 +21,9 @@
   @test coefficient_ring(RGp) == F
   @test coefficient_ring(RGm) == F
 
-  @test !ismodular(RG0)
-  @test !ismodular(RGp)
-  @test ismodular(RGm)
+  @test !is_modular(RG0)
+  @test !is_modular(RGp)
+  @test is_modular(RGm)
 
   R0 = polynomial_ring(RG0)
   Rp = polynomial_ring(RGp)
@@ -79,7 +79,7 @@
     @test reynolds_operator(RGp, f) == f
   end
 
-  # S4
+  # S5 (deleted permutation module)
   G = matrix_group(matrix(QQ, [-1 1 0 0;
                                -1 0 1 0;
                                -1 0 0 1;
@@ -93,6 +93,7 @@
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t^2)*(1 - t^3)*(1 - t^4)*(1 - t^5))
 
+  # S4 (natural permutation module in characteristic 5)
   gl = general_linear_group(4, 5)
   gapmats = [GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5))
              for elm in gens(symmetric_group(4))]
@@ -105,4 +106,90 @@
   I = invariant_ring(-identity_matrix(F, 2))
   m = @inferred molien_series(S, I)
   @test m == (t^2 + 1)//(t^4 - 2*t^2 + 1)
+end
+
+@testset "InvariantRings of permutation groups" begin
+  G = symmetric_group(3)
+  RGQ = invariant_ring(G)   # char. 0, over QQ
+
+  K, a = CyclotomicField(3, "a")
+  RGK = invariant_ring(K, G)   # char. 0, over K
+
+  F5 = GF(5)
+  RGF = invariant_ring(F5, G) # char p, non-modular
+
+  F3 = GF(3)
+  RGM = invariant_ring(F3, G)  # char. p, modular
+
+  @test coefficient_ring(RGQ) == QQ
+  @test coefficient_ring(RGK) == K
+  @test coefficient_ring(RGF) == F5
+  @test coefficient_ring(RGM) == F3
+
+  @test !is_modular(RGQ)
+  @test !is_modular(RGK)
+  @test !is_modular(RGF)
+  @test is_modular(RGM)
+
+  RQ = polynomial_ring(RGQ)
+  RK = polynomial_ring(RGK)
+  RF = polynomial_ring(RGF)
+  RM = polynomial_ring(RGM)
+
+  @test reynolds_operator(RGK, gen(RK, 1)^2) == sum(x -> x^2, gens(RK))//3
+  @test reynolds_operator(RGK, gen(RK, 1) - gen(RK, 2)) == zero(RK)
+
+  @test reynolds_operator(RGF, gen(RF, 1)^2) == sum(x -> x^2, gens(RF))//3
+  @test reynolds_operator(RGF, gen(RF, 1) - gen(RF, 2)) == zero(RF)
+
+  @test_throws AssertionError reynolds_operator(RGM, gen(RM, 1))
+
+  @test length(basis(RGK, 1)) == 1
+  @test length(basis(RGK, 1, :reynolds)) == 1
+  @test length(basis(RGK, 1, :linear_algebra)) == 1
+  @test length(basis(RGK, 3)) == 3
+  @test length(basis(RGK, 3, :reynolds)) == 3
+  @test length(basis(RGK, 3, :linear_algebra)) == 3
+
+  @test length(basis(RGF, 1)) == 1
+  @test length(basis(RGF, 1, :reynolds)) == 1
+  @test length(basis(RGF, 1, :linear_algebra)) == 1
+  @test length(basis(RGF, 3)) == 3
+  @test length(basis(RGF, 3, :reynolds)) == 3
+  @test length(basis(RGF, 3, :linear_algebra)) == 3
+
+  @test length(basis(RGM, 1)) == 1
+  @test length(basis(RGM, 1, :linear_algebra)) == 1
+  @test_throws AssertionError basis(RGM, 1, :reynolds)
+
+  mol = molien_series(RGK)
+  F = parent(mol)
+  t = gens(base_ring(F))[1]
+  @test mol == 1//((1-t^3)*(1-t^2)*(1-t))
+
+  mol = molien_series(RGF)
+  F = parent(mol)
+  t = gens(base_ring(F))[1]
+  @test mol == 1//((1-t^3)*(1-t^2)*(1-t))
+
+  fund_invars = fundamental_invariants(RGK)
+  for f in fund_invars
+    @test reynolds_operator(RGK, f) == f
+  end
+  fund_invars2 = Oscar.fundamental_invariants_via_minimal_subalgebra(RGK)
+  for f in fund_invars2
+    @test reynolds_operator(RGK, f) == f
+  end
+
+  fund_invars = fundamental_invariants(RGF)
+  for f in fund_invars
+    @test reynolds_operator(RGF, f) == f
+  end
+
+  # S4 (natural permutation module in characteristic 5)
+  s4 = symmetric_group(4)
+  S, t = QQ["t"]
+  I = invariant_ring(GF(5), s4)
+  m = @inferred molien_series(S, I)
+  @test m == 1//((1 - t)*(1 - t^2)*(1 - t^3)*(1 - t^4))
 end

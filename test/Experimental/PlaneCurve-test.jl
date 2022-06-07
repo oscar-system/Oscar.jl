@@ -24,19 +24,19 @@ end
     F = Oscar.AffinePlaneCurve((x^2 + y^2))
     P = Oscar.Point([QQ(0), QQ(0)])
 
-    @test Oscar.isirreducible(F)
-    @test Oscar.isreduced(F)
+    @test Oscar.is_irreducible(F)
+    @test Oscar.is_reduced(F)
     @test Oscar.reduction(F) == F
 
     G = Oscar.AffinePlaneCurve(y^2)
-    @test !Oscar.isirreducible(G)
-    @test !Oscar.isreduced(G)
+    @test !Oscar.is_irreducible(G)
+    @test !Oscar.is_reduced(G)
     @test Oscar.reduction(G) == Oscar.AffinePlaneCurve(y)
 
     H = Oscar.AffinePlaneCurve(x * y)
 
-    @test !Oscar.isirreducible(H)
-    @test Oscar.isreduced(H)
+    @test !Oscar.is_irreducible(H)
+    @test Oscar.is_reduced(H)
     @test Oscar.reduction(H) == H
 
     @test Oscar.union(G, H) == Oscar.AffinePlaneCurve(x * y^3)
@@ -85,10 +85,10 @@ end
     F = Oscar.AffinePlaneCurve(x + y^2)
 
     @test Oscar.curve_singular_locus(F) == [[], []]
-    @test Oscar.issmooth_curve(F)
+    @test Oscar.is_smooth_curve(F)
 
     H = Oscar.AffinePlaneCurve(x * y * (x + y))
-    @test !Oscar.issmooth_curve(H)
+    @test !Oscar.is_smooth_curve(H)
 
     G = Oscar.AffinePlaneCurve(x^2 * (x + y) * (y^3 - x^2))
     S = Oscar.curve_singular_locus(G)
@@ -99,8 +99,8 @@ end
 
     @test S == [[Oscar.AffinePlaneCurve(x)], [P1, P2]] ||
           S == [[Oscar.AffinePlaneCurve(x)], [P2, P1]]
-    @test !Oscar.issmooth(G, P1)
-    @test Oscar.issmooth(G, P3)
+    @test !Oscar.is_smooth(G, P1)
+    @test Oscar.is_smooth(G, P3)
 
     @test Oscar.tangent(G, P3) == Oscar.AffinePlaneCurve(x + y)
     @test Oscar.tangent_lines(G, P1) == Dict{Oscar.AffinePlaneCurve{fmpq},Int64}(
@@ -139,19 +139,19 @@ end
     F = Oscar.ProjPlaneCurve(T(x^2 + y^2))
     P = Oscar.Point([QQ(0), QQ(0), QQ(1)])
 
-    @test Oscar.isirreducible(F)
-    @test Oscar.isreduced(F)
+    @test Oscar.is_irreducible(F)
+    @test Oscar.is_reduced(F)
     @test Oscar.reduction(F) == F
 
     G = Oscar.ProjPlaneCurve(T(y^2))
-    @test !Oscar.isirreducible(G)
-    @test !Oscar.isreduced(G)
+    @test !Oscar.is_irreducible(G)
+    @test !Oscar.is_reduced(G)
     @test Oscar.reduction(G) == Oscar.ProjPlaneCurve(T(y))
 
     H = Oscar.ProjPlaneCurve(T(x * y))
 
-    @test !Oscar.isirreducible(H)
-    @test Oscar.isreduced(H)
+    @test !Oscar.is_irreducible(H)
+    @test Oscar.is_reduced(H)
     @test Oscar.reduction(H) == H
 
     @test Oscar.union(G, H) == Oscar.ProjPlaneCurve(T(x * y^3))
@@ -223,11 +223,11 @@ end
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(0), QQ(0)])
 
     @test Oscar.curve_singular_locus(F) == [[], []]
-    @test Oscar.issmooth_curve(F)
+    @test Oscar.is_smooth_curve(F)
     @test Oscar.multiplicity(F, P) == 1
 
     H = Oscar.ProjPlaneCurve(T(x * y * (x + y)))
-    @test !Oscar.issmooth_curve(H)
+    @test !Oscar.is_smooth_curve(H)
 
     G = Oscar.ProjPlaneCurve(x^2 * (x + y) * (y^3 - x^2 * z))
     S = Oscar.curve_singular_locus(G)
@@ -240,8 +240,8 @@ end
     @test length(S[2]) == 2
     @test length(findall(x -> x == P1, S[2])) == 1
     @test length(findall(x -> x == P2, S[2])) == 1
-    @test !Oscar.issmooth(G, P1)
-    @test Oscar.issmooth(G, P3)
+    @test !Oscar.is_smooth(G, P1)
+    @test Oscar.is_smooth(G, P3)
 
     @test Oscar.tangent(G, P3) == Oscar.ProjPlaneCurve(T(x + y))
     @test Oscar.tangent_lines(G, P1) == Dict{Oscar.ProjPlaneCurve{fmpq},Int64}(
@@ -262,8 +262,8 @@ end
     D = Oscar.AffineCurveDivisor(C, Dict(P => 3, Q => -2))
     @test Oscar.AffineCurveDivisor(C, P, -3) + D == Oscar.AffineCurveDivisor(C, Q, -2)
     @test -2 * D == Oscar.AffineCurveDivisor(C, Dict(P => -6, Q => 4))
-    @test !Oscar.iseffective(D)
-    @test Oscar.iseffective(Oscar.AffineCurveDivisor(C, P, 3))
+    @test !Oscar.is_effective(D)
+    @test Oscar.is_effective(Oscar.AffineCurveDivisor(C, P, 3))
     phi = y // x
     @test Oscar.multiplicity(C, phi, P) == 1
     @test Oscar.divisor(C, phi) == Oscar.AffineCurveDivisor(C, Dict(P => 1, Q => -1))
@@ -279,8 +279,8 @@ end
     D = Oscar.ProjCurveDivisor(C, Dict(P => 3, Q => -2))
     @test Oscar.ProjCurveDivisor(C, P, -3) + D == Oscar.ProjCurveDivisor(C, Q, -2)
     @test -2 * D == Oscar.ProjCurveDivisor(C, Dict(P => -6, Q => 4))
-    @test !Oscar.iseffective(D)
-    @test Oscar.iseffective(Oscar.ProjCurveDivisor(C, P, 3))
+    @test !Oscar.is_effective(D)
+    @test Oscar.is_effective(Oscar.ProjCurveDivisor(C, P, 3))
     F = T(x)
     phi = T(x) // T(y)
     @test Oscar.multiplicity(C, F, P) == 1
@@ -306,13 +306,13 @@ end
 
     E = Oscar.ProjCurveDivisor(C, P)
     F = Oscar.ProjCurveDivisor(C, R)
-    @test !Oscar.islinearly_equivalent(E, F)
-    @test Oscar.islinearly_equivalent(2 * E, 2 * F)
-    @test !Oscar.isprincipal(E)
+    @test !Oscar.is_linearly_equivalent(E, F)
+    @test Oscar.is_linearly_equivalent(2 * E, 2 * F)
+    @test !Oscar.is_principal(E)
 
     G = 2 * E - 2 * F
-    @test Oscar.isprincipal(G)
-    @test Oscar.islinearly_equivalent(G, Oscar.divisor(C, Oscar.principal_divisor(G)))
+    @test Oscar.is_principal(G)
+    @test Oscar.is_linearly_equivalent(G, Oscar.divisor(C, Oscar.principal_divisor(G)))
 end
 
 @testset "Weierstrass form" begin
@@ -393,8 +393,8 @@ end
     Q2 = Oscar.Point_EllCurve(E, P2)
     @test Oscar.order(Q1) == 1
     @test Oscar.order(Q2) == 0
-    @test istorsion_point(Q1)
-    @test !istorsion_point(Q2)
+    @test is_torsion_point(Q1)
+    @test !is_torsion_point(Q2)
     @test Oscar.torsion_points_lutz_nagell(E) == [Q1]
     @test Oscar.torsion_points_division_poly(E) == [Q1]
 end
@@ -481,7 +481,7 @@ end
     PP = proj_space(QQ, 3)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
     @test P in C
-    @test Oscar.isirreducible(C)
+    @test Oscar.is_irreducible(C)
     J = Oscar.jacobi_ideal(C)
     L = gens(J)
     @test length(L) == 4

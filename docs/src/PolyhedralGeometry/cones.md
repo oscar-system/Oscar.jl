@@ -61,8 +61,8 @@ codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types
 intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
-ispointed(C::Cone)
-isfulldimensional(C::Cone)
+is_pointed(C::Cone)
+is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)

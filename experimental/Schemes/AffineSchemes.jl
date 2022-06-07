@@ -2,7 +2,7 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Scheme
-export Spec, OO, defining_ideal
+export Spec, OO, defining_ideal, ambient_ring
 export spec_type, ring_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
@@ -16,10 +16,7 @@ export pullback, domain, codomain, preimage, restrict, graph, identity_map, incl
 
 export strict_modulus
 
-# TODO for Tommy: Find out why the following are necessary
-AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
-AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
-AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{AbstractAlgebra.Generic.Frac{gfp_mpoly}}) = AbstractAlgebra.Generic.Frac{gfp_mpoly}
+export simplify
 
 @Markdown.doc """
     Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} 
@@ -92,6 +89,7 @@ spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = 
 For ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` this returns ``(𝕜[x₁,…,xₙ]/I)[S⁻¹]``.
 """
 OO(X::Spec) = X.OO
+ambient_ring(X::Spec) = base_ring(OO(X))
 
 function name_of(X::Spec) 
   if isdefined(X, :name)
@@ -142,12 +140,17 @@ end
 ### closed subschemes defined by ideals
 function subscheme(X::Spec, I::MPolyLocalizedIdeal)
   localized_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X))))
+  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X)))[1])
+end
+
+function subscheme(X::Spec, I::MPolyQuoLocalizedIdeal)
+  OO(X) == base_ring(I) || error("ideal does not live in the correct ring")
+  return Spec(quo(localized_ring(OO(X)), ideal(localized_ring(OO(X)), vcat(lift.(gens(I)), gens(localized_modulus(OO(X))))))[1])
 end
 
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   base_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(OO(X), I))
+  return Spec(quo(OO(X), I)[1])
 end
   
 @Markdown.doc """
@@ -156,48 +159,19 @@ end
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
 """
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+function subscheme(X::Spec, f::RingElem)
+  parent(f) == OO(X) || return subscheme(X, OO(X)(f))
+  return subscheme(X, ideal(OO(X), [f]))
+end
+
+function subscheme(X::Spec, f::Vector{<:RingElem})
+  all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
+  return subscheme(X, ideal(OO(X), f))
+end
+
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R(f))
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R.(f))
-  return subscheme(X, I)
+  return Spec(R, modulus(OO(X)), inverted_set(OO(X))*MPolyPowersOfElement(R, [f]))
 end
 
 ### open subschemes defined by complements of hypersurfaces
@@ -212,7 +186,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   iszero(f) && return subscheme(X, [one(R)])
-  f in inverted_set(OO(X)) && return X
+  f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
   W, _ = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   if keep_cache
@@ -367,6 +341,15 @@ intersect(X::EmptyScheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET
 function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1, MST2}
+  base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
+  R = base_ring(OO(X))
+  return Spec(R, modulus(OO(X)) + modulus(OO(Y)), inverted_set(OO(X))*inverted_set(OO(Y)))
+end
+
+function Base.intersect(
+    X::Spec{BRT, BRET, RT, RET, MST1}, 
+    Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
   issubset(X, Y) && return X
@@ -465,7 +448,7 @@ function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   return SpecMor(U, V, images(pullback(f)), check=check)
 end
 
-function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
+function compose(f::SpecMor, g::SpecMor)
   codomain(f) == domain(g) || error("Morphisms can not be composed")
   return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
@@ -586,4 +569,14 @@ function dim(X::Spec)
   return get_attribute(X, :dimension)::Int64
 end
 
+function codim(X::Spec)
+  return ngens(base_ring(OO(X)))-dim(X)
+end
+
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
+
+function simplify(X::Spec)
+  L, f, g = simplify(OO(X))
+  Y = Spec(L)
+  return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
+end

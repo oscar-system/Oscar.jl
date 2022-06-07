@@ -790,7 +790,7 @@ Matroid of rank 3 on 13 elements
 ```
 """
 function projective_plane(q::Int)
-    if !isprime(q)
+    if !is_prime(q)
         error("Only works for prime q at the moment.")
     end
     return Matroid(Polymake.matroid.projective_plane(q))
@@ -814,7 +814,7 @@ Matroid of rank 3 on 13 elements
 ```
 """
 function projective_geometry(r::Int, q::Int; check::Bool=false)
-    if !isprime(q)
+    if !is_prime(q)
         error("q is not a prime.")
     end
     if r<2
@@ -850,7 +850,7 @@ Matroid of rank 3 on 9 elements
 ```
 """
 function affine_geometry(r::Int, q::Int; check::Bool=false)
-    if !isprime(q)
+    if !is_prime(q)
         error("q is not a prime.")
     end
     if r<2

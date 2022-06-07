@@ -70,7 +70,7 @@ toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <:
 ```@docs
 discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
 j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
-istorsion_point(P::Point_EllCurve{fmpq})
+is_torsion_point(P::Point_EllCurve{fmpq})
 torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
 torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
 order(P::Point_EllCurve{fmpq})

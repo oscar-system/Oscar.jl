@@ -52,7 +52,7 @@ equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
 julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 A polyhedron in ambient dimension 2
 
-julia> isfeasible(P)
+julia> is_feasible(P)
 true
 
 julia> dim(P)

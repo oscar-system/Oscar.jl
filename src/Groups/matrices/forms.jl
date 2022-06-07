@@ -6,12 +6,12 @@ export
     corresponding_bilinear_form,
     corresponding_quadratic_form,
     hermitian_form,
-    isalternating_form,
-    isdegenerate,
-    ishermitian_form,
-    isquadratic_form,
-    issingular,
-    issymmetric_form,
+    is_alternating_form,
+    is_degenerate,
+    is_hermitian_form,
+    is_quadratic_form,
+    is_singular,
+    is_symmetric_form,
     quadratic_form,
     SesquilinearForm,
     symmetric_form,
@@ -37,11 +37,11 @@ mutable struct SesquilinearForm{T<:RingElem}
 
    function SesquilinearForm{T}(B::MatElem{T},sym) where T
       if sym==:hermitian
-         @assert ishermitian_matrix(B) "The matrix is not hermitian"
+         @assert is_hermitian_matrix(B) "The matrix is not hermitian"
       elseif sym==:symmetric
-         @assert issymmetric(B) "The matrix is not symmetric"
+         @assert is_symmetric(B) "The matrix is not symmetric"
       elseif sym==:alternating
-         @assert isskewsymmetric_matrix(B) "The matrix is not skew-symmetric"
+         @assert is_skewsymmetric_matrix(B) "The matrix is not skew-symmetric"
       elseif sym != :quadratic
          error("Unsupported description")
       end
@@ -76,32 +76,32 @@ SesquilinearForm(f::MPolyElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
 
 """
-    isalternating_form(f::SesquilinearForm)
+    is_alternating_form(f::SesquilinearForm)
 
 Return whether the form `f` is an alternating form.
 """
-isalternating_form(f::SesquilinearForm) = f.descr==:alternating
+is_alternating_form(f::SesquilinearForm) = f.descr==:alternating
 
 """
-    ishermitian_form(f::SesquilinearForm)
+    is_hermitian_form(f::SesquilinearForm)
 
 Return whether the form `f` is a hermitian form.
 """
-ishermitian_form(f::SesquilinearForm) = f.descr==:hermitian
+is_hermitian_form(f::SesquilinearForm) = f.descr==:hermitian
 
 """
-    isquadratic_form(f::SesquilinearForm)
+    is_quadratic_form(f::SesquilinearForm)
 
 Return whether the form `f` is a quadratic form.
 """
-isquadratic_form(f::SesquilinearForm) = f.descr==:quadratic
+is_quadratic_form(f::SesquilinearForm) = f.descr==:quadratic
 
 """
-    issymmetric_form(f::SesquilinearForm)
+    is_symmetric_form(f::SesquilinearForm)
 
 Return whether the form `f` is a symmetric form.
 """
-issymmetric_form(f::SesquilinearForm) = f.descr==:symmetric
+is_symmetric_form(f::SesquilinearForm) = f.descr==:symmetric
 
 
 ########################################################################
@@ -159,7 +159,7 @@ If `check` is set as `false`, it does not check whether the polynomial is homoge
 To define quadratic forms of dimension 1, `f` can also have type `PolyElem{T}`.
 """
 quadratic_form(f::MPolyElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
-# TODO : neither ishomogeneous or ishomogeneous works for variables of type MPolyElem{T}
+# TODO : neither is_homogeneous or is_homogeneous works for variables of type MPolyElem{T}
 
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
 function quadratic_form(f::PolyElem{T}) where T <: FieldElem
@@ -409,22 +409,22 @@ The Witt Index is the dimension of a maximal totally isotropic (singular for qua
 witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
 
 """
-    isdegenerate(f::SesquilinearForm{T})
+    is_degenerate(f::SesquilinearForm{T})
 
 Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic
 form is degenerate if the corresponding bilinear form is.
 """
-function isdegenerate(f::SesquilinearForm{T}) where T
+function is_degenerate(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && return det(gram_matrix(f))==0
    return det(gram_matrix(f)+transpose(gram_matrix(f)))==0
 end
 
 """
-    issingular(Q::SesquilinearForm{T})
+    is_singular(Q::SesquilinearForm{T})
 
 For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero radical.
 """
-function issingular(f::SesquilinearForm{T}) where T
+function is_singular(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && throw(ArgumentError("The form is not quadratic"))
    return GAPWrap.IsSingularForm(f.X)
 end

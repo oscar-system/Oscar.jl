@@ -454,3 +454,123 @@ function cycle_structure(g::PermGroupElem)
     end
     return CycleType(ct, sorted = true)
 end
+
+
+
+
+################################################################################
+#
+#   _perm_helper
+#
+# The following code implements a new way to input permutations in Julia. For example
+# it is possible to create a permutation as follow
+# pi = Oscar.Permutations.@perm (1,2,3)(4,5)(6,7,8)
+# > (1,2,3)(4,5)(6,7,8)
+# For this we use macros to modify the syntax tree of (1,2,3)(4,5)(6,7,8) such that
+# Julia can deal with the expression.
+
+function _perm_helper(ex::Expr)
+
+    ex == :( () ) && return []
+    ex isa Expr || error("Input is not a permutation expression")
+
+    res = []
+    while ex isa Expr && ex.head == :call
+        push!(res, Expr(:vect, ex.args[2:end]...))
+        ex = ex.args[1]
+    end
+
+    if !(ex isa Expr) || ex.head != :tuple
+        error("Input is not a permutation.")
+    end
+
+    push!(res, Expr(:vect,ex.args...))
+
+    # reverse `res` to match the original order; this ensures
+    # the evaluation order is as the user expects
+    reverse!(res)
+
+    return res
+end
+
+
+################################################################################
+#
+#   perm
+#
+@doc Markdown.doc"""
+    @perm ex
+    
+Input a permutation in cycle notation. Supports arbitrary expressions for
+generating the integer entries of the cycles.
+
+The actual work is done by [`cperm`](@ref). Thus, for the time being,
+cycles which are *not* disjoint actually are supported.
+
+# Examples
+```jldoctest
+julia> @perm (1,2,3)(4,5)(factorial(3),7,8)
+(1,2,3)(4,5)(6,7,8)
+```
+"""
+macro perm(ex)
+    res = _perm_helper(ex)
+    return esc(:(Oscar.cperm($(res...))))
+end
+
+
+################################################################################
+#
+#   perm(n,gens)
+#
+@doc Markdown.doc"""
+    @perm n gens
+    
+Input a list of permutations in cycle notation, created as elements of the
+symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
+[`cperm`](@ref) suitably..
+
+# Examples
+```jldoctest
+julia> gens = @perm 14 [
+              (1,10)
+              (2,11)
+              (3,12)
+              (4,13)
+              (5,14)
+              (6,8)
+              (7,9)
+              (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
+              (1,2)(10,11)
+             ]
+9-element Vector{PermGroupElem}:
+ (1,10)
+ (2,11)
+ (3,12)
+ (4,13)
+ (5,14)
+ (6,8)
+ (7,9)
+ (1,2,3,4,5,6,7)(8,9,10,11,12,13,14)
+ (1,2)(10,11)
+ 
+julia> parent(gens[1])
+Sym( [ 1 .. 14 ] )
+```
+"""
+macro perm(n,gens)
+
+    ores = Expr[]
+    for ex in gens.args
+        res = _perm_helper(ex)
+        push!(ores, esc(:(  [$(res...)]  )))
+    end
+
+    return quote
+       let g = symmetric_group($n)
+           [ cperm(g, pi...) for pi in [$(ores...)] ]
+       end
+    end
+end
+
+export @perm

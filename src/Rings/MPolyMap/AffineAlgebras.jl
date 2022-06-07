@@ -60,11 +60,11 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isinjective(F::AffAlgHom)
+    is_injective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
-function isinjective(F::AffAlgHom)
+function is_injective(F::AffAlgHom)
   iszero(kernel(F))
 end
 
@@ -95,11 +95,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    issurjective(F::AffAlgHom)
+    is_surjective(F::AffAlgHom)
 
-Return `true` if `F` is issurjective, `false` otherwise.
+Return `true` if `F` is is_surjective, `false` otherwise.
 """
-function issurjective(F::AffAlgHom)
+function is_surjective(F::AffAlgHom)
   # Compute data necessary for computation
   r = domain(F)
   s = codomain(F)
@@ -124,12 +124,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isbijective(F::AffAlgHom)
+    is_bijective(F::AffAlgHom)
 
 Return `true` if `F` is bijective, `false` otherwise.
 """
-function isbijective(F::AffAlgHom)
-  return isinjective(F) && issurjective(F)
+function is_bijective(F::AffAlgHom)
+  return is_injective(F) && is_surjective(F)
 end
 
 ################################################################################
@@ -186,7 +186,7 @@ julia> C, (t,) = PolynomialRing(QQ, ["t"]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
-julia> isbijective(F)
+julia> is_bijective(F)
 true
 
 julia> G = inverse(F)
@@ -203,8 +203,8 @@ x
 ```
 """
 function inverse(F::AffAlgHom)
-  !isinjective(F) && error("Homomorphism is not injective")
-  !issurjective(F) && error("Homomorphism is not surjective")
+  !is_injective(F) && error("Homomorphism is not injective")
+  !is_surjective(F) && error("Homomorphism is not surjective")
 
   # Compute inverse map via preimages of algebra generators
   r = domain(F)

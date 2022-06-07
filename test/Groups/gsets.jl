@@ -6,42 +6,43 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+  @test collect(Omega) == 1:6  # ordering is kept
 
   Omega = gset(G, [Set([1, 2])])  # action on unordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 15
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [[1, 2]])  # action on ordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   Omega = gset(G, [(1, 2)])  # action on ordered pairs (repres. by tuples)
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   # constructions by explicit action functions
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   @test isa(Omega, GSet)
   @test length(Omega) == 740
   @test length(orbits(Omega)) == 2
-  @test ! istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test ! is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   R, x = PolynomialRing(QQ, ["x1", "x2", "x3"]);
   f = x[1]*x[2] + x[2]*x[3]
@@ -50,9 +51,9 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 3
   @test length(orbits(Omega)) == 1
-  @test istransitive(Omega)
-  @test ! isregular(Omega)
-  @test ! issemiregular(Omega)
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
 
   # seeds can be anything iterable
   G = symmetric_group(6)
@@ -93,11 +94,13 @@
 
   # construction from a known set
   G = sylow_subgroup(symmetric_group(4), 3)[1]
-  Omega = as_gset(G, Set(1:4))
+  given = 1:4
+  Omega = as_gset(G, given)
   @test length(Omega) == 4
   @test length(orbits(Omega)) == 2
   @test isa(Omega, GSet)
   @test isa(orbit(Omega, 1), GSet)
+  @test collect(Omega) == given  # ordering is kept
 
   # orbit
   G = symmetric_group(6)
@@ -120,11 +123,11 @@
   @test haspreimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
 
-  # isconjugate
+  # is_conjugate
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
-  @test isconjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
-  @test ! isconjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
+  @test is_conjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
+  @test ! is_conjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
 
   # representative_action
   G = symmetric_group(6)
@@ -154,25 +157,25 @@ end
   @test elements(bl) == [[1, 8], [2, 3], [4, 5], [6, 7]]
   @test elements(bl) == elements(blocks(G8, 1:degree(G8)))
 
-  # isprimitive
-  @test ! isprimitive(G8)
-  @test ! isprimitive(G8, 1:degree(G8))
-  @test isprimitive(S4)
-  @test isprimitive(S4, 1:3)
+  # is_primitive
+  @test ! is_primitive(G8)
+  @test ! is_primitive(G8, 1:degree(G8))
+  @test is_primitive(S4)
+  @test is_primitive(S4, 1:3)
 
-  # isregular
-  @test isregular(G8)
-  @test ! isregular(G8, 1:9)
-  @test ! isregular(S4)
+  # is_regular
+  @test is_regular(G8)
+  @test ! is_regular(G8, 1:9)
+  @test ! is_regular(S4)
 
-  # issemiregular
-  @test issemiregular(G8)
-  @test ! issemiregular(G8, 1:9)
-  @test ! issemiregular(S4)
+  # is_semiregular
+  @test is_semiregular(G8)
+  @test ! is_semiregular(G8, 1:9)
+  @test ! is_semiregular(S4)
 
-  # istransitive
-  @test istransitive(G8)
-  @test ! istransitive(G8, 1:9)
+  # is_transitive
+  @test is_transitive(G8)
+  @test ! is_transitive(G8, 1:9)
 
   # maximal_blocks
   bl = maximal_blocks(G8)
@@ -191,5 +194,77 @@ end
   @test transitivity(S4) == 4
   @test transitivity(S4, 1:3) == 3
   @test transitivity(S4, 1:5) == 0
+
+end
+
+@testset "G-sets of matrix groups over finite fields" begin
+
+  # natural constructions (determined by the types of the seeds)
+  G = general_linear_group(2, 3)
+  V = free_module(base_ring(G), degree(G))
+  Omega = gset(G)
+  @test isa(Omega, GSet)
+  @test length(Omega) == 9
+  @test length(orbits(Omega)) == 2
+  @test ! is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+  @test collect(Omega) == collect(V)  # ordering is kept
+
+  Omega = orbit(G, gen(V, 1))
+  @test isa(Omega, GSet)
+  @test length(Omega) == 8
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+
+  Omega = gset(G, [Set(gens(V))])  # action on unordered pairs of vectors
+  @test isa(Omega, GSet)
+  @test length(Omega) == 24
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+
+  Omega = gset(G, [gens(V)])  # action on ordered pairs of vectors
+  @test isa(Omega, GSet)
+  @test length(Omega) == 48
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test is_regular(Omega)
+  @test is_semiregular(Omega)
+
+  # orbit
+  Omega = gset(G)
+  v = gen(V, 1)
+  @test length(orbit(Omega, v)) == length(Oscar.orbit_via_Julia(Omega, v))
+
+  # permutation
+  Omega = gset(G)
+  g = gens(G)[1]
+  pi = permutation(Omega, g)
+  @test order(pi) == order(g)
+  @test degree(parent(pi)) == length(Omega)
+
+  # action homomorphism
+  Omega = gset(G)
+  acthom = action_homomorphism(Omega)
+  @test pi == g^acthom
+  @test haspreimage(acthom, pi)[1]
+  @test order(image(acthom)[1]) == 48
+
+  # isconjugate
+  Omega = gset(G)
+  @test isconjugate(Omega, gen(V, 1), gen(V, 2))
+  @test ! isconjugate(Omega, zero(V), gen(V, 1))
+
+  # representative_action
+  Omega = gset(G)
+  rep = representative_action(Omega, gens(V)...)
+  @test rep[1]
+  @test gen(V, 1) * rep[2] == gen(V, 2)
+  rep = representative_action(Omega, zero(V), gen(V, 1))
+  @test ! rep[1]
 
 end

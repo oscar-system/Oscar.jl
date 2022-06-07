@@ -50,19 +50,15 @@ InstallOtherMethod( \/, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
     end);
     
 InstallMethod( InverseMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(InverseOp(m!.m)));
-
 InstallMethod( InverseImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(InverseOp(m!.m))));
 
 InstallOtherMethod( AdditiveInverseMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(AdditiveInverseOp(m!.m)));
-
 InstallOtherMethod( AdditiveInverseImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(AdditiveInverseOp(m!.m))));
 
 InstallOtherMethod(OneMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(OneOp(m!.m)));
-
 InstallOtherMethod(OneImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(OneOp(m!.m))));
 
 InstallOtherMethod(ZeroMutable, [IsJuliaMatrixRep], m -> MakeJuliaMatrixRep(ZeroOp(m!.m)));
-
 InstallOtherMethod(ZeroImmutable, [IsJuliaMatrixRep], m -> MakeImmutable(MakeJuliaMatrixRep(ZeroOp(m!.m))));
 
 InstallOtherMethod(\+, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
@@ -133,8 +129,8 @@ InstallMethod(SetNiceMorphismForJuliaMatrixRepGroup, [IsGroup], function(G)
         
         GAPGroup := GroupByGenerators(GAPGenerators);
         
-        f := function(m) return Julia.Oscar.map_entries(hom,m!.m); end;
-        f_inv := function(m) return MakeJuliaMatrixRep(Julia.Oscar.preimage_matrix(hom,m)); end;
+        f := m -> Julia.Oscar.map_entries(hom,m!.m);
+        f_inv := m -> MakeJuliaMatrixRep(Julia.Oscar.preimage_matrix(hom,m));
 
         JuliaGAPMap := GroupHomomorphismByFunction(G,GAPGroup,f,f_inv);
         SetNiceMonomorphism(G,JuliaGAPMap);
@@ -146,39 +142,15 @@ InstallOtherMethod(\=, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
     end);
     
 InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
-        if Julia.applicable(Julia.Oscar.MatrixGroups._lex_isless, m1!.m, m2!.m ) then
-            return Julia.Oscar.MatrixGroups._lex_isless(m1!.m,m2!.m);
-        fi;
-        if Julia.applicable(Julia.isless,m,m1) then
-            return m1!.m < m2!.m;
-        fi;
         Error("comparing IsJuliaMatrixRep not supported");
     end);
 
-InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], function(m)
-    return Julia.Oscar.minpoly(m!.m);
-end);
-
-InstallOtherMethod(CharacteristicPolynomial, [IsJuliaMatrixRep], function(m)
-    return Julia.Oscar.charpoly(m!.m);
-end);
-
-InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], function(m)
-    return Julia.Oscar.issymmetric(m!.m);
-end);
-
-InstallOtherMethod(IsMonomial, [IsJuliaMatrixRep], function(m)
-    return Julia.Oscar.ismonomial(m!.m);
-end);
-
-InstallOtherMethod(RankMat, [IsJuliaMatrixRep], function(m)
-    return Julia.Oscar.rank(m!.m);
-end);
-
-InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], function(m)
-    return Julia.Oscar.tr(m!.m);
-end);
-
+InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], m -> Julia.Oscar.minpoly(m!.m));
+InstallOtherMethod(CharacteristicPolynomial, [IsJuliaMatrixRep], m -> Julia.Oscar.charpoly(m!.m));
+InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], m -> Julia.Oscar.is_symmetric(m!.m));
+InstallOtherMethod(IsMonomial, [IsJuliaMatrixRep], m -> Julia.Oscar.is_monomial(m!.m));
+InstallOtherMethod(RankMat, [IsJuliaMatrixRep], m -> Julia.Oscar.rank(m!.m));
+InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], m -> Julia.Oscar.tr(m!.m));
 
 BindGlobal("TransformPolynomialFromJuliaToGAP", function(pol)
     local x, hom, res, i;

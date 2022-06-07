@@ -12,20 +12,20 @@
    @test codomain(f)==G
    @test [f(x) for x in gens(H)]==gens(H)
    @test (H,f)==(K,g)
-   @test issubgroup(G,K)[1]
-   @test g==issubgroup(G,K)[2]
+   @test is_subgroup(G,K)[1]
+   @test g==is_subgroup(G,K)[2]
    @test g==embedding(G,K)
-   @test isnormal(G,H)
+   @test is_normal(G,H)
    H,f=sub(G,[x,z])
    @test H==G
    @test f==id_hom(G)
 
-   @test !issubgroup(G,symmetric_group(8))[1]
+   @test !is_subgroup(G,symmetric_group(8))[1]
    @test_throws ArgumentError embedding(G,symmetric_group(8))
 
    H=sub(G,[G([2,3,1]),G([2,1])])[1]
    @test H != symmetric_group(3)
-   @test isisomorphic(H, symmetric_group(3))
+   @test is_isomorphic(H, symmetric_group(3))
    @test Vector(H[1])==[2,3,1,4,5,6,7]
    @test Vector(symmetric_group(3)(H[1]))==[2,3,1]
 
@@ -34,7 +34,7 @@
    L = subgroups(G)
    @test length(L)==30
    @test L[1] isa PermGroup
-   L1 = [x for x in L if isnormal(G,x)]
+   L1 = [x for x in L if is_normal(G,x)]
    K = normal_subgroups(G)
    @test length(K)==4
    for H in L1
@@ -47,7 +47,7 @@
    @test minimal_normal_subgroups(G)==[H]
    @test length(characteristic_subgroups(G))==4
    @test H in characteristic_subgroups(G)
-   @test ischaracteristic(G,H)
+   @test is_characteristic(G,H)
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
@@ -91,13 +91,13 @@ end
    end
    @test x in Cx
    @test one(G) in Cx
-   @test isisomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4)))
-   @test isisomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2)))
+   @test is_isomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4)))
+   @test is_isomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2)))
 
    Nx = normalizer(G,Cx)[1]
    Ny = normalizer(G,Cy)[1]
-   @test isnormal(Nx,Cx)
-   @test isnormal(Ny,Cy)
+   @test is_normal(Nx,Cx)
+   @test is_normal(Ny,Cy)
    notx = setdiff(G,Nx)
    noty = setdiff(G,Ny)
    @testset for i in 1:3
@@ -131,12 +131,12 @@ end
    Q=quaternion_group(16)
    H=sub(Q,[Q[1]])[1]
    C=core(Q,H)[1]
-   @test isnormal(Q,C)
+   @test is_normal(Q,C)
    @test order(C)==2
    S=symmetric_group(4)
    P2=pcore(S,2)[1]
    @test order(P2)==4
-   @test isnormal(S,P2)
+   @test is_normal(S,P2)
    P3=pcore(S,3)[1]
    @test order(P3)==1
    @test_throws ArgumentError pcore(S,4)
@@ -150,7 +150,7 @@ end
    @test index(G, H) == 4
   
    C = right_coset(H, G[1])
-   @test isright(C)
+   @test is_right(C)
    @test order(C) == length(collect(C))
   
    @test length(right_transversal(G, H)) == index(G, H)
@@ -193,7 +193,7 @@ end
       @test r1 in dc
       @test issubset(rc,dc)
       @test issubset(left_coset(K,x),dc)
-      @test !isbicoset(rc)
+      @test !is_bicoset(rc)
 
       @test rc == H*x
       @test lc == x*H
@@ -247,27 +247,27 @@ end
 end
 
 @testset "Predicates for groups" begin
-   @test !issimple(alternating_group(4))
-   @test issimple(alternating_group(5))
-   @test issimple(quo(SL(4,3), center(SL(4,3))[1])[1])
+   @test !is_simple(alternating_group(4))
+   @test is_simple(alternating_group(5))
+   @test is_simple(quo(SL(4,3), center(SL(4,3))[1])[1])
 
-   @test isalmostsimple(symmetric_group(5))
-   @test !issimple(symmetric_group(5))
+   @test is_almostsimple(symmetric_group(5))
+   @test !is_simple(symmetric_group(5))
 
-   @test isperfect(alternating_group(5))
-   @test !isperfect(alternating_group(4))
+   @test is_perfect(alternating_group(5))
+   @test !is_perfect(alternating_group(4))
    
-   @test !ispgroup(alternating_group(4))[1]
-   @test ispgroup(alternating_group(3)) == (true,3)
-   @test ispgroup(quaternion_group(8)) == (true,2)
-   @test ispgroup(alternating_group(1))==(true,nothing)
+   @test !is_pgroup(alternating_group(4))[1]
+   @test is_pgroup(alternating_group(3)) == (true,3)
+   @test is_pgroup(quaternion_group(8)) == (true,2)
+   @test is_pgroup(alternating_group(1))==(true,nothing)
 
-   @test issolvable(alternating_group(4))
-   @test !issolvable(alternating_group(5))
-   @test !isnilpotent(symmetric_group(4))
-   @test !issupersolvable(symmetric_group(4))
-   @test isnilpotent(quaternion_group(8))
-   @test issupersolvable(quaternion_group(8))
+   @test is_solvable(alternating_group(4))
+   @test !is_solvable(alternating_group(5))
+   @test !is_nilpotent(symmetric_group(4))
+   @test !is_supersolvable(symmetric_group(4))
+   @test is_nilpotent(quaternion_group(8))
+   @test is_supersolvable(quaternion_group(8))
    @test nilpotency_class(quaternion_group(8))==2
    @test_throws AssertionError nilpotency_class(symmetric_group(4))
 end
@@ -277,7 +277,7 @@ end
 
    P = sylow_subgroup(G,2)[1]
    @test order(P)==8
-   @test isisomorphic(P,dihedral_group(8))
+   @test is_isomorphic(P,dihedral_group(8))
    P = sylow_subgroup(G,3)[1]
    @test order(P)==3
    @test representative_action(G, P, sub(G, [cperm(1:3)])[1])[1]
@@ -306,15 +306,15 @@ end
    Lo = [order(l) for l in L]
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
-   @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+   @test [is_prime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
    L = complement_system(G)
    Lo = [index(G,l) for l in L]
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
-   @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+   @test [is_prime(is_power(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
 
    L = hall_system(symmetric_group(4))
-   @test issubgroup(symmetric_group(4),L[1])[1]
+   @test is_subgroup(symmetric_group(4),L[1])[1]
    @test Set(order(H) for H in L)==Set(fmpz[1,3,8,24])
    @test_throws ArgumentError hall_system(symmetric_group(5))
    
@@ -329,7 +329,7 @@ end
    @test frattini_subgroup(S)==sub(S,[one(S)])
    @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==center(G)
-   @test ischaracteristic(G,center(G)[1])
+   @test is_characteristic(G,center(G)[1])
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S

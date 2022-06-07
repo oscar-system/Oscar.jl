@@ -64,3 +64,72 @@ end
   @test restriction(p, domain(p), domain(p)) == identity_map(domain(p))
   @test restriction(q, domain(q), domain(q)) == identity_map(domain(q))
 end
+
+@testset "restriction_maps" begin
+  R, (x, y, z) = QQ["x", "y", "z"]
+  X = Spec(R, ideal(R, x*y))
+  U = SpecOpen(X, [x^7, y^8])
+  f = OO(U)([7*x//x^2, 5*y//y^2])
+  h = 5*x - 7*y+ 98*x*y^4
+  V = hypersurface_complement(X, h)
+  pb = restriction_map(U, V, h)
+  result = pb(f)
+  LX = U[1]
+  LY = U[2]
+  @test f[LX] == OO(LX)(result) && f[U[2]] == OO(U[2])(result)
+
+  X = Spec(R, ideal(R, x*(x+1)-y*z))
+  U = SpecOpen(X, [y^9, (x+1)^3])
+  f = OO(U)([x//y, z//(x+1)])
+  h = 3*y + x+1
+  V = hypersurface_complement(X, h)
+  pb = restriction_map(U, V, h)
+  result = pb(f)
+  @test f[U[1]] == OO(U[1])(result) && f[U[2]] == OO(U[2])(result)
+
+  V = SpecOpen(X, [((x+1)-y)^7, ((x+1)+y)^5])
+  resUV = restriction_map(U, V)
+  resVU = restriction_map(V, U)
+  resVU(resUV(f)) == f
+  @test Oscar.is_identity_map(compose(resVU, resUV))
+  @test Oscar.is_identity_map(compose(resUV, resVU))
+end
+
+@testset "pullbacks" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  X = Spec(R, ideal(R, [x^2-y*z]))
+  U = SpecOpen(X, [x, y])
+  V = SpecOpen(X, [(x+y)^2, x^2 - y^2, (x-y)^2])
+  f = SpecOpenMor(U, V, [x, y, z])
+  pbf = pullback(f)
+  @test pbf(OO(V)(x)) == OO(V)(x)
+  @test pbf(OO(V)(y)) == OO(V)(y)
+  @test pbf(OO(V)(z)) == OO(V)(z)
+  g = SpecOpenMor(V, U, [x, y, z])
+  @test Oscar.is_identity_map(compose(pullback(f), pullback(g)))
+  @test Oscar.is_identity_map(pullback(compose(f,g)))
+
+
+  S, (u, v) = QQ["u", "v"]
+  B = Spec(S)
+  p = SpecMor(X, B, [x, y])
+  U = SpecOpen(X, [x, y])
+  V = SpecOpen(B, [u, v])
+  pres = restrict(p, U, V)
+
+  g = pullback(pres)
+  @test g(OO(V)(u)) == OO(U)(x)
+  @test g(OO(V)(v)) == OO(U)(y)
+end
+
+@testset "SpecOpenRings" begin
+  R, (x, y, z) = QQ["x", "y", "z"]
+  I = ideal(R, [x^2-y*z])
+  X = Spec(R, I)
+  U = SpecOpen(X, [x, y])
+  V = SpecOpen(X, [x+y, x^2 - y^2, (x-y)^5])
+  f = canonical_isomorphism(OO(U), OO(V))
+  a = OO(U)([x//y, z//x])
+  b = f(a)
+  @test preimage(f, b) == a
+end

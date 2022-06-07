@@ -34,11 +34,11 @@ implemented by `l1 == l2`.
 
 ## Properties
 
-To check if a line bundle `l` is trivial, one can invoke `istrivial(l)`. Beyond this,
+To check if a line bundle `l` is trivial, one can invoke `is_trivial(l)`. Beyond this,
 we support the following properties of toric line bundles:
 ```@docs
 is_basepoint_free(l::ToricLineBundle)
-isample(l::ToricLineBundle)
+is_ample(l::ToricLineBundle)
 is_very_ample(l::ToricLineBundle)
 ```
 
