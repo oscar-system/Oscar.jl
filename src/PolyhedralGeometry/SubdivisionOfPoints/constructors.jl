@@ -89,7 +89,7 @@ pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
 #Same construction for when the user provides maximal cells
-function SubdivisionOfPoints{T}(Points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}}) where T<:scalar_types
+function SubdivisionOfPoints{T}(points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}}) where T<:scalar_types
    SubdivisionOfPoints{T}(points, IncidenceMatrix(cells))
 end
 
