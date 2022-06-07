@@ -2,7 +2,7 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Scheme
-export Spec, OO, defining_ideal
+export Spec, OO, defining_ideal, ambient_ring
 export spec_type, ring_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
@@ -17,9 +17,6 @@ export pullback, domain, codomain, preimage, restrict, graph, identity_map, incl
 export strict_modulus
 
 export simplify
-
-# TODO for Tommy: Find out why the following are necessary
-AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{AbstractAlgebra.Generic.Frac{gfp_mpoly}}) = AbstractAlgebra.Generic.Frac{gfp_mpoly}
 
 @Markdown.doc """
     Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} 
@@ -92,6 +89,7 @@ spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = 
 For ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` this returns ``(𝕜[x₁,…,xₙ]/I)[S⁻¹]``.
 """
 OO(X::Spec) = X.OO
+ambient_ring(X::Spec) = base_ring(OO(X))
 
 function name_of(X::Spec) 
   if isdefined(X, :name)
@@ -142,12 +140,17 @@ end
 ### closed subschemes defined by ideals
 function subscheme(X::Spec, I::MPolyLocalizedIdeal)
   localized_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X))))
+  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X)))[1])
+end
+
+function subscheme(X::Spec, I::MPolyQuoLocalizedIdeal)
+  OO(X) == base_ring(I) || error("ideal does not live in the correct ring")
+  return Spec(quo(localized_ring(OO(X)), ideal(localized_ring(OO(X)), vcat(lift.(gens(I)), gens(localized_modulus(OO(X))))))[1])
 end
 
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   base_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(OO(X), I))
+  return Spec(quo(OO(X), I)[1])
 end
   
 @Markdown.doc """
@@ -156,48 +159,19 @@ end
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
 """
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+function subscheme(X::Spec, f::RingElem)
+  parent(f) == OO(X) || return subscheme(X, OO(X)(f))
+  return subscheme(X, ideal(OO(X), [f]))
+end
+
+function subscheme(X::Spec, f::Vector{<:RingElem})
+  all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
+  return subscheme(X, ideal(OO(X), f))
+end
+
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R(f))
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R.(f))
-  return subscheme(X, I)
+  return Spec(R, modulus(OO(X)), inverted_set(OO(X))*MPolyPowersOfElement(R, [f]))
 end
 
 ### open subschemes defined by complements of hypersurfaces
@@ -289,7 +263,7 @@ function issubset(
   if !issubset(UY, UX) 
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
-      is_unit(OO(X)(a)) || return false
+      isunit(OO(X)(a)) || return false
     end
   end
   J = localized_ring(OO(X))(modulus(OO(Y)))
@@ -363,6 +337,15 @@ end
 intersect(E::EmptyScheme{BRT, BRET}, X::Scheme{BRT, BRET}) where {BRT, BRET} = E
 intersect(X::Scheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET} = E
 intersect(X::EmptyScheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET} = E
+
+function Base.intersect(
+    X::Spec{BRT, BRET, RT, RET, MST1}, 
+    Y::Spec{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1, MST2}
+  base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
+  R = base_ring(OO(X))
+  return Spec(R, modulus(OO(X)) + modulus(OO(Y)), inverted_set(OO(X))*inverted_set(OO(Y)))
+end
 
 function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 

@@ -1,10 +1,11 @@
-export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
+export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
+export restriction_map
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, is_domain_type, is_exact_type
+export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_type, isexact_type
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
-export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
+export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension, canonical_isomorphism
 
 export adjoint
 
@@ -35,6 +36,8 @@ this is an open subset;
   patches::Vector{SpecType}
   intersections::Dict{Tuple{Int, Int}, SpecType}
   complement::SpecType
+  complement_ideal::Ideal
+  ring_of_functions::Ring
 
   function SpecOpen(
       X::SpecType, 
@@ -49,6 +52,7 @@ this is an open subset;
       end
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
+    U.intersections = Dict{Tuple{Int, Int}, SpecType}()
     length(name) > 0 && set_name!(U, name)
     return U
   end
@@ -57,8 +61,14 @@ end
 open_subset_type(X::Spec) = SpecOpen{typeof(X), typeof(coefficient_ring(base_ring(OO(X)))), elem_type(coefficient_ring(base_ring(OO(X))))}
 open_subset_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = SpecOpen{Spec{BRT, BRET, RT, RET, MST}, BRT, BRET}
 
+affine_patch_type(::Type{SpecOpen{SpecType, BRT, BRET}}) where {SpecType, BRT, BRET} = SpecType
+affine_patch_type(U::SpecOpen) = affine_patch_type(typeof(U))
+
 ambient_type(U::SpecOpen{SpecType, BRT, BRET}) where {SpecType<:Spec, BRT, BRET} = SpecType
 ambient_type(::Type{SpecOpen{SpecType, BRT, BRET}}) where {SpecType<:Spec, BRT, BRET} = SpecType
+
+poly_type(::Type{SpecOpenType}) where {SpecOpenType<:SpecOpen} = poly_type(ambient_type(SpecOpenType))
+poly_type(U::SpecOpen) = poly_type(typeof(U))
 
 @Markdown.doc """
     ambient(U::SpecOpen)
@@ -81,6 +91,7 @@ Return the generators ``[f₁,…,fᵣ]`` stored for the description
 of the complement of ``U``.
 """
 gens(U::SpecOpen) = U.gens::Vector{elem_type(base_ring(OO(ambient(U))))}
+ngens(U::SpecOpen) = length(U.gens)
 
 @Markdown.doc """
     affine_patch(U::SpecOpen, i::Int)
@@ -99,6 +110,22 @@ function getindex(U::SpecOpen, X::Spec)
     X == U[i] && return i
   end
   error("scheme $X not found among the open patches in $U")
+end
+
+function getindex(U::SpecOpen, i::Int, j::Int) 
+  if !haskey(intersections(U), (i, j))
+    intersections(U)[(i, j)] = hypersurface_complement(U[i], gens(U)[j])
+    intersections(U)[(j, i)] = intersections(U)[(i, j)]
+  end
+  return intersections(U)[(i,j)]
+end
+
+function complement_ideal(U::SpecOpen) 
+  if !isdefined(U, :complement_ideal)
+    I = ideal(OO(ambient(U)), gens(U))
+    U.complement_ideal = I
+  end
+  return U.complement_ideal::ideal_type(ring_type(affine_patch_type(U)))
 end
 
 function Base.show(io::IO, U::SpecOpen)
@@ -188,7 +215,8 @@ function intersect(
   )
   X = ambient(U)
   base_ring(OO(X)) === base_ring(OO(Y)) || error("Schemes can not be compared")
-  if !issubset(Y, X)
+  X == Y && return SpecOpen(Y, gens(U), check=check)
+  if check && !issubset(Y, X)
     Y = intersect(Y, X)
   end
   return SpecOpen(Y, gens(U), check=check)
@@ -219,7 +247,7 @@ function issubset(
     Y::Spec, 
     U::SpecOpen
   )
-  return one(localized_ring(OO(Y))) in ideal(OO(Y), gens(U))
+  return one(OO(Y)) in ideal(OO(Y), gens(U))
 end
 
 function issubset(
@@ -321,6 +349,9 @@ SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
 spec_open_ring_type(X::Spec) = spec_open_ring_type(typeof(X))
 
+ring_type(::Type{SpecOpenType}) where {SpecOpenType<:SpecOpen} = SpecOpenRing{affine_patch_type(SpecOpenType), SpecOpenType}
+ring_type(U::SpecOpen) = ring_type(typeof(U))
+
 @Markdown.doc """
     scheme(R::SpecOpenRing)
 
@@ -328,6 +359,7 @@ The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
+gens(R::SpecOpenRing) = R.(gens(base_ring(OO(scheme(R)))))
 
 @Markdown.doc """
     domain(R::SpecOpenRing)
@@ -336,10 +368,16 @@ For a ring ``R = 𝒪(X, U)``, return ``U``.
 """
 domain(R::SpecOpenRing) = R.domain
 
-OO(U::SpecOpen) = SpecOpenRing(ambient(U), U)
+function OO(U::SpecOpen) 
+  if !isdefined(U, :ring_of_functions) 
+    U.ring_of_functions = SpecOpenRing(ambient(U), U)
+  end
+  return U.ring_of_functions::SpecOpenRing{affine_patch_type(U), typeof(U)}
+end
+
 OO(X::Spec, U::SpecOpen) = SpecOpenRing(X, U)
 
-function ==(R::T, S::T) where {T<:SpecOpenRing}
+function is_canonically_isomorphic(R::T, S::T) where {T<:SpecOpenRing}
   return is_canonically_isomorphic(scheme(R), scheme(S)) && is_canonically_isomorphic(domain(R), domain(S))
 end
 
@@ -353,7 +391,10 @@ an open set ``U`` of an affine scheme ``X``.
  * `RestrictionType` is the type of the restrictions of ``f`` to
 the affine patches of ``U``.
 """
-mutable struct SpecOpenRingElem{SpecOpenRingType, RestrictionType} <: RingElem
+mutable struct SpecOpenRingElem{
+      SpecOpenRingType<:SpecOpenRing, 
+      RestrictionType<:MPolyQuoLocalizedRingElem
+    } <: RingElem
   parent::SpecOpenRingType
   restrictions::Vector{RestrictionType}
 
@@ -361,11 +402,22 @@ mutable struct SpecOpenRingElem{SpecOpenRingType, RestrictionType} <: RingElem
       R::SpecOpenRingType,
       f::Vector{RestrictionType};
       check::Bool=true
-    ) where {SpecOpenRingType<:SpecOpenRing, RestrictionType<:RingElem}
+    ) where {
+        SpecOpenRingType<:SpecOpenRing, 
+        RestrictionType<:MPolyQuoLocalizedRingElem
+    }
     n = length(f)
     U = domain(R)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
-    g = elem_type(ring_type(scheme(R)))[OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
+    g = RestrictionType[OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
+    if check
+      for i in 1:n-1
+        for j in i+1:n
+          W = U[i,j]
+          OO(W)(f[i], check=false) == OO(W)(f[j], check=false) || error("elements are not compatible on overlap")
+        end
+      end
+    end
     return new{SpecOpenRingType, RestrictionType}(R, g)
   end
 end
@@ -406,12 +458,15 @@ function restrict(
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
-  return dot(l, OO(V).(lifted_numerator.(g)))
+  a = dot(l, OO(V).(lifted_numerator.(g)))
+  return a
 end
 
 (R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
 (R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
+(R::SpecOpenRing)(f::MPolyQuoLocalizedRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
+
 (R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
 
 function (R::SpecOpenRing)(f::SpecOpenRingElem) 
@@ -438,17 +493,17 @@ function *(a::T, b::T) where {T<:SpecOpenRingElem}
   return SpecOpenRingElem(parent(a), [a[i] * b[i] for i in 1:length(restrictions(a))], check=false)
 end
 
-function *(a::RingElem, b::T) where {T<:SpecOpenRingElem}
-  return b*(parent(b)(a))
-end
+#function *(a::RingElem, b::T) where {T<:SpecOpenRingElem}
+#  return b*(parent(b)(a))
+#end
 
 function *(a::Integer, b::T) where {T<:SpecOpenRingElem}
   return b*(parent(b)(a))
 end
 
-function *(b::T, a::RingElem) where {T<:SpecOpenRingElem}
-  return a*b
-end
+#function *(b::T, a::RingElem) where {T<:SpecOpenRingElem}
+#  return a*b
+#end
 
 function ==(a::T, b::T) where {T<:SpecOpenRingElem}
   parent(a) === parent(b) || return a == (parent(a)(b))
@@ -473,11 +528,8 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem}
   return SpecOpenRingElem(parent(a), [divexact(a[i], b[i]) for i in 1:length(restrictions(a))])
 end
 
-function is_unit(a::SpecOpenRingElem) 
-  for i in 1:length(restrictions(a))
-    is_unit(a[i]) || return false
-  end
-  return true
+function isunit(a::SpecOpenRingElem) 
+  return all(x->isunit(x), restrictions(a))
 end
 
 inv(a::SpecOpenRingElem) = SpecOpenRingElem(parent(a), [inv(f) for f in restrictions(a)], check=false)
@@ -489,14 +541,14 @@ zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches
 (R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 (R::SpecOpenRing)(a::fmpz) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 
-is_domain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
-is_domain_type(a::SpecOpenRingElem) = is_domain_type(typeof(a))
-is_exact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
-is_exact_type(a::SpecOpenRingElem) = is_exact_type(typeof(a))
-is_domain_type(::Type{T}) where {T<:SpecOpenRing} = true
-is_domain_type(R::SpecOpenRing) = is_domain_type(typeof(R))
-is_exact_type(::Type{T}) where {T<:SpecOpenRing} = true
-is_exact_type(R::SpecOpenRing) = is_exact_type(typeof(R))
+isdomain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+isdomain_type(a::SpecOpenRingElem) = isdomain_type(typeof(a))
+isexact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+isexact_type(a::SpecOpenRingElem) = isexact_type(typeof(a))
+isdomain_type(::Type{T}) where {T<:SpecOpenRing} = true
+isdomain_type(R::SpecOpenRing) = isdomain_type(typeof(R))
+isexact_type(::Type{T}) where {T<:SpecOpenRing} = true
+isexact_type(R::SpecOpenRing) = isexact_type(typeof(R))
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T
@@ -594,6 +646,7 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
 
   # fields used for caching
   inverse::SpecOpenMor
+  pullback::Hecke.Map
 
   function SpecOpenMor(
       U::DomainType,
@@ -632,6 +685,14 @@ codomain(f::SpecOpenMor) = f.codomain
 maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
 getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
 
+function getindex(f::SpecOpenMor, D::Spec)
+  U = affine_patches(domain(f))
+  D in U || error("affine patch not found in the domain")
+  for i = 1:length(U)
+    D == U[i] && return f[i]
+  end
+end
+
 function Base.show(io::IO, f::SpecOpenMor) 
   print(io, "Morphism from $(domain(f)) to $(codomain(f)) given by the rational map $(generic_fractions(f))")
 end
@@ -655,6 +716,54 @@ function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; c
   return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
 end
 
+function pullback(f::SpecOpenMor)
+  if !isdefined(f, :pullback)
+    U = codomain(f)
+    V = domain(f)
+    pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
+    W = [SpecOpen(V[i], lifted_numerator.(pullback(f[i]).(gens(U))), check=false) for i in 1:ngens(V)]
+    pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=false)) for j in 1:ngens(U)] for i in 1:ngens(V)]
+    lift_maps = [restriction_map(W[i], V[i], one(base_ring(OO(V[i]))), check=false) for i in 1:ngens(V)]
+    function mymap(a::SpecOpenRingElem)
+      b = [lift_maps[i](
+              SpecOpenRingElem(
+                  OO(W[i]), 
+                  [pb_res[i][j](a[j]) for j in 1:ngens(U)],
+                  check=false)
+             ) for i in 1:ngens(V)
+          ]
+      return SpecOpenRingElem(OO(V), b, check=false)
+    end
+    f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
+  end
+  return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+end
+
+function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+  if check
+    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+  end
+  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+end
+
+function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+  if check
+    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+  end
+  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+end
+
+function restrict(f::SpecOpenMor, W::Spec, Y::Spec; check::Bool=true)
+  if check
+    issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
+    issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
+  end
+  phi = restriction_map(domain(f), W)
+  fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(OO(Y)))]
+  return SpecMor(W, Y, fy, check=false)
+end
 
 
 
@@ -727,7 +836,7 @@ function compose(f::T, g::T; check::Bool=true) where {T<:SpecOpenMor}
   return SpecOpenMor(U, W, result_maps)
 end
 
-function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
+function pullback(f::SpecOpenMor, a::RingElem) where {RET<:RingElem}
   U = domain(f)
   X = ambient(U)
   V = codomain(f)
@@ -736,10 +845,6 @@ function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
   parent(a) == R || error("element does not belong to the correct ring")
   pb_a = elem_type(OO(X))[pullback(f[i])(a) for i in 1:npatches(U)]
   return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
-end
-
-function pullback(f::SpecOpenMor, a::SpecOpenRingElem)
-  error("not implemented")
 end
 
 @Markdown.doc """
@@ -760,15 +865,17 @@ function maximal_extension(
   for i in 1:n
     push!(maps, SpecMor(affine_patches(U)[i], Y, [restrictions(a)[i] for a in g]))
   end
-  return SpecOpenMor(U, SpecOpen(Y), maps)
+  h = SpecOpenMor(U, SpecOpen(Y), maps)
+  return h
 end
 
 function maximal_extension(
     X::T, 
     Y::T, 
-    f::Vector
+    f::Vector{<:RingElem}
   ) where {T<:Spec}
-  return maximal_extension(X, Y, FractionField(base_ring(OO(X))).(f))
+  h = maximal_extension(X, Y, FractionField(base_ring(OO(X))).(f))
+  return h
 end
 
 ### the restriction of a morphism to open subsets in domain and codomain
@@ -838,15 +945,18 @@ function preimage(f::SpecOpenMor, V::SpecOpen)
   R = base_ring(OO(X))
   I = ideal(R, one(R))
   for i in 1:npatches(U)
-    I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
+    I = intersect(I, saturated_ideal(Oscar.pre_image_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V))))))
   end
   return intersect(U, SpecOpen(X, I))
 end
 
 function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
   for V in affine_patches(U)
-    zero_ideal = ideal(OO(V), [zero(OO(V))])
-    zero_ideal == quotient(zero_ideal, ideal(OO(V), [f])) || return false
+    I = ideal(OO(V), [zero(OO(V))])
+    zero_ideal = Oscar.pre_image_ideal(I)
+    J = Oscar.pre_image_ideal(ideal(OO(V), [f]))
+    Q = quotient(zero_ideal, J)
+    zero_ideal == Q || return false
   end
   return true
 end
@@ -886,12 +996,13 @@ function generic_fractions(f::SpecOpenMor)
   d = find_non_zero_divisor(U)
   V = hypersurface_complement(X, d)
   result = fraction.([restrict(pullback(f, y), V) for y in gens(base_ring(OO(Y)))])
+  return result
 end
 
 function is_dense(U::SpecOpen)
   X = ambient(U)
   I = [localized_modulus(OO(closure(V, X))) for V in affine_patches(U)]
-  J = ideal(OO(X), [one(OO(X))])
+  J = pre_image_ideal(ideal(OO(X), [one(OO(X))]))
   for i in I
     J = intersect(J, i)
   end
@@ -923,4 +1034,220 @@ function preimage(f::SpecMor, V::SpecOpen; check::Bool=true)
   Z = preimage(f, ambient(V))
   new_gens = pullback(f).(gens(V))
   return SpecOpen(Z, lifted_numerator.(new_gens), check=check)
+end
+
+# For an open subsety U ⊂ Y of an affine scheme Y and a hypersurface 
+# complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction 
+# map ρ : 𝒪(U) → 𝒪(X)
+function restriction_map(U::SpecOpen, X::Spec, h::MPolyElem; check::Bool=true)
+  Y = ambient(U)
+
+  # handle the shortcut 
+  if X in affine_patches(U)
+    i = findfirst(x->(isequal(x, V), affine_patches(U)))
+    function mymap(f::SpecOpenRingElem)
+      return f[i]
+    end
+    return MapFromFunc(mymap, OO(U), OO(X))
+  end
+
+  # do the checks
+  if check
+    is_canonically_isomorphic(X, hypersurface_complement(Y, h)) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
+    issubset(X, U) || error("$X is not a subset of $U")
+  end
+
+  # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
+  d = gens(U)
+  I = complement_ideal(U)
+  (k, poh) = Oscar._minimal_power_such_that(h, x->(x in I))
+  a = coordinates(poh, I)
+  r = length(d)
+
+  # the local representatives of the inpun f will be of the form gᵢ⋅1//dᵢˢ⁽ⁱ⁾
+  # with gᵢ∈ 𝒪(Y). For higher powers s(i) > 1 we need other coefficients 
+  # cᵢ for the relation 
+  #
+  #   hˡ = ∑ᵢ cᵢ⋅dˢ⁽ⁱ⁾
+  #
+  # for some power hˡ. To this end, we set up a polynomial ring 𝒪(Y)[t₁,…,tᵣ]
+  # and take powers of the element ∑ᵢaᵢ⋅tᵢ with the coefficients aᵢ of the basic 
+  # relation. Eventually, all terms appearing in that expression will have 
+  # monomials t₁ᵉ⁽¹⁾⋅…⋅tᵣᵉ⁽ʳ⁾ with some e(i) ≥ s(i). Substituting and grouping 
+  # the terms accordingly, we derive the desired expressions for the cᵢ's.
+  W = localized_ring(OO(Y))
+  S, t = PolynomialRing(W, ["t$i" for i in 1:r])
+  ta = sum([t*lift(a) for (t, a) in zip(t, a)])
+  function mysecondmap(f::SpecOpenRingElem)
+    sep = [pull_from_denominator(f[i], d[i]) for i in 1:r]
+    # the following takes care of oddities from zero divisors.
+    for i in 1:r-1
+      for j in i+1:r
+        while !(sep[i][1]*sep[j][2]*sep[j][3] - sep[j][1]*sep[i][2]*sep[i][3] in localized_modulus(OO(Y)))
+          sep[i] = (sep[i][1]*d[i], sep[i][2], sep[i][3]*d[i], sep[i][4] + 1)
+          sep[j] = (sep[j][1]*d[j], sep[j][2], sep[j][3]*d[j], sep[j][4] + 1)
+        end
+      end
+    end
+
+    k = [k for (p, q, dk, k) in sep]
+    c = [zero(W) for i in 1:r]
+    dirty = one(S)
+    m = 0
+    # one extra round to catch the degenerate case where no powers are needed
+    cleaned = zero(dirty)
+    for (b, m) in zip(coefficients(dirty), monomials(dirty))
+      for i in 1:r
+        if exponent(m, 1, i) == k[i]
+          c[i] = c[i] + b*evaluate(m, [(j == i ? one(W) : W(d[j])) for j in 1:r])
+          cleaned = cleaned + b*m
+          break
+        end
+      end
+    end
+    dirty = dirty - cleaned
+
+    while !iszero(dirty)
+      m = m + 1
+      c = (x->poh*x).(c)
+      dirty = dirty*ta
+      cleaned = zero(dirty)
+      for (b, m) in zip(coefficients(dirty), monomials(dirty))
+        for i in 1:r
+          if exponent(m, 1, i) == k[i]
+            c[i] = c[i] + b*evaluate(m, [(j == i ? one(W) : W(d[j])) for j in 1:r])
+            cleaned = cleaned + b*m
+            break
+          end
+        end
+      end
+      dirty = dirty - cleaned
+    end
+    g = [W(p, q, check=false) for (p, q, dk, k) in sep]
+    dk = [dk for (p, q, dk, k) in sep]
+    return OO(X)(sum([a*b for (a, b) in zip(g, c)]), check=false)*OO(X)(1//poh^m, check=false)
+  end
+  return Hecke.MapFromFunc(mysecondmap, OO(U), OO(X))
+end
+
+# Automatically find a hypersurface equation h such that X = D(h) in 
+# the ambient scheme Y of U. 
+function restriction_map(U::SpecOpen, X::Spec; check::Bool=true)
+  Y = ambient(U)
+  R = base_ring(OO(Y))
+  R == base_ring(OO(X)) || error("rings not compatible")
+  if check
+    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    issubset(X, U) || error("$X is not a subset of $U")
+  end
+  L = localized_ring(OO(X))
+  D = denominators(inverted_set(L))
+  p = prod(denominators(inverted_set(OO(Y))))
+  h = one(R)
+  for d in D
+    (i, o) = ppio(d, p)
+    h = h*o
+  end
+  return restriction_map(U, X, h, check=false)
+end
+
+
+# For f = p//q and d this computes a decomposition p', q', d^k, k 
+# such that f = p'//(q'⋅d^k) and q' and d have no common factors. 
+function pull_from_denominator(f::MPolyQuoLocalizedRingElem, d::MPolyElem)
+  p = lifted_numerator(f)
+  q = lifted_denominator(f)
+  (i, o) = ppio(q, d)
+  (k, pod) = Oscar._minimal_power_such_that(d, x->(divides(x, i)[1]))
+  b = divexact(pod, i)
+  return b*p, o, pod, k
+end
+
+function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
+  Y = ambient(U)
+  if check
+    all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
+  end
+  function mymap(f::MPolyQuoLocalizedRingElem)
+    return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
+  end
+  return Hecke.MapFromFunc(mymap, OO(X), OO(U))
+end
+
+function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
+  if check
+    issubset(V, U) || error("$V is not a subset of $U")
+  end
+
+  if U == V
+    function mymap(f::SpecOpenRingElem)
+      return f
+    end
+    return Hecke.MapFromFunc(mymap, OO(U), OO(V))
+  end
+
+  if ambient(U) == ambient(V)
+    g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
+    function mysecondmap(f::SpecOpenRingElem)
+      return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
+    end
+    return Hecke.MapFromFunc(mysecondmap, OO(U), OO(V))
+  end
+  
+  g = [restriction_map(U, W, check=false) for W in affine_patches(V)]
+  function mythirdmap(f::SpecOpenRingElem)
+    return SpecOpenRingElem(OO(V), [g(f) for g in g], check=false)
+  end
+  return Hecke.MapFromFunc(mythirdmap, OO(U), OO(V))
+end
+
+function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
+  domain(f) == codomain(f) || return false
+  R = base_ring(OO(scheme(domain(f))))
+  return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
+end
+
+function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
+  X = scheme(S)
+  Y = scheme(T)
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("rings can not be canonically compared")
+  if check
+    is_canonically_isomorphic(domain(S), domain(T)) || error("open domains are not isomorphic")
+  end
+
+  pb_to_Vs = [restriction_map(domain(S), V) for V in affine_patches(domain(T))]
+  pb_to_Us = [restriction_map(domain(T), U) for U in affine_patches(domain(S))]
+  function mymap(a::SpecOpenRingElem)
+    return SpecOpenRingElem(T, [g(a) for g in pb_to_Vs], check=false)
+  end
+  function myinvmap(b::SpecOpenRingElem)
+    return SpecOpenRingElem(S, [g(b) for g in pb_to_Us], check=false)
+  end
+  return Hecke.MapFromFunc(mymap, myinvmap, S, T)
+end
+
+  
+function product(U::SpecOpen, Y::Spec)
+  X = ambient(U)
+  P, pX, pY = product(X, Y)
+  V = SpecOpen(P, lifted_numerator.(pullback(pX).(gens(U))))
+  res_pX = restrict(pX, V, U, check=false)
+  res_pY = restrict(pY, V, SpecOpen(Y), check=false)
+  return V, res_pX, res_pY
+end
+  
+function subscheme(U::SpecOpen, I::Ideal)
+  if !base_ring(I) == OO(ambient(U)) 
+    return subscheme(U, OO(ambient(U))(I))
+  end
+  Z = subscheme(ambient(U), I)
+  return SpecOpen(Z, gens(U))
+end
+
+function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
+  all(x->(parent(x)==OO(U)), g) || error("elements do not belong to the correct ring")
+  X = ambient(U)
+  Z = subscheme(X, vcat([[lifted_numerator(f[i]) for i in 1:ngens(U)] for f in g]...))
+  return SpecOpen(Z, gens(U))
 end
