@@ -26,7 +26,7 @@ General textbooks offering details on theory and algorithms include:
 
 When working in polyhedral geometry it can prove advantageous to have various
 input formats for the same kind of re-occuring quantitative input information.
-This example shows three different ways to name the points whose convex hull
+This example shows three different ways to write the points whose convex hull
 is to be computed, all resulting in identical `Polyhedron` objects:
 
 ```
