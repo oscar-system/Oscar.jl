@@ -127,19 +127,19 @@ struct FreeModElem{T} <: AbstractFreeModElem{T}
   end
 end
 
+@doc Markdown.doc"""
+    ModuleGens{T}
 
-# data structure for a generating systems for submodules
-# contains structures for the generators, the corresponding module on the Singular side, 
-# the embedding free module, the embedding free module on the Singular side
-# subquotients will be built from a tuple of submodules which again are given by 
-# generating sets. In this way, the Singular stuff is hidden on the higher structures
-# and all the conversion is taken care of here
-# a module generating system is generated from an array of free module elements
-# the fields are called O,S,F,SF rename?
-#
-# The same could be done rather on the level of vectors, that might be preferable if 
-# performance is ok.
-#
+Data structure for a generating systems for submodules.
+Contains structures for the generators, the corresponding module on the Singular side, 
+the embedding free module, the embedding free module on the Singular side.
+Subquotients will be built from a tuple of submodules which again are given by 
+generating sets. In this way, the Singular stuff is hidden on the higher structures
+and all the conversion is taken care of here.
+
+This data structure is also used for representing Gröbner / standard bases.
+Relative Gröbner / standard bases are also supported.
+"""
 @attributes mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
   O::Vector{FreeModElem{T}}
   S::Singular.smodule
@@ -149,7 +149,7 @@ end
   isGB::Bool
   is_reduced::Bool
   ordering::ModuleOrdering
-  quo_GB::ModuleGens{T}
+  quo_GB::ModuleGens{T} # Pointer to the quotient GB when having a relative GB
 
   function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
     r = new{T}()
@@ -208,6 +208,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}, 
                                        default_ordering::ModuleOrdering) where {R}
+    @assert all(x -> parent(x) === F, gens)
     r = SubModuleOfFreeModule{R}(F, gens)
     r.default_ordering = default_ordering
     r.gens = ModuleGens(gens, F, default_ordering)
