@@ -154,7 +154,7 @@ function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {
 end
   
 @Markdown.doc """
-    subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+    subscheme(X::Spec, f::RingElem)
 
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
@@ -176,7 +176,7 @@ end
 
 ### open subschemes defined by complements of hypersurfaces
 @Markdown.doc """
-    hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    hypersurface_complement(X::Spec, f::MPolyElem)
 
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the open subscheme ``U = X ∖ V(f)`` defined by the complement of the vanishing 
@@ -245,10 +245,7 @@ function issubset(Y::Spec{BRT, BRET, RT, RET, MST1}, X::EmptyScheme{BRT, BRET}) 
 end
 
 @Markdown.doc """
-    issubset(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    issubset(X::Spec, Y::Spec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
@@ -293,10 +290,7 @@ is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y
 Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
-    is_open_embedding(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    is_open_embedding(X::Spec, Y::Spec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
 """
@@ -314,10 +308,7 @@ function is_open_embedding(
 end
 
 @Markdown.doc """
-    is_closed_embedding(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    is_closed_embedding(X::Spec, Y::Spec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
 """
@@ -368,10 +359,7 @@ end
 
 ### compute the closure of X in Y
 @Markdown.doc """
-    closure(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    closure(X::Spec, Y::Spec)
 
 Returns the closure of ``X`` in ``Y``.
 """
@@ -496,7 +484,7 @@ function inverse(f::SpecMor)
 end
 
 @Markdown.doc """
-    product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+    product(X::Spec, Y::Spec)
     
 Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` and the two projections 
 ``p₁ : X×Y → X`` and ``p₂ : X×Y → Y``.
