@@ -48,7 +48,7 @@
                             },
                             "pm_polytope": {
                                 "id": "eef32fad-0be8-41a7-81a5-801c8fe717e8",
-                                "type": "Polymake.BigObject",
+                                "type": "Polymake.BigObjectAllocated",
                                 "data": {
                                     "_ns": {
                                         "polymake": [

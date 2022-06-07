@@ -46,7 +46,7 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
         deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
 
         try
-            return convert_to_oscar(deserialized)
+            return convert(deserialized)
         catch e
             if e isa MethodError
                 @warn "No function for converting the deserialized Polymake type to Oscar type"
@@ -58,31 +58,3 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     end
 end
 
-function convert_to_oscar(p::Polymake.PolynomialAllocated{Polymake.Rational, Int64};
-                          R::Union{MPolyRing, Nothing} = nothing)
-
-    # doesn't belong here should be moved outside of serialization
-    coeff_vec = convert(Vector{fmpq}, Polymake.coefficients_as_vector(p))
-    monomials = Matrix{Int}(Polymake.monomials_as_matrix(p))
-    n_vars = length(monomials[:, 1])
-    # not sure if the numbering is the best choice but it matches Polymake
-    if isnothing(R)
-        R, _ = PolynomialRing(QQ, "x" => 0:n_vars - 1, cached=false)
-    end
-
-    return R(coeff_vec, [monomials[:, i] for i in 1:ncols(monomials)])
-end
-
-function convert_to_oscar(O::Polymake.BigObjectAllocated)
-    big_object_name = Polymake.type_name(O)
-
-    if "Ideal" == big_object_name
-        n_vars = O.N_VARIABLES
-        R, _ = PolynomialRing(QQ, "x" => 0:n_vars - 1, cached=false)
-        converted_generators = map(p -> convert_to_oscar(p, R=R), O.GENERATORS)
-        
-        return ideal(R, converted_generators)
-    else
-        throw(MethodError)
-    end
-end
