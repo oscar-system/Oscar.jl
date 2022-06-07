@@ -20,6 +20,7 @@ export domain, codomain, images
 import AbstractAlgebra: Ring, RingElem
 import Base: issubset
 
+export complement_of_ideal, powers_of_element
 
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #
@@ -260,6 +261,63 @@ mutable struct MPolyComplementOfKPointIdeal{
   end
 end
 
+@doc Markdown.doc"""  
+    complement_of_ideal(R::MPolyRing, a::Vector)
+
+Given a polynomial ring ``R``, say ``R = K[x_1,\dots, x_n]``, and given a vector 
+``a = (a_1, \dots, a_n)`` of ``n`` elements of ``K``, return the multiplicatively 
+closed subset ``R\setminus M``, where ``M`` is the maximal ideal 
+
+$$M = \langle x_1-a_1,\dots, x_n-a_n\rangle \subset R.$$
+
+    complement_of_ideal(P::MPolyIdeal; check::Bool=false)
+
+Given a prime ideal ``P`` of a polynomial ring ``R``, say,
+return the multiplicatively closed subset ``R\setminus P.``
+
+!!! note
+    If  `check` is set to `true`, the function checks whether ``P`` is indeed a prime ideal. 
+
+    This may take some time.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> U = complement_of_ideal(R, [0, 0 ,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia> P = ideal(R, [x])
+ideal(x)
+
+julia> U = complement_of_ideal(P)
+complement of ideal(x)
+```
+"""
+complement_of_ideal(R::MPolyRing, a::Vector) = MPolyComplementOfKPointIdeal(R, a)
+complement_of_ideal(P::MPolyIdeal; check::Bool=false) = MPolyComplementOfPrimeIdeal(P; check)
+
+@doc Markdown.doc"""  
+    powers_of_element(f::MPolyElem)
+
+Given an element `f` of a polynomial ring, return the multiplicatively 
+closed subset of the polynomial ring which is formed by the powers of `f`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> f = x
+x
+
+julia> U = powers_of_element(f)
+powers of fmpq_mpoly[x]
+```
+"""
+powers_of_element(f::MPolyElem) = MPolyPowersOfElement(f)
+
 ### required getter functions
 ambient_ring(S::MPolyComplementOfKPointIdeal) = S.R
 
@@ -277,7 +335,7 @@ end
 
 ### printing
 function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
-  print(io, "point with coordinates ")
+  print(io, "complement of maximal ideal corresponding to point with coordinates ")
   print(io, point_coordinates(S))
 end
 
@@ -617,7 +675,25 @@ end
 @Markdown.doc """
     product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 
-Returns the product of the multiplicative sets `T` and `U`. 
+Return the product of the multiplicative subsets `T` and `U`. 
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T = complement_of_ideal(R, [0, 0 ,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia> f = x
+x
+
+julia> U = powers_of_element(f)
+powers of fmpq_mpoly[x]
+
+julia> S = product(T, U)
+product of the multiplicative sets [complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], powers of fmpq_mpoly[x]]
+```
 """
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)
@@ -832,10 +908,44 @@ inverted_set(W::MPolyLocalizedRing) = W.S
 gens(W::MPolyLocalizedRing) = W.(gens(base_ring(W)))
 
 ### required extension of the localization function
+
+@Markdown.doc """
+    Localization(U::AbsMPolyMultSet)
+
+Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
+return the localization of ``R`` at ``U`` together with the localization map 
+from ``R`` to ``R[U^{-1}]``.
+
+    Localization(R::MPolyRing, U::AbsMPolyMultSet)
+
+Given a multiplicatively closed subset ``U`` of ``R``, proceed as above.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> P = ideal(R, [x])
+ideal(x)
+
+julia> U = complement_of_ideal(P)
+complement of ideal(x)
+
+julia> Rloc, iota = Localization(R, U);
+
+julia> Rloc
+localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x)
+
+julia> iota
+Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to localization of Multivariate Polynomial Ring in x, y, z over Rational Field at the complement of ideal(x) defined by a julia-function
+```
+"""
 function Localization(S::AbsMPolyMultSet)
     R = ambient_ring(S)
     Rloc = MPolyLocalizedRing(R, S)
-    iota = MapFromFunc(x -> Rloc(x), R, Rloc)
+    #iota = MapFromFunc(x -> Rloc(x), R, Rloc)
+    iota = hom(R, Rloc, Rloc.(gens(R)))
     return Rloc, iota
 end
 
@@ -852,7 +962,8 @@ function Localization(
   issubset(S, inverted_set(W)) && return W
   U = S*inverted_set(W)
   L, _ = Localization(U)
-  return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
+  #return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
+  return L, MPolyLocalizedRingHom(W, L, hom(base_ring(W), L, L.(gens(base_ring(W)))), check=false)
 end
 
 ### additional constructors
@@ -874,7 +985,8 @@ function Localization(
   g = denominators(S)
   h = gcd(prod(g), f)
   L = MPolyLocalizedRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
-  return L, MapFromFunc((x->L(numerator(x), denominator(x), check=false)), W, L)
+  return L, MPolyLocalizedRingHom(W, L, hom(base_ring(W), L, L.(gens(base_ring(W)))), check=false)
+  #return L, MapFromFunc((x->L(numerator(x), denominator(x), check=false)), W, L)
 end
 
 function Localization(
@@ -885,7 +997,8 @@ function Localization(
   for f in v
     V = Localization(V, f)
   end
-  return V, MapFromFunc((x->V(numerator(x), denominator(x), check=false)), W, V)
+  return V, MPolyLocalizedRingHom(W, V, hom(base_ring(W), V, V.(gens(base_ring(W)))), check=false)
+  #return V, MapFromFunc((x->V(numerator(x), denominator(x), check=false)), W, V)
 end
 
 ### generation of random elements 
@@ -1284,9 +1397,39 @@ generator_matrix(J::MPolyIdeal) = MatrixSpace(base_ring(J), ngens(J), 1)(gens(J)
 @Markdown.doc """
     saturated_ideal(I::MPolyLocalizedIdeal)
 
-For an ideal ``I ⊂ R[S⁻¹]`` in a localized polynomial ring this returns 
-the unique ideal ``J ⊂ R`` which is maximal among all those ideals 
-``I' ⊂ R`` for which ``I' ⋅ S⁻¹ = I``.
+Given an ideal `I` of a localization, say, `Rloc` of a multivariate polynomial ring, say, `R`,
+return the largest ideal of `R` whose extension to `Rloc` is `I`. This is the preimage of `I`
+under the localization map.
+
+!!! note
+    The function does not neccessarily return a minimal set of generators for the resulting ideal.
+# Examples
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia> U = powers_of_element(x)
+powers of fmpq_mpoly[x]
+
+julia> Rloc, iota = Localization(R, U);
+
+julia> I = ideal(Rloc, [x+x^2])
+ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the powers of fmpq_mpoly[x] generated by the elements (x^2 + x)//1
+
+julia> saturated_ideal(I)
+ideal(x^2 + x, x + 1)
+
+julia> U = complement_of_ideal(R, [0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0]
+
+julia> Rloc, iota = Localization(R, U);
+
+julia> I = ideal(Rloc, [x+x^2])
+ideal in localization of Multivariate Polynomial Ring in x over Rational Field at the complement of maximal ideal corresponding to point with coordinates fmpq[0] generated by the elements (x^2 + x)//1
+
+julia> saturated_ideal(I)
+ideal(x^2 + x, x)
+```
 """
 function saturated_ideal(I::MPolyLocalizedIdeal)
   if !isdefined(I, :saturated_ideal)
@@ -1531,6 +1674,17 @@ function ideal(
   return MPolyLocalizedIdeal(W, [W(f)])
 end
 
+@doc Markdown.doc"""    
+    ideal(W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, gens::Vector{RET}) where {BRT, BRET, RT, RET, MST}
+
+Given a localization `Rloc` of a multivariate polynomial ring `R`, say, and given a vector `V` of elements of `R`, 
+create the ideal of `Rloc` which is generated by the images of the entries of `V` under the localization map.
+
+    ideal(W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST}
+
+Given a localization `Rloc` of a multivariate polynomial ring, and given a vector `V` of elements of `Rloc`, 
+create the ideal of `Rloc` which is generated by the entries of `V`.
+"""
 function ideal(
     W::MPolyLocalizedRing,
     gens::Vector
@@ -1884,9 +2038,10 @@ mutable struct MPolyLocalizedRingHom{
     R = base_ring(W)
     U = inverted_set(W)
     domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
-    for f in U
-      isunit(S(res(f))) || error("image of $f is not a unit in the codomain")
-    end
+    ###TODO correct mistake for quotient rings and include again
+    ###for f in U
+      ###isunit(S(res(f))) || error("image of $f is not a unit in the codomain")
+    ###end
     return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end
 end
@@ -1912,13 +2067,94 @@ function MPolyLocalizedRingHom(
   return MPolyLocalizedRingHom(W, S, res)
 end
 
+@doc Markdown.doc"""
+    hom(Rloc::MPolyLocalizedRing, S::Ring, phi::Map)
+
+Given a localized ring `Rloc`of type `MPolyLocalizedRing`, say `Rloc` is the localization 
+of the multivariate polynomial ring `R` at the multiplicatively closed subset `U` of `R`, and 
+given a homomorphism `phi` from `R` to `S` sending elements of `U` to units in `S`, return 
+the homomorphism from `Rloc` to `S` whose composition with the localization map is `phi`.
+
+    hom(Rloc::MPolyLocalizedRing, S::Ring, images::Vector)
+
+Given a localized ring `Rloc` with notation as above, and given a vector `images` of `nvars` elements
+of `S`, let `phi` be the homomorphism from `R` to `S` which is defined by the entries of 
+`images`, and proceed as above.
+
+!!! note
+    The extra condition on `phi` is not checked by the function.
+
+# Examples
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia> U = powers_of_element(x)
+powers of fmpq_mpoly[x]
+
+julia> Rloc, iota = Localization(R, U);
+
+julia> Sprime, (X, Y) = PolynomialRing(QQ, ["X", "Y"])
+(Multivariate Polynomial Ring in X, Y over Rational Field, fmpq_mpoly[X, Y])
+
+julia> S, p = quo(Sprime, ideal(Sprime, [X*Y-1]))
+(Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1), Map from
+Multivariate Polynomial Ring in X, Y over Rational Field to S defined by a julia-function with inverse)
+
+julia> PHI = hom(Rloc, S, [p(X)])
+morphism from the localized ring localization of Multivariate Polynomial Ring in x over Rational Field at the powers of fmpq_mpoly[x] to Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1)
+
+julia> PHI(iota(x))
+X
+
+julia> isunit(PHI(iota(x)))
+true
+```
+"""
 hom(W::MPolyLocalizedRing, S::Ring, res::Map) = MPolyLocalizedRingHom(W, S, res)
 hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a)
 
 ### required getter functions
-domain(f::MPolyLocalizedRingHom) = f.W
-codomain(f::MPolyLocalizedRingHom) = f.S
-restricted_map(f::MPolyLocalizedRingHom) = f.res
+domain(PHI::MPolyLocalizedRingHom) = PHI.W
+codomain(PHI::MPolyLocalizedRingHom) = PHI.S
+
+@doc Markdown.doc"""
+    restricted_map(PHI::MPolyLocalizedRingHom)
+
+Given a ring homomorphism `PHI` from a localized multivariate polynomial ring, 
+return the composition of `PHI` with the localization map.
+
+# Examples
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia> U = powers_of_element(x)
+powers of fmpq_mpoly[x]
+
+julia> Rloc, iota = Localization(R, U);
+
+julia> Sprime, (X, Y) = PolynomialRing(QQ, ["X", "Y"])
+(Multivariate Polynomial Ring in X, Y over Rational Field, fmpq_mpoly[X, Y])
+
+julia> S, p = quo(Sprime, ideal(Sprime, [X*Y-1]))
+(Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1), Map from
+Multivariate Polynomial Ring in X, Y over Rational Field to S defined by a julia-function with inverse)
+
+julia> PHI = hom(Rloc, S, [p(X)])
+morphism from the localized ring localization of Multivariate Polynomial Ring in x over Rational Field at the powers of fmpq_mpoly[x] to Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1)
+
+julia> phi = restricted_map(PHI)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in X, Y over Rational Field by ideal(X*Y - 1)
+```
+"""
+restricted_map(PHI::MPolyLocalizedRingHom) = PHI.res
 
 ### implementing the Oscar map interface
 function identity_map(W::T) where {T<:MPolyLocalizedRing} 

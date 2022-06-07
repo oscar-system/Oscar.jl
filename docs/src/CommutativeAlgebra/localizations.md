@@ -1,435 +1,303 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar 
 ```
 
 ```@setup oscar
 using Oscar
 ```
 
-# Localizations of commutative rings
+```@contents
+Pages = ["localizations.md"]
+```
 
-Suppose ``R`` is a commutative ring with unit and ``U \subset R`` is a
+# Localization
+
+Let ``R`` be a commutative ring with 1, and let ``U \subset R`` be a
 *multiplicatively closed subset,* that is,
 ```math
 s, t \in U \;\Rightarrow \; s\cdot t \in U \;\text{ and }\; 1 \in U.
 ```
-Then we can form the *localization* of ``R`` at ``U,``
+Then we can form the *localization* of ``R`` at ``U,``  that is,  the set
 ```math
     R[U^{-1}] = \left\{ \frac{p}{q} : p,q \in R, \, q \in U \right\},
 ```
-which comes equipped with its standard arithmetic for fractions. See, for instance, [Eis95](@cite).
+equipped with its standard arithmetic for fractions. See, for instance, [Eis95](@cite).
 
-Oscar provides a general  localization framework, originally intended to be used 
-with multivariate polynomial rings ``R`` over some base field ``\mathbb k``, but also 
-applicable to more general commutative rings.
-
-In the case of  a polynomial ring ``R``, the localization framework provides
-the structure to integrate algorithms which, using Gröbner bases, allow one to solve  ideal- and module-theoretic
-questions concerning ``R[U^{-1}]`` by computations over ``R``. This makes it important to regard localizations
-``R[U^{-1}]`` as rings with a history of creation from the original pair ``U \subset R``. 
+In this section, we describe OSCAR functionality for handling localizations of multivariate polynomial
+rings, as well as localizations of affine algebras, at various types of multiplicatively closed subsets. For the convenience of
+the developer, in an appendix, we outline a general framework for creating new concrete instances of localized
+rings in OSCAR, describing relevant abstract types and indicating the functionality to be implemented.
 
 !!! note
-    In the local context, following Hironaka and Grauert, it is also common to use the name
-    *standard basis* instead of Gröbner basis. See, for example, [GP08](@cite).
+    All OSCAR types discussed in this section are parametrized. For simplicity of the presentation, we omit corresponding details.
 
-## The Localization Interface
 
-For the convenience of developers, we describe the interface that needs to be implemented in order
-to create a concrete instance of localized rings. At the same time, we illustrate the use of the interface
-by examples featuring localizations of multivariate polynomial rings, a concrete instance already
-realized in OSCAR. Functionality for this instance, which includes functions such as
-`MPolyComplementOfPrimeIdeal` for creating multiplicatively closed subsets, will be
-discussed in a subsequent section. 
+## Localizing Multivariate Rings
 
-### Localized Rings
+Most functions for handling localizations of multivariate polynomial rings rely on Gröbner bases. More precisely,
+if ``R`` is a multivariate polynomial ring, Gröbner bases allow one to solve  ideal- and module-theoretic
+questions concerning ``R[U^{-1}]`` by computations over ``R``.
 
-Multiplicatively closed subsets are derived from the abstract type
+!!! note
+    Recall that in OSCAR, Gröbner bases are implemented for multivariate polynomial rings over fields (exact fields supported by OSCAR) and for multivariate polynomial rings over the integers.
+
+!!! note
+    In the local context, following Hironaka and Grauert, it is often common to use the name *standard basis* instead of Gröbner basis. See, for example, [GP08](@cite).
+	
+
+### Types
+
+All OSCAR types for multiplicatively closed subsets of commutative rings with unit
+belong to the abstract type `AbsMultSet`.  For multiplicatively
+closed subsets of multivariate polynomial rings, there are the concrete descendants
+`MPolyComplementOfKPointIdeal`, `MPolyComplementOfPrimeIdeal`, and `MPolyPowersOfElement`.
+
+The general abstract type for localizations of commutative rings with unit is `AbsLocalizedRing`.
+For localizations of multivariate polynomial rings, there is the concrete subtype `MPolyLocalizedRing`.
+
+### Constructors
+
+#### Multiplicatively Closed Subsets
+
+In accordance with the above mentioned types, we have the following constructors
+for multiplicatively closed subsets of multivariate polynomial rings.
+
 ```@docs
-    AbsMultSet{RingType, RingElemType}
+complement_of_ideal(R::MPolyRing, a::Vector)
 ```
-The basic functionality that has to be implemented for any concrete type derived from 
-this is to be able to check containment of elements in multiplicatively closed subsets via
-```@docs
-    in(f::RingElemType, U::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
-```
-This is supposed to be an extension of the methods of the function `Base.in`.
 
-Any concrete type of localized rings should then be a subtype of
 ```@docs
-    AbsLocalizedRing{RingType, RingElemType, MultSetType}
+powers_of_element(f::MPolyElem)
 ```
-The basic way to construct localized rings is to first 
-specify a multiplicative set `U`, and then call 
-```@docs
-    Localization(U::AbsMultSet)
-```
-This method must be implemented with a dispatch depending on 
-the concrete type of `U`.
 
-For any concrete instance of type `AbsLocalizedRing`,
-the following methods must be implemented:
+It is also possible to build products of multiplicatively closed sets already given:
+
 ```@docs
-    base_ring(Rloc::AbsLocalizedRing) 
-    inverted_set(Rloc::AbsLocalizedRing)
+product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
+```
+
+Containment in multiplicatively closed subsets can be checked via the `in` function as indicated below:
+
+##### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+S = complement_of_ideal(R, [0, 0 ,0])
+y in S
+P = ideal(R, [x])
+T = complement_of_ideal(P)
+y in T
+f = x
+U = powers_of_element(f)
+x^3 in U
+(1+y)*x^2 in product(S, U)
+```
+
+
+#### Localized Rings
+
+```@docs
+Localization(U::AbsMPolyMultSet)
+```
+	
+### Data associated to Localized Rings
+
+If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multiplicatively closed subset
+`U` of `R`, then
+
+- `base_ring(Rloc)` refers to `R`, and
+- `inverted_set(Rloc)` to `U`.
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+P = ideal(R, [x])
+U = MPolyComplementOfPrimeIdeal(P)
+Rloc, _ = Localization(U);
+R === base_ring(Rloc)
+U === inverted_set(Rloc)
 ```
 
 ### Elements of Localized Rings
 
-The basic constructors for elements in localizations should be of the following form:
-```
-   (W::AbsLocalizedRing)(a::RingElem)
-   (W::AbsLocalizedRing)(a::RingElem, b::RingElem; check::Bool=true)
-```
-The first one maps an element `a` of the `base_ring` of `W` to the element `a//1` in the 
-localization. The second constructor takes a pair `(a, b)` to the element `a//b` in `W`. 
-Note that it should in general be checked whether or not `b` is an admissible denominator 
-for the particular localization. Since those checks are usually expensive, it is 
-customary to bypass such tests whenever `check=false` is set; for instance for 
-internal use within other routines.
+#### Types
 
-The *elements* of localized rings must be derived from 
+The general abstract type for elements of localizations of commutative rings with unit is `AbsLocalizedRingElem`.
+For elements of localizations of multivariate polynomial rings, there is the concrete subtype `MPolyLocalizedRingElem`.
+
+
+#### Creating Elements of Localized Rings
+
+Elements of a localized multivariate polynomial ring ``R[U^{-1}]`` are created as (fractions of) images of elements of $R$
+under the localization map or by directly coercing (pairs of) elements of $R$ into fractions.
+
+##### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+P = ideal(R, [x])
+U = MPolyComplementOfPrimeIdeal(P)
+Rloc, iota = Localization(U);
+f = iota(x)
+f == Rloc(x)
+g = Rloc(y, z)
+f+g
+f*g
+```
+
+#### Data Associated to Elements of Localized Rings
+
+Given an element `f` of a localized multivariate ring polynomial `Rloc`, 
+- `parent(f)` refers to `Rloc`,
+- `numerator(f)` to the numerator  of the internal representative of `f`, and
+- `denominator(f)` to the denominator of the internal representative of `f`.
+
+##### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+P = ideal(R, [x])
+U = MPolyComplementOfPrimeIdeal(P)
+Rloc, iota = Localization(U);
+f = iota(x)//iota(y)
+parent(f)
+g = iota(y)//iota(z)
+numerator(f*g)
+denominator(f*g)
+```
+
+### Homomorphisms from Localized Rings
+
+Let ``R[U^{-1}]`` be the localization of a multivariate polynomial ring ``R`` at a
+multiplicatively closed subset `U` of ``R``. Then, by the universal property of localization, each
+homomorphism from ``R[U^{-1}]`` to a commutative ring  $S$ with unit is determined as the extension
+of a ring homomorphism $R \to S$ sending elements of $U$ to units in $S$. In OSCAR, such
+homomorphisms are of type `MPolyLocalizedRingHom`. They are created using the following constructor:
+
 ```@docs
-    AbsLocalizedRingElem{RingType, RingElemType, MultSetType}
+hom(Rloc::MPolyLocalizedRing, S::Ring, F::Map)
 ```
-For any concrete instance `f` of `AbsLocalizedRingElem` there must be the following 
-methods:
+	
+Given a ring homomorphism `PHI` from `Rloc` to `S` as above, `domain(PHI)` and `codomain(PHI)`
+refer to `Rloc` and `S`, respectively. Moreover, the composition of `PHI` with the localization map
+is recovered as follows:
+
 ```@docs
-    numerator(f::AbsLocalizedRingElem) 
-    denominator(f::AbsLocalizedRingElem) 
-    parent(f::AbsLocalizedRingElem)
+restricted_map(PHI::MPolyLocalizedRingHom)
 ```
-A default version of the arithmetic is implemented on the generic level using the above 
-functionality and the arithmetic for the original ring. 
-Depending on the actual concrete instance, one might wish to provide more fine-tuned methods, 
-starting e.g. by implementing 
-```@docs
-    reduce_fraction(f::AbsLocalizedRingElem)
-```
-Note that this is called after *every* arithmetic operation (addition, multiplication,...), 
-so the computations carried out here should be computationally cheap.
-
-Two toy examples for implementations of this interface for localizations 
-of the integers ``\mathbb Z`` and rings of the form ``\mathbb Z/n\mathbb Z`` 
-can be found in the test files 
-`test/Rings/integer-localizations.jl` and `test/Rings/nmod-localizations.jl`.
-
-**Note:** Any concrete type for localized rings is also required to implement 
-the general [Ring Interface](@ref) of Oscar! This has not been done to a full extent 
-for the previous two examples, but for `MPolyLocalizedRing`; see below.
-
- 
-### Homomorphisms From Localized Rings
-
-Homomorphisms from localized rings to arbitrary algebras are of type 
-```@docs
-    AbsLocalizedRingHom
-```
-Note that, in order to be well-defined, we must have 
-that ``\phi'(u) \in S`` must be a unit for every element ``u \in U``. 
-
-The getters associated to this type which need to be implemented are 
-```@docs
-    domain(f::AbsLocalizedRingHom) 
-    codomain(f::AbsLocalizedRingHom) 
-    restricted_map(f::AbsLocalizedRingHom) 
-```
-Any concrete instance `f` of `AbsLocalizedRingHom` can then be applied to elements 
-`a` of `domain(f)` by calling `f(a)`. 
-
+	  
 ### Ideals in Localized Rings
+	  
+#### Types
 
-Finitely generated ideals in localizations should be of type
-```@docs
-    AbsLocalizedIdeal{LocRingElemType<:AbsLocalizedRingElem}
-```
-The required getter methods are
-```julia
-    gens(I::AbsLocalizedIdeal)
-    base_ring(I::AbsLocalizedIdeal)
-```
-The constructors to be implemented are
-```
-   ideal(W::AbsLocalizedRing, f::AbsLocalizedRingElem) 
-   ideal(W::AbsLocalizedRing, v::Vector{LocalizedRingElemType}) where {LocalizedRingElemType<:AbsLocalizedRingElem}
-```
+Ideals in localized rings are of concrete type `MPolyLocalizedIdeal`.
 
-The minimal functionality which must be implemented for ideals is the following:
-```
-    Base.in(f::AbsLocalizedRingElem, I::AbsLocalizedIdeal)
-    coordinates(f::AbsLocalizedRingElem, I::AbsLocalizedIdeal)
-```
-The first one is the test for ideal membership and the second one the method 
-of the usual `coordinates` function for the particular type of localization.
+#### Constructors
 
-## Localizations of modules over computable rings
+Given a localization `Rloc` of a multivariate polynomial ring `R`, and given a vector `V` of elements of
+`Rloc` (of `R`),  the ideal of `Rloc` which is generated by (the images) of the entries of `V`
+is created by entering `ideal(Rloc, V)`. 
 
-For localizations of modules, there exists a generic implementation of 
-the common methods such as membership tests, kernel computations, etc. 
-based on the work of Barakat, Posur, et. al; see [Pos18](@cite).
+#### Data Associated to Ideals
 
-Let $R$ be a ring of type `<:Ring`, $U \subset R$ a multiplicative set of type `<:AbsMultSet` 
-and $S = R[U^{-1}]$ the localization of $R$ at $U$. Recall that $R$ 
-is *computable* if one can compute *syzygies* and *lifts* over $R$. 
-The results from [Pos18](@cite), Theorem 3.9, assert that then also the localization $S$ is 
-computable, provided that there exists a solution to the *localization problem* 
-(Definition 3.8, [Pos18](@cite) and below). 
+If `I` is an ideal of a localized multivariate polynomial ring  `Rloc`, then
 
-The user who wishes to use the generic code for 
-localizations therefore has to make sure the following two 
-requirements are met: 
+- `base_ring(I)` refers to `Rloc`,
+- `gens(I)` to the generators of `I`,
+- `ngens(I)` to the number of these generators, and
+- `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
 
- 1) The code for finitely generated modules and ideals must be functional over ``R``, including the computation of `coordinates` and `kernel`. 
+#### Operations on Ideals
 
- 2) The user has to solve the *localization problem* by implementing `has_nonepmty_intersection(U::MultSetType, I::IdealType)` for the type `MultSetType` of multiplicative sets and the type `IdealType` of ideals in `R` that they would like to consider.
-```@docs
-    has_nonempty_intersection(U::AbsMultSet, I::Ideal)
-```
-**Note:** In order to clear denominators of row vectors, the generic code uses the method `lcm(v::Vector{T})` where `T = elem_type(R)`. 
-If no such method already exists, this has to also be provided; in the worst case by simply returning the product of the denominators. 
+If `I`,  `J` are ideals of a localized multivariate polynomial ring  `Rloc`, then
 
-As soon as the above requirements are met, the methods 
-```@julia
-   represents_element(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
-   coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
-   kernel(f::FreeModuleHom{DomType, CodType, Nothing}) where {T, DomType<:FreeMod{T}, CodType<:SubQuo{T}}
-   kernel(f::SubQuoHom{DomType, CodType, Nothing}) where {T, DomType<:FreeMod{T}, CodType<:SubQuo{T}}
-   iszero(a::SubQuoElem{T}) where {T<:AbsLocalizedRingElem}
-```
-will be available for modules over $S$, i.e. for `T = elem_type(S)`. 
-As can easily be seen, having the first three of these methods
-is already equivalent to $S = R[U^{-1}]$ being computable; hence all higher methods can be derived 
-from these basic ones. 
+- `I^k` refers to the `k`-th  power of `I`, 
+- `I+J`, `I*J`,  and `intersect(I, J)` to the sum, product, and intersection of `I` and  `J`, and
+- `quotient(I, J)` as well as `I*J` to the quotient of `I` by `J`.
 
-The generic code makes use of a simple caching mechanism for the `SubQuo`s as follows. 
-For a module ``M = (G + N)/N`` with submodules ``G, N \subset R^n`` of some free module, 
-the localization ``M[U^{-1}]`` over ``S = R[U^{-1}]`` has an associated *saturated module* over ``R``:
-```math
-   M' = (G' + N')/N', \quad
-   G' = \{ a \in R^n | \exists u \in U : u \cdot a \in G + N\},\quad
-   N' = \{ b \in R^n | \exists u \in U : u \cdot b \in N\}.
-```
-While it might be difficult to compute such saturations, we have a generic algorithm to check 
-membership for elements in ``M'`` (via `represents_element` for ``M[U^{-1}]``). 
-It is assumed that such membership tests are cheaper for modules over ``R`` compared to 
-modules over ``S``. For instance in the case where ``R`` is a multivariate polynomial ring, 
-once a (relative) groebner basis has been computed for ``M``, membership test for ``M`` 
-is merely a reduction while for the localization ``M[U^{-1}]`` it triggers 
-another groebner basis computation a priori. 
+#### Tests on Ideals
 
-But for every element ``a \in R^n`` that has 
-already been shown to represent an element in the saturation ``M'``, we can cache 
-the results of the computation in an intermediate *pre-saturated module* 
-``M \subset \tilde M \subset M'`` by adding the necessary generators to ``G`` and ``N`` 
-for a representation of ``a``. Then, checking membership for ``a`` a second time will 
-fall back to a membership test in ``\tilde M``. For the latter, we assume some caching 
-to already be implemented as, for instance, for the use of groebner bases in the polynomial 
-case.
+The usual tests `f in J`, `issubset(I, J)`, and `I == J` are available.
 
-    
-A sample implementation for various localizations of multivariate polynomial rings 
-can be found in `src/Modules/mpoly-localizations.jl`. A modified version for localizations 
-of affine algebras which also overwrites some of the generic methods, is in 
-`src/Modules/mpolyquo-localizations.jl`.
+#### Saturation
 
-## Localizations of Multivariate Rings
+If ``Rloc`` is the localization of a multivariate polynomial ring ``R`` at a multplicative subset ``U`` of ``R``,
+then the ideal theory of ``Rloc`` is a simplified version of the ideal theory of ``R`` (see, for instance, [Eis95](@cite)).
+In particular, each ideal ``I`` of ``Rloc`` is the extension $J\cdot Rloc$ of an ideal $J$ of $R$. The ideal
 
-### Some multiplicative sets
-Various primitive types of multiplicative sets are available for multivariate 
-polynomial rings, such as 
-```@docs
-MPolyComplementOfPrimeIdeal{
-    BaseRingType, 
-    BaseRingElemType,
-    RingType,
-    RingElemType
-  } 
-MPolyComplementOfKPointIdeal{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } 
-MPolyPowersOfElement{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } 
-```
-Moreover, such types can be combined to products: 
+$$\{f\in R \mid uf\in J \text{ for some } u\in U\}$$
 
-**Definition (Products of multiplicative sets):**
-Let ``T`` and ``U`` be multiplicative sets in a commutative ring ``R``. The product 
-of ``T`` and ``U`` is defined as 
-```math
-  T\cdot U = \left\{ f\cdot g : f \in T \textnormal{ and }g \in U \right\}.
-```
-A product of multiplicative sets ``U = U_1 \cdot \dots \cdot U_r`` is called *interreduced* 
-if neither one of the factors ``U_i`` is contained in one of the others ``U_j, j \neq i``.
+is independent of the choice of $J$ and is the largest ideal of ``R`` which extends to ``I``. It is, thus,
+the contraction of ``I`` to ``R``,  that is, the preimage of ``I``  under the localization map.
+We call this ideal the *saturation of ``I`` over ``R``*.  In OSCAR, it is obtained as follows:
 
-Note that any product of multiplicative sets may be replaced by 
-an interreduced one. However, such an interreduced multiplicative set is 
-not unique as the following example shows:
-
-**Example (interreduction of products of multiplicative sets):**
-An interreduced factorization of a product of multiplicative sets may 
-not be unique: Consider the ring ``\mathbb Z[x]`` and the multiplicative sets 
-```math
-  T  = \left\{(5x)^k : k \in \mathbb N_0\right\}, \quad
-  T' = \left\{ x^k : k \in \mathbb N_0\right\},\quad
-  S  = \left\{ c_0 \cdot x^0 : c_0 \notin 7 \mathbb Z\right\}.
-```
-Then ``T\cdot S = \left\{ a⋅x^k : a \notin 7\mathbb Z, k \in \mathbb N_0 \right\} = T'\cdot S``.
-
-**Upshot:** Whenever a product is taken, some interreduced form of the 
-entire product is returned. Besides the obvious simplification in 
-case all factors are contained in a single one, it is difficult to 
-determine which interreduction is the best one. 
-Localizations of multivariate polynomial rings are of type 
-
-The type for storing general products is 
-```@docs
-MPolyProductOfMultSets{
-  BaseRingType,
-  BaseRingElemType, 
-  RingType,
-  RingElemType
-}
-```
-and products can be taken using the usual arithmetic
-```@docs
-product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
-```
-**Note:** The methods of this function naturally attempt 
-to return a primitive type of multiplicative sets whenever possible. 
-Hence, they are not type-stable. 
-
-
-### Localizations and their ideals
-Localizations of polynomial rings are of type
-```@docs
-MPolyLocalizedRing{
-    BaseRingType,
-    BaseRingElemType,
-    RingType,
-    RingElemType,
-    MultSetType
-  } 
-```
-with elements of type
-```@docs
-MPolyLocalizedRingElem{
-    BaseRingType, 
-    BaseRingElemType,
-    RingType,
-    RingElemType, 
-    MultSetType
-  }
-```
-
-Ideals in localized polynomial rings are of type 
-```julia
-    MPolyLocalizedIdeal{
-        LocRingType<:MPolyLocalizedRing, 
-        LocRingElemType<:MPolyLocalizedRingElem
-      } <: AbsLocalizedIdeal{LocRingElemType}
-```
-Recall (see e.g. [Eis95]) that 
-if ``\mathbb k`` is a Noetherian ring, any localization ``W = R[U^{-1}]`` of a 
-multivariate polynomial ring ``R = \mathbb k[x_1,\dots,x_n]`` is again Noetherian and 
-any ideal ``I \subset W`` is of the form ``I = J\cdot W`` for some ideal ``J \subset R``. 
-There is an ambiguity in the choice of such ``J``, but we always have that
-for any choice of ``J`` as above
-```math
-  J:U = \left\{ x\in R : \exists u \in U : u\cdot x \in J \right\} = \left\{ x \in R : x//1 \in I \right\}
-```
-is the unique element which is maximal among all ideals ``J'`` in ``R`` for 
-which ``I = J'\cdot W``. We call this the *saturated ideal* ``J' = J:U`` of ``I``
-and it can be obtained using 
 ```@docs
 saturated_ideal(I::MPolyLocalizedIdeal)
 ```
-**Note:** Their is no generic method to compute saturations and hence this must be implemented manually for every 
-concrete type of multiplicative set as needed.
-However, ideal membership and `coordinates` should work automatically once the corresponding 
-method for `has_nonempty_intersection` is implemented; see the previous section on localizations of modules.
-In particular, the ideal membership test and `coordinates` do not require an implementation of `saturated_ideal`.
 
-## Localizations of affine algebras
+## A Framework for Localizing Rings
 
-Let ``R = 𝕜[x₁,…,xₘ]`` be a polynomial ring, ``I ⊂ R`` some ideal 
-and ``P = R/I`` its quotient. Then ``P`` is naturally an ``R``-module 
-and localization of ``P`` as a ring coincides with localization 
-as an ``R``-module in the sense that for every multiplicative 
-set ``T ⊂ R`` there is a commutative diagram 
-```math
-\begin{matrix}
-        R   & → & P = R/I\\
-        ↓ & &       ↓ \\
-  W = R[T⁻¹] & → & P[T⁻¹].
-\end{matrix}
+For the convenience of the developer, we outline a general framework for creating concrete instances of localized rings in OSCAR,
+addressing relevant abstract types as well as a standardized set of functions whose concrete behaviour must be implemented.
+
+We roughly follow the outline of the previous subsection on localizing multivariate rings which provides illustrating examples.
+With regard to notation, the name `Rloc` will refer to the localization of a commutative ring `R` with 1.
+
+### Localized Rings
+
+All multiplicatively closed subsets should belong to the `AbsMultSet` abstract type and all
+localized rings should belong to the `AbsLocalizedRing` abstract type.
+
+The basic functionality that has to be realized for any concrete instance of `AbsMultSet`
+is the containment check for elements in multiplicatively closed subsets via the `in` function.
+
+For each concrete instance of `AbsLocalizedRing`, the `Localization` constructor as well as the
+functions `base_ring` and `inverted_set` need to be implemented. Moreover, as for any other type
+of rings in OSCAR, methods for the standardized set of functions of OSCAR's
+general [Ring Interface](@ref) must be supplied.
+
+### Elements of Localized Rings
+
+All elements of localized rings should belong to the `AbsLocalizedRingElem` abstract type.
+
+Coercing (pairs of) elements of `R` into fractions in `Rloc` must be possible as indicated below:
+
 ```
-Observe that, moreover, for every multiplicative set 
-``T' ⊂ P`` the preimage ``T`` of ``T'`` in ``R`` is also a multiplicative set. 
-
-We may therefore treat localizations of polynomial algebras 
-as localizations of modules over free polynomial rings:
-and apply the following 
-
-**Convention:** For localizations of affine algebras 
-``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` the available multiplicative sets for ``L`` are exclusively those for ``𝕜[x₁,…,xₙ]``.
-
-Note that this leads to the following differences compared to the 
-standard usage of the localization interface:
-
- * The `base_ring` returns neither ``P``, nor ``W``, but ``R``.
- * The `BaseRingType` is the type of ``R`` and similar for 
-   the other ring-based type parameters.
-
-This is to make the data structure most accessible for 
-the computational backends.
-
- * The type returned by `numerator` and `denominator` 
-   on an element of type `MPolyQuoLocalizedRingElem` is 
-   not `RingElemType`, but the type of elements of ``P``. 
-
-This is to comply with the purely mathematical viewpoint
-where elements of localized rings are fractions of 
-residue classes rather than residue classes of fractions. 
-
-
-Localizations of affine algebras are realized by 
-```@docs
-MPolyQuoLocalizedRing{
-  BaseRingType,
-  BaseRingElemType,
-  RingType,
-  RingElemType,
-  MultSetType <: AbsMultSet{RingType, RingElemType}
-}
+   (Rloc::AbsLocalizedRing)(f::RingElem)
+   (Rloc::AbsLocalizedRing)(f::RingElem, g::RingElem; check::Bool=true)
 ```
-which have the additional methods 
-```@docs
-quotient_ring(L::MPolyQuoLocalizedRing)
-localized_ring(L::MPolyQuoLocalizedRing)
-```
-returning the other two computationally important rings in its construction.
+   
+The first constructor maps the element `f` of `R` to the fraction `f//1` in `Rloc`.
+The second constructor takes a pair `f, g` of elements of `R` to the fraction `f//g`
+in `Rloc`. The default `check = true` stands for testing whether `g` is an admissible
+denominator. As this test is often expensive, it may be convenient
+to set `check = false`.
 
-Elements of such rings are of the form 
-```@docs
-MPolyQuoLocalizedRingElem{
-  BaseRingType, 
-  BaseRingElemType,
-  RingType,
-  RingElemType, 
-  MultSetType
-}
+For any concrete instance of type `AbsLocalizedRingElem`, methods for the functions 
+`parent`, `numerator`, and `denominator` must be provided. Moreover,
+if a cancellation function for the type of fractions under consideration is
+not yet available, such a function should be implemented and named
+`reduce_fraction`.
+
+### Homomorphisms From Localized Rings
+
+The abstract type for homomorphisms from localized rings is `MPolyLocalizedRingHom`.
+For each concrete instance, the functions `domain` and `codomain` as well as `restricted_map`
+must be realized. Here, the latter function is meant to return the composition with the
+localization map.
+
+### Ideals in Localized Rings
+
+All ideals in localized rings belong to the abstract type `AbsLocalizedIdeal`.
+For a concrete instance, the constructors to be implemented are:
+
 ```
-In contrast to ordinary elements of a localized ring, they 
-have the additional methods 
-```@docs
-lifted_numerator(a::MPolyQuoLocalizedRingElem)
-lifted_denominator(a::MPolyQuoLocalizedRingElem)
-fraction(a::MPolyQuoLocalizedRingElem)
+   ideal(W::AbsLocalizedRing, f::AbsLocalizedRingElem)
+   ideal(W::AbsLocalizedRing, v::Vector{LocalizedRingElemType}) where {LocalizedRingElemType<:AbsLocalizedRingElem}
 ```
+
+The usual getter functions  `base_ring`, `gens`, `ngens`, and `gen`   must be realized.
+
+Moreover, a method for ideal membership via the `in` function is required.
 
