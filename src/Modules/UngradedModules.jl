@@ -946,11 +946,10 @@ Compute a standard basis of `submod` with respect to the given `odering``.
 The return type is `ModuleGens`.
 """
 function std_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
-  if !haskey(submod.groebner_basis, ordering)
-    gb = compute_std_basis(submod, ordering)
-    submod.groebner_basis[ordering] = gb
-  end
-  return submod.groebner_basis[ordering]
+  gb = get!(submod.groebner_basis, ordering) do
+    return compute_std_basis(submod, ordering)
+  end::ModuleGens
+  return gb
 end
 
 @doc Markdown.doc"""
@@ -971,21 +970,14 @@ Compute a reduced Gröbner basis with respect to the given `ordering`. The retur
 """
 function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
   @assert is_global(ordering)
-  
-  if !haskey(submod.groebner_basis, ordering)
-    gb = compute_std_basis(submod, ordering, true)
-    submod.groebner_basis[ordering] = gb
-    return gb
-  end
-  submod.groebner_basis[ordering].is_reduced && return submod.groebner_basis[ordering]
 
-  red_gb = get_attribute(submod.groebner_basis[ordering], :reduced_groebner_basis)
-  if red_gb === nothing
-    red_gb = compute_std_basis(submod, ordering, true)
-    set_attribute!(submod.groebner_basis[ordering], :reduced_groebner_basis => red_gb)
-  else
-    return red_gb
-  end
+  gb = get!(submod.groebner_basis, ordering) do
+    return compute_std_basis(submod, ordering, true)
+  end::ModuleGens
+  gb.is_reduced && return gb
+  return get_attribute!(gb, :reduced_groebner_basis) do
+    return compute_std_basis(submod, ordering, true)
+  end::ModuleGens
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
@@ -3196,7 +3188,7 @@ end
 # tensor and hom functors for chain complex
 # dual: ambig: hom(M, R) or hom(M, Q(R))?
 
-function lift_with_unit(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar.SRow} where {T <: MPolyElem}
+function lift_with_unit(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyElem}
   # TODO allow optional argument ordering
   # To do this efficiently we need better infrastructure in Singular.jl
   R = base_ring(parent(a))
@@ -3208,7 +3200,7 @@ function lift_with_unit(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Not
   error("Not implemented")
 end
 
-function lift(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar.SRow} where {T <: MPolyElem}
+function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyElem}
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
@@ -3218,19 +3210,19 @@ function lift(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar
   singular_assure(b)
   s, r = Singular.lift(S, singular_generators(b))
   if Singular.ngens(s) == 0 || iszero(s[1])
-    return nothing
+    error("The free module element is not liftable to the given generating system.")
   end
   Rx = base_ring(generators)
   return sparse_row(Rx, s[1], 1:ngens(generators))
 end
 
 @doc Markdown.doc"""
-    coordinates(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar.SRow}
+    coordinates(a::FreeModElem{T}, generators::ModuleGens{T})
 
 Compute a sparse row `r` such that `a = sum([r[i]*gen(generators,i) for i in 1:ngens(generators)])`.
-If no such `r` exists, `nothing` is returned.
+If no such `r` exists, an execption is thrown.
 """
-function coordinates(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar.SRow} where {T <: MPolyElem}
+function coordinates(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyElem}
   singular_assure(generators)
   if !Singular.has_global_ordering(base_ring(generators.SF))
     error("Ordering must be global")
@@ -3239,13 +3231,13 @@ function coordinates(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothin
 end
 
 @doc Markdown.doc"""
-    coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar.SRow} where T
+    coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
 
 Let `generators` be a Gröbner basis and let `A*M = generators`.
 Compute a sparse row `r` such that `a = sum([r[i]*gen(M,i) for i in 1:ngens(M)])`.
-If no such `r` exists, `nothing` is returned.
+If no such `r` exists, an exception is thrown.
 """
-function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})::Union{Nothing,Oscar.SRow} where T
+function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
   A = get_attribute(generators, :transformation_matrix)
   A === nothing && error("No transformation matrix in the Gröbner basis.")
   if iszero(a)
@@ -3265,7 +3257,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   singular_assure(b)
   s, r = Singular.lift(S, singular_generators(b)) # Possibly use division with remainder
   if Singular.ngens(s) == 0 || iszero(s[1])
-    return nothing
+    error("The free module element is not liftable to the given generating system.")
   end
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
@@ -3274,10 +3266,10 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
 end
 
 @doc Markdown.doc"""
-    coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)::Union{Nothing,Oscar.SRow}
+    coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)
 
 Compute a sparse row `r` such that `a = sum([r[i]*gen(M,i) for i in 1:ngens(M)])`.
-If no such `r` exists, `nothing` is returned.
+If no such `r` exists, an exception is thrown.
 For `task` there are the following options:
 - `:auto` (default option): Use `:via_transform` if coefficient ring of base ring is a field, 
 else use `:via_lift` 
@@ -3287,7 +3279,7 @@ the Gröbner basis in terms of the generators and cache the data
 Note: `:via_lift` is typically faster than `:via_transform` for a single vector while the latter
 is faster if many vectors are lifted
 """
-function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)::Union{Nothing,Oscar.SRow}
+function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :auto)
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
@@ -3335,10 +3327,10 @@ function lift_std(M::SubModuleOfFreeModule)
 end
 
 @doc Markdown.doc"""
-    coordinates(a::FreeModElem, SQ::SubQuo, task::Symbol = :auto)::Union{Nothing,Oscar.SRow}
+    coordinates(a::FreeModElem, SQ::SubQuo, task::Symbol = :auto)
 
 Compute a sparse row `r` such that `a` is a representative of `SubQuoElem(r, SQ)`.
-If no such `r` exists, `nothing` is returned.
+If no such `r` exists, an exception is thrown.
 For `task` there are the following options:
 - `:auto` (default option): Use `:via_transform` if coefficient ring of base ring is a field, 
 else use `:via_lift` 
@@ -3348,13 +3340,9 @@ the Gröbner basis in terms of the generators and cache the data
 Note: `:via_lift` is typically faster than `:via_transform` for a single vector while the latter
 is faster if many vectors are lifted
 """
-function coordinates(a::FreeModElem, SQ::SubQuo, task::Symbol = :auto)::Union{Nothing,Oscar.SRow}
+function coordinates(a::FreeModElem, SQ::SubQuo, task::Symbol = :auto)
   coords = coordinates(a, SQ.sum, task)
-  if coords !== nothing
-    return coords[1:ngens(SQ)]
-  else
-    return nothing
-  end
+  return coords[1:ngens(SQ)]
 end
 
 @doc Markdown.doc"""
