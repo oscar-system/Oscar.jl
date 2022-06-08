@@ -197,69 +197,11 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   default_ordering::ModuleOrdering
   matrix::MatElem
 
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}) where {R}
-    @assert all(x -> parent(x) === F, gens)
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
+    # this does not construct a valid SubModuleOfFreeModule
     r = new{R}()
     r.F = F
-    r.gens = ModuleGens(gens, F)
     r.groebner_basis = Dict()
-    return r
-  end
-
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}, 
-                                       default_ordering::ModuleOrdering) where {R}
-    @assert all(x -> parent(x) === F, gens)
-    r = SubModuleOfFreeModule{R}(F, gens)
-    r.default_ordering = default_ordering
-    r.gens = ModuleGens(gens, F, default_ordering)
-    return r
-  end
-
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
-    r = new{R}()
-    r.F = F
-    r.gens = ModuleGens(F, singular_module)
-    r.groebner_basis = Dict()
-    return r
-  end
-
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule,
-                                       default_ordering::ModuleOrdering) where {R}    
-    r = SubModuleOfFreeModule{R}(F, singular_module)
-    r.default_ordering = default_ordering
-    return r
-  end
-
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens) where {R}
-    r = new{R}()
-    r.F = F
-    r.gens = gens
-    r.groebner_basis = Dict()
-    return r
-  end
-  
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens,
-                                       default_ordering::ModuleOrdering) where {R}
-    r = SubModuleOfFreeModule{R}(F, gens)
-    r.default_ordering = default_ordering
-    return r
-  end
-
-  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L}) where {L}
-    r = new{L}()
-    r.F = F
-    O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
-    r.gens = ModuleGens(O, F)
-    r.matrix = A
-    r.groebner_basis = Dict()
-    return r
-  end
-
-  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L},
-                                       default_ordering::ModuleOrdering) where {L}
-    r = SubModuleOfFreeModule{L}(F, A)
-    r.default_ordering = default_ordering
-    r.gens = ModuleGens(O, F, default_ordering)
     return r
   end
 end
@@ -290,91 +232,12 @@ option is set in suitable functions.
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
 
-  function SubQuo{R}(sub::SubModuleOfFreeModule{R}) where {R}
-    r = new{R}()
-    r.F = sub.F
-    r.sub = sub
-    r.sum = r.sub
-
-    r.groebner_basis = Dict()
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{R}(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
-    @assert sub.F === quo.F
-    r = new{R}()
-    r.F = sub.F
-    r.sub = sub
-    r.quo = quo
-    r.sum = sum(r.sub, r.quo)
-
-    r.groebner_basis = Dict()
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{R}(F::FreeMod{R}, O::Vector{<:FreeModElem}) where {R}
+  function SubQuo{R}(F::FreeMod{R}) where {R}
+    # this does not construct a valid subquotient
     r = new{R}()
     r.F = F
-    r.sub = SubModuleOfFreeModule(F, O)
-    r.sum = r.sub
 
     r.groebner_basis = Dict()
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{L}(S::SubQuo{L}, O::Vector{<:FreeModElem}) where {L} #TODO to be replaced by quo
-    r = new{L}()
-    r.F = S.F
-    r.sub = S.sub
-    O_as_submodule = SubModuleOfFreeModule(S.F, O)
-    r.quo = isdefined(S,:quo) ? sum(S.quo,O_as_submodule) : O_as_submodule
-    r.sum = sum(r.sub, r.quo)
-
-    r.groebner_basis = Dict()
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  #=function SubQuo(S::SubQuo, O::Vector{<:SubQuoElem})
-    @assert all(x->x.parent === S, O)
-    r = SubQuo(S.F, [x.repres for x in O])
-    r.quo = S.quo
-    r.sum = sum(r.sub, r.quo)
-    return r
-  end=#
-  function SubQuo{R}(F::FreeMod{R}, s::Singular.smodule) where {R}
-    r = new{R}()
-    r.F = F
-    r.sub = SubModuleOfFreeModule(F, s)
-    r.sum = r.sub
-
-    r.groebner_basis = Dict()
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{R}(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
-    r = new{R}()
-    r.F = F
-    r.sub = SubModuleOfFreeModule(F, s)
-    r.quo = SubModuleOfFreeModule(F, t)
-    r.sum = sum(r.sub, r.quo)
-
-    r.groebner_basis = Dict()
-
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
 
