@@ -195,7 +195,7 @@ julia> B = Oscar.GaloisGrp.upper_bound(C, s[1] + s[3])
 (x <= 12)
 
 julia> Oscar.GaloisGrp.isinteger(C, B, evaluate(s[1] + s[3], roots(C, 7)))
-(false, 0)
+(false, nothing)
 ```
 More interestingly, we can use this to find the minimal polynomial of `r[1] + r[3]`.
 Generically, the Galois-conjugates of `r[1]+r[3]` should be the `G`-orbit

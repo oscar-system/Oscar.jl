@@ -1991,7 +1991,7 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
     while true
       cnt += 1
       cnt > 20 && error("no Tschirni found")
-      @show ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
+      ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
       end
