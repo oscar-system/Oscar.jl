@@ -44,7 +44,6 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     else 
         # We just try to default to something from Polymake.jl
         deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-
         try
             return convert(deserialized)
         catch e

@@ -19,7 +19,8 @@ function convert(O::Polymake.BigObjectAllocated)
     if "Ideal" == big_object_name
         n_vars = O.N_VARIABLES
         R, _ = PolynomialRing(QQ, "x" => 0:n_vars - 1, cached=false)
-        converted_generators = map(p -> convert_to_oscar(p, R=R), O.GENERATORS)
+
+        converted_generators = map(p -> convert(p, parent=R), O.GENERATORS)
         
         return ideal(R, converted_generators)
     else
