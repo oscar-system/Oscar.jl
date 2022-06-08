@@ -1,5 +1,4 @@
 import AbstractAlgebra: Ring, RingElem, Generic.Frac
-import Base: issubset
 
 export MPolyQuoLocalizedRing
 export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, localized_modulus, gens
@@ -211,8 +210,8 @@ function quo(
   )
   R = base_ring(L)
   S = inverted_set(L)
-  lbpa = groebner_basis(I) # In particular, this saturates the ideal
-  J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
+  base_ring(I) = localized_ring(L) || error("ideal does not belong to the correct ring")
+  J = pre_saturated_ideal(I)
   W = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], localized_ring(L))
   return W, hom(L, W, gens(W))
 end
@@ -239,7 +238,7 @@ function Localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
-  issubset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
+  is_subset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
   U = inverted_set(L)*S
   W = MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U)[1])
   return W, MapFromFunc((x->W(lifted_numerator(x), lifted_denominator(x), check=false)), L, W)
@@ -654,32 +653,22 @@ function ^(a::MPolyQuoLocalizedRingElem, i::Integer)
   return parent(a)(lifted_numerator(a)^i, lifted_denominator(a)^i, check=false)
 end
 
-function isone(a::MPolyQuoLocalizedRingElem) 
+function is_one(a::MPolyQuoLocalizedRingElem) 
   return lifted_numerator(a) - lifted_denominator(a) in localized_modulus(parent(a))
 end
 
-function iszero(a::MPolyQuoLocalizedRingElem)
+function is_zero(a::MPolyQuoLocalizedRingElem)
   return lift(a) in localized_modulus(parent(a))
 end
 
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   return f
-  is_reduced(f) && return f
-  h = lift(f)
-  g = gcd(numerator(h), denominator(h))
-  h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  h = reduce(h, groebner_basis(localized_modulus(parent(f))))
-  return parent(f)(h, is_reduced=true, check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
   is_reduced(f) && return f
-  h = lift(f)
-  g = gcd(numerator(h), denominator(h))
-  h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g), check=false)
-  return parent(f)(h, is_reduced=true, check=false)
 end
 
 ### implementation of Oscar's general ring interface
@@ -840,7 +829,7 @@ constructor takes as input the triple
         is_unit(S(res(f))) || error("map is not well defined")
       end
       for g in gens(modulus(L))
-        iszero(S(res(g))) || error("map is not well defined")
+        is_zero(S(res(g))) || error("map is not well defined")
       end
     end
     return new{DomainType, CodomainType, RestrictedMapType}(L, S, res)
@@ -1081,7 +1070,7 @@ function is_isomorphism(
 
   # perform a sanity check
   phiAB = hom(A, B, imagesB)
-  issubset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
+  is_subset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
@@ -1222,7 +1211,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   l = Singular.LibPresolve.elimpart(SJ)
 
   # set up the ring with the fewer variables 
-  kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
+  kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !is_zero(l[4][i])]
   Rnew, new_vars = PolynomialRing(coefficient_ring(R), kept_var_symb)
 
   # and the maps to go back and forth
@@ -1230,7 +1219,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
-    if !iszero(l[4][i])
+    if !is_zero(l[4][i])
       push!(imgs, gens(Rnew)[j])
       j = j+1
     else
@@ -1254,7 +1243,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
 
   # the localized map and its inverse
   floc = hom(L, Lnew, Lnew.(f.(gens(R))), check=false)
-  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
+  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !is_zero(a)], check=false)
 
   return Lnew, floc, flocinv
 end
@@ -1287,7 +1276,7 @@ Ideals in localizations of affine algebras.
       g::Vector{LocRingElemType};
       map_from_base_ring::Hecke.Map = MapFromFunc(
           x->W(x),
-          y->(isone(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
+          y->(is_one(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
           base_ring(W), 
           W
         )

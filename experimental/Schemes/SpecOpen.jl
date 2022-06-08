@@ -1,7 +1,7 @@
-export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
+export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, is_subset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 export restriction_map
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_type, isexact_type
+export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, is_domain_type, is_exact_type
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
@@ -48,7 +48,7 @@ this is an open subset;
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
       if check
-        !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
+        !is_empty(X) && is_zero(OO(X)(a)) && error("generators must not be zero")
       end
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
@@ -143,7 +143,7 @@ Return the complement of the zero locus of ``I`` in ``X``.
 """
 function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
   base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
-  g = [numerator(a) for a in gens(I) if !iszero(numerator(a))]
+  g = [numerator(a) for a in gens(I) if !is_zero(numerator(a))]
   return SpecOpen(X, g)
 end
 
@@ -152,7 +152,7 @@ function SpecOpen(X::Spec, I::MPolyIdeal)
 end
 
 function complement(X::T, Z::T) where {T<:Spec}
-  if !issubset(Z, X) 
+  if !is_subset(Z, X) 
     Z = intersect(X, Z)
   end
   return SpecOpen(X, modulus(OO(Z)))
@@ -216,7 +216,7 @@ function intersect(
   X = ambient(U)
   base_ring(OO(X)) === base_ring(OO(Y)) || error("Schemes can not be compared")
   X == Y && return SpecOpen(Y, gens(U), check=check)
-  if check && !issubset(Y, X)
+  if check && !is_subset(Y, X)
     Y = intersect(Y, X)
   end
   return SpecOpen(Y, gens(U), check=check)
@@ -243,46 +243,46 @@ function Base.union(U::T, V::T) where {T<:SpecOpen}
   return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
-function issubset(
+function is_subset(
     Y::Spec, 
     U::SpecOpen
   )
   return one(OO(Y)) in ideal(OO(Y), gens(U))
 end
 
-function issubset(
+function is_subset(
     U::SpecOpen,
     Y::Spec
   ) 
   for V in affine_patches(U)
-    issubset(V, Y) || return false
+    is_subset(V, Y) || return false
   end
   return true
 end
 
-function issubset(U::T, V::T) where {T<:SpecOpen}
+function is_subset(U::T, V::T) where {T<:SpecOpen}
   base_ring(OO(ambient(U))) === base_ring(OO(ambient(V))) || return false
   W = V
-  issubset(W, ambient(U)) || (W = intersect(V, ambient(U)))
+  is_subset(W, ambient(U)) || (W = intersect(V, ambient(U)))
   Z = complement(W)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
   # efficient than computing radicals.
   for g in gens(U)
-    isempty(hypersurface_complement(Z, g)) || return false
+    is_empty(hypersurface_complement(Z, g)) || return false
   end
   return true
   #return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
 function is_canonically_isomorphic(U::T, V::T) where {T<:SpecOpen}
-  return issubset(U, V) && issubset(V, U)
+  return is_subset(U, V) && is_subset(V, U)
 end
 
 function is_canonically_isomorphic(
     U::SpecOpen,
     Y::Spec
   )
-  return issubset(U, Y) && issubset(Y, U)
+  return is_subset(U, Y) && is_subset(Y, U)
 end
 
 function is_canonically_isomorphic(
@@ -315,7 +315,7 @@ function closure(
     U::SpecOpen,
     Y::Spec 
   )
-  issubset(U, Y) || error("the first set is not contained in the second")
+  is_subset(U, Y) || error("the first set is not contained in the second")
   X = closure(U)
   return intersect(X, Y)
 end
@@ -339,7 +339,7 @@ mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
       X::SpecType, 
       U::OpenType
     ) where {SpecType<:Spec, OpenType<:SpecOpen}
-    issubset(U, X) || error("open set does not lay in the scheme")
+    is_subset(U, X) || error("open set does not lay in the scheme")
     return new{SpecType, OpenType}(X, U)
   end
 end
@@ -448,13 +448,13 @@ function restrict(
     f::SpecOpenRingElem, 
     V::Spec
   )
-  isempty(V) && return zero(OO(V))
+  is_empty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V == affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
-  issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
+  is_subset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
@@ -528,8 +528,8 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem}
   return SpecOpenRingElem(parent(a), [divexact(a[i], b[i]) for i in 1:length(restrictions(a))])
 end
 
-function isunit(a::SpecOpenRingElem) 
-  return all(x->isunit(x), restrictions(a))
+function is_unit(a::SpecOpenRingElem) 
+  return all(x->is_unit(x), restrictions(a))
 end
 
 inv(a::SpecOpenRingElem) = SpecOpenRingElem(parent(a), [inv(f) for f in restrictions(a)], check=false)
@@ -541,14 +541,14 @@ zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches
 (R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 (R::SpecOpenRing)(a::fmpz) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 
-isdomain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
-isdomain_type(a::SpecOpenRingElem) = isdomain_type(typeof(a))
-isexact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
-isexact_type(a::SpecOpenRingElem) = isexact_type(typeof(a))
-isdomain_type(::Type{T}) where {T<:SpecOpenRing} = true
-isdomain_type(R::SpecOpenRing) = isdomain_type(typeof(R))
-isexact_type(::Type{T}) where {T<:SpecOpenRing} = true
-isexact_type(R::SpecOpenRing) = isexact_type(typeof(R))
+is_domain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+is_domain_type(a::SpecOpenRingElem) = is_domain_type(typeof(a))
+is_exact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+is_exact_type(a::SpecOpenRingElem) = is_exact_type(typeof(a))
+is_domain_type(::Type{T}) where {T<:SpecOpenRing} = true
+is_domain_type(R::SpecOpenRing) = is_domain_type(typeof(R))
+is_exact_type(::Type{T}) where {T<:SpecOpenRing} = true
+is_exact_type(R::SpecOpenRing) = is_exact_type(typeof(R))
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T
@@ -705,7 +705,7 @@ end
 function inclusion_morphism(U::T, V::T; check::Bool=true) where {T<:SpecOpen}
   X = ambient(U)
   if check 
-    issubset(U, V) || error("method not implemented")
+    is_subset(U, V) || error("method not implemented")
   end
   return SpecOpenMor(U, V, gens(base_ring(OO(X))), check=false)
 end
@@ -741,24 +741,24 @@ end
 
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   if check
-    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
-    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+    is_subset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    all(x->is_subset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
   end
   return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
 
 function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   if check
-    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
-    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+    is_subset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    all(x->is_subset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
   end
   return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
 
 function restrict(f::SpecOpenMor, W::Spec, Y::Spec; check::Bool=true)
   if check
-    issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
-    issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
+    is_subset(W, domain(f)) || error("$U is not contained in the domain of $f")
+    is_subset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end
   phi = restriction_map(domain(f), W)
   fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(OO(Y)))]
@@ -784,7 +784,7 @@ function compose(f::T, g::T; check::Bool=true) where {T<:SpecOpenMor}
   Cf = codomain(f)
   V = domain(g)
   if check
-    issubset(Cf, V) || error("maps are not compatible")
+    is_subset(Cf, V) || error("maps are not compatible")
   end
   W = codomain(g)
   X = ambient(U)
@@ -886,8 +886,8 @@ function restriction(
     check::Bool=true
   )
   if check
-    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
-    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
+    is_subset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
+    is_subset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
   end
   inc = inclusion_morphism(U, domain(f), check=check)
   help_map = compose(inc, f, check=check)
@@ -936,7 +936,7 @@ function preimage(f::SpecOpenMor, Z::Spec)
     I = intersect(I, localized_modulus(OO(closure(preimage(f[i], Z), X))))
   end
   fZbar = subscheme(X, I)
-  return SpecOpen(fZbar, [g for g in gens(U) if !iszero(OO(fZbar)(g))])
+  return SpecOpen(fZbar, [g for g in gens(U) if !is_zero(OO(fZbar)(g))])
 end
 
 function preimage(f::SpecOpenMor, V::SpecOpen)
@@ -1044,7 +1044,7 @@ function restriction_map(U::SpecOpen, X::Spec, h::MPolyElem; check::Bool=true)
 
   # handle the shortcut 
   if X in affine_patches(U)
-    i = findfirst(x->(isequal(x, V), affine_patches(U)))
+    i = findfirst(x->(is_equal(x, V), affine_patches(U)))
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
@@ -1054,7 +1054,7 @@ function restriction_map(U::SpecOpen, X::Spec, h::MPolyElem; check::Bool=true)
   # do the checks
   if check
     is_canonically_isomorphic(X, hypersurface_complement(Y, h)) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
-    issubset(X, U) || error("$X is not a subset of $U")
+    is_subset(X, U) || error("$X is not a subset of $U")
   end
 
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
@@ -1107,7 +1107,7 @@ function restriction_map(U::SpecOpen, X::Spec, h::MPolyElem; check::Bool=true)
     end
     dirty = dirty - cleaned
 
-    while !iszero(dirty)
+    while !is_zero(dirty)
       m = m + 1
       c = (x->poh*x).(c)
       dirty = dirty*ta
@@ -1137,8 +1137,8 @@ function restriction_map(U::SpecOpen, X::Spec; check::Bool=true)
   R = base_ring(OO(Y))
   R == base_ring(OO(X)) || error("rings not compatible")
   if check
-    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
-    issubset(X, U) || error("$X is not a subset of $U")
+    is_subset(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    is_subset(X, U) || error("$X is not a subset of $U")
   end
   L = localized_ring(OO(X))
   D = denominators(inverted_set(L))
@@ -1166,7 +1166,7 @@ end
 function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
   Y = ambient(U)
   if check
-    all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
+    all(V->is_subset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
   end
   function mymap(f::MPolyQuoLocalizedRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
@@ -1176,7 +1176,7 @@ end
 
 function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
   if check
-    issubset(V, U) || error("$V is not a subset of $U")
+    is_subset(V, U) || error("$V is not a subset of $U")
   end
 
   if U == V

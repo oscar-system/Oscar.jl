@@ -88,7 +88,7 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
         ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
         U in patches && error("the ambient scheme of the refinement can not be found in the affine patches")
         if check
-          isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("the patch $V does not cover $U")
+          is_one(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("the patch $V does not cover $U")
         end
       end
     end
@@ -119,7 +119,7 @@ function add_affine_refinement!(
   X = ambient(U)
   X in patches(C) || error("ambient scheme not found in the basic patches of the covering")
   if check
-    if all(x->iszero(x), a) # in case of default argument, do the computations now
+    if all(x->is_zero(x), a) # in case of default argument, do the computations now
       g = gens(U)
       R = base_ring(OO(X))
       F = FreeMod(OO(X), 1)
@@ -128,7 +128,7 @@ function add_affine_refinement!(
       represents_element(F[1], M) || error("patches of $U do not cover $X")
       a = as_vector(coordinates(F[1], M), length(g))
     end
-    isone(OO(X)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("patches of $U do not cover $X")
+    is_one(OO(X)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("patches of $U do not cover $X")
   end
   if !haskey(affine_refinements(C), X)
     affine_refinements(C)[X] = [(U, a)]
@@ -746,7 +746,7 @@ function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
     patch_found = false
     while length(V_candidates) > 0
       V = pop!(V_candidates) 
-      if issubset(U, V) 
+      if is_subset(U, V) 
         inc1[U] = identity_map(U)
         inc2[U] = inclusion_map(U, V)
         inc0[U] = f[U]

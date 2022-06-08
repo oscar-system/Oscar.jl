@@ -187,7 +187,7 @@ hypersurface_complement(X::Spec, f::RingElem) = hypersurface_complement(X, base_
 function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_cache::Bool=false) where {BRT, BRET, RT, RET<:RingElem, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
-  iszero(f) && return subscheme(X, [one(R)])
+  is_zero(f) && return subscheme(X, [one(R)])
   f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
   W, _ = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
@@ -210,7 +210,7 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
         end
         J = localized_modulus(W)
         set_attribute!(J, :saturated_ideal, Jsat)
-        if issubset(Jsat, saturated_ideal(IX))
+        if is_subset(Jsat, saturated_ideal(IX))
           for o in keys(DIX)
             gb = DIX[o]
             groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), o.o, true)
@@ -240,22 +240,22 @@ end
 
 
 ### testing containment
-issubset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = true
+is_subset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = true
 
-function issubset(Y::Spec{BRT, BRET, RT, RET, MST1}, X::EmptyScheme{BRT, BRET}) where {BRT, BRET, RT, RET, MST1} 
-  return iszero(one(OO(Y)))
+function is_subset(Y::Spec{BRT, BRET, RT, RET, MST1}, X::EmptyScheme{BRT, BRET}) where {BRT, BRET, RT, RET, MST1} 
+  return is_zero(one(OO(Y)))
 end
 
 @Markdown.doc """
-    issubset(X::Spec, Y::Spec)
+    is_subset(X::Spec, Y::Spec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
-function issubset(X::Spec, Y::Spec)
-  error("`issubset(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+function is_subset(X::Spec, Y::Spec)
+  error("`is_subset(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
 end
 
-function issubset(
+function is_subset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
@@ -263,14 +263,14 @@ function issubset(
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
-  if !issubset(UY, UX) 
+  if !is_subset(UY, UX) 
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
-      isunit(OO(X)(a)) || return false
+      is_unit(OO(X)(a)) || return false
     end
   end
   J = localized_ring(OO(X))(modulus(OO(Y)))
-  return issubset(J, localized_modulus(OO(X)))
+  return is_subset(J, localized_modulus(OO(X)))
 end
 
 function ==(X::T, Y::T) where {T<:Spec}
@@ -282,18 +282,18 @@ function is_canonically_isomorphic(
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   X === Y && return true
-  isempty(X) && isempty(Y) && return true
+  is_empty(X) && is_empty(Y) && return true
   base_ring(OO(X)) == base_ring(OO(Y)) || return false
-  return issubset(X, Y) && issubset(Y, X)
+  return is_subset(X, Y) && is_subset(Y, X)
 end
 
 function is_canonically_isomorphic(X::Spec, Y::EmptyScheme)
-  return issubset(X, Y)
+  return is_subset(X, Y)
 end
 
 is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
 
-Base.isempty(X::Spec) = iszero(one(OO(X)))
+is_empty(X::Spec) = is_zero(one(OO(X)))
 
 @Markdown.doc """
     is_open_embedding(X::Spec, Y::Spec)
@@ -312,7 +312,7 @@ function is_open_embedding(
   R == base_ring(OO(Y)) || return false
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
-  issubset(UY, UX) || return false
+  is_subset(UY, UX) || return false
   J = localized_ring(OO(X))(modulus(OO(Y)))
   return localized_modulus(OO(X)) == J 
 end
@@ -334,7 +334,7 @@ function is_closed_embedding(
   R == base_ring(OO(Y)) || return false
   inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
   J = localized_ring(OO(X))(modulus(OO(Y)))
-  return issubset(J, localized_modulus(OO(X)))
+  return is_subset(J, localized_modulus(OO(X)))
 end
 
 ### set operations
@@ -357,8 +357,8 @@ function Base.intersect(
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
-  issubset(X, Y) && return X
-  issubset(Y, X) && return Y
+  is_subset(X, Y) && return X
+  is_subset(Y, X) && return Y
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   U = UX*UY
@@ -385,7 +385,7 @@ function closure(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  issubset(X, Y) || error("the first argument is not a subset of the second")
+  is_subset(X, Y) || error("the first argument is not a subset of the second")
   is_closed_embedding(X, Y) && return X
   W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
@@ -447,9 +447,9 @@ inclusion_map(X::T, Y::T) where {T<:Spec} = SpecMor(X, Y, gens(base_ring(OO(Y)))
 
 function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   if check
-    issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
-    issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
-    issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
+    is_subset(U, domain(f)) || error("second argument does not lay in the domain of the map")
+    is_subset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
+    is_subset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
   end
   return SpecMor(U, V, images(pullback(f)), check=check)
 end
@@ -474,7 +474,7 @@ function preimage(
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST3<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   X = domain(phi)
   Y = codomain(phi)
-  issubset(Z, Y) || (Z = intersect(Y, Z))
+  is_subset(Z, Y) || (Z = intersect(Y, Z))
   IZ = modulus(OO(Z))
   a = denominators(inverted_set(OO(Z)))
   R = base_ring(OO(X))

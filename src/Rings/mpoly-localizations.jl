@@ -1,5 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
-export rand, sets, issubset, units_of, simplify!, is_trivial
+export rand, sets, is_subset, units_of, simplify!, is_trivial
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
@@ -18,7 +18,6 @@ export MPolyLocalizedRingHom
 export domain, codomain, images
 
 import AbstractAlgebra: Ring, RingElem
-import Base: issubset
 
 export complement_of_ideal, powers_of_element
 
@@ -69,7 +68,7 @@ mutable struct MPolyPowersOfElement{
   function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyElem}
     for f in a 
       parent(f) == R || error("element does not belong to the given ring")
-      !iszero(f) || error("can not localize at the zero element")
+      !is_zero(f) || error("can not localize at the zero element")
     end
     k = coefficient_ring(R)
     return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a)
@@ -93,7 +92,7 @@ function Base.in(
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   R = parent(f)
   R == ambient_ring(S) || return false
-  if iszero(f) 
+  if is_zero(f) 
     return false
   end
   d = (length(denominators(S)) == 0 ? one(R) : prod(denominators(S)))
@@ -493,10 +492,10 @@ function Base.in(
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   R = parent(f)
   R == ambient_ring(S) || return false
-  if iszero(f)
+  if is_zero(f)
     return false
   end
-  return isone(leading_monomial(f, ordering(S)))
+  return is_one(leading_monomial(f, ordering(S)))
 end
 
 ### printing
@@ -512,25 +511,25 @@ end
 ########################################################################
 
 ### containment ########################################################
-⊂(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = issubset(T, U)
+⊂(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = is_subset(T, U)
 
-function issubset(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
+function is_subset(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
   ambient_ring(T) == ambient_ring(U) || return false
   error("comparison of multiplicative sets of type $(typeof(T)) and $(typeof(U)) is not implemented")
 end
 
 function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
-  return (issubset(T, U) && issubset(U, T))
+  return (is_subset(T, U) && is_subset(U, T))
 end
 
-function issubset(
+function is_subset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  return issubset(prime_ideal(U), prime_ideal(T))
+  return is_subset(prime_ideal(U), prime_ideal(T))
 end
 
-function issubset(
+function is_subset(
     T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -544,7 +543,7 @@ function issubset(
   return true
 end
 
-function issubset(
+function is_subset(
     T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -557,7 +556,7 @@ function issubset(
   return true
 end
 
-function issubset(
+function is_subset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -565,12 +564,12 @@ function issubset(
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
   for f in gens(prime_ideal(T))
-    iszero(evaluate(f, a)) || return false
+    is_zero(evaluate(f, a)) || return false
   end
   return true
 end
 
-function issubset(
+function is_subset(
     T::MPolyPowersOfElement{BRT, BRET, RT, RET},
     U::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -580,51 +579,51 @@ function issubset(
   return true
 end
 
-function issubset(
+function is_subset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyPowersOfElement{BRT, BRET, RT, RET},
   ) where {BRT, BRET, RT, RET}
   return false
 end
 
-function issubset(
+function is_subset(
     T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
     U::MPolyPowersOfElement{BRT, BRET, RT, RET},
   ) where {BRT, BRET, RT, RET}
   return false
 end
 
-function issubset(
+function is_subset(
     T::MPolyProductOfMultSets{BRT, BRET, RT, RET},
     U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   for V in sets(T)
-    issubset(V, U) || return false
+    is_subset(V, U) || return false
   end
   return true
 end
 
-function issubset(
+function is_subset(
     T::MPolyProductOfMultSets{BRT, BRET, RT, RET},
     U::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   for V in sets(T)
-    issubset(V, U) || return false
+    is_subset(V, U) || return false
   end
   return true
 end
 
-function issubset(
+function is_subset(
     T::AbsMPolyMultSet{BRT, BRET, RT, RET},
     U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   for V in sets(U)
-    issubset(T, V) && return true
+    is_subset(T, V) && return true
   end
   error("containment can not be checked")
 end
 
-function issubset(
+function is_subset(
     T::MPolyPowersOfElement{BRT, BRET, RT, RET},
     U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -698,8 +697,8 @@ product of the multiplicative sets [complement of maximal ideal corresponding to
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  issubset(T, U) && return U
-  issubset(U, T) && return T
+  is_subset(T, U) && return U
+  is_subset(U, T) && return T
   return MPolyProductOfMultSets(R, [T, U])
 end
 
@@ -710,7 +709,7 @@ function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets}
   for S in sets(T)
     push!(new_sets, S)
     for V in sets(U)
-      if issubset(S, V) 
+      if is_subset(S, V) 
 	pop!(new_sets)
 	break
       end
@@ -720,7 +719,7 @@ function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets}
   for V in sets(U)
     push!(new_sets, V)
     for U in new_sets[1:n]
-      if issubset(V, U) 
+      if is_subset(V, U) 
 	pop!(new_sets)
 	break
       end
@@ -733,11 +732,11 @@ function product(T::MPolyProductOfMultSets{BRT, BRET, RT, RET}, U::MST) where {B
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
   for V in sets(T)
-    issubset(U, T) && return T
+    is_subset(U, T) && return T
   end
   new_sets = U
   for V in sets(T)
-    issubset(V, U) || push!(new_sets, V)
+    is_subset(V, U) || push!(new_sets, V)
   end
   return MPolyProductOfMultSets(R, new_sets)
 end
@@ -749,7 +748,7 @@ function product(T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}, U::MPolyCom
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
   P = prime_ideal(T)
   for f in gens(P)
-    if iszero(evaluate(f, point_coordinates(U)))
+    if is_zero(evaluate(f, point_coordinates(U)))
       return MPolyProductOfMultSets(R, [U, T])
     end
   end
@@ -777,10 +776,10 @@ end
 function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  if issubset(prime_ideal(T), prime_ideal(U))
+  if is_subset(prime_ideal(T), prime_ideal(U))
     return T
   end
-  if issubset(prime_ideal(U), prime_ideal(T))
+  if is_subset(prime_ideal(U), prime_ideal(T))
     return U
   end
   return MPolyProductOfMultSets(R, [U, T])
@@ -963,7 +962,7 @@ function Localization(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  issubset(S, inverted_set(W)) && return W
+  is_subset(S, inverted_set(W)) && return W
   U = S*inverted_set(W)
   L, _ = Localization(U)
   #return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
@@ -1053,7 +1052,7 @@ mutable struct MPolyLocalizedRingElem{
     base_ring(parent(f)) == base_ring(W) || error(
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
-    if check && !iszero(f) && !is_unit(denominator(f))
+    if check && !is_zero(f) && !is_unit(denominator(f))
       denominator(f) in inverted_set(W) || error("the given denominator is not admissible for this localization")
     end
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(W, f)
@@ -1325,7 +1324,7 @@ Ideals in localizations of polynomial rings.
       gens::Vector{LocRingElemType};
       map_from_base_ring::Hecke.Map = MapFromFunc(
           x->W(x),
-          y->(isone(denominator(y)) ? numerator(y) : divexact(numerator(y), denominator(y))),
+          y->(is_one(denominator(y)) ? numerator(y) : divexact(numerator(y), denominator(y))),
           base_ring(W), 
           W
         )
@@ -1540,7 +1539,7 @@ function saturated_ideal(
     R = base_ring(L)
     result = ideal(R, [one(R)])
     for (Q, P) in pdec
-      if all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(P))
+      if all(x->is_zero(evaluate(x, point_coordinates(inverted_set(L)))), gens(P))
         result = intersect(result, Q)
       end
     end
@@ -1567,7 +1566,7 @@ function saturated_ideal(
     if strategy==:iterative_saturation
       Jsat = pre_saturated_ideal(I)
       for d in denominators(inverted_set(L))
-        if !is_unit(d) && !iszero(Jsat)
+        if !is_unit(d) && !is_zero(Jsat)
           Jsat = saturation(Jsat, ideal(R, d))
         end
         if with_generator_transition
@@ -1592,7 +1591,7 @@ function saturated_ideal(
     elseif strategy==:single_saturation
       d = prod(denominators(inverted_set(L)))
       Jsat = pre_saturated_ideal(I)
-      if !is_unit(d) && !iszero(pre_saturated_ideal(I))
+      if !is_unit(d) && !is_zero(pre_saturated_ideal(I))
         Jsat = saturation(Jsat, ideal(R, d))
       end
       if with_generator_transition
@@ -1699,7 +1698,7 @@ function ideal(
 end
 
 ### additional functionality
-function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+function is_subset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   base_ring(I) == base_ring(J) || error("ideals do not belong to the same ring")
   for g in gens(I)
     g in J || return false
@@ -1707,7 +1706,7 @@ function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedId
   return true
 end
 
-==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = (issubset(I, J) && issubset(J, I))
+==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = (is_subset(I, J) && is_subset(J, I))
 
 function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   return ideal(base_ring(I), vcat(gens(I), gens(J)))

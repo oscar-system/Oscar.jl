@@ -646,7 +646,7 @@ function set_base_ring_module(
       represents_element(F(g), M) || error("generators of the base ring module are not elements of the localization")
     end
     for g in relations(N)
-      iszero(M(g)) || error("relations are not preserved")
+      is_zero(M(g)) || error("relations are not preserved")
     end
   end
   set_attribute!(F, :base_ring_module, N)
@@ -660,15 +660,15 @@ end
 #
 ########################################################################
 
-function iszero(v::SubQuoElem{<:AbsLocalizedRingElem}) 
+function is_zero(v::SubQuoElem{<:AbsLocalizedRingElem}) 
   M = parent(v)
   Mb = pre_saturated_module(M)
   w = repres(v)
   b = as_matrix(repres(v))
-  all(x->iszero(x), b) && return true
+  all(x->is_zero(x), b) && return true
 
   (u, d) = clear_denominators(w)
-  iszero(Mb(u)) && return true
+  is_zero(Mb(u)) && return true
 
   B = relations_matrix(M)
   success, y = has_solution(b, B)

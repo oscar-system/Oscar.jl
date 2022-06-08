@@ -43,7 +43,7 @@ function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdea
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   a = point_coordinates(U)
-  candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(iszero(evaluate(f, a)))]
+  candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(is_zero(evaluate(f, a)))]
   length(candidates) == 0 && return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
   d = maximum([total_degree(f) for (f, i) in candidates])
   (g, j) = candidates[1]
