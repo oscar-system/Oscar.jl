@@ -169,8 +169,6 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   for g in keys(Z.fac)
      if total_degree(g) == 1
         f = divexact(g, leading_coefficient(g))
-        @show typeof(f)
-        @show typeof(gen(R, 2))
         push!(Y, -f + gen(R, 2))
      end
   end
