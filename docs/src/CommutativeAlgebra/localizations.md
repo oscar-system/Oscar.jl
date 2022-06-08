@@ -218,7 +218,7 @@ If `I`,  `J` are ideals of a localized multivariate polynomial ring  `Rloc`, the
 
 #### Tests on Ideals
 
-The usual tests `f in J`, `is_subset(I, J)`, and `I == J` are available.
+The usual tests `f in J`, `issubset(I, J)`, and `I == J` are available.
 
 #### Saturation
 

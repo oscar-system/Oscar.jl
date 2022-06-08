@@ -1,4 +1,5 @@
 import AbstractAlgebra: Ring, RingElem, Generic.Frac
+import Base: issubset
 
 export MPolyQuoLocalizedRing
 export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, localized_modulus, gens
@@ -238,7 +239,7 @@ function Localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
-  is_subset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
+  issubset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
   U = inverted_set(L)*S
   W = MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U)[1])
   return W, MapFromFunc((x->W(lifted_numerator(x), lifted_denominator(x), check=false)), L, W)
@@ -653,11 +654,11 @@ function ^(a::MPolyQuoLocalizedRingElem, i::Integer)
   return parent(a)(lifted_numerator(a)^i, lifted_denominator(a)^i, check=false)
 end
 
-function is_one(a::MPolyQuoLocalizedRingElem) 
+function isone(a::MPolyQuoLocalizedRingElem) 
   return lifted_numerator(a) - lifted_denominator(a) in localized_modulus(parent(a))
 end
 
-function is_zero(a::MPolyQuoLocalizedRingElem)
+function iszero(a::MPolyQuoLocalizedRingElem)
   return lift(a) in localized_modulus(parent(a))
 end
 
@@ -829,7 +830,7 @@ constructor takes as input the triple
         is_unit(S(res(f))) || error("map is not well defined")
       end
       for g in gens(modulus(L))
-        is_zero(S(res(g))) || error("map is not well defined")
+        iszero(S(res(g))) || error("map is not well defined")
       end
     end
     return new{DomainType, CodomainType, RestrictedMapType}(L, S, res)
@@ -1070,7 +1071,7 @@ function is_isomorphism(
 
   # perform a sanity check
   phiAB = hom(A, B, imagesB)
-  is_subset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
+  issubset(ideal(B, [phiAB(g) for g in gens(I)]), J) || error("the homomorphism is not well defined")
 
   # assemble a common ring in which the equations for the graph of phi can 
   # be realized.
@@ -1211,7 +1212,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   l = Singular.LibPresolve.elimpart(SJ)
 
   # set up the ring with the fewer variables 
-  kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !is_zero(l[4][i])]
+  kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
   Rnew, new_vars = PolynomialRing(coefficient_ring(R), kept_var_symb)
 
   # and the maps to go back and forth
@@ -1219,7 +1220,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
-    if !is_zero(l[4][i])
+    if !iszero(l[4][i])
       push!(imgs, gens(Rnew)[j])
       j = j+1
     else
@@ -1243,7 +1244,7 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
 
   # the localized map and its inverse
   floc = hom(L, Lnew, Lnew.(f.(gens(R))), check=false)
-  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !is_zero(a)], check=false)
+  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
 
   return Lnew, floc, flocinv
 end
@@ -1276,7 +1277,7 @@ Ideals in localizations of affine algebras.
       g::Vector{LocRingElemType};
       map_from_base_ring::Hecke.Map = MapFromFunc(
           x->W(x),
-          y->(is_one(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
+          y->(isone(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
           base_ring(W), 
           W
         )

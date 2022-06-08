@@ -675,7 +675,7 @@ end
 function is_well_defined(phi::ProjectiveSchemeMor) 
   CP = affine_cone(domain(phi))
   CQ = affine_cone(codomain(phi))
-  return is_subset(CP, preimage(map_on_affine_cones(phi), CQ))
+  return issubset(CP, preimage(map_on_affine_cones(phi), CQ))
 end
 
 function compose(f::T, g::T) where {T<:ProjectiveSchemeMor}
