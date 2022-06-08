@@ -1029,7 +1029,7 @@ function show_groebner_basis_helper(io::IO, sub::ModuleGens, init::String)
 
   print(io, init)
 
-  # This shall be removed when Oscar orderings are used
+  # TODO Remove this / use Oscar orderings when available
   singular_assure(sub)
   vectors = Vector{Vector{FreeModElem}}(undef, length(sub.O))
   for i in 1:length(sub.O)
