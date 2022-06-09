@@ -252,6 +252,9 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
     end
 
     encodeType(T) == dict[:type] || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) != $T"))
+
+    Base.issingletontype(T) && return T()
+
     result = load_internal(s, T, dict[:data])
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
