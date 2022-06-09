@@ -54,15 +54,14 @@ end
 function save_internal(s::SerializerState, K::SimpleNumField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K)),
-        # :var => save_type_dispatch(s, var(K)) waiting for https://github.com/thofma/Hecke.jl/pull/721
+        :var => save_type_dispatch(s, var(K)) 
     )
 end
 
 function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Dict)
     def_pol = load_unknown_type(s, dict[:def_pol])
-    # waiting for https://github.com/thofma/Hecke.jl/pull/721
-    # var = load_type_dispatch(s, Symbol, dict[:var])
-    K, _ = NumberField(def_pol) #, var, cached=false)
+    var = load_type_dispatch(s, Symbol, dict[:var])
+    K, _ = NumberField(def_pol, var, cached=false)
 
     return K
 end
