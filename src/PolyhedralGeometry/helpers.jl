@@ -6,7 +6,12 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
-        m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+        t = typeof(m[i])
+        if t <: Union{values(scalar_type_to_polymake)...}
+            m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
+        else
+            m = Polymake.Matrix{scalar_type_to_polymake[t]}(m)
+        end
     else
         m = Polymake.Matrix{Polymake.Rational}(undef, a, b)
     end
@@ -25,9 +30,10 @@ end
 
 assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
+assure_vector_polymake(v::AbstractVector{<:Union{fmpq, fmpz, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
 
-affine_matrix_for_polymake(x::Tuple) = assure_matrix_polymake(hcat(-x[2], x[1]))
+affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
+affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])
 
 _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{fmpq}, typeof(x)})
 
@@ -120,7 +126,7 @@ end
 
 function augment(mat::AbstractMatrix, vec::AbstractVector)
     s = size(mat)
-    res = similar(mat, (s[1], s[2] + 1))
+    res = similar(mat, promote_type(eltype(mat), eltype(vec)),(s[1], s[2] + 1))
     res[:, 1] = vec
     res[:, 2:end] = mat
     return assure_matrix_polymake(res)
@@ -131,6 +137,7 @@ homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(m
 homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
 homogenize(nothing,val::Number)=nothing
 homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) = homogenize(x, val)
+homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) = stack((homogenize(x[i], val) for i in 1:length(x))...)
 
 dehomogenize(vec::AbstractVector) = vec[2:end]

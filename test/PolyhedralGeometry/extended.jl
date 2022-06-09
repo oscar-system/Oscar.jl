@@ -139,6 +139,23 @@
         @test cone_from_inequalities(collect(facets(Pos_poly))) == Pos_cone
         @test cone_from_inequalities(collect(facets(Pos_cone))) == Pos_cone
         
+        # testing correct dispatch and tuple processing for Polyhedron
+        @test Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
+        @test Polyhedron([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], fmpq[0, 0, 0]) == Pos_poly
+        @test Polyhedron(matrix(ZZ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
+        @test Polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
+        
+        let y = convex_hull([0, 0, 0], [1, 0, 0], [[0, 1, 0], [0, 0, 1]])
+            @test Polyhedron([-1 0 0], [0]) == y
+            @test Polyhedron([-1 0 0], 0) == y
+            @test Polyhedron([-[1, 0, 0]], fmpq[0]) == y
+            @test Polyhedron([-1, 0, 0], fmpq[0]) == y
+            @test Polyhedron([[-1, 0, 0]], fmpq(0)) == y
+            @test Polyhedron([-1, 0, 0], fmpq(0)) == y
+            @test Polyhedron(matrix(ZZ, [-1 0 0]), [0]) == y
+            @test Polyhedron(matrix(QQ, [-1 0 0]), [0]) == y
+        end
+        
         let x = positive_hull([1 0 0; 0 1 0]), y = convex_hull([0 0 0], [1 0 0; 0 1 0])
             @test Polyhedron(facets(y), affine_hull(y)) == y
             @test Polyhedron(facets(y), linear_span(x)) == y

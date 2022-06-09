@@ -226,21 +226,13 @@ function newton_polytope(f)
 end
 
 
-Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(permutedims(normal_vector(H)), negbias(H))
+Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(normal_vector(H), negbias(H))
 
-Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(permutedims(normal_vector(H)), negbias(H))
+Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(normal_vector(H), negbias(H))
 
-function Polyhedron(H::Hyperplane{T}) where T<:scalar_types
-   n = permutedims(normal_vector(H))
-   b = negbias(H)
-   return Polyhedron{T}(nothing, (n, [b]))
-end
+Polyhedron(H::Hyperplane{T}) where T<:scalar_types = Polyhedron{T}(nothing, (normal_vector(H), [negbias(H)]))
 
-function Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}})
-   n = permutedims(normal_vector(H))
-   b = negbias(H)
-   return Polyhedron{nf_elem}(nothing, (n, [b]))
-end
+Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(nothing, (normal_vector(H), [negbias(H)]))
 
 @doc Markdown.doc"""
     intersect(P::Polyhedron, Q::Polyhedron)

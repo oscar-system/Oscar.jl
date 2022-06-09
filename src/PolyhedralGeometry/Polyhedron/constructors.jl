@@ -45,6 +45,29 @@ julia> b = [1, 1, 0, 0];
 julia> Polyhedron(A,b)
 A polyhedron in ambient dimension 2
 ```
+"""
+Polyhedron{T}(A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = Polyhedron{T}((A, b))
+
+Polyhedron{T}(A::AbstractVector{>:AbstractVector}, b::Any) where T<:scalar_types = Polyhedron{T}([A], [b])
+
+Polyhedron{T}(A::AnyVecOrMat, b::Any) where T<:scalar_types = Polyhedron{T}(A, [b])
+
+@doc Markdown.doc"""
+    Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
+
+The (convex) polyhedron obtained intersecting the halfspaces `I` (inequalities)
+and the hyperplanes `E` (equations).
+
+# Examples
+The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
+```jldoctest
+julia> A = [1 0; 0 1; -1 0 ; 0 -1];
+
+julia> b = [1, 1, 0, 0];
+
+julia> Polyhedron((A,b))
+A polyhedron in ambient dimension 2
+```
 
 As an example for a polyhedron constructed from both inequalities and
 equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
@@ -64,8 +87,6 @@ julia> vertices(P)
  [0, 0]
 ```
 """
-Polyhedron{T}(A::AnyVecOrMat, b) where T<:scalar_types = Polyhedron{T}((A, b))
-
 function Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
     if isnothing(I) || _isempty_halfspace(I)
         EM = affine_matrix_for_polymake(E)
