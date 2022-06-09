@@ -308,33 +308,105 @@ end
 
 
 ################################################################################
-# Interacting with files
-@doc Markdown.doc"""
+# Interacting with IO streams and files
+
+"""
+    save(io::IO, obj::Any)
     save(filename::String, obj::Any)
 
-Save an object `obj` to a file.
+Save an object `T` to the given io stream
+respectively to the file `filename`.
+
+See [`load`](@ref).
+
+# Examples
+
+```jldoctest
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
+42
+```
 """
-function save(filename::String, obj::Any)
+function save(io::IO, obj::Any)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)
+    write(io, jsonstr)
+end
+
+function save(filename::String, obj::Any)
     open(filename, "w") do file
-        write(file, jsonstr)
+        save(file, obj)
     end
 end
 
-@doc Markdown.doc"""
+"""
+    load(io::IO)
     load(filename::String)
 
-Load the object stored in a file.
+Load the object stored in the given io stream
+respectively in the file `filename`.
+
+See [`save`](@ref).
+
+# Examples
+
+```jldoctest
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
+42
+```
 """
-function load(filename::String)
+function load(io::IO)
     state = DeserializerState()
     # Check for type of file somewhere here?
-    jsondict = JSON.parsefile(filename, dicttype=Dict{Symbol, Any})
-    return load_unknown_type(state, jsondict, check_namespace=true)
+    jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+    return load_unknown_type(state, jsondict; check_namespace=true)
 end
 
+function load(filename::String)
+    open(filename) do file
+        return load(file)
+    end
+end
+
+"""
+    load(io::IO, ::Type)
+    load(filename::String, T::Type)
+
+Load the object of the given type stored in the given io stream
+respectively in the file `filename`.
+
+This guarantees that the end result has the given type.
+
+See [`save`](@ref).
+
+# Examples
+
+```jldoctest
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
+42
+
+julia> load("fourtitwo.json", String)
+ERROR: Type in file doesn't match target type: Base.Int != String
+```
+"""
+function load(io::IO, T::Type)
+    state = DeserializerState()
+    # Check for type of file somewhere here?
+    jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+    return load_type_dispatch(state, T, jsondict)
+end
+
+function load(filename::String, T::Type)
+    open(filename) do file
+        return load(file, T)
+    end
+end
 
 include("basic_types.jl")
 include("containers.jl")
