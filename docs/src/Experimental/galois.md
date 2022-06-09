@@ -271,3 +271,10 @@ minpoly(C::Oscar.GaloisGrp.GaloisCtx, I, extra::Int = 5)
 Oscar.GaloisGrp.cauchy_ideal(f::PolyElem{<:FieldElem})
 Oscar.GaloisGrp.galois_ideal(C::Oscar.GaloisGrp.GaloisCtx, extra::Int = 5)
 ```
+
+Over the integers, if the Galois group is solvable, the roots can be expressed 
+as radicals:
+```@docs
+solve(f::fmpz_poly)
+fixed_field(C::GaloisCtx, s::Vector{PermGroup})
+```
