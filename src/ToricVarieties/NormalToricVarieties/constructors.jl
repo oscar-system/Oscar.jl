@@ -1,5 +1,3 @@
-import Oscar.projective_space
-
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
