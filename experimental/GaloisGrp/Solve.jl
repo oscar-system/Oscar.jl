@@ -383,7 +383,7 @@ end
 Compute a presentation of the roots of `f` in a radical tower.
 The necessary roots of unity are not themselves computed as radicals.
 
-See also: `galois_group`
+See also [`galois_group`](@ref).
 
 # VERBOSE
 Supports `set_verbose_level(:SolveRadical, i)` to obtain information.
