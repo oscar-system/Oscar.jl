@@ -481,8 +481,11 @@ Note that the secondary invariants are defined with respect to the currently
 cached system of primary invariants for `IR` (if no system of primary invariants
 for `IR` is cached, such a system is computed and cached first).
 
-The implemented algorithms are Algorithm 3.7.5 in [DK15](@cite) for the modular case and
-Algorithm 3.7.2 in [DK15](@cite) for the non-modular case.
+# Implemented Algorithms
+
+For the non-modular case, the function relies on Algorithm 3.7.2 in [DK15](@cite), 
+enhanced by ideas from [Kin07](@cite). In the modular case, Algorithm 3.7.5 in 
+[DK15](@cite) is used.
 
 # Examples
 ```jldoctest
