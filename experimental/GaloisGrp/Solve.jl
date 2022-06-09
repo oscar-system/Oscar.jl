@@ -270,7 +270,7 @@ end
 Given a descending chain of subgroups, each being maximal in the previous
 one, compute the corresponding subfields as a tower.
 
-# EXAMPLES
+# Examples
 ```julia
 julia> Qx, x = QQ["x"];
 
