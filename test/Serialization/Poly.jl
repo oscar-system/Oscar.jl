@@ -104,8 +104,6 @@ end
                     loaded_i = load(filename)
 
                     if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
-                        println(R, "HEEERRRE")
-                        
                         S = parent(loaded_i[1])
                         h = hom(R, S, gens(S))
                         @test h(i) == loaded_i
