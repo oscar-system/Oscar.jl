@@ -489,7 +489,6 @@ enhanced by ideas from [Kin07](@cite). In the modular case, Algorithm 3.7.5 in
 
 # Examples
 ```jldoctest
-
 julia> K, a = CyclotomicField(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
