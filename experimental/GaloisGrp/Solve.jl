@@ -389,7 +389,7 @@ See also [`galois_group`](@ref).
 Supports `set_verbose_level(:SolveRadical, i)` to obtain information.
 
 
-# EXAMPLES
+# Examples
 ```julia
 julia> Qx,x = QQ["x"];
 
