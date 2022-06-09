@@ -267,7 +267,7 @@ end
 @doc Markdown.doc"""
     fixed_field(C::GaloisCtx, s::Vector{PermGroup})
 
-Given a descending chain if subgroups, each being maximal in the previous
+Given a descending chain of subgroups, each being maximal in the previous
 one, compute the corresponding subfields as a tower.
 
 # EXAMPLES
