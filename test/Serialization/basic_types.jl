@@ -5,6 +5,22 @@ function test_save_load_roundtrip(func, path, original::T) where T
   loaded = load(filename)
   @test loaded isa T
   func(loaded)
+
+  # save and load from an IO buffer
+  io = IOBuffer()
+  save(io, original)
+  seekstart(io)
+  loaded = load(io)
+  @test loaded isa T
+  func(loaded)
+
+  # save and load from an IO buffer, with prescribed type
+  io = IOBuffer()
+  save(io, original)
+  seekstart(io)
+  loaded = load(io, T)
+  @test loaded isa T
+  func(loaded)
 end
 
 @testset "basic_types" begin
