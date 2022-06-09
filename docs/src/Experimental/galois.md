@@ -276,5 +276,5 @@ Over the integers, if the Galois group is solvable, the roots can be expressed
 as radicals:
 ```@docs
 solve(f::fmpz_poly)
-fixed_field(C::GaloisCtx, s::Vector{PermGroup})
+fixed_field(C::Oscar.GaloisGrp.GaloisCtx, s::Vector{PermGroup})
 ```
