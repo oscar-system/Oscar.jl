@@ -381,7 +381,7 @@ end
     Oscar.solve(f::fmpq_poly; max_prec::Int=typemax(Int))
 
 Compute a presentation of the roots of `f` in a radical tower.
-The neccessary roots-of-1 are not themselves computed as radicals.
+The necessary roots of unity are not themselves computed as radicals.
 
 See also: `galois_group`
 
