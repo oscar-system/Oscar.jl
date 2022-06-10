@@ -54,7 +54,7 @@ end
   X = Spec(R, I)
   U = SpecOpen(X, [x, y])
   P = projective_space(OO(U), 1)
-  S = homog_poly_ring(P)
+  S = homogeneous_poly_ring(P)
   Y = subscheme(P, [x*S[1]- y*S[2], z*S[1] - x*S[2]])
   C = affine_cone(Y)
   phi = homog_to_frac(Y)
