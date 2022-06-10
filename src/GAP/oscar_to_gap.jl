@@ -31,8 +31,8 @@ function GAP.julia_to_gap(obj::nf_elem)
     return GAPWrap.CycList(GAP.julia_to_gap(v, recursive = true))
 end
 
-## `QabElem` to GAP cyclotomic
-function GAP.julia_to_gap(elm::QabElem)
+## `QQAbElem` to GAP cyclotomic
+function GAP.julia_to_gap(elm::QQAbElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
     return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
 end

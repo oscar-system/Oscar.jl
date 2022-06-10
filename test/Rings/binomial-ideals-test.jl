@@ -38,8 +38,8 @@
     I = ideal(R, [x[3]^2*(x[1]^2-x[2]^2), x[3]*(x[1]^4-x[2]^4), x[3]^3])
     ap = cellular_minimal_associated_primes(I)
     @test length(ap) == 1
-    RQab = base_ring(ap[1])
-    @test ap[1] == ideal(RQab, [RQab[3]])
+    RQQAb = base_ring(ap[1])
+    @test ap[1] == ideal(RQQAb, [RQQAb[3]])
 
   end
 
@@ -52,22 +52,22 @@
     for i = 2:length(lP)
       J = intersect(J, lP[i][1])
     end
-    RQab = base_ring(J)
-    Qab = base_ring(RQab)
-    x, y, z, t = gens(RQab) 
-    IQab = ideal([x*y, z*t^2-t^3, z^2-y^2])
-    @test IQab == J
+    RQQAb = base_ring(J)
+    QQAb = base_ring(RQQAb)
+    x, y, z, t = gens(RQQAb) 
+    IQQAb = ideal([x*y, z*t^2-t^3, z^2-y^2])
+    @test IQQAb == J
     
 
     I = Oscar.birth_death_ideal(2, 1)
     lP = Oscar.primary_decomposition(I)
     lP1 = Oscar.binomial_primary_decomposition(I)
     @test length(lP) == length(lP1)
-    RQab = base_ring(lP1[1][1])
-    Qab = base_ring(RQab)
+    RQQAb = base_ring(lP1[1][1])
+    QQAb = base_ring(RQQAb)
     for x in lP
-      y = ideal(RQab, [map_coefficients(Qab, p, parent = RQab) for p in gens(x[1])])
-      z = ideal(RQab, [map_coefficients(Qab, p, parent = RQab) for p in gens(x[2])])
+      y = ideal(RQQAb, [map_coefficients(QQAb, p, parent = RQQAb) for p in gens(x[1])])
+      z = ideal(RQQAb, [map_coefficients(QQAb, p, parent = RQQAb) for p in gens(x[2])])
       @test (y, z) in lP1
     end
     

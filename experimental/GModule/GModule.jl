@@ -29,7 +29,7 @@ function __init__()
 end
 
 function Hecke.number_field(::FlintRationalField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
-  return number_field(QQ, map(x->GAP.gap_to_julia(QabElem, x), chi.values), cached = cached)
+  return number_field(QQ, map(x->GAP.gap_to_julia(QQAbElem, x), chi.values), cached = cached)
 end
 
 function irreducible_modules(G::Oscar.GAPGroup)
@@ -103,7 +103,7 @@ function irreducible_modules(::FlintIntegerRing, G::Oscar.GAPGroup)
 end
 
 function gmodule(::typeof(CyclotomicField), C::GModule)
-  @assert isa(base_ring(C), QabField)
+  @assert isa(base_ring(C), QQAbField)
   d = dim(C)
   l = 1
   for g = C.ac
@@ -128,7 +128,7 @@ function ^(C::GModule{<:Any, T}, h::Map{S, S}) where T <: S where S
   return GModule(group(C), [inv(h)*x*h for x = C.ac])
 end
 
-function ^(C::GModule{<:Any, Generic.FreeModule{QabElem}}, phi::Map{QabField, QabField})
+function ^(C::GModule{<:Any, Generic.FreeModule{QQAbElem}}, phi::Map{QQAbField, QQAbField})
   F = free_module(codomain(phi), dim(C))
   return GModule(F, group(C), [hom(F, F, map_entries(phi, mat(x))) for x = C.ac])
 end
@@ -198,15 +198,15 @@ function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
   A = maximal_abelian_subfield(ClassField, k)
   c = Hecke.norm(conductor(A)[1])
-  Qab = abelian_closure(QQ)[1]
-  K = cyclotomic_field(Qab, Int(c))[1]
+  QQAb = abelian_closure(QQ)[1]
+  K = cyclotomic_field(QQAb, Int(c))[1]
   fl, em = is_subfield(k, K)
-  return Oscar.group_class_function(group(C), [Qab(em(preimage(mkK, x[2]))) for x = chr])
+  return Oscar.group_class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
 end
 
 function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
-  Qab = abelian_closure(QQ)[1]
-  return Oscar.group_class_function(group(C), [Qab(x[2]) for x = _character(C)])
+  QQAb = abelian_closure(QQ)[1]
+  return Oscar.group_class_function(group(C), [QQAb(x[2]) for x = _character(C)])
 end
 
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
@@ -771,13 +771,13 @@ function gmodule(K::AnticNumberField, M::GModule{<:Any, <:Generic.FreeModule{nf_
   return gmodule(F, group(M), [hom(F, F, map_entries(K, mat(x))) for x = M.ac])
 end
 
-function (K::QabField)(a::nf_elem)
+function (K::QQAbField)(a::nf_elem)
   fl, f = Hecke.is_cyclotomic_type(parent(a))
   @assert fl
-  return QabElem(a, f)
+  return QQAbElem(a, f)
 end
 
-function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QabElem}}
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QQAbElem}}
   C1 = gmodule(CyclotomicField, C)
   D1 = gmodule(CyclotomicField, D)
   fl, Cf = Hecke.is_cyclotomic_type(base_ring(C1))
@@ -1062,7 +1062,7 @@ end
  - allow trivial stuff
 =# 
 """
-  For K a finite field, Q, a number field or Qab, find all
+  For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
 
 Note: the reps are NOT neccessarily over the smallest field.

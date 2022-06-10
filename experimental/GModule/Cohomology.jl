@@ -1070,7 +1070,7 @@ Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -mat(a))
 Base.zero(G::GrpAbFinGen) = G[0]
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
 
-function Oscar.mat(M::FreeModuleHom{FreeMod{QabElem}, FreeMod{QabElem}})
+function Oscar.mat(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
   return M.matrix
 end
 ###########################################################

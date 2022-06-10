@@ -173,16 +173,16 @@ end
     @test F(GAP.Globals.E(5)) == z^3
     @test F(GAP.Globals.E(3)) == z^5
 
-    # to `QabElem`
-    x = QabElem(GAP.evalstr("2^64"))
+    # to `QQAbElem`
+    x = QQAbElem(GAP.evalstr("2^64"))
     @test x == fmpz(2)^64
 
     F, z = abelian_closure(QQ)
     val = GAP.evalstr("EB(5)")
-    x = QabElem(val)
+    x = QQAbElem(val)
     @test x == z(5) + z(5)^4
     @test F(val) == x
-    @test GAP.gap_to_julia(QabElem, val) == x
+    @test GAP.gap_to_julia(QQAbElem, val) == x
 
     # not supported conversions
     F, z = quadratic_field(5)
@@ -198,7 +198,7 @@ end
     a = GAP.Globals.PrimitiveElement(gapF)
     @test_throws ArgumentError F(a)
 
-    @test_throws GAP.ConversionError QabElem(GAP.evalstr("[ E(3) ]"))
+    @test_throws GAP.ConversionError QQAbElem(GAP.evalstr("[ E(3) ]"))
 end
 
 @testset "matrices over a cyclotomic field" begin
