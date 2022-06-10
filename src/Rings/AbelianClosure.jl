@@ -97,6 +97,7 @@ julia> z(36)
 -ζ(36, 9)*ζ(36, 4)^4 - ζ(36, 9)*ζ(36, 4)
 
 ```
+"""
 function abelian_closure(::FlintRationalField; sparse::Bool = false) 
   if sparse 
     return _Qab_sparse, _QabGen_sparse
