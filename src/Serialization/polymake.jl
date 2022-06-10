@@ -48,7 +48,7 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
             return convert(deserialized)
         catch e
             if e isa MethodError
-                @warn "No function for converting the deserialized Polymake type to Oscar type"
+                @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
                 return deserialized
             else
                 throw(e)
