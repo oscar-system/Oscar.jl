@@ -591,6 +591,19 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	M2 = SubQuo(F3,A2,B2)
 
+	sum_M, emb = direct_sum(M1,M2)
+
+	@test domain(emb[1]) === M1
+	@test domain(emb[2]) === M2
+	@test codomain(emb[1]) === sum_M
+	@test codomain(emb[2]) === sum_M
+
+	sum_M, proj = direct_sum(M1,M2, task=:prod)
+	@test codomain(proj[1]) === M1
+	@test codomain(proj[2]) === M2
+	@test domain(proj[1]) === sum_M
+	@test domain(proj[2]) === sum_M
+
 	prod_M, emb, proj = direct_sum(M1,M2,task=:both)
 	@test length(proj) == length(emb) == 2
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)

@@ -4277,7 +4277,7 @@ Additionally, return
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above if `task = :none`.
 """
-function direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where {T}
+function direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where {T}
   res = direct_product(M...; task)
   if task == :sum || task == :prod
     ds, f = res
