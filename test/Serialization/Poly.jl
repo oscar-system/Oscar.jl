@@ -82,7 +82,7 @@ end
                 R, z = PolynomialRing(case[1], "z")
                 p = z^2 + case[2] * z + case[3]
                 filename = joinpath(path, "polynomial.uv")
-                save(p, filename)
+                save(filename, p)
                 loaded = load(filename)
                 S = parent(loaded)
                 @test test_equality(p, loaded)
@@ -92,7 +92,7 @@ end
                 R, (z, w) = PolynomialRing(case[1], ["z", "w"])
                 p = z^2 + case[2] * z * w + case[3] * w^3
                 filename = joinpath(path, "polynomial_.mv")
-                save(p, filename)
+                save(filename, p)
                 loaded = load(filename)
                 @test test_equality(p, loaded)
 
@@ -100,7 +100,7 @@ end
                     q = w^2 - z
                     i = ideal(R, [p, q])
                     filename = joinpath(path, "ideal.mv")
-                    save(i, filename)
+                    save(filename, i)
                     loaded_i = load(filename)
 
                     if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}

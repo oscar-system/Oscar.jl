@@ -11,7 +11,7 @@
             )
             original = T(1)
             filename = joinpath(path, string(T)*".json")
-            save(original, filename)
+            save(filename, original)
             loaded = load(filename)
             @test loaded isa T
             @test original == loaded
@@ -20,7 +20,7 @@
         @testset "String" begin
             original = "original"
             filename = joinpath(path, "original.json")
-            save(original, filename)
+            save(filename, original)
             loaded = load(filename)
             @test loaded isa String
             @test loaded == original
@@ -29,7 +29,7 @@
         @testset "Symbol" begin
             original = :original
             filename = joinpath(path, "original.json")
-            save(original, filename)
+            save(filename, original)
             loaded = load(filename)
             @test loaded isa Symbol
             @test loaded == original
@@ -38,7 +38,7 @@
         @testset "Singleton types" begin
             original = [ZZ, QQ]
             filename = joinpath(path, "original.json")
-            save(original, filename)
+            save(filename, original)
             loaded = load(filename)
             @test loaded[1] isa FlintIntegerRing
             @test loaded[1] === ZZ

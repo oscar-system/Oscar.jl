@@ -307,11 +307,11 @@ end
 ################################################################################
 # Interacting with files
 @doc Markdown.doc"""
-    save(obj::T, filename::String) where T
+    save(filename::String, obj::Any)
 
-Save an object `T` to a file.
+Save an object `obj` to a file.
 """
-function save(obj::T, filename::String) where T
+function save(filename::String, obj::Any)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)

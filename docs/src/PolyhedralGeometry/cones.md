@@ -43,7 +43,7 @@ Objects of type `Cone` can be saved to a file and loaded from a file in the
 following way:
 ```@repl oscar
 C = positive_hull([1 0; 0 1])
-save(C, "C.cone")
+save("C.cone", C)
 CC = load("C.cone")
 collect(rays(CC))
 ```

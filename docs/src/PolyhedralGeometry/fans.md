@@ -45,7 +45,7 @@ in the following way:
 ```@repl oscar
 square = cube(2)
 fan = normal_fan(square)
-save(fan, "F.fan")
+save("F.fan", fan)
 f = load("F.fan")
 collect(rays(f))
 ```
