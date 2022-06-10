@@ -135,7 +135,73 @@ end
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
 	M = SubQuo(A, B)
-	@test all(iszero, homology(free_resolution(M)))
+	free_res = free_resolution(M)
+	@test all(iszero, homology(free_res))
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	tensor_resolution = tensor_product(N,free_res)
+	@test range(tensor_resolution) == range(free_res)
+	for i in range(tensor_resolution)
+		f = map(free_res,i)
+		M_i = domain(f)
+		tensored_f = map(tensor_resolution,i)
+		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+		for (n,mi) in zip(gens(N),gens(M_i))
+			@test tensored_f(to_pure_tensors_i((n,mi))) == to_pure_tensors_i_plus_1(n,f(mi))
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2*z; x+y-z], R[z^4;])
+	tensor_resolution = tensor_product(free_res,N)
+	@test range(tensor_resolution) == range(free_res)
+	for i in range(tensor_resolution)
+		f = map(free_res,i)
+		M_i = domain(f)
+		tensored_f = map(tensor_resolution,i)
+		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+		for (mi,n) in zip(gens(M_i),gens(N))
+			@test tensored_f(to_pure_tensors_i((mi,n))) == to_pure_tensors_i_plus_1(f(mi),n)
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	hom_resolution = hom(N,free_res)
+	@test range(hom_resolution) == range(free_res)
+	for i in range(hom_resolution)
+		f = map(free_res,i)
+		hom_f = map(hom_resolution,i)
+		hom_N_M_i = domain(hom_f)
+		for v in gens(hom_N_M_i)
+			@test homomorphism(hom_f(v)) == homomorphism(v)*f
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
+	hom_resolution = hom(free_res,N)
+	@test last(range(hom_resolution)) == first(range(free_res))
+	@test first(range(hom_resolution)) == last(range(free_res))
+	for i in range(hom_resolution)
+		f = map(free_res,i)
+		hom_f = map(hom_resolution,i)
+		hom_M_i_N = domain(hom_f)
+		for v in gens(hom_M_i_N)
+			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+		end
+	end
+
+	hom_resolution = hom_without_reversing_direction(free_res,N)
+	@test last(range(hom_resolution)) == -first(range(free_res))
+	@test first(range(hom_resolution)) == -last(range(free_res))
+	for i in range(hom_resolution)
+		f = map(free_res,-i)
+		hom_f = map(hom_resolution,i)
+		hom_M_i_N = domain(hom_f)
+		for v in gens(hom_M_i_N)
+			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+		end
+	end
 end
 
 @testset "Test kernel" begin

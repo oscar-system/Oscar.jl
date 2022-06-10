@@ -1,7 +1,8 @@
 export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
+      represents_element, free_resolution, hom_without_reversing_direction,
+      homomorphism, module_elem, generator_matrix,
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
@@ -2531,6 +2532,16 @@ function is_welldefined(H::ModuleMap)
   end
   return true
 end
+
+function (==)(f::ModuleMap, g::ModuleMap)
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  M = domain(f)
+  for v in gens(M)
+    f(v) == g(v) || return false
+  end
+  return true
+end
 ###################################################################
 
 @doc Markdown.doc"""
@@ -2996,7 +3007,7 @@ function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
   F = FreeMod(R, ngens(D))
-  hh = hom(F, codomain(h), map(h, gens(D)))
+  hh = hom(F, codomain(h), Vector{ModuleFPElem}(map(h, gens(D))))
   k = kernel(hh)
   @assert domain(k[2]) === k[1]
   @assert codomain(k[2]) === F
@@ -3014,7 +3025,9 @@ Return a free resolution of `F`.
 # Examples
 """
 function free_resolution(F::FreeMod)
-  return presentation(F)
+  res = presentation(F)
+  #set_attribute!(res, :show => Hecke.free_show, :free_res => F)
+  return res
 end
 
 @doc Markdown.doc"""
@@ -3046,7 +3059,9 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  return Hecke.ChainComplex(ModuleFP, mp, check = false, start=-1)
+  C = Hecke.ChainComplex(ModuleFP, mp, check = false, start=-1)
+  #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
+  return C
 end
 
 function Hecke.ring(I::MPolyIdeal)
@@ -3858,8 +3873,32 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  start = -C.start
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=C.direction)
+  direction = Hecke.is_chain_complex(C) ? :right : :left
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=last(range(C))-1, direction=direction)
+end
+
+@doc Markdown.doc"""
+    hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+Apply $\text{Hom}(-,P)$ to `C`. If `C` is a chain complex, return a chain complex
+and accordingly if `C` is a cochain complex, return a cochain complex.
+"""
+function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+  #hom_chain = Hecke.map_type(C)[]
+  hom_chain = valtype(C.maps)[]
+  chain_range = range(C)
+  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
+  hom_modules = vcat(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+
+  for i=1:length(chain_range)
+    A = hom_modules[i][1]
+    B = hom_modules[i+1][1]
+
+    j = chain_range[i]
+    push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
+  end
+
+  start = last(range(C))
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=-C.start+1, direction=C.direction)
 end
 
 #############################
