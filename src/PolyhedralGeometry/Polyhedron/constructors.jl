@@ -48,7 +48,13 @@ A polyhedron in ambient dimension 2
 """
 Polyhedron{T}(A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types = Polyhedron{T}((A, b))
 
-Polyhedron{T}(A::AbstractVector{>:AbstractVector}, b::Any) where T<:scalar_types = Polyhedron{T}([A], [b])
+Polyhedron{T}(A::AbstractVector, b::Any) where T<:scalar_types = Polyhedron{T}(([A], [b]))
+
+Polyhedron{T}(A::AbstractVector, b::AbstractVector) where T<:scalar_types = Polyhedron{T}(([A], b))
+
+Polyhedron{T}(A::AbstractVector{<:AbstractVector}, b::Any) where T<:scalar_types = Polyhedron{T}((A, [b]))
+
+Polyhedron{T}(A::AbstractVector{<:AbstractVector}, b::AbstractVector) where T<:scalar_types = Polyhedron{T}((A, b))
 
 Polyhedron{T}(A::AnyVecOrMat, b::Any) where T<:scalar_types = Polyhedron{T}(A, [b])
 
