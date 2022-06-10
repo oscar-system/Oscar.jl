@@ -97,38 +97,49 @@ end
 end
 
 @testset "map_word" begin
-   F = free_group(2)
-   F1 = gen(F, 1)
-   F2 = gen(F, 2)
-   rels = [F1^2, F2^2, comm(F1, F2)]
-   FP = quo(F, rels)[1]
+   # Create a free group in GAP in syllable words family,
+   # in order to make the tests.
+   GAP.Globals.PushOptions(GAP.GapObj(Dict(:FreeGroupFamilyType => GAP.GapObj("syllable"))))
+   FS = free_group(2)   # syllable representation
+   GAP.Globals.PopOptions()
+   FL = free_group(2)   # letter representation
+   @test GAP.Globals.IsSyllableWordsFamily(
+           GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(FS.X)))
+   @test GAP.Globals.IsLetterWordsFamily(
+           GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(FL.X)))
+   for F in [FL, FS]
+     F1 = gen(F, 1)
+     F2 = gen(F, 2)
+     rels = [F1^2, F2^2, comm(F1, F2)]
+     FP = quo(F, rels)[1]
 
-   # map an element of a free group or a f.p. group ...
-   for f in [F, FP]
-     f1 = gen(f, 1)
-     f2 = gen(f, 2)
-     of = one(f)
+     # map an element of a free group or a f.p. group ...
+     for f in [F, FP]
+       f1 = gen(f, 1)
+       f2 = gen(f, 2)
+       of = one(f)
 
-     # ... to an element of a permutation group or to a rational number
-     for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
-       g1 = imgs[1]
-       g2 = imgs[2]
-       for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3)]
-         @test map_word(x, imgs) == w
+       # ... to an element of a permutation group or to a rational number
+       for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]
+         g1 = imgs[1]
+         g2 = imgs[2]
+         for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3)]
+           @test map_word(x, imgs) == w
+         end
+         @test map_word(of, imgs, init = 0) == one(g1)  # `init` is ignored
        end
-       @test map_word(of, imgs, init = 0) == one(g1)  # `init` is ignored
      end
+
+     # empty list of generators
+     T = free_group(0)
+     @test map_word(one(T), [], init = 1) == 1            # `init` is returned
+     @test map_word(one(F), gens(F), init = 1) == one(F)  # `init` is ignored
+
+     # wrong number of images
+     @test_throws AssertionError map_word(one(F), [])
+     @test_throws AssertionError map_word(one(F), [F1])
+     @test_throws AssertionError map_word(one(F), [F1, F1, F1])
    end
-
-   # empty list of generators
-   T = free_group(0)
-   @test map_word(one(T), [], init = 1) == 1            # `init` is returned
-   @test map_word(one(F), gens(F), init = 1) == one(F)  # `init` is ignored
-
-   # wrong number of images
-   @test_throws AssertionError map_word(one(F), [])
-   @test_throws AssertionError map_word(one(F), [F1])
-   @test_throws AssertionError map_word(one(F), [F1, F1, F1])
 
    # map according to a description of the word
    for imgs in [gens(symmetric_group(4)), fmpq[2, 3]]

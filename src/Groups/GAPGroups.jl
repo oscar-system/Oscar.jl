@@ -1409,16 +1409,16 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
   end
   _names = GAP.evalstr("x -> x!.names")
   @assert length(_names(GAP.Globals.FamilyObj(gX))) == length(genimgs)
-#TODO: improve this, see https://github.com/oscar-system/GAP.jl/issues/771
+#TODO: use the feature from oscar-system/GAP.jl/pull/816 when it becomes available
   @assert GAP.Globals.IsAssocWord(gX)
   if GAP.Globals.IsLetterAssocWordRep(gX)
-    ll = Vector{Int}(GAP.Globals.LetterRepAssocWord(gX))
+    # `GAP.Globals.ExtRepOfObj` would create a syllable representation,
+    # which is unnecessary.
+    ll = Vector{Int}(GAP.Globals.LetterRepAssocWord(gX)::GAP.GapObj)
   elseif GAP.Globals.IsSyllableAssocWordRep(gX)
-    l = ExtRepOfObj(gX)
-    ll = Pairs{Int, Int}[]
-    for i in 1:2:length(l)
-      push!(ll, l[i] => l[i+1])
-    end
+    # Here we take the available syllable representation.
+    l = GAP.Globals.ExtRepOfObj(gX)::GAP.GapObj
+    ll = Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
   else
     error("do not know the type of the element $gX")
   end
