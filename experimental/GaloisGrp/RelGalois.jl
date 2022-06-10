@@ -8,8 +8,8 @@ function galois_group(mkK::Map{AnticNumberField, AnticNumberField})
   f = parent(defining_polynomial(K))(mkK(gen(k)))
   s = map(f, rt)
   @assert length(Set(s)) == degree(k)
-  @show b = findall(x->x == s[1], s)
-  @show H = stabilizer(G, b, on_sets)[1]
+  b = findall(x->x == s[1], s)
+  H = stabilizer(G, b, on_sets)[1]
   h = action_homomorphism(H, b)
   return image(h)[1]
 end
@@ -78,8 +78,10 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
   p = degree(f)
   f *= lcm(map(denominator, coefficients(f)))
   np = 0
+  _num = 0
   while true
     @vprint :PolyFactor 3 "Trying with $p\n "
+    _num += 1
     p = next_prime(p)
     if !Hecke.is_prime_nice(zk, p)
       continue
@@ -109,7 +111,9 @@ function find_prime(f::PolyElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f
     elseif bp[2] > dg 
       bp = (p, dg, P[1][1])
     end
-    if ceil(Int, degree(f)/4) <= bp[2] <= floor(Int, degree(f)/2) || length(ct) > 2*degree(f)
+    if ceil(Int, degree(f)/4) <= bp[2] <= floor(Int, degree(f)/2) || length(ct) > 2*degree(f) || _num > 200
+      #counter example: C_5: cycle_types are [1,1,1,1,1] or [5], degrees
+      #                      1 and 5...
       break
     end
   end
@@ -170,7 +174,6 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, x::q
   P = C.C.P
   zk = order(P)
   if any(i->!iszero(coeff(x, i)), 1:length(x)-1)
-    @show :wrongDegree
     return false, zero(nf(zk))
   end
   mkc = C.data[1]
@@ -180,12 +183,11 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fmpz}, x::q
   P = C.C.P
   zk = order(P)
   x *= map_coeff(C, C.data[5]) #the den
-  @show a = nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
-  @show a = a*inv(C.data[5])
+  a = nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
+  a = a*inv(C.data[5])
   if ceil(fmpz, length(a)) <= value(y)^2
     return true, a
   else
-    @show :tooLarge
     return false, a
   end
 end
@@ -199,7 +201,7 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fm
   #the bound is a bound on the sqrt(T_2(x)). This needs to be used with the norm_change stuff
   #and possible denominators and such. Possibly using Kronecker...
   c1, c2 = C.data[4] # the norm-change-const
-  @show v = value(y) + iroot(ceil(fmpz, length(C.data[5])), 2)+1 #correct for den
+  v = value(y) + iroot(ceil(fmpz, length(C.data[5])), 2)+1 #correct for den
   #want to be able to detect x in Z_k of T_2(x) <= v^2
   #if zk = order(C.C.P) is (known to be) maximal, 2-norm of coeff. vector squared < c2*v^2
   #otherwise, we need tpo multiply by f'(alpha) (increasing the size), revover and divide
@@ -209,6 +211,6 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fm
   P = C.C.P
   zk = order(P)
   k = nf(zk)
-  @show N = ceil(Int, degree(k)/2/log(norm(P))*(log(c1*c2) + 2*log(v)))
+  N = ceil(Int, degree(k)/2/log(norm(P))*(log(c1*c2) + 2*log(v)))
   return N
 end

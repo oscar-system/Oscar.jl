@@ -167,7 +167,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
   return [(mR(sR(ms(x))), F) for x = gens(s)]
 end
 
-function Hecke.number_field(::FlintRationalField, a::AbstractVector{QabElem}; cached::Bool = false)
+function Hecke.number_field(::FlintRationalField, a::AbstractVector{<: QabElem}; cached::Bool = false)
   if length(a) == 0
     return Hecke.rationals_as_number_field()[1]
   end

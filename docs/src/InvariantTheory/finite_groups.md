@@ -48,22 +48,25 @@ We discuss the relevant OSCAR functionality below.
 
 ## Creating Invariant Rings
 
-The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified.
+### How Groups are Given
 
-### Matrix Groups
+The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified:
+
+#### Matrix Groups
 
 Here, $G$ will be explicitly given as a matrix group $G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$ by linear substitution:
 
 $(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)) \text{ for all } \pi\in G.$
 
+#### Permutation Groups
+
+Here, $G$ will be given as a permutation group, acting on $K[x_1, \dots, x_n]\cong K[V]$ by permuting the variables.
+
+### Constructors for Invariant Rings
 
 ```@docs
 invariant_ring(G::MatrixGroup)
 ```
-
-### Permutation Groups
-
-Taylor made functionality for handling invariant rings of permutation groups is not implemented yet.
 
 ## Basic Data Associated to Invariant Rings
 

@@ -26,8 +26,8 @@ end
 	v = [x, x^2*y+z^3, R(-1)]
 	@test v == Vector(F(v))
 
-	M = sub(F, [F(v), F([z, R(1), R(0)])])
-	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)])
+	M = sub(F, [F(v), F([z, R(1), R(0)])], :none)
+	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)], :none)
 	AN, ai = ambient_module(N, :with_morphism)
 	@test AN.quo === N.quo
 	for i=1:ngens(N)
@@ -204,6 +204,53 @@ end
 	end
 end
 
+@testset "Gröbner bases" begin
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	F = FreeMod(R, 1)
+
+	J = SubQuo(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
+	@test leading_module(J) == SubQuo(F, [x*F[1], y*F[1]])
+
+	J = SubQuo(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
+	@test leading_module(J) == SubQuo(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
+
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R, 2)
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
+
+	M = SubQuo(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
+	@test leading_module(M,lp) == SubQuo(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
+
+	R, x = PolynomialRing(QQ, ["x_"*string(i) for i=1:4])
+	F = FreeMod(R, 1)
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
+
+	J = SubQuo(F, [(x[1]+x[2]+R(1))*F[1], (x[1]+x[2]+2*x[3]+2*x[4]+1)*F[1],(x[1]+x[2]+x[3]+x[4]+1)*F[1]])
+	@test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O
+	@test haskey(J.groebner_basis, lp)
+
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	F = FreeMod(R, 1)
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
+	I = SubQuo(F, [(x-1)*F[1], (y^2-1)*F[1]])
+	f = (x*y^2+y)*F[1]
+	@test Oscar.reduce(f, I) == (y+1)*F[1]
+
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R, 2)
+
+	A = R[x+1 y*z+x^2; (y+2*z) z^3]
+	B = R[2*z*(x*z+y^2) (x*z)^5]
+	M = SubQuo(F, A, B)
+	gb = groebner_basis(M)
+	P = sum(Oscar.SubModuleOfFreeModule(F, gb), Oscar.SubModuleOfFreeModule(F, gb.quo_GB))
+	Q = Oscar.SubModuleOfFreeModule(F, groebner_basis(M.sum))
+	@test P == Q
+	v = x*((x+1)*F[1] + (y*z+x^2)*F[2]) + (y-z)*((y+2*z)*F[1] + z^3*F[2]) + 2*z*(x*z+y^2)*F[1] + (x*z)^5*F[2]
+	@test represents_element(v,M)
+end
+
+
 @testset "Test kernel" begin
 
 	# over Integers
@@ -358,7 +405,7 @@ end
   N3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 2*x*y-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
   Q3,p3 = quo(M3,N3,:cache_morphism)
 
-  @test iszero(quo(M3,M3))
+  @test iszero(quo(M3,M3, :none))
   @test iszero(Q3)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
@@ -818,9 +865,34 @@ end
 		H = homomorphism(H)
 
 		u = [SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
-		image_of_u = sub(M,map(x -> H(x),u))
-		preimage_test_module = image_of_u + sub(M,[M[1]])
+		image_of_u = sub(M,map(x -> H(x),u), :none)
+		preimage_test_module = image_of_u + sub(M,[M[1]], :none)
 		_,emb = preimage(H,preimage_test_module,:with_morphism)
-		@test issubset(sub(N,u), image(emb)[1])
+		@test issubset(sub(N,u, :none), image(emb)[1])
 	end
 end
+
+@testset "change of base rings" begin
+  R, (x,y) = QQ["x", "y"]
+  U = MPolyPowersOfElement(x)
+  S = MPolyLocalizedRing(R, U)
+  F = FreeMod(R, 2)
+  FS, mapF = change_base_ring(S, F)
+  @test 1//x*mapF(x*F[1]) == FS[1]
+
+  shift = hom(R, R, [x-1, y-2])
+  FSshift, mapFSshift = change_base_ring(shift, F)
+  @test mapFSshift(x*F[1]) == (x-1)*FSshift[1]
+
+  A = R[x y]
+  B = R[x^2 x*y]
+  M = SubQuo(F, A, B)
+  MS, mapM = change_base_ring(S, M)
+  @test iszero(mapM(M[1]))
+
+  f = MapFromFunc(x->S(x), R, S)
+  MS, mapM = change_base_ring(f, M)
+  @test iszero(mapM(M[1]))
+end
+
+

@@ -1496,6 +1496,10 @@ mutable struct HilbertData
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
     R = base_ring(I)
+    if !((R isa Oscar.MPolyRing_dec) && is_graded(R))
+      throw(ArgumentError("The base ring must be graded."))
+    end
+
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
     
@@ -1507,10 +1511,6 @@ mutable struct HilbertData
        throw(ArgumentError("The coefficient ring must be a field."))
     end
 
-    if !((R isa Oscar.MPolyRing_dec) && (is_graded(R)))
-       throw(ArgumentError("The base ring must be graded."))
-    end
-    
     if !(all(is_homogeneous, gens(I)))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end

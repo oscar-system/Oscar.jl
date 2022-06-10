@@ -917,7 +917,7 @@ function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = d
   GI = I.gb[ordering]
   singular_assure(GI)
   Sx = base_ring(GI.S)
-  return Singular.iszero(reduce(Sx(f), GI.S))
+  return Singular.iszero(Singular.reduce(Sx(f), GI.S))
 end
 Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################

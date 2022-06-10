@@ -98,15 +98,15 @@ end
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
-The used algorithm can be specified using the optional argument `algo`. Possible
-values are `:reynolds` which uses the reynolds operator to construct the basis
-(only available in the non-modular case) and `:linear_algebra` which uses plain
-linear algebra. With the default value `:default` the heuristically best algorithm
-is selected.
 
-When using the reynolds operator the basis is constructed element-by-element.
-With linear algebra this is not possible and the whole basis will be constructed
-directly when calling the function.
+The optional argument `algo` specifies the algorithm to be used.
+If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algo = :linear_algebra` means that plain linear algebra is used.
+The default option `algo = :default` asks to select the heuristically best algorithm.
+
+When using the Reynolds operator, the basis is constructed element-by-element.
+With linear algebra, this is not possible and the basis will be constructed
+all at once when calling the function.
 
 See also [`basis`](@ref).
 

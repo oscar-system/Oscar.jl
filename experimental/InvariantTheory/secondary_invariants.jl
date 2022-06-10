@@ -217,10 +217,22 @@ function secondary_invariants_modular(RG::InvRing)
   s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
   add_invariant!(s_invars_cache, one(Rgraded), false, Int[])
 
+  # The maximal degree in which we have to look for secondary invariants by [Sym11].
+  maxdeg = sum( total_degree(f) - 1 for f in p_invars )
+
+  # Store the secondary invariants sorted by their total degree.
+  # We only store the indices in s_invars_cache.invars.
+  s_invars_sorted = Vector{Vector{Int}}(undef, maxdeg)
+  for d = 1:maxdeg
+    s_invars_sorted[d] = Int[]
+  end
+
+  # Store the indices of the irreducible secondary invariants in
+  # s_invars_cache.invars .
+  is_invars = Vector{Int}()
+
   C = PowerProductCache(R, p_invars)
-  # D.base is going to be the irreducible secondary invariants
-  D = PowerProductCache(R, elem_type(R)[])
-  for d = 1:sum( total_degree(f) - 1 for f in p_invars )
+  for d = 1:maxdeg
     Md = generators_for_given_degree!(C, s_invars, d, false)[1]
 
     # We have to find invariants of degree d which are not in the linear span of Md.
@@ -238,11 +250,33 @@ function secondary_invariants_modular(RG::InvRing)
     # of smaller degree. This is no speed-up (it's in fact more work), but this
     # way we have a set of irreducible secondary invariants of a much smaller
     # cardinality.
-    for f in all_power_products_of_degree!(D, d, true)
-      if add_to_basis!(B, f)
-        # f is a power product of monic polynomials, so monic itself
-        add_invariant!(s_invars_cache, Rgraded(f), false, copy(D.exponent_vectors[f]))
-        push!(s_invars, f)
+    # Use Kin07, Lemma 2: We do not need to build all power products of lower
+    # degree secondary invariants, but only products of the form i*s, where
+    # i is an irreducible secondary invariant of degree < d and s a secondary
+    # invariant of degree d - deg(i).
+    products = Set{elem_type(R)}()
+    for i = 1:length(is_invars)
+      f = s_invars_cache.invars[is_invars[i]].f
+      @assert total_degree(f) < d
+      dd = d - total_degree(f)
+      for j in s_invars_sorted[dd]
+        g = s_invars_cache.invars[j].f
+        lp = length(products)
+        fg = f*g
+        push!(products, fg)
+        if lp == length(products)
+          # We already constructed this product from other factors.
+          continue
+        end
+
+        if add_to_basis!(B, fg)
+          # fg is a product of monic polynomials, so monic itself
+          exp = copy(s_invars_cache.sec_in_irred[j])
+          exp[i] += 1
+          add_invariant!(s_invars_cache, Rgraded(fg), false, exp)
+          push!(s_invars_sorted[total_degree(fg)], length(s_invars_cache.invars))
+          push!(s_invars, fg)
+        end
       end
     end
 
@@ -287,10 +321,10 @@ function secondary_invariants_modular(RG::InvRing)
         f += N[j, c]*Bd.monomials_collected[j].f
       end
       f = inv(leading_coefficient(f))*f
-      add_base_element!(D, f, true)
-      add_invariant!(s_invars_cache, Rgraded(f), true, D.exponent_vectors[f])
       push!(s_invars, f)
-
+      add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
+      push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
+      push!(is_invars, length(s_invars_cache.invars))
       c -= 1
     end
   end
@@ -303,37 +337,38 @@ end
 #
 ################################################################################
 
-# DK15, Algorithm 3.7.2
+# DK15, Algorithm 3.7.2 and Kin07, Section 4 "Improved new algorithm"
 function secondary_invariants_nonmodular(RG::InvRing)
   @assert !is_modular(RG)
   p_invars = primary_invariants(RG)
   I = ideal_of_primary_invariants(RG)
   LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
 
-  fg = molien_series(RG)
-  f = numerator(fg)
-  g = denominator(fg)
-  for p in p_invars
-    d = total_degree(p.f)
-    # multiply f by 1 - t^d
-    f -= shift_left(f, d)
-  end
-  h = div(f, g)
-  @assert g*h == f
+  h = reduce_hilbert_series_by_primary_degrees(RG)
 
   Rgraded = polynomial_ring(RG)
   R = Rgraded.R
+  # R needs to have the correct ordering for application of divrem
+  @assert ordering(R) == :degrevlex
+
   K = coefficient_ring(R)
   s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
   add_invariant!(s_invars_cache, one(Rgraded), false, Int[])
 
-  # sum(coefficients(h)) is the number of secondary invariants we need in total.
-  B = BasisOfPolynomials(R, [ one(R) ])
+  # Store the secondary invariants sorted by their total degree.
+  # We only store the indices in s_invars_cache.invars.
+  s_invars_sorted = Vector{Vector{Int}}(undef, degree(h))
+  for d = 1:degree(h)
+    s_invars_sorted[d] = Int[]
+  end
 
-  # We try to construct as many invariants as possible as power products from
-  # already computed ones using all_power_products_of_degree! .
-  # C.base is going to be the irreducible secondary invariants.
-  C = PowerProductCache(R, elem_type(R)[])
+  # Store the indices of the irreducible secondary invariants in
+  # s_invars_cache.invars .
+  is_invars = Vector{Int}()
+
+  # The Groebner basis should already be cached
+  gbI = [ f.f for f in groebner_basis(I, ordering = degrevlex(gens(base_ring(I)))) ]
+
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
@@ -341,15 +376,44 @@ function secondary_invariants_nonmodular(RG::InvRing)
     end
     invars_found = 0
 
-    invars = all_power_products_of_degree!(C, d, true)
-    for f in invars
-      nf = normal_form(f, I).f
-      if add_to_basis!(B, nf)
-        # f is a power product of monic polynomials, so monic itself
-        add_invariant!(s_invars_cache, Rgraded(f), false, copy(C.exponent_vectors[f]))
-        invars_found += 1
-        invars_found == k && break
+    gb = copy(gbI)
+
+    # Try to build as many invariants as possible as power products of lower
+    # degree ones.
+    # Use Kin07, Lemma 2: We do not need to build all power products of lower
+    # degree secondary invariants, but only products of the form i*s, where
+    # i is an irreducible secondary invariant of degree < d and s a secondary
+    # invariant of degree d - deg(i).
+    products = Set{elem_type(R)}()
+    for i = 1:length(is_invars)
+      f = s_invars_cache.invars[is_invars[i]].f
+      @assert total_degree(f) < d
+      dd = d - total_degree(f)
+      for j in s_invars_sorted[dd]
+        g = s_invars_cache.invars[j].f
+        lp = length(products)
+        fg = f*g
+        push!(products, fg)
+        if lp == length(products)
+          # We already constructed this product from other factors.
+          continue
+        end
+
+        # DK15 propose to check containment via linear algebra; this approach
+        # from Kin07 using d-truncated Groebner bases appears to be faster.
+        _, r = divrem(fg, gb)
+        if !is_zero(r)
+          # fg is a product of monic polynomials, so monic itself
+          exp = copy(s_invars_cache.sec_in_irred[j])
+          exp[i] += 1
+          add_invariant!(s_invars_cache, Rgraded(fg), false, exp)
+          invars_found += 1
+          push!(s_invars_sorted[total_degree(fg)], length(s_invars_cache.invars))
+          push!(gb, r)
+          invars_found == k && break
+        end
       end
+      invars_found == k && break
     end
 
     invars_found == k && continue
@@ -373,11 +437,13 @@ function secondary_invariants_nonmodular(RG::InvRing)
       if iszero(f)
         continue
       end
-      nf = normal_form(f, I).f
-      if add_to_basis!(B, nf)
+      _, r = divrem(f, gb)
+      if !is_zero(r)
         f = inv(leading_coefficient(f))*f
-        add_base_element!(C, f, true)
-        add_invariant!(s_invars_cache, Rgraded(f), true, copy(C.exponent_vectors[f]))
+        add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
+        push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
+        push!(is_invars, length(s_invars_cache.invars))
+        push!(gb, r)
         invars_found += 1
         invars_found == k && break
       end
@@ -415,8 +481,11 @@ Note that the secondary invariants are defined with respect to the currently
 cached system of primary invariants for `IR` (if no system of primary invariants
 for `IR` is cached, such a system is computed and cached first).
 
-The implemented algorithms are Algorithm 3.7.5 in [DK15](@cite) for the modular case and
-Algorithm 3.7.2 in [DK15](@cite) for the non-modular case.
+# Implemented Algorithms
+
+For the non-modular case, the function relies on Algorithm 3.7.2 in [DK15](@cite), 
+enhanced by ideas from [Kin07](@cite). In the modular case, Algorithm 3.7.5 in 
+[DK15](@cite) is used.
 
 # Examples
 ```jldoctest
@@ -433,7 +502,7 @@ julia> IR = invariant_ring(G);
 julia> secondary_invariants(IR)
 2-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  1
- x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
+ x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
 """
 function secondary_invariants(IR::InvRing)
@@ -467,28 +536,28 @@ julia> IR = invariant_ring(G);
 julia> secondary_invariants(IR)
 12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  1
- x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
+ x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
  x[3]^2 + x[4]^2 + x[5]^2
  x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
- x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
- x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[2]^2*x[4] + x[1]*x[2]*x[5]
+ x[1]*x[3]^2 - x[2]*x[3]^2 + x[2]*x[4]^2 - x[1]*x[5]^2
  x[1]^2*x[3] + x[1]^2*x[4] - 2*x[1]*x[2]*x[4] + x[2]^2*x[4] + x[2]^2*x[5]
- x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
- x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
- x[1]*x[3]^3 - x[1]*x[3]^2*x[5] + x[1]*x[3]*x[4]^2 + x[1]*x[3]*x[5]^2 - x[1]*x[4]^2*x[5] - x[1]*x[5]^3 - x[2]*x[3]^3 + x[2]*x[3]^2*x[4] - x[2]*x[3]*x[4]^2 - x[2]*x[3]*x[5]^2 + x[2]*x[4]^3 + x[2]*x[4]*x[5]^2
- x[3]^4 + 2*x[3]^2*x[4]^2 + 2*x[3]^2*x[5]^2 + x[4]^4 + 2*x[4]^2*x[5]^2 + x[5]^4
- x[1]*x[3]^5 - x[1]*x[3]^4*x[5] + 2*x[1]*x[3]^3*x[4]^2 + 2*x[1]*x[3]^3*x[5]^2 - 2*x[1]*x[3]^2*x[4]^2*x[5] - 2*x[1]*x[3]^2*x[5]^3 + x[1]*x[3]*x[4]^4 + 2*x[1]*x[3]*x[4]^2*x[5]^2 + x[1]*x[3]*x[5]^4 - x[1]*x[4]^4*x[5] - 2*x[1]*x[4]^2*x[5]^3 - x[1]*x[5]^5 - x[2]*x[3]^5 + x[2]*x[3]^4*x[4] - 2*x[2]*x[3]^3*x[4]^2 - 2*x[2]*x[3]^3*x[5]^2 + 2*x[2]*x[3]^2*x[4]^3 + 2*x[2]*x[3]^2*x[4]*x[5]^2 - x[2]*x[3]*x[4]^4 - 2*x[2]*x[3]*x[4]^2*x[5]^2 - x[2]*x[3]*x[5]^4 + x[2]*x[4]^5 + 2*x[2]*x[4]^3*x[5]^2 + x[2]*x[4]*x[5]^4
+ x[1]*x[3]*x[4] - x[2]*x[3]*x[4] - x[1]*x[3]*x[5] + x[2]*x[4]*x[5]
+ x[3]*x[4]^2 + x[3]^2*x[5] + x[4]*x[5]^2
+ x[1]*x[3]^3 - x[2]*x[3]^3 + x[2]*x[3]^2*x[4] + x[1]*x[3]*x[4]^2 - x[2]*x[3]*x[4]^2 + x[2]*x[4]^3 - x[1]*x[3]^2*x[5] - x[1]*x[4]^2*x[5] + x[1]*x[3]*x[5]^2 - x[2]*x[3]*x[5]^2 + x[2]*x[4]*x[5]^2 - x[1]*x[5]^3
+ x[3]^4 + 2*x[3]^2*x[4]^2 + x[4]^4 + 2*x[3]^2*x[5]^2 + 2*x[4]^2*x[5]^2 + x[5]^4
+ x[1]*x[3]^5 - x[2]*x[3]^5 + x[2]*x[3]^4*x[4] + 2*x[1]*x[3]^3*x[4]^2 - 2*x[2]*x[3]^3*x[4]^2 + 2*x[2]*x[3]^2*x[4]^3 + x[1]*x[3]*x[4]^4 - x[2]*x[3]*x[4]^4 + x[2]*x[4]^5 - x[1]*x[3]^4*x[5] - 2*x[1]*x[3]^2*x[4]^2*x[5] - x[1]*x[4]^4*x[5] + 2*x[1]*x[3]^3*x[5]^2 - 2*x[2]*x[3]^3*x[5]^2 + 2*x[2]*x[3]^2*x[4]*x[5]^2 + 2*x[1]*x[3]*x[4]^2*x[5]^2 - 2*x[2]*x[3]*x[4]^2*x[5]^2 + 2*x[2]*x[4]^3*x[5]^2 - 2*x[1]*x[3]^2*x[5]^3 - 2*x[1]*x[4]^2*x[5]^3 + x[1]*x[3]*x[5]^4 - x[2]*x[3]*x[5]^4 + x[2]*x[4]*x[5]^4 - x[1]*x[5]^5
 
 julia> irreducible_secondary_invariants(IR)
 8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
+ x[1]*x[3] - x[2]*x[3] + x[2]*x[4] - x[1]*x[5]
  x[3]^2 + x[4]^2 + x[5]^2
  x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
- x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
- x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[2]^2*x[4] + x[1]*x[2]*x[5]
+ x[1]*x[3]^2 - x[2]*x[3]^2 + x[2]*x[4]^2 - x[1]*x[5]^2
  x[1]^2*x[3] + x[1]^2*x[4] - 2*x[1]*x[2]*x[4] + x[2]^2*x[4] + x[2]^2*x[5]
- x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
- x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
+ x[1]*x[3]*x[4] - x[2]*x[3]*x[4] - x[1]*x[3]*x[5] + x[2]*x[4]*x[5]
+ x[3]*x[4]^2 + x[3]^2*x[5] + x[4]*x[5]^2
 ```
 """
 function irreducible_secondary_invariants(IR::InvRing)
