@@ -26,11 +26,11 @@ abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 
 @doc Markdown.doc"""
-    ModuleFPElem{T}
+    ModuleFPElem{T} <: ModuleElem{T}
 
 The abstract supertype of all elements of finitely presented modules.
 """
-abstract type ModuleFPElem{T} end
+abstract type ModuleFPElem{T} <: ModuleElem{T} end
 
 @doc Markdown.doc"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
@@ -127,24 +127,36 @@ struct FreeModElem{T} <: AbstractFreeModElem{T}
   end
 end
 
+@doc Markdown.doc"""
+    ModuleGens{T}
 
-# data structure for a generating systems for submodules
-# contains structures for the generators, the corresponding module on the Singular side, 
-# the embedding free module, the embedding free module on the Singular side
-# subquotients will be built from a tuple of submodules which again are given by 
-# generating sets. In this way, the Singular stuff is hidden on the higher structures
-# and all the conversion is taken care of here
-# a module generating system is generated from an array of free module elements
-# the fields are called O,S,F,SF rename?
-#
-# The same could be done rather on the level of vectors, that might be preferable if 
-# performance is ok.
-#
-mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
+Data structure for a generating systems for submodules.
+Contains structures for the generators, the corresponding module on the Singular side, 
+the embedding free module, the embedding free module on the Singular side.
+Subquotients will be built from a tuple of submodules which again are given by 
+generating sets. In this way, the Singular stuff is hidden on the higher structures
+and all the conversion is taken care of here.
+
+This data structure is also used for representing Gröbner / standard bases.
+Relative Gröbner / standard bases are also supported.
+"""
+@attributes mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
   O::Vector{FreeModElem{T}}
   S::Singular.smodule
   F::FreeMod{T}
   SF::Singular.FreeMod
+
+  isGB::Bool
+  is_reduced::Bool
+  ordering::ModuleOrdering
+  quo_GB::ModuleGens{T} # Pointer to the quotient GB when having a relative GB
+
+  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
+    r = new{T}()
+    r.O = O
+    r.F = F
+    return r
+  end
 
   # ModuleGens from an Array of Oscar free module elements, specifying the free module 
   # and Singular free module, only useful indirectly
@@ -155,14 +167,6 @@ mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
     r.F = F
     return r
   end
-
-  function ModuleGens{T}(O::Vector{FreeModElemType}, F::FreeMod{T}) where {T, FreeModElemType<:FreeModElem}
-    r = new{T}()
-    r.O = O
-    r.F = F
-    return r
-  end
-
 
   # ModuleGens from a Singular submodule
   function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is necessary due to type S
@@ -178,7 +182,6 @@ mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
   end
 end
 
-
 @doc Markdown.doc"""
     SubModuleOfFreeModule{T} <: ModuleFP{T}
 
@@ -189,44 +192,16 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
-  gens::ModuleGens
-  std_basis::ModuleGens
+  gens::ModuleGens{T}
+  groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
+  default_ordering::ModuleOrdering
   matrix::MatElem
 
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModElem}) where {R}
-    @assert all(x -> parent(x) === F, gens)
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
+    # this does not construct a valid SubModuleOfFreeModule
     r = new{R}()
     r.F = F
-    r.gens = ModuleGens(gens, F)
-    return r
-  end
-
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
-    r = new{R}()
-    r.F = F
-    r.gens = ModuleGens(F, singular_module)
-    if singular_module.isGB
-      r.std_basis = r.gens
-    end
-    return r
-  end
-  
-  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens) where {R}
-    r = new{R}()
-    r.F = F
-    r.gens = gens
-    if singular_generators(gens).isGB
-      r.std_basis = r.gens
-    end
-    return r
-  end
-
-  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L}) where {L}
-    r = new{L}()
-    r.F = F
-    O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
-    r.gens = ModuleGens(O, F)
-    r.matrix = A
+    r.groebner_basis = Dict()
     return r
   end
 end
@@ -252,82 +227,17 @@ option is set in suitable functions.
   quo::SubModuleOfFreeModule
   sum::SubModuleOfFreeModule
 
+  groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
+
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
 
-  function SubQuo{R}(sub::SubModuleOfFreeModule{R}) where {R}
-    r = new{R}()
-    r.F = sub.F
-    r.sub = sub
-    r.sum = r.sub
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{R}(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
-    @assert sub.F === quo.F
-    r = new{R}()
-    r.F = sub.F
-    r.sub = sub
-    r.quo = quo
-    r.sum = sum(r.sub, r.quo)
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{R}(F::FreeMod{R}, O::Vector{<:FreeModElem}) where {R}
+  function SubQuo{R}(F::FreeMod{R}) where {R}
+    # this does not construct a valid subquotient
     r = new{R}()
     r.F = F
-    r.sub = SubModuleOfFreeModule(F, O)
-    r.sum = r.sub
 
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{L}(S::SubQuo{L}, O::Vector{<:FreeModElem}) where {L} #TODO to be replaced by quo
-    r = new{L}()
-    r.F = S.F
-    r.sub = S.sub
-    O_as_submodule = SubModuleOfFreeModule(S.F, O)
-    r.quo = isdefined(S,:quo) ? sum(S.quo,O_as_submodule) : O_as_submodule
-    r.sum = sum(r.sub, r.quo)
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  #=function SubQuo(S::SubQuo, O::Vector{<:SubQuoElem})
-    @assert all(x->x.parent === S, O)
-    r = SubQuo(S.F, [x.repres for x in O])
-    r.quo = S.quo
-    r.sum = sum(r.sub, r.quo)
-    return r
-  end=#
-  function SubQuo{R}(F::FreeMod{R}, s::Singular.smodule) where {R}
-    r = new{R}()
-    r.F = F
-    r.sub = SubModuleOfFreeModule(F, s)
-    r.sum = r.sub
-
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
-
-    return r
-  end
-  function SubQuo{R}(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
-    r = new{R}()
-    r.F = F
-    r.sub = SubModuleOfFreeModule(F, s)
-    r.quo = SubModuleOfFreeModule(F, t)
-    r.sum = sum(r.sub, r.quo)
-
+    r.groebner_basis = Dict()
     r.incoming_morphisms = Vector{ModuleMap}()
     r.outgoing_morphisms = Vector{ModuleMap}()
 
