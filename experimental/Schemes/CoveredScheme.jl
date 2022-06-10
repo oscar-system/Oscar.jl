@@ -78,7 +78,7 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
           inverse(glueings[(X, Y)]) == glueings[(Y, X)] || error("glueings are not inverse of each other")
         end
       else
-	glueings[(Y, X)] = inverse(glueings[(X, Y)])
+        glueings[(Y, X)] = inverse(glueings[(X, Y)])
       end
     end
 
