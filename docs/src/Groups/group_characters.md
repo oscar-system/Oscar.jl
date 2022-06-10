@@ -160,7 +160,7 @@ arithmetic operations:
   we have `chi^g(x) == chi(g*x*g^-1)` for all `x` in ``G``,
 - `chi^galaut` is the Galois conjugate character of `chi` under the
   pointwise action of the field automorphism `galaut`
-  (If `galaut` was created as `QabAutomorphism(k)` then the action raises
+  (If `galaut` was created as `QQAbAutomorphism(k)` then the action raises
   each root of unity to its `k`-th power;
   this action defines a field automorphism of the `n`-th cyclotomic field
   whenever `n` and `k` are coprime.)

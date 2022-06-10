@@ -145,8 +145,8 @@ function (F::AnticNumberField)(obj::GapInt)
     return preimage(iso_oscar_gap(F), obj)
 end
 
-## single GAP cyclotomic to `QabElem`
-function QabElem(a::GapInt)
+## single GAP cyclotomic to `QQAbElem`
+function QQAbElem(a::GapInt)
   c = GAPWrap.Conductor(a)
   E = abelian_closure(QQ)[2](c)
   z = parent(E)(0)
@@ -159,9 +159,9 @@ function QabElem(a::GapInt)
   return z
 end
 
-GAP.gap_to_julia(::Type{QabElem}, a::GapInt) = QabElem(a)
+GAP.gap_to_julia(::Type{QQAbElem}, a::GapInt) = QQAbElem(a)
 
-(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
+(::QQAbField)(a::GAP.GapObj) = GAP.gap_to_julia(QQAbElem, a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AnticNumberField, gapmats::GapObj)

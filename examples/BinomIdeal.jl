@@ -1,14 +1,14 @@
 module BinomialIdeal
 
 using Oscar
-Oscar.example("QabAndPChars.jl")
-using Main.QabModule
-import Main.QabModule: my_product, QabElem, PCharSaturateAll, LatticeEqual
+Oscar.example("QQAbAndPChars.jl")
+using Main.QQAbModule
+import Main.QQAbModule: my_product, QQAbElem, PCharSaturateAll, LatticeEqual
 import lib4ti2_jll
 
 using DelimitedFiles
 
-export is_binomial, is_cellular, is_unital, QabField, Binomial, Cellular
+export is_binomial, is_cellular, is_unital, QQAbField, Binomial, Cellular
 
 import Oscar: singular_assure, MPolyIdeal
 import Oscar.Singular: std, Ideal, lead_exponent
@@ -272,7 +272,7 @@ function extractInclusionMinimalIdeals(A::Vector{Any})
 	Result=A
 
 	while n>0
-		if typeof(Result[1])!= Singular.sideal{Singular.spoly{Singular.n_unknown{QabElem}}}
+		if typeof(Result[1])!= Singular.sideal{Singular.spoly{Singular.n_unknown{QQAbElem}}}
 			error("input has to be an Array of ideals")
 		end
 		helpIdeal=Result[1]
@@ -569,7 +569,7 @@ function idealFromCharacter(P::PChar, R::Singular.PolyRing)
 	I=Ideal(R,zero(R))
 
 	while test==true && i<=size(P.b,1)
-		if P.b[i]!=QabField()(1)
+		if P.b[i]!=QQAbField()(1)
 			#in this case there is a generator g for which P(g)!=1
 			test=false
 		end
@@ -650,7 +650,7 @@ function partialCharacterFromIdeal(I::Singular.sideal, R::Singular.PolyRing)
 
 	Delta=cell[2]	#cell variables
 	if size(Delta,1)==0
-		P=PChar(matrix(FlintZZ,1,Singular.nvars(R), zeros(Int64,1,Singular.nvars(R))), [QabField()(1)], Set{Int64}(Delta))
+		P=PChar(matrix(FlintZZ,1,Singular.nvars(R), zeros(Int64,1,Singular.nvars(R))), [QQAbField()(1)], Set{Int64}(Delta))
 		return P
 	end
 
@@ -675,7 +675,7 @@ argument, so we make an array prodDeltaC, push to it, then splice it in
 	#if Singular.ngens(J)==0 || (Singular.ngens(J)==1 && J[1]== R(0))
 		#return another trivial character
 		#lattice has only one generator, namely the zero vector
-		P=PChar(matrix(FlintZZ,1,Singular.nvars(R), zeros(Int64,1,Singular.nvars(R))), [QabField()(1)], Set{Int64}(Delta))
+		P=PChar(matrix(FlintZZ,1,Singular.nvars(R), zeros(Int64,1,Singular.nvars(R))), [QQAbField()(1)], Set{Int64}(Delta))
 		return P
 	end
 	#now case if J \neq 0
@@ -686,7 +686,7 @@ argument, so we make an array prodDeltaC, push to it, then splice it in
 		ts=[ts; J[i]]
 	end
 	vs=zeros(Int64,Singular.nvars(R),1)
-	images=QabElem[]
+	images=QQAbElem[]
 	for t in ts
 		tCopy=t
 		u=lead_exponent(t)

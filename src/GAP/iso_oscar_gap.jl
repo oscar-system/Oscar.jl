@@ -257,12 +257,12 @@ function _iso_oscar_gap(FO::AnticNumberField)
    return MapFromFunc(f, finv, FO, FG)
 end
 
-# Assume that `FO` is a `QabField` and `FG` is `GAP.Globals.Cyclotomics`.
-function _iso_oscar_gap_abelian_closure_functions(FO::QabField, FG::GAP.GapObj)
-   return (GAP.julia_to_gap, QabElem)
+# Assume that `FO` is a `QQAbField` and `FG` is `GAP.Globals.Cyclotomics`.
+function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GAP.GapObj)
+   return (GAP.julia_to_gap, QQAbElem)
 end
 
-function _iso_oscar_gap(FO::QabField)
+function _iso_oscar_gap(FO::QQAbField)
    FG = GAP.Globals.Cyclotomics
    f, finv = _iso_oscar_gap_abelian_closure_functions(FO, FG)
 

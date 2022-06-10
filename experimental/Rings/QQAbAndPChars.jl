@@ -1,4 +1,4 @@
-module QabModule
+module QQAbModule
 
 using ..Oscar
 
@@ -80,9 +80,9 @@ function Base.:(==)(P::PartialCharacter{T}, Q::PartialCharacter{T}) where T <: F
   return true
 end
 
-function saturations(L::PartialCharacter{QabElem{T}}) where T
+function saturations(L::PartialCharacter{QQAbElem{T}}) where T
 	#computes all saturations of the partial character L
-  res = PartialCharacter{QabElem{T}}[]
+  res = PartialCharacter{QQAbElem{T}}[]
 
   #first handle case wher the domain of the partial character is the zero lattice
   #in this case return L
@@ -98,7 +98,7 @@ function saturations(L::PartialCharacter{QabElem{T}}) where T
   #so, saturation is i' * H // d
   S = divexact(transpose(i)*L.A, d)
 
-	B = Vector{Vector{QabElem{T}}}()
+	B = Vector{Vector{QQAbElem{T}}}()
   for k = 1:nrows(H)
     c = i[1, k]
     for j = 2:ncols(H)
@@ -107,12 +107,12 @@ function saturations(L::PartialCharacter{QabElem{T}}) where T
         break
       end
     end
-    mu = evaluate(FacElem(Dict(Tuple{QabElem{T}, fmpz}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
+    mu = evaluate(FacElem(Dict(Tuple{QQAbElem{T}, fmpz}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
 		mu1 = roots(mu, Int(div(d, c)))
     push!(B,  mu1)
   end
   it = Hecke.cartesian_product_iterator(UnitRange{Int}[1:length(x) for x in B])
-  vT = Vector{Vector{QabElem{T}}}()
+  vT = Vector{Vector{QQAbElem{T}}}()
   for I in it
     push!(vT, [B[i][I[i]] for i = 1:length(B)])
   end

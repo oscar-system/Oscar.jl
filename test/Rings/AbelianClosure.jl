@@ -4,26 +4,26 @@
     K, z = abelian_closure(QQ)
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
-    @test K isa QabField
-    @test elem_type(K) === QabElem{nf_elem}
-    @test elem_type(typeof(K)) === QabElem{nf_elem}
-    @test parent_type(QabElem{nf_elem}) === QabField{AnticNumberField}
-    @test parent_type(one(K)) === QabField{AnticNumberField}
+    @test K isa QQAbField
+    @test elem_type(K) === QQAbElem{nf_elem}
+    @test elem_type(typeof(K)) === QQAbElem{nf_elem}
+    @test parent_type(QQAbElem{nf_elem}) === QQAbField{AnticNumberField}
+    @test parent_type(one(K)) === QQAbField{AnticNumberField}
 
     a = @inferred K()
-    @test a isa QabElem
+    @test a isa QQAbElem
     @test parent(a) === K
 
     a = @inferred K(1)
     @test parent(a) === K
-    @test a isa QabElem
+    @test a isa QQAbElem
     @test isone(a)
     @test isone(one(a))
     @test !iszero(a)
 
     a = @inferred K(0)
     @test parent(a) === K
-    @test a isa QabElem
+    @test a isa QQAbElem
     @test iszero(a)
     @test iszero(zero(a))
     @test !isone(a)
@@ -100,9 +100,9 @@
   end
 
   @testset "Promote rule" begin
-    @test Oscar.AbstractAlgebra.promote_rule(QabElem, Int) == QabElem
-    @test Oscar.AbstractAlgebra.promote_rule(QabElem, fmpz) == QabElem
-    @test Oscar.AbstractAlgebra.promote_rule(QabElem, fmpq) == QabElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, Int) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, fmpz) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, fmpq) == QQAbElem
   end
 
   @testset "Arithmetic" begin

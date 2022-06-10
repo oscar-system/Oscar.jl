@@ -1,8 +1,8 @@
-function Hecke.minpoly(a::QabElem)
+function Hecke.minpoly(a::QQAbElem)
   return minpoly(data(a))
 end
 
-function Hecke.number_field(::FlintRationalField, a::QabElem; cached::Bool = false)
+function Hecke.number_field(::FlintRationalField, a::QQAbElem; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   return k, b
@@ -167,7 +167,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
   return [(mR(sR(ms(x))), F) for x = gens(s)]
 end
 
-function Hecke.number_field(::FlintRationalField, a::AbstractVector{<: QabElem}; cached::Bool = false)
+function Hecke.number_field(::FlintRationalField, a::AbstractVector{<: QQAbElem}; cached::Bool = false)
   if length(a) == 0
     return Hecke.rationals_as_number_field()[1]
   end
@@ -177,8 +177,8 @@ function Hecke.number_field(::FlintRationalField, a::AbstractVector{<: QabElem};
   return k, gen(k)
 end
 
-Base.getindex(::FlintRationalField, a::QabElem) = number_field(QQ, a)
-Base.getindex(::FlintRationalField, a::Vector{QabElem}) = number_field(QQ, a)
-Base.getindex(::FlintRationalField, a::QabElem...) = number_field(QQ, [x for x =a])
+Base.getindex(::FlintRationalField, a::QQAbElem) = number_field(QQ, a)
+Base.getindex(::FlintRationalField, a::Vector{QQAbElem}) = number_field(QQ, a)
+Base.getindex(::FlintRationalField, a::QQAbElem...) = number_field(QQ, [x for x =a])
 Base.getindex(::FlintRationalField, chi::Oscar.GAPGroupClassFunction) = number_field(QQ, chi)
 

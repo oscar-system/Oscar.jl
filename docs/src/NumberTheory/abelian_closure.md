@@ -28,7 +28,7 @@ abelian_closure(::FlintRationalField)
 Given the abelian closure, the generator can be recovered as follows:
 
 ```@docs
-gen(::QabField)
+gen(::QQAbField)
 ```
 
 ## Printing
@@ -37,9 +37,9 @@ The n-th primitive root of the abelian closure of will by default be printed as
 `z(n)`. The printing can be manipulated using the following functions:
 
 ```@docs
-gen(::QabField, ::String)
-set_variable!(::QabField, ::String)
-get_variable(::QabField)
+gen(::QQAbField, ::String)
+set_variable!(::QQAbField, ::String)
+get_variable(::QQAbField)
 ```
 
 ### Examples

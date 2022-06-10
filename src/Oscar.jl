@@ -394,7 +394,7 @@ include("ToricVarieties/JToric.jl")
 include("TropicalGeometry/main.jl")
 
 include("../experimental/Experimental.jl")
-include("Rings/binomial_ideals.jl") # uses QabModule from experimental/Rings/QabAndPChars.jl
+include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

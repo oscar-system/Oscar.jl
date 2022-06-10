@@ -605,7 +605,7 @@ end
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa fmpq
-  for T in [fmpz, fmpq, Int64, QabElem]
+  for T in [fmpz, fmpq, Int64, QQAbElem]
     scpT = scalar_product(T, t[1],t[1])
     @test scpT == scp
     @test scpT isa T
@@ -658,8 +658,8 @@ end
 @testset "Galois conjugacy of characters" begin
   g = alternating_group(4)
   t = character_table(g)
-  @test all(x -> conj(x) == QabAutomorphism(5)(x), t)
-  @test all(x -> x == QabAutomorphism(4)(x), t)
+  @test all(x -> conj(x) == QQAbAutomorphism(5)(x), t)
+  @test all(x -> x == QQAbAutomorphism(4)(x), t)
 end
 
 @testset "induction of characters" begin
