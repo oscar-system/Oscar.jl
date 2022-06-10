@@ -4573,7 +4573,7 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
-  tensor_modules = vcat(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in range(C)])
+  append!(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in range(C)])
 
   for i in 1:length(range(C))
     A = tensor_modules[i]
@@ -4597,7 +4597,7 @@ function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   tensor_chain = valtype(C.maps)[]
   chain_range = range(C)
   tensor_modules = [tensor_product(domain(map(C,first(chain_range))), P, task=:cache_morphism)[1]]
-  tensor_modules = vcat(tensor_modules, [tensor_product(codomain(map(C,i)), P, task=:cache_morphism)[1] for i in chain_range])
+  append!(tensor_modules, [tensor_product(codomain(map(C,i)), P, task=:cache_morphism)[1] for i in chain_range])
 
   for i=1:length(chain_range)
     A = tensor_modules[i]
@@ -4688,7 +4688,7 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   hom_chain = valtype(C.maps)[]
   chain_range = range(C)
   hom_modules = [hom(P, domain(map(C,first(chain_range))))]
-  hom_modules = vcat(hom_modules, [hom(P, codomain(map(C,i))) for i in chain_range])
+  append!(hom_modules, [hom(P, codomain(map(C,i))) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
@@ -4736,7 +4736,7 @@ function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::Mod
   hom_chain = valtype(C.maps)[]
   chain_range = range(C)
   hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  hom_modules = vcat(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
