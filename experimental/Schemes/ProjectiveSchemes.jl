@@ -3,7 +3,7 @@ export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_ty
 export projective_space, subscheme
 export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
 export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
-export fiber_product, inclusion_map
+export fiber_product, inclusion_map, identity_map
 
 export ==
 
@@ -17,15 +17,14 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
 `RingType` with elements of type `RingElemType`.
 """
 @attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
-  A::CoeffRingType # the base ring
-  r::Int # the relative dimension
+  A::CoeffRingType	# the base ring
+  r::Int	# the relative dimension
   S::RingType   # A[s₀,…,sᵣ]
   I::MPolyIdeal{RingElemType} # generators for the defining ideal
-  #TODO: Once MPolyIdeal is finally generic, use that instead of storing the generators.
 
   # fields used for caching
-  C::Spec # The affine cone of this scheme.
-  Y::Spec # the base scheme 
+  C::Scheme # The affine cone of this scheme.
+  Y::Scheme # the base scheme 
   projection_to_base::SpecMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
 
@@ -157,6 +156,10 @@ function base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{
   return X.Y
 end
 
+function base_scheme(X::ProjectiveScheme{<:SpecOpenRing}) 
+  return domain(base_ring(X))
+end
+
 function set_base_scheme!(P::ProjectiveScheme{CRT, CRET, RT, RET}, X::Spec) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
   OO(X) == base_ring(P) || error("schemes are not compatible")
   P.Y = X
@@ -176,6 +179,13 @@ function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<
     affine_cone(X)
   end
   return X.projection_to_base
+end
+
+function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOpenRing, CRET, RT, RET}
+  if !isdefined(X, :projection_to_base)
+    affine_cone(X)
+  end
+  return get_attribute(X, :projection_to_base)
 end
 
 @Markdown.doc """
@@ -384,7 +394,7 @@ end
 
     
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105
-Generic.ordering(S::MPolyRing_dec) = :lex
+Generic.ordering(S::MPolyRing_dec) = :degrevlex
 
 @Markdown.doc """
     affine_cone(X::ProjectiveScheme) 
@@ -410,7 +420,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     # use the map to convert ideals:
     #I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, I)
+    CX = subscheme(C, pre_image_ideal(I))
     set_attribute!(X, :affine_cone, CX)
     X.C = get_attribute(X, :affine_cone)
     pr_base_res = restrict(pr_base, CX, Y, check=false)
@@ -453,7 +463,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
                   )
 
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, I)
+    CX = subscheme(C, pre_image_ideal(I))
     pr_base_res = restrict(pr_base, CX, Y, check=false)
     pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
 
@@ -480,7 +490,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     S = homogeneous_poly_ring(X)
     help_map = hom(S, OO(C), gens(OO(C)))
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, I)
+    CX = subscheme(C, pre_image_ideal(I))
 
     # store the various conversion maps
     set_attribute!(X, :homog_to_frac, hom(S, OO(CX), gens(OO(CX))))
@@ -488,6 +498,30 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     set_attribute!(X, :poly_to_homog, pth)
     set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
     X.C = CX
+  end
+  return X.C
+end
+
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOpenRing, CRET, RT, RET}
+  if !isdefined(X, :C)
+    S = homogeneous_poly_ring(X)
+    B = coefficient_ring(S)
+    Y = scheme(B)
+    U = domain(B)
+    R = base_ring(OO(Y))
+    kk = base_ring(R)
+    F = affine_space(kk, symbols(homogeneous_poly_ring(X)))
+    C, pr_base, pr_fiber = product(U, F)
+    X.homog_coord = [pullback(pr_fiber)(u) 
+                           for u in OO(codomain(pr_fiber)).(gens(OO(F)))]
+    phi = hom(S, OO(C), pullback(pr_base), X.homog_coord)
+    g = phi.(gens(defining_ideal(X)))
+    CX = subscheme(C, g)
+    X.C = CX
+
+    set_attribute!(X, :homog_to_frac, compose(phi, restriction_map(C, CX)))
+    set_attribute!(X, :base_scheme, U)
+    set_attribute!(X, :projection_to_base, restrict(pr_base, CX, U, check=false))
   end
   return X.C
 end
@@ -524,8 +558,8 @@ mutable struct ProjectiveSchemeMor{
   pullback::PullbackType
 
   #fields for caching
-  map_on_base_schemes::SpecMor
-  map_on_affine_cones::SpecMor
+  map_on_base_schemes
+  map_on_affine_cones
 
   function ProjectiveSchemeMor(
       P::DomainType,
@@ -617,6 +651,27 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Abstr
   return phi.map_on_affine_cones
 end
 
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecOpenRing}, <:ProjectiveScheme{<:SpecOpenRing}})
+  if !isdefined(phi, :map_on_affine_cones)
+    X = domain(phi)
+    CX = affine_cone(X)
+    P = ambient(CX)
+    BX = base_scheme(X)
+    BP = ambient(BX)
+    Y = codomain(phi)
+    CY = affine_cone(Y)
+    Q = ambient(CY)
+    BY = base_scheme(Y)
+    BQ = ambient(BY)
+    fiber_coord_imgs = homog_to_frac(X).(pullback(phi).(gens(homogeneous_poly_ring(Y)))) # elements in OO(CX)
+    base_coord_imgs = pullback(phi).(pullback(projection_to_base(Y)).(gens(OO(BY))))
+    coord_imgs = vcat(fiber_coord_imgs, base_coord_imgs)
+    phi.map_on_affine_cones = SpecOpenMor(CX, CY, 
+                                          [SpecMor(U, Q, (f->restriction_map(U, f)).(coord_imgs)) for U in CX], check=false)
+  end
+  return phi.map_on_affine_cones
+end
+
 function is_well_defined(phi::ProjectiveSchemeMor) 
   CP = affine_cone(domain(phi))
   CQ = affine_cone(codomain(phi))
@@ -645,6 +700,18 @@ end
 
 ### additional constructors
 
+function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomType}) where {DomType<:Ring, CodType<:Ring}
+  R = base_ring(P) 
+  R == domain(f) || error("rings not compatible")
+  Rnew = codomain(f)
+  S = homogeneous_poly_ring(P)
+  Qambient = projective_space(Rnew, symbols(S))
+  Snew = homogeneous_poly_ring(Qambient)
+  phi = hom(S, Snew, f, gens(Snew))
+  Q = subscheme(Qambient, phi(defining_ideal(P)))
+  return Q, ProjectiveSchemeMor(Q, P, hom(S, homogeneous_poly_ring(Q), f, gens(homogeneous_poly_ring(Q))))
+end
+
 function fiber_product(f::SpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRing})
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
   X = domain(f)
@@ -656,7 +723,7 @@ function fiber_product(f::SpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRing})
                  gens(homogeneous_poly_ring(Q_ambient))
                 )
   I = help_map(defining_ideal(P))
-  Q = subscheme(Q_ambient, I)
+  Q = subscheme(Q_ambient, pre_image_ideal(I))
   return Q, ProjectiveSchemeMor(Q, P, 
                                 hom(homogeneous_poly_ring(P), 
                                     homogeneous_poly_ring(Q),
@@ -701,13 +768,17 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:AbstractAlgebra.
                             )
 end
 
-function as_covered_scheme(P::ProjectiveScheme)
-  if !has_attribute(P, :as_covered_scheme) 
+identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P, 
+                                                        hom(homogeneous_poly_ring(P),
+                                                            homogeneous_poly_ring(P),
+                                                            gens(homogeneous_poly_ring(P))
+                                                           )
+                                                       )
+
+@attr function as_covered_scheme(P::ProjectiveScheme)
     C = standard_covering(P) 
     X = CoveredScheme(C)
-    set_attribute!(P, :as_covered_scheme, X)
-  end
-  return get_attribute(P, :as_covered_scheme)
+    return X
 end
 
 function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuoLocalizedRing})

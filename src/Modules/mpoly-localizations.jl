@@ -9,17 +9,19 @@
 # [1] Posur: Linear systems over localizations of rings, arXiv:1709.08180v2
 
 
-function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check::Bool=true)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
 
   d = prod(denominators(U))
-  inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  if check
+    inradical(d, I) || return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  end
   (k, f) = _minimal_power_such_that(d, (x->x in I))
   return true, f, coordinates(f, I)
 end
 
-function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal; check::Bool=true)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   P = prime_ideal(U)
@@ -37,7 +39,7 @@ function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
   return true, g, A
 end
 
-function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdeal)
+function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdeal; check::Bool=true)
   R = ambient_ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   a = point_coordinates(U)
@@ -53,6 +55,30 @@ function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdea
   A = zero(MatrixSpace(R, 1, ngens(I)))
   A[1, j] = 1
   return true, g, A
+end
+
+function has_nonempty_intersection(U::MPolyProductOfMultSets, I::MPolyIdeal; check::Bool=true)
+  J = I
+  R = ambient_ring(U) 
+  R == base_ring(I) || error("rings not compatible")
+  Usets = sets(U)
+  if length(Usets) == 1 
+    return Oscar.has_nonempty_intersection(Usets[1], I, check=check)
+  end
+
+  V = pop!(Usets)
+  Iloc = MPolyLocalizedRing(R, V)(I)
+  saturated_ideal(Iloc, with_generator_transition=true)
+  J = pre_saturated_ideal(Iloc)
+  (success, g, A) = has_nonempty_intersection(MPolyProductOfMultSets(R, Usets), J, check=check)
+  if !success 
+    return false, zero(R), zero(MatrixSpace(R, 1, ngens(I)))
+  end
+  T = pre_saturation_data(Iloc)
+  Bext = A*T
+  u = lcm(vec(denominator.(Bext)))
+  B = map_entries(x->preimage(map_from_base_ring(Iloc), x), u*Bext)
+  return true, u*g, B
 end
 
 # For a `RingElem` f this computes a pair (k, h) where h = f^k and 
