@@ -48,7 +48,7 @@ this is an open subset;
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
       if check
-        !is_empty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
+        !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
       end
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
@@ -268,7 +268,7 @@ function issubset(U::T, V::T) where {T<:SpecOpen}
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
   # efficient than computing radicals.
   for g in gens(U)
-    is_empty(hypersurface_complement(Z, g)) || return false
+    isempty(hypersurface_complement(Z, g)) || return false
   end
   return true
   #return issubset(complement(intersect(V, ambient(U))), complement(U))
@@ -448,7 +448,7 @@ function restrict(
     f::SpecOpenRingElem, 
     V::Spec
   )
-  is_empty(V) && return zero(OO(V))
+  isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V == affine_patches(domain(f))[i]
       return restrictions(f)[i]

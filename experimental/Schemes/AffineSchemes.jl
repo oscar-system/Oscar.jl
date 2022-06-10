@@ -253,7 +253,7 @@ function is_canonically_isomorphic(
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   X === Y && return true
-  is_empty(X) && is_empty(Y) && return true
+  isempty(X) && isempty(Y) && return true
   base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
 end
@@ -264,7 +264,7 @@ end
 
 is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
 
-is_empty(X::Spec) = iszero(one(OO(X)))
+Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
     is_open_embedding(X::Spec, Y::Spec)
