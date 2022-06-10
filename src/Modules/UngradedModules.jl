@@ -4758,19 +4758,6 @@ Compute all homology groups of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP})
   return [homology(C,i) for i in range(C)]
-  H = SubQuo[]
-  chain_range = range(C)
-  next = iterate(chain_range)
-  while next !== nothing
-    (i, state) = next
-    next = iterate(chain_range, state)
-    if next === nothing
-      break
-    end
-    (i_next,_) = next
-    push!(H, quo(kernel(map(C,i_next))[1], image(map(C,i))[1], :module))
-  end
-  return H
 end
 
 @doc Markdown.doc"""
