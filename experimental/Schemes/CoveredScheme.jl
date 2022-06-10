@@ -140,7 +140,7 @@ end
 
 # functions for handling sets in coverings
 
-function Base.intersect(U::SpecType, V::SpecType, C::Covering) where {SpecType<:Spec}
+function intersect_in_covering(U::SpecType, V::SpecType, C::Covering) where {SpecType<:Spec}
   U in C || error("first patch not found in covering")
   V in C || error("second patch not found in covering")
   (i, j, k) = indexin(U, C)
