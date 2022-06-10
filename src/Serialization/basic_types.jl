@@ -10,6 +10,20 @@ end
 
 
 ################################################################################
+# fmpq
+function save_internal(s::SerializerState, q::fmpq)
+    return Dict(
+        :num => save_type_dispatch(s, numerator(q)),
+        :den => save_type_dispatch(s, denominator(q))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{fmpq}, q::Dict)
+    return fmpq(load_type_dispatch(s, fmpz, q[:num]),
+                load_type_dispatch(s, fmpz, q[:den]))
+end
+
+################################################################################
 # Number
 function save_internal(s::SerializerState, z::Number)
     return string(z)

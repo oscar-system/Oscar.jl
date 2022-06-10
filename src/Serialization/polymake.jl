@@ -43,7 +43,17 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
         return load_from_polymake(oscar_type, jsondict)
     else 
         # We just try to default to something from Polymake.jl
-        return Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+        deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+        try
+            return convert(deserialized)
+        catch e
+            if e isa MethodError
+                @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
+                return deserialized
+            else
+                throw(e)
+            end
+        end
     end
 end
 

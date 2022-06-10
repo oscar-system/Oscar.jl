@@ -7,7 +7,7 @@ function save_internal(s::SerializerState, vec::Vector{T}) where T
 end
 
 function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
-    return Vector{T}([load_type_dispatch(s, x; check_namespace=false) for x in dict[:vector]])
+    return Vector{T}([load_unknown_type(s, x) for x in dict[:vector]])
 end
 
 

@@ -17,5 +17,11 @@
 
         um = load(joinpath(@__DIR__, "um5.mat"))
         @test um isa Polymake.PropertyValueAllocated
+
+        i = load(joinpath(@__DIR__, "ideal.mv"))
+        @test i isa Ideal
+        @test map(collect, map(coefficients, gens(i))) == [[1, 1], [1, -4]]
+        @test map(collect, map(exponent_vectors, gens(i))) ==
+            [[[2, 0], [0, 1]], [[3, 0], [0, 1]]]
     end
 end

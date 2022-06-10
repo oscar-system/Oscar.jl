@@ -379,6 +379,7 @@ include("NumberTheory/NmbThy.jl")
 
 include("PolyhedralGeometry/main.jl")
 
+include("Polymake/polymake_to_oscar.jl")
 include("Combinatorics/Graphs.jl")
 export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
