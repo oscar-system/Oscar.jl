@@ -23,7 +23,7 @@
 
 module AbelianClosure 
 
-using ..Oscar
+using ..Oscar, Markdown
 
 import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_internal, hash
 
@@ -73,13 +73,30 @@ const _QabGen_sparse = QabFieldGen(_Qab_sparse)
 #
 ################################################################################
 
-"""
+@doc Markdown.doc"""
     abelian_closure(QQ::RationalField)
 
 Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals
 and a generator `z` that can be used to construct primitive roots of unity in
 `K`.
-"""
+
+An optional keyword argument `sparse` can be set to `true` to switch to a 
+sparse representation. Depending on the application this can be much faster
+or slower.
+
+# Examples
+```jldoctest; setup = :(using Oscar)
+julia> K, z = abelian_closure(QQ);
+
+julia> z(36)
+ζ(36)
+
+julia> K, z = abelian_closure(QQ, sparse = true);
+
+julia> z(36)
+-ζ(36, 9)*ζ(36, 4)^4 - ζ(36, 9)*ζ(36, 4)
+
+```
 function abelian_closure(::FlintRationalField; sparse::Bool = false) 
   if sparse 
     return _Qab_sparse, _QabGen_sparse
