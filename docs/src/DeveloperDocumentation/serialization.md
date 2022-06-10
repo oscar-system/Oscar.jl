@@ -71,7 +71,7 @@ c = cube(3);
 LP0 = LinearProgram(c, [2,2,-3]);
 LP1 = LinearProgram(c, [2,2,4]);
 v = [LP0, LP1];
-save(v, "vector_of_lp.json")
+save("vector_of_lp.json", v)
 ```
 This creates two linear programs on the cube, stores them in a vector and then
 writes this vector to a file. It would be wasteful to store the cube twice for

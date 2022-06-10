@@ -17,7 +17,7 @@ Objects of type `Polyhedron` can be saved to a file and loaded from a file in th
 following way:
 ```@repl oscar
 square = cube(2)
-save(square, "square.poly")
+save("square.poly", square)
 s = load("square.poly")
 s == square
 ```
