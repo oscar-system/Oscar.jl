@@ -191,35 +191,6 @@ function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_
   f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
   W, _ = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
-  if keep_cache
-    IX = localized_modulus(OO(X))
-    DIX = groebner_bases(IX)
-    # we have a look at the possibility to transfer groebner bases that 
-    # have already been computed.
-    if length(DIX)>0
-      if has_attribute(IX, :saturated_ideal)
-        # in case the saturated ideal has already been computed once, 
-        # we assume that this computation is also feasible a second time.
-        # We check whether the new saturation makes any difference and 
-        # transfer the cached data if applicable.
-        Jsat = ideal(R, numerator.(oscar_gens(groebner_basis(IX))))
-        for d in [b for b in denominators(inverted_set(W)) if !(b in inverted_set(OO(X)))]
-          for a in factor(d)
-            Jsat = saturation(Jsat, ideal(R, a[1]))
-          end
-        end
-        J = localized_modulus(W)
-        set_attribute!(J, :saturated_ideal, Jsat)
-        if issubset(Jsat, saturated_ideal(IX))
-          for o in keys(DIX)
-            gb = DIX[o]
-            groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), o.o, true)
-          end
-        end
-        set_attribute!(W, :localized_modulus, J)
-      end
-    end
-  end
   return Spec(W)
 end
 
@@ -572,11 +543,8 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   return Spec(R)
 end
 
-function dim(X::Spec)
-  if !has_attribute(X, :dimension)
-    set_attribute!(X, :dimension, dim(saturated_ideal(localized_modulus(OO(X)))))
-  end
-  return get_attribute(X, :dimension)::Int64
+@attr function dim(X::Spec)
+  return dim(saturated_ideal(localized_modulus(OO(X))))
 end
 
 function codim(X::Spec)

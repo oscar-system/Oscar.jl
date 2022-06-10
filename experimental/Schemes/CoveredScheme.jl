@@ -267,10 +267,7 @@ end
 
 ### standard constructors 
 
-function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
-  if has_attribute(X, :standard_covering) 
-    return get_attribute(X, :standard_covering)
-  end
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX = affine_cone(X)
   kk = base_ring(X)
   S = homogeneous_poly_ring(X)
@@ -314,14 +311,10 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
       add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
     end
   end
-  set_attribute!(X, :standard_covering, result)
   return result
 end
 
-function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
-  if has_attribute(X, :standard_covering) 
-    return get_attribute(X, :standard_covering)
-  end
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
   CX = affine_cone(X)
   Y = base_scheme(X)
   L = OO(Y)
@@ -372,7 +365,6 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :standard_covering, result)
   set_attribute!(X, :covered_projection_to_base, covered_projection)
   return result
 end
