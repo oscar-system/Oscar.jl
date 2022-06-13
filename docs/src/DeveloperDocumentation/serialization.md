@@ -23,15 +23,11 @@ on mathematics by mathematicians.
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
 ```
-julia> t = 42
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
 42
 
-julia> save(t, "fourtitwo.json");
-
-julia> tt = load("fourtitwo.json");
-
-julia> t == tt
-true
 ```
 As hinted by the filename, OSCAR writes a file in JSON format. The file looks
 as follow:
