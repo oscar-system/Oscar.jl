@@ -214,7 +214,7 @@ If `I`,  `J` are ideals of a localized multivariate polynomial ring  `Rloc`, the
 
 - `I^k` refers to the `k`-th  power of `I`, 
 - `I+J`, `I*J`,  and `intersect(I, J)` to the sum, product, and intersection of `I` and  `J`, and
-- `quotient(I, J)` as well as `I*J` to the quotient of `I` by `J`.
+- `quotient(I, J)` as well as `I:J` to the quotient of `I` by `J`.
 
 #### Tests on Ideals
 
