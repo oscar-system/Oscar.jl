@@ -47,28 +47,30 @@ const versionInfo = get_version_info()
 const typeMap = Dict{Type, String}()
 const reverseTypeMap = Dict{String, Type}()
 
+function registerSerializationType(@nospecialize(T::Type), str::String)
+  isconcretetype(T) || error("Currently only concrete types can be registered, but $T is not")
+  if haskey(typeMap, T) && typeMap[T] != str
+    error("type $T already registered with a different encoding: $str versus $(typeMap[T])")
+  end
+
+  if haskey(reverseTypeMap, str) && reverseTypeMap[str] != T
+    error("encoded type $str already registered for a different type: $T versus $(reverseTypeMap[str])")
+  end
+  typeMap[T] = str
+  reverseTypeMap[str] = T
+end
+
+# registerSerializationType is a macro to ensure that the string we generate
+# matches exactly the expression passed as first argument, and does not change
+# in unexpected ways when import/export statements are adjusted.
+macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
+  if str === nothing
+    str = string(ex)
+  end
+  return :( registerSerializationType($ex, $str) )
+end
+
 for (T, str) in (
-    Int8 => "Int8",
-    Int16 => "Int16",
-    Int32 => "Int32",
-    Int64 => "Base.Int",
-    Int128 => "Int128",
-
-    UInt8 => "UInt8",
-    UInt16 => "UInt16",
-    UInt32 => "UInt32",
-    UInt64 => "UInt64",
-    UInt128 => "UInt128",
-
-    BigInt => "BigInt",
-
-    Float16 => "Float16",
-    Float32 => "Float32",
-    Float64 => "Float64",
-
-    String => "String",
-    Symbol => "Symbol",
-
     AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
     AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
     AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
@@ -89,36 +91,9 @@ for (T, str) in (
     AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}}",
     AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.PolyRing{nf_elem} => "AbstractAlgebra.Generic.PolyRing{nf_elem}",
-    AnticNumberField => "AnticNumberField",
-    Cone{fmpq} => "Cone{fmpq}",
-    FlintIntegerRing => "FlintIntegerRing",
-    FlintRationalField => "FlintRationalField",
-    fmpq => "fmpq",
-    fmpq_mpoly => "fmpq_mpoly",
-    fmpq_poly => "fmpq_poly",
-    FmpqMPolyRing => "FmpqMPolyRing",
-    FmpqPolyRing => "FmpqPolyRing",
-    fmpz => "fmpz",
-    fmpz_mpoly => "fmpz_mpoly",
-    fmpz_poly => "fmpz_poly",
-    FmpzMPolyRing => "FmpzMPolyRing",
-    FmpzPolyRing => "FmpzPolyRing",
-    fq_nmod => "fq_nmod",
-    fq_nmod_mpoly => "fq_nmod_mpoly",
-    fq_nmod_poly => "fq_nmod_poly",
-    FqNmodFiniteField => "FqNmodFiniteField",
-    FqNmodMPolyRing => "FqNmodMPolyRing",
-    FqNmodPolyRing => "FqNmodPolyRing",
-    gfp_elem => "Nemo.gfp_elem",
-    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem",
-    gfp_poly => "gfp_poly",
-    GFPPolyRing => "GFPPolyRing",
-    Graphs.Graph{Graphs.Directed} => "Oscar.Graphs.Graph{Oscar.Graphs.Directed}",
-    Graphs.Graph{Graphs.Undirected} => "Oscar.Graphs.Graph{Oscar.Graphs.Undirected}",
     Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
     Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
     Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
-    LinearProgram{fmpq} => "LinearProgram{fmpq}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
@@ -127,26 +102,8 @@ for (T, str) in (
     MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
     MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",
     MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
-    Nemo.GaloisField => "Nemo.GaloisField",
-    Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
-    Nemo.NmodRing => "Nemo.NmodRing",
-    nf_elem => "nf_elem",
-    NfAbsNS => "NfAbsNS",
     NfRelNS{nf_elem} => "NfRelNS{nf_elem}",
-    nmod => "nmod",
-    nmod_mpoly => "nmod_mpoly",
-    nmod_poly => "nmod_poly",
-    NmodMPolyRing => "NmodMPolyRing",
-    NmodPolyRing => "NmodPolyRing",
-    NormalToricVariety => "NormalToricVariety",
-    PolyhedralComplex{fmpq} => "PolyhedralComplex{fmpq}",
-    PolyhedralFan{fmpq} => "PolyhedralFan{fmpq}",
-    Polyhedron{fmpq} => "Polyhedron{fmpq}",
     Polymake.BigObjectAllocated => "Polymake.BigObject",
-    SimplicialComplex => "Oscar.SimplicialComplex",
-    SubdivisionOfPoints{fmpq} => "SubdivisionOfPoints{fmpq}",
-    ToricDivisor => "ToricDivisor",
-    Vector => "Vector",
     Vector{AbstractAlgebra.Generic.Poly{nf_elem}} => "Vector{AbstractAlgebra.Generic.Poly{nf_elem}}",
     Vector{AbstractAlgebra.Ring} => "Vector{AbstractAlgebra.Ring}",
     Vector{Any} => "Vector{Any}",
@@ -171,8 +128,7 @@ for (T, str) in (
     Vector{Union{LinearProgram, Polyhedron}} => "Vector{Union{LinearProgram, Polyhedron}}",
     )
 
-  typeMap[T] = str
-  reverseTypeMap[str] = T
+  registerSerializationType(T, str)
 end
 
 

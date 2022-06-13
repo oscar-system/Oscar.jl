@@ -1,6 +1,8 @@
 ###############################################################################
 ## Graphs
 ###############################################################################
+@registerSerializationType(Graphs.Graph{Graphs.Directed}, "Oscar.Graphs.Graph{Oscar.Graphs.Directed}")
+@registerSerializationType(Graphs.Graph{Graphs.Undirected}, "Oscar.Graphs.Graph{Oscar.Graphs.Undirected}")
 
 function save_internal(s::SerializerState, g::Graphs.Graph{T}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
     smallobject = pm_object(g)
@@ -19,6 +21,8 @@ end
 ###############################################################################
 ## SimplicialComplex
 ###############################################################################
+@registerSerializationType(SimplicialComplex)
+
 function save_internal(s::SerializerState, K::SimplicialComplex)
     bo = pm_object(K)
     return bigobject_to_dict(bo)
