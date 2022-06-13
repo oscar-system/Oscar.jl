@@ -1,5 +1,13 @@
 ################################################################################
+# field of rationals (singleton type)
+@registerSerializationType(FlintRationalField)
+
+
+################################################################################
 # non-fmpz variant
+@registerSerializationType(Nemo.gfp_elem)
+@registerSerializationType(Nemo.GaloisField)
+
 function save_internal(s::SerializerState, F::Nemo.GaloisField)
     return Dict(
         :characteristic => UInt64(characteristic(F))
@@ -26,6 +34,9 @@ end
 
 ################################################################################
 # fmpz variant
+@registerSerializationType(Nemo.gfp_fmpz_elem)
+@registerSerializationType(Nemo.GaloisFmpzField)
+
 function save_internal(s::SerializerState, F::Nemo.GaloisFmpzField)
     return Dict(
         :characteristic => save_type_dispatch(s, characteristic(F))
@@ -51,6 +62,8 @@ end
 
 ################################################################################
 # SimpleNumField
+@registerSerializationType(AnticNumberField)
+
 function save_internal(s::SerializerState, K::SimpleNumField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K)),
@@ -68,6 +81,8 @@ end
 
 ################################################################################
 # FqNmodfinitefield
+@registerSerializationType(FqNmodFiniteField)
+
 function save_internal(s::SerializerState, K::FqNmodFiniteField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K))
@@ -82,6 +97,9 @@ function load_internal(s::DeserializerState, ::Type{FqNmodFiniteField}, dict::Di
 end
 
 #elements
+@registerSerializationType(fq_nmod)
+@registerSerializationType(nf_elem)
+
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
@@ -103,6 +121,8 @@ end
 
 ################################################################################
 # Non Simple Extension
+@registerSerializationType(NfAbsNS)
+
 function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
     return Dict(
