@@ -108,15 +108,13 @@ end
    @test GAP.Globals.IsLetterWordsFamily(
            GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(FL.X)))
    for F in [FL, FS]
-     F1 = gen(F, 1)
-     F2 = gen(F, 2)
+     F1, F2 = gens(F)
      rels = [F1^2, F2^2, comm(F1, F2)]
      FP = quo(F, rels)[1]
 
      # map an element of a free group or a f.p. group ...
      for f in [F, FP]
-       f1 = gen(f, 1)
-       f2 = gen(f, 2)
+       f1, f2 = gens(f)
        of = one(f)
 
        # ... to an element of a permutation group or to a rational number

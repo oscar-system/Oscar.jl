@@ -1407,9 +1407,7 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
     # element of a f.p. group
     gX = GAP.Globals.UnderlyingElement(gX)
   end
-  _names = GAP.evalstr("x -> x!.names")
-  @assert length(_names(GAP.Globals.FamilyObj(gX))) == length(genimgs)
-#TODO: use the feature from oscar-system/GAP.jl/pull/816 when it becomes available
+  @assert length(GAP.getbangproperty(GAP.Globals.FamilyObj(gX), :names)) == length(genimgs)
   @assert GAP.Globals.IsAssocWord(gX)
   if GAP.Globals.IsLetterAssocWordRep(gX)
     # `GAP.Globals.ExtRepOfObj` would create a syllable representation,
