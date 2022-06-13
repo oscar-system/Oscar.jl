@@ -33,6 +33,13 @@ end
 	for i=1:ngens(N)
 		@test AN(repres(N[i])) == ai(N[i])
 	end
+
+	G = FreeMod(R,2)
+	@test F(v) in F
+	@test !(F(v) in G)
+	@test (F(v) + F([z, R(1), R(0)])) in M
+	@test !(F([R(1), R(0), R(0)]) in M)
+	@test N[1] in M
 end
 
 @testset "Intersection of modules" begin
@@ -123,8 +130,79 @@ end
 		@test is_bijective(i)
 		@test is_bijective(p)
 	end
-end
 
+	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	A = R[x; y]
+	B = R[x^2; x*y; y^2; z^4]
+	M = SubQuo(A, B)
+	free_res = free_resolution(M)
+	@test all(iszero, homology(free_res))
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	tensor_resolution = tensor_product(N,free_res)
+	@test range(tensor_resolution) == range(free_res)
+	for i in range(tensor_resolution)
+		f = map(free_res,i)
+		M_i = domain(f)
+		tensored_f = map(tensor_resolution,i)
+		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+		for (n,mi) in zip(gens(N),gens(M_i))
+			@test tensored_f(to_pure_tensors_i((n,mi))) == to_pure_tensors_i_plus_1(n,f(mi))
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2*z; x+y-z], R[z^4;])
+	tensor_resolution = tensor_product(free_res,N)
+	@test range(tensor_resolution) == range(free_res)
+	for i in range(tensor_resolution)
+		f = map(free_res,i)
+		M_i = domain(f)
+		tensored_f = map(tensor_resolution,i)
+		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+		for (mi,n) in zip(gens(M_i),gens(N))
+			@test tensored_f(to_pure_tensors_i((mi,n))) == to_pure_tensors_i_plus_1(f(mi),n)
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	hom_resolution = hom(N,free_res)
+	@test range(hom_resolution) == range(free_res)
+	for i in range(hom_resolution)
+		f = map(free_res,i)
+		hom_f = map(hom_resolution,i)
+		hom_N_M_i = domain(hom_f)
+		for v in gens(hom_N_M_i)
+			@test homomorphism(hom_f(v)) == homomorphism(v)*f
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
+	hom_resolution = hom(free_res,N)
+	@test last(range(hom_resolution)) == first(range(free_res))
+	@test first(range(hom_resolution)) == last(range(free_res))
+	for i in range(hom_resolution)
+		f = map(free_res,i)
+		hom_f = map(hom_resolution,i)
+		hom_M_i_N = domain(hom_f)
+		for v in gens(hom_M_i_N)
+			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+		end
+	end
+
+	hom_resolution = hom_without_reversing_direction(free_res,N)
+	@test last(range(hom_resolution)) == -first(range(free_res))
+	@test first(range(hom_resolution)) == -last(range(free_res))
+	for i in range(hom_resolution)
+		f = map(free_res,-i)
+		hom_f = map(hom_resolution,i)
+		hom_M_i_N = domain(hom_f)
+		for v in gens(hom_M_i_N)
+			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+		end
+	end
+end
 
 @testset "Gröbner bases" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
@@ -513,7 +591,20 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	M2 = SubQuo(F3,A2,B2)
 
-	prod_M, proj, emb = direct_sum(M1,M2,task=:both)
+	sum_M, emb = direct_sum(M1,M2)
+
+	@test domain(emb[1]) === M1
+	@test domain(emb[2]) === M2
+	@test codomain(emb[1]) === sum_M
+	@test codomain(emb[2]) === sum_M
+
+	sum_M, proj = direct_sum(M1,M2, task=:prod)
+	@test codomain(proj[1]) === M1
+	@test codomain(proj[2]) === M2
+	@test domain(proj[1]) === sum_M
+	@test domain(proj[2]) === sum_M
+
+	prod_M, emb, proj = direct_sum(M1,M2,task=:both)
 	@test length(proj) == length(emb) == 2
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 

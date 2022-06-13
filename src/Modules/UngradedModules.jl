@@ -5,7 +5,8 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
-      ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
+      hom_without_reversing_direction, ext, map_canonically, 
+      all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, is_injective, is_surjective, is_bijective, is_welldefined,
       subquotient, ambient_free_module, ambient_module, ambient_representative, 
       ambient_representatives_generators, relations, img_gens
@@ -181,8 +182,12 @@ function (F::AbstractFreeMod{T})(v::AbstractFreeModElem{T}) where T
   return v
 end
 
-function in(v::AbstractFreeModElem, M::ModuleFP)
-  return parent(v) === M
+function in(v::AbstractFreeModElem, F::AbstractFreeMod)
+  return parent(v) === F
+end
+
+function in(v::AbstractFreeModElem, M::SubQuo)
+  return represents_element(v, M)
 end
 
 @doc Markdown.doc"""
@@ -2092,8 +2097,9 @@ parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
-function in(v::SubQuoElem, M::ModuleFP)
-  return parent(v) === M
+function in(v::SubQuoElem, M::SubQuo)
+  ambient_free_module(parent(v)) === ambient_free_module(M) || return false
+  return represents_element(repres(v), M)
 end
 
 @doc Markdown.doc"""
@@ -2503,7 +2509,7 @@ function sub(M::SubQuo, V::Vector{<:SubQuoElem}, task::Symbol = :with_morphism, 
   if check
     @assert all(x -> x.parent === M, V)
   end
-  t = SubQuo(M.F, [x.repres for x in V])
+  t = SubQuo(M.F, FreeModElem[repres(x) for x in V])
   if isdefined(M, :quo)
     t.quo = M.quo
     t.sum = sum(t.sub, t.quo)
@@ -2696,7 +2702,7 @@ end
 Return the generators of `M`.
 """
 function gens(M::SubQuo{T}) where T
-  return [gen(M,i) for i=1:ngens(M)]
+  return SubQuoElem{T}[gen(M,i) for i=1:ngens(M)]
 end
 
 @doc Markdown.doc"""
@@ -2731,7 +2737,7 @@ base_ring(M::SubQuo) = base_ring(M.F)
 
 Return the zero element of `M`.
 """
-zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
+zero(M::SubQuo) = SubQuoElem(SRow(base_ring(M)), M)
 
 @doc Markdown.doc"""
     iszero(M::SubQuo)
@@ -2849,7 +2855,7 @@ function presentation(SQ::SubQuo)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false)
+  return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-1)
 end
 
 @doc Markdown.doc"""
@@ -2862,7 +2868,7 @@ Return a free presentation of $F$.
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "Zero")
-  return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModElem[]), hom(F, F, gens(F)), hom(F, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(F)]))], check = false)
+  return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModElem[]), hom(F, F, gens(F)), hom(F, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(F)]))], check = false, start=-1)
 end
 
 @doc Markdown.doc"""
@@ -2879,9 +2885,9 @@ If `task` is set to `:only_morphism` then return only the isomorphism.
 """
 function present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
   chainComplex = presentation(SQ)
-  R_b = obj(chainComplex, 1)
-  f = map(chainComplex, 2)
-  g = map(chainComplex, 1)
+  R_b = obj(chainComplex, 0)
+  f = map(chainComplex, 1)
+  g = map(chainComplex, 0)
   presentation_module = quo(R_b, image(f)[1], :module)
 
   if task == :none
@@ -3089,6 +3095,16 @@ function is_welldefined(H::ModuleMap)
     if !iszero(sum([C[i][j]*ImH[j] for j=1:m]))
       return false
     end
+  end
+  return true
+end
+
+function (==)(f::ModuleMap, g::ModuleMap)
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  M = domain(f)
+  for v in gens(M)
+    f(v) == g(v) || return false
   end
   return true
 end
@@ -3838,7 +3854,7 @@ function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
   F = FreeMod(R, ngens(D))
-  hh = hom(F, codomain(h), map(h, gens(D)))
+  hh = hom(F, codomain(h), Vector{ModuleFPElem}(map(h, gens(D))))
   k = kernel(hh)
   @assert domain(k[2]) === k[1]
   @assert codomain(k[2]) === F
@@ -3856,7 +3872,9 @@ Return a free resolution of `F`.
 # Examples
 """
 function free_resolution(F::FreeMod)
-  return presentation(F)
+  res = presentation(F)
+  #set_attribute!(res, :show => Hecke.free_show, :free_res => F)
+  return res
 end
 
 @doc Markdown.doc"""
@@ -3871,7 +3889,7 @@ is only computed up to the `limit`-th free module.
 """
 function free_resolution(M::SubQuo, limit::Int = -1)
   p = presentation(M)
-  mp = [map(p, j) for j=1:length(p)]
+  mp = [map(p, j) for j in range(p)]
   while true
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
@@ -3888,7 +3906,9 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  return Hecke.ChainComplex(ModuleFP, mp, check = false, direction = :right)
+  C = Hecke.ChainComplex(ModuleFP, mp, check = false, start=-1)
+  #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
+  return C
 end
 
 function Hecke.ring(I::MPolyIdeal)
@@ -3946,8 +3966,8 @@ that converts elements from $S$ into morphisms $M \to N$.
 If `alg` is `:matrices` a different implementation that is using matrices instead of maps is used.
 """
 function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)  
-  d1 = 1
-  d2 = 2
+  d1 = 0
+  d2 = 1
   if alg == :matrices && M isa SubQuo && N isa SubQuo
     return hom_matrices(M,N,false)
   end
@@ -4116,24 +4136,6 @@ function inv(H::ModuleMap)
 end
 
 ##################################################
-# direct sum
-##################################################
-@doc Markdown.doc"""
-    direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where T
-
-Given free modules $F_1\dots F_n$, say, return the direct sum $\bigoplus_{i=1}^n F_i$.
-
-Additionally, return 
-- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum` (default),
-- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :prod`,
-- two vectors containing the canonical injections and projections, respectively, if `task = :both`,
-- none of the above if `task = :none`.
-"""
-function direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where {T}
-  return direct_product(F...; task = task)
-end
-
-##################################################
 # direct product
 ##################################################
 @doc Markdown.doc"""
@@ -4275,11 +4277,23 @@ Additionally, return
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above if `task = :none`.
 """
-function direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where {T}
-  return direct_product(M...; task)
+function direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where {T}
+  res = direct_product(M...; task)
+  if task == :sum || task == :prod
+    ds, f = res
+    set_attribute!(ds, :show => Hecke.show_direct_sum, :direct_sum => M)
+    return ds, f
+  elseif task == :both
+    ds, p, i = res
+    set_attribute!(ds, :show => Hecke.show_direct_sum, :direct_sum => M)
+    return ds, i, p
+  else
+    set_attribute!(res, :show => Hecke.show_direct_sum, :direct_sum => M)
+    return res
+  end
 end
 
-⊕(M::ModuleFP...) = direct_product(M..., task = :none)
+⊕(M::ModuleFP...) = direct_sum(M..., task = :none)
 
 
 @doc Markdown.doc"""
@@ -4506,10 +4520,10 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   # the example above we would store (G[1][2], G[2][1], G[2][5]).
   corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
 
-  generating_tensors = map(mF, map(tuple -> map(x -> parent(x) isa FreeMod ? x : x.repres, tuple), corresponding_tuples))
+  generating_tensors::Vector{FreeModElem} = map(mF, map(tuple -> map(x -> parent(x) isa FreeMod ? x : x.repres, tuple), corresponding_tuples))
   s, emb = sub(F, generating_tensors, :with_morphism)
   #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
-  q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
+  q::Vector{FreeModElem} = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
     s, projection_map = quo(s, q, :with_morphism)
@@ -4556,18 +4570,21 @@ end
 Apply $P \otimes \bullet$ to `C`.
 """
 function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
-  tensor_chain = Hecke.map_type(C)[]
-  tensor_modules = [tensor_product(P, domain(C.maps[1]), task=:cache_morphism)[1]]
-  tensor_modules = vcat(tensor_modules, [tensor_product(P, codomain(f), task=:cache_morphism)[1] for f in C.maps])
+  #tensor_chain = Hecke.map_type(C)[]
+  tensor_chain = valtype(C.maps)[]
+  tensor_modules = [tensor_product(P, domain(map(C,first(range(C)))), task=:cache_morphism)[1]]
+  append!(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in range(C)])
 
-  for i=1:length(C)
+  for i in 1:length(range(C))
     A = tensor_modules[i]
     B = tensor_modules[i+1]
 
-    push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,i)]))
+    j = range(C)[i]
+    push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
   end
 
-  return Hecke.ChainComplex(ModuleFP, tensor_chain)
+  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) : C.start
+  return Hecke.ChainComplex(ModuleFP, tensor_chain, start=start, direction=C.direction)
 end
 
 @doc Markdown.doc"""
@@ -4576,18 +4593,22 @@ end
 Apply $\bullet \otimes P$ to `C`.
 """
 function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
-  tensor_chain = Hecke.map_type(C)[]
-  tensor_modules = [tensor_product(domain(C.maps[1]), P, task=:cache_morphism)[1]]
-  tensor_modules = vcat(tensor_modules, [tensor_product(codomain(f), P, task=:cache_morphism)[1] for f in C.maps])
+  #tensor_chain = Hecke.map_type(C)[]
+  tensor_chain = valtype(C.maps)[]
+  chain_range = range(C)
+  tensor_modules = [tensor_product(domain(map(C,first(chain_range))), P, task=:cache_morphism)[1]]
+  append!(tensor_modules, [tensor_product(codomain(map(C,i)), P, task=:cache_morphism)[1] for i in chain_range])
 
-  for i=1:length(C)
+  for i=1:length(chain_range)
     A = tensor_modules[i]
     B = tensor_modules[i+1]
 
-    push!(tensor_chain, hom_tensor(A,B,[map(C,i), identity_map(P)]))
+    j = chain_range[i]
+    push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
   end
 
-  return Hecke.ChainComplex(ModuleFP, tensor_chain)
+  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) : C.start
+  return Hecke.ChainComplex(ModuleFP, tensor_chain, start=start, direction=C.direction)
 end
 
 @doc Markdown.doc"""
@@ -4663,17 +4684,22 @@ end
 Apply $\text{Hom}(P,-)$ to `C`. Return the lifted chain complex.
 """
 function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
-  hom_chain = Hecke.map_type(C)[]
-  hom_modules = [hom(P, domain(C.maps[1]))]
-  hom_modules = vcat(hom_modules, [hom(P, codomain(f)) for f = C.maps])
+  #hom_chain = Hecke.map_type(C)[]
+  hom_chain = valtype(C.maps)[]
+  chain_range = range(C)
+  hom_modules = [hom(P, domain(map(C,first(chain_range))))]
+  append!(hom_modules, [hom(P, codomain(map(C,i))) for i in chain_range])
 
-  for i=1:length(C)
+  for i=1:length(chain_range)
     A = hom_modules[i][1]
     B = hom_modules[i+1][1]
 
-    push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,i)))
+    j = chain_range[i]
+    push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,j)))
   end
-  return Hecke.ChainComplex(ModuleFP, hom_chain)
+
+  start = Hecke.is_chain_complex(C) ? C.start - length(hom_chain) : C.start
+  return Hecke.ChainComplex(ModuleFP, hom_chain, start=start, direction=C.direction)
 end
 
 @doc Markdown.doc"""
@@ -4682,17 +4708,46 @@ end
 Apply $\text{Hom}(-,P)$ to `C`. Return the lifted chain complex.
 """
 function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
-  hom_chain = Hecke.map_type(C)[]
-  hom_modules = [hom(domain(C.maps[1]),P)]
-  hom_modules = vcat(hom_modules, [hom(codomain(f), P) for f = C.maps])
+  #hom_chain = Hecke.map_type(C)[]
+  hom_chain = valtype(C.maps)[]
+  chain_range = range(C)
+  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
 
-  for i=1:length(C)
+  for i=1:length(chain_range)
     A = hom_modules[i][1]
     B = hom_modules[i+1][1]
 
-    push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,i)))
+    j = chain_range[i]
+    push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain))
+
+  direction = Hecke.is_chain_complex(C) ? :right : :left
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=last(range(C))-1, direction=direction)
+end
+
+@doc Markdown.doc"""
+    hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+Apply $\text{Hom}(-,P)$ to `C`. If `C` is a chain complex, return a chain complex
+and accordingly if `C` is a cochain complex, return a cochain complex.
+"""
+function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+  #hom_chain = Hecke.map_type(C)[]
+  hom_chain = valtype(C.maps)[]
+  chain_range = range(C)
+  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
+  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+
+  for i=1:length(chain_range)
+    A = hom_modules[i][1]
+    B = hom_modules[i+1][1]
+
+    j = chain_range[i]
+    push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
+  end
+
+  start = last(range(C))
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=-C.start+1, direction=C.direction)
 end
 
 #############################
@@ -4702,11 +4757,7 @@ end
 Compute all homology groups of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP})
-  H = SubQuo[]
-  for i=1:length(C)-1
-    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1], :module))
-  end
-  return H
+  return [homology(C,i) for i in range(C)]
 end
 
 @doc Markdown.doc"""
@@ -4715,15 +4766,18 @@ end
 Compute the `i`-th homology of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
-  @assert length(C) > 0 #TODO we need actually only the base ring
-  if i == 0
-    return kernel(map(C,1))[1]
-  elseif i == length(C)
-    return quo(obj(C,i),image(map(C,i))[1], :module)
-  elseif i < 0 || i > length(C)
-    return FreeMod(base_ring(obj(C,1)),0)
+  chain_range = range(C)
+  @assert length(chain_range) > 0 #TODO we need actually only the base ring
+  if i == first(chain_range)
+    return kernel(map(C,i))[1]
+  elseif i == last(chain_range)
+    f = map(C,i)
+    return quo(codomain(f),image(f)[1], :module)
+  elseif i in chain_range
+    next_index = Hecke.is_chain_complex(C) ? i-1 : i+1
+    return quo(kernel(map(C,next_index))[1], image(map(C,i))[1], :module)
   else
-    return quo(kernel(map(C,i+1))[1], image(map(C,i))[1], :module)
+    return FreeMod(base_ring(obj(C,first(chain_range))),0)
   end
 end
 
@@ -4839,17 +4893,6 @@ end
 #############################
 #TODO move to Hecke
 #  re-evaluate and use or not
-#=
-function differential(c::Hecke.ChainComplex, i::Int)
-  return map(c,length(c)-i)
-end
-
-function module_in_complex(c::Hecke.ChainComplex, i::Int)
-  return obj(c,length(c)-i)
-end
-
-getindex(c::Hecke.ChainComplex, i::Int) = module_in_complex(c,i)
-=#
 
 function getindex(r::Hecke.SRow, u::UnitRange)
   R = base_ring(r)
