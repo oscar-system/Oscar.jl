@@ -98,13 +98,90 @@
         @test rhs == [1, -3]
     end
     
-    @testset "SubObjectIterator compatibility" begin
+    @testset "SubObjectIterator/Matrix compatibility" begin
         Pos_poly = convex_hull([0 0 0], [1 0 0; 0 1 0; 0 0 1])
         Pos_cone = positive_hull([1 0 0; 0 1 0; 0 0 1])
-        @test cone_from_inequalities(facets(Pos_cone)) == Pos_cone
-        @test cone_from_inequalities(facets(Pos_poly)) == Pos_cone
-        @test Polyhedron(facets(Pos_cone)) == Pos_poly
+        
+        @test Oscar._ambient_dim([1, 2, 3, 4, 5]) == 5
+        @test Oscar._ambient_dim([1 2 3 4; 5 6 7 8]) == 4
+        @test Oscar._ambient_dim([[1, 2, 3], [4, 5, 6], [7, 8, 9], [0, 1, 2]]) == 3
+        @test Oscar._ambient_dim(vertices(Pos_poly)) == 3
+        @test Oscar._ambient_dim(collect(vertices(Pos_poly))) == 3
+        
+        # test for correctness of input interpretation for different types
+        
+        @test convex_hull(vertices(Pos_poly), rays(Pos_poly)) == Pos_poly
+        @test positive_hull(rays(Pos_cone)) == Pos_cone
+        
+        @test convex_hull([-1 -1 -1], rays(Pos_cone)) == Pos_poly + [-1, -1, -1]
+        @test positive_hull(rays(Pos_poly)) == Pos_cone
+        
+        @test convex_hull([[0, 0, 0]], [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) == Pos_poly
+        @test positive_hull([[1, 0, 0], [0, 1, 0], [0, 0, 1]]) == Pos_cone
+        
+        @test convex_hull([0 0 0], matrix(ZZ, [1 0 0; 0 1 0; 0 0 1])) == Pos_poly
+        
+        @test convex_hull(collect(vertices(Pos_poly)), collect(rays(Pos_poly))) == Pos_poly
+        @test positive_hull(collect(rays(Pos_poly))) == Pos_cone
+        
+        @test convex_hull([0, 0, 0], rays(Pos_poly)) == Pos_poly
+        @test rays(positive_hull([1, 0, 0]))[] == [1, 0, 0]
+        
         @test Polyhedron(facets(Pos_poly)) == Pos_poly
+        @test Polyhedron(facets(Pos_cone)) == Pos_poly
+        
+        @test cone_from_inequalities(facets(Pos_poly)) == Pos_cone
+        @test cone_from_inequalities(facets(Pos_cone)) == Pos_cone
+        
+        @test Polyhedron(collect(facets(Pos_poly))) == Pos_poly
+        @test Polyhedron(collect(facets(Pos_cone))) == Pos_poly
+        
+        @test cone_from_inequalities(collect(facets(Pos_poly))) == Pos_cone
+        @test cone_from_inequalities(collect(facets(Pos_cone))) == Pos_cone
+        
+        # testing correct dispatch and tuple processing for Polyhedron
+        @test Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
+        @test Polyhedron([[-1, 0, 0], [0, -1, 0], [0, 0, -1]], fmpq[0, 0, 0]) == Pos_poly
+        @test Polyhedron(matrix(ZZ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
+        @test Polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
+        
+        let y = convex_hull([0, 0, 0], [1, 0, 0], [[0, 1, 0], [0, 0, 1]])
+            @test Polyhedron([-1 0 0], [0]) == y
+            @test Polyhedron([-1 0 0], 0) == y
+            @test Polyhedron([-[1, 0, 0]], fmpq[0]) == y
+            @test Polyhedron([-1, 0, 0], fmpq[0]) == y
+            @test Polyhedron([[-1, 0, 0]], fmpq(0)) == y
+            @test Polyhedron([-1, 0, 0], fmpq(0)) == y
+            @test Polyhedron(matrix(ZZ, [-1 0 0]), [0]) == y
+            @test Polyhedron(matrix(QQ, [-1 0 0]), [0]) == y
+        end
+        
+        let x = positive_hull([1 0 0; 0 1 0]), y = convex_hull([0 0 0], [1 0 0; 0 1 0])
+            @test Polyhedron(facets(y), affine_hull(y)) == y
+            @test Polyhedron(facets(y), linear_span(x)) == y
+            
+            @test cone_from_inequalities(facets(y), affine_hull(y)) == x
+            @test cone_from_inequalities(facets(x), linear_span(x)) == x
+            
+            @test Polyhedron(facets(y), collect(affine_hull(y))) == y
+            @test Polyhedron(facets(x), collect(linear_span(x))) == y
+            
+            @test cone_from_inequalities(facets(x), collect(affine_hull(y))) == x
+            @test cone_from_inequalities(facets(y), collect(linear_span(x))) == x
+        end
+        
+        # Here the content of the SubObjectIterator does not fit the idea of the
+        # methods; we want ArgumentErrors to be thrown
+        @test_throws ArgumentError convex_hull(facets(Pos_poly))
+        @test_throws MethodError Polyhedron(vertices(Pos_poly)) #TODO
+        @test_throws ArgumentError convex_hull(rays(Pos_poly))
+        @test_throws ArgumentError convex_hull(rays(Pos_poly), [-1 -1 -1])
+        @test_throws ArgumentError convex_hull([0 0 0], vertices(Pos_poly))
+        @test_throws ArgumentError positive_hull(vertices(Pos_poly))
+        @test_throws ArgumentError convex_hull(collect(rays(Pos_poly)))
+        @test_throws ArgumentError convex_hull(vertices(Pos_poly), collect(vertices(Pos_poly)))
+        @test_throws ArgumentError positive_hull(collect(vertices(Pos_poly)))
+        
     end
 
 end # of @testset "OscarPolytope"

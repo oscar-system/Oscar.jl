@@ -31,7 +31,7 @@ rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}
 
 _ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PF.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = PF.RAYS
+_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(PF.RAYS, 0) : PF.RAYS
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
@@ -269,7 +269,7 @@ lineality_space(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{R
 
 _lineality_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PF.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = PF.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(PF.LINEALITY_SPACE, 0) : PF.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 

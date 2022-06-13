@@ -177,6 +177,8 @@ negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types
 negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
 normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
+_ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
+
 # TODO: abstract notion of equality
 Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
 
@@ -323,3 +325,43 @@ function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
     end
     return matrix_for_polymake(x; homogenized=true)
 end
+
+function homogenized_matrix(x::AbstractVector{<:PointVector}, v::Number = 1)
+    if v != 1
+        throw(ArgumentError("PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first."))
+    end
+    return stack((homogenize(x[i], v) for i in 1:length(x))...)
+end
+function homogenized_matrix(x::AbstractVector{<:RayVector}, v::Number = 0)
+    if v != 0
+        throw(ArgumentError("RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first."))
+    end
+    return stack((homogenize(x[i], v) for i in 1:length(x))...)
+end
+
+homogenized_matrix(::SubObjectIterator, v::Number) = throw(ArgumentError("Content of SubObjectIterator not suitable for homogenized_matrix."))
+
+unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
+
+unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
+
+_ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(x.Obj)
+
+################################################################################
+######## Unify matrices
+################################################################################
+
+# vector-like types: (un-)homogenized_matrix -> matrix_for_polymake
+# linear types: linear_matrix_for_polymake 
+# affine types: affine_matrix_for_polymake
+const AbstractCollection = Dict{UnionAll, Union}([(PointVector, AnyVecOrMat),
+                                                    (RayVector, AnyVecOrMat),
+                                                    (LinearHalfspace, Union{AbstractVector{<:Halfspace}, SubObjectIterator{<:Halfspace}, AnyVecOrMat}),
+                                                    (LinearHyperplane, Union{AbstractVector{<:Hyperplane}, SubObjectIterator{<:Hyperplane}, AnyVecOrMat}),
+                                                    (AffineHalfspace, Union{AbstractVector{<:Halfspace}, SubObjectIterator{<:Halfspace}, Tuple{<:AnyVecOrMat, <:Any}}),
+                                                    (AffineHyperplane, Union{AbstractVector{<:Hyperplane}, SubObjectIterator{<:Hyperplane}, Tuple{<:AnyVecOrMat, <:Any}})])
+
+affine_matrix_for_polymake(x::Union{Halfspace, Hyperplane}) = stack(augment(normal_vector(x), -negbias(x)))
+affine_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace, Hyperplane}}) = stack((affine_matrix_for_polymake(x[i]) for i in 1:length(x))...)
+linear_matrix_for_polymake(x::Union{Halfspace, Hyperplane}) = negbias(x) == 0 ? stack(normal_vector(x)) : throw(ArgumentError("Input not linear."))
+linear_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace, Hyperplane}}) = stack((linear_matrix_for_polymake(x[i]) for i in 1:length(x))...)
