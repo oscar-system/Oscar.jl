@@ -62,7 +62,6 @@ function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Di
     def_pol = load_unknown_type(s, dict[:def_pol])
     var = load_type_dispatch(s, Symbol, dict[:var])
     K, _ = NumberField(def_pol, var, cached=false)
-
     return K
 end
 
@@ -77,7 +76,6 @@ end
 function load_internal(s::DeserializerState, ::Type{FqNmodFiniteField}, dict::Dict)
     def_pol = load_unknown_type(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
-
     return K
 end
 
@@ -85,10 +83,9 @@ end
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
-    K_dict = save_type_dispatch(s, K)
 
     return Dict(
-        :parent => K_dict,
+        :parent => save_type_dispatch(s, K),
         :polynomial => save_type_dispatch(s, polynomial)
     )
 end
@@ -125,9 +122,8 @@ function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSEl
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
     polynomial_parent = parent(polynomial)
-    K_dict = save_type_dispatch(s, K)
     return Dict(
-        :parent_field => K_dict,
+        :parent_field => save_type_dispatch(s, K),
         :polynomial => save_type_dispatch(s, polynomial),
         :polynomial_parent => save_type_dispatch(s, polynomial_parent)
     )
@@ -162,9 +158,8 @@ end
 
 # elements
 function save_internal(s::SerializerState, f::FracElem)
-    parent_dict = save_type_dispatch(s, parent(f))
     return Dict(
-        :parent => parent_dict,
+        :parent => save_type_dispatch(s, parent(f)),
         :den => save_type_dispatch(s, denominator(f)),
         :num => save_type_dispatch(s, numerator(f))
     )
