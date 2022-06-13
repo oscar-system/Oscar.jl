@@ -1,4 +1,14 @@
+function test_elem(K::QQAbField)
+  ns = rand(1:10, 3)
+  zs = map(n -> rand(parent(gen(K)(n).data), -10:10), ns)
+  return sum(Oscar.QQAbElem{nf_elem}(zs[i], ns[i]) for i in 1:3)
+end
+
 @testset "AbelianClousre" begin
+  @testset "Interface" begin
+    K, z = abelian_closure(QQ)
+    test_Field_interface(K)
+  end
 
   @testset "Creation" begin
     K, z = abelian_closure(QQ)

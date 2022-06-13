@@ -31,7 +31,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, is_root_of_unity, promote_rule,
-                AbstractAlgebra
+                AbstractAlgebra, parent
 using Hecke
 import Hecke: conductor, data
 
@@ -136,13 +136,13 @@ elem_type(::Type{QQAbField{AnticNumberField}}) = QQAbElem{nf_elem}
 elem_type(::QQAbField{AnticNumberField}) = QQAbElem{nf_elem}
 parent_type(::Type{QQAbElem{nf_elem}}) = QQAbField{AnticNumberField}
 parent_type(::QQAbElem{nf_elem}) = QQAbField{AnticNumberField}
-Oscar.parent(::QQAbElem{nf_elem}) = _QQAb
+parent(::QQAbElem{nf_elem}) = _QQAb
 
 elem_type(::Type{QQAbField{NfAbsNS}}) = QQAbElem{NfAbsNSElem}
 elem_type(::QQAbField{NfAbsNS}) = QQAbElem{NfAbsNSElem}
 parent_type(::Type{QQAbElem{NfAbsNSElem}}) = QQAbField{NfAbsNS}
 parent_type(::QQAbElem{NfAbsNSElem}) = QQAbField{NfAbsNS}
-Oscar.parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
+parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
 
 ################################################################################
 #
@@ -375,7 +375,6 @@ function make_compatible(a::QQAbElem, b::QQAbElem)
   return coerce_up(K, d, a), coerce_up(K, d, b)
 end
 
-
 function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
   fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
   @assert all(x->parent(x) == parent(a[1]), a)
@@ -422,7 +421,6 @@ end
 
 conductor(a::QQAbElem) = conductor(data(a))
 
-
 ################################################################################
 #
 #  Conversions to `fmpz` and `fmpq` (like for `nf_elem`)
@@ -440,6 +438,8 @@ conductor(a::QQAbElem) = conductor(data(a))
 ################################################################################
 
 is_unit(a::QQAbElem) = !iszero(a)
+
+canonical_unit(a::QQAbElem) = a
 
 ################################################################################
 #
@@ -484,7 +484,7 @@ function div(a::QQAbElem, b::QQAbElem)
   return QQAbElem(a.data//b.data, a.c)
 end
 
-function divexact(a::QQAbElem, b::QQAbElem)
+function divexact(a::QQAbElem, b::QQAbElem; check::Bool = true)
   a, b = make_compatible(a, b)
   return QQAbElem(divexact(a.data, b.data), a.c)
 end
@@ -615,8 +615,6 @@ function Base.deepcopy_internal(a::QQAbElem, dict::IdDict)
   return QQAbElem(deepcopy_internal(data(a), dict), a.c)
 end
 
-#Oscar.is_negative(::QQAbElem) = false
-
 ################################################################################
 #
 #  Promotion rules
@@ -628,8 +626,6 @@ AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{Int}) = QQAbElem
 AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{fmpz}) = QQAbElem
 
 AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{fmpq}) = QQAbElem
-
-#Oscar.promote_rule(::Type{QQAbElem}, ::Type{fmpq_poly}) = QQAbElem
 
 ###############################################################################
 #
