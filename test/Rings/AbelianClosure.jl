@@ -1,7 +1,7 @@
 function test_elem(K::QQAbField)
-  ns = rand(1:10, 3)
-  zs = map(n -> rand(parent(gen(K)(n).data), -10:10), ns)
-  return sum(Oscar.QQAbElem{nf_elem}(zs[i], ns[i]) for i in 1:3)
+  ns = rand(1:8, 3)
+  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
+  return sum(zs)
 end
 
 @testset "AbelianClousre" begin
