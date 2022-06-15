@@ -1758,7 +1758,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   #       or the RootCtx needs to learn to deal with bad primes
  
   while true
-    GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
+    GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
     r = roots(GC, 5)
     if length(r) < degree(K) 
       @vprint :GaloisGroup 1 "in recursion: bad prime detected\n"
@@ -2372,7 +2372,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"
-    G, C = galois_group(number_field(lf[1][1], cached = false)[1])
+    G, C = galois_group(extension_field(lf[1][1], cached = false)[1])
     return blow_up(G, C, lf)
   end
 
@@ -2383,7 +2383,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
   g = prod(lg)
   p, ct = find_prime(g, pStart = pStart, prime = prime)
 
-  C = [galois_group(number_field(x, cached = false)[1], prime = p)[2] for x = lg]
+  C = [galois_group(extension_field(x, cached = false)[1], prime = p)[2] for x = lg]
   G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
 
   CC = GaloisCtx(g, p)
