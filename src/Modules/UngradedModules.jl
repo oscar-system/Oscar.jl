@@ -3880,8 +3880,7 @@ end
 
 @doc Markdown.doc"""
     free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, method::String="complete",
-        algorithm::String="fres")
+        length::Int=0, method::String="complete", algorithm::String="fres")
 
 Return a free resolution of `M`.
 
@@ -3919,6 +3918,10 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
         error("LaScala's method is not yet available in Oscar.")
     end
 
+    if Singular.length(res) > length
+        cc_complete = true
+    end
+
     #= Add maps from free resolution computation, start with second entry
      = due to inclusion of presentation(M) at the beginning. =#
     dom = domain(pm.maps[1])
@@ -3936,7 +3939,10 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     set_attribute!(Z, :name => "Zero")
     insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
 
-     return Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+    cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+    cc.complete = cc_complete
+
+    return cc
 end
 
 
