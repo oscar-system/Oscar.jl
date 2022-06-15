@@ -31,7 +31,12 @@ jobs:
           - x64
         os:
           - ubuntu-latest
-          - macOS-latest
+        include:
+          # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
+          - os: macOS-latest
+            julia-version: '1.6'
+          - os: macOS-latest
+            julia-version: 'nightly'
 
     steps:
       - uses: actions/checkout@v2
