@@ -23,7 +23,7 @@ Cone(x...; kwargs...) = Cone{fmpq}(x...; kwargs...)
 Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
 @doc Markdown.doc"""
-    Cone{T}(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]) where T<:scalar_types
+    Cone{T}(R::AbstractCollection[RayVector] [, L::AbstractCollection[RayVector]]; non_redundant::Bool = false) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -50,15 +50,16 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone{T}(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function Cone{T}(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
+    inputrays = unhomogenized_matrix(R)
     if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(R, 2))
+        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, _ambient_dim(R))
     end
 
     if non_redundant
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = R, LINEALITY_SPACE = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = inputrays, LINEALITY_SPACE = L,))
     else
-        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = inputrays, INPUT_LINEALITY = L,))
     end
 end
 
@@ -72,7 +73,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull([::Type{T} = fmpq,] R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
+    positive_hull([::Type{T} = fmpq,] R::AbstractCollection[RayVector])
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -89,9 +90,9 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(::Type{T}, R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+function positive_hull(::Type{T}, R::AbstractCollection[RayVector]) where T<:scalar_types
     C=Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS =
-      remove_zero_rows(R))
+      remove_zero_rows(unhomogenized_matrix(R)))
     Cone{T}(C)
 end
 
@@ -99,7 +100,7 @@ positive_hull(x...) = positive_hull(fmpq, x...)
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities([::Type{T} = fmpq,] I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
+    cone_from_inequalities([::Type{T} = fmpq,] I::AbstractCollection[LinearHalfspace] [, E::AbstractCollection[LinearHyperplane]]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
@@ -119,7 +120,7 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(::Type{T}, I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false) where T<:scalar_types
+function cone_from_inequalities(::Type{T}, I::AbstractCollection[LinearHalfspace], E::Union{Nothing, AbstractCollection[LinearHyperplane]} = nothing; non_redundant::Bool = false) where T<:scalar_types
     IM = -linear_matrix_for_polymake(I)
     EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 

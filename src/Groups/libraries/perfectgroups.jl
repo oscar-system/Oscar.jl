@@ -161,7 +161,7 @@ julia> perfect_group_identification(SL(2,7))
 ```
 """
 function perfect_group_identification(G::GAPGroup)
-   isperfect(G) || error("group is not perfect")
+   is_perfect(G) || error("group is not perfect")
    res = GAP.Globals.PerfectIdentification(G.X)
    res !== GAP.Globals.fail || error("identification is not available for groups of order $(order(G))")
    return Tuple{Int,Int}(res)

@@ -100,7 +100,7 @@ function Base.show(io::IO, x::Arg)
         print(io, 'i', intidx(x))
     elseif isinput(x)
         print(io, '$', inputidx(x))
-    elseif isconstant(x)
+    elseif is_constant(x)
         print(io, '+', constantidx(x))
     else
         print(io, ' ', x.x)
@@ -327,7 +327,7 @@ end
 isinput(i::Arg) = typemark & i.x === inputmark
 inputidx(i::Arg) = i.x ⊻ inputmark
 
-isconstant(i::Arg) = typemark & i.x === cstmark
+is_constant(i::Arg) = typemark & i.x === cstmark
 constantidx(i::Arg) = i.x ⊻ cstmark
 
 asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
@@ -442,7 +442,7 @@ function _combine!(p::SLProgram, q::SLProgram; makeinput=identity)
 
     for n = len+1:lastindex(lines(p))
         op, i, j = unpack(lines(p)[n])
-        if isconstant(i)
+        if is_constant(i)
             i = Arg(i.x + koffset)
         elseif isinput(i)
             i = makeinput(i)
@@ -451,7 +451,7 @@ function _combine!(p::SLProgram, q::SLProgram; makeinput=identity)
         else
             i = Arg(i.x + loffset)
         end
-        if isconstant(j)
+        if is_constant(j)
             j = Arg(j.x + koffset)
         elseif isinput(j)
             j = makeinput(j)
@@ -466,7 +466,7 @@ function _combine!(p::SLProgram, q::SLProgram; makeinput=identity)
         lines(p)[n] = Line(op, i, j)
         # TODO: write conditionally only when modifications
     end
-    if isconstant(i2)
+    if is_constant(i2)
         i2 = Arg(i2.x + koffset)
     elseif isinput(i2)
         i2 = makeinput(i2)
@@ -707,7 +707,7 @@ end
 
 retrieve(ints, cs, xs, res, i, conv::F=identity) where {F} =
     isint(i)      ? ints[intidx(i)].x % Int :
-    isconstant(i) ? conv(cs[constantidx(i)]) :
+    is_constant(i) ? conv(cs[constantidx(i)]) :
     isinput(i)    ? xs[inputidx(i)] :
     res[i.x]
 
@@ -795,7 +795,7 @@ list(::Type{T}, res) where {T} = res
 
 cretrieve(i) =
     isinput(i) ? Symbol(:x, inputidx(i)) => inputidx(i) :
-    isconstant(i) ? Symbol(:c, constantidx(i)) => -1 :
+    is_constant(i) ? Symbol(:c, constantidx(i)) => -1 :
     Symbol(:res, i.x) => 0
 
 # TODO: handle the "conv" argument like in evaluate!

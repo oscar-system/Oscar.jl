@@ -140,7 +140,7 @@ end
 
 
 @doc Markdown.doc"""
-    orbit_polytope(V::AbstractVecOrMat, G::PermGroup)
+    orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
 
 Construct the convex hull of the orbit of one or several points (given row-wise
 in `V`) under the action of `G`.
@@ -165,17 +165,15 @@ julia> vertices(P)
  [3, 2, 1]
 ```
 """
-function orbit_polytope(V::AbstractMatrix, G::PermGroup)
-   if size(V)[2] != degree(G)
+function orbit_polytope(V::AbstractCollection[PointVector], G::PermGroup)
+   Vhom = stack(homogenized_matrix(V, 1), nothing)
+   if size(Vhom, 2) != degree(G) + 1
       throw(ArgumentError("Dimension of points and group degree need to be the same."))
    end
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
-   pmPolytope = Polymake.polytope.orbit_polytope(homogenize(V,1), pmGroup)
+   pmPolytope = Polymake.polytope.orbit_polytope(Vhom, pmGroup)
    return Polyhedron{fmpq}(pmPolytope)
-end
-function orbit_polytope(V::AbstractVector, G::PermGroup)
-   return orbit_polytope(Matrix(reshape(V,(1,length(V)))), G)
 end
 
 @doc Markdown.doc"""
@@ -228,21 +226,13 @@ function newton_polytope(f)
 end
 
 
-Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(permutedims(normal_vector(H)), negbias(H))
+Polyhedron(H::Halfspace{T}) where T<:scalar_types = Polyhedron{T}(normal_vector(H), negbias(H))
 
-Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(permutedims(normal_vector(H)), negbias(H))
+Polyhedron(H::Halfspace{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(normal_vector(H), negbias(H))
 
-function Polyhedron(H::Hyperplane{T}) where T<:scalar_types
-   n = permutedims(normal_vector(H))
-   b = negbias(H)
-   return Polyhedron{T}(nothing, (n, [b]))
-end
+Polyhedron(H::Hyperplane{T}) where T<:scalar_types = Polyhedron{T}(nothing, (normal_vector(H), [negbias(H)]))
 
-function Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}})
-   n = permutedims(normal_vector(H))
-   b = negbias(H)
-   return Polyhedron{nf_elem}(nothing, (n, [b]))
-end
+Polyhedron(H::Hyperplane{Union{fmpq, nf_elem}}) = Polyhedron{nf_elem}(nothing, (normal_vector(H), [negbias(H)]))
 
 @doc Markdown.doc"""
     intersect(P::Polyhedron, Q::Polyhedron)
@@ -786,13 +776,13 @@ ambient space.
 julia> P = convex_hull([1 0 0; 0 0 0])
 A polyhedron in ambient dimension 3
 
-julia> isfulldimensional(P)
+julia> is_fulldimensional(P)
 false
 
 julia> p = project_full(P)
 A polyhedron in ambient dimension 1
 
-julia> isfulldimensional(p)
+julia> is_fulldimensional(p)
 true
 ```
 """
@@ -808,13 +798,13 @@ Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `la
 julia> P = gelfand_tsetlin([5,3,2])
 A polyhedron in ambient dimension 6
 
-julia> isfulldimensional(P)
+julia> is_fulldimensional(P)
 false
 
 julia> p = project_full(P)
 A polyhedron in ambient dimension 3
 
-julia> isfulldimensional(p)
+julia> is_fulldimensional(p)
 true
 
 julia> volume(p)
@@ -836,7 +826,7 @@ A polyhedron in ambient dimension 3
 julia> X = NormalToricVariety(face_fan(S))
 A normal toric variety
 
-julia> issmooth(X)
+julia> is_smooth(X)
 true
 ```
 """

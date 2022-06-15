@@ -20,11 +20,11 @@ end
 # sort the types...
 # move to Hecke/Nemo/AA?
 ###############################################################
-#TODO: consolidate with Hecke: isprimitive_root?
+#TODO: consolidate with Hecke: is_primitive_root?
 
 @attr Fac{fmpz} factored_order(K::FinField) = factor(size(K)-1)
 
-function Oscar.isprimitive(a::FinFieldElem, f::Fac{fmpz} = factored_order(parent(a)))
+function Oscar.is_primitive(a::FinFieldElem, f::Fac{fmpz} = factored_order(parent(a)))
   iszero(a) && return false
   n = size(parent(a))-1
   for p = keys(f.fac)
@@ -38,7 +38,7 @@ end
 @attr elem_type(T) function generator(K::T) where {T <: FinField}
   #if isconway use gen(K)
   a = rand(K)
-  while !isprimitive(a)
+  while !is_primitive(a)
     a = rand(K)
   end
   return a

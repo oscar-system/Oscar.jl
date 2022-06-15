@@ -23,15 +23,15 @@
 
 module AbelianClosure 
 
-using ..Oscar
+using ..Oscar, Markdown
 
 import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_internal, hash
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
-                root, divexact, mul!, roots, isroot_of_unity, promote_rule,
-                AbstractAlgebra
+import ..Oscar: addeq!, is_unit, parent_type, elem_type, gen, root_of_unity,
+                root, divexact, mul!, roots, is_root_of_unity, promote_rule,
+                AbstractAlgebra, parent
 using Hecke
 import Hecke: conductor, data
 
@@ -41,31 +41,31 @@ import Hecke: conductor, data
 #
 ################################################################################
 
-@attributes mutable struct QabField{T} <: Nemo.Field # union of cyclotomic fields
+@attributes mutable struct QQAbField{T} <: Nemo.Field # union of cyclotomic fields
   s::String
   fields::Dict{Int, T} # Cache for the cyclotomic fields
 
-  function QabField{T}(s::String, fields::Dict{Int, T}) where T
+  function QQAbField{T}(s::String, fields::Dict{Int, T}) where T
     return new(s, fields)
   end
 end
 
-const _Qab = QabField{AnticNumberField}("ζ", Dict{Int, AnticNumberField}())
-const _Qab_sparse = QabField{NfAbsNS}("ζ", Dict{Int, NfAbsNS}())
+const _QQAb = QQAbField{AnticNumberField}("ζ", Dict{Int, AnticNumberField}())
+const _QQAb_sparse = QQAbField{NfAbsNS}("ζ", Dict{Int, NfAbsNS}())
 
-mutable struct QabElem{T} <: Nemo.FieldElem
+mutable struct QQAbElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
 end
 
 # This is a functor like object G with G(n) = primitive n-th root of unity
 
-mutable struct QabFieldGen{T}
-  K::QabField{T}
+mutable struct QQAbFieldGen{T}
+  K::QQAbField{T}
 end
 
-const _QabGen = QabFieldGen(_Qab)
-const _QabGen_sparse = QabFieldGen(_Qab_sparse)
+const _QQAbGen = QQAbFieldGen(_QQAb)
+const _QQAbGen_sparse = QQAbFieldGen(_QQAb_sparse)
 
 ################################################################################
 #
@@ -73,37 +73,55 @@ const _QabGen_sparse = QabFieldGen(_Qab_sparse)
 #
 ################################################################################
 
-"""
+@doc Markdown.doc"""
     abelian_closure(QQ::RationalField)
 
 Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals
 and a generator `z` that can be used to construct primitive roots of unity in
 `K`.
+
+An optional keyword argument `sparse` can be set to `true` to switch to a 
+sparse representation. Depending on the application this can be much faster
+or slower.
+
+# Examples
+```jldoctest; setup = :(using Oscar)
+julia> K, z = abelian_closure(QQ);
+
+julia> z(36)
+ζ(36)
+
+julia> K, z = abelian_closure(QQ, sparse = true);
+
+julia> z(36)
+-ζ(36, 9)*ζ(36, 4)^4 - ζ(36, 9)*ζ(36, 4)
+
+```
 """
 function abelian_closure(::FlintRationalField; sparse::Bool = false) 
   if sparse 
-    return _Qab_sparse, _QabGen_sparse
+    return _QQAb_sparse, _QQAbGen_sparse
   else
-    return _Qab, _QabGen
+    return _QQAb, _QQAbGen
   end
 end
 
 """
-    gen(K::QabField)
+    gen(K::QQAbField)
 
 Return the generator of the abelian closure `K` that can be used to construct
 primitive roots of unity.
 """
-gen(K::QabField{AnticNumberField}) = _QabGen
-gen(K::QabField{NfAbsNS}) = _QabGen_sparse
+gen(K::QQAbField{AnticNumberField}) = _QQAbGen
+gen(K::QQAbField{NfAbsNS}) = _QQAbGen_sparse
 
 """
-    gen(K::QabField, s::String)
+    gen(K::QQAbField, s::String)
 
 Return the generator of the abelian closure `K` that can be used to construct
 primitive roots of unity. The string `s` will be used during printing.
 """
-function gen(K::QabField, s::String)
+function gen(K::QQAbField, s::String)
   K.s = s
   return gen(K)
 end
@@ -114,17 +132,17 @@ end
 #
 ################################################################################
 
-elem_type(::Type{QabField{AnticNumberField}}) = QabElem{nf_elem}
-elem_type(::QabField{AnticNumberField}) = QabElem{nf_elem}
-parent_type(::Type{QabElem{nf_elem}}) = QabField{AnticNumberField}
-parent_type(::QabElem{nf_elem}) = QabField{AnticNumberField}
-Oscar.parent(::QabElem{nf_elem}) = _Qab
+elem_type(::Type{QQAbField{AnticNumberField}}) = QQAbElem{nf_elem}
+elem_type(::QQAbField{AnticNumberField}) = QQAbElem{nf_elem}
+parent_type(::Type{QQAbElem{nf_elem}}) = QQAbField{AnticNumberField}
+parent_type(::QQAbElem{nf_elem}) = QQAbField{AnticNumberField}
+parent(::QQAbElem{nf_elem}) = _QQAb
 
-elem_type(::Type{QabField{NfAbsNS}}) = QabElem{NfAbsNSElem}
-elem_type(::QabField{NfAbsNS}) = QabElem{NfAbsNSElem}
-parent_type(::Type{QabElem{NfAbsNSElem}}) = QabField{NfAbsNS}
-parent_type(::QabElem{NfAbsNSElem}) = QabField{NfAbsNS}
-Oscar.parent(::QabElem{NfAbsNSElem}) = _Qab_sparse
+elem_type(::Type{QQAbField{NfAbsNS}}) = QQAbElem{NfAbsNSElem}
+elem_type(::QQAbField{NfAbsNS}) = QQAbElem{NfAbsNSElem}
+parent_type(::Type{QQAbElem{NfAbsNSElem}}) = QQAbField{NfAbsNS}
+parent_type(::QQAbElem{NfAbsNSElem}) = QQAbField{NfAbsNS}
+parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
 
 ################################################################################
 #
@@ -132,17 +150,17 @@ Oscar.parent(::QabElem{NfAbsNSElem}) = _Qab_sparse
 #
 ################################################################################
 
-_variable(K::QabField) = K.s
-_variable(b::QabElem{nf_elem}) = Expr(:call, Symbol(_variable(_Qab)), b.c)
+_variable(K::QQAbField) = K.s
+_variable(b::QQAbElem{nf_elem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
 
-function _variable(b::QabElem{NfAbsNSElem}) 
+function _variable(b::QQAbElem{NfAbsNSElem}) 
   k = parent(b.data)
   lc = get_attribute(k, :decom)
   n = get_attribute(k, :cyclo)
-  return [Expr(:call, Symbol(_variable(_Qab)), n, divexact(n, i)) for i = lc]
+  return [Expr(:call, Symbol(_variable(_QQAb)), n, divexact(n, i)) for i = lc]
 end
 
-function Hecke.cyclotomic_field(K::QabField{AnticNumberField}, c::Int)
+function Hecke.cyclotomic_field(K::QQAbField{AnticNumberField}, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, gen(k)
@@ -163,7 +181,7 @@ function ns_gen(K::NfAbsNS)
   return prod(gen(K, i)^invmod(divexact(n, lc[i]), lc[i]) for i=1:length(lc))
 end
 
-function Hecke.cyclotomic_field(K::QabField{NfAbsNS}, c::Int)
+function Hecke.cyclotomic_field(K::QQAbField{NfAbsNS}, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, ns_gen(k)
@@ -174,7 +192,7 @@ function Hecke.cyclotomic_field(K::QabField{NfAbsNS}, c::Int)
   end
 end
 
-Hecke.data(a::QabElem) = a.data
+Hecke.data(a::QQAbElem) = a.data
 
 ################################################################################
 #
@@ -185,7 +203,7 @@ Hecke.data(a::QabElem) = a.data
 # This function finds a primitive root of unity in our field, note this is
 # not always e^(2*pi*i)/n
 
-function root_of_unity(K::QabField{AnticNumberField}, n::Int)
+function root_of_unity(K::QQAbField{AnticNumberField}, n::Int)
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
@@ -193,13 +211,13 @@ function root_of_unity(K::QabField{AnticNumberField}, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QabElem{nf_elem}(z, c)
+    return QQAbElem{nf_elem}(z, c)
   else
-    return QabElem{nf_elem}(-z, c)
+    return QQAbElem{nf_elem}(-z, c)
   end
 end
 
-function root_of_unity(K::QabField{NfAbsNS}, n::Int)
+function root_of_unity(K::QQAbField{NfAbsNS}, n::Int)
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
@@ -207,47 +225,47 @@ function root_of_unity(K::QabField{NfAbsNS}, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QabElem{NfAbsNSElem}(z, c)
+    return QQAbElem{NfAbsNSElem}(z, c)
   else
-    return QabElem{NfAbsNSElem}(-z, c)
+    return QQAbElem{NfAbsNSElem}(-z, c)
   end
 end
 
 
-function root_of_unity2(K::QabField, c::Int)
+function root_of_unity2(K::QQAbField, c::Int)
   # This function returns the primitive root of unity e^(2*pi*i/n)
   K, z = cyclotomic_field(K, c)
-  return QabElem(z, c)
+  return QQAbElem(z, c)
 end
 
-(z::QabFieldGen)(n::Int) = root_of_unity(z.K, n)
-(z::QabFieldGen)(n::Int, r::Int) = z(n)^r
+(z::QQAbFieldGen)(n::Int) = root_of_unity(z.K, n)
+(z::QQAbFieldGen)(n::Int, r::Int) = z(n)^r
 
-one(K::QabField) = _Qab(1)
+one(K::QQAbField) = _QQAb(1)
 
-one(a::QabElem) = one(parent(a))
+one(a::QQAbElem) = one(parent(a))
 
-function isone(a::QabElem)
+function isone(a::QQAbElem)
   return isone(data(a))
 end
 
-function iszero(a::QabElem)
+function iszero(a::QQAbElem)
   return iszero(data(a))
 end
 
-zero(K::QabField) = _Qab(0)
+zero(K::QQAbField) = _QQAb(0)
 
-zero(a::QabElem) = zero(parent(a))
+zero(a::QQAbElem) = zero(parent(a))
 
-function (K::QabField)(a::Union{fmpz, fmpq, Integer, Rational})
+function (K::QQAbField)(a::Union{fmpz, fmpq, Integer, Rational})
   return a*root_of_unity(K, 1)
 end
 
-function (K::QabField)(a::QabElem)
+function (K::QQAbField)(a::QQAbElem)
   return a
 end
 
-(K::QabField)() = zero(K)
+(K::QQAbField)() = zero(K)
 
 ################################################################################
 #
@@ -255,15 +273,15 @@ end
 #
 ################################################################################
 
-function Base.show(io::IO, a::QabField{NfAbsNS})
+function Base.show(io::IO, a::QQAbField{NfAbsNS})
   print(io, "(Sparse) abelian closure of Q")
 end
-function Base.show(io::IO, a::QabField{AnticNumberField})
+function Base.show(io::IO, a::QQAbField{AnticNumberField})
   print(io, "Abelian closure of Q")
 end
 
-function Base.show(io::IO, a::QabFieldGen)
-  if isa(a.K, QabField{AnticNumberField})
+function Base.show(io::IO, a::QQAbFieldGen)
+  if isa(a.K, QQAbField{AnticNumberField})
     print(io, "Generator of abelian closure of Q")
   else
     print(io, "Generator of sparse abelian closure of Q")
@@ -271,36 +289,36 @@ function Base.show(io::IO, a::QabFieldGen)
 end
 
 """
-    set_variable!(K::QabField, s::String)
+    set_variable!(K::QQAbField, s::String)
 
 Change the printing of the primitive n-th root of the abelian closure of the
 rationals to `s(n)`, where `s` is the supplied string.
 """
-function set_variable!(K::QabField, s::String)
+function set_variable!(K::QQAbField, s::String)
   ss = K.s
   K.s = s
   return ss
 end
 
 """
-    get_variable(K::QabField)
+    get_variable(K::QQAbField)
 
 Return the string used to print the primitive n-th root of the abelian closure
 of the rationals.
 """
-get_variable(K::QabField) = _variable(K)
+get_variable(K::QQAbField) = _variable(K)
 
-function AbstractAlgebra.expressify(b::QabElem{nf_elem}; context = nothing)
+function AbstractAlgebra.expressify(b::QQAbElem{nf_elem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(parent(parent(a).pol)(a), _variable(b), context = context)
 end
 
-function AbstractAlgebra.expressify(b::QabElem{NfAbsNSElem}; context = nothing)
+function AbstractAlgebra.expressify(b::QQAbElem{NfAbsNSElem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(a.data, _variable(b), context = context)
 end
 
-Oscar.@enable_all_show_via_expressify QabElem
+Oscar.@enable_all_show_via_expressify QQAbElem
 
 ################################################################################
 #
@@ -308,7 +326,7 @@ Oscar.@enable_all_show_via_expressify QabElem
 #
 ################################################################################
 
-function Oscar.singular_coeff_ring(F::QabField)
+function Oscar.singular_coeff_ring(F::QQAbField)
   return Singular.CoefficientRing(F)
 end
 
@@ -318,37 +336,37 @@ end
 #
 ################################################################################
 
-function isconductor(n::Int)
+function is_conductor(n::Int)
   if isodd(n)
     return true
   end
   return n % 4 == 0
 end
 
-function coerce_up(K::AnticNumberField, n::Int, a::QabElem{nf_elem})
+function coerce_up(K::AnticNumberField, n::Int, a::QQAbElem{nf_elem})
   d = div(n, a.c)
   @assert n % a.c == 0
   #z_n^(d) = z_a
   R = parent(parent(data(a)).pol)
-  return QabElem{nf_elem}(evaluate(R(data(a)), gen(K)^d), n)
+  return QQAbElem{nf_elem}(evaluate(R(data(a)), gen(K)^d), n)
 end
 
-function coerce_up(K::NfAbsNS, n::Int, a::QabElem{NfAbsNSElem})
+function coerce_up(K::NfAbsNS, n::Int, a::QQAbElem{NfAbsNSElem})
   d = div(n, a.c)
   @assert n % a.c == 0
   lk = get_attribute(parent(a.data), :decom)
   #gen(k, i) = gen(K, j)^n for the unique j s.th. gcd(lk[i], lK[j])
   # and n = lK[j]/lk[i]
   #z_n^(d) = z_a
-  return QabElem{NfAbsNSElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
+  return QQAbElem{NfAbsNSElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
 end
 
 
-function coerce_down(K::AnticNumberField, n::Int, a::QabElem)
+function coerce_down(K::AnticNumberField, n::Int, a::QQAbElem)
   throw(Hecke.NotImplemented())
 end
 
-function make_compatible(a::QabElem, b::QabElem)
+function make_compatible(a::QQAbElem, b::QQAbElem)
   if a.c == b.c
     return a,b
   end
@@ -357,9 +375,8 @@ function make_compatible(a::QabElem, b::QabElem)
   return coerce_up(K, d, a), coerce_up(K, d, b)
 end
 
-
 function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
-  fl, c = Hecke.iscyclotomic_type(parent(a[1]))
+  fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
   @assert all(x->parent(x) == parent(a[1]), a)
   @assert fl
   for p = keys(factor(c).fac)
@@ -397,13 +414,12 @@ end
 conductor(a::nf_elem) = conductor(parent(minimize(CyclotomicField, a)))
 
 function conductor(k::AnticNumberField)
-  f, c = Hecke.iscyclotomic_type(k)
+  f, c = Hecke.is_cyclotomic_type(k)
   f || error("field is not of cyclotomic type")
   return c
 end
 
-conductor(a::QabElem) = conductor(data(a))
-
+conductor(a::QQAbElem) = conductor(data(a))
 
 ################################################################################
 #
@@ -411,8 +427,8 @@ conductor(a::QabElem) = conductor(data(a))
 #
 ################################################################################
 
-(R::FlintRationalField)(a::QabElem) = R(a.data)
-(R::FlintIntegerRing)(a::QabElem) = R(a.data)
+(R::FlintRationalField)(a::QQAbElem) = R(a.data)
+(R::FlintIntegerRing)(a::QQAbElem) = R(a.data)
 
 
 ################################################################################
@@ -421,7 +437,9 @@ conductor(a::QabElem) = conductor(data(a))
 #
 ################################################################################
 
-isunit(a::QabElem) = !iszero(a)
+is_unit(a::QQAbElem) = !iszero(a)
+
+canonical_unit(a::QQAbElem) = a
 
 ################################################################################
 #
@@ -429,50 +447,50 @@ isunit(a::QabElem) = !iszero(a)
 #
 ################################################################################
 
-function +(a::QabElem, b::QabElem)
+function +(a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
-  return QabElem(data(a) + data(b), a.c)
+  return QQAbElem(data(a) + data(b), a.c)
 end
 
-function *(a::QabElem, b::QabElem)
+function *(a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
-  return QabElem(data(a) * data(b), a.c)
+  return QQAbElem(data(a) * data(b), a.c)
 end
 
-function -(a::QabElem)
-  return QabElem(-data(a), a.c)
+function -(a::QQAbElem)
+  return QQAbElem(-data(a), a.c)
 end
 
-function ^(a::QabElem, n::Integer)
-  return QabElem(data(a)^n, a.c)
+function ^(a::QQAbElem, n::Integer)
+  return QQAbElem(data(a)^n, a.c)
 end
 
-function ^(a::QabElem, n::fmpz)
+function ^(a::QQAbElem, n::fmpz)
   return a^Int(n)
 end
 
-function -(a::QabElem, b::QabElem)
+function -(a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
-  return QabElem(a.data-b.data, a.c)
+  return QQAbElem(a.data-b.data, a.c)
 end
 
-function //(a::QabElem, b::QabElem)
+function //(a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
-  return QabElem(a.data//b.data, a.c)
+  return QQAbElem(a.data//b.data, a.c)
 end
 
-function div(a::QabElem, b::QabElem)
+function div(a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
-  return QabElem(a.data//b.data, a.c)
+  return QQAbElem(a.data//b.data, a.c)
 end
 
-function divexact(a::QabElem, b::QabElem)
+function divexact(a::QQAbElem, b::QQAbElem; check::Bool = true)
   a, b = make_compatible(a, b)
-  return QabElem(divexact(a.data, b.data), a.c)
+  return QQAbElem(divexact(a.data, b.data), a.c)
 end
 
-function inv(a::QabElem)
-  return QabElem(inv(data(a)), a.c)
+function inv(a::QQAbElem)
+  return QQAbElem(inv(data(a)), a.c)
 end
 
 ################################################################################
@@ -481,18 +499,18 @@ end
 #
 ################################################################################
 
-function addeq!(c::QabElem, a::QabElem)
+function addeq!(c::QQAbElem, a::QQAbElem)
   _c, _a = make_compatible(c, a)
   addeq!(_c.data, _a.data)
   return _c
 end
 
-function neg!(a::QabElem)
+function neg!(a::QQAbElem)
   mul!(a.data,a.data,-1)
   return a
 end
 
-function mul!(c::QabElem, a::QabElem, b::QabElem)
+function mul!(c::QQAbElem, a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
   b, c = make_compatible(b, c)
   a, b = make_compatible(a, b)
@@ -506,61 +524,61 @@ end
 #
 ################################################################################
 
-*(a::fmpz, b::QabElem) = QabElem(b.data*a, b.c)
+*(a::fmpz, b::QQAbElem) = QQAbElem(b.data*a, b.c)
 
-*(a::fmpq, b::QabElem) = QabElem(b.data*a, b.c)
+*(a::fmpq, b::QQAbElem) = QQAbElem(b.data*a, b.c)
 
-*(a::Integer, b::QabElem) = QabElem(data(b) * a, b.c)
+*(a::Integer, b::QQAbElem) = QQAbElem(data(b) * a, b.c)
 
-*(a::Rational, b::QabElem) = QabElem(data(b) * a, b.c)
+*(a::Rational, b::QQAbElem) = QQAbElem(data(b) * a, b.c)
 
-*(a::QabElem, b::fmpz) = b*a
+*(a::QQAbElem, b::fmpz) = b*a
 
-*(a::QabElem, b::fmpq) = b*a
+*(a::QQAbElem, b::fmpq) = b*a
 
-*(a::QabElem, b::Integer) = b*a
+*(a::QQAbElem, b::Integer) = b*a
 
-*(a::QabElem, b::Rational) = b*a
+*(a::QQAbElem, b::Rational) = b*a
 
-+(a::fmpz, b::QabElem) = QabElem(b.data + a, b.c)
++(a::fmpz, b::QQAbElem) = QQAbElem(b.data + a, b.c)
 
-+(a::fmpq, b::QabElem) = QabElem(b.data + a, b.c)
++(a::fmpq, b::QQAbElem) = QQAbElem(b.data + a, b.c)
 
-+(a::Integer, b::QabElem) = QabElem(data(b) + a, b.c)
++(a::Integer, b::QQAbElem) = QQAbElem(data(b) + a, b.c)
 
-+(a::Rational, b::QabElem) = QabElem(data(b) + a, b.c)
++(a::Rational, b::QQAbElem) = QQAbElem(data(b) + a, b.c)
 
-+(a::QabElem, b::fmpz) = b + a
++(a::QQAbElem, b::fmpz) = b + a
 
-+(a::QabElem, b::fmpq) = b + a
++(a::QQAbElem, b::fmpq) = b + a
 
-+(a::QabElem, b::Integer) = b + a
++(a::QQAbElem, b::Integer) = b + a
 
-+(a::QabElem, b::Rational) = b + a
++(a::QQAbElem, b::Rational) = b + a
 
--(a::fmpz, b::QabElem) = QabElem(-(a, data(b)), b.c)
+-(a::fmpz, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
--(a::fmpq, b::QabElem) = QabElem(-(a, data(b)), b.c)
+-(a::fmpq, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
--(a::Integer, b::QabElem) = QabElem(-(a, data(b)), b.c)
+-(a::Integer, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
--(a::Rational, b::QabElem) = QabElem(-(a, data(b)), b.c)
+-(a::Rational, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
 
--(a::QabElem, b::fmpz) = QabElem(-(data(a), b), a.c)
+-(a::QQAbElem, b::fmpz) = QQAbElem(-(data(a), b), a.c)
 
--(a::QabElem, b::fmpq) = QabElem(-(data(a), b), a.c)
+-(a::QQAbElem, b::fmpq) = QQAbElem(-(data(a), b), a.c)
 
--(a::QabElem, b::Integer) = QabElem(-(data(a), b), a.c)
+-(a::QQAbElem, b::Integer) = QQAbElem(-(data(a), b), a.c)
 
--(a::QabElem, b::Rational) = QabElem(-(data(a), b), a.c)
+-(a::QQAbElem, b::Rational) = QQAbElem(-(data(a), b), a.c)
 
-//(a::QabElem, b::fmpz) = QabElem(data(a)//b, a.c)
+//(a::QQAbElem, b::fmpz) = QQAbElem(data(a)//b, a.c)
 
-//(a::QabElem, b::fmpq) = QabElem(data(a)//b, a.c)
+//(a::QQAbElem, b::fmpq) = QQAbElem(data(a)//b, a.c)
 
-//(a::QabElem, b::Integer) = QabElem(data(a)//b, a.c)
+//(a::QQAbElem, b::Integer) = QQAbElem(data(a)//b, a.c)
 
-//(a::QabElem, b::Rational) = QabElem(data(a)//b, a.c)
+//(a::QQAbElem, b::Rational) = QQAbElem(data(a)//b, a.c)
 
 ################################################################################
 #
@@ -568,20 +586,20 @@ end
 #
 ################################################################################
 
-function ==(a::QabElem, b::QabElem)
+function ==(a::QQAbElem, b::QQAbElem)
   a, b = make_compatible(a, b)
   return a.data == b.data
 end
 
-function ==(a::QabElem, b::Union{fmpz, fmpq, Integer, Rational})
+function ==(a::QQAbElem, b::Union{fmpz, fmpq, Integer, Rational})
   return data(a) == b
 end
 
-function ==(a::Union{fmpz, fmpq, Integer, Rational}, b::QabElem)
+function ==(a::Union{fmpz, fmpq, Integer, Rational}, b::QQAbElem)
   return b == a
 end
 
-hash(a::QabElem, h::UInt) = hash(minimize(CyclotomicField, a.data), h)
+hash(a::QQAbElem, h::UInt) = hash(minimize(CyclotomicField, a.data), h)
 
 ################################################################################
 #
@@ -589,15 +607,13 @@ hash(a::QabElem, h::UInt) = hash(minimize(CyclotomicField, a.data), h)
 #
 ################################################################################
 
-function Base.copy(a::QabElem)
-  return QabElem(data(a), a.c)
+function Base.copy(a::QQAbElem)
+  return QQAbElem(data(a), a.c)
 end
 
-function Base.deepcopy_internal(a::QabElem, dict::IdDict)
-  return QabElem(deepcopy_internal(data(a), dict), a.c)
+function Base.deepcopy_internal(a::QQAbElem, dict::IdDict)
+  return QQAbElem(deepcopy_internal(data(a), dict), a.c)
 end
-
-#Oscar.isnegative(::QabElem) = false
 
 ################################################################################
 #
@@ -605,13 +621,11 @@ end
 #
 ################################################################################
 
-AbstractAlgebra.promote_rule(::Type{QabElem}, ::Type{Int}) = QabElem
+AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{Int}) = QQAbElem
 
-AbstractAlgebra.promote_rule(::Type{QabElem}, ::Type{fmpz}) = QabElem
+AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{fmpz}) = QQAbElem
 
-AbstractAlgebra.promote_rule(::Type{QabElem}, ::Type{fmpq}) = QabElem
-
-#Oscar.promote_rule(::Type{QabElem}, ::Type{fmpq_poly}) = QabElem
+AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{fmpq}) = QQAbElem
 
 ###############################################################################
 #
@@ -619,18 +633,18 @@ AbstractAlgebra.promote_rule(::Type{QabElem}, ::Type{fmpq}) = QabElem
 #
 ###############################################################################
 
-function Oscar.root(a::QabElem, n::Int)
-  Hecke.@req isroot_of_unity(a) "Element must be a root of unity"
+function Oscar.root(a::QQAbElem, n::Int)
+  Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
   mu = root_of_unity2(parent(a), Int(l))
   return mu
 end
 
-function Oscar.roots(f::PolyElem{QabElem{T}}) where T
-  Qab = base_ring(f)
+function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
+  QQAb = base_ring(f)
   c = reduce(lcm, map(conductor, coefficients(f)), init = Int(1))
-  k, z = cyclotomic_field(Qab, c)
+  k, z = cyclotomic_field(QQAb, c)
   f = map_coefficients(x->k(x.data), f)
   lf = factor(f).fac
   #we need to find the correct cyclotomic field...
@@ -640,12 +654,12 @@ function Oscar.roots(f::PolyElem{QabElem{T}}) where T
 
   C = cyclotomic_field(ClassField, c)
 
-  rts = QabElem{T}[]
+  rts = QQAbElem{T}[]
 
   for g = keys(lf)
     c = reduce(lcm, map(conductor, coefficients(g)), init = Int(1))
     #so THIS factor lives in cyclo(c)
-    k, z = cyclotomic_field(Qab, c)
+    k, z = cyclotomic_field(QQAb, c)
     d = numerator(norm(k(discriminant(g))))
 
     R, mR = ray_class_group(lcm(d, c)*maximal_order(QQ), infinite_places(QQ), 
@@ -679,14 +693,14 @@ function Oscar.roots(f::PolyElem{QabElem{T}}) where T
     end
     D = C*ray_class_field(mR, mq)
     c = norm(conductor(D)[1])
-    k, a = cyclotomic_field(Qab, Int(c))
+    k, a = cyclotomic_field(QQAb, Int(c))
     rt = roots(map_coefficients(k, g))
-    append!(rts, map(Qab, rt))
+    append!(rts, map(QQAb, rt))
   end
-  return rts::Vector{QabElem{T}}
+  return rts::Vector{QQAbElem{T}}
 end
 
-function Oscar.roots(a::QabElem{T}, n::Int) where {T}
+function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
   #strategy:
   # - if a is a root-of-1: trivial, as the answer is also roots-of-1
   # - if a can "easily" be made into a root-of-one: doit
@@ -696,24 +710,24 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
 
   corr = one(parent(a))
 
-  if !isroot_of_unity(a) 
+  if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
-    fl, i = ispower(a.data*zk, n)
+    fl, i = is_power(a.data*zk, n)
     _, x = PolynomialRing(parent(a), cached = false)
-    fl || return roots(x^n-a)::Vector{QabElem{T}}
+    fl || return roots(x^n-a)::Vector{QQAbElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
     c.data = b
     corr = Hecke.inv(c)
     a *= c^n
-    fl = isroot_of_unity(a)
-    fl || return (corr .* roots(x^n-a))::Vector{QabElem{T}}
+    fl = is_root_of_unity(a)
+    fl || return (corr .* roots(x^n-a))::Vector{QQAbElem{T}}
   end
   
   o = order(a)
   l = o*n
   mu = root_of_unity(parent(a), Int(l))
-  A = QabElem[]
+  A = QQAbElem[]
   if l==1 && mu==a
     push!(A, mu)
   end
@@ -723,18 +737,18 @@ function Oscar.roots(a::QabElem{T}, n::Int) where {T}
       push!(A, el)
     end
   end
-  return [x*corr for x = A]::Vector{QabElem{T}}
+  return [x*corr for x = A]::Vector{QQAbElem{T}}
 end
 
-function isroot_of_unity(a::QabElem)
-  return istorsion_unit(a.data, true)
+function is_root_of_unity(a::QQAbElem)
+  return is_torsion_unit(a.data, true)
   #=
   b = a^a.c
   return b.data == 1 || b.data == -1
   =#
 end
 
-function Oscar.order(a::QabElem)
+function Oscar.order(a::QQAbElem)
   f = Nemo.factor(fmpz(2*a.c))
   o = 1
   for (p, e) = f.fac
@@ -752,14 +766,14 @@ end
 
 ###############################################################################
 #
-#   Galois automorphisms of Qab
+#   Galois automorphisms of QQAb
 #
 ################################################################################
 
 # The Galois automorphisms of the $n$-th cyclotomic field are the maps
 # defined by $\zeta_n \mapsto \zeta_n^k$, for $1 \leq k < n$,
 # with $\gcd(n, k) = 1$.
-# Thus we can define automorphisms $\sigma_k$ of Qab as follows.
+# Thus we can define automorphisms $\sigma_k$ of QQAb as follows.
 # For each prime power $q$, $\zeta_q$ is mapped to $\zeta_q^k$ if
 # $k$ and $q$ are coprime, and to $\zeta_q$ otherwise.
 #
@@ -770,15 +784,15 @@ end
 # Then $l = k a n_0 + b n_1$ is coprime to $n$ and has the properties
 # $l \equiv 1 \pmod{n_0}$ and $l \equiv k \pmod{n_1}$.
 
-mutable struct QabAutomorphism
+mutable struct QQAbAutomorphism
   exp::Int
 end
 
-Oscar.hom(K::QabField, L::QabField, k::Int) = QabAutomorphism(k)
+Oscar.hom(K::QQAbField, L::QQAbField, k::Int) = QQAbAutomorphism(k)
 
-(f::QabAutomorphism)(a::QabElem) = a^f
+(f::QQAbAutomorphism)(a::QQAbElem) = a^f
 
-function ^(val::QabElem, sigma::QabAutomorphism)
+function ^(val::QQAbElem, sigma::QQAbAutomorphism)
   k = sigma.exp
   n = val.c
   g = gcd(k, n)
@@ -805,10 +819,10 @@ function ^(val::QabElem, sigma::QabAutomorphism)
   end
   F = parent(data) # cycl. field
   R = parent(F.pol)
-  return QabElem(F(R(res)), n)
+  return QQAbElem(F(R(res)), n)
 end
 
-Base.conj(elm::QabElem) = elm^QabAutomorphism(-1)
+Base.conj(elm::QQAbElem) = elm^QQAbAutomorphism(-1)
 
 ###############################################################################
 #
@@ -818,12 +832,12 @@ Base.conj(elm::QabElem) = elm^QabAutomorphism(-1)
 
 function generators_galois_group_cyclotomic_field(n::Int)
   res = GAP.Globals.GeneratorsPrimeResidues(GAP.julia_to_gap(n))
-  return [QabAutomorphism(k)
+  return [QQAbAutomorphism(k)
           for k in Vector{Int}(GAP.Globals.Flat(res.generators))]
 end
 
 """
-    square_root_in_cyclotomic_field(F::QabField, n::Int, N::Int)
+    square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 
 Return an element `a` in the field `F` that is represented w.r.t. the `N`-th
 cyclotomic field and has the property `a^2 == n`.
@@ -837,7 +851,7 @@ otherwise `a` is a positive multiple of the imaginary unit.
 is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
-function square_root_in_cyclotomic_field(F::QabField, n::Int, N::Int)
+function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
   z = root_of_unity(F, N)
   cf = 1
   sqf = 1
@@ -898,11 +912,11 @@ function square_root_in_cyclotomic_field(F::QabField, n::Int, N::Int)
   R = parent(pol)
   elm = mod(R(cfs), pol)
 
-  return cf * QabElem(FF(elm), N)
+  return cf * QQAbElem(FF(elm), N)
 end
 
 """
-    quadratic_irrationality_info(a::QabModule.QabElem)
+    quadratic_irrationality_info(a::QQAbModule.QQAbElem)
 
 Return `(x, y, n)`, where `x`, `y` are of type `fmpq` and `n` is
 a squarefree integer, such that `a == x + y sqrt(n)` holds.
@@ -911,7 +925,7 @@ a squarefree integer, such that `a == x + y sqrt(n)` holds.
 is used to define `a` is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
-function quadratic_irrationality_info(a::QabElem)
+function quadratic_irrationality_info(a::QQAbElem)
     n = a.c
 
     # Compute the Galois group generators of the `n`-th cyclotomic field.
@@ -976,15 +990,15 @@ end # module AbelianClosure
 
 import .AbelianClosure:
        abelian_closure,
-       QabAutomorphism,
-       QabField,
-       QabElem,
+       QQAbAutomorphism,
+       QQAbField,
+       QQAbElem,
        set_variable!,
        get_variable
 
 export abelian_closure,
-       QabAutomorphism,
-       QabField,
-       QabElem,
+       QQAbAutomorphism,
+       QQAbField,
+       QQAbElem,
        set_variable!,
        get_variable

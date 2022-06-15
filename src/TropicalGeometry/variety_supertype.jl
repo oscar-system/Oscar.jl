@@ -15,9 +15,33 @@
 ###
 
 abstract type TropicalVarietySupertype{M,EMB} end
-function pm_object(v::TropicalVarietySupertype)
-  return v.polymakeTV
+
+@doc Markdown.doc"""
+    underlying_polyhedral_complex(TV)
+
+Return the underlying polyhedral complex of a tropical variety. 
+
+#Examples
+```jldoctest
+julia> RR = TropicalSemiring(min)
+Tropical semiring (min)
+
+julia> S,(x,y) = RR["x","y"];
+
+julia> f = x^2+y^2+2
+x^2 + y^2 + (2)
+
+julia> hyp1 = TropicalHypersurface(f)
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
+
+julia> pc = underlying_polyhedral_complex(hyp1)
+A polyhedral complex in ambient dimension 2
+``` 
+"""
+function underlying_polyhedral_complex(TV::TropicalVarietySupertype)
+    return TV.polyhedralComplex
 end
+export underlying_polyhedral_complex
 
 
 ###
@@ -389,10 +413,10 @@ end
 
 
 @doc Markdown.doc"""
-    ispure(T::TropicalVariety{M, EMB})
-    ispure(T::TropicalCurve{M, EMB})
-    ispure(T::TropicalHypersurface{M, EMB})
-    ispure(T::TropicalLinearSpace{M, EMB})
+    is_pure(T::TropicalVariety{M, EMB})
+    is_pure(T::TropicalCurve{M, EMB})
+    is_pure(T::TropicalHypersurface{M, EMB})
+    is_pure(T::TropicalLinearSpace{M, EMB})
 
 Return `true` if `T` is a pure polyhedral complex, `false` otherwise.
 
@@ -407,21 +431,21 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> ispure(tropicalLine)
+julia> is_pure(tropicalLine)
 true
 ```
 """
-function ispure(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return ispure(T.polyhedralComplex)
+function is_pure(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return is_pure(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    issimplicial(T::TropicalVariety{M, EMB})
-    issimplicial(T::TropicalCurve{M, EMB})
-    issimplicial(T::TropicalHypersurface{M, EMB})
-    issimplicial(T::TropicalLinearSpace{M, EMB})
+    is_simplicial(T::TropicalVariety{M, EMB})
+    is_simplicial(T::TropicalCurve{M, EMB})
+    is_simplicial(T::TropicalHypersurface{M, EMB})
+    is_simplicial(T::TropicalLinearSpace{M, EMB})
 
 Return `true` if `T` is a simplicial polyhedral complex, `false` otherwise.
 
@@ -436,12 +460,12 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> issimplicial(tropicalLine)
+julia> is_simplicial(tropicalLine)
 true
 ```
 """
-function issimplicial(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return issimplicial(T.polyhedralComplex)
+function is_simplicial(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return is_simplicial(T.polyhedralComplex)
 end
 
 

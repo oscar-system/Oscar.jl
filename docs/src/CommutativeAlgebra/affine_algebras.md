@@ -116,7 +116,7 @@ simplify(f::MPolyQuoElem)
 In the graded case, we additionally have:
 
 ```@docs
-ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ### Data associated to Elements of Affine Algebras
@@ -300,9 +300,9 @@ steinerRomanSurface = preimage(F3, sphere)
 
 
 ```@docs
-isinjective(F::AffAlgHom)
-issurjective(F::AffAlgHom)
-isbijective(F::AffAlgHom)
+is_injective(F::AffAlgHom)
+is_surjective(F::AffAlgHom)
+is_bijective(F::AffAlgHom)
 isfinite(F::AffAlgHom)
 ```
 
@@ -314,10 +314,10 @@ S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"]);
 C, p = quo(S, ideal(S, [c-b^3]));
 V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 F = hom(D, C, V)
-issurjective(F)
+is_surjective(F)
 D1, _ = quo(D, kernel(F));
 F1 = hom(D1, C, V);
-isbijective(F1)
+is_bijective(F1)
 ```
 
 ```@repl oscar
@@ -340,7 +340,7 @@ D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 D, _ = quo(D1, [y-x^2, z-x^3])
 C, (t,) = PolynomialRing(QQ, ["t"]);
 para = hom(D, C, [t, t^2, t^3]);
-isbijective(para)
+is_bijective(para)
 inverse(para)
 ```
 
@@ -395,13 +395,13 @@ integral_basis(f::MPolyElem, i::Int)
 ### Reducedness Test
 
 ```@docs
-isreduced(Q::MPolyQuo)
+is_reduced(Q::MPolyQuo)
 ```
 
 ### Normality Test
 
 ```@docs
-isnormal(A::MPolyQuo)
+is_normal(A::MPolyQuo)
 ```
 
 ### Cohen-Macaulayness Test

@@ -82,14 +82,14 @@ end
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
 function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion
-  if !ismolien_series_implemented(R)
+  if !is_molien_series_implemented(R)
     return -1
   end
 
   Qt, t = PowerSeriesRing(QQ, d + 1, "t")
   F = molien_series(R)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
-  @assert isintegral(k)
+  @assert is_integral(k)
   return T(numerator(k))::T
 end
 
@@ -98,15 +98,15 @@ end
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
-The used algorithm can be specified using the optional argument `algo`. Possible
-values are `:reynolds` which uses the reynolds operator to construct the basis
-(only available in the non-modular case) and `:linear_algebra` which uses plain
-linear algebra. With the default value `:default` the heuristically best algorithm
-is selected.
 
-When using the reynolds operator the basis is constructed element-by-element.
-With linear algebra this is not possible and the whole basis will be constructed
-directly when calling the function.
+The optional argument `algo` specifies the algorithm to be used.
+If `algo = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
+Setting `algo = :linear_algebra` means that plain linear algebra is used.
+The default option `algo = :default` asks to select the heuristically best algorithm.
+
+When using the Reynolds operator, the basis is constructed element-by-element.
+With linear algebra, this is not possible and the basis will be constructed
+all at once when calling the function.
 
 See also [`basis`](@ref).
 
@@ -179,7 +179,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   @assert d >= 0 "Degree must be non-negativ"
 
   if algo == :default
-    if ismodular(R)
+    if is_modular(R)
       algo = :linear_algebra
     else
       # Use the estimate in KS99, Section 17.2
@@ -213,7 +213,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
 end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
-  @assert !ismodular(R)
+  @assert !is_modular(R)
   @assert d >= 0 "Degree must be non-negativ"
 
   monomials = all_monomials(polynomial_ring(R), d)

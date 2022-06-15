@@ -1,5 +1,5 @@
 export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
-export quo, base_ring, modulus, gens, ngens, dim, simplify!
+export quo, base_ring, modulus, gens, ngens, dim, simplify!, default_ordering
 export issubset
 ##############################################################################
 #
@@ -725,7 +725,7 @@ end
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function isinvertible_with_inverse(a::MPolyQuoElem)
+function is_invertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
@@ -744,9 +744,9 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
+is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
 function inv(a::MPolyQuoElem)
-  fl, b = isinvertible_with_inverse(a)
+  fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
@@ -754,12 +754,47 @@ end
 """
 Tries to write the generators of `M` as linear combinations of generators in `SM`.
 Extremely low level, might migrate to Singular.jl and be hidd...
+
+Seems to be buggy
+
+Returns result, rest
+(Matrix(SM)-Matrix(rest) = Matrix(M)*Matrix(result))
+If SM is in M, rest is the null module
+otherwise: rest = SM
 """
-function lift(M::Singular.sideal, SM::Singular.sideal)
-  R = base_ring(M)
-  ptr,rest_ptr = Singular.libSingular.id_Lift(M.ptr, SM.ptr, R.ptr)
-  return Singular.Module(R, ptr), Singular.Module(R,rest_ptr)
+function lift(M::Singular.sideal{T}, SM::Singular.sideal{T}) where T
+   R = base_ring(M)
+   R == base_ring(SM) || error("base rings must match")
+   ptr, rest_ptr = GC.@preserve M SM R Singular.libSingular.id_Lift(M.ptr, SM.ptr, R.ptr)
+   return Singular.Module(R, ptr), Singular.Module(R,rest_ptr)
 end
+
+@doc Markdown.doc"""
+    lift(M::sideal, SM::sideal, goodShape::Bool, isSB::Bool, divide::Bool)
+
+represents the generators of SM in terms of the generators of M.
+Returns result, rest
+(Matrix(SM)*U-Matrix(rest) = Matrix(M)*Matrix(result))
+If SM is in M, rest is the null module
+otherwise: rest = SM (if not divide)
+or: rest=normalform(SM,std(M))
+U is a diagonal matrix of units, differs from unity matrix only for local ring orderings
+
+goodShape: maximal non-zero index in generators of SM <= that of M
+isSB: generators of M form a Groebner basis
+divide: allow SM not to be a submodule of M
+"""
+function lift(M::Singular.sideal{T}, SM::Singular.sideal{T},
+                            goodShape::Bool, isSB::Bool, divide::Bool) where T
+   R = base_ring(M)
+   R == base_ring(SM) || error("base rings must match")
+   res, rest, U = GC.@preserve M SM R Singular.libSingular.id_Lift(M.ptr, SM.ptr,
+                                                goodShape, isSB, divide, R.ptr)
+   return (Singular.smodule{T}(R, res), Singular.smodule{T}(R, rest), Singular.smatrix{T}(R, U))
+end
+
+
+
 
 """
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
@@ -977,8 +1012,8 @@ function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-isfiltered(q::MPolyQuo) = isfiltered(q.R)
-isgraded(q::MPolyQuo) = isgraded(q.R)
+is_filtered(q::MPolyQuo) = is_filtered(q.R)
+is_graded(q::MPolyQuo) = is_graded(q.R)
 
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
@@ -1053,7 +1088,7 @@ function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
 end
 
 @doc Markdown.doc"""
-    ishomogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+    is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
 
 Given an element `f` of a graded affine algebra, return `true` if `f` is homogeneous, `false` otherwise.
 
@@ -1066,16 +1101,16 @@ julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
 
-julia> ishomogeneous(f)
+julia> is_homogeneous(f)
 true
 
 julia> f
 z^4
 ```
 """
-function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
+function is_homogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return ishomogeneous(a.f)
+  return is_homogeneous(a.f)
 end
 
 @doc Markdown.doc"""
@@ -1207,7 +1242,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec}; ordering::Mon
 
   Q = base_ring(I)
 
-  @assert isgraded(Q)
+  @assert is_graded(Q)
   
   if !(coefficient_ring(Q) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))

@@ -12,4 +12,6 @@ include("Schemes/SpecOpen.jl")
 include("Schemes/Glueing.jl")
 include("Schemes/ProjectiveSchemes.jl")
 include("K3Auto.jl")
+include("Schemes/CoveredScheme.jl")
+
 include("Matrix/matrix.jl")

@@ -6,6 +6,28 @@ export primary_invariants, primary_invariants_via_optimal_hsop, primary_invarian
 # case.
 # See DK15, pp. 94, 95.
 function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int})
+  fl, h = _reduce_hilbert_series_by_primary_degrees(R, degrees)
+  if !fl
+    return false
+  end
+  for c in coefficients(h)
+    if !isinteger(c)
+      return false
+    end
+    if !is_modular(R) && c < 0
+      return false
+    end
+  end
+  return true
+end
+
+function reduce_hilbert_series_by_primary_degrees(R::InvRing)
+  fl, h = _reduce_hilbert_series_by_primary_degrees(R, [ total_degree(f.f) for f in primary_invariants(R) ])
+  @assert fl
+  return h
+end
+
+function _reduce_hilbert_series_by_primary_degrees(R::InvRing, degrees::Vector{Int})
   mol = molien_series(R)
   f = numerator(mol)
   g = denominator(mol)
@@ -13,19 +35,7 @@ function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int
     # multiply f by 1 - t^d
     f -= shift_left(f, d)
   end
-  if !iszero(mod(f, g))
-    return false
-  end
-  h = div(f, g)
-  for c in coefficients(h)
-    if !isinteger(c)
-      return false
-    end
-    if !ismodular(R) && c < 0
-      return false
-    end
-  end
-  return true
+  return divides(f, g)
 end
 
 # Return possible degrees of primary invariants d_1, ..., d_n with
@@ -85,7 +95,7 @@ function candidates_primary_degrees(R::InvRing, k::Int, bad_prefixes::Vector{Vec
     end
     skip ? continue : nothing
 
-    if ismolien_series_implemented(R)
+    if is_molien_series_implemented(R)
       if !test_primary_degrees_via_hilbert_series(R, ds)
         continue
       end
@@ -248,7 +258,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
           continue
         end
       end
-      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars_cache, iters, ideals, ensure_minimality, k - 1)
+      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars_cache, iters, ideals, ensure_minimality, max(0, k - 1))
       if b
         return true, 0
       end
@@ -273,7 +283,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
       k = 0
     end
   end
-  if iszero(n) && isone(k)
+  if is_zero(n) && is_one(k)
     invars_cache.ideal = ideals[Set(invars_cache.invars)][1]
     return true, k
   end
@@ -311,7 +321,7 @@ end
 
 function _primary_invariants_via_successive_algo(IR::InvRing)
   P = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
-  if !ismodular(IR)
+  if !is_modular(IR)
     P = P[1]
   end
   R = polynomial_ring(IR)
@@ -331,10 +341,11 @@ Return a system of primary invariants for `IR` as a `Vector` sorted by increasin
 degree. The result is cached, so calling this function again with argument `IR` 
 will be fast and give the same result.
 
-The used algorithm can be specified with the optional argument `algo`. Possible
-values are `:optimal_hsop` which uses the algorithm in [Kem99](@cite) or `:successive_algo`
-which uses the algorithm from [DHS98](@cite). The default option is `:optimal_hsop` which
-is in general expected to be the faster algorithm.
+The optional argument `algo` specifies the algorithm to be used.
+If `algo = :optimal_hsop`, the algorithm in [Kem99](@cite) is utilized.
+Setting `algo = :successive_algo` means that the algorithm from [DHS98](@cite) is used.
+The default option is `:optimal_hsop` as the algorithm in [Kem99](@cite) is in general 
+expected to be the faster algorithm.
 
 See also [`primary_invariants_via_optimal_hsop`](@ref) and
 [`primary_invariants_via_successive_algo`](@ref) for more options.

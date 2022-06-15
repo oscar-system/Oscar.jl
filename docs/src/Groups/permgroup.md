@@ -21,11 +21,11 @@ Permutation groups can be defined as symmetric groups, alternating groups or the
 PermGroup
 PermGroupElem
 symmetric_group
-isnatural_symmetric_group(G::GAPGroup)
-isisomorphic_with_symmetric_group(G::GAPGroup)
+is_natural_symmetric_group(G::GAPGroup)
+is_isomorphic_with_symmetric_group(G::GAPGroup)
 alternating_group
-isnatural_alternating_group(G::GAPGroup)
-isisomorphic_with_alternating_group(G::GAPGroup)
+is_natural_alternating_group(G::GAPGroup)
+is_isomorphic_with_alternating_group(G::GAPGroup)
 ```
 
 In Oscar, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
@@ -110,11 +110,11 @@ julia> x(6)
 ## Operations for permutation groups
 
 ```@docs
-istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))

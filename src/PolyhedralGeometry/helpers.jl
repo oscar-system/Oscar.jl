@@ -6,7 +6,12 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
-        m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+        t = typeof(m[i])
+        if t <: Union{values(scalar_type_to_polymake)...}
+            m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
+        else
+            m = Polymake.Matrix{scalar_type_to_polymake[t]}(m)
+        end
     else
         m = Polymake.Matrix{Polymake.Rational}(undef, a, b)
     end
@@ -25,13 +30,16 @@ end
 
 assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
+assure_vector_polymake(v::AbstractVector{<:Union{fmpq, fmpz, nf_elem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
 
-affine_matrix_for_polymake(x::Tuple) = assure_matrix_polymake(hcat(-x[2], x[1]))
+affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
+affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])
 
 _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{fmpq}, typeof(x)})
 
 linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
+
+matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
@@ -59,7 +67,7 @@ Base.convert(::Type{nf_scalar}, x::nf_elem) = x
 nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
 
 function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
-    isq = Hecke.isquadratic_type(parent(x))
+    isq = Hecke.is_quadratic_type(parent(x))
     if !isq[1] || isq[2] < 0
         throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'."))
     end
@@ -118,7 +126,7 @@ end
 
 function augment(mat::AbstractMatrix, vec::AbstractVector)
     s = size(mat)
-    res = similar(mat, (s[1], s[2] + 1))
+    res = similar(mat, promote_type(eltype(mat), eltype(vec)),(s[1], s[2] + 1))
     res[:, 1] = vec
     res[:, 2:end] = mat
     return assure_matrix_polymake(res)
@@ -129,9 +137,16 @@ homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(m
 homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
 homogenize(nothing,val::Number)=nothing
 homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) = homogenize(x, val)
+homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, val))
+homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) = stack((homogenize(x[i], val) for i in 1:length(x))...)
 
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
+
+unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
+unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
+unhomogenized_matrix(x::MatElem) = Matrix(assure_matrix_polymake(x))
+unhomogenized_matrix(x::AbstractVector{<:AbstractVector}) = unhomogenized_matrix(stack(x...))
 
 """
     stack(A::AbstractVecOrMat, B::AbstractVecOrMat)
@@ -167,14 +182,17 @@ julia> stack([1 2], [])
  1  2
 ```
 """
-stack(A::AbstractMatrix,nothing) = A
-stack(nothing,B::AbstractMatrix) = B
+stack(A::AbstractMatrix, ::Nothing) = A
+stack(::Nothing, B::AbstractMatrix) = B
 stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
 stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; permutedims(B)]
 stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [permutedims(A); B]
 stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [permutedims(A); permutedims(B)]
-stack(A::AbstractVector,nothing) = permutedims(A)
-stack(nothing,B::AbstractVector) = permutedims(B)
+stack(A::AbstractVector, ::Nothing) = permutedims(A)
+stack(::Nothing, B::AbstractVector) = permutedims(B)
+stack(x, y, z...) = stack(stack(x, y), z...)
+stack(x) = stack(x, nothing)
+# stack(x::Union{fmpq_mat, fmpz_mat}, ::Nothing) = x
 #=
 function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2
@@ -187,6 +205,10 @@ function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     return M
 end
 =#
+
+_ambient_dim(x::AbstractVector) = length(x)
+_ambient_dim(x::AbstractMatrix) = size(x, 2)
+_ambient_dim(x::AbstractVector{<:AbstractVector}) = _ambient_dim(x[1])
 
 """
     decompose_vdata(A::AbstractMatrix)

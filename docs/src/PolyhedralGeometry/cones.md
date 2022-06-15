@@ -43,7 +43,7 @@ Objects of type `Cone` can be saved to a file and loaded from a file in the
 following way:
 ```@repl oscar
 C = positive_hull([1 0; 0 1])
-save(C, "C.cone")
+save("C.cone", C)
 CC = load("C.cone")
 collect(rays(CC))
 ```
@@ -61,8 +61,8 @@ codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types
 intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
-ispointed(C::Cone)
-isfulldimensional(C::Cone)
+is_pointed(C::Cone)
+is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)

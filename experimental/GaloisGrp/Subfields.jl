@@ -324,7 +324,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
     lf = factor_mod_pk(Array, H, pr)
     ppr = fmpz(p)^pr
     @assert parent(lf[1][1]) == parent(f)
-    @assert all(x->ismonic(x[1]), lf)
+    @assert all(x->is_monic(x[1]), lf)
     rt = findfirst(x->degree(x[1]) == 1, lf)
     done[rt] = 1
     for i=1:length(lf)
@@ -382,7 +382,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
             @show T
             #the paper says the (unknown) (algebraic) coefficients of
             # prod(f[i] i in T)
-            #have to generate the subfield and f in K[t] is isirreducible
+            #have to generate the subfield and f in K[t] is is_irreducible
             #so deg(poly)*deg(subfield) = deg(K)
             #deg subfield should be r, so
             #if precision is too low, then this poly will be too

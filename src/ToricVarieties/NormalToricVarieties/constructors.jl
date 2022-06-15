@@ -1,5 +1,3 @@
-import Oscar.projective_space
-
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
@@ -51,9 +49,9 @@ function AffineNormalToricVariety(C::Cone)
     # set known attributes
     set_attribute!(variety, :cone, C)
     set_attribute!(variety, :fan, fan)
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :picard_group, free_abelian_group(0))
     
@@ -86,9 +84,9 @@ function NormalToricVariety(C::Cone)
     
     # set known attributes
     set_attribute!(variety, :fan, fan)
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :picard_group, free_abelian_group(0))
     
@@ -201,15 +199,15 @@ A normal, affine toric variety
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
     # check input
-    isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
+    is_affine(v) || error("Cannot construct affine toric variety from non-affine input")
     
     # set variety
     variety = AffineNormalToricVariety(pm_object(v))
     
     # set properties of variety
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :is_projective_space, false)
     
     # construct the affine variety and copy all cached information from v
@@ -240,9 +238,9 @@ function affine_space(::Type{NormalToricVariety}, d::Int)
     variety = NormalToricVariety(pmntv)
     
     # set known properties and attributes
-    set_attribute!(variety, :isaffine, true)
-    set_attribute!(variety, :iscomplete, false)
-    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :is_affine, true)
+    set_attribute!(variety, :is_complete, false)
+    set_attribute!(variety, :is_projective, false)
     set_attribute!(variety, :isprojective_space, false)
     set_attribute!(variety, :fan, fan)
     set_attribute!(variety, :dim, d)
@@ -268,17 +266,17 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
     variety = NormalToricVariety(pm_object)
-    set_attribute!(variety, :isaffine, false)
-    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
     set_attribute!(variety, :is_projective_space, true)
-    set_attribute!(variety, :issmooth, true)
-    set_attribute!(variety, :iscomplete, true)
-    set_attribute!(variety, :hastorusfactor, false)
-    set_attribute!(variety, :isorbifold, true)
-    set_attribute!(variety, :issimplicial, true)
-    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :is_smooth, true)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+    set_attribute!(variety, :is_gorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
-    set_attribute!(variety, :isfano, true)
+    set_attribute!(variety, :is_fano, true)
     set_attribute!(variety, :dim, d)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, d+1)
@@ -311,20 +309,20 @@ function hirzebruch_surface(r::Int)
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
-    set_attribute!(variety, :isaffine, false)
-    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
     set_attribute!(variety, :is_projective_space, false)
-    set_attribute!(variety, :issmooth, true)
-    set_attribute!(variety, :iscomplete, true)
-    set_attribute!(variety, :hastorusfactor, false)
-    set_attribute!(variety, :isorbifold, true)
-    set_attribute!(variety, :issimplicial, true)
-    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :is_smooth, true)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+    set_attribute!(variety, :is_gorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
     if abs(r) <= 1
-        set_attribute!(variety, :isfano, true)
+        set_attribute!(variety, :is_fano, true)
     else
-        set_attribute!(variety, :isfano, false)
+        set_attribute!(variety, :is_fano, false)
     end
     
     # assign *meaningful* variables
@@ -336,7 +334,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, 4)
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
-    set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
+    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
     # find weights of the Cox ring
@@ -351,7 +349,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :character_lattice, domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(variety)))
     
     # set maps from cartier divisors to torusinvariant weil divisors and the picard group
-    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_weil_divisor_group(variety)))
     set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
     return variety
@@ -401,17 +399,17 @@ function del_pezzo(b::Int)
     new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
-    set_attribute!(variety, :isaffine, false)
-    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
     set_attribute!(variety, :is_projective_space, false)
-    set_attribute!(variety, :issmooth, true)
-    set_attribute!(variety, :iscomplete, true)
-    set_attribute!(variety, :hastorusfactor, false)
-    set_attribute!(variety, :isorbifold, true)
-    set_attribute!(variety, :issimplicial, true)
-    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :is_smooth, true)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+    set_attribute!(variety, :is_gorenstein, true)
     set_attribute!(variety, :is_q_gorenstein, true)
-    set_attribute!(variety, :isfano, true)
+    set_attribute!(variety, :is_fano, true)
     
     # assign meaningful variables according to the rays
     vars = ["x1", "x2", "x3", "e1", "e2", "e3"]
@@ -675,21 +673,21 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
     properties_string = ["A normal"]
     
-    affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
+    affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
     
-    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :isorbifold, "simplicial")
-    push_attribute_if_exists!(properties_string, v, :issmooth, "smooth"; callback=simplicial_cb!)
+    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
+    push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
     
     projective = nothing
     if isnothing(affine) || !affine
-        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :iscomplete, "complete")
-        projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective"; callback=complete_cb!)
+        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
+        projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
     end
     
     q_gor_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
-    gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein"; callback=q_gor_cb!)
+    gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
     
-    push_attribute_if_exists!(properties_string, v, :isfano, "fano")
+    push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
     
     if has_attribute(v, :dim)
         push!(properties_string, string(dim(v))*"-dimensional")
@@ -698,7 +696,7 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     properties_string = [join(properties_string, ", ")]
     push!(properties_string, "toric variety")
     
-    push_attribute_if_exists!(properties_string, v, :hastorusfactor, "with torusfactor", "without torusfactor")
+    push_attribute_if_exists!(properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor")
     
     join(io, properties_string, " ")
 end

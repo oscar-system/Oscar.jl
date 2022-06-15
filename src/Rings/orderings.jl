@@ -6,7 +6,7 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, weights, isweighted,
        MonomialOrdering, ModuleOrdering, singular,
-       isglobal, islocal, ismixed
+       is_global, is_local, is_mixed
 
 abstract type AbsOrdering end
 
@@ -420,7 +420,7 @@ function simplify_weight_matrix(M::AbsOrdering)
   w = weights(M)
   ww = matrix(ZZ, 0, ncols(w), [])
   for i=1:nrows(w)
-    if iszero_row(w, i)
+    if is_zero_row(w, i)
       continue
     end
     nw = w[i, :]
@@ -455,12 +455,12 @@ function Base.hash(M::MonomialOrdering, u::UInt)
 end
 
 @doc Markdown.doc"""
-    isglobal(M::MonomialOrdering)
+    is_global(M::MonomialOrdering)
 
 Return `true` if the given ordering is global, i.e. if $1 < x$ for
 each variable $x$ in the ring `M.R` for which `M` is defined.
 """
-function isglobal(M::MonomialOrdering)
+function is_global(M::MonomialOrdering)
   fl = flat(M.o)
   R = M.R
   for o in fl
@@ -474,12 +474,12 @@ function isglobal(M::MonomialOrdering)
 end
 
 @doc Markdown.doc"""
-    islocal(M::MonomialOrdering)
+    is_local(M::MonomialOrdering)
 
 Return `true` if the given ordering is local, i.e. if $1 > x$ for
 each variable $x$ in the ring `M.R` for which `M` is defined.
 """
-function islocal(M::MonomialOrdering)
+function is_local(M::MonomialOrdering)
   fl = flat(M.o)
   R = M.R
   for o in fl
@@ -493,13 +493,13 @@ function islocal(M::MonomialOrdering)
 end
 
 @doc Markdown.doc"""
-    ismixed(M::MonomialOrdering)
+    is_mixed(M::MonomialOrdering)
 
 Return `true` if the given ordering is mixed, i.e. if $1 < x_i$ for
 a variable $x_i$ and $1 > x_j$ for another variable $x_j$ in the ring `M.R`
 for which `M` is defined.
 """
-ismixed(M::MonomialOrdering) = !isglobal(M) && !islocal(M)
+is_mixed(M::MonomialOrdering) = !is_global(M) && !is_local(M)
 
 # Return two arrays of indices containing the variables which are > 1 and < 1
 # respectively.
@@ -632,6 +632,30 @@ end
 
 function max_used_variable(st::Int, o::ModOrdering)
    return -1
+end
+
+@doc Markdown.doc"""
+    induced_ring_ordering(M::ModuleOrdering)
+
+Return the induced ring ordering.
+"""
+function induced_ring_ordering(M::ModuleOrdering)
+  R = base_ring(M.M)
+  if M.o.a isa AbsGenOrdering
+    return MonomialOrdering(R, M.o.a)
+  else
+    return MonomialOrdering(R, M.o.b)
+  end
+end
+
+@doc Markdown.doc"""
+    is_global(M::ModuleOrdering)
+
+Return `true` if the given ordering is global, i.e. if the
+induced ring ordering is global.
+"""
+function is_global(M::ModuleOrdering)
+  return is_global(induced_ring_ordering(M))
 end
 
 end  # module Orderings

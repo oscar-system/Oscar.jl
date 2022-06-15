@@ -2,7 +2,7 @@
 ##  
 ##  The idea is that the available GAP objects (groups, character tables,
 ##  class functions) are used in a first step, and that access to character
-##  values yields `QabElem` objects.
+##  values yields `QQAbElem` objects.
 ##  
 ##  Once we agree on the functionality and the integration into Oscar,
 ##  this setup can in a second step be replaced by one that uses
@@ -12,7 +12,7 @@
 ##  In a third step, we replace the character table objects by native Julia
 ##  objects.
 
-# character values are elements from QabField
+# character values are elements from QQAbField
 
 export
     all_character_table_names,
@@ -53,7 +53,7 @@ export
 Return the value encoded by `description`.
 If `F` is given and is a cyclotomic field that contains the value then
 the result is in `F`,
-if `F` is not given then the result has type `QabElem`.
+if `F` is not given then the result has type `QQAbElem`.
 
 `description` is assumed to have the format defined in
 [CCNPW85](@cite), Chapter 6, Section 10.
@@ -182,7 +182,7 @@ function character_table(G::GAPGroup, p::Int = 0)
       gaptbl = GAP.Globals.CharacterTable(G.X)::GapObj
       if p != 0
         # Create the `p`-modular table if possible.
-        isprime(p) || error("p must be 0 or a prime integer")
+        is_prime(p) || error("p must be 0 or a prime integer")
         gaptbl = GAP.Globals.mod(gaptbl, GAP.Obj(p))::GapObj
         gaptbl === GAP.Globals.fail && return nothing
       end
@@ -223,7 +223,7 @@ function character_table(id::String, p::Int = 0)
     if p == 0
       modid = id
     else
-      isprime(p) || error("p must be 0 or a prime integer")
+      is_prime(p) || error("p must be 0 or a prime integer")
       modid = "$(id)mod$(p)"
     end
 
@@ -394,7 +394,7 @@ as a sum of multiples of powers of the primitive root which is printed as
 """
 function as_sum_of_roots(val::nf_elem, root::String)
     F = parent(val)
-    flag, N = Hecke.iscyclotomic_type(F)
+    flag, N = Hecke.is_cyclotomic_type(F)
     flag || error("$val is not an element of a cyclotomic field")
 
     # `string` yields an expression of the right structure,
@@ -789,7 +789,7 @@ end
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
     irr = GAP.Globals.Irr(tbl.GAPTable)::GapObj
     val = irr[i, j]
-    return QabElem(val)
+    return QQAbElem(val)
 end
 #TODO: cache the values once they are known?
 
@@ -804,7 +804,7 @@ or `nothing` if this table cannot be computed.
 An exception is thrown if `tbl` is not an ordinary character table.
 """
 function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
-    isprime(p) || error("p must be a prime integer")
+    is_prime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
     modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
@@ -846,7 +846,7 @@ julia> decomposition_matrix(t2)
 ```
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
-    isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
+    is_prime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable)::GapObj)
 end
 
@@ -1072,7 +1072,7 @@ end
 
 function values(chi::GAPGroupClassFunction)
     gapvalues = GAP.Globals.ValuesOfClassFunction(chi.values)::GapObj
-    return [QabElem(x) for x in gapvalues]
+    return [QQAbElem(x) for x in gapvalues]
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::GapObj)
@@ -1080,22 +1080,22 @@ function group_class_function(tbl::GAPGroupCharacterTable, values::GapObj)
     return GAPGroupClassFunction(tbl, values)
 end
 
-function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QabElem})
+function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QQAbElem})
     gapvalues = GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues)::GapObj)
 end
 
-function group_class_function(G::GAPGroup, values::Vector{<:QabElem})
+function group_class_function(G::GAPGroup, values::Vector{<:QQAbElem})
     return group_class_function(character_table(G), values)
 end
 
 @doc Markdown.doc"""
     trivial_character(tbl::GAPGroupCharacterTable)
 
-Return the character of `tbl` that has the value `QabElem(1)` in each position.
+Return the character of `tbl` that has the value `QQAbElem(1)` in each position.
 """
 function trivial_character(tbl::GAPGroupCharacterTable)
-    val = QabElem(1)
+    val = QQAbElem(1)
     return group_class_function(tbl, [val for i in 1:ncols(tbl)])
 end
 
@@ -1103,10 +1103,10 @@ end
     trivial_character(G::GAPGroup)
 
 Return the character of (the ordinary character table of) `G`
-that has the value `QabElem(1)` in each position.
+that has the value `QQAbElem(1)` in each position.
 """
 function trivial_character(G::GAPGroup)
-    val = QabElem(1)
+    val = QQAbElem(1)
     return group_class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
 end
 
@@ -1191,7 +1191,7 @@ Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values)
 
 @doc Markdown.doc"""
     degree(::Type{T} = fmpq, chi::GAPGroupClassFunction)
-           where T <: Union{IntegerUnion, fmpz, mpq, QabElem}
+           where T <: Union{IntegerUnion, fmpz, mpq, QQAbElem}
 
 Return `chi[1]`, as an instance of `T`.
 """
@@ -1201,14 +1201,14 @@ Nemo.degree(::Type{fmpq}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1
 
 Nemo.degree(::Type{fmpz}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::fmpz
 
-Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabElem{nf_elem}
+Nemo.degree(::Type{QQAbElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAbElem{nf_elem}
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(fmpz, chi))::T
 
 # access character values
 function Base.getindex(chi::GAPGroupClassFunction, i::Int)
   vals = GAP.Globals.ValuesOfClassFunction(chi.values)::GapObj
-  return QabElem(vals[i])
+  return QQAbElem(vals[i])
 end
 
 # arithmetics with class functions
@@ -1219,7 +1219,7 @@ function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
 end
 
 # Currently we cannot implement a `hash` method based on the values,
-# since `hash(::QabElem)` is based on `objectid`.
+# since `hash(::QQAbElem)` is based on `objectid`.
 function Base.hash(chi::GAPGroupClassFunction, h::UInt)
   return Base.hash(chi.table, h)
 end
@@ -1242,7 +1242,7 @@ function Base.:*(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
 end
 
 function Base.zero(chi::GAPGroupClassFunction)
-    val = QabElem(0)
+    val = QQAbElem(0)
     return group_class_function(chi.table, [val for i in 1:length(chi)])
 end
 
@@ -1250,14 +1250,14 @@ Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
 @doc Markdown.doc"""
     scalar_product(::Type{T} = fmpq, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-                   where T <: Union{IntegerUnion, fmpz, fmpq, QabElem}
+                   where T <: Union{IntegerUnion, fmpz, fmpq, QQAbElem}
 
 Return $\sum_{g \in G}$ `chi`($g$) `conj(psi)`($g$) / $|G|$,
 where $G$ is the group of both `chi` and `psi`.
 """
 scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(fmpq, chi, psi)
 
-function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, fmpz, fmpq, QabElem}
+function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, fmpz, fmpq, QQAbElem}
     chi.table === psi.table || error("character tables must be identical")
     return T(GAP.Globals.ScalarProduct(chi.values, psi.values)::GAP.Obj)::T
 end
@@ -1300,19 +1300,19 @@ function conj(chi::GAPGroupClassFunction)
 end
 
 @doc Markdown.doc"""
-    (sigma::QabAutomorphism)(chi::GAPGroupClassFunction)
+    (sigma::QQAbAutomorphism)(chi::GAPGroupClassFunction)
 
 Return the class function whose values are the images of the values of `chi`
 under `sigma`.
 """
-function (sigma::QabAutomorphism)(chi::GAPGroupClassFunction)
+function (sigma::QQAbAutomorphism)(chi::GAPGroupClassFunction)
     return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, sigma.exp)::GAP.Obj)
 end
 
-Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QabAutomorphism) = sigma(chi)
+Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
 
 @doc Markdown.doc"""
-    isirreducible(chi::GAPGroupClassFunction)
+    is_irreducible(chi::GAPGroupClassFunction)
 
 Return `true` if `chi` is an irreducible character, and `false` otherwise.
 
@@ -1322,7 +1322,7 @@ For ordinary characters this can be checked using the scalar product of
 class functions (see [`scalar_product`](@ref).
 For Brauer characters there is no generic method for checking irreducibility.
 """
-function isirreducible(chi::GAPGroupClassFunction)
+function is_irreducible(chi::GAPGroupClassFunction)
     return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)::Bool
 end
 
@@ -1394,8 +1394,8 @@ function character_field(chi::GAPGroupClassFunction)
       # In this case, the want to return a field that knows to be cyclotomic
       # (and the embedding is easy).
       F, z = Oscar.AbelianClosure.cyclotomic_field(FF, N)
-      f = x::nf_elem -> QabElem(x, N)
-      finv = function(x::QabElem)
+      f = x::nf_elem -> QQAbElem(x, N)
+      finv = function(x::QQAbElem)
         g = gcd(x.c, N)
         K, = Oscar.AbelianClosure.cyclotomic_field(FF, g)
         x = Hecke.force_coerce_cyclo(K, x.data)
@@ -1414,17 +1414,17 @@ function character_field(chi::GAPGroupClassFunction)
       F, z = NumberField(f, "z"; cached = true, check = false)
       K, zz = Oscar.AbelianClosure.cyclotomic_field(FF, N)
 
-      nfelm = QabElem(gapgens[1]).data
+      nfelm = QQAbElem(gapgens[1]).data
 
       # Compute the expression of powers of `z` as sums of roots of unity (once).
       powers = [coefficients(Hecke.force_coerce_cyclo(K, nfelm^i)) for i in 0:length(v)-2]
       c = transpose(matrix(QQ, powers))
 
       f = function(x::nf_elem)
-        return QabElem(evaluate(R(x), nfelm), N)
+        return QQAbElem(evaluate(R(x), nfelm), N)
       end
 
-      finv = function(x::QabElem)
+      finv = function(x::QQAbElem)
         # Write `x` w.r.t. the N-th cyclotomic field ...
         g = gcd(x.c, N)
         Kg, = Oscar.AbelianClosure.cyclotomic_field(FF, g)

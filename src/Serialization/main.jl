@@ -25,13 +25,6 @@ end
 
 
 const backref_sym = Symbol("#backref")
-function backref(ref::UUID)
-   return Dict(
-     :type=>backref_sym,
-     :version=>1, # ???
-     :id=>string(ref),
-     )
-end
 
 ################################################################################
 # Version info
@@ -60,8 +53,124 @@ const typeMap = Dict{Type, String}([
     Nemo.GaloisField => "Nemo.GaloisField",
     Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
     fmpz => "fmpz",
+    fmpq => "fmpq",
     gfp_elem => "Nemo.gfp_elem",
     gfp_fmpz_elem => "Nemo.gfp_fmpz_elem",
+    fmpq_mpoly => "fmpq_mpoly",
+    fmpz_mpoly => "fmpz_mpoly",
+    fmpq_poly => "fmpq_poly",
+    fmpz_poly => "fmpz_poly",
+    Nemo.NmodRing => "Nemo.NmodRing",
+    Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
+    Polymake.BigObjectAllocated => "Polymake.BigObject",
+    Symbol => "Symbol",
+    FlintRationalField => "FlintRationalField",
+    FmpqPolyRing => "FmpqPolyRing",
+    AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
+    AbstractAlgebra.Generic.MPoly{nf_elem} => "AbstractAlgebra.Generic.MPoly{nf_elem}",
+    nf_elem => "nf_elem",
+    AnticNumberField => "AnticNumberField",
+    nmod => "nmod",
+    AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
+    AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPolyRing{nf_elem} => "AbstractAlgebra.Generic.MPolyRing{nf_elem}",
+    AbstractAlgebra.Generic.Poly{nf_elem} => "AbstractAlgebra.Generic.Poly{nf_elem}",
+    AbstractAlgebra.Generic.PolyRing{nf_elem} => "AbstractAlgebra.Generic.PolyRing{nf_elem}",
+    Vector{AbstractAlgebra.Generic.Poly{nf_elem}} => "Vector{AbstractAlgebra.Generic.Poly{nf_elem}}",
+    NfRelNS{nf_elem} => "NfRelNS{nf_elem}",
+    gfp_poly => "gfp_poly",
+    fq_nmod => "fq_nmod",
+    GFPPolyRing => "GFPPolyRing",
+    FqNmodFiniteField => "FqNmodFiniteField",
+    FqNmodPolyRing => "FqNmodPolyRing",
+    fq_nmod_poly => "fq_nmod_poly",
+    FmpqMPolyRing => "FmpqMPolyRing",
+    Cone{fmpq} => "Cone{fmpq}",
+    Polyhedron{fmpq} => "Polyhedron{fmpq}",
+    PolyhedralComplex{fmpq} => "PolyhedralComplex{fmpq}",
+    UInt64 => "UInt64",
+    UInt8 => "UInt8",
+    UInt16 => "UInt16",
+    UInt32 => "UInt32",
+    UInt64 => "UInt64",
+    UInt128 => "UInt128",
+    Int8 => "Int8",
+    Int16 => "Int16",
+    Int32 => "Int32",
+    Int128 => "Int128",
+    Float16 => "Float16",
+    Float32 => "Float32",
+    Float64 => "Float64",
+    BigInt => "BigInt",
+    String => "String",
+    Vector{AbstractAlgebra.Ring} => "Vector{AbstractAlgebra.Ring}",
+    FlintIntegerRing => "FlintIntegerRing",
+    PolyhedralFan{fmpq} => "PolyhedralFan{fmpq}",
+    SubdivisionOfPoints{fmpq} => "SubdivisionOfPoints{fmpq}",
+    Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
+    Vector{gfp_fmpz_elem} => "Vector{gfp_fmpz_elem}",
+    Vector{gfp_elem} => "Vector{gfp_elem}",
+    Vector{Any} => "Vector{Any}",
+    Vector{Union{LinearProgram, Polyhedron}} => "Vector{Union{LinearProgram, Polyhedron}}",
+    Vector{UInt64} => "Vector{UInt64}",
+    Vector{UInt128} => "Vector{UInt128}",
+    Vector{UInt16} => "Vector{UInt16}",
+    Vector{UInt32} => "Vector{UInt32}",
+    Vector{UInt64} => "Vector{UInt64}",
+    Vector{UInt8} => "Vector{UInt8}",
+    Vector{Int64} => "Vector{Int64}",
+    Vector{Int128} => "Vector{Int128}",
+    Vector{Int16} => "Vector{Int16}",
+    Vector{Int32} => "Vector{Int32}",
+    Vector{Int64} => "Vector{Int64}",
+    Vector{Int8} => "Vector{Int8}",
+    Vector{Float16} => "Vector{Float16}",
+    Vector{Float32} => "Vector{Float32}",
+    Vector{Float64} => "Vector{Float64}",
+    Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
+    LinearProgram{fmpq} => "LinearProgram{fmpq}",
+    NormalToricVariety => "NormalToricVariety",
+    Vector{ToricDivisor} => "Vector{ToricDivisor}",
+    ToricDivisor => "ToricDivisor",
+    FmpzMPolyRing => "FmpzMPolyRing",
+    nmod_poly => "nmod_poly",
+    NmodPolyRing => "NmodPolyRing",
+    nmod_mpoly => "nmod_mpoly",
+    NmodMPolyRing => "NmodMPolyRing",
+    MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
+    NmodMPolyRing => "NmodMPolyRing",
+    AbstractAlgebra.Generic.MPoly{NfAbsNSElem} => "AbstractAlgebra.Generic.MPoly{NfAbsNSElem}",
+    NfAbsNS => "NfAbsNS",
+    Vector{fmpq_poly} => "Vector{fmpq_poly}",
+    AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}}",
+    Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
+    Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
+    AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem} => "AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem}",
+    MPolyIdeal{fmpq_mpoly} => "MPolyIdeal{fmpq_mpoly}",
+    FmpzPolyRing => "FmpzPolyRing",
+    MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}",
+    AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}}",
+    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}}",
+    AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
+    fq_nmod_mpoly => "fq_nmod_mpoly",
+    FqNmodMPolyRing => "FqNmodMPolyRing",
+    MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",
+    FqNmodMPolyRing => "FqNmodMPolyRing",
+    fq_nmod_mpoly => "fq_nmod_mpoly",
+    fq_nmod_mpoly => "fq_nmod_mpoly",
+    AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
+    AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}}",
 ])
 
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
@@ -79,19 +188,17 @@ end
 
 
 function decodeType(input::String)
-    if Symbol(input) == backref_sym
-        return backref_sym
+    if haskey(reverseTypeMap, input)
+        return reverseTypeMap[input]
     else
-        if haskey(reverseTypeMap, input)
-            return reverseTypeMap[input]
-        else
-            # As a default, parse the type from the string.
-            #
-            # WARNING: Never deserialize data from an untrusted source, as this
-            # parsing is insecure and potentially malicious code could be
-            # entered here.
-            eval(Meta.parse(input))
-        end
+        # As a default, parse the type from the string.
+        #
+        # WARNING: Never deserialize data from an untrusted source, as this
+        # parsing is insecure and potentially malicious code could be
+        # entered here. (also computationally expensive)
+        # Standard Oscar tests should never pass this line
+        @warn "Serialization: Generic Decoding of Type: $input"
+        eval(Meta.parse(input))
     end
 end
 
@@ -101,25 +208,33 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if !isprimitivetype(T) && !Base.issingletontype(T)
+    if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
-        ref !== nothing && return backref(ref)
-        # otherwise, 
+        if ref !== nothing
+            return Dict{Symbol, Any}(
+              :type => backref_sym,
+              :id => string(ref),
+              :version => 1, # ???
+              )
+        end
+        # otherwise,
         ref = s.objmap[obj] = uuid4()
     else
-        ref = -1
+        ref = nothing
     end
-    # invoke the actual serializer
-    encodedType = encodeType(T)
-    s.depth += 1
-    result = Dict{Symbol, Any}(
-        :type => encodedType,
-        :id => string(ref),
-        :data => save_internal(s, obj),
-    )
-    s.depth -= 1
+    
+    result = Dict{Symbol, Any}(:type => encodeType(T))
+    if ref !== nothing
+        result[:id] = string(ref)
+    end
+    if !Base.issingletontype(T)
+        s.depth += 1
+        # invoke the actual serializer
+        result[:data] = save_internal(s, obj)
+        s.depth -= 1
+    end
     if s.depth == 0
         result[:_ns] = versionInfo
     end
@@ -127,23 +242,24 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
-    decodedType = decodeType(dict[:type])
-    id = dict[:id]
-    if id != "-1"
-        id = UUID(id)
+    # File version to be dealt with on first breaking change
+    # A file without version number is treated as the "first" version
+    
+    if dict[:type] == string(backref_sym)
+        backref = s.objs[UUID(dict[:id])]
+        backref isa T || throw(ErrorException("Backref of incorrect type encountered: $backref !isa $T"))
+        return backref
     end
-    # TODO: deal with versions? enforce their presence?
-    if decodedType == backref_sym
-        return s.objs[id]
-    end
+
+    encodeType(T) == dict[:type] || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) != $T"))
     result = load_internal(s, T, dict[:data])
-    if id != "-1"
-        s.objs[id] = result
+    if haskey(dict, :id)
+        s.objs[UUID(dict[:id])] = result
     end
     return result
 end
 
-function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=true)
+function load_unknown_type(s::DeserializerState, dict::Dict; check_namespace=false)
     if check_namespace
         haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
         _ns = dict[:_ns]
@@ -154,26 +270,22 @@ function load_type_dispatch(s::DeserializerState, dict::Dict; check_namespace=tr
         haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
     end
 
-    encodedType = dict[:type]
-    T = decodeType(encodedType)
-    if T == backref_sym
+    if dict[:type] == string(backref_sym)
         return s.objs[UUID(dict[:id])]
     end
 
+    T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
 
-    # TODO: offer a generic handler for primitive
-    # types e.g. storing them as byte strings or so
-    #Base.isprimitivetype(T) && return load_primitivetype(T, dict) #
     return load_type_dispatch(s, T, dict)
 end
 
 
 ################################################################################
 # Default generic save_internal, load_internal
-function save_internal(s::SerializerState, obj::T) where T
+function save_internal_generic(s::SerializerState, obj::T) where T
     result = Dict{Symbol, Any}()
-    for (n,t) in zip(fieldnames(T), T.types)
+    for n in fieldnames(T)
         if n != :__attrs
             result[n] = save_type_dispatch(s, getfield(obj, n))
         end
@@ -181,9 +293,9 @@ function save_internal(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
     fields = []
-    for (n,t) in zip(fieldnames(T), T.types)
+    for (n,t) in zip(fieldnames(T), fieldtypes(T))
         if n!= :__attrs
             push!(fields, load_type_dispatch(s, t, dict[n]))
         end
@@ -195,11 +307,11 @@ end
 ################################################################################
 # Interacting with files
 @doc Markdown.doc"""
-    save(obj::T, filename::String) where T
+    save(filename::String, obj::Any)
 
-Save an object `T` to a file.
+Save an object `obj` to a file.
 """
-function save(obj::T, filename::String) where T
+function save(filename::String, obj::Any)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)
@@ -217,10 +329,8 @@ function load(filename::String)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parsefile(filename, dicttype=Dict{Symbol, Any})
-    return load_type_dispatch(state, jsondict)
+    return load_unknown_type(state, jsondict, check_namespace=true)
 end
-
-
 
 
 include("basic_types.jl")
@@ -229,22 +339,5 @@ include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
 include("Fields.jl")
 include("ToricGeometry.jl")
+include("Rings.jl")
 include("polymake.jl")
-
-@deprecate save_cone(Obj::Cone, filename::String) save(Obj, filename)
-@deprecate load_cone(filename::String) load(Obj, filename)
-@deprecate save_simplicialcomplex(Obj::SimplicialComplex, filename::String) save(Obj, filename)
-@deprecate load_simplicialcomplex(filename::String) load(Obj, filename)
-@deprecate save_subdivisionofpoints(Obj::SubdivisionOfPoints, filename::String) save(Obj, filename)
-@deprecate load_subdivisionofpoints(filename::String) load(Obj, filename)
-@deprecate save_polyhedron(Obj::Polyhedron, filename::String) save(Obj, filename)
-@deprecate load_polyhedron(filename::String) load(Obj, filename)
-@deprecate save_polyhedralcomplex(Obj::PolyhedralComplex, filename::String) save(Obj, filename)
-@deprecate load_polyhedralcomplex(filename::String) load(Obj, filename)
-@deprecate save_polyhedralfan(Obj::PolyhedralFan, filename::String) save(Obj, filename)
-@deprecate load_polyhedralfan(filename::String) load(Obj, filename)
-@deprecate save_linearprogram(Obj::LinearProgram, filename::String) save(Obj, filename)
-@deprecate load_linearprogram(filename::String) load(Obj, filename)
-@deprecate save_graph(Obj::Graphs.Graph{Graphs.Directed}, filename::String) save(Obj, filename)
-@deprecate save_graph(Obj::Graphs.Graph{Graphs.Undirected}, filename::String) save(Obj, filename)
-@deprecate load_graph(filename::String) load(Obj, filename)

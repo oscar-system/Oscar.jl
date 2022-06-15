@@ -46,7 +46,7 @@ implemented by `cc1 == cc2`.
 
 ## Properties
 
-To check if a cohomology class `c` is trivial, one can invoke `istrivial(c)`.
+To check if a cohomology class `c` is trivial, one can invoke `is_trivial(c)`.
 
 
 ## Attributes

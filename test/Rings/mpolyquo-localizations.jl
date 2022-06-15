@@ -9,7 +9,7 @@
   Q, p = quo(R, I)
   S = MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
   T = MPolyComplementOfKPointIdeal(R, [QQ(0), QQ(0), QQ(0), QQ(0)])
-  L = Localization(Q, S)
+  L, _ = Localization(Q, S)
   a = L(x)
   b = L(y)
   c = L(u)
@@ -30,7 +30,6 @@
   W = MPolyQuoLocalizedRing(S, J, U)
 
   h = MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
-  reduce_fraction(h(W(f//(f-1)^9)))
   @test preimage(h, ideal(localized_ring(V), [x*(x-1), y*(y-3)])) == ideal(localized_ring(W), [x, y])
   
   ### second round of tests
@@ -67,23 +66,23 @@
   g = rand(S, 0:3, 1:5, 2:8)
   g = rand(T, 0:3, 1:5, 2:8)
   g = rand(U, 0:3, 1:5, 2:8)
-  W = Localization(U)
+  W, _ = Localization(U)
   Localization(W, S)
   @test base_ring(W) == R
   @test inverted_set(W) == U
-  L = quo(W, ideal(W, f))
+  L, _ = quo(W, ideal(W, f))
   @test issubset(modulus(L), saturated_ideal(localized_modulus(L)))
   @test gens(L) == L.(gens(R))
   @test x//(y*(x-1)) in L
 
   I = ideal(L, (x-1)*(y-1))
-  @test one(W) in I
-  @test isunit(L(y-1))
+  @test one(L) in I
+  @test is_unit(L(y-1))
 
   h = x^4+23*x*y^3-15
   Q, _ = quo(R, f)
   T = MPolyPowersOfElement(h^3)
-  W = Localization(Q, T)
+  W, _ = Localization(Q, T)
   @test x//(h+3*f) in W
   @test W(x//(h+3*f)) == W(x//h)
   g = W.([rand(R, 0:5, 0:2, 0:1) for i in 1:10])
@@ -97,7 +96,7 @@
   h = (x+5)*(x^2+10*y)+(y-7)*(y^2-3*x)
   Q, _ = quo(R, h)
   T = MPolyComplementOfKPointIdeal(R, [-5, 7])
-  W = Localization(Q, T)
+  W, _ = Localization(Q, T)
   @test x//(y) in W
   @test x//(y+h) in W
   g = [W(h + (x+5) - 9, y+24*x^3-8)]

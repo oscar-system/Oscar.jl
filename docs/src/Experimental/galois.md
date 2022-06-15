@@ -120,15 +120,8 @@ of degree `3`, the algebraic closure of `Q` in the splitting field is the
 quadratic field returned last. It can be seen to be isomorphic to a cyclotomic field:
 
 ```jldoctest galqt
-julia> isisomorphic(k, cyclotomic_field(3)[1])
-(true, Map with following data
-Domain:
-=======
-Number field over Rational Field with defining polynomial x^2 + 12*x + 24336
-Codomain:
-=========
-Cyclotomic field of order 3)
-
+julia> is_isomorphic(k, cyclotomic_field(3)[1])
+true
 ```
 
 The information returned consists always at least of a group `G` and a `GaloisCtx`: `C`.
@@ -202,7 +195,7 @@ julia> B = Oscar.GaloisGrp.upper_bound(C, s[1] + s[3])
 (x <= 12)
 
 julia> Oscar.GaloisGrp.isinteger(C, B, evaluate(s[1] + s[3], roots(C, 7)))
-(false, 0)
+(false, nothing)
 ```
 More interestingly, we can use this to find the minimal polynomial of `r[1] + r[3]`.
 Generically, the Galois-conjugates of `r[1]+r[3]` should be the `G`-orbit
@@ -277,4 +270,11 @@ minpoly(C::Oscar.GaloisGrp.GaloisCtx, I, extra::Int = 5)
 ```@docs
 Oscar.GaloisGrp.cauchy_ideal(f::PolyElem{<:FieldElem})
 Oscar.GaloisGrp.galois_ideal(C::Oscar.GaloisGrp.GaloisCtx, extra::Int = 5)
+```
+
+Over the integers, if the Galois group is solvable, the roots can be expressed 
+as radicals:
+```@docs
+solve(f::fmpz_poly)
+fixed_field(C::Oscar.GaloisGrp.GaloisCtx, s::Vector{PermGroup})
 ```

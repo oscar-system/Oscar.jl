@@ -138,15 +138,15 @@ map_entries(R::Ring, obj::GapObj) = matrix(R, obj)
 
 ## single GAP cyclotomic to element of cyclotomic field
 function (F::AnticNumberField)(obj::GapInt)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsCyc(obj) || throw(ArgumentError("input is not a GAP cyclotomic"))
     N = get_attribute(F, :cyclo)
     mod(N, GAPWrap.Conductor(obj)) == 0 || throw(ArgumentError("obj does not embed into F"))
     return preimage(iso_oscar_gap(F), obj)
 end
 
-## single GAP cyclotomic to `QabElem`
-function QabElem(a::GapInt)
+## single GAP cyclotomic to `QQAbElem`
+function QQAbElem(a::GapInt)
   c = GAPWrap.Conductor(a)
   E = abelian_closure(QQ)[2](c)
   z = parent(E)(0)
@@ -159,13 +159,13 @@ function QabElem(a::GapInt)
   return z
 end
 
-GAP.gap_to_julia(::Type{QabElem}, a::GapInt) = QabElem(a)
+GAP.gap_to_julia(::Type{QQAbElem}, a::GapInt) = QQAbElem(a)
 
-(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
+(::QQAbField)(a::GAP.GapObj) = GAP.gap_to_julia(QQAbElem, a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AnticNumberField, gapmats::GapObj)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsList(gapmats) || throw(ArgumentError("gapmats is not a GAP list"))
     GAPWrap.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
     GAP.Globals.IsCyclotomicCollCollColl(gapmats) ||
@@ -190,7 +190,7 @@ matrices_over_cyclotomic_field(gapmats::GapObj) = matrices_over_field(gapmats)
 ## single GAP matrix of cyclotomics
 function matrix(F::AnticNumberField, mat::GapObj)
     __ensure_gap_matrix(mat)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsCyclotomicCollColl(mat) || throw(ArgumentError("mat is not a GAP matrix of cyclotomics"))
     m = GAPWrap.NrRows(mat)
     n = GAPWrap.NrCols(mat)

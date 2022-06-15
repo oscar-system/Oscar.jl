@@ -296,9 +296,13 @@ end
 """
     on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
     on_indeterminates(f::Nemo.MPolyElem, p::PermGroupElem)
+    on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
+    on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
 
-Return the image of `f` under `p`, w.r.t. permuting the indeterminates
-with `p`.
+Return the image of `f` under `p`.
+If `p` is a `PermGroupElem` then it acts via permuting the indeterminates,
+if `p` is a `MatrixGroupElem` then it acts via evaluating `f` at the
+vector obtained by multiplying `p` with the (column) vector of indeterminates.
 
 For `Nemo.MPolyElem` objects, one can also call `^` instead of
 `on_indeterminates`.
@@ -324,6 +328,18 @@ GAP: x_1*x_2+x_2*x_3
 julia> on_indeterminates(f, p)
 GAP: x_1*x_3+x_2*x_3
 
+julia> g = general_linear_group(2, 5);  m = g[2]
+[4   1]
+[4   0]
+
+julia> R, x = PolynomialRing(base_ring(g), degree(g));
+
+julia> f = x[1]*x[2] + x[1]
+x1*x2 + x1
+
+julia> f^m
+x1^2 + 4*x1*x2 + 4*x1 + x2
+
 ```
 """
 on_indeterminates(f::GAP.GapObj, p::PermGroupElem) = GAP.Globals.OnIndeterminates(f, p.X)
@@ -343,7 +359,23 @@ function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
   return finish(g)
 end
 
+function on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
+  # We assume that we act on the indeterminates with numbers 1, ..., nrows(p).
+  # (Note that `f` does not know about a polynomial ring to which it belongs.)
+  n = nrows(p)
+  fam = GAP.Globals.CoefficientsFamily(GAP.Globals.FamilyObj(f))
+  indets = GAP.GapObj([GAP.Globals.Indeterminate(fam, i) for i in 1:n])
+  return GAP.Globals.Value(f, indets, p.X * indets)
+end
+
+function on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+  act = Oscar.right_action(parent(f), p)
+  return act(f)
+end
+
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
+
+^(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
 
 
 @doc Markdown.doc"""

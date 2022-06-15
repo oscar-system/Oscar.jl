@@ -104,7 +104,7 @@ in the following way:
 ```@repl oscar
 C = cube(3)
 LP=LinearProgram(C, [1,2,-3], convention=:min)
-save(LP, "lp.poly")
+save("lp.poly", LP)
 LP0 = load("lp.poly")
 solve_lp(LP0)
 solve_lp(LP)

@@ -45,7 +45,7 @@ in the following way:
 ```@repl oscar
 square = cube(2)
 fan = normal_fan(square)
-save(fan, "F.fan")
+save("F.fan", fan)
 f = load("F.fan")
 collect(rays(f))
 ```
@@ -58,11 +58,11 @@ both polymake and Oscar.
 ambient_dim(PF::PolyhedralFan)
 dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
-iscomplete(PF::PolyhedralFan)
-ispointed(PF::PolyhedralFan)
-isregular(PF::PolyhedralFan)
-issimplicial(PF::PolyhedralFan)
-issmooth(PF::PolyhedralFan{fmpq})
+is_complete(PF::PolyhedralFan)
+is_pointed(PF::PolyhedralFan)
+is_regular(PF::PolyhedralFan)
+is_simplicial(PF::PolyhedralFan)
+is_smooth(PF::PolyhedralFan{fmpq})
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
 maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types

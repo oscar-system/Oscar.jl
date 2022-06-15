@@ -84,7 +84,7 @@ end
     e5 = GAP.Globals.E(5)
     @test GAP.Obj(z^2+z+1) == e5^2 + e5 + 1
 
-    # from `QabElem`
+    # from `QQAbElem`
     F, z = abelian_closure(QQ)
     @test GAP.Obj(z(5) + z(5)^4) == e5 + e5^4
 

@@ -2,7 +2,7 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Scheme
-export Spec, OO, defining_ideal
+export Spec, OO, defining_ideal, ambient_ring
 export spec_type, ring_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
@@ -16,10 +16,7 @@ export pullback, domain, codomain, preimage, restrict, graph, identity_map, incl
 
 export strict_modulus
 
-# TODO for Tommy: Find out why the following are necessary
-AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
-AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
-AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{AbstractAlgebra.Generic.Frac{gfp_mpoly}}) = AbstractAlgebra.Generic.Frac{gfp_mpoly}
+export simplify
 
 @Markdown.doc """
     Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} 
@@ -92,6 +89,7 @@ spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = 
 For ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` this returns ``(𝕜[x₁,…,xₙ]/I)[S⁻¹]``.
 """
 OO(X::Spec) = X.OO
+ambient_ring(X::Spec) = base_ring(OO(X))
 
 function name_of(X::Spec) 
   if isdefined(X, :name)
@@ -140,110 +138,59 @@ function empty_spec(kk::BRT) where {BRT<:AbstractAlgebra.Ring}
 end
 
 ### closed subschemes defined by ideals
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function subscheme(X::Spec, I::MPolyLocalizedIdeal)
   localized_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X))))
+  return Spec(quo(localized_ring(OO(X)), I + localized_modulus(OO(X)))[1])
+end
+
+function subscheme(X::Spec, I::MPolyQuoLocalizedIdeal)
+  OO(X) == base_ring(I) || error("ideal does not live in the correct ring")
+  return Spec(quo(localized_ring(OO(X)), ideal(localized_ring(OO(X)), vcat(lift.(gens(I)), gens(localized_modulus(OO(X))))))[1])
 end
 
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   base_ring(OO(X)) == base_ring(I) || error("ideal does not live in the correct ring")
-  return Spec(quo(OO(X), I))
+  return Spec(quo(OO(X), I)[1])
 end
   
 @Markdown.doc """
-    subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+    subscheme(X::Spec, f::RingElem)
 
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
 """
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+function subscheme(X::Spec, f::RingElem)
+  parent(f) == OO(X) || return subscheme(X, OO(X)(f))
+  return subscheme(X, ideal(OO(X), [f]))
+end
+
+function subscheme(X::Spec, f::Vector{<:RingElem})
+  all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
+  return subscheme(X, ideal(OO(X), f))
+end
+
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), [f])
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
-  I = ideal(OO(X), f)
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R(f))
-  return subscheme(X, I)
-end
-
-function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT, BRET, RT, RET, MST}
-  R = base_ring(OO(X))
-  I = ideal(R, R.(f))
-  return subscheme(X, I)
+  return Spec(R, modulus(OO(X)), inverted_set(OO(X))*MPolyPowersOfElement(R, [f]))
 end
 
 ### open subschemes defined by complements of hypersurfaces
 @Markdown.doc """
-    hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    hypersurface_complement(X::Spec, f::RingElem)
 
 For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
 this returns the open subscheme ``U = X ∖ V(f)`` defined by the complement of the vanishing 
 locus of ``f``.
 """
-function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_cache::Bool=false) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+hypersurface_complement(X::Spec, f::RingElem) = hypersurface_complement(X, base_ring(OO(X))(f))
+
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET; keep_cache::Bool=false) where {BRT, BRET, RT, RET<:RingElem, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   iszero(f) && return subscheme(X, [one(R)])
-  f in inverted_set(OO(X)) && return X
+  f in inverted_set(OO(X)) && return Spec(X)
   #f = numerator(reduce(localized_ring(OO(X))(f), groebner_basis(localized_modulus(OO(X)))))
-  W = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
-  if keep_cache
-    IX = localized_modulus(OO(X))
-    DIX = groebner_bases(IX)
-    # we have a look at the possibility to transfer groebner bases that 
-    # have already been computed.
-    if length(DIX)>0
-      if has_attribute(IX, :saturated_ideal)
-        # in case the saturated ideal has already been computed once, 
-        # we assume that this computation is also feasible a second time.
-        # We check whether the new saturation makes any difference and 
-        # transfer the cached data if applicable.
-        Jsat = ideal(R, numerator.(oscar_gens(groebner_basis(IX))))
-        for d in [b for b in denominators(inverted_set(W)) if !(b in inverted_set(OO(X)))]
-          for a in factor(d)
-            Jsat = saturation(Jsat, ideal(R, a[1]))
-          end
-        end
-        J = localized_modulus(W)
-        set_attribute!(J, :saturated_ideal, Jsat)
-        if issubset(Jsat, saturated_ideal(IX))
-          for o in keys(DIX)
-            gb = DIX[o]
-            groebner_bases(J)[o] = LocalizedBiPolyArray(localized_ring(W), singular_gens(gb), shift(gb), o.o, true)
-          end
-        end
-        set_attribute!(W, :localized_modulus, J)
-      end
-    end
-  end
+  W, _ = Localization(OO(X), MPolyPowersOfElement(R, [a[1] for a in factor(f)]))
   return Spec(W)
 end
 
@@ -251,7 +198,7 @@ function hypersurface_complement(
     X::Spec{BRT, BRET, RT, RET, MST}, 
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f))))
+  return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f)))[1])
 end
 
 function hypersurface_complement(
@@ -259,7 +206,7 @@ function hypersurface_complement(
     f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   parent(f) == OO(X) || error("the element does not belong to the correct ring")
-  return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f))))
+  return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f)))[1])
 end
 
 
@@ -271,13 +218,14 @@ function issubset(Y::Spec{BRT, BRET, RT, RET, MST1}, X::EmptyScheme{BRT, BRET}) 
 end
 
 @Markdown.doc """
-    issubset(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    issubset(X::Spec, Y::Spec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
+function issubset(X::Spec, Y::Spec)
+  error("`issubset(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function issubset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -289,7 +237,7 @@ function issubset(
   if !issubset(UY, UX) 
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
-      isunit(OO(X)(a)) || return false
+      is_unit(OO(X)(a)) || return false
     end
   end
   J = localized_ring(OO(X))(modulus(OO(Y)))
@@ -319,13 +267,14 @@ is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y
 Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
-    is_open_embedding(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    is_open_embedding(X::Spec, Y::Spec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
 """
+function is_open_embedding(X::Spec, Y::Spec)
+  error("`is_open_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function is_open_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -340,13 +289,14 @@ function is_open_embedding(
 end
 
 @Markdown.doc """
-    is_closed_embedding(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    is_closed_embedding(X::Spec, Y::Spec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
 """
+function is_closed_embedding(X::Spec, Y::Spec)
+  error("`is_closed_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function is_closed_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -363,6 +313,15 @@ end
 intersect(E::EmptyScheme{BRT, BRET}, X::Scheme{BRT, BRET}) where {BRT, BRET} = E
 intersect(X::Scheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET} = E
 intersect(X::EmptyScheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET} = E
+
+function Base.intersect(
+    X::Spec{BRT, BRET, RT, RET, MST1}, 
+    Y::Spec{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1, MST2}
+  base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
+  R = base_ring(OO(X))
+  return Spec(R, modulus(OO(X)) + modulus(OO(Y)), inverted_set(OO(X))*inverted_set(OO(Y)))
+end
 
 function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
@@ -385,24 +344,25 @@ end
 
 ### compute the closure of X in Y
 @Markdown.doc """
-    closure(
-      X::Spec{BRT, BRET, RT, RET, MST1}, 
-      Y::Spec{BRT, BRET, RT, RET, MST2}
-    ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    closure(X::Spec, Y::Spec)
 
 Returns the closure of ``X`` in ``Y``.
 """
+function closure(X::Spec, Y::Spec)
+  error("`closure(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function closure(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   issubset(X, Y) || error("the first argument is not a subset of the second")
   is_closed_embedding(X, Y) && return X
-  W = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
+  W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
-  lbpa = groebner_basis(I) # takes care of the saturation
+  Isat = saturated_ideal(I)
   R = base_ring(OO(Y))
-  return Spec(MPolyQuoLocalizedRing(R, ideal(R, numerator.(oscar_gens(lbpa))), inverted_set(OO(Y))))
+  return Spec(MPolyQuoLocalizedRing(R, Isat, inverted_set(OO(Y))))
 end
 
 
@@ -465,7 +425,7 @@ function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   return SpecMor(U, V, images(pullback(f)), check=check)
 end
 
-function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
+function compose(f::SpecMor, g::SpecMor)
   codomain(f) == domain(g) || error("Morphisms can not be composed")
   return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
@@ -513,11 +473,15 @@ function inverse(f::SpecMor)
 end
 
 @Markdown.doc """
-    product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+    product(X::Spec, Y::Spec)
     
 Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` and the two projections 
 ``p₁ : X×Y → X`` and ``p₂ : X×Y → Y``.
 """
+function product(X::Spec, Y::Spec)
+  error("`product(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
+end
+
 function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   K = OO(X)
   L = OO(Y) 
@@ -579,11 +543,18 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   return Spec(R)
 end
 
-function dim(X::Spec)
-  if !has_attribute(X, :dimension)
-    set_attribute!(X, :dimension, dim(saturated_ideal(localized_modulus(OO(X)))))
-  end
-  return get_attribute(X, :dimension)::Int64
+@attr function dim(X::Spec)
+  return dim(saturated_ideal(localized_modulus(OO(X))))
+end
+
+function codim(X::Spec)
+  return ngens(base_ring(OO(X)))-dim(X)
 end
 
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
+
+function simplify(X::Spec)
+  L, f, g = simplify(OO(X))
+  Y = Spec(L)
+  return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
+end

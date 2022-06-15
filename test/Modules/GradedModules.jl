@@ -10,7 +10,7 @@
 
   @test length([h(g) for g = basis(F)]) == dim(F)
 
-  @test !Oscar.ishomogeneous(h)
+  @test !Oscar.is_homogeneous(h)
 
   c = homogeneous_components(h)
   @test length(c) == 3

@@ -692,7 +692,7 @@ x1^3 + x2^3 + x3^3
 function to_elementary_symmetric(f)
   S = parent(f)
   n = ngens(S)
-  if n == 1 || isconstant(f)
+  if n == 1 || is_constant(f)
     return f
   end
   T = PolynomialRing(base_ring(S), n-1)[1]
@@ -802,12 +802,12 @@ function invariant(G::PermGroup, H::PermGroup)
 
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
-  if istransitive(G) && !istransitive(H)
+  if is_transitive(G) && !is_transitive(H)
     @vprint :GaloisInvariant 2 "top group transitive, bottom not\n"
     return sum(probable_orbit(H, g[1]))
   end
 
-  if !istransitive(G) 
+  if !is_transitive(G) 
     @vprint :GaloisInvariant 2 "both groups are intransitive\n"
     OG = [sort(collect(x)) for x = orbits(G)]
     OH = [sort(collect(x)) for x = orbits(H)]
@@ -823,7 +823,7 @@ function invariant(G::PermGroup, H::PermGroup)
       hH = image(h, H)[1]
       if order(hG) > order(hH)
         @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
-        @hassert :GaloisInvariant 0 ismaximal(hG, hH)
+        @hassert :GaloisInvariant 0 is_maximal(hG, hH)
         I = invariant(hG, hH)
         return evaluate(I, g[collect(o)])
       end
@@ -853,7 +853,7 @@ function invariant(G::PermGroup, H::PermGroup)
     return I
   end
 
-  if isprimitive(G) && isprimitive(H)
+  if is_primitive(G) && is_primitive(H)
     if isodd(G) && iseven(H)
       @vprint :GaloisInvariant 3 "using sqrt_disc\n"
       return sqrt_disc(g)
@@ -1317,7 +1317,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   end
 
   F = GroupFilter()
-  push!(F, istransitive, "not transitive") #poly is defining number field, hence irreducible
+  push!(F, is_transitive, "not transitive") #poly is defining number field, hence irreducible
 
 
   #selecting maximal block systems only...
@@ -1416,7 +1416,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
   in_br = false
-  if issquare(discriminant(K))
+  if is_square(discriminant(K))
     G = intersect(G, alternating_group(degree(K)))[1]
     in_br = true
   else
@@ -1467,40 +1467,40 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 
 
     in_ar = false
-    if issquare(discriminant(fld[b][1]))
+    if is_square(discriminant(fld[b][1]))
       in_ar = true
     end
     #in_ar == true iff galois <= ar
     #in_br == true iff galois <= br
-    in_cr = issquare(discriminant(K)*discriminant(fld[b][1]))
+    in_cr = is_square(discriminant(K)*discriminant(fld[b][1]))
 
     if can_use_wr
       if in_ar 
         G = intersect(G, ar)[1]
       else
         let ar = ar 
-          push!(F, x->!issubgroup(ar, x)[1], "subfield is even/odd")
+          push!(F, x->!is_subgroup(ar, x)[1], "subfield is even/odd")
         end
       end
     end
     if in_br
       #G = intersect(G, br)[1] #already done above
     else
-      #push!(F, x->!issubgroup(br, x)[1]) #already done above
+      #push!(F, x->!is_subgroup(br, x)[1]) #already done above
     end
     if can_use_wr
       if in_cr
         G = intersect(G, cr)[1]
       else
         let cr = cr
-          push!(F, x->!issubgroup(cr, x)[1], "third subgroup of wreath product")
+          push!(F, x->!is_subgroup(cr, x)[1], "third subgroup of wreath product")
         end
       end
     end
   end
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
-    push!(F, isprimitive, "primitivity")
+    push!(F, is_primitive, "primitivity")
     pc = parent(c[1])
     k, mk = ResidueField(pc)
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
@@ -1758,7 +1758,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   #       or the RootCtx needs to learn to deal with bad primes
  
   while true
-    GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
+    GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
     r = roots(GC, 5)
     if length(r) < degree(K) 
       @vprint :GaloisGroup 1 "in recursion: bad prime detected\n"
@@ -1769,7 +1769,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
     if an_sn_by_shape(ct, degree(K))
       @vprint :GaloisGroup 1 "An/Sn by cycle type\n"
-      if issquare(discriminant(K))
+      if is_square(discriminant(K))
         G = alternating_group(degree(K))
       else
         G = symmetric_group(degree(K))
@@ -1860,7 +1860,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       local lt
       if index(G, s) < 100
         @vtime :GaloisGroup 2 lt = right_transversal(G, s)
-      elseif isnormal(G, s)
+      elseif is_normal(G, s)
         lt = [one(G)] # I don't know how to get the identity
       else
         @vtime :GaloisGroup 2 lt = short_right_transversal(G, s, si)
@@ -1941,10 +1941,10 @@ function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{fmpz}, e)
     if abs(lz) < value(B)
       return true, lz
     else
-      return false, lz
+      return false, nothing
     end
   else
-    return false, fmpz(0)
+    return false, nothing
   end
 end
 
@@ -1981,6 +1981,7 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
   Zx = Hecke.Globals.Zx
   ts = gen(Zx)
+  cnt = 0
   while true
     rt = map(ts, r)
     conj = [evaluate(I^t, rt) for t = T]
@@ -1988,6 +1989,8 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
       return ts
     end
     while true
+      cnt += 1
+      cnt > 20 && error("no Tschirni found")
       ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
@@ -2086,7 +2089,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
 
   k = extension_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
   @assert all(x->isone(denominator(x)), coefficients(k.pol))
-  @assert ismonic(k.pol)
+  @assert is_monic(k.pol)
   return k
 end
 
@@ -2105,7 +2108,7 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   res = []
   for U = s
     phi = right_coset_action(G, U)
-    if isisomorphic(Q, image(phi)[1])[1]
+    if is_isomorphic(Q, image(phi)[1])[1]
       push!(res, fixed_field(C, U))
     end
   end
@@ -2131,7 +2134,7 @@ julia> galois_quotient(C, 6)
 julia> galois_group(ans[1])
 (Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
-julia> isisomorphic(ans[1], G)
+julia> is_isomorphic(ans[1], G)
 true
 ```
 """
@@ -2347,7 +2350,7 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
   GG, _ = sub(S, map(S, gs))
 
   h = hom(G, GG, gens(G), gens(GG))
-  @assert isinjective(h) && issurjective(h)
+  @assert is_injective(h) && is_surjective(h)
   return GG, C
 end
 
@@ -2369,7 +2372,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"
-    G, C = galois_group(number_field(lf[1][1], cached = false)[1])
+    G, C = galois_group(extension_field(lf[1][1], cached = false)[1])
     return blow_up(G, C, lf)
   end
 
@@ -2380,7 +2383,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
   g = prod(lg)
   p, ct = find_prime(g, pStart = pStart, prime = prime)
 
-  C = [galois_group(number_field(x, cached = false)[1], prime = p)[2] for x = lg]
+  C = [galois_group(extension_field(x, cached = false)[1], prime = p)[2] for x = lg]
   G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
 
   CC = GaloisCtx(g, p)

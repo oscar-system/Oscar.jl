@@ -1,6 +1,9 @@
 using Oscar
 using Test
 
+import Oscar.Nemo.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 # Used in both Rings/slpolys-test.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
 include("printing.jl")
@@ -29,6 +32,7 @@ include("Experimental/MatrixGroups-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")
+include("Modules/module-localizations.jl")
 
 include("InvariantTheory/runtests.jl")
 
@@ -38,6 +42,7 @@ include("Schemes/AffineSchemes.jl")
 include("Schemes/SpecOpen.jl")
 include("Schemes/Glueing.jl")
 include("Schemes/ProjectiveSchemes.jl")
+include("Schemes/CoveredScheme.jl")
 
 include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")

@@ -25,7 +25,8 @@ from other objects in Oscar.
 ### Intersecting halfspaces: $H$-representation
 
 ```@docs
-Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
+Polyhedron{T}(A::AnyVecOrMat, b::AbstractVector) where T<:scalar_types
+Polyhedron{T}(I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing) where T<:scalar_types
 ```
 
 The complete $H$-representation can be retrieved using [`facets`](@ref facets)

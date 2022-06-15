@@ -20,4 +20,5 @@ FPGroup
 FPGroupElem
 free_group(n::Int)
 relators(G::FPGroup)
+map_word
 ```

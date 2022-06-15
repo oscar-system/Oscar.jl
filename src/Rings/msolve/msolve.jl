@@ -148,7 +148,7 @@ function msolve(
     jl_cf       = reinterpret(Ptr{BigInt}, res_cf[])
     jl_sols_num = reinterpret(Ptr{BigInt}, sols_num[])
     jl_sols_den = reinterpret(Ptr{Int32}, sols_den[])
-    # elseif isprime(field_char)
+    # elseif is_prime(field_char)
     #     jl_cf       = reinterpret(Ptr{Int32}, res_cf[])
     #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num[])
     # end

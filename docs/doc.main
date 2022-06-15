@@ -123,6 +123,7 @@
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
      "CommutativeAlgebra/localizations.md",
+     "CommutativeAlgebra/module_localizations.md",
   ],
 
   "Noncommutative Algebra" => [
@@ -186,6 +187,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/serialization.md",
     "Polyhedral Geometry" => [
+        "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
   ],

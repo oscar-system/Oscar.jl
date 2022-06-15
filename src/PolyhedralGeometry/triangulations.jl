@@ -1,6 +1,6 @@
 using TOPCOM_jll
 
-function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function topcom_regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
     in = Pipe()
@@ -37,7 +37,7 @@ function topcom_regular_triangulations(pts::Union{SubObjectIterator{<:PointVecto
     return result
 end
 
-function topcom_regular_triangulation(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function topcom_regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
     in = Pipe()
@@ -109,7 +109,7 @@ function _is_star_triangulation(triang::Vector{Vector{Int}})
 end
 
 @doc Markdown.doc"""
-    all_triangulations(pts::AnyVecOrMat; full=false)
+    all_triangulations(pts::AbstractCollection[PointVector]; full=false)
 
 Compute all triangulations on the points given as the rows of `pts`. Optionally
 select `full=true` to output full triangulations only, i.e. those that use all
@@ -139,7 +139,7 @@ julia> all_triangulations(V)
  [[1, 2, 4], [1, 3, 4]]
 ```
 """
-function all_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function all_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
@@ -173,14 +173,14 @@ julia> all_triangulations(c)
 ```
 """
 function all_triangulations(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return all_triangulations(vertices(P); full=false)
 end
 
 
 @doc Markdown.doc"""
-    star_triangulations(pts::AnyVecOrMat; full::Bool=false, regular::Bool=false)
+    star_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false, regular::Bool=false)
 
 Return all star triangulations of the given point configuration, i.e. all
 simplices are required to contain the first point. Optionally only select the
@@ -192,7 +192,7 @@ a simplex as the set of indices of the vertices of the simplex. I.e. the
 `Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
 the first, second, and fourth input point.
 """
-function star_triangulations(pts::AnyVecOrMat; full::Bool=false, regular::Bool=false)
+function star_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false, regular::Bool=false)
     if regular
         result = regular_triangulations(pts; full=full)
     else
@@ -244,8 +244,8 @@ julia> star_triangulations(P)
 ```
 """
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     zero = [0 for i in 1:ambient_dim(P)]
     contains(P, zero) || throw(ArgumentError("Input polyhedron must contain origin."))
     V = vertices(P)
@@ -258,7 +258,7 @@ end
 
 
 @doc Markdown.doc"""
-    regular_triangulations(pts::AnyVecOrMat; full=false)
+    regular_triangulations(pts::AbstractCollection[PointVector]; full=false)
 
 Compute all regular triangulations on the points given as the rows of `pts`.
 
@@ -292,7 +292,7 @@ julia> regular_triangulations(V)
  [[1, 3, 4], [1, 2, 4]]
 ```
 """
-function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
@@ -329,8 +329,8 @@ julia> regular_triangulations(c)
 ```
 """
 function regular_triangulations(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return regular_triangulations(vertices(P); full=false)
 end
 
@@ -339,7 +339,7 @@ end
 
 
 @doc Markdown.doc"""
-    regular_triangulation(pts::AnyVecOrMat; full=false)
+    regular_triangulation(pts::AbstractCollection[PointVector]; full=false)
 
 Computes ONE regular triangulations on the points given as the rows of `pts`.
 
@@ -374,7 +374,7 @@ julia> regular_triangulation(V)
  [[1, 2, 3], [2, 3, 4]]
 ```
 """
-function regular_triangulation(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem}; full::Bool=false)
+function regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=false)
     input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     PC.FULL_DIM::Bool || error("Input points must have full rank.")
@@ -412,8 +412,8 @@ julia> regular_triangulation(c)
 ```
 """
 function regular_triangulation(P::Polyhedron)
-    isfulldimensional(P) || error("Input polytope must be full-dimensional.")
-    isbounded(P) || error("Input polytope must be bounded.")
+    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+    is_bounded(P) || error("Input polytope must be bounded.")
     return regular_triangulation(vertices(P); full=false)
 end
 
@@ -442,7 +442,7 @@ function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
 end
 
 @doc Markdown.doc"""
-    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Vector{Int64}}})
+    isregular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
@@ -454,13 +454,13 @@ A polyhedron in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 
-julia> isregular(vertices(c),cells)
+julia> is_regular(vertices(c),cells)
 true
 ```
 """
-function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},cells::Vector{Vector{Int64}})
+function isregular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
     as_sop = SubdivisionOfPoints(pts,cells)
-    isregular(as_sop)
+    is_regular(as_sop)
 end
 
 

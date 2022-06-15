@@ -35,7 +35,7 @@ A polyhedral complex in ambient dimension 2
 function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
     pm_PC1 = pm_object(PC1)
     pm_PC2 = pm_object(PC2)
-    result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_PC1,pm_PC2))
+    result = Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(Polymake.fan.common_refinement(pm_PC1,pm_PC2))
     return PolyhedralComplex{T}(result)
 end
 

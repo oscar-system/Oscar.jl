@@ -68,7 +68,7 @@ mutable struct FmpzComplementOfPrimeIdeal <: AbsMultSet{FlintIntegerRing, fmpz}
   p::fmpz
 
   function FmpzComplementOfPrimeIdeal(p::fmpz)
-    isprime(p) || error("$(p) is not prime")
+    is_prime(p) || error("$(p) is not prime")
     return new(p)
   end
 end
@@ -143,9 +143,20 @@ base_ring(W::FmpzLocalizedRing) = ZZ::FlintIntegerRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function
-Localization(S::FmpzComplementOfPrimeIdeal) = FmpzLocalizedRing(S)
-Localization(S::FmpzComplementOfZeroIdeal) = FmpzLocalizedRing(S)
-Localization(S::FmpzPowersOfElement) = FmpzLocalizedRing(S)
+function Localization(S::FmpzComplementOfPrimeIdeal) 
+  L = FmpzLocalizedRing(S)
+  return L, MapFromFunc(x->L(x), base_ring(L), L)
+end
+
+function Localization(S::FmpzComplementOfZeroIdeal)
+  L = FmpzLocalizedRing(S)
+  return L, MapFromFunc(x->L(x), base_ring(L), L)
+end
+
+function Localization(S::FmpzPowersOfElement)
+  L = FmpzLocalizedRing(S)
+  return L, MapFromFunc(x->L(x), base_ring(L), L)
+end
 
 
 #######################################################################
@@ -231,7 +242,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(33 in S)
   @test 5*5*7 in S
   @test ambient_ring(S) == ZZ
-  W = Localization(S)
+  W, _ = Localization(S)
   @test base_ring(W) == ambient_ring(S)
   @test inverted_set(W) == S
   a = W(3)
@@ -248,7 +259,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == ZZ
-  W = Localization(U)
+  W, _ = Localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
@@ -263,7 +274,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test 234890 in O
   @test !(0 in O)
   @test ambient_ring(O) == ZZ
-  W = Localization(O)
+  W, _ = Localization(O)
   @test base_ring(W) == ambient_ring(O)
   @test inverted_set(W) == O
   a = W(4, 17)

@@ -23,7 +23,7 @@ GAP.julia_to_gap(obj::fmpq_mat) = GAP.julia_to_gap(Matrix(obj), recursive = true
 ## element of cyclotomic field to GAP cyclotomic
 function GAP.julia_to_gap(obj::nf_elem)
     F = parent(obj)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("the element does not lie in a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("the element does not lie in a cyclotomic field"))
     N = get_attribute(F, :cyclo)
     v = zeros(fmpq, N)
     coeffs = coefficients(obj)
@@ -31,8 +31,8 @@ function GAP.julia_to_gap(obj::nf_elem)
     return GAPWrap.CycList(GAP.julia_to_gap(v, recursive = true))
 end
 
-## `QabElem` to GAP cyclotomic
-function GAP.julia_to_gap(elm::QabElem)
+## `QQAbElem` to GAP cyclotomic
+function GAP.julia_to_gap(elm::QQAbElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
     return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
 end
@@ -40,7 +40,7 @@ end
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics
 function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
     F = base_ring(obj)
-    Nemo.iscyclo_type(F) || throw(ArgumentError("the matrix entries do not lie in a cyclotomic field"))
+    Nemo.is_cyclo_type(F) || throw(ArgumentError("the matrix entries do not lie in a cyclotomic field"))
     mat = [GAP.julia_to_gap(obj[i,j]) for i in 1:nrows(obj), j in 1:ncols(obj)]
     return GAP.julia_to_gap(mat)
 end
