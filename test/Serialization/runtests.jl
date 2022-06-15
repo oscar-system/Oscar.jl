@@ -5,6 +5,6 @@ include("PolyhedralGeometry.jl")
 include("Vectors.jl")
 include("loading.jl")
 include("ToricGeometry.jl")
-include("Poly.jl")
+include("Polynomials.jl")
 
 include("polymake/runtests.jl")
