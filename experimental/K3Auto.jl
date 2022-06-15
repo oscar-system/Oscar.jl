@@ -787,7 +787,7 @@ function preprocessingK3Auto(S, n)
   V = ambient_space(L)
   # find a hyperbolic plane
   G = gram_matrix(L)
-  g,u = oscar.lll_gram_indefgoon(change_base_ring(ZZ,G))
+  g,u = oscar.lll_gram_indefinite(change_base_ring(ZZ,G))
   B = transpose(u)*basis_matrix(L)
   B = vcat(B[1,:],B[end,:]-B[1,:])
   U = lattice(V, B)
