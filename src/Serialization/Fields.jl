@@ -192,3 +192,12 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
 
     return R(num) // R(den)
 end
+
+################################################################################
+# Field Embeddings
+function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
+    return Dict(
+        :num_field => number_field(E),
+
+    )
+end
