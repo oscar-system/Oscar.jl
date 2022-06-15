@@ -592,6 +592,7 @@ function singular_assure(F::ModuleGens)
       return 
     end
     F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
+    F.S.isGB = F.isGB
     return
   end
   #F[Val(:S), 1]
@@ -3878,9 +3879,71 @@ function free_resolution(F::FreeMod)
 end
 
 @doc Markdown.doc"""
+    free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, method::String="complete",
+        algorithm::String="fres")
+
+Return a free resolution of `M`.
+
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+`algorithm` can be `sres` and `fres`.
+
+# Examples
+"""
+function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::String="fres")
+
+    typeof(coefficient_ring(base_ring(M))) <: AbstractAlgebra.Field ||
+        error("Must be defined over a field.")
+
+    cc_complete = false
+
+    #= Start with presentation =#
+    pm = presentation(M)
+    maps = [map(pm, j) for j in range(pm)]
+
+    br = base_ring(M)
+    kernel_entry          = image(pm.maps[1])[1]
+    singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+    singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                                [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+
+    singular_kernel_entry.isGB = true
+
+    #= This is the single computational hard part of this function =#
+    if algorithm == "fres"
+        res = Singular.fres(singular_kernel_entry, length, "complete")
+    elseif algorithm == "sres"
+        res = Singular.fres(singular_kernel_entry, length)
+    elseif algorithm == "lres"
+        error("LaScala's method is not yet available in Oscar.")
+    end
+
+    #= Add maps from free resolution computation, start with second entry
+     = due to inclusion of presentation(M) at the beginning. =#
+    dom = domain(pm.maps[1])
+    j   = 2
+    while j <= Singular.length(res)
+        codom = dom
+        dom   = free_module(br, Singular.ngens(res[j]))
+        SM    = SubModuleOfFreeModule(codom, res[j])
+        generator_matrix(SM)
+        insert!(maps, 1, hom(dom, codom, SM.matrix))
+        j += 1
+    end
+    # Finalize maps.
+    Z = FreeMod(base_ring(M), 0)
+    set_attribute!(Z, :name => "Zero")
+    insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
+
+     return Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+end
+
+
+@doc Markdown.doc"""
     free_resolution(M::SubQuo, limit::Int = -1)
 
-Return a free resolution of `M`. 
+Return a free resolution of `M`.
 
 If `limit != -1`, the free resolution
 is only computed up to the `limit`-th free module.
