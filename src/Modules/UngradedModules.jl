@@ -3878,6 +3878,13 @@ function free_resolution(F::FreeMod)
   return res
 end
 
+#= Fill functions for Hecke ChainComplexes in terms of free resolutions =#
+function all_others_are_zero(cc::Hecke.ChainComplex, i::Int)
+  Z = FreeMod(base_ring(cc[1]), 0)
+  set_attribute!(Z, :name => "Zero")
+  return hom(Z, Z, FreeModElem[])
+end
+
 @doc Markdown.doc"""
     free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
         length::Int=0, method::String="complete", algorithm::String="fres")
@@ -3911,15 +3918,15 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
 
     #= This is the single computational hard part of this function =#
     if algorithm == "fres"
-        res = Singular.fres(singular_kernel_entry, length, "complete")
+      res = Singular.fres(singular_kernel_entry, length, "complete")
     elseif algorithm == "sres"
-        res = Singular.fres(singular_kernel_entry, length)
+      res = Singular.fres(singular_kernel_entry, length)
     elseif algorithm == "lres"
-        error("LaScala's method is not yet available in Oscar.")
+      error("LaScala's method is not yet available in Oscar.")
     end
 
     if Singular.length(res) > length
-        cc_complete = true
+      cc_complete = true
     end
 
     #= Add maps from free resolution computation, start with second entry
@@ -3927,12 +3934,12 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     dom = domain(pm.maps[1])
     j   = 2
     while j <= Singular.length(res)
-        codom = dom
-        dom   = free_module(br, Singular.ngens(res[j]))
-        SM    = SubModuleOfFreeModule(codom, res[j])
-        generator_matrix(SM)
-        insert!(maps, 1, hom(dom, codom, SM.matrix))
-        j += 1
+      codom = dom
+      dom   = free_module(br, Singular.ngens(res[j]))
+      SM    = SubModuleOfFreeModule(codom, res[j])
+      generator_matrix(SM)
+      insert!(maps, 1, hom(dom, codom, SM.matrix))
+      j += 1
     end
     # Finalize maps.
     Z = FreeMod(base_ring(M), 0)
@@ -3940,7 +3947,15 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
 
     cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+    if cc_complete == true
+      cc.fill = all_others_are_zero
+    else
+
+    end
+      
     cc.complete = cc_complete
+
+    #= set_attribute!(cc, :show=>Hecke.free_show) =#
 
     return cc
 end
