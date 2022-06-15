@@ -319,7 +319,6 @@ include("Groups/directproducts.jl")
 include("Groups/matrices/matrices.jl")
 include("Groups/matrices/FiniteFormOrthogonalGroup.jl")
 include("Groups/libraries/libraries.jl")
-include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
 include("Groups/abelian_aut.jl")
@@ -366,6 +365,7 @@ include("GAP/iso_gap_oscar.jl")
 include("GAP/iso_oscar_gap.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
+include("Groups/action.jl")  # needs some PolynomialRings functionality
 
 include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")

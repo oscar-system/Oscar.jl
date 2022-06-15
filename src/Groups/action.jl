@@ -296,16 +296,18 @@ end
 """
     on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
     on_indeterminates(f::Nemo.MPolyElem, p::PermGroupElem)
+    on_indeterminates(f::MPolyIdeal, p::PermGroupElem)
     on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
     on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+    on_indeterminates(f::MPolyIdeal, p::MatrixGroupElem)
 
 Return the image of `f` under `p`.
 If `p` is a `PermGroupElem` then it acts via permuting the indeterminates,
 if `p` is a `MatrixGroupElem` then it acts via evaluating `f` at the
 vector obtained by multiplying `p` with the (column) vector of indeterminates.
 
-For `Nemo.MPolyElem` objects, one can also call `^` instead of
-`on_indeterminates`.
+For `Nemo.MPolyElem` and `MPolyIdeal` objects,
+one can also call `^` instead of `on_indeterminates`.
 
 # Examples
 ```jldoctest
@@ -369,13 +371,32 @@ function on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
 end
 
 function on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+  @assert base_ring(f) == base_ring(p)
+  @assert ngens(parent(f)) == degree(parent(p))
   act = Oscar.right_action(parent(f), p)
   return act(f)
+end
+
+function on_indeterminates(I::MPolyIdeal, p::PermGroupElem)
+  @assert ngens(parent(gen(I, 1))) == degree(parent(p))
+  imggens = [on_indeterminates(x, p) for x in gens(I)]
+  return ideal(parent(imggens[1]), imggens)
+end
+
+function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
+  @assert base_ring(gen(I, 1)) == base_ring(p)
+  @assert ngens(parent(gen(I, 1))) == degree(parent(p))
+  imggens = [on_indeterminates(x, p) for x in gens(I)]
+  return ideal(parent(imggens[1]), imggens)
 end
 
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
 
 ^(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
+
+^(I::MPolyIdeal, p::PermGroupElem) = on_indeterminates(I, p)
+
+^(I::MPolyIdeal, p::MatrixGroupElem) = on_indeterminates(I, p)
 
 
 @doc Markdown.doc"""
