@@ -519,5 +519,5 @@ dehomogenization(F::MPolyElem_dec, pos::Int)
 ## Generating Special Ideals
 
 ```@docs
-katsura(n::Int64)
+katsura(R::Ring, n::Int)
 ```
