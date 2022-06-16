@@ -343,6 +343,8 @@ include("Rings/FractionalIdeal.jl")
 
 include("Rings/mpoly-affine-algebras.jl")
 
+include("Rings/special_ideals.jl")
+
 include("Rings/MPolyMap/MPolyAnyMap.jl")
 include("Rings/MPolyMap/MPolyRing.jl")
 include("Rings/MPolyMap/MPolyQuo.jl")
