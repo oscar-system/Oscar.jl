@@ -104,21 +104,39 @@ for (T, str) in (
     MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
     NfRelNS{nf_elem} => "NfRelNS{nf_elem}",
     Polymake.BigObjectAllocated => "Polymake.BigObject",
+    Vector{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "Vector{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    Vector{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "Vector{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
+    Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
+    Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
+    Vector{AbstractAlgebra.Generic.MPoly{nf_elem}} => "Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}",
     Vector{AbstractAlgebra.Generic.Poly{nf_elem}} => "Vector{AbstractAlgebra.Generic.Poly{nf_elem}}",
     Vector{AbstractAlgebra.Ring} => "Vector{AbstractAlgebra.Ring}",
     Vector{Any} => "Vector{Any}",
     Vector{Float16} => "Vector{Float16}",
     Vector{Float32} => "Vector{Float32}",
     Vector{Float64} => "Vector{Float64}",
+    Vector{fmpq_mpoly} => "Vector{fmpq_mpoly}",
     Vector{fmpq_poly} => "Vector{fmpq_poly}",
+    Vector{fmpq} => "Vector{fmpq}",
+    Vector{fmpz_mpoly} => "Vector{fmpz_mpoly}",
+    Vector{fmpz_poly} => "Vector{fmpz_poly}",
+    Vector{fmpz} => "Vector{fmpz}",
+    Vector{fq_nmod_mpoly} => "Vector{fq_nmod_mpoly}",
+    Vector{fq_nmod} => "Vector{fq_nmod}",
     Vector{gfp_elem} => "Vector{gfp_elem}",
     Vector{gfp_fmpz_elem} => "Vector{gfp_fmpz_elem}",
+    Vector{Hecke.NfRelElem{nf_elem}} => "Vector{Hecke.NfRelElem{nf_elem}}",
+    Vector{Hecke.NfRelNSElem{nf_elem}} => "Vector{Hecke.NfRelNSElem{nf_elem}}",
     Vector{Int8} => "Vector{Int8}",
     Vector{Int16} => "Vector{Int16}",
     Vector{Int32} => "Vector{Int32}",
     Vector{Int64} => "Vector{Int64}",
     Vector{Int128} => "Vector{Int128}",
     Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
+    Vector{nf_elem} => "Vector{nf_elem}",
+    Vector{nmod_mpoly} => "Vector{nmod_mpoly}",
+    Vector{nmod} => "Vector{nmod}",
+    Vector{Symbol} => "Vector{Symbol}",
     Vector{ToricDivisor} => "Vector{ToricDivisor}",
     Vector{UInt8} => "Vector{UInt8}",
     Vector{UInt16} => "Vector{UInt16}",
@@ -137,6 +155,7 @@ function encodeType(::Type{T}) where T
         return typeMap[T]
     else
         # As a default just save the type as a string.
+        @warn "Serialization: Generic Encoding of type $T"
         string(T)
     end
 end
@@ -153,7 +172,7 @@ function decodeType(input::String)
         # parsing is insecure and potentially malicious code could be
         # entered here. (also computationally expensive)
         # Standard Oscar tests should never pass this line
-        @warn "Serialization: Generic Decoding of Type: $input"
+        @warn "Serialization: Generic Decoding of type $input"
         eval(Meta.parse(input))
     end
 end
@@ -207,7 +226,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
         return backref
     end
 
-    encodeType(T) == dict[:type] || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) != $T"))
+    decodeType(dict[:type]) <: T || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T"))
 
     Base.issingletontype(T) && return T()
 
@@ -348,7 +367,7 @@ julia> load("fourtitwo.json")
 42
 
 julia> load("fourtitwo.json", String)
-ERROR: Type in file doesn't match target type: Base.Int != String
+ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
 ```
 """
 function load(io::IO, T::Type)
