@@ -26,32 +26,32 @@ julia> katsura(3)
 ideal(x1 + 2*x2 + 2*x3 + 2*x4 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2 + 2*x4^2, 2*x1*x2 + 2*x2*x3 - x2 + 2*x3*x4, 2*x1*x3 + x2^2 + 2*x2*x4 - x3)
 ```
 """
-function katsura(n::Int64)
-    R, x = PolynomialRing(ZZ, n + 1)
-    polys = Vector{fmpz_mpoly}()
-    coeffs_vec = 2 * ones(fmpz, n + 1)
-    coeffs_vec[1] = 1
+function katsura(R::Ring, n::Int64)
+    PR, x = PolynomialRing(R, n + 1)
+    polys = Vector{elem_type(PR)}()
+    coeffs_vec = 2 * ones(elem_type(R), n + 1)
+    coeffs_vec[1] = R(1)
     mono_exps = Matrix{Int64}(identity_matrix(ZZ, n + 1))
-    linear_poly = R(coeffs_vec, [mono_exps[:, i] for i in 1:ncols(mono_exps)])
-    linear_poly -= 1
+    linear_poly = PR(coeffs_vec, [mono_exps[:, i] for i in 1:ncols(mono_exps)])
+    linear_poly -= R(1)
     push!(polys, linear_poly)
     
     for m in 0:n - 1
-        polynomial = MPolyBuildCtx(R)
+        polynomial = MPolyBuildCtx(PR)
         for l in -n:n
             if abs(l) > n || abs(m - l) > n 
                 continue
             end
             e = _get_katsura_exponent(n, m, l)
-            push_term!(polynomial, ZZ(1), e)
+            push_term!(polynomial, R(1), e)
         end
 
         e = zeros(Int64, n + 1)
         e[abs(m) + 1] = 1
-        push_term!(polynomial, ZZ(-1), e)
+        push_term!(polynomial, R(-1), e)
         poly = finish(polynomial)
         push!(polys, poly)
     end
 
-    return ideal(R, polys)
+    return ideal(PR, polys)
 end
