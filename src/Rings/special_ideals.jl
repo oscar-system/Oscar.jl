@@ -1,7 +1,7 @@
 export katsura
 
-function _get_katsura_exponent(n::Int64, m::Int64, l::Int64)
-    e = zeros(Int64, n + 1)
+function _get_katsura_exponent(n::Int, m::Int, l::Int)
+    e = zeros(Int, n + 1)
     if abs(l) == abs(m - l)
         e[abs(l) + 1] = 2
     else
@@ -31,7 +31,7 @@ function katsura(R::Ring, n::Int)
     polys = Vector{elem_type(PR)}()
     coeffs_vec = 2 * ones(elem_type(R), n + 1)
     coeffs_vec[1] = R(1)
-    mono_exps = Matrix{Int64}(identity_matrix(ZZ, n + 1))
+    mono_exps = Matrix{Int}(identity_matrix(ZZ, n + 1))
     linear_poly = PR(coeffs_vec, [mono_exps[:, i] for i in 1:ncols(mono_exps)])
     linear_poly -= R(1)
     push!(polys, linear_poly)
@@ -46,7 +46,7 @@ function katsura(R::Ring, n::Int)
             push_term!(polynomial, R(1), e)
         end
 
-        e = zeros(Int64, n + 1)
+        e = zeros(Int, n + 1)
         e[abs(m) + 1] = 1
         push_term!(polynomial, R(-1), e)
         poly = finish(polynomial)
