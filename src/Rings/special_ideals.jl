@@ -34,7 +34,7 @@ end
 @doc Markdown.doc"""
     katsura(R::MPolyRing)
 
-Returns the Katsura in the given Polynomial Ring R.
+Returns the Katsura ideal in the given Polynomial Ring R.
 
 julia> R, _ = QQ["x", "y", "z"]
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
