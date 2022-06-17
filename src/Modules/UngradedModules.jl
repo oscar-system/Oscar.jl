@@ -1440,7 +1440,8 @@ function show_subquo(SQ::SubQuo)
 
   if isdefined(SQ, :quo)
     if is_generated_by_standard_unit_vectors(SQ.sub)
-      println("Cokernel of ", generator_matrix(SQ.quo))
+      println("Cokernel of")
+      display(generator_matrix(SQ.quo))
     else
       println("Subquotient with of image of")
       display(generator_matrix(SQ.sub))
@@ -1448,7 +1449,8 @@ function show_subquo(SQ::SubQuo)
       display(generator_matrix(SQ.quo))
     end
   else
-    println("Image of ", generator_matrix(SQ.sub))
+    println("Image of")
+    display(generator_matrix(SQ.sub))
   end
 end
 
@@ -3839,8 +3841,9 @@ Return the image of `a` as an object of type `SubQuo`.
 Additionally, if `I` denotes this image, return the inclusion map `I` $\rightarrow$ `codomain(a)`.
 """
 function image(h::SubQuoHom)
-  s = sub(codomain(h), h.im, :module)
-  return s, hom(s, codomain(h), h.im)
+  h_image_vector::Vector{elem_type(codomain(h))} = h.im
+  s = sub(codomain(h), h_image_vector, :module)
+  return s, hom(s, codomain(h), h_image_vector)
 end
 
 @doc Markdown.doc"""
@@ -3965,63 +3968,50 @@ Return a subquotient $S$ such that $\text{Hom}(M,N) \cong S$ along with a functi
 that converts elements from $S$ into morphisms $M \to N$.
 If `alg` is `:matrices` a different implementation that is using matrices instead of maps is used.
 """
-function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)  
-  d1 = 0
-  d2 = 1
+function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   if alg == :matrices && M isa SubQuo && N isa SubQuo
     return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
   p2 = presentation(N)
-  k, mk = kernel(map(p2, d2))
-  #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
-  #kernel g1: k -> R^t1
-  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  F = FreeMod(base_ring(M), ngens(k))
-  g2 = hom(F, codomain(mk), collect(k.sub.gens)) #not clean - but maps not (yet) working
+  
+  f0 = map(p1, 0)
+  f1 = map(p1, 1)
+  g0 = map(p2, 0)
+  g1 = map(p2, 1)
+
   #step 2
-  H_s0_t0, mH_s0_t0 = hom(domain(map(p1, d1)), domain(map(p2, d1)))
-  H_s1_t1, mH_s1_t1 = hom(domain(map(p1, d2)), domain(map(p2, d2)))
-  D, pro, emb = direct_product(H_s0_t0, H_s1_t1, task = :both)
+  H_s0_t0, mH_s0_t0 = hom(domain(f0), domain(g0))
+  H_s1_t1, mH_s1_t1 = hom(domain(f1), domain(g1))
+  D, pro = direct_product(H_s0_t0, H_s1_t1, task = :prod)
 
-  H_s1_t0, mH_s1_t0 = hom(domain(map(p1, d2)), domain(map(p2, d1)))
+  H_s1_t0, mH_s1_t0 = hom(domain(f1), domain(g0))
 
-  delta = hom(D, H_s1_t0, Vector{ModuleFPElem}([preimage(mH_s1_t0, map(p1, d2)*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*map(p2, d2)) for g = gens(D)]))
+  delta = hom(D, H_s1_t0, Vector{ModuleFPElem}([preimage(mH_s1_t0, f1*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*g1) for g = gens(D)]))
 
-  H_s0_t1, mH_s0_t1 = hom(domain(map(p1, d1)), domain(map(p2, d2)))
-  H_s1_t2, mH_s1_t2 = hom(domain(map(p1, d2)), F)
+  H_s0_t1, mH_s0_t1 = hom(domain(f0), domain(g1))
 
-  E, pr = direct_product(H_s0_t1, H_s1_t2, task = :prod)
-
-  rho = hom(E, D, Vector{ModuleFPElem}([emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, d2))) + 
-                  emb[2](preimage(mH_s1_t1, map(p1, d2)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)]))
-  #need quo(kern(delta), image(rho))
+  rho_prime = hom(H_s0_t1, H_s0_t0, ModuleFPElem[preimage(mH_s0_t0, mH_s0_t1(C)*g1) for C in gens(H_s0_t1)])
  
   kDelta = kernel(delta)
 
-  psi = kDelta[2]*pro[1]
-  #psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
+  projected_kernel = FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])]
+  H = quo(sub(H_s0_t0, projected_kernel, :module), image(rho_prime)[1], :module)
 
-  H = quo(sub(D, kDelta[1], :module), image(rho)[1], :module)
-
-  #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem)
     @assert parent(x) === H
-    #return SubQuoHom(M, N, mH_s0_t0(pro[1](x.repres)).matrix)
-    return hom(M, N, Vector{ModuleFPElem}([map(p2, d1)(mH_s0_t0(pro[1](x.repres))(preimage(map(p1, d1), g))) for g = gens(M)]))
+    return hom(M, N, Vector{ModuleFPElem}([g0(mH_s0_t0(repres(x))(preimage(f0, g))) for g = gens(M)]))
   end
 
   function pre(f::ModuleMap)
     @assert domain(f) === M
     @assert codomain(f) === N
-    Rs0 = domain(map(p1, d1))
-    Rt0 = domain(map(p2, d1))
-    g = hom(Rs0, Rt0, Vector{ModuleFPElem}([preimage(map(p2, d1), f(map(p1, d1)(g))) for g = gens(Rs0)]))
+    Rs0 = domain(f0)
+    Rt0 = domain(g0)
+    g = hom(Rs0, Rt0, Vector{ModuleFPElem}([preimage(g0, f(f0(g))) for g = gens(Rs0)]))
 
-    #return H(preimage(psi, (preimage(mH_s0_t0, g))).repres)
-    return SubQuoElem(repres(preimage(psi, (preimage(mH_s0_t0, g)))), H)
-    #return SubQuoElem(preimage(kDelta[2], emb[1](preimage(mH_s0_t0, g))).repres, H)
-    #return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
+    return SubQuoElem(repres(preimage(mH_s0_t0, g)), H)
   end
   to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
   set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
@@ -5295,26 +5285,16 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   end
 
   gamma = matrix_kernel(delta)
+  gamma = gamma[:,1:s0*t0]
 
-  t2 = size(g2)[1]
-  n = m
-  m = s0*t1 + s1*t2
-  rho::MatrixElem{T} = zero_matrix(R, m,n)
+  rho::MatrixElem{T} = zero_matrix(R, s0*t1, s0*t0)
+
   for j=1:s0*t1
     b_vector = zero_matrix(R, 1,s0*t1)
     b_vector[1,j] = R(1)
     C = copy_and_reshape(b_vector, s0, t1)
     res1 = C*g1
-    res2 = f1*C
     rho[j,1:length(res1)] = copy_and_reshape(res1, 1,length(res1))
-    rho[j,length(res1)+1:end] = copy_and_reshape(res2, 1,length(res2))
-  end
-  for j=s0*t1+1:m
-    b_vector = zero_matrix(R, 1,m-s0*t1)
-    b_vector[1,j-s0*t1] = R(1)
-    D = copy_and_reshape(b_vector, s1, t2)
-    res2 = - D*g2
-    rho[j,s0*t0+1:end] = copy_and_reshape(res2, 1,length(res2))
   end
 
   M = SubQuo(gamma, rho)
@@ -5356,10 +5336,8 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
     to_subquotient_elem = function(H::ModuleMap)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
-      tmp_sq = SubQuo(generator_matrix(SQ.sub)[:,1:m], generator_matrix(SQ.quo)[:,1:m])
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
-      coeffs = coordinates(v, tmp_sq)
-      return p(SubQuoElem(coeffs, SQ))
+      return p(SQ(v))
     end
 
     to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ2, Hecke.MapParent(M, N, "homomorphisms"))
@@ -5370,10 +5348,8 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
     to_subquotient_elem = function(H::ModuleMap)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
-      tmp_sq = SubQuo(generator_matrix(SQ.sub)[:,1:m], generator_matrix(SQ.quo)[:,1:m])
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
-      coeffs = coordinates(v, tmp_sq)
-      return SubQuoElem(coeffs, SQ)
+      return SQ(v)
     end
     to_homomorphism = function(elem::SubQuoElem{T})
       A = convert_to_matrix(elem)
