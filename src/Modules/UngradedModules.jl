@@ -7,6 +7,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       hom_without_reversing_direction, ext, map_canonically, 
       all_canonical_maps, register_morphism!, dense_row, 
+      show_subquo, show_morphism, show_morphism_as_map,
       matrix_kernel, simplify, map, is_injective, is_surjective, is_bijective, is_welldefined,
       subquotient, ambient_free_module, ambient_module, ambient_representative, 
       ambient_representatives_generators, relations, img_gens
@@ -1454,6 +1455,21 @@ function show_subquo(SQ::SubQuo)
   end
 end
 
+function show_morphism_as_map(f::ModuleMap, print_non_zero_only = false)
+  D = domain(f)
+  for i in 1:ngens(D)
+    generator = gen(D, i)
+    im = f(generator)
+    if !(print_non_zero_only && iszero(im))
+      print(generator, " -> ", f(generator))
+      if i < ngens(D)
+        print("\n")
+      end
+    end
+  end
+  return
+end
+
 @doc Markdown.doc"""
     cokernel(a::FreeModuleHom)
 
@@ -1531,6 +1547,31 @@ Let $A$ be an $n \times m$-matrix over the ring $R$. Then return the subquotient
 """
 function cokernel(A::MatElem)
   return cokernel(map(A))
+end
+
+@doc Markdown.doc"""
+    image(F::FreeMod{T}, A::MatElem{T}) where T
+
+Return the subquotient $\im(A)$. The ambient free module is `F`.
+"""
+function image(F::FreeMod{T}, A::MatElem{T}) where T
+  @assert ncols(A) == rank(F)
+  return image(map(F,A))
+end
+
+@doc Markdown.doc"""
+    image(A::MatElem)
+
+Return the subquotient $\im(A)$. 
+
+!!! note
+
+    The ambient free module $R^m$ is constructed by the function and therefore not compatible with 
+    free modules $R^m$ that are defined by the user or by other functions. For compatibility,
+    use `image(F::FreeMod{T}, A::MatElem{T})`.
+"""
+function image(A::MatElem)
+  return image(map(A))
 end
 
 @doc Markdown.doc"""
@@ -3862,7 +3903,7 @@ function kernel(h::SubQuoHom)
   @assert domain(k[2]) === k[1]
   @assert codomain(k[2]) === F
   hh = hom(F, D, gens(D))
-  im::Vector{SubQuoElem} = map(x->hh(k[2](x)), gens(k[1]))
+  im::Vector{SubQuoElem} = filter(x -> !iszero(x), map(x->hh(k[2](x)), gens(k[1])))
   k = sub(D, im, :module)
   return k, hom(k, D, im)
 end
@@ -3996,7 +4037,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
  
   kDelta = kernel(delta)
 
-  projected_kernel = FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])]
+  projected_kernel = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
   H = quo(sub(H_s0_t0, projected_kernel, :module), image(rho_prime)[1], :module)
 
   function im(x::SubQuoElem)
