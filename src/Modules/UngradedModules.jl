@@ -3945,6 +3945,56 @@ If `length != 0`, the free resolution is only computed up to the `length`-th fre
 `algorithm` can be `sres` and `fres`.
 
 # Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+julia> fr = free_resolution(M, length=1)
+fr_1 ----> fr_0 ----> M
+where:
+        fr_1 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        fr_0 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+
+julia> fr.complete
+false
+
+julia> fr[4]
+Free module of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> fr
+Zero ----> fr_3 ----> fr_2 ----> fr_1 ----> fr_0 ----> M
+where:
+        fr_3 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        fr_2 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        fr_1 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        fr_0 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+
+julia> fr.complete
+true
+
+```
 """
 function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
         length::Int=0, algorithm::String="fres")
