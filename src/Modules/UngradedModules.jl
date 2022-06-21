@@ -3942,7 +3942,7 @@ end
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-`algorithm` can be `sres` and `fres`.
+`algorithm` can be set to `sres` or `fres`.
 
 # Examples
 ```jldoctest
