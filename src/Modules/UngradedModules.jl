@@ -3878,61 +3878,60 @@ function free_resolution(F::FreeMod)
   return res
 end
 
-#= Fill functions for Hecke ChainComplexes in terms of free resolutions =#
+#= Fill functions (and helpers) for Hecke ChainComplexes in terms of free resolutions =#
+function get_last_map_key(cc::Hecke.ChainComplex)
+  ctr = cc.start
+  while haskey(cc.maps, ctr)
+    ctr -= 1
+  end
+  return ctr+1
+end
+
 function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::String="fres")
+  key = get_last_map_key(cc)
   if cc.complete == true
-    last_index = idx
-    while !haskey(cc.maps, cc.start - last_index)
-      last_index -= 1
-    end
-  return cc.maps[cc.start-last_index]
+    return cc.maps[key]
   end
 
-  last_index = idx
-  while !haskey(cc.maps, cc.start - last_index)
-    last_index -= 1
-  end
-  current_length        = range(cc)[1]
-  kernel_entry          = image(cc.maps[cc.start - last_index])[1]
+  kernel_entry          = image(cc.maps[key])[1]
   br                    = base_ring(kernel_entry)
   singular_free_module  = singular_module(ambient_free_module(kernel_entry))
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
   singular_kernel_entry.isGB = true
 
-  length = idx - current_length + 1
+  len = idx + key - cc.start + 1
   if algorithm == "fres"
-    res = Singular.fres(singular_kernel_entry, length, "complete")
+    res = Singular.fres(singular_kernel_entry, len, "complete")
   elseif algorithm == "sres"
-    res = Singular.fres(singular_kernel_entry, length)
+    res = Singular.fres(singular_kernel_entry, len)
   elseif algorithm == "lres"
     error("LaScala's method is not yet available in Oscar.")
   end
 
-  if Singular.length(res) < length
+  if Singular.length(res) < len
     cc.complete = true
   end
-  dom = domain(cc.maps[cc.start - last_index])
+  dom = domain(cc.maps[key])
   j   = 2
   while j <= Singular.length(res)
-    last_index += 1
+    key -= 1
     codom = dom
     dom   = free_module(br, Singular.ngens(res[j]))
     SM    = SubModuleOfFreeModule(codom, res[j])
     generator_matrix(SM)
     map = hom(dom, codom, SM.matrix)
-    cc.maps[cc.start-last_index] = map
+    cc.maps[key] = map
     j += 1
   end
-  ret_idx = last_index - 1
   # Finalize maps.
   if cc.complete == true
-    last_index += 1
+    key -= 1
     Z = FreeMod(br, 0)
     set_attribute!(Z, :name => "Zero")
-    cc.maps[cc.start-last_index] = hom(Z, domain(cc.maps[cc.start - last_index+1]), FreeModElem[])
+    cc.maps[key] = hom(Z, domain(cc.maps[key+1]), FreeModElem[])
   end
-  return cc.maps[cc.start-last_index]
+  return cc.maps[key]
 end
 
 @doc Markdown.doc"""
@@ -3994,6 +3993,18 @@ where:
 julia> fr.complete
 true
 
+julia> res = free_resolution(M, algorithm="sres")
+Zero ----> res_3 ----> res_2 ----> res_1 ----> res_0 ----> M
+where:
+        res_3 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        res_2 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        res_1 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+        res_0 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+
+julia> res.complete
+true
+
 ```
 """
 function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
@@ -4002,7 +4013,6 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   typeof(coefficient_ring(base_ring(M))) <: AbstractAlgebra.Field ||
       error("Must be defined over a field.")
 
-  @show length
   cc_complete = false
 
   #= Start with presentation =#
