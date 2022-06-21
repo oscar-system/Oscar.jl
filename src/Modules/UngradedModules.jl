@@ -2,13 +2,14 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       std_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
-      restrict_codomain, restrict_domain, direct_product, tensor_product, 
-      free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
-      hom_without_reversing_direction, ext, map_canonically, 
-      all_canonical_maps, register_morphism!, dense_row, 
-      matrix_kernel, simplify, map, is_injective, is_surjective, is_bijective, is_welldefined,
-      subquotient, ambient_free_module, ambient_module, ambient_representative, 
+      represents_element, free_resolution, free_resolution_via_kernels,
+      homomorphism, module_elem, generator_matrix, restrict_codomain,
+      restrict_domain, direct_product, tensor_product, free_module, tor,
+      lift_homomorphism_contravariant, lift_homomorphism_covariant,
+      hom_without_reversing_direction, ext, map_canonically, all_canonical_maps,
+      register_morphism!, dense_row, matrix_kernel, simplify, map, is_injective,
+      is_surjective, is_bijective, is_welldefined, subquotient,
+      ambient_free_module, ambient_module, ambient_representative,
       ambient_representatives_generators, relations, img_gens
 
 # TODO replace asserts by error messages?
@@ -4009,7 +4010,7 @@ end
 
 
 @doc Markdown.doc"""
-    free_resolution(M::SubQuo, limit::Int = -1)
+    free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
 
 Return a free resolution of `M`.
 
