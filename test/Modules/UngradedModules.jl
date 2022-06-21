@@ -135,7 +135,14 @@ end
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
 	M = SubQuo(A, B)
-	free_res = free_resolution(M)
+	free_res = free_resolution(M, length=1)
+	@test free_res.complete == false
+	@test free_res[3] == free_module(R, 2)
+	@test free_res[4] == free_module(R, 0)
+	@test free_res.complete == true
+	free_res = free_resolution(M, algorithm="sres")
+	@test all(iszero, homology(free_res))
+	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))
 
 	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])

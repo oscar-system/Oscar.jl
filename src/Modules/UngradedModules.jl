@@ -593,7 +593,6 @@ function singular_assure(F::ModuleGens)
       return 
     end
     F.S = Singular.Module(base_ring(F.SF), [F.SF(x) for x = oscar_generators(F)]...)
-    F.S.isGB = F.isGB
     return
   end
   #F[Val(:S), 1]
@@ -3915,8 +3914,8 @@ function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Str
   end
   dom = domain(cc.maps[cc.start - last_index])
   j   = 2
-  last_index += 1
   while j <= Singular.length(res)
+    last_index += 1
     codom = dom
     dom   = free_module(br, Singular.ngens(res[j]))
     SM    = SubModuleOfFreeModule(codom, res[j])
@@ -3924,10 +3923,11 @@ function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Str
     map = hom(dom, codom, SM.matrix)
     cc.maps[cc.start-last_index] = map
     j += 1
-    last_index += 1
   end
+  ret_idx = last_index - 1
   # Finalize maps.
   if cc.complete == true
+    last_index += 1
     Z = FreeMod(br, 0)
     set_attribute!(Z, :name => "Zero")
     cc.maps[cc.start-last_index] = hom(Z, domain(cc.maps[cc.start - last_index+1]), FreeModElem[])
@@ -4002,6 +4002,7 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   typeof(coefficient_ring(base_ring(M))) <: AbstractAlgebra.Field ||
       error("Must be defined over a field.")
 
+  @show length
   cc_complete = false
 
   #= Start with presentation =#
@@ -4796,7 +4797,7 @@ end
 Compute $\text{Tor}_i(M,N)$.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)[1:end-2]
+  free_res = free_resolution_via_kernels(M)[1:end-2]
   lifted_resolution = tensor_product(free_res, N) #TODO only three homs are necessary
   return homology(lifted_resolution,length(lifted_resolution)-i)
 end
@@ -4969,7 +4970,7 @@ end
 Compute $\text{Ext}^i(M,N)$.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)[1:end-2]
+  free_res = free_resolution_via_kernels(M)[1:end-2]
   lifted_resolution = hom(free_res, N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
