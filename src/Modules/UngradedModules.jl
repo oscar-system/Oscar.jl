@@ -3879,10 +3879,59 @@ function free_resolution(F::FreeMod)
 end
 
 #= Fill functions for Hecke ChainComplexes in terms of free resolutions =#
-function all_others_are_zero(cc::Hecke.ChainComplex, i::Int)
-  Z = FreeMod(base_ring(cc[1]), 0)
-  set_attribute!(Z, :name => "Zero")
-  return hom(Z, Z, FreeModElem[])
+function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::String="fres")
+  if cc.complete == true
+    last_index = idx
+    while !haskey(cc.maps, cc.start - last_index)
+      last_index -= 1
+    end
+  return cc.maps[cc.start-last_index]
+  end
+
+  last_index = idx
+  while !haskey(cc.maps, cc.start - last_index)
+    last_index -= 1
+  end
+  current_length        = range(cc)[1]
+  kernel_entry          = image(cc.maps[cc.start - last_index])[1]
+  br                    = base_ring(kernel_entry)
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+  singular_kernel_entry.isGB = true
+
+  length = idx - current_length + 1
+  if algorithm == "fres"
+    res = Singular.fres(singular_kernel_entry, length, "complete")
+  elseif algorithm == "sres"
+    res = Singular.fres(singular_kernel_entry, length)
+  elseif algorithm == "lres"
+    error("LaScala's method is not yet available in Oscar.")
+  end
+
+  if Singular.length(res) < length
+    cc.complete = true
+  end
+  dom = domain(cc.maps[cc.start - last_index])
+  j   = 2
+  last_index += 1
+  while j <= Singular.length(res)
+    codom = dom
+    dom   = free_module(br, Singular.ngens(res[j]))
+    SM    = SubModuleOfFreeModule(codom, res[j])
+    generator_matrix(SM)
+    map = hom(dom, codom, SM.matrix)
+    cc.maps[cc.start-last_index] = map
+    j += 1
+    last_index += 1
+  end
+  # Finalize maps.
+  if cc.complete == true
+    Z = FreeMod(br, 0)
+    set_attribute!(Z, :name => "Zero")
+    cc.maps[cc.start-last_index] = hom(Z, domain(cc.maps[cc.start - last_index+1]), FreeModElem[])
+  end
+  return cc.maps[cc.start-last_index]
 end
 
 @doc Markdown.doc"""
@@ -3899,65 +3948,63 @@ If `length != 0`, the free resolution is only computed up to the `length`-th fre
 function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
         length::Int=0, algorithm::String="fres")
 
-    typeof(coefficient_ring(base_ring(M))) <: AbstractAlgebra.Field ||
-        error("Must be defined over a field.")
+  typeof(coefficient_ring(base_ring(M))) <: AbstractAlgebra.Field ||
+      error("Must be defined over a field.")
 
-    cc_complete = false
+  cc_complete = false
 
-    #= Start with presentation =#
-    pm = presentation(M)
-    maps = [map(pm, j) for j in range(pm)]
+  #= Start with presentation =#
+  pm = presentation(M)
+  maps = [map(pm, j) for j in range(pm)]
 
-    br = base_ring(M)
-    kernel_entry          = image(pm.maps[1])[1]
-    singular_free_module  = singular_module(ambient_free_module(kernel_entry))
-    singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
-                                [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+  br = base_ring(M)
+  kernel_entry          = image(pm.maps[1])[1]
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
 
-    singular_kernel_entry.isGB = true
+  singular_kernel_entry.isGB = true
 
-    #= This is the single computational hard part of this function =#
-    if algorithm == "fres"
-      res = Singular.fres(singular_kernel_entry, length, "complete")
-    elseif algorithm == "sres"
-      res = Singular.fres(singular_kernel_entry, length)
-    elseif algorithm == "lres"
-      error("LaScala's method is not yet available in Oscar.")
-    end
+  #= This is the single computational hard part of this function =#
+  if algorithm == "fres"
+    res = Singular.fres(singular_kernel_entry, length, "complete")
+  elseif algorithm == "sres"
+    res = Singular.fres(singular_kernel_entry, length)
+  elseif algorithm == "lres"
+    error("LaScala's method is not yet available in Oscar.")
+  end
 
-    if Singular.length(res) > length
-      cc_complete = true
-    end
+  @show res
 
-    #= Add maps from free resolution computation, start with second entry
-     = due to inclusion of presentation(M) at the beginning. =#
-    dom = domain(pm.maps[1])
-    j   = 2
-    while j <= Singular.length(res)
-      codom = dom
-      dom   = free_module(br, Singular.ngens(res[j]))
-      SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
-      insert!(maps, 1, hom(dom, codom, SM.matrix))
-      j += 1
-    end
+  if length == 0 || Singular.length(res) < length
+    cc_complete = true
+  end
+
+  #= Add maps from free resolution computation, start with second entry
+   = due to inclusion of presentation(M) at the beginning. =#
+  dom = domain(pm.maps[1])
+  j   = 2
+  while j <= Singular.length(res)
+  @show res[j]
+    codom = dom
+    dom   = free_module(br, Singular.ngens(res[j]))
+    SM    = SubModuleOfFreeModule(codom, res[j])
+    generator_matrix(SM)
+    insert!(maps, 1, hom(dom, codom, SM.matrix))
+    j += 1
+  end
+  if cc_complete == true
     # Finalize maps.
-    Z = FreeMod(base_ring(M), 0)
+    Z = FreeMod(br, 0)
     set_attribute!(Z, :name => "Zero")
     insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
+  end
 
-    cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
-    if cc_complete == true
-      cc.fill = all_others_are_zero
-    else
+  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+  cc.fill     = extend_free_resolution
+  cc.complete = cc_complete
 
-    end
-      
-    cc.complete = cc_complete
-
-    #= set_attribute!(cc, :show=>Hecke.free_show) =#
-
-    return cc
+  return cc
 end
 
 
@@ -3990,7 +4037,7 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  C = Hecke.ChainComplex(ModuleFP, mp, check = false, start=-1)
+  C = Hecke.ChainComplex(ModuleFP, mp, check = false)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
   return C
 end
