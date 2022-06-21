@@ -3975,8 +3975,6 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     error("LaScala's method is not yet available in Oscar.")
   end
 
-  @show res
-
   if length == 0 || Singular.length(res) < length
     cc_complete = true
   end
@@ -3986,7 +3984,6 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   dom = domain(pm.maps[1])
   j   = 2
   while j <= Singular.length(res)
-  @show res[j]
     codom = dom
     dom   = free_module(br, Singular.ngens(res[j]))
     SM    = SubModuleOfFreeModule(codom, res[j])
@@ -4019,7 +4016,7 @@ is only computed up to the `limit`-th free module.
 
 # Examples
 """
-function free_resolution(M::SubQuo, limit::Int = -1)
+function free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
   p = presentation(M)
   mp = [map(p, j) for j in range(p)]
   while true
