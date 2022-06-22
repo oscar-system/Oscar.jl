@@ -196,8 +196,17 @@ end
 ################################################################################
 # Field Embeddings
 function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
+    K = number_field(E)
+    g = gen(K)
+    g_acb = evaluate(g, E, 64)
+    g_real_arb = ccall((:arb_dump_str, Nemo.Arb_jll.libarb),
+                       Ptr{UInt8}, (Ref{arb},), real(g_acb))
+    g_imag_arb = ccall((:arb_dump_str, Nemo.Arb_jll.libarb),
+                       Ptr{UInt8}, (Ref{arb},), imag(g_acb))
+    
     return Dict(
-        :num_field => number_field(E),
-
+        :num_field => save_type_dispatch(s, K),
+        :gen_real_arb => save_type_dispatch(s, gen_real_arb),
+        :gen_imag_arb => save_type_dispatch(s, gen_imag_arb)
     )
 end
