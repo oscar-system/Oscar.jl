@@ -256,7 +256,7 @@ ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
-  G = groebner_basis(I, ordering=ordering)
+  G = groebner_basis(I, ordering=ordering, enforce_global_ordering=false)
   return ideal(base_ring(I), [first(monomials(g, ordering)) for g in G])
 end
 
@@ -377,3 +377,18 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
     normal_form_internal(I, J)
 end
 
+# standard basis for non-global orderings #############################
+function std_basis(I::MPolyIdeal, o::MonomialOrdering; 
+    complete_reduction=false)
+  return groebner_basis(I, ordering=o, enforce_global_ordering=false, 
+                        complete_reduction=complete_reduction)
+end
+
+function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
+  groebner_assure(J, o, false, false)
+  stdJ = J.gb[o]
+  Sx = stdJ.Sx
+  Ox = parent(f)
+  I = Singular.Ideal(Sx, Sx(f))
+  return Ox(gens(Singular.reduce(I, stdJ.S))[1])
+end
