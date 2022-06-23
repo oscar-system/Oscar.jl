@@ -4012,7 +4012,7 @@ true
 function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
         length::Int=0, algorithm::String="fres")
 
-  typeof(coefficient_ring(base_ring(M))) <: AbstractAlgebra.Field ||
+  coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
 
   cc_complete = false
