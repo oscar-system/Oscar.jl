@@ -3887,7 +3887,7 @@ function get_last_map_key(cc::Hecke.ChainComplex)
   return ctr+1
 end
 
-function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::String="fres")
+function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
   key = get_last_map_key(cc)
   if cc.complete == true
     return cc.maps[key]
@@ -3901,11 +3901,11 @@ function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Str
   singular_kernel_entry.isGB = true
 
   len = idx + key - cc.start + 1
-  if algorithm == "fres"
+  if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
-  elseif algorithm == "sres"
+  elseif algorithm == :sres
     res = Singular.fres(singular_kernel_entry, len)
-  elseif algorithm == "lres"
+  elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   else
     error("Unsupported algorithm $algorithm")
@@ -3938,12 +3938,12 @@ end
 
 @doc Markdown.doc"""
     free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::String="fres")
+        length::Int=0, algorithm::Symbol=:fres)
 
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-`algorithm` can be set to `sres` or `fres`.
+`algorithm` can be set to `:sres` or `:fres`.
 
 # Examples
 ```jldoctest
@@ -3995,7 +3995,7 @@ where:
 julia> fr.complete
 true
 
-julia> res = free_resolution(M, algorithm="sres")
+julia> res = free_resolution(M, algorithm=:sres)
 Zero ----> res_3 ----> res_2 ----> res_1 ----> res_0 ----> M
 where:
         res_3 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
@@ -4010,7 +4010,7 @@ true
 ```
 """
 function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::String="fres")
+        length::Int=0, algorithm::Symbol=:fres)
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -4030,11 +4030,11 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   singular_kernel_entry.isGB = true
 
   #= This is the single computational hard part of this function =#
-  if algorithm == "fres"
+  if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, length, "complete")
-  elseif algorithm == "sres"
+  elseif algorithm == :sres
     res = Singular.fres(singular_kernel_entry, length)
-  elseif algorithm == "lres"
+  elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
   else
     error("Unsupported algorithm $algorithm")
