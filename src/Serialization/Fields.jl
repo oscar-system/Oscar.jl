@@ -194,6 +194,45 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
 end
 
 ################################################################################
+# RealFields
+function save_internal(s::SerializerState, RR::Nemo.RealField)
+    return Dict(
+        :precision => save_type_dispatch(s, precision(RR))
+    )    
+end
+
+function load_internal(s::DeserializerState, ::Type{Nemo.RealField}, dict::Dict)
+    prec = load_unknown_type(s, dict[:precision])
+    return Nemo.RealField(prec)
+end
+
+# elements
+function save_internal(s::SerializerState, r::arb)
+    c_str = ccall((:arb_dump_str, Nemo.Arb_jll.libarb), Ptr{UInt8}, (Ref{arb},), r)
+    arb_unsafe_str = unsafe_string(c_str)
+
+    # free memory
+    ccall((:flint_free, Nemo.FLINT_jll.libflint), Nothing, (Ptr{UInt8},), c_str)
+
+    return Dict(
+        :parent => save_type_dispatch(s, parent(r)),
+        :arb_unsafe_str => save_type_dispatch(s, arb_unsafe_str)
+    )    
+end
+
+function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
+    parent = load_type_dispatch(s, Nemo.RealField, dict[:parent])
+    arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
+    r = Nemo.arb()
+    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
+          Int32, (Ref{arb}, Ptr{UInt8}), r, arb_unsafe_str)
+    r.parent = parent
+    
+    return r
+end
+
+
+################################################################################
 # Field Embeddings
 function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
     K = number_field(E)
