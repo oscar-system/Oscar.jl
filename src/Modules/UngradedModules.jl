@@ -4036,6 +4036,8 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     res = Singular.fres(singular_kernel_entry, length)
   elseif algorithm == "lres"
     error("LaScala's method is not yet available in Oscar.")
+  else
+    error("Unsupported algorithm $algorithm")
   end
 
   if length == 0 || Singular.length(res) < length
