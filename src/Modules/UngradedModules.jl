@@ -3907,6 +3907,8 @@ function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Str
     res = Singular.fres(singular_kernel_entry, len)
   elseif algorithm == "lres"
     error("LaScala's method is not yet available in Oscar.")
+  else
+    error("Unsupported algorithm $algorithm")
   end
 
   if Singular.length(res) < len
