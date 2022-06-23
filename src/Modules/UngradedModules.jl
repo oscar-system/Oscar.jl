@@ -3938,7 +3938,7 @@ end
 
 @doc Markdown.doc"""
     free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, method::String="complete", algorithm::String="fres")
+        length::Int=0, algorithm::String="fres")
 
 Return a free resolution of `M`.
 
