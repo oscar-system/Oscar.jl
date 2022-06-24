@@ -194,7 +194,7 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
 end
 
 ################################################################################
-# RealFields
+# RealField
 function save_internal(s::SerializerState, RR::Nemo.RealField)
     return Dict(
         :precision => save_type_dispatch(s, precision(RR))
@@ -220,6 +220,7 @@ function save_internal(s::SerializerState, r::arb)
     )    
 end
 
+
 function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
     parent = load_type_dispatch(s, Nemo.RealField, dict[:parent])
     arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
@@ -231,21 +232,44 @@ function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
     return r
 end
 
+################################################################################
+# ComplexField
+function save_internal(s::SerializerState, CC::ComplexField)
+    return Dict(
+        :precision => save_type_dispatch(s, precision(CC))
+    )    
+end
+
+function load_internal(s::DeserializerState, ::Type{AcbField}, dict::Dict)
+    prec = load_unknown_type(s, dict[:precision])
+    return ComplexField(prec)
+end
+
+function save_internal(s::SerializerState, c::acb)
+    return Dict(
+        :parent => save_type_dispatch(s, parent(c)),
+        :real => save_type_dispatch(s, real(c)),
+        :imag => save_type_dispatch(s, imag(c))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{acb}, dict::Dict)
+    CC = load_type_dispatch(s, AcbField, dict[:parent])
+    real_part = load_type_dispatch(s, arb, dict[:real])
+    imag_part = load_type_dispatch(s, arb, dict[:imag])
+
+    return CC(real_part, imag_part)
+end
 
 ################################################################################
 # Field Embeddings
 function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
     K = number_field(E)
     g = gen(K)
-    g_acb = evaluate(g, E, 64)
-    g_real_arb = ccall((:arb_dump_str, Nemo.Arb_jll.libarb),
-                       Ptr{UInt8}, (Ref{arb},), real(g_acb))
-    g_imag_arb = ccall((:arb_dump_str, Nemo.Arb_jll.libarb),
-                       Ptr{UInt8}, (Ref{arb},), imag(g_acb))
+    g_ball = E(g)
     
     return Dict(
         :num_field => save_type_dispatch(s, K),
-        :gen_real_arb => save_type_dispatch(s, gen_real_arb),
-        :gen_imag_arb => save_type_dispatch(s, gen_imag_arb)
+        :gen_ball => save_type_dispatch(s, g_ball)
     )
 end
