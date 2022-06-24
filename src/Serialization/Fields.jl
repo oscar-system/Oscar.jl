@@ -234,7 +234,10 @@ end
 
 ################################################################################
 # ComplexField
-function save_internal(s::SerializerState, CC::ComplexField)
+
+@registerSerializationType(AcbField)
+
+function save_internal(s::SerializerState, CC::AcbField)
     return Dict(
         :precision => save_type_dispatch(s, precision(CC))
     )    
@@ -263,6 +266,9 @@ end
 
 ################################################################################
 # Field Embeddings
+
+@registerSerializationType(Hecke.NumFieldEmbNfAbs)
+
 function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
     K = number_field(E)
     g = gen(K)
@@ -272,4 +278,11 @@ function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
         :num_field => save_type_dispatch(s, K),
         :gen_ball => save_type_dispatch(s, g_ball)
     )
+end
+
+function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
+    K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
+    gen_ball = load_type_dispatch(s, acb, dict[:gen_ball])
+
+    return complex_embedding(K, gen_ball)
 end
