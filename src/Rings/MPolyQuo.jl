@@ -129,12 +129,14 @@ function base_ring(a::MPolyQuoIdeal)
   return a.base_ring
 end
 
+# TODO rename oscar_assure to oscar_assure!
 function oscar_assure(a::MPolyQuoIdeal)
   isdefined(a, :I) && return
   r = base_ring(a).R
   a.I = ideal(r, r.(gens(a.SI)))
 end
 
+# TODO rename singular_assure to singular_assure!
 function singular_assure(a::MPolyQuoIdeal)
   isdefined(a, :SI) && return
   sa = singular_poly_ring(base_ring(a))
@@ -484,7 +486,13 @@ end
 
 function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
-  singular_groebner_assure!(b)
+  singular_assure(b)
+  if !b.SI.isGB
+    if Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
+      return true
+    end
+    singular_groebner_assure!(b)
+  end
   return Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
 end
 
