@@ -8,8 +8,8 @@
             test_save_load_roundtrip(path, E) do loaded
                 loaded_K = number_field(loaded)
                 g = gen(loaded_K)
-                @test contains(loaded(g), E(gen(K)))
-                @test contains(E(gen(K)), loaded(g))
+                @test overlaps(loaded(g), E(gen(K)))
+                @test overlaps(E(gen(K)), loaded(g))
             end
         end
     end
