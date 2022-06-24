@@ -15,6 +15,7 @@ export
     is_transitive,
     maximal_blocks,
     minimal_block_reps,
+    rank_action,
     transitivity
 
 export GSet, gset, orbits, as_gset, unwrap, permutation, action_homomorphism,
@@ -759,6 +760,38 @@ julia> all_blocks(G)
 all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.AllBlocks(G.X))
 #TODO: Do we really want to act on the set of moved points?
 
+
+"""
+    rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+
+Return the rank of the action of `G` on `L`, i.e., the number of orbits
+of the point stabilizer.
+An exception is thrown if `G` is not transitive on `L`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4); rank_action(G)
+2
+
+julia> H = sylow_subgroup(G, 2)[1]; rank_action(H)
+3
+
+julia> K = stabilizer(G, 1)[1]
+Group([ (2,4,3), (3,4) ])
+
+julia> rank_action(K, 2:4)
+2
+
+julia> rank_action(K, 3:5)
+ERROR: ArgumentError: the group is not transitive
+```
+"""
+function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+   is_transitive(G, L) || throw(ArgumentError("the group is not transitive"))
+   length(L) == 0 && throw(ArgumentError("the action domain is empty"))
+   H = stabilizer(G, L[1])[1]
+   return length(orbits(gset(H, L, closed = true)))
+end
 
 """
     transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
