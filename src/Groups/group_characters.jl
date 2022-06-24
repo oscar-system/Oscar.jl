@@ -339,23 +339,16 @@ julia> length(all_character_table_names(number_conjugacy_classes => 1))
 ```
 """
 function all_character_table_names(L...; ordered_by = nothing)
-    gapargs = translate_group_library_args(L; permgroups=false)
+    gapargs = translate_group_library_args(L; filter_attrs = _ctbl_filter_attrs)
 
     if ordered_by isa Function
       K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, gapargs...;
-            OrderedBy = find_index_function(ordered_by, false)[2])::GapObj
+            OrderedBy = find_index_function(ordered_by, _ctbl_filter_attrs)[2])::GapObj
     else
       K = GAP.Globals.AllCharacterTableNames(gapargs...)::GapObj
     end
     return Vector{String}(K)
 end
-#TODO:
-# Support function/value pairs as arguments, similar to (but more general
-# than) `all_small_groups` etc.
-# This makes sense only if GAP's Browse package is available (and has been
-# loaded at the time when the character table library got loaded),
-# otherwise everything is too slow.
-# Currently this cannot be assumed.
 
 
 ##############################################################################
