@@ -55,7 +55,7 @@ end
 
 Return the group from the Atlas of Group Representations
 that is defined by `info`.
-Typically, `info` is returned by [`all_atlas_group_infos`](@ref).
+Typically, `info` is obtained from [`all_atlas_group_infos`](@ref).
 
 # Examples
 ```jldoctest
