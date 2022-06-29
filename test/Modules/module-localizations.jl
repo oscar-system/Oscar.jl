@@ -89,3 +89,16 @@ end
   w = coordinates(y*F[1], M)
   @test M(v) == M(w) # compare initial result with result on caching.
 end
+
+@testset "module localizations 4" begin
+  # An example of maximal Cohen-Macaulay modules and their 
+  # matrix factorization.
+  R, (x, y) = QQ["x", "y"]
+  W, _ = Localization(R, units_of(R))
+  F1 = FreeMod(W, 1)
+  M, _ = quo(F1, W[x^3+y^4;])
+  F2 = FreeMod(W, 2)
+  g = hom(F2, M, W[x*y; x^3])
+  K, _ = kernel(g)
+  @test iszero(det(Oscar.generator_matrix(K))*M[1])
+end
