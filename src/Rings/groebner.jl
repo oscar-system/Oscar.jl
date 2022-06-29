@@ -378,6 +378,11 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 end
 
 # standard basis for non-global orderings #############################
+@doc Markdown.doc"""
+    std_basis(I::MPolyIdeal, o::MonomialOrdering)
+
+Compute a standard basis of `I` for the monomial ordering `o`.
+"""
 function std_basis(I::MPolyIdeal, o::MonomialOrdering; 
     complete_reduction=false)
   return groebner_basis(I, ordering=o, enforce_global_ordering=false, 
