@@ -69,7 +69,7 @@
   for f in fund_invars
     @test reynolds_operator(RG0, f) == f
   end
-  fund_invars2 = Oscar.fundamental_invariants_via_minimal_subalgebra(RG0)
+  fund_invars2 = Oscar.fundamental_invariants_via_primary_and_secondary(RG0)
   for f in fund_invars2
     @test reynolds_operator(RG0, f) == f
   end
@@ -176,7 +176,7 @@ end
   for f in fund_invars
     @test reynolds_operator(RGK, f) == f
   end
-  fund_invars2 = Oscar.fundamental_invariants_via_minimal_subalgebra(RGK)
+  fund_invars2 = Oscar.fundamental_invariants_via_primary_and_secondary(RGK)
   for f in fund_invars2
     @test reynolds_operator(RGK, f) == f
   end
