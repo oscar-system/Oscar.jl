@@ -187,6 +187,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/serialization.md",
     "Polyhedral Geometry" => [
+        "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
   ],

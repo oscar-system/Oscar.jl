@@ -60,7 +60,7 @@ end
 @doc Markdown.doc"""
     TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}})
 
-Return the tropical hypersurface defined by a tropical polynomial.
+Return the tropical hypersurface of a tropical polynomial `f`.
 
 # Examples
 ```jldoctest
@@ -121,13 +121,11 @@ end
 # end
 
 @doc Markdown.doc"""
-    TropicalHypersurface{M}(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+    TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
 
-Return the tropical hypersurface defined by the tropicalization of an algebraic polynomial.
-If M=min, the tropical hypersurface will obey the min-convention.
-If M=max, the tropical hypersurface will obey the max-convention.
-If coefficient ring has a valuation, the tropical hypersurface will be constructed with respect to it.
-If coefficient ring has no valuation, the tropical hypersurface will be constructed with respect to the trivial valuation.
+Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
+on which a function `valuation` is defined such as `PadicField(7,2)`),
+return the tropical hypersurface of `f` under the convention specified by `M`.
 
 # Examples
 ```jldoctest
@@ -155,7 +153,27 @@ function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min
     return Tf
 end
 
-function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap, M::Union{typeof(min),typeof(max)}=min)
+@doc Markdown.doc"""
+    TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
+
+Construct the tropical hypersurface from a polynomial `f` and a map to the
+tropical semiring `val`.
+
+# Examples
+```jldoctest
+julia> Kx, (x1,x2) = PolynomialRing(QQ,2)
+(Multivariate Polynomial Ring in x1, x2 over Rational Field, fmpq_mpoly[x1, x2])
+
+julia> val = TropicalSemiringMap(QQ,7)
+The 7-adic valuation on Rational Field
+
+julia> f = 7*x1+x2+49;
+
+julia> TropicalHypersurface(f, val)
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
+```
+"""
+function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap)
     tropf = tropical_polynomial(f,val)
     Tf = TropicalHypersurface(tropf)
     w = pm_object(Tf).WEIGHTS
@@ -257,10 +275,11 @@ export polynomial
 
 
 @doc Markdown.doc"""
-    minimalPolynomialFromHypersurface(T::TropicalHypersurface)
+    minpoly(T::TropicalHypersurface)
 
 Return the minimal polynomial with smallest possible coefficients of a hypersurface.
 """
-function minimalPolynomialFromHypersurface(T::TropicalHypersurface)
+function minpoly(T::TropicalHypersurface)
+    error("function not implemented yet")
     return
 end

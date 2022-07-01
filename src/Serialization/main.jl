@@ -44,136 +44,110 @@ const versionInfo = get_version_info()
 # Right now this is still quite primitive, however there is functionality for
 # encoding Vectors without explicitly adding them to the typeMap. This will
 # have to be adapted though to make it more generic for matrices, arrays, etc.
-const typeMap = Dict{Type, String}([
-    Int => "Base.Int",
-    Graphs.Graph{Graphs.Undirected} => "Oscar.Graphs.Graph{Oscar.Graphs.Undirected}",
-    Graphs.Graph{Graphs.Directed} => "Oscar.Graphs.Graph{Oscar.Graphs.Directed}",
-    SimplicialComplex => "Oscar.SimplicialComplex",
-    Vector => "Vector",
-    Nemo.GaloisField => "Nemo.GaloisField",
-    Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
-    fmpz => "fmpz",
-    fmpq => "fmpq",
-    gfp_elem => "Nemo.gfp_elem",
-    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem",
-    fmpq_mpoly => "fmpq_mpoly",
-    fmpz_mpoly => "fmpz_mpoly",
-    fmpq_poly => "fmpq_poly",
-    fmpz_poly => "fmpz_poly",
-    Nemo.NmodRing => "Nemo.NmodRing",
-    Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
-    Polymake.BigObjectAllocated => "Polymake.BigObject",
-    Symbol => "Symbol",
-    FlintRationalField => "FlintRationalField",
-    FmpqPolyRing => "FmpqPolyRing",
-    AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
-    AbstractAlgebra.Generic.MPoly{nf_elem} => "AbstractAlgebra.Generic.MPoly{nf_elem}",
-    nf_elem => "nf_elem",
-    AnticNumberField => "AnticNumberField",
-    nmod => "nmod",
+const typeMap = Dict{Type, String}()
+const reverseTypeMap = Dict{String, Type}()
+
+function registerSerializationType(@nospecialize(T::Type), str::String)
+  isconcretetype(T) || error("Currently only concrete types can be registered, but $T is not")
+  if haskey(typeMap, T) && typeMap[T] != str
+    error("type $T already registered with a different encoding: $str versus $(typeMap[T])")
+  end
+
+  if haskey(reverseTypeMap, str) && reverseTypeMap[str] != T
+    error("encoded type $str already registered for a different type: $T versus $(reverseTypeMap[str])")
+  end
+  typeMap[T] = str
+  reverseTypeMap[str] = T
+end
+
+# registerSerializationType is a macro to ensure that the string we generate
+# matches exactly the expression passed as first argument, and does not change
+# in unexpected ways when import/export statements are adjusted.
+macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
+  if str === nothing
+    str = string(ex)
+  end
+  return :( registerSerializationType($ex, $str) )
+end
+
+for (T, str) in (
     AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
-    AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
+    AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}",
+    AbstractAlgebra.Generic.MPoly{nf_elem} => "AbstractAlgebra.Generic.MPoly{nf_elem}",
+    AbstractAlgebra.Generic.MPoly{NfAbsNSElem} => "AbstractAlgebra.Generic.MPoly{NfAbsNSElem}",
+    AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.MPolyRing{nf_elem} => "AbstractAlgebra.Generic.MPolyRing{nf_elem}",
+    AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem} => "AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem}",
+    AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.Poly{nf_elem} => "AbstractAlgebra.Generic.Poly{nf_elem}",
+    AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}}",
+    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.PolyRing{nf_elem} => "AbstractAlgebra.Generic.PolyRing{nf_elem}",
-    Vector{AbstractAlgebra.Generic.Poly{nf_elem}} => "Vector{AbstractAlgebra.Generic.Poly{nf_elem}}",
+    Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
+    Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
+    Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}",
+    MPolyIdeal{fmpq_mpoly} => "MPolyIdeal{fmpq_mpoly}",
+    MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
+    MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",
+    MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
     NfRelNS{nf_elem} => "NfRelNS{nf_elem}",
-    gfp_poly => "gfp_poly",
-    fq_nmod => "fq_nmod",
-    GFPPolyRing => "GFPPolyRing",
-    FqNmodFiniteField => "FqNmodFiniteField",
-    FqNmodPolyRing => "FqNmodPolyRing",
-    fq_nmod_poly => "fq_nmod_poly",
-    FmpqMPolyRing => "FmpqMPolyRing",
-    Cone{fmpq} => "Cone{fmpq}",
-    Polyhedron{fmpq} => "Polyhedron{fmpq}",
-    PolyhedralComplex{fmpq} => "PolyhedralComplex{fmpq}",
-    UInt64 => "UInt64",
-    UInt8 => "UInt8",
-    UInt16 => "UInt16",
-    UInt32 => "UInt32",
-    UInt64 => "UInt64",
-    UInt128 => "UInt128",
-    Int8 => "Int8",
-    Int16 => "Int16",
-    Int32 => "Int32",
-    Int128 => "Int128",
-    Float16 => "Float16",
-    Float32 => "Float32",
-    Float64 => "Float64",
-    BigInt => "BigInt",
-    String => "String",
+    Polymake.BigObjectAllocated => "Polymake.BigObject",
+    Vector{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "Vector{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    Vector{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "Vector{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
+    Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
+    Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
+    Vector{AbstractAlgebra.Generic.MPoly{nf_elem}} => "Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}",
+    Vector{AbstractAlgebra.Generic.Poly{nf_elem}} => "Vector{AbstractAlgebra.Generic.Poly{nf_elem}}",
     Vector{AbstractAlgebra.Ring} => "Vector{AbstractAlgebra.Ring}",
-    FlintIntegerRing => "FlintIntegerRing",
-    PolyhedralFan{fmpq} => "PolyhedralFan{fmpq}",
-    SubdivisionOfPoints{fmpq} => "SubdivisionOfPoints{fmpq}",
-    Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
-    Vector{gfp_fmpz_elem} => "Vector{gfp_fmpz_elem}",
-    Vector{gfp_elem} => "Vector{gfp_elem}",
     Vector{Any} => "Vector{Any}",
-    Vector{Union{LinearProgram, Polyhedron}} => "Vector{Union{LinearProgram, Polyhedron}}",
-    Vector{UInt64} => "Vector{UInt64}",
-    Vector{UInt128} => "Vector{UInt128}",
-    Vector{UInt16} => "Vector{UInt16}",
-    Vector{UInt32} => "Vector{UInt32}",
-    Vector{UInt64} => "Vector{UInt64}",
-    Vector{UInt8} => "Vector{UInt8}",
-    Vector{Int64} => "Vector{Int64}",
-    Vector{Int128} => "Vector{Int128}",
-    Vector{Int16} => "Vector{Int16}",
-    Vector{Int32} => "Vector{Int32}",
-    Vector{Int64} => "Vector{Int64}",
-    Vector{Int8} => "Vector{Int8}",
     Vector{Float16} => "Vector{Float16}",
     Vector{Float32} => "Vector{Float32}",
     Vector{Float64} => "Vector{Float64}",
-    Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
-    LinearProgram{fmpq} => "LinearProgram{fmpq}",
-    NormalToricVariety => "NormalToricVariety",
-    Vector{ToricDivisor} => "Vector{ToricDivisor}",
-    ToricDivisor => "ToricDivisor",
-    FmpzMPolyRing => "FmpzMPolyRing",
-    nmod_poly => "nmod_poly",
-    NmodPolyRing => "NmodPolyRing",
-    nmod_mpoly => "nmod_mpoly",
-    NmodMPolyRing => "NmodMPolyRing",
-    MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
-    NmodMPolyRing => "NmodMPolyRing",
-    AbstractAlgebra.Generic.MPoly{NfAbsNSElem} => "AbstractAlgebra.Generic.MPoly{NfAbsNSElem}",
-    NfAbsNS => "NfAbsNS",
+    Vector{fmpq_mpoly} => "Vector{fmpq_mpoly}",
     Vector{fmpq_poly} => "Vector{fmpq_poly}",
-    AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}}",
-    Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
-    Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
-    AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem} => "AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem}",
-    MPolyIdeal{fmpq_mpoly} => "MPolyIdeal{fmpq_mpoly}",
-    FmpzPolyRing => "FmpzPolyRing",
-    MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}",
-    AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}}",
-    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
-    fq_nmod_mpoly => "fq_nmod_mpoly",
-    FqNmodMPolyRing => "FqNmodMPolyRing",
-    MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",
-    FqNmodMPolyRing => "FqNmodMPolyRing",
-    fq_nmod_mpoly => "fq_nmod_mpoly",
-    fq_nmod_mpoly => "fq_nmod_mpoly",
-    AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
-    AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}}",
-])
+    Vector{fmpq} => "Vector{fmpq}",
+    Vector{fmpz_mpoly} => "Vector{fmpz_mpoly}",
+    Vector{fmpz_poly} => "Vector{fmpz_poly}",
+    Vector{fmpz} => "Vector{fmpz}",
+    Vector{fq_nmod_mpoly} => "Vector{fq_nmod_mpoly}",
+    Vector{fq_nmod} => "Vector{fq_nmod}",
+    Vector{gfp_elem} => "Vector{gfp_elem}",
+    Vector{gfp_fmpz_elem} => "Vector{gfp_fmpz_elem}",
+    Vector{Hecke.NfRelElem{nf_elem}} => "Vector{Hecke.NfRelElem{nf_elem}}",
+    Vector{Hecke.NfRelNSElem{nf_elem}} => "Vector{Hecke.NfRelNSElem{nf_elem}}",
+    Vector{Int8} => "Vector{Int8}",
+    Vector{Int16} => "Vector{Int16}",
+    Vector{Int32} => "Vector{Int32}",
+    Vector{Int64} => "Vector{Int64}",
+    Vector{Int128} => "Vector{Int128}",
+    Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
+    Vector{nf_elem} => "Vector{nf_elem}",
+    Vector{nmod_mpoly} => "Vector{nmod_mpoly}",
+    Vector{nmod} => "Vector{nmod}",
+    Vector{Symbol} => "Vector{Symbol}",
+    Vector{ToricDivisor} => "Vector{ToricDivisor}",
+    Vector{UInt8} => "Vector{UInt8}",
+    Vector{UInt16} => "Vector{UInt16}",
+    Vector{UInt32} => "Vector{UInt32}",
+    Vector{UInt64} => "Vector{UInt64}",
+    Vector{UInt128} => "Vector{UInt128}",
+    Vector{Union{LinearProgram, Polyhedron}} => "Vector{Union{LinearProgram, Polyhedron}}",
+    )
 
-const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
+  registerSerializationType(T, str)
+end
 
 
 function encodeType(::Type{T}) where T
@@ -181,6 +155,7 @@ function encodeType(::Type{T}) where T
         return typeMap[T]
     else
         # As a default just save the type as a string.
+        @warn "Serialization: Generic Encoding of type $T"
         string(T)
     end
 end
@@ -197,7 +172,7 @@ function decodeType(input::String)
         # parsing is insecure and potentially malicious code could be
         # entered here. (also computationally expensive)
         # Standard Oscar tests should never pass this line
-        @warn "Serialization: Generic Decoding of Type: $input"
+        @warn "Serialization: Generic Decoding of type $input"
         eval(Meta.parse(input))
     end
 end
@@ -251,7 +226,10 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
         return backref
     end
 
-    encodeType(T) == dict[:type] || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) != $T"))
+    decodeType(dict[:type]) <: T || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T"))
+
+    Base.issingletontype(T) && return T()
+
     result = load_internal(s, T, dict[:data])
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
@@ -305,33 +283,105 @@ end
 
 
 ################################################################################
-# Interacting with files
-@doc Markdown.doc"""
+# Interacting with IO streams and files
+
+"""
+    save(io::IO, obj::Any)
     save(filename::String, obj::Any)
 
-Save an object `obj` to a file.
+Save an object `T` to the given io stream
+respectively to the file `filename`.
+
+See [`load`](@ref).
+
+# Examples
+
+```jldoctest
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
+42
+```
 """
-function save(filename::String, obj::Any)
+function save(io::IO, obj::Any)
     state = SerializerState()
     jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)
+    write(io, jsonstr)
+end
+
+function save(filename::String, obj::Any)
     open(filename, "w") do file
-        write(file, jsonstr)
+        save(file, obj)
     end
 end
 
-@doc Markdown.doc"""
+"""
+    load(io::IO)
     load(filename::String)
 
-Load the object stored in a file.
+Load the object stored in the given io stream
+respectively in the file `filename`.
+
+See [`save`](@ref).
+
+# Examples
+
+```jldoctest
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
+42
+```
 """
-function load(filename::String)
+function load(io::IO)
     state = DeserializerState()
     # Check for type of file somewhere here?
-    jsondict = JSON.parsefile(filename, dicttype=Dict{Symbol, Any})
-    return load_unknown_type(state, jsondict, check_namespace=true)
+    jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+    return load_unknown_type(state, jsondict; check_namespace=true)
 end
 
+function load(filename::String)
+    open(filename) do file
+        return load(file)
+    end
+end
+
+"""
+    load(io::IO, ::Type)
+    load(filename::String, T::Type)
+
+Load the object of the given type stored in the given io stream
+respectively in the file `filename`.
+
+This guarantees that the end result has the given type.
+
+See [`save`](@ref).
+
+# Examples
+
+```jldoctest
+julia> save("fourtitwo.json", 42);
+
+julia> load("fourtitwo.json")
+42
+
+julia> load("fourtitwo.json", String)
+ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
+```
+"""
+function load(io::IO, T::Type)
+    state = DeserializerState()
+    # Check for type of file somewhere here?
+    jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+    return load_type_dispatch(state, T, jsondict)
+end
+
+function load(filename::String, T::Type)
+    open(filename) do file
+        return load(file, T)
+    end
+end
 
 include("basic_types.jl")
 include("containers.jl")

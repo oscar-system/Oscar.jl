@@ -10,14 +10,14 @@ Fin, d = FiniteField(t^2 + t + 1)
 Frac = FractionField(R)
 
 cases = [
-    [QQ, fmpq(3, 4), fmpq(1, 2)],
-    [ZZ, 3, 4],
-    [ResidueRing(ZZ, 6), 3, 5],
-    [K, a, a + 1],
-    [Tow, a^2 * b, a + b],
-    [NonSimRel, c[1], c[2] * a],
-    [Fin, d, 0],
-    [Frac, 1 // x, x^2]
+    (QQ, fmpq(3, 4), fmpq(1, 2)),
+    (ZZ, 3, 4),
+    (ResidueRing(ZZ, 6), 3, 5),
+    (K, a, a + 1),
+    (Tow, a^2 * b, a + b),
+    (NonSimRel, c[1], c[2] * a),
+    (Fin, d, 0),
+    (Frac, 1 // x, x^2)
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{MPolyRing, PolyRing}
@@ -81,32 +81,28 @@ end
             @testset "Univariate Polynomial over $(cases[1])" begin
                 R, z = PolynomialRing(case[1], "z")
                 p = z^2 + case[2] * z + case[3]
-                filename = joinpath(path, "polynomial.uv")
-                save(filename, p)
-                loaded = load(filename)
-                S = parent(loaded)
-                @test test_equality(p, loaded)
+                test_save_load_roundtrip(path, p) do loaded
+                  S = parent(loaded)
+                  @test test_equality(p, loaded)
+                end
             end
             
             @testset "Multivariate Polynomial over $(case[1])" begin
                 R, (z, w) = PolynomialRing(case[1], ["z", "w"])
                 p = z^2 + case[2] * z * w + case[3] * w^3
-                filename = joinpath(path, "polynomial_.mv")
-                save(filename, p)
-                loaded = load(filename)
-                @test test_equality(p, loaded)
+                test_save_load_roundtrip(path, p) do loaded
+                  @test test_equality(p, loaded)
+                end
 
                 @testset "MPoly Ideals over $(case[1])" begin
                     q = w^2 - z
                     i = ideal(R, [p, q])
-                    filename = joinpath(path, "ideal.mv")
-                    save(filename, i)
-                    loaded_i = load(filename)
-
-                    if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
-                        S = parent(loaded_i[1])
-                        h = hom(R, S, gens(S))
-                        @test h(i) == loaded_i
+                    test_save_load_roundtrip(path, i) do loaded_i
+                        if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
+                            S = parent(loaded_i[1])
+                            h = hom(R, S, gens(S))
+                            @test h(i) == loaded_i
+                        end
                     end
                 end
             end

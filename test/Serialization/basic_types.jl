@@ -1,3 +1,28 @@
+function test_save_load_roundtrip(func, path, original::T) where T
+  # save and load from a file
+  filename = joinpath(path, "original.json")
+  save(filename, original)
+  loaded = load(filename)
+  @test loaded isa T
+  func(loaded)
+
+  # save and load from an IO buffer
+  io = IOBuffer()
+  save(io, original)
+  seekstart(io)
+  loaded = load(io)
+  @test loaded isa T
+  func(loaded)
+
+  # save and load from an IO buffer, with prescribed type
+  io = IOBuffer()
+  save(io, original)
+  seekstart(io)
+  loaded = load(io, T)
+  @test loaded isa T
+  func(loaded)
+end
+
 @testset "basic_types" begin
     
     mktempdir() do path
@@ -10,40 +35,32 @@
                 fmpz,
             )
             original = T(1)
-            filename = joinpath(path, string(T)*".json")
-            save(filename, original)
-            loaded = load(filename)
-            @test loaded isa T
-            @test original == loaded
+            test_save_load_roundtrip(path, original) do loaded
+              @test loaded == original
+            end
         end
 
         @testset "String" begin
             original = "original"
-            filename = joinpath(path, "original.json")
-            save(filename, original)
-            loaded = load(filename)
-            @test loaded isa String
-            @test loaded == original
+            test_save_load_roundtrip(path, original) do loaded
+              @test loaded == original
+            end
         end
 
         @testset "Symbol" begin
             original = :original
-            filename = joinpath(path, "original.json")
-            save(filename, original)
-            loaded = load(filename)
-            @test loaded isa Symbol
-            @test loaded == original
+            test_save_load_roundtrip(path, original) do loaded
+              @test loaded == original
+            end
         end
 
         @testset "Singleton types" begin
-            original = [ZZ, QQ]
-            filename = joinpath(path, "original.json")
-            save(filename, original)
-            loaded = load(filename)
-            @test loaded[1] isa FlintIntegerRing
-            @test loaded[1] === ZZ
-            @test loaded[2] isa FlintRationalField
-            @test loaded[2] === QQ
+            test_save_load_roundtrip(path, ZZ) do loaded
+              @test loaded === ZZ
+            end
+            test_save_load_roundtrip(path, QQ) do loaded
+              @test loaded === QQ
+            end
         end
     end
 end

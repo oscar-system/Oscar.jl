@@ -1,5 +1,13 @@
 ################################################################################
+# field of rationals (singleton type)
+@registerSerializationType(FlintRationalField)
+
+
+################################################################################
 # non-fmpz variant
+@registerSerializationType(Nemo.gfp_elem)
+@registerSerializationType(Nemo.GaloisField)
+
 function save_internal(s::SerializerState, F::Nemo.GaloisField)
     return Dict(
         :characteristic => UInt64(characteristic(F))
@@ -26,6 +34,9 @@ end
 
 ################################################################################
 # fmpz variant
+@registerSerializationType(Nemo.gfp_fmpz_elem)
+@registerSerializationType(Nemo.GaloisFmpzField)
+
 function save_internal(s::SerializerState, F::Nemo.GaloisFmpzField)
     return Dict(
         :characteristic => save_type_dispatch(s, characteristic(F))
@@ -51,6 +62,8 @@ end
 
 ################################################################################
 # SimpleNumField
+@registerSerializationType(AnticNumberField)
+
 function save_internal(s::SerializerState, K::SimpleNumField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K)),
@@ -62,12 +75,13 @@ function load_internal(s::DeserializerState, ::Type{<: SimpleNumField}, dict::Di
     def_pol = load_unknown_type(s, dict[:def_pol])
     var = load_type_dispatch(s, Symbol, dict[:var])
     K, _ = NumberField(def_pol, var, cached=false)
-
     return K
 end
 
 ################################################################################
 # FqNmodfinitefield
+@registerSerializationType(FqNmodFiniteField)
+
 function save_internal(s::SerializerState, K::FqNmodFiniteField)
     return Dict(
         :def_pol => save_type_dispatch(s, defining_polynomial(K))
@@ -77,18 +91,19 @@ end
 function load_internal(s::DeserializerState, ::Type{FqNmodFiniteField}, dict::Dict)
     def_pol = load_unknown_type(s, dict[:def_pol])
     K, _ = FiniteField(def_pol, cached=false)
-
     return K
 end
 
 #elements
+@registerSerializationType(fq_nmod)
+@registerSerializationType(nf_elem)
+
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
-    K_dict = save_type_dispatch(s, K)
 
     return Dict(
-        :parent => K_dict,
+        :parent => save_type_dispatch(s, K),
         :polynomial => save_type_dispatch(s, polynomial)
     )
 end
@@ -103,6 +118,8 @@ end
 
 ################################################################################
 # Non Simple Extension
+@registerSerializationType(NfAbsNS)
+
 function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
     return Dict(
@@ -125,9 +142,8 @@ function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSEl
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
     polynomial_parent = parent(polynomial)
-    K_dict = save_type_dispatch(s, K)
     return Dict(
-        :parent_field => K_dict,
+        :parent_field => save_type_dispatch(s, K),
         :polynomial => save_type_dispatch(s, polynomial),
         :polynomial_parent => save_type_dispatch(s, polynomial_parent)
     )
@@ -162,9 +178,8 @@ end
 
 # elements
 function save_internal(s::SerializerState, f::FracElem)
-    parent_dict = save_type_dispatch(s, parent(f))
     return Dict(
-        :parent => parent_dict,
+        :parent => save_type_dispatch(s, parent(f)),
         :den => save_type_dispatch(s, denominator(f)),
         :num => save_type_dispatch(s, numerator(f))
     )
@@ -176,4 +191,98 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
     den = load_unknown_type(s, dict[:den])
 
     return R(num) // R(den)
+end
+
+################################################################################
+# RealField
+function save_internal(s::SerializerState, RR::Nemo.RealField)
+    return Dict(
+        :precision => save_type_dispatch(s, precision(RR))
+    )    
+end
+
+function load_internal(s::DeserializerState, ::Type{Nemo.RealField}, dict::Dict)
+    prec = load_unknown_type(s, dict[:precision])
+    return Nemo.RealField(prec)
+end
+
+# elements
+function save_internal(s::SerializerState, r::arb)
+    c_str = ccall((:arb_dump_str, Nemo.Arb_jll.libarb), Ptr{UInt8}, (Ref{arb},), r)
+    arb_unsafe_str = unsafe_string(c_str)
+
+    # free memory
+    ccall((:flint_free, Nemo.FLINT_jll.libflint), Nothing, (Ptr{UInt8},), c_str)
+
+    return Dict(
+        :parent => save_type_dispatch(s, parent(r)),
+        :arb_unsafe_str => save_type_dispatch(s, arb_unsafe_str)
+    )    
+end
+
+
+function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
+    parent = load_type_dispatch(s, Nemo.RealField, dict[:parent])
+    arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
+    r = Nemo.arb()
+    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
+          Int32, (Ref{arb}, Ptr{UInt8}), r, arb_unsafe_str)
+    r.parent = parent
+    
+    return r
+end
+
+################################################################################
+# ComplexField
+
+@registerSerializationType(AcbField)
+
+function save_internal(s::SerializerState, CC::AcbField)
+    return Dict(
+        :precision => save_type_dispatch(s, precision(CC))
+    )    
+end
+
+function load_internal(s::DeserializerState, ::Type{AcbField}, dict::Dict)
+    prec = load_unknown_type(s, dict[:precision])
+    return ComplexField(prec)
+end
+
+function save_internal(s::SerializerState, c::acb)
+    return Dict(
+        :parent => save_type_dispatch(s, parent(c)),
+        :real => save_type_dispatch(s, real(c)),
+        :imag => save_type_dispatch(s, imag(c))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{acb}, dict::Dict)
+    CC = load_type_dispatch(s, AcbField, dict[:parent])
+    real_part = load_type_dispatch(s, arb, dict[:real])
+    imag_part = load_type_dispatch(s, arb, dict[:imag])
+
+    return CC(real_part, imag_part)
+end
+
+################################################################################
+# Field Embeddings
+
+@registerSerializationType(Hecke.NumFieldEmbNfAbs)
+
+function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
+    K = number_field(E)
+    g = gen(K)
+    g_ball = E(g)
+    
+    return Dict(
+        :num_field => save_type_dispatch(s, K),
+        :gen_ball => save_type_dispatch(s, g_ball)
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
+    K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
+    gen_ball = load_type_dispatch(s, acb, dict[:gen_ball])
+
+    return complex_embedding(K, gen_ball)
 end

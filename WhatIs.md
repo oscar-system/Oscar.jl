@@ -22,7 +22,7 @@ Oscar is written in Julia, but is not Julia, nor can it be.
    
    Then either
     n is part of the type -> every function is recompiled for every n - which kills
-    all modular (Chenese remainder theorem  (CRT) based) algorithms
+    all modular (Chinese remainder theorem  (CRT) based) algorithms
 
     n is not part of the type, then it need to be elsewhere, ie. in the parent,
     every element, additional arguments, ...

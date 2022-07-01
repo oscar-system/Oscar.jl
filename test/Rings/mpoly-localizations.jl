@@ -83,6 +83,36 @@
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
+
+  R, (x, y) = QQ["x", "y"]
+  U = MPolyPowersOfElement(R, [x])
+  L = MPolyLocalizedRing(R, U)
+  I = ideal(L, [y*(y-x)])
+  J = ideal(L, [x*(y-x)])
+  @test y in quotient(I, J)
+  @test I:J == quotient(I, J)
+
+  R, (x, y) = QQ["x", "y"]
+  f = x^2 + y^3- 2
+  I = ideal(R, [f])
+  U = MPolyComplementOfPrimeIdeal(I)
+  L = MPolyLocalizedRing(R, U)
+  I = ideal(L, [f^4])
+  J = ideal(L, [f^2])
+  @test f^2 in quotient(I, J)
+  @test !(f in quotient(I, J))
+  @test I:J == quotient(I, J)
+  
+  R, (x, y) = QQ["x", "y"]
+  f = x^2 + y^2- 2
+  I = ideal(R, [f])
+  U = MPolyComplementOfKPointIdeal(R, [1, 1])
+  L = MPolyLocalizedRing(R, U)
+  I = ideal(L, [y^2*f^4])
+  J = ideal(L, [x*f^2])
+  @test f^2 in quotient(I, J)
+  @test !(f in quotient(I, J))
+  @test I:J == quotient(I, J)
 end
 
 @testset "mpoly-localizations PowersOfElements" begin

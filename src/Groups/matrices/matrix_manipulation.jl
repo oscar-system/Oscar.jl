@@ -226,10 +226,6 @@ end
 
 Base.getindex(V::AbstractAlgebra.Generic.FreeModule, i::Int) = gen(V, i)
 
-# scalar product
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*transpose(u.v))[1]
-#T do we want this at all? (type piracy?)
-
 
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: RingElem = v.parent(v.v*x)
 Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = x*transpose(u.v)

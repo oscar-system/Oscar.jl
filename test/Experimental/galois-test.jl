@@ -20,4 +20,7 @@
   act = Oscar.GaloisGrp.action_on_blocks(g, [1, 2])
   @test order(image(act)[1]) == 2
 
+  Qx, x = QQ["x"]
+  G, C = galois_group((1//13)*x^2+2)
+  @test order(G) == 2
 end

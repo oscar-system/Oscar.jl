@@ -1185,6 +1185,9 @@ Check for equality. For two submodules of free modules to be equal their embeddi
 free modules must be identical (`===`) and the generators must generate equal submodules.
 """
 function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  if M === N
+    return true
+  end
   if M.F !== N.F
     return false
   end
@@ -1520,8 +1523,7 @@ by Submodule with 3 generators
 3 -> z*e[2]
 ```
 """
-function cokernel(f::FreeModuleHom)
-  @assert codomain(f) isa FreeMod
+function cokernel(f::ModuleMap)
   return quo(codomain(f), image(f)[1], :module)
 end
 
@@ -1912,21 +1914,28 @@ by Submodule with 3 generators
 """
 function sum(M::SubQuo{T},N::SubQuo{T}) where T
   @assert ambient_free_module(M) === ambient_free_module(N)
-  #TODO use SubModuleOfFreeModule instead of matrices
-  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
-  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
+
+  if !isdefined(M, :quo) && !isdefined(N, :quo)
+    SQ = SubQuo(sum(M.sub,N.sub))
+  else
+
+    M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
+    N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
   
-  if M_quo == N_quo
-    SQ = SubQuo(sum(M.sub,N.sub),M_quo)
-    iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)])
-    iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)])
-
-    register_morphism!(iM)
-    register_morphism!(iN)
-
-    return SQ, iM, iN
+    if M_quo == N_quo
+      SQ = SubQuo(sum(M.sub,N.sub),M_quo)
+    else
+      error("Relations are not equal")
+    end
   end
-  throw(ArgumentError("img(M.relations) != img(N.relations)"))
+
+  iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)])
+  iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)])
+
+  register_morphism!(iM)
+  register_morphism!(iN)
+
+  return SQ, iM, iN
 end
 
 @doc Markdown.doc"""
@@ -2489,8 +2498,9 @@ Put more precisely, if `N` denotes this submodule, return `N` as an object of ty
 
 If `task = :only_morphism`, return only the inclusion map.
 """
-function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T} 
-  M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
+function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
+  M = SubQuo(SubModuleOfFreeModule(F, A)) 
+  #M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
   emb = hom(M, F, ambient_representatives_generators(M))
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
@@ -2690,9 +2700,12 @@ Put more precisely, if `N` denotes this quotient, return `N` as an object of typ
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(M::SubQuo, U::SubQuo, task::Symbol = :with_morphism)
-#  @assert !isdefined(U, :quo)
-  # TODO @assert M.quo == U.quo or too expensive?
-  Q = SubQuo(M, oscar_generators(U.sum.gens))
+  if isdefined(M, :quo)
+    @assert M.quo == U.quo
+  else
+    @assert !isdefined(U, :quo)
+  end
+  Q = SubQuo(M, oscar_generators(U.sub.gens))
   return return_quo_wrt_task(M, Q, task)
 end
 
@@ -3957,6 +3970,10 @@ end
 
 function Hecke.ring(I::MPolyIdeal)
   return parent(gen(I, 1))
+end
+
+function *(I::MPolyIdeal{T}, F::FreeMod{T}) where {T<:RingElem}
+  return sub(F, [g*e for g in gens(I) for e in gens(F)])
 end
 
 @doc Markdown.doc"""

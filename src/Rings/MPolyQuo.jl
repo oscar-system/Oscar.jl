@@ -129,12 +129,14 @@ function base_ring(a::MPolyQuoIdeal)
   return a.base_ring
 end
 
+# TODO rename oscar_assure to oscar_assure!
 function oscar_assure(a::MPolyQuoIdeal)
   isdefined(a, :I) && return
   r = base_ring(a).R
   a.I = ideal(r, r.(gens(a.SI)))
 end
 
+# TODO rename singular_assure to singular_assure!
 function singular_assure(a::MPolyQuoIdeal)
   isdefined(a, :SI) && return
   sa = singular_poly_ring(base_ring(a))
@@ -471,6 +473,32 @@ function simplify!(a::MPolyQuoIdeal)
   return a
 end
 
+function singular_groebner_assure!(a::MPolyQuoIdeal)
+  if !isdefined(a, :SI)
+    simplify!(a)
+  end
+  if !a.SI.isGB
+    a.SI = Singular.std(a.SI)
+    a.SI.isGB = true
+  end
+end
+
+
+function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
+  parent(a) == base_ring(b) || error("base rings must match")
+  singular_assure(b)
+  if !b.SI.isGB
+    if Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
+      return true
+    end
+    singular_groebner_assure!(b)
+  end
+  return Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
+end
+
+Base.:in(a::MPolyQuoElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
+
+
 @doc Markdown.doc"""
     issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
@@ -498,13 +526,7 @@ true
 function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   simplify!(a)
-  if !(isdefined(b, :SI))
-    simplify!(b)
-  end
-  if b.SI.isGB == false
-    b.SI      = Singular.std(b.SI)
-    b.SI.isGB = true
-  end
+  singular_groebner_assure!(b)
   return Singular.iszero(Singular.reduce(a.SI, b.SI))
 end
 
@@ -745,55 +767,12 @@ function is_invertible_with_inverse(a::MPolyQuoElem)
 end
 
 is_unit(a::MPolyQuoElem) = is_invertible_with_inverse(a)[1]
+
 function inv(a::MPolyQuoElem)
   fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
 end
-
-"""
-Tries to write the generators of `M` as linear combinations of generators in `SM`.
-Extremely low level, might migrate to Singular.jl and be hidd...
-
-Seems to be buggy
-
-Returns result, rest
-(Matrix(SM)-Matrix(rest) = Matrix(M)*Matrix(result))
-If SM is in M, rest is the null module
-otherwise: rest = SM
-"""
-function lift(M::Singular.sideal{T}, SM::Singular.sideal{T}) where T
-   R = base_ring(M)
-   R == base_ring(SM) || error("base rings must match")
-   ptr, rest_ptr = GC.@preserve M SM R Singular.libSingular.id_Lift(M.ptr, SM.ptr, R.ptr)
-   return Singular.Module(R, ptr), Singular.Module(R,rest_ptr)
-end
-
-@doc Markdown.doc"""
-    lift(M::sideal, SM::sideal, goodShape::Bool, isSB::Bool, divide::Bool)
-
-represents the generators of SM in terms of the generators of M.
-Returns result, rest
-(Matrix(SM)*U-Matrix(rest) = Matrix(M)*Matrix(result))
-If SM is in M, rest is the null module
-otherwise: rest = SM (if not divide)
-or: rest=normalform(SM,std(M))
-U is a diagonal matrix of units, differs from unity matrix only for local ring orderings
-
-goodShape: maximal non-zero index in generators of SM <= that of M
-isSB: generators of M form a Groebner basis
-divide: allow SM not to be a submodule of M
-"""
-function lift(M::Singular.sideal{T}, SM::Singular.sideal{T},
-                            goodShape::Bool, isSB::Bool, divide::Bool) where T
-   R = base_ring(M)
-   R == base_ring(SM) || error("base rings must match")
-   res, rest, U = GC.@preserve M SM R Singular.libSingular.id_Lift(M.ptr, SM.ptr,
-                                                goodShape, isSB, divide, R.ptr)
-   return (Singular.smodule{T}(R, res), Singular.smodule{T}(R, rest), Singular.smatrix{T}(R, U))
-end
-
-
 
 
 """

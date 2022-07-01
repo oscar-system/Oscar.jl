@@ -8,7 +8,7 @@ rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = C.RAYS
+_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.RAYS, 0) : C.RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -338,7 +338,7 @@ lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{
 
 _lineality_cone(::Type{RayVector{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(C.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = C.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.LINEALITY_SPACE, 0) : C.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
@@ -394,7 +394,7 @@ end
 
 _hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(C.HILBERT_BASIS_GENERATORS[1][i, :])
 
-_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
+_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.HILBERT_BASIS_GENERATORS[1], 0) : C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 
