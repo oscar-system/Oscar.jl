@@ -725,7 +725,14 @@ end
   t = character_table(g);
   trivial_character(s)^t;  # side-effect: stores a class fusion
   @test length(names_of_fusion_sources(t)) > 0
-  [schur_index(chi) for chi in t]
+  for chi in t
+    try
+      schur_index(chi)
+    catch(e)
+      msg = sprint(showerror, e)
+      @test msg == "cannot determine the Schur index with the currently used criteria"
+    end
+  end
 end
 
 @testset "specialized generic tables" begin
