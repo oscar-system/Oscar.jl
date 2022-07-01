@@ -52,25 +52,35 @@ function convert_ff_gb_array_to_oscar_array(
         blen::Vector{Int32},
         bcf::Vector{Int32},
         bexp::Vector{Int32},
-        R::GFPMPolyRing
+        R::GFPMPolyRing,
+        eliminate::Int
         )
 
     nr_gens = bld
     nr_vars = nvars(R)
     CR      = coefficient_ring(R)
 
-    basis = Vector{gfp_mpoly}(undef, nr_gens)
+    basis = gfp_mpoly[]
 
     len   = 0
 
+    if eliminate > 0
+        z = zeros(Int, eliminate)
+    end
     for i in 1:nr_gens
+        if eliminate > 0
+            cmp = convert(Vector{Int}, bexp[(len)*nr_vars+1:(len+1)*nr_vars])
+            if cmp[1:eliminate] > z
+                continue
+            end
+        end
         g  = MPolyBuildCtx(R)
         for j in 1:blen[i]
             push_term!(g, CR(bcf[len+j]),
                        convert(Vector{Int}, bexp[(len+j-1)*nr_vars+1:(len+j)*nr_vars]))
         end
         len +=  blen[i]
-        basis[i]  = g.poly
+        push!(basis, g.poly)
     end
 
     return basis
