@@ -718,6 +718,14 @@ end
 @testset "Schur index" begin
   t = character_table("2.A5")
   @test map(schur_index, collect(t)) == [1,1,1,1,1,2,2,2,2]
+
+  g = small_group(192, 1022)
+  h = derived_subgroup(g)[1];
+  s = character_table(h);
+  t = character_table(g);
+  trivial_character(s)^t;  # side-effect: stores a class fusion
+  @test length(names_of_fusion_sources(t)) > 0
+  [schur_index(chi) for chi in t]
 end
 
 @testset "specialized generic tables" begin
