@@ -1438,12 +1438,10 @@ end
 @doc Markdown.doc"""
     schur_index(chi::GAPGroupClassFunction)
 
-Return either the minimal integer `m` such that the character `m * chi`
+Return the minimal integer `m` such that the character `m * chi`
 is afforded by a representation over the character field of `chi`,
-or `nothing`.
-
-The latter happens if character theoretic criteria do not suffice for
-computing `m`.
+or throw an exception if the currently used character theoretic criteria
+do not suffice for computing `m`.
 """
 function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     deg = numerator(degree(chi))
@@ -1486,12 +1484,14 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # - Consider characters induced from other known subgroups.
     for name in names_of_fusion_sources(tbl)
       s = character_table(name)
-      known, fus = known_class_fusion(s, tbl)
-      @assert known "the class fusion is not stored"
-      if length(class_positions_of_kernel(fus)) == 1
-        psi = trivial_character(s)^(tbl)
-        bound = gcd(bound, scalar_product(fmpz, chi, psi))
-        bound == 1 && return 1
+      if s !== nothing
+        known, fus = known_class_fusion(s, tbl)
+        @assert known "the class fusion is not stored"
+        if length(class_positions_of_kernel(fus)) == 1
+          psi = trivial_character(s)^(tbl)
+          bound = gcd(bound, scalar_product(fmpz, chi, psi))
+          bound == 1 && return 1
+        end
       end
     end
 
@@ -1508,7 +1508,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     end
 
     # For the moment, we do not have more character theoretic criteria.
-    return nothing
+    error("cannot determine the Schur index with the currently used criteria")
 end
 
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
