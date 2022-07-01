@@ -207,7 +207,6 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minima
     for V in Z
       k, m = _character_field(V)
       chi = character(V)
-      global last_chi = (chi, V)
       d = schur_index(chi)
       if d != 1
         @vprint :MinField 1  "non-trivial Schur index $d found\n"
