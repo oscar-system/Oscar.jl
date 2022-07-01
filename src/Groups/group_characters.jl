@@ -1493,12 +1493,14 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # - Consider characters induced from other known subgroups.
     for name in names_of_fusion_sources(tbl)
       s = character_table(name)
-      known, fus = known_class_fusion(s, tbl)
-      @assert known "the class fusion is not stored"
-      if length(class_positions_of_kernel(fus)) == 1
-        psi = trivial_character(s)^(tbl)
-        bound = gcd(bound, scalar_product(fmpz, chi, psi))
-        bound == 1 && return 1
+      if s !== nothing
+        known, fus = known_class_fusion(s, tbl)
+        @assert known "the class fusion is not stored"
+        if length(class_positions_of_kernel(fus)) == 1
+          psi = trivial_character(s)^(tbl)
+          bound = gcd(bound, scalar_product(fmpz, chi, psi))
+          bound == 1 && return 1
+        end
       end
     end
 
