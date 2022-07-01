@@ -120,5 +120,6 @@ see [`character_table(id::String, p::Int = 0)`](@ref).
 
 ```@docs
 number_atlas_groups
+all_atlas_group_infos
 atlas_group
 ```

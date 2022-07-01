@@ -10,14 +10,14 @@ Fin, d = FiniteField(t^2 + t + 1)
 Frac = FractionField(R)
 
 cases = [
-    [QQ, fmpq(3, 4), fmpq(1, 2)],
-    [ZZ, 3, 4],
-    [ResidueRing(ZZ, 6), 3, 5],
-    [K, a, a + 1],
-    [Tow, a^2 * b, a + b],
-    [NonSimRel, c[1], c[2] * a],
-    [Fin, d, 0],
-    [Frac, 1 // x, x^2]
+    (QQ, fmpq(3, 4), fmpq(1, 2)),
+    (ZZ, 3, 4),
+    (ResidueRing(ZZ, 6), 3, 5),
+    (K, a, a + 1),
+    (Tow, a^2 * b, a + b),
+    (NonSimRel, c[1], c[2] * a),
+    (Fin, d, 0),
+    (Frac, 1 // x, x^2)
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{MPolyRing, PolyRing}
