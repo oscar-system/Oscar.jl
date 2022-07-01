@@ -304,7 +304,7 @@ cokernel(f::FreeModuleHom)
 
 ```@docs
 free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, method::String="complete", algorithm::String="fres")
+    length::Int=0, algorithm::Symbol=:fres)
 ```
 
 
