@@ -207,15 +207,38 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minima
     for V in Z
       k, m = _character_field(V)
       chi = character(V)
-      #if schur_index(chi) != 1
-      #  error("Not implemented for non-trivial Schur indicies yet")
-      #end
-      if degree(k) == degree(base_ring(V))
+      global last_chi = (chi, V)
+      d = schur_index(chi)
+      if d != 1
+        @vprint :MinField 1  "non-trivial Schur index $d found\n"
+      end
+      if d !== nothing && d*degree(k) == degree(base_ring(V))
         push!(res, V)
-      else
+      elseif d == 1
         @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
         Vmin = gmodule_over(m, V)
         push!(res, Vmin)
+      else
+        if d === nothing
+          d = 1 # only a lower bound is known
+        end
+        s = subfields(base_ring(V))
+        s = [x for x = s if degree(x[1]) >= d*degree(k)]
+        sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
+        for (m, mm) = s
+          if m == base_ring(V)
+            @vprint :MinField 1 "no smaller field possible\n"
+            push!(res, V)
+            break
+          end
+          @vprint :MinField 1 "trying descent to $m...\n"
+          Vmin = gmodule_over(mm, V, do_error = false)
+          if Vmin !== nothing
+            @vprint :MinField 1 "...success\n"
+            push!(res, Vmin)
+            break
+          end
+        end
       end
     end
     @assert length(res) == length(z)
