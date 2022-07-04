@@ -20,25 +20,43 @@ cases = [
     (Frac, 1 // x, x^2)
 ]
 
-function get_hom(R1::T, R2::T) where T <: Union{MPolyRing, PolyRing}
+
+function get_hom(R1::T, R2::T) where T <: Union{
+    MPolyRing{NfAbsNSElem}, PolyRing{NfAbsNSElem}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
+    return hom(D, I, gens(I))
+end
 
-    if D isa NfAbsNS
-        return hom(D, I, gens(I))
+function get_hom(R1::T, R2::T) where T <: Union{
+    MPolyRing{Hecke.NfRelElem{nf_elem}}, PolyRing{Hecke.NfRelElem{nf_elem}},
+    AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
+    D = coefficient_ring(R1)
+    I = coefficient_ring(R2)
+    D_base_field = base_field(D)
+    I_base_field = base_field(I)
+    h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
+    return hom(D, I, h_1, gen(I))
+end
 
-    elseif D isa Hecke.NfRel{nf_elem}
-        D_base_field = base_field(D)
-        I_base_field = base_field(I)
-        h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
-        return hom(D, I, h_1, gen(I))
+function get_hom(R1::T, R2::T) where T <: Union{
+    MPolyRing{Hecke.NfRelNSElem{nf_elem}},
+    PolyRing{Hecke.NfRelNSElem{nf_elem}}}
 
-    elseif D isa NfRelNS{nf_elem}
-        D_base_field = base_field(D)
-        I_base_field = base_field(I)
-        h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
-        return hom(D, I, h_1, gens(I))
-    end
+    
+    D = coefficient_ring(R1)
+    I = coefficient_ring(R2)
+    D_base_field = base_field(D)
+    I_base_field = base_field(I)
+    h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
+    return hom(D, I, h_1, gens(I))
+end
+
+function get_hom(R1::T, R2::T) where {
+    T <: Union{MPolyRing{S}, PolyRing{S}} where S <: Union{
+        nmod, fmpz, fmpq, fq_nmod, fmpq_poly}}
+    D = coefficient_ring(R1)
+    I = coefficient_ring(R2)
 
     return hom(D, I, gen(I))
 end
