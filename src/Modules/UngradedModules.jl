@@ -1552,31 +1552,6 @@ function cokernel(A::MatElem)
 end
 
 @doc Markdown.doc"""
-    image(F::FreeMod{T}, A::MatElem{T}) where T
-
-Return the subquotient $\im(A)$. The ambient free module is `F`.
-"""
-function image(F::FreeMod{T}, A::MatElem{T}) where T
-  @assert ncols(A) == rank(F)
-  return image(map(F,A))
-end
-
-@doc Markdown.doc"""
-    image(A::MatElem)
-
-Return the subquotient $\im(A)$. 
-
-!!! note
-
-    The ambient free module $R^m$ is constructed by the function and therefore not compatible with 
-    free modules $R^m$ that are defined by the user or by other functions. For compatibility,
-    use `image(F::FreeMod{T}, A::MatElem{T})`.
-"""
-function image(A::MatElem)
-  return image(map(A))
-end
-
-@doc Markdown.doc"""
     default_ordering(M::SubQuo)    
 
 Return the default ordering of `M`.
@@ -2700,10 +2675,10 @@ Put more precisely, if `N` denotes this quotient, return `N` as an object of typ
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(M::SubQuo, U::SubQuo, task::Symbol = :with_morphism)
-  if isdefined(M, :quo)
+  if isdefined(M, :quo) && isdefined(U, :quo)
     @assert M.quo == U.quo
   else
-    @assert !isdefined(U, :quo)
+    @assert !isdefined(M, :quo) && !isdefined(U, :quo)
   end
   Q = SubQuo(M, oscar_generators(U.sub.gens))
   return return_quo_wrt_task(M, Q, task)
