@@ -224,12 +224,12 @@ function fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int 
     end
 
     if algo == :king
-      IR.fundamental = fundamental_invariants_via_king(IR, beta = beta)
+      IR.fundamental = fundamental_invariants_via_king(IR, beta)
     elseif algo == :primary_and_secondary
       IR.fundamental = fundamental_invariants_via_primary_and_secondary(IR)
     else
       error("Unsupported argument :$(algo) for algo")
     end
   end
-  return IR.fundamental
+  return copy(IR.fundamental)
 end
