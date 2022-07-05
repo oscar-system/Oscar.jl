@@ -154,7 +154,7 @@ julia> oscar.alg318(G, rays)
 # aut_G(Cone)
 alg318(gram, rays) = alg319(gram, rays, rays)
 @doc Markdown.doc"""
-Return if the isometry `g` acts as +-1 on the discriminant group `S`.
+Return if the isometry `g` of `S` acts as +-1 on the discriminant group of `S`.
 """
 function is_in_G(S::ZLat,g::fmpq_mat)
   D = discriminant_group(S)
@@ -385,7 +385,7 @@ function alg61(L, S, w0)
     push!(W,Wlnew)
     push!(DD,Dlnew)
     for (w,backv) in Wl
-      @assert inner_product(V,w,w)[1,1] > 0
+      @assert inner_product(V,w,w)[1,1] >= 0
       Delta = alg511(L,S,w)
       autD = alg319(L, S, Delta, Delta)
       autD = [a for a in autD if !isone(a)]
@@ -562,7 +562,7 @@ function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0:
   relevant_roots = [matrix(QQ,1,rank(N),a[1])*basis_matrix(N) for a in sv]
   T = Hecke.orthogonal_submodule(S, QQDcapS)
   if rank(T)==0
-    return weyl,u
+    return weyl,u,u
   end
   @show rank(T)
   h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-2:2,rank(T)))*basis_matrix(T)
@@ -831,4 +831,21 @@ function find_isotropic(L)
       return v
     end
   end
+end
+
+function parse_zero_entropy()
+  io = open("/home/simon/Dropbox/Math/code/ZeroEntropy/giacomo lattices","r")
+  s = read(io, String)
+  s = split(s,"\n")
+  s = [a for a in s if length(a) > 0]
+  s = [split(a," ") for a in s]
+  s = [[ZZ(parse(Int64,i)) for i in a] for a in s]
+  res = []
+  for g in s
+    n = Int64(sqrt(ZZ(length(g))))
+    m = matrix(ZZ,n,n,g)
+    m[2,2] = -2
+    push!(res,m)
+  end
+  return res
 end

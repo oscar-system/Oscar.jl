@@ -46,7 +46,7 @@ separating_roots = oscar.alg23(S, h, weylS, -2)
 # order the reflections appropriately. I did not check the math behind this. So it might be wrong.
 sort!(separating_roots, by=r->inner_product(V,r,h)[1,1]//inner_product(V,r,weyl)[1,1])
 for r in separating_roots
-  weyl = weyl + inner_product(V, weyl, r)*r
+  global weyl = weyl + inner_product(V, weyl, r)*r
 end
 weylS = hcat(weyl[1,1:4],zero_matrix(QQ,1,6))
 @test length(oscar.alg23(S, h, weylS, -2))==0
@@ -66,7 +66,7 @@ L,S,iS, R,iR = oscar.embed_in_unimodular(S::ZLat, 10)
 V = ambient_space(L)
 # find a hyperbolic plane
 U = lattice(V, iU.matrix*iS.matrix)
-weyl = oscar.weyl_vector(L, U)
+weyl,_ = oscar.weyl_vector(L, U)
 
 h = ZZ[25 6 -10 -9 -16 -10]*basis_matrix(S)  #an ample vector
 @assert inner_product(V,h,h)[1,1]>0
@@ -106,3 +106,31 @@ end
 
 C = lattice(V,common_invariant(Gamma)[2])
 diagonal(rational_span(C))
+
+
+zero_entropy_candidates = oscar.parse_zero_entropy()
+
+zero_entropy_candidates = [Zlattice(gram=g) for g in zero_entropy_candidates]
+
+S = zero_entropy_candidates[3]
+function has_zero_entropy(S)
+  L,S,iS,R,iR = oscar.embed_in_unimodular(S,26)
+  V = ambient_space(L)
+  U = lattice(V,basis_matrix(S)[1:2, :])
+  @assert det(U)==-1
+  weyl,u0 = oscar.weyl_vector(L, U)
+  h = ZZ[40 1 -1 ]*basis_matrix(S)  #an ample vector
+  @assert inner_product(V,h,h)[1,1]>0
+  @assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
+  # confirm that h is in the interior of a weyl chamber,
+  # i.e. check that Q does not contain any -2 vector and h^2>0
+  Q = Hecke.orthogonal_submodule(S, lattice(V, h))
+  @test minimum(rescale(Q, -1)) > 2
+  weyl,u0 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
+
+  Gamma, W, DD, B = oscar.alg61(L,S,weyl)
+
+  C = lattice(V,common_invariant(Gamma)[2])
+  d = diagonal(rational_span(C))
+  return maximum([sign(d) for i in d])
+end
