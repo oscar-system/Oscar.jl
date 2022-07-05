@@ -143,7 +143,7 @@ irreducible_secondary_invariants(IR::InvRing)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing, algo::Symbol = :king)
+fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
 ```
 
 ## Invariant Rings as Affine Algebras
