@@ -15,7 +15,21 @@ polynomial_ring(I::InvRing) = I.poly_ring
 
 action(I::InvRing) = I.action
 
-_action_singular(I::InvRing) = I.action_singular
+# Singular action for permutations
+function _action_singular(RG::InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}) where {FldT, GrpT, PolyElemT, PolyRingT, ActionT <: PermGroupElem}
+  R = polynomial_ring(RG)
+  K = coefficient_ring(R)
+  R_sing = singular_poly_ring(R)
+  m_action = [ permutation_matrix(K, p) for p in action(RG) ]
+  return identity.([ change_base_ring(R_sing, g) for g in m_action ])
+end
+
+function _action_singular(RG::InvRing)
+  R = polynomial_ring(RG)
+  K = coefficient_ring(R)
+  R_sing = singular_poly_ring(R)
+  return identity.([change_base_ring(R_sing, g) for g in action(RG) ])
+end
 
 group(I::InvRing) = I.group
 
@@ -126,47 +140,6 @@ end
 #  Reynolds operator
 #
 ################################################################################
-
-function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
-  if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
-    singular_matrices = _action_singular(IR)
-
-    rey, mol = Singular.LibFinvar.reynolds_molien(singular_matrices...)
-    IR.reynolds_singular = rey
-    IR.molien_singular = mol
-  end
-  return IR.reynolds_singular, IR.molien_singular
-end
-
-function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  @assert !is_modular(IR)
-  if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
-    singular_matrices = _action_singular(IR)
-
-    rey = Singular.LibFinvar.reynolds_molien(singular_matrices..., "")
-    mol = Singular.lookup_library_symbol("Finvar", "newring")[2][:M]
-    IR.reynolds_singular = rey
-    IR.molien_singular = mol
-  end
-  return IR.reynolds_singular, IR.molien_singular
-end
-
-function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  return reynolds_molien_via_singular(IR)[1]
-end
-
-# Singular.LibFinvar.reynolds_molien does not work for finite fields which are
-# not prime fields.
-function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteField, FqFiniteField}}
-  @assert !is_modular(IR)
-  if !isdefined(IR, :reynolds_singular)
-    singular_matrices = _action_singular(IR)
-
-    rey = Singular.LibFinvar.group_reynolds(singular_matrices...)[1]
-    IR.reynolds_singular = rey
-  end
-  return IR.reynolds_singular
-end
 
 function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
   @assert !is_modular(IR)

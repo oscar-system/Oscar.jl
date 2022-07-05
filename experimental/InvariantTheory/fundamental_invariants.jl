@@ -139,24 +139,6 @@ end
 
 ################################################################################
 #
-#  Singular
-#
-################################################################################
-
-function fundamental_invariants_via_singular(IR::InvRing)
-  @assert !is_modular(IR)
-  rey = reynolds_via_singular(IR)
-  F = Singular.LibFinvar.invariant_algebra_reynolds(rey)::Singular.smatrix{<: Singular.spoly}
-  R = polynomial_ring(IR)
-  f = Vector{elem_type(R)}()
-  for i = 1:ncols(F)
-    push!(f, R(F[1, i]))
-  end
-  return f
-end
-
-################################################################################
-#
 #  User functions
 #
 ################################################################################
