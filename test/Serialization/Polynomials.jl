@@ -42,7 +42,6 @@ end
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{Hecke.NfRelNSElem{nf_elem}},
     PolyRing{Hecke.NfRelNSElem{nf_elem}}}
-    
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
     D_base_field = base_field(D)
@@ -57,22 +56,29 @@ function get_hom(R1::T, R2::T) where {
         nf_elem, nmod, fmpz, fmpq, fq_nmod, fmpq_poly}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
-
     return hom(D, I, gen(I))
 end
 
-function test_equality(p::MPolyElem{T}, l::MPolyElem{T}) where T <: Union{fmpq, fmpz, nmod}
+function test_equality(p::T, l::T) where T <: (
+    MPolyElem{S} where S <:Union{fmpq, fmpz, nmod})
     P = parent(p)
     L = parent(l)
     h = hom(P, L, gens(L))
     return h(p) == l
 end
 
-function test_equality(p::AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}},
-                       l::AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}) 
+function test_equality(p::T, l::T) where T <: (
+    PolyElem{S} where S <: Union{fmpq, fmpz, nmod})
     P = parent(p)
     L = parent(l)
- 
+    return L(collect(coefficients(p))) == l
+end
+
+function test_equality(p::T, l:: T) where T  <: Union{
+    MPolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}},
+    PolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
+    P = parent(p)
+    L = parent(l)
     mapped_coeffs = map(i -> evaluate(i, x), coefficients(l))
     return mapped_coeffs == collect(coefficients(p))
 end
@@ -85,20 +91,13 @@ function test_equality(p::MPolyElem{T}, l::MPolyElem{T}) where T <: Union{
     return [h(c) for c in coefficients(p)] == collect(coefficients(l))
 end
 
-function test_equality(p::PolyElem, l::PolyElem)
+function test_equality(p::T, l::T) where T <: (
+    PolyElem{S} where S <: Union{
+        Hecke.NfRelNSElem{nf_elem}, Hecke.NfRelElem{nf_elem}, fq_nmod, nf_elem})
     P = parent(p)
     L = parent(l)
-
-    if p isa PolyElem{T} where T <: Union{fmpq, fmpz, nmod}
-        return L(collect(coefficients(p))) == l
-        
-    elseif P isa AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}
-        mapped_coeffs = map(i -> evaluate(i, x), coefficients(l))
-        return mapped_coeffs == collect(coefficients(p))
-    else 
-        h = get_hom(P, L)
-        return [h(c) for c in coefficients(p)] == collect(coefficients(l))
-    end
+    h = get_hom(P, L)
+    return [h(c) for c in coefficients(p)] == collect(coefficients(l))
 end
 
 @testset "Polynomials" begin
