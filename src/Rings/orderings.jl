@@ -1,12 +1,12 @@
 module Orderings
 
 using Oscar, Markdown
-import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
+import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion, base_ring
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
-       negwdeglex, negwdegrevlex, matrix_ordering, weights, isweighted,
-       MonomialOrdering, ModuleOrdering, singular,
-       is_global, is_local, is_mixed
+       negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
+       weights, isweighted, is_global, is_local, is_mixed,
+       MonomialOrdering, ModuleOrdering, singular
 
 abstract type AbsOrdering end
 
@@ -45,6 +45,41 @@ mutable struct GenOrdering{T} <: AbsGenOrdering
    r.w = w
    return r
  end
+end
+
+# lex, deglex, ...
+struct SymbOrdering{S} <: AbsGenOrdering
+  vars::Vector{Int}
+  function SymbOrdering(S::Symbol, v::Vector{Int})
+    return new{S}(v)
+  end
+end
+
+# wdeglex, wdegrevlex, ...
+struct WSymbOrdering{S} <: AbsGenOrdering
+  vars::Vector{Int}
+  weights::Vector{Int}
+  function WSymbOrdering(S::Symbol, v::Vector{Int}, w::Vector{Int})
+    @assert length(v) == length(w)
+    return new{S}(v, w)
+  end
+end
+
+struct MatrixOrdering <: AbsGenOrdering
+  vars::Vector{Int}
+  matrix::fmpz_mat
+  function MatrixOrdering(v::Vector{Int}, m::fmpz_mat)
+    @assert length(v) == ncols(m)
+    return new(v, m)
+  end
+end
+
+# convert (y,x,z) => (2,1,3) and check uniqueness
+function _unique_var_indices(a::AbstractVector{<:MPolyElem})
+  !isempty(a) || error("need at least one variable")
+  z = Int[var_index(i) for i in a]
+  allunique(z) || error("variables must be unique")
+  return z
 end
 
 function isweighted(ord::Symbol)
@@ -98,6 +133,15 @@ function ordering(a::AbstractVector{Int}, s::Symbol, w::Vector{Int})
 function flat(a::GenOrdering)
    return [a]
 end
+
+function flat(a::SymbOrdering)
+  return [a]
+end
+
+function flat(a::WSymbOrdering)
+  return [a]
+end
+
 function flat(a::ProdOrdering)
    return vcat(flat(a.a), flat(a.b))
 end  
@@ -115,8 +159,12 @@ function anti_diagonal(R::Ring, n::Int)
   return a
 end
 
-#not user facing
-function weights(a::GenOrdering)
+
+
+
+
+
+function _weight_matrix(nvars::Int, a::GenOrdering)
   if a.ord == :lex || a.ord == Symbol("Singular(lp)")
     return identity_matrix(ZZ, length(a.vars))
   end
@@ -167,26 +215,8 @@ function weights(a::GenOrdering)
   error("Ordering not recognized")
 end
 
-#not user facing
-function weights(a::AbsOrdering)
-  aa = flat(a)
-  m = matrix(ZZ, 0, 0, [])
-  for o = aa
-    if o isa GenOrdering
-      w = weights(o)
-      if maximum(o.vars) > ncols(m)
-        m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
-      end
-      mm = zero_matrix(ZZ, nrows(w), ncols(m))
-      for r = 1:nrows(w)
-        for c = 1:length(o.vars)
-          mm[r, o.vars[c]] = w[r, c]
-        end
-      end
-      m = vcat(m, mm)
-    end
-  end
-  return m
+function _weight_matrix(nvars::Int, o::ProdOrdering)
+  return vcat(_weight_matrix(nvars, o.a), _weight_matrix(nvars, o.b))
 end
 
 """
@@ -196,6 +226,8 @@ mutable struct MonomialOrdering{S}
   R::S
   o::AbsGenOrdering
 end
+
+base_ring(a::MonomialOrdering) = a.R
 
 #not really user facing, not exported
 @doc Markdown.doc"""
@@ -212,13 +244,7 @@ In the second form, a weight ordering using the given matrix is used.
 In the last version, the symbol if of the form `Singular(..)`.
 """
 function ordering(a::AbstractVector{<:MPolyElem}, s...)
-  R = parent(first(a))
-  g = gens(R)
-  aa = [findfirst(x -> x == y, g) for y = a]
-  if nothing in aa
-    error("only variables allowed")
-  end
-  return ordering(aa, s...)
+  return ordering([var_index(b) for b in a], s...)
 end
 
 @doc Markdown.doc"""
@@ -244,7 +270,12 @@ function Base.show(io::IO, M::MonomialOrdering)
   show(io, M.R, a[end])
 end
 
-function Base.show(io::IO, R::MPolyRing, o::AbsOrdering)
+function Base.show(io::IO, R::MPolyRing, o::SymbOrdering{S}) where {S}
+  print(io, "$(String(S))($(gens(R)[o.vars]))")
+end
+
+
+function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
   if o.ord == :weight
     print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
   elseif isweighted(o.ord)
@@ -254,110 +285,546 @@ function Base.show(io::IO, R::MPolyRing, o::AbsOrdering)
   end
 end
 
+######## non-weighted orderings ########
+
+function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(s, i))
+end
+
+#### lex ####
+
 @doc Markdown.doc"""
     lex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `lex` (lexicographic) ordering on the variables given.
 """
 function lex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :lex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:lex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:lex})
+  m = zero_matrix(ZZ, length(o.vars), nvars)
+  i = 1
+  for j in o.vars
+    m[i, j] = 1
+    i += 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:lex})
+  for i in o.vars
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+#### deglex ####
+
 @doc Markdown.doc"""
     deglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `deglex` ordering on the variables given.
 """
 function deglex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :deglex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:deglex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:deglex})
+  m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
+  i = 2
+  for j in o.vars
+    m[1, j] = 1
+    m[i, j] = 1
+    i += 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:deglex})
+  tdk = sum(exponent(f, k, i) for i in o.vars)
+  tdl = sum(exponent(f, l, i) for i in o.vars)
+  if tdk > tdl
+    return 1
+  elseif tdk < tdl
+    return -1
+  end
+  for i in o.vars
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+#### degrevlex ####
+
 @doc Markdown.doc"""
     degrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `degrevlex` ordering on the variables given.
 """
 function degrevlex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:degrevlex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:degrevlex})
+  m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
+  i = 1 + length(o.vars)
+  for j in o.vars
+    m[1, j] = 1
+    m[i, j] = -1
+    i -= 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:degrevlex})
+  tdk = sum(exponent(f, k, i) for i in o.vars)
+  tdl = sum(exponent(f, l, i) for i in o.vars)
+  if tdk > tdl
+    return 1
+  elseif tdk < tdl
+    return -1
+  end
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return -1
+    elseif ek < el
+      return 1
+    end
+  end
+  return 0
+end
+
+#### revlex ####
+
 @doc Markdown.doc"""
     revlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `revlex` ordering on the variables given.
 """
 function revlex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :revlex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:revlex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:revlex})
+  m = zero_matrix(ZZ, length(o.vars), nvars)
+  i = length(o.vars)
+  for j in o.vars
+    m[i, j] = 1
+    i -= 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:revlex})
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+#### neglex ####
+
 @doc Markdown.doc"""
     neglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `neglex` ordering on the variables given.
 """
 function neglex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :neglex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:neglex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:neglex})
+  m = zero_matrix(ZZ, length(o.vars), nvars)
+  i = 1
+  for j in o.vars
+    m[i, j] = -1
+    i += 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:neglex})
+  for i in o.vars
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return -1
+    elseif ek < el
+      return 1
+    end
+  end
+  return 0
+end
+
+#### negrevlex ####
+
 @doc Markdown.doc"""
     negrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `negrevlex` ordering on the variables given.
 """
 function negrevlex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :negrevlex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:negrevlex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:negrevlex})
+  m = zero_matrix(ZZ, length(o.vars), nvars)
+  i = length(o.vars)
+  for j in o.vars
+    m[i, j] = -1
+    i -= 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negrevlex})
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return -1
+    elseif ek < el
+      return 1
+    end
+  end
+  return 0
+end
+
+#### negdegrevlex ####
+
 @doc Markdown.doc"""
     negdegrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `negdegrevlex` ordering on the variables given.
 """
 function negdegrevlex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :negdegrevlex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:negdegrevlex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:negdegrevlex})
+  m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
+  i = 1 + length(o.vars)
+  for j in o.vars
+    m[1, j] = -1
+    m[i, j] = -1
+    i -= 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdegrevlex})
+  tdk = sum(exponent(f, k, i) for i in o.vars)
+  tdl = sum(exponent(f, l, i) for i in o.vars)
+  if tdk > tdl
+    return -1
+  elseif tdk < tdl
+    return 1
+  end
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return -1
+    elseif ek < el
+      return 1
+    end
+  end
+  return 0
+end
+
+#### negdeglex ####
+
 @doc Markdown.doc"""
     negdeglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `negdeglex` ordering on the variables given.
 """
 function negdeglex(v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, :negdeglex))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:negdeglex, i))
 end
+
+function _weight_matrix(nvars::Int, o::SymbOrdering{:negdeglex})
+  m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
+  i = 2
+  for j in o.vars
+    m[1, j] = -1
+    m[i, j] = 1
+    i += 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdeglex})
+  tdk = sum(exponent(f, k, i) for i in o.vars)
+  tdl = sum(exponent(f, l, i) for i in o.vars)
+  if tdk > tdl
+    return -1
+  elseif tdk < tdl
+    return 1
+  end
+  for i in o.vars
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+######## weighted orderings ########
+
+function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), WSymbOrdering(s, i, w))
+end
+
+function _cmp_weighted_degree(f::MPolyElem, k::Int, l::Int, vars::Vector{Int}, w::Vector{Int})
+  n = length(vars)
+  @assert n == length(w)
+  t = 0
+  for j in 1:n
+    v = vars[j]
+    t += w[j]*(exponent(f, k, v) - exponent(f, l, v))
+  end
+  return t > 0 ? 1 : t < 0 ? -1 : 0;
+end
+
+#### wdeglex, Wp ####
+
 @doc Markdown.doc"""
     wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `wdeglex` ordering on the variables given with the weights `w`.
 """
 function wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
-  return MonomialOrdering(parent(first(v)), ordering(v, :wdeglex, w))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdeglex, i, w))
 end
+
+function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdeglex})
+  n = length(o.vars)
+  m = zero_matrix(ZZ, 1 + n, nvars)
+  for i in 1:n
+    j = o.vars[i]
+    m[1, j] = o.weights[i]
+    m[1 + i, j] = 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:wdeglex})
+  c = _cmp_weighted_degree(f, k, l, o.vars, o.weights)
+  c == 0 || return c
+  for i in o.vars
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+#### wdegrevlex, wp ####
+
 @doc Markdown.doc"""
     wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `wdegrevlex` ordering on the variables given with the weights `w`.
 """
 function wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
-  return MonomialOrdering(parent(first(v)), ordering(v, :wdegrevlex, w))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdegrevlex, i, w))
 end
+
+function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdegrevlex})
+  n = length(o.vars)
+  m = zero_matrix(ZZ, 1 + n, nvars)
+  for i in 1:n
+    j = o.vars[i]
+    m[1, j] = o.weights[i]
+    m[2 + n - i, j] = -1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:wdegrevlex})
+  c = _cmp_weighted_degree(f, k, l, o.vars, o.weights)
+  c == 0 || return c
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return -1
+    elseif ek < el
+      return 1
+    end
+  end
+  return 0
+end
+
+#### negwdeglex, Ws ####
+
 @doc Markdown.doc"""
     negwdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `negwdeglex` ordering on the variables given with the weights `w`.
 """
 function negwdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
-  return MonomialOrdering(parent(first(v)), ordering(v, :negwdeglex, w))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdeglex, i, w))
 end
+
+function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdeglex})
+  n = length(o.vars)
+  m = zero_matrix(ZZ, 1 + n, nvars)
+  for i in 1:n
+    j = o.vars[i]
+    m[1, j] = -o.weights[i]
+    m[1 + i, j] = 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:negwdeglex})
+  c = _cmp_weighted_degree(f, l, k, o.vars, o.weights)
+  c == 0 || return c
+  for i in o.vars
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+#### negwdegrevlex, ws ####
+
 @doc Markdown.doc"""
     negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `negwdegrevlex` ordering on the variables given with the weights `w`.
 """
 function negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
-  return MonomialOrdering(parent(first(v)), ordering(v, :negwdegrevlex, w))
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdegrevlex, i, w))
 end
+
+function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
+  n = length(o.vars)
+  m = zero_matrix(ZZ, 1 + n, nvars)
+  for i in 1:n
+    j = o.vars[i]
+    m[1, j] = -o.weights[i]
+    m[2 + n - i, j] = -1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:negwdegrevlex})
+  c = _cmp_weighted_degree(f, k, l, o.vars, o.weights)
+  c == 0 || return c
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek > el
+      return -1
+    elseif ek < el
+      return 1
+    end
+  end
+  return 0
+end
+
+#### matrix, M ####
+
 @doc Markdown.doc"""
     matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat) -> MonomialOrdering
 
 Defines the matrix ordering on the variables given with the matrix `M`.
 """
-function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat)
-  return MonomialOrdering(parent(first(v)), ordering(v, M))
+function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M)))
 end
+
+function _weight_matrix(nvars::Int, o::MatrixOrdering)
+  r = nrows(o.matrix)
+  c = length(o.vars)
+  @assert c == ncols(o.matrix)
+  m = zero_matrix(ZZ, r, nvars)
+  for i in 1:r, j in 1:c
+    m[i, o.vars[j]] = o.matrix[i, j]
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::MatrixOrdering)
+  M = o.matrix
+  r = nrows(M)
+  c = ncols(M)
+  for i in 1:r
+    v = o.vars[1]
+    t = M[i,1]*(exponent(f, k, v) - exponent(f, l, v))
+    for j in 2:c
+      v = o.vars[j]
+      t += M[i, j]*(exponent(f, k, v) - exponent(f, l, v))
+    end
+    if t > 0
+      return 1
+    elseif t < 0
+      return -1
+    end
+  end
+  return 0 
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::ProdOrdering)
+  cmp = _cmp_monomials(f, k, l, o.a)
+  cmp == 0 || return cmp
+  return _cmp_monomials(f, k, l, o.b)
+end
+
+###################################
+
 
 @doc Markdown.doc"""
     singular(ord::Symbol, v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
@@ -412,25 +879,25 @@ end
 Compute a weight ordering with a unique weight matrix.    
 """
 function Hecke.simplify(M::MonomialOrdering)
-  ww = simplify_weight_matrix(M.o)
-  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+  w = canonical_weight_matrix(M)
+  return MonomialOrdering(M.R, ordering(1:ncols(w), w))
 end
 
-function simplify_weight_matrix(M::AbsOrdering)
-  w = weights(M)
+function canonical_weight_matrix(nvars::Int, M::AbsOrdering)
+  w = _weight_matrix(nvars, M)
   ww = matrix(ZZ, 0, ncols(w), [])
-  for i=1:nrows(w)
+  for i in 1:nrows(w)
     if is_zero_row(w, i)
       continue
     end
     nw = w[i, :]
     c = content(nw)
-    if c != 1
+    if !isone(c)
       nw = divexact(nw, c)
     end
-    for j=1:nrows(ww)
+    for j in 1:nrows(ww)
       h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if nw[1, h] != 0
+      if !iszero(nw[1, h])
         nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j, :]
       end
     end
@@ -445,13 +912,17 @@ function simplify_weight_matrix(M::AbsOrdering)
   return ww
 end
 
+function canonical_weight_matrix(M::MonomialOrdering)
+  return canonical_weight_matrix(nvars(base_ring(M)), M.o)
+end
+
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-  return Hecke.simplify(M).o.wgt == Hecke.simplify(N).o.wgt
+  return canonical_weight_matrix(M) == canonical_weight_matrix(N)
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
-  return hash(Hecke.simplify(M).o.wgt, u)
+  return hash(canonical_weight_matrix(M), u)
 end
 
 @doc Markdown.doc"""
@@ -536,9 +1007,15 @@ mutable struct ModuleOrdering{S}
    o::AbsOrdering # must allow gen*mon or mon*gen product ordering
 end
 
+base_ring(a::ModuleOrdering) = a.M
+
 mutable struct ModProdOrdering <: AbsModOrdering
    a::AbsOrdering
    b::AbsOrdering
+end
+
+function Base.show(io::IO, R::AbstractAlgebra.Module, o::SymbOrdering{S}) where {S}
+   print(io, "Module ordering $(String(S))")
 end
 
 function Base.show(io::IO, M::ModuleOrdering)
@@ -619,7 +1096,7 @@ function flat(a::ModProdOrdering)
    return vcat(flat(a.a), flat(a.b))
 end
 
-function max_used_variable(st::Int, o::GenOrdering)
+function max_used_variable(st::Int, o::Union{GenOrdering, SymbOrdering})
    g = o.vars
    mi = minimum(g)
    ma = maximum(g)
@@ -831,9 +1308,9 @@ end  # module Orderings
    return false
  end
  
- function _perm_of_terms(f::MPolyElem, ord_lt::Function)
+ function _perm_of_terms(f::MPolyElem, ord::Orderings.MonomialOrdering)
    p = collect(1:length(f))
-   sort!(p, lt = (k, l) -> ord_lt(f, k, l), rev = true)
+   sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, l, ord.o) < 0), rev = true)
    return p
  end
  
@@ -888,8 +1365,8 @@ end  # module Orderings
 
 ###################################################
 
-# Comparisons for orderings given by an ordering
-# object
+# Comparisons for orderings given by an ordering object
+
 
 # Return -1, 0, +1 if term k of f is <, ==, > term
 # l of f wrt ord
@@ -1077,24 +1554,14 @@ end
 # variables may be out of order
 # just compare using weight matrix
 function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrdering{T}) where T
-   if _isless_matrix(f, k, l, weights(o))
+   if _isless_matrix(f, k, l, canonical_weight_matrix(o))
       return -1
-   elseif _isless_matrix(f, l, k, weights(o))
+   elseif _isless_matrix(f, l, k, canonical_weight_matrix(o))
       return 1
    end
    return 0 # equal wrt this (partial) ordering
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.ProdOrdering)
-   V = Oscar.Orderings.flat(o)
-   for oi in V
-      cmp = _cmp_monomials(f, k, l, oi)
-      if cmp != 0
-         return cmp
-      end
-   end
-   return 0
-end
 
 function lt_from_ordering(R::MPolyRing, o::Oscar.Orderings.AbsGenOrdering)
    return (f, k, l) -> _cmp_monomials(f, k, l, o) < 0
