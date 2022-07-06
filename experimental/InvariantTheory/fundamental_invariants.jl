@@ -35,9 +35,17 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   singular_assure(G, ordR)
   GO = elem_type(R)[]
 
-  # TODO: Should we use [DK15, Theorem 3.2.8] to get a somewhat better bound
-  # for non-cyclic groups?
-  dmax = order(group(RG))
+  g = order(Int, group(RG))
+  if is_cyclic(group(RG))
+    dmax = g
+  else
+    # We get a somewhat better bound if the group is not cyclic, see [DK15, Theorem 3.2.8]
+    if iseven(g)
+      dmax = floor(Int, 3//4*g)
+    else
+      dmax = floor(Int, 5//8*g)
+    end
+  end
   if beta > 0 && beta < dmax
     dmax = beta
   end
@@ -156,9 +164,10 @@ will be fast and give the same result.
 In the non-modular case the function relies on King's algorithm [Kin13](@cite) which
 finds a system of fundamental invariants directly, without computing primary and
 secondary invariants.
-If an upper bound for the degrees of fundamental invariants better than the order
-of the group is known, this can be supplied by the keyword argument `beta` and might
-result in an earlier termination of the algorithm.
+If an upper bound for the degrees of fundamental invariants is known, this can be
+supplied by the keyword argument `beta` and might result in an earlier termination
+of the algorithm. By default, the algorithm uses the bounds from [DH00](@cite)
+and [Sez02](@cite).
 
 Alternatively, if specified by `algo = :primary_and_secondary`, the function computes
 fundamental invariants from a collection of primary and irreducible secondary
