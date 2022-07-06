@@ -15,22 +15,6 @@ polynomial_ring(I::InvRing) = I.poly_ring
 
 action(I::InvRing) = I.action
 
-# Singular action for permutations
-function _action_singular(RG::InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}) where {FldT, GrpT, PolyElemT, PolyRingT, ActionT <: PermGroupElem}
-  R = polynomial_ring(RG)
-  K = coefficient_ring(R)
-  R_sing = singular_poly_ring(R)
-  m_action = [ permutation_matrix(K, p) for p in action(RG) ]
-  return identity.([ change_base_ring(R_sing, g) for g in m_action ])
-end
-
-function _action_singular(RG::InvRing)
-  R = polynomial_ring(RG)
-  K = coefficient_ring(R)
-  R_sing = singular_poly_ring(R)
-  return identity.([change_base_ring(R_sing, g) for g in action(RG) ])
-end
-
 group(I::InvRing) = I.group
 
 is_modular(I::InvRing) = I.modular
