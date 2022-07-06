@@ -338,7 +338,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
     # find weights of the Cox ring
-    weights = matrix(ZZ, [0 1; 1 0; 0 1; 1 2])
+    weights = matrix(ZZ, [0 1; 1 0; 0 1; 1 r])
     
     # set map from torusinvariant weil divisors to class group
     set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
