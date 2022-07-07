@@ -5,8 +5,8 @@ import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion, base_ring
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
-       weights, isweighted, is_global, is_local, is_mixed,
-       permutation_of_terms,
+       weight_matrix, isweighted, is_global, is_local, is_mixed,
+       permutation_of_terms, weighted_ordering, canonical_weight_matrix,
        MonomialOrdering, ModuleOrdering, singular
 
 abstract type AbsOrdering end
@@ -652,11 +652,23 @@ end
     matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}})
 
 Defines the matrix ordering on the variables given with the matrix `M`. The
-matrix need not be square nor have full row rank.
+matrix need not be square nor have full row rank, thus the resulting ordering
+may be only a partial ordering on the given variables.
 """
 function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M)))
+end
+
+@doc Markdown.doc"""
+    weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
+
+Defines the (partial) weighted ordering on the variables given with the weight
+vector `w`. This is equivalent to a matrix ordering with just one row.
+"""
+function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) where T
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(1, length(w), w)))
 end
 
 function _weight_matrix(nvars::Int, o::MatrixOrdering)
@@ -738,22 +750,22 @@ function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector
 end
 
 @doc Markdown.doc"""
-    weights(M::MonomialOrdering)
- 
-Compute a corresponding weight matrix for the given ordering.
+    weight_matrix(M::MonomialOrdering)
+
+Return a corresponding weight matrix for the given ordering.
 """
-function weights(M::MonomialOrdering)
-  return weights(M.o)
+function weight_matrix(M::MonomialOrdering)
+  return _weight_matrix(nvars(base_ring(M)), M.o)
 end
 
 @doc Markdown.doc"""
     simplify(M::MonomialOrdering) -> MonomialOrdering
 
-Compute a weight ordering with a unique weight matrix.    
+Returns a matrix ordering with a unique weight matrix.
 """
 function Hecke.simplify(M::MonomialOrdering)
   w = canonical_weight_matrix(M)
-  return MonomialOrdering(M.R, ordering(1:ncols(w), w))
+  return MonomialOrdering(M.R, MatrixOrdering(1:ncols(w), w))
 end
 
 function canonical_weight_matrix(nvars::Int, M::AbsOrdering)
@@ -785,6 +797,11 @@ function canonical_weight_matrix(nvars::Int, M::AbsOrdering)
   return ww
 end
 
+@doc Markdown.doc"""
+    canonical_weight_matrix(M::MonomialOrdering)
+
+Return the corresponding canonical weight matrix for the given ordering.
+"""
 function canonical_weight_matrix(M::MonomialOrdering)
   return canonical_weight_matrix(nvars(base_ring(M)), M.o)
 end

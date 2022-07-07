@@ -186,5 +186,12 @@ end
 
   R, (x, y, z) = QQ["x", "y", "z"]
   @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
+
+  a = negwdegrevlex([z, x, y], [4, 5, 6])
+  @test matrix_ordering([x, y, z], weight_matrix(a)) ==
+        matrix_ordering([x, y, z], [-5 -6 -4; 0 -1 0; -1 0 0; 0 0 -1])
+
+  a = weighted_ordering([y, z, x], [4, 6, 8])
+  @test canonical_weight_matrix(a) == matrix(ZZ, 1, 3, [4, 2, 3])
 end
 

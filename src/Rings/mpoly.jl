@@ -155,8 +155,9 @@ end
 using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       matrix_ordering, weights, MonomialOrdering, singular,
-       is_global, is_local, is_mixed
+       matrix_ordering, weight_matrix, MonomialOrdering, singular,
+       is_global, is_local, is_mixed,
+       permutation_of_terms, weighted_ordering, canonical_weight_matrix
 
 
 ##############################################################################
