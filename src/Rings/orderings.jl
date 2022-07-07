@@ -14,39 +14,6 @@ abstract type AbsGenOrdering <: AbsOrdering end
 
 abstract type AbsModOrdering <: AbsOrdering end
 
-"""
-Ring-free monomial ordering: just the indices of the variables are given.
-`T` can be a `UnitRange` to make Singular happy or any `Array` if the
-variables are not consecutive
-"""
-mutable struct GenOrdering{T} <: AbsGenOrdering
-  vars::T
-  ord::Symbol
-  wgt::fmpz_mat
-  w::Vector{Int}
-  function GenOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
-    r = new{typeof(u)}()
-    r.vars = u
-    r.ord = s
-    return r
-  end
-  function GenOrdering(u::T, m::fmpz_mat; ord::Symbol = :weight) where {T <: AbstractVector{Int}}
-    r = new{typeof(u)}()
-    @assert ncols(m) == length(u)
-    r.vars = u
-    r.ord = ord
-    r.wgt = m
-    return r
-  end
-  function GenOrdering(u::T, w::Vector{Int}; ord::Symbol) where {T <: AbstractVector{Int}}
-   r = new{typeof(u)}()
-   r.vars = u
-   r.ord = ord
-   r.w = w
-   return r
- end
-end
-
 # lex, deglex, ...
 struct SymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
@@ -97,48 +64,15 @@ end
 
 Base.:*(a::AbsGenOrdering, b::AbsGenOrdering) = ProdOrdering(a, b)
 
-#not really user facing
-function ordering(a::AbstractVector{Int}, s::Union{Symbol, fmpz_mat})
-  i = minimum(a)
-  I = maximum(a)
-  if I-i+1 == length(a) #test if variables are consecutive or not.
-    return GenOrdering(i:I, s)
-  end
-  return GenOrdering(collect(a), s)
-end
-
-#not really user facing
-function ordering(a::AbstractVector{Int}, s::Symbol, w::fmpz_mat)
-  i = minimum(a)
-  I = maximum(a)
-  if I-i+1 == length(a)
-    return GenOrdering(i:I, w, ord = s)
-  end
-  return GenOrdering(collect(a), w, ord = s)
-end
-
-#not really user facing
-function ordering(a::AbstractVector{Int}, s::Symbol, w::Vector{Int})
-   i = minimum(a)
-   I = maximum(a)
-   length(a) == length(w) || error("number of weights doesn't match number of variables")
-   if I-i+1 == length(a)
-     return GenOrdering(i:I, w, ord = s)
-   end
-   return GenOrdering(collect(a), w, ord = s)
- end
- 
-
-#not really user facing, flattens a product of product orderings into an array 
-function flat(a::GenOrdering)
-   return [a]
-end
-
 function flat(a::SymbOrdering)
   return [a]
 end
 
 function flat(a::WSymbOrdering)
+  return [a]
+end
+
+function flat(a::MatrixOrdering)
   return [a]
 end
 
@@ -161,60 +95,6 @@ end
 
 
 
-
-
-
-function _weight_matrix(nvars::Int, a::GenOrdering)
-  if a.ord == :lex || a.ord == Symbol("Singular(lp)")
-    return identity_matrix(ZZ, length(a.vars))
-  end
-  if a.ord == :deglex || a.ord == Symbol("Singular(Dp)")
-    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
-            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
-  end
-  if a.ord == :degrevlex || a.ord == Symbol("Singular(dp)")
-    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-            zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
-  end
-  if a.ord == :revlex || a.ord == Symbol("Singular(rp)")
-    return anti_diagonal(ZZ, length(a.vars))
-  end
-  if a.ord == :wdeglex || a.ord == Symbol("Singular(Wp)")
-    return [matrix(ZZ, 1, length(a.vars), a.w);
-            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
-  end
-  if a.ord == :wdegrevlex || a.ord == Symbol("Singular(wp)")
-    return [matrix(ZZ, 1, length(a.vars), a.w);
-            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
-  end
-  if a.ord == :neglex || a.ord == Symbol("Singular(ls)")
-    return -identity_matrix(ZZ, length(a.vars))
-  end
-  if a.ord == :negdeglex || a.ord == Symbol("Singular(Ds)")
-    return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
-            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
-  end
-  if a.ord == :negdegrevlex || a.ord == Symbol("Singular(ds)")
-    return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-            zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
-  end
-  if a.ord == :negrevlex || a.ord == Symbol("Singular(rs)")
-    return -anti_diagonal(ZZ, length(a.vars))
-  end
-  if a.ord == :negwdeglex || a.ord == Symbol("Singular(Ws)")
-    return [-matrix(ZZ, 1, length(a.vars), a.w);
-            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
-  end
-  if a.ord == :negwdegrevlex || a.ord == Symbol("Singular(ws)")
-    return [-matrix(ZZ, 1, length(a.vars), a.w);
-            zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
-  end
-  if a.ord == :weight || a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
-    return a.wgt
-  end
-  error("Ordering not recognized")
-end
-
 function _weight_matrix(nvars::Int, o::ProdOrdering)
   return vcat(_weight_matrix(nvars, o.a), _weight_matrix(nvars, o.b))
 end
@@ -229,29 +109,11 @@ end
 
 base_ring(a::MonomialOrdering) = a.R
 
-#not really user facing, not exported
-@doc Markdown.doc"""
-    ordering(a::Vector{MPolyElem}, s::Symbol)
-    ordering(a::Vector{MPolyElem}, m::fmpz_mat)
-    ordering(a::Vector{MPolyElem}, s::Symbol, m::fmpz_mat)
-    ordering(a::Vector{MPolyElem}, s::Symbol, w::Vector{Int})
-
-Defines an ordering to be applied to the variables in `a`.
-In the first form the symbol `s` has to be one of `:lex`, `:deglex`,
-`:degrevlex`, `:revlex`, `:neglex`, `:negdeglex`, `:negdegrevlex`,
-`:negrevlex`, `:wdeglex`, `:wdegrevlex`, `:negwdeglex`, `:negwdegrevlex`.
-In the second form, a weight ordering using the given matrix is used.
-In the last version, the symbol if of the form `Singular(..)`.
-"""
-function ordering(a::AbstractVector{<:MPolyElem}, s...)
-  return ordering([var_index(b) for b in a], s...)
-end
-
 @doc Markdown.doc"""
     :*(M::MonomialOrdering, N::MonomialOrdering)
 
-For orderings on the same ring, the product ordering obtained by concatenation
-of the weight matrix.
+The product ordering `M*N` tries to order by `M` first, and in the case of a
+tie uses `N`. Corresponds to a vertical concatenation of the weight matrices.
 """
 function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
   M.R == N.R || error("wrong rings")
@@ -259,34 +121,36 @@ function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
 end
 
 function Base.show(io::IO, M::MonomialOrdering)
-  a = flat(M.o)
-  if length(a) > 1
-    print(io, "Product ordering: ")
-    for i=1:length(a)-1
-      show(io, M.R, a[i])
-      print(io, " * ")
-    end
-  end
-  show(io, M.R, a[end])
+  show(io, o.o)
 end
 
-function Base.show(io::IO, R::MPolyRing, o::SymbOrdering{S}) where {S}
-  print(io, "$(String(S))($(gens(R)[o.vars]))")
+function Base.show(io::IO, o::SymbOrdering{S}) where {S}
+  print(io, "ordering $(String(S))")
 end
 
+function Base.show(io::IO, o::WSymbOrdering{S}) where {S}
+  print(io, "weighted ordering $(String(S))")
+end
 
-function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
-  if o.ord == :weight
-    print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
-  elseif isweighted(o.ord)
-   print(io, "weight($(gens(R)[o.vars]) via $(o.w))")
-  else
-    print(io, "$(String(o.ord))($(gens(R)[o.vars]))")
-  end
+function Base.show(io::IO, o::MatrixOrdering)
+  print(io, "matrix ordering")
+end
+
+function Base.show(io::IO, o::ProdOrdering) where {S}
+  show(io, o.a)
+  print(io, "* ")
+  show(io, o.b)
 end
 
 ######## non-weighted orderings ########
 
+@doc Markdown.doc"""
+    monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
+
+Defines an ordering to be applied to the variables in `v`. The symbol `s`
+should be one of `:lex`, `:deglex`, `:degrevlex`, `:revlex`, `:neglex`,
+`:negdeglex`, `:negdegrevlex`, `:negrevlex`.
+"""
 function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(s, i))
@@ -606,6 +470,13 @@ end
 
 ######## weighted orderings ########
 
+@doc Markdown.doc"""
+    monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
+
+Defines a weighted ordering to be applied to the variables in `v`. The weight
+vector `w` should be the same length as `v`, and the symbol `s` should be one
+of `:wdeglex`, `:wdegrevlex`, `:negwdeglex`, `:negwdegrevlex`.
+"""
 function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(s, i, w))
@@ -760,7 +631,7 @@ function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
 end
 
 function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:negwdegrevlex})
-  c = _cmp_weighted_degree(f, k, l, o.vars, o.weights)
+  c = _cmp_weighted_degree(f, l, k, o.vars, o.weights)
   c == 0 || return c
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
@@ -777,9 +648,10 @@ end
 #### matrix, M ####
 
 @doc Markdown.doc"""
-    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::fmpz_mat) -> MonomialOrdering
+    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}})
 
-Defines the matrix ordering on the variables given with the matrix `M`.
+Defines the matrix ordering on the variables given with the matrix `M`. The
+matrix need not be square nor have full row rank.
 """
 function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T
   i = _unique_var_indices(v)
@@ -1014,39 +886,27 @@ mutable struct ModProdOrdering <: AbsModOrdering
    b::AbsOrdering
 end
 
-function Base.show(io::IO, R::AbstractAlgebra.Module, o::SymbOrdering{S}) where {S}
-   print(io, "Module ordering $(String(S))")
+function Base.show(io::IO, o::ModuleOrdering)
+  show(io, o.o)
 end
 
-function Base.show(io::IO, M::ModuleOrdering)
-   a = flat(M.o)
-   if length(a) > 1
-     print(io, "Product ordering: ")
-     for i=1:length(a)-1
-       if isa(a[i], GenOrdering)
-         show(io, base_ring(M.M), a[i])
-       else
-         show(io, M.M, a[i])
-       end
-       print(io, " * ")
-     end
-   end
-   if isa(a[end], GenOrdering)
-      show(io, base_ring(M.M), a[end])
-   else
-      show(io, M.M, a[end])
-   end
+function Base.show(io::IO, o::ModProdOrdering) where {S}
+  show(io, o.a)
+  print(io, " * ")
+  show(io, o.b)
 end
 
-function Base.show(io::IO, R::AbstractAlgebra.Module, o::AbsOrdering)
+function Base.show(io::IO, o::ModOrdering)
    if o.ord == :lex
-      print(io, "Module ordering (lex)")
+      print(io, "Module ordering lex")
    elseif o.ord == :revlex
-      print(io, "Module ordering (revlex)")
+      print(io, "Module ordering revlex")
    else
       error("module ordering unknown")
    end
 end
+
+
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
@@ -1096,7 +956,7 @@ function flat(a::ModProdOrdering)
    return vcat(flat(a.a), flat(a.b))
 end
 
-function max_used_variable(st::Int, o::Union{GenOrdering, SymbOrdering})
+function max_used_variable(st::Int, o::Union{SymbOrdering, WSymbOrdering, MatrixOrdering})
    g = o.vars
    mi = minimum(g)
    ma = maximum(g)
@@ -1139,431 +999,9 @@ end  # module Orderings
 
 ###################################################
 
-# Some isless functions for orderings given by a symbol:
-# _isless_:ord(f, k, l) returns true if the k-th term is lower than the l-th
-# term of f in the ordering :ord.
-
- # lp: weight matrix [1 0 0; 0 1 0; 0 0 1]
- function _isless_lex(f::MPolyElem, k::Int, l::Int)
-   n = nvars(parent(f))
-   for i = 1:n
-     ek = exponent(f, k, i)
-     el = exponent(f, l, i)
-     if ek != el
-       return ek < el
-     end
-   end
-   return false
- end
- 
- # ls: weight matrix [-1 0 0; 0 -1 0; 0 0 -1]   !!! confusing !!!
- function _isless_neglex(f::MPolyElem, k::Int, l::Int)
-   n = nvars(parent(f))
-   for i = 1:n
-     ek = exponent(f, k, i)
-     el = exponent(f, l, i)
-     if ek != el
-       return ek > el
-     end
-   end
-   return false
- end
- 
- # rp: weight matrix [0 0 1; 0 1 0; 1 0 0]   !!! confusing !!!
- function _isless_revlex(f::MPolyElem, k::Int, l::Int)
-   n = nvars(parent(f))
-   for i = n:-1:1
-     ek = exponent(f, k, i)
-     el = exponent(f, l, i)
-     if ek != el
-        return ek < el
-     end
-   end
-   return false
- end
- 
- # rs: weight matrix [0 0 -1; 0 -1 0; -1 0 0]   !!! confusing !!!
- function _isless_negrevlex(f::MPolyElem, k::Int, l::Int)
-   n = nvars(parent(f))
-   for i = n:-1:1
-     ek = exponent(f, k, i)
-     el = exponent(f, l, i)
-     if ek != el
-       return ek > el
-     end
-   end
-   return false
- end
- 
- # Dp: weight matrix [1 1 1; 1 0 0; 0 1 0; 0 0 1]
- function _isless_deglex(f::MPolyElem, k::Int, l::Int)
-   tdk = total_degree(term(f, k))
-   tdl = total_degree(term(f, l))
-   if tdk < tdl
-     return true
-   elseif tdk > tdl
-     return false
-   end
-   return _isless_lex(f, k, l)
- end
- 
- # dp: weight matrix [1 1 1; 0 0 -1; 0 -1 0; -1 0 0]
- function _isless_degrevlex(f::MPolyElem, k::Int, l::Int)
-   tdk = total_degree(term(f, k))
-   tdl = total_degree(term(f, l))
-   if tdk != tdl
-     return tdk < tdl
-   end
-   return _isless_negrevlex(f, k, l)
- end
- 
- # Ds: weight matrix [-1 -1 -1; 1 0 0; 0 1 0; 0 0 1]
- function _isless_negdeglex(f::MPolyElem, k::Int, l::Int)
-   tdk = total_degree(term(f, k))
-   tdl = total_degree(term(f, l))
-   if tdk != tdl
-     return tdk > tdl
-   end
-   return _isless_lex(f, k, l)
- end
- 
- # ds: weight matrix [-1 -1 -1; 0 0 -1; 0 -1 0; -1 0 0]
- function _isless_negdegrevlex(f::MPolyElem, k::Int, l::Int)
-   tdk = total_degree(term(f, k))
-   tdl = total_degree(term(f, l))
-   if tdk != tdl
-     return tdk > tdl
-   end
-   return _isless_negrevlex(f, k, l)
- end
- 
- # Returns the degree of the k-th term of f weighted by w,
- # that is deg(x^a) = w_1a_1 + ... + w_na_n.
- # No sanity checks are performed!
- function weighted_degree(f::MPolyElem, k::Int, w::Vector{Int})
-   ek = exponent_vector(f, k)
-   return dot(ek, w)
- end
-
- function weighted_degree(f::MPolyElem, k::Int, r::UnitRange{Int}, w::Vector{Int})
-   ek = exponent_vector(f, k)[r]
-   return dot(ek, w)
- end
-
- # Wp: the matrix is [w; 1 0 0; 0 1 0; 0 0 1]
- function _isless_weightdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
-   dk = weighted_degree(f, k, w)
-   dl = weighted_degree(f, l, w)
-   if dk != dl
-     return dk < dl
-   end
-   return _isless_lex(f, k, l)
- end
-
- # wp: the matrix is [w; 0 0 -1; 0 -1 0; -1 0 0]
- function _isless_weightdegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
-   dk = weighted_degree(f, k, w)
-   dl = weighted_degree(f, l, w)
-   if dk != dl
-     return dk < dl
-   end
-   return _isless_negrevlex(f, k, l)
- end
- 
- # Ws: the matrix is [-w; 1 0 0; 0 1 0; 0 0 1]
- function _isless_weightnegdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
-   dk = weighted_degree(f, k, w)
-   dl = weighted_degree(f, l, w)
-   if dk != dl
-     return dk > dl
-   end
-   return _isless_lex(f, k, l)
- end
-
- # ws: the matrix is [-w; 0 0 -1; 0 -1 0; -1 0 0]
- function _isless_weightnegdegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
-   dk = weighted_degree(f, k, w)
-   dl = weighted_degree(f, l, w)
-   if dk != dl
-     return dk > dl
-   end
-   return _isless_negrevlex(f, k, l)
- end
- 
- function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Matrix{T}, MatElem{T} }) where T
-   ek = exponent_vector(f, k)
-   el = exponent_vector(f, l)
-   n = nvars(parent(f))
-   for i = 1:size(M, 1)
-     eki = sum( M[i, j]*ek[j] for j = 1:n )
-     eli = sum( M[i, j]*el[j] for j = 1:n )
-     if eki == eli
-       continue
-     elseif eki > eli
-       return false
-     else
-       return true
-     end
-   end
-   return false
- end
- 
  function _perm_of_terms(f::MPolyElem, ord::Orderings.MonomialOrdering)
    p = collect(1:length(f))
    sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, l, ord.o) < 0), rev = true)
    return p
  end
- 
- # Requiring R for consistence with the other lt_from_ordering functions
- function lt_from_ordering(::MPolyRing, ord::Symbol)
-   if ord == :lex || ord == :lp
-     return _isless_lex
-   elseif ord == :revlex || ord == :rp
-     return _isless_revlex
-   elseif ord == :deglex || ord == :Dp
-     return _isless_deglex
-   elseif ord == :degrevlex || ord == :dp
-     return _isless_degrevlex
-   elseif ord == :neglex || ord == :ls
-     return _isless_neglex
-   elseif ord == :negrevlex || ord == :rs
-     return _isless_negrevlex
-   elseif ord == :negdeglex || ord == :Ds
-     return _isless_negdeglex
-   elseif ord == :negdegrevlex || ord == :ds
-     return _isless_negdegrevlex
-   else
-     error("Ordering $ord not available")
-   end
- end
- 
- function lt_from_ordering(R::MPolyRing, ord::Symbol, w::Vector{Int})
-   @assert length(w) == nvars(R) "Number of weights has to match number of variables"
- 
-   if ord == :wdeglex || ord == :Wp
-     @assert all(x -> x > 0, w) "Weights have to be positive"
-     return (f, k, l) -> _isless_weightdeglex(f, k, l, w)
-   elseif ord == :wdegrevlex || ord == :wp
-     @assert all(x -> x > 0, w) "Weights have to be positive"
-     return (f, k, l) -> _isless_weightdegrevlex(f, k, l, w)
-   elseif ord == :negwdeglex || ord == :Ws
-     @assert !iszero(w[1]) "First weight must not be 0"
-     return (f, k, l) -> _isless_weightnegdeglex(f, k, l, w)
-   elseif ord == :negwdegrevlex || ord == :ws
-     @assert !iszero(w[1]) "First weight must not be 0"
-     return (f, k, l) -> _isless_weightnegdegrevlex(f, k, l, w)
-   else
-     error("Ordering $ord not available")
-   end
- end
- 
- function lt_from_ordering(R::MPolyRing, M::Union{ Matrix{T}, MatElem{T} }) where T
-   @assert size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
- 
-   return (f, k, l) -> _isless_matrix(f, k, l, M)
- end
-
-###################################################
-
-# Comparisons for orderings given by an ordering object
-
-
-# Return -1, 0, +1 if term k of f is <, ==, > term
-# l of f wrt ord
-# not user facing
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrdering{T}) where T <: UnitRange{Int}
-   tdk = sum(exponent(f, k, i) for i in o.vars)
-   tdl = sum(exponent(f, l, i) for i in o.vars)
-   if o.ord == :lex
-      for i in o.vars
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return 1
-         elseif ek < el
-           return -1
-         end
-       end
-   elseif o.ord == :deglex
-      if tdk > tdl
-         return 1
-      elseif tdk < tdl
-         return -1
-      end
-      for i in o.vars
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return 1
-         elseif ek < el
-           return -1
-         end
-       end
-   elseif o.ord == :revlex
-      for i in reverse(o.vars)
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return 1
-         elseif ek < el
-           return -1
-         end
-       end
-   elseif o.ord == :degrevlex
-      if tdk > tdl
-         return 1
-      elseif tdk < tdl
-         return -1
-      end
-      for i in reverse(o.vars)
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return -1
-         elseif ek < el
-           return 1
-         end
-       end
-   elseif o.ord == :neglex
-      for i in o.vars
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return -1
-         elseif ek < el
-           return 1
-         end
-       end
-   elseif o.ord == :negdeglex
-      if tdk > tdl
-         return -1
-      elseif tdk < tdl
-         return 1
-      end
-      for i in o.vars
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return 1
-         elseif ek < el
-           return -1
-         end
-       end
-   elseif o.ord == :negrevlex
-      for i in reverse(o.vars)
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return -1
-         elseif ek < el
-           return 1
-         end
-       end
-   elseif o.ord == :negdegrevlex
-      if tdk > tdl
-         return -1
-      elseif tdk < tdl
-         return 1
-      end
-      for i in reverse(o.vars)
-         ek = exponent(f, k, i)
-         el = exponent(f, l, i)
-         if ek > el
-           return -1
-         elseif ek < el
-           return 1
-         end
-       end
-   elseif o.ord == :weight
-     if _isless_matrix(f, k, l, o.wgt)
-       return -1
-     elseif _isless_matrix(f, l, k, o.wgt)
-       return 1
-     end
-   else
-      dk = weighted_degree(f, k, o.vars, o.w)
-      dl = weighted_degree(f, l, o.vars, o.w)
-      if o.ord == :wdeglex
-         if dk < dl
-            return -1
-          elseif dk > dl
-            return 1
-          end
-          for i in o.vars
-            ek = exponent(f, k, i)
-            el = exponent(f, l, i)
-            if ek > el
-              return 1
-            elseif ek < el
-              return -1
-            end
-          end
-      elseif o.ord == :wdegrevlex
-         if dk < dl
-            return -1
-          elseif dk > dl
-            return 1
-          end
-          for i in reverse(o.vars)
-            ek = exponent(f, k, i)
-            el = exponent(f, l, i)
-            if ek > el
-              return -1
-            elseif ek < el
-              return 1
-            end
-          end
-      elseif o.ord == :negwdeglex
-         if dk > dl
-            return -1
-          elseif dk < dl
-            return 1
-          end
-          for i in o.vars
-            ek = exponent(f, k, i)
-            el = exponent(f, l, i)
-            if ek > el
-              return 1
-            elseif ek < el
-              return -1
-            end
-          end
-      elseif o.ord == :negwdegrevlex
-         if dk > dl
-            return -1
-          elseif dk < dl
-            return 1
-          end
-          for i in reverse(o.vars)
-            ek = exponent(f, k, i)
-            el = exponent(f, l, i)
-            if ek > el
-              return -1
-            elseif ek < el
-              return 1
-            end
-          end
-      else
-         error("ordering not implemented")
-      end
-   end
-   return 0 # equal wrt this (partial) ordering
-end
-
-# fallback for cases where T is not a UnitRange{Int}
-# variables may be out of order
-# just compare using weight matrix
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrdering{T}) where T
-   if _isless_matrix(f, k, l, canonical_weight_matrix(o))
-      return -1
-   elseif _isless_matrix(f, l, k, canonical_weight_matrix(o))
-      return 1
-   end
-   return 0 # equal wrt this (partial) ordering
-end
-
-
-function lt_from_ordering(R::MPolyRing, o::Oscar.Orderings.AbsGenOrdering)
-   return (f, k, l) -> _cmp_monomials(f, k, l, o) < 0
-end
 

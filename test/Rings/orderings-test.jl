@@ -179,3 +179,12 @@ end
    O6 = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4])) * lex(gens(K)) * wdeglex([s, t, u], [1, 2, 3])
    @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
 end
+
+@testset "Polynomial Ordering misc bugs" begin
+  R, (x, y) = QQ["x", "y"]
+  @test degrevlex(gens(R)) != degrevlex(reverse(gens(R)))
+
+  R, (x, y, z) = QQ["x", "y", "z"]
+  @test degrevlex(gens(R)) != degrevlex(reverse(gens(R)))
+end
+

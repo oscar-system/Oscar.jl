@@ -403,38 +403,13 @@ singular(nvars::Int, o::Orderings.SymbOrdering{:neglex})       = Singular.orderi
 singular(nvars::Int, o::Orderings.SymbOrdering{:negdegrevlex}) = Singular.ordering_ds(length(o.vars))
 singular(nvars::Int, o::Orderings.SymbOrdering{:negdeglex})    = Singular.ordering_Ds(length(o.vars))
 
-# convert only a basic block of an ordering
-function singular(nvars::Int, o::Orderings.GenOrdering)
-  v = o.vars
-  @assert minimum(v)+length(v) == maximum(v)+1
-  if o.ord == :lex
-    return Singular.ordering_lp(length(v))
-  elseif o.ord == :degrevlex
-    return Singular.ordering_dp(length(v))
-  elseif o.ord == :deglex
-    return Singular.ordering_Dp(length(v))
-  elseif o.ord == :revlex
-    return Singular.ordering_rp(length(v))
-  elseif o.ord == :neglex
-    return Singular.ordering_ls(length(v))
-  elseif o.ord == :negdegrevlex
-    return Singular.ordering_ds(length(v))
-  elseif o.ord == :negdeglex
-    return Singular.ordering_Ds(length(v))
-   elseif o.ord == :wdeglex
-      return Singular.ordering_Wp(o.w)
-   elseif o.ord == :wdegrevlex
-      return Singular.ordering_wp(o.w)
-   elseif o.ord == :negwdeglex
-      return Singular.ordering_Ws(o.w)
-   elseif o.ord == :negwdegrevlex
-      return Singular.ordering_ws(o.w)
-   elseif o.ord == :weight
-    return Singular.ordering_M(o.wgt)
-  else
-    error("not done yet")
-  end
-end
+singular(nvars::Int, o::Orderings.WSymbOrdering{:wdeglex})       = Singular.ordering_Wp(o.weights)
+singular(nvars::Int, o::Orderings.WSymbOrdering{:wdegrevlex})    = Singular.ordering_wp(o.weights)
+singular(nvars::Int, o::Orderings.WSymbOrdering{:negwdeglex})    = Singular.ordering_Ws(o.weights)
+singular(nvars::Int, o::Orderings.WSymbOrdering{:negwdegrevlex}) = Singular.ordering_ws(o.weights)
+
+singular(nvars::Int, o::Orderings.MatrixOrdering) = Singular.ordering_M(o.matrix)
+
 
 # converts only a basic block of an ordering
 function singular(nvars::Int, o::Orderings.ModOrdering)
@@ -468,9 +443,9 @@ function singular(nvars::Int, ord::Orderings.AbsOrdering)
   end
 
   if iseasy
-    o = singular(f[1])
+    o = singular(nvars, f[1])
     for i in 2:length(f)
-      o = o*singular(f[i])
+      o = o*singular(nvars, f[i])
     end
   else
     o = Singular.ordering_M(Orderings.canonical_weight_matrix(nvars, ord))
@@ -480,7 +455,7 @@ end
 
 # MonomialOrdering{T} and ModuleOrdering{T} are the user-facing types
 singular(ord::MonomialOrdering) = singular(nvars(base_ring(ord)), ord.o)
-singular(ord::ModuleOrdering) = singular(nvars(base_ring(ord)), ord.o)
+singular(ord::ModuleOrdering) = singular(nvars(base_ring(base_ring(ord))), ord.o)
 
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
@@ -528,11 +503,10 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(BiPolyArray(Ox, s))
     if s.isGB
-      # We need to get the monomial ordering from the Singular side,
+      # TODO We need to get the monomial ordering from the Singular side,
       # there should be an easier and more versatile implementation
       # for this in orderings.jl.
-      ord = MonomialOrdering(parent(first(gens(Ox))),
-                             Orderings.ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s))))
+      ord = monomial_ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s)))
       r.gb[ord] = r.gens
     end
     return r
