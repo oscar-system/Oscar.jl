@@ -1,7 +1,7 @@
 @testset "Fundamental invariants (for matrix groups)" begin
   # Char 0
   K, a = CyclotomicField(3, "a")
-  M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
+  M1 = matrix(K, 3, 3, [ 0, 1, 0, 0, 0, 1, 1, 0, 0 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
 
@@ -13,7 +13,7 @@
 
     invars = fundamental_invariants(RG, algo)
     @test length(invars) == 4
-    @test [ total_degree(f.f) for f in invars ] == [ 3, 3, 3, 6 ]
+    @test [ total_degree(f.f) for f in invars ] == [ 3, 3, 6, 9 ]
     for f in invars
       @test reynolds_operator(RG, f) == f
     end
@@ -82,6 +82,39 @@
   b2 = [ f.f for f in basis(RGm, 6) ]
   for f in b2
     @test !Oscar.add_to_basis!(B, f)
+  end
+
+  # Test some special cases
+  # Cyclic group in King's algorithm
+  M = matrix(QQ, [ 0 1 ; 1 0 ])
+  RG = invariant_ring(M)
+
+  invars = fundamental_invariants(RG, :king)
+  @test length(invars) == 2
+  @test [ total_degree(f.f) for f in invars ] == [ 1, 2 ]
+  for f in invars
+    @test reynolds_operator(RG, f) == f
+  end
+
+  # Specify degree bound
+  K, a = CyclotomicField(3, "a")
+  M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
+  M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
+
+  invars1 = fundamental_invariants(invariant_ring(M1, M2))
+  invars2 = fundamental_invariants(invariant_ring(M1, M2), beta = 6)
+
+  @test [ f(gens(parent(invars1[1]))...) for f in invars2 ] == invars1
+
+  # No irreducible secondary invariants
+  M = matrix(QQ, [ 0 1 ; 1 0 ])
+  RG = invariant_ring(M)
+
+  invars = fundamental_invariants(RG, :primary_and_secondary)
+  @test length(invars) == 2
+  @test [ total_degree(f.f) for f in invars ] == [ 1, 2 ]
+  for f in invars
+    @test reynolds_operator(RG, f) == f
   end
 end
 
