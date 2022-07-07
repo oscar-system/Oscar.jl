@@ -121,28 +121,6 @@ function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
   return MonomialOrdering(M.R, M.o*N.o)
 end
 
-function Base.show(io::IO, M::MonomialOrdering)
-  show(io, M.o)
-end
-
-function Base.show(io::IO, o::SymbOrdering{S}) where {S}
-  print(io, "ordering $(String(S))")
-end
-
-function Base.show(io::IO, o::WSymbOrdering{S}) where {S}
-  print(io, "weighted ordering $(String(S))")
-end
-
-function Base.show(io::IO, o::MatrixOrdering)
-  print(io, "matrix ordering")
-end
-
-function Base.show(io::IO, o::ProdOrdering) where {S}
-  show(io, o.a)
-  print(io, " * ")
-  show(io, o.b)
-end
-
 ######## non-weighted orderings ########
 
 @doc Markdown.doc"""
@@ -865,28 +843,6 @@ mutable struct ModProdOrdering <: AbsModOrdering
    b::AbsOrdering
 end
 
-function Base.show(io::IO, o::ModuleOrdering)
-  show(io, o.o)
-end
-
-function Base.show(io::IO, o::ModProdOrdering) where {S}
-  show(io, o.a)
-  print(io, " * ")
-  show(io, o.b)
-end
-
-function Base.show(io::IO, o::ModOrdering)
-   if o.ord == :lex
-      print(io, "Module ordering lex")
-   elseif o.ord == :revlex
-      print(io, "Module ordering revlex")
-   else
-      error("module ordering unknown")
-   end
-end
-
-
-
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
@@ -935,21 +891,6 @@ function flat(a::ModProdOrdering)
    return vcat(flat(a.a), flat(a.b))
 end
 
-function max_used_variable(st::Int, o::Union{SymbOrdering, WSymbOrdering, MatrixOrdering})
-   g = o.vars
-   mi = minimum(g)
-   ma = maximum(g)
-   if mi == st && length(g) + st == ma+1
-      return ma+1
-   else
-      return 0
-   end
-end
-
-function max_used_variable(st::Int, o::ModOrdering)
-   return -1
-end
-
 @doc Markdown.doc"""
     induced_ring_ordering(M::ModuleOrdering)
 
@@ -986,6 +927,43 @@ function permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
   return p
 end
 
+############ printing ############
+
+
+function _expressify(o::SymbOrdering{S}, sym)  where S
+  return Expr(:call, S, Expr(:vect, (sym[i] for i in o.vars)...))
+end
+
+function _expressify(o::WSymbOrdering{S}, sym)  where S
+  return Expr(:call, S, Expr(:vect, (sym[i] for i in o.vars)...),
+                        Expr(:vect, o.weights...))
+end
+
+function _expressify(o::MatrixOrdering, sym) where S
+  return Expr(:call, nrows(o.matrix) == 1 ? :weighted_ordering : :matrix_ordering,
+                     Expr(:vect, (sym[i] for i in o.vars)...),
+                     AbstractAlgebra.expressify(o.matrix))
+end
+
+function _expressify(o::Union{ProdOrdering, ModProdOrdering}, sym)
+  return Expr(:call, :*, _expressify(o.a, sym), _expressify(o.b, sym))
+end
+
+function AbstractAlgebra.expressify(M::MonomialOrdering; context = nothing)
+  return _expressify(M.o, symbols(base_ring(M)))
+end
+
+@enable_all_show_via_expressify MonomialOrdering
+
+function _expressify(o::ModOrdering, sym)
+  return Expr(:call, o.ord, Expr(:vect, (Expr(:call, :gen, i) for i in o.gens)...))
+end
+
+function AbstractAlgebra.expressify(M::ModuleOrdering; context = nothing)
+  return _expressify(M.o, symbols(base_ring(base_ring(M))))
+end
+
+@enable_all_show_via_expressify ModuleOrdering
 
 ############ Singular conversions ############
 
