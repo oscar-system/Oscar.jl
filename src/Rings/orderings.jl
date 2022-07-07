@@ -710,45 +710,6 @@ end
 
 ###################################
 
-
-@doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
-
-Defines an ordering given in terms of Singular primitives on the variables given.
-`ord` can be one of `:lp`, `:rs`, `:ls`, `:dp`, `:rp`, `:ds`, `:Ds`, `:Dp`.
-"""
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem})
-  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))")))
-end
-
-@doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{<:IntegerUnion}) -> MonomialOrdering
-
-Defines an ordering given in terms of Singular weight ordering (`M`) with the
-matrix given. `ord` has to be `:M` here.
-"""
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{<:IntegerUnion})
-  @assert ord == :M
-  W = matrix(ZZ, size(w, 1), size(w, 2), w)
-  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
-end
-
-@doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector{<:IntegerUnion}) -> MonomialOrdering
-
-Defines an ordering given in terms of Singular weight ordering (`a`) with the
-weights given. `ord` has to be `:a` here. The weights will be supplemented by
-`0`.
-"""
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector{<:IntegerUnion})
-  @assert ord == :a
-  W = map(fmpz, w)
-  while length(v) > length(W)
-    push!(W, 0)
-  end
-  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), matrix(ZZ, 1, length(W), W)))
-end
-
 @doc Markdown.doc"""
     weight_matrix(M::MonomialOrdering)
 
