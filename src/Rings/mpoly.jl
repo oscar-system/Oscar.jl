@@ -396,68 +396,6 @@ function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: Ri
               cached = false)[1]
 end
 
-singular(nvars::Int, o::Orderings.SymbOrdering{:lex})          = Singular.ordering_lp(length(o.vars))
-singular(nvars::Int, o::Orderings.SymbOrdering{:degrevlex})    = Singular.ordering_dp(length(o.vars))
-singular(nvars::Int, o::Orderings.SymbOrdering{:deglex})       = Singular.ordering_Dp(length(o.vars))
-singular(nvars::Int, o::Orderings.SymbOrdering{:revlex})       = Singular.ordering_rp(length(o.vars))
-singular(nvars::Int, o::Orderings.SymbOrdering{:neglex})       = Singular.ordering_ls(length(o.vars))
-singular(nvars::Int, o::Orderings.SymbOrdering{:negdegrevlex}) = Singular.ordering_ds(length(o.vars))
-singular(nvars::Int, o::Orderings.SymbOrdering{:negdeglex})    = Singular.ordering_Ds(length(o.vars))
-
-singular(nvars::Int, o::Orderings.WSymbOrdering{:wdeglex})       = Singular.ordering_Wp(o.weights)
-singular(nvars::Int, o::Orderings.WSymbOrdering{:wdegrevlex})    = Singular.ordering_wp(o.weights)
-singular(nvars::Int, o::Orderings.WSymbOrdering{:negwdeglex})    = Singular.ordering_Ws(o.weights)
-singular(nvars::Int, o::Orderings.WSymbOrdering{:negwdegrevlex}) = Singular.ordering_ws(o.weights)
-
-singular(nvars::Int, o::Orderings.MatrixOrdering) = Singular.ordering_M(o.matrix)
-
-
-# converts only a basic block of an ordering
-function singular(nvars::Int, o::Orderings.ModOrdering)
-   v = o.gens
-   if o.ord == :lex
-     return Singular.ordering_C(length(v))
-   elseif o.ord == :revlex
-     return Singular.ordering_c(length(v))
-   else
-     error("unknown module ordering")
-   end
-end
-
-# convert a whole ordering, which may be a product
-function singular(nvars::Int, ord::Orderings.AbsOrdering)
-  #test if it can be mapped directly to singular:
-  # - consecutive, non-overlapping variables
-  # - covering everything
-  # if this fails, create a matrix...
-  f = Orderings.flat(ord)
-  st = 1
-  iseasy = true
-  for i = 1:length(f)
-    max_var = Orderings.max_used_variable(st, f[i])
-    if max_var == 0
-      iseasy = false
-      break
-    elseif max_var != -1
-      st = max_var
-    end
-  end
-
-  if iseasy
-    o = singular(nvars, f[1])
-    for i in 2:length(f)
-      o = o*singular(nvars, f[i])
-    end
-  else
-    o = Singular.ordering_M(Orderings.canonical_weight_matrix(nvars, ord))
-  end
-  return o
-end
-
-# MonomialOrdering{T} and ModuleOrdering{T} are the user-facing types
-singular(ord::MonomialOrdering) = singular(nvars(base_ring(ord)), ord.o)
-singular(ord::ModuleOrdering) = singular(nvars(base_ring(base_ring(ord))), ord.o)
-
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],

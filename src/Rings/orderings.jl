@@ -1025,4 +1025,100 @@ function permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
   return p
 end
 
+
+############ Singular conversions ############
+
+mutable struct order_conversion_ctx
+  last_var::Int
+  has_c_or_C::Bool
+  def::Singular.sordering
+end
+
+function _is_consecutive_from(a::Vector{Int}, b::Int)
+  n = length(a)
+  n > 0 || return false
+  for i in 1:n
+    a[i] == b + i || return false
+  end
+  return true
+end
+
+function _try_singular_easy(Q::order_conversion_ctx, o::SymbOrdering{S}) where S
+  _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
+  n = length(o.vars)
+  Q.last_var += n
+  return S == :lex          ? (true, Singular.ordering_lp(n)) :
+         S == :revlex       ? (true, Singular.ordering_rp(n)) :
+         S == :deglex       ? (true, Singular.ordering_Dp(n)) :
+         S == :degrevlex    ? (true, Singular.ordering_dp(n)) :
+         S == :neglex       ? (true, Singular.ordering_ls(n)) :
+         S == :negrevlex    ? (true, Singular.ordering_rs(n)) :
+         S == :negdeglex    ? (true, Singular.ordering_Ds(n)) :
+         S == :negdegrevlex ? (true, Singular.ordering_ds(n)) :
+                              (false, Q.def)
+end
+
+function _try_singular_easy(Q::order_conversion_ctx, o::WSymbOrdering{S}) where S
+  _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
+  n = length(o.vars)
+  Q.last_var += n
+  return S == :wdeglex       ? (true, Singular.ordering_Wp(o.weights)) :
+         S == :wdegrevlex    ? (true, Singular.ordering_wp(o.weights)) :
+         S == :negwdeglex    ? (true, Singular.ordering_Ws(o.weights)) :
+         S == :negwdegrevlex ? (true, Singular.ordering_ws(o.weights)) :
+                               (false, Q.def)
+end
+
+function _try_singular_easy(Q::order_conversion_ctx, o::MatrixOrdering)
+  _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
+  n = length(o.vars)
+  if nrows(o.matrix) == n && !iszero(det(o.matrix))
+    Q.last_var += n
+    return (true, Singular.ordering_M(o.matrix, false))
+  elseif nrows(o.matrix) == 1
+    return (true, Singular.ordering_a([Int(o.matrix[1,i]) for i in 1:n]))
+  end
+  return (false, Q.def)
+end
+
+function _try_singular_easy(Q::order_conversion_ctx, o::Orderings.ModOrdering)
+  Q.has_c_or_C && return (false, Q.def)
+  Q.has_c_or_C = true
+  return o.ord == :lex    ? (true, Singular.ordering_C(length(o.gens))) :
+         o.ord == :revlex ? (true, Singular.ordering_c(length(o.gens))) :
+                            (false, Q.def)
+end
+
+function _try_singular_easy(Q::order_conversion_ctx, o::Union{ProdOrdering, ModProdOrdering})
+  (ok, a) = _try_singular_easy(Q, o.a)
+  ok || return (false, Q.def)
+  (ok, b) = _try_singular_easy(Q, o.b)
+  ok || return (false, Q.def)
+  return (true, a*b)
+end
+
+function singular(ord::MonomialOrdering)
+  Q = order_conversion_ctx(0, false, Singular.ordering_lp())
+  (ok, sord) = _try_singular_easy(Q, ord.o)
+  if ok && Q.last_var == nvars(base_ring(ord))
+    return sord
+  else
+    # Singular.jl checks det != 0 (and is square)
+    return Singular.ordering_M(canonical_weight_matrix(ord))
+  end
+end
+
+function singular(ord::ModuleOrdering)
+  Q = order_conversion_ctx(0, false, Singular.ordering_lp())
+  (ok, sord) = _try_singular_easy(Q, ord.o)
+  n = nvars(base_ring(base_ring(ord)))
+  if ok && Q.last_var == n
+    @assert Q.has_c_or_C
+    return sord
+  else
+    error("failed to convert module ordering")
+    return sord
+  end
+end
+
 end  # module Orderings

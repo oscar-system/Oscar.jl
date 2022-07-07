@@ -178,6 +178,9 @@ end
 
    O6 = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4])) * lex(gens(K)) * wdeglex([s, t, u], [1, 2, 3])
    @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
+
+   O7 = weighted_ordering(gens(R),[-1,2,0,2,0])*degrevlex(gens(R))
+   @test string(singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
 end
 
 @testset "Polynomial Ordering misc bugs" begin
