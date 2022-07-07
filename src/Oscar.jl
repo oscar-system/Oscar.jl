@@ -396,6 +396,8 @@ include("ToricVarieties/JToric.jl")
 
 include("TropicalGeometry/main.jl")
 
+include("InvariantTheory/InvariantTheory.jl")
+
 include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
 
