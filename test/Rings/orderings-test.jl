@@ -182,9 +182,9 @@ end
 
 @testset "Polynomial Ordering misc bugs" begin
   R, (x, y) = QQ["x", "y"]
-  @test degrevlex(gens(R)) != degrevlex(reverse(gens(R)))
+  @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
   R, (x, y, z) = QQ["x", "y", "z"]
-  @test degrevlex(gens(R)) != degrevlex(reverse(gens(R)))
+  @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 end
 

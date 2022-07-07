@@ -6,6 +6,7 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
        weights, isweighted, is_global, is_local, is_mixed,
+       permutation_of_terms,
        MonomialOrdering, ModuleOrdering, singular
 
 abstract type AbsOrdering end
@@ -121,7 +122,7 @@ function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
 end
 
 function Base.show(io::IO, M::MonomialOrdering)
-  show(io, o.o)
+  show(io, M.o)
 end
 
 function Base.show(io::IO, o::SymbOrdering{S}) where {S}
@@ -138,7 +139,7 @@ end
 
 function Base.show(io::IO, o::ProdOrdering) where {S}
   show(io, o.a)
-  print(io, "* ")
+  print(io, " * ")
   show(io, o.b)
 end
 
@@ -995,13 +996,16 @@ function is_global(M::ModuleOrdering)
   return is_global(induced_ring_ordering(M))
 end
 
+
+@doc Markdown.doc"""
+    permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
+
+Return the permutation that puts the terms of `f` in the order `ord`.
+"""
+function permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
+  p = collect(1:length(f))
+  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, l, ord.o) < 0), rev = true)
+  return p
+end
+
 end  # module Orderings
-
-###################################################
-
- function _perm_of_terms(f::MPolyElem, ord::Orderings.MonomialOrdering)
-   p = collect(1:length(f))
-   sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, l, ord.o) < 0), rev = true)
-   return p
- end
-

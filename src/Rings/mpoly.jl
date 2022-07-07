@@ -764,22 +764,22 @@ function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
 end
 
 function terms(f::MPolyElem, ord::MonomialOrdering)
-  perm = _perm_of_terms(f, ord)
+  perm = permutation_of_terms(f, ord)
   return ( term(f, perm[i]) for i = 1:length(f) )
 end
 
 function coefficients(f::MPolyElem, ord::MonomialOrdering)
-  perm = _perm_of_terms(f, ord)
+  perm = permutation_of_terms(f, ord)
   return ( coeff(f, perm[i]) for i = 1:length(f) )
 end
 
 function exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
-  perm = _perm_of_terms(f, ord)
+  perm = permutation_of_terms(f, ord)
   return ( exponent_vector(f, perm[i]) for i = 1:length(f) )
 end
 
 function monomials(f::MPolyElem, ord::MonomialOrdering)
-  perm = _perm_of_terms(f, ord)
+  perm = permutation_of_terms(f, ord)
   return ( monomial(f, perm[i]) for i = 1:length(f) )
 end
 
