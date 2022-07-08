@@ -21,7 +21,10 @@
         R, _ = PolynomialRing(ZZ, ["a", "x", "i_7", "n"])
         @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
         @test is_isomorphic(fundamental_group(sphere), free_group())
-        
+
+        # from #1440, make sure empty columns at the end are kept
+        sc = SimplicialComplex([[1, 2, 4], [2, 3, 4]])
+        @test size(minimal_nonfaces(IncidenceMatrix, sc)) == (1, 4)
     end
     
     @testset "standard examples" begin
