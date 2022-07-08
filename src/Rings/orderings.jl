@@ -704,7 +704,7 @@ Returns a matrix ordering with a unique weight matrix.
 """
 function Hecke.simplify(M::MonomialOrdering)
   w = canonical_weight_matrix(M)
-  return MonomialOrdering(M.R, MatrixOrdering(1:ncols(w), w))
+  return MonomialOrdering(M.R, MatrixOrdering(collect(1:ncols(w)), w))
 end
 
 function canonical_weight_matrix(nvars::Int, M::AbsOrdering)
@@ -845,7 +845,7 @@ Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
 function module_ordering(a::AbstractVector{Int}, s::Symbol)
    i = minimum(a)
    I = maximum(a)
-   if I-i+1 == length(a) #test if variables are consecutive or not.
+   if I-i+1 == i:I #test if variables are consecutive or not.
      return ModOrdering(i:I, s)
    end
    return ModOrdering(collect(a), s)
@@ -1018,6 +1018,7 @@ end
 function _try_singular_easy(Q::order_conversion_ctx, o::Orderings.ModOrdering)
   Q.has_c_or_C && return (false, Q.def)
   Q.has_c_or_C = true
+  o.gens == 1:length(o.gens) || return (false, Q.def)
   return o.ord == :lex    ? (true, Singular.ordering_C(length(o.gens))) :
          o.ord == :revlex ? (true, Singular.ordering_c(length(o.gens))) :
                             (false, Q.def)

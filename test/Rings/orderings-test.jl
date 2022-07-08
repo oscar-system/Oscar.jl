@@ -90,7 +90,7 @@ end
    @test Oscar.leading_term(f, :lex) == x*y
 end
  
- @testset "Polynomial Orderings comparison" begin
+@testset "Polynomial Orderings comparison" begin
    R, (x, y, z) = @inferred PolynomialRing(QQ, ["x", "y", "z"])
 
    @test lex([x])*lex([y,z]) == lex([x, y, z])
@@ -108,9 +108,9 @@ end
 
    m = matrix(ZZ, [-2 -3 -4; 1 0 0; 0 1 0; 0 0 1])
    @test negwdeglex(gens(R), [2, 3, 4]) == matrix_ordering(gens(R), m)
- end
+end
 
- @testset "Polynomial Orderings sorting" begin
+@testset "Polynomial Orderings sorting" begin
    R, (x1, x2, x3, x4) = PolynomialRing(QQ, "x".*string.(1:4))
    
    M = [x2^3, x1*x2^2, x1^2*x2, x2^2*x4, x2^2*x3, x2^2, x1^3,
@@ -169,7 +169,16 @@ end
 
    o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
    @test collect(monomials(f, o)) == collect(monomials(f, degrevlex(gens(R))))
- end
+
+   for a in (matrix_ordering([x1, x2], [1 2; 3 4]),
+             negwdegrevlex([x1, x2], [1, 2]),
+             wdegrevlex([x1, x2], [1, 2]),
+             negdeglex([x1, x2]),
+             negdegrevlex([x1, x2]),
+             revlex([x1, x2]))
+      @test collect(monomials(x3 + x4, a*lex([x3, x4]))) == [x3, x4]
+   end
+end
 
 @testset "Polynomial Ordering internal conversion to Singular" begin
    R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
@@ -190,7 +199,7 @@ end
    @test length(string(O4)) > 2
    @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
 
-   K = FreeModule(R, 3)
+   K = FreeModule(R, 4)
 
    O5 = revlex(gens(K))*degrevlex(gens(R))
    @test length(string(O5)) > 2
@@ -203,20 +212,27 @@ end
    O7 = weighted_ordering(gens(R),[-1,2,0,2,0])*degrevlex(gens(R))
    @test length(string(O7)) > 2
    @test string(singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
+
+   O8 = lex([gen(K,1), gen(K,3), gen(K,4), gen(K,2)]) * degrevlex(gens(R))
+   @test_throws ErrorException singular(O8)
+
+   O9 = matrix_ordering([x, y], [1 2; 1 2]) * lex(gens(R))
+   @test singular(O9) isa Singular.sordering
 end
 
 @testset "Polynomial Ordering misc bugs" begin
-  R, (x, y) = QQ["x", "y"]
-  @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
+   R, (x, y) = QQ["x", "y"]
+   @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
-  R, (x, y, z) = QQ["x", "y", "z"]
-  @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
+   R, (x, y, z) = QQ["x", "y", "z"]
+   @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
-  a = negwdegrevlex([z, x, y], [4, 5, 6])
-  @test matrix_ordering([x, y, z], weight_matrix(a)) ==
-        matrix_ordering([x, y, z], [-5 -6 -4; 0 -1 0; -1 0 0; 0 0 -1])
+   a = negwdegrevlex([z, x, y], [4, 5, 6])
+   @test matrix_ordering([x, y, z], weight_matrix(a)) ==
+         matrix_ordering([x, y, z], [-5 -6 -4; 0 -1 0; -1 0 0; 0 0 -1])
 
-  a = weighted_ordering([y, z, x], [4, 6, 8])
-  @test canonical_weight_matrix(a) == matrix(ZZ, 1, 3, [4, 2, 3])
+   a = weighted_ordering([y, z, x], [4, 6, 8])
+   @test canonical_weight_matrix(a) == matrix(ZZ, 1, 3, [4, 2, 3])
+   @test simplify(a) isa MonomialOrdering
 end
 
