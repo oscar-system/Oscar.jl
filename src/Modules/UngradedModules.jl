@@ -10,7 +10,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       register_morphism!, dense_row, matrix_kernel, simplify, map, is_injective,
       is_surjective, is_bijective, is_welldefined, subquotient,
       ambient_free_module, ambient_module, ambient_representative,
-      ambient_representatives_generators, relations, img_gens
+      ambient_representatives_generators, relations, img_gens, is_complete
 
 # TODO replace asserts by error messages?
 
@@ -3880,8 +3880,60 @@ function free_resolution(F::FreeMod)
   return res
 end
 
+@doc Markdown.doc"""
+    is_complete(FR::FreeResolution)
+
+Return `true` if the free resolution `fr` is complete, otherwise return `false`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+julia> fr = free_resolution(M, length=1)
+
+rank   | 6  2
+-------|------
+degree | 1  0
+
+julia> is_complete(fr)
+false
+
+julia> fr = free_resolution(M)
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+
+julia> is_complete(fr)
+true
+
+```
+"""
+is_complete(FR::FreeResolution) = FR.C.complete
+
 #= Fill functions (and helpers) for Hecke ChainComplexes in terms of free resolutions =#
-function get_last_map_key(cc::Hecke.ChainComplex)
+function _get_last_map_key(cc::Hecke.ChainComplex)
   ctr = cc.start
   while haskey(cc.maps, ctr)
     ctr -= 1
@@ -3889,8 +3941,8 @@ function get_last_map_key(cc::Hecke.ChainComplex)
   return ctr+1
 end
 
-function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
-  key = get_last_map_key(cc)
+function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
+  key = _get_last_map_key(cc)
   if cc.complete == true
     return cc.maps[key]
   end
@@ -3978,7 +4030,7 @@ rank   | 6  2
 -------|------
 degree | 1  0
 
-julia> fr.complete
+julia> is_complete(fr)
 false
 
 julia> fr[4]
@@ -3990,7 +4042,7 @@ rank   | 0  2  6  6  2
 -------|---------------
 degree | 4  3  2  1  0
 
-julia> fr.complete
+julia> is_complete(fr)
 true
 
 julia> fr = free_resolution(M, algorithm=:sres)
@@ -3998,10 +4050,6 @@ julia> fr = free_resolution(M, algorithm=:sres)
 rank   | 0  2  6  6  2
 -------|---------------
 degree | 4  3  2  1  0
-
-julia> fr.complete
-true
-
 ```
 """
 function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
@@ -4061,7 +4109,7 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   end
 
   cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
-  cc.fill     = extend_free_resolution
+  cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
 
   return FreeResolution(cc)
