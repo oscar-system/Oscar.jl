@@ -87,6 +87,12 @@ end
    @test negdeglex([x, y, z]) == negwdeglex([x, y, z], [1, 1, 1])
    @test negdegrevlex([x, y, z]) == negwdegrevlex([x, y, z], [1, 1, 1])
    @test neglex([z])*neglex([y])*neglex([x]) == negrevlex([x, y, z])
+
+   m = matrix(ZZ, [-1 -1 -1; 1 0 0; 0 1 0; 0 0 1])
+   @test negdeglex(gens(R)) == matrix_ordering(gens(R), m)
+
+   m = matrix(ZZ, [-2 -3 -4; 1 0 0; 0 1 0; 0 0 1])
+   @test negwdeglex(gens(R), [2, 3, 4]) == matrix_ordering(gens(R), m)
  end
 
  @testset "Polynomial Orderings sorting" begin
@@ -110,7 +116,6 @@ end
    o = negrevlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
    @test collect(monomials(f, o)) == M
      
-   # currently fails
    M = [one(R), x3, x3^2, x4, x3^3, x3*x4, x3^2*x4, x4^2, x3*x4^2,
         x4^3, x2, x2*x3, x2*x3^2, x2*x4, x2*x3*x4, x2*x4^2, x2^2, x2^2*x3,
         x2^2*x4, x2^3, x1, x1*x3, x1*x3^2, x1*x4, x1*x3*x4, x1*x4^2, x1*x2,

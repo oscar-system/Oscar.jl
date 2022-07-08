@@ -474,7 +474,7 @@ end
 singular(ord::MonomialOrdering) = singular(ord.o)
 singular(ord::ModuleOrdering) = singular(ord.o)
 
-function singular_poly_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
+function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = singular(ord),
@@ -571,7 +571,7 @@ end
 function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
     if !isdefined(I, :S) 
         I.ord = ordering.o
-        I.Sx = singular_poly_ring(I.Ox, ordering.o)
+        I.Sx = singular_poly_ring(I.Ox, ordering)
         I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
         if I.isGB
             I.S.isGB = true
@@ -581,7 +581,7 @@ function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
          = attached, thus we have to create a new singular ring and map the ideal. =#
         if !isdefined(I, :ord) || I.ord != ordering.o
             I.ord = ordering.o
-            SR    = singular_poly_ring(I.Ox, ordering.o)
+            SR    = singular_poly_ring(I.Ox, ordering)
             f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
             I.S   = Singular.map_ideal(f, I.S)
             I.Sx  = SR

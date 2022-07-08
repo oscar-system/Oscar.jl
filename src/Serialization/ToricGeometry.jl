@@ -1,5 +1,8 @@
 ################################################################################
 # Toric varieties
+@registerSerializationType(AffineNormalToricVariety)
+@registerSerializationType(NormalToricVariety)
+
 function save_internal(s::SerializerState, ntv::AbstractNormalToricVariety)
     return Dict(
         :polymakeNTV => save_type_dispatch(s, ntv.polymakeNTV)
@@ -14,6 +17,8 @@ end
 
 ################################################################################
 # Torus invariant divisors on toric varieties
+@registerSerializationType(ToricDivisor)
+
 function save_internal(s::SerializerState, td::ToricDivisor)
     return Dict(
         :toric_variety => save_type_dispatch(s, td.toric_variety),

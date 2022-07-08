@@ -1,5 +1,12 @@
 ################################################################################
+# ring of integers (singleton type)
+@registerSerializationType(FlintIntegerRing)
+
+
+################################################################################
 #  non simpleton base rings
+@registerSerializationType(Nemo.NmodRing, "Nemo.NmodRing")
+
 function save_internal(s::SerializerState, R::Nemo.NmodRing)
     return Dict(
         :modulus => save_type_dispatch(s, modulus(R))
@@ -12,6 +19,8 @@ function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
 end
 
 #elements
+@registerSerializationType(nmod)
+
 function save_internal(s::SerializerState, r::nmod)
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),
@@ -28,6 +37,16 @@ end
 
 ################################################################################
 #  Polynomial Rings
+@registerSerializationType(FmpqMPolyRing)
+@registerSerializationType(FmpqPolyRing)
+@registerSerializationType(FmpzMPolyRing)
+@registerSerializationType(FmpzPolyRing)
+@registerSerializationType(FqNmodMPolyRing)
+@registerSerializationType(FqNmodPolyRing)
+@registerSerializationType(GFPPolyRing)
+@registerSerializationType(NmodMPolyRing)
+@registerSerializationType(NmodPolyRing)
+
 function save_internal(s::SerializerState, R::Union{MPolyRing, PolyRing})
     return Dict(
         :symbols => save_type_dispatch(s, symbols(R)),
@@ -50,6 +69,11 @@ end
 
 ################################################################################
 # Multivariate Polynomials
+@registerSerializationType(fmpq_mpoly)
+@registerSerializationType(fmpz_mpoly)
+@registerSerializationType(fq_nmod_mpoly)
+@registerSerializationType(nmod_mpoly)
+
 function save_internal(s::SerializerState, p::MPolyElem)
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)
@@ -85,6 +109,12 @@ end
 
 ################################################################################
 # Univariate Polynomials
+@registerSerializationType(fmpq_poly)
+@registerSerializationType(fmpz_poly)
+@registerSerializationType(fq_nmod_poly)
+@registerSerializationType(gfp_poly)
+@registerSerializationType(nmod_poly)
+
 function save_internal(s::SerializerState, p::PolyElem)
     parent_ring = parent(p)
     parent_ring = save_type_dispatch(s, parent_ring)

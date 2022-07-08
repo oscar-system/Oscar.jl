@@ -96,6 +96,38 @@ end
    
 end
 
+@testset "quo for FPGroup" begin
+   # quotient of a *full* free group
+   g = free_group(2)
+   x, y = gens(g)
+   grels = [x^2, y^2, comm(x, y)]
+   q, epi = quo(g, grels)
+   @test ngens(q) == 2
+   @test order(q) == 4
+   @test [epi(h) for h in gens(g)] == gens(q)
+
+   # quotient of a *full* f.p. group
+   q2, epi2 = quo(q, [q[1]])
+   @test order(q2) == 2
+   @test [epi2(h) for h in gens(q)] == gens(q2)
+
+   # quotient of a *subgroup* of a free group:
+   # We forbid this on the Oscar side,
+   # otherwise GAP would first construct the quotient group
+   # but later run into an error when one asks for its order.
+   h = sub(g, [x^2])[1]
+   @test_throws AssertionError quo(h, [x^10])
+   # q3, epi3 = quo(h, [x^10])
+   # @test order(q3) == 5
+   # @test [epi3(h) for h in gens(h)] == gens(q3)
+
+   # quotient of a *subgroup* of a f.p. group:
+   # We forbid this on the Oscar side,
+   # otherwise GAP would run into an error.
+   h = sub(q2, [q2[2]^5])[1]
+   @test_throws AssertionError quo(h, [h[1]^2])
+end
+
 @testset "map_word" begin
    # Create a free group in GAP in syllable words family,
    # in order to make the tests.

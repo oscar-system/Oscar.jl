@@ -68,6 +68,13 @@ end
       @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
     end
   end
+
+  I = ideal(R, [x1^2*x2, x2^2])
+  orb = orbit(g, on_indeterminates, I)
+  @test length(orb) == 6
+  II = intersect(collect(orb)...)
+  @test length(orbit(g, on_indeterminates, II)) == 1
+  @test I^gen(g, 1) == on_indeterminates(I, gen(g, 1))
 end
 
 @testset "action on multivariate polynomials: matrices" begin
@@ -94,4 +101,11 @@ end
       @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
     end
   end
+
+  I = ideal(R, [x1^2*x2, x2^2])
+  orb = orbit(g, on_indeterminates, I)
+  @test length(orb) == 186
+  II = intersect(collect(orb)...)
+  @test length(orbit(g, on_indeterminates, II)) == 1
+  @test I^gen(g, 1) == on_indeterminates(I, gen(g, 1))
 end

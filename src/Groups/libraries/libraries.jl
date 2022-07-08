@@ -1,3 +1,4 @@
+
 include("atlasgroups.jl")
 include("perfectgroups.jl")
 include("primitivegroups.jl")
@@ -14,7 +15,8 @@ const _IntOrIntVec = Union{IntegerUnion, AbstractVector{<:IntegerUnion}}
 
 const _group_filter_attrs = Dict{Any,Tuple{Type, GapObj, Any}}()
 const _permgroup_filter_attrs = Dict{Any,Tuple{Type, GapObj, Any}}()
-#const _ctbl_filter_attrs = Dict{Any,Tuple{Type, GapObj, Any}}()
+const _ctbl_filter_attrs = Dict{Any,Tuple{Type, GapObj, Any}}()
+const _atlas_group_filter_attrs = Dict{Any,Tuple{Type, GapObj, Any}}()
 
 function _add_bool_attr(attrs::Dict{Any,Tuple{Type, GapObj, Any}}, k, v::GapObj)
   attrs[k] = (Bool, v, true)
@@ -26,7 +28,6 @@ function __init_group_libraries()
     is_abelian => GAP.Globals.IsAbelian,
     is_almostsimple => GAP.Globals.IsAlmostSimpleGroup,
     is_cyclic => GAP.Globals.IsCyclic,
-    is_duplicate_table => GAP.Globals.IsDuplicateTable,  # TODO: should be moved into a separate list
     is_nilpotent => GAP.Globals.IsNilpotentGroup,
     is_perfect => GAP.Globals.IsPerfectGroup,
     is_quasisimple => GAP.Globals.IsQuasisimple,
@@ -44,9 +45,6 @@ function __init_group_libraries()
   _group_filter_attrs[order] = (_IntOrIntVec, GAP.Globals.Size, nothing)
   _group_filter_attrs[number_conjugacy_classes] = (_IntOrIntVec, GAP.Globals.NrConjugacyClasses, nothing)
 
-#  _ctbl_filter_attrs = copy(_group_filter_attrs)
-#  _add_bool_attr(_ctbl_filter_attrs, is_duplicate_table, GAP.Globals.IsDuplicateTable)
-
   copy!(_permgroup_filter_attrs, _group_filter_attrs)
   _add_bool_attr(_permgroup_filter_attrs, is_transitive, GAP.Globals.IsTransitive)
   _add_bool_attr(_permgroup_filter_attrs, is_primitive, GAP.Globals.IsPrimitive)
@@ -54,35 +52,43 @@ function __init_group_libraries()
   _permgroup_filter_attrs[degree] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
   _permgroup_filter_attrs[transitivity] = (_IntOrIntVec, GAP.Globals.Transitivity, nothing)
 
+  copy!(_ctbl_filter_attrs, _group_filter_attrs)
+  _add_bool_attr(_ctbl_filter_attrs, is_duplicate_table, GAP.Globals.IsDuplicateTable)
+
+  empty!(_atlas_group_filter_attrs)
+  _atlas_group_filter_attrs[degree] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
+  _atlas_group_filter_attrs[rank_action] = (_IntOrIntVec, GAP.Globals.RankAction, nothing)
+  _atlas_group_filter_attrs[transitivity] = (_IntOrIntVec, GAP.Globals.Transitivity, nothing)
+  _add_bool_attr(_atlas_group_filter_attrs, is_transitive, GAP.Globals.IsTransitive)
+  _add_bool_attr(_atlas_group_filter_attrs, is_primitive, GAP.Globals.IsPrimitive)
+  _atlas_group_filter_attrs[base_ring] = (AbstractAlgebra.Ring, GAP.Globals.Ring, nothing)
+  _atlas_group_filter_attrs[character] = (Oscar.GroupClassFunction, GAP.Globals.Character, nothing)
+  _atlas_group_filter_attrs[characteristic] = (_IntOrIntVec, GAP.Globals.Characteristic, nothing)
+  _atlas_group_filter_attrs[dim] = (_IntOrIntVec, GAP.Globals.Dimension, nothing)
 end
 
 # return the output of the function f and the corresponding GAP function
 # TODO: use @nospecialize???
-function find_index_function(f, permgroups::Bool)
-
-   if permgroups
-     haskey(_permgroup_filter_attrs, f) && return _permgroup_filter_attrs[f]
-   else
-     haskey(_group_filter_attrs, f) && return _group_filter_attrs[f]
-   end
+function find_index_function(f, filter_attrs::Dict)
+   haskey(filter_attrs, f) && return filter_attrs[f]
    throw(ArgumentError("Function not supported"))
 end
 
 # check whether the input of all_small_group is valid (see below)
-function translate_group_library_args(args::Tuple; permgroups::Bool=false)
+function translate_group_library_args(args::Tuple; filter_attrs::Dict = _group_filter_attrs)
    gapargs = []
    for arg in args
       if arg isa Pair
          # handle e.g. `is_abelian => false`
          func = arg[1]
          data = arg[2]
-         expected_type, gapfunc, _ = find_index_function(func, permgroups)
-         data isa expected_type || throw(ArgumentError("bad argument $(arg[2]) for function $(func)"))
+         expected_type, gapfunc, _ = find_index_function(func, filter_attrs)
+         data isa expected_type || throw(ArgumentError("bad argument $(data) for function $(func)"))
          push!(gapargs, gapfunc, GAP.Obj(data))
       elseif arg isa Function
-         # handle e.g. `is_abelian` or `is_abelian, false`
+         # handle e.g. `is_abelian` or `! is_abelian`
          func = arg
-         expected_type, gapfunc, default = find_index_function(func, permgroups)
+         expected_type, gapfunc, default = find_index_function(func, filter_attrs)
          default !== nothing || throw(ArgumentError("missing argument for function $(func)"))
          push!(gapargs, gapfunc, default)
       else

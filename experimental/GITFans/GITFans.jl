@@ -104,27 +104,23 @@ function is_monomial_free(I::Oscar.MPolyIdeal, vars_to_zero::Vector{Int} = Int[]
 end
 
 """
-    orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::Oscar.GAPGroup = symmetric_group(1))
+    orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
 
-Return orbit representatives of the group `G` on the set of those cones
-whose defining rays are given by subsets `S` of the rows of the matrix `Q`,
-such that the matrix `S` has full rank and such that the ideal `I` is
+Return orbit representatives of `G` on the set of those cones
+whose defining rays are given by subsets `S` of the rows of `Q`,
+such that the matrix `S` has full rank and such that `I` is
 monomial-free (see [`is_monomial_free`](@ref)) w.r.t. the variables `x_i`
 for which the `i`-th row of `Q` is not contained in `S`.
 """
-function orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::Oscar.GAPGroup = symmetric_group(1))
+function orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup = symmetric_group(1))
     nr_variables, projected_dimension = size(Q)
 
     collector_cones = []
 
     # We need not consider sets of smaller size because of the rank condition.
     for k in projected_dimension:nr_variables
-        set = Hecke.subsets(nr_variables, k)
-        orbs = GAP.Globals.Orbits(G.X, GAP.GapObj(set, recursive = true), GAP.Globals.OnSets)
-#T TODO: switch to an Oscar `orbits` function
-
-        for orb in orbs
-            i = Vector{Int64}(orb[1])
+        for orb in orbits(gset(G, on_sets, Hecke.subsets(nr_variables, k)))
+            i = representative(orb)
             current_mat = Q[i,:]
             if rank(current_mat) == projected_dimension &&
                is_monomial_free(I, setdiff(1:nr_variables, i))
@@ -145,9 +141,9 @@ end
 #T later we expand the orbits, do we want to check this here?
 
 @doc Markdown.doc"""
-    action_on_target(Q::Matrix{Int}, G::Oscar.GAPGroup)
+    action_on_target(Q::Matrix{Int}, G::PermGroup)
 
-Let `Q` be an $n \times m$ Q-matrix, and `G` be a GAP permutation group
+Let `Q` be an $n \times m$ Q-matrix, and `G` be a permutation group
 on $n$ points that describes an action on the rows of `Q`.
 The function returns the group homomorphism $\rho$ from `G`
 to its induced matrix action on the $m$-dimensional space over the Rationals.
@@ -176,7 +172,7 @@ julia> sym10 = symmetric_group(n);
 
 julia> permgens = [sym10(x) for x in perms_list];
 
-julia> G, emb = sub(permgens...);
+julia> G, emb = sub(sym10, permgens);
 
 julia> Oscar.GITFans.action_on_target(Q, G)
 Group homomorphism from
@@ -196,7 +192,7 @@ The cone defined by $Q{J}$ is mapped to
 $Q{J} \cdot \rho(\pi^{-1}) = (Q \cdot \rho(\pi^{-1}))\{J\} = Q^\pi\{J\}$,
 which is equal to $Q\{J^{\pi^{-1}}\}$.
 """
-function action_on_target(Q::Matrix{Int}, G::Oscar.GAPGroup)
+function action_on_target(Q::Matrix{Int}, G::PermGroup)
 
     # For each permutation generator describing the action on the rows of Q,
     # compute the induced action on the column space,
@@ -267,7 +263,7 @@ function as_permutation(element, set, action, compare)
         end
         perm[i] = pos
     end
-    return Oscar.group_element(symmetric_group(n), GAP.Globals.PermList(GAP.GapObj(perm)))
+    return symmetric_group(n)(perm)
 end
 
 function matrix_action_on_cones(cone, matrix)
@@ -293,6 +289,10 @@ function orbit_cone_orbits(cones, hom)
 end
 
 function action_on_orbit_cone_orbits(orbits, hom::GAPGroupHomomorphism)
+#T Currently this is the only place in this file where the term `GAP` occurs
+#T outside a comment.
+#T Prescribing `GAPGroupHomomorphism` is quite technical;
+#T do we have a better way to request a "map that is a group homomorphism"?
     G = domain(hom)
     Ggens = gens(G)
 
@@ -534,12 +534,12 @@ end
 
 
 """
-    git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::Oscar.GAPGroup)
+    git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
 
 Return the polymake object that represents the polyhedral fan given by
 the ideal `a`, the grading matrix `Q`, and the symmetry group `G`.
 """
-function git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::Oscar.GAPGroup)
+function git_fan(a::Oscar.MPolyIdeal, Q::Matrix{Int}, G::PermGroup)
     collector_cones = orbit_cones(a, Q, G)
     matrix_action = action_on_target(Q, G)
     orbit_list = orbit_cone_orbits(collector_cones, matrix_action)

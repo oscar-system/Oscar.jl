@@ -6,15 +6,15 @@
             LP0 = LinearProgram(c, [2,2,-3])
             LP1 = LinearProgram(c, [2,2,4])
             v = [LP0, LP1]
-            save(joinpath(path, "vlp.json"), v)
-            loaded = load(joinpath(path, "vlp.json"))
-            @test length(v) == length(loaded)
-            @test feasible_region(loaded[1]) == feasible_region(loaded[2])
-            @test feasible_region(loaded[1]) == feasible_region(LP0)
-            @test objective_function(loaded[1]) == objective_function(v[1])
-            @test objective_function(loaded[2]) == objective_function(v[2])
-            @test optimal_value(loaded[1]) == optimal_value(v[1])
-            @test optimal_value(loaded[2]) == optimal_value(v[2])
+            test_save_load_roundtrip(path, v) do loaded
+              @test length(v) == length(loaded)
+              @test feasible_region(loaded[1]) == feasible_region(loaded[2])
+              @test feasible_region(loaded[1]) == feasible_region(LP0)
+              @test objective_function(loaded[1]) == objective_function(v[1])
+              @test objective_function(loaded[2]) == objective_function(v[2])
+              @test optimal_value(loaded[1]) == optimal_value(v[1])
+              @test optimal_value(loaded[2]) == optimal_value(v[2])
+            end
         end
 
         @testset "Vector{gfp_fmpz_elem}" begin
@@ -22,9 +22,9 @@
             one = F(1)
             minusone = F(-1)
             v = [one, minusone]
-            save(joinpath(path, "vgfe.json"), v)
-            loaded = load(joinpath(path, "vgfe.json"))
-            @test v == loaded
+            test_save_load_roundtrip(path, v) do loaded
+              @test v == loaded
+            end
         end
         
         @testset "Vector{gfp_elem}" begin
@@ -32,33 +32,33 @@
             one = F(1)
             minusone = F(-1)
             v = [one, minusone]
-            save(joinpath(path, "vge.json"), v)
-            loaded = load(joinpath(path, "vge.json"))
-            @test v == loaded
+            test_save_load_roundtrip(path, v) do loaded
+              @test v == loaded
+            end
         end
 
         @testset "Vector{Any}" begin
             c = cube(3)
             LP0 = LinearProgram(c, [2,2,-3])
             v = [c, LP0]
-            save(joinpath(path, "vany1.json"), v)
-            loaded = load(joinpath(path, "vany1.json"))
-            @test length(v) == length(loaded)
-            @test loaded[1] isa Polyhedron
-            @test loaded[2] isa LinearProgram
-            @test loaded isa Vector{Any}
+            test_save_load_roundtrip(path, v) do loaded
+              @test length(v) == length(loaded)
+              @test loaded[1] isa Polyhedron
+              @test loaded[2] isa LinearProgram
+              @test loaded isa Vector{Any}
+            end
         end
         
         @testset "Vector{Union{Polyhedron, LinearProgram}}" begin
             c = cube(3)
             LP0 = LinearProgram(c, [2,2,-3])
             v = Vector{Union{Polyhedron, LinearProgram}}([c, LP0])
-            save(joinpath(path, "vany2.json"), v)
-            loaded = load(joinpath(path, "vany2.json"))
-            @test length(v) == length(loaded)
-            @test loaded[1] isa Polyhedron
-            @test loaded[2] isa LinearProgram
-            @test loaded isa Vector{Union{Polyhedron, LinearProgram}}
+            test_save_load_roundtrip(path, v) do loaded
+              @test length(v) == length(loaded)
+              @test loaded[1] isa Polyhedron
+              @test loaded[2] isa LinearProgram
+              @test loaded isa Vector{Union{Polyhedron, LinearProgram}}
+            end
         end
         
         @testset "Testing (de)serialization of Vector{$(T)}" for T in 
@@ -68,11 +68,10 @@
                 Float16, Float32, Float64
             )
             original = [T(1), T(2)]
-            filename = joinpath(path, string(T)*"_vec.json")
-            save(filename, original)
-            loaded = load(filename)
-            @test loaded isa Vector{T}
-            @test original == loaded
+            test_save_load_roundtrip(path, original) do loaded
+              @test loaded isa Vector{T}
+              @test original == loaded
+            end
         end
     end
 end

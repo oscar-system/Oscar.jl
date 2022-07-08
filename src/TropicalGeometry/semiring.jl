@@ -445,7 +445,7 @@ end
 @doc Markdown.doc"""
     tropical_minors(A::MatElem, k::Int)
 
-Return an array consisting of the k-minors of a tropical matrix A
+Return an array consisting of the k-minors of a tropical matrix `A`.
 """
 function tropical_minors(A::MatElem, k::Int)
    row_indices = AbstractAlgebra.combinations(nrows(A), k)
@@ -542,7 +542,7 @@ zero(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalSemiringElem}) = R(zero(base
 """
     @tropical(expr)
 
-Translates the expression in the tropical world.
+Translate the expression in the tropical world.
 
 # Examples
 

@@ -201,7 +201,7 @@ julia> all_transitive_groups(degree => 3:5, is_abelian)
 returns the list of all abelian transitive groups acting on 3, 4 or 5 points.
 """
 function all_transitive_groups(L...)
-   gapargs = translate_group_library_args(L; permgroups=true)
+   gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]
 end

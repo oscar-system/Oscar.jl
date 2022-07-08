@@ -19,7 +19,7 @@ include("Rings/runtests.jl")
 include("NumberTheory/nmbthy-test.jl")
 
 if Oscar.is_dev
-  include("Examples/GITFans-test.jl")
+  include("Experimental/GITFans-test.jl")
 end
 
 include("Experimental/PlaneCurve-test.jl")

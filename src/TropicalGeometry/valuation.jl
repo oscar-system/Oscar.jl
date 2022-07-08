@@ -25,11 +25,11 @@ The role of `val` is to encode with respect to which valuation on `K` and
 under which convention (min or max) tropical computations should take place.
 
 Currently, the only supported valuations are:
-- t-adic valuation on QQ(t)
-- p-adic valuations on QQ
-- trivial valuation on any field
+- the $t$-adic valuation on $\mathbb{Q}(t)$
+- the $p$-adic valuations on $\mathbb{Q}$
+- the trivial valuation on any field
 
-# Example (p-adic valuation on QQ)
+# Example ($p$-adic valuation on $\mathbb{Q}$)
 ```jldoctest
 julia> val_2 = TropicalSemiringMap(QQ,2); # = TropicalSemiringMap(QQ,2,min)
 
@@ -45,7 +45,7 @@ julia> val_2(1//4)
 (2)
 ```
 
-# Example (t-adic valuation on QQ(t))
+# Example ($t$-adic valuation on $\mathbb{Q}(t)$)
 ```jldoctest
 julia> Kt,t = RationalFunctionField(QQ,"t");
 
@@ -57,7 +57,7 @@ julia> val_t(1//t^2)
 (-2)
 ```
 
-# Example (trivial valuation on QQ)
+# Example (trivial valuation on $\mathbb{Q}$)
 ```jldoctest
 julia> val = TropicalSemiringMap(QQ);
 

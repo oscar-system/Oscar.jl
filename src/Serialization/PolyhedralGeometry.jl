@@ -17,6 +17,8 @@ end
 
 
 ##############################################################################
+@registerSerializationType(LinearProgram{fmpq})
+
 function save_internal(s::SerializerState, lp::LinearProgram)
     lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
@@ -45,17 +47,22 @@ function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dic
 end
 
 # use generic serialization for the other types:
+@registerSerializationType(Cone{fmpq})
 save_internal(s::SerializerState, obj::Cone) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Cone = load_internal_generic(s, T, dict)
 
+@registerSerializationType(PolyhedralComplex{fmpq})
 save_internal(s::SerializerState, obj::PolyhedralComplex) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralComplex = load_internal_generic(s, T, dict)
 
+@registerSerializationType(Polyhedron{fmpq})
 save_internal(s::SerializerState, obj::Polyhedron) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: Polyhedron = load_internal_generic(s, T, dict)
 
+@registerSerializationType(PolyhedralFan{fmpq})
 save_internal(s::SerializerState, obj::PolyhedralFan) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: PolyhedralFan = load_internal_generic(s, T, dict)
 
+@registerSerializationType(SubdivisionOfPoints{fmpq})
 save_internal(s::SerializerState, obj::SubdivisionOfPoints) = save_internal_generic(s, obj)
 load_internal(s::DeserializerState, ::Type{T}, dict::Dict) where T <: SubdivisionOfPoints = load_internal_generic(s, T, dict)
