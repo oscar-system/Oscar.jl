@@ -624,14 +624,13 @@ end
 
 Data structure for free resolutions.
 """
-@attributes mutable struct FreeResolution{T}
+mutable struct FreeResolution{T}
     C::Hecke.ChainComplex
     complete::Bool
 
     function FreeResolution(C::Hecke.ChainComplex{T}) where {T}
         FR = new{T}()
         FR.C = C
-        FR.complete = FR.C.complete
 
         return FR
     end
