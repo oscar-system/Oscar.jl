@@ -631,7 +631,7 @@ Data structure for free resolutions.
     function FreeResolution(C::Hecke.ChainComplex{T}) where {T}
         FR = new{T}()
         FR.C = C
-        FR.complete = C.complete
+        FR.complete = FR.C.complete
 
         return FR
     end
