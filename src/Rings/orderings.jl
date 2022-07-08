@@ -829,7 +829,7 @@ Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
 function module_ordering(a::AbstractVector{Int}, s::Symbol)
    i = minimum(a)
    I = maximum(a)
-   if I-i+1 == i:I #test if variables are consecutive or not.
+   if a == i:I #test if variables are consecutive or not.
      return ModOrdering(i:I, s)
    end
    return ModOrdering(collect(a), s)

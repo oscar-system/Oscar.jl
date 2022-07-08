@@ -175,7 +175,8 @@ end
              wdegrevlex([x1, x2], [1, 2]),
              negdeglex([x1, x2]),
              negdegrevlex([x1, x2]),
-             revlex([x1, x2]))
+             revlex([x1, x2]),
+             lex([x1, x2]))
       @test collect(monomials(x3 + x4, a*lex([x3, x4]))) == [x3, x4]
    end
 end
