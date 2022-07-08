@@ -754,6 +754,29 @@ function Base.hash(M::MonomialOrdering, u::UInt)
   return hash(canonical_weight_matrix(M), u)
 end
 
+# Return two arrays of indices containing the variables which are > 1 and < 1
+# respectively.
+function _global_and_local_vars(M::MonomialOrdering)
+  globals = Int[]
+  locals = Int[]
+  n = nvars(base_ring(M))
+  d = zeros(Int, n)
+  w = weight_matrix(M)
+  m = nrows(w)
+  @assert n == ncols(w)
+  for i in 1:m, j in 1:n
+    d[j] == 0 || continue
+    if w[i, j] > 0
+      d[j] = 1
+      push!(globals, j)
+    elseif w[i, j] < 0
+      d[j] = -1
+      push!(locals, j)
+    end
+  end
+  return globals, locals
+end
+
 @doc Markdown.doc"""
     is_global(M::MonomialOrdering)
 
@@ -761,16 +784,8 @@ Return `true` if the given ordering is global, i.e. if $1 < x$ for
 each variable $x$ in the ring `M.R` for which `M` is defined.
 """
 function is_global(M::MonomialOrdering)
-  fl = flat(M.o)
-  R = M.R
-  for o in fl
-    for i in o.vars
-      if isone(leading_monomial(gens(R)[i] + one(R), M))
-        return false
-      end
-    end
-  end
-  return true
+  globals, locals = _global_and_local_vars(M)
+  return length(globals) == nvars(base_ring(M))
 end
 
 @doc Markdown.doc"""
@@ -780,16 +795,8 @@ Return `true` if the given ordering is local, i.e. if $1 > x$ for
 each variable $x$ in the ring `M.R` for which `M` is defined.
 """
 function is_local(M::MonomialOrdering)
-  fl = flat(M.o)
-  R = M.R
-  for o in fl
-    for i in o.vars
-      if !isone(leading_monomial(gens(R)[i] + one(R), M))
-        return false
-      end
-    end
-  end
-  return true
+  globals, locals = _global_and_local_vars(M)
+  return length(locals) == nvars(base_ring(M))
 end
 
 @doc Markdown.doc"""
@@ -799,21 +806,9 @@ Return `true` if the given ordering is mixed, i.e. if $1 < x_i$ for
 a variable $x_i$ and $1 > x_j$ for another variable $x_j$ in the ring `M.R`
 for which `M` is defined.
 """
-is_mixed(M::MonomialOrdering) = !is_global(M) && !is_local(M)
-
-# Return two arrays of indices containing the variables which are > 1 and < 1
-# respectively.
-function _global_and_local_vars(M::MonomialOrdering)
-  globals = Int[]
-  locals = Int[]
-  for i in 1:ngens(M.R)
-    if isone(leading_monomial(gens(M.R)[i] + 1, M))
-      push!(locals, i)
-    else
-      push!(globals, i)
-    end
-  end
-  return globals, locals
+function is_mixed(M::MonomialOrdering)
+  globals, locals = _global_and_local_vars(M)
+  return !isempty(globals) && !isempty(locals)
 end
 
 ###################################################
