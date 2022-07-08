@@ -338,7 +338,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
     # find weights of the Cox ring
-    weights = matrix(ZZ, [0 1; 1 0; 0 1; 1 2])
+    weights = matrix(ZZ, [0 1; 1 0; 0 1; 1 r])
     
     # set map from torusinvariant weil divisors to class group
     set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(torusinvariant_weil_divisor_group(variety), class_group(variety), weights))
@@ -557,17 +557,24 @@ end
     NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
 
 Returns the list of toric varieties obtained from fine regular
-star triangulations of the polyhedron P.
+star triangulations of the polyhedron P. With this we can
+compute the two phases of the famous conifold transition.
 
 # Examples
 ```jldoctest
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
 A polyhedron in ambient dimension 3
 
-julia> NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+julia> (v1,v2) = NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
 2-element Vector{NormalToricVariety}:
  A normal toric variety
  A normal toric variety
+
+julia> stanley_reisner_ideal(v1)
+ideal(x2*x4)
+
+julia> stanley_reisner_ideal(v2)
+ideal(x1*x3)
 ```
 """
 function NormalToricVarietiesFromStarTriangulations(P::Polyhedron)

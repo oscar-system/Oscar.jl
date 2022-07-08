@@ -49,7 +49,7 @@ end
     @test dim_of_torusfactor(antv4) == 1
 end
 
-@testset "Errors from changes to coordinates and coefficients are variety is finalized" begin
+@testset "Errors from changes to coordinates and coefficients once variety is finalized" begin
     @test ngens(cox_ring(antv4)) == 1
     @test is_finalized(antv4) == true
     @test_throws ErrorException set_coordinate_names(antv4, ["u"])
@@ -121,6 +121,7 @@ end
 #####################
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
+P2v2 = projective_space(NormalToricVariety,2)
 
 @testset "Projective space P2" begin
     @test is_normal(P2) == true
@@ -141,6 +142,10 @@ P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
     @test length(irrelevant_ideal(P2).gens) == 3
 end
 
+@testset "Test constructor for Hirzebruch surfaces" begin
+  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1],[1],[1]])
+  @test coordinate_names(P2v2) == ["x1","x2","x3"]
+end
 
 
 
@@ -151,6 +156,7 @@ end
 
 F0 = hirzebruch_surface(0)
 F5 = NormalToricVariety([[1,0], [0,1], [-1,5], [0,-1]], [[1,2],[2,3],[3,4],[4,1]])
+F5v2 = hirzebruch_surface(5)
 
 @testset "Hirzebruch surface F0" begin
     @test is_fano(F0) == true
@@ -191,7 +197,10 @@ end
     @test length(irrelevant_ideal(F5).gens) == 4
 end
 
-
+@testset "Test constructor for Hirzebruch surfaces" begin
+  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(F5v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(F5v2))]) == matrix(ZZ, [[0,1],[1,0],[0,1],[1,5]])
+  @test coordinate_names(F5v2) == ["t1","x1","t2","x2"]
+end
 
 
 
@@ -204,6 +213,7 @@ dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,
 dP2 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,1]])
 dP3 = NormalToricVariety([[1,0], [1,1], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
 set_coordinate_names(dP3,["x1","e1","x2","e3","x3","e2"])
+dP3v2 = del_pezzo(3)
 
 @testset "Argument errors for del Pezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
@@ -220,6 +230,10 @@ end
     @test picard_group(dP3) == codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP3))
 end
 
+@testset "Test constructor for delPezzo surfaces" begin
+  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(dP3v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(dP3v2))]) == matrix(ZZ, [[1,1,1,0],[1,1,0,1],[1,0,1,1],[0,-1,0,0],[0,0,-1,0],[0,0,0,-1]])
+  @test coordinate_names(dP3v2) == ["x1","x2","x3","e1","e2","e3"]
+end
 
 
 

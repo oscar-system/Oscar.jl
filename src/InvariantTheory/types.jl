@@ -26,13 +26,12 @@ mutable struct SecondaryInvarsCache{T}
   end
 end
 
-mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
+mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
   field::FldT
   poly_ring::PolyRingT
 
   group::GrpT
   action::Vector{ActionT}
-  action_singular::Vector{SingularActionT}
 
   modular::Bool
 
@@ -44,33 +43,19 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
 
   molien_series::Generic.Frac{fmpq_poly}
 
-  # Cache some stuff on the Singular side
-  # (possibly removed at some point)
-  reynolds_singular::Singular.smatrix
-  molien_singular::Singular.smatrix
-
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
 
     # We want to use divrem w.r.t. degrevlex e.g. for the computation of
-    # secondary invariants
+    # secondary invariants and fundamental invariants
     R, = grade(PolynomialRing(K, "x" => 1:n, cached = false, ordering = :degrevlex)[1], ones(Int, n))
-    R_sing = singular_poly_ring(R)
-    if ActionT <: PermGroupElem
-      m_action = [permutation_matrix(K, p) for p in action]
-      action_singular = identity.([change_base_ring(R_sing, g) for g in m_action])
-    else
-      action_singular = identity.([change_base_ring(R_sing, g) for g in action])
-    end
     PolyRingT = typeof(R)
     PolyElemT = elem_type(R)
-    SingularActionT = eltype(action_singular)
-    z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}()
+    z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT}()
     z.field = K
     z.poly_ring = R
     z.group = G
     z.action = action
-    z.action_singular = action_singular
     z.modular = true
     if iszero(characteristic(K))
       z.modular = false
@@ -226,17 +211,7 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
   end
 
   function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
-    monomial_to_column = Dict{elem_type(R), Int}()
-    c = 0
-    for f in polys
-      for m in monomials(f)
-        if !haskey(monomial_to_column, m)
-          c += 1
-          monomial_to_column[m] = c
-        end
-      end
-    end
-    return BasisOfPolynomials(R, polys, monomial_to_column)
+    return BasisOfPolynomials(R, polys, enumerate_monomials(polys))
   end
 
   function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}, monomial_to_column::Dict{PolyElemT, Int}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
@@ -250,18 +225,7 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
 
     B.monomial_to_column = monomial_to_column
 
-    M = sparse_matrix(K)
-    for i = 1:length(polys)
-      srow = sparse_row(K)
-      for (a, m) in zip(coefficients(polys[i]), monomials(polys[i]))
-        @assert haskey(monomial_to_column, m) "Monomial not found in the given dictionary"
-        col = monomial_to_column[m]
-        k = searchsortedfirst(srow.pos, col)
-        insert!(srow.pos, k, col)
-        insert!(srow.values, k, deepcopy(a))
-      end
-      push!(M, srow)
-    end
+    M = polys_to_smat(polys, monomial_to_column, copy = true)
     rref!(M, truncate = true)
     B.M = M
 

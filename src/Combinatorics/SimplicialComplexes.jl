@@ -250,8 +250,13 @@ function minimal_nonfaces(::Type{Vector{Set{Int}}}, K::SimplicialComplex)
 end
 function minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex)
     # the following line must stay to ensure polymake uses the correct algorithm for the non-faces
-    nvertices(K)
-    return pm_object(K).MINIMAL_NON_FACES
+    nv = nvertices(K)
+    m = pm_object(K).MINIMAL_NON_FACES
+    # fix column number (see #1440) until this is fixed in polymake
+    if size(m, 2) < nv
+      resize!(m, size(m, 1), nv)
+    end
+    return m
 end
 
 @doc Markdown.doc"""
