@@ -19,6 +19,9 @@ abstract type AbsModOrdering <: AbsOrdering end
 struct SymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
   function SymbOrdering(S::Symbol, v::Vector{Int})
+    S in (:lex, :deglex, :degrevlex, :revlex,
+          :neglex, :negdeglex, :negdegrevlex, :negrevlex) ||
+        throw(ArgumentError("unsupported ordering $S"))
     return new{S}(v)
   end
 end
@@ -28,7 +31,10 @@ struct WSymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
   weights::Vector{Int}
   function WSymbOrdering(S::Symbol, v::Vector{Int}, w::Vector{Int})
-    @assert length(v) == length(w)
+    S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
+        throw(ArgumentError("unsupported ordering $S"))
+    length(v) == length(w) ||
+        throw(ArgumentError("number of variables should match the number of weights"))
     return new{S}(v, w)
   end
 end
@@ -37,7 +43,8 @@ struct MatrixOrdering <: AbsGenOrdering
   vars::Vector{Int}
   matrix::fmpz_mat
   function MatrixOrdering(v::Vector{Int}, m::fmpz_mat)
-    @assert length(v) == ncols(m)
+    length(v) == ncols(m) ||
+        throw(ArgumentError("number of variables should match the number of columns"))
     return new(v, m)
   end
 end
@@ -95,7 +102,7 @@ end
 base_ring(a::MonomialOrdering) = a.R
 
 @doc Markdown.doc"""
-    :*(M::MonomialOrdering, N::MonomialOrdering)
+    *(M::MonomialOrdering, N::MonomialOrdering)
 
 The product ordering `M*N` tries to order by `M` first, and in the case of a
 tie uses `N`. Corresponds to a vertical concatenation of the weight matrices.
@@ -1029,7 +1036,6 @@ function singular(ord::ModuleOrdering)
     return sord
   else
     error("failed to convert module ordering")
-    return sord
   end
 end
 

@@ -71,6 +71,11 @@
    @test !is_global(a)
    @test !is_local(a)
    @test is_mixed(a)
+
+   @test_throws ArgumentError monomial_ordering(gens(R), :foo)
+   @test_throws ArgumentError monomial_ordering(gens(R), :lex, ones(Int, ngens(R)+1))
+   @test_throws ArgumentError monomial_ordering(gens(R), :foo, ones(Int, ngens(R)))
+   @test_throws ArgumentError matrix_ordering(gens(R), zero_matrix(ZZ, 2, ngens(R) + 1))
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
