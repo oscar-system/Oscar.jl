@@ -2818,6 +2818,7 @@ function presentation(SQ::SubQuo)
   #the relations are A meet B? written wrt to A
   R = base_ring(SQ)
   F = FreeMod(R, ngens(SQ.sub))
+  set_attribute!(F,  :name => "br^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
@@ -2850,11 +2851,12 @@ function presentation(SQ::SubQuo)
   #want R^a -> R^b -> SQ -> 0
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
   G = FreeMod(R, length(q))
+  set_attribute!(G, :name => "br^$(length(q))")
   h_G_F = hom(G, F, q)
   h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
 
   Z = FreeMod(F.R, 0)
-  set_attribute!(Z, :name => "Zero")
+  set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(SQ)]))
   return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-1)
 end
@@ -2868,7 +2870,7 @@ Return a free presentation of $F$.
 """
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
-  set_attribute!(Z, :name => "Zero")
+  set_attribute!(Z, :name => "0")
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModElem[]), hom(F, F, gens(F)), hom(F, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(F)]))], check = false, start=-1)
 end
 
@@ -3930,7 +3932,7 @@ function extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sym
   if cc.complete == true
     key -= 1
     Z = FreeMod(br, 0)
-    set_attribute!(Z, :name => "Zero")
+    set_attribute!(Z, :name => "0")
     cc.maps[key] = hom(Z, domain(cc.maps[key+1]), FreeModElem[])
   end
   return cc.maps[key]
@@ -3971,11 +3973,10 @@ by Submodule with 4 generators
 4 -> z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
-fr_1 ----> fr_0 ----> M
-where:
-        fr_1 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        fr_0 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
+rank   | 6  2
+-------|------
+degree | 1  0
 
 julia> fr.complete
 false
@@ -3984,27 +3985,21 @@ julia> fr[4]
 Free module of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
 julia> fr
-Zero ----> fr_3 ----> fr_2 ----> fr_1 ----> fr_0 ----> M
-where:
-        fr_3 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        fr_2 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        fr_1 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        fr_0 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
 
 julia> fr.complete
 true
 
-julia> res = free_resolution(M, algorithm=:sres)
-Zero ----> res_3 ----> res_2 ----> res_1 ----> res_0 ----> M
-where:
-        res_3 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        res_2 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        res_1 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-        res_0 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+julia> fr = free_resolution(M, algorithm=:sres)
 
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
 
-julia> res.complete
+julia> fr.complete
 true
 
 ```
@@ -4050,16 +4045,18 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   j   = 2
   while j <= Singular.length(res)
     codom = dom
-    dom   = free_module(br, Singular.ngens(res[j]))
+    rk    = Singular.ngens(res[j])
+    dom   = free_module(br, rk)
     SM    = SubModuleOfFreeModule(codom, res[j])
     generator_matrix(SM)
+    set_attribute!(dom, :name => "br^$rk")
     insert!(maps, 1, hom(dom, codom, SM.matrix))
     j += 1
   end
   if cc_complete == true
     # Finalize maps.
     Z = FreeMod(br, 0)
-    set_attribute!(Z, :name => "Zero")
+    set_attribute!(Z, :name => "0")
     insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
   end
 
@@ -4067,7 +4064,7 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   cc.fill     = extend_free_resolution
   cc.complete = cc_complete
 
-  return cc
+  return FreeResolution(cc)
 end
 
 
@@ -4089,7 +4086,7 @@ function free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       Z = FreeMod(base_ring(M), 0)
-      set_attribute!(Z, :name => "Zero")
+      set_attribute!(Z, :name => "0")
       h = hom(Z, domain(mp[1]), FreeModElem[])
       insert!(mp, 1, h)
       break
