@@ -63,6 +63,38 @@
   pdf           = {https://hal.inria.fr/hal-02912148/file/07.pdf}
 }
 
+@Article{BDLPSS13,
+  author        = {Janko Böhm and Wolfram Decker and Santiago Laplagne and
+                  Gerhard Pfister and Andreas Steenpaß and Stefan Steidel},
+  title         = {Parallel algorithms for normalization},
+  journal       = {Journal of Symbolic Computation},
+  volume        = {51},
+  note          = {Effective Methods in Algebraic Geometry},
+  pages         = {99-114},
+  year          = {2013},
+  doi           = {https://doi.org/10.1016/j.jsc.2012.07.002},
+  url           = {https://www.sciencedirect.com/science/article/pii/S0747717112001186},
+  abstract      = {Given a reduced affine algebra A over a perfect field K,
+                  we present parallel algorithms to compute the normalization
+                  A¯ of A. Our starting point is the algorithm of Greuel et
+                  al. (2010), which is an improvement of de Jongʼs algorithm
+                  (de Jong, 1998, Decker et al., 1999). First, we propose to
+                  stratify the singular locus Sing(A) in a way which is
+                  compatible with normalization, apply a local version of the
+                  normalization algorithm at each stratum, and find A¯ by
+                  putting the local results together. Second, in the case
+                  where K=Q is the field of rationals, we propose modular
+                  versions of the global and local-to-global algorithms. We
+                  have implemented our algorithms in the computer algebra
+                  system Singular and compare their performance with that of
+                  the algorithm of Greuel et al. (2010). In the case where
+                  K=Q, we also discuss the use of modular computations of
+                  Gröbner bases, radicals, and primary decompositions. We
+                  point out that in most examples, the new algorithms
+                  outperform the algorithm of Greuel et al. (2010) by far,
+                  even if we do not run them in parallel.}
+}
+
 @InProceedings{BES-E-D21,
   author        = {Berthomieu, J\'{e}r\'{e}my and Eder, Christian and Safey
                   El Din, Mohab},
