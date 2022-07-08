@@ -65,22 +65,6 @@ end
 
 Base.:*(a::AbsGenOrdering, b::AbsGenOrdering) = ProdOrdering(a, b)
 
-function flat(a::SymbOrdering)
-  return [a]
-end
-
-function flat(a::WSymbOrdering)
-  return [a]
-end
-
-function flat(a::MatrixOrdering)
-  return [a]
-end
-
-function flat(a::ProdOrdering)
-   return vcat(flat(a.a), flat(a.b))
-end  
-
 @doc Markdown.doc"""
     anti_diagonal(R::Ring, n::Int)
 
@@ -877,13 +861,6 @@ end
 function Base.:*(M::MonomialOrdering, N::ModuleOrdering)
    base_ring(N.M) == M.R || error("wrong rings")
    return ModuleOrdering(N.M, M.o*N.o)
-end
-
-function flat(a::ModOrdering)
-   return [a]
-end
-function flat(a::ModProdOrdering)
-   return vcat(flat(a.a), flat(a.b))
 end
 
 @doc Markdown.doc"""
