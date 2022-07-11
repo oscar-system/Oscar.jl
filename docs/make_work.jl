@@ -71,6 +71,8 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
     DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive = true)
     DocMeta.setdocmeta!(Oscar.Graphs, :DocTestSetup, :(using Oscar; using Oscar.Graphs); recursive = true)
+    DocMeta.setdocmeta!(Oscar.AbstractAlgebra, :DocTestSetup, :(using AbstractAlgebra); recursive = true)
+    DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive = true)
 
 
     makedocs(bib,

@@ -96,7 +96,9 @@ function f4(
     end
 
     basis = convert_ff_gb_array_to_oscar_array(
-                jl_ld, jl_len, jl_cf, jl_exp, base_ring(I))
+                jl_ld, jl_len, jl_cf, jl_exp, base_ring(I), eliminate)
+
+
     ccall((:free_f4_julia_result_data, libneogb), Nothing ,
           (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}},
            Ptr{Ptr{Cvoid}}, Int, Int),

@@ -95,6 +95,7 @@ function msolve(
 
     mon_order       = 0
     elim_block_size = 0
+    use_signatures  = 0
 
     if field_char != 0
         error("At the moment msolve only supports the rationals as ground field.")
@@ -115,13 +116,14 @@ function msolve(
         (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}},
         Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint},
         Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cchar}}, Ptr{Cchar}, Cint, Cint,
-        Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint,
+        Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint,
         Cint, Cint, Cint),
         cglobal(:jl_malloc), res_ld, res_dim, res_dquot, res_len, res_cf,
         nb_sols, sols_num, sols_den, lens, exps, cfs, variable_names,
         "/dev/null", field_char, mon_order, elim_block_size, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
-        print_gb, get_param, genericity_handling, precision, info_level)
+        use_signatures, print_gb, get_param, genericity_handling, precision,
+        info_level)
     # convert to julia array, also give memory management to julia
     jl_ld       = res_ld[]
 
@@ -135,17 +137,22 @@ function msolve(
     if jl_dim > 0
         error("Dimension of ideal is greater than zero, no solutions provided.")
     end
-    if jl_nb_sols == 0
-        return [], Vector{fmpq}[]
-    end
 
+    # get rational parametrization
     jl_len  = Base.unsafe_wrap(Array, res_len[], jl_ld)
     nterms  = 0
-
 
     [nterms += jl_len[i] for i=1:jl_ld]
     # if 0 == field_char
     jl_cf       = reinterpret(Ptr{BigInt}, res_cf[])
+
+    rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
+
+    if jl_nb_sols == 0
+        return rat_param, Vector{fmpq}[]
+    end
+
+    # get solutions
     jl_sols_num = reinterpret(Ptr{BigInt}, sols_num[])
     jl_sols_den = reinterpret(Ptr{Int32}, sols_den[])
     # elseif is_prime(field_char)
@@ -173,8 +180,6 @@ function msolve(
         solutions[k] = tmp
         k += 1
     end
-
-    rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
 
     ccall((:free_msolve_julia_result_data, libmsolve), Nothing ,
         (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},

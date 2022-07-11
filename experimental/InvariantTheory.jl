@@ -1,1 +1,0 @@
-include("InvariantTheory/InvariantTheory.jl")

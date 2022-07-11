@@ -109,18 +109,17 @@ end
 
    v1=V([1,2,3,4,5])
    v2=V([1,6,0,5,2])
-   @test v1*v2==1
    G = GL(5,F)
    B=matrix(F,5,5,[1,2,3,1,0,4,5,2,0,1,3,2,5,4,0,1,6,4,3,5,2,0,4,1,1])
    @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
    @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
-   @test v1*B*v2==(v1*B)*v2
    B = G(B)
    @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
    @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
-   @test v1*B*v2==(v1*B)*v2
    @test map(x->x+1,v1)==V([2,3,4,5,6])
 
+   # see the discussion of pull/1368 and issues/872
+   @test_throws MethodError v1*v2
 end
 
 # from file matrices/stuff_field_gen.jl
