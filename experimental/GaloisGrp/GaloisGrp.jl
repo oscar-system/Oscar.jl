@@ -351,11 +351,33 @@ mutable struct GaloisCtx{T}
    - (Int, Int): evaluation point, prime number used over Q(t)
    =#
 
+  function GaloisCtx(f::fmpz_poly, ::AcbField)
+    r = new{ComplexRootCtx}()
+    r.f = f
+    r.C = ComplexRootCtx(f)
+    r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
+    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    return r
+  end
+
+  function GaloisCtx(f::fmpq_poly, x::AcbField)
+    return GaloisCtx(numerator(f), x)
+  end
+
   function GaloisCtx(f::fmpz_poly, p::Int)
     r = new{Hecke.qAdicRootCtx}()
     r.prime = p
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
+    r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
+    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    return r
+  end
+
+  function GaloisCtx(f::fmpz_poly)
+    r = new{SymbolicRootCtx}()
+    r.f = f
+    r.C = SymbolicRootCtx(f)
     r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     return r
@@ -441,6 +463,109 @@ end
 
 function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
   return clog(B.val, G.C.p)+extra
+end
+
+mutable struct ComplexRootCtx
+  f::fmpz_poly
+  pr::Int
+  rt::Vector{acb}
+  function ComplexRootCtx(f::fmpz_poly)
+    @assert ismonic(f)
+    rt = roots(f, ComplexField(20))
+    return new(f, 20, rt)
+  end
+  function ComplexRootCtx(f::fmpq_poly)
+    return ComplexRootCtx(numerator(f))
+  end
+end
+
+function Base.show(io::IO, GC::GaloisCtx{ComplexRootCtx})
+  print(io, "Galois Context for $(GC.f) using complex roots\n")
+end
+
+function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = false)
+  if C.C.pr >= pr
+    return C.C.rt
+  end
+  rt = roots(C.C.f, ComplexField(pr))
+  C.C.pr = pr
+  n = length(rt)
+  for i=1:n
+    C.C.rt[i] = rt[argmin(x->abs(C.C.rt[i] - rt[x]), 1:n)]
+  end
+  return C.C.rt
+end
+
+function isinteger(GC::GaloisCtx{ComplexRootCtx}, B::BoundRingElem, e)
+  if abs(imag(e)) > 1e-10
+    return false, fmpz(0)
+  end
+  r = round(fmpz, real(e))
+  if abs(real(e)-r) > 1e-10
+    return false, fmpz(0)
+  else
+    return true, r
+  end
+end
+
+function bound_to_precision(G::GaloisCtx{ComplexRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+  return 2*clog(B.val, 2) + 10
+end
+
+function map_coeff(G::GaloisCtx{ComplexRootCtx}, a::fmpq)
+  return parent(G.C.rt[1])(a)
+end
+
+function Hecke.MPolyFact.block_system(a::Vector{acb}, eps = 1e-9)
+  b = Dict{Int, Vector{Int}}()
+  for i=1:length(a)
+    cb = collect(keys(b))
+    fl = findfirst(x->abs(a[i] - a[x]) < eps, cb)
+    if fl === nothing
+      b[i] = [i]
+    else
+      push!(b[cb[fl]], i)
+    end
+  end
+  bs = sort(collect(values(b)), lt = (a,b) -> isless(a[1], b[1]))
+  return bs
+end
+
+mutable struct SymbolicRootCtx
+  f::fmpz_poly
+  rt::Vector{nf_elem}
+  function SymbolicRootCtx(f::fmpz_poly)
+    @assert ismonic(f)
+    _, rt = splitting_field(f, do_roots = true)
+    return new(f, rt)
+  end
+  function SymbolicRootCtx(f::fmpq_poly)
+    return SymbolicRootCtx(numerator(f))
+  end
+end
+
+function Base.show(io::IO, GC::GaloisCtx{SymbolicRootCtx})
+  print(io, "Galois Context for $(GC.f) using symbolic roots\n")
+end
+
+function Hecke.roots(C::GaloisCtx{SymbolicRootCtx}, ::Int; raw::Bool = false)
+  return C.C.rt
+end
+
+function isinteger(GC::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem, e)
+  if Oscar.is_integer(e)
+    return true, ZZ(e)
+  else
+    return false, fmpz(0)
+  end
+end
+
+function bound_to_precision(G::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+  return 1
+end
+
+function map_coeff(G::GaloisCtx{SymbolicRootCtx}, a::fmpq)
+  return parent(G.C.rt[1])(a)
 end
 
 function Nemo.roots_upper_bound(f::fmpz_mpoly, t::Int = 0)
@@ -1280,15 +1405,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       g = ms(gen(s))
       gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(g))
       d = map(gg, c)
-      b = Dict{typeof(c[1]), Vector{Int}}()
-      for i=1:length(c)
-        if Base.haskey(b, d[i])
-          push!(b[d[i]], i)
-        else
-          b[d[i]] = Int[i]
-        end
-      end
-      v = collect(values(b))
+      v = Hecke.MPolyFact.block_system(d)
       if any(x->length(x) != div(degree(K), degree(s)), v)
         pr *= 2
         if pr > 100
@@ -1410,8 +1527,16 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     end
   end
 
-  d = map(frobenius, c)
-  si = [findfirst(y->y==x, c) for x = d]
+  #TODO: make generic!!!
+  if isa(c[1], acb)
+    d = map(conj, c)
+    si = [findfirst(y->abs(y-x) < 1e-9, c) for x = d]
+  elseif isa(c[1], nf_elem) #.. and use automorphism
+    si = collect(1:length(d))
+  else
+    d = map(frobenius, c)
+    si = [findfirst(y->y==x, c) for x = d]
+  end
 
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
@@ -1736,7 +1861,9 @@ julia> roots(C, 2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
 """
-function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
+function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0, algo::Symbol=:pAdic)
+
+  @assert algo in [:pAdic, :Complex, :Symbolic]
 
   if prime != 0
     p = prime
@@ -1758,10 +1885,19 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   #       or the RootCtx needs to learn to deal with bad primes
  
   while true
-    GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
+    if algo == :pAdic
+      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), p)
+    elseif algo == :Complex
+      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)), ComplexField(20))
+    elseif algo == :Symbolic
+      GC = GaloisCtx(Hecke.Globals.Zx(numerator(K.pol)))
+    else
+      error("wrong algo used")
+    end
     r = roots(GC, 5)
     if length(r) < degree(K) 
       @vprint :GaloisGroup 1 "in recursion: bad prime detected\n"
+      algo != :pAdic || error("internal error aborting")
       prime == 0 || throw(Hecke.BadPrime(p))
       p, _ = find_prime(K.pol, pStart = p+1)
       continue
@@ -1877,6 +2013,11 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       compile!(I)
       for t = lt
         e = evaluate(I, t, c)
+        if typeof(e) == acb && any(x->abs(e-x) < 1e-10, cs)
+          @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
+          push!(D, d[2])
+          break
+        end
         if e in cs
           @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
           push!(D, d[2])
