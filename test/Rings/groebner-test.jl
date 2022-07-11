@@ -39,3 +39,13 @@ end
    @test groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z])) == groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
 end
+
+@testset "non-global orderings" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, [x^2*(x-1)-y^2, y^3*(x+y-6)])
+  o = negdegrevlex(gens(R))
+  G = std_basis(I, o)
+  @test normal_form(x^5-5, I, o) == -5
+  u = negdegrevlex([x])*negdegrevlex([y])
+  @test ideal_membership(x^4, I, ordering=u)
+end
