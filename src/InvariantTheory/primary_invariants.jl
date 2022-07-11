@@ -1,4 +1,4 @@
-export primary_invariants, primary_invariants_via_optimal_hsop, primary_invariants_via_successive_algo
+export primary_invariants
 
 # If d_1, ..., d_n are degrees of primary invariants, then the Hilbert series
 # must be f(t)/\prod_i (1 - t^{d_i}) where f is a polynomial with integer
@@ -142,61 +142,6 @@ function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vect
   return true
 end
 
-@doc Markdown.doc"""
-    primary_invariants_via_optimal_hsop(IR::InvRing;
-      ensure_minimality::Int = 0, degree_bound::Int = 1,
-      primary_degrees::Vector{Int} = Int[])
-
-Return a system of primary invariants for `IR` using the algorithm in [Kem99](@cite).
-
-The product of the degrees $d_1,\dots, d_n$ of the returned primary invariants
-is guaranteed to be minimal among all possible sets of primary invariants.
-
-Expert users (or users happy to experiment) may enter the following keyword arguments to 
-speed up the computation. If admissible degrees $d_1,\dots, d_n$ for a system of primary 
-invariants are known a priori, these degrees can be specified by `primary_degrees = [d_1, ..., d_n]`. 
-Note that an error is raised if in fact no primary invariants of the given degrees exist.
-An a priori known number $k \geq 1$ with $d_1\cdots d_n \geq k \cdot |G|$, where 
-$G$ is the underlying group, can be specified by `degree_bound = k`. The default value is
-`degree_bound = 1`.
-In some situations, the runtime of the algorithm might be improved by assigning
-a positive integer to `ensure_minimality`. This leads to an early cancellation of
-loops in the algorithm and the described minimality of the degrees is not
-guaranteed anymore. A smaller (positive) value of `ensure_minimality` corresponds
-to an earlier cancellation. However, the default value `ensure_minimality = 0`
-corresponds to no cancellation.
-
-# Examples
-```jldoctest
-julia> K, a = CyclotomicField(3, "a");
-
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
-
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
-
-julia> G = MatrixGroup(3, K, [M1, M2]);
-
-julia> IR = invariant_ring(G);
-
-julia> primary_invariants_via_optimal_hsop(IR)
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]*x[2]*x[3]
- x[1]^3 + x[2]^3 + x[3]^3
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
-
-julia> primary_invariants_via_optimal_hsop(IR, primary_degrees = [ 3, 6, 6 ])
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]*x[2]*x[3]
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
- x[1]^6 + x[2]^6 + x[3]^6
-
-```
-"""
-function primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
-  invars_cache = _primary_invariants_via_optimal_hsop(RG; ensure_minimality = ensure_minimality, degree_bound = degree_bound, primary_degrees = primary_degrees)
-  return invars_cache.invars
-end
-
 function _primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
   iters = Dict{Int, VectorSpaceIterator}()
   ideals = Dict{Set{elem_type(polynomial_ring(RG))}, Tuple{MPolyIdeal{elem_type(polynomial_ring(RG))}, Int}}()
@@ -291,64 +236,34 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
 end
 
 @doc Markdown.doc"""
-    primary_invariants_via_successive_algo(IR::InvRing)
-
-Return a system of primary invariants for `IR` using the algorithm in [DHS98](@cite).
-
-# Examples
-```jldoctest
-julia> K, a = CyclotomicField(3, "a");
-
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
-
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
-
-julia> G = MatrixGroup(3, K, [M1, M2]);
-
-julia> IR = invariant_ring(G);
-
-julia> primary_invariants_via_successive_algo(IR)
-3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]*x[2]*x[3]
- x[1]^3 + x[2]^3 + x[3]^3
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
-```
-"""
-function primary_invariants_via_successive_algo(IR::InvRing)
-  invars_cache = _primary_invariants_via_successive_algo(IR)
-  return invars_cache.invars
-end
-
-function _primary_invariants_via_successive_algo(IR::InvRing)
-  P = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
-  if !is_modular(IR)
-    P = P[1]
-  end
-  R = polynomial_ring(IR)
-  p = Vector{elem_type(R)}()
-  for i = 1:ncols(P)
-    push!(p, R(P[1, i]))
-  end
-  invars_cache = PrimaryInvarsCache{elem_type(polynomial_ring(IR))}()
-  invars_cache.invars = p
-  return invars_cache
-end
-
-@doc Markdown.doc"""
-    primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
+    primary_invariants(IR::InvRing;
+      ensure_minimality::Int = 0, degree_bound::Int = 1,
+      primary_degrees::Vector{Int} = Int[])
 
 Return a system of primary invariants for `IR` as a `Vector` sorted by increasing
-degree. The result is cached, so calling this function again with argument `IR` 
+degree. The result is cached, so calling this function again with argument `IR`
 will be fast and give the same result.
 
-The optional argument `algo` specifies the algorithm to be used.
-If `algo = :optimal_hsop`, the algorithm in [Kem99](@cite) is utilized.
-Setting `algo = :successive_algo` means that the algorithm from [DHS98](@cite) is used.
-The default option is `:optimal_hsop` as the algorithm in [Kem99](@cite) is in general 
-expected to be the faster algorithm.
+The primary invariants are computed using the algorithm in [Kem99](@cite).
 
-See also [`primary_invariants_via_optimal_hsop`](@ref) and
-[`primary_invariants_via_successive_algo`](@ref) for more options.
+The product of the degrees $d_1,\dots, d_n$ of the returned primary invariants
+is guaranteed to be minimal among all possible sets of primary invariants.
+
+Expert users (or users happy to experiment) may enter the following keyword arguments to
+speed up the computation. Note that all of these options are ignored if there are already
+primary invariants cached.
+If admissible degrees $d_1,\dots, d_n$ for a system of primary invariants are known a
+priori, these degrees can be specified by `primary_degrees = [d_1, ..., d_n]`.
+Note that an error is raised if in fact no primary invariants of the given degrees exist.
+An a priori known number $k \geq 1$ with $d_1\cdots d_n \geq k \cdot |G|$, where
+$G$ is the underlying group, can be specified by `degree_bound = k`. The default value is
+`degree_bound = 1`.
+In some situations, the runtime of the algorithm might be improved by assigning
+a positive integer to `ensure_minimality`. This leads to an early cancellation of
+loops in the algorithm and the described minimality of the degrees is not
+guaranteed anymore. A smaller (positive) value of `ensure_minimality` corresponds
+to an earlier cancellation. However, the default value `ensure_minimality = 0`
+corresponds to no cancellation.
 
 # Examples
 ```jldoctest
@@ -367,19 +282,22 @@ julia> primary_invariants(IR)
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+
+julia> IR = invariant_ring(G); # "New" ring to avoid caching
+
+julia> primary_invariants(IR, primary_degrees = [ 3, 6, 6 ])
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]*x[2]*x[3]
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^6 + x[2]^6 + x[3]^6
+
 ```
 """
-function primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
-  if !isdefined(IR, :primary)
-    if algo == :optimal_hsop
-      IR.primary = _primary_invariants_via_optimal_hsop(IR)
-    elseif algo == :successive_algo
-      IR.primary = _primary_invariants_via_successive_algo(IR)
-    else
-      error("Unsupported argument :$(algo) for algo.")
-    end
+function primary_invariants(RG::InvRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
+  if !isdefined(RG, :primary)
+    RG.primary = _primary_invariants_via_optimal_hsop(RG; ensure_minimality = ensure_minimality, degree_bound = degree_bound, primary_degrees = primary_degrees)
   end
-  return copy(IR.primary.invars)
+  return copy(RG.primary.invars)
 end
 
 # Access the (possibly) cached ideal generated by the primary invariants

@@ -2,15 +2,17 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       std_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
-      restrict_codomain, restrict_domain, direct_product, tensor_product, 
-      free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
-      hom_without_reversing_direction, ext, map_canonically, 
-      all_canonical_maps, register_morphism!, dense_row, 
+      represents_element, free_resolution, free_resolution_via_kernels,
+      homomorphism, module_elem, generator_matrix, restrict_codomain,
+      restrict_domain, direct_product, tensor_product, free_module, tor,
+      lift_homomorphism_contravariant, lift_homomorphism_covariant,
+      hom_without_reversing_direction, ext, map_canonically, all_canonical_maps,
+      register_morphism!, dense_row,
       show_subquo, show_morphism, show_morphism_as_map,
-      matrix_kernel, simplify, map, is_injective, is_surjective, is_bijective, is_welldefined,
-      subquotient, ambient_free_module, ambient_module, ambient_representative, 
-      ambient_representatives_generators, relations, img_gens
+      matrix_kernel, simplify, map, is_injective,
+      is_surjective, is_bijective, is_welldefined, subquotient,
+      ambient_free_module, ambient_module, ambient_representative,
+      ambient_representatives_generators, relations, img_gens, is_complete
 
 # TODO replace asserts by error messages?
 
@@ -2848,6 +2850,7 @@ function presentation(SQ::SubQuo)
   #the relations are A meet B? written wrt to A
   R = base_ring(SQ)
   F = FreeMod(R, ngens(SQ.sub))
+  set_attribute!(F,  :name => "br^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
@@ -2880,11 +2883,12 @@ function presentation(SQ::SubQuo)
   #want R^a -> R^b -> SQ -> 0
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
   G = FreeMod(R, length(q))
+  set_attribute!(G, :name => "br^$(length(q))")
   h_G_F = hom(G, F, q)
   h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
 
   Z = FreeMod(F.R, 0)
-  set_attribute!(Z, :name => "Zero")
+  set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(SQ)]))
   return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-1)
 end
@@ -2898,7 +2902,7 @@ Return a free presentation of $F$.
 """
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
-  set_attribute!(Z, :name => "Zero")
+  set_attribute!(Z, :name => "0")
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModElem[]), hom(F, F, gens(F)), hom(F, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(F)]))], check = false, start=-1)
 end
 
@@ -3910,16 +3914,252 @@ function free_resolution(F::FreeMod)
 end
 
 @doc Markdown.doc"""
-    free_resolution(M::SubQuo, limit::Int = -1)
+    is_complete(FR::FreeResolution)
 
-Return a free resolution of `M`. 
+Return `true` if the free resolution `fr` is complete, otherwise return `false`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+julia> fr = free_resolution(M, length=1)
+
+rank   | 6  2
+-------|------
+degree | 1  0
+
+julia> is_complete(fr)
+false
+
+julia> fr = free_resolution(M)
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+
+julia> is_complete(fr)
+true
+
+```
+"""
+is_complete(FR::FreeResolution) = FR.C.complete
+
+#= Fill functions (and helpers) for Hecke ChainComplexes in terms of free resolutions =#
+function _get_last_map_key(cc::Hecke.ChainComplex)
+  ctr = cc.start
+  while haskey(cc.maps, ctr)
+    ctr -= 1
+  end
+  return ctr+1
+end
+
+function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
+  key = _get_last_map_key(cc)
+  if cc.complete == true
+    return cc.maps[key]
+  end
+
+  kernel_entry          = image(cc.maps[key])[1]
+  br                    = base_ring(kernel_entry)
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+  singular_kernel_entry.isGB = true
+
+  len = idx + key - cc.start + 1
+  if algorithm == :fres
+    res = Singular.fres(singular_kernel_entry, len, "complete")
+  elseif algorithm == :sres
+    res = Singular.fres(singular_kernel_entry, len)
+  elseif algorithm == :lres
+    error("LaScala's method is not yet available in Oscar.")
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+
+  if Singular.length(res) < len
+    cc.complete = true
+  end
+  dom = domain(cc.maps[key])
+  j   = 2
+  while j <= Singular.length(res)
+    key -= 1
+    codom = dom
+    dom   = free_module(br, Singular.ngens(res[j]))
+    SM    = SubModuleOfFreeModule(codom, res[j])
+    generator_matrix(SM)
+    map = hom(dom, codom, SM.matrix)
+    cc.maps[key] = map
+    j += 1
+  end
+  # Finalize maps.
+  if cc.complete == true
+    key -= 1
+    Z = FreeMod(br, 0)
+    set_attribute!(Z, :name => "0")
+    cc.maps[key] = hom(Z, domain(cc.maps[key+1]), FreeModElem[])
+  end
+  return cc.maps[key]
+end
+
+@doc Markdown.doc"""
+    free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres)
+
+Return a free resolution of `M`.
+
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+`algorithm` can be set to `:sres` or `:fres`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+julia> fr = free_resolution(M, length=1)
+
+rank   | 6  2
+-------|------
+degree | 1  0
+
+julia> is_complete(fr)
+false
+
+julia> fr[4]
+Free module of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> fr
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+
+julia> is_complete(fr)
+true
+
+julia> fr = free_resolution(M, algorithm=:sres)
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+```
+"""
+function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres)
+
+  coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
+      error("Must be defined over a field.")
+
+  cc_complete = false
+
+  #= Start with presentation =#
+  pm = presentation(M)
+  maps = [map(pm, j) for j in range(pm)]
+
+  br = base_ring(M)
+  kernel_entry          = image(pm.maps[1])[1]
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+
+  singular_kernel_entry.isGB = true
+
+  #= This is the single computational hard part of this function =#
+  if algorithm == :fres
+    res = Singular.fres(singular_kernel_entry, length, "complete")
+  elseif algorithm == :sres
+    res = Singular.fres(singular_kernel_entry, length)
+  elseif algorithm == :lres
+    error("LaScala's method is not yet available in Oscar.")
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+
+  if length == 0 || Singular.length(res) < length
+    cc_complete = true
+  end
+
+  #= Add maps from free resolution computation, start with second entry
+   = due to inclusion of presentation(M) at the beginning. =#
+  dom = domain(pm.maps[1])
+  j   = 2
+  while j <= Singular.length(res)
+    codom = dom
+    rk    = Singular.ngens(res[j])
+    dom   = free_module(br, rk)
+    SM    = SubModuleOfFreeModule(codom, res[j])
+    generator_matrix(SM)
+    set_attribute!(dom, :name => "br^$rk")
+    insert!(maps, 1, hom(dom, codom, SM.matrix))
+    j += 1
+  end
+  if cc_complete == true
+    # Finalize maps.
+    Z = FreeMod(br, 0)
+    set_attribute!(Z, :name => "0")
+    insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
+  end
+
+  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+  cc.fill     = _extend_free_resolution
+  cc.complete = cc_complete
+
+  return FreeResolution(cc)
+end
+
+
+@doc Markdown.doc"""
+    free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
+
+Return a free resolution of `M`.
 
 If `limit != -1`, the free resolution
 is only computed up to the `limit`-th free module.
 
 # Examples
 """
-function free_resolution(M::SubQuo, limit::Int = -1)
+function free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
   p = presentation(M)
   mp = [map(p, j) for j in range(p)]
   while true
@@ -3927,7 +4167,7 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       Z = FreeMod(base_ring(M), 0)
-      set_attribute!(Z, :name => "Zero")
+      set_attribute!(Z, :name => "0")
       h = hom(Z, domain(mp[1]), FreeModElem[])
       insert!(mp, 1, h)
       break
@@ -3938,7 +4178,7 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  C = Hecke.ChainComplex(ModuleFP, mp, check = false, start=-1)
+  C = Hecke.ChainComplex(ModuleFP, mp, check = false)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
   return C
 end
@@ -4640,7 +4880,7 @@ end
 Compute $\text{Tor}_i(M,N)$.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)[1:end-2]
+  free_res = free_resolution_via_kernels(M)[1:end-2]
   lifted_resolution = tensor_product(free_res, N) #TODO only three homs are necessary
   return homology(lifted_resolution,length(lifted_resolution)-i)
 end
@@ -4813,7 +5053,7 @@ end
 Compute $\text{Ext}^i(M,N)$.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)[1:end-2]
+  free_res = free_resolution_via_kernels(M)[1:end-2]
   lifted_resolution = hom(free_res, N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end

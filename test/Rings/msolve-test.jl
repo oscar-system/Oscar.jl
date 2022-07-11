@@ -11,7 +11,7 @@
     @test Oscar.convert_oscar_ideal_to_array(I) == res
     @test Oscar.convert_singular_ideal_to_array(I.gens.S) == res
     @test Singular.equal(I.gens.S, Oscar.convert_ff_gb_array_to_singular_ideal(Int32(2), res[1], res[2], res[3], base_ring(I.gens.S)))
-    @test I.gens.O == Oscar.convert_ff_gb_array_to_oscar_array(Int32(2), res[1], res[2], res[3], base_ring(I))
+    @test I.gens.O == Oscar.convert_ff_gb_array_to_oscar_array(Int32(2), res[1], res[2], res[3], base_ring(I), 0)
     R, (x1,x2,x3,x4) = PolynomialRing(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"], ordering=:degrevlex)
     I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
             x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
@@ -60,5 +60,8 @@
     # Issue #1040
     Qx, (x,) = PolynomialRing(QQ, ["x"])
     I = ideal(Qx, [x^2 + 1])
-    @test msolve(I) == ([],[])
+    res = msolve(I)
+    C, x = PolynomialRing(QQ, "x")
+    @test res[2] == []
+    @test res[1][1] == x^2+1
 end

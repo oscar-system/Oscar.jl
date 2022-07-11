@@ -780,7 +780,7 @@ end
 
 function singular_poly_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
   if !keep_ordering
-    return singular_poly_ring(R.R, default_ordering(R).o)
+    return singular_poly_ring(R.R, default_ordering(R))
   end
   return singular_poly_ring(R.R, keep_ordering = keep_ordering)
 end

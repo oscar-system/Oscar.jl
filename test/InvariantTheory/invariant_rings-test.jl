@@ -1,4 +1,4 @@
-@testset "InvariantRings of matrix groups" begin
+@testset "Invariant rings (for matrix groups)" begin
   K, a = CyclotomicField(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
@@ -65,20 +65,6 @@
   t = gens(base_ring(F))[1]
   @test mol == (-t^4 - 1)//(t^8 - 2t^6 + 2t^2 - 1)
 
-  fund_invars = fundamental_invariants(RG0)
-  for f in fund_invars
-    @test reynolds_operator(RG0, f) == f
-  end
-  fund_invars2 = Oscar.fundamental_invariants_via_minimal_subalgebra(RG0)
-  for f in fund_invars2
-    @test reynolds_operator(RG0, f) == f
-  end
-
-  fund_invars = fundamental_invariants(RGp)
-  for f in fund_invars
-    @test reynolds_operator(RGp, f) == f
-  end
-
   # S5 (deleted permutation module)
   G = matrix_group(matrix(QQ, [-1 1 0 0;
                                -1 0 1 0;
@@ -108,7 +94,7 @@
   @test m == (t^2 + 1)//(t^4 - 2*t^2 + 1)
 end
 
-@testset "InvariantRings of permutation groups" begin
+@testset "Invariant rings (for permutation groups)" begin
   G = symmetric_group(3)
   RGQ = invariant_ring(G)   # char. 0, over QQ
 
@@ -171,20 +157,6 @@ end
   F = parent(mol)
   t = gens(base_ring(F))[1]
   @test mol == 1//((1-t^3)*(1-t^2)*(1-t))
-
-  fund_invars = fundamental_invariants(RGK)
-  for f in fund_invars
-    @test reynolds_operator(RGK, f) == f
-  end
-  fund_invars2 = Oscar.fundamental_invariants_via_minimal_subalgebra(RGK)
-  for f in fund_invars2
-    @test reynolds_operator(RGK, f) == f
-  end
-
-  fund_invars = fundamental_invariants(RGF)
-  for f in fund_invars
-    @test reynolds_operator(RGF, f) == f
-  end
 
   # S4 (natural permutation module in characteristic 5)
   s4 = symmetric_group(4)

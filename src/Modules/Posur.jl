@@ -526,7 +526,7 @@ function kernel(
   B = relations_matrix(codomain(f))
   MB = vcat(M, B)
   Lext = syz(MB)
-  L = change_base_ring(S, Lext[:, 1:ncols(M)])
+  L = change_base_ring(S, Lext[:, 1:nrows(M)])
   K, inc = sub(F, L) 
   return K, inc
 end

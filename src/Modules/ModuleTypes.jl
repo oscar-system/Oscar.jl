@@ -1,6 +1,6 @@
 export ModuleFP, ModuleFPElem, ModuleFPHom, ModuleMap, FreeMod,
        FreeModElem, SubQuo, SubQuoElem, FreeModuleHom, SubQuoHom,
-       FreeMod_dec, FreeModElem_dec, FreeModuleHom_dec
+       FreeMod_dec, FreeModElem_dec, FreeModuleHom_dec, FreeResolution
 
 @doc Markdown.doc"""
     ModuleFP{T}
@@ -88,7 +88,6 @@ option is set in suitable functions.
     return r
   end
 end
-
 
 @doc Markdown.doc"""
     FreeModElem{T}
@@ -620,3 +619,55 @@ struct FreeModuleHom_dec{
   end
 end
 
+@doc Markdown.doc"""
+    FreeResolution{T}
+
+Data structure for free resolutions.
+"""
+mutable struct FreeResolution{T}
+    C::Hecke.ChainComplex
+    complete::Bool
+
+    function FreeResolution(C::Hecke.ChainComplex{T}) where {T}
+        FR = new{T}()
+        FR.C = C
+
+        return FR
+    end
+end
+
+Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
+
+function Base.show(io::IO, FR::FreeResolution)
+    C   = FR.C
+    rk  = Dict{Int, String}()
+    rng = range(C)
+    len = 0
+
+    println(io, "")
+    print(io, "rank   | ")
+    # get names
+    for i = rng
+        if i != last(rng)
+            rk[i] =  "$(rank(C[i]))"
+            len   += length(rk[i]) + 2
+            continue
+        end
+    end
+    for i = rng
+        if i != last(rng)
+            print(io, rk[i], "  ")
+        end
+    end
+    println(io, "")
+    print(io, "-------|")
+    print(io, repeat("-", len))
+    println(io, "")
+    print(io, "degree | ")
+    for i = rng
+        if i != last(rng)
+            print(io, i, repeat(" ", length(rk[i]) + 1))
+            continue
+        end
+    end
+end

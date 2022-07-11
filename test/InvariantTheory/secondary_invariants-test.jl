@@ -133,8 +133,8 @@ end
   F7 = GF(7)
   RGp = invariant_ring(F7, G) # char. p, non-modular
 
-  F9 = GF(3, 2)
-  RGm = invariant_ring(F9, G) # char. p, modular
+  F2 = GF(2)
+  RGm = invariant_ring(F2, G) # char. p, modular
 
   for RG in [ RG0, RGp ]
     s_invars = secondary_invariants(RG)
@@ -220,23 +220,5 @@ end
       end
       @test f == t
     end
-  end
-
-  R, x = PolynomialRing(QQ, "x" => 1:3)
-  C = Oscar.PowerProductCache(R, x)
-  @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(Oscar.all_monomials(R, 3)))
-  mons = Oscar.all_power_products_of_degree!(C, 3, true)
-  @test Set(mons) == Set(collect(Oscar.all_monomials(R, 3)))
-  for m in mons
-    @test haskey(C.exponent_vectors, m)
-    @test set_exponent_vector!(one(R), 1, C.exponent_vectors[m]) == m
-  end
-
-  C = Oscar.PowerProductCache(R, [ x[1], x[2] ])
-  ggens, exps = Oscar.generators_for_given_degree!(C, [ x[3] ], 3, true)
-  @test Set(ggens) == Set([ x[1]^2*x[3], x[1]*x[2]*x[3], x[2]^2*x[3] ])
-  for m in ggens
-    @test haskey(exps, m)
-    @test set_exponent_vector!(one(R), 1, exps[m]) == m
   end
 end
