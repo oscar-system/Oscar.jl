@@ -206,6 +206,7 @@ wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 matrix_ordering(::AbstractVector{<:MPolyElem}, ::fmpz_mat)
+weighted_ordering(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 ```
 
 Block orderings can be obtained by concatening monomial orderings using the `*`

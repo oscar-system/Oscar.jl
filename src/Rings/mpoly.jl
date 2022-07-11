@@ -155,8 +155,9 @@ end
 using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       matrix_ordering, weights, MonomialOrdering, singular,
-       is_global, is_local, is_mixed
+       matrix_ordering, weight_matrix, MonomialOrdering, singular,
+       is_global, is_local, is_mixed, monomial_ordering,
+       permutation_of_terms, weighted_ordering, canonical_weight_matrix
 
 
 ##############################################################################
@@ -395,85 +396,6 @@ function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: Ri
               cached = false)[1]
 end
 
-# convert only a basic block of an ordering
-function singular(o::Orderings.GenOrdering)
-  v = o.vars
-  @assert minimum(v)+length(v) == maximum(v)+1
-  if o.ord == :lex
-    return Singular.ordering_lp(length(v))
-  elseif o.ord == :degrevlex
-    return Singular.ordering_dp(length(v))
-  elseif o.ord == :deglex
-    return Singular.ordering_Dp(length(v))
-  elseif o.ord == :revlex
-    return Singular.ordering_rp(length(v))
-  elseif o.ord == :neglex
-    return Singular.ordering_ls(length(v))
-  elseif o.ord == :negdegrevlex
-    return Singular.ordering_ds(length(v))
-  elseif o.ord == :negdeglex
-    return Singular.ordering_Ds(length(v))
-   elseif o.ord == :wdeglex
-      return Singular.ordering_Wp(o.w)
-   elseif o.ord == :wdegrevlex
-      return Singular.ordering_wp(o.w)
-   elseif o.ord == :negwdeglex
-      return Singular.ordering_Ws(o.w)
-   elseif o.ord == :negwdegrevlex
-      return Singular.ordering_ws(o.w)
-   elseif o.ord == :weight
-    return Singular.ordering_M(o.wgt)
-  else
-    error("not done yet")
-  end
-end
-
-# converts only a basic block of an ordering
-function singular(o::Orderings.ModOrdering)
-   v = o.gens
-   if o.ord == :lex
-     return Singular.ordering_C(length(v))
-   elseif o.ord == :revlex
-     return Singular.ordering_c(length(v))
-   else
-     error("unknown module ordering")
-   end
-end
-
-# convert a whole ordering, which may be a product
-function singular(ord::Orderings.AbsOrdering)
-  #test if it can be mapped directly to singular:
-  # - consecutive, non-overlapping variables
-  # - covering everything
-  # if this fails, create a matrix...
-  f = Orderings.flat(ord)
-  st = 1
-  iseasy = true
-  for i = 1:length(f)
-    max_var = Orderings.max_used_variable(st, f[i])
-    if max_var == 0
-      iseasy = false
-      break
-    elseif max_var != -1
-      st = max_var
-    end
-  end
-
-  if iseasy
-    o = singular(f[1])
-    for i=2:length(f)
-      o = o*singular(f[i])
-    end
-  else
-    o = Singular.ordering_M(Orderings.simplify_weight_matrix(ord))
-  end
-  return o
-end
-
-# MonomialOrdering{T} and ModuleOrdering{T} are the user-facing types
-singular(ord::MonomialOrdering) = singular(ord.o)
-singular(ord::ModuleOrdering) = singular(ord.o)
-
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
@@ -520,11 +442,10 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(BiPolyArray(Ox, s))
     if s.isGB
-      # We need to get the monomial ordering from the Singular side,
+      # TODO We need to get the monomial ordering from the Singular side,
       # there should be an easier and more versatile implementation
       # for this in orderings.jl.
-      ord = MonomialOrdering(parent(first(gens(Ox))),
-                             Orderings.ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s))))
+      ord = monomial_ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s)))
       r.gb[ord] = r.gens
     end
     return r
@@ -781,23 +702,23 @@ function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
   return coordinates(a, [b])[1]
 end
 
-function terms(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function terms(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( term(f, perm[i]) for i = 1:length(f) )
 end
 
-function coefficients(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function coefficients(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( coeff(f, perm[i]) for i = 1:length(f) )
 end
 
-function exponent_vectors(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( exponent_vector(f, perm[i]) for i = 1:length(f) )
 end
 
-function monomials(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function monomials(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( monomial(f, perm[i]) for i = 1:length(f) )
 end
 
@@ -808,27 +729,17 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
       if ord == ordering(R)
         return ($s)(f)
       end
-
-      lt = lt_from_ordering(R, ord)
-      return ($s)(f, lt)
+      return ($s)(f, monomial_ordering(gens(R), ord))
     end
 
     function ($s)(f::MPolyElem, M::Union{ Matrix{T}, MatElem{T} }) where T
       R = parent(f)
-      lt = lt_from_ordering(R, M)
-      return ($s)(f, lt)
+      return ($s)(f, matrix_ordering(gens(R), M))
     end
 
     function ($s)(f::MPolyElem, ord::Symbol, weights::Vector{Int})
       R = parent(f)
-      lt = lt_from_ordering(R, ord, weights)
-      return ($s)(f, lt)
-    end
-
-    function ($s)(f::MPolyElem, ord::MonomialOrdering)
-      R = parent(f)
-      lt = lt_from_ordering(R, ord.o)
-      return ($s)(f, lt)
+      return ($s)(f, monomial_ordering(gens(R), ord, weights))
     end
   end
 end
