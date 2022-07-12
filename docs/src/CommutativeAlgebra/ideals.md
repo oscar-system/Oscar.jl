@@ -247,7 +247,7 @@ groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction:
 ```@docs
 std_basis(I::MPolyIdeal, o::MonomialOrdering)
 ```
-See e.g. [GreuelPfister07](@cite) for the theoretical background on Groebner- and standard bases.
+See e.g. [GP08](@cite) for the theoretical background on Groebner- and standard bases.
 
 #### Gröbner Bases with transformation matrix
 
