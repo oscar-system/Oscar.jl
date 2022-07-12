@@ -946,6 +946,8 @@ end
 
 ############ Singular conversions ############
 
+#### Oscar -> Singular ####
+
 mutable struct order_conversion_ctx
   last_var::Int
   has_c_or_C::Bool
@@ -1037,6 +1039,72 @@ function singular(ord::ModuleOrdering)
   else
     error("failed to convert module ordering")
   end
+end
+
+#### Singular -> Oscar, uses unofficial parts of Singular.jl ####
+
+function _convert_sblock(o::sorder_block, lastvar::Int)
+  newlastvar = lastvar+o.size
+
+  if o.order == Singular.ringorder_lp
+    return SymbOrdering(:lex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_rp
+    return SymbOrdering(:revlex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_Dp
+    return SymbOrdering(:deglex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_dp
+    return SymbOrdering(:degrevlex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_ls
+    return SymbOrdering(:neglex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_rs
+    return SymbOrdering(:negrevlex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_Ds
+    return SymbOrdering(:negdeglex, lastvar+1:newlastvar), newlastvar
+  elseif o.order == Singular.ringorder_ds
+    return SymbOrdering(:negdegrevlex, lastvar+1:newlastvar), newlastvar
+
+  elseif o.order == Singular.ringorder_Wp
+    return WSymbOrdering(:wdeglex, lastvar+1:newlastvar, o.weights), newlastvar
+  elseif o.order == Singular.ringorder_wp
+    return WSymbOrdering(:wdegrevlex, lastvar+1:newlastvar, o.weights), newlastvar
+  elseif o.order == Singular.ringorder_Ws
+    return WSymbOrdering(:negwdeglex, lastvar+1:newlastvar, o.weights), newlastvar
+  elseif o.order == Singular.ringorder_ws
+    return WSymbOrdering(:negwdegrevlex, lastvar+1:newlastvar, o.weights), newlastvar
+
+  elseif o.order == Singular.ringorder_a
+    # just adds a row to the matrix without increasing `lastvar`
+    m = fmpz_mat(1, length(o.weights), o.weights)
+    return MatrixOrdering(lastvar+1:newlastvar, m), lastvar
+  elseif o.order == Singular.ringorder_M
+    m = fmpz_mat(o.size, o.size, o.weights)
+    return MatrixOrdering(lastvar+1:newlastvar, m), newlastvar
+
+  elseif o.order == Singular.ringorder_C
+    return nothing, lastvar
+  elseif o.order == Singular.ringorder_c
+    return nothing, lastvar
+
+  else
+    error("cannot convert singular block $(o.order)")
+  end
+end
+
+@doc Markdown.doc"""
+    monomial_ordering(R::MPolyRing, ord::Singular.sordering)
+
+Return an ordering on `R` equivalent to the Singular.jl ordering `ord`.
+"""
+function monomial_ordering(R::MPolyRing, ord::Singular.sordering)
+  z, lastvar = nothing, 0
+  for i in 1:length(ord.data)
+    x, lastvar = _convert_sblock(ord.data[i], lastvar)
+    isnothing(x) && continue
+    z = isnothing(z) ? x : ProdOrdering(z, x)
+  end
+  @assert !isnothing(z)
+  lastvar == nvars(R) || error("number of variables in ordering does not match")
+  return MonomialOrdering(R, z)
 end
 
 end  # module Orderings
