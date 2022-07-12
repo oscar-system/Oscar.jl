@@ -491,7 +491,7 @@ function Hecke.roots(C::GaloisCtx{ComplexRootCtx}, pr::Int = 10; raw::Bool = fal
   C.C.pr = pr
   n = length(rt)
   for i=1:n
-    C.C.rt[i] = rt[argmin(x->abs(C.C.rt[i] - rt[x]), 1:n)]
+    C.C.rt[i] = rt[argmin([abs(C.C.rt[i] - rt[x]) for x = 1:n])]
   end
   return C.C.rt
 end
