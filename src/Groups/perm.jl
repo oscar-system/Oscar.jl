@@ -101,13 +101,8 @@ julia> number_moved_points(gen(s, 1))
 
 number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
 
-# FIXME: clashes with AbstractAlgebra.perm method
-#function perm(L::AbstractVector{<:IntegerUnion})
-#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
-#end
-# FIXME: use name gap_perm for now
 @doc Markdown.doc"""
-    gap_perm(L::AbstractVector{<:IntegerUnion})
+    perm(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
 to `L`$[i]$.
@@ -115,13 +110,18 @@ The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 An exception is thrown if `L` does not contain every integer from 1 to $n$
 exactly once.
 
+The parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+
 # Examples
 ```jldoctest
-julia> gap_perm([2,4,6,1,3,5])
+julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
+
+julia> parent(x)
+Sym( [ 1 .. 6 ] )
 ```
 """
-function gap_perm(L::AbstractVector{<:IntegerUnion})
+function perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 end
 
@@ -134,9 +134,6 @@ to `L`$[i]$.
 The parent of $x$ is `G`.
 An exception is thrown if $x$ is not contained in `G`
 or `L` does not contain every integer from 1 to $n$ exactly once.
-
-For [`gap_perm`](@ref),
-the parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 
 # Examples
 ```jldoctest
@@ -202,14 +199,6 @@ julia> degree(parent(p))
 
 At the moment, the input vectors of the function `cperm` need not be disjoint.
 
-!!! warning
-    If the function `perm` is evaluated in a vector of integers
-    without specifying the group `G`,
-    then the returned value is an element of the AbstractAlgebra.jl type
-    `Perm{Int}`.
-    For this reason, if one wants a permutation of type
-    `GAPGroupElem{PermGroup}` without specifying a parent,
-    one has to use the function `gap_perm`.
 """
 function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0

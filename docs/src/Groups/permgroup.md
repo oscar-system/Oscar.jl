@@ -36,11 +36,10 @@ degree(x::PermGroup)
 
 ## Permutations
 
-Permutations in Oscar are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions `perm`, `gap_perm` and `cperm`.
+Permutations in Oscar are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions `perm` and `cperm`.
 
 ```@docs
 perm
-gap_perm
 cperm
 ```
 
