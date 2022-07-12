@@ -200,7 +200,7 @@ end
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_S())
    bad = Singular.ordering_a([1,2,3,4,5,6])*Singular.ordering_rs(5)
-   @test_trhows ErrorException monomial_ordering(R, bad)
+   @test_throws ErrorException monomial_ordering(R, bad)
 
    O1 = degrevlex(gens(R))
    @test monomial_ordering(R, singular(O1)) == O1
