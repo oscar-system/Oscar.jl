@@ -1043,42 +1043,44 @@ end
 
 #### Singular -> Oscar, uses unofficial parts of Singular.jl ####
 
-function _convert_sblock(o::sorder_block, lastvar::Int)
+function _convert_sblock(o::Singular.sorder_block, lastvar::Int)
   newlastvar = lastvar+o.size
-
+  i = collect(lastvar+1:newlastvar)
   if o.order == Singular.ringorder_lp
-    return SymbOrdering(:lex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:lex, i), newlastvar
   elseif o.order == Singular.ringorder_rp
-    return SymbOrdering(:revlex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:revlex, i), newlastvar
   elseif o.order == Singular.ringorder_Dp
-    return SymbOrdering(:deglex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:deglex, i), newlastvar
   elseif o.order == Singular.ringorder_dp
-    return SymbOrdering(:degrevlex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:degrevlex, i), newlastvar
   elseif o.order == Singular.ringorder_ls
-    return SymbOrdering(:neglex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:neglex, i), newlastvar
   elseif o.order == Singular.ringorder_rs
-    return SymbOrdering(:negrevlex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:negrevlex, i), newlastvar
   elseif o.order == Singular.ringorder_Ds
-    return SymbOrdering(:negdeglex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:negdeglex, i), newlastvar
   elseif o.order == Singular.ringorder_ds
-    return SymbOrdering(:negdegrevlex, lastvar+1:newlastvar), newlastvar
+    return SymbOrdering(:negdegrevlex, i), newlastvar
 
   elseif o.order == Singular.ringorder_Wp
-    return WSymbOrdering(:wdeglex, lastvar+1:newlastvar, o.weights), newlastvar
+    return WSymbOrdering(:wdeglex, i, o.weights), newlastvar
   elseif o.order == Singular.ringorder_wp
-    return WSymbOrdering(:wdegrevlex, lastvar+1:newlastvar, o.weights), newlastvar
+    return WSymbOrdering(:wdegrevlex, i, o.weights), newlastvar
   elseif o.order == Singular.ringorder_Ws
-    return WSymbOrdering(:negwdeglex, lastvar+1:newlastvar, o.weights), newlastvar
+    return WSymbOrdering(:negwdeglex, i, o.weights), newlastvar
   elseif o.order == Singular.ringorder_ws
-    return WSymbOrdering(:negwdegrevlex, lastvar+1:newlastvar, o.weights), newlastvar
+    return WSymbOrdering(:negwdegrevlex, i, o.weights), newlastvar
 
   elseif o.order == Singular.ringorder_a
     # just adds a row to the matrix without increasing `lastvar`
+    newlastvar = lastvar+length(o.weights)
+    i = collect(lastvar+1:newlastvar)
     m = fmpz_mat(1, length(o.weights), o.weights)
-    return MatrixOrdering(lastvar+1:newlastvar, m), lastvar
+    return MatrixOrdering(i, m), lastvar
   elseif o.order == Singular.ringorder_M
     m = fmpz_mat(o.size, o.size, o.weights)
-    return MatrixOrdering(lastvar+1:newlastvar, m), newlastvar
+    return MatrixOrdering(i, m), newlastvar
 
   elseif o.order == Singular.ringorder_C
     return nothing, lastvar
@@ -1102,9 +1104,8 @@ function monomial_ordering(R::MPolyRing, ord::Singular.sordering)
     isnothing(x) && continue
     z = isnothing(z) ? x : ProdOrdering(z, x)
   end
-  @assert !isnothing(z)
   lastvar == nvars(R) || error("number of variables in ordering does not match")
-  return MonomialOrdering(R, z)
+  return MonomialOrdering(R, z::AbsGenOrdering)
 end
 
 end  # module Orderings
