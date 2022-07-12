@@ -2,14 +2,17 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       std_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
-      restrict_codomain, restrict_domain, direct_product, tensor_product, 
-      free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
-      hom_without_reversing_direction, ext, map_canonically, 
-      all_canonical_maps, register_morphism!, dense_row, 
-      matrix_kernel, simplify, map, is_injective, is_surjective, is_bijective, is_welldefined,
-      subquotient, ambient_free_module, ambient_module, ambient_representative, 
-      ambient_representatives_generators, relations, img_gens
+      represents_element, free_resolution, free_resolution_via_kernels,
+      homomorphism, module_elem, generator_matrix, restrict_codomain,
+      restrict_domain, direct_product, tensor_product, free_module, tor,
+      lift_homomorphism_contravariant, lift_homomorphism_covariant,
+      hom_without_reversing_direction, ext, map_canonically, all_canonical_maps,
+      register_morphism!, dense_row,
+      show_subquo, show_morphism, show_morphism_as_map,
+      matrix_kernel, simplify, map, is_injective,
+      is_surjective, is_bijective, is_welldefined, subquotient,
+      ambient_free_module, ambient_module, ambient_representative,
+      ambient_representatives_generators, relations, img_gens, is_complete
 
 # TODO replace asserts by error messages?
 
@@ -1184,6 +1187,9 @@ Check for equality. For two submodules of free modules to be equal their embeddi
 free modules must be identical (`===`) and the generators must generate equal submodules.
 """
 function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  if M === N
+    return true
+  end
   if M.F !== N.F
     return false
   end
@@ -1440,7 +1446,8 @@ function show_subquo(SQ::SubQuo)
 
   if isdefined(SQ, :quo)
     if is_generated_by_standard_unit_vectors(SQ.sub)
-      println("Cokernel of ", generator_matrix(SQ.quo))
+      println("Cokernel of")
+      display(generator_matrix(SQ.quo))
     else
       println("Subquotient with of image of")
       display(generator_matrix(SQ.sub))
@@ -1448,8 +1455,24 @@ function show_subquo(SQ::SubQuo)
       display(generator_matrix(SQ.quo))
     end
   else
-    println("Image of ", generator_matrix(SQ.sub))
+    println("Image of")
+    display(generator_matrix(SQ.sub))
   end
+end
+
+function show_morphism_as_map(f::ModuleMap, print_non_zero_only = false)
+  D = domain(f)
+  for i in 1:ngens(D)
+    generator = gen(D, i)
+    im = f(generator)
+    if !(print_non_zero_only && iszero(im))
+      print(generator, " -> ", f(generator))
+      if i < ngens(D)
+        print("\n")
+      end
+    end
+  end
+  return
 end
 
 @doc Markdown.doc"""
@@ -1502,8 +1525,7 @@ by Submodule with 3 generators
 3 -> z*e[2]
 ```
 """
-function cokernel(f::FreeModuleHom)
-  @assert codomain(f) isa FreeMod
+function cokernel(f::ModuleMap)
   return quo(codomain(f), image(f)[1], :module)
 end
 
@@ -1869,21 +1891,28 @@ by Submodule with 3 generators
 """
 function sum(M::SubQuo{T},N::SubQuo{T}) where T
   @assert ambient_free_module(M) === ambient_free_module(N)
-  #TODO use SubModuleOfFreeModule instead of matrices
-  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
-  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
+
+  if !isdefined(M, :quo) && !isdefined(N, :quo)
+    SQ = SubQuo(sum(M.sub,N.sub))
+  else
+
+    M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
+    N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
   
-  if M_quo == N_quo
-    SQ = SubQuo(sum(M.sub,N.sub),M_quo)
-    iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)])
-    iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)])
-
-    register_morphism!(iM)
-    register_morphism!(iN)
-
-    return SQ, iM, iN
+    if M_quo == N_quo
+      SQ = SubQuo(sum(M.sub,N.sub),M_quo)
+    else
+      error("Relations are not equal")
+    end
   end
-  throw(ArgumentError("img(M.relations) != img(N.relations)"))
+
+  iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)])
+  iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)])
+
+  register_morphism!(iM)
+  register_morphism!(iN)
+
+  return SQ, iM, iN
 end
 
 @doc Markdown.doc"""
@@ -2446,8 +2475,9 @@ Put more precisely, if `N` denotes this submodule, return `N` as an object of ty
 
 If `task = :only_morphism`, return only the inclusion map.
 """
-function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T} 
-  M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
+function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
+  M = SubQuo(SubModuleOfFreeModule(F, A)) 
+  #M = SubQuo(F, A, zero(MatrixSpace(base_ring(F), 1, rank(F))))
   emb = hom(M, F, ambient_representatives_generators(M))
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
@@ -2647,9 +2677,12 @@ Put more precisely, if `N` denotes this quotient, return `N` as an object of typ
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(M::SubQuo, U::SubQuo, task::Symbol = :with_morphism)
-#  @assert !isdefined(U, :quo)
-  # TODO @assert M.quo == U.quo or too expensive?
-  Q = SubQuo(M, oscar_generators(U.sum.gens))
+  if isdefined(M, :quo) && isdefined(U, :quo)
+    @assert M.quo == U.quo
+  else
+    @assert !isdefined(M, :quo) && !isdefined(U, :quo)
+  end
+  Q = SubQuo(M, oscar_generators(U.sub.gens))
   return return_quo_wrt_task(M, Q, task)
 end
 
@@ -2817,6 +2850,7 @@ function presentation(SQ::SubQuo)
   #the relations are A meet B? written wrt to A
   R = base_ring(SQ)
   F = FreeMod(R, ngens(SQ.sub))
+  set_attribute!(F,  :name => "br^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
@@ -2849,11 +2883,12 @@ function presentation(SQ::SubQuo)
   #want R^a -> R^b -> SQ -> 0
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
   G = FreeMod(R, length(q))
+  set_attribute!(G, :name => "br^$(length(q))")
   h_G_F = hom(G, F, q)
   h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
 
   Z = FreeMod(F.R, 0)
-  set_attribute!(Z, :name => "Zero")
+  set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(SQ)]))
   return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-1)
 end
@@ -2867,7 +2902,7 @@ Return a free presentation of $F$.
 """
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
-  set_attribute!(Z, :name => "Zero")
+  set_attribute!(Z, :name => "0")
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModElem[]), hom(F, F, gens(F)), hom(F, Z, Vector{ModuleFPElem}([zero(Z) for i=1:ngens(F)]))], check = false, start=-1)
 end
 
@@ -3839,8 +3874,9 @@ Return the image of `a` as an object of type `SubQuo`.
 Additionally, if `I` denotes this image, return the inclusion map `I` $\rightarrow$ `codomain(a)`.
 """
 function image(h::SubQuoHom)
-  s = sub(codomain(h), h.im, :module)
-  return s, hom(s, codomain(h), h.im)
+  h_image_vector::Vector{elem_type(codomain(h))} = h.im
+  s = sub(codomain(h), h_image_vector, :module)
+  return s, hom(s, codomain(h), h_image_vector)
 end
 
 @doc Markdown.doc"""
@@ -3859,7 +3895,7 @@ function kernel(h::SubQuoHom)
   @assert domain(k[2]) === k[1]
   @assert codomain(k[2]) === F
   hh = hom(F, D, gens(D))
-  im::Vector{SubQuoElem} = map(x->hh(k[2](x)), gens(k[1]))
+  im::Vector{SubQuoElem} = filter(x -> !iszero(x), map(x->hh(k[2](x)), gens(k[1])))
   k = sub(D, im, :module)
   return k, hom(k, D, im)
 end
@@ -3878,16 +3914,252 @@ function free_resolution(F::FreeMod)
 end
 
 @doc Markdown.doc"""
-    free_resolution(M::SubQuo, limit::Int = -1)
+    is_complete(FR::FreeResolution)
 
-Return a free resolution of `M`. 
+Return `true` if the free resolution `fr` is complete, otherwise return `false`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+julia> fr = free_resolution(M, length=1)
+
+rank   | 6  2
+-------|------
+degree | 1  0
+
+julia> is_complete(fr)
+false
+
+julia> fr = free_resolution(M)
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+
+julia> is_complete(fr)
+true
+
+```
+"""
+is_complete(FR::FreeResolution) = FR.C.complete
+
+#= Fill functions (and helpers) for Hecke ChainComplexes in terms of free resolutions =#
+function _get_last_map_key(cc::Hecke.ChainComplex)
+  ctr = cc.start
+  while haskey(cc.maps, ctr)
+    ctr -= 1
+  end
+  return ctr+1
+end
+
+function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Symbol=:fres)
+  key = _get_last_map_key(cc)
+  if cc.complete == true
+    return cc.maps[key]
+  end
+
+  kernel_entry          = image(cc.maps[key])[1]
+  br                    = base_ring(kernel_entry)
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+  singular_kernel_entry.isGB = true
+
+  len = idx + key - cc.start + 1
+  if algorithm == :fres
+    res = Singular.fres(singular_kernel_entry, len, "complete")
+  elseif algorithm == :sres
+    res = Singular.fres(singular_kernel_entry, len)
+  elseif algorithm == :lres
+    error("LaScala's method is not yet available in Oscar.")
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+
+  if Singular.length(res) < len
+    cc.complete = true
+  end
+  dom = domain(cc.maps[key])
+  j   = 2
+  while j <= Singular.length(res)
+    key -= 1
+    codom = dom
+    dom   = free_module(br, Singular.ngens(res[j]))
+    SM    = SubModuleOfFreeModule(codom, res[j])
+    generator_matrix(SM)
+    map = hom(dom, codom, SM.matrix)
+    cc.maps[key] = map
+    j += 1
+  end
+  # Finalize maps.
+  if cc.complete == true
+    key -= 1
+    Z = FreeMod(br, 0)
+    set_attribute!(Z, :name => "0")
+    cc.maps[key] = hom(Z, domain(cc.maps[key+1]), FreeModElem[])
+  end
+  return cc.maps[key]
+end
+
+@doc Markdown.doc"""
+    free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres)
+
+Return a free resolution of `M`.
+
+If `length != 0`, the free resolution is only computed up to the `length`-th free module.
+`algorithm` can be set to `:sres` or `:fres`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+julia> fr = free_resolution(M, length=1)
+
+rank   | 6  2
+-------|------
+degree | 1  0
+
+julia> is_complete(fr)
+false
+
+julia> fr[4]
+Free module of rank 0 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> fr
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+
+julia> is_complete(fr)
+true
+
+julia> fr = free_resolution(M, algorithm=:sres)
+
+rank   | 0  2  6  6  2
+-------|---------------
+degree | 4  3  2  1  0
+```
+"""
+function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres)
+
+  coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
+      error("Must be defined over a field.")
+
+  cc_complete = false
+
+  #= Start with presentation =#
+  pm = presentation(M)
+  maps = [map(pm, j) for j in range(pm)]
+
+  br = base_ring(M)
+  kernel_entry          = image(pm.maps[1])[1]
+  singular_free_module  = singular_module(ambient_free_module(kernel_entry))
+  singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
+                              [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
+
+  singular_kernel_entry.isGB = true
+
+  #= This is the single computational hard part of this function =#
+  if algorithm == :fres
+    res = Singular.fres(singular_kernel_entry, length, "complete")
+  elseif algorithm == :sres
+    res = Singular.fres(singular_kernel_entry, length)
+  elseif algorithm == :lres
+    error("LaScala's method is not yet available in Oscar.")
+  else
+    error("Unsupported algorithm $algorithm")
+  end
+
+  if length == 0 || Singular.length(res) < length
+    cc_complete = true
+  end
+
+  #= Add maps from free resolution computation, start with second entry
+   = due to inclusion of presentation(M) at the beginning. =#
+  dom = domain(pm.maps[1])
+  j   = 2
+  while j <= Singular.length(res)
+    codom = dom
+    rk    = Singular.ngens(res[j])
+    dom   = free_module(br, rk)
+    SM    = SubModuleOfFreeModule(codom, res[j])
+    generator_matrix(SM)
+    set_attribute!(dom, :name => "br^$rk")
+    insert!(maps, 1, hom(dom, codom, SM.matrix))
+    j += 1
+  end
+  if cc_complete == true
+    # Finalize maps.
+    Z = FreeMod(br, 0)
+    set_attribute!(Z, :name => "0")
+    insert!(maps, 1, hom(Z, domain(maps[1]), FreeModElem[]))
+  end
+
+  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+  cc.fill     = _extend_free_resolution
+  cc.complete = cc_complete
+
+  return FreeResolution(cc)
+end
+
+
+@doc Markdown.doc"""
+    free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
+
+Return a free resolution of `M`.
 
 If `limit != -1`, the free resolution
 is only computed up to the `limit`-th free module.
 
 # Examples
 """
-function free_resolution(M::SubQuo, limit::Int = -1)
+function free_resolution_via_kernels(M::SubQuo, limit::Int = -1)
   p = presentation(M)
   mp = [map(p, j) for j in range(p)]
   while true
@@ -3895,7 +4167,7 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       Z = FreeMod(base_ring(M), 0)
-      set_attribute!(Z, :name => "Zero")
+      set_attribute!(Z, :name => "0")
       h = hom(Z, domain(mp[1]), FreeModElem[])
       insert!(mp, 1, h)
       break
@@ -3906,13 +4178,17 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
-  C = Hecke.ChainComplex(ModuleFP, mp, check = false, start=-1)
+  C = Hecke.ChainComplex(ModuleFP, mp, check = false)
   #set_attribute!(C, :show => Hecke.free_show, :free_res => M) # doesn't work
   return C
 end
 
 function Hecke.ring(I::MPolyIdeal)
   return parent(gen(I, 1))
+end
+
+function *(I::MPolyIdeal{T}, F::FreeMod{T}) where {T<:RingElem}
+  return sub(F, [g*e for g in gens(I) for e in gens(F)])
 end
 
 @doc Markdown.doc"""
@@ -3965,63 +4241,50 @@ Return a subquotient $S$ such that $\text{Hom}(M,N) \cong S$ along with a functi
 that converts elements from $S$ into morphisms $M \to N$.
 If `alg` is `:matrices` a different implementation that is using matrices instead of maps is used.
 """
-function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)  
-  d1 = 0
-  d2 = 1
+function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   if alg == :matrices && M isa SubQuo && N isa SubQuo
     return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
   p2 = presentation(N)
-  k, mk = kernel(map(p2, d2))
-  #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
-  #kernel g1: k -> R^t1
-  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  F = FreeMod(base_ring(M), ngens(k))
-  g2 = hom(F, codomain(mk), collect(k.sub.gens)) #not clean - but maps not (yet) working
+  
+  f0 = map(p1, 0)
+  f1 = map(p1, 1)
+  g0 = map(p2, 0)
+  g1 = map(p2, 1)
+
   #step 2
-  H_s0_t0, mH_s0_t0 = hom(domain(map(p1, d1)), domain(map(p2, d1)))
-  H_s1_t1, mH_s1_t1 = hom(domain(map(p1, d2)), domain(map(p2, d2)))
-  D, pro, emb = direct_product(H_s0_t0, H_s1_t1, task = :both)
+  H_s0_t0, mH_s0_t0 = hom(domain(f0), domain(g0))
+  H_s1_t1, mH_s1_t1 = hom(domain(f1), domain(g1))
+  D, pro = direct_product(H_s0_t0, H_s1_t1, task = :prod)
 
-  H_s1_t0, mH_s1_t0 = hom(domain(map(p1, d2)), domain(map(p2, d1)))
+  H_s1_t0, mH_s1_t0 = hom(domain(f1), domain(g0))
 
-  delta = hom(D, H_s1_t0, Vector{ModuleFPElem}([preimage(mH_s1_t0, map(p1, d2)*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*map(p2, d2)) for g = gens(D)]))
+  delta = hom(D, H_s1_t0, Vector{ModuleFPElem}([preimage(mH_s1_t0, f1*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*g1) for g = gens(D)]))
 
-  H_s0_t1, mH_s0_t1 = hom(domain(map(p1, d1)), domain(map(p2, d2)))
-  H_s1_t2, mH_s1_t2 = hom(domain(map(p1, d2)), F)
+  H_s0_t1, mH_s0_t1 = hom(domain(f0), domain(g1))
 
-  E, pr = direct_product(H_s0_t1, H_s1_t2, task = :prod)
-
-  rho = hom(E, D, Vector{ModuleFPElem}([emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, d2))) + 
-                  emb[2](preimage(mH_s1_t1, map(p1, d2)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)]))
-  #need quo(kern(delta), image(rho))
+  rho_prime = hom(H_s0_t1, H_s0_t0, ModuleFPElem[preimage(mH_s0_t0, mH_s0_t1(C)*g1) for C in gens(H_s0_t1)])
  
   kDelta = kernel(delta)
 
-  psi = kDelta[2]*pro[1]
-  #psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
+  projected_kernel = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
+  H = quo(sub(H_s0_t0, projected_kernel, :module), image(rho_prime)[1], :module)
 
-  H = quo(sub(D, kDelta[1], :module), image(rho)[1], :module)
-
-  #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem)
     @assert parent(x) === H
-    #return SubQuoHom(M, N, mH_s0_t0(pro[1](x.repres)).matrix)
-    return hom(M, N, Vector{ModuleFPElem}([map(p2, d1)(mH_s0_t0(pro[1](x.repres))(preimage(map(p1, d1), g))) for g = gens(M)]))
+    return hom(M, N, Vector{ModuleFPElem}([g0(mH_s0_t0(repres(x))(preimage(f0, g))) for g = gens(M)]))
   end
 
   function pre(f::ModuleMap)
     @assert domain(f) === M
     @assert codomain(f) === N
-    Rs0 = domain(map(p1, d1))
-    Rt0 = domain(map(p2, d1))
-    g = hom(Rs0, Rt0, Vector{ModuleFPElem}([preimage(map(p2, d1), f(map(p1, d1)(g))) for g = gens(Rs0)]))
+    Rs0 = domain(f0)
+    Rt0 = domain(g0)
+    g = hom(Rs0, Rt0, Vector{ModuleFPElem}([preimage(g0, f(f0(g))) for g = gens(Rs0)]))
 
-    #return H(preimage(psi, (preimage(mH_s0_t0, g))).repres)
-    return SubQuoElem(repres(preimage(psi, (preimage(mH_s0_t0, g)))), H)
-    #return SubQuoElem(preimage(kDelta[2], emb[1](preimage(mH_s0_t0, g))).repres, H)
-    #return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
+    return SubQuoElem(repres(preimage(mH_s0_t0, g)), H)
   end
   to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
   set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
@@ -4617,7 +4880,7 @@ end
 Compute $\text{Tor}_i(M,N)$.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)[1:end-2]
+  free_res = free_resolution_via_kernels(M)[1:end-2]
   lifted_resolution = tensor_product(free_res, N) #TODO only three homs are necessary
   return homology(lifted_resolution,length(lifted_resolution)-i)
 end
@@ -4790,7 +5053,7 @@ end
 Compute $\text{Ext}^i(M,N)$.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)[1:end-2]
+  free_res = free_resolution_via_kernels(M)[1:end-2]
   lifted_resolution = hom(free_res, N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
@@ -5295,26 +5558,16 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   end
 
   gamma = matrix_kernel(delta)
+  gamma = gamma[:,1:s0*t0]
 
-  t2 = size(g2)[1]
-  n = m
-  m = s0*t1 + s1*t2
-  rho::MatrixElem{T} = zero_matrix(R, m,n)
+  rho::MatrixElem{T} = zero_matrix(R, s0*t1, s0*t0)
+
   for j=1:s0*t1
     b_vector = zero_matrix(R, 1,s0*t1)
     b_vector[1,j] = R(1)
     C = copy_and_reshape(b_vector, s0, t1)
     res1 = C*g1
-    res2 = f1*C
     rho[j,1:length(res1)] = copy_and_reshape(res1, 1,length(res1))
-    rho[j,length(res1)+1:end] = copy_and_reshape(res2, 1,length(res2))
-  end
-  for j=s0*t1+1:m
-    b_vector = zero_matrix(R, 1,m-s0*t1)
-    b_vector[1,j-s0*t1] = R(1)
-    D = copy_and_reshape(b_vector, s1, t2)
-    res2 = - D*g2
-    rho[j,s0*t0+1:end] = copy_and_reshape(res2, 1,length(res2))
   end
 
   M = SubQuo(gamma, rho)
@@ -5356,10 +5609,8 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
     to_subquotient_elem = function(H::ModuleMap)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
-      tmp_sq = SubQuo(generator_matrix(SQ.sub)[:,1:m], generator_matrix(SQ.quo)[:,1:m])
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
-      coeffs = coordinates(v, tmp_sq)
-      return p(SubQuoElem(coeffs, SQ))
+      return p(SQ(v))
     end
 
     to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ2, Hecke.MapParent(M, N, "homomorphisms"))
@@ -5370,10 +5621,8 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
     to_subquotient_elem = function(H::ModuleMap)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
-      tmp_sq = SubQuo(generator_matrix(SQ.sub)[:,1:m], generator_matrix(SQ.quo)[:,1:m])
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
-      coeffs = coordinates(v, tmp_sq)
-      return SubQuoElem(coeffs, SQ)
+      return SQ(v)
     end
     to_homomorphism = function(elem::SubQuoElem{T})
       A = convert_to_matrix(elem)

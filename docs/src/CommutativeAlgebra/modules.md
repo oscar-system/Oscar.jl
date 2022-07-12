@@ -302,6 +302,10 @@ cokernel(f::FreeModuleHom)
 
 ## Syzygies and Free Resolutions
 
+```@docs
+free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
+    length::Int=0, algorithm::Symbol=:fres)
+```
 
 
 ## Hom and Ext

@@ -204,7 +204,7 @@ returns the list of all abelian primitive permutation groups acting on 3, 4 or 5
 """
 function all_primitive_groups(L...)
    !isempty(L) || throw(ArgumentError("must specify at least one filter"))
-   gapargs = translate_group_library_args(L; permgroups=true)
+   gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllPrimitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]
 end

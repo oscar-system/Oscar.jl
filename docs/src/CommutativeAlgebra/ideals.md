@@ -206,6 +206,7 @@ wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 matrix_ordering(::AbstractVector{<:MPolyElem}, ::fmpz_mat)
+weighted_ordering(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 ```
 
 Block orderings can be obtained by concatening monomial orderings using the `*`
@@ -243,6 +244,10 @@ normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 ```@docs
 groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
 ```
+```@docs
+std_basis(I::MPolyIdeal, o::MonomialOrdering)
+```
+See e.g. [GreuelPfister07](@cite) for the theoretical background on Groebner- and standard bases.
 
 #### Gröbner Bases with transformation matrix
 

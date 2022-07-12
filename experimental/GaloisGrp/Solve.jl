@@ -312,7 +312,9 @@ function conjugates(C::GaloisCtx, S::SubField, a::fmpq, pr::Int = 10)
 end
 
 function recognise(C::GaloisCtx, S::SubField, I::SLPoly)
-  return recognise(C, S, [I])[1]
+  r = recognise(C, S, [I])
+  r === nothing && return r
+  return r[1]
 end
 
 function recognise(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly})
@@ -412,7 +414,7 @@ julia> solve(cyclotomic(12, x)) #zeta_12 as radical
 
 ```
 """
-function Oscar.solve(f::fmpz_poly; max_prec::Int=typemax(Int))
+function Oscar.solve(f::fmpz_poly; max_prec::Int=typemax(Int), show_radical::Bool = false)
   #if poly is not monic, the roots are scaled (by default) to
   #make them algebraically integral. This has to be compensated
   #in a couple of places...
@@ -520,6 +522,13 @@ function Oscar.solve(f::fmpz_poly; max_prec::Int=typemax(Int))
       h = hom(L, K, h_data..., check = CHECK)
     end
     K.S = L.S
+    if show_radical
+      if Hecke.inNotebook()
+        K.S = Symbol("\\sqrt[$(degree(K))]{$(-trailing_coefficient(defining_polynomial(K)))}")
+      else
+        K.S = Symbol("($(-trailing_coefficient(defining_polynomial(K))))^(1/$(degree(K)))")
+      end
+    end
     i += 1
   end
   
@@ -534,11 +543,12 @@ function conjugates(C::GaloisCtx, S::SubField, a::NumFieldElem, pr::Int = 10)
       rt = map(S.ts, rt)
     end
     for i=1:length(S.conj)
+      S.num_basis[1, i] = setprecision(S.num_basis[1, i], pr)
       c = S.conj[i]
       p = evaluate(S.pe, c, rt)
       S.num_basis[2, i] = p
       for j=3:degree(S.fld)
-        S.num_basis[j, i] = p*S.num_basis[2, i]
+        S.num_basis[j, i] = p*S.num_basis[j-1, i]
       end
     end
   end

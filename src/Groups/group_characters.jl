@@ -339,23 +339,16 @@ julia> length(all_character_table_names(number_conjugacy_classes => 1))
 ```
 """
 function all_character_table_names(L...; ordered_by = nothing)
-    gapargs = translate_group_library_args(L; permgroups=false)
+    gapargs = translate_group_library_args(L; filter_attrs = _ctbl_filter_attrs)
 
     if ordered_by isa Function
       K = GAP.call_gap_func(GAP.Globals.AllCharacterTableNames, gapargs...;
-            OrderedBy = find_index_function(ordered_by, false)[2])::GapObj
+            OrderedBy = find_index_function(ordered_by, _ctbl_filter_attrs)[2])::GapObj
     else
       K = GAP.Globals.AllCharacterTableNames(gapargs...)::GapObj
     end
     return Vector{String}(K)
 end
-#TODO:
-# Support function/value pairs as arguments, similar to (but more general
-# than) `all_small_groups` etc.
-# This makes sense only if GAP's Browse package is available (and has been
-# loaded at the time when the character table library got loaded),
-# otherwise everything is too slow.
-# Currently this cannot be assumed.
 
 
 ##############################################################################
@@ -1445,12 +1438,10 @@ end
 @doc Markdown.doc"""
     schur_index(chi::GAPGroupClassFunction)
 
-Return either the minimal integer `m` such that the character `m * chi`
+Return the minimal integer `m` such that the character `m * chi`
 is afforded by a representation over the character field of `chi`,
-or `nothing`.
-
-The latter happens if character theoretic criteria do not suffice for
-computing `m`.
+or throw an exception if the currently used character theoretic criteria
+do not suffice for computing `m`.
 """
 function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     deg = numerator(degree(chi))
@@ -1493,12 +1484,14 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # - Consider characters induced from other known subgroups.
     for name in names_of_fusion_sources(tbl)
       s = character_table(name)
-      known, fus = known_class_fusion(s, tbl)
-      @assert known "the class fusion is not stored"
-      if length(class_positions_of_kernel(fus)) == 1
-        psi = trivial_character(s)^(tbl)
-        bound = gcd(bound, scalar_product(fmpz, chi, psi))
-        bound == 1 && return 1
+      if s !== nothing
+        known, fus = known_class_fusion(s, tbl)
+        @assert known "the class fusion is not stored"
+        if length(class_positions_of_kernel(fus)) == 1
+          psi = trivial_character(s)^(tbl)
+          bound = gcd(bound, scalar_product(fmpz, chi, psi))
+          bound == 1 && return 1
+        end
       end
     end
 
@@ -1515,7 +1508,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     end
 
     # For the moment, we do not have more character theoretic criteria.
-    return nothing
+    error("cannot determine the Schur index with the currently used criteria")
 end
 
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)

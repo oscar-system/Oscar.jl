@@ -132,5 +132,76 @@ end
 end
 
 @testset "Atlas groups" begin
+   # `atlas_group` for type and group name
+   @test order(atlas_group(PermGroup, "A5")) == 60
+   @test order(atlas_group(MatrixGroup, "A5")) == 60
    @test_throws ErrorException atlas_group(PermGroup, "B")
+
+   # prescribe permutation degree
+   info1 = all_atlas_group_infos("A5", degree => 5)
+   info2 = all_atlas_group_infos("A5", degree => [5, 6])
+   @test length(info1) == 1
+   @test length(info2) > length(info1)
+
+   # prescribed character of the matrix group
+   t = character_table("A5", 2)
+   info1 = all_atlas_group_infos("A5", character => t[2])
+   @test length(info1) == 1
+   @test info1[1][:dim] == 2
+#T info2 = all_atlas_group_infos("A5", character => [t[2], t[3]])
+#T not yet supported in GAP
+
+   # prescribed characteristic of the matrix group
+   info1 = all_atlas_group_infos("A5", characteristic => 2)
+   info2 = all_atlas_group_infos("A5", characteristic => [2, 3])
+   @test length(info1) > 0
+   @test length(info2) > length(info1)
+
+   # prescribed dimension of the matrix group
+   info1 = all_atlas_group_infos("A5", dim => 2)
+   info2 = all_atlas_group_infos("A5", dim => [2, 3])
+   @test length(info1) > 0
+   @test length(info2) > length(info1)
+
+   # prescribed `is_transitive` of the permutation action
+   info = all_atlas_group_infos("A5", is_transitive)
+   @test length(info) > 0
+   @test info == all_atlas_group_infos("A5", is_transitive => true)
+   info = all_atlas_group_infos("M11xA6.2^2", !is_transitive)
+   @test length(info) > 0
+   @test info == all_atlas_group_infos("M11xA6.2^2", is_transitive => false)
+
+   # prescribed `is_primitive` of the permutation action
+   info = all_atlas_group_infos("A5", is_primitive)
+   @test length(info) > 0
+   info = all_atlas_group_infos("2.A5", !is_primitive)
+   @test length(info) > 0
+
+   # prescribed rank of the permutation action
+   info1 = all_atlas_group_infos("A5", rank_action => 2)
+   info2 = all_atlas_group_infos("A5", rank_action => [2, 3])
+   @test length(info1) > 1
+   @test length(info2) > length(info1)
+   @test info1[1][:degree] == 5
+
+   # prescribed transitivity of the permutation action
+   info1 = all_atlas_group_infos("A5", transitivity => 2)
+   info2 = all_atlas_group_infos("A5", transitivity => 2:3)
+   @test length(info1) == 1
+   @test length(info2) > length(info1)
+   @test info2[1][:degree] == 5
+
+   # prescribed `base_ring` of the matrix group
+   # (for different types of fields)
+   rings = [GF(2), GF(2, 2), GF(fmpz(2), 2)]
+   for R in rings
+     info = all_atlas_group_infos("A5", base_ring => R)
+     @test length(info) > 0
+     @test all(x -> domain(x[:base_ring_iso]) == R, info)
+
+     # create a group from the info
+     G = atlas_group(info[1])
+     @test order(G) == 60
+     @test base_ring(G) == R
+   end
 end

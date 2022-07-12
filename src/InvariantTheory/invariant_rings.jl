@@ -1,4 +1,4 @@
-export invariant_ring, fundamental_invariants, affine_algebra
+export invariant_ring, affine_algebra
 export coefficient_ring, polynomial_ring, action, group
 export is_modular
 export reynolds_operator, molien_series
@@ -14,8 +14,6 @@ coefficient_ring(I::InvRing) = I.field
 polynomial_ring(I::InvRing) = I.poly_ring
 
 action(I::InvRing) = I.action
-
-_action_singular(I::InvRing) = I.action_singular
 
 group(I::InvRing) = I.group
 
@@ -126,47 +124,6 @@ end
 #  Reynolds operator
 #
 ################################################################################
-
-function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
-  if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
-    singular_matrices = _action_singular(IR)
-
-    rey, mol = Singular.LibFinvar.reynolds_molien(singular_matrices...)
-    IR.reynolds_singular = rey
-    IR.molien_singular = mol
-  end
-  return IR.reynolds_singular, IR.molien_singular
-end
-
-function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  @assert !is_modular(IR)
-  if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
-    singular_matrices = _action_singular(IR)
-
-    rey = Singular.LibFinvar.reynolds_molien(singular_matrices..., "")
-    mol = Singular.lookup_library_symbol("Finvar", "newring")[2][:M]
-    IR.reynolds_singular = rey
-    IR.molien_singular = mol
-  end
-  return IR.reynolds_singular, IR.molien_singular
-end
-
-function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  return reynolds_molien_via_singular(IR)[1]
-end
-
-# Singular.LibFinvar.reynolds_molien does not work for finite fields which are
-# not prime fields.
-function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteField, FqFiniteField}}
-  @assert !is_modular(IR)
-  if !isdefined(IR, :reynolds_singular)
-    singular_matrices = _action_singular(IR)
-
-    rey = Singular.LibFinvar.group_reynolds(singular_matrices...)[1]
-    IR.reynolds_singular = rey
-  end
-  return IR.reynolds_singular
-end
 
 function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
   @assert !is_modular(IR)
@@ -506,84 +463,13 @@ is_molien_series_implemented(I::InvRing) = !is_modular(I)
 #
 ################################################################################
 
-@doc Markdown.doc"""
-    fundamental_invariants(IR::InvRing, algo::Symbol = :king)
+# See fundamental_invariants.jl
 
-Return a system of fundamental invariants for `IR`.
-
-The result is cached, so calling this function again with argument `IR` 
-will be fast and give the same result.
-
-# Implemented Algorithms
-
-By default, the function relies on King's algorithm which finds a system of
-fundamental invariants directly, without computing primary and secondary invariants.
-
-Alternatively, if specified by `algo = :minimal_subalgebra`, the function computes
-fundamental invariants from a collection of primary and irreducible secondary
-invariants using the function `minimal_subalgebra_generators`.
-
-# Examples
-```jldoctest
-julia> K, a = CyclotomicField(3, "a")
-(Cyclotomic field of order 3, a)
-
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-[0   0   1]
-[1   0   0]
-[0   1   0]
-
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-[1   0        0]
-[0   a        0]
-[0   0   -a - 1]
-
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over Cyclotomic field of order 3
-
-julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
-
-julia> fundamental_invariants(IR)
-4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]^3 + x[2]^3 + x[3]^3
- x[1]*x[2]*x[3]
- x[1]^6 + x[2]^6 + x[3]^6
- x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
-```
-"""
-function fundamental_invariants(IR::InvRing, algo::Symbol = :king)
-  if !isdefined(IR, :fundamental)
-    if algo == :king
-      IR.fundamental = fundamental_invariants_via_king(IR)
-    elseif algo == :minimal_subalgebra
-      IR.fundamental = fundamental_invariants_via_minimal_subalgebra(IR)
-    else
-      error("Unsupported argument :$(algo) for algo")
-    end
-  end
-  return IR.fundamental
-end
-
-function fundamental_invariants_via_minimal_subalgebra(IR::InvRing)
-  V = primary_invariants(IR)
-  append!(V, irreducible_secondary_invariants(IR))
-  return minimal_subalgebra_generators(V)
-end
-
-function fundamental_invariants_via_king(IR::InvRing)
-  rey = reynolds_via_singular(IR)
-  F = Singular.LibFinvar.invariant_algebra_reynolds(rey)::Singular.smatrix{<: Singular.spoly}
-  R = polynomial_ring(IR)
-  f = Vector{elem_type(R)}()
-  for i = 1:ncols(F)
-    push!(f, R(F[1, i]))
-  end
-  return f
-end
+################################################################################
+#
+#  Presentation as affine algebra
+#
+################################################################################
 
 @doc Markdown.doc"""
     affine_algebra(IR::InvRing)
