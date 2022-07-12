@@ -198,6 +198,7 @@ neglex(::AbstractVector{<:MPolyElem})
 negrevlex(::AbstractVector{<:MPolyElem})
 negdeglex(::AbstractVector{<:MPolyElem})
 negdegrevlex(::AbstractVector{<:MPolyElem})
+monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
 ```
 
 ```@docs
@@ -205,12 +206,17 @@ wdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
 matrix_ordering(::AbstractVector{<:MPolyElem}, ::fmpz_mat)
 weighted_ordering(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 ```
 
 Block orderings can be obtained by concatening monomial orderings using the `*`
-operator.
+operator. The following function can be used to convert Singular.jl orderings:
+
+```@docs
+monomial_ordering(R::MPolyRing, ord::Singular.sordering)
+```
 
 Term over position and position over term module orderings are also available.
 These are also specified byy concatenation using the `*` operator. One creates
@@ -227,9 +233,10 @@ R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
 O1 = degrevlex(gens(R))
 O2 = lex([x, y])*deglex([s, t, u])
 O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+O4 = monomial_ordering(R, Singular.ordering_a([1,2,3,4,5])*Singular.ordering_rs(5))
 
 K = FreeModule(R, 3)
-O4 = revlex(gens(K))*degrevlex(gens(R))
+O5 = revlex(gens(K))*degrevlex(gens(R))
 ```
 
 ## Normal Forms

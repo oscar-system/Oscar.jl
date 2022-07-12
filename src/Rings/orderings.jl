@@ -1043,7 +1043,7 @@ end
 
 #### Singular -> Oscar, uses unofficial parts of Singular.jl ####
 
-function _convert_sblock(o::Singular.sorder_block, lastvar::Int)
+function _convert_sblock(nvars::Int, o::Singular.sorder_block, lastvar::Int)
   newlastvar = lastvar+o.size
   i = collect(lastvar+1:newlastvar)
   if o.order == Singular.ringorder_lp
@@ -1075,6 +1075,7 @@ function _convert_sblock(o::Singular.sorder_block, lastvar::Int)
   elseif o.order == Singular.ringorder_a
     # just adds a row to the matrix without increasing `lastvar`
     newlastvar = lastvar+length(o.weights)
+    newlastvar <= nvars || error("too many weights in Singular.ordering_a")
     i = collect(lastvar+1:newlastvar)
     m = fmpz_mat(1, length(o.weights), o.weights)
     return MatrixOrdering(i, m), lastvar
@@ -1098,13 +1099,14 @@ end
 Return an ordering on `R` equivalent to the Singular.jl ordering `ord`.
 """
 function monomial_ordering(R::MPolyRing, ord::Singular.sordering)
+  n = nvars(R)
   z, lastvar = nothing, 0
   for i in 1:length(ord.data)
-    x, lastvar = _convert_sblock(ord.data[i], lastvar)
+    x, lastvar = _convert_sblock(n, ord.data[i], lastvar)
     isnothing(x) && continue
     z = isnothing(z) ? x : ProdOrdering(z, x)
   end
-  lastvar == nvars(R) || error("number of variables in ordering does not match")
+  lastvar == n || error("number of variables in ordering does not match")
   return MonomialOrdering(R, z::AbsGenOrdering)
 end
 
