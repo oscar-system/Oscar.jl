@@ -183,7 +183,7 @@ end
 end
 
 function test_elem(W::MPolyLocalizedRing) 
-  f = rand(W, 0:3, 0:4, 0:3)
+  f = rand(rng, W, 0:3, 0:4, 0:3)
   return f
 end
 
@@ -218,8 +218,8 @@ end
   I = ideal(R, f)
 
   d = Vector{elem_type(R)}()
-  for i in 0:(abs(rand(Int))%3+1)
-    f = rand(R, 1:3, 0:3, 1:10)::elem_type(R)
+  for i in 0:(abs(rand(rng, Int))%3+1)
+    f = rand(rng, R, 1:3, 0:3, 1:10)::elem_type(R)
     iszero(f) || push!(d, f)
   end
   S = MPolyPowersOfElement(R, d)
