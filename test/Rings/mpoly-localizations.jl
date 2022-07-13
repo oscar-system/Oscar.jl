@@ -1,3 +1,17 @@
+import Random
+
+if haskey(ENV, "JULIA_PKGEVAL") ||
+    get(ENV, "CI", "") == "true" ||
+    haskey(ENV, "OSCAR_RANDOM_SEED")
+  seed = parse(UInt32, get(ENV, "OSCAR_RANDOM_SEED", "42"))
+  @info string(@__FILE__)*" -- fixed SEED $seed"
+else
+  seed = rand(UInt32)
+  @info string(@__FILE__)*" -- SEED $seed"
+end
+rng = Random.MersenneTwister(seed)
+
+
 @testset "mpoly-localizations" begin
   R, variab = ZZ["x", "y"]
   x = variab[1]
