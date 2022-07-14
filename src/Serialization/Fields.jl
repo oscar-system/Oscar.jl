@@ -290,3 +290,23 @@ function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dic
 
     return complex_embedding(K, gen_ball)
 end
+
+@registerSerializationType(Hecke.NumFieldEmbNfAbsNS)
+
+function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
+    K = number_field(E)
+    gen_balls = map(E(g), gens(K))
+    
+    return Dict(
+        :num_field => save_type_dispatch(s, K),
+        :gen_balls => save_type_dispatch(s, gen_balls)
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, dict::Dict)
+    K = load_type_dispatch(s, AnticNumberField, dict[:num_field])
+    gen_balls = load_type_dispatch(s, Vector{acb}, dict[:gen_balls])
+
+    return complex_embedding(K, gen_balls)
+end
+
