@@ -125,6 +125,8 @@ function perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 end
 
+@deprecate gap_perm(L::AbstractVector{<:IntegerUnion}) perm(L::AbstractVector{<:IntegerUnion})
+
 @doc Markdown.doc"""
     perm(G::PermGroup, L::AbstractVector{<:IntegerUnion})
     (G::PermGroup)(L::AbstractVector{<:IntegerUnion})
