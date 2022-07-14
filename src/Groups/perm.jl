@@ -178,17 +178,6 @@ function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-@doc Markdown.doc"""
-Functor to construct permutations with a given parent group
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(6)
-Sym( [ 1 .. 6 ] )
-julia> x = G([2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-```
-"""
 (g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
 
 # cperm stands for "cycle permutation", but we can change name if we want
@@ -226,6 +215,27 @@ julia> p = cperm([1,2,3],[7])
 julia> degree(parent(p))
 7
 ```
+
+Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
+```jldoctest
+julia> G=symmetric_group(5);
+
+julia> A=alternating_group(5);
+
+julia> x=cperm(G,[1,2,3]);
+
+julia> y=cperm(A,[1,2,3]);
+
+julia> z=cperm([1,2,3]); parent(z)
+Sym( [ 1 .. 3 ] )
+
+julia> x==y
+true
+
+julia> x==z
+false
+```
+In the example above, `x` and `y` are equal because both act on a set of cardinality `5`, while `x` and `z` are different because `x` belongs to `Sym(5)` and `z` belongs to `Sym(3)`.
 
 cperm can also handle cycles passed in inside of a vector
 ```jldoctest

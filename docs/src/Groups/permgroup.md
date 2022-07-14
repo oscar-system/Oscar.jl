@@ -44,61 +44,6 @@ cperm
 @perm
 ```
 
-Every permutation has always a permutation group as a parent. Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
-```jldoctest
-julia> G=symmetric_group(5);
-
-julia> A=alternating_group(5);
-
-julia> x=cperm(G,[1,2,3]);
-
-julia> y=cperm(A,[1,2,3]);
-
-julia> z=cperm([1,2,3]); parent(z)
-Sym( [ 1 .. 3 ] )
-
-julia> x==y
-true
-
-julia> x==z
-false
-```
-In the example above, `x` and `y` are equal because both act on a set of cardinality `5`, while `x` and `z` are different because `x` belongs to `Sym(5)` and `z` belongs to `Sym(3)`.
-
-One can also create permutation group elements with the following syntax
-```jldoctest
-julia> G=symmetric_group(6)
-Sym( [ 1 .. 6 ] )
-
-julia> G([2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-```
-
-Here `G` is the parent group. 
-```jldoctest
-julia> G=symmetric_group(6)
-Sym( [ 1 .. 6 ] )
-
-julia> x=G([2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-
-julia> y=perm(G,[2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-
-julia> x==y
-true
-```
-If `G` is a group and `x` is a permutation,
-`G(x)` returns a permutation `x` with parent `G`;
-an exception is thrown if `x` does not embed into `G`.
-```@repl oscar
-G=symmetric_group(5);
-x=cperm([1,2,3]);
-y=G(x);
-parent(x)
-parent(y)
-```
-
 The function `Vector{T}` works in the opposite way with respect to `perm`:
 ```@docs
 Vector(x::PermGroupElem, n::Int = x.parent.deg)
