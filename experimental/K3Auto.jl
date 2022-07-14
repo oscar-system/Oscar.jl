@@ -1,5 +1,11 @@
+export root_lattice,highest_root,coxeter_number,weyl_vector,has_zero_entropy
+
+add_verbose_scope(:K3Auto)
+set_verbose_level(:K3Auto, 5)
+
 # We work with row vectors.
 @doc Markdown.doc"""
+    quadratic_triple ->
 
 Return $\{x \in Z^n : x Q x^T + 2xb^T + c <=0\}$.
 Input:
@@ -10,7 +16,7 @@ Input:
 function quadratic_triple(Q, b, c, algorithm=:short_vectors)
   if algorithm == :short_vectors
     L, p, dist = Hecke.convert_type(Q, b, QQ(c))
-    #@show ambient_space(L), basis_matrix(L), p, dist
+    #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
     cv = Hecke.closest_vectors(L, p, dist)
   end
   if algorithm == :pqt
@@ -390,7 +396,7 @@ function alg61(L, S, w0)
       autD = alg319(L, S, Delta, Delta)
       autD = [a for a in autD if !isone(a)]
       if length(autD)>0
-        @show length(autD)
+        @vprint :K3Auto 1 "Found a chamber with $(length(autD)) automorphisms\n"
       end
       # TODO: iterate over orbit representatives only
       for v in Delta
@@ -420,7 +426,7 @@ function alg61(L, S, w0)
         end
         if !is_G_cong
           # not G congruent to anything before
-          @show w_new
+          @vprint :K3Auto 1 "new weyl vector $(w_new)\n"
           push!(Wlnew, (w_new,v))
           push!(Dlnew, Delta_new)
           append!(Gamma, alg319(L, S, Delta_new, Delta_new))
@@ -428,7 +434,7 @@ function alg61(L, S, w0)
       end
     end
     Dl, Wl = Dlnew, Wlnew
-    @show length(W),length(Wl)
+    @vprint :K3Auto 1 "level: $(length(W)), unexplored: $(length(Wl))\n"
   end
   return Gamma, W, DD,B
 end
@@ -475,7 +481,7 @@ function nondeg_weyl_shimada(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, am
   while !is_S_nondegenerate(L, S, weyl)
     weyl = weyl0
     h = 20*ample+matrix(ZZ,1,rank(S),rand(-10:10,rank(S)))*basis_matrix(S)
-    @show h
+    @vprint :K3Auto 1 h
     if ntry > max_trys
       error("did not find an S-nondegenerate weyl vector. Since this is randomized you can retry")
     end
@@ -489,7 +495,7 @@ function nondeg_weyl_shimada(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, am
     for r in R
       weyl = weyl + inner_product(V, weyl, r)*r
     end
-    @show weyl
+    @vprint :K3Auto 1 weyl
   end
   return weyl
   # does not check S-nondegenerateness ... so the output may be randomly wrong sometimes ... then retry again.
@@ -518,7 +524,7 @@ function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{f
     h2 = h2 + inner_product(V, h2, r)*r
     w = w + inner_product(V, w, r)*r
     # should be decreasing
-    # @show length([s for s in separating_walls0 if 0>sign(inner_product(V,h2,s)[1,1])])
+    # @vprint :K3Auto 1 length([s for s in separating_walls0 if 0>sign(inner_product(V,h2,s)[1,1])])
   end
   # confirm output
   @assert all(inner_product(V,h2,r)[1,1]>=0 for r in separating_walls0)
@@ -564,7 +570,7 @@ function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0:
   if rank(T)==0
     return weyl,u,u
   end
-  @show rank(T)
+  @vprint :K3Auto 1 "degeneracy dimension of the chamber $(rank(T))\n"
   h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-2:2,rank(T)))*basis_matrix(T)
   separating = fmpq_mat[r for r in relevant_roots if sign(inner_product(V, h, r)[1,1])*sign(inner_product(V, u, r)[1,1])<0]
   # fix signs
@@ -625,6 +631,7 @@ end
 # we can do the 24 constructions of the leech lattice
 # so basically hardcoding the neighbor steps
 function weyl_vector(L, U0)
+  @vprint :K3Auto 1 "computing an initial Weyl vector \n"
   @assert gram_matrix(U0) == QQ[0 1; 1 -2]
   V = ambient_space(L)
   U = U0
@@ -648,9 +655,9 @@ function weyl_vector(L, U0)
     e8e8,_,_ = orthogonal_sum(e8, e8)
     while true
       R = Hecke.orthogonal_submodule(L,U)
-      @show "starting isometry test"
+      @vprint :K3Auto 1 "starting isometry test"
       isiso, T = isisometric(e8e8, R, ambient_representation=false)
-      @show "done"
+      @vprint :K3Auto 1 "done"
       if isiso
         E8E8 = R
         break
@@ -672,7 +679,7 @@ function weyl_vector(L, U0)
       A = change_base_ring(GF(2), A)
       x = lift(solve_left(A, b))
       v = (v + 2*x)*basis_matrix(R)
-      @assert mod(inner_product(V,v,v)[1,1],8)==0
+      @assert mod(inner_product(V,v,v)[1,1], 8)==0
       u = basis_matrix(U)
       f1 = u[1,:]
       e1 = u[2,:] + u[1,:]
@@ -698,25 +705,49 @@ function weyl_vector(L, U0)
     return weyl, weyl
   elseif rank(L)==26
     while true
-        R = Hecke.orthogonal_submodule(L,U)
+        R = lll(Hecke.orthogonal_submodule(L,U))
         m = minimum(rescale(R,-1))
-        @show m
+        @vprint :K3Auto 1 "found a lattice of minimum $(m) \n"
         if m==4
           # R is isomorphic to the Leech lattice
-          # how to get u0?
-          return basis_matrix(U)[1,:]
+          fu = basis_matrix(U)[1,:]
+          zu = basis_matrix(U)[2,:]
+          u0 = 3*fu+zu
+          return fu,u0
         end
+
         e8 = rescale(root_lattice(:E,8), -1)
         e8e8,_,_ = orthogonal_sum(e8, e8)
         e8e8e8,_,_ = orthogonal_sum(e8e8, e8)
         isiso,T = isisometric(e8e8e8, R, ambient_representation=false)
+        @vprint :K3Auto 2 root_type(R)[2]
+        @vprint :K3Auto 2 "\n"
         if isiso
           break
         end
         U = U0
         R = R0
 
-        # compute a 2-neighbor
+        leech,v,h = leech_from_root_lattice(rescale(R,-1))
+        # the leech lattice is the h-neighbor of R with respect to v
+        # with the attached hyperbolic planes this can be engineered to give an isometry
+        @assert mod(inner_product(V,v,v)[1,1],2*h^2)==0
+        u = basis_matrix(U)
+        f1 = u[1,:]
+        e1 = u[2,:] + u[1,:]
+        f2 = -inner_product(V, v, v)*1//(2*h)*f1 + h*e1 + v
+        @assert inner_product(V, f2, f2)==0
+
+        s = change_base_ring(ZZ, basis_matrix(R)*gram_matrix(V)*transpose(f2))
+        e2 = solve_left(s, matrix(ZZ,1,1,[1]))*basis_matrix(R)
+        @assert inner_product(V, f2, e2)[1,1] == 1
+        e2 = e2 - (inner_product(V,e2,e2)[1,1]*(1//2) + 1)*f2
+        u = vcat(f2,e2)
+        U = lattice(V,u)
+        @assert gram_matrix(U) == QQ[0 1; 1 -2]
+        #=
+        # random walk in the neighbor graph
+        # computes a 2-neighbor
         v = zero_matrix(QQ,1,rank(R))
         while true
           v = matrix(QQ,1,rank(R),rand(0:1,rank(R)))
@@ -743,8 +774,8 @@ function weyl_vector(L, U0)
         e2 = e2 - (inner_product(V,e2,e2)[1,1]*(1//2) + 1)*f2
         u = vcat(f2,e2)
         U = lattice(V,u)
-        @show u
         @assert gram_matrix(U) == QQ[0 1; 1 -2]
+        =#
       end
       E8E8E8 = lattice(V, T * basis_matrix(R))
       B = vcat(basis_matrix(U), basis_matrix(E8E8E8))
@@ -769,7 +800,7 @@ function find_section(L,f)
   @assert inner_product(V,f,f)==0
   A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
   s = solve_left(A,identity_matrix(ZZ,1))
-  @show s
+  @vprint :K3Auto 1 s
   s = s*basis_matrix(L)
   k, K = left_kernel(A)
 
@@ -848,4 +879,232 @@ function parse_zero_entropy()
     push!(res,m)
   end
   return res
+end
+
+function signature_tuple(q::Hecke.QuadSpace{FlintRationalField, fmpq_mat})
+  d = diagonal(q)
+  d = [sign(i) for i in d]
+  return (count(==(1),d),count(==(0),d),count(==(-1),d))
+end
+
+
+signature_tuple(L::ZLat) = signature_tuple(rational_span(L))
+
+
+
+function lll(L::ZLat)
+  Gq = gram_matrix(L)
+  Gq = denominator(Gq)*Gq
+  G = change_base_ring(ZZ, Gq)
+  if is_positive_definite(L)
+    H, T = lll_gram_with_transform(G)
+  elseif is_negative_definite(L)
+    H, T = lll_gram_with_transform(-G)
+  else
+    H, T = lll_gram_indefinite(G)
+    T = transpose(T) # will change
+  end
+  S = ambient_space(L)
+  B = T*basis_matrix(L)
+  Lred = lattice(S,B)
+  return Lred
+end
+
+function root_type(L::ZLat)
+  return _connected_components(root_sublattice(L))
+end
+
+function _connected_components(L::ZLat)
+  L = lll(L)
+  V = ambient_space(L)
+  B = basis_matrix(L)
+  B = [B[i,:] for i in 1:nrows(B)]
+  C = fmpq_mat[]
+  SS = ZLat[]
+  ADE = Tuple{Symbol,Int64}[]
+  while length(B) > 0
+    CC = fmpq_mat[]
+    b = pop!(B)
+    push!(CC, b)
+    flag = true
+    while flag
+      flag = false
+      for c in B
+        if any([inner_product(V,a,c)!=0 for a in CC])
+          push!(CC,c)
+          deleteat!(B,findfirst(==(c),B))
+          flag = true
+          break
+        end
+      end
+    end
+    S = lattice(ambient_space(L),reduce(vcat,CC))
+    ade, trafo = ADE_type_with_isometry(S)
+    push!(ADE, ade)
+    BS = trafo*basis_matrix(S)
+    S = lattice(ambient_space(L),BS)
+    push!(C, BS)
+    push!(SS,S)
+  end
+  c = reduce(vcat, C)
+  @assert nrows(c)==rank(L)
+  return lattice(V, c), ADE,SS
+end
+
+
+function ADE_type(G)
+  r = rank(G)
+  d = abs(det(G))
+  if r == 8 && d==1
+    return (:E,8)
+  end
+  if r == 7 && d == 2
+    return (:E,7)
+  end
+  if r == 6 && d ==3
+    return (:E,6)
+  end
+  if d == r + 1
+    return (:A, r)
+  end
+  if d == 4
+    return (:D, r)
+  end
+  error("not a definite root lattice")
+end
+
+function ADE_type_with_isometry(L)
+  ADE = ADE_type(gram_matrix(L))
+  R = root_lattice(ADE...)
+  e = sign(gram_matrix(L)[1,1])
+  if e == -1
+    R = rescale(R,-1)
+  end
+  t, T = is_isometric(R,L,ambient_representation=false)
+  @assert t
+  return ADE, T
+end
+
+function root_sublattice(L::ZLat)
+  V = ambient_space(L)
+  if is_negative_definite(L)
+    L = rescale(L,-1)
+  end
+  sv = matrix(ZZ,reduce(hcat,[a[1] for a in short_vectors(L, 2)]))
+  sv = transpose(sv)
+  sv = hnf(sv)[1:rank(L),:]*basis_matrix(L)
+  return lattice(V,sv)
+end
+
+# 23 constructions of the leech lattice
+function coxeter_number(ADE::Symbol, n)
+  if ADE == :A
+    return n+1
+  elseif ADE == :D
+    return 2*(n-1)
+  elseif ADE == :E && n == 6
+    return 12
+  elseif ADE == :E && n == 7
+    return 18
+  elseif ADE == :E && n == 8
+    return 30
+  end
+end
+
+function highest_root(ADE::Symbol, n)
+  if ADE == :A
+    w = [1 for i in 1:n]
+  elseif ADE == :D
+    w = vcat([1,1],[2 for i in 3:n-1])
+    w = vcat(w,[1])
+  elseif ADE == :E && n == 6
+    w = [1,2,3,2,1,2]
+  elseif ADE == :E && n == 7
+    w = [2,3,4,3,2,1,2]
+  elseif ADE == :E && n == 8
+    w = [2,4,6,5,4,3,2,3]
+  end
+  w = matrix(ZZ, 1, n, w)
+  g = gram_matrix(root_lattice(ADE,n))
+  #@assert all(0<=i for i in collect(w*g))
+  #@assert (w*g*transpose(w))[1,1]==2
+  return w
+end
+
+function weyl_vector(R::ZLat)
+  weyl = matrix(ZZ,1,rank(R),ones(1,rank(R)))*inv(gram_matrix(R))
+  return weyl*basis_matrix(R)
+end
+
+function leech_from_root_lattice(N::ZLat)
+  # construct the leech lattice from one of the 23 holy constructions in SPLAG
+  # we follow Ebeling
+  # there seem to be some signs wrong in Ebeling?
+  V = ambient_space(N)
+  ADE, ade, RR = root_type(N)
+  global F = basis_matrix(ADE)
+  for i in 1:length(ade)
+    F = vcat(F, -highest_root(ade[i]...)*basis_matrix(RR[i]))
+  end
+  rho = sum(weyl_vector(r) for r in RR)
+  h = coxeter_number(ade[1]...)
+  @assert inner_product(V,rho,rho)== 2*h*(h+1)
+  @assert all(h==coxeter_number(i...) for i in ade)
+  rhoB = solve_left(basis_matrix(N),rho)
+  v = QQ(1,h)*transpose(rhoB)
+  A = Zlattice(gram=gram_matrix(N))
+  c = QQ(2*(1+1//h))
+  sv = [matrix(QQ,1,24,vec(v)-i)*basis_matrix(N) for i in Hecke.closest_vectors(A, v ,c,equal=true)]
+  @assert all(inner_product(V,i,i)==2*(1+1//h) for i in sv)
+  @assert length(sv)^2 == abs(det(ADE))
+  G = reduce(vcat,sv)
+  FG = vcat(F,G)
+  K = transpose(kernel(matrix(ZZ,ones(Int,1,nrows(FG))))[2])
+  B = change_base_ring(QQ,K)*FG
+  B = hnf(FakeFmpqMat(B))
+  B = QQ(1,B.den)*change_base_ring(QQ,B.num[end-23:end,:])
+  @assert rank(B)==24
+  lambda = lattice(V,B)
+  @assert denominator(gram_matrix(lambda))==1
+  lambda = lll(lambda)
+  @assert det(lambda)==1
+  @assert minimum(lambda)==4
+
+  T = torsion_quadratic_module(lambda,intersect(lambda,N))
+  @assert length(gens(T))==1 "I just expect this ... but did not really prove it"
+  w = transpose(matrix(lift(gens(T)[1])))
+
+  vN = matrix(ZZ,hcat(ones(Int,1,nrows(F)),zeros(Int,1,nrows(G))))
+  vleech = matrix(ZZ,hcat(zeros(Int,1,nrows(F)),ones(Int,1,nrows(G))))
+  K = transpose(kernel(vcat(vN,vleech))[2])
+  return lambda, h*w, h
+end
+
+function common_invariant(Gamma)
+  return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
+end
+
+function has_zero_entropy(S)
+  L,S,iS,R,iR = oscar.embed_in_unimodular(S,26)
+  V = ambient_space(L)
+  U = lattice(V,basis_matrix(S)[1:2, :])
+  @assert det(U)==-1
+  weyl,u0 = oscar.weyl_vector(L, U)
+  h = ZZ[40 1 -1 ]*basis_matrix(S)  #an ample vector
+  @assert inner_product(V,h,h)[1,1]>0
+  @assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
+  # confirm that h is in the interior of a weyl chamber,
+  # i.e. check that Q does not contain any -2 vector and h^2>0
+  Q = Hecke.orthogonal_submodule(S, lattice(V, h))
+  @test minimum(rescale(Q, -1)) > 2
+  weyl,u0 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
+  @vprint :K3Auto 1 "preprocessing completed \n"
+
+
+  Gamma, W, DD, B = oscar.alg61(L,S,weyl)
+
+  C = lattice(V,common_invariant(Gamma)[2])
+  d = diagonal(rational_span(C))
+
+  return maximum([sign(i) for i in d])
 end

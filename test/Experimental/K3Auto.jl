@@ -3,6 +3,9 @@
 # and the roots are the standard basis vectors.
 # Draw the dual graph
 # It has one symmetry. It is of order 2.
+add_verbose_scope(:K3Auto)
+set_verbose_level(:K3Auto,5)
+
 gram = QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2]
 S = Zlattice(gram=gram)
 # Construct an embedding of S into L \cong L_{10}.
@@ -100,9 +103,7 @@ weyl,_ = oscar.nondeg_weyl_new(L,S,weyl,weyl,h)
 
 Gamma, W, DD, B = oscar.alg61(L,S,weyl)
 
-function common_invariant(Gamma)
-  return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
-end
+
 
 C = lattice(V,common_invariant(Gamma)[2])
 diagonal(rational_span(C))
@@ -113,24 +114,4 @@ zero_entropy_candidates = oscar.parse_zero_entropy()
 zero_entropy_candidates = [Zlattice(gram=g) for g in zero_entropy_candidates]
 
 S = zero_entropy_candidates[3]
-function has_zero_entropy(S)
-  L,S,iS,R,iR = oscar.embed_in_unimodular(S,26)
-  V = ambient_space(L)
-  U = lattice(V,basis_matrix(S)[1:2, :])
-  @assert det(U)==-1
-  weyl,u0 = oscar.weyl_vector(L, U)
-  h = ZZ[40 1 -1 ]*basis_matrix(S)  #an ample vector
-  @assert inner_product(V,h,h)[1,1]>0
-  @assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
-  # confirm that h is in the interior of a weyl chamber,
-  # i.e. check that Q does not contain any -2 vector and h^2>0
-  Q = Hecke.orthogonal_submodule(S, lattice(V, h))
-  @test minimum(rescale(Q, -1)) > 2
-  weyl,u0 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
 
-  Gamma, W, DD, B = oscar.alg61(L,S,weyl)
-
-  C = lattice(V,common_invariant(Gamma)[2])
-  d = diagonal(rational_span(C))
-  return maximum([sign(d) for i in d])
-end
