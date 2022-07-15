@@ -1,7 +1,7 @@
-export root_lattice,highest_root,coxeter_number,weyl_vector,has_zero_entropy
+export root_lattice,highest_root,coxeter_number,weyl_vector,has_zero_entropy,check_zero_entropy
 
 add_verbose_scope(:K3Auto)
-set_verbose_level(:K3Auto, 5)
+#set_verbose_level(:K3Auto, 5)
 
 # We work with row vectors.
 @doc Markdown.doc"""
@@ -426,7 +426,7 @@ function alg61(L, S, w0)
         end
         if !is_G_cong
           # not G congruent to anything before
-          @vprint :K3Auto 1 "new weyl vector $(w_new)\n"
+          @vprint :K3Auto 3 "new weyl vector $(w_new)\n"
           push!(Wlnew, (w_new,v))
           push!(Dlnew, Delta_new)
           append!(Gamma, alg319(L, S, Delta_new, Delta_new))
@@ -601,12 +601,15 @@ If `n` is `26`, then the orthogonal complement $R = S^\perp$ in `L` has a (-2)-v
 Or an error is produced (does not enumerate the genus of $R$).
 """
 function embed_in_unimodular(S::ZLat, n)
+  @vprint :K3Auto 1 "computing embedding in L_$(n) \n"
   r = n - rank(S)
   DS = discriminant_group(S)
   DR = rescale(DS, -1)  # discriminant group of R = S^\perp in L as predicted by Nikulin
   G = genus(DR, (0, r))  # genus of R
   R = representative(G)
-  if n==26
+  R = lll(R)
+  if n==26 && maximum(diagonal(gram_matrix(R)))<-2
+    @vprint :K3Auto 2 "checking the embedding"
     @assert minimum(rescale(R,-1))==2
   end
   SR, iS, iR = orthogonal_sum(S, R)
@@ -800,10 +803,11 @@ function find_section(L,f)
   @assert inner_product(V,f,f)==0
   A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
   s = solve_left(A,identity_matrix(ZZ,1))
-  @vprint :K3Auto 1 s
   s = s*basis_matrix(L)
   k, K = left_kernel(A)
+  Kl = Zlattice(K)
 
+  @vprint :K3Auto 2 "found section of size $(s*transpose(s))\n"
   @assert inner_product(V,s,f)[1,1]==1
   #return s,f
   s = s - (inner_product(V,s,s)[1,1]//2+1) * f
@@ -1090,13 +1094,27 @@ function has_zero_entropy(S)
   U = lattice(V,basis_matrix(S)[1:2, :])
   @assert det(U)==-1
   weyl,u0 = oscar.weyl_vector(L, U)
-  h = ZZ[40 1 -1 ]*basis_matrix(S)  #an ample vector
-  @assert inner_product(V,h,h)[1,1]>0
-  @assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
+  #v = matrix(QQ,ones(Int,1,rank(S)-2))*inv(gram_matrix(S)[3:end,3:end])
+  #v = denominator(v)*v
+  #h = hcat(QQ[0 0 ], v) *basis_matrix(S)  #an ample vector
+  u = basis_matrix(U)
+  h = zero_matrix(QQ,1,rank(S))
+  while true
+    h = matrix(QQ,1,rank(S)-2,rand(-5:5,rank(S)-2))
+    h = hcat(zero_matrix(QQ,1,2),h)*basis_matrix(S)
+    a = inner_product(V,h,h)[1,1]
+    h = h + 2*u[2,:] + (2-a//2)*u[1,:]
+    @assert inner_product(V,h,h)[1,1]>0
+    Q = Hecke.orthogonal_submodule(S, lattice(V, h))
+    if minimum(rescale(Q, -1)) > 2
+      break
+    end
+  end
+
+  #@assert all([a>0 for a in inner_product(V,h,basis_matrix(S))])
   # confirm that h is in the interior of a weyl chamber,
   # i.e. check that Q does not contain any -2 vector and h^2>0
-  Q = Hecke.orthogonal_submodule(S, lattice(V, h))
-  @test minimum(rescale(Q, -1)) > 2
+  @vprint :K3Auto 1 "computing an S-non-degenerate weyl vector\n"
   weyl,u0 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
   @vprint :K3Auto 1 "preprocessing completed \n"
 
@@ -1107,4 +1125,30 @@ function has_zero_entropy(S)
   d = diagonal(rational_span(C))
 
   return maximum([sign(i) for i in d])
+end
+
+
+function check_zero_entropy(candidates,wa="a")
+  ioelliptic = open("elliptic", wa)
+  ioparabolic = open("parabolic", wa)
+  iohyperbolic = open("hyperbolic", wa)
+  close(ioelliptic)
+  close(ioparabolic)
+  close(iohyperbolic)
+  for S in candidates
+    ioelliptic = open("elliptic", "a")
+    ioparabolic = open("parabolic", "a")
+    iohyperbolic = open("hyperbolic", "a")
+    e = has_zero_entropy(S)
+    if e>0
+      println(iohyperbolic, gram_matrix(S))
+    elseif e==0
+      println(ioparabolic, gram_matrix(S))
+    elseif e < 0
+      println(ioelliptic, gram_matrix(S))
+    end
+    close(ioelliptic)
+    close(ioparabolic)
+    close(iohyperbolic)
+  end
 end
