@@ -113,7 +113,7 @@ If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multip
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 P = ideal(R, [x])
-U = MPolyComplementOfPrimeIdeal(P)
+U = complement_of_ideal(P)
 Rloc, _ = Localization(U);
 R === base_ring(Rloc)
 U === inverted_set(Rloc)
@@ -137,7 +137,7 @@ under the localization map or by directly coercing (pairs of) elements of $R$ in
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 P = ideal(R, [x])
-U = MPolyComplementOfPrimeIdeal(P)
+U = complement_of_ideal(P)
 Rloc, iota = Localization(U);
 f = iota(x)
 f == Rloc(x)
@@ -158,7 +158,7 @@ Given an element `f` of a localized multivariate ring polynomial `Rloc`,
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 P = ideal(R, [x])
-U = MPolyComplementOfPrimeIdeal(P)
+U = complement_of_ideal(P)
 Rloc, iota = Localization(U);
 f = iota(x)//iota(y)
 parent(f)
