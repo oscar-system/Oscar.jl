@@ -152,3 +152,20 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
 
     return ideal(parent_ring, gens)
 end
+
+################################################################################
+# Matrices
+function save_internal(s::SerializerState, m::fmpz_mat)
+    julia_mat = Matrix{fmpz}(undef, size(m)...)
+    for i in eachindex(m)
+        julia_mat[i] = m[i]
+    end
+    return Dict(
+        :matrix => save_type_dispatch(s, julia_mat),
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{fmpz_mat}, dict::Dict)
+    mat = load_type_dispatch(s, Matrix{fmpz}, dict[:matrix])
+    return matrix(ZZ, mat)
+end
