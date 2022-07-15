@@ -546,6 +546,14 @@ function orthogonal_sign(G::MatrixGroup)
                                   codomain(iso_oscar_gap(R)))
     sign = GAP.Globals.MTX.OrthogonalSign(M)
     sign == GAP.Globals.fail && return nothing
+    # If the characteristic is odd and there is an invariant
+    # antisymmetric bilinear form then `GAP.Globals.MTX.OrthogonalSign`
+    # does *not* return `fail`,
+    # see https://github.com/gap-system/gap/issues/4936.
+    if isodd(characteristic(R))
+      Q = GAP.Globals.MTX.InvariantQuadraticForm(M)
+      Q == - GAP.Globals.TransposedMat(Q) && return nothing
+    end
     return sign
 end
 
