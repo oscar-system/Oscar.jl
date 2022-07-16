@@ -132,8 +132,7 @@ end
     (G::PermGroup)(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every `i` from 1 to $n$` = length(L)`
-to `L`$[i]$.
-The parent of $x$ is `G`.
+to `L`$[i]$. The parent of $x$ is `G`.
 An exception is thrown if $x$ is not contained in `G`
 or `L` does not contain every integer from 1 to $n$ exactly once.
 
