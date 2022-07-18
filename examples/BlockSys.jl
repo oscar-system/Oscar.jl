@@ -66,10 +66,7 @@ function Base.iterate(B::BlockSystems, st::Array{Vector{Int}})
   end
 end
 Base.IteratorSize(::BlockSystems) = Base.SizeUnknown()
-<<<<<<< Updated upstream
 
-
-=======
 ################################################################################################################################
 # collect_subfields (gives a list and its blocksystems(debbuging) for valid subfield structures)
 ###############################################################################################################################
@@ -340,5 +337,4 @@ function timetest2(ll)
     #println(fil, "[",b[1],",",b[2],"],")
     #close(fil)
   end 
->>>>>>> Stashed changes
 end
