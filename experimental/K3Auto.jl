@@ -1,4 +1,4 @@
-export root_lattice,highest_root,coxeter_number,weyl_vector,has_zero_entropy,check_zero_entropy
+export root_lattice,highest_root,coxeter_number,weyl_vector,has_zero_entropy,check_zero_entropy,common_invariant
 
 add_verbose_scope(:K3Auto)
 #set_verbose_level(:K3Auto, 5)
@@ -277,7 +277,7 @@ end
 
 @doc Markdown.doc"""
 
-Return the walls of the L|S chamber induced by `v`.
+Return the walls of the L|S chamber induced by `w`.
 
 Input:
 
@@ -295,6 +295,7 @@ function alg511(L::ZLat, S::ZLat, w)
   @assert ispointed(P) "the chamber is degenerate"
   r = [matrix(QQ,1,degree(S),v)*Ginv for v in r]
   r = [v*denominator(solve_left(basis_matrix(dual(S)),v)) for v in r]
+  V = ambient_space(L)
   return r
 end
 
@@ -304,12 +305,27 @@ function is_S_nondegenerate(L::ZLat, S::ZLat, w::fmpq_mat)
   G = gram_matrix(V)
   prSDelta_w = [v[1]*G for v in Delta_w]
   i = zero_matrix(QQ,0,degree(S))
-  Ginv = inv(G)
   D = reduce(vcat,prSDelta_w,init=i)
   P = positive_hull(D)
-  r = rays(P)
   return ispointed(P)
 end
+
+function inner_point_in_S(L::ZLat, S::ZLat, w::fmpq_mat)
+  Delta_w = alg58(L, S, w)
+  V = ambient_space(L)
+  G = gram_matrix(V)
+  prSDelta_w = [v[1]*G*transpose(basis_matrix(S)) for v in Delta_w]
+  i = zero_matrix(QQ,0,rank(S))
+  D = reduce(vcat,prSDelta_w,init=i)
+  P = positive_hull(D)
+  Pd = polarize(P)
+  @assert is_pointed(Pd)
+  h = sum(rays(Pd))
+  h = matrix(QQ,1,rank(S),collect(h))*basis_matrix(S)
+  @assert all(0<inner_product(V,v[1],h)[1,1] for v in Delta_w)
+  return h
+end
+
 
 @doc Markdown.doc"""
 
@@ -381,7 +397,7 @@ function alg61(L, S, w0)
   W = [[(w0,zero_matrix(QQ,1,degree(S)))]] # chambers represented by Weyl vectors
   D = alg511(L, S, w0)
   DD = [[D]]
-  Gamma = alg319(L, S, D, D)
+  Gamma = [a for a in alg319(L, S, D, D) if !isone(a)]
   B = Set{fmpq_mat}()
   Wl = W[1]
   Dl = DD[1]
@@ -403,8 +419,9 @@ function alg61(L, S, w0)
         if v == backv || v ==-backv
           continue
         end
-        if definesminus2hyperplane(S,v)
-          push!(B,v)
+        tmp,r = definesminus2hyperplane(S,v)
+        if tmp
+          push!(B,r)
           continue
         end
         w_new = alg514(L, S, w, v)
@@ -415,7 +432,10 @@ function alg61(L, S, w0)
           for D in Di
             gg = alg319(L, S, Delta_new, D)
             if length(gg) > 0
-              append!(Gamma, gg)
+              # enough to add a single
+              if !isone(gg[1]) # one could hit the same chamber twice from different directions
+                push!(Gamma, gg[1])
+              end
               is_G_cong = true
               break
             end
@@ -429,7 +449,8 @@ function alg61(L, S, w0)
           @vprint :K3Auto 3 "new weyl vector $(w_new)\n"
           push!(Wlnew, (w_new,v))
           push!(Dlnew, Delta_new)
-          append!(Gamma, alg319(L, S, Delta_new, Delta_new))
+          aut = [a for a in alg319(L, S, Delta_new, Delta_new) if !isone(a)]
+          append!(Gamma, aut)
         end
       end
     end
@@ -447,18 +468,14 @@ Return whether the line spanned by `v` contains a (-2) vector of `S`.
 function definesminus2hyperplane(S::ZLat, v::fmpq_mat)
   inS, vS = can_solve_with_solution(basis_matrix(S), v, side=:left)
   if !inS
-    return false
+    return false, vS
   end
   d = denominator(vS)
-  if d == 1
-    r = d*vS
-  else
-    g = gcd([numerator(a) for a in vec(vS)])
-    r = 1//g * vS
-  end
+  g = gcd([numerator(a) for a in vec(vS)])
+  r = d//g * vS
   # now r is primitive in S
-  r = vS *  basis_matrix(S)
-  return -2 == inner_product(ambient_space(S),r,r)[1,1]
+  r = r *  basis_matrix(S)
+  return -2 == inner_product(ambient_space(S),r,r)[1,1],r
 end
 
 @doc Markdown.doc"""
@@ -1141,11 +1158,11 @@ function check_zero_entropy(candidates,wa="a")
     iohyperbolic = open("hyperbolic", "a")
     e = has_zero_entropy(S)
     if e>0
-      println(iohyperbolic, gram_matrix(S))
+      println(ioelliptic, gram_matrix(S))
     elseif e==0
       println(ioparabolic, gram_matrix(S))
     elseif e < 0
-      println(ioelliptic, gram_matrix(S))
+      println(iohyperbolic, gram_matrix(S))
     end
     close(ioelliptic)
     close(ioparabolic)
