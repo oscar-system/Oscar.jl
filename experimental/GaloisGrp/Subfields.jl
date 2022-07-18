@@ -175,6 +175,12 @@ block system to be wrong.
 """
 function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if bs in S.P && haskey(S.l, S.P(bs))
+    #this catches [[1,2], ...] [[1,2], ...] only one of them can be
+    #valid. However, the poset is only comparing the 1st block...
+    fl = findall(bs, S.P)
+    if any(i->bs != S.P.elem[i], fl)
+      return nothing
+    end
     return S.l[S.P(bs)]
   end
   pr = 5
