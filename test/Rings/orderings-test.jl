@@ -189,33 +189,55 @@ end
 @testset "Polynomial Ordering internal conversion to Singular" begin
    R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
 
+   for O in (wdegrevlex([x,y,s],[1,2,3])*revlex([t,u]),
+             neglex([x,y,s])*negrevlex([t,u]),
+             negdeglex([x,y,s])*negdegrevlex([t,u]),
+             negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
+      @test O == monomial_ordering(R, singular(O))
+      @test O == monomial_ordering(R, ordering(singular_poly_ring(R, O)))
+   end
+
+   @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))
+   @test_throws ErrorException monomial_ordering(R, Singular.ordering_S())
+   bad = Singular.ordering_a([1,2,3,4,5,6])*Singular.ordering_rs(5)
+   @test_throws ErrorException monomial_ordering(R, bad)
+
    O1 = degrevlex(gens(R))
+   @test monomial_ordering(R, singular(O1)) == O1
    @test length(string(O1)) > 2
    @test string(singular(O1)) == "ordering_dp(5)"
 
    O2 = lex([x, y])*deglex([s, t, u])
+   @test monomial_ordering(R, singular(O2)) == O2
    @test length(string(O2)) > 2
    @test string(singular(O2)) == "ordering_lp(2) * ordering_Dp(3)"
 
    O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+   @test monomial_ordering(R, singular(O3)) == O3
    @test length(string(O3)) > 2
    @test string(singular(O3)) == "ordering_Wp([2, 3, 5, 7, 3])"
 
    O4 = deglex([x, y, t]) * deglex([y, s, u])
+   @test monomial_ordering(R, singular(O4)) == O4
    @test length(string(O4)) > 2
    @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
 
    K = FreeModule(R, 4)
 
    O5 = revlex(gens(K))*degrevlex(gens(R))
+   @test monomial_ordering(R, singular(O5)) == degrevlex(gens(R))
    @test length(string(O5)) > 2
    @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
 
-   O6 = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4])) * lex(gens(K)) * wdeglex([s, t, u], [1, 2, 3])
+   a = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4]))
+   b = wdeglex([s, t, u], [1, 2, 3])
+   O6 = a * lex(gens(K)) * b
+   @test monomial_ordering(R, singular(O6)) == a * b
    @test length(string(O6)) > 2
    @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
 
    O7 = weighted_ordering(gens(R),[-1,2,0,2,0])*degrevlex(gens(R))
+   @test monomial_ordering(R, singular(O7)) == O7
    @test length(string(O7)) > 2
    @test string(singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
 
@@ -223,6 +245,7 @@ end
    @test_throws ErrorException singular(O8)
 
    O9 = matrix_ordering([x, y], [1 2; 1 2]) * lex(gens(R))
+   @test monomial_ordering(R, singular(O9)) == O9
    @test singular(O9) isa Singular.sordering
 end
 
