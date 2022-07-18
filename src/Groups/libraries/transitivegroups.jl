@@ -123,7 +123,7 @@ julia> G = symmetric_group(7);  m = transitive_group_identification(G)
 julia> order(transitive_group(m...)) == order(G)
 true
 
-julia> S = sub(G, [gap_perm([1, 3, 4, 5, 2])])[1]
+julia> S = sub(G, [perm([1, 3, 4, 5, 2])])[1]
 Group([ (2,3,4,5) ])
 
 julia> is_transitive(S)
@@ -141,7 +141,7 @@ true
 julia> transitive_group_identification(symmetric_group(64))
 ERROR: identification of transitive groups of degree 64 are not available
 
-julia> S = sub(G, [gap_perm([1,3,4,5,2,7,6])])[1];
+julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
 ERROR: group is not transitive on its moved points

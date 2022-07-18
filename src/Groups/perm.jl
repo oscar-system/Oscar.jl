@@ -101,13 +101,8 @@ julia> number_moved_points(gen(s, 1))
 
 number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
 
-# FIXME: clashes with AbstractAlgebra.perm method
-#function perm(L::AbstractVector{<:IntegerUnion})
-#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
-#end
-# FIXME: use name gap_perm for now
 @doc Markdown.doc"""
-    gap_perm(L::AbstractVector{<:IntegerUnion})
+    perm(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
 to `L`$[i]$.
@@ -115,28 +110,31 @@ The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 An exception is thrown if `L` does not contain every integer from 1 to $n$
 exactly once.
 
+The parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+
 # Examples
 ```jldoctest
-julia> gap_perm([2,4,6,1,3,5])
+julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
+
+julia> parent(x)
+Sym( [ 1 .. 6 ] )
 ```
 """
-function gap_perm(L::AbstractVector{<:IntegerUnion})
+function perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 end
+
+@deprecate gap_perm(L::AbstractVector{<:IntegerUnion}) perm(L::AbstractVector{<:IntegerUnion})
 
 @doc Markdown.doc"""
     perm(G::PermGroup, L::AbstractVector{<:IntegerUnion})
     (G::PermGroup)(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every `i` from 1 to $n$` = length(L)`
-to `L`$[i]$.
-The parent of $x$ is `G`.
+to `L`$[i]$. The parent of $x$ is `G`.
 An exception is thrown if $x$ is not contained in `G`
 or `L` does not contain every integer from 1 to $n$ exactly once.
-
-For [`gap_perm`](@ref),
-the parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 
 # Examples
 ```jldoctest
@@ -181,17 +179,6 @@ function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-@doc Markdown.doc"""
-Functor to construct permutations with a given parent group
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(6)
-Sym( [ 1 .. 6 ] )
-julia> x = G([2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-```
-"""
 (g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
 
 # cperm stands for "cycle permutation", but we can change name if we want
@@ -229,6 +216,27 @@ julia> p = cperm([1,2,3],[7])
 julia> degree(parent(p))
 7
 ```
+
+Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
+```jldoctest
+julia> G=symmetric_group(5);
+
+julia> A=alternating_group(5);
+
+julia> x=cperm(G,[1,2,3]);
+
+julia> y=cperm(A,[1,2,3]);
+
+julia> z=cperm([1,2,3]); parent(z)
+Sym( [ 1 .. 3 ] )
+
+julia> x==y
+true
+
+julia> x==z
+false
+```
+In the example above, `x` and `y` are equal because both act on a set of cardinality `5`, while `x` and `z` are different because `x` belongs to `Sym(5)` and `z` belongs to `Sym(3)`.
 
 cperm can also handle cycles passed in inside of a vector
 ```jldoctest
@@ -273,14 +281,6 @@ true
 
 At the moment, the input vectors of the function `cperm` need not be disjoint.
 
-!!! warning
-    If the function `perm` is evaluated in a vector of integers
-    without specifying the group `G`,
-    then the returned value is an element of the AbstractAlgebra.jl type
-    `Perm{Int}`.
-    For this reason, if one wants a permutation of type
-    `GAPGroupElem{PermGroup}` without specifying a parent,
-    one has to use the function `gap_perm`.
 """
 function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
