@@ -442,10 +442,7 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(BiPolyArray(Ox, s))
     if s.isGB
-      # TODO We need to get the monomial ordering from the Singular side,
-      # there should be an easier and more versatile implementation
-      # for this in orderings.jl.
-      ord = monomial_ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s)))
+      ord = monomial_ordering(Ox, ordering(base_ring(s)))
       r.gb[ord] = r.gens
     end
     return r
