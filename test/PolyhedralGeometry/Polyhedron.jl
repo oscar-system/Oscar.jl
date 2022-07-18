@@ -13,6 +13,10 @@
     Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
     L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
+    # this is to make sure the order of some matrices below doesn't change
+    Polymake.prefer("beneath_beyond") do
+        affine_hull(point)
+    end
     s = simplex(T, 2)
 
     @testset "core functionality" begin
