@@ -123,11 +123,8 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqFiniteField, FqDefaul
    else
      # Create an Oscar field `FO2` that is compatible with `FG`
      # and has the same type as `FO` ...
-     if FO isa FqNmodFiniteField
-       p = Int(p)
-     end
-     R, x = PolynomialRing(GF(p), "x")
-     FO2 = FiniteField(R(coeffsFG), "z")[1]
+     R = parent(modulus(FO))
+     FO2 = typeof(FO)(R(coeffsFG), :z, true; check = true)
 
      # ... and an isomorphism between the two Oscar fields.
      emb = embed(FO2, FO)

@@ -103,22 +103,26 @@ function msolve(
     # convert Singular ideal to flattened arrays of ints
     lens, cfs, exps   = convert_oscar_ideal_to_array(I)
 
-    res_ld    = Ref(Cint(0))
-    res_dim   = Ref(Cint(0))
-    res_dquot = Ref(Cint(0))
-    nb_sols   = Ref(Cint(0))
-    res_len   = Ref(Ptr{Cint}(0))
-    res_cf    = Ref(Ptr{Cvoid}(0))
-    sols_num  = Ref(Ptr{Cvoid}(0))
-    sols_den  = Ref(Ptr{Cint}(0))
+    res_ld      = Ref(Cint(0))
+    res_nr_vars = Ref(Cint(0))
+    res_dim     = Ref(Cint(0))
+    res_dquot   = Ref(Cint(0))
+    nb_sols     = Ref(Cint(0))
+    res_len     = Ref(Ptr{Cint}(0))
+    res_vnames  = Ref(Ptr{Ptr{Cchar}}(0))
+    res_cf_lf   = Ref(Ptr{Cvoid}(0))
+    res_cf      = Ref(Ptr{Cvoid}(0))
+    sols_num    = Ref(Ptr{Cvoid}(0))
+    sols_den    = Ref(Ptr{Cint}(0))
 
     ccall((:msolve_julia, libmsolve), Cvoid,
-        (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}},
-        Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint},
+        (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}},
+        Ptr{Ptr{Ptr{Cchar}}}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint},
         Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cchar}}, Ptr{Cchar}, Cint, Cint,
         Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint,
         Cint, Cint, Cint),
-        cglobal(:jl_malloc), res_ld, res_dim, res_dquot, res_len, res_cf,
+        cglobal(:jl_malloc), res_ld, res_nr_vars, res_dim, res_dquot, res_len, res_vnames,
+        res_cf_lf, res_cf,
         nb_sols, sols_num, sols_den, lens, exps, cfs, variable_names,
         "/dev/null", field_char, mon_order, elim_block_size, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
