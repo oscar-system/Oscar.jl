@@ -182,7 +182,10 @@ function TropicalSemiringMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t
 end
 
 # Evaluation:
-function (val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})(c)
+
+function (val::TropicalSemiringMap{S, T})(c) where {K,
+                        S <: AbstractAlgebra.Generic.RationalFunctionField{K},
+                        T <: AbstractAlgebra.Generic.Rat{K}}
   if iszero(c)
     return inf(val.TropicalSemiring)
   end
@@ -192,7 +195,9 @@ function (val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField
   return val.TropicalSemiring(-t_adic_valuation(c))
 end
 # Display:
-function Base.show(io::IO, val::TropicalSemiringMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})
+function Base.show(io::IO, val::TropicalSemiringMap{S, T}) where {K,
+                        S <: AbstractAlgebra.Generic.RationalFunctionField{K},
+                        T <: AbstractAlgebra.Generic.Rat{K}}
     print(io, "The $(val.uniformizer_field)-adic valuation on $(val.valued_field)")
 end
 

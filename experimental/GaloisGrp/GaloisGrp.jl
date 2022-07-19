@@ -2102,7 +2102,7 @@ function extension_field(f::fmpq_poly, n::String = "_a"; cached::Bool = true, ch
   return NumberField(f, n, cached = cached, check = check)
 end
 
-function extension_field(f::Generic.Poly{Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
+function extension_field(f::Generic.Poly{<:Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
   return FunctionField(f, n, cached = cached)
 end
 
@@ -2110,7 +2110,7 @@ function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bo
   return NumberField(f, n, cached = cached)
 end
 
-Hecke.function_field(f::Generic.Poly{Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
+Hecke.function_field(f::Generic.Poly{<:Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
 
 
 @doc Markdown.doc"""
