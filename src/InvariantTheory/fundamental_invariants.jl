@@ -80,12 +80,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
         continue
       end
 
-      # Workaround while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1192
-      if isempty(GO)
-        g = f
-      else
-        _, g = divrem(f, GO)
-      end
+      _, g = divrem(f, GO)
       if is_zero(g)
         continue
       end
