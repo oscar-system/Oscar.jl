@@ -66,7 +66,16 @@ end
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2)
 
   R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
+  # Note: the following line produces errors in Singular with the default alg
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_global)
+  @test all(p -> base_ring(parent(p)) == R, nums)
+  @test base_ring(parent(den)) == R
+
+  R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
+
+  R, (x, y) = PolynomialRing(RationalFunctionField(QQ, ["s", "t"])[1], ["x", "y"])
+  @test_throws ErrorException integral_basis(y^5-x^3*(x+1)^4, 2)
 end
 
 @testset "Noether normalization" begin
