@@ -23,7 +23,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 msolve_jll = "6d01cc9a-e8f6-580e-8c54-544227e08205"
-polymake_jll = "7c209550-9012-526c-9264-55ba7a78ba2c"
 
 [compat]
 AbstractAlgebra = "0.27.0"
@@ -39,4 +38,3 @@ RecipesBase = "1.2.1"
 Singular = "0.12.0"
 julia = "1.6"
 msolve_jll = "0.4.1"
-polymake_jll = "=400.700.0"

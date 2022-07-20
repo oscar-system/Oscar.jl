@@ -53,6 +53,11 @@ jobs:
           arch: ${{ matrix.julia-arch }}
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@latest
+      - name: "dev polymake_jll"
+        run: |
+          julia --project=. --color=yes --code-coverage -e '
+            using Pkg
+            Pkg.develop("polymake_jll")'
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
       - name: "Run doctests"
