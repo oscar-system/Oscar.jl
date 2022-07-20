@@ -7,7 +7,7 @@
     p::MPolyQuoElem
     function CohomologyClass(v::AbstractNormalToricVariety, p::MPolyQuoElem)
         if parent(p) != cohomology_ring(v)
-            throw(ArgumentError("The polynomial must reside in the cohomology ring of the toric variety."))
+            throw(ArgumentError("The polynomial must reside in the cohomology ring of the toric variety"))
         end
         return new(v, p)
     end
@@ -93,7 +93,7 @@ CohomologyClass(l::ToricLineBundle) = CohomologyClass(toric_divisor(l))
 
 function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
+        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety"))
     end
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(cc1, ring) + polynomial(cc2, ring)
@@ -103,7 +103,7 @@ end
 
 function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
+        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety"))
     end
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(cc1, ring) - polynomial(cc2, ring)
@@ -122,7 +122,7 @@ Base.:*(c::T, cc::CohomologyClass) where {T <: IntegerUnion} = CohomologyClass(t
 
 function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
     if toric_variety(cc1) !== toric_variety(cc2)
-        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety."))
+        throw(ArgumentError("The cohomology classes must be defined on identically the same toric variety"))
     end
     ring = cohomology_ring(toric_variety(cc1))
     poly = polynomial(cc1, ring) * polynomial(cc2, ring)

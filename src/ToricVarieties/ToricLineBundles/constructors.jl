@@ -56,7 +56,7 @@ A toric line bundle on a normal toric variety
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
     if !is_cartier(d)
-        throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle."))
+        throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle"))
     end
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
     class = f(sum(coefficients(d)[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))))
@@ -73,7 +73,7 @@ ToricLineBundle(d::ToricDivisor) = ToricLineBundle(toric_variety(d), d)
 
 function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
     if toric_variety(l1) !== toric_variety(l2)
-        throw(ArgumentError("The line bundles must be defined on identically the same toric variety."))
+        throw(ArgumentError("The line bundles must be defined on identically the same toric variety"))
     end
     return ToricLineBundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
 end

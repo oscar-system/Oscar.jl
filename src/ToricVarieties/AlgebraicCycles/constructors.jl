@@ -5,7 +5,7 @@
 @attributes mutable struct RationalEquivalenceClass
     v::AbstractNormalToricVariety
     p::MPolyQuoElem
-    RationalEquivalenceClass(v::AbstractNormalToricVariety,p::MPolyQuoElem)= new(v,p)
+    RationalEquivalenceClass(v::AbstractNormalToricVariety,p::MPolyQuoElem) = new(v,p)
 end
 export RationalEquivalenceClass
 
@@ -33,10 +33,10 @@ A rational equivalence class on a normal toric variety represented by 6V(x3)
 """
 function RationalEquivalenceClass(v::AbstractNormalToricVariety, coefficients::Vector{T}) where {T <: IntegerUnion}
     if !(is_complete(v) && is_simplicial(v))
-        throw(ArgumentError("Currently, the Chow ring is only supported for toric varieties that are both complete and simplicial."))
+        throw(ArgumentError("Currently, the Chow ring is only supported for toric varieties that are both complete and simplicial"))
     end
     if length(coefficients) != length(cones(v))
-        throw(ArgumentError("The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety."))
+        throw(ArgumentError("The number of coefficients must match the number of all cones (but the trivial one) in the fan of the toric variety"))
     end
     mons = gens_of_rational_equivalence_classes(v)
     return RationalEquivalenceClass(v,sum(coefficients[i]*mons[i] for i in 1:length(coefficients)))
@@ -195,7 +195,7 @@ end
 
 function Base.:+(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
     if toric_variety(ac1) !== toric_variety(ac2)
-        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety."))
+        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety"))
     end
     return RationalEquivalenceClass(toric_variety(ac1), polynomial(ac1) + polynomial(ac2))
 end
@@ -203,7 +203,7 @@ end
 
 function Base.:-(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
     if toric_variety(ac1) !== toric_variety(ac2)
-        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety."))
+        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety"))
     end
     return RationalEquivalenceClass(toric_variety(ac1), polynomial(ac1) - polynomial(ac2))
 end
@@ -220,7 +220,7 @@ Base.:*(c::T, ac::RationalEquivalenceClass) where {T <: IntegerUnion} = Rational
 
 function Base.:*(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
     if toric_variety(ac1) !== toric_variety(ac2)
-        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety."))
+        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety"))
     end
     return RationalEquivalenceClass(toric_variety(ac1), polynomial(ac1) * polynomial(ac2))
 end

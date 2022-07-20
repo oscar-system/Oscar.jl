@@ -50,7 +50,7 @@ function all_cohomologies(l::ToricLineBundle)
     # check if we can apply cohomCalg
     v = toric_variety(l)
     if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
-        throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective."))
+        throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective"))
     end
     
     # extract vector of currently-known cohomology dimensions (or create it if necessary)
