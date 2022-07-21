@@ -1,4 +1,4 @@
-export  groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal, syzygy_generators
+export  f4, groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal, syzygy_generators
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -113,6 +113,70 @@ julia> H = groebner_basis(I, ordering=lex(gens(R)))
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false, enforce_global_ordering::Bool = true)
     groebner_assure(I, ordering, complete_reduction, enforce_global_ordering)
     return collect(I.gb[ordering])
+end
+
+@doc Markdown.doc"""
+    f4(I::MPolyIdeal, <keyword arguments>)
+
+Compute a Groebner basis of the given ideal `I` w.r.t. to the degree reverse lexicographical monomial ordering using Faugère's F4 algorithm.
+See [Fau99](@cite) for more information.
+
+**Note**: At the moment only ground fields of characteristic `p`, `p` prime, `p < 2^{31}` are supported.
+
+# Arguments
+- `Ì::MPolyIdeal`: input ideal.
+- `initial_hts::Int=17`: initial hash table size `log_2`.
+- `nr_thrds::Int=1`: number of threads for parallel linear algebra.
+- `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
+- `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
+- `eliminate::Int=0`: size of first block of variables to be eliminated.
+- `complete_reduction::Bool=true`: compute a reduced Gröbner basis for `I`
+- `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
+
+# Examples
+```jldoctest
+julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"], ordering=:degrevlex)
+(Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, gfp_mpoly[x, y, z])
+
+julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
+ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
+
+julia> f4(I)
+4-element Vector{gfp_mpoly}:
+ x + 2*y + 2*z + 100
+ y*z + 82*z^2 + 10*y + 40*z
+ y^2 + 60*z^2 + 20*y + 81*z
+ z^3 + 28*z^2 + 64*y + 13*z
+
+julia> isdefined(I, :gb)
+true
+```
+"""
+function f4(
+        I::MPolyIdeal;
+        initial_hts::Int=17,
+        nr_thrds::Int=1,
+        max_nr_pairs::Int=0,
+        la_option::Int=2,
+        eliminate::Int=0,
+        complete_reduction::Bool=true,
+        info_level::Int=0
+        )
+    AI = AlgebraicSolving.Ideal(I.gens.O)
+    AlgebraicSolving.groebner_basis(AI,
+                initial_hts = initial_hts,
+                nr_thrds = nr_thrds,
+                max_nr_pairs = max_nr_pairs,
+                la_option = la_option,
+                eliminate = eliminate,
+                complete_reduction = complete_reduction,
+                info_level = info_level)
+
+    vars = gens(base_ring(I))[eliminate+1:end]
+    I.gb[degrevlex(vars)] =
+        BiPolyArray(AI.gb[eliminate], keep_ordering = false, isGB = true)
+
+    return AI.gb[eliminate]
 end
 
 @doc Markdown.doc"""
