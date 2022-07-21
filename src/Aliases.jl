@@ -1,4 +1,5 @@
 @alias has_is_finite has_isfinite
+@alias SymmetricGroup symmetric_group
 
 # make some Julia names compatible with our naming conventions
 @alias is_subset issubset
