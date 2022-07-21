@@ -30,7 +30,7 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
-                        "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
+                        "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
 
 # When a specific branch is loaded via `]add Package#branch` julia will only
