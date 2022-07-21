@@ -624,7 +624,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
 end
 
-function Hecke.newton_polygon(f::Generic.Poly{Generic.Rat{fmpq}})
+function Hecke.newton_polygon(f::Generic.Poly{<:Generic.Rat{fmpq}})
   pt = Tuple{Int, Int}[]
   for i=0:degree(f)
     c = coeff(f, i)
@@ -635,7 +635,7 @@ function Hecke.newton_polygon(f::Generic.Poly{Generic.Rat{fmpq}})
   return Hecke.lower_convex_hull(pt)
 end
 
-function valuations_of_roots(f::Generic.Poly{Generic.Rat{T}}) where {T}
+function valuations_of_roots(f::Generic.Poly{<:Generic.Rat{T}}) where {T}
   return [(slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
