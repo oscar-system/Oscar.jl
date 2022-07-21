@@ -1246,7 +1246,7 @@ function integral_basis(f::MPolyElem, i::Int; alg = :hensel)
   elseif alg == :normal_global
     options = ("normal", "global")
   else
-    error("unsupported algorithm $alg")
+    throw(ArgumentError("unsupported algorithm $alg"))
   end
 
   if R isa MPolyRing_dec
@@ -1271,7 +1271,7 @@ function integral_basis(f::MPolyElem, i::Int; alg = :hensel)
        base_ring(SR) isa Singular.N_ZpField ||
        base_ring(SR) isa Singular.N_GField ||
        base_ring(SR) isa Singular.N_AlgExtField)
-    error("unsupported coefficient ring $(coefficient_ring(R))")
+    throw(NotImplementedError(:integral_basis, f))
   end
 
   if !is_irreducible(f)

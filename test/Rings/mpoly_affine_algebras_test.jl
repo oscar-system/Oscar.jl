@@ -45,7 +45,6 @@
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin
-
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
   (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2)
   @test all(p -> base_ring(parent(p)) == R, nums)
@@ -54,28 +53,22 @@ end
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
   @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
 
-  R, (x, y) = Singular.PolynomialRing(Singular.QQ, ["x", "y"])
-  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2)
+  R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
+  @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2; alg = :what)
+  # Note: the following line produces errors in Singular with the default alg
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_global)
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_local)
   @test all(p -> base_ring(parent(p)) == R, nums)
   @test base_ring(parent(den)) == R
-  @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
-  @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
-  @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
 
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2)
 
   R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
-  # Note: the following line produces errors in Singular with the default alg
-  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_global)
-  @test all(p -> base_ring(parent(p)) == R, nums)
-  @test base_ring(parent(den)) == R
-
-  R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
 
   R, (x, y) = PolynomialRing(RationalFunctionField(QQ, ["s", "t"])[1], ["x", "y"])
-  @test_throws ErrorException integral_basis(y^5-x^3*(x+1)^4, 2)
+  @test_throws NotImplementedError integral_basis(y^5-x^3*(x+1)^4, 2)
 end
 
 @testset "Noether normalization" begin
