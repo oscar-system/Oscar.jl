@@ -772,9 +772,141 @@ Return the full automorphism group of `G`. If `f` is an object of type
 `GAPGroupHomomorphism` and it is bijective from `G` to itself, then `A(f)`
 return the embedding of `f` in `A`.
 
+Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup{T}`, where `T` is the type of `G`. 
+# Examples
+```jldoctest
+julia> S = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> typeof(S)
+PermGroup
+
+julia> A = automorphism_group(S)
+Aut( Sym( [ 1 .. 3 ] ) )
+
+julia> typeof(A)
+AutomorphismGroup{PermGroup}
+```
+
+The evaluation of the automorphism `f` in the element `x` is analogous to the homomorphism evaluation: 
+it can be obtained by typing either `f(x)` or `x^f`.
+
+```jldoctest
+julia> S = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> A = automorphism_group(S)
+Aut( Sym( [ 1 .. 4 ] ) )
+
+julia> x = perm(S,[2,1,4,3])
+(1,2)(3,4)
+
+julia> f = A[2]
+Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
+
+julia> f(x)
+(1,4)(2,3)
+
+julia> x^f
+(1,4)(2,3)
+```
+
+It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)`.
+
+```jldoctest
+julia> S = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> A = automorphism_group(S)
+Aut( Sym( [ 1 .. 4 ] ) )
+
+julia> f = A[2]
+Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ (2,3), (2,4,3), (1,3)(2,4), (1,2)(3,4) ]
+
+julia> typeof(f)
+AutomorphismGroupElem{PermGroup} (alias for Oscar.BasicGAPGroupElem{AutomorphismGroup{PermGroup}})
+
+julia> typeof(hom(f))
+GAPGroupHomomorphism{PermGroup, PermGroup}
+```
+The converse is also possible: if `g` is a bijective homomorphism from the group `G` to itself and `A` 
+is the automorphism group of `G`, then the instruction `A(g)` returns `g` as automorphism of `G`. 
+This is the standard way to explicitly build an automorphism (another way, available for inner 
+automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphisms)).
+
+# Examples
+```jldoctest
+julia> S = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> a = perm(S,[2,1,4,3])
+(1,2)(3,4)
+
+julia> f = hom(S,S,x ->x^a)
+Group homomorphism from 
+Sym( [ 1 .. 4 ] )
+to
+Sym( [ 1 .. 4 ] )
+
+julia> A = automorphism_group(S)
+Aut( Sym( [ 1 .. 4 ] ) )
+
+julia> A(f)
+MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
+```
+
 Elements of `A` can be multiplied with other elements of `A` or by elements
 of type `GAPGroupHomomorphism`; in this last case, the result has type
 `GAPGroupHomomorphism`.
+
+# Examples
+```jldoctest
+julia> S = symmetric_group(4);
+
+julia> A = automorphism_group(S);
+
+julia> g = hom(S,S,x->x^S[1]);
+
+julia> g in A
+false
+
+julia> au = A(g);
+
+julia> au in A
+true
+
+julia> g == hom(au)
+true
+
+julia> x = cperm(S,[1,2,3]);
+
+julia> au(x)
+(2,3,4)
+
+julia> g(x) == au(x)
+true
+```
+
+In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
+```jldoctest
+julia> S = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> A = automorphism_group(S)
+Aut( Sym( [ 1 .. 4 ] ) )
+
+julia> g = hom(S,S,x->x^S[1])
+Group homomorphism from 
+Sym( [ 1 .. 4 ] )
+to
+Sym( [ 1 .. 4 ] )
+
+julia> f = A(g)
+MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
+
+julia> typeof(g*f)
+GAPGroupHomomorphism{PermGroup, PermGroup}
+```
 """
 function automorphism_group(G::GAPGroup)
   AutGAP = GAP.Globals.AutomorphismGroup(G.X)::GapObj
