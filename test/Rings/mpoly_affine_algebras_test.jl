@@ -46,7 +46,7 @@ end
 
 @testset "mpoly_affine_algebras.integral_basis" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2)
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :hensel)
   @test all(p -> base_ring(parent(p)) == R, nums)
   @test base_ring(parent(den)) == R
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
@@ -55,7 +55,6 @@ end
 
   R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2; alg = :what)
-  # Note: the following line produces errors in Singular with the default alg
   (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_global)
   (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_local)
   @test all(p -> base_ring(parent(p)) == R, nums)

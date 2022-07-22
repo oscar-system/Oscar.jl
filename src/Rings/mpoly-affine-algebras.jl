@@ -1201,7 +1201,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    integral_basis(f::MPolyElem, i::Int; alg = :hensel)
+    integral_basis(f::MPolyElem, i::Int; alg = :normal_local)
 
 Given a polynomial $f$ in two variables with coefficients in a field $K$, and
 given an integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
@@ -1214,8 +1214,8 @@ over $K[x]$. The function returns a pair $(d, V)$, where $d$ is an element of $A
 and $V$ is a vector of elements in $A$, such that the fractions $v/d, v\in V$,
 form an integral basis for $\overline{A}$ over $K[x]$.
 
-With the algorithm choice `alg = :normal_local`, the function relies on the
-local-to-global approach to normalization presented in [BDLPS19](@cite).
+By default (`alg = :normal_local`), the function relies on the
+local-to-global approach to normalization presented in [BDLPSS13](@cite).
 Alternatively, if specified by `alg = :normal_global`, the global normalization
 algorithm in [GLS10](@cite) is used. If $K = \mathbb Q$, it is recommended to
 apply the algorithm in [BDLP19](@cite), which makes use of Puiseux expansions
@@ -1236,7 +1236,7 @@ julia> integral_basis(f, 2)
 (x^2, MPolyQuoElem{fmpq_mpoly}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])
 ```
 """
-function integral_basis(f::MPolyElem, i::Int; alg = :hensel)
+function integral_basis(f::MPolyElem, i::Int; alg = :normal_local)
   R = parent(f)
 
   if alg == :hensel
