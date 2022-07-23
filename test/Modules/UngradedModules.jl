@@ -211,6 +211,26 @@ end
 	end
 end
 
+@testset "Ext, Tor" begin
+	# These tests are only meant to check that the ext and tor function don't throw any error
+	# These tests don't check the correctness of ext and tor
+
+	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	A = R[x; y]
+	B = R[x^2; x*y; y^2; z^4]
+	M = SubQuo(A, B)
+	F = free_module(R, 1)
+	Q, _ = quo(F, [x*F[1]])
+	T0 = tor(Q, M, 0)
+	T1 = tor(Q, M, 1)
+	T2 =  tor(Q, M, 2)
+	@test iszero(T2)
+
+	E0 = ext(Q, M, 0)
+	E1 = ext(Q, M, 1)
+	E2 = ext(Q, M, 2)
+end
+
 @testset "Gröbner bases" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	F = FreeMod(R, 1)
