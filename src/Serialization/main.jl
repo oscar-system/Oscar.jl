@@ -115,6 +115,7 @@ for (T, str) in (
     Vector{Float16} => "Vector{Float16}",
     Vector{Float32} => "Vector{Float32}",
     Vector{Float64} => "Vector{Float64}",
+    Vector{acb} => "Vector{acb}",
     Vector{fmpq_mpoly} => "Vector{fmpq_mpoly}",
     Vector{fmpq_poly} => "Vector{fmpq_poly}",
     Vector{fmpq} => "Vector{fmpq}",
