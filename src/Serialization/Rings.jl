@@ -155,17 +155,18 @@ end
 
 ################################################################################
 # Matrices
-function save_internal(s::SerializerState, m::fmpz_mat)
-    julia_mat = Matrix{fmpz}(undef, size(m)...)
-    for i in eachindex(m)
-        julia_mat[i] = m[i]
-    end
+@registerSerializationType(fmpz_mat)
+
+function save_internal(s::SerializerState, m::MatrixElem)
     return Dict(
-        :matrix => save_type_dispatch(s, julia_mat),
+        :matrix => save_type_dispatch(s, Array(m)),
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{fmpz_mat}, dict::Dict)
-    mat = load_type_dispatch(s, Matrix{fmpz}, dict[:matrix])
-    return matrix(ZZ, mat)
+function load_internal(s::DeserializerState,
+                       ::Type{<: AbstractAlgebra.Generic.MatSpaceElem{T}},
+                       dict::Dict) where T
+    mat = load_type_dispatch(s, Matrix{T}, dict[:matrix])
+    entries_ring = parent(mat[1])
+    return matrix(entries_ring, mat)
 end
