@@ -4187,8 +4187,8 @@ function Hecke.ring(I::MPolyIdeal)
   return parent(gen(I, 1))
 end
 
-function *(I::MPolyIdeal{T}, F::FreeMod{T}) where {T<:RingElem}
-  return sub(F, [g*e for g in gens(I) for e in gens(F)])
+function *(I::MPolyIdeal{T}, M::ModuleFP{T}) where {T<:RingElem}
+  return sub(M, [g*e for g in gens(I) for e in gens(M)])
 end
 
 @doc Markdown.doc"""
@@ -4880,9 +4880,9 @@ end
 Compute $\text{Tor}_i(M,N)$.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution_via_kernels(M)[1:end-2]
-  lifted_resolution = tensor_product(free_res, N) #TODO only three homs are necessary
-  return homology(lifted_resolution,length(lifted_resolution)-i)
+  free_res = free_resolution(M)
+  lifted_resolution = tensor_product(free_res.C, N) #TODO only three homs are necessary
+  return homology(lifted_resolution,i)
 end
 
 #TODO, mF
@@ -5053,8 +5053,8 @@ end
 Compute $\text{Ext}^i(M,N)$.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution_via_kernels(M)[1:end-2]
-  lifted_resolution = hom(free_res, N) #TODO only three homs are necessary
+  free_res = free_resolution(M)
+  lifted_resolution = hom(free_res.C, N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
 
@@ -5378,7 +5378,13 @@ function simplify(M::SubQuo)
   function rows_to_delete(A::MatElem, max_index::Int)
     to_delete_indices::Vector{Int} = []
     corresponding_row_index::Vector{Int} = []
+    if max_index < nrows(A)
+      A = vcat(A[(max_index+1):nrows(A),:],A[1:max_index,:])
+    end
     K = matrix_kernel(A)
+    if max_index < nrows(A)
+      K = hcat(K[:,(ncols(K)-max_index+1):ncols(K)],K[:,1:(ncols(K)-max_index)])
+    end
     for i=1:size(K)[1], j=1:max_index
       if is_unit(K[i,j])
         deletion_possible = true
@@ -5445,7 +5451,7 @@ function simplify(M::SubQuo)
 
   if length(new_generators)==0
     zero_module = FreeMod(R,0)
-    injection = FreeModuleHom(zero_module, M, [])
+    injection = FreeModuleHom(zero_module, M, Vector{ModuleFPElem}())
     projection = SubQuoHom(M, zero_module, [zero(zero_module) for i=1:ngens(M)])
     # TODO early return or register morphisms?
     return zero_module,injection,projection
