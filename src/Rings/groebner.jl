@@ -299,7 +299,9 @@ julia> Oscar.normal_form_internal(I,J)
 """
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
   groebner_assure(J)
-  K = ideal(base_ring(J), reduce(I, collect(values(J.gb))[1].S))
+  G = collect(values(J.gb))[1]
+  singular_assure(G)
+  K = ideal(base_ring(J), reduce(I, G.S))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
