@@ -4880,8 +4880,8 @@ end
 Compute $\text{Tor}_i(M,N)$.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)
-  lifted_resolution = tensor_product(free_res.C, N) #TODO only three homs are necessary
+  free_res = free_resolution(M; length=i+2)
+  lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
 
@@ -4986,7 +4986,8 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   end
 
   direction = Hecke.is_chain_complex(C) ? :right : :left
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=last(range(C))-1, direction=direction)
+  start = Hecke.is_chain_complex(C) ? last(range(C))-1 : first(range(C))
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=direction)
 end
 
 @doc Markdown.doc"""
@@ -5009,8 +5010,8 @@ function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::Mod
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  start = last(range(C))
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=-C.start+1, direction=C.direction)
+  start = Hecke.is_chain_complex(C) ? -first(chain_range) : -last(chain_range)-1  
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=C.direction)
 end
 
 #############################
@@ -5032,12 +5033,15 @@ function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
   chain_range = range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
   if i == first(chain_range)
+    i = Hecke.is_chain_complex(C) ? i-1 : i
     return kernel(map(C,i))[1]
   elseif i == last(chain_range)
+    i = Hecke.is_chain_complex(C) ? i : i-1
     f = map(C,i)
-    return quo(codomain(f),image(f)[1], :module)
+    return cokernel(f)    
   elseif i in chain_range
-    next_index = Hecke.is_chain_complex(C) ? i-1 : i+1
+    next_index = Hecke.is_chain_complex(C) ? i-1 : i
+    i = Hecke.is_chain_complex(C) ? i : i-1
     return quo(kernel(map(C,next_index))[1], image(map(C,i))[1], :module)
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
@@ -5053,8 +5057,8 @@ end
 Compute $\text{Ext}^i(M,N)$.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)
-  lifted_resolution = hom(free_res.C, N) #TODO only three homs are necessary
+  free_res = free_resolution(M; length=i+2)
+  lifted_resolution = hom(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
 

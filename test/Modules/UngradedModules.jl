@@ -224,11 +224,33 @@ end
 	T0 = tor(Q, M, 0)
 	T1 = tor(Q, M, 1)
 	T2 =  tor(Q, M, 2)
+	@test !iszero(T0)
+	@test !iszero(T1)
+	@test iszero(T2)
+	T0 = tor(M, Q, 0)
+	T1 = tor(M, Q, 1)
+	T2 = tor(M, Q, 2)
+	@test !iszero(T0)
+	@test !iszero(T1)
 	@test iszero(T2)
 
 	E0 = ext(Q, M, 0)
 	E1 = ext(Q, M, 1)
 	E2 = ext(Q, M, 2)
+	@test !iszero(E0)
+	@test !iszero(E1)
+	@test iszero(E2)
+	E0 = ext(M, Q, 0)
+	E1 = ext(M, Q, 1)
+	E2 = ext(M, Q, 2)
+	E3 = ext(M, Q, 3)
+	E4 = ext(M, Q, 4)
+	@test iszero(E0)
+	@test iszero(E1)
+	@test !iszero(E2)
+	@test !iszero(E3)
+	@test iszero(E4)
+
 end
 
 @testset "Gröbner bases" begin
