@@ -15,6 +15,7 @@ export
     is_transitive,
     maximal_blocks,
     minimal_block_reps,
+    rank_action,
     transitivity
 
 export GSet, gset, orbits, as_gset, unwrap, permutation, action_homomorphism,
@@ -761,6 +762,45 @@ all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.AllBlocks(G.X))
 
 
 """
+    rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+
+Return the rank of the transitive action of `G` on `L`.
+This is defined as the number of `G`-orbits in the action on ordered pairs
+of points in `L`,
+and is equal to the number of orbits of the stabilizer of a point in `L`
+on `L`, see [Cam99](@cite) Section 1.11.
+
+An exception is thrown if `G` is not transitive on `L`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4); rank_action(G)  # 4-transitive
+2
+
+julia> H = sylow_subgroup(G, 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4) ])
+
+julia> rank_action(H)  # not 2-transitive
+3
+
+julia> K = stabilizer(G, 1)[1]
+Group([ (2,4,3), (3,4) ])
+
+julia> rank_action(K, 2:4)  # 2-transitive
+2
+
+julia> rank_action(K, 3:5)
+ERROR: ArgumentError: the group is not transitive
+```
+"""
+function rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+   is_transitive(G, L) || throw(ArgumentError("the group is not transitive"))
+   length(L) == 0 && throw(ArgumentError("the action domain is empty"))
+   H = stabilizer(G, L[1])[1]
+   return length(orbits(gset(H, L, closed = true)))
+end
+
+"""
     transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
 Return the maximum `k` such that the action of `G` on `L` is
@@ -791,6 +831,9 @@ julia> is_transitive(G)
 true
 
 julia> is_transitive(sylow_subgroup(G, 2)[1])
+false
+
+julia> is_transitive(stabilizer(G, 1)[1])
 false
 
 ```

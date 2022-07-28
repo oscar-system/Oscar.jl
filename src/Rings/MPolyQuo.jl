@@ -129,12 +129,14 @@ function base_ring(a::MPolyQuoIdeal)
   return a.base_ring
 end
 
+# TODO rename oscar_assure to oscar_assure!
 function oscar_assure(a::MPolyQuoIdeal)
   isdefined(a, :I) && return
   r = base_ring(a).R
   a.I = ideal(r, r.(gens(a.SI)))
 end
 
+# TODO rename singular_assure to singular_assure!
 function singular_assure(a::MPolyQuoIdeal)
   isdefined(a, :SI) && return
   sa = singular_poly_ring(base_ring(a))
@@ -471,6 +473,32 @@ function simplify!(a::MPolyQuoIdeal)
   return a
 end
 
+function singular_groebner_assure!(a::MPolyQuoIdeal)
+  if !isdefined(a, :SI)
+    simplify!(a)
+  end
+  if !a.SI.isGB
+    a.SI = Singular.std(a.SI)
+    a.SI.isGB = true
+  end
+end
+
+
+function ideal_membership(a::MPolyQuoElem{T}, b::MPolyQuoIdeal{T}) where T
+  parent(a) == base_ring(b) || error("base rings must match")
+  singular_assure(b)
+  if !b.SI.isGB
+    if Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
+      return true
+    end
+    singular_groebner_assure!(b)
+  end
+  return Singular.iszero(Singular.reduce(base_ring(b.SI)(a), b.SI))
+end
+
+Base.:in(a::MPolyQuoElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
+
+
 @doc Markdown.doc"""
     issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
@@ -498,13 +526,7 @@ true
 function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   simplify!(a)
-  if !(isdefined(b, :SI))
-    simplify!(b)
-  end
-  if b.SI.isGB == false
-    b.SI      = Singular.std(b.SI)
-    b.SI.isGB = true
-  end
+  singular_groebner_assure!(b)
   return Singular.iszero(Singular.reduce(a.SI, b.SI))
 end
 

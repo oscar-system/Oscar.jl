@@ -256,7 +256,7 @@ ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
-  G = groebner_basis(I, ordering=ordering)
+  G = groebner_basis(I, ordering=ordering, enforce_global_ordering=false)
   return ideal(base_ring(I), [first(monomials(g, ordering)) for g in G])
 end
 
@@ -377,3 +377,40 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
     normal_form_internal(I, J)
 end
 
+# standard basis for non-global orderings #############################
+@doc Markdown.doc"""
+    std_basis(I::MPolyIdeal, o::MonomialOrdering)
+
+Compute a standard basis of `I` for the monomial ordering `o`.
+
+**Note:** Since there is no general notion of complete reduction for 
+non-global orderings, this option is not available for this command;
+instead, use `groebner_basis` directly. 
+
+# Examples
+```jldoctest
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
+ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
+
+julia> std_basis(I, negdegrevlex(gens(R)))
+2-element Vector{fmpq_mpoly}:
+ x
+ y
+```
+"""
+function std_basis(I::MPolyIdeal, o::MonomialOrdering)
+  return groebner_basis(I, ordering=o, enforce_global_ordering=false, 
+                        complete_reduction=false)
+end
+
+function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
+  groebner_assure(J, o, false, false)
+  stdJ = J.gb[o]
+  Sx = stdJ.Sx
+  Ox = parent(f)
+  I = Singular.Ideal(Sx, Sx(f))
+  return Ox(gens(Singular.reduce(I, stdJ.S))[1])
+end

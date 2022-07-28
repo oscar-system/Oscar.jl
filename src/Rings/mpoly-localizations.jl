@@ -119,7 +119,8 @@ end
 
 ### generation of random elements 
 function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
-  return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
+  R = ambient_ring(S)
+  return prod(f^rand(0:9) for f in denominators(S); init = one(R))::elem_type(R)
 end
 
 ### simplification. 

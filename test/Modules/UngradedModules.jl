@@ -135,7 +135,14 @@ end
 	A = R[x; y]
 	B = R[x^2; x*y; y^2; z^4]
 	M = SubQuo(A, B)
-	free_res = free_resolution(M)
+	free_res = free_resolution(M, length=1)
+    @test is_complete(free_res) == false
+	@test free_res[3] == free_module(R, 2)
+	@test free_res[4] == free_module(R, 0)
+    @test is_complete(free_res) == true
+	free_res = free_resolution(M, algorithm=:sres)
+	@test all(iszero, homology(free_res.C))
+	free_res = free_resolution_via_kernels(M)
 	@test all(iszero, homology(free_res))
 
 	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
@@ -202,6 +209,26 @@ end
 			@test homomorphism(hom_f(v)) == f*homomorphism(v)
 		end
 	end
+end
+
+@testset "Ext, Tor" begin
+	# These tests are only meant to check that the ext and tor function don't throw any error
+	# These tests don't check the correctness of ext and tor
+
+	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	A = R[x; y]
+	B = R[x^2; x*y; y^2; z^4]
+	M = SubQuo(A, B)
+	F = free_module(R, 1)
+	Q, _ = quo(F, [x*F[1]])
+	T0 = tor(Q, M, 0)
+	T1 = tor(Q, M, 1)
+	T2 =  tor(Q, M, 2)
+	@test iszero(T2)
+
+	E0 = ext(Q, M, 0)
+	E1 = ext(Q, M, 1)
+	E2 = ext(Q, M, 2)
 end
 
 @testset "Gröbner bases" begin

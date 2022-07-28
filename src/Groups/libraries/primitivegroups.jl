@@ -145,7 +145,7 @@ true
 julia> primitive_group_identification(symmetric_group(4096))
 ERROR: identification of primitive permutation groups of degree 4096 is not available
 
-julia> S = sub(G, [gap_perm([1,3,4,5,2,7,6])])[1];
+julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> primitive_group_identification(S)
 ERROR: group is not primitive on its moved points
@@ -204,7 +204,7 @@ returns the list of all abelian primitive permutation groups acting on 3, 4 or 5
 """
 function all_primitive_groups(L...)
    !isempty(L) || throw(ArgumentError("must specify at least one filter"))
-   gapargs = translate_group_library_args(L; permgroups=true)
+   gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllPrimitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]
 end

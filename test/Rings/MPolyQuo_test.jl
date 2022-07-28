@@ -52,7 +52,12 @@ end
   Q, _ = quo(R, ideal(R, [x*y, x*z]))
   (x, y, z) = map(Q, (x, y, z))
 
-  @test ideal(Q, [x, y, z]) isa Oscar.Ideal
+  I = ideal(Q, [x^2, y^2, z^2])
+  @test I isa Oscar.Ideal
+  @test y^2 in I
+  @test x*(x-y) in I
+  @test !(x in I)
+  @test !(y*z in I)
 
   @test !iszero(ideal(Q, [x, y]))
   @test !iszero(ideal(Q, [y*z]))

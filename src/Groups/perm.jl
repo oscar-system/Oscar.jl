@@ -101,13 +101,8 @@ julia> number_moved_points(gen(s, 1))
 
 number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
 
-# FIXME: clashes with AbstractAlgebra.perm method
-#function perm(L::AbstractVector{<:IntegerUnion})
-#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
-#end
-# FIXME: use name gap_perm for now
 @doc Markdown.doc"""
-    gap_perm(L::AbstractVector{<:IntegerUnion})
+    perm(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
 to `L`$[i]$.
@@ -115,33 +110,54 @@ The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 An exception is thrown if `L` does not contain every integer from 1 to $n$
 exactly once.
 
+The parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+
 # Examples
 ```jldoctest
-julia> gap_perm([2,4,6,1,3,5])
+julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
+
+julia> parent(x)
+Sym( [ 1 .. 6 ] )
 ```
 """
-function gap_perm(L::AbstractVector{<:IntegerUnion})
+function perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 end
+
+@deprecate gap_perm(L::AbstractVector{<:IntegerUnion}) perm(L::AbstractVector{<:IntegerUnion})
 
 @doc Markdown.doc"""
     perm(G::PermGroup, L::AbstractVector{<:IntegerUnion})
     (G::PermGroup)(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every `i` from 1 to $n$` = length(L)`
-to `L`$[i]$.
-The parent of $x$ is `G`.
+to `L`$[i]$. The parent of $x$ is `G`.
 An exception is thrown if $x$ is not contained in `G`
 or `L` does not contain every integer from 1 to $n$ exactly once.
-
-For [`gap_perm`](@ref),
-the parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 
 # Examples
 ```jldoctest
 julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 (1,2,4)(3,6,5)
+```
+
+Equivalent permutations can be created using [`cperm`](@ref) and [`@perm`](@ref)
+```jldoctest
+julia> x = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
+(1,2,3)(4,5)(6,7,8)
+
+julia> y = cperm([1,2,3],[4,5],[6,7,8])
+(1,2,3)(4,5)(6,7,8)
+
+julia> x == y
+true
+
+julia> z = @perm (1,2,3)(4,5)(6,7,8)
+(1,2,3)(4,5)(6,7,8)
+
+julia> x == z
+true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
@@ -165,11 +181,13 @@ end
 
 (g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
 
-# cperm stays for "cycle permutation", but we can change name if we want
+# cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarly disjoint)
 @doc Markdown.doc"""
     cperm(L::AbstractVector{<:T}...) where T <: IntegerUnion
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
+    cperm(L::Vector{Vector{T}}) where T <: IntegerUnion
+    cperm(g::PermGroup,L::Vector{Vector{T}}) where T <: IntegerUnion
 
 For given lists $[a_1, a_2, \ldots, a_n], [b_1, b_2, \ldots , b_m], \ldots$
 of positive integers, return the
@@ -197,19 +215,72 @@ julia> p = cperm([1,2,3],[7])
 
 julia> degree(parent(p))
 7
+```
 
+Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
+```jldoctest
+julia> G=symmetric_group(5);
+
+julia> A=alternating_group(5);
+
+julia> x=cperm(G,[1,2,3]);
+
+julia> y=cperm(A,[1,2,3]);
+
+julia> z=cperm([1,2,3]); parent(z)
+Sym( [ 1 .. 3 ] )
+
+julia> x==y
+true
+
+julia> x==z
+false
+```
+In the example above, `x` and `y` are equal because both act on a set of cardinality `5`, while `x` and `z` are different because `x` belongs to `Sym(5)` and `z` belongs to `Sym(3)`.
+
+cperm can also handle cycles passed in inside of a vector
+```jldoctest
+julia> x = cperm([[1,2],[3,4]])
+(1,2)(3,4)
+
+julia> y = cperm([1,2],[3,4])
+(1,2)(3,4)
+
+julia> x == y
+true
+```
+
+```jldoctest
+julia> G=symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> x = cperm(G,[[1,2],[3,4]])
+(1,2)(3,4)
+
+julia> parent(x)
+Sym( [ 1 .. 5 ] )
+```
+
+Equivalent permutations can be created using [`perm`](@ref) and [`@perm`](@ref):
+```jldoctest
+julia> x = cperm([1,2,3],[4,5],[6,7,8])
+(1,2,3)(4,5)(6,7,8)
+
+julia> y = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
+(1,2,3)(4,5)(6,7,8)
+
+julia> x == y
+true
+
+julia> z = @perm (1,2,3)(4,5)(6,7,8)
+(1,2,3)(4,5)(6,7,8)
+
+julia> x == z
+true
 ```
 
 At the moment, the input vectors of the function `cperm` need not be disjoint.
 
-!!! warning
-    If the function `perm` is evaluated in a vector of integers
-    without specifying the group `G`,
-    then the returned value is an element of the AbstractAlgebra.jl type
-    `Perm{Int}`.
-    For this reason, if one wants a permutation of type
-    `GAPGroupElem{PermGroup}` without specifying a parent,
-    one has to use the function `gap_perm`.
 """
 function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
@@ -234,6 +305,14 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
          throw(ArgumentError("the element does not embed in the group"))
       end
    end
+end
+
+function cperm(L::Vector{Vector{T}}) where T <: IntegerUnion
+    return cperm(L...)
+end
+
+function cperm(g::PermGroup,L::Vector{Vector{T}}) where T <: IntegerUnion
+    return cperm(g,L...)
 end
 
 """
@@ -502,15 +581,32 @@ end
     @perm ex
     
 Input a permutation in cycle notation. Supports arbitrary expressions for
-generating the integer entries of the cycles.
+generating the integer entries of the cycles. The parent group is inferred 
+to be the symmetric group with a degree of the highest integer referenced 
+in the permutation.
 
 The actual work is done by [`cperm`](@ref). Thus, for the time being,
 cycles which are *not* disjoint actually are supported.
 
 # Examples
 ```jldoctest
-julia> @perm (1,2,3)(4,5)(factorial(3),7,8)
+julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
+
+julia> parent(x)
+Sym( [ 1 .. 8 ] )
+
+julia> y = cperm([1,2,3],[4,5],[6,7,8])
+(1,2,3)(4,5)(6,7,8)
+
+julia> x == y
+true
+
+julia> z = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
+(1,2,3)(4,5)(6,7,8)
+
+julia> x == z
+true
 ```
 """
 macro perm(ex)

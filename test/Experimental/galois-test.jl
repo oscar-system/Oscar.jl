@@ -23,4 +23,11 @@
   Qx, x = QQ["x"]
   G, C = galois_group((1//13)*x^2+2)
   @test order(G) == 2
+
+  K, a = number_field(x^4-2)
+  G, C = galois_group(K)
+  Gc, Cc = galois_group(K, algo = :Complex)
+  Gs, Cs = galois_group(K, algo = :Symbolic)
+  @test is_isomorphic(G, Gc)
+  @test is_isomorphic(G, Gs)
 end

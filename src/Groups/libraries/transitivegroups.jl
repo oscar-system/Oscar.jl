@@ -123,7 +123,7 @@ julia> G = symmetric_group(7);  m = transitive_group_identification(G)
 julia> order(transitive_group(m...)) == order(G)
 true
 
-julia> S = sub(G, [gap_perm([1, 3, 4, 5, 2])])[1]
+julia> S = sub(G, [perm([1, 3, 4, 5, 2])])[1]
 Group([ (2,3,4,5) ])
 
 julia> is_transitive(S)
@@ -141,7 +141,7 @@ true
 julia> transitive_group_identification(symmetric_group(64))
 ERROR: identification of transitive groups of degree 64 are not available
 
-julia> S = sub(G, [gap_perm([1,3,4,5,2,7,6])])[1];
+julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
 
 julia> transitive_group_identification(S)
 ERROR: group is not transitive on its moved points
@@ -201,7 +201,7 @@ julia> all_transitive_groups(degree => 3:5, is_abelian)
 returns the list of all abelian transitive groups acting on 3, 4 or 5 points.
 """
 function all_transitive_groups(L...)
-   gapargs = translate_group_library_args(L; permgroups=true)
+   gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]
 end

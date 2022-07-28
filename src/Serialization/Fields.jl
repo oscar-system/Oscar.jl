@@ -195,6 +195,9 @@ end
 
 ################################################################################
 # RealField
+@registerSerializationType(ArbField)
+@registerSerializationType(arb)
+
 function save_internal(s::SerializerState, RR::Nemo.RealField)
     return Dict(
         :precision => save_type_dispatch(s, precision(RR))
@@ -236,6 +239,7 @@ end
 # ComplexField
 
 @registerSerializationType(AcbField)
+@registerSerializationType(acb)
 
 function save_internal(s::SerializerState, CC::AcbField)
     return Dict(
