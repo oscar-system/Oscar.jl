@@ -21,6 +21,7 @@ function test_equality(m::MatrixElem{T}, l::MatrixElem{T}) where T <: Union{
 end
 
 function test_equality(m::MatrixElem{T}, l:: MatrixElem{T}) where T <: AbstractAlgebra.Generic.Frac{fmpq_poly}
+    x = gen(base_ring(m))
     return map(i -> evaluate(i, x), l) == m
 end
 
