@@ -164,7 +164,7 @@ function save_internal(s::SerializerState, m::MatrixElem)
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: MatrixElem},
+                       ::Type{<: MatElem{T}},
                        dict::Dict) where T
     mat = load_type_dispatch(s, Matrix{T}, dict[:matrix])
     entries_ring = parent(mat[1])
