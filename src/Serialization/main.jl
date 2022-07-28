@@ -73,6 +73,7 @@ end
 for (T, str) in (
     AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
     AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
+    AbstractAlgebra.Generic.MatSpaceElem{fmpq_poly} => "AbstractAlgebra.Generic.MatSpaceElem{fmpq_poly}",
     AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
     AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
     AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}",
@@ -96,6 +97,7 @@ for (T, str) in (
     Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
     Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
     Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
+    Matrix{fmpq_poly} => "Matrix{fmpq_poly}",
     Hecke.NfRelNS{Hecke.NfRelElem{nf_elem}} => "Hecke.NfRelNS{Hecke.NfRelElem{nf_elem}}",
     Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}} => "Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
