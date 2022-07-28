@@ -209,7 +209,6 @@ import Hecke:
     kernel,
     Map,
     MapHeader,
-    math_html,
     mul,
     mul!,
     multiplicative_jordan_decomposition,
