@@ -156,6 +156,18 @@ end
 ################################################################################
 # Matrices
 @registerSerializationType(fmpz_mat)
+@registerSerializationType(fmpq_mat)
+@registerSerializationType(fq_nmod_mat)
+@registerSerializationType(nmod)
+@registerSerializationType(nmod_mat)
+@registerSerializationType(Matrix{fmpq})
+@registerSerializationType(Matrix{fmpz})
+@registerSerializationType(Matrix{nf_elem})
+@registerSerializationType(Matrix{fq_nmod})
+@registerSerializationType(Matrix{nmod})
+@registerSerializationType(AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
+@registerSerializationType(Matrix{AbstractAlgebra.Generic.Frac{fmpq_poly}})
+@registerSerializationType(AbstractAlgebra.Generic.MatSpaceElem{AbstractAlgebra.Generic.Frac{fmpq_poly}})
 
 function save_internal(s::SerializerState, m::MatrixElem)
     return Dict(
