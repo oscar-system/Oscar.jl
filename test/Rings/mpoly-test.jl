@@ -215,9 +215,13 @@ end
   SIJ = quotient(I,J)
   K = ideal(R,[x^2 - x*y^2 + z^4, x + y^4*z - y^2, x*y^4 - z^3])
   @test K == SIJ
+  SIJ = quotient(I,z^5)
+  @test K == SIJ
   ord = lex(gens(R))
   SIJ = quotient(I,J,ordering=ord)
   K = ideal(R,[y^8*z - y^6 + z^3, x + y^4*z - y^2])
+  @test K == SIJ
+  SIJ = quotient(I,z^5,ordering=ord)
   @test K == SIJ
 end
 
