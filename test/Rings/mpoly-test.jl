@@ -202,6 +202,25 @@ end
   @test length(d) == 5
 end
 
+@testset "Quotient" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y])
+  J = ideal(R, [x, y, z])
+  SIJ = quotient(I,J)
+  K = ideal(R,[z^2, y*z, x*z, x*y])
+  @test K == SIJ
+
+  I = ideal(R, [z^3-x*y^4, x*y^2-z^4-x^2])
+  J = ideal(R, [z^5])
+  SIJ = quotient(I,J)
+  K = ideal(R,[x^2 - x*y^2 + z^4, x + y^4*z - y^2, x*y^4 - z^3])
+  @test K == SIJ
+  ord = lex(gens(R))
+  SIJ = quotient(I,J,ordering=ord)
+  K = ideal(R,[y^8*z - y^6 + z^3, x + y^4*z - y^2])
+  @test K == SIJ
+end
+
 @testset "Saturation" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   I = ideal(R, [z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y])

@@ -392,7 +392,8 @@ Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is the i
 $I:J= \bigl\{f \in R\:\big|\: f J \subset I\bigr\}\subset R.$
 
 ```@docs
-quotient(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+quotient(I::MPolyIdeal{T}, J::MPolyIdeal{T}; ordering::MonomialOrdering=default_ordering(base_ring(I))) where T
+quotient(I::MPolyIdeal{T}, f::MPolyElem{T}; ordering::MonomialOrdering=default_ordering(base_ring(I))) where T
 ```
 
 ### Saturation
