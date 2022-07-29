@@ -40,6 +40,16 @@ end
 	@test (F(v) + F([z, R(1), R(0)])) in M
 	@test !(F([R(1), R(0), R(0)]) in M)
 	@test N[1] in M
+
+	M = SubQuo(F, [x*F[1]])
+	N = SubQuo(F, [y*F[1]])
+	G = FreeMod(R,3,"f")
+	M_2 = SubQuo(G, [x*G[1]])
+	@test !is_canonically_isomorphic(M,N)
+	is_iso, phi = is_canonically_isomorphic_with_map(M,M_2)
+	@test is_iso
+	@test is_welldefined(phi)
+	@test is_bijective(phi)
 end
 
 @testset "Intersection of modules" begin
@@ -198,6 +208,9 @@ end
 		end
 	end
 
+	hom_hom_resolution = hom(hom_resolution,N)
+	@test range(hom_hom_resolution) == range(free_res)
+
 	hom_resolution = hom_without_reversing_direction(free_res,N)
 	@test last(range(hom_resolution)) == -first(range(free_res))
 	@test first(range(hom_resolution)) == -last(range(free_res))
@@ -209,6 +222,8 @@ end
 			@test homomorphism(hom_f(v)) == f*homomorphism(v)
 		end
 	end
+	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
+	@test range(hom_hom_resolution) == range(free_res)
 end
 
 @testset "Ext, Tor" begin
@@ -221,24 +236,27 @@ end
 	M = SubQuo(A, B)
 	F = free_module(R, 1)
 	Q, _ = quo(F, [x*F[1]])
+	G = free_module(R, 2)
+	M_coker = present_as_cokernel(M)
+
 	T0 = tor(Q, M, 0)
 	T1 = tor(Q, M, 1)
 	T2 =  tor(Q, M, 2)
-	@test !iszero(T0)
-	@test !iszero(T1)
+	@test is_canonically_isomorphic(T0, M)
+	@test is_canonically_isomorphic(present_as_cokernel(T1), M_coker)
 	@test iszero(T2)
 	T0 = tor(M, Q, 0)
 	T1 = tor(M, Q, 1)
 	T2 = tor(M, Q, 2)
-	@test !iszero(T0)
-	@test !iszero(T1)
+	@test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+	@test is_canonically_isomorphic(simplify(present_as_cokernel(T1))[1], M_coker)
 	@test iszero(T2)
 
 	E0 = ext(Q, M, 0)
 	E1 = ext(Q, M, 1)
 	E2 = ext(Q, M, 2)
-	@test !iszero(E0)
-	@test !iszero(E1)
+	@test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+	@test is_canonically_isomorphic(E1, M_coker)
 	@test iszero(E2)
 	E0 = ext(M, Q, 0)
 	E1 = ext(M, Q, 1)
@@ -247,8 +265,8 @@ end
 	E4 = ext(M, Q, 4)
 	@test iszero(E0)
 	@test iszero(E1)
-	@test !iszero(E2)
-	@test !iszero(E3)
+	@test is_canonically_isomorphic(present_as_cokernel(simplify(E2)[1]), M_coker)
+	@test is_canonically_isomorphic(E3, M_coker)
 	@test iszero(E4)
 
 end
