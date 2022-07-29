@@ -247,9 +247,11 @@ end
 
 # saturation #######################################################
 @doc Markdown.doc"""
-    saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-
+    saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; ordering::MonomialOrdering=default_ordering(base_ring(I))) where T
+    
 Return the saturation of `I` with respect to `J`.
+Optional parameter `ordering` specifies a monomial ordering w.r.t.
+the saturation is computed (default: default ordering of the base ring of `I`).
 
 # Examples
 ```jldoctest
@@ -266,17 +268,19 @@ julia> K = saturation(I, J)
 ideal(z, x*y)
 ```
 """
-function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
+function saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; ordering::MonomialOrdering=default_ordering(base_ring(I))) where T
+  singular_assure(I, ordering)
+  singular_assure(J, ordering)
   K, _ = Singular.saturation(I.gens.S, J.gens.S)
   return MPolyIdeal(base_ring(I), K)
 end
 #######################################################
 @doc Markdown.doc"""
-    saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}; ordering::MonomialOrdering=default_ordering(base_ring(I))) where T
 
 Return $I:J^{\infty}$ together with the smallest integer $m$ such that $I:J^m = I:J^{\infty}$.
+Optional parameter `ordering` specifies a monomial ordering w.r.t.
+the saturation is computed (default: default ordering of the base ring of `I`).
 
 # Examples
 ```jldoctest
@@ -293,9 +297,9 @@ julia> K, m = saturation_with_index(I, J)
 (ideal(z, x*y), 2)
 ```
 """
-function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
+function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}; ordering::MonomialOrdering=default_ordering(base_ring(I))) where T
+  singular_assure(I, ordering)
+  singular_assure(J, ordering)
   K, k = Singular.saturation(I.gens.S, J.gens.S)
   return (MPolyIdeal(base_ring(I), K), k)
  end
