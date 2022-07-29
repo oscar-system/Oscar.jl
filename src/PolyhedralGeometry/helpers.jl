@@ -89,6 +89,18 @@ end
 
 Base.convert(T::Type{<:Polymake.Matrix}, x::Union{fmpz_mat,fmpq_mat}) = Base.convert(T, Matrix(x))
 
+function Base.convert(::Type{<:Polymake.Integer}, x::fmpz)
+    if Nemo._fmpz_is_small(x)
+        return Polymake.Integer(x.d)
+    else
+        GC.@preserve x begin
+            bi = Nemo._as_bigint(x)
+            p = pointer_from_objref(bi)
+            return _integer_from_fmpz(p)
+        end
+    end
+end
+
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz}) = Polymake.Integer
