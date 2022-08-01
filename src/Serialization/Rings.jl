@@ -188,11 +188,42 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
     return ideal(parent_ring, gens)
 end
 
-function load_internal(s::DeserializerState,
+
+function load_internal_with_parent(s::DeserializerState,
                        ::Type{<: MPolyIdeal},
                        dict::Dict,
                        parent_ring::MPolyRing)
     gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
 
     return ideal(parent_ring, gens)
+
+################################################################################
+# Matrices
+@registerSerializationType(fmpz_mat)
+@registerSerializationType(fmpq_mat)
+@registerSerializationType(fq_nmod_mat)
+@registerSerializationType(nmod)
+@registerSerializationType(nmod_mat)
+@registerSerializationType(Matrix{fmpq})
+@registerSerializationType(Matrix{fmpz})
+@registerSerializationType(Matrix{nf_elem})
+@registerSerializationType(Matrix{fq_nmod})
+@registerSerializationType(Matrix{nmod})
+@registerSerializationType(AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
+@registerSerializationType(Matrix{AbstractAlgebra.Generic.Frac{fmpq_poly}})
+@registerSerializationType(AbstractAlgebra.Generic.MatSpaceElem{AbstractAlgebra.Generic.Frac{fmpq_poly}})
+
+function save_internal(s::SerializerState, m::MatrixElem)
+    return Dict(
+        :matrix => save_type_dispatch(s, Array(m)),
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: MatElem{T}},
+                       dict::Dict) where T
+    mat = load_type_dispatch(s, Matrix{T}, dict[:matrix])
+    entries_ring = parent(mat[1])
+    return matrix(entries_ring, mat)
+
 end

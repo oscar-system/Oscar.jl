@@ -13,7 +13,9 @@ apply to Oscar, too (that said, for various reasons our code still violates
 quite some of them; but in general we strive to reduce these).
 Here is a summary of the naming convention followed in Oscar:
 
-- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal functions do not have to follow these rules.)
+- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal functions do not have to follow these rules.) Types (and their constructor) tend to be in `CamelCase`. However, please ALSO provide the constructor/ a constructor in underscore_case. As a
+user I do usually not know if something is a constructor or a function (nor do I
+want to).
 - Noteworthy difference to Julia base is that we do not have exceptions `is*` or `has*`.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
 - For generic concepts choose generic names, based on general algebraic

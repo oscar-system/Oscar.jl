@@ -57,7 +57,7 @@
               @test length(v) == length(loaded)
               @test loaded[1] isa Polyhedron
               @test loaded[2] isa LinearProgram
-              @test loaded isa Vector{Union{Polyhedron, LinearProgram}}
+              @test loaded isa Vector
             end
         end
         
