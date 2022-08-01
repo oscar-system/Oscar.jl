@@ -1,8 +1,8 @@
-function test_save_load_roundtrip(func, path, original::T) where T
+function test_save_load_roundtrip(func, path, original::T; parent=nothing) where T
   # save and load from a file
   filename = joinpath(path, "original.json")
   save(filename, original)
-  loaded = load(filename)
+  loaded = load(filename; parent=parent)
   @test loaded isa T
   func(loaded)
 
@@ -10,7 +10,7 @@ function test_save_load_roundtrip(func, path, original::T) where T
   io = IOBuffer()
   save(io, original)
   seekstart(io)
-  loaded = load(io)
+  loaded = load(io; parent=parent)
   @test loaded isa T
   func(loaded)
 
@@ -18,7 +18,7 @@ function test_save_load_roundtrip(func, path, original::T) where T
   io = IOBuffer()
   save(io, original)
   seekstart(io)
-  loaded = load(io, T)
+  loaded = load(io, T; parent=parent)
   @test loaded isa T
   func(loaded)
 end

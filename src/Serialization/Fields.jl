@@ -31,6 +31,14 @@ function load_internal(s::DeserializerState, z::Type{gfp_elem}, dict::Dict)
     return F(UInt64(dict[:data]))
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   z::Type{gfp_elem},
+                                   dict::Dict,
+                                   parent::Nemo.GaloisField)
+    return parent(UInt64(dict[:data]))
+end
+
+
 
 ################################################################################
 # fmpz variant
@@ -58,6 +66,13 @@ end
 function load_internal(s::DeserializerState, ::Type{gfp_fmpz_elem}, dict::Dict)
     F = load_type_dispatch(s, Nemo.GaloisFmpzField, dict[:parent])
     return F(load_type_dispatch(s, fmpz, dict[:data]))
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{gfp_fmpz_elem},
+                                   dict::Dict,
+                                   parent::Nemo.GaloisFmpzField)
+    return parent(load_type_dispatch(s, fmpz, dict[:data]))
 end
 
 ################################################################################
@@ -116,6 +131,17 @@ function load_internal(s::DeserializerState,
     return K(polynomial)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: Union{nf_elem, fq_nmod, Hecke.NfRelElem}},
+                                   dict::Dict,
+                                   parent::Union{FqNmodFiniteField, SimpleNumField})
+    polynomial = load_unknown_type(s, dict[:polynomial];
+                                   parent=parent(defining_polynomial(base_ring(parent))))
+    return parent(polynomial)
+end
+
+
+
 ################################################################################
 # Non Simple Extension
 @registerSerializationType(NfAbsNS)
@@ -159,6 +185,16 @@ function load_internal(s::DeserializerState,
     return K(polynomial)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
+                                   dict::Dict,
+                                   parent::Union{NfAbsNS, NfRelNS})
+    polynomial = load_unknown_type(s, dict[:polynomial])
+    polynomial = evaluate(polynomial, gens(parent))
+
+    return parent(polynomial)
+end
+
 
 ################################################################################
 # FracField
@@ -191,6 +227,16 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
     den = load_unknown_type(s, dict[:den])
 
     return R(num) // R(den)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: FracElem},
+                                   dict::Dict,
+                                   parent:: FracField)
+    num = load_unknown_type(s, dict[:num])
+    den = load_unknown_type(s, dict[:den])
+
+    return parent(num) // parent(den)
 end
 
 ################################################################################
@@ -235,6 +281,19 @@ function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
     return r
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{arb},
+                                   dict::Dict,
+                                   parent::Nemo.RealField)
+    arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
+    r = Nemo.arb()
+    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
+          Int32, (Ref{arb}, Ptr{UInt8}), r, arb_unsafe_str)
+    r.parent = parent
+    
+    return r
+end
+
 ################################################################################
 # ComplexField
 
@@ -266,6 +325,16 @@ function load_internal(s::DeserializerState, ::Type{acb}, dict::Dict)
     imag_part = load_type_dispatch(s, arb, dict[:imag])
 
     return CC(real_part, imag_part)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{acb},
+                                   dict::Dict,
+                                   parent::AcbField)
+    real_part = load_type_dispatch(s, arb, dict[:real])
+    imag_part = load_type_dispatch(s, arb, dict[:imag])
+
+    return parent(real_part, imag_part)
 end
 
 ################################################################################

@@ -110,6 +110,12 @@ end
                   S = parent(loaded)
                   @test test_equality(p, loaded)
                 end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
+                    end
+                end
             end
             
             @testset "Multivariate Polynomial over $(case[4])" begin
@@ -117,6 +123,12 @@ end
                 p = z^2 + case[2] * z * w + case[3] * w^3
                 test_save_load_roundtrip(path, p) do loaded
                   @test test_equality(p, loaded)
+                end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
+                    end
                 end
 
                 @testset "MPoly Ideals over $(case[4])" begin

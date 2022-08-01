@@ -10,6 +10,13 @@ function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) wher
     return Vector{T}([load_unknown_type(s, x) for x in dict[:vector]])
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{Vector{T}},
+                                   dict::Dict,
+                                   parent) where T
+    return Vector{T}([load_unknown_type(s, x, parent=parent) for x in dict[:vector]])
+end
+
 
 
 ################################################################################

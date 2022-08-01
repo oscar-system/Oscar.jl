@@ -222,7 +222,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
+                            parent=nothing) where T
     # File version to be dealt with on first breaking change
     # A file without version number is treated as the "first" version
     
@@ -236,14 +237,22 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
 
     Base.issingletontype(T) && return T()
 
-    result = load_internal(s, T, dict[:data])
+    if parent != nothing
+        result = load_internal_with_parent(s, T, dict[:data], parent)
+    else
+        result = load_internal(s, T, dict[:data])
+    end
+    
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
     end
     return result
 end
 
-function load_unknown_type(s::DeserializerState, dict::Dict; check_namespace=false)
+function load_unknown_type(s::DeserializerState,
+                           dict::Dict;
+                           parent=nothing,
+                           check_namespace=false)
     if check_namespace
         haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
         _ns = dict[:_ns]
@@ -261,7 +270,7 @@ function load_unknown_type(s::DeserializerState, dict::Dict; check_namespace=fal
     T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
 
-    return load_type_dispatch(s, T, dict)
+    return load_type_dispatch(s, T, dict; parent=parent)
 end
 
 
@@ -340,16 +349,16 @@ julia> load("fourtitwo.json")
 42
 ```
 """
-function load(io::IO)
+function load(io::IO; parent::Any = nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
-    return load_unknown_type(state, jsondict; check_namespace=true)
+    return load_unknown_type(state, jsondict; parent=parent, check_namespace=true)
 end
 
-function load(filename::String)
+function load(filename::String; parent::Any = nothing)
     open(filename) do file
-        return load(file)
+        return load(file; parent=parent)
     end
 end
 
@@ -376,16 +385,16 @@ julia> load("fourtitwo.json", String)
 ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
 ```
 """
-function load(io::IO, T::Type)
+function load(io::IO, T::Type; parent=nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
-    return load_type_dispatch(state, T, jsondict)
+    return load_type_dispatch(state, T, jsondict; parent=parent)
 end
 
-function load(filename::String, T::Type)
+function load(filename::String, T::Type; parent=nothing)
     open(filename) do file
-        return load(file, T)
+        return load(file, T; parent=parent)
     end
 end
 
