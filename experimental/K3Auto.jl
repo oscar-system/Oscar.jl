@@ -1483,13 +1483,11 @@ function has_zero_entropy(S)
 
   @vprint :K3Auto 1 "preprocessing completed \n"
 
-  #return L,S,weyl
   data, K3Autgrp, chambers, rational_curves, _ = oscar.K3Auto(L,S,weyl)
-
-  C = lattice(V,common_invariant(K3Autgrp)[2])
+  C = lattice(rational_span(S),common_invariant(K3Autgrp)[2])
   d = diagonal(rational_span(C))
 
-  return maximum([sign(i) for i in d]), Gamma, W, DD, B
+  return maximum(push!([sign(i) for i in d],-1)), data, K3Autgrp, chambers, rational_curves
 end
 
 
@@ -1504,7 +1502,7 @@ function check_zero_entropy(candidates,wa="a")
     ioelliptic = open("elliptic", "a")
     ioparabolic = open("parabolic", "a")
     iohyperbolic = open("hyperbolic", "a")
-    e = has_zero_entropy(S)
+    e = has_zero_entropy(S)[1]
     if e>0
       println(ioelliptic, gram_matrix(S))
     elseif e==0
