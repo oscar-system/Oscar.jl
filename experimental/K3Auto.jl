@@ -1231,8 +1231,8 @@ function find_isotropic(L)
   end
 end
 
-function parse_zero_entropy()
-  io = open("/home/simon/Dropbox/Math/MyPapers/zero entropy/CandidatesZeroEntropy_elliptic","r")
+function parse_zero_entropy(filename="/home/simon/Dropbox/Math/MyPapers/zero entropy/CandidatesZeroEntropy_elliptic")
+  io = open(filename,"r")
   s = read(io, String)
   s = split(s,"\n")
   s = [a for a in s if length(a) > 0 && a[1:1]!="/"]
@@ -1484,9 +1484,9 @@ function has_zero_entropy(S)
   @vprint :K3Auto 1 "preprocessing completed \n"
 
   #return L,S,weyl
-  Gamma, W, DD, B, _ = oscar.K3Auto(L,S,weyl)
+  data, K3Autgrp, chambers, rational_curves, _ = oscar.K3Auto(L,S,weyl)
 
-  C = lattice(V,common_invariant(Gamma)[2])
+  C = lattice(V,common_invariant(K3Autgrp)[2])
   d = diagonal(rational_span(C))
 
   return maximum([sign(i) for i in d]), Gamma, W, DD, B
