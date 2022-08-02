@@ -1,6 +1,7 @@
 # Setup for fields
 R, x = PolynomialRing(QQ, "x")
 q = x^2 + 3//4
+L, (e, f) = NumberField([x^2 + 5, x^3 - 6])
 K, a = NumberField(q)
 Ky, y = K["y"]
 Tow, b = NumberField(y^2 + 1, "b")
@@ -13,9 +14,10 @@ cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),
     (ZZ, 3, 4, "Integers"),
     (ResidueRing(ZZ, 6), 3, 5, "Integers Modulo 6"),
+    (L, e, f, "Non Simple Extension"),
     (K, a, a + 1, "Simple Extension"),
     (Tow, a^2 * b, a + b, "Tower Extension"),
-    (NonSimRel, c[1], c[2] * a, "Non Simple Extension"),
+    (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
     (Fin, d, 0, "Finite Field"),
     (Frac, 1 // x, x^2, "Fraction Field")
 ]
@@ -107,7 +109,6 @@ end
                 R, z = PolynomialRing(case[1], "z")
                 p = z^2 + case[2] * z + case[3]
                 test_save_load_roundtrip(path, p) do loaded
-                  S = parent(loaded)
                   @test test_equality(p, loaded)
                 end
 
