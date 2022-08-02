@@ -926,6 +926,7 @@ function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0:
   V = ambient_space(L)
   ample = ample0
   u = u0
+
   separating_walls = alg23(L, u, ample, -2)
 
 
@@ -1112,10 +1113,7 @@ function weyl_vector(L, U0)
         f2 = -inner_product(V, v, v)*1//(2*h)*f1 + h*e1 + v
         @hassert :K3Auto 1 inner_product(V, f2, f2)==0
 
-        s = change_base_ring(ZZ, basis_matrix(R)*gram_matrix(V)*transpose(f2))
-        e2 = solve_left(s, matrix(ZZ,1,1,[1]))*basis_matrix(R)
-        @hassert :K3Auto 1 inner_product(V, f2, e2)[1,1] == 1
-        e2 = e2 - (inner_product(V,e2,e2)[1,1]*(1//2) + 1)*f2
+        e2 = find_section(L,f2)
         u = vcat(f2,e2)
         U = lattice(V,u)
         @hassert :K3Auto 1 gram_matrix(U) == QQ[0 1; 1 -2]
@@ -1171,12 +1169,19 @@ end
 # the close_vector algorithms searching for separating hyperplanes die.
 function find_section(L,f)
   V = ambient_space(L)
-  @hassert :K3Auto 1 inner_product(V,f,f)==0
-  A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
-  s = solve_left(A,identity_matrix(ZZ,1))
-  s = s*basis_matrix(L)
-  k, K = left_kernel(A)
-  Kl = Zlattice(K)
+  g = [abs(i) for i in vec(inner_product(ambient_space(L),f,basis_matrix(L)))]
+  if 1 in g
+    i = findfirst(x->x==1,g)
+    s = basis_matrix(L)[i,:]
+    s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
+  else
+    @hassert :K3Auto 1 inner_product(V,f,f)==0
+    A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
+    s = solve_left(A,identity_matrix(ZZ,1))
+    s = s*basis_matrix(L)
+    #k, K = left_kernel(A)
+    #Kl = Zlattice(K)
+  end
 
   @vprint :K3Auto 2 "found section of size $(s*transpose(s))\n"
   @hassert :K3Auto 1 inner_product(V,s,f)[1,1]==1
@@ -1464,11 +1469,13 @@ function has_zero_entropy(S)
   u = basis_matrix(U)
   h = zero_matrix(QQ,1,rank(S))
   @vprint :K3Auto 1 "computing an S-non-degenerate weyl vector\n"
+  v = 2*u[1,:] + u[2,:]
   while true
     h = matrix(QQ,1,rank(S)-2,rand(-5:5,rank(S)-2))
     h = hcat(zero_matrix(QQ,1,2),h)*basis_matrix(S)
-    a = inner_product(V,h,h)[1,1]
-    h = h + 2*u[2,:] + (4-a//2)*u[1,:]
+    b = inner_product(V,h,h)[1,1]
+    b = ZZ(ceil(sqrt(Float64(abs(b//2)))))+1
+    h = h + b*v
     @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
     Q = Hecke.orthogonal_submodule(S, lattice(V, h))
     # confirm that h is in the interior of a weyl chamber,
