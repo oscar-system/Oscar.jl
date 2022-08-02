@@ -134,10 +134,11 @@ end
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: Union{nf_elem, fq_nmod, Hecke.NfRelElem}},
                                    dict::Dict,
-                                   parent::Union{FqNmodFiniteField, SimpleNumField})
-    polynomial = load_unknown_type(s, dict[:polynomial];
-                                   parent=parent(defining_polynomial(base_ring(parent))))
-    return parent(polynomial)
+                                   parent_field::Union{FqNmodFiniteField, SimpleNumField})
+    polynomial_parent = parent(defining_polynomial(parent_field))
+    polynomial = load_unknown_type(s, dict[:polynomial]; parent=polynomial_parent)
+
+    return parent_field(polynomial)
 end
 
 
@@ -145,6 +146,7 @@ end
 ################################################################################
 # Non Simple Extension
 @registerSerializationType(NfAbsNS)
+@registerSerializationType(NfAbsNSElem)
 
 function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
@@ -188,11 +190,12 @@ end
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
                                    dict::Dict,
-                                   parent::Union{NfAbsNS, NfRelNS})
+                                   parent_field::Union{NfAbsNS, NfRelNS})
+    println(parent_field)
     polynomial = load_unknown_type(s, dict[:polynomial])
-    polynomial = evaluate(polynomial, gens(parent))
+    polynomial = evaluate(polynomial, gens(parent_field))
 
-    return parent(polynomial)
+    return parent_field(polynomial)
 end
 
 
