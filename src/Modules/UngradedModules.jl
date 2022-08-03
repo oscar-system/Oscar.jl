@@ -7,6 +7,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       restrict_domain, direct_product, tensor_product, free_module, tor,
       lift_homomorphism_contravariant, lift_homomorphism_covariant,
       hom_without_reversing_direction, ext, map_canonically, all_canonical_maps,
+      is_canonically_isomorphic, is_canonically_isomorphic_with_map,
       register_morphism!, dense_row,
       show_subquo, show_morphism, show_morphism_as_map,
       matrix_kernel, simplify, map, is_injective,
@@ -110,12 +111,35 @@ function (==)(F::FreeMod, G::FreeMod)
 end
 
 @doc Markdown.doc"""
+    is_isomorphic(F::FreeMod, G::FreeMod)
+
+Return  `true` if `F` and `G` are isomorphic, `false` otherwise.
+
+Here, `F` and `G` are isomorphic iff their base rings and ranks are equal.
+"""
+function is_isomorphic(F::FreeMod, G::FreeMod)
+  return F.R == G.R && rank(F) == rank(G)
+end
+
+@doc Markdown.doc"""
     iszero(F::AbstractFreeMod)
 
 Return `true` if `F` is the zero module, `false` otherwise.
 """
 function iszero(F::AbstractFreeMod)
   return rank(F) == 0
+end
+
+@doc Markdown.doc"""
+    canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T})
+
+For `F` and `G` which have equal rank (otherwise an error is thrown)
+return the canonical isomorphism, that is map the i-th basis vector of the
+canonical basis of `F` to the i-th basis vector of the canonical basis of `G`.
+"""
+function canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+  @assert rank(F) == rank(G)
+  return hom(F, G, gens(G))
 end
 
 ###############################################################################
@@ -1199,6 +1223,23 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return iszero(M_mod_N) && iszero(N_mod_M)
 end
 
+@doc Markdown.doc"""
+    is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+
+Check if `M` are canonically isomorphic. This means that if `F = ambient_free_module(M)` is 
+isomorphic to `G = ambient_free_module(N)` and the image of `M` under `canonical_isomorphism(F, G)`
+is equal to `N`.
+"""
+function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  F = ambient_free_module(M)
+  G = ambient_free_module(N)
+  if !is_isomorphic(F, G)
+    return false
+  end
+  f = canonical_isomorphism(F,G)
+  return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
+end
+
 #+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
 
 ###############################################################################
@@ -1719,6 +1760,22 @@ function issubset(M::SubQuo{T}, N::SubQuo{T}) where T
   end
 end
 
+function compare_helper(M::SubQuo{T}, N::SubQuo{T}, comparer::Function) where {T}
+  if !isdefined(M, :quo) 
+    if !isdefined(N, :quo)
+      return comparer(M.sub, N.sub)
+    else
+      return iszero(N.quo) && comparer(M.sub, N.sub)
+    end
+  else
+    if !isdefined(N, :quo)
+      return iszero(M.quo) && comparer(M.sub, N.sub)
+    else
+      return comparer(M.quo, N.quo) && comparer(M.sum, N.sum)
+    end
+  end
+end
+
 @doc Markdown.doc"""
     ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
 
@@ -1774,18 +1831,44 @@ false
 ```
 """
 function (==)(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
-  if !isdefined(M, :quo) 
-    if !isdefined(N, :quo)
-      return M.sub == N.sub
-    else
-      return iszero(N.quo) && M.sub == N.sub
-    end
+  return compare_helper(M, N, (==))
+end
+
+@doc Markdown.doc"""
+    is_canonically_isomorphic(M::SubQuo{T}, N::SubQuo{T}) where {T}
+
+Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
+`F` and `G` are the ambient free modules of `M` and `N` respectively.
+Return `false` if the ambient free modules are not isomorphic.
+"""
+function is_canonically_isomorphic(M::SubQuo{T}, N::SubQuo{T}) where {T}
+  F = ambient_free_module(M)
+  G = ambient_free_module(N)
+  if !is_isomorphic(F, G)
+    return false
+  end
+  return compare_helper(M, N, is_canonically_isomorphic)
+end
+
+@doc Markdown.doc"""
+    is_canonically_isomorphic_with_map(M::SubQuo{T}, N::SubQuo{T}) where {T}
+
+Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
+`F` and `G` are the ambient free modules of `M` and `N` respectively.
+Moreover, if `M` and `N` are canonically isomorphic then return also the isomorphism, 
+otherwise return the zero map.
+"""
+function is_canonically_isomorphic_with_map(M::SubQuo{T}, N::SubQuo{T}) where {T}
+  is_canonically_iso = is_canonically_isomorphic(M, N)
+  if is_canonically_iso
+    F = ambient_free_module(M)
+    G = ambient_free_module(N)
+    f = canonical_isomorphism(F, G)
+    f = induced_map(f, M, false) # is certainly well-defined
+    f = restrict_codomain(f, N)
+    return true, f
   else
-    if !isdefined(N, :quo)
-      return iszero(M.quo) && M.sub == N.sub
-    else
-      return M.quo == N.quo && M.sum == N.sum
-    end
+    return false, hom(M, N, [zero(N) for _ in 1:gens(M)])
   end
 end
 
@@ -4353,8 +4436,8 @@ Return, if possible, a homomorphism, which is mathematically identical to `H`,
 but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
 """
 function restrict_codomain(H::ModuleMap, M::SubQuo)
-  @assert codomain(H) isa SubQuo
-  return hom(domain(H), M, map(v -> SubQuoElem(v, M), map(x -> H(x).repres, gens(domain(H)))))
+  D = domain(H)
+  return hom(D, M, map(v -> SubQuoElem(v, M), map(x -> repres(H(x)), gens(D))))
 end
 
 @doc Markdown.doc"""
@@ -4376,6 +4459,21 @@ function restrict_domain(H::SubQuoHom, M::SubQuo)
   end
   i = sub(domain(H), map(m -> SubQuoElem(repres(m), domain(H)), gens(M)), :cache_morphism, false)[2]
   return i*H
+end
+
+@doc Markdown.doc"""
+    induced_map(f::FreeModuleHom, M::SubQuo, check::Bool = true)
+
+Return the map which sends an element `v` of `M` to `f(repres(v))`.
+If `check` is set to true the well-definedness of the map is checked.
+"""
+function induced_map(f::FreeModuleHom, M::SubQuo, check::Bool = true)
+  @assert ambient_free_module(M) === domain(f)
+  ind_f = hom(M, codomain(f), [f(repres(v)) for v in gens(M)])
+  if check
+    @assert is_welldefined(ind_f)
+  end
+  return ind_f
 end
 
 @doc Markdown.doc"""
@@ -4880,8 +4978,8 @@ end
 Compute $\text{Tor}_i(M,N)$.
 """
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)
-  lifted_resolution = tensor_product(free_res.C, N) #TODO only three homs are necessary
+  free_res = free_resolution(M; length=i+2)
+  lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
 
@@ -4986,7 +5084,8 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   end
 
   direction = Hecke.is_chain_complex(C) ? :right : :left
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=last(range(C))-1, direction=direction)
+  start = Hecke.is_chain_complex(C) ? last(range(C))-1 : first(range(C))
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=direction)
 end
 
 @doc Markdown.doc"""
@@ -5009,8 +5108,8 @@ function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::Mod
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  start = last(range(C))
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=-C.start+1, direction=C.direction)
+  start = Hecke.is_chain_complex(C) ? -first(chain_range) : -last(chain_range)-1  
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=C.direction)
 end
 
 #############################
@@ -5032,12 +5131,15 @@ function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
   chain_range = range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
   if i == first(chain_range)
+    i = Hecke.is_chain_complex(C) ? i-1 : i
     return kernel(map(C,i))[1]
   elseif i == last(chain_range)
+    i = Hecke.is_chain_complex(C) ? i : i-1
     f = map(C,i)
-    return quo(codomain(f),image(f)[1], :module)
+    return cokernel(f)    
   elseif i in chain_range
-    next_index = Hecke.is_chain_complex(C) ? i-1 : i+1
+    next_index = Hecke.is_chain_complex(C) ? i-1 : i
+    i = Hecke.is_chain_complex(C) ? i : i-1
     return quo(kernel(map(C,next_index))[1], image(map(C,i))[1], :module)
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
@@ -5053,8 +5155,8 @@ end
 Compute $\text{Ext}^i(M,N)$.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
-  free_res = free_resolution(M)
-  lifted_resolution = hom(free_res.C, N) #TODO only three homs are necessary
+  free_res = free_resolution(M; length=i+2)
+  lifted_resolution = hom(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return homology(lifted_resolution,i)
 end
 
