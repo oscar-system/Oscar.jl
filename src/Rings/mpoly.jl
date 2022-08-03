@@ -187,7 +187,7 @@ mutable struct BiPolyArray{S}
   Sx # Singular Poly Ring or Algebra, poss. with different ordering
   S::Singular.sideal
   isGB::Bool #if the Singular side (the sideal) will be a GB
-  ord::Orderings.AbsOrdering #for this ordering
+  ord::MonomialOrdering #for this ordering
   keep_ordering::Bool
 
   function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
@@ -488,22 +488,18 @@ end
 
 function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
     if !isdefined(I, :S) 
-        I.ord = ordering.o
+        I.ord = ordering
         I.Sx = singular_poly_ring(I.Ox, ordering)
         I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
         if I.isGB
             I.S.isGB = true
         end
-    else
-        #= singular ideal exists, but the singular ring has the wrong ordering
-         = attached, thus we have to create a new singular ring and map the ideal. =#
-        if !isdefined(I, :ord) || I.ord != ordering.o
-            I.ord = ordering.o
-            SR    = singular_poly_ring(I.Ox, ordering)
-            f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
-            I.S   = Singular.map_ideal(f, I.S)
-            I.Sx  = SR
-        end
+    elseif !isdefined(I, :ord) || I.ord != ordering
+        I.ord = ordering
+        SR    = singular_poly_ring(I.Ox, ordering)
+        f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
+        I.S   = Singular.map_ideal(f, I.S)
+        I.Sx  = SR
     end
 end 
 

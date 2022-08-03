@@ -195,9 +195,9 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
           #at this point we SHOULD have T*gens(I) == G...
           if T*matrix(Qt, length(gI), 1, gI) == matrix(Qt, length_gc, 1, G)
             if !isdefined(I.gens, :ord)
-               I.gens.ord = ord.o
+               I.gens.ord = ord
             end
-            if ord.o == I.gens.ord && !isdefined(I, :gb)
+            if ord == I.gens.ord && !isdefined(I, :gb)
               I.gb[ord] = BiPolyArray(gd[1:length_gc], keep_ordering = false, isGB = true)
               singular_assure(I.gb[ord])
             end
