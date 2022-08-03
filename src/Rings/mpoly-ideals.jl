@@ -113,7 +113,7 @@ ideal(x, y, z^2)
 """
 function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   if base_ring(I) == base_ring(J)
-    return MPolyIdeal(unique(vcat(I.gens.O,J.gens.O)))
+    return MPolyIdeal(unique!(vcat(I.gens.O,J.gens.O)))
   else
     error("Not possible due to different base rings.")
   end
