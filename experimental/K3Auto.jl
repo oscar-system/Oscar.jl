@@ -738,7 +738,7 @@ function K3Auto(L, S, w; max_trys=-1)
   waiting_list = [D]
 
   automorphisms = fmpq_mat[]
-  rational_curves = Set{fmpq_mat}()
+  rational_curves = Set{fmpz_mat}()
 
   # gogo
   ntry = 0
@@ -786,9 +786,9 @@ function K3Auto(L, S, w; max_trys=-1)
       if v == D.parent_wall || -v ==D.parent_wall
         continue
       end
-      tmp,r = definesminus2hyperplane(S,v)
-      if tmp
-        push!(rational_curves, r)
+      # does v come from a -2 curve?
+      if -2 == (v*gram_matrix(S)*transpose(v))[1,1]
+        push!(rational_curves, v)
         continue
       end
       Dv = adjacent_chamber(data, D, v)
@@ -820,13 +820,7 @@ function definesminus2hyperplane(S::ZLat, v::fmpq_mat)
 end
 
 function definesminus2hyperplane(S::ZLat, v::fmpz_mat)
-  vS = v*inv(gram_matrix(S))
-  d = denominator(vS)
-  g = gcd([numerator(a) for a in vec(vS)])
-  r = d//g * vS
-  # now r is primitive in S
-  r = r *  basis_matrix(S)
-  return -2 == inner_product(ambient_space(S),r,r)[1,1],r
+  return -2 == (v*gram_matrix(S)*transpose(v))[1,1]
 end
 
 @doc Markdown.doc"""
@@ -1173,14 +1167,38 @@ function find_section(L,f)
   if 1 in g
     i = findfirst(x->x==1,g)
     s = basis_matrix(L)[i,:]
-    s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
+    return sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else
+    # search a smallish section using a cvp
     @hassert :K3Auto 1 inner_product(V,f,f)==0
     A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
-    s = solve_left(A,identity_matrix(ZZ,1))
-    s = s*basis_matrix(L)
-    #k, K = left_kernel(A)
-    #Kl = Zlattice(K)
+    ss = solve_left(A,identity_matrix(ZZ,1))
+    s = ss*basis_matrix(L)
+    k, K = left_kernel(A)
+    Kl = Zlattice(gram=K*transpose(K))
+    # project ss to K
+    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)))
+    a = QQ(1)
+    cv = []
+    while true
+      cv = Hecke.closest_vectors(Kl,-sK, a)
+      if length(cv)>0
+        break
+      end
+      a = a+2
+    end
+    sK = transpose(sK)
+    v0 = 0
+    for v in cv
+      v = matrix(QQ,1,rank(Kl),v)
+      v1 = v+sK
+      aa = (v1*gram_matrix(Kl)*transpose(v1))[1,1]
+      if aa < a
+        a = aa
+        v0 = v
+      end
+    end
+    s = (v0*K + ss)*basis_matrix(L)
   end
 
   @vprint :K3Auto 2 "found section of size $(s*transpose(s))\n"
@@ -1457,7 +1475,7 @@ function common_invariant(Gamma)
   return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
 end
 
-function has_zero_entropy(S)
+function has_zero_entropy(S; preprocessing_only = false)
   L,S,iS,R,iR = oscar.embed_in_unimodular(S,26)
   V = ambient_space(L)
   U = lattice(V,basis_matrix(S)[1:2, :])
@@ -1468,19 +1486,33 @@ function has_zero_entropy(S)
   #h = hcat(QQ[0 0 ], v) *basis_matrix(S)  #an ample vector
   u = basis_matrix(U)
   h = zero_matrix(QQ,1,rank(S))
-  @vprint :K3Auto 1 "computing an S-non-degenerate weyl vector\n"
-  v = 2*u[1,:] + u[2,:]
+  v = 3*u[1,:] + u[2,:]
+  fudge = 1
+  nt = 0
   while true
     h = matrix(QQ,1,rank(S)-2,rand(-5:5,rank(S)-2))
     h = hcat(zero_matrix(QQ,1,2),h)*basis_matrix(S)
     b = inner_product(V,h,h)[1,1]
-    b = ZZ(ceil(sqrt(Float64(abs(b//2)))))+1
-    h = h + b*v
+    bb = ZZ(ceil(sqrt(Float64(abs(b)))/2))+fudge
+    h = h + bb*v
     @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
-    Q = Hecke.orthogonal_submodule(S, lattice(V, h))
     # confirm that h is in the interior of a weyl chamber,
     # i.e. check that Q does not contain any -2 vector and h^2>0
-    # if minimum(rescale(Q, -1)) > 2 # too expensive
+    Q = rescale(Hecke.orthogonal_submodule(S, lattice(V, h)),-1)
+    Q = lll(Q)
+    @vprint :K3Auto 1 "testing ampleness $(inner_product(V,h,h)[1,1])\n"
+    sv = short_vectors(Q,2)
+    if length(sv)>0
+      nt = nt+1
+      @vprint :K3Auto 1 "not ample\n"
+      if nt >10
+        fudge = fudge+1
+        nt = 0
+      end
+      continue
+    end
+    @vprint :K3Auto 1 "found ample class $(h)\n"
+    @vprint :K3Auto 1 "computing an S-non-degenerate weyl vector\n"
     weyl1,u0 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
     if is_S_nondegenerate(L,S,weyl1)
       weyl = weyl1
@@ -1489,7 +1521,9 @@ function has_zero_entropy(S)
   end
 
   @vprint :K3Auto 1 "preprocessing completed \n"
-
+  if preprocessing_only
+    return L,S,weyl
+  end
   data, K3Autgrp, chambers, rational_curves, _ = oscar.K3Auto(L,S,weyl)
   C = lattice(rational_span(S),common_invariant(K3Autgrp)[2])
   d = diagonal(rational_span(C))
