@@ -112,9 +112,11 @@ ideal(x, y, z^2)
 ```
 """
 function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(base_ring(I), I.gens.S + J.gens.S)
+  if base_ring(I) == base_ring(J)
+    return MPolyIdeal(unique(vcat(I.gens.O,J.gens.O)))
+  else
+    error("Not possible due to different base rings.")
+  end
 end
 Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
@@ -139,9 +141,11 @@ ideal(x*z^2, y*z^2)
 ```
 """
 function Base.:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(base_ring(I), I.gens.S * J.gens.S)
+  if base_ring(I) == base_ring(J)
+      return MPolyIdeal(unique(vcat([broadcast(*, g, J.gens.O) for g in I.gens.O]...)))
+  else
+    error("Not possible due to different base rings.")
+  end
 end
 
 #######################################################
