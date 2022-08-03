@@ -86,7 +86,11 @@ function test_equality(p::T, l:: T) where T  <: Union{
 end
 
 function test_equality(p::MPolyElem{T}, l::MPolyElem{T}) where T <: Union{
-    Hecke.NfRelNSElem{nf_elem}, Hecke.NfRelElem{nf_elem}, fq_nmod, nf_elem}
+    Hecke.NfRelNSElem{nf_elem},
+    Hecke.NfRelElem{nf_elem},
+    NfAbsNSElem,
+    fq_nmod,
+    nf_elem}
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)
@@ -95,7 +99,11 @@ end
 
 function test_equality(p::T, l::T) where T <: (
     PolyElem{S} where S <: Union{
-        Hecke.NfRelNSElem{nf_elem}, Hecke.NfRelElem{nf_elem}, fq_nmod, nf_elem})
+        Hecke.NfRelNSElem{nf_elem},
+        Hecke.NfRelElem{nf_elem},
+        NfAbsNSElem,
+        fq_nmod,
+        nf_elem})
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)

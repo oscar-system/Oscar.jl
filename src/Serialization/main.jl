@@ -106,6 +106,7 @@ for (T, str) in (
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{NfAbsNSElem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{NfAbsNSElem}}",
     MPolyIdeal{fmpq_mpoly} => "MPolyIdeal{fmpq_mpoly}",
     MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
     MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",

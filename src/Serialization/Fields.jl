@@ -188,11 +188,22 @@ function load_internal(s::DeserializerState,
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: Union{NfAbsNSElem, Hecke.NfRelNSElem}},
+                                   ::Type{<: NfAbsNSElem},
                                    dict::Dict,
-                                   parent_field::Union{NfAbsNS, NfRelNS})
-    println(parent_field)
+                                   parent_field::NfAbsNS)
     polynomial = load_unknown_type(s, dict[:polynomial])
+    polynomial = evaluate(polynomial, gens(parent_field))
+
+    return parent_field(polynomial)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: Hecke.NfRelNSElem},
+                                   dict::Dict,
+                                   parent_field::Hecke.NfRelNS)
+    ngens = length(gens(parent_field))
+    parent_polynomial_ring, _ = PolynomialRing(base_field(parent_field), ngens)
+    polynomial = load_unknown_type(s, dict[:polynomial]; parent=parent_polynomial_ring)
     polynomial = evaluate(polynomial, gens(parent_field))
 
     return parent_field(polynomial)
@@ -236,9 +247,10 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: FracElem},
                                    dict::Dict,
                                    parent:: FracField)
-    num = load_unknown_type(s, dict[:num])
-    den = load_unknown_type(s, dict[:den])
-
+    parts_parent = base_ring(parent)
+    num = load_unknown_type(s, dict[:num]; parent=parts_parent)
+    den = load_unknown_type(s, dict[:den]; parent=parts_parent)
+    
     return parent(num) // parent(den)
 end
 
