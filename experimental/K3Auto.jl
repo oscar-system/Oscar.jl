@@ -1060,6 +1060,7 @@ function weyl_vector(L, U0)
       #s = change_base_ring(ZZ, basis_matrix(R)*gram_matrix(V)*transpose(f2))
       #e2 = solve_left(s, matrix(ZZ,1,1,[1]))*basis_matrix(R)
       @hassert :K3Auto 2 inner_product(V, f2, e2)[1,1] == 1
+      @hassert :K3Auto 2 inner_product(V,e2,e2)[1,1]==-2
       #e2 = e2 - (inner_product(V,e2,e2)[1,1]*(1//2) + 1)*f2
       u = vcat(f2,e2)
       U = lattice(V,u)
@@ -1167,7 +1168,7 @@ function find_section(L,f)
   if 1 in g
     i = findfirst(x->x==1,g)
     s = basis_matrix(L)[i,:]
-    return sign(inner_product(ambient_space(L),f,s)[1,1])*s
+    s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else
     # search a smallish section using a cvp
     @hassert :K3Auto 1 inner_product(V,f,f)==0
