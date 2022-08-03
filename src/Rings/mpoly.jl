@@ -482,6 +482,20 @@ function singular_assure(I::BiPolyArray)
   end
 end
 
+function _existing_singular_versions(I::MPolyIdeal)
+  d = Dict{Singular.PolyRing, Singular.sideal}()
+  b = I.gens
+  if isdefined(b, :S)
+    setindex!(d, b.S, base_ring(b.S))
+  end
+  for (o, b) in I.gb
+    if isdefined(b, :S)
+      setindex!(d, b.S, base_ring(b.S))
+    end
+  end
+  return d
+end
+
 function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
    singular_assure(I.gens, ordering)
 end

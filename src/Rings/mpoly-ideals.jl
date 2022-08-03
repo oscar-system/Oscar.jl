@@ -162,10 +162,21 @@ ideal(x^3*y - x*y - y^3, x^4 - x^2 - x*y^2)
 ```
 """
 function Base.intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
-  singular_assure(I)
+  isempty(Js) && return I
+  SI = _existing_singular_versions(I)
+  SJs = map(_existing_singular_versions, Js)
+  for o in intersect(keys(SI), map(keys, SJs)...)
+    si = SI[o]
+    for SJ in SJs
+      si = Singular.intersection(si, SJ[o])
+    end
+    return MPolyIdeal(base_ring(I), si)
+  end
+  o = default_ordering(base_ring(I))
+  singular_assure(I, o)
   si = I.gens.S
   for J in Js
-    singular_assure(J)
+    singular_assure(J, o)
     si = Singular.intersection(si, J.gens.S)
   end
   return MPolyIdeal(base_ring(I), si)
