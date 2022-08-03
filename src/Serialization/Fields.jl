@@ -251,7 +251,7 @@ function load_internal_with_parent(s::DeserializerState,
     num = load_unknown_type(s, dict[:num]; parent=parts_parent)
     den = load_unknown_type(s, dict[:den]; parent=parts_parent)
     
-    return parent(num) // parent(den)
+    return parent(num, den)
 end
 
 ################################################################################
