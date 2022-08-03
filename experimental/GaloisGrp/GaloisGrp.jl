@@ -6,10 +6,9 @@ import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
 export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field,
-       extension_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field
 
-import Hecke: orbit, fixed_field
+import Hecke: orbit, fixed_field, extension_field
 
 
 function __init__()

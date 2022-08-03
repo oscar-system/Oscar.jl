@@ -2,7 +2,6 @@ module QQAbModule
 
 using ..Oscar
 
-import Hecke: math_html
 import Oscar: IJuliaMime
 
 ###############################################################################
