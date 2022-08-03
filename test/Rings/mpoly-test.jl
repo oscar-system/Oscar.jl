@@ -75,6 +75,12 @@ end
 
 @testset "Ideal operations" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I = ideal(R, [x^2, y^2])
+  J = ideal(R, [x*y^2, x^2])
+  S = ideal(R, [x^2, y^2, x*y^2])
+  P = ideal(R, [x^3*y^2, x^4, x*y^4, x^2*y^2])
+  @test I+J == I-J == S
+  @test I*J == P
   f = x^2 + y^2
   g = x^4*y - x*y^3
   I = [f, g]
