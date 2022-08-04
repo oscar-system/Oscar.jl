@@ -877,19 +877,23 @@ function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{f
   @hassert :K3Auto 1 all(inner_product(V,h1,r)[1,1]>=0 for r in separating_walls)
   @hassert :K3Auto 1 all(inner_product(V,h2,r)[1,1]<=0 for r in separating_walls)
   di(r) = dist(V, r, h1, h2)
-  sort!(separating_walls, by=di)
-  separating_walls0 = copy(separating_walls)
-  for k in 1:length(separating_walls)
-    _,i = findmax(di(r) for r in separating_walls)
-    r = separating_walls[i]
-    deleteat!(separating_walls,i)
+  #sort!(separating_walls, by=di)
+  separating_walls0 = deepcopy(separating_walls)
+  while length(separating_walls0)>0
+    _,i = findmax(di(r) for r in separating_walls0)
+    r = separating_walls0[i]
+    deleteat!(separating_walls0,i)
+    if inner_product(V,h2,r)[1,1]>0
+      continue
+    end
     h2 = h2 + inner_product(V, h2, r)*r
     w = w + inner_product(V, w, r)*r
+    separating_walls0 = [r for r in separating_walls0 if inner_product(V,h2,r)[1,1]<0]
     # should be decreasing
     # @vprint :K3Auto 1 length([s for s in separating_walls0 if 0>sign(inner_product(V,h2,s)[1,1])])
   end
-  # confirm output
-  @hassert :K3Auto 1 all(inner_product(V,h2,r)[1,1]>=0 for r in separating_walls0)
+  # confirm output .... since I did not yet prove this algorithm .. it looks a bit fishy
+  @assert all(inner_product(V,h2,r)[1,1]>=0 for r in separating_walls)
   return h2, w
 end
 
@@ -922,7 +926,6 @@ function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0:
   u = u0
 
   separating_walls = alg23(L, u, ample, -2)
-
 
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
 
