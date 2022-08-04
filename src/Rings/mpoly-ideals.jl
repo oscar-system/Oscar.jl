@@ -70,6 +70,18 @@ end
 
 # elementary operations #######################################################
 @doc Markdown.doc"""
+    remove_zeroes!(I::MPolyIdeal)
+
+Removes zero generators from ideal `I` if `I` is not the zero ideal.
+"""
+function remove_zeroes!(I::MPolyIdeal)
+    if !iszero(I)
+      filter!(!iszero, I.gens.O)
+    end
+    return I
+end
+
+@doc Markdown.doc"""
     :^(I::MPolyIdeal, m::Int)
 
 Return the `m`-th power of `I`. 
@@ -115,7 +127,7 @@ function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   oscar_assure(I)
   oscar_assure(J)
   if base_ring(I) == base_ring(J)
-    return MPolyIdeal(filter!(!iszero, unique!(vcat(I.gens.O,J.gens.O))))
+    return remove_zeroes!(MPolyIdeal(unique!(vcat(I.gens.O,J.gens.O))))
   else
     error("Not possible due to different base rings.")
   end
@@ -146,7 +158,7 @@ function Base.:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   oscar_assure(I)
   oscar_assure(J)
   if base_ring(I) == base_ring(J)
-    return MPolyIdeal(filter!(!iszero, unique!(vcat([broadcast(*, g, J.gens.O) for g in I.gens.O]...))))
+    return remove_zeroes!(MPolyIdeal(unique!(vcat([broadcast(*, g, J.gens.O) for g in I.gens.O]...))))
   else
     error("Not possible due to different base rings.")
   end
