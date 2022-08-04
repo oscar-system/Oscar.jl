@@ -208,7 +208,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
 
     Base.issingletontype(T) && return T()
 
-    if parent != nothing
+    if parent !== nothing
         result = load_internal_with_parent(s, T, dict[:data], parent)
     else
         result = load_internal(s, T, dict[:data])
