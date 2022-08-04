@@ -75,6 +75,12 @@ end
 
 @testset "Ideal operations" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I = ideal(R, [0, x^2, 0])
+  Oscar.remove_zeroes!(I)
+  @test I == ideal(R, [x^2])
+  I = ideal(R, [0])
+  Oscar.remove_zeroes!(I)
+  @test I == ideal(R, [0])
   I = ideal(R, [x^2, y^2])
   J = ideal(R, [x*y^2, x^2])
   S = ideal(R, [x^2, y^2, x*y^2])
