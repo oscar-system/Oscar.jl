@@ -199,7 +199,6 @@ end
 G - inverse gram matrix of S
 """
 function fingerprint(data::BorcherdsData, D::Chamber)
-  #return hash(ZZ(1))
   v = sum(D.walls)
   G = gram_matrix(data.SS)
   m1 = (v*G*transpose(v))[1,1]
@@ -1479,8 +1478,8 @@ function common_invariant(Gamma)
   return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
 end
 
-function has_zero_entropy(S; preprocessing_only = false)
-  L,S,iS,R,iR = oscar.embed_in_unimodular(S,26)
+function has_zero_entropy(S; rank_unimod=26, preprocessing_only = false)
+  L,S,iS,R,iR = oscar.embed_in_unimodular(S,rank_unimod)
   V = ambient_space(L)
   U = lattice(V,basis_matrix(S)[1:2, :])
   @hassert :K3Auto 1 det(U)==-1
