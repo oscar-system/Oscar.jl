@@ -75,7 +75,7 @@ end
 Throws an error if the base rings of the ideals `I` and `J` do not coincide.
 """
 function check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  if base_ring(I) != base_ring(J)
+  if !isequal(base_ring(I), base_ring(J))
     error("Base rings must coincide.")
   end
 end

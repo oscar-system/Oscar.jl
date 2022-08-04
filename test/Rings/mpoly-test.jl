@@ -85,6 +85,7 @@ end
   J = ideal(R, [x*y^2, x^2])
   S = ideal(R, [x^2, y^2, x*y^2])
   P = ideal(R, [x^3*y^2, x^4, x*y^4, x^2*y^2])
+  @test Oscar.check_base_rings(I, J) == nothing
   @test I+J == I-J == S
   @test I*J == P
   f = x^2 + y^2
@@ -92,6 +93,7 @@ end
   I = [f, g]
   S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
   J = ideal(S, [(c^2+1)*(c^3+2)^2, b-c^2])
+  @test_throws ErrorException Oscar.check_base_rings(P, J)
   r1 = c^2-b
   r2 = b^2*c+c^3+2*c^2+2
   L = gens(radical(J))
