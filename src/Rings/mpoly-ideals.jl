@@ -112,8 +112,10 @@ ideal(x, y, z^2)
 ```
 """
 function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+  oscar_assure(I)
+  oscar_assure(J)
   if base_ring(I) == base_ring(J)
-    return MPolyIdeal(unique!(vcat(I.gens.O,J.gens.O)))
+    return MPolyIdeal(filter!(!iszero, unique!(vcat(I.gens.O,J.gens.O))))
   else
     error("Not possible due to different base rings.")
   end
@@ -141,8 +143,10 @@ ideal(x*z^2, y*z^2)
 ```
 """
 function Base.:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+  oscar_assure(I)
+  oscar_assure(J)
   if base_ring(I) == base_ring(J)
-      return MPolyIdeal(unique(vcat([broadcast(*, g, J.gens.O) for g in I.gens.O]...)))
+    return MPolyIdeal(filter!(!iszero, unique!(vcat([broadcast(*, g, J.gens.O) for g in I.gens.O]...))))
   else
     error("Not possible due to different base rings.")
   end
