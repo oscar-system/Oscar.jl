@@ -25,6 +25,9 @@
             test_save_load_roundtrip(path, v) do loaded
               @test v == loaded
             end
+            test_save_load_roundtrip(path, v; parent=F) do loaded
+              @test v == loaded
+            end
         end
         
         @testset "Vector{gfp_elem}" begin
@@ -33,6 +36,9 @@
             minusone = F(-1)
             v = [one, minusone]
             test_save_load_roundtrip(path, v) do loaded
+              @test v == loaded
+            end
+            test_save_load_roundtrip(path, v; parent=F) do loaded
               @test v == loaded
             end
         end

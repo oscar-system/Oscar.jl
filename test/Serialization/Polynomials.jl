@@ -1,6 +1,7 @@
 # Setup for fields
 R, x = PolynomialRing(QQ, "x")
 q = x^2 + 3//4
+L, (e, f) = NumberField([x^2 + 5, x^3 - 6])
 K, a = NumberField(q)
 Ky, y = K["y"]
 Tow, b = NumberField(y^2 + 1, "b")
@@ -13,9 +14,10 @@ cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),
     (ZZ, 3, 4, "Integers"),
     (ResidueRing(ZZ, 6), 3, 5, "Integers Modulo 6"),
+    (L, e, f, "Non Simple Extension"),
     (K, a, a + 1, "Simple Extension"),
     (Tow, a^2 * b, a + b, "Tower Extension"),
-    (NonSimRel, c[1], c[2] * a, "Non Simple Extension"),
+    (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
     (Fin, d, 0, "Finite Field"),
     (Frac, 1 // x, x^2, "Fraction Field")
 ]
@@ -84,7 +86,11 @@ function test_equality(p::T, l:: T) where T  <: Union{
 end
 
 function test_equality(p::MPolyElem{T}, l::MPolyElem{T}) where T <: Union{
-    Hecke.NfRelNSElem{nf_elem}, Hecke.NfRelElem{nf_elem}, fq_nmod, nf_elem}
+    Hecke.NfRelNSElem{nf_elem},
+    Hecke.NfRelElem{nf_elem},
+    NfAbsNSElem,
+    fq_nmod,
+    nf_elem}
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)
@@ -93,7 +99,11 @@ end
 
 function test_equality(p::T, l::T) where T <: (
     PolyElem{S} where S <: Union{
-        Hecke.NfRelNSElem{nf_elem}, Hecke.NfRelElem{nf_elem}, fq_nmod, nf_elem})
+        Hecke.NfRelNSElem{nf_elem},
+        Hecke.NfRelElem{nf_elem},
+        NfAbsNSElem,
+        fq_nmod,
+        nf_elem})
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)
@@ -107,8 +117,13 @@ end
                 R, z = PolynomialRing(case[1], "z")
                 p = z^2 + case[2] * z + case[3]
                 test_save_load_roundtrip(path, p) do loaded
-                  S = parent(loaded)
                   @test test_equality(p, loaded)
+                end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
+                    end
                 end
             end
             
@@ -117,6 +132,12 @@ end
                 p = z^2 + case[2] * z * w + case[3] * w^3
                 test_save_load_roundtrip(path, p) do loaded
                   @test test_equality(p, loaded)
+                end
+
+                @testset "Load with parent" begin
+                    test_save_load_roundtrip(path, p; parent=R) do loaded
+                        @test p == loaded
+                    end
                 end
 
                 @testset "MPoly Ideals over $(case[4])" begin
