@@ -942,7 +942,6 @@ end
 function span_in_S(L, S, weyl)
   R = Hecke.orthogonal_submodule(L, S)
   V = ambient_space(L)
-  dual(R),
   Delta_w = alg58(L, S, R, weyl; is_S_nondeg=false)
   G = gram_matrix(V)
   prSDelta_w = [v[1]*G for v in Delta_w]
@@ -980,7 +979,13 @@ function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0:
     return weyl,u,u
   end
   @vprint :K3Auto 1 "degeneracy dimension of the chamber $(rank(T))\n"
-  h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-2:2,rank(T)))*basis_matrix(T)
+  @label choose_h
+  h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-10:10,rank(T)))*basis_matrix(T)
+  # roots orthogonal to S do not help. Therefore discard them.
+  relevant_roots = [r for r in relevant_roots if inner_product(V,basis_matrix(S),r)!=0]
+  if any(inner_product(V,h,r)==0 for r in relevant_roots)
+    @goto choose_h
+  end
   separating = fmpq_mat[r for r in relevant_roots if sign(inner_product(V, h, r)[1,1])*sign(inner_product(V, u, r)[1,1])<0]
   # fix signs
   for i in 1:length(separating)
@@ -994,9 +999,9 @@ function nondeg_weyl_new(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat, ample0:
   @hassert :K3Auto 1 all(inner_product(V,u,r)[1,1] < 0 for r in separating)
 
   u, weyl = chain_reflect(V, h, u, weyl, separating)
-  @hassert :K3Auto 1 all(inner_product(V,u,r)[1,1] < 0 for r in separating)
+  @hassert :K3Auto 1 all(inner_product(V,u,r)[1,1] > 0 for r in separating)
 
-
+  @assert is_S_nondegenerate(L,S,weyl)
   return weyl, u, h
 end
 
@@ -1547,18 +1552,18 @@ function has_zero_entropy(S; rank_unimod=26, preprocessing_only = false)
     Q = lll(Q)
     @vprint :K3Auto 1 "testing ampleness $(inner_product(V,h,h)[1,1])\n"
     sv = short_vectors(Q,2)
+    nt = nt+1
+    if nt >10
+      fudge = fudge+1
+      nt = 0
+    end
     if length(sv)>0
-      nt = nt+1
       @vprint :K3Auto 1 "not ample\n"
-      if nt >10
-        fudge = fudge+1
-        nt = 0
-      end
       continue
     end
     @vprint :K3Auto 1 "found ample class $(h)\n"
     @vprint :K3Auto 1 "computing an S-non-degenerate weyl vector\n"
-    weyl1,u0 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
+    weyl1,u1 = oscar.nondeg_weyl_new(L,S,u0,weyl,h)
     if is_S_nondegenerate(L,S,weyl1)
       weyl = weyl1
       break
