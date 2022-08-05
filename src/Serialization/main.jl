@@ -73,12 +73,15 @@ end
 for (T, str) in (
     AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
     AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
+    AbstractAlgebra.Generic.MatSpaceElem{fmpq_poly} => "AbstractAlgebra.Generic.MatSpaceElem{fmpq_poly}",
     AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
     AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
     AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.MPoly{nf_elem} => "AbstractAlgebra.Generic.MPoly{nf_elem}",
     AbstractAlgebra.Generic.MPoly{NfAbsNSElem} => "AbstractAlgebra.Generic.MPoly{NfAbsNSElem}",
     AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
+    AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}}",
+    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}}",
     AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}}",
     AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.MPolyRing{nf_elem} => "AbstractAlgebra.Generic.MPolyRing{nf_elem}",
@@ -87,63 +90,29 @@ for (T, str) in (
     AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}}",
     AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.Poly{nf_elem} => "AbstractAlgebra.Generic.Poly{nf_elem}",
+    AbstractAlgebra.Generic.Poly{NfAbsNSElem} => "AbstractAlgebra.Generic.Poly{NfAbsNSElem}",
     AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
     AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}}",
     AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}}",
     AbstractAlgebra.Generic.PolyRing{nf_elem} => "AbstractAlgebra.Generic.PolyRing{nf_elem}",
+    AbstractAlgebra.Generic.PolyRing{NfAbsNSElem} => "AbstractAlgebra.Generic.PolyRing{NfAbsNSElem}",
     Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
     Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
     Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
+    Matrix{fmpq_poly} => "Matrix{fmpq_poly}",
+    Hecke.NfRelNS{Hecke.NfRelElem{nf_elem}} => "Hecke.NfRelNS{Hecke.NfRelElem{nf_elem}}",
+    Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}} => "Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
     MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}",
+    MPolyIdeal{AbstractAlgebra.Generic.MPoly{NfAbsNSElem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{NfAbsNSElem}}",
     MPolyIdeal{fmpq_mpoly} => "MPolyIdeal{fmpq_mpoly}",
     MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
     MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",
     MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
     NfRelNS{nf_elem} => "NfRelNS{nf_elem}",
     Polymake.BigObjectAllocated => "Polymake.BigObject",
-    Vector{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "Vector{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    Vector{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "Vector{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
-    Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
-    Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "Vector{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
-    Vector{AbstractAlgebra.Generic.MPoly{nf_elem}} => "Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}",
-    Vector{AbstractAlgebra.Generic.Poly{nf_elem}} => "Vector{AbstractAlgebra.Generic.Poly{nf_elem}}",
-    Vector{AbstractAlgebra.Ring} => "Vector{AbstractAlgebra.Ring}",
-    Vector{Any} => "Vector{Any}",
-    Vector{Float16} => "Vector{Float16}",
-    Vector{Float32} => "Vector{Float32}",
-    Vector{Float64} => "Vector{Float64}",
-    Vector{fmpq_mpoly} => "Vector{fmpq_mpoly}",
-    Vector{fmpq_poly} => "Vector{fmpq_poly}",
-    Vector{fmpq} => "Vector{fmpq}",
-    Vector{fmpz_mpoly} => "Vector{fmpz_mpoly}",
-    Vector{fmpz_poly} => "Vector{fmpz_poly}",
-    Vector{fmpz} => "Vector{fmpz}",
-    Vector{fq_nmod_mpoly} => "Vector{fq_nmod_mpoly}",
-    Vector{fq_nmod} => "Vector{fq_nmod}",
-    Vector{gfp_elem} => "Vector{gfp_elem}",
-    Vector{gfp_fmpz_elem} => "Vector{gfp_fmpz_elem}",
-    Vector{Hecke.NfRelElem{nf_elem}} => "Vector{Hecke.NfRelElem{nf_elem}}",
-    Vector{Hecke.NfRelNSElem{nf_elem}} => "Vector{Hecke.NfRelNSElem{nf_elem}}",
-    Vector{Int8} => "Vector{Int8}",
-    Vector{Int16} => "Vector{Int16}",
-    Vector{Int32} => "Vector{Int32}",
-    Vector{Int64} => "Vector{Int64}",
-    Vector{Int128} => "Vector{Int128}",
-    Vector{LinearProgram{fmpq}} => "Vector{LinearProgram{fmpq}}",
-    Vector{nf_elem} => "Vector{nf_elem}",
-    Vector{nmod_mpoly} => "Vector{nmod_mpoly}",
-    Vector{nmod} => "Vector{nmod}",
-    Vector{Symbol} => "Vector{Symbol}",
-    Vector{ToricDivisor} => "Vector{ToricDivisor}",
-    Vector{UInt8} => "Vector{UInt8}",
-    Vector{UInt16} => "Vector{UInt16}",
-    Vector{UInt32} => "Vector{UInt32}",
-    Vector{UInt64} => "Vector{UInt64}",
-    Vector{UInt128} => "Vector{UInt128}",
-    Vector{Union{LinearProgram, Polyhedron}} => "Vector{Union{LinearProgram, Polyhedron}}",
     )
 
   registerSerializationType(T, str)
@@ -151,16 +120,13 @@ end
 
 
 function encodeType(::Type{T}) where T
-    if haskey(typeMap, T)
-        return typeMap[T]
-    else
-        # As a default just save the type as a string.
-        @warn "Serialization: Generic Encoding of type $T"
-        string(T)
-    end
+    haskey(typeMap, T) && return typeMap[T]
+    error("unspported type '$T' for encoding")
 end
 
-
+# special case for Vector{T} specializations
+encodeType(::Type{<:Vector}) = "Vector"
+reverseTypeMap["Vector"] = Vector
 
 function decodeType(input::String)
     if haskey(reverseTypeMap, input)
@@ -174,6 +140,8 @@ function decodeType(input::String)
         # Standard Oscar tests should never pass this line
         @warn "Serialization: Generic Decoding of type $input"
         eval(Meta.parse(input))
+
+        error("unspported type '$input' for decoding")
     end
 end
 
@@ -216,7 +184,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
+function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
+                            parent=nothing) where T
     # File version to be dealt with on first breaking change
     # A file without version number is treated as the "first" version
     
@@ -226,18 +195,35 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict) where T
         return backref
     end
 
-    decodeType(dict[:type]) <: T || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T"))
+    # Decode the stored type, and compare it to the type `T` supplied by the caller.
+    # If they are identical, just proceed. If not, then we assume that either
+    # `T` is concrete, in which case `T <: U` should hold; or else `U` is
+    # concrete, and `U <: T` should hold.
+    #
+    # However, we actually do not currently check for the types being concrete,
+    # to allow for things like decoding `Vector{Vector}` ... we can tighten or loosen
+    # these checks later on, depending on what we actually need...
+    U = decodeType(dict[:type])
+    U <: T || U >: T || throw(ErrorException("Type in file doesn't match target type: $(dict[:type]) not a subtype of $T"))
 
     Base.issingletontype(T) && return T()
 
-    result = load_internal(s, T, dict[:data])
+    if parent !== nothing
+        result = load_internal_with_parent(s, T, dict[:data], parent)
+    else
+        result = load_internal(s, T, dict[:data])
+    end
+    
     if haskey(dict, :id)
         s.objs[UUID(dict[:id])] = result
     end
     return result
 end
 
-function load_unknown_type(s::DeserializerState, dict::Dict; check_namespace=false)
+function load_unknown_type(s::DeserializerState,
+                           dict::Dict;
+                           parent=nothing,
+                           check_namespace=false)
     if check_namespace
         haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
         _ns = dict[:_ns]
@@ -255,7 +241,7 @@ function load_unknown_type(s::DeserializerState, dict::Dict; check_namespace=fal
     T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
 
-    return load_type_dispatch(s, T, dict)
+    return load_type_dispatch(s, T, dict; parent=parent)
 end
 
 
@@ -334,16 +320,16 @@ julia> load("fourtitwo.json")
 42
 ```
 """
-function load(io::IO)
+function load(io::IO; parent::Any = nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
-    return load_unknown_type(state, jsondict; check_namespace=true)
+    return load_unknown_type(state, jsondict; parent=parent, check_namespace=true)
 end
 
-function load(filename::String)
+function load(filename::String; parent::Any = nothing)
     open(filename) do file
-        return load(file)
+        return load(file; parent=parent)
     end
 end
 
@@ -370,16 +356,16 @@ julia> load("fourtitwo.json", String)
 ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
 ```
 """
-function load(io::IO, T::Type)
+function load(io::IO, T::Type; parent=nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
-    return load_type_dispatch(state, T, jsondict)
+    return load_type_dispatch(state, T, jsondict; parent=parent)
 end
 
-function load(filename::String, T::Type)
+function load(filename::String, T::Type; parent=nothing)
     open(filename) do file
-        return load(file, T)
+        return load(file, T; parent=parent)
     end
 end
 

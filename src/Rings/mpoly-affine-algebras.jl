@@ -1201,19 +1201,25 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    integral_basis(f::MPolyElem, i::Int)
+    integral_basis(f::MPolyElem, i::Int; alg = :normal_local)
 
-Given a polynomial $f$ in two variables with rational coefficients and an
-integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
-and monic in the specified variable: Say, $f\in\mathbb Q[x,y]$ is monic in $y$.
-Then the normalization of $A = Q[x,y]/\langle f \rangle$, that is, the
+Given a polynomial $f$ in two variables with coefficients in a field $K$, and
+given an integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
+and monic in the specified variable: Say, $f\in\mathbb K[x,y]$ is monic in $y$.
+Then the normalization of $A = K[x,y]/\langle f \rangle$, that is, the
 integral closure $\overline{A}$ of $A$ in its quotient field, is a free
 module over $K[x]$ of finite rank, and any set of free generators for
 $\overline{A}$ over $K[x]$ is called an *integral basis* for $\overline{A}$
-over $K[x]$. Relying on the algorithm by [BDLP19](@cite),
-the function returns a pair $(d, V)$, where $d$ is an element of $A$,
+over $K[x]$. The function returns a pair $(d, V)$, where $d$ is an element of $A$,
 and $V$ is a vector of elements in $A$, such that the fractions $v/d, v\in V$,
-form an integral basis for $\overline{A}$ over $K[x]$. 
+form an integral basis for $\overline{A}$ over $K[x]$.
+
+By default (`alg = :normal_local`), the function relies on the
+local-to-global approach to normalization presented in [BDLPSS13](@cite).
+Alternatively, if specified by `alg = :normal_global`, the global normalization
+algorithm in [GLS10](@cite) is used. If $K = \mathbb Q$, it is recommended to
+apply the algorithm in [BDLP19](@cite), which makes use of Puiseux expansions
+and Hensel lifting (`alg = :hensel`).
 
 !!! note
     The conditions on $f$ are automatically checked.
@@ -1230,8 +1236,18 @@ julia> integral_basis(f, 2)
 (x^2, MPolyQuoElem{fmpq_mpoly}[x^2, x^2*y, y^2 - 2, y^3 - 2*y])
 ```
 """
-function integral_basis(f::MPolyElem, i::Int)
+function integral_basis(f::MPolyElem, i::Int; alg = :normal_local)
   R = parent(f)
+
+  if alg == :hensel
+    options = ("hensel",)
+  elseif alg == :normal_local
+    options = ("normal", "local")
+  elseif alg == :normal_global
+    options = ("normal", "global")
+  else
+    throw(ArgumentError("unsupported algorithm $alg"))
+  end
 
   if R isa MPolyRing_dec
     throw(ArgumentError("Not implemented for decorated rings."))
@@ -1245,22 +1261,26 @@ function integral_basis(f::MPolyElem, i::Int)
     throw(ArgumentError("The index $i must be either 1 or 2, indicating the integral variable."))
   end
 
-  if !(coefficient_ring(R) == QQ || base_ring(R) == Singular.QQ)
-    throw(ArgumentError("The coefficient ring must be the rationals."))
-  end
-
   if !isone(coeff(f, [i], [degree(f, i)]))
     throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))
+  end
+
+  SR = singular_poly_ring(R)
+
+  if !(base_ring(SR) isa Singular.Rationals ||
+       base_ring(SR) isa Singular.N_ZpField ||
+       base_ring(SR) isa Singular.N_GField ||
+       base_ring(SR) isa Singular.N_AlgExtField)
+    throw(NotImplementedError(:integral_basis, f))
   end
 
   if !is_irreducible(f)
     throw(ArgumentError("The input polynomial must be irreducible"))
   end
 
-  SR = singular_poly_ring(R)
-  l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred")
+  l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred", options...)
   A, p = quo(R, ideal(R, [f]))
   ###return (R(l[2]), R.(gens(l[1])))
-  return (p(R(l[2])), [p(R(x)) for x = gens(l[1])])
+  return (p(R(l[2])), [p(R(x)) for x in gens(l[1])])
 end
 

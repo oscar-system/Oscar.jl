@@ -10,6 +10,13 @@ function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
     return fmpz(str)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{fmpz},
+                                   str::String,
+                                   parent::FlintIntegerRing)
+    return parent(fmpz(str))
+end
+
 
 ################################################################################
 # fmpq

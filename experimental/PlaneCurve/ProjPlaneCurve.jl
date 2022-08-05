@@ -205,7 +205,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//leading_coefficient(h)
+        f = divexact(h, leading_coefficient(h))
         push!(ro, -f + gen(rr, 1))
      end
   end

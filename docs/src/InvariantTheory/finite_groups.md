@@ -119,15 +119,7 @@ iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 ## Primary Invariants
 
 ```@docs
-primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
-```
-
-```@docs
-primary_invariants_via_optimal_hsop(IR::InvRing)
-```
-
-```@docs
-primary_invariants_via_successive_algo(IR::InvRing)
+primary_invariants(IR::InvRing)
 ```
 
 ## Secondary Invariants
@@ -143,7 +135,7 @@ irreducible_secondary_invariants(IR::InvRing)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing, algo::Symbol = :king)
+fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
 ```
 
 ## Invariant Rings as Affine Algebras

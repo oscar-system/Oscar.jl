@@ -3,6 +3,10 @@
     I = ideal(R,[x*y^2 - x, x^3 - 2*y^5])
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
+    R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
+    I = ideal(R, [x])
+    gb = f4(I)
+    @test normal_form(y, I) == y
 end
 
 @testset "groebner leading ideal" begin
@@ -28,7 +32,7 @@ end
    @test groebner_basis(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
    @test groebner_basis(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis(I, ordering=deglex([x, y, z])) == groebner_basis(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
-   M = Oscar.Orderings.MonomialOrdering(R, Oscar.Orderings.ordering([ x, y, z ], matrix(ZZ, [ 1 1 1 ; 0 1 0 ; 1 0 0 ])))
+   M = matrix_ordering([x, y, z], [1 1 1; 0 1 0; 1 0 0])
    @test groebner_basis(I, ordering = M) == [ x + y + z, 2*x^2 + 2*x*z + z^3 + z^2 ]
    @test_throws ErrorException groebner_basis(I, ordering = negdeglex([x, y, z]))
    @test groebner_basis(I, ordering = negdeglex([x, y, z]), enforce_global_ordering = false) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
@@ -38,4 +42,14 @@ end
    @test groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
    @test groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z])) == groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
+end
+
+@testset "non-global orderings" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, [x^2*(x-1)-y^2, y^3*(x+y-6)])
+  o = negdegrevlex(gens(R))
+  G = std_basis(I, o)
+  @test normal_form(x^5-5, I, o) == -5
+  u = negdegrevlex([x])*negdegrevlex([y])
+  @test ideal_membership(x^4, I, ordering=u)
 end

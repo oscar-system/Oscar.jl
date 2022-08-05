@@ -83,6 +83,42 @@ Every group of this type is the subgroup of Sym(n) for some n.
 - `dihedral_group(PermGroup, n::Int)`:
   the dihedral group of order `n` as a group of permutations.
   Same holds replacing `dihedral_group` by `quaternion_group`
+
+If `G` is a group and `x` is a permutation,
+`G(x)` returns a permutation `x` with parent `G`;
+an exception is thrown if `x` does not embed into `G`.
+```jldoctest
+julia> G=symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> x=cperm([1,2,3])
+(1,2,3)
+
+julia> parent(x)
+Sym( [ 1 .. 3 ] )
+
+julia> y=G(x)
+(1,2,3)
+
+julia> parent(y)
+Sym( [ 1 .. 5 ] )
+```
+
+If `G` is a group and `L` is a vector of integers,
+`G(x)` returns a [`PermGroupElem`](@ref) with parent `G`;
+an exception is thrown if the element does not embed into `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6)
+Sym( [ 1 .. 6 ] )
+
+julia> x = G([2,4,6,1,3,5])
+(1,2,4)(3,6,5)
+
+julia> parent(x)
+Sym( [ 1 .. 6 ] )
+```
 """
 @attributes mutable struct PermGroup <: GAPGroup
    X::GapObj

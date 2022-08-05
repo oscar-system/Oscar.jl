@@ -24,7 +24,6 @@ export
     has_exponent, set_exponent,
     fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup,
     frattini_subgroup, has_frattini_subgroup, set_frattini_subgroup,
-    gap_perm, # HACK
     gen,
     gens, has_gens,
     hall_subgroup,
@@ -57,6 +56,7 @@ export
     one!,
     order, has_order, set_order,
     pcore,
+    perm,
     radical_subgroup, has_radical_subgroup, set_radical_subgroup,
     rand_pseudo,
     relators,

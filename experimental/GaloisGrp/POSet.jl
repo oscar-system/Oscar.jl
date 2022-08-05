@@ -32,6 +32,10 @@ function Base.in(a::T, P::POSet{T}) where T
   return any(x->P.can_cmp(x, a) && P.cmp(x, a) == 0, P.elem)
 end
 
+function Base.findall(a::T, P::POSet{T}) where T
+  return [i for i=1:length(P.elem) if P.can_cmp(P.elem[i], a) && P.cmp(P.elem[i], a) == 0]
+end
+
 function Base.length(P::POSet)
   return length(P.elem)
 end
