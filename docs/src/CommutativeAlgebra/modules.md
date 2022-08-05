@@ -28,7 +28,7 @@ are two homomorphisms of free $R$-modules with the same codomain. We then refer 
 - the images of the canonical basis vectors of $R^s$ in $R^p$ as the *ambient representatives of the generators* of $M$, and
 - the images of the canonical basis vectors of $R^t$ in $R^p$ as the *relations* of $M$.
 
-Alternatively, we speak of the *subquotient of* $\text{im } a$ *by* $\text{im } b$ or the
+Alternatively, we speak of the *subquotient of* $\;\text{im } a\;$ *by* $\;\text{im } b\;$ or the
 *subquotient defined by $A$ and $B$*, where $A$ and $B$ are the matrices representing
 $a$ and $b$, respectively.
 
@@ -47,9 +47,10 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 
 ## Types
 
-All OSCAR types for finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleFP{T}`.
-For subquotients, OSCAR provides the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}` and its concrete
-descendant `SubQuo{T}`.
+All OSCAR types for finitely presented modules over multivariate polynomial rings
+belong to the abstract type `ModuleFP{T}`, where `T` is the element type of the polynomial ring.
+For subquotients, OSCAR provides the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}` and
+its concrete descendant `SubQuo{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -96,7 +97,8 @@ ambient_module(M)
 
 ## Elements of Subqotients
 
-All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleElemFP{T}`.
+All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the
+abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
 For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
 and its concrete descendant `SubQuoElem{T}` which implements an element $m$ of a subquotient
 $M$ over a ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
@@ -127,7 +129,7 @@ o = z*M[1] + M[2]
 m == n == o
 ```
 
-Given an element `m`  of a subquotient `M`,
+Given an element `m`  of a subquotient `M`  over a multivariate polynomial ring $R$ with element type `T`,
 - `parent(m)` refers to `M`, 
 - `coefficients(m)` to  an object of type `SRow{T}` specifying the coefficients of an $R$-linear combination of the generators of $M$ which gives $m$, and
 - `ambient_representative(m)` to an element of the ambient free module of `M` which represents `m`.
@@ -179,11 +181,11 @@ iszero(m::SubQuoElem)
 ## Tests on Subqotients
 
 ```@docs
-issubset(M::SubQuo{T}, N::SubQuo{T}) where T
+==(M::SubQuo{T}, N::SubQuo{T}) where T
 ```
 
 ```@docs
-==(M::SubQuo{T}, N::SubQuo{T}) where T
+issubset(M::SubQuo{T}, N::SubQuo{T}) where T
 ```
 
 ```@docs
@@ -212,7 +214,7 @@ sub(F::FreeMod, O::Vector{<:FreeModElem}, task::Symbol = :none)
 ```
 
 ```@docs
-sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true)
+sub(M::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true)
 ```
 
 ```@docs
@@ -233,8 +235,8 @@ by using one of the following constructors:
 hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
-Given a homomorphism of type `SubQuoHom`, a matrix `A` as above is
-recovered by the following function:
+Given a homomorphism of type `SubQuoHom`, a matrix `A` representing it
+is recovered by the following function:
 
 ```@docs
 matrix(a::SubQuoHom)
@@ -243,15 +245,6 @@ matrix(a::SubQuoHom)
 The domain and codomain of a homomorphism `a`  of type `SubQuoHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
-## Operations on Subquotients
-
-```@docs
-direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where T
-```
-
-```@docs
-direct_product(M::ModuleFP{T}...; task::Symbol = :none) where T
-```
 
 ## Operations on Homomorphisms
 
@@ -268,34 +261,42 @@ hom_prod_prod(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
 ### Kernel
 
 ```@docs
-kernel(h::FreeModuleHom)
+kernel(a::FreeModuleHom)
 ```
 
 ```@docs
-kernel(h::SubQuoHom)
+kernel(a::SubQuoHom)
 ```
 
 
 ### Image
 
 ```@docs
-image(h::FreeModuleHom)
+image(a::FreeModuleHom)
 ```
 
 ```@docs
-image(h::SubQuoHom)
+image(a::SubQuoHom)
 ```
 
 ### Cokernel
 
 ```@docs
-cokernel(f::FreeModuleHom) 
+cokernel(a::FreeModuleHom) 
 ```
 
 ### Homology
 
 
+## Direct Sums and Products
 
+```@docs
+direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where T
+```
+
+```@docs
+direct_product(M::ModuleFP{T}...; task::Symbol = :none) where T
+```
 
 ## Presentations
 

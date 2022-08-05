@@ -24,9 +24,10 @@ and homomorphisms between free modules by matrices.
 
 ## Types
 
-All OSCAR types for finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleFP{T}`.
-For free modules, OSCAR provides the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}` and its concrete
-descendant `FreeMod{T <: RingElem}`.
+All OSCAR types for finitely presented modules over multivariate polynomial rings belong to
+the abstract type `ModuleFP{T}`, where `T` is the element type of the polynomial ring.
+For free modules, OSCAR provides the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`
+and its concrete descendant `FreeMod{T <: RingElem}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -60,7 +61,8 @@ rank(F)
 
 ## Elements of Free Modules
 
-All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleElemFP{T}`.
+All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong
+to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the polynomial ring.
 For elements of free modules, there are the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}` and its concrete
 descendant `FreeModElem{T}` which implements an element $f$ of a free module $F$ as a sparse row,
 that is, as an object of type `SRow{T}`. This object specifies the coordinates of $f$ with respect to
@@ -88,7 +90,7 @@ h = x*F[1] + y*F[3]
 f == g == h
 ```
 
-Given an element `f`  of a free module `F`,
+Given an element `f`  of a free module `F` over a multivariate polynomial ring with element type `T`,
 - `parent(f)` refers to `F`, and
 - `coefficients(f)` to the coordinate vector of `f`, returned as an object of type `SRow{T}`.
 
@@ -135,8 +137,8 @@ by using one of the following constructors:
 hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}) 
 ```
 
-Given a homomorphism of type `FreeModuleHom`, a matrix `A` as above is
-recovered by the following function:
+Given a homomorphism of type `FreeModuleHom`, a matrix `A` representing it
+is recovered by the following function:
 
 ```@docs
 matrix(a::FreeModuleHom)
@@ -158,23 +160,4 @@ The domain and codomain of a homomorphism `a`  of type `FreeModuleHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
 
-## Operations on Free Modules
 
-```@docs
-direct_sum(F::FreeMod{T}...; task::Symbol = :none) where T
-```
-
-```@docs
-direct_product(F::FreeMod{T}...; task::Symbol = :none) where T
-```
-
-##### Examples
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 2)
-G = free_module(R, 3, "f")
-L = direct_product(F, G, task = :both)
-basis(L[1])
-L[3][2]
-```
