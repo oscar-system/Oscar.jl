@@ -9,6 +9,7 @@ NonSimRel, c = NumberField([y^2 - 5 * a, y^2 - 7 * a])
 Zt, t = PolynomialRing(ResidueRing(ZZ, 2), "t")
 Fin, d = FiniteField(t^2 + t + 1)
 Frac = FractionField(R)
+P7 = PadicField(7, 30)
 
 cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),
@@ -19,7 +20,8 @@ cases = [
     (Tow, a^2 * b, a + b, "Tower Extension"),
     (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
     (Fin, d, 0, "Finite Field"),
-    (Frac, 1 // x, x^2, "Fraction Field")
+    (Frac, 1 // x, x^2, "Fraction Field"),
+    (P7, 7 + 3*7^2, 7^5, "Padic Field")
 ]
 
 
@@ -62,7 +64,7 @@ function get_hom(R1::T, R2::T) where {
 end
 
 function test_equality(p::T, l::T) where T <: (
-    MPolyElem{S} where S <:Union{fmpq, fmpz, nmod})
+    MPolyElem{S} where S <:Union{fmpq, fmpz, nmod, padic})
     P = parent(p)
     L = parent(l)
     h = hom(P, L, gens(L))
@@ -70,7 +72,7 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function test_equality(p::T, l::T) where T <: (
-    PolyElem{S} where S <: Union{fmpq, fmpz, nmod})
+    PolyElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
     P = parent(p)
     L = parent(l)
     return L(collect(coefficients(p))) == l

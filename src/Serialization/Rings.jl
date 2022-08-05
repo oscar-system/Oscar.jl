@@ -119,6 +119,9 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyElem},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
+    # load parent in case serialzed parent needs to be checked against given parent
+    _, _ = load_unknown_type(s, dict[:parent])
+
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(parent_ring)
@@ -162,6 +165,9 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
+    # load parent in case serialzed parent needs to be checked against given parent
+    _, _ = load_unknown_type(s, dict[:parent])
+    
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
@@ -169,7 +175,7 @@ function load_internal_with_parent(s::DeserializerState,
     return parent_ring(coeffs)
 end
 
-################################################################################
+i################################################################################
 # Polynomial Ideals
 function save_internal(s::SerializerState, i::MPolyIdeal)
     generators = gens(i)
@@ -194,7 +200,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent_ring::MPolyRing)
     gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
-
+    
     return ideal(parent_ring, gens)
 end
 

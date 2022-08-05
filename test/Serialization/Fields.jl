@@ -13,7 +13,7 @@
             end
         end
 
-        @testset "Simple Field Embeddings" begin
+        @testset "Non Simple Field Embeddings" begin
             Qx, x = QQ["x"]
             K, _ = NumberField([x^2 + 5, x^2 + 7])
             E = complex_embeddings(K)[1]
