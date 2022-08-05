@@ -175,7 +175,7 @@ function load_internal_with_parent(s::DeserializerState,
     return parent_ring(coeffs)
 end
 
-i################################################################################
+################################################################################
 # Polynomial Ideals
 function save_internal(s::SerializerState, i::MPolyIdeal)
     generators = gens(i)
