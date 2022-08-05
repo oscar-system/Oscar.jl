@@ -195,18 +195,47 @@ function (-)(x::Hecke.TorQuadModElem)
 end
 
 
+function Base.show(io::IO, c::Chamber)
+  print(IOContext(io, :compact => true), "Chamber  in dimension $(length(c.walls[1])) with $(length(c.walls)) walls")
+end
+
 """
 G - inverse gram matrix of S
 """
 function fingerprint(data::BorcherdsData, D::Chamber)
   v = sum(D.walls)
-  G = gram_matrix(data.SS)
+  G = change_base_ring(ZZ,gram_matrix(data.SS))
   m1 = (v*G*transpose(v))[1,1]
   m2 = [(a*G*transpose(a))[1,1] for a in D.walls]
   sort!(m2)
   m3 = [(v*G*transpose(a))[1,1] for a in D.walls]
   sort!(m3)
-  return hash((m1, m2, m3))
+  m4 = fmpz[]
+  for i in 1:length(D.walls)
+    for j in 1:i-1
+      push!(m4,(D.walls[i]*G*transpose(D.walls[j]))[1,1])
+    end
+  end
+  sort!(m4)
+  #=
+  V = Dict{Tuple{fmpz,fmpz},Vector{fmpz_mat}}()
+  for w in D.walls
+    i =  (v*G*transpose(w))[1,1]
+    j =  (w*G*transpose(w))[1,1]
+    if (i,j) in keys(V)
+      push!(V[(i,j)],w)
+    else
+      V[(i,j)] = [w]
+    end
+  end
+  m5 = []
+  for i in keys(V)
+    vi = sum(V[i])
+    push!(m5, [i,sort!([(vi*G*transpose(j))[1,1] for j in D.walls])])
+  end
+  sort!(m5)
+  =#
+  return hash((m1, m2, m3, m4))
 end
 
 alg318(gram, rays) = alg319(gram, rays, rays)
@@ -258,7 +287,7 @@ function alg319(gram::MatrixElem, raysD::Vector{fmpq_mat}, raysE::Vector{fmpq_ma
   end
   basisinv = inv(basis)
   imgs = [basisinv*f for f in imgs]
-  is_in_hom_D_E(f) = all(r*f in raysD for r in raysE) # can be made faster using an interior point as in Remark 3.20
+  is_in_hom_D_E(f) = all(r*f in raysE for r in raysD) # can be made faster using an interior point as in Remark 3.20
   imgs = [f for f in imgs if denominator(f)==1 && membership_test(f) && is_in_hom_D_E(f)]
   return imgs
 end
@@ -280,10 +309,10 @@ function alg319(gram::MatrixElem, raysD::Vector{fmpz_mat}, raysE::Vector{fmpz_ma
     imgs = imgs_new
     i = i+1
   end
-  basisinv = inv(change_base_ring(QQ,basis))
+  basisinv = inv(change_base_ring(QQ, basis))
   imgs = [basisinv*f for f in imgs]
   @hassert :K3Auto 1 all(f*gram*transpose(f)==gram for f in imgs)
-  is_in_hom_D_E(f) = all(r*f in raysD for r in raysE) # can be made faster using an interior point as in Remark 3.20
+  is_in_hom_D_E(f) = all(r*f in raysE for r in raysD) # can be made faster using an interior point as in Remark 3.20
   imgs = [f for f in imgs if  denominator(f)==1 && abs(det(f))==1 && membership_test(f) && is_in_hom_D_E(f)]
   return imgs
 end
@@ -706,7 +735,7 @@ Computes the automorphism group of a K3.
 
 - `w` - initial Weyl vector
 """
-function K3Auto(L, S, w; max_trys=-1)
+function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
   # preprocessing
   L1 = Zlattice(gram=gram_matrix(L))
   V = ambient_space(L1)
@@ -718,6 +747,10 @@ function K3Auto(L, S, w; max_trys=-1)
   membership_test(g) = is_in_G(SS,g)
 
   R = lll(Hecke.orthogonal_submodule(L, S))
+  # OR = orthogonal_group(R)
+  # ODR = orthogonal_group(discriminant_group(R))
+  # and here we need the glue map
+
   d = exponent(discriminant_group(S))
   Rdual = dual(R)
   sv = short_vectors(rescale(Rdual,-1), 2)
@@ -736,7 +769,7 @@ function K3Auto(L, S, w; max_trys=-1)
   D = Chamber(data, w, zero_matrix(ZZ, 1, rank(S)))
   waiting_list = [D]
 
-  automorphisms = fmpq_mat[]
+  automorphisms = Set{fmpq_mat}()
   rational_curves = Set{fmpz_mat}()
 
   # gogo
@@ -745,7 +778,7 @@ function K3Auto(L, S, w; max_trys=-1)
   while length(waiting_list) > 0
     ntry = ntry + 1
     if mod(ntry, 10)==0
-      @vprint :K3Auto 1 "explored: $(nchambers) unexplored: $(length(waiting_list))\n"
+      @vprint :K3Auto 1 "buckets: $(length(chambers)) explored: $(nchambers) unexplored: $(length(waiting_list)) generators: $(length(automorphisms))\n"
     end
     D = popfirst!(waiting_list)
     @hassert :K3Auto 2 inner_product(V,w,w)[1,1] >= 0
@@ -760,7 +793,16 @@ function K3Auto(L, S, w; max_trys=-1)
       if length(gg) > 0
         # enough to add a single
         if !isone(gg[1]) # one could hit the same chamber twice from different directions
-          push!(automorphisms, gg[1])
+          if !(gg[1] in automorphisms)
+            push!(automorphisms, gg[1])
+            if entropy_abort
+              C = lattice(rational_span(S),common_invariant(automorphisms)[2])
+              d = diagonal(rational_span(C))
+              if 0 > maximum(push!([sign(i) for i in d],-1))
+                return data, automorphisms, chambers, rational_curves, false
+              end
+            end
+          end
         end
         is_explored = true
         break
@@ -1522,12 +1564,13 @@ function has_zero_entropy(S; rank_unimod=26, preprocessing_only = false)
       break
     end
   end
+  @assert is_S_nondegenerate(L,S,weyl)
 
   @vprint :K3Auto 1 "preprocessing completed \n"
   if preprocessing_only
     return L,S,weyl
   end
-  data, K3Autgrp, chambers, rational_curves, _ = oscar.K3Auto(L,S,weyl)
+  data, K3Autgrp, chambers, rational_curves, _ = oscar.K3Auto(L,S,weyl, entropy_abort=true)
   C = lattice(rational_span(S),common_invariant(K3Autgrp)[2])
   d = diagonal(rational_span(C))
 
