@@ -203,9 +203,10 @@ mutable struct BiPolyArray{S}
   end
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
-    O = Vector{elem_type(T)}(undef, Singular.ngens(S))
     Sx = base_ring(S)
-    r = new{elem_type(T)}(Ox, O, Sx, S)
+    r = new{elem_type(T)}(Ox)
+    r.Sx = Sx
+    r.S = S
     r.isGB = S.isGB
     r.keep_ordering = true
     return r
@@ -220,8 +221,8 @@ function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
 end
 
 function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-  if !isassigned(A.O, i)
-    A.O[i] = A.Ox(A.S[i])
+    if !isdefined(A, :O)
+      oscar_assure(A)
   end
   return A.O[i]
 end
@@ -510,9 +511,6 @@ end
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
     I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
-  end
-  if isdefined(I, :gb)
-    I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
   end
 end
 
