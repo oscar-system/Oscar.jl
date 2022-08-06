@@ -1583,18 +1583,18 @@ function has_zero_entropy(S; rank_unimod=26, preprocessing_only = false)
 end
 
 
-function check_zero_entropy(candidates,wa="a")
-  ioelliptic = open("elliptic", wa)
-  ioparabolic = open("parabolic", wa)
-  iohyperbolic = open("hyperbolic", wa)
+function check_zero_entropy(candidates,postfix="",wa="a")
+  ioelliptic = open("elliptic$(postfix)", wa)
+  ioparabolic = open("parabolic$(postfix)", wa)
+  iohyperbolic = open("hyperbolic$(postfix)", wa)
   close(ioelliptic)
   close(ioparabolic)
   close(iohyperbolic)
   for S in candidates
-    ioelliptic = open("elliptic", "a")
-    ioparabolic = open("parabolic", "a")
-    iohyperbolic = open("hyperbolic", "a")
     e = has_zero_entropy(S)[1]
+    ioelliptic = open("elliptic$(postfix)", "a")
+    ioparabolic = open("parabolic$(postfix)", "a")
+    iohyperbolic = open("hyperbolic$(postfix)", "a")
     if e>0
       println(ioelliptic, gram_matrix(S))
     elseif e==0
