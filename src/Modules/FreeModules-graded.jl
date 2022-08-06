@@ -826,7 +826,7 @@ function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Vector{ <: Map_dec})
   return hom(G, H)
 end
 
-function hom_prod_prod(G::ModuleFP_dec, H::ModuleFP_dec, A::Matrix{ <: Map_dec})
+function hom_product(G::ModuleFP_dec, H::ModuleFP_dec, A::Matrix{ <: Map_dec})
   tG = get_attribute(G, :tensor_product)
   tG === nothing && error("both modules must be direct products")
   tH = get_attribute(H, :tensor_product)

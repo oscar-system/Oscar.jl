@@ -260,7 +260,7 @@ hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleMap})
 ```
 
 ```@docs
-hom_prod_prod(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
+hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
 ```
 
 ## Subquotients Related to Homomorphisms

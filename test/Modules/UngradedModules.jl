@@ -450,9 +450,10 @@ end
   Q1,p1 = quo(M1,N1,:cache_morphism)
 
   @test Q1 == SubQuo(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
+  @test p1 == find_morphism(M1, Q1)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)  
-    @test p1(elem) == map_canonically(Q1, elem)
+    @test p1(elem) == transport(Q1, elem)
   end
 
   F2 = FreeMod(R,2)
@@ -464,7 +465,7 @@ end
             R[x^3-y^2 y^4-x-y; x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y])
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M2)
-    @test p2(elem) == map_canonically(Q2, elem)
+    @test p2(elem) == transport(Q2, elem)
   end
 
   M3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1 x^4 2*x*y; y^4 3*x -1],R[y^2 x^3 y^2])
@@ -476,7 +477,7 @@ end
   @test iszero(Q3)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
-    @test p3(elem) == map_canonically(Q3, elem)
+    @test p3(elem) == transport(Q3, elem)
     @test iszero(p3(elem))
   end
 end
@@ -489,18 +490,20 @@ end
   S1,i1 = sub(M1, [M1(sparse_row(R[1 1])),M1(sparse_row(R[y -x]))], :cache_morphism)
 
   @test S1 == SubQuo(F2,R[x*y^2+x^3-x^2 x*y^3-x*y-x^2; x^2*y+x*y^2+x*y-x^2+x x*y^2],R[x^2 y^3-x])
+  @test i1 == find_morphism(S1, M1)
   for k=1:5
       elem = S1(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
-      @test i1(elem) == map_canonically(M1, elem)
+      @test i1(elem) == transport(M1, elem)
   end
 
   M2 = SubQuo(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
   S2,i2 = sub(M2,[M2(sparse_row(R[x*y -x*y^2 x*y])),M2(sparse_row(R[x 0 -1]))], :cache_morphism)
 
   @test S2 == SubQuo(F2,R[x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y],R[x^3-y^2 y^4-x-y])
+  @test i2 == find_morphisms(S2, M2)[1]
   for k=1:5
       elem = S2(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
-      @test i2(elem) == map_canonically(M2, elem)
+      @test i2(elem) == transport(M2, elem)
   end
 
   M3 = SubQuo(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
@@ -510,7 +513,7 @@ end
   @test S3 == M3
   for k=1:5
       elem = S3(sparse_row(matrix([randpoly(R) for _=1:1, i=1:3])))
-      @test i3(elem) == map_canonically(M3, elem)
+      @test i3(elem) == transport(M3, elem)
   end
 end
 
@@ -706,7 +709,7 @@ end
 		@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
 	end
 
-	# testing hom_prod_prod
+	# testing hom_product
 
 	M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
 	H12 = hom(M1,N2)[1]
@@ -719,7 +722,7 @@ end
 	@assert is_welldefined(M2_to_N1)
 	@assert is_welldefined(M2_to_N2)
 
-	phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
+	phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
 	for g in gens(M1)
 		@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
 		@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
