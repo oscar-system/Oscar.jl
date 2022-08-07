@@ -1,8 +1,8 @@
 export root_lattice,highest_root,coxeter_number,weyl_vector,has_zero_entropy,check_zero_entropy,common_invariant
 
-add_assert_scope(:K3Auto)
+Hecke.add_assert_scope(:K3Auto)
 #set_assert_level(:K3Auto, 3)
-add_verbose_scope(:K3Auto)
+Hecke.add_verbose_scope(:K3Auto)
 #set_verbose_level(:K3Auto, 3)
 
 # We work with row vectors.
@@ -1583,7 +1583,21 @@ function has_zero_entropy(S; rank_unimod=26, preprocessing_only = false)
 end
 
 
-function check_zero_entropy(candidates,postfix="",wa="a")
+function check_zero_entropy(candidate::ZLat, filename="")
+  z, data, K3Autgrp, chambers, rational_curves = has_zero_entropy(candidate)
+  io = open(filename, "w")
+  println(io, gram_matrix(candidate))
+  if z > 0
+    println(io, "elliptic")
+  elseif z == 0
+    println(io, "parabolic")
+  elseif e < 0
+    println(io, "hyperbolic")
+  end
+  close(io)
+end
+
+function check_zero_entropy(candidates::Vector,postfix="",wa="a")
   ioelliptic = open("elliptic$(postfix)", wa)
   ioparabolic = open("parabolic$(postfix)", wa)
   iohyperbolic = open("hyperbolic$(postfix)", wa)
