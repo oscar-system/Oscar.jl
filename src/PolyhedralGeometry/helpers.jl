@@ -52,9 +52,9 @@ end
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
-Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
+# Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
 Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
-Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
+# Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
 
 # export nf_scalar
 
@@ -93,11 +93,13 @@ function Base.convert(::Type{<:Polymake.Integer}, x::fmpz)
     if Nemo._fmpz_is_small(x)
         return Polymake.Integer(x.d)
     else
-        GC.@preserve x begin
-            bi = Nemo._as_bigint(x)
-            p = pointer_from_objref(bi)
-            return _integer_from_fmpz(p)
-        end
+        GC.@preserve x return Polymake._integer_from_ptr64(x.d << 2)
+    end
+end
+
+function Base.convert(::Type{<:Polymake.Rational}, x::fmpq)
+    GC.@preserve x begin
+        return Polymake.new_rational_from_fmpq(x)
     end
 end
 
