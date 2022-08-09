@@ -72,6 +72,10 @@ include("cohomCalg/VanishingSets/methods.jl")
 include("cohomCalg/auxilliary.jl")
 include("cohomCalg/special_attributes.jl")
 
+include("Subvarieties/constructors.jl")
+include("Subvarieties/properties.jl")
+include("Subvarieties/attributes.jl")
+
 # deprecated functions
 @deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
 @deprecate map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety) map_from_torusinvariant_weil_divisor_group_to_class_group(v)

@@ -1,9 +1,9 @@
 using Oscar
 using Test
 
-#####################
+##################################################
 # (1) Tests for affine toric varieties
-#####################
+##################################################
 
 antv = AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1]))
 antv2 = NormalToricVariety(Oscar.positive_hull([1 1; -1 1]))
@@ -68,9 +68,9 @@ end
 
 
 
-#####################
+##################################################
 # (2) Cyclic quotient singularities
-#####################
+##################################################
 
 cyc = CyclicQuotientSingularity(2,1)
 
@@ -86,9 +86,9 @@ end
 
 
 
-#####################
+##################################################
 # (3) Normal toric varieties
-#####################
+##################################################
 
 ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)))
 ntv2 = NormalToricVariety(Oscar.cube(2))
@@ -116,9 +116,9 @@ end
 
 
 
-#####################
+##################################################
 # (4) Projective space
-#####################
+##################################################
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 P2v2 = projective_space(NormalToricVariety,2)
@@ -150,9 +150,9 @@ end
 
 
 
-#####################
+##################################################
 # (5) Hirzebruch surfaces
-#####################
+##################################################
 
 F0 = hirzebruch_surface(0)
 F5 = NormalToricVariety([[1,0], [0,1], [-1,5], [0,-1]], [[1,2],[2,3],[3,4],[4,1]])
@@ -204,9 +204,9 @@ end
 
 
 
-#####################
+##################################################
 # (6) del Pezzo surfaces
-#####################
+##################################################
 
 dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,1]])
@@ -238,9 +238,9 @@ end
 
 
 
-#####################
+##################################################
 # (7) Blowup from star subdivision
-#####################
+##################################################
 
 blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 
@@ -266,9 +266,9 @@ end
 
 
 
-#####################
+##################################################
 # (8) Direct product
-#####################
+##################################################
 
 ntv6 = F5 * P2
 
@@ -296,9 +296,9 @@ end
 
 
 
-########################
+##################################################
 # (9) Comparison with projective space
-########################
+##################################################
 
 @testset "ComparisonWithProjectiveSpace" begin
     @test is_projective_space(antv) == false
@@ -329,9 +329,9 @@ end
 
 
 
-########################
+##################################################
 # (10) Toric divisors
-########################
+##################################################
 
 D=ToricDivisor(F5, [0,0,0,0])
 D2 = DivisorOfCharacter(F5, [1,2])
@@ -395,9 +395,9 @@ end
 
 
 
-########################
+##################################################
 # (11) Toric divisor classes
-########################
+##################################################
 
 DC = ToricDivisorClass(F5, [fmpz(0),fmpz(0)])
 DC2 = ToricDivisorClass(F5, [1,2])
@@ -424,9 +424,9 @@ end
 
 
 
-########################
+##################################################
 # (12) Toric line bundles
-########################
+##################################################
 
 l = ToricLineBundle(dP3, [1,2,3,4])
 l2 = ToricLineBundle(D2)
@@ -462,9 +462,9 @@ end
 
 
 
-################################
+##################################################
 # (13) Line bundle cohomologies and vanishing sets
-################################
+##################################################
 
 vs = vanishing_sets(dP3)
 R,_ = PolynomialRing(QQ, 3)
@@ -507,9 +507,9 @@ end
 
 
 
-#########################
+##################################################
 # (14) Topological intersection numbers
-#########################
+##################################################
 
 (u1,u2,u3,u4) = gens(cohomology_ring(dP1))
 (x1,e1,x2,e3,x3,e2) = gens(cohomology_ring(dP3))
@@ -551,4 +551,26 @@ end
     @test integrate(c^2+c-3//4*c*c) == -1//4
     @test length(intersection_form(dP3)) == 21
     @test integrate(c^2+c-3//4*c*c) == -1//4
+end
+
+
+
+
+
+##################################################
+# (15) Closd subvarieties
+##################################################
+
+(x1, x2, y1, y2) = gens(cox_ring(ntv));
+c1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
+
+@testset "Test error messages for closed subvarieties" begin
+    @test_throws ArgumentError ClosedSubvarietyOfToricVariety(ntv, [x1 - y1])
+    @test_throws ArgumentError ClosedSubvarietyOfToricVariety(antv6, [gens(cox_ring(antv6))[1]])
+end
+
+@testset "Properties and attributes of closd subvarieties" begin
+    @test is_empty(c1) == false
+    @test radical(c1) == defining_ideal(c1)
+    @test dim(toric_variety(c1)) == 2
 end
