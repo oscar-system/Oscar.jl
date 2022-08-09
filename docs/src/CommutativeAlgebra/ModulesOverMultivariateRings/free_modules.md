@@ -10,9 +10,9 @@ using Oscar
 Pages = ["free_modules.md"]
 ```
 
-# Free Modules Over Multivariate Rings
+# Free Modules
 
-In this section, the expression *free module*  refers to a free module of finite rank
+In what follows, the expression *free module*  refers to a free module of finite rank
 over a multivariate polynomial ring. More concretely, given a multivariate polynomial ring $R$, 
 the free $R$-modules considered are of type $R^p$, where we think of $R^p$ as a
 free module with a given basis, namely the basis of standard unit vectors.

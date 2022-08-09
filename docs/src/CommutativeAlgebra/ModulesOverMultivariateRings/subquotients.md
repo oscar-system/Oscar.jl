@@ -7,14 +7,14 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["modules.md"]
+Pages = ["subquotients.md"]
 ```
 
-# Modules Over Multivariate Rings
+# Subquotient Modules
 
-In this section, the term module will refer to a finitely presented module over a multivariate polynomial ring.
-In OSCAR, the most general way of implementing such a module is that of a *subquotient*, that is,
-as a submodule of a quotient of a free module. Explicitly, a *subquotient* $M$ over the ring $R$ is a module of type
+A subquotient module is a submodule of a quotient of a free module. In what follows, we simply
+use the expression *subquotient* to refer to a subquotient module over a multivariate polynomial ring.
+More concretely, given a multivariate polynomial ring $R$, a *subquotient* $M$ over $R$ is a module of type
 
 $M = (\text{im } a + \text{im } b)/\text{im } b,$
 
@@ -245,72 +245,3 @@ matrix(a::SubQuoHom)
 The domain and codomain of a homomorphism `a`  of type `SubQuoHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
-
-## Operations on Homomorphisms
-
-```@docs
-hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleMap})
-```
-
-```@docs
-hom_prod_prod(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
-```
-
-## Subquotients Related to Homomorphisms
-
-### Kernel
-
-```@docs
-kernel(a::FreeModuleHom)
-```
-
-```@docs
-kernel(a::SubQuoHom)
-```
-
-
-### Image
-
-```@docs
-image(a::FreeModuleHom)
-```
-
-```@docs
-image(a::SubQuoHom)
-```
-
-### Cokernel
-
-```@docs
-cokernel(a::FreeModuleHom) 
-```
-
-### Homology
-
-
-## Direct Sums and Products
-
-```@docs
-direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where T
-```
-
-```@docs
-direct_product(M::ModuleFP{T}...; task::Symbol = :none) where T
-```
-
-## Presentations
-
-
-## Syzygies and Free Resolutions
-
-```@docs
-free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres)
-```
-
-
-## Hom and Ext
-
-
-
-## Tensorproduct and Tor
