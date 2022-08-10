@@ -394,3 +394,56 @@ function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, d
     return complex_embedding(K, gen_balls)
 end
 
+################################################################################
+# Padic Field
+
+@registerSerializationType(FlintPadicField)
+@registerSerializationType(padic)
+
+function save_internal(s::SerializerState, P::FlintPadicField)
+    return Dict(
+        :prime => save_type_dispatch(s, prime(P)),
+        :precision => save_type_dispatch(s, precision(P))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)
+    prime_num = load_type_dispatch(s, fmpz, dict[:prime])
+    precision = load_type_dispatch(s, Int64, dict[:precision])
+
+    return PadicField(prime_num, precision)
+end
+
+#elements
+
+function save_internal(s::SerializerState, n::padic)
+    return Dict(
+        :rational_rep => save_type_dispatch(s, lift(QQ, n)),
+        :parent => save_type_dispatch(s, parent(n))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{padic}, dict::Dict)
+    rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
+    parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
+
+    return parent_field(rational_rep)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{padic},
+                                   dict::Dict,
+                                   parent::FlintPadicField)
+    rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
+    parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
+
+    # padic num precision is 1 higher than the field it lies in
+    if precision(parent_field) > precision(parent)
+        @warn("Precision Warning: given parent is less precise than serialized parent",
+              maxlog=1)
+    end
+    
+    return parent(rational_rep)
+end
+
+
