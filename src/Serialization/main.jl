@@ -71,6 +71,8 @@ macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
 end
 
 for (T, str) in (
+    AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
+    AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
     Polymake.BigObjectAllocated => "Polymake.BigObject",
     )
 
