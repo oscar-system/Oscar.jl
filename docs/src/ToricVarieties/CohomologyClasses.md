@@ -12,7 +12,7 @@ Pages = ["CohomologyClasses.md"]
 
 ## Constructors
 
-### Generic constructors
+### General constructors
 
 ```@docs
 CohomologyClass(d::ToricDivisor)
@@ -22,31 +22,29 @@ CohomologyClass(l::ToricLineBundle)
 
 ### Addition, subtraction and scalar multiplication
 
-Addition of cohomology classes `cc1` and `cc2` is implemented by
-`cc1+cc2`. Similarly, we can subtract the classes by `cc1-cc2`.
-Scalar multiplication with `c` (this could be an integer,
-fmpz or even fmpq number) is supported by `c*cc1`.
+Cohomology classes can be added and subtracted via the usual `+` and `-`
+operators. Moreover, multiplication by scalars from the left is supported
+for scalars which are integers or of type `fmpz` or `fmpq`.
 
 ### Wedge product
 
-The wedge product of cohomology classes `cc1` and `cc2`
-is computed by `cc1*cc2`. This makes sense, since cohomology
-classes on toric varieties are elements of the cohomology ring, which
-in turn is (a certain) quotient of the Cox ring. Hence, internally,
-a cohomology class is just a polynomial in this ring and the wedge
-product corresponds to the product of two (equivalence classes of)
-polynomials. We also support `cc1^n`, which corresponds to
-computing the wedge product of `cc1` with itself `n`-times.
+The wedge product of cohomology classes is implemented via `*`.
+This makes sense, since cohomology classes on (simplicial and complete)
+toric varieties are elements of the cohomology ring, which then
+turns out to be (a certain) quotient of the Cox ring. Hence, internally,
+a cohomology class can be thought of as a polynomial in this ring and
+the wedge product corresponds to the product of two (equivalence classes
+of) polynomials.
 
-### Equality
-
-Equality of cohomology classes `cc1` and `cc2` is
-implemented by `cc1 == cc2`.
+A cohomology class can be wedged `n`-times with itself via `^n`,
+where `n` can be an integer of of type `fmpz`.
 
 
 ## Properties
 
-To check if a cohomology class `c` is trivial, one can invoke `is_trivial(c)`.
+One can check if a cohomology class is trivial via `is_trivial`.
+
+Equality of cohomology classes can be tested via `==`.
 
 
 ## Attributes
@@ -59,11 +57,13 @@ polynomial(c::CohomologyClass)
 polynomial(c::CohomologyClass, ring::MPolyQuo)
 ```
 
+
 ## Methods
 
 ```@docs
 integrate(c::CohomologyClass)
 ```
+
 
 ## Special attributes of toric varieties
 

@@ -91,6 +91,7 @@ end
 ##################################################
 
 ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)))
+set_coordinate_names(ntv, ["x1","x2","y1","y2"])
 ntv2 = NormalToricVariety(Oscar.cube(2))
 ntv3 = NormalToricVarietyFromGLSM(matrix(ZZ, [[1,1,1]]))
 ntv4 = NormalToricVarietiesFromStarTriangulations(convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1]))
@@ -562,7 +563,8 @@ end
 ##################################################
 
 (x1, x2, y1, y2) = gens(cox_ring(ntv));
-c1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
+sv1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
+sv2 = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2,y2])
 
 @testset "Test error messages for closed subvarieties" begin
     @test_throws ArgumentError ClosedSubvarietyOfToricVariety(ntv, [x1 - y1])
@@ -570,7 +572,47 @@ c1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
 end
 
 @testset "Properties and attributes of closd subvarieties" begin
-    @test is_empty(c1) == false
-    @test radical(c1) == defining_ideal(c1)
-    @test dim(toric_variety(c1)) == 2
+    @test is_empty(sv1) == false
+    @test radical(sv1) == defining_ideal(sv1)
+    @test dim(toric_variety(sv1)) == 2
+end
+
+
+
+
+##################################################
+# (16) Algebraic cycles
+##################################################
+
+ac1 = RationalEquivalenceClass(D2)
+ac2 = RationalEquivalenceClass(DC3)
+ac3 = RationalEquivalenceClass(l4)
+ac4 = RationalEquivalenceClass(c3)
+ac5 = RationalEquivalenceClass(CohomologyClass(dP3, x3))
+
+@testset "Error of rational equivalence classes" begin
+  @test_throws ArgumentError RationalEquivalenceClass(antv, [1,2,3])
+  @test_throws ArgumentError RationalEquivalenceClass(toric_variety(ac1),[1,2,3])
+  @test_throws ArgumentError ac1 + ac3
+  @test_throws ArgumentError ac1 - ac3
+  @test_throws ArgumentError ac1 * ac3
+end
+
+@testset "Arithmetics of rational equivalence cycles" begin
+    @test (ac1 == ac2) == false
+    @test is_trivial(ac2 - ac3) == false
+    @test is_trivial(ac1) == true
+end
+
+@testset "Attributes of rational equivalence cycles" begin
+    @test dim(toric_variety(ac1)) == 2
+    @test polynomial(ac1) == 0
+    @test parent(representant(ac1)) == cox_ring(toric_variety(ac1))
+    @test is_trivial(cohomology_class(3*ac4)) == false
+    @test is_trivial(RationalEquivalenceClass(sv2)) == false
+end
+
+@testset "Intersection of rational equivalence cycles" begin
+    @test is_trivial(ac2*ac2) == false
+    @test is_trivial(ac2*ac2*ac2) == true
 end

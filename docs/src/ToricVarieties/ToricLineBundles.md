@@ -21,20 +21,24 @@ ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
 
 ### Tensor products
 
-Toric line bundles `l1` and `l2` (on the same toric variety) can be tensored
-by `l1*l2`. We support the `k`-th tensor power by `l1^k`. `k` can be either
-an integer or valued in fmpz. The inverse of `l1` is computed by `inv(l1)`.
+Toric line bundles can be tensored via `*`. The `n`-th tensor power can be computed via `^n`.
+In particular, `^(-1)` computes the inverse of a line bundle. Alternatively, one can compute
+the inverse by invoking `inv`.
 
+### Special line bundles
 
-### Equality
-
-Equality of toric line bundles `l1` and `l2` (on the same toric variety) is
-implemented by `l1 == l2`.
+```@docs
+anticanonical_bundle(v::AbstractNormalToricVariety)
+canonical_bundle(v::AbstractNormalToricVariety)
+structure_sheaf(v::AbstractNormalToricVariety)
+```
 
 
 ## Properties
 
-To check if a line bundle `l` is trivial, one can invoke `is_trivial(l)`. Beyond this,
+Equality of toric line bundles can be tested via `==`.
+
+To check if a toric line bundle is trivial, one can invoke `is_trivial`. Beyond this,
 we support the following properties of toric line bundles:
 ```@docs
 is_basepoint_free(l::ToricLineBundle)
@@ -50,15 +54,6 @@ degree(l::ToricLineBundle)
 divisor_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
 toric_variety(l::ToricLineBundle)
-```
-
-
-### Special line bundles
-
-```@docs
-anticanonical_bundle(v::AbstractNormalToricVariety)
-canonical_bundle(v::AbstractNormalToricVariety)
-structure_sheaf(v::AbstractNormalToricVariety)
 ```
 
 
