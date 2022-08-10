@@ -165,7 +165,8 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
-    # load parent in case serialized parent needs to be checked against given parent
+    # cache parent inside serializer state in case parent needs
+    # to be checked against the passed parent
     _, _ = load_unknown_type(s, dict[:parent])
     
     coeff_ring = coefficient_ring(parent_ring)
