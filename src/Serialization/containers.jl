@@ -62,10 +62,16 @@ function save_internal(s::SerializerState, mat::Matrix{T}) where T
     )
 end
 
+# deserialize vector with specific content type
 function load_internal(s::DeserializerState, ::Type{Matrix{T}}, dict::Dict) where T
     x = dict[:matrix]
     y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector{T}, x[i])) for i in 1:length(x)])
     return Matrix{T}(y)
 end
 
-
+# deserialize vector without specific content type
+function load_internal(s::DeserializerState, ::Type{Matrix}, dict::Dict)
+    x = dict[:matrix]
+    y = reduce(vcat, [permutedims(load_type_dispatch(s, Vector, x[i])) for i in 1:length(x)])
+    return Matrix(y)
+end
