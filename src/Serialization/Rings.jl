@@ -200,7 +200,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent_ring::MPolyRing)
     gens = load_type_dispatch(s, Vector{elem_type(parent_ring)}, dict[:gens])
-    
     return ideal(parent_ring, gens)
 end
 
