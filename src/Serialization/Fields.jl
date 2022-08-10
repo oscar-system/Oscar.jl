@@ -77,6 +77,10 @@ end
 
 ################################################################################
 # SimpleNumField
+
+encodeType(::Type{<:Hecke.NfRel}) = "Hecke.NfRel"
+reverseTypeMap["Hecke.NfRel"] = Hecke.NfRel
+
 @registerSerializationType(AnticNumberField)
 
 function save_internal(s::SerializerState, K::SimpleNumField)
@@ -113,6 +117,9 @@ end
 @registerSerializationType(fq_nmod)
 @registerSerializationType(nf_elem)
 
+encodeType(::Type{<:Hecke.NfRelElem}) = "Hecke.NfRelElem"
+reverseTypeMap["Hecke.NfRelElem"] = Hecke.NfRelElem
+
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
@@ -145,6 +152,10 @@ end
 
 ################################################################################
 # Non Simple Extension
+
+encodeType(::Type{<:Hecke.NfRelNS}) = "Hecke.NfRelNS"
+reverseTypeMap["Hecke.NfRelNS"] = Hecke.NfRelNS
+
 @registerSerializationType(NfAbsNS)
 @registerSerializationType(NfAbsNSElem)
 
@@ -166,6 +177,9 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
+encodeType(::Type{<:Hecke.NfRelNSElem}) = "Hecke.NfRelNSElem"
+reverseTypeMap["Hecke.NfRelNSElem"] = Hecke.NfRelNSElem
+
 function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
