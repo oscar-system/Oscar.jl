@@ -70,25 +70,10 @@ macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
   return :( registerSerializationType($ex, $str) )
 end
 
-for (T, str) in (
-    Polymake.BigObjectAllocated => "Polymake.BigObject",
-    )
-
-  registerSerializationType(T, str)
-end
-
 function encodeType(::Type{T}) where T
     haskey(typeMap, T) && return typeMap[T]
     error("unspported type '$T' for encoding")
 end
-
-# special case for Vector{T} specializations
-encodeType(::Type{<:Vector}) = "Vector"
-reverseTypeMap["Vector"] = Vector
-
-# special case for Matrix{T} specializations
-encodeType(::Type{<:Matrix}) = "Matrix"
-reverseTypeMap["Matrix"] = Matrix
 
 function decodeType(input::String)
     if haskey(reverseTypeMap, input)

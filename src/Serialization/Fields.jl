@@ -227,17 +227,17 @@ end
 ################################################################################
 # FracField
 
-encodeType(::Type{<:AbstractAlgebra.Generic.FracField}) = "AbstractAlgebra.Generic.FracField"
-reverseTypeMap["AbstractAlgebra.Generic.FracField"] = AbstractAlgebra.Generic.FracField
+encodeType(T::Type{<:FracField}) = T == FlintRationalField ? "FlintRationalField" : "FracField"
+reverseTypeMap["FracField"] = FracField
 
-function save_internal(s::SerializerState, K::AbstractAlgebra.Generic.FracField)
+function save_internal(s::SerializerState, K::FracField)
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(K)),
     )
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: AbstractAlgebra.Generic.FracField},
+                       ::Type{<: FracField},
                        dict::Dict)
     R, _ = load_unknown_type(s, dict[:base_ring])
 
@@ -245,11 +245,11 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-encodeType(T::Type{<:AbstractAlgebra.Generic.FracElem}) =
-  T == fmpq ? "fmpq" : "AbstractAlgebra.Generic.FracElem"
-reverseTypeMap["AbstractAlgebra.Generic.FracElem"] = AbstractAlgebra.Generic.FracElem
+encodeType(T::Type{<:FracElem}) =
+  T == fmpq ? "fmpq" : "FracElem"
+reverseTypeMap["FracElem"] = FracElem
 
-function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.FracElem)
+function save_internal(s::SerializerState, f::FracElem)
     return Dict(
         :parent => save_type_dispatch(s, parent(f)),
         :den => save_type_dispatch(s, denominator(f)),
@@ -257,7 +257,7 @@ function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.FracElem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.FracElem}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
     R = load_unknown_type(s, dict[:parent])
     num = load_unknown_type(s, dict[:num])
     den = load_unknown_type(s, dict[:den])
@@ -266,7 +266,7 @@ function load_internal(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.F
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: AbstractAlgebra.Generic.FracElem},
+                                   ::Type{<: FracElem},
                                    dict::Dict,
                                    parent:: FracField)
     parts_parent = base_ring(parent)
