@@ -101,6 +101,26 @@ end
 
 _ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
 
+
+@doc Markdown.doc"""
+    cones(PF::PolyhedralFan)
+
+Return a list of all non-zero-dimensional cones of a polyhedral fan.
+
+# Examples
+The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
+```jldoctest
+julia> PF = face_fan(cube(3));
+
+julia> length(cones(PF))
+26
+```
+"""
+function cones(PF::_FanLikeType{T}) where T<:scalar_types
+    return reduce(vcat, cones(PF,d) for d in 1:dim(PF))
+end
+
+
 ###############################################################################
 ###############################################################################
 ### Access properties
