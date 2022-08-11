@@ -1,6 +1,7 @@
 ################################################################################
 # field of rationals (singleton type)
-@registerSerializationType(FlintRationalField)
+encodeType(::Type{FlintRationalField}) = "FlintRationalField"
+reverseTypeMap["FlintRationalField"] = FlintRationalField
 
 
 ################################################################################
@@ -227,7 +228,7 @@ end
 ################################################################################
 # FracField
 
-encodeType(T::Type{<:FracField}) = T == FlintRationalField ? "FlintRationalField" : "FracField"
+encodeType(::Type{<:FracField}) = "FracField"
 reverseTypeMap["FracField"] = FracField
 
 function save_internal(s::SerializerState, K::FracField)
@@ -245,8 +246,7 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-encodeType(T::Type{<:FracElem}) =
-  T == fmpq ? "fmpq" : "FracElem"
+encodeType(::Type{<:FracElem}) = "FracElem"
 reverseTypeMap["FracElem"] = FracElem
 
 function save_internal(s::SerializerState, f::FracElem)
