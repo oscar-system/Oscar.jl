@@ -795,25 +795,32 @@ function K3Auto(L, S, w; entropy_abort=false, max_nchambers=-1)
   SS = Zlattice(gram=gram_matrix(S))
 
   R = lll(Hecke.orthogonal_submodule(L, S))
-  @show gram_matrix(R)
+  @vprint :K3Auto 3 "computing orthogonal group\n"
   OR = orthogonal_group(R)
+  @vprint :K3Auto 3 "done\n"
   DR = discriminant_group(R)
   ODR = orthogonal_group(DR)
   imOR = [ODR(hom(DR,DR,[DR(lift(d)*f) for d in gens(DR)])) for f in gens(OR)]
 
   DS = discriminant_group(S)
-  ODS = orthogonal_group(DS)
+  DSS = discriminant_group(SS)
+
+  ODSS = orthogonal_group(DSS)
   orderimOR = order(sub(ODR,imOR)[1])
-  @vprint :K3Auto 1 "[O(S):G] = $(order(ODS)//orderimOR)\n"
+  @vprint :K3Auto 1 "[O(S):G] = $(order(ODSS)//orderimOR)\n"
   if order(ODR)== orderimOR
     membership_test = (g->true)
   else
+    phiSS_S = hom(DSS,DS,[DS(lift(x)*basis_matrix(S)) for x in gens(DSS)])
     phi,i,j = glue_map(L,S,R)
-    phi = inv(i)*phi*j
-    img,_ = sub(ODS,[ODS(phi*hom(g)*inv(phi)) for g in imOR])
+    phi = phiSS_S*inv(i)*phi*j
+    img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
     I = identity_matrix(QQ,rank(R))
-    membership_test = (g -> ODS(hom(DS,DS,[DS(lift(x)*block_diagonal_matrix([g,I])) for x in gens(DS)])) in img)
+    function membership_test(g)
+      h = ODSS(hom(DSS,DSS,[DSS(lift(x)*g) for x in gens(DSS)]))
+      return h in img
     end
+  end
   # membership_test(g) = is_in_G(SS,g)
   # and here we need the glue map
 
