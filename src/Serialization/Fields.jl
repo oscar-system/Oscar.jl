@@ -226,14 +226,18 @@ end
 
 ################################################################################
 # FracField
-function save_internal(s::SerializerState, K::FracField)
+
+encodeType(::Type{<:AbstractAlgebra.Generic.FracField}) = "AbstractAlgebra.Generic.FracField"
+reverseTypeMap["AbstractAlgebra.Generic.FracField"] = AbstractAlgebra.Generic.FracField
+
+function save_internal(s::SerializerState, K::AbstractAlgebra.Generic.FracField)
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(K)),
     )
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: FracField},
+                       ::Type{<: AbstractAlgebra.Generic.FracField},
                        dict::Dict)
     R, _ = load_unknown_type(s, dict[:base_ring])
 
@@ -241,7 +245,11 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-function save_internal(s::SerializerState, f::FracElem)
+encodeType(T::Type{<:AbstractAlgebra.Generic.FracElem}) =
+  T == fmpq ? "fmpq" : "AbstractAlgebra.Generic.FracElem"
+reverseTypeMap["AbstractAlgebra.Generic.FracElem"] = AbstractAlgebra.Generic.FracElem
+
+function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.FracElem)
     return Dict(
         :parent => save_type_dispatch(s, parent(f)),
         :den => save_type_dispatch(s, denominator(f)),
@@ -249,7 +257,7 @@ function save_internal(s::SerializerState, f::FracElem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.FracElem}, dict::Dict)
     R = load_unknown_type(s, dict[:parent])
     num = load_unknown_type(s, dict[:num])
     den = load_unknown_type(s, dict[:den])
@@ -258,7 +266,7 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
 end
 
 function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{<: FracElem},
+                                   ::Type{<: AbstractAlgebra.Generic.FracElem},
                                    dict::Dict,
                                    parent:: FracField)
     parts_parent = base_ring(parent)
