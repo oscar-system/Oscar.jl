@@ -19,7 +19,7 @@ function quadratic_triple(Q, b, c, algorithm=:short_vectors)
   if algorithm == :short_vectors
     L, p, dist = Hecke.convert_type(Q, b, QQ(c))
     #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
-    cv = Hecke.closest_vectors(L, p, dist)#, check=false)
+    cv = Hecke.closest_vectors(L, p, dist, check=false)
   end
   # using :pqt seems unfeasible
   if algorithm == :pqt
@@ -161,15 +161,6 @@ julia> oscar.alg318(G, rays)
 =#
 
 
-mutable struct Chamber
-  weyl_vector::fmpq_mat
-  walls::Vector{fmpz_mat}  # represented as gram_S*v_S #and v_S is the S^\vee primitive minimal def. vector
-  parent_wall::fmpz_mat # for the spanning tree
-
-  function Chamber()
-    return new()
-  end
-end
 
 mutable struct BorcherdsData
   L::ZLat
@@ -179,15 +170,33 @@ mutable struct BorcherdsData
   deltaR::Vector{fmpq_mat}
   prRdelta
   membership_test
+  gramL::fmpz_mat
+end
+
+mutable struct Chamber
+  weyl_vector::fmpz_mat
+  walls::Vector{fmpz_mat}  # represented as gram_S*v_S #and v_S is the S^\vee primitive minimal def. vector
+  parent_wall::fmpz_mat # for the spanning tree
+  data::BorcherdsData
+  function Chamber()
+    return new()
+  end
 end
 
 function Chamber(data::BorcherdsData, weyl_vector, parent_wall)
   D = Chamber()
   D.weyl_vector = weyl_vector
-  D.walls = walls_of_chamber(data, weyl_vector)
-  @assert length(D.walls)>=rank(data.S)
   D.parent_wall = parent_wall
+  D.data = data
   return D
+end
+
+function walls(D)
+  if !isdefined(D, :walls)
+    D.walls = walls_of_chamber(D.data, D.weyl_vector)
+    @assert length(D.walls)>=rank(D.data.S)
+  end
+  return D.walls
 end
 
 function (-)(x::Hecke.TorQuadModElem)
@@ -196,30 +205,29 @@ end
 
 
 function Base.show(io::IO, c::Chamber)
-  print(IOContext(io, :compact => true), "Chamber  in dimension $(length(c.walls[1])) with $(length(c.walls)) walls")
+  print(IOContext(io, :compact => true), "Chamber  in dimension $(length(walls(c)[1])) with $(length(walls(c))) walls")
 end
 
 """
 G - inverse gram matrix of S
 """
-function fingerprint(data::BorcherdsData, D::Chamber)
-  v = sum(D.walls)
-  G = change_base_ring(ZZ,gram_matrix(data.SS))
+function fingerprint(D::Chamber)
+  v = sum(walls(D))
+  G = change_base_ring(ZZ,gram_matrix(D.data.SS))
   m1 = (v*G*transpose(v))[1,1]
-  m2 = [(a*G*transpose(a))[1,1] for a in D.walls]
+  m2 = [(a*G*transpose(a))[1,1] for a in walls(D)]
   sort!(m2)
-  m3 = [(v*G*transpose(a))[1,1] for a in D.walls]
+  m3 = [(v*G*transpose(a))[1,1] for a in walls(D)]
   sort!(m3)
   m4 = fmpz[]
-  for i in 1:length(D.walls)
+  for i in 1:length(walls(D))
     for j in 1:i-1
-      push!(m4,(D.walls[i]*G*transpose(D.walls[j]))[1,1])
+      push!(m4,(walls(D)[i]*G*transpose(walls(D)[j]))[1,1])
     end
   end
   sort!(m4)
-  #=
   V = Dict{Tuple{fmpz,fmpz},Vector{fmpz_mat}}()
-  for w in D.walls
+  for w in walls(D)
     i =  (v*G*transpose(w))[1,1]
     j =  (w*G*transpose(w))[1,1]
     if (i,j) in keys(V)
@@ -228,10 +236,11 @@ function fingerprint(data::BorcherdsData, D::Chamber)
       V[(i,j)] = [w]
     end
   end
+  #=
   m5 = []
   for i in keys(V)
     vi = sum(V[i])
-    push!(m5, [i,sort!([(vi*G*transpose(j))[1,1] for j in D.walls])])
+    push!(m5, [i,sort!([(vi*G*transpose(j))[1,1] for j in walls(D)])])
   end
   sort!(m5)
   =#
@@ -336,8 +345,8 @@ end
 """
 raysD and raysE are given with respect to the basis of S
 """
-hom(data, D::Chamber, E::Chamber) = alg319(gram_matrix(data.SS), D.walls, E.walls, data.membership_test)
-aut(data, D::Chamber) = hom(data, D, D)
+hom(D::Chamber, E::Chamber) = alg319(gram_matrix(D.data.SS), walls(D), walls(E), D.data.membership_test)
+aut(D::Chamber) = hom(D, D)
 
 @doc Markdown.doc"""
 
@@ -420,7 +429,7 @@ orthogonal projection of `r` to `S^\vee` given in the basis of S.
 
 Algorithm 5.8 in [Shi]
 """
-function alg58(data::BorcherdsData, w)
+function alg58(data::BorcherdsData, w::fmpz_mat)
   V = ambient_space(data.L)
   S = data.S
   d = exponent(discriminant_group(S))
@@ -431,13 +440,14 @@ function alg58(data::BorcherdsData, w)
   delta_w = Tuple{fmpq_mat,fmpq_mat}[]
   wS = solve_left(gram_matrix(S),w*gram_matrix(V)*transpose(basis_matrix(S)))
   #wS = (w*inverse_basis_matrix(data.SR))[1,1:rank(S)]
+  Vw = gram_matrix(V)*transpose(w)
   for c in n_R
     cm = -c
     for (vr0,vsquare) in data.prRdelta
       if vsquare != cm
         continue
       end
-      a0 = inner_product(V,w,vr0)[1,1]
+      a0 = (vr0*Vw)[1,1]
       if c == 0
         VA = [(vr0,a0)]
       else
@@ -605,6 +615,8 @@ function alg514(L::ZLat, S::ZLat, R::ZLat, prRdelta, deltaR, w::fmpq_mat, v::fmp
   a = 10*a
   rep = Tuple{Int,fmpq}[]
   u = matrix(QQ, 1, d, rand(-a:a, d))
+  Vw = gram_matrix(V)*transpose(w)
+  Vu = gram_matrix(V)*transpose(u)
   for i in 1:length(Pv)
     #=
     rm = -r
@@ -613,7 +625,7 @@ function alg514(L::ZLat, S::ZLat, R::ZLat, prRdelta, deltaR, w::fmpq_mat, v::fmp
     end
     =#
     r = Pv[i]
-    s = inner_product(V,u,r)[1,1]//inner_product(V,w,r)[1,1]
+    s = (r*Vu)[1,1]//(r*Vw)[1,1]
     if any(x[2]==s for x in rep)
       @goto getu
     end
@@ -624,15 +636,52 @@ function alg514(L::ZLat, S::ZLat, R::ZLat, prRdelta, deltaR, w::fmpq_mat, v::fmp
   for (i,s) in rep
     r = Pv[i]
     @hassert :K3Auto 3 inner_product(V,r,r)[1,1]==-2
-    @hassert :K3Auto 3 rank(L)!=26 || inner_product(V,w,w)[1,1] == 0
-    w = w + inner_product(V,w,r)[1,1]*r
+    @hassert :K3Auto 3 rank(L)!=26 || (w*gram_matrix(V)*transpose(w))[1,1] == 0
+    w = w + (r*gram_matrix(V)*transpose(w))[1,1]*r
   end
   return w
 end
 
-function adjacent_chamber(data::BorcherdsData, D::Chamber, v)
-  d = gcd(vec(change_base_ring(ZZ,v*gram_matrix(data.S))))
-  weyl_new = alg514(data.L,data.S,data.R,data.prRdelta,data.deltaR, D.weyl_vector, QQ(1//d)*(v*basis_matrix(data.S)))
+@doc Markdown.doc"""
+Return a Weyl vector of the L|S chamber adjacent to `D(w)` via the wall defined by `v`.
+"""
+function alg514(gramL::fmpz_mat, L, S::ZLat, R::ZLat, prRdelta, deltaR, w::fmpz_mat, v::fmpq_mat)
+  d = ncols(gramL)
+  Pv = alg513(L, S, R, prRdelta, deltaR, v)
+  @hassert :K3Auto 1 length(Pv) == length(unique(Pv))
+  a = 10000
+  @label getu
+  a = 10*a
+  rep = Tuple{Int,fmpq}[]
+  u = matrix(QQ, 1, d, rand(-a:a, d))
+  Vw = gramL*transpose(w)
+  Vu = gramL*transpose(u)
+  Pv = [change_base_ring(ZZ,r) for r in Pv]
+  for i in 1:length(Pv)
+    r = Pv[i]
+    s = (r*Vu)[1,1]//(r*Vw)[1,1]
+    if any(x[2]==s for x in rep)
+      @goto getu
+    end
+    push!(rep,(i,s))
+  end
+  @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
+  sort!(rep, by=x->x[2])
+  for (i,s) in rep
+    r = Pv[i]
+    @hassert :K3Auto 3 (r*gramL*transpose(r))[1,1]==-2
+    @hassert :K3Auto 3 rank(L)!=26 || (w*gramL*transpose(w))[1,1] == 0
+    w = w + (r*gramL*transpose(w))[1,1]*r
+  end
+  return w
+end
+
+function adjacent_chamber(D::Chamber, v)
+  data = D.data
+  d = gcd(vec(change_base_ring(ZZ,v*gram_matrix(D.data.S))))
+  vv = QQ(1//d)*(v*basis_matrix(data.S))
+  data = D.data
+  weyl_new = alg514(data.gramL,data.L, data.S,data.R,data.prRdelta,data.deltaR, D.weyl_vector, vv)
   return Chamber(data, weyl_new, v)
 end
 
@@ -735,22 +784,40 @@ Computes the automorphism group of a K3.
 
 - `w` - initial Weyl vector
 """
-function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
-  # preprocessing
+function K3Auto(L, S, w; entropy_abort=false, max_nchambers=-1)
+  # transform L to have the standard basis
   L1 = Zlattice(gram=gram_matrix(L))
   V = ambient_space(L1)
   S = lattice(V,basis_matrix(S)*inverse_basis_matrix(L))
-  w = w*inverse_basis_matrix(L)
+  w = change_base_ring(ZZ,w*inverse_basis_matrix(L))
   L = L1
 
   SS = Zlattice(gram=gram_matrix(S))
-  membership_test(g) = is_in_G(SS,g)
 
   R = lll(Hecke.orthogonal_submodule(L, S))
-  # OR = orthogonal_group(R)
-  # ODR = orthogonal_group(discriminant_group(R))
+  @show gram_matrix(R)
+  OR = orthogonal_group(R)
+  DR = discriminant_group(R)
+  ODR = orthogonal_group(DR)
+  imOR = [ODR(hom(DR,DR,[DR(lift(d)*f) for d in gens(DR)])) for f in gens(OR)]
+
+  DS = discriminant_group(S)
+  ODS = orthogonal_group(DS)
+  orderimOR = order(sub(ODR,imOR)[1])
+  @vprint :K3Auto 1 "[O(S):G] = $(order(ODS)//orderimOR)\n"
+  if order(ODR)== orderimOR
+    membership_test = (g->true)
+  else
+    phi,i,j = glue_map(L,S,R)
+    phi = inv(i)*phi*j
+    img,_ = sub(ODS,[ODS(phi*hom(g)*inv(phi)) for g in imOR])
+    I = identity_matrix(QQ,rank(R))
+    membership_test = (g -> ODS(hom(DS,DS,[DS(lift(x)*block_diagonal_matrix([g,I])) for x in gens(DS)])) in img)
+    end
+  # membership_test(g) = is_in_G(SS,g)
   # and here we need the glue map
 
+  # precomputations
   d = exponent(discriminant_group(S))
   Rdual = dual(R)
   sv = short_vectors(rescale(Rdual,-1), 2)
@@ -763,7 +830,8 @@ function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   deltaR = [matrix(QQ, 1, rkR, v[1])*basis_matrix(R) for v in short_vectors(rescale(R,-1),2)]
 
-  data = BorcherdsData(L, S, SS, R, deltaR, prRdelta, membership_test)
+  data = BorcherdsData(L, S, SS, R, deltaR, prRdelta, membership_test,change_base_ring(ZZ,gram_matrix(L)))
+
   # initialization
   chambers = Dict{UInt64,Vector{Chamber}}()
   D = Chamber(data, w, zero_matrix(ZZ, 1, rank(S)))
@@ -777,19 +845,19 @@ function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
   nchambers = 0
   while length(waiting_list) > 0
     ntry = ntry + 1
-    if mod(ntry, 10)==0
+    if mod(ntry, 100)==0
+      @vprint :K3Auto 2 "largest bucket: $(maximum(length(i) for i in values(chambers))) "
       @vprint :K3Auto 1 "buckets: $(length(chambers)) explored: $(nchambers) unexplored: $(length(waiting_list)) generators: $(length(automorphisms))\n"
     end
     D = popfirst!(waiting_list)
-    @hassert :K3Auto 2 inner_product(V,w,w)[1,1] >= 0
     # check G-congruence
-    fp = fingerprint(data, D)
+    fp = fingerprint(D)
     if !haskey(chambers,fp)
       chambers[fp] = Chamber[]
     end
     is_explored = false
     for E in chambers[fp]
-      gg = hom(data, D, E)
+      gg = hom(D, E)
       if length(gg) > 0
         # enough to add a single
         if !isone(gg[1]) # one could hit the same chamber twice from different directions
@@ -815,7 +883,7 @@ function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
     nchambers = nchambers+1
     @vprint :K3Auto 3 "new weyl vector $(D.weyl_vector)\n"
 
-    autD = aut(data, D)
+    autD = aut(D)
     autD = [a for a in autD if !isone(a)]
     if length(autD) > 0
       append!(automorphisms, autD)
@@ -823,7 +891,7 @@ function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
     end
     # compute the adjacent chambers to be explored
     # TODO: iterate over orbit representatives only
-    for v in D.walls
+    for v in walls(D)
       if v == D.parent_wall || -v ==D.parent_wall
         continue
       end
@@ -832,10 +900,10 @@ function K3Auto(L, S, w; entropy_abort=false, max_trys=-1)
         push!(rational_curves, v)
         continue
       end
-      Dv = adjacent_chamber(data, D, v)
+      Dv = adjacent_chamber(D, v)
       push!(waiting_list, Dv)
     end
-    if max_trys != -1 && ntry > max_trys
+    if max_nchambers != -1 && ntry > max_nchambers
       return data, automorphisms, chambers, rational_curves, false
     end
   end
@@ -877,7 +945,7 @@ Input:
 `weyl0` - a weyl vector
 `ample` - ample vector in S
 """
-function nondeg_weyl_shimada(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, ample::fmpq_mat;max_trys=200)
+function nondeg_weyl_shimada(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, ample::fmpq_mat;max_nchambers=200)
   V = ambient_space(L)
   weyl = weyl0
   ntry = 0
@@ -885,7 +953,7 @@ function nondeg_weyl_shimada(L::ZLat, S::ZLat, u0::fmpq_mat, weyl0::fmpq_mat, am
     weyl = weyl0
     h = 20*ample+matrix(ZZ,1,rank(S),rand(-10:10,rank(S)))*basis_matrix(S)
     @vprint :K3Auto 1 h
-    if ntry > max_trys
+    if ntry > max_nchambers
       error("did not find an S-nondegenerate weyl vector. Since this is randomized you can retry")
     end
     ntry = ntry + 1
@@ -1629,4 +1697,43 @@ end
 
 function myin(v, L::ZLat)
   return all(denominator(i)==1 for i in v*inverse_basis_matrix(L))
+end
+
+function glue_map(L,S,R)
+  bSR = vcat(basis_matrix(S),basis_matrix(R))
+  ibSR = inv(bSR)
+  I = identity_matrix(QQ,degree(L))
+  prS = ibSR*I[:,1:rank(S)]*basis_matrix(S)
+  prR = ibSR*I[:,rank(S)+1:end]*basis_matrix(R)
+  bL = basis_matrix(L)
+  DS = discriminant_group(S)
+  DR = discriminant_group(R)
+  gens = Hecke.TorQuadModElem[]
+  imgs = Hecke.TorQuadModElem[]
+  for i in 1:rank(L)
+    d = bL[i,:]
+    g = DS(vec(d*prS))
+    if all(0==i for i in lift(g))
+      continue
+    end
+    push!(gens,g)
+    push!(imgs,DR(vec(d*prR)))
+  end
+  HS,iS = sub(DS,gens)
+  HR,iR = sub(DR,imgs)
+  glue_map = hom(HS, HR, [HR(lift(i)) for i in imgs])
+  @assert overlattice(glue_map) == L
+  return glue_map,iS,iR
+end
+
+function overlattice(glue_map)
+  S = relations(domain(glue_map))
+  R = relations(codomain(glue_map))
+  glue = [lift(g)+lift(glue_map(g)) for g in gens(domain(glue_map))]
+  glue = reduce(vcat,[matrix(QQ,1,degree(S),g) for g in glue])
+  glue = vcat(basis_matrix(S+R),glue)
+  glue = FakeFmpqMat(glue)
+  B = hnf(glue)
+  B = QQ(1,denominator(glue))*change_base_ring(QQ,numerator(B))
+  return lattice(ambient_space(S),B[end-degree(S)+1:end,:])
 end
