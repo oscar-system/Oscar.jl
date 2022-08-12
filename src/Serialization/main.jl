@@ -70,68 +70,10 @@ macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
   return :( registerSerializationType($ex, $str) )
 end
 
-for (T, str) in (
-    AbstractAlgebra.Generic.Frac{fmpq_poly} => "AbstractAlgebra.Generic.Frac{fmpq_poly}",
-    AbstractAlgebra.Generic.FracField{fmpq_poly} => "AbstractAlgebra.Generic.FracField{fmpq_poly}",
-    AbstractAlgebra.Generic.MatSpaceElem{fmpq_poly} => "AbstractAlgebra.Generic.MatSpaceElem{fmpq_poly}",
-    AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPoly{nf_elem} => "AbstractAlgebra.Generic.MPoly{nf_elem}",
-    AbstractAlgebra.Generic.MPoly{NfAbsNSElem} => "AbstractAlgebra.Generic.MPoly{NfAbsNSElem}",
-    AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.MPolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}} => "AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}}",
-    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}}",
-    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.MPolyRing{Hecke.NfRelNSElem{nf_elem}}",
-    AbstractAlgebra.Generic.MPolyRing{nf_elem} => "AbstractAlgebra.Generic.MPolyRing{nf_elem}",
-    AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem} => "AbstractAlgebra.Generic.MPolyRing{NfAbsNSElem}",
-    AbstractAlgebra.Generic.MPolyRing{padic} => "AbstractAlgebra.Generic.MPolyRing{padic}",
-    AbstractAlgebra.Generic.MPoly{padic} => "AbstractAlgebra.Generic.MPoly{padic}",
-    AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.Poly{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.Poly{Hecke.NfRelNSElem{nf_elem}}",
-    AbstractAlgebra.Generic.Poly{nf_elem} => "AbstractAlgebra.Generic.Poly{nf_elem}",
-    AbstractAlgebra.Generic.Poly{NfAbsNSElem} => "AbstractAlgebra.Generic.Poly{NfAbsNSElem}",
-    AbstractAlgebra.Generic.Poly{padic} => "AbstractAlgebra.Generic.Poly{padic}",
-    AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}} => "AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}",
-    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelElem{nf_elem}}",
-    AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}} => "AbstractAlgebra.Generic.PolyRing{Hecke.NfRelNSElem{nf_elem}}",
-    AbstractAlgebra.Generic.PolyRing{nf_elem} => "AbstractAlgebra.Generic.PolyRing{nf_elem}",
-    AbstractAlgebra.Generic.PolyRing{NfAbsNSElem} => "AbstractAlgebra.Generic.PolyRing{NfAbsNSElem}",
-    AbstractAlgebra.Generic.PolyRing{padic} => "AbstractAlgebra.Generic.PolyRing{padic}",
-    Hecke.NfRel{nf_elem} => "Hecke.NfRel{nf_elem}",
-    Hecke.NfRelElem{nf_elem} => "Hecke.NfRelElem{nf_elem}",
-    Hecke.NfRelNSElem{nf_elem} => "Hecke.NfRelNSElem{nf_elem}",
-    Matrix{fmpq_poly} => "Matrix{fmpq_poly}",
-    Hecke.NfRelNS{Hecke.NfRelElem{nf_elem}} => "Hecke.NfRelNS{Hecke.NfRelElem{nf_elem}}",
-    Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}} => "Hecke.NfRelNSElem{Hecke.NfRelElem{nf_elem}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{padic}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{padic}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Frac{fmpq_poly}}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelElem{nf_elem}}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{Hecke.NfRelNSElem{nf_elem}}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}",
-    MPolyIdeal{AbstractAlgebra.Generic.MPoly{NfAbsNSElem}} => "MPolyIdeal{AbstractAlgebra.Generic.MPoly{NfAbsNSElem}}",
-    MPolyIdeal{fmpq_mpoly} => "MPolyIdeal{fmpq_mpoly}",
-    MPolyIdeal{fmpz_mpoly} => "MPolyIdeal{fmpz_mpoly}",
-    MPolyIdeal{fq_nmod_mpoly} => "MPolyIdeal{fq_nmod_mpoly}",
-    MPolyIdeal{nmod_mpoly} => "MPolyIdeal{nmod_mpoly}",
-    NfRelNS{nf_elem} => "NfRelNS{nf_elem}",
-    Polymake.BigObjectAllocated => "Polymake.BigObject",
-    )
-
-  registerSerializationType(T, str)
-end
-
-
 function encodeType(::Type{T}) where T
     haskey(typeMap, T) && return typeMap[T]
     error("unspported type '$T' for encoding")
 end
-
-# special case for Vector{T} specializations
-encodeType(::Type{<:Vector}) = "Vector"
-reverseTypeMap["Vector"] = Vector
 
 function decodeType(input::String)
     if haskey(reverseTypeMap, input)

@@ -45,6 +45,13 @@ end
 
 ################################################################################
 #  Polynomial Rings
+
+encodeType(::Type{<:PolyRing}) = "PolyRing"
+reverseTypeMap["PolyRing"] = PolyRing
+
+encodeType(::Type{<:MPolyRing}) = "MPolyRing"
+reverseTypeMap["MPolyRing"] = MPolyRing
+
 @registerSerializationType(FmpqMPolyRing)
 @registerSerializationType(FmpqPolyRing)
 @registerSerializationType(FmpzMPolyRing)
@@ -81,6 +88,9 @@ end
 @registerSerializationType(fmpz_mpoly)
 @registerSerializationType(fq_nmod_mpoly)
 @registerSerializationType(nmod_mpoly)
+
+encodeType(::Type{<:MPolyElem}) = "MPolyElem"
+reverseTypeMap["MPolyElem"] = MPolyElem
 
 function save_internal(s::SerializerState, p::MPolyElem)
     parent_ring = parent(p)
@@ -136,6 +146,10 @@ end
 
 ################################################################################
 # Univariate Polynomials
+
+encodeType(::Type{<:PolyElem}) = "PolyElem"
+reverseTypeMap["PolyElem"] = PolyElem
+
 @registerSerializationType(fmpq_poly)
 @registerSerializationType(fmpz_poly)
 @registerSerializationType(fq_nmod_poly)
@@ -178,6 +192,10 @@ end
 
 ################################################################################
 # Polynomial Ideals
+
+encodeType(::Type{<:MPolyIdeal}) = "MPolyIdeal"
+reverseTypeMap["MPolyIdeal"] = MPolyIdeal
+
 function save_internal(s::SerializerState, i::MPolyIdeal)
     generators = gens(i)
     parent_ring = save_type_dispatch(s, parent(generators[1]))
@@ -206,19 +224,15 @@ end
 
 ################################################################################
 # Matrices
+
+encodeType(::Type{<:MatElem}) = "MatElem"
+reverseTypeMap["MatElem"] = MatElem
+
 @registerSerializationType(fmpz_mat)
 @registerSerializationType(fmpq_mat)
 @registerSerializationType(fq_nmod_mat)
 @registerSerializationType(nmod)
 @registerSerializationType(nmod_mat)
-@registerSerializationType(Matrix{fmpq})
-@registerSerializationType(Matrix{fmpz})
-@registerSerializationType(Matrix{nf_elem})
-@registerSerializationType(Matrix{fq_nmod})
-@registerSerializationType(Matrix{nmod})
-@registerSerializationType(AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
-@registerSerializationType(Matrix{AbstractAlgebra.Generic.Frac{fmpq_poly}})
-@registerSerializationType(AbstractAlgebra.Generic.MatSpaceElem{AbstractAlgebra.Generic.Frac{fmpq_poly}})
 
 function save_internal(s::SerializerState, m::MatrixElem)
     return Dict(
@@ -227,10 +241,9 @@ function save_internal(s::SerializerState, m::MatrixElem)
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: MatElem{T}},
-                       dict::Dict) where T
-    mat = load_type_dispatch(s, Matrix{T}, dict[:matrix])
+                       ::Type{<: MatElem},
+                       dict::Dict) 
+    mat = load_type_dispatch(s, Matrix, dict[:matrix])
     entries_ring = parent(mat[1])
     return matrix(entries_ring, mat)
-
 end
