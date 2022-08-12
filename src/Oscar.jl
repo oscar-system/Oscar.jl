@@ -378,6 +378,9 @@ include("Modules/module-localizations.jl")
 include("Geometry/basics.jl")
 
 include("NumberTheory/NmbThy.jl")
+include("NumberTheory/LatticesWithIsometry/TraceEquivalence.jl")
+include("NumberTheory/LatticesWithIsometry/Types.jl")
+include("NumberTheory/LatticesWithIsometry/LatticesWithIsometry.jl")
 
 include("PolyhedralGeometry/main.jl")
 
