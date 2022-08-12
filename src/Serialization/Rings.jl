@@ -240,7 +240,6 @@ function save_internal(s::SerializerState, m::MatrixElem)
     )
 end
 
-# deserialize without specific content type
 function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
                        dict::Dict) 
