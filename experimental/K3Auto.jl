@@ -1713,10 +1713,7 @@ function myin(v, L::ZLat)
   return all(denominator(i)==1 for i in v*inverse_basis_matrix(L))
 end
 
-"""
-Return
-D(S) \hookleftarrow H_1 \to H_2 \hookrightarrow D(R)
-"""
+
 function glue_map(L,S,R)
   bSR = vcat(basis_matrix(S),basis_matrix(R))
   ibSR = inv(bSR)
