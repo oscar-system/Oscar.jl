@@ -784,7 +784,7 @@ Computes the automorphism group of a K3.
 
 - `w` - initial Weyl vector
 """
-function K3Auto(L, S, w; entropy_abort=false, max_nchambers=-1)
+function K3Auto(L, S, w; entropy_abort=false, compute_OR=true, max_nchambers=-1)
   # transform L to have the standard basis
   L1 = Zlattice(gram=gram_matrix(L))
   V = ambient_space(L1)
@@ -795,34 +795,30 @@ function K3Auto(L, S, w; entropy_abort=false, max_nchambers=-1)
   SS = Zlattice(gram=gram_matrix(S))
 
   R = lll(Hecke.orthogonal_submodule(L, S))
-  @vprint :K3Auto 3 "computing orthogonal group\n"
-  OR = orthogonal_group(R)
-  @vprint :K3Auto 3 "done\n"
-  DR = discriminant_group(R)
-  ODR = orthogonal_group(DR)
-  imOR = [ODR(hom(DR,DR,[DR(lift(d)*f) for d in gens(DR)])) for f in gens(OR)]
-
-  DS = discriminant_group(S)
-  DSS = discriminant_group(SS)
-
-  ODSS = orthogonal_group(DSS)
-  orderimOR = order(sub(ODR,imOR)[1])
-  @vprint :K3Auto 1 "[O(S):G] = $(order(ODSS)//orderimOR)\n"
-  if order(ODR)== orderimOR
-    membership_test = (g->true)
-  else
-    phiSS_S = hom(DSS,DS,[DS(lift(x)*basis_matrix(S)) for x in gens(DSS)])
-    phi,i,j = glue_map(L,S,R)
-    phi = phiSS_S*inv(i)*phi*j
-    img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
-    I = identity_matrix(QQ,rank(R))
-    function membership_test(g)
-      h = ODSS(hom(DSS,DSS,[DSS(lift(x)*g) for x in gens(DSS)]))
-      return h in img
+  if compute_OR
+    @vprint :K3Auto 3 "computing orthogonal group\n"
+    OR = orthogonal_group(R)
+    @vprint :K3Auto 3 "done\n"
+    DR = discriminant_group(R)
+    ODR = orthogonal_group(DR)
+    imOR = [ODR(hom(DR,DR,[DR(lift(d)*f) for d in gens(DR)])) for f in gens(OR)]
+    DS = discriminant_group(S)
+    DSS = discriminant_group(SS)
+    ODSS = orthogonal_group(DSS)
+    orderimOR = order(sub(ODR,imOR)[1])
+    @vprint :K3Auto 1 "[O(S):G] = $(order(ODSS)//orderimOR)\n"
+    if order(ODR)== orderimOR
+      membership_test = (g->true)
+    else
+      phiSS_S = hom(DSS,DS,[DS(lift(x)*basis_matrix(S)) for x in gens(DSS)])
+      phi,i,j = glue_map(L,S,R)
+      phi = phiSS_S*inv(i)*phi*j
+      img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
+      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(lift(x)*g) for x in gens(DSS)])) in img)
     end
+  else
+    membership_test(g) = is_in_G(SS,g)
   end
-  # membership_test(g) = is_in_G(SS,g)
-  # and here we need the glue map
 
   # precomputations
   d = exponent(discriminant_group(S))
@@ -838,7 +834,8 @@ function K3Auto(L, S, w; entropy_abort=false, max_nchambers=-1)
   deltaR = [matrix(QQ, 1, rkR, v[1])*basis_matrix(R) for v in short_vectors(rescale(R,-1),2)]
 
   data = BorcherdsData(L, S, SS, R, deltaR, prRdelta, membership_test,change_base_ring(ZZ,gram_matrix(L)))
-
+  # for G-sets
+  F = FreeModule(ZZ,rank(S))
   # initialization
   chambers = Dict{UInt64,Vector{Chamber}}()
   D = Chamber(data, w, zero_matrix(ZZ, 1, rank(S)))
@@ -893,15 +890,25 @@ function K3Auto(L, S, w; entropy_abort=false, max_nchambers=-1)
     autD = aut(D)
     autD = [a for a in autD if !isone(a)]
     if length(autD) > 0
-      append!(automorphisms, autD)
+      for f in autD
+        push!(automorphisms, f)
+      end
       @vprint :K3Auto 1 "Found a chamber with $(length(autD)) automorphisms\n"
+      # compute the orbits
+      @show "computing orbits"
+      Omega = [F(v) for v in walls(D)]
+      W = gset(matrix_group(autD),Omega)
+      vv = F(D.parent_wall)
+      wallsDmodAutD = [representative(w) for w in orbits(W) if !(vv in w)]
+      @show wallsDmodAutD
+    else
+      # the - shouldnt be necessary ... but who knows?
+      wallsDmodAutD = (v for v in walls(D) if !(v==D.parent_wall || -v==D.parent_wall))
     end
+    # now we need the orbits of the walls only
     # compute the adjacent chambers to be explored
     # TODO: iterate over orbit representatives only
-    for v in walls(D)
-      if v == D.parent_wall || -v ==D.parent_wall
-        continue
-      end
+    for v in wallsDmodAutD
       # does v come from a -2 curve?
       if -2 == (v*gram_matrix(S)*transpose(v))[1,1]
         push!(rational_curves, v)
@@ -1706,6 +1713,10 @@ function myin(v, L::ZLat)
   return all(denominator(i)==1 for i in v*inverse_basis_matrix(L))
 end
 
+"""
+Return
+D(S) \hookleftarrow H_1 \to H_2 \hookrightarrow D(R)
+"""
 function glue_map(L,S,R)
   bSR = vcat(basis_matrix(S),basis_matrix(R))
   ibSR = inv(bSR)
