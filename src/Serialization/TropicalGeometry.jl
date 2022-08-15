@@ -24,10 +24,10 @@ function load_internal(s::DeserializerState,
   return parent(load_type_dispatch(s, fmpq, dict[:data]))
 end
 
-function load_internal_internal(s::DeserializerState,
-                       ::Type{TropicalSemiringElem{S}},
-                       dict::Dict) where S
-  parent = load_type_dispatch(s, TropicalSemiring{S}, dict[:parent])
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{TropicalSemiringElem{S}},
+                                   dict::Dict,
+                                   parent::TropicalSemiring{S}) where S
   return parent(load_type_dispatch(s, fmpq, dict[:data]))
 end
 
