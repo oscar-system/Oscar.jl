@@ -1,7 +1,12 @@
 # Tropical Semiring
+
+encodeType(::Type{<:TropicalSemiring}) = "TropicalSemiring"
+reverseTypeMap["TropicalSemiring"] = TropicalSemiring
+
 function save_internal(s::SerializerState, T::TropicalSemiring)
+    println("hello")
     return Dict(
-        :convention => save_type_dispatch()
+        :convention => save_type_dispatch(s, convention(T))
     )
 end
 
