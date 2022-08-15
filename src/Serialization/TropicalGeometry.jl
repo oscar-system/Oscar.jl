@@ -4,7 +4,7 @@ encodeType(::Type{TropicalSemiring{S}}) where S = "TropicalSemiring{$S}"
 reverseTypeMap["TropicalSemiring{typeof(min)}"] = TropicalSemiring{typeof(min)}
 reverseTypeMap["TropicalSemiring{typeof(max)}"] = TropicalSemiring{typeof(max)}
 
-# elements
+## elements
 encodeType(::Type{TropicalSemiringElem{S}}) where S = "TropicalSemiringElem{$S}"
 reverseTypeMap["TropicalSemiringElem{typeof(min)}"] = TropicalSemiringElem{typeof(min)}
 reverseTypeMap["TropicalSemiringElem{typeof(max)}"] = TropicalSemiringElem{typeof(max)}
@@ -30,6 +30,18 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent::TropicalSemiring{S}) where S
   return parent(load_type_dispatch(s, fmpq, dict[:data]))
 end
+
+
+# Tropical Varieties
+encodeType(::Type{<: TropicalVarietySupertype}) = "TropicalSemiringElem"
+reverseTypeMap["TropicalSemiringElem"] = TropicalSemiringElem
+
+function save_internal(s::SerializerState, t_var::Type{<: TropicalVarietySupertype{S, Bool}}) where S
+  return Dict(
+    :polyhedral_complex => save_type_dispatch(s, underlying_polyhedral_complex(t_var))
+  )
+end
+
 
 
 
