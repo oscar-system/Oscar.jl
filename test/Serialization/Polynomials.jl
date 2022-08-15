@@ -10,6 +10,7 @@ Zt, t = PolynomialRing(ResidueRing(ZZ, 2), "t")
 Fin, d = FiniteField(t^2 + t + 1)
 Frac = FractionField(R)
 P7 = PadicField(7, 30)
+T = TropicalSemiring()
 
 cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),

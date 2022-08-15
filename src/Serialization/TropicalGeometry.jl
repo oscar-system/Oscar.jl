@@ -5,17 +5,32 @@ reverseTypeMap["TropicalSemiring{typeof(min)}"] = TropicalSemiring{typeof(min)}
 reverseTypeMap["TropicalSemiring{typeof(max)}"] = TropicalSemiring{typeof(max)}
 
 # elements
-function save_internal(s::SerializerState, t::TropicalSemiringElem{S}) where S
-    T = parent(t)
-    return Dict(
-        :parent => save_type_dispatch(s, T),
-        
-    )
+encodeType(::Type{TropicalSemiringElem{S}}) where S = "TropicalSemiringElem{$S}"
+reverseTypeMap["TropicalSemiringElem{typeof(min)}"] = TropicalSemiringElem{typeof(min)}
+reverseTypeMap["TropicalSemiringElem{typeof(max)}"] = TropicalSemiringElem{typeof(max)}
+
+function save_internal(s::SerializerState, t::TropicalSemiringElem{S}) where {S}
+  T = parent(t)
+  return Dict(
+    :parent => save_type_dispatch(s, T),
+    :data => save_type_dispatch(s, data(t))
+  )
 end
 
-function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
-    modulus = load_type_dispatch(s, UInt64, dict[:modulus])
-    return Nemo.NmodRing(modulus)
+function load_internal(s::DeserializerState,
+                       ::Type{TropicalSemiringElem{S}},
+                       dict::Dict) where S
+  parent = load_type_dispatch(s, TropicalSemiring{S}, dict[:parent])
+  return parent(load_type_dispatch(s, fmpq, dict[:data]))
 end
+
+function load_internal_internal(s::DeserializerState,
+                       ::Type{TropicalSemiringElem{S}},
+                       dict::Dict) where S
+  parent = load_type_dispatch(s, TropicalSemiring{S}, dict[:parent])
+  return parent(load_type_dispatch(s, fmpq, dict[:data]))
+end
+
+
 
 

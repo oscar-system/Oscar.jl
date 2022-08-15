@@ -114,13 +114,12 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     else
         ref = nothing
     end
-    println(!Base.issingletontype(T), T)    
+
     result = Dict{Symbol, Any}(:type => encodeType(T))
     if ref !== nothing
         result[:id] = string(ref)
     end
     if !Base.issingletontype(T)
-
         s.depth += 1
         # invoke the actual serializer
         result[:data] = save_internal(s, obj)
