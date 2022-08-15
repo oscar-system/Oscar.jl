@@ -2973,7 +2973,7 @@ function presentation(SQ::SubQuo)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-1)
+  return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-2)
 end
 
 @doc Markdown.doc"""
@@ -2986,7 +2986,7 @@ Return a free presentation of $F$.
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
-  return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, start=-1)
+  return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, start=-2)
 end
 
 @doc Markdown.doc"""
@@ -4222,7 +4222,7 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
   end
 
-  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -1)
+  cc = Hecke.ChainComplex(Oscar.ModuleFP, maps, check = false, start = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
 
@@ -4982,7 +4982,7 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(tensor_chain, hom_tensor(A,B,[identity_map(P), map(C,j)]))
   end
 
-  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) : C.start
+  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) - 1 : C.start
   return Hecke.ChainComplex(ModuleFP, tensor_chain, start=start, direction=C.direction)
 end
 
@@ -5006,7 +5006,7 @@ function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(tensor_chain, hom_tensor(A,B,[map(C,j), identity_map(P)]))
   end
 
-  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) : C.start
+  start = Hecke.is_chain_complex(C) ? C.start - length(tensor_chain) - 1 : C.start
   return Hecke.ChainComplex(ModuleFP, tensor_chain, start=start, direction=C.direction)
 end
 
@@ -5097,7 +5097,7 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
     push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,j)))
   end
 
-  start = Hecke.is_chain_complex(C) ? C.start - length(hom_chain) : C.start
+  start = Hecke.is_chain_complex(C) ? C.start - length(hom_chain) - 1 : C.start
   return Hecke.ChainComplex(ModuleFP, hom_chain, start=start, direction=C.direction)
 end
 
@@ -5122,7 +5122,7 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   end
 
   direction = Hecke.is_chain_complex(C) ? :right : :left
-  start = Hecke.is_chain_complex(C) ? last(range(C))-1 : first(range(C))
+  start = Hecke.is_chain_complex(C) ? last(range(C))-1 : first(range(C)) - 1
   return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=direction)
 end
 
@@ -5146,7 +5146,7 @@ function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::Mod
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  start = Hecke.is_chain_complex(C) ? -first(chain_range) : -last(chain_range)-1  
+  start = Hecke.is_chain_complex(C) ? -first(chain_range)-1 : -last(chain_range)-1  
   return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=C.direction)
 end
 
@@ -5157,7 +5157,7 @@ end
 Compute all homology groups of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP})
-  return [homology(C,i) for i in range(C)]
+  return [homology(C,i) for i in Hecke.object_range(C)]
 end
 
 @doc Markdown.doc"""
@@ -5166,18 +5166,18 @@ end
 Compute the `i`-th homology of `C`.
 """
 function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
-  chain_range = range(C)
+  chain_range = Hecke.object_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
   if i == first(chain_range)
-    i = Hecke.is_chain_complex(C) ? i-1 : i
+    i = Hecke.is_chain_complex(C) ? i : i+1
     return kernel(map(C,i))[1]
   elseif i == last(chain_range)
-    i = Hecke.is_chain_complex(C) ? i : i-1
+    i = Hecke.is_chain_complex(C) ? i+1 : i
     f = map(C,i)
     return cokernel(f)    
   elseif i in chain_range
-    next_index = Hecke.is_chain_complex(C) ? i-1 : i
-    i = Hecke.is_chain_complex(C) ? i : i-1
+    next_index = Hecke.is_chain_complex(C) ? i : i+1
+    i = Hecke.is_chain_complex(C) ? i+1 : i
     return quo(kernel(map(C,next_index))[1], image(map(C,i))[1], :module)
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
