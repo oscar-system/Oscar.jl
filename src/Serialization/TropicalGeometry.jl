@@ -1,15 +1,21 @@
 # Tropical Semiring
 
-encodeType(::Type{<:TropicalSemiring}) = "TropicalSemiring"
-reverseTypeMap["TropicalSemiring"] = TropicalSemiring
+encodeType(::Type{TropicalSemiring{S}}) where S = "TropicalSemiring{$S}"
+reverseTypeMap["TropicalSemiring{typeof(min)}"] = TropicalSemiring{typeof(min)}
+reverseTypeMap["TropicalSemiring{typeof(max)}"] = TropicalSemiring{typeof(max)}
 
-function save_internal(s::SerializerState, T::TropicalSemiring)
-    println("hello")
+# elements
+function save_internal(s::SerializerState, t::TropicalSemiringElem{S}) where S
+    T = parent(t)
     return Dict(
-        :convention => save_type_dispatch(s, convention(T))
+        :parent => save_type_dispatch(s, T),
+        
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{TropicalSemiring}, dict::Dict)
-    return nothing
+function load_internal(s::DeserializerState, ::Type{Nemo.NmodRing}, dict::Dict)
+    modulus = load_type_dispatch(s, UInt64, dict[:modulus])
+    return Nemo.NmodRing(modulus)
 end
+
+
