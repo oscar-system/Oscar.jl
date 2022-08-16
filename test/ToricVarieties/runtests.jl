@@ -409,9 +409,9 @@ DC5 = anticanonical_divisor_class(dP3)
 DC6 = trivial_divisor_class(dP3)
 
 @testset "Attributes of toric divisor classes" begin
-    is_trivial(toric_divisor(DC2)) == false
-    rank(parent(divisor_class(DC2))) == 2
-    dim(toric_variety(DC2)) == 2
+    @test is_trivial(toric_divisor(DC2)) == false
+    @test rank(parent(divisor_class(DC2))) == 2
+    @test dim(toric_variety(DC2)) == 2
 end
 
 @testset "Arithmetics of toric divisor classes" begin
