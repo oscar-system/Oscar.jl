@@ -611,6 +611,7 @@ end
     @test is_trivial(cohomology_class(3*ac4)) == false
     @test is_trivial(RationalEquivalenceClass(sv2)) == false
     @test length(coefficients(ac1)) == 0
+    @test length(components(ac2-ac3)) == 3
 end
 
 @testset "Intersection of rational equivalence cycles" begin

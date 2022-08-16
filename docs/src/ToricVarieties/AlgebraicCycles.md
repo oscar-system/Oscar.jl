@@ -116,6 +116,7 @@ order to understand the geometric meaning of a rational equivalence
 class. For this purpose, we support the following methods.
 ```@docs
 coefficients(ac::RationalEquivalenceClass)
+components(ac::RationalEquivalenceClass)
 ```
 
 

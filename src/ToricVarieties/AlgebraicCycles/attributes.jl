@@ -189,6 +189,50 @@ end
 export coefficients
 
 
+@doc Markdown.doc"""
+    components(ac::RationalEquivalenceClass)
+
+A rational equivalence class of algebraic cycles can
+be represented by a polynomial in the Cox ring (cf.
+function `representant`). By no means is this
+representant unique. For one such choice of polynomial
+in the Cox ring, this method turns each monomial
+of said polynomial into a closed subvariety and returns
+the list formed from these subvarieties. Note that
+each of these subvarieties is irreducible and their
+formal linear sum, with the coefficients computed by#
+the method `coefficients(ac::RationalEquivalenceClass)`,
+defines an algebraic cycle, whose rational equivalence
+class is identical to the one given to this method.
+
+# Examples
+```jldoctest
+julia> dP2 = del_pezzo(2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> ac = RationalEquivalenceClass(d)
+A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+
+julia> length(components(ac*ac))
+1
+```
+"""
+@attr Vector{ClosedSubvarietyOfToricVariety} function components(ac::RationalEquivalenceClass)
+    if is_trivial(ac)
+        return ClosedSubvarietyOfToricVariety[]
+    end
+    variety = toric_variety(ac)
+    gs = gens(cox_ring(toric_variety(ac)))
+    mons = [m for m in monomials(representant(ac))]
+    expos = [[e for e in exponent_vectors(m)][1] for m in mons]
+    return [ClosedSubvarietyOfToricVariety(variety, [gs[k] for k in findall(!iszero,exps)]) for exps in expos]
+end
+export components
+
+
 ###########################################################################
 # 3. Other attributes of rational equivalence class of algebraic cycles
 ###########################################################################
