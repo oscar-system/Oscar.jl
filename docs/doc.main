@@ -118,7 +118,7 @@
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
-     "Modules Over Multivariate Rings"=> [
+     "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
@@ -131,6 +131,14 @@
   ],
 
   "Noncommutative Algebra" => [
+    "NoncommutativeAlgebra/intro.md",
+    "G-Algebras" => [
+    "NoncommutativeAlgebra/GAlgebras/intro.md",
+    "NoncommutativeAlgebra/GAlgebras/creation.md",
+    ],
+    "GR-Algebras" => [
+    "NoncommutativeAlgebra/GRAlgebras/intro.md",
+    ],
     "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
