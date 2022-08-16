@@ -147,11 +147,46 @@ julia> representant(ac*ac)
     if is_trivial(ac)
         return zero(cox_ring(toric_variety(ac)))
     end
-    coeffs = [coefficient_ring(toric_variety(ac))(k) for k in coefficients(polynomial(ac).f)]
+    coeffs = coefficients(ac)
     mapped_monomials = [map_gens_of_chow_ring_to_cox_ring(toric_variety(ac))[m] for m in monomials(polynomial(ac).f)]
     return sum([coeffs[i]*mapped_monomials[i] for i in 1:length(mapped_monomials)])
 end
 export representant
+
+
+@doc Markdown.doc"""
+    coefficients(ac::RationalEquivalenceClass)
+
+A rational equivalence class of algebraic cycles can
+be represented by a polynomial in the Cox ring (cf.
+function `representant`). By no means is this
+representant unique. For one such choice of polynomial
+in the Cox ring, this method returns the coefficients
+of said polynomial.
+
+# Examples
+```jldoctest
+julia> dP2 = del_pezzo(2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> ac = RationalEquivalenceClass(d)
+A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
+
+julia> coefficients(ac*ac)
+1-element Vector{fmpq}:
+ -34
+```
+"""
+@attr Vector{fmpq} function coefficients(ac::RationalEquivalenceClass)
+    if is_trivial(ac)
+        return fmpq[]
+    end
+    return [coefficient_ring(toric_variety(ac))(k) for k in coefficients(polynomial(ac).f)]
+end
+export coefficients
 
 
 ###########################################################################

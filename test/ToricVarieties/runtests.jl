@@ -610,6 +610,7 @@ end
     @test parent(representant(ac1)) == cox_ring(toric_variety(ac1))
     @test is_trivial(cohomology_class(3*ac4)) == false
     @test is_trivial(RationalEquivalenceClass(sv2)) == false
+    @test length(coefficients(ac1)) == 0
 end
 
 @testset "Intersection of rational equivalence cycles" begin

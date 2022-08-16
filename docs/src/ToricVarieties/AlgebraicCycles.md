@@ -111,6 +111,13 @@ equivalence class in question.
 ```@docs
 representant(ac::RationalEquivalenceClass)
 ```
+It can be rather convenient, to investigate such a representant in
+order to understand the geometric meaning of a rational equivalence
+class. For this purpose, we support the following methods.
+```@docs
+coefficients(ac::RationalEquivalenceClass)
+```
+
 
 ### Other attributes
 
