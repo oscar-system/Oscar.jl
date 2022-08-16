@@ -82,9 +82,14 @@ elements of the Chow ring, which in turn is (a certain) quotient of
 the Cox ring. Hence, internally, an algebraic cycle can be thought
 of as a polynomial in this ring and the intersection product
 corresponds to the product of two (equivalence classes of) polynomials.
-times
+
 An algebraic cycle can be intersected `n`- with itself via `^n`,
 where `n` can be an integer of of type `fmpz`.
+
+A closed subvarieties defines in a natural way a rational equivalence
+class (cf. section on special constructors above). This allows to
+compute intersection products among closed subvarieties and rational
+equivalence classes in the Chow ring.
 
 
 ## Attributes

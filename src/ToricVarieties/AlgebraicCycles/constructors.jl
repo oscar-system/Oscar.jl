@@ -229,6 +229,30 @@ end
 Base.:^(ac::RationalEquivalenceClass, p::T) where {T <: IntegerUnion} = RationalEquivalenceClass(toric_variety(ac), polynomial(ac)^p)
 
 
+function Base.:*(ac::RationalEquivalenceClass, sv::ClosedSubvarietyOfToricVariety)
+    if toric_variety(ac) !== toric_variety(sv)
+        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on identically the same toric variety"))
+    end
+    return ac * RationalEquivalenceClass(sv)
+end
+
+
+function Base.:*(sv::ClosedSubvarietyOfToricVariety, ac::RationalEquivalenceClass)
+    if toric_variety(ac) !== toric_variety(sv)
+        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on identically the same toric variety"))
+    end
+    return ac * RationalEquivalenceClass(sv)
+end
+
+
+function Base.:*(sv1::ClosedSubvarietyOfToricVariety, sv2::ClosedSubvarietyOfToricVariety)
+    if toric_variety(sv1) !== toric_variety(sv2)
+        throw(ArgumentError("The closed subvarieties must be defined on identically the same toric variety"))
+    end
+    return RationalEquivalenceClass(sv1) * RationalEquivalenceClass(sv2)
+end
+
+
 ####################################################
 # 6: Equality
 ####################################################

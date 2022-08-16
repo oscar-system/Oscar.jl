@@ -123,6 +123,7 @@ end
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 P2v2 = projective_space(NormalToricVariety,2)
+P3 = projective_space(NormalToricVariety,3)
 
 @testset "Projective space P2" begin
     @test is_normal(P2) == true
@@ -565,6 +566,7 @@ end
 (x1, x2, y1, y2) = gens(cox_ring(ntv));
 sv1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
 sv2 = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2,y2])
+sv3 = ClosedSubvarietyOfToricVariety(P3, [gens(cox_ring(P3))[1]^2])
 
 @testset "Test error messages for closed subvarieties" begin
     @test_throws ArgumentError ClosedSubvarietyOfToricVariety(ntv, [x1 - y1])
@@ -589,6 +591,7 @@ ac2 = RationalEquivalenceClass(DC3)
 ac3 = RationalEquivalenceClass(l4)
 ac4 = RationalEquivalenceClass(c3)
 ac5 = RationalEquivalenceClass(CohomologyClass(dP3, x3))
+ac6 = RationalEquivalenceClass(ToricLineBundle(ntv,[1,1]))
 
 @testset "Error of rational equivalence classes" begin
   @test_throws ArgumentError RationalEquivalenceClass(antv, [1,2,3])
@@ -596,6 +599,9 @@ ac5 = RationalEquivalenceClass(CohomologyClass(dP3, x3))
   @test_throws ArgumentError ac1 + ac3
   @test_throws ArgumentError ac1 - ac3
   @test_throws ArgumentError ac1 * ac3
+  @test_throws ArgumentError sv1 * ac1
+  @test_throws ArgumentError ac2 * sv1
+  @test_throws ArgumentError sv1 * sv3
 end
 
 @testset "Arithmetics of rational equivalence cycles" begin
@@ -612,6 +618,11 @@ end
     @test is_trivial(RationalEquivalenceClass(sv2)) == false
     @test length(coefficients(ac1)) == 0
     @test length(components(ac2-ac3)) == 3
+    @test is_trivial(ac6*sv1) == false
+    @test is_trivial(sv1*ac6) == false
+    @test is_trivial(sv1*sv1) == true
+    @test length(components(sv3*sv3)) == 1
+    @test coefficients(sv3*sv3)[1] == 4
 end
 
 @testset "Intersection of rational equivalence cycles" begin
