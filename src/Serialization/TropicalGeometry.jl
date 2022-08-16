@@ -5,11 +5,10 @@ reverseTypeMap["TropicalSemiring{typeof(min)}"] = TropicalSemiring{typeof(min)}
 reverseTypeMap["TropicalSemiring{typeof(max)}"] = TropicalSemiring{typeof(max)}
 
 ## elements
-encodeType(::Type{TropicalSemiringElem{S}}) where S = "TropicalSemiringElem{$S}"
-reverseTypeMap["TropicalSemiringElem{typeof(min)}"] = TropicalSemiringElem{typeof(min)}
-reverseTypeMap["TropicalSemiringElem{typeof(max)}"] = TropicalSemiringElem{typeof(max)}
+encodeType(::Type{<:TropicalSemiringElem})= "TropicalSemiringElem"
+reverseTypeMap["TropicalSemiringElem"] = TropicalSemiringElem
 
-function save_internal(s::SerializerState, t::TropicalSemiringElem{S}) where {S}
+function save_internal(s::SerializerState, t::TropicalSemiringElem)
   T = parent(t)
   return Dict(
     :parent => save_type_dispatch(s, T),
@@ -32,15 +31,58 @@ function load_internal_with_parent(s::DeserializerState,
 end
 
 
-# Tropical Varieties
-encodeType(::Type{<: TropicalVarietySupertype}) = "TropicalSemiringElem"
-reverseTypeMap["TropicalSemiringElem"] = TropicalSemiringElem
+# Tropical Hypersurfaces
+encodeType(::Type{<: TropicalHypersurface}) = "TropicalHypersurface"
+reverseTypeMap["TropicalHypersurface"] = TropicalHypersurface
 
-function save_internal(s::SerializerState, t_var::Type{<: TropicalVarietySupertype{S, Bool}}) where S
-  return Dict(
-    :polyhedral_complex => save_type_dispatch(s, underlying_polyhedral_complex(t_var))
-  )
+function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
+    return Dict(
+        :tropical_polynomial => save_type_dispatch(s, polynomial(t_surf))
+    )
 end
+
+function load_internal(s::DeserializerState,
+                       ::Type{TropicalHypersurface},
+                       dict::Dict) 
+  polynomial = load_type_dispatch(s, MPolyElem, dict[:tropical_polynomial])
+  return TropicalHypersurface(polynomial)
+end
+
+# Tropical Curves
+encodeType(::Type{<: TropicalCurve}) = "TropicalCurve"
+reverseTypeMap["TropicalCurve"] = TropicalCurve
+
+function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
+  if EMB
+    return Dict(
+        :polyhedral_complex => save_type_dispatch(s, underlying_polyhedral_complex(t_curve))
+    )
+  else
+    return Dict(
+        :graph => save_type_dispatch(s, graph(t_curve))
+    )
+  end
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{TropicalCurve},
+                       dict::Dict) 
+  if haskey(dict, :polyhedral_complex)
+    return TropicalCurve(
+      load_type_dispatch(s, PolyhedralComplex{fmpq}, dict[:polyhedral_complex])
+    )
+  else
+    return TropicalCurve(
+      load_type_dispatch(s, Matrix{fmpz}, dict[:graph])
+    )
+  end
+end
+
+
+
+
+
+
 
 
 
