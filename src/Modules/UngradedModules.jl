@@ -12,6 +12,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       show_subquo, show_morphism, show_morphism_as_map,
       matrix_kernel, simplify, map, is_injective,
       is_surjective, is_bijective, is_welldefined, subquotient,
+      multiplication_morphism, multiplication_induced_morphism,
       ambient_free_module, ambient_module, ambient_representative,
       ambient_representatives_generators, relations, img_gens, is_complete
 
@@ -4423,16 +4424,35 @@ function module_elem(H::ModuleFP, phi::ModuleMap)
   return map_to_hom(phi)
 end
 
+@doc Markdown.doc"""
+    multiplication_morphism(a::RingElem, M::ModuleFP)
+
+Return the multiplication by `a` as an endomorphism on `M`.
+"""
 function multiplication_morphism(a::RingElem, M::ModuleFP)
   @assert base_ring(M) === parent(a)
   return hom(M, M, [a*v for v in gens(M)])
 end
 
+@doc Markdown.doc"""
+    multiplication_morphism(a::FreeModElem, M::ModuleFP)
+
+Return the multiplication by `a` as an endomorphism on `M`. For this,
+the parent of `a` must be a module of rank 1.
+"""
 function multiplication_morphism(a::FreeModElem, M::ModuleFP)
   @assert rank(parent(a)) == 1
   return multiplication_morphism(a[1], M)
 end
 
+@doc Markdown.doc"""
+    multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
+
+Let `H` be the module of endomorphisms on a module `M`. (If this is not
+the case an error is thrown.) Let `F` be free of rank 1. Return the 
+morphism from `F` to `H` which sends an element of `F` to its
+corresponding multiplication morphism.
+"""
 function multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
   @assert rank(F) == 1
   M_N = get_attribute(H, :hom)
@@ -5204,14 +5224,14 @@ end
 # TODO ?
 #############################
 @doc Markdown.doc"""
-    bfs_on_cached_maps(N::SubQuo, M::SubQuo)
+    find_sequence_of_morphisms(N::SubQuo, M::SubQuo)
 
 Compute a path from `N` to `M` in the graph of cached (canonical) morphisms.
 Return it as Vector of maps where the first element has domain `N` and the last 
 has codomain `M`.
 If there exists no path an error is thrown.
 """
-function bfs_on_cached_maps(N::SubQuo, M::SubQuo)
+function find_sequence_of_morphisms(N::SubQuo, M::SubQuo)
   if M===N
     return [identity_map(M)]
   end
@@ -5258,7 +5278,7 @@ If this is not possible an error is thrown.
 """
 function transport(M::SubQuo, v::SubQuoElem)
   N = parent(v)
-  morphisms = bfs_on_cached_maps(N, M)
+  morphisms = find_sequence_of_morphisms(N, M)
 
   return foldl((x,f) -> f(x), morphisms; init=v)
 end
@@ -5271,15 +5291,15 @@ and return it.
 If there exists no such morphism an error is thrown.
 """
 function find_morphism(M::SubQuo, N::SubQuo)
-  morphisms = bfs_on_cached_maps(M, N)
+  morphisms = find_sequence_of_morphisms(M, N)
   return reduce(*, morphisms)
 end
 
 @doc Markdown.doc"""
     find_morphisms(N::SubQuo, M::SubQuo)
 
-Find all paths (morphisms) from `N` to `M` in the graph of cached (canonical) morphisms
-and return them as a vector.
+Traverse the graph of all cached morphisms originating in `N` and 
+return the compositions of all loop-free paths from `N` to `M`.
 """
 function find_morphisms(N::SubQuo, M::SubQuo)
   # from N to M

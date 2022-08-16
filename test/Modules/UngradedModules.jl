@@ -574,6 +574,12 @@ end
 		@test v == module_elem(SQ, homomorphism(v))
 	end
 
+	End_M = hom(M1,M1)[1]
+	R_as_module = FreeMod(R,1)
+	phi = multiplication_induced_morphism(R_as_module, End_M)
+	@test homomorphism(phi(R_as_module[1])) == identity_map(M1)
+	@test image(homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
+
 	# test if hom(zero-module, ...) is zero
 	Z = FreeMod(R,0)
 	@test iszero(hom(Z,Z)[1])
