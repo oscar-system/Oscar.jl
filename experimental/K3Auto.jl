@@ -15,10 +15,12 @@ mutable struct BorcherdsData
   S::ZLat
   SS::ZLat
   R::ZLat
-  deltaR::Vector{fmpq_mat}
+  deltaR::Vector{fmpz_mat}
   prRdelta
   membership_test
   gramL::fmpz_mat
+  gramS::fmpz_mat
+  prS::fmpq_mat
 end
 
 mutable struct Chamber
@@ -113,11 +115,11 @@ Input:
 - `b` - vector
 - `c` - rational number
 """
-function quadratic_triple(Q, b, c, algorithm=:short_vectors)
+function quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=false)
   if algorithm == :short_vectors
     L, p, dist = Hecke.convert_type(Q, b, QQ(c))
     #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
-    cv = Hecke.closest_vectors(L, p, dist, check=false)
+    cv = Hecke.closest_vectors(L, p, dist, check=false, equal=false)
   end
   # using :pqt seems unfeasible
   if algorithm == :pqt
@@ -154,6 +156,10 @@ function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
   end
   _, K = left_kernel(wn)
   # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
+
+  # now I want to formulate this as a cvp
+  # (x +y K) gram (x+yK) ==d
+  # (x
   GK = gram*transpose(K)
   Q = K * GK
   b = transpose(x) * GK
@@ -161,11 +167,11 @@ function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
   # solve the quadratic triple
   Q = change_base_ring(QQ, Q)
   b = change_base_ring(QQ, transpose(b))
-  cv = quadratic_triple(-Q, -b,-QQ(c))
+  cv = quadratic_triple(-Q, -b,-QQ(c),equal=true)
   cv = [transpose(x)+transpose(matrix(u))*K for u in cv]
   @hassert :K3Auto 1 all((v*gram*transpose(u))[1,1]==alpha for u in cv)
-  @hassert :K3Auto 1 all((u*gram*transpose(u))[1,1]>= d for u in cv)
-  return [u for u in cv if (u*gram*transpose(u))[1,1]==d]
+  @hassert :K3Auto 1 all((u*gram*transpose(u))[1,1]== d for u in cv)
+  return cv #[u for u in cv if (u*gram*transpose(u))[1,1]==d]
 end
 
 
@@ -284,14 +290,22 @@ function alg319(gram::MatrixElem, raysD::Vector{fmpz_mat}, raysE::Vector{fmpz_ma
     partial_homs = partial_homs_new
   end
   basisinv = inv(change_base_ring(QQ, basis))
-  homs = [basisinv*f for f in partial_homs]
+  homs = fmpz_mat[]
+  is_in_hom_D_E(f) = all(r*f in raysE for r in raysD) # could possibly be made faster using an interior point as in Remark 3.20
+  for f in partial_homs
+    f = basisinv*f
+    if denominator(f)!=1
+      continue
+    end
+    fz = change_base_ring(ZZ,f)
+    if !membership_test(fz) || !is_in_hom_D_E(fz)
+      continue
+    end
+    push!(homs,fz)
+  end
   @hassert :K3Auto 1 all(f*gram*transpose(f)==gram for f in homs)
-  is_in_hom_D_E(f) = all(r*f in raysE for r in raysD) # can be made faster using an interior point as in Remark 3.20
-  homs = [change_base_ring(ZZ,f) for f in homs if denominator(f)==1]
-  homs = [f for f in homs if membership_test(f) && is_in_hom_D_E(f)]
   return homs
 end
-
 
 
 @doc Markdown.doc"""
@@ -374,31 +388,86 @@ function alg58(data::BorcherdsData, w::fmpz_mat)
   n_R = [QQ(i)//d for i in (-2*d+1):0 if mod(d*i,2)==0]
   SSdual = dual(data.SS)
   delta_w = Tuple{fmpq_mat,fmpq_mat}[]
-  wS = solve_left(gram_matrix(S),w*gram_matrix(V)*transpose(basis_matrix(S)))
-  Vw = gram_matrix(V)*transpose(w)
+  wS = w*data.prS
+  #wS = solve_left(gram_matrix(S),w*gram_matrix(V)*transpose(basis_matrix(S)))
+  Vw = data.gramL*transpose(w)
+  # since we do repeated cvp in the same lattice
+  # we do the preprocessing here
+
+  # collect the cvp inputs to avoid repeated calculation of the same cvp
+  cvp_inputs = Dict{Tuple{fmpq,fmpq},Vector{fmpq_mat}}()
   for c in n_R
     cm = -c
-    for (vr0,vsquare) in data.prRdelta
+    for (vr,vsquare) in data.prRdelta
       if vsquare != cm
         continue
       end
-      a0 = (vr0*Vw)[1,1]
-      if c == 0
-        VA = [(vr0,a0)]
+      a = (vr*Vw)[1,1]
+      if (1-a,-2-c) in keys(cvp_inputs)
+        push!(cvp_inputs[(1-a,-2-c)], vr)
       else
-        VA = [(vr0,a0),(-vr0,-a0)]
+        cvp_inputs[(1-a,-2-c)] = [vr]
       end
-      for (vr,a) in VA
-        Sdual_na = short_vectors_affine(SSdual, wS, 1 - a, -2 - c)
-        for vs in Sdual_na
-          vv = vs*basis_matrix(data.S) +  vr
-          if denominator(vv)==1
-            push!(delta_w, (vs, vv))
-          end
+      if c != 0
+        if (1+a,-2-c) in keys(cvp_inputs)
+          push!(cvp_inputs[(1+a,-2-c)], -vr)
+        else
+          cvp_inputs[(1+a,-2-c)] = [-vr]
         end
       end
     end
   end
+
+
+  # setup
+  gram = gram_matrix(SSdual)
+  #B = basis_matrix(S)
+  #return [s*B for s in sol]
+
+  # much of this code is copied from
+  # short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::fmpq, d)
+  # to avoid repeated calculation of the same stuff e.g. K and Q
+  # find a solution <x,v> = alpha with x in L if it exists
+  w = transpose(wS)
+  tmp = FakeFmpqMat(w)
+  wn = numerator(tmp)
+  wd = denominator(tmp)
+  _, K = left_kernel(wn)
+  K = lll!(K)  # perhaps doing this has no gain?
+  # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
+
+  # now I want to formulate this as a cvp
+  # (x +y K) gram (x+yK) ==d
+  # (x
+  GK = gram*transpose(K)
+  Q = K * GK
+  #  Qf = change_base_ring(ZZ,Q*denominator(Q))
+
+  for (alpha,d) in keys(cvp_inputs)
+    #Sdual_na = short_vectors_affine(SSdual, wS, a, b)
+    b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]))
+    if !b
+      continue
+    end
+    b = transpose(x) * GK
+    b = transpose(b)
+    c = (transpose(x)*gram*x)[1,1] - d
+    # solve the quadratic triple
+    cv = quadratic_triple(-Q, -b,-QQ(c))
+    cv = [(transpose(x)+transpose(matrix(u))*K) for u in cv]
+    @hassert :K3Auto 1 all((v*gram*transpose(u))[1,1]==alpha for u in cv)
+    @hassert :K3Auto 1 all((u*gram*transpose(u))[1,1]>= d for u in cv)
+    Sdual_na = [u*basis_matrix(SSdual) for u in cv if (u*gram*transpose(u))[1,1]==d]
+    for vr in cvp_inputs[(alpha,d)]
+      for vs in Sdual_na
+        vv = vs*basis_matrix(data.S) +  vr
+        if denominator(vv)==1
+          push!(delta_w, (vs, vv))
+        end
+      end
+    end
+  end
+
   # the chamber should intersect the boundary only at the QQ-rational points
   @hassert :K3Auto 2 rank(S) == rank(reduce(vcat,[s[1] for s in delta_w]))
   return delta_w
@@ -417,11 +486,18 @@ Calls Polymake.
 Corresponds Algorithm 5.11 in [Shi]
 """
 function walls_of_chamber(data::BorcherdsData, w)
-  i = zero_matrix(QQ, 0, degree(data.SS))
-  D = reduce(vcat, [v[1] for v in alg58(data, w)], init=i)
-  P = positive_hull(D)
-  r = rays(P)
-  d = length(r)
+  walls1 = alg58(data, w)
+  if length(walls1)!=rank(data.S)
+    i = zero_matrix(QQ, 0, degree(data.SS))
+    D = reduce(vcat, (v[1] for v in walls1), init=i)
+    P = positive_hull(D)
+    r = rays(P)
+    d = length(r)
+  else
+    # shortcut which avoids calling Polymake
+    r = (v[1] for v in walls1)
+    d = rank(data.S)
+  end
   walls = Vector{fmpz_mat}(undef,d)
   for i in 1:d
     # rescale v to be primitive in S
@@ -472,34 +548,31 @@ Return the (-2)-walls of L containing $v^{perp_S}$.
 
 Algorithm 5.13 in [Shi]
 """
-function unproject_wall(L::ZLat, S::ZLat, R::ZLat, prRdelta, deltaR::Vector{fmpq_mat}, v::fmpq_mat)
-  P = []
-  V = ambient_space(L)
-  @hassert :K3Auto 1 V == ambient_space(S)
-  Sd = dual(S)
-  Rv = lattice(V,v)
-  v = basis_matrix(intersect(Sd , Rv)) # primitive in S^\vee
+function unproject_wall(data::BorcherdsData, vS::fmpz_mat)
+  d = gcd(vec(vS*data.gramS))
+  v = QQ(1//d)*(vS*basis_matrix(data.S))  # primitive in Sdual
+  vsq = QQ((vS*data.gramS*transpose(vS))[1,1],d^2)
+
+  @hassert :K3Auto 1 ambient_space(data.L) == ambient_space(S)
   @hassert :K3Auto 1 nrows(v)==1 "v not in S"
-  d = inner_product(V,v,v)[1,1]
-  @hassert :K3Auto 1 d>=-2
-  # Rdual = dual(R)
-  rkR = rank(R)
-  Pv = copy(deltaR)
-  for alpha in 1:Int64(floor(sqrt(Float64(-2//d))))
-    c = 2 + alpha^2*d
+  @hassert :K3Auto 1 vsq>=-2
+  rkR = rank(data.R)
+  Pv = copy(data.deltaR)  # TODO: do these root matter at all?
+  for alpha in 1:Int64(floor(sqrt(Float64(-2//vsq))))
+    c = 2 + alpha^2*vsq
     alphav = alpha*v
-    for (vr,cc) in prRdelta
+    for (vr,cc) in data.prRdelta
       if cc != c
         continue
       end
-      if c == 0
-        VV = (alphav + vr,)
-      else
-        VV = (alphav + vr, alphav - vr)
+      vv = alphav + vr
+      if denominator(vv)==1
+        push!(Pv,change_base_ring(ZZ,vv))
       end
-      for vv in VV
-        if myin(vv, L)
-          push!(Pv, vv)
+      if c != 0
+        vv = alphav - vr
+        if denominator(vv)==1
+          push!(Pv, change_base_ring(ZZ,vv))
         end
       end
     end
@@ -507,22 +580,21 @@ function unproject_wall(L::ZLat, S::ZLat, R::ZLat, prRdelta, deltaR::Vector{fmpq
   return Pv
 end
 
-
 @doc Markdown.doc"""
-Return a Weyl vector of the L|S chamber adjacent to `D(w)` via the wall defined by `v`.
+Return return the L|S chamber adjacent to `D` via the wall defined by `v`.
 """
-function alg514(gramL::fmpz_mat, L, S::ZLat, R::ZLat, prRdelta, deltaR, w::fmpz_mat, v::fmpq_mat)
-  d = ncols(gramL)
-  Pv = unproject_wall(L, S, R, prRdelta, deltaR, v)
+function adjacent_chamber(D::Chamber, v)
+  gramL = D.data.gramL
+  dimL = ncols(gramL)
+  Pv = unproject_wall(D.data, v)
   @hassert :K3Auto 1 length(Pv) == length(unique(Pv))
   a = 10000
   @label getu
   a = 10*a
   rep = Tuple{Int,fmpq}[]
-  u = matrix(QQ, 1, d, rand(-a:a, d))
-  Vw = gramL*transpose(w)
+  u = matrix(ZZ, 1, dimL, rand(-a:a, dimL))
+  Vw = gramL*transpose(D.weyl_vector)
   Vu = gramL*transpose(u)
-  Pv = [change_base_ring(ZZ,r) for r in Pv]
   for i in 1:length(Pv)
     r = Pv[i]
     s = (r*Vu)[1,1]//(r*Vw)[1,1]
@@ -533,26 +605,16 @@ function alg514(gramL::fmpz_mat, L, S::ZLat, R::ZLat, prRdelta, deltaR, w::fmpz_
   end
   @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
   sort!(rep, by=x->x[2])
+  w = D.weyl_vector
   for (i,s) in rep
     r = Pv[i]
     @hassert :K3Auto 3 (r*gramL*transpose(r))[1,1]==-2
     @hassert :K3Auto 3 rank(L)!=26 || (w*gramL*transpose(w))[1,1] == 0
     w = w + (r*gramL*transpose(w))[1,1]*r
   end
-  return w
+  return Chamber(D.data, w, v)
 end
 
-@doc Markdown.doc"""
-Return return the L|S chamber adjacent to `D` via the wall defined by `v`.
-"""
-function adjacent_chamber(D::Chamber, v)
-  data = D.data
-  d = gcd(vec(change_base_ring(ZZ,v*gram_matrix(D.data.S))))
-  vv = QQ(1//d)*(v*basis_matrix(data.S))
-  data = D.data
-  weyl_new = alg514(data.gramL,data.L, data.S,data.R,data.prRdelta,data.deltaR, D.weyl_vector, vv)
-  return Chamber(data, weyl_new, v)
-end
 
 function complete_to_basis(B::fmpz_mat,C::fmpz_mat)
   basis = B
@@ -641,7 +703,8 @@ function K3Auto(L::ZLat, S::ZLat, w::fmpq_mat; entropy_abort=false, compute_OR=t
       phi,i,j = glue_map(L,S,R)
       phi = phiSS_S*inv(i)*phi*j
       img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
-      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(lift(x)*g) for x in gens(DSS)])) in img)
+      ds = degree(SS)
+      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(vec(matrix(QQ, 1, ds, lift(x))*g)) for x in gens(DSS)])) in img)
     end
   else
     membership_test(g) = is_in_G(SS,g)
@@ -657,9 +720,9 @@ function K3Auto(L::ZLat, S::ZLat, w::fmpq_mat; entropy_abort=false, compute_OR=t
   push!(sv,(zeros(T, rank(Rdual)), QQ(0)))
   rkR = rank(R)
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
-  deltaR = [matrix(QQ, 1, rkR, v[1])*basis_matrix(R) for v in short_vectors(rescale(R,-1),2)]
+  deltaR = [change_base_ring(ZZ,matrix(QQ, 1, rkR, v[1])*basis_matrix(R)) for v in short_vectors(rescale(R,-1),2)]
 
-  data = BorcherdsData(L, S, SS, R, deltaR, prRdelta, membership_test,change_base_ring(ZZ,gram_matrix(L)))
+  data = BorcherdsData(L, S, SS, R, deltaR, prRdelta, membership_test,change_base_ring(ZZ,gram_matrix(L)),change_base_ring(ZZ,gram_matrix(S)),prS)
   # for G-sets
   F = FreeModule(ZZ,rank(S))
   # initialization
@@ -1463,3 +1526,9 @@ function overlattice(glue_map)
   B = QQ(1,denominator(glue))*change_base_ring(QQ,numerator(B))
   return lattice(ambient_space(S),B[end-degree(S)+1:end,:])
 end
+
+#=
+pyexec("L = []",Main)
+pyexec("def callback(new_sol_coord): L.append(new_sol_coord); return True",Main)
+cb = pyeval("callback",Main)
+=#
