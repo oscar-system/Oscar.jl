@@ -487,22 +487,29 @@ Corresponds Algorithm 5.11 in [Shi]
 """
 function walls_of_chamber(data::BorcherdsData, w)
   walls1 = alg58(data, w)
-  if length(walls1)!=rank(data.S)
-    i = zero_matrix(QQ, 0, degree(data.SS))
-    D = reduce(vcat, (v[1] for v in walls1), init=i)
-    P = positive_hull(D)
-    r = rays(P)
-    d = length(r)
-  else
+  if length(walls1)==rank(data.S)
     # shortcut which avoids calling Polymake
-    r = (v[1] for v in walls1)
     d = rank(data.S)
+    walls = Vector{fmpz_mat}(undef,d)
+    for i in 1:d
+      vs = numerator(FakeFmpqMat(walls1[i][1]))
+      if gcd(vec(vs))!=1
+        vs = divexact(vs,g)
+      end
+    end
+    walls[i] = vs
+    return walls
   end
+  i = zero_matrix(QQ, 0, degree(data.SS))
+  D = reduce(vcat, (v[1] for v in walls1), init=i)
+  P = positive_hull(D)
+  r = rays(P)
+  d = length(r)
   walls = Vector{fmpz_mat}(undef,d)
   for i in 1:d
-    # rescale v to be primitive in S
     v = matrix(QQ, 1, degree(data.SS), r[i])
-    vs = change_base_ring(ZZ,denominator(v)*v)
+    # rescale v to be primitive in S
+    vs = numerator(FakeFmpqMat(v))
     g = gcd(vec(vs))
     if g!=1
       vs = divexact(vs,g)
