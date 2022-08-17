@@ -43,7 +43,7 @@ end
 
 function load_internal(s::DeserializerState,
                        ::Type{<: TropicalHypersurface},
-                       dict::Dict) 
+                       dict::Dict)
   polynomial = load_type_dispatch(s, MPolyElem, dict[:tropical_polynomial])
   return TropicalHypersurface(polynomial)
 end
@@ -66,7 +66,7 @@ end
 
 function load_internal(s::DeserializerState,
                        ::Type{<: TropicalCurve},
-                       dict::Dict) 
+                       dict::Dict)
   if haskey(dict, :polyhedral_complex)
     return TropicalCurve(
       load_type_dispatch(s, PolyhedralComplex{fmpq}, dict[:polyhedral_complex])
@@ -77,14 +77,3 @@ function load_internal(s::DeserializerState,
     )
   end
 end
-
-
-
-
-
-
-
-
-
-
-
