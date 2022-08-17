@@ -496,8 +496,8 @@ function walls_of_chamber(data::BorcherdsData, w)
       if gcd(vec(vs))!=1
         vs = divexact(vs,g)
       end
+      walls[i] = vs
     end
-    walls[i] = vs
     return walls
   end
   i = zero_matrix(QQ, 0, degree(data.SS))
