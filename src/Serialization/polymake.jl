@@ -22,10 +22,8 @@ const polymake2OscarTypes = Dict{String, Type}([
     "topaz::SimplicialComplex" => SimplicialComplex,
     "common::GraphAdjacency<Undirected>" => Graphs.Graph{Graphs.Undirected},
     "common::GraphAdjacency<Directed>" => Graphs.Graph{Graphs.Directed},
-    "common::IncidenceMatrix<NonSymmetric>" => Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric},
 ])
 
-@registerSerializationType(Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric})
 @registerSerializationType(Polymake.BigObjectAllocated, "Polymake.BigObject")
 
 function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {

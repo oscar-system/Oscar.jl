@@ -73,7 +73,7 @@ function load_internal(s::DeserializerState,
     )
   else
     return TropicalCurve(
-      load_type_dispatch(s, Matrix{fmpz}, dict[:graph])
+      load_type_dispatch(s, IncidenceMatrix, dict[:graph])
     )
   end
 end
