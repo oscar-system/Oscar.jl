@@ -73,7 +73,7 @@ function load_internal(s::DeserializerState,
                        T::Type{<: Union{MPolyRing, PolyRing}},
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
-    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols]) 
+    symbols = load_type_dispatch(s, Vector{Symbol}, dict[:symbols])
 
     if T <: PolyRing
         return PolynomialRing(base_ring, symbols..., cached=false)
@@ -135,7 +135,7 @@ function load_internal_with_parent(s::DeserializerState,
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(parent_ring)
-    
+
     for term in dict[:terms]
         c = load_type_dispatch(s, coeff_type, term[:coeff]; parent=coeff_ring)
         e = load_type_dispatch(s, Vector{Int}, term[:exponent])
@@ -182,7 +182,7 @@ function load_internal_with_parent(s::DeserializerState,
     # cache parent inside serializer state in case parent needs
     # to be checked against the passed parent
     _, _ = load_unknown_type(s, dict[:parent])
-    
+
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
@@ -241,7 +241,7 @@ end
 
 function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
-                       dict::Dict) 
+                       dict::Dict)
     mat = load_type_dispatch(s, Matrix, dict[:matrix])
     entries_ring = parent(mat[1])
     return matrix(entries_ring, mat)
