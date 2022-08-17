@@ -682,7 +682,9 @@ function K3Auto(L::ZLat, S::ZLat, w::fmpq_mat; entropy_abort=false, compute_OR=t
   prS = ibSR*I[:,1:rank(S)]#*basis_matrix(S)
   @assert prS[rank(S)+1,:]==0
 
-  if minimum(diagonal(-gram_matrix(R))) > 6
+  m = maximum(diagonal(-gram_matrix(R)))
+  if m > 6
+    @vprint :K3Auto 2 "skipping orthogonal group computation since the diagonal contains $(m)"
     # otherwise we run out of memory ....
     # TODO: Improve orthogonal group computation using a decompositon
     compute_OR = false
