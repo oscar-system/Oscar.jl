@@ -42,7 +42,7 @@ function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{TropicalHypersurface},
+                       ::Type{<: TropicalHypersurface},
                        dict::Dict) 
   polynomial = load_type_dispatch(s, MPolyElem, dict[:tropical_polynomial])
   return TropicalHypersurface(polynomial)
@@ -65,7 +65,7 @@ function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{TropicalCurve},
+                       ::Type{<: TropicalCurve},
                        dict::Dict) 
   if haskey(dict, :polyhedral_complex)
     return TropicalCurve(

@@ -149,7 +149,7 @@ end
 
                 @testset "MPoly Ideals over $(case[4])" begin
                     q = w^2 + z
-                    i = ideal(R, [p, q])
+                    i = Oscar.ideal(R, [p, q])
                     test_save_load_roundtrip(path, i) do loaded_i
                         if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
                             S = parent(loaded_i[1])
