@@ -119,7 +119,7 @@ function quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=false)
   if algorithm == :short_vectors
     L, p, dist = Hecke.convert_type(Q, b, QQ(c))
     #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
-    cv = Hecke.closest_vectors(L, p, dist, check=false, equal=false)
+    cv = Hecke.closest_vectors(L, p, dist, check=false, equal=equal)
   end
   # using :pqt seems unfeasible
   if algorithm == :pqt
@@ -453,11 +453,11 @@ function alg58(data::BorcherdsData, w::fmpz_mat)
     b = transpose(b)
     c = (transpose(x)*gram*x)[1,1] - d
     # solve the quadratic triple
-    cv = quadratic_triple(-Q, -b,-QQ(c))
+    cv = quadratic_triple(-Q, -b,-QQ(c),equal=true)
     cv = [(transpose(x)+transpose(matrix(u))*K) for u in cv]
-    @hassert :K3Auto 1 all((v*gram*transpose(u))[1,1]==alpha for u in cv)
-    @hassert :K3Auto 1 all((u*gram*transpose(u))[1,1]>= d for u in cv)
-    Sdual_na = [u*basis_matrix(SSdual) for u in cv if (u*gram*transpose(u))[1,1]==d]
+    @hassert :K3Auto 1 all((u*w)[1,1]==alpha for u in cv)
+    @hassert :K3Auto 1 all((u*gram*transpose(u))[1,1]== d for u in cv)
+    Sdual_na = [u*basis_matrix(SSdual) for u in cv]
     for vr in cvp_inputs[(alpha,d)]
       for vs in Sdual_na
         vv = vs*basis_matrix(data.S) +  vr
@@ -560,8 +560,6 @@ function unproject_wall(data::BorcherdsData, vS::fmpz_mat)
   v = QQ(1//d)*(vS*basis_matrix(data.S))  # primitive in Sdual
   vsq = QQ((vS*data.gramS*transpose(vS))[1,1],d^2)
 
-  @hassert :K3Auto 1 ambient_space(data.L) == ambient_space(S)
-  @hassert :K3Auto 1 nrows(v)==1 "v not in S"
   @hassert :K3Auto 1 vsq>=-2
   rkR = rank(data.R)
   Pv = copy(data.deltaR)  # TODO: do these root matter at all?
@@ -616,7 +614,6 @@ function adjacent_chamber(D::Chamber, v)
   for (i,s) in rep
     r = Pv[i]
     @hassert :K3Auto 3 (r*gramL*transpose(r))[1,1]==-2
-    @hassert :K3Auto 3 rank(L)!=26 || (w*gramL*transpose(w))[1,1] == 0
     w = w + (r*gramL*transpose(w))[1,1]*r
   end
   return Chamber(D.data, w, v)
