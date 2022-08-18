@@ -358,6 +358,7 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/GAlgebra.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
 include("GAP/customize.jl")
