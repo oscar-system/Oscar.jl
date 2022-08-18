@@ -97,11 +97,7 @@ function Base.convert(::Type{<:Polymake.Integer}, x::fmpz)
     end
 end
 
-function Base.convert(::Type{<:Polymake.Rational}, x::fmpq)
-    GC.@preserve x begin
-        return Polymake.new_rational_from_fmpq(x)
-    end
-end
+Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polymake.new_rational_from_fmpq(x)
 
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
