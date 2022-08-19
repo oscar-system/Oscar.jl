@@ -53,7 +53,7 @@ _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isemp
 _isempty_halfspace(x) = isempty(x)
 
 # Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
-Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
+# Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
 # Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
 
 # export nf_scalar
@@ -92,6 +92,8 @@ Base.convert(T::Type{<:Polymake.Matrix}, x::Union{fmpz_mat,fmpq_mat}) = Base.con
 Base.convert(::Type{<:Polymake.Integer}, x::fmpz) = GC.@preserve x return Polymake.new_integer_from_fmpz(x)
 
 Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polymake.new_rational_from_fmpq(x)
+
+Base.convert(::Type{<:Polymake.Rational}, x::fmpz) = GC.@preserve x return Polymake.new_rational_from_fmpz(x)
 
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
