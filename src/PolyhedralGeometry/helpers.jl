@@ -89,13 +89,7 @@ end
 
 Base.convert(T::Type{<:Polymake.Matrix}, x::Union{fmpz_mat,fmpq_mat}) = Base.convert(T, Matrix(x))
 
-function Base.convert(::Type{<:Polymake.Integer}, x::fmpz)
-    if Nemo._fmpz_is_small(x)
-        return Polymake.Integer(x.d)
-    else
-        GC.@preserve x return Polymake._integer_from_ptr64(x.d << 2)
-    end
-end
+Base.convert(::Type{<:Polymake.Integer}, x::fmpz) = GC.@preserve x return Polymake.new_integer_from_fmpz(x)
 
 Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polymake.new_rational_from_fmpq(x)
 
