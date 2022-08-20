@@ -62,7 +62,7 @@ Return the element `f` of type `GrpAbFinGenMap`.
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
-  imgs = [f(a) for a in gens(A)]
+  imgs = Hecke.TorQuadModElem[f(a) for a in gens(A)]
   return hom(A, A, imgs)
 end
 
