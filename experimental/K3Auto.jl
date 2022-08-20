@@ -120,6 +120,7 @@ function quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=false)
     L, p, dist = Hecke.convert_type(Q, b, QQ(c))
     #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
     cv = Hecke.closest_vectors(L, p, dist, check=false, equal=equal)
+    #@show isone(basis_matrix(L)),gram_matrix(L),p,dist
   end
   # using :pqt seems unfeasible
   if algorithm == :pqt
@@ -232,6 +233,9 @@ end
 function find_basis(rays::Vector, dim=Nothing)
   r = rays[1]
   n = ncols(r)
+  if dim==Nothing
+    dim = n
+  end
   B = zero_matrix(base_ring(r), 0, n)
   d = 0
   for r in rays
@@ -493,8 +497,9 @@ function walls_of_chamber(data::BorcherdsData, w)
     walls = Vector{fmpz_mat}(undef,d)
     for i in 1:d
       vs = numerator(FakeFmpqMat(walls1[i][1]))
-      if gcd(vec(vs))!=1
-        vs = divexact(vs,g)
+      g = gcd(vec(vs))
+      if g != 1
+        vs = divexact(vs, g)
       end
       walls[i] = vs
     end
@@ -512,7 +517,7 @@ function walls_of_chamber(data::BorcherdsData, w)
     vs = numerator(FakeFmpqMat(v))
     g = gcd(vec(vs))
     if g!=1
-      vs = divexact(vs,g)
+      vs = divexact(vs, g)
     end
     walls[i] = vs
   end
@@ -684,7 +689,7 @@ function K3Auto(L::ZLat, S::ZLat, w::fmpq_mat; entropy_abort=false, compute_OR=t
 
   m = maximum(diagonal(-gram_matrix(R)))
   if m > 6
-    @vprint :K3Auto 2 "skipping orthogonal group computation since the diagonal contains $(m)"
+    @vprint :K3Auto 2 "skipping orthogonal group computation since the diagonal contains $(m)\n"
     # otherwise we run out of memory ....
     # TODO: Improve orthogonal group computation using a decompositon
     compute_OR = false
@@ -692,7 +697,7 @@ function K3Auto(L::ZLat, S::ZLat, w::fmpq_mat; entropy_abort=false, compute_OR=t
 
   if compute_OR
     @vprint :K3Auto 3 "computing orthogonal group\n"
-    OR = orthogonal_group(R)
+    OR = orthogonal_group_decomp(R)
     @vprint :K3Auto 3 "done\n"
     DR = discriminant_group(R)
     ODR = orthogonal_group(DR)
@@ -794,7 +799,7 @@ function K3Auto(L::ZLat, S::ZLat, w::fmpq_mat; entropy_abort=false, compute_OR=t
       end
       @vprint :K3Auto 1 "Found a chamber with $(length(autD)) automorphisms\n"
       # compute the orbits
-      @show "computing orbits"
+      @vprint :K3Auto 2 "computing orbits"
       Omega = [F(v) for v in walls(D)]
       W = gset(matrix_group(autD),Omega)
       vv = F(D.parent_wall)
@@ -1059,10 +1064,11 @@ function weyl_vector(L::ZLat, U0::ZLat)
           u0 = 3*fu+zu
           return fu,u0
         end
-
+        #=
         e8 = rescale(root_lattice(:E,8), -1)
         e8e8,_,_ = orthogonal_sum(e8, e8)
         e8e8e8,_,_ = orthogonal_sum(e8e8, e8)
+        # the isometry test seems to be expensive sometimes
         isiso,T = isisometric(e8e8e8, R, ambient_representation=false)
         @vprint :K3Auto 2 root_type(R)[2]
         @vprint :K3Auto 2 "\n"
@@ -1071,7 +1077,7 @@ function weyl_vector(L::ZLat, U0::ZLat)
         end
         U = U0
         R = R0
-
+        =#
         leech,v,h = leech_from_root_lattice(rescale(R,-1))
         # the leech lattice is the h-neighbor of R with respect to v
         # with the attached hyperbolic planes this can be engineered to give an isometry
@@ -1185,15 +1191,6 @@ function preprocessingK3Auto(S, n)
   return L,S,weyl1#L,S,u0, weyl,weyl1, h
 end
 
-function find_isotropic(L)
-  V = ambient_space(L)
-  while true
-    v = matrix(QQ, 1, rank(L), rand(-10:10,rank(L)))*basis_matrix(L)
-    if inner_product(V,v,v)==0 && v!=0
-      return v
-    end
-  end
-end
 
 function parse_zero_entropy(filename="/home/simon/Dropbox/Math/MyPapers/zero entropy/CandidatesZeroEntropy_elliptic")
   io = open(filename,"r")
@@ -1345,7 +1342,7 @@ function leech_from_root_lattice(N::ZLat)
   # there seem to be some signs wrong in Ebeling?
   V = ambient_space(N)
   ADE, ade, RR = root_type(N)
-  global F = basis_matrix(ADE)
+  F = basis_matrix(ADE)
   for i in 1:length(ade)
     F = vcat(F, -highest_root(ade[i]...)*basis_matrix(RR[i]))
   end
@@ -1453,7 +1450,7 @@ function check_zero_entropy(candidate::ZLat, filename="")
     println(io, "elliptic")
   elseif z == 0
     println(io, "parabolic")
-  elseif e < 0
+  elseif z < 0
     println(io, "hyperbolic")
   end
   close(io)
@@ -1493,13 +1490,13 @@ function myin(v, L::ZLat)
   return all(denominator(i)==1 for i in v*inverse_basis_matrix(L))
 end
 
-
 function glue_map(L,S,R)
-  bSR = vcat(basis_matrix(S),basis_matrix(R))
+  rem = Hecke.orthogonal_submodule(lattice(ambient_space(L)),S+R)
+  bSR = vcat(basis_matrix(S),basis_matrix(R),basis_matrix(rem))
   ibSR = inv(bSR)
   I = identity_matrix(QQ,degree(L))
   prS = ibSR*I[:,1:rank(S)]*basis_matrix(S)
-  prR = ibSR*I[:,rank(S)+1:end]*basis_matrix(R)
+  prR = ibSR*I[:,rank(S)+1:rank(R)+rank(S)]*basis_matrix(R)
   bL = basis_matrix(L)
   DS = discriminant_group(S)
   DR = discriminant_group(R)
@@ -1525,12 +1522,84 @@ function overlattice(glue_map)
   S = relations(domain(glue_map))
   R = relations(codomain(glue_map))
   glue = [lift(g)+lift(glue_map(g)) for g in gens(domain(glue_map))]
-  glue = reduce(vcat,[matrix(QQ,1,degree(S),g) for g in glue])
+  z = zero_matrix(QQ,0,degree(S))
+  glue = reduce(vcat,[matrix(QQ,1,degree(S),g) for g in glue],init=z)
   glue = vcat(basis_matrix(S+R),glue)
   glue = FakeFmpqMat(glue)
   B = hnf(glue)
   B = QQ(1,denominator(glue))*change_base_ring(QQ,numerator(B))
-  return lattice(ambient_space(S),B[end-degree(S)+1:end,:])
+  return lattice(ambient_space(S),B[end-rank(S)-rank(R)+1:end,:])
+end
+
+
+function orthogonal_group_decomp(L)
+  if gram_matrix(L)[1,1]<0
+    L = rescale(L,-1)
+  end
+  L = lll(L)
+  V = ambient_space(L)
+  G = gram_matrix(L)
+  mi = minimum(diagonal(G))
+  ma = maximum(diagonal(G))
+  sv = short_vectors(L,mi)
+  h =  hnf(matrix(ZZ,transpose(reduce(hcat,(v[1] for v in sv)))))
+  h = h[1:rank(h),:]*basis_matrix(L)
+  M1 = lattice(V,h)
+  if rank(M1)==rank(L)
+    return M1
+  end
+  M2 = lll(Hecke.orthogonal_submodule(L,M1))
+  phi,i1,i2 = glue_map(L,M1,M2)
+
+  H1 = domain(phi)
+  H2 = codomain(phi)
+  O1 = orthogonal_group(M1)
+  O2 = orthogonal_group(M2)
+
+  # could also be done on the level of discriminant groups
+  # this leads to too many generators
+  # ... and reducing their number seems infeasible
+  # first project to the discriminant_group and then lift?
+  G1,_ = stabilizer(O1,cover(H1), on_sublattices)
+  G2,_ = stabilizer(O2,cover(H2), on_sublattices)
+  set_nice_monomorphism(M1,G1)
+  set_nice_monomorphism(M2,G2)
+
+  G1q =  _orthogonal_group(H1, fmpz_mat[hom(H1,H1,Hecke.TorQuadModElem[H1(lift(x)*matrix(g)) for x in gens(H1)]).map_ab.map for g in gens(G1)])
+  G2q =  _orthogonal_group(H2, fmpz_mat[hom(H2,H2,Hecke.TorQuadModElem[H2(lift(x)*matrix(g)) for x in gens(H2)]).map_ab.map for g in gens(G2)])
+
+
+  psi1 = hom(G1, G1q, gens(G1q), check=false)
+  psi2 = hom(G2, G2q, gens(G2q), check=false)
+
+  K = [matrix(g) for g in gens(kernel(psi1)[1])]
+
+  append!(K,[matrix(g) for g in gens(kernel(psi2)[1])])
+  append!([preimage(psi1,g)*preimage(psi2, G2q(inv(phi)*hom(g)*phi)) for g in gens(G1q)])
+  G = matrix_group(K)
+  @assert all(on_sublattices(L,g)==L for g in gens(G))
+  F = free_module(QQ, degree(L))
+  sv_decomp = [F(matrix(QQ,1,rank(M1),v[1])*basis_matrix(M1)) for v in short_vectors(M1, mi)]
+  append!(sv_decomp, [F(matrix(QQ,1,rank(M2),v[1])*basis_matrix(M2)) for v in short_vectors(M2, ma)])
+  set_nice_monomorphism(L,G, sv_decomp)
+  return G
+end
+
+function on_sublattices(L, g::MatrixGroupElem{fmpq,fmpq_mat})
+  V = ambient_space(L)
+  return lattice(V,basis_matrix(L)*matrix(g), check=false)
+end
+
+function set_nice_monomorphism(L, G, svF=Nothing)
+  if svF === Nothing
+    sv = short_vectors(L,minimum(diagonal(gram_matrix(L))))
+    F = free_module(QQ,degree(L))
+    svF = [F(matrix(QQ,1,rank(L),x[1])*basis_matrix(L)) for x in sv]
+  end
+  # TODO: custom action function for Vectors?
+  phi = action_homomorphism(gset(G,svF))
+  GAP.Globals.SetIsHandledByNiceMonomorphism(G.X,true)
+  GAP.Globals.SetNiceMonomorphism(G.X,phi.map)
 end
 
 #=
