@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["intro.md"]
+Pages = ["quotients.md"]
 ```
 
 # Quotients of PBW-Algebras
