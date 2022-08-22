@@ -130,18 +130,6 @@
      "CommutativeAlgebra/module_localizations.md",
   ],
 
-  "Noncommutative Algebra" => [
-    "NoncommutativeAlgebra/intro.md",
-    "G-Algebras" => [
-    "NoncommutativeAlgebra/GAlgebras/intro.md",
-    "NoncommutativeAlgebra/GAlgebras/creation.md",
-    ],
-    "GR-Algebras" => [
-    "NoncommutativeAlgebra/GRAlgebras/intro.md",
-    ],
-    "NoncommutativeAlgebra/free_associative_algebra.md",
-  ],
-
   "Invariant Theory" => [
      "InvariantTheory/intro.md",
      "InvariantTheory/finite_groups.md",
@@ -176,6 +164,16 @@
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
      ]
+  ],
+
+ "Finitely Represented Algebras" => [
+    "NoncommutativeAlgebra/intro.md",
+    "PBW-Algebras" => [
+    "NoncommutativeAlgebra/GAlgebras/intro.md",
+    "NoncommutativeAlgebra/GAlgebras/creation.md",
+    "NoncommutativeAlgebra/GAlgebras/quotients.md",
+    ],
+    "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
   "Combinatorics" => [

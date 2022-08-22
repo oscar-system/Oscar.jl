@@ -12,7 +12,7 @@ Pages = ["intro.md"]
 
 # Introduction
 
-In this section, our focus is on G-algebras. We begin by recalling their definition.
+We start our discussion of PBW-algebras by recalling their definition.
 Let $K$ be a field. Given a set of indeterminates $x=\{x_1, \ldots, x_n\},$ we write
 ${\left\langle {x}\right\rangle}:=\langle x_{1},\ldots, x_{n} \rangle$ for the *free monoid* on $x$.
 That is, the elements of $\langle x \rangle$ are the words in the finite alphabet $x$, multiplication
@@ -37,32 +37,32 @@ usual set of monomials $\text{Mon}_n(x)$,  we may think of each global monomial 
 as a (total) well-ordering $>$ on the former one. Given a standard polynomial $0\neq f \in K \langle x \rangle,$
 it makes, then, sense to speak of the *leading monomial* $\text{LM}_>(f)$ of $f$.
 
-**Definition.**  ``\;`` A *$G$-algebra* over $K$ is a quotient of type
+**Definition.**  ``\;`` Let $A$ be a $K$-algebra of type
 ```math
 A = K\langle x_1, \dots , x_n \mid x_jx_i = c_{ij} \cdot x_ix_j+d_{ij},  \ 1\leq i<j \leq n \rangle,
 ```
 where the $c_{ij}\in K$ are nonzero scalars and the $d_{ij}\in K\langle x_1, \dots , x_n\rangle$ are 
-standard polynomials such that the following two conditions hold:
-- There exists a global monomial ordering $>$ on $\text{Mon}_n(x)$ such that
-$d_{ij}=0\ \text{ or }\ x_ix_j> \text{LM}_>(d_{ij})\ \text{ for all }\ 1\leq i<j \leq n.$
-Every such ordering is called *admissible* for $A$.
-- For all $\ 1 \leq i<j<k \leq n$, the elements
-```math
-c_{ik}c_{jk} \cdot d_{ij}x_k - x_k d_{ij} + c_{jk} \cdot x_j d_{ik} - c_{ij} \cdot d_{ik}x_j + d_{jk}x_i - c_{ij}c_{ik} \cdot x_i d_{jk}
-```
-reduce to zero with respect to the relations of $A$.
+standard polynomials. Then $A$ is called a *$PBW$-algebra* if the following two conditions hold:
 
-**Example.** ``\;`` The *$n$-th Weyl algebra over $K$* is the $G$-algebra
+(1) ``\;`` There exists a global monomial ordering $>$ on $\text{Mon}_n(x)$ such that
+
+$d_{ij}=0\ \text{ or }\ x_ix_j> \text{LM}_>(d_{ij})\ \text{ for all }\ 1\leq i<j \leq n.$
+
+(2) ``\;`` The standard monomials represent a $K$-basis for $A$.  We then refer to this basis as a *PBW-basis* for $A$. 
+
+Every ordering as in (1) is called *admissible* for $A$.
+
+!!! note
+    PBW-algebras are also known as G-algebras or algebras of solvable type. See Remark 1 in [LS03](@cite) for a brief historical account.
+ 
+**Example.** ``\;`` The *$n$-th Weyl algebra over $K$* is the PBW-algebra
 ```math
 D_n(K)=K \langle x_1,\ldots, x_n, \partial _1,\dots \partial _n \mid \partial_i x_i=x_i\partial _i +1, \partial _i x_j=x_j \partial _i \ \text { for }\ i\neq j\rangle.
 ```
 Here,  we tacitly assume that $x_j x_i=x_i x _j$ and $\partial _j \partial_i=\partial_i \partial _j$ for all $i,j$.
 Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is admissible for $D_n(K)$.
 
-**Proposition.**  ``\;`` Let $A$ be a G-algebra. Then:
+**Proposition.**  ``\;`` Let $A$ be a PBW-algebra. Then:
 - ``A`` is an integral domain,
-- ``A`` is left and right Noetherian, and
-- the standard monomials in $x$ represent a $K$-basis for $A$.
-
-The latter fact is usually referred to by saying that $A$ has a *PBW-basis.*
+- ``A`` is left and right Noetherian.
 
