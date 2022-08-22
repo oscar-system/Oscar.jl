@@ -10,14 +10,14 @@ using Oscar
 Pages = ["creation.md"]
 ```
 
-# Creating G-Algebras
+# Creating PBW-Algebras
 
 ## Types
 
 ## Constructors
 
-## Data Associated to G-Algebras
+## Data Associated to PBW-Algebras
 
-## Elements of G-Algebras
+## Elements of PBW-Algebras
 
-## Homomorphisms From G-Algebras
+## Homomorphisms From PBW-Algebras

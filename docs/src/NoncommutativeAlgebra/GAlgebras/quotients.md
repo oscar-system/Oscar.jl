@@ -15,7 +15,7 @@ Pages = ["quotients.md"]
 In analogy to the affine algebras section in the commutative algebra chapter, we describe OSCAR
 functionality for dealing with quotients of PBW-algebras modulo two-sided ideals.
 
-**Example.** ``\;`` The *$n$-th exterior algebra over $K$* is the quotient of the $G$-algebra
+**Example.** ``\;`` The *$n$-th exterior algebra over $K$* is the quotient of the PBW-algebra
 
 $A=K \langle e_1,\dots, e_n \mid e_ie_j = - e_je_i \ \text { for }\ i\neq j\rangle$
 
