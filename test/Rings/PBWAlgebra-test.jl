@@ -1,14 +1,14 @@
-@testset "GAlgebra.printing" begin
+@testset "PBWAlgebra.printing" begin
   r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = g_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
 
   @test length(string(R)) > 2
   @test length(string(x + y)) > 2
 end
 
-@testset "GAlgebra.iteration" begin
+@testset "PBWAlgebra.iteration" begin
   r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = g_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
 
   p = -((x*z*y)^6 - 1)
 
