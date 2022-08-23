@@ -169,9 +169,9 @@
  "Finitely Represented Algebras" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
-    "NoncommutativeAlgebra/GAlgebras/intro.md",
-    "NoncommutativeAlgebra/GAlgebras/creation.md",
-    "NoncommutativeAlgebra/GAlgebras/quotients.md",
+    "NoncommutativeAlgebra/PBWAlgebras/intro.md",
+    "NoncommutativeAlgebra/PBWAlgebras/creation.md",
+    "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
     ],
     "NoncommutativeAlgebra/free_associative_algebra.md",
   ],

@@ -64,5 +64,5 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 
 **Proposition.**  ``\;`` Let $A$ be a PBW-algebra. Then:
 - ``A`` is an integral domain,
-- ``A`` is left and right Noetherian.
+- ``A`` is (left and right) Noetherian.
 
