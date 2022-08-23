@@ -1,4 +1,4 @@
-export pbw_algebra, build_ctx
+export pbw_algebra, build_ctx, PBWAlgElem, PBWAlgRing, is_two_sided
 
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
@@ -14,6 +14,15 @@ end
 mutable struct PBWAlgIdeal{T, S}
   parent::PBWAlgRing{T, S}
   sdata::Singular.sideal{Singular.spluralg{S}}
+  two_sided::Bool
+  gb::Singular.sideal{Singular.spluralg{S}}
+  # Singular.jl may or may not keep track of two-sidedness correctly
+  function PBWAlgIdeal{T, S}(p::PBWAlgRing{T, S},
+                             d::Singular.sideal{Singular.spluralg{S}},
+                             t::Bool) where {T, S}
+    d.isTwoSided = t
+    return new(p, d, t)
+  end
 end
 
 ####
@@ -83,7 +92,7 @@ function tail(a::PBWAlgElem)
   return PBWAlgElem(parent(a), tail(a.sdata))
 end
 
-struct oitwrap{S, T}
+struct owrap{S, T}
   ring::S
   iter::T
 end
@@ -93,64 +102,64 @@ function exponent_vectors(a::PBWAlgElem)
 end
 
 function terms(a::PBWAlgElem)
-  return oitwrap(parent(a), terms(a.sdata))
+  return owrap(parent(a), terms(a.sdata))
 end
 
-function Base.iterate(a::oitwrap{<:PBWAlgRing, <:Singular.SPolyTerms})
+function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms})
   b = Base.iterate(a.iter)
   b == nothing && return b
   return (PBWAlgElem(a.ring, b[1]), b[2])
 end
 
-function Base.iterate(a::oitwrap{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
+function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
   b = Base.iterate(a.iter, state)
   b == nothing && return b
   return (PBWAlgElem(a.ring, b[1]), b[2])
 end
 
 function monomials(a::PBWAlgElem)
-  return oitwrap(parent(a), monomials(a.sdata))
+  return owrap(parent(a), monomials(a.sdata))
 end
 
-function Base.iterate(a::oitwrap{<:PBWAlgRing, <:Singular.SPolyMonomials})
+function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials})
   b = Base.iterate(a.iter)
   b == nothing && return b
   return (PBWAlgElem(a.ring, b[1]), b[2])
 end
 
-function Base.iterate(a::oitwrap{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
+function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
   b = Base.iterate(a.iter, state)
   b == nothing && return b
   return (PBWAlgElem(a.ring, b[1]), b[2])
 end
 
 function coefficients(a::PBWAlgElem)
-  return oitwrap(parent(a), coefficients(a.sdata))
+  return owrap(parent(a), coefficients(a.sdata))
 end
 
-function Base.iterate(a::oitwrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
+function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
   b = Base.iterate(a.iter)
   b == nothing && return b
   return (coefficient_ring(a.ring)(b[1])::T, b[2])
 end
 
-function Base.iterate(a::oitwrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
+function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
   b = Base.iterate(a.iter, state)
   b == nothing && return b
   return (coefficient_ring(a.ring)(b[1])::T, b[2])
 end
 
 function build_ctx(R::PBWAlgRing)
-  return oitwrap(R, MPolyBuildCtx(R.sring))
+  return owrap(R, MPolyBuildCtx(R.sring))
 end
 
-function push_term!(M::oitwrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
+function push_term!(M::owrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
   c = coefficient_ring(M.ring)(c)::T
   c = base_ring(M.ring.sring)(c)::S
   push_term!(M.iter, c, e)
 end
 
-function finish(M::oitwrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}) where {T, S}
+function finish(M::owrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}) where {T, S}
   return PBWAlgElem(M.ring, finish(M.iter))
 end
 
@@ -214,6 +223,11 @@ function (R::PBWAlgRing{T, S})(c::Integer) where {T, S}
   return PBWAlgElem(R, R.sring(c))
 end
 
+function (R::PBWAlgRing)(a::PBWAlgElem)
+  parent(a) == R || error("coercion impossible")
+  return a
+end
+
 ####
 
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
@@ -234,5 +248,68 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
   s, gs = Singular.GAlgebra(sr, C, D)
   R = PBWAlgRing{T, S}(s, rel, ord)
   return R, [PBWAlgElem(R, x) for x in gs]
+end
+
+####
+
+function base_ring(a::PBWAlgIdeal)
+  return a.parent
+end
+
+function is_two_sided(a::PBWAlgIdeal)
+  return a.two_sided
+end
+
+function gens(a::PBWAlgIdeal{T, S}) where {T, S}
+  R = base_ring(a)
+  return PBWAlgElem{T, S}[PBWAlgElem(R, x) for x in gens(a.sdata)]
+end
+
+function AbstractAlgebra.expressify(a::PBWAlgIdeal; context = nothing)
+  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(gens(a))]...)
+end
+
+@enable_all_show_via_expressify PBWAlgIdeal
+
+function ideal(g::Vector{<:PBWAlgElem}; two_sided=false)
+  @assert length(g) > 0
+  R = parent(g[1])
+  @assert all(x->parent(x) == R, g)
+  return ideal(R, g; two_sided=two_sided)
+end
+
+function ideal(R::PBWAlgRing{T, S}, g::AbstractVector; two_sided=false) where {T, S}
+  i = Singular.sideal{Singular.spluralg{S}}(R.sring, [R(x).sdata for x in g], two_sided)
+  return PBWAlgIdeal{T, S}(R, i, two_sided)
+end
+
+function groebner_assure!(a::PBWAlgIdeal)
+  if !isdefined(a, :gb)
+    a.gb = Singular.std(a.sdata)
+  end
+  return a
+end
+
+function Base.:+(a::PBWAlgIdeal, b::PBWAlgIdeal)
+  return PBWAlgElem(parent(a), a.sdata + b.sdata, is_two_sided(a)&&is_two_sided(b))
+end
+
+function Base.:*(a::PBWAlgIdeal, b::PBWAlgIdeal)
+  return PBWAlgElem(parent(a), a.sdata + b.sdata, is_two_sided(b))
+end
+
+function Base.:^(a::PBWAlgIdeal, b::Int)
+  return PBWAlgElem(parent(a), a.sdata^b, is_two_sided(a))
+end
+
+function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{T, S}) where {T, S}
+  parent(f) == base_ring(I) || error("parent mismatch")
+  is_two_sided(I) && throw(NotImplementedError(:ideal_membership, f, I))
+  groebner_assure!(I)
+  return Singular.iszero(Singular.reduce(f.sdata, I.gb))
+end
+
+function Base.:in(f::PBWAlgElem, I::PBWAlgIdeal)
+  return ideal_membership(f, I)
 end
 
