@@ -97,12 +97,20 @@ struct owrap{S, T}
   iter::T
 end
 
+function Base.length(x::owrap)
+   return length(x.iter)
+end
+
 function exponent_vectors(a::PBWAlgElem)
   return exponent_vectors(a.sdata)
 end
 
 function terms(a::PBWAlgElem)
   return owrap(parent(a), terms(a.sdata))
+end
+
+function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
+   return PBWAlgElem{T, S}
 end
 
 function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms})
@@ -121,6 +129,10 @@ function monomials(a::PBWAlgElem)
   return owrap(parent(a), monomials(a.sdata))
 end
 
+function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
+   return PBWAlgElem{T, S}
+end
+
 function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials})
   b = Base.iterate(a.iter)
   b == nothing && return b
@@ -135,6 +147,10 @@ end
 
 function coefficients(a::PBWAlgElem)
   return owrap(parent(a), coefficients(a.sdata))
+end
+
+function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
+   return T
 end
 
 function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
@@ -174,7 +190,15 @@ function one(R::PBWAlgRing)
 end
 
 function gens(R::PBWAlgRing)
-  return [PBWAlgElem(R, x) for x in gens(R.sring)]
+  return elem_type(R)[PBWAlgElem(R, x) for x in gens(R.sring)]
+end
+
+function gen(R::PBWAlgRing, i::Int)
+  return PBWAlgElem(R, gen(R.sring, i))
+end
+
+function Base.getindex(R::PBWAlgRing, i::Int)
+  return gen(R, i)
 end
 
 function Base.:(==)(a::PBWAlgElem, b::PBWAlgElem)
@@ -226,6 +250,15 @@ end
 function (R::PBWAlgRing)(a::PBWAlgElem)
   parent(a) == R || error("coercion impossible")
   return a
+end
+
+function (R::PBWAlgRing)(cs::AbstractVector, es::AbstractVector{Vector{Int}})
+  z = build_ctx(R)
+  @assert length(cs) == length(es)
+  for (c, e) in zip(cs, es)
+    push_term!(z, c, e)
+  end
+  return finish(z)
 end
 
 ####
