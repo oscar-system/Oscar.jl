@@ -8,9 +8,6 @@ include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance
 const SLP = Oscar.StraightLinePrograms
 include("printing.jl")
 
-include("Rings/PBWAlgebra-test.jl")
-
-#=
 include("PolyhedralGeometry/runtests.jl")
 include("Combinatorics/runtests.jl")
 
@@ -51,4 +48,3 @@ include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")
 
 include("StraightLinePrograms/runtests.jl")
-=#
