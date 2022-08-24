@@ -12,7 +12,7 @@ mutable struct PBWAlgElem{T, S} <: NCRingElem
 end
 
 mutable struct PBWAlgIdeal{T, S}
-  parent::PBWAlgRing{T, S}
+  basering::PBWAlgRing{T, S}
   sdata::Singular.sideal{Singular.spluralg{S}}
   two_sided::Bool
   gb::Singular.sideal{Singular.spluralg{S}}
@@ -63,6 +63,10 @@ end
 @enable_all_show_via_expressify PBWAlgRing
 
 ####
+
+function length(a::PBWAlgElem)
+  return length(a.sdata)
+end
 
 function leading_exponent_vector(a::PBWAlgElem)
   return leading_exponent_vector(a.sdata)
@@ -181,12 +185,12 @@ end
 
 ####
 
-function zero(R::PBWAlgRing)
-  return PBWAlgElem(R, zero(R.sring))
+function symbols(R::PBWAlgRing)
+  return symbols(R.sring)
 end
 
-function one(R::PBWAlgRing)
-  return PBWAlgElem(R, one(R.sring))
+function ngens(R::PBWAlgRing)
+  return Singular.nvars(R.sring)
 end
 
 function gens(R::PBWAlgRing)
@@ -199,6 +203,14 @@ end
 
 function Base.getindex(R::PBWAlgRing, i::Int)
   return gen(R, i)
+end
+
+function zero(R::PBWAlgRing)
+  return PBWAlgElem(R, zero(R.sring))
+end
+
+function one(R::PBWAlgRing)
+  return PBWAlgElem(R, one(R.sring))
 end
 
 function Base.:(==)(a::PBWAlgElem, b::PBWAlgElem)
@@ -286,11 +298,15 @@ end
 ####
 
 function base_ring(a::PBWAlgIdeal)
-  return a.parent
+  return a.basering
 end
 
 function is_two_sided(a::PBWAlgIdeal)
   return a.two_sided
+end
+
+function ngens(a::PBWAlgIdeal)
+  return ngens(a.sdata)
 end
 
 function gens(a::PBWAlgIdeal{T, S}) where {T, S}
@@ -323,16 +339,47 @@ function groebner_assure!(a::PBWAlgIdeal)
   return a
 end
 
-function Base.:+(a::PBWAlgIdeal, b::PBWAlgIdeal)
-  return PBWAlgElem(parent(a), a.sdata + b.sdata, is_two_sided(a)&&is_two_sided(b))
+function iszero(I::PBWAlgIdeal)
+  return iszero(I.sdata)
 end
 
-function Base.:*(a::PBWAlgIdeal, b::PBWAlgIdeal)
-  return PBWAlgElem(parent(a), a.sdata + b.sdata, is_two_sided(b))
+function _one_check(I::Singular.sideal)
+  for g in gens(I)
+    if is_constant(g) && is_unit(leading_coefficient(g))
+      return true
+    end
+  end
+  return false
 end
 
-function Base.:^(a::PBWAlgIdeal, b::Int)
-  return PBWAlgElem(parent(a), a.sdata^b, is_two_sided(a))
+function isone(I::PBWAlgIdeal)
+  if iszero(I)
+    return false
+  end
+  if _one_check(I.sdata)
+    return true
+  end
+  groebner_assure!(I)
+  return _one_check(I.gb)
+end
+
+
+function Base.:+(a::PBWAlgIdeal{T, S}, b::PBWAlgIdeal{T, S}) where {T, S}
+  return PBWAlgIdeal{T, S}(base_ring(a), a.sdata + b.sdata,
+                           is_two_sided(a)&&is_two_sided(b))
+end
+
+function Base.:*(a::PBWAlgIdeal{T, S}, b::PBWAlgIdeal{T, S}) where {T, S}
+  return PBWAlgIdeal{T, S}(base_ring(a), a.sdata + b.sdata, is_two_sided(b))
+end
+
+function Base.:^(a::PBWAlgIdeal{T, S}, b::Int) where {T, S}
+  return PBWAlgIdeal{T, S}(base_ring(a), a.sdata^b, is_two_sided(a))
+end
+
+function Base.intersect(a::PBWAlgIdeal{T, S}, b::PBWAlgIdeal{T, S}) where {T, S}
+  return PBWAlgIdeal{T, S}(base_ring(a), Singular.intersection(a.sdata, b.sdata),
+                           is_two_sided(a)&&is_two_sided(b))
 end
 
 function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{T, S}) where {T, S}

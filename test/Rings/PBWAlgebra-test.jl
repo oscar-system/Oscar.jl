@@ -6,7 +6,9 @@
   @test parent_type(x) == PBWAlgRing{fmpq, Singular.n_Q}
   @test coefficient_ring(R) == QQ
   @test coefficient_ring(x) == QQ
+  @test symbols(R) == [:x, :y, :z]
   @test gens(R) == [x, y, z]
+  @test ngens(R) == 3
   @test gen(R, 2) == y
   @test R[2] == y
 
@@ -29,26 +31,28 @@ end
   p = -((x*z*y)^6 - 1)
 
   @test iszero(constant_coefficient(p - constant_coefficient(p)))
+  @test length(p) == length(collect(terms(p)))
+  @test length(p) == length(collect(monomials(p)))
 
   s = zero(R)
   for t in terms(p)
     s += t
   end
-  @test s == p
-  @test s == leading_term(p) + tail(p)
+  @test p == s
+  @test p == leading_term(p) + tail(p)
 
   s = zero(R)
   for (c, m) in zip(coefficients(p), monomials(p))
     s += c*m
   end
-  @test s == p
-  @test s == leading_coefficient(p)*leading_monomial(p) + tail(p)
+  @test p == s
+  @test p == leading_coefficient(p)*leading_monomial(p) + tail(p)
 
   s = build_ctx(R)
   for (c, e) in zip(coefficients(p), exponent_vectors(p))
     push_term!(s, c, e)
   end
-  @test finish(s) == p
+  @test p == finish(s)
 
   @test p == R(collect(coefficients(p)), collect(exponent_vectors(p)))
 end
@@ -59,7 +63,10 @@ end
 
   I = ideal([x^2, y^2])
   @test length(string(I)) > 2
-
+  @test ngens(I) > 1
+  @test !iszero(I)
+  @test !isone(I)
   @test x^2 - y^2 in I
   @test !(x + 1 in I)
+  @test isone(I + ideal([z^2]))
 end
