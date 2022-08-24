@@ -54,7 +54,7 @@ function expressify(a::PBWAlgRing; context = nothing)
   n = length(x)
   rel = [Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j]))
          for i in 1:n-1 for j in i+1:n]
-  return Expr(:sequence, Expr(:text, "G-algebra over "),
+  return Expr(:sequence, Expr(:text, "PBW-algebra over "),
                          expressify(coefficient_ring(a); context=context),
                          Expr(:text, " with relations "),
                          Expr(:series, rel...))
