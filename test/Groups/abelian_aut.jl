@@ -67,4 +67,11 @@ end
 
   L = Zlattice(gram=3*ZZ[2 1 0; 1 2 0; 0 0 1])
   @test order(orthogonal_group(discriminant_group(L))) == 72
+
+  L = Zlattice(gram=ZZ[0 1; 1 2])
+  # the trivial group
+  D = discriminant_group(L)
+  G = orthogonal_group(D)
+  g = one(G)
+  @test @inferred g ==G(matrix(g))
 end
