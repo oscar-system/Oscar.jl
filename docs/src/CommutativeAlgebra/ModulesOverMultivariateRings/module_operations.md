@@ -65,7 +65,7 @@ direct_product(M::ModuleFP{T}...; task::Symbol = :none) where T
 ```
 
 ```@docs
-hom_prod_prod(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
+hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
 ```
 
 ## Presentations

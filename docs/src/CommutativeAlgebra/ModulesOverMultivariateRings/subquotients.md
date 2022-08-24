@@ -61,7 +61,7 @@ its concrete descendant `SubQuo{T}`.
 ## Constructors
 
 ```@docs
-subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where T
+subquotient(a::FreeModuleHom, b::FreeModuleHom)
 ```
 
 ## Data Associated to Subqotients
@@ -210,19 +210,19 @@ intersect(M::SubQuo{T}, N::SubQuo{T}) where T
 ## Submodules and Quotients
 
 ```@docs
-sub(F::FreeMod, O::Vector{<:FreeModElem}, task::Symbol = :none)
+sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 ```
 
 ```@docs
-sub(M::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true)
+sub(M::SubQuo{T}, V::Vector{<:SubQuoElem{T}}, task::Symbol = :with_morphism, check = true) where T
 ```
 
 ```@docs
-quo(F::FreeMod, O::Vector{<:FreeModElem}, task::Symbol = :none)
+quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
 ```
 
 ```@docs
-quo(M::SubQuo, V::Vector{<:SubQuoElem}, task::Symbol = :none)
+quo(M::SubQuo{T}, V::Vector{<:SubQuoElem{T}}, task::Symbol = :with_morphism) where T
 ```
 
 ## Homomorphisms From Subqotients

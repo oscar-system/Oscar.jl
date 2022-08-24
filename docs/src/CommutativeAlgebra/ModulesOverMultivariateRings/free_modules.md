@@ -134,7 +134,7 @@ of the basis vectors of $F$ in $M$. In OSCAR, such homomorphisms have type `Free
 by using one of the following constructors:
 
 ```@docs
-hom(F::FreeMod, M::ModuleFP, V::Vector{<:ModuleFPElem}) 
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
 ```
 
 Given a homomorphism of type `FreeModuleHom`, a matrix `A` representing it
