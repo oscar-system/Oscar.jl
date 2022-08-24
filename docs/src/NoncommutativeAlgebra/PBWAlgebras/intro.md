@@ -52,6 +52,13 @@ $d_{ij}=0\ \text{ or }\ x_ix_j> \text{LM}_>(d_{ij})\ \text{ for all }\ 1\leq i<j
 
 Every ordering as in (1) is called *admissible* for $A$.
 
+Given a PBW-algebra $A$ as above, we sometimes abuse our notation by denoting the class of the standard monomial $x^{\alpha}$ in $A$ also by $x^{\alpha}$,
+and refer to $x^{\alpha}$ as a *standard monomial* in $A$. As these monomials form a $K$-basis for $A$, every element $0\neq f\in A$ has a unique representation
+```math
+f=\sum c_{\alpha}x^{\alpha}, \; \text{ with nonzero coefficients } \; c_{\alpha}\in K.
+```
+We refer to this representation as the *standard representation* of $f$, with *coefficients* $c_{\alpha}$, and *exponents* $\alpha$.
+
 !!! note
     PBW-algebras are also known as G-algebras or algebras of solvable type. See Remark 1 in [LS03](@cite) for a brief historical account.
  
