@@ -1,4 +1,4 @@
-# Setup for fields
+# Setup for coefficient rings
 R, x = PolynomialRing(QQ, "x")
 q = x^2 + 3//4
 L, (e, f) = NumberField([x^2 + 5, x^3 - 6])
@@ -24,7 +24,6 @@ cases = [
     (P7, 7 + 3*7^2, 7^5, "Padic Field")
 ]
 
-
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{NfAbsNSElem}, PolyRing{NfAbsNSElem}}
     D = coefficient_ring(R1)
@@ -32,11 +31,30 @@ function get_hom(R1::T, R2::T) where T <: Union{
     return hom(D, I, gens(I))
 end
 
+function get_hom(R1::T, R2::T) where T <: SeriesRing{NfAbsNSElem}
+    D = base_ring(R1)
+    I = base_ring(R2)
+    return hom(D, I, gens(I))
+end
+
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{Hecke.NfRelElem{nf_elem}}, PolyRing{Hecke.NfRelElem{nf_elem}},
-    AbstractAlgebra.Generic.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
+    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
+    D_base_field = base_field(D)
+    I_base_field = base_field(I)
+    h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
+    return hom(D, I, h_1, gen(I))
+end
+
+function get_hom(R1::T, R2::T) where T <: (
+    SeriesRing{S} where S <: Union{
+        Hecke.NfRelElem{nf_elem},
+        AbstractAlgebra.Generic.Frac{fmpq_poly}}
+    )
+    D = base_ring(R1)
+    I = base_ring(R2)
     D_base_field = base_field(D)
     I_base_field = base_field(I)
     h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
@@ -54,12 +72,27 @@ function get_hom(R1::T, R2::T) where T <: Union{
     return hom(D, I, h_1, gens(I))
 end
 
+function get_hom(R1::T, R2::T) where T <: SeriesRing{Hecke.NfRelNSElem{nf_elem}}
+    D = base_ring(R1)
+    I = base_ring(R2)
+    D_base_field = base_field(D)
+    I_base_field = base_field(I)
+    h_1 = hom(D_base_field, I_base_field, gen(I_base_field))
+    return hom(D, I, h_1, gens(I))
+end
 
 function get_hom(R1::T, R2::T) where {
     T <: Union{MPolyRing{S}, PolyRing{S}} where S <: Union{
         nf_elem, nmod, fmpz, fmpq, fq_nmod, fmpq_poly}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
+    return hom(D, I, gen(I))
+end
+
+function get_hom(R1::T, R2::T) where T <: SeriesRing{S} where S <: Union{
+        nf_elem, nmod, fmpz, fmpq, fq_nmod, fmpq_poly}
+    D = base_ring(R1)
+    I = base_ring(R2)
     return hom(D, I, gen(I))
 end
 
@@ -73,26 +106,43 @@ end
 
 function test_equality(p::T, l::T) where T <: (
     PolyElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
-    P = parent(p)
     L = parent(l)
     return L(collect(coefficients(p))) == l
+end
+
+function test_equality(p::T, l::T) where T <: (
+    SeriesElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
+    L = parent(l)
+    coeffs = map(x -> coeff(p, x), 0:pol_length(p))
+    
+    return L(coeffs, pol_length(p), precision(p), valuation(p)) == l
 end
 
 function test_equality(p::T, l:: T) where T  <: Union{
     MPolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}},
     PolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
     P = parent(p)
-    L = parent(l)
+    x = var(P)
     mapped_coeffs = map(i -> evaluate(i, x), coefficients(l))
     return mapped_coeffs == collect(coefficients(p))
 end
 
-function test_equality(p::MPolyElem{T}, l::MPolyElem{T}) where T <: Union{
+function test_equality(p::T, l:: T) where T  <: SeriesElem{
+    AbstractAlgebra.Generic.Frac{fmpq_poly}}
+    P = parent(p)
+    x = var(P)
+    evaluate_on_gen(y) = evaluate(y, x)
+    return compare_series_coeffs(p, l, evaluate_on_gen)
+end
+
+
+function test_equality(p::T, l::T) where T <: (
+    MPolyElem{S} where S <: Union{
     Hecke.NfRelNSElem{nf_elem},
     Hecke.NfRelElem{nf_elem},
     NfAbsNSElem,
     fq_nmod,
-    nf_elem}
+    nf_elem})
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)
@@ -112,14 +162,34 @@ function test_equality(p::T, l::T) where T <: (
     return [h(c) for c in coefficients(p)] == collect(coefficients(l))
 end
 
-@testset "Polynomials" begin
+function test_equality(p::T, l::T) where T <: (
+    SeriesElem{S} where S <: Union{
+        Hecke.NfRelNSElem{nf_elem},
+        Hecke.NfRelElem{nf_elem},
+        NfAbsNSElem,
+        fq_nmod,
+        nf_elem})
+    L = parent(l)
+    P = parent(p)
+    h = get_hom(P, L)
+    return compare_series_coeffs(p, l, h)
+end
+
+function compare_series_coeffs(p::T, l::T,
+                               h::Union{Map, typeof(identity)}) where T <: SeriesElem
+    coeffs_p = map(x -> coeff(p, x), 0:pol_length(p))
+    coeffs_l = map(x -> coeff(l, x), 0:pol_length(l))
+    return [h(c) for c in coeffs_p] == coeffs_l
+end
+
+@testset "Polynomials and Series" begin
     mktempdir() do path
         for case in cases
             @testset "Univariate Polynomial over $(case[4])" begin
                 R, z = PolynomialRing(case[1], "z")
                 p = z^2 + case[2] * z + case[3]
                 test_save_load_roundtrip(path, p) do loaded
-                  @test test_equality(p, loaded)
+                    @test test_equality(p, loaded)
                 end
 
                 @testset "Load with parent" begin
@@ -152,6 +222,22 @@ end
                             @test h(i) == loaded_i
                         end
                     end
+                end
+            end
+
+            @testset "Series" begin
+                @testset "Power Series over $(case[4])" begin
+                    rel_R, rel_z = PowerSeriesRing(case[1], 10, "z")
+                    rel_p = rel_z^2 + case[2] * rel_z + case[3]
+                    test_save_load_roundtrip(path, rel_p) do loaded
+                        @test test_equality(rel_p, loaded)
+                    end
+
+                    #abs_R, abs_z = PowerSeriesRing(case[1], 10, "z"; model=:capped_absolute)
+                    #abs_p = abs_z^2 + case[2] * abs_z + case[3]
+                    #test_save_load_roundtrip(path, abs_p) do loaded
+                    #    @test test_equality(abs_p, loaded)
+                    #end
                 end
             end
         end
