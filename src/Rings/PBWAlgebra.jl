@@ -1,5 +1,9 @@
 export pbw_algebra, build_ctx, PBWAlgElem, PBWAlgRing, is_two_sided
 
+####
+export strictly_upper_triangular_matrix
+####
+
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations
@@ -274,7 +278,39 @@ function (R::PBWAlgRing)(cs::AbstractVector, es::AbstractVector{Vector{Int}})
 end
 
 ####
+@doc Markdown.doc"""
+    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering) where T
 
+Given a multivariate polynomial ring `R` over a field, say ``R=K[x_1, \dots, x_n]``, given
+a strictly upper triangular matrix `rel` with entries in `R` of type ``c_{ij} \cdot x_ix_j+d_{ij}``,
+where the ``c_{ij}`` are nonzero scalars and where we think of the ``x_jx_i = c_{ij} \cdot x_ix_j+d_{ij}``
+as setting up relations in the free associative algebra ``K\langle x_1, \dots , x_n\rangle``, and given
+an ordering `ord` on ``\text{Mon}(x_1, \dots, x_n)``, return the PBW-algebra
+```math
+A = K\langle x_1, \dots , x_n \mid x_jx_i = c_{ij} \cdot x_ix_j+d_{ij},  \ 1\leq i<j \leq n \rangle.
+```
+
+!!! note
+    The input data gives indeed rise to  a PBW-algebra if:
+    - The ordering `ord` is admissible for `A`.
+    - The standard monomials in ``K\langle x_1, \dots , x_n\rangle`` represent a `K`-basis for `A`.
+    See the definition of PBW-algebras in the OSCAR documentation for details.
+
+!!! warning
+    The `K`-basis condition above is not checked by the function.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> L = [x*y, x*z, y*z + 1];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
+(PBW-algebra over Rational Field with relations ==(y*x, x*y), ==(z*x, x*z), ==(z*y, y*z + 1), PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+```
+"""
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
   n = nvars(r)
   nrows(rel) == n && ncols(rel) == n || error("oops")
@@ -393,3 +429,18 @@ function Base.:in(f::PBWAlgElem, I::PBWAlgIdeal)
   return ideal_membership(f, I)
 end
 
+##################to be removed here as soon as function is available from AbstractAlgebra
+function strictly_upper_triangular_matrix(L::AbstractVector{T}) where {T <: RingElement}
+   l = length(L)
+   l == 0 && throw(ArgumentError("Input vector must be nonempty"))
+   n = Int(floor((Base.sqrt(1+8*l)+1)/2))
+   l == div((n-1)*n, 2) || throw(ArgumentError("Input vector of invalid length"))
+   R = parent(L[1])
+   M = zero_matrix(R, n, n)
+   pos = 1
+   for i in 1:(n-1), j in (i+1):n
+      M[i,j] = L[pos]
+      pos += 1
+   end
+   return M
+end
