@@ -114,7 +114,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     else
         ref = nothing
     end
-    
+
     result = Dict{Symbol, Any}(:type => encodeType(T))
     if ref !== nothing
         result[:id] = string(ref)
@@ -324,3 +324,4 @@ include("Fields.jl")
 include("ToricGeometry.jl")
 include("Rings.jl")
 include("polymake.jl")
+include("TropicalGeometry.jl")

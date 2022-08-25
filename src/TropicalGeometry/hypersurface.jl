@@ -45,7 +45,7 @@ end
 
 function Base.show(io::IO, th::TropicalHypersurface{M, EMB}) where {M, EMB}
     if EMB
-        print(io, "A $(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidian space")
+        print(io, "A $(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidean space")
     else
         print(io, "An abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
     end
@@ -74,7 +74,7 @@ julia> f = x+y+1
 x + y + (1)
 
 julia> Tf = TropicalHypersurface(f)
-A min tropical hypersurface embedded in 2-dimensional Euclidian space
+A min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}}) where T
@@ -112,7 +112,7 @@ end
 # x + y + (1)
 
 # julia> Tf = TropicalHypersurface(f)
-# A min tropical hypersurface embedded in 2-dimensional Euclidian space
+# A min tropical hypersurface embedded in 2-dimensional Euclidean space
 # ```
 # """
 # function tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
@@ -137,10 +137,10 @@ julia> Kxy, (x,y) = K["x", "y"]
 julia> f = 7*x+y+49;
 
 julia> TropicalHypersurface(f, min)
-A min tropical hypersurface embedded in 2-dimensional Euclidian space
+A min tropical hypersurface embedded in 2-dimensional Euclidean space
 
 julia> TropicalHypersurface(f, max)
-A max tropical hypersurface embedded in 2-dimensional Euclidian space
+A max tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::MPolyElem,M::Union{typeof(min),typeof(max)}=min)
@@ -170,7 +170,7 @@ The 7-adic valuation on Rational Field
 julia> f = 7*x1+x2+49;
 
 julia> TropicalHypersurface(f, val)
-A min tropical hypersurface embedded in 2-dimensional Euclidian space
+A min tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
 function TropicalHypersurface(f::MPolyElem, val::TropicalSemiringMap)
