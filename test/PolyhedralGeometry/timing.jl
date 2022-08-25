@@ -7,6 +7,8 @@
     using Oscar
     using Oscar.Graphs
 
+    # macos on github actions is very slow
+    factor = Sys.isapple() && haskey(ENV,"GITHUB_ACTIONS") ? 5.0 : 1.0
 
     lp_provide = ["FACETS", "VERTICES", "VERTICES_IN_FACETS", "LATTICE", "BOUNDED"]
 
@@ -106,8 +108,10 @@
             for i in 1:repeat
                 copy = deepcopy(poly)
                 result = min(@elapsed fun(copy), result)
-                if result <= bound
+                if result <= bound*factor
                     return true
+                else
+                    @warn "timing $(Polymake.getname(Oscar.pm_object(poly))) with $pref too slow: $result > $(bound*factor)"
                 end
             end
             return false
