@@ -118,7 +118,7 @@
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
-     "Modules Over Multivariate Rings"=> [
+     "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
@@ -128,10 +128,6 @@
      "CommutativeAlgebra/binomial_ideals.md",
      "CommutativeAlgebra/localizations.md",
      "CommutativeAlgebra/module_localizations.md",
-  ],
-
-  "Noncommutative Algebra" => [
-    "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
   "Invariant Theory" => [
@@ -168,6 +164,16 @@
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
      ]
+  ],
+
+ "Finitely Represented Algebras" => [
+    "NoncommutativeAlgebra/intro.md",
+    "PBW-Algebras" => [
+    "NoncommutativeAlgebra/PBWAlgebras/intro.md",
+    "NoncommutativeAlgebra/PBWAlgebras/creation.md",
+    "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
+    ],
+    "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
   "Combinatorics" => [
