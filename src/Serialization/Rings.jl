@@ -253,7 +253,11 @@ end
 encodeType(::Type{<:SeriesRing}) = "SeriesRing"
 reverseTypeMap["SeriesRing"] = SeriesRing
 
-function save_internal(s::SerializerState, R::Generic.RelSeriesRing)
+function save_internal(s::SerializerState, R::Union{
+    Generic.RelSeriesRing,
+    FmpqRelSeriesRing,
+    FmpzRelSeriesRing,
+    NmodRelSeriesRing})
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(R)),
         :var => save_type_dispatch(s, var(R)),
@@ -262,7 +266,11 @@ function save_internal(s::SerializerState, R::Generic.RelSeriesRing)
     )
 end
 
-function save_internal(s::SerializerState, R::Generic.AbsSeriesRing)
+function save_internal(s::SerializerState, R::Union{
+    Generic.AbsSeriesRing,
+    FmpqAbsSeriesRing,
+    FmpzAbsSeriesRing,
+    NmodAbsSeriesRing})
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(R)),
         :var => save_type_dispatch(s, var(R)),
@@ -272,7 +280,7 @@ function save_internal(s::SerializerState, R::Generic.AbsSeriesRing)
 end
 
 function load_internal(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
-    base_ring, _ = load_unknown_type(s, dict[:base_ring])
+    base_ring = load_unknown_type(s, dict[:base_ring])
     var = load_type_dispatch(s, Symbol, dict[:var])
     max_precision = load_type_dispatch(s, Int, dict[:max_precision])
     model = load_type_dispatch(s, Symbol, dict[:model])
@@ -281,3 +289,29 @@ function load_internal(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
 end
 
 # elements
+encodeType(::Type{<:SeriesElem}) = "SeriesElem"
+reverseTypeMap["SeriesElem"] = SeriesElem
+
+function save_internal(s::SerializerState, r::SeriesElem)
+    coeffs = map(x -> coeff(r, x), 1:pol_length(r))
+    
+    return Dict(
+        :parent => save_type_dispatch(s, parent(r)),
+        :coeffs => save_type_dispatch(s, coeffs),
+        :valuation => save_type_dispatch(s, valuation(r)),
+        :pol_length => save_type_dispatch(s, pol_length(r)),
+        :precision => save_type_dispatch(s, precision(r))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{<: SeriesElem}, dict::Dict)
+    parent, _ = load_type_dispatch(s, SeriesRing, dict[:parent])
+    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    valuation = load_type_dispatch(s, Int, dict[:valuation])
+    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
+    precision = load_type_dispatch(s, Int, dict[:precision])
+    
+    return parent(coeffs, pol_length, precision, valuation)
+end
+
+
