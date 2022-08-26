@@ -1,7 +1,7 @@
 export pbw_algebra, build_ctx, PBWAlgElem, PBWAlgRing, is_two_sided
 
 ####
-export strictly_upper_triangular_matrix
+export t_strictly_upper_triangular_matrix
 ####
 
 mutable struct PBWAlgRing{T, S} <: NCRing
