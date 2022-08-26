@@ -430,7 +430,7 @@ function Base.:in(f::PBWAlgElem, I::PBWAlgIdeal)
 end
 
 ##################to be removed here as soon as function is available from AbstractAlgebra
-function strictly_upper_triangular_matrix(L::AbstractVector{T}) where {T <: RingElement}
+function t_strictly_upper_triangular_matrix(L::AbstractVector{T}) where {T <: RingElement}
    l = length(L)
    l == 0 && throw(ArgumentError("Input vector must be nonempty"))
    n = Int(floor((Base.sqrt(1+8*l)+1)/2))
