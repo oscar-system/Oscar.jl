@@ -305,7 +305,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> L = [x*y, x*z, y*z + 1];
 
-julia> REL = strictly_upper_triangular_matrix(L);
+julia> REL = t_strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field with relations ==(y*x, x*y), ==(z*x, x*z), ==(z*y, y*z + 1), PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
