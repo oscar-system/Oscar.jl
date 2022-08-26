@@ -547,7 +547,13 @@ ngens(G::MatrixGroup) = length(gens(G))
 
 compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
 
-compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
+function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
+  if GAP.Globals.IsHandledByNiceMonomorphism(G.X)
+    return fmpz(GAPWrap.Order(G.X))
+  else
+    order(isomorphic_group_over_finite_field(G)[1])
+  end
+end
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    res = get_attribute!(G, :order) do
