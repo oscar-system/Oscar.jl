@@ -994,7 +994,7 @@ function _try_singular_easy(Q::order_conversion_ctx, o::MatrixOrdering)
   n = length(o.vars)
   if nrows(o.matrix) == n && !iszero(det(o.matrix))
     Q.last_var += n
-    return (true, Singular.ordering_M(o.matrix, false))
+    return (true, Singular.ordering_M(o.matrix; check=false))
   elseif nrows(o.matrix) == 1
     return (true, Singular.ordering_a([Int(o.matrix[1,i]) for i in 1:n]))
   end
