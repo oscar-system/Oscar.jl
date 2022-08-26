@@ -4562,7 +4562,7 @@ end
 # direct product
 ##################################################
 @doc Markdown.doc"""
-    direct_product(F::FreeMod{T}...; task::Symbol = :none) where T
+    direct_product(F::FreeMod{T}...; task::Symbol = :prod) where T
 
 Given free modules $F_1\dots F_n$, say, return the direct product $\prod_{i=1}^n F_i$.
 
@@ -4626,7 +4626,7 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
 end
 
 @doc Markdown.doc"""
-    direct_product(M::ModuleFP{T}...; task::Symbol = :none) where T
+    direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
 
 Given modules $M_1\dots M_n$, say, return the direct product $\prod_{i=1}^n M_i$.
 
@@ -4635,7 +4635,7 @@ Additionally, return
 - a vector containing the canonical injections  $M_i\rightarrow\prod_{i=1}^n M_i$ if `task = :sum`,
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`.
 """
-function direct_product(M::ModuleFP{T}...; task::Symbol = :none) where T
+function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   F, pro, mF = direct_product([ambient_free_module(x) for x = M]..., task = :both)
   s, emb_sF = sub(F, vcat([[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...), :both)
   q::Vector{elem_type(F)} = vcat([[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
@@ -5174,20 +5174,20 @@ end
 
 #############################
 @doc Markdown.doc"""
-    homology(C::Hecke.ChainComplex{ModuleFP})
+    homology(C::Hecke.ChainComplex{<:ModuleFP})
 
 Compute all homology groups of `C`.
 """
-function homology(C::Hecke.ChainComplex{ModuleFP})
+function homology(C::Hecke.ChainComplex{<:ModuleFP})
   return [homology(C,i) for i in Hecke.object_range(C)]
 end
 
 @doc Markdown.doc"""
-    homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
+    homology(C::Hecke.ChainComplex{<:ModuleFP}, i::Int)
 
 Compute the `i`-th homology of `C`.
 """
-function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
+function homology(C::Hecke.ChainComplex{<:ModuleFP}, i::Int)
   chain_range = Hecke.object_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
   if i == first(chain_range)
