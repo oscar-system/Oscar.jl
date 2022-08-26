@@ -3,6 +3,10 @@
     I = ideal(R,[x*y^2 - x, x^3 - 2*y^5])
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
+    R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
+    I = ideal(R, [x])
+    gb = f4(I)
+    @test normal_form(y, I) == y
 end
 
 @testset "groebner leading ideal" begin

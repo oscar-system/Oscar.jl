@@ -25,6 +25,9 @@
             test_save_load_roundtrip(path, v) do loaded
               @test v == loaded
             end
+            test_save_load_roundtrip(path, v; parent=F) do loaded
+              @test v == loaded
+            end
         end
         
         @testset "Vector{gfp_elem}" begin
@@ -33,6 +36,9 @@
             minusone = F(-1)
             v = [one, minusone]
             test_save_load_roundtrip(path, v) do loaded
+              @test v == loaded
+            end
+            test_save_load_roundtrip(path, v; parent=F) do loaded
               @test v == loaded
             end
         end
@@ -57,7 +63,7 @@
               @test length(v) == length(loaded)
               @test loaded[1] isa Polyhedron
               @test loaded[2] isa LinearProgram
-              @test loaded isa Vector{Union{Polyhedron, LinearProgram}}
+              @test loaded isa Vector
             end
         end
         

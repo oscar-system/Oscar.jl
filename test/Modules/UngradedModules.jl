@@ -40,6 +40,16 @@ end
 	@test (F(v) + F([z, R(1), R(0)])) in M
 	@test !(F([R(1), R(0), R(0)]) in M)
 	@test N[1] in M
+
+	M = SubQuo(F, [x*F[1]])
+	N = SubQuo(F, [y*F[1]])
+	G = FreeMod(R,3,"f")
+	M_2 = SubQuo(G, [x*G[1]])
+	@test !is_canonically_isomorphic(M,N)
+	is_iso, phi = is_canonically_isomorphic_with_map(M,M_2)
+	@test is_iso
+	@test is_welldefined(phi)
+	@test is_bijective(phi)
 end
 
 @testset "Intersection of modules" begin
@@ -198,6 +208,9 @@ end
 		end
 	end
 
+	hom_hom_resolution = hom(hom_resolution,N)
+	@test range(hom_hom_resolution) == range(free_res)
+
 	hom_resolution = hom_without_reversing_direction(free_res,N)
 	@test last(range(hom_resolution)) == -first(range(free_res))
 	@test first(range(hom_resolution)) == -last(range(free_res))
@@ -209,6 +222,8 @@ end
 			@test homomorphism(hom_f(v)) == f*homomorphism(v)
 		end
 	end
+	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
+	@test range(hom_hom_resolution) == range(free_res)
 end
 
 @testset "Ext, Tor" begin
@@ -221,14 +236,39 @@ end
 	M = SubQuo(A, B)
 	F = free_module(R, 1)
 	Q, _ = quo(F, [x*F[1]])
+	G = free_module(R, 2)
+	M_coker = present_as_cokernel(M)
+
 	T0 = tor(Q, M, 0)
 	T1 = tor(Q, M, 1)
 	T2 =  tor(Q, M, 2)
+	@test is_canonically_isomorphic(T0, M)
+	@test is_canonically_isomorphic(present_as_cokernel(T1), M_coker)
+	@test iszero(T2)
+	T0 = tor(M, Q, 0)
+	T1 = tor(M, Q, 1)
+	T2 = tor(M, Q, 2)
+	@test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+	@test is_canonically_isomorphic(simplify(present_as_cokernel(T1))[1], M_coker)
 	@test iszero(T2)
 
 	E0 = ext(Q, M, 0)
 	E1 = ext(Q, M, 1)
 	E2 = ext(Q, M, 2)
+	@test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+	@test is_canonically_isomorphic(E1, M_coker)
+	@test iszero(E2)
+	E0 = ext(M, Q, 0)
+	E1 = ext(M, Q, 1)
+	E2 = ext(M, Q, 2)
+	E3 = ext(M, Q, 3)
+	E4 = ext(M, Q, 4)
+	@test iszero(E0)
+	@test iszero(E1)
+	@test is_canonically_isomorphic(present_as_cokernel(simplify(E2)[1]), M_coker)
+	@test is_canonically_isomorphic(E3, M_coker)
+	@test iszero(E4)
+
 end
 
 @testset "Gröbner bases" begin
@@ -410,9 +450,10 @@ end
   Q1,p1 = quo(M1,N1,:cache_morphism)
 
   @test Q1 == SubQuo(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
+  @test p1 == find_morphism(M1, Q1)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)  
-    @test p1(elem) == map_canonically(Q1, elem)
+    @test p1(elem) == transport(Q1, elem)
   end
 
   F2 = FreeMod(R,2)
@@ -424,7 +465,7 @@ end
             R[x^3-y^2 y^4-x-y; x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y])
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M2)
-    @test p2(elem) == map_canonically(Q2, elem)
+    @test p2(elem) == transport(Q2, elem)
   end
 
   M3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1 x^4 2*x*y; y^4 3*x -1],R[y^2 x^3 y^2])
@@ -436,7 +477,7 @@ end
   @test iszero(Q3)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
-    @test p3(elem) == map_canonically(Q3, elem)
+    @test p3(elem) == transport(Q3, elem)
     @test iszero(p3(elem))
   end
 end
@@ -449,18 +490,20 @@ end
   S1,i1 = sub(M1, [M1(sparse_row(R[1 1])),M1(sparse_row(R[y -x]))], :cache_morphism)
 
   @test S1 == SubQuo(F2,R[x*y^2+x^3-x^2 x*y^3-x*y-x^2; x^2*y+x*y^2+x*y-x^2+x x*y^2],R[x^2 y^3-x])
+  @test i1 == find_morphism(S1, M1)
   for k=1:5
       elem = S1(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
-      @test i1(elem) == map_canonically(M1, elem)
+      @test i1(elem) == transport(M1, elem)
   end
 
   M2 = SubQuo(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
   S2,i2 = sub(M2,[M2(sparse_row(R[x*y -x*y^2 x*y])),M2(sparse_row(R[x 0 -1]))], :cache_morphism)
 
   @test S2 == SubQuo(F2,R[x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y],R[x^3-y^2 y^4-x-y])
+  @test i2 == find_morphisms(S2, M2)[1]
   for k=1:5
       elem = S2(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
-      @test i2(elem) == map_canonically(M2, elem)
+      @test i2(elem) == transport(M2, elem)
   end
 
   M3 = SubQuo(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
@@ -470,7 +513,7 @@ end
   @test S3 == M3
   for k=1:5
       elem = S3(sparse_row(matrix([randpoly(R) for _=1:1, i=1:3])))
-      @test i3(elem) == map_canonically(M3, elem)
+      @test i3(elem) == transport(M3, elem)
   end
 end
 
@@ -530,6 +573,12 @@ end
 	for v in gens(SQ)
 		@test v == module_elem(SQ, homomorphism(v))
 	end
+
+	End_M = hom(M1,M1)[1]
+	R_as_module = FreeMod(R,1)
+	phi = multiplication_induced_morphism(R_as_module, End_M)
+	@test homomorphism(phi(R_as_module[1])) == identity_map(M1)
+	@test image(homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
 
 	# test if hom(zero-module, ...) is zero
 	Z = FreeMod(R,0)
@@ -666,7 +715,7 @@ end
 		@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
 	end
 
-	# testing hom_prod_prod
+	# testing hom_product
 
 	M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
 	H12 = hom(M1,N2)[1]
@@ -679,7 +728,7 @@ end
 	@assert is_welldefined(M2_to_N1)
 	@assert is_welldefined(M2_to_N2)
 
-	phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
+	phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
 	for g in gens(M1)
 		@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
 		@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))

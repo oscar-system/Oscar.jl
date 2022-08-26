@@ -147,7 +147,7 @@ import Nemo:
     ZZ
 
 exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer, :genus_symbol, :data,
-    :narrow_class_group, :perm]
+    :narrow_class_group, :perm, :SymmetricGroup]
 
 for i in names(Hecke)
   i in exclude && continue
@@ -209,7 +209,6 @@ import Hecke:
     kernel,
     Map,
     MapHeader,
-    math_html,
     mul,
     mul!,
     multiplicative_jordan_decomposition,

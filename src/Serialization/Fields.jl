@@ -1,6 +1,7 @@
 ################################################################################
 # field of rationals (singleton type)
-@registerSerializationType(FlintRationalField)
+encodeType(::Type{FlintRationalField}) = "FlintRationalField"
+reverseTypeMap["FlintRationalField"] = FlintRationalField
 
 
 ################################################################################
@@ -31,6 +32,14 @@ function load_internal(s::DeserializerState, z::Type{gfp_elem}, dict::Dict)
     return F(UInt64(dict[:data]))
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   z::Type{gfp_elem},
+                                   dict::Dict,
+                                   parent::Nemo.GaloisField)
+    return parent(UInt64(dict[:data]))
+end
+
+
 
 ################################################################################
 # fmpz variant
@@ -60,8 +69,19 @@ function load_internal(s::DeserializerState, ::Type{gfp_fmpz_elem}, dict::Dict)
     return F(load_type_dispatch(s, fmpz, dict[:data]))
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{gfp_fmpz_elem},
+                                   dict::Dict,
+                                   parent::Nemo.GaloisFmpzField)
+    return parent(load_type_dispatch(s, fmpz, dict[:data]))
+end
+
 ################################################################################
 # SimpleNumField
+
+encodeType(::Type{<:Hecke.NfRel}) = "Hecke.NfRel"
+reverseTypeMap["Hecke.NfRel"] = Hecke.NfRel
+
 @registerSerializationType(AnticNumberField)
 
 function save_internal(s::SerializerState, K::SimpleNumField)
@@ -98,6 +118,9 @@ end
 @registerSerializationType(fq_nmod)
 @registerSerializationType(nf_elem)
 
+encodeType(::Type{<:Hecke.NfRelElem}) = "Hecke.NfRelElem"
+reverseTypeMap["Hecke.NfRelElem"] = Hecke.NfRelElem
+
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
     polynomial = parent(defining_polynomial(K))(k)
@@ -116,9 +139,26 @@ function load_internal(s::DeserializerState,
     return K(polynomial)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: Union{nf_elem, fq_nmod, Hecke.NfRelElem}},
+                                   dict::Dict,
+                                   parent_field::Union{FqNmodFiniteField, SimpleNumField})
+    polynomial_parent = parent(defining_polynomial(parent_field))
+    polynomial = load_unknown_type(s, dict[:polynomial]; parent=polynomial_parent)
+
+    return parent_field(polynomial)
+end
+
+
+
 ################################################################################
 # Non Simple Extension
+
+encodeType(::Type{<:Hecke.NfRelNS}) = "Hecke.NfRelNS"
+reverseTypeMap["Hecke.NfRelNS"] = Hecke.NfRelNS
+
 @registerSerializationType(NfAbsNS)
+@registerSerializationType(NfAbsNSElem)
 
 function save_internal(s::SerializerState, K::Union{NfAbsNS, NfRelNS})
     def_pols = defining_polynomials(K)
@@ -138,6 +178,9 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
+encodeType(::Type{<:Hecke.NfRelNSElem}) = "Hecke.NfRelNSElem"
+reverseTypeMap["Hecke.NfRelNSElem"] = Hecke.NfRelNSElem
+
 function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     K = parent(k)
     polynomial = Oscar.Hecke.data(k)
@@ -159,9 +202,35 @@ function load_internal(s::DeserializerState,
     return K(polynomial)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: NfAbsNSElem},
+                                   dict::Dict,
+                                   parent_field::NfAbsNS)
+    polynomial = load_unknown_type(s, dict[:polynomial])
+    polynomial = evaluate(polynomial, gens(parent_field))
+
+    return parent_field(polynomial)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: Hecke.NfRelNSElem},
+                                   dict::Dict,
+                                   parent_field::Hecke.NfRelNS)
+    ngens = length(gens(parent_field))
+    parent_polynomial_ring, _ = PolynomialRing(base_field(parent_field), ngens)
+    polynomial = load_unknown_type(s, dict[:polynomial]; parent=parent_polynomial_ring)
+    polynomial = evaluate(polynomial, gens(parent_field))
+
+    return parent_field(polynomial)
+end
+
 
 ################################################################################
 # FracField
+
+encodeType(::Type{<:FracField}) = "FracField"
+reverseTypeMap["FracField"] = FracField
+
 function save_internal(s::SerializerState, K::FracField)
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(K)),
@@ -177,6 +246,9 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
+encodeType(::Type{<:FracElem}) = "FracElem"
+reverseTypeMap["FracElem"] = FracElem
+
 function save_internal(s::SerializerState, f::FracElem)
     return Dict(
         :parent => save_type_dispatch(s, parent(f)),
@@ -191,6 +263,17 @@ function load_internal(s::DeserializerState, ::Type{<: FracElem}, dict::Dict)
     den = load_unknown_type(s, dict[:den])
 
     return R(num) // R(den)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: FracElem},
+                                   dict::Dict,
+                                   parent:: FracField)
+    parts_parent = base_ring(parent)
+    num = load_unknown_type(s, dict[:num]; parent=parts_parent)
+    den = load_unknown_type(s, dict[:den]; parent=parts_parent)
+    
+    return parent(num, den)
 end
 
 ################################################################################
@@ -235,6 +318,19 @@ function load_internal(s::DeserializerState, ::Type{arb}, dict::Dict)
     return r
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{arb},
+                                   dict::Dict,
+                                   parent::Nemo.RealField)
+    arb_unsafe_str = load_type_dispatch(s, String, dict[:arb_unsafe_str])
+    r = Nemo.arb()
+    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
+          Int32, (Ref{arb}, Ptr{UInt8}), r, arb_unsafe_str)
+    r.parent = parent
+    
+    return r
+end
+
 ################################################################################
 # ComplexField
 
@@ -268,6 +364,16 @@ function load_internal(s::DeserializerState, ::Type{acb}, dict::Dict)
     return CC(real_part, imag_part)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{acb},
+                                   dict::Dict,
+                                   parent::AcbField)
+    real_part = load_type_dispatch(s, arb, dict[:real])
+    imag_part = load_type_dispatch(s, arb, dict[:imag])
+
+    return parent(real_part, imag_part)
+end
+
 ################################################################################
 # Field Embeddings
 
@@ -290,3 +396,76 @@ function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dic
 
     return complex_embedding(K, gen_ball)
 end
+
+@registerSerializationType(Hecke.NumFieldEmbNfAbsNS)
+
+function save_internal(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
+    K = number_field(E)
+    gen_balls = map(E, gens(K))
+    
+    return Dict(
+        :num_field => save_type_dispatch(s, K),
+        :gen_balls => save_type_dispatch(s, gen_balls)
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, dict::Dict)
+    K = load_type_dispatch(s, NfAbsNS, dict[:num_field])
+    gen_balls = load_type_dispatch(s, Vector{acb}, dict[:gen_balls])
+
+    return complex_embedding(K, gen_balls)
+end
+
+################################################################################
+# Padic Field
+
+@registerSerializationType(FlintPadicField)
+@registerSerializationType(padic)
+
+function save_internal(s::SerializerState, P::FlintPadicField)
+    return Dict(
+        :prime => save_type_dispatch(s, prime(P)),
+        :precision => save_type_dispatch(s, precision(P))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{FlintPadicField}, dict::Dict)
+    prime_num = load_type_dispatch(s, fmpz, dict[:prime])
+    precision = load_type_dispatch(s, Int64, dict[:precision])
+
+    return PadicField(prime_num, precision)
+end
+
+#elements
+
+function save_internal(s::SerializerState, n::padic)
+    return Dict(
+        :rational_rep => save_type_dispatch(s, lift(QQ, n)),
+        :parent => save_type_dispatch(s, parent(n))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{padic}, dict::Dict)
+    rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
+    parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
+
+    return parent_field(rational_rep)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{padic},
+                                   dict::Dict,
+                                   parent::FlintPadicField)
+    rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
+    parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
+
+    # padic num precision is 1 higher than the field it lies in
+    if precision(parent_field) > precision(parent)
+        @warn("Precision Warning: given parent is less precise than serialized parent",
+              maxlog=1)
+    end
+    
+    return parent(rational_rep)
+end
+
+

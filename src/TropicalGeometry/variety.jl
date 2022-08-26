@@ -42,7 +42,7 @@ end
 
 function Base.show(io::IO, tv::TropicalVariety{M, EMB}) where {M, EMB}
     if EMB
-        print(io, "A $(repr(M)) tropical variety of dimension $(dim(tv)) embedded in $(ambient_dim(tv))-dimensional Euclidian space")
+        print(io, "A $(repr(M)) tropical variety of dimension $(dim(tv)) embedded in $(ambient_dim(tv))-dimensional Euclidean space")
     else
         print(io, "An abstract $(repr(M)) tropical variety of dimension $(dim(tv))")
     end

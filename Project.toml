@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["The OSCAR Team <oscar@mathematik.uni-kl.de>"]
-version = "0.10.0"
+version = "0.10.2"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -25,12 +25,12 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 msolve_jll = "6d01cc9a-e8f6-580e-8c54-544227e08205"
 
 [compat]
-AbstractAlgebra = "0.27.0"
+AbstractAlgebra = "0.27.1"
 DocStringExtensions = "0.8"
 GAP = "0.8.1"
-Hecke = "0.14.11"
+Hecke = "0.15"
 JSON = "^0.20, ^0.21"
-Nemo = "0.32.0"
+Nemo = "0.32.1"
 Polymake = "0.8.0"
 Preferences = "1"
 RandomExtensions = "0.4.3"

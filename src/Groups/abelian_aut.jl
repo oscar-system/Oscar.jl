@@ -62,7 +62,7 @@ Return the element `f` of type `GrpAbFinGenMap`.
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
-  imgs = [f(a) for a in gens(A)]
+  imgs = elem_type(A)[f(a) for a in gens(A)]
   return hom(A, A, imgs)
 end
 
@@ -97,7 +97,7 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{fmpq, fmpq_mat}; check=true)
     @assert can_solve(B, B*matrix(g),side=:left)
   end
   T = domain(aut)
-  g = hom(T, T, [T(lift(t)*matrix(g)) for t in gens(T)])
+  g = hom(T, T, elem_type(T)[T(lift(t)*matrix(g)) for t in gens(T)])
   return aut(g)
 end
 """

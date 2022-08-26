@@ -1,4 +1,24 @@
 ################################################################################
+# Bool
+@registerSerializationType(Bool)
+
+function save_internal(s::SerializerState, b::Bool)
+    return string(b)
+end
+
+function load_internal(s::DeserializerState, ::Type{Bool}, str::String)
+  if str == "true"
+    return true
+  end
+
+  if str == "false"
+    return false
+  end
+
+  throw(ErrorException("Error parsing boolean string: $str"))
+end
+
+################################################################################
 # fmpz
 @registerSerializationType(fmpz)
 
@@ -10,10 +30,17 @@ function load_internal(s::DeserializerState, ::Type{fmpz}, str::String)
     return fmpz(str)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{fmpz},
+                                   str::String,
+                                   parent::FlintIntegerRing)
+    return parent(fmpz(str))
+end
 
 ################################################################################
 # fmpq
-@registerSerializationType(fmpq)
+encodeType(::Type{fmpq}) = "fmpq"
+reverseTypeMap["fmpq"] = fmpq
 
 function save_internal(s::SerializerState, q::fmpq)
     return Dict(

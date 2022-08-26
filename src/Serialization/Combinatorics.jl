@@ -1,3 +1,5 @@
+using JSON
+
 ###############################################################################
 ## Graphs
 ###############################################################################
@@ -15,6 +17,23 @@ end
 function load_internal(s::DeserializerState, g::Type{Graphs.Graph{T}}, dict::Dict) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
     smallobj = Polymake.call_function(:common, :deserialize_json_string, json(dict))
     return g(smallobj)
+end
+
+###############################################################################
+## IncidenceMatrix
+###############################################################################
+@registerSerializationType(Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric})
+
+function save_internal(s::SerializerState, IM::IncidenceMatrix)
+    serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, IM)
+    jsonstr = Polymake.call_function(:common, :encode_json, serialized)
+
+    return JSON.parse(jsonstr)
+end
+
+function load_internal(s::DeserializerState, ::Type{<: IncidenceMatrix}, dict::Dict)
+    IM = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+    return IM
 end
 
 

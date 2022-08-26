@@ -534,7 +534,7 @@ end
 
     l = SLP.test(x^2 * y, 2) & SLP.test(y^2 * x, 3)
     p = SLProgram(l)
-    P = SymmetricGroup(4)
+    P = AbstractAlgebra.SymmetricGroup(4)
     p1, p2 = P("(1,4,3)"), P("(1, 3)")
     @test SLP.evaluate(p, [p1, p2])
     @test !SLP.evaluate(p, [p2, p1])

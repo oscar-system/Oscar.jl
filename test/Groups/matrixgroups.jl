@@ -139,6 +139,9 @@ end
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
    end
+
+   G = MatrixGroup(2, QQ, dense_matrix_type(QQ)[])
+   @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
 end
 
 @testset "Type operations" begin

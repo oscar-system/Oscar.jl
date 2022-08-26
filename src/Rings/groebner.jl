@@ -25,7 +25,7 @@ ideal(x*y - 3*x, -2*x^2*y + y^3)
 julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
 
 julia> I.gb[degrevlex(gens(R))]
-Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[#undef, #undef, #undef], Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
+Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
@@ -65,7 +65,7 @@ julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, #undef, false, #undef, true)
 
 julia> B = Oscar._compute_groebner_basis(A, degrevlex(gens(R)))
-Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[#undef, #undef, #undef], Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
+Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
 ```
 """
 function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
@@ -133,7 +133,7 @@ julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, #undef, false, #undef, true)
 
 julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(gens(R)))
-(Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[#undef, #undef, #undef], Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+(Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -299,7 +299,9 @@ julia> Oscar.normal_form_internal(I,J)
 """
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
   groebner_assure(J)
-  K = ideal(base_ring(J), reduce(I, collect(values(J.gb))[1].S))
+  G = collect(values(J.gb))[1]
+  singular_assure(G)
+  K = ideal(base_ring(J), reduce(I, G.S))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
