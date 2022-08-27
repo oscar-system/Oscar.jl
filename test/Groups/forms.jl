@@ -628,8 +628,14 @@ end
   N1 = root_lattice(:A, 2)
   N2 = rescale(N1, 4)
   N,_,_ = Hecke.orthogonal_sum(N1,N2)
-  @test order(orthogonal_group(N))==?
+  @test order(orthogonal_group(N))==144
 
-  L = ZLattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
-  @test order(orthogonal_group(L))==?
+  # the following test errors
+  L = Zlattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
+  G = orthogonal_group(L)
+  @test order(G)==32
+
+  G = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
+  L = Zlattice(gram=G)
+  @test order(orthogonal_group(G)) == 267544166400
 end

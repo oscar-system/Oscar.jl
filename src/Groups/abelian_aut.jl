@@ -30,8 +30,8 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check=true)
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
   end
-  to_gap = get_attribute(aut,:to_gap)
-  to_oscar = get_attribute(aut,:to_oscar)
+  to_gap = get_attribute(aut, :to_gap)
+  to_oscar = get_attribute(aut, :to_oscar)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
