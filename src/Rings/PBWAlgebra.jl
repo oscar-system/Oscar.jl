@@ -1,8 +1,6 @@
 export pbw_algebra, build_ctx, PBWAlgElem, PBWAlgRing, is_two_sided
 
 ####
-export t_strictly_upper_triangular_matrix
-####
 
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
@@ -305,7 +303,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> L = [x*y, x*z, y*z + 1];
 
-julia> REL = t_strictly_upper_triangular_matrix(L);
+julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field with relations ==(y*x, x*y), ==(z*x, x*z), ==(z*y, y*z + 1), PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
@@ -427,20 +425,4 @@ end
 
 function Base.:in(f::PBWAlgElem, I::PBWAlgIdeal)
   return ideal_membership(f, I)
-end
-
-##################to be removed here as soon as function is available from AbstractAlgebra
-function t_strictly_upper_triangular_matrix(L::AbstractVector{T}) where {T <: RingElement}
-   l = length(L)
-   l == 0 && throw(ArgumentError("Input vector must be nonempty"))
-   n = Int(floor((Base.sqrt(1+8*l)+1)/2))
-   l == div((n-1)*n, 2) || throw(ArgumentError("Input vector of invalid length"))
-   R = parent(L[1])
-   M = zero_matrix(R, n, n)
-   pos = 1
-   for i in 1:(n-1), j in (i+1):n
-      M[i,j] = L[pos]
-      pos += 1
-   end
-   return M
 end

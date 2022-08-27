@@ -40,7 +40,7 @@ Given a PBW-algebra `A` over a field `K`,
 ```@repl oscar
 R, (x,y,z) = QQ["x", "y", "z"];
 L = [x*y, x*z, y*z + 1];
-REL = t_strictly_upper_triangular_matrix(L);
+REL = strictly_upper_triangular_matrix(L);
 A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 coefficient_ring(A)
 gens(A)
@@ -63,7 +63,7 @@ from the generators of `A` using basic arithmetic as shown below:
 ```@repl oscar
 R, (x,y,z) = QQ["x", "y", "z"];
 L = [x*y, x*z, y*z + 1];
-REL = t_strictly_upper_triangular_matrix(L);
+REL = strictly_upper_triangular_matrix(L);
 A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 f = 3*x^2+z*y
 ```
@@ -81,7 +81,7 @@ the elements of `cs` as coefficients, and the elements of `es` as exponents.
 ```@repl oscar
 R, (x,y,z) = QQ["x", "y", "z"];
 L = [x*y, x*z, y*z + 1];
-REL = t_strictly_upper_triangular_matrix(L);
+REL = strictly_upper_triangular_matrix(L);
 A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 f = 3*x^2+z*y
 g = A(QQ.([3, 1, 1]), [[2, 0, 0], [0, 1, 1], [0, 0, 0]])
@@ -93,7 +93,7 @@ An often more effective way to create elements is to use the corresponding build
 ```@repl oscar
 R, (x,y,z) = QQ["x", "y", "z"];
 L = [x*y, x*z, y*z + 1];
-REL = t_strictly_upper_triangular_matrix(L);
+REL = strictly_upper_triangular_matrix(L);
 A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 B =  build_ctx(A);
 for i = 1:5 push_term!(B, QQ(i), [i+1, i, i-1]) end
