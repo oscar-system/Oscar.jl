@@ -702,7 +702,7 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	N2 = SubQuo(F3,A2,B2)
 
-	prod_N = direct_product(N1,N2)
+	prod_N = direct_product(N1,N2,task=:none)
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
 	for g in gens(prod_N)
