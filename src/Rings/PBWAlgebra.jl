@@ -1,7 +1,5 @@
 export pbw_algebra, build_ctx, PBWAlgElem, PBWAlgRing, is_two_sided
 
-####
-
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations
@@ -187,10 +185,6 @@ end
 
 ####
 
-function symbols(R::PBWAlgRing)
-  return symbols(R.sring)
-end
-
 function ngens(R::PBWAlgRing)
   return Singular.nvars(R.sring)
 end
@@ -306,7 +300,7 @@ julia> L = [x*y, x*z, y*z + 1];
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational Field with relations ==(y*x, x*y), ==(z*x, x*z), ==(z*y, y*z + 1), PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+(PBW-algebra over Rational Field with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 ```
 """
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
@@ -423,6 +417,6 @@ function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{T, S}) where {T, S
   return Singular.iszero(Singular.reduce(f.sdata, I.gb))
 end
 
-function Base.:in(f::PBWAlgElem, I::PBWAlgIdeal)
+function Base.in(f::PBWAlgElem, I::PBWAlgIdeal)
   return ideal_membership(f, I)
 end
