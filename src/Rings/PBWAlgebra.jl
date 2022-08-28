@@ -185,10 +185,6 @@ end
 
 ####
 
-function symbols(R::PBWAlgRing)
-  return symbols(R.sring)
-end
-
 function ngens(R::PBWAlgRing)
   return Singular.nvars(R.sring)
 end
