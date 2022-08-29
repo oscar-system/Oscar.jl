@@ -271,6 +271,7 @@ function save_internal(s::SerializerState, R::Union{
     Generic.AbsSeriesRing,
     FmpqAbsSeriesRing,
     FmpzAbsSeriesRing,
+    FqNmodAbsSeriesRing,
     NmodAbsSeriesRing})
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(R)),
@@ -290,11 +291,14 @@ function load_internal(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
 end
 
 # elements
-encodeType(::Type{<:SeriesElem}) = "SeriesElem"
-reverseTypeMap["SeriesElem"] = SeriesElem
+encodeType(::Type{<:RelSeriesElem}) = "RelSeriesElem"
+reverseTypeMap["RelSeriesElem"] = RelSeriesElem
+
+encodeType(::Type{<:AbsSeriesElem}) = "AbsSeriesElem"
+reverseTypeMap["AbsSeriesElem"] = AbsSeriesElem
 
 function save_internal(s::SerializerState, r::SeriesElem)
-    coeffs = map(x -> polcoeff(r, x), 0:pol_length(r))
+    coeffs = map(x -> coeff(r, x), 0:pol_length(r))
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),
         :coeffs => save_type_dispatch(s, coeffs),
@@ -304,7 +308,7 @@ function save_internal(s::SerializerState, r::SeriesElem)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: SeriesElem}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: RelSeriesElem}, dict::Dict)
     parent, _ = load_type_dispatch(s, SeriesRing, dict[:parent])
     coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
     valuation = load_type_dispatch(s, Int, dict[:valuation])
@@ -312,6 +316,15 @@ function load_internal(s::DeserializerState, ::Type{<: SeriesElem}, dict::Dict)
     precision = load_type_dispatch(s, Int, dict[:precision])
     
     return parent(coeffs, pol_length, precision, valuation)
+end
+
+function load_internal(s::DeserializerState, ::Type{<: AbsSeriesElem}, dict::Dict)
+    parent, _ = load_type_dispatch(s, SeriesRing, dict[:parent])
+    coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
+    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
+    precision = load_type_dispatch(s, Int, dict[:precision])
+    
+    return parent(coeffs, pol_length, precision)
 end
 
 
