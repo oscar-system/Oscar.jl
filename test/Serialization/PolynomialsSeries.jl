@@ -240,11 +240,17 @@ end
                     test_save_load_roundtrip(path, rel_p) do loaded
                         @test test_equality(rel_p, loaded)
                     end
+                    test_save_load_roundtrip(path, rel_p; parent=rel_R) do loaded
+                        @test rel_p == loaded
+                    end
 
                     abs_R, abs_z = PowerSeriesRing(case[1], 10, "z"; model=:capped_absolute)
                     abs_p = abs_z^2 + case[2] * abs_z + case[3]
                     test_save_load_roundtrip(path, abs_p) do loaded
                         @test test_equality(abs_p, loaded)
+                    end
+                    test_save_load_roundtrip(path, abs_p; parent=abs_R) do loaded
+                        @test abs_p == loaded
                     end
                 end
             end

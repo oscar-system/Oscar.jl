@@ -318,6 +318,24 @@ function load_internal(s::DeserializerState, ::Type{<: RelSeriesElem}, dict::Dic
     return parent(coeffs, pol_length, precision, valuation)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: RelSeriesElem},
+                                   dict::Dict,
+                                   parent_ring::SeriesRing)
+    # cache parent inside serializer state in case parent needs
+    # to be checked against the passed parent
+    _, _ = load_unknown_type(s, dict[:parent])
+
+    coeff_ring = base_ring(parent_ring)
+    coeff_type = elem_type(coeff_ring)
+    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    valuation = load_type_dispatch(s, Int, dict[:valuation])
+    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
+    precision = load_type_dispatch(s, Int, dict[:precision])
+    
+    return parent_ring(coeffs, pol_length, precision, valuation)
+end
+
 function load_internal(s::DeserializerState, ::Type{<: AbsSeriesElem}, dict::Dict)
     parent, _ = load_type_dispatch(s, SeriesRing, dict[:parent])
     coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
@@ -325,6 +343,23 @@ function load_internal(s::DeserializerState, ::Type{<: AbsSeriesElem}, dict::Dic
     precision = load_type_dispatch(s, Int, dict[:precision])
     
     return parent(coeffs, pol_length, precision)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: AbsSeriesElem},
+                                   dict::Dict,
+                                   parent_ring::SeriesRing)
+    # cache parent inside serializer state in case parent needs
+    # to be checked against the passed parent
+    _, _ = load_unknown_type(s, dict[:parent])
+
+    coeff_ring = base_ring(parent_ring)
+    coeff_type = elem_type(coeff_ring)
+    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
+    precision = load_type_dispatch(s, Int, dict[:precision])
+    
+    return parent_ring(coeffs, pol_length, precision)
 end
 
 
