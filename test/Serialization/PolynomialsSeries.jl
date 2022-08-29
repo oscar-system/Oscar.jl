@@ -246,7 +246,7 @@ end
                         @test test_equality(rel_p, loaded)
                     end
 
-                    test_save_load_roundtrip(path, rel_p; parent=rel_R) do loaded
+                    test_save_load_roundtrip(path, abs_p; parent=rel_R) do loaded
                         @test rel_p == loaded
                     end
 
@@ -255,6 +255,7 @@ end
                     test_save_load_roundtrip(path, abs_p) do loaded
                         @test test_equality(abs_p, loaded)
                     end
+
                     test_save_load_roundtrip(path, abs_p; parent=abs_R) do loaded
                         @test abs_p == loaded
                     end
