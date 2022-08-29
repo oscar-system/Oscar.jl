@@ -113,7 +113,7 @@ end
 function test_equality(p::T, l::T) where T <: (
     SeriesElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
     L = parent(l)
-    coeffs = map(x -> coeff(p, x), 0:pol_length(p))
+    coeffs = map(o -> polcoeff(p, o), 1:pol_length(p))
     
     return L(coeffs, pol_length(p), precision(p), valuation(p)) == l
 end
@@ -121,8 +121,6 @@ end
 function test_equality(p::T, l:: T) where T  <: Union{
     MPolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}},
     PolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
-    P = parent(p)
-    x = var(P)
     mapped_coeffs = map(i -> evaluate(i, x), coefficients(l))
     return mapped_coeffs == collect(coefficients(p))
 end
@@ -130,7 +128,6 @@ end
 function test_equality(p::T, l:: T) where T  <: SeriesElem{
     AbstractAlgebra.Generic.Frac{fmpq_poly}}
     P = parent(p)
-    x = var(P)
     evaluate_on_gen(y) = evaluate(y, x)
     return compare_series_coeffs(p, l, evaluate_on_gen)
 end
@@ -177,8 +174,8 @@ end
 
 function compare_series_coeffs(p::T, l::T,
                                h::Union{Map, typeof(identity)}) where T <: SeriesElem
-    coeffs_p = map(x -> coeff(p, x), 0:pol_length(p))
-    coeffs_l = map(x -> coeff(l, x), 0:pol_length(l))
+    coeffs_p = map(o -> polcoeff(p, o), 1:pol_length(p))
+    coeffs_l = map(o -> polcoeff(l, o), 1:pol_length(l))
     return [h(c) for c in coeffs_p] == coeffs_l
 end
 

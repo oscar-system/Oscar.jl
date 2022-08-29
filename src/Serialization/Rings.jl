@@ -257,6 +257,7 @@ function save_internal(s::SerializerState, R::Union{
     Generic.RelSeriesRing,
     FmpqRelSeriesRing,
     FmpzRelSeriesRing,
+    FqNmodRelSeriesRing,
     NmodRelSeriesRing})
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(R)),
@@ -293,8 +294,7 @@ encodeType(::Type{<:SeriesElem}) = "SeriesElem"
 reverseTypeMap["SeriesElem"] = SeriesElem
 
 function save_internal(s::SerializerState, r::SeriesElem)
-    coeffs = map(x -> coeff(r, x), 0:pol_length(r))
-    
+    coeffs = map(x -> polcoeff(r, x), 1:pol_length(r))
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),
         :coeffs => save_type_dispatch(s, coeffs),
