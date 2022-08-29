@@ -238,6 +238,9 @@ end
                 end
             end
 
+            # Tropical Semirings currently can't have formal power eries
+            filter!(case-> case[4] != "Tropical Semiring", cases)
+
             @testset "Series" begin
                 @testset "Power Series over $(case[4])" begin
                     rel_R, rel_z = PowerSeriesRing(case[1], 10, "z")
@@ -246,7 +249,7 @@ end
                         @test test_equality(rel_p, loaded)
                     end
 
-                    test_save_load_roundtrip(path, abs_p; parent=rel_R) do loaded
+                    test_save_load_roundtrip(path, rel_p; parent=rel_R) do loaded
                         @test rel_p == loaded
                     end
 
