@@ -213,7 +213,6 @@ function load_internal(s::DeserializerState, ::Type{<: MPolyIdeal}, dict::Dict)
     return ideal(parent_ring, gens)
 end
 
-
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyIdeal},
                                    dict::Dict,

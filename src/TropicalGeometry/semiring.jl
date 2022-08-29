@@ -1,9 +1,10 @@
 # module Tropical
 
 export TropicalSemiring,
-       @tropical,
-       convention,
-       det
+  @tropical,
+  convention,
+  det,
+  data
 
 # using Reexport
 
@@ -30,6 +31,10 @@ mutable struct TropicalSemiringElem{T} <: FieldElem
   parent::TropicalSemiring{T}
   isinf::Bool
   data::fmpq
+
+  function rational_value(t::TropicalSemiringElem)
+    return t.data
+  end
 
   function TropicalSemiringElem(R::TropicalSemiring{T}, isinf::Bool) where {T}
     @assert isinf

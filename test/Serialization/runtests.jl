@@ -8,5 +8,6 @@ include("ToricGeometry.jl")
 include("PolynomialsSeries.jl")
 include("Matrices.jl")
 include("Fields.jl")
+include("TropicalGeometry.jl")
 
 include("polymake/runtests.jl")

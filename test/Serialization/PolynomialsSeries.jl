@@ -10,6 +10,7 @@ Zt, t = PolynomialRing(ResidueRing(ZZ, 2), "t")
 Fin, d = FiniteField(t^2 + t + 1)
 Frac = FractionField(R)
 P7 = PadicField(7, 30)
+T = TropicalSemiring()
 
 cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),
@@ -21,7 +22,8 @@ cases = [
     (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
     (Fin, d, 1, "Finite Field"),
     (Frac, 1 // x, x^2, "Fraction Field"),
-    (P7, 7 + 3*7^2, 7^5, "Padic Field")
+    (P7, 7 + 3*7^2, 7^5, "Padic Field"),
+    (T, T(1), T(3)^2, "Tropical Semiring")
 ]
 
 function get_hom(R1::T, R2::T) where T <: Union{
@@ -97,7 +99,9 @@ function get_hom(R1::T, R2::T) where T <: SeriesRing{S} where S <: Union{
 end
 
 function test_equality(p::T, l::T) where T <: (
-    MPolyElem{S} where S <:Union{fmpq, fmpz, nmod, padic})
+    MPolyElem{S} where S <:Union{
+        fmpq, fmpz, nmod, padic, Oscar.TropicalSemiringElem
+    })
     P = parent(p)
     L = parent(l)
     h = hom(P, L, gens(L))
@@ -105,7 +109,9 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function test_equality(p::T, l::T) where T <: (
-    PolyElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
+    PolyElem{S} where S <: Union{
+        fmpq, fmpz, nmod, padic, Oscar.TropicalSemiringElem})
+    P = parent(p)
     L = parent(l)
     return L(collect(coefficients(p))) == l
 end
@@ -221,8 +227,8 @@ end
                 end
 
                 @testset "MPoly Ideals over $(case[4])" begin
-                    q = w^2 - z
-                    i = ideal(R, [p, q])
+                    q = w^2 + z
+                    i = Oscar.ideal(R, [p, q])
                     test_save_load_roundtrip(path, i) do loaded_i
                         if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
                             S = parent(loaded_i[1])
