@@ -294,7 +294,7 @@ encodeType(::Type{<:SeriesElem}) = "SeriesElem"
 reverseTypeMap["SeriesElem"] = SeriesElem
 
 function save_internal(s::SerializerState, r::SeriesElem)
-    coeffs = map(x -> polcoeff(r, x), 1:pol_length(r))
+    coeffs = map(x -> polcoeff(r, x), 0:pol_length(r))
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),
         :coeffs => save_type_dispatch(s, coeffs),

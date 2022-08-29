@@ -19,7 +19,7 @@ cases = [
     (K, a, a + 1, "Simple Extension"),
     (Tow, a^2 * b, a + b, "Tower Extension"),
     (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
-    (Fin, d, 0, "Finite Field"),
+    (Fin, d, 1, "Finite Field"),
     (Frac, 1 // x, x^2, "Fraction Field"),
     (P7, 7 + 3*7^2, 7^5, "Padic Field")
 ]
@@ -113,7 +113,7 @@ end
 function test_equality(p::T, l::T) where T <: (
     SeriesElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
     L = parent(l)
-    coeffs = map(o -> polcoeff(p, o), 1:pol_length(p))
+    coeffs = map(o -> polcoeff(p, o), 0:pol_length(p))
     
     return L(coeffs, pol_length(p), precision(p), valuation(p)) == l
 end
@@ -121,14 +121,17 @@ end
 function test_equality(p::T, l:: T) where T  <: Union{
     MPolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}},
     PolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
-    mapped_coeffs = map(i -> evaluate(i, x), coefficients(l))
-    return mapped_coeffs == collect(coefficients(p))
+    g = gen(base_ring(parent(l)))
+    mapped_coeffs = map(i -> evaluate(i, g), coefficients(p))
+    return mapped_coeffs == collect(coefficients(l))
 end
 
 function test_equality(p::T, l:: T) where T  <: SeriesElem{
     AbstractAlgebra.Generic.Frac{fmpq_poly}}
-    P = parent(p)
-    evaluate_on_gen(y) = evaluate(y, x)
+    dom = base_ring(parent(p))
+    codom = base_ring(parent(l))
+    g = gen(base_ring(parent(l)))
+    evaluate_on_gen = map_from_func(y -> evaluate(y, g), dom, codom)
     return compare_series_coeffs(p, l, evaluate_on_gen)
 end
 
@@ -174,8 +177,8 @@ end
 
 function compare_series_coeffs(p::T, l::T,
                                h::Union{Map, typeof(identity)}) where T <: SeriesElem
-    coeffs_p = map(o -> polcoeff(p, o), 1:pol_length(p))
-    coeffs_l = map(o -> polcoeff(l, o), 1:pol_length(l))
+    coeffs_p = map(o -> polcoeff(p, o), 0:pol_length(p))
+    coeffs_l = map(o -> polcoeff(l, o), 0:pol_length(l))
     return [h(c) for c in coeffs_p] == coeffs_l
 end
 
