@@ -120,7 +120,6 @@ function test_equality(p::T, l::T) where T <: (
     RelSeriesElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
     L = parent(l)
     coeffs = map(o -> coeff(p, o), 0:pol_length(p))
-    
     return L(coeffs, pol_length(p), precision(p), valuation(p)) == l
 end
 
@@ -246,6 +245,7 @@ end
                     test_save_load_roundtrip(path, rel_p) do loaded
                         @test test_equality(rel_p, loaded)
                     end
+
                     test_save_load_roundtrip(path, rel_p; parent=rel_R) do loaded
                         @test rel_p == loaded
                     end
