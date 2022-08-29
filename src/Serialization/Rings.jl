@@ -360,5 +360,3 @@ function load_internal_with_parent(s::DeserializerState,
     
     return parent_ring(coeffs, pol_length, precision)
 end
-
-
