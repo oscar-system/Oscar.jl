@@ -240,7 +240,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R, _ = load_unknown_type(s, dict[:base_ring])
+    R = load_unknown_type(s, dict[:base_ring])
 
     return FractionField(R, cached=false)
 end

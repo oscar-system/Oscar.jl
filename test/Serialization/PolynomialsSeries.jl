@@ -15,6 +15,7 @@ T = TropicalSemiring()
 cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),
     (ZZ, 3, 4, "Integers"),
+    (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
     (ResidueRing(ZZ, 6), 3, 5, "Integers Modulo 6"),
     (L, e, f, "Non Simple Extension"),
     (K, a, a + 1, "Simple Extension"),
@@ -85,14 +86,14 @@ end
 
 function get_hom(R1::T, R2::T) where {
     T <: Union{MPolyRing{S}, PolyRing{S}} where S <: Union{
-        nf_elem, nmod, fmpz, fmpq, fq_nmod, fmpq_poly}}
+        nf_elem, nmod, fmpz, fmpq, fq_nmod}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
     return hom(D, I, gen(I))
 end
 
 function get_hom(R1::T, R2::T) where T <: SeriesRing{S} where S <: Union{
-        nf_elem, nmod, fmpz, fmpq, fq_nmod, fmpq_poly}
+        nf_elem, nmod, fmpz, fmpq, fq_nmod}
     D = base_ring(R1)
     I = base_ring(R2)
     return hom(D, I, gen(I))
@@ -132,15 +133,15 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function test_equality(p::T, l:: T) where T  <: Union{
-    MPolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}},
-    PolyElem{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
+    MPolyElem{S}, PolyElem{S}} where S <: Union{
+    AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
     g = gen(base_ring(parent(l)))
     mapped_coeffs = map(i -> evaluate(i, g), coefficients(p))
     return mapped_coeffs == collect(coefficients(l))
 end
 
-function test_equality(p::T, l:: T) where T  <: SeriesElem{
-    AbstractAlgebra.Generic.Frac{fmpq_poly}}
+function test_equality(p::T, l:: T) where T  <: SeriesElem{S} where S <: Union{
+    AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
     dom = base_ring(parent(p))
     codom = base_ring(parent(l))
     g = gen(base_ring(parent(l)))
@@ -151,11 +152,11 @@ end
 
 function test_equality(p::T, l::T) where T <: (
     MPolyElem{S} where S <: Union{
-    Hecke.NfRelNSElem{nf_elem},
-    Hecke.NfRelElem{nf_elem},
-    NfAbsNSElem,
-    fq_nmod,
-    nf_elem})
+        Hecke.NfRelNSElem{nf_elem},
+        Hecke.NfRelElem{nf_elem},
+        NfAbsNSElem,
+        fq_nmod,
+        nf_elem})
     P = parent(p)
     L = parent(l)
     h = get_hom(P, L)
@@ -238,7 +239,7 @@ end
                 end
             end
 
-            # Tropical Semirings currently can't have formal power eries
+            # Tropical Semirings currently can't have formal power series
             filter!(case-> case[4] != "Tropical Semiring", cases)
 
             @testset "Series" begin
@@ -262,6 +263,16 @@ end
                     test_save_load_roundtrip(path, abs_p; parent=abs_R) do loaded
                         @test abs_p == loaded
                     end
+                end
+
+                @testset "Laurent Series over $(case[4])" begin
+                    L, z = LaurentSeriesRing(case[1], 10, "z")
+                    p = z^2 + case[2] * z + case[3]
+                    test_save_load_roundtrip(path, p) do loaded
+                        @test test_equality(p, loaded)
+                    end
+
+
                 end
             end
         end
