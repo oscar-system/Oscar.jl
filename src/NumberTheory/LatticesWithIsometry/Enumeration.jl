@@ -241,10 +241,12 @@ end
 admissible_triples(L::ZLat, p::Integer) = admissible_triple(genus(L), p)
 
 
-function primitive_extensions(A::ZLat, B::ZLat, C::ZLat, p::Integer)
+function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
+  A, B, C = lattice.([Afa, Bfb, Cfc])
   @req is_admissible_triple(A, B, C, p) "(A, B, C) must be p-admissble"
   L = []
-  g = valuation(divexact(det(A)*det(B), det(C)), p)
+  g = div(valuation(divexact(det(A)*det(B), det(C)), p),2)
+  fA, fB, fC = isometry.([Afa, Bfb, Cfc])
+  mua, mub = minpoly.([fA, fB])
   
-
 end

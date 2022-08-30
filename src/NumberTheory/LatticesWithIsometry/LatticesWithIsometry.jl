@@ -166,7 +166,7 @@ field, where $n$ is the order of `f`.
 
 If it exists, the hermitian structure is cached.
 """
-@attr function hermitian_structure(Lf::LatticeWithIsometry)
+@attr HermLat function hermitian_structure(Lf::LatticeWithIsometry)
   @req rank(Lf) > 0 "Lf must be of positive rank"
   f = isometry(Lf)
   n = order_of_isometry(Lf)
@@ -296,11 +296,14 @@ end
   divs = divisors(n)
   Qx = Hecke.Globals.Qx
   x = gen(Qx)
-  t = Dict{Integer, Tuple{LatticeWithIsometry, LatticeWithIsometry}}()
+  t = Dict{Integer, Tuple}()
   for l in divs
     Hl = kernel_lattice(Lf, Oscar._cyclotomic_polynomial(l))
+    if !(order_of_isometry(Hl) in [-1,1,2])
+        Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false)
+    end
     Al = kernel_lattice(Lf, x^l-1)
-    t[l] = (Hl, Al)
+    t[l] = (genus(Hl), genus(Al))
   end
   return t
 end
