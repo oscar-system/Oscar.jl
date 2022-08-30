@@ -1,0 +1,239 @@
+```@meta
+CurrentModule = Oscar
+```
+
+```@setup oscar
+using Oscar
+```
+
+```@contents
+Pages = ["space_germs.md"]
+```
+
+# Space Germs
+
+## [Generalities on Space germs](@id space_germ_generalities)
+
+The geometric notion of a space germ is a local concept. A space germ (X,x) at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
+
+Depending on the kind of ringed space in question, space germs arise in
+different forms:
+
+  * a space germ in the context of affine schemes is the geometric object arising from a given scheme by localization at a point, leading to the stalk of the structure sheaf at the respective prime ideal.
+
+  * in the context of singularity theory, the (anti-)equivalence of categories between complex space germs and analytic ``{CC}``-algebras allows the direct definition of a space germ from algebraic data
+
+Note that analytic algebras as mentioned above, have two computational problems.
+On one hand, exact computations can only be performed over fields in OSCAR
+permitting exact computations, in particular not over ``{\mathbb R}`` or 
+``{\mathbb C}``. This usually does not pose a problem, if the input data is 
+in a exact smaller field. But unfortunately, also analytic algebras themselves 
+do not allow exact computations so that applications have to be considered 
+in a localization of an affine algebra. With due care, utput may again be 
+interpreted in terms of a multivariate formal power series using the following 
+inclusions:
+```math
+{\mathbb Q}[\underline{x}]_{\langle x \rangle} \hookrightarrow
+  {\mathbb Q}\{\underline{x}\}\hookrightarrow
+  {\mathbb Q}[[\underline{x}]]
+```
+At particular points, where this difficulty of interpretation 
+manifests itself prominently, a suitable warning, note or example has been 
+placed (but certainly not everywhere). 
+
+Textbooks covering space germs in the sense of analytic algebras and
+singularity theory are:
+- [GLS07](@cite)
+- [dJP00](@cite)
+
+For the point of view of schemes, we refer to the page on schemes and the references given there; an example of a standard textbook is
+- [Har77](@cite).
+
+## Creating Space Germs in OSCAR
+
+In general, space germs in Oscar are created in the following ways:
+
+ * localization of an affine scheme at a point
+
+   ```julia
+   SpaceGerm(S::AffineScheme, I::IdealSheaf)
+   ```
+   where I is an ideal sheaf of prime ideals describing the point on the scheme.  
+
+   **Provides:** SpaceGerm and restriction map.
+
+ * localization of a polynomial ring at a point
+
+   ```julia
+   SpaceGerm(R::MPolyRing, I::MPolyIdeal)
+   SpaceGerm(R::MPolyRingQuo, I::MPolyIdeal)
+   ```
+   where I is either a maximal ideal describing a base_ring(R)-point or
+   a prime ideal.  
+
+   **Provides:** space germ and restriction map.
+
+ * localized ring with respect to complement of prime ideal or complement of maximal ideal)
+
+   ```julia
+   SpaceGerm(R::MPolyLocalRing)
+   SpaceGerm(R::MPolyLocalRingQuo)
+   ```
+
+   **Provides:** Space germ, restriction map inherited from localized ring
+
+Morphisms of space germs are morphisms of the underlying local rings and hence
+also handled in this way in Oscar.
+
+## Basic functionality for space germs
+
+Most of the basic functionality immediately falls back to the underlying 
+affine algebra or affine scheme and is just provided on the geometric side 
+for convenience and consistence of functionality:
+
+### containment/equality of space germs
+    
+ * containment  
+
+   ```julia
+   is_contained(R::SpaceGerm, T::SpaceGerm)
+   ```
+
+   Test whether R is a subgerm of T.  
+
+   **Provides:** Boolean Value
+ 
+ * equality
+
+   ```julia
+   is_equal(R::SpaceGerm, T::SpaceGerm)
+   ```
+
+   Test whether R equals T as subgerms of the same ambient space germ.  
+
+   **Provides:** Boolean Value
+
+ * emptyness
+   ```julia
+   is_empty(R::SpaceGerm)
+   ```
+   Test whether space germ R is the germ of the empty set.  
+
+   **Provides:** Boolean Value
+
+### representative of a space germ  
+
+```julia
+representative(R::SpaceGerm)
+```
+   Pass from the localization of an affine scheme at a point back to some affine scheme with the appropriate localization at the given point.
+    
+   **Provides:** Affine Scheme   
+
+### intersection and union of space germs
+
+   **Caution**: This functionality is only available for subgerms of a common larger germ.  
+
+   * intersection
+     ```julia
+     intersection(R::SpaceGerm,T::SpaceGerm)
+     ```
+     Computes the intersection of two subgerms of a common larger germ.
+
+     **Provides**: SpaceGerm   
+
+   * union
+     ```julia
+     union(R::SpaceGerm,T::SpaceGerm)
+     ```
+     Computes the union of two given subgerms of a common larger germ.
+
+     **Provides**: SpaceGerm   
+
+
+### singular_locus
+
+```julia
+singular_locus(R::SpaceGerm)
+```
+
+   Computes the germ of the singular locus of the given germ.
+
+   **Provides:** SpaceGerm  
+  
+!!! note "singular_locus ist schon vorhanden, muss aber in diesem Kontext auch verfuegbar gemacht werden (Signatur!)"
+ 
+## Identification of important classes of space germs
+
+The following functions set/read properties which identify particular cases. 
+Certain properties and invariants are only defined for one or several special
+classes, whereas some other properties and invariants make sense for arbitrary
+space germs, but may only be accesible to (efficient) computations in 
+particular classes. The information on the currently supported particular cases
+* [Hypersurface Singularities](@ref hypersurfaces.md)
+* Complete Intersections Singularities  LINK SETZEN
+* Cohen-Macaulay Codimension 2 Singularities  LINK SETZEN
+can be found on the respective pages.
+
+```julia
+is-isolated(F::SpaceGerm)
+is-hypersurface(R::SpaceGerm)
+is-complete-intersection(R::SpaceGerm)
+is-CMC2(R::SpaceGerm)
+
+```
+
+**Provides:** Boolean Value
+
+!!! note  
+    The properties isolated hypersurface singularity (IHS), isolated complete intersection singularity (ICIS) and isolated Cohen-Macaulay codimension 2 singularity (ICMC2) may each be deduced from the appropriate combinations of the aforelisted functions.
+
+!!! note "is-isolated nutzt dim(slocus), is-hypersurface und is-complete-intersection nutzen minimale SB und cachen diese irgendwo, is-CMC2 nutzt betti(mres(..)) und Hilbert-Burch und cached die Praesentationsmatrix -- die Ergebnisse sollten irgendwo im Keim abgelegt werden koennen -- Frage: wie in der julia-Philosophie umsetzen?"
+
+## Further basic functionality for arbitrary space germs
+
+### dimension
+
+```julia
+dimension(R::SpaceGerm)
+```
+
+Computes the dimension of the space germ R via the degree of the Hilbert-Samuel function.  
+
+**Provides:** integer value
+
+### multiplicity
+
+```julia
+multiplicity(R::SpaceGerm)
+```
+
+Computes the multiplicity of the space germ R via the leading coefficient of the Hilbert-Samuel function.  
+
+**Provides**: integer value
+
+### associated graded ring
+
+
+```julia
+associated_graded_ring(R::SpaceGerm)
+```
+
+Determines the associated graded ring to the local ring of the space germ w.r.t. its maximal ideal.
+
+**Provides:** graded ring
+
+### Decomposition into irreducible components
+
+Based on primary [decomposition of ideals](@ref ideal_decomp) in multivariate
+polynomial rings, a decomposition of a space germ into irreducible components 
+may be computed (in favorable settings). We only mention this topic here to 
+point out the pitfalls when interpreting the result of the computations in 
+terms of complex space germs:  
+
+Warning examples: ORDENTLICH AUSARBEITEN...  
+* Primaerzerlegung über computable field muss keine vollstaendige Primaerzerlegung ueber CC sein (x^2+y^2 irreduzibel ueber QQ, aber reduzibel ueber QQ[i] \subset CC)
+* Primaerzerlegung in K[x]_<x> kann in analytischer Algebra K\{x\} reduzibel sein
+
+## [Deformations of space germs](@id spacegerms_deform)
+
