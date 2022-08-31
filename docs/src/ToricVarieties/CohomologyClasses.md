@@ -28,16 +28,12 @@ for scalars which are integers or of type `fmpz` or `fmpq`.
 
 ### Wedge product
 
-The wedge product of cohomology classes is implemented via `*`.
-This makes sense, since cohomology classes on (simplicial and complete)
-toric varieties are elements of the cohomology ring, which then
-turns out to be (a certain) quotient of the Cox ring. Hence, internally,
-a cohomology class can be thought of as a polynomial in this ring and
-the wedge product corresponds to the product of two (equivalence classes
-of) polynomials.
+The wedge product of cohomology classes is implemented via `*`, 
+using internally the multiplication of the corresponding polynomial 
+(equivalence classes) in the Cox ring.
 
 A cohomology class can be wedged `n`-times with itself via `^n`,
-where `n` can be an integer of of type `fmpz`.
+where `n` can be an integer or of type `fmpz`.
 
 
 ## Properties

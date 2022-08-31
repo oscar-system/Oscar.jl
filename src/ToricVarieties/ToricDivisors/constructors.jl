@@ -91,7 +91,7 @@ export DivisorOfCharacter
 
 function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
     if toric_variety(td1) !== toric_variety(td2)
-        throw(ArgumentError("The toric divisors must be defined on identically the same toric variety"))
+        throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     new_coeffiicients = coefficients(td1) + coefficients(td2)
     return ToricDivisor(toric_variety(td1), new_coeffiicients)
@@ -100,7 +100,7 @@ end
 
 function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
     if toric_variety(td1) !== toric_variety(td2)
-        throw(ArgumentError("The toric divisors must be defined on identically the same toric variety"))
+        throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     new_coeffiicients = coefficients(td1) - coefficients(td2)
     return ToricDivisor(toric_variety(td1), new_coeffiicients)

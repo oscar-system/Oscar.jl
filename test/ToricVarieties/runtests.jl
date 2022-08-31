@@ -613,7 +613,7 @@ end
 @testset "Attributes of rational equivalence cycles" begin
     @test dim(toric_variety(ac1)) == 2
     @test polynomial(ac1) == 0
-    @test parent(representant(ac1)) == cox_ring(toric_variety(ac1))
+    @test parent(representative(ac1)) == cox_ring(toric_variety(ac1))
     @test is_trivial(cohomology_class(3*ac4)) == false
     @test is_trivial(RationalEquivalenceClass(sv2)) == false
     @test length(coefficients(ac1)) == 0

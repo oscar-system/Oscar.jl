@@ -195,7 +195,7 @@ end
 
 function Base.:+(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
     if toric_variety(ac1) !== toric_variety(ac2)
-        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return RationalEquivalenceClass(toric_variety(ac1), polynomial(ac1) + polynomial(ac2))
 end
@@ -203,7 +203,7 @@ end
 
 function Base.:-(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
     if toric_variety(ac1) !== toric_variety(ac2)
-        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return RationalEquivalenceClass(toric_variety(ac1), polynomial(ac1) - polynomial(ac2))
 end
@@ -220,7 +220,7 @@ Base.:*(c::T, ac::RationalEquivalenceClass) where {T <: IntegerUnion} = Rational
 
 function Base.:*(ac1::RationalEquivalenceClass, ac2::RationalEquivalenceClass)
     if toric_variety(ac1) !== toric_variety(ac2)
-        throw(ArgumentError("The rational equivalence classes must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return RationalEquivalenceClass(toric_variety(ac1), polynomial(ac1) * polynomial(ac2))
 end
@@ -231,7 +231,7 @@ Base.:^(ac::RationalEquivalenceClass, p::T) where {T <: IntegerUnion} = Rational
 
 function Base.:*(ac::RationalEquivalenceClass, sv::ClosedSubvarietyOfToricVariety)
     if toric_variety(ac) !== toric_variety(sv)
-        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return ac * RationalEquivalenceClass(sv)
 end
@@ -239,7 +239,7 @@ end
 
 function Base.:*(sv::ClosedSubvarietyOfToricVariety, ac::RationalEquivalenceClass)
     if toric_variety(ac) !== toric_variety(sv)
-        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return ac * RationalEquivalenceClass(sv)
 end
@@ -247,7 +247,7 @@ end
 
 function Base.:*(sv1::ClosedSubvarietyOfToricVariety, sv2::ClosedSubvarietyOfToricVariety)
     if toric_variety(sv1) !== toric_variety(sv2)
-        throw(ArgumentError("The closed subvarieties must be defined on identically the same toric variety"))
+        throw(ArgumentError("The closed subvarieties must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return RationalEquivalenceClass(sv1) * RationalEquivalenceClass(sv2)
 end
@@ -271,7 +271,7 @@ function Base.show(io::IO, ac::RationalEquivalenceClass)
         join(io, "A trivial rational equivalence class on a normal toric variety")
     else
       # otherwise, extract properties to represent the rational equivalence class
-      r = representant(ac)
+      r = representative(ac)
       coeffs = [c for c in coefficients(r)]
       expos = [matrix(ZZ,[k for k in exponent_vectors(m)]) for m in monomials(r)]
       indets = gens(chow_ring(toric_variety(ac)))

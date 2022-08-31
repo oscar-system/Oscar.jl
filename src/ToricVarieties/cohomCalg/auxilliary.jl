@@ -62,7 +62,7 @@ function contributing_denominators(variety::AbstractNormalToricVariety)
     
     # ambiguous monomial contributions found during execution?
     if last(output_string_reduced) != "There are no ambiguous contribution monomials to the variety."
-        throw(ArgumentError("cohomCalg experienced ambiguous monomial contributions"))
+        throw(ArgumentError("cohomCalg encountered ambiguous monomial contributions"))
     end
     
     # Monomials can in principal come with contributing factor different from 1.

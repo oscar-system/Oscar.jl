@@ -118,12 +118,9 @@ export polynomial
 
 
 @doc Markdown.doc"""
-    representant(ac::RationalEquivalenceClass)
+    representative(ac::RationalEquivalenceClass)
 
-Returns a polynomial in the Cox ring which represents
-a rational equivalence class of algebraic cycles without
-self-intersections. Note that this is by no means unique,
-i.e. the returned polynomial involves a choice.
+Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
 
 # Examples
 ```jldoctest
@@ -139,11 +136,11 @@ A rational equivalence class on a normal toric variety represented by 6V(x3)+V(e
 julia> ac*ac
 A rational equivalence class on a normal toric variety represented by 34V(x2,x3)
 
-julia> representant(ac*ac)
+julia> representative(ac*ac)
 34*x2*x3
 ```
 """
-@attr MPolyElem_dec{fmpq, fmpq_mpoly} function representant(ac::RationalEquivalenceClass)
+@attr MPolyElem_dec{fmpq, fmpq_mpoly} function representative(ac::RationalEquivalenceClass)
     if is_trivial(ac)
         return zero(cox_ring(toric_variety(ac)))
     end
@@ -151,18 +148,13 @@ julia> representant(ac*ac)
     mapped_monomials = [map_gens_of_chow_ring_to_cox_ring(toric_variety(ac))[m] for m in monomials(polynomial(ac).f)]
     return sum([coeffs[i]*mapped_monomials[i] for i in 1:length(mapped_monomials)])
 end
-export representant
+export representative
 
 
 @doc Markdown.doc"""
     coefficients(ac::RationalEquivalenceClass)
 
-A rational equivalence class of algebraic cycles can
-be represented by a polynomial in the Cox ring (cf.
-function `representant`). By no means is this
-representant unique. For one such choice of polynomial
-in the Cox ring, this method returns the coefficients
-of said polynomial.
+Return the coefficients of `polynomial(ac)`.
 
 # Examples
 ```jldoctest
@@ -192,12 +184,8 @@ export coefficients
 @doc Markdown.doc"""
     components(ac::RationalEquivalenceClass)
 
-A rational equivalence class of algebraic cycles can
-be represented by a polynomial in the Cox ring (cf.
-function `representant`). By no means is this
-representant unique. For one such choice of polynomial
-in the Cox ring, this method turns each monomial
-of said polynomial into a closed subvariety and returns
+Turn each monomial
+of `representative(ac)` into a closed subvariety and return
 the list formed from these subvarieties. Note that
 each of these subvarieties is irreducible and their
 formal linear sum, with the coefficients computed by#
@@ -226,7 +214,7 @@ julia> length(components(ac*ac))
     end
     variety = toric_variety(ac)
     gs = gens(cox_ring(toric_variety(ac)))
-    mons = [m for m in monomials(representant(ac))]
+    mons = [m for m in monomials(representative(ac))]
     expos = [[e for e in exponent_vectors(m)][1] for m in mons]
     return [ClosedSubvarietyOfToricVariety(variety, [gs[k] for k in findall(!iszero,exps)]) for exps in expos]
 end

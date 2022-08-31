@@ -102,7 +102,7 @@ polynomial(ac::RationalEquivalenceClass)
 polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
 ```
 
-### Representant
+### Representatives
 
 In order to see a geometric interpretation of rational equivalence
 classes of algebraic cycles most efficiently, it is best to replace
@@ -110,13 +110,13 @@ self-intersections by transverse complete intersections. Indeed,
 within the regime of simplicial, complete toric varieties this is
 always possible. However, this involves a choice. Consequently,
 the following methods will pick a special choice and return
-values for that particular choice of representant of the rational
+values for that particular choice of representative of the rational
 equivalence class in question.
 
 ```@docs
-representant(ac::RationalEquivalenceClass)
+representative(ac::RationalEquivalenceClass)
 ```
-It can be rather convenient, to investigate such a representant in
+It can be rather convenient to investigate such a representative in
 order to understand the geometric meaning of a rational equivalence
 class. For this purpose, we support the following methods.
 ```@docs

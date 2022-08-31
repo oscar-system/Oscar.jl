@@ -70,7 +70,7 @@ end
 
 function Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
     if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The toric classes must be defined on identically the same toric variety"))
+        throw(ArgumentError("The divisor classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return ToricDivisorClass(toric_variety(tdc1), divisor_class(tdc1) + divisor_class(tdc2))
 end
@@ -78,7 +78,7 @@ end
 
 function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
     if toric_variety(tdc1) !== toric_variety(tdc2)
-        throw(ArgumentError("The toric classes must be defined on identically the same toric variety"))
+        throw(ArgumentError("The divisor classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return ToricDivisorClass(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end

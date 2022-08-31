@@ -22,7 +22,7 @@ A rational equivalence class on a normal toric variety represented by 6V(x3)
 
 function Base.:*(ac::RationalEquivalenceClass, sv::ClosedSubvarietyOfToricVariety)
     if toric_variety(ac) !== toric_variety(sv)
-        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return ac * RationalEquivalenceClass(sv)
 end
@@ -30,7 +30,7 @@ end
 
 function Base.:*(sv::ClosedSubvarietyOfToricVariety, ac::RationalEquivalenceClass)
     if toric_variety(ac) !== toric_variety(sv)
-        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on identically the same toric variety"))
+        throw(ArgumentError("The rational equivalence class and the closed subvariety must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     return ac * RationalEquivalenceClass(sv)
 end
