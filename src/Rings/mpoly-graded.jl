@@ -1637,6 +1637,57 @@ function are_pairwise_coprime(a::Vector{Vector{Int}})
   return true
 end
 
+### Assume that a is minimal. We divide by `pivot` and return 
+# a minimal set of generators for the resulting monomial ideal.
+function divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
+  shifted = [e-pivot for e in a]
+  # The good ones will contribute to a minimal generating 
+  # set of the lhs ideal.
+  good = [e for e in shifted if all(x->(x>=0), e)]
+
+  # The bad monomials come from those which hop over the boundaries of 
+  # the monomial diagram by the shift. Their span has a new 
+  # generator which is collected in `bad` a priori. It is checked 
+  # whether they become superfluous and if not, they are added to 
+  # the good ones.
+  bad = [e for e in shifted if !all(x->(x>=0), e)]
+
+  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b - a)
+
+  for e in bad 
+    m = [k < 0 ? 0 : k for k in e]
+    if all(x->(!divides(x, m)), good)
+      push!(good, m)
+    end
+  end
+
+  return good
+end
+
+### This implements the speedup from the CoCoA strategy, 
+# see Exercise 4 in Section 5.3
+function divide_by_monomial_power(a::Vector{Vector{Int}}, j::Int, k::Int)
+  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b[1:j-1] - a[1:j-1]) && all(k->(k>=0), b[j+1:end] - a[j+1:end])
+  kept = [e for e in a if e[j] == 0]
+  for i in 1:k
+    next_slice = [e for e in a if e[j] == i]
+    still_kept = next_slice
+    for e in kept 
+      all(v->!divides(v, e), next_slice) && push!(still_kept, e)
+    end
+    kept = still_kept
+  end
+  still_kept = vcat(still_kept, [e for e in a if e[j] > k])
+
+  result = Vector{Vector{Int}}()
+  for e in still_kept
+    v = copy(e)
+    v[j] = (e[j] > k ? e[j] - k : 0)
+    push!(result, v)
+  end
+  return result
+end
+
 function _hilbert_numerator_from_leading_ideal(
     I::MPolyIdeal;
     return_ring=PolynomialRing(QQ, "t")[1]
@@ -1646,77 +1697,207 @@ function _hilbert_numerator_from_leading_ideal(
 end
 
 function _hilbert_numerator_from_leading_ideal(
-    I::MPolyIdeal{T}
+    I::MPolyIdeal{T}, S::Ring
   ) where {T<:MPolyElem_dec}
   exp_vec(f::MPolyElem) = first(exponent_vectors(f))
   P = base_ring(I)
   g = minimal_generating_set(I)
   W = hcat([degree(Vector{Int}, x) for x in gens(P)]...)
-  S, z = LaurentPolynomialRing(QQ, ["z$i" for i in 1:nrows(W)])
+  #S, z = LaurentPolynomialRing(QQ, ["z$i" for i in 1:nrows(W)])
+  z = gens(S)
   return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in g], 
                                                    return_ring=S, 
                                                    weight_matrix=W
                                                   )
 end
 
+function find_maximum(a::Vector{Int})
+  m = a[1]
+  j = 1
+  for i in 1:length(a)
+    if a[i] > m 
+      m = a[i]
+      j = i
+    end
+  end
+  return j
+end
+
 function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}};
     return_ring=PolynomialRing(QQ, "t")[1],
-    weight_matrix= [1 for i in 1:nvars(return_ring), j in 1:length(a[1])]
+    weight_matrix= [1 for i in 1:nvars(return_ring), j in 1:length(a[1])],
+    #strategy=:generator
+    #strategy=:custom
+    #strategy=:gcd
+    #strategy=:indeterminate
+    strategy=:cocoa
   )
   t = gens(return_ring)
 
   # See Proposition 5.3.6
   are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
-  p = Vector{Int}()
-  q = Vector{Int}()
-  max_deg = 0
-  for i in 1:length(a)
-    b = a[i]
-    for j in i+1:length(a)
-      c = a[j]
-      r = gcd([b, c])
-      if sum(r) > max_deg
-        max_deg = sum(r)
-        p = b
-        q = c
+  if strategy == :custom
+    p = Vector{Int}()
+    q = Vector{Int}()
+    max_deg = 0
+    for i in 1:length(a)
+      b = a[i]
+      for j in i+1:length(a)
+        c = a[j]
+        r = gcd([b, c])
+        if sum(r) > max_deg
+          max_deg = sum(r)
+          p = b
+          q = c
+        end
       end
     end
-  end
 
-  ### Assembly of the quotient ideal with less generators
-  rhs = [e for e in a if e != p && e != q]
-  pivot = gcd([p, q])
-  push!(rhs, pivot)
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if e != p && e != q]
+    pivot = gcd([p, q])
+    push!(rhs, pivot)
 
-  ### Assembly of the division ideal with less total degree
-  shifted = [e-pivot for e in a]
-  # The good ones will contribute to a minimal generating 
-  # set of the lhs ideal.
-  good = [e for e in shifted if all(x->(x>=0), e)]
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by(a, pivot)
 
-  # For the bad ones it might happen that they become superfluous, 
-  # so this must be checked.
-  bad = [e for e in shifted if !all(x->(x>=0), e)]
-
-  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b - a)
-  for e in bad 
-    m = [k < 0 ? 0 : k for k in e]
-    if all(x->(!divides(x, m)), good)
-      push!(good, m)
+    f = one(return_ring)
+    for i in 1:nvars(return_ring)
+      z = gens(return_ring)[i]
+      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
+
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+
+  elseif strategy == :gcd # see Remark 5.3.11
+    n = length(a)
+    counters = [0 for i in 1:length(a[1])]
+    for e in a
+      counters += [iszero(k) ? 0 : 1 for k in e]
+    end
+    j = find_maximum(counters)
+    
+    p = a[rand(1:n)]
+    while p[j] == 0
+      p = a[rand(1:n)]
+    end
+
+    q = a[rand(1:n)]
+    while q[j] == 0 || p == q
+      q = a[rand(1:n)]
+    end
+
+    pivot = gcd([p, q])
+    
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if e != p && e != q]
+    pivot = gcd([p, q])
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by(a, pivot)
+
+    f = one(return_ring)
+    for i in 1:nvars(return_ring)
+      z = gens(return_ring)[i]
+      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+    end
+
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+    
+  elseif strategy == :generator # just choosing on random generator, cf. Remark 5.3.8
+    pivot = pop!(a)
+    
+    f = one(return_ring)
+    for i in 1:nvars(return_ring)
+      z = gens(return_ring)[i]
+      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+    end
+    
+    b = divide_by(a, pivot)
+    p1 = _hilbert_numerator_from_leading_exponents(a, 
+                                                   return_ring=return_ring, 
+                                                   weight_matrix=weight_matrix,
+                                                   strategy=strategy
+                                                  )
+    p2 = _hilbert_numerator_from_leading_exponents(b, 
+                                                   return_ring=return_ring, 
+                                                   weight_matrix=weight_matrix,
+                                                   strategy=strategy
+                                                  )
+
+    return p1 - f * p2
+
+  elseif strategy == :indeterminate # see Remark 5.3.8
+    e = first(a)
+    pivot = Int[]
+    found_at = 0
+    for k in 1:length(e)
+      if e[k] == 0 || found_at > 0 
+        push!(pivot, 0)
+      else
+        push!(pivot, 1)
+        found_at = k 
+      end
+    end
+    
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if e[found_at] == 0]
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by(a, pivot)
+
+    f = one(return_ring)
+    for i in 1:nvars(return_ring)
+      z = gens(return_ring)[i]
+      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+    end
+
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+
+  elseif strategy == :cocoa # see Remark 5.3.14
+    n = length(a)
+    m = length(a[1])
+    counters = [0 for i in 1:m]
+    for e in a
+      counters += [iszero(k) ? 0 : 1 for k in e]
+    end
+    j = find_maximum(counters)
+    
+    p = a[rand(1:n)]
+    while p[j] == 0
+      p = a[rand(1:n)]
+    end
+
+    q = a[rand(1:n)]
+    while q[j] == 0 || p == q
+      q = a[rand(1:n)]
+    end
+
+    pivot = [0 for i in 1:m]
+    pivot[j] = minimum([p[j], q[j]])
+    
+    
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if e != p && e != q]
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by_monomial_power(a, j, pivot[j])
+
+    f = one(return_ring)
+    for i in 1:nvars(return_ring)
+      z = gens(return_ring)[i]
+      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+    end
+
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+    
   end
-
-  lhs = good
-
-  f = one(return_ring)
-  for i in 1:nvars(return_ring)
-    z = gens(return_ring)[i]
-    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-  end
-
-  return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix)
+  error("invalid strategy")
 end
 
 ############################################################################

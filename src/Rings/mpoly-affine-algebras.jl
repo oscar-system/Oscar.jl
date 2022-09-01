@@ -298,6 +298,7 @@ function transform_to_positive_orthant(rs::Matrix{Int})
 end
 
 function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m)
+  return _hilbert_numerator_from_leading_ideal(I, S)
    ###for use in _multi_hilbert_series only
    ###if !is_monomial(I)
    ###      throw(ArgumentError("The ideal is not monomial"))
