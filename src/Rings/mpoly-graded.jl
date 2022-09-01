@@ -1756,8 +1756,8 @@ function _hilbert_numerator_from_leading_exponents(
     end
 
     ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if e != p && e != q]
     pivot = gcd([p, q])
+    rhs = [e for e in a if !divides(e, pivot)]
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
@@ -1792,8 +1792,7 @@ function _hilbert_numerator_from_leading_exponents(
     pivot = gcd([p, q])
     
     ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if e != p && e != q]
-    pivot = gcd([p, q])
+    rhs = [e for e in a if !divides(e, pivot)]
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
@@ -1808,7 +1807,8 @@ function _hilbert_numerator_from_leading_exponents(
     return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
     
   elseif strategy == :generator # just choosing on random generator, cf. Remark 5.3.8
-    pivot = pop!(a)
+    b = copy(a)
+    pivot = pop!(b)
     
     f = one(return_ring)
     for i in 1:nvars(return_ring)
@@ -1816,13 +1816,13 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
     
-    b = divide_by(a, pivot)
-    p1 = _hilbert_numerator_from_leading_exponents(a, 
+    c = divide_by(b, pivot)
+    p1 = _hilbert_numerator_from_leading_exponents(b, 
                                                    return_ring=return_ring, 
                                                    weight_matrix=weight_matrix,
                                                    strategy=strategy
                                                   )
-    p2 = _hilbert_numerator_from_leading_exponents(b, 
+    p2 = _hilbert_numerator_from_leading_exponents(c, 
                                                    return_ring=return_ring, 
                                                    weight_matrix=weight_matrix,
                                                    strategy=strategy
@@ -1882,7 +1882,7 @@ function _hilbert_numerator_from_leading_exponents(
     
     
     ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if e != p && e != q]
+    rhs = [e for e in a if !divides(e, pivot)]
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
