@@ -45,7 +45,9 @@ canonical_divisor(v::AbstractNormalToricVariety)
 Equality of toric divisors can be tested via `==`.
 
 To check if a toric divisor is trivial, one can invoke `is_trivial`.
-Internally, this executes the following method:
+This checks if all `coefficients` of the toric divisor in question
+are zero. This must not be confused with a toric divisor being principal,
+for which we support the following:
 ```@docs
 is_principal(td::ToricDivisor)
 ```
