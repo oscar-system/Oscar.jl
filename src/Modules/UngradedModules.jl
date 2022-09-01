@@ -1557,7 +1557,7 @@ by Submodule with 3 generators
 3 -> z*e[2]
 ```
 """
-function cokernel(a::ModuleMap)
+function cokernel(f::ModuleMap)
   return quo(codomain(f), image(f)[1], :module)
 end
 
