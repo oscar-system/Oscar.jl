@@ -1612,6 +1612,112 @@ function Base.show(io::IO, h::HilbertData)
   print(io, "Hilbert Series for $(h.I), data: $(h.data), weights: $(h.weights)")  ###new
 end
 
+########################################################################
+# Compute the Hilbert series from the monomial leading ideal using 
+# different bisection strategies along the lines of 
+# [Kreuzer, Robbiano: Computational Commutative Algebra 2, Springer]
+# Section 5.3.
+########################################################################
+exp_vec(f::MPolyElem) = first(exponent_vectors(f))
+
+function gcd(a::Vector{Vector{Int}}) 
+  length(a) == 1 && return a[1]
+  n = length(a[1]) # assumed to be the length of all entries of a
+  return [minimum([a[i][j] for i in 1:length(a)]) for j in 1:n]
+end
+
+function are_pairwise_coprime(a::Vector{Vector{Int}})
+  length(a) <= 1 && return true
+  n = length(a)
+  for i in 1:n-1
+    for j in i+1:n
+      all(x->(x==0), gcd([a[i], a[j]])) || return false
+    end
+  end
+  return true
+end
+
+function _hilbert_numerator_from_leading_ideal(
+    I::MPolyIdeal;
+    return_ring=PolynomialRing(QQ, "t")[1]
+  )
+  exp_vec(f::MPolyElem) = first(exponent_vectors(f))
+  return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in gens(I)], return_ring=return_ring)
+end
+
+function _hilbert_numerator_from_leading_ideal(
+    I::MPolyIdeal{T}
+  ) where {T<:MPolyElem_dec}
+  exp_vec(f::MPolyElem) = first(exponent_vectors(f))
+  P = base_ring(I)
+  g = minimal_generating_set(I)
+  W = hcat([degree(Vector{Int}, x) for x in gens(P)]...)
+  S, z = LaurentPolynomialRing(QQ, ["z$i" for i in 1:nrows(W)])
+  return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in g], 
+                                                   return_ring=S, 
+                                                   weight_matrix=W
+                                                  )
+end
+
+function _hilbert_numerator_from_leading_exponents(
+    a::Vector{Vector{Int}};
+    return_ring=PolynomialRing(QQ, "t")[1],
+    weight_matrix= [1 for i in 1:nvars(return_ring), j in 1:length(a[1])]
+  )
+  t = gens(return_ring)
+
+  # See Proposition 5.3.6
+  are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+
+  p = Vector{Int}()
+  q = Vector{Int}()
+  max_deg = 0
+  for i in 1:length(a)
+    b = a[i]
+    for j in i+1:length(a)
+      c = a[j]
+      r = gcd([b, c])
+      if sum(r) > max_deg
+        max_deg = sum(r)
+        p = b
+        q = c
+      end
+    end
+  end
+
+  ### Assembly of the quotient ideal with less generators
+  rhs = [e for e in a if e != p && e != q]
+  pivot = gcd([p, q])
+  push!(rhs, pivot)
+
+  ### Assembly of the division ideal with less total degree
+  shifted = [e-pivot for e in a]
+  # The good ones will contribute to a minimal generating 
+  # set of the lhs ideal.
+  good = [e for e in shifted if all(x->(x>=0), e)]
+
+  # For the bad ones it might happen that they become superfluous, 
+  # so this must be checked.
+  bad = [e for e in shifted if !all(x->(x>=0), e)]
+
+  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b - a)
+  for e in bad 
+    m = [k < 0 ? 0 : k for k in e]
+    if all(x->(!divides(x, m)), good)
+      push!(good, m)
+    end
+  end
+
+  lhs = good
+
+  f = one(return_ring)
+  for i in 1:nvars(return_ring)
+    z = gens(return_ring)[i]
+    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+  end
+
+  return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix)
+end
 
 ############################################################################
 ### Homogenization and Dehomogenization
