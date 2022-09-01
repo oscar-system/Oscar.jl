@@ -12,7 +12,7 @@ function save_internal(s::SerializerState, V::Hecke.QuadSpace)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{Hecke.QuadSpace}, dict::Dict)
+function load_internal(s::DeserializerState, ::Type{<: Hecke.QuadSpace}, dict::Dict)
     F = load_unknown_type(s, dict[:base_ring])
     gram = load_type_dispatch(s, MatElem, dict[:gram_matrix])
     @assert base_ring(gram)===F
