@@ -210,19 +210,11 @@ intersect(M::SubQuo{T}, N::SubQuo{T}) where T
 ## Submodules and Quotients
 
 ```@docs
-sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
 ```
 
 ```@docs
-sub(M::SubQuo{T}, V::Vector{<:SubQuoElem{T}}, task::Symbol = :with_morphism, check = true) where T
-```
-
-```@docs
-quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
-```
-
-```@docs
-quo(M::SubQuo{T}, V::Vector{<:SubQuoElem{T}}, task::Symbol = :with_morphism) where T
+quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
 ```
 
 ## Homomorphisms From Subqotients
