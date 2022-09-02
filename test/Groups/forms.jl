@@ -623,3 +623,21 @@ end
       @test orthogonal_sign(G) == nothing
    end
 end
+
+@testset "Orthogonal groups of ZZ-lattices" begin
+  N1 = root_lattice(:A, 2)
+  N2 = rescale(N1, 4)
+  N,_,_ = Hecke.orthogonal_sum(N1,N2)
+  @test order(orthogonal_group(N))==144
+
+  L = Zlattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
+  G = orthogonal_group(L)
+  @test order(G)==32
+  @test order(oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
+  @test order(oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
+  @test order(oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
+
+  gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
+  L = Zlattice(gram=gram)
+  @test order(orthogonal_group(L)) == 267544166400
+end

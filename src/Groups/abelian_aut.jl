@@ -30,8 +30,8 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check=true)
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
   end
-  to_gap = get_attribute(aut,:to_gap)
-  to_oscar = get_attribute(aut,:to_oscar)
+  to_gap = get_attribute(aut, :to_gap)
+  to_oscar = get_attribute(aut, :to_oscar)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
@@ -44,13 +44,13 @@ Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
-function _as_subgroup(aut::AutGrpAbTor, subgrp::GapObj, ::Type{S}) where S
+function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Union{TorQuadMod,GrpAbFinGen}
   function img(x::S)
     return group_element(aut, x.X)
   end
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
-  subgrp1 = AutomorphismGroup{T}(subgrp, aut.G)
+  subgrp1 = AutomorphismGroup{S}(subgrp, aut.G)
   set_attribute!(subgrp1, :to_gap => to_gap, :to_oscar => to_oscar)
   return subgrp1, hom(subgrp1, aut, img)
 end
