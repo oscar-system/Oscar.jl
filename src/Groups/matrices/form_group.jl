@@ -743,7 +743,7 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   end
   =#
   O1 = matrix_group(Hecke.automorphism_group_generators(M1primitive))
-  set_nice_monomorphism(O1, sv1, closed=closed)
+  _set_nice_monomorphism!(O1, sv1, closed=closed)
   if rank(M1) == rank(L)
     @hassert :Lattice 2 M1primitive == L
     return O1, sv1
@@ -763,7 +763,7 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
     G = matrix_group(gens12)
     sv = append!(sv1, sv2)
     S,_ = stabilizer(G, L, on_lattices)
-    set_nice_monomorphism(S, sv, closed=closed)
+    _set_nice_monomorphism!(S, sv, closed=closed)
     return S, sv
   end
 
@@ -779,8 +779,8 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   @vprint :Lattice 3 "Computing glue stabilizers \n"
   G1, _ = stabilizer(O1, cover(H1), on_lattices)
   G2, _ = stabilizer(O2, cover(H2), on_lattices)
-  #set_nice_monomorphism(G1, sv1, closed=closed)
-  #set_nice_monomorphism(G2, sv2, closed=closed)
+  # _set_nice_monomorphism!(G1, sv1, closed=closed)
+  # _set_nice_monomorphism!(G2, sv2, closed=closed)
 
   # now we may alter sv1
   sv = append!(sv1, sv2)
@@ -801,7 +801,7 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
   append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi)) for g in gens(S)])
   G = matrix_group(matrix.(K))
   @hassert :Lattice 2 all(on_lattices(L,g)==L for g in gens(G))
-  set_nice_monomorphism(G, sv, closed=closed)
+  _set_nice_monomorphism!(G, sv, closed=closed)
   @vprint :Lattice 2 "Done \n"
   return G, sv
 end
@@ -811,17 +811,30 @@ function on_lattices(L::ZLat, g::MatrixGroupElem{fmpq,fmpq_mat})
   return lattice(V, basis_matrix(L) * matrix(g), check=false)
 end
 
-function _on_subgroups(Hgap::PcGroup, g::AutomorphismGroupElem{Hecke.TorQuadMod})
-  S = GAP.Globals.Group(GAP.julia_to_gap([d.X^g.X for d in gens(Hgap)]))
-  return PcGroup(S)
-end
+"""
+    on_matrix(x, g::MatrixGroupElem{fmpq,fmpq_mat})
 
-function on_fmpz_mat(x, g::MatrixGroupElem{fmpq,fmpq_mat})
+Return `x*g`.
+"""
+function on_matrix(x, g::MatrixGroupElem{fmpq,fmpq_mat})
   return x*matrix(g)
 end
 
-function set_nice_monomorphism(G::MatrixGroup, short_vectors; closed=true)
-  phi = action_homomorphism(gset(G, on_fmpz_mat, short_vectors, closed=closed))
+"""
+    _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
+
+Use the permutation action of `G` on `short_vectors` to represent `G` as a
+finite permutation group.
+
+Internally this sets a `NiceMonomorphism` for the underlying gap group.
+No input checks whatsoever are performed.
+
+It is assumed that the corresponding action homomorphism is injective.
+Setting `closed = true` assumes that `G` actually preserves `short_vectors`.
+"""
+#
+function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
+  phi = action_homomorphism(gset(G, on_matrix, short_vectors, closed=closed))
   GAP.Globals.SetIsInjective(phi.map, true) # fixes an infinite recursion
   GAP.Globals.SetIsHandledByNiceMonomorphism(G.X, true)
   GAP.Globals.SetNiceMonomorphism(G.X, phi.map)

@@ -548,7 +548,19 @@ ngens(G::MatrixGroup) = length(gens(G))
 compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
-  if GAP.Globals.IsHandledByNiceMonomorphism(G.X)
+  #=
+    - For a matrix group G over the Rationals or over a number field,
+    the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
+    - If we know a reasonable ("nice") faithful permutation action of `G` in advance,
+    we can set this flag in `G.X` to true and store the action homomorphism in `G.X`,
+    and then this information should be used in the computation of the order.
+    - If the flag is not known to be true then the Oscar code from
+    `isomorphic_group_over_finite_field` shall be preferred.
+  =#
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAP.Globals.IsHandledByNiceMonomorphism(G.X)
+    # The call to `IsHandledByNiceMonomorphism` triggers an expensive
+    # computation of `IsFinite` which we avoid by checking
+    # `HasIsHandledByNiceMonomorphism` first.
     return fmpz(GAPWrap.Order(G.X))
   else
     order(isomorphic_group_over_finite_field(G)[1])
