@@ -3020,6 +3020,7 @@ end
     presentation(M::ModuleFP)
 
 Return a free presentation of $M$.
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
@@ -5029,6 +5030,7 @@ end
 
 @doc Markdown.doc"""
     tensor_product(F::FreeMod...; task::Symbol = :none)
+
 Given a collection of free modules, say, $F_1, \dots, F_n$ over a ring $R$, return $F_1\otimes_R \cdots \otimes_R F_n$.
 
 
