@@ -123,6 +123,7 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
      ],
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
@@ -171,6 +172,7 @@
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
     "NoncommutativeAlgebra/PBWAlgebras/creation.md",
+    "NoncommutativeAlgebra/PBWAlgebras/ideals.md",
     "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
     ],
     "NoncommutativeAlgebra/free_associative_algebra.md",
