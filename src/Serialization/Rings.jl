@@ -375,10 +375,14 @@ end
 encodeType(::Type{<:Generic.LaurentSeriesRing}) = "LaurentSeriesRing"
 reverseTypeMap["LaurentSeriesRing"] = Generic.LaurentSeriesRing
 
+encodeType(::Type{<:Generic.LaurentSeriesField}) = "LaurentSeriesField"
+reverseTypeMap["LaurentSeriesField"] = Generic.LaurentSeriesField
+
 @registerSerializationType(FmpzLaurentSeriesRing)
 
 function save_internal(s::SerializerState, R::Union{
     Generic.LaurentSeriesRing,
+    Generic.LaurentSeriesField,
     FmpzLaurentSeriesRing})
     return Dict(
         :base_ring => save_type_dispatch(s, base_ring(R)),
@@ -388,7 +392,10 @@ function save_internal(s::SerializerState, R::Union{
 end
 
 function load_internal(s::DeserializerState,
-                       ::Type{<: Union{Generic.LaurentSeriesRing, FmpzLaurentSeriesRing}},
+                       ::Type{<: Union{
+                           Generic.LaurentSeriesRing,
+                           Generic.LaurentSeriesField,
+                           FmpzLaurentSeriesRing}},
                        dict::Dict)
     base_ring = load_unknown_type(s, dict[:base_ring])
     var = load_type_dispatch(s, Symbol, dict[:var])
@@ -398,13 +405,16 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-encodeType(::Type{<:Generic.LaurentSeriesElem}) = "LaurentSeriesElem"
-reverseTypeMap["LaurentSeriesElem"] = Generic.LaurentSeriesElem
+encodeType(::Type{<:Generic.LaurentSeriesFieldElem}) = "LaurentSeriesFieldElem"
+reverseTypeMap["LaurentSeriesFieldElem"] = Generic.LaurentSeriesFieldElem
+
+
+encodeType(::Type{<:Generic.LaurentSeriesRingElem}) = "LaurentSeriesRingElem"
+reverseTypeMap["LaurentSeriesRingElem"] = Generic.LaurentSeriesRingElem
 
 @registerSerializationType(fmpz_laurent_series)
 
-function save_internal(s::SerializerState, r::Union{
-    Generic.LaurentSeriesElem, fmpz_laurent_series})
+function save_internal(s::SerializerState, r:: fmpz_laurent_series)
     v = valuation(r)
     l = pol_length(r)
     coeffs = map(x -> coeff(r, x), v:l + v)
@@ -418,10 +428,26 @@ function save_internal(s::SerializerState, r::Union{
     )
 end
 
+function save_internal(s::SerializerState, r:: Generic.LaurentSeriesElem)
+    v = valuation(r)
+    l = pol_length(r)
+    coeffs = map(x -> coeff(r, x), v:l + v)
+    return Dict(
+        :parent => save_type_dispatch(s, parent(r)),
+        :coeffs => save_type_dispatch(s, coeffs),
+        :valuation => save_type_dispatch(s, v),
+        :pol_length => save_type_dispatch(s, l),
+        :precision => save_type_dispatch(s, precision(r)),
+        :scale => save_type_dispatch(s, Generic.scale(r))
+    )
+end
+
 function load_internal(s::DeserializerState,
-                       T::Type{<: Union{Generic.LaurentSeriesElem, fmpz_laurent_series}},
+                       T::Type{<: Union{
+                           Generic.LaurentSeriesElem,                           
+                           fmpz_laurent_series}},
                        dict::Dict)
-    parent = load_type_dispatch(s, parent_type(T), dict[:parent])
+    parent = load_unknown_type(s, dict[:parent])
     coeffs = load_type_dispatch(s, Vector, dict[:coeffs])
     pol_length = load_type_dispatch(s, Int, dict[:pol_length])
     precision = load_type_dispatch(s, Int, dict[:precision])
@@ -430,3 +456,4 @@ function load_internal(s::DeserializerState,
     
     return parent(coeffs, pol_length, precision, valuation, scale)
 end
+

@@ -34,7 +34,8 @@ function get_hom(R1::T, R2::T) where T <: Union{
     return hom(D, I, gens(I))
 end
 
-function get_hom(R1::T, R2::T) where T <: SeriesRing{NfAbsNSElem}
+function get_hom(R1::T, R2::T) where T <: Union{
+    SeriesRing{S}, Generic.LaurentSeriesField{S}} where S <: NfAbsNSElem
     D = base_ring(R1)
     I = base_ring(R2)
     return hom(D, I, gens(I))
@@ -52,7 +53,7 @@ function get_hom(R1::T, R2::T) where T <: Union{
 end
 
 function get_hom(R1::T, R2::T) where T <: (
-    SeriesRing{S} where S <: Union{
+    Union{SeriesRing{S}, Generic.LaurentSeriesField{S}} where S <: Union{
         Hecke.NfRelElem{nf_elem},
         AbstractAlgebra.Generic.Frac{fmpq_poly}}
     )
@@ -75,7 +76,8 @@ function get_hom(R1::T, R2::T) where T <: Union{
     return hom(D, I, h_1, gens(I))
 end
 
-function get_hom(R1::T, R2::T) where T <: SeriesRing{Hecke.NfRelNSElem{nf_elem}}
+function get_hom(R1::T, R2::T) where T <: Union{
+    Generic.LaurentSeriesField{S}, SeriesRing{S}} where S <: Hecke.NfRelNSElem{nf_elem}
     D = base_ring(R1)
     I = base_ring(R2)
     D_base_field = base_field(D)
@@ -92,7 +94,8 @@ function get_hom(R1::T, R2::T) where {
     return hom(D, I, gen(I))
 end
 
-function get_hom(R1::T, R2::T) where T <: SeriesRing{S} where S <: Union{
+function get_hom(R1::T, R2::T) where T <: Union{
+    SeriesRing{S}, Generic.LaurentSeriesField{S}} where S <: Union{
         nf_elem, nmod, fmpz, fmpq, fq_nmod}
     D = base_ring(R1)
     I = base_ring(R2)
@@ -132,6 +135,29 @@ function test_equality(p::T, l::T) where T <: (
     return L(coeffs, pol_length(p), precision(p)) == l
 end
 
+function test_equality(p::fmpz_laurent_series, l::fmpz_laurent_series)
+    L = parent(l)
+    v = valuation(p)
+    coeffs = map(o -> coeff(p, o), v : v + pol_length(p))
+    return L(coeffs, pol_length(p), precision(p), v, Nemo.scale(p)) == l
+end
+
+function test_equality(p::T, l::T) where T <: (
+    Generic.LaurentSeriesElem{S} where S <: Union{fmpq, padic})
+    L = parent(l)
+    v = valuation(p)
+    coeffs = map(o -> coeff(p, o), v : v + pol_length(p))
+    return L(coeffs, pol_length(p), precision(p), v, Generic.scale(p)) == l
+end
+
+function test_equality(p::T, l::T) where T <: (
+    Generic.LaurentSeriesRingElem{S} where S <: nmod)
+    L = parent(l)
+    v = valuation(p)
+    coeffs = map(o -> coeff(p, o), v : v + pol_length(p))
+    return L(coeffs, pol_length(p), precision(p), v, Generic.scale(p)) == l
+end
+
 function test_equality(p::T, l:: T) where T  <: Union{
     MPolyElem{S}, PolyElem{S}} where S <: Union{
     AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
@@ -140,7 +166,8 @@ function test_equality(p::T, l:: T) where T  <: Union{
     return mapped_coeffs == collect(coefficients(l))
 end
 
-function test_equality(p::T, l:: T) where T  <: SeriesElem{S} where S <: Union{
+function test_equality(p::T, l:: T) where T  <: Union{
+    Generic.LaurentSeriesElem{S},SeriesElem{S}} where S <: Union{
     AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
     dom = base_ring(parent(p))
     codom = base_ring(parent(l))
@@ -177,7 +204,7 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function test_equality(p::T, l::T) where T <: (
-    SeriesElem{S} where S <: Union{
+    Union{SeriesElem{S}, Generic.LaurentSeriesElem} where S <: Union{
         Hecke.NfRelNSElem{nf_elem},
         Hecke.NfRelElem{nf_elem},
         NfAbsNSElem,
@@ -190,10 +217,26 @@ function test_equality(p::T, l::T) where T <: (
 end
 
 function compare_series_coeffs(p::T, l::T,
-                               h::Union{Map, typeof(identity)}) where T <: SeriesElem
-    coeffs_p = map(o -> coeff(p, o), 0:pol_length(p))
-    coeffs_l = map(o -> coeff(l, o), 0:pol_length(l))
-    return [h(c) for c in coeffs_p] == coeffs_l
+                               h::Union{Map, typeof(identity)}) where T <: RelSeriesElem
+    coeffs_p = map(o -> h(coeff(p, o)), 0:pol_length(p))
+    L = parent(l)
+    return L(coeffs_p, pol_length(p), precision(p), valuation(p)) == l
+end
+
+function compare_series_coeffs(p::T, l::T,
+                               h::Union{Map, typeof(identity)}) where T <: AbsSeriesElem
+    coeffs_p = map(o -> h(coeff(p, o)), 0:pol_length(p))
+    L = parent(l)
+    return L(coeffs_p, pol_length(p), precision(p)) == l
+end
+
+function compare_series_coeffs(p::T, l::T,
+                               h::Union{Map, typeof(identity)}
+                               ) where T <: Generic.LaurentSeriesElem
+    v = valuation(p)
+    coeffs_p = map(o -> h(coeff(p, o)), v:v + pol_length(p))
+    L = parent(l)
+    return L(coeffs_p, pol_length(p), precision(p), v, Generic.scale(p)) == l
 end
 
 @testset "Polynomials and Series" begin
@@ -267,11 +310,11 @@ end
 
                 @testset "Laurent Series over $(case[4])" begin
                     L, z = LaurentSeriesRing(case[1], 10, "z")
-                    p = z^2 + case[2] * z + case[3]
+                    p = z^(-1) + case[2] * z + case[3] * z^2
                     test_save_load_roundtrip(path, p) do loaded
                         @test test_equality(p, loaded)
                     end
-
+                    
 
                 end
             end

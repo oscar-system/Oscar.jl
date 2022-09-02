@@ -186,7 +186,6 @@ function load_unknown_type(s::DeserializerState,
 
     T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
-
     return load_type_dispatch(s, T, dict; parent=parent)
 end
 
