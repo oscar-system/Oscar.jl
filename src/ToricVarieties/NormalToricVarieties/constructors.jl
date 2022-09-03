@@ -371,10 +371,10 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 function del_pezzo(b::Int)
     # check for valid input
     if b < 0
-        throw(ArgumentError("Number of blowups for construction of delPezzo surfaces must be non-negative."))
+        throw(ArgumentError("Number of blowups for construction of delPezzo surfaces must be non-negative"))
     end
     if b > 3
-        throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported."))
+        throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
     end
     
     # special case of projective space
@@ -517,7 +517,7 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     # check for name clash with variable name chosen for blowup
     old_vars = [string(x) for x in gens(cox_ring(v))]
     isnothing(findfirst(x->occursin(coordinate_name, x), old_vars)) ||
-        throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety."))
+        throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety"))
 
     # set up Cox ring of new variety
     new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]

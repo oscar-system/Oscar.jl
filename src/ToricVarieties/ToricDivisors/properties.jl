@@ -37,8 +37,10 @@ false
 ```
 """
 @attr Bool is_principal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
-is_trivial(td::ToricDivisor) = is_principal(td)
-export is_principal, is_trivial
+export is_principal
+
+@attr Bool is_trivial(td::ToricDivisor) = all([c == 0 for c in coefficients(td)])
+export is_trivial
 
 
 @doc Markdown.doc"""

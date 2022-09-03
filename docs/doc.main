@@ -156,6 +156,7 @@
         "ToricVarieties/ToricLineBundles.md",
         "ToricVarieties/cohomCalg.md",
         "ToricVarieties/CohomologyClasses.md",
+        "ToricVarieties/Subvarieties.md",
         "ToricVarieties/AlgebraicCycles.md",
      ],
      "Schemes" => [

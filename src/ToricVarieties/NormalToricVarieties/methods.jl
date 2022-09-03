@@ -26,7 +26,7 @@ julia> betti_number(P3,1)
 """
 function betti_number(v::AbstractNormalToricVariety, i::Int)
     if !is_complete(v) || !is_simplicial(v)
-        throw(ArgumentError("Currently, the computation of Betti numbers is limited to complete and simplicial toric varieties."))
+        throw(ArgumentError("Currently, the computation of Betti numbers is limited to complete and simplicial toric varieties"))
     end
     
     # check input
