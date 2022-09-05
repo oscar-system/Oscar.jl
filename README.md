@@ -64,7 +64,7 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 
 ## Documentation
 
-For detailed information about the implemented functionality, please take a look at the most recent [documentation](https://herearound.github.io/FTheoryTools.jl/).
+For detailed information about the implemented functionality, please take a look at the most recent [documentation](https://herearound.github.io/FTheoryTools.jl/dev/).
 
 
 ## Bugs and feature requests
