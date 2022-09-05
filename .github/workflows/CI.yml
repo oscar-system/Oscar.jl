@@ -1,76 +1,79 @@
-name: CI
+name: Run tests
+
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/master' || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     strategy:
       fail-fast: false
       matrix:
-        version:
+        julia-version:
           - '1.6'
           - '~1.7.0-0'
-          #- 'nightly'
+          - '~1.8.0-0'
+          - 'nightly'
+        julia-arch:
+          - x64
         os:
           - ubuntu-latest
-        arch:
-          - x64
-    steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: actions/cache@v1
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-runtest@v1
-      - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v2
-        with:
-          file: lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
+        include:
+          # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
+          - julia-version: '1.6'
+            julia-arch: x64
+            os: macOS-latest
+          - julia-version: 'nightly'
+            julia-arch: x64
+            os: macOS-latest
 
-  docs:
-    name: "Documentation"
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
         with:
-          version: '1'
-      - uses: actions/cache@v1
-        env:
-          cache-name: cache-artifacts
+          # For Codecov, we must also fetch the parent of the HEAD commit to
+          # be able to properly deal with PRs / merges
+          fetch-depth: 2
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v1
         with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
-      - uses: julia-actions/julia-buildpkg@latest
-      - name: "Install package"
+          version: ${{ matrix.julia-version }}
+          arch: ${{ matrix.julia-arch }}
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@latest
+      - name: "limit OpenMP threads"
+        if: runner.os == 'macOS'
+        # restrict number of openMP threads on macOS due to oversubscription
+        run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@latest
+      - name: "Run doctests"
+        if: ${{ matrix.julia-version == '1.6' }}
         run: |
-          julia --project=docs --color=yes -e '
+          julia --project=docs --color=yes --code-coverage -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()'
-      - name: "Run doctests"
-        run: |
-          julia --project=docs --color=yes test/doctest.jl
-      - name: "Deploy documentation"
-        run: julia --project=docs --color=yes docs/make.jl
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+            Pkg.instantiate()
+            using Documenter
+            using FTheoryTools
+            DocMeta.setdocmeta!(FTheoryTools, :DocTestSetup, :(using FTheoryTools); recursive = true)
+            doctest(FTheoryTools)'
+      - name: "Process code coverage"
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src
+      - name: "Upload coverage data to Codecov"
+        continue-on-error: true
+        uses: codecov/codecov-action@v2
