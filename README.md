@@ -43,7 +43,7 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 
 * [![CI](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/CI.yml)
 * Documentation (to come),
-* Code coverage (to come).
+* [![codecov](https://codecov.io/gh/HereAround/FTheoryTools.jl/branch/master/graph/badge.svg?token=T5456HQGYZ)](https://codecov.io/gh/HereAround/FTheoryTools.jl).
 
 
 ## Installation instructions for Linux
