@@ -41,8 +41,8 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 
 ## Code coverage and tests
 
-* [![CI](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/CI.yml)
-* Documentation (to come),
+* [![CI](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/CI.yml),
+* [![pages-build-deployment](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/HereAround/FTheoryTools.jl/actions/workflows/pages/pages-build-deployment),
 * [![codecov](https://codecov.io/gh/HereAround/FTheoryTools.jl/branch/master/graph/badge.svg?token=T5456HQGYZ)](https://codecov.io/gh/HereAround/FTheoryTools.jl).
 
 
