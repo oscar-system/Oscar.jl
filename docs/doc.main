@@ -2,6 +2,7 @@
    "index.md",
 
    "FtheoryTools" => [
-      "FtheoryTools/Introduction.md"
+      "FTheoryTools/Introduction.md"
+      "FTheoryTools/Functions.md"
    ],
 ]

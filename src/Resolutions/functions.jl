@@ -1,5 +1,5 @@
 @doc Markdown.doc"""
-    adding(x::Integer,y::Integer)
+    adding(x::Int,y::Int)
 
 Return the sum of two integers.
 
@@ -8,6 +8,7 @@ julia> adding(1,2)
 3
 ```
 """
-function adding(x::Integer,y::Integer)
+function adding(x::Int,y::Int)
     return x + y
 end
+export adding
