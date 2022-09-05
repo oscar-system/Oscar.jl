@@ -123,8 +123,10 @@ end
 function test_equality(p::T, l::T) where T <: (
     RelSeriesElem{S} where S <: Union{fmpq, fmpz, nmod, padic})
     L = parent(l)
-    coeffs = map(o -> coeff(p, o), 0:pol_length(p))
-    return L(coeffs, pol_length(p), precision(p), valuation(p)) == l
+    v = valuation(p)
+    pl = pol_length(p)
+    coeffs = map(o -> coeff(p, o), v:v + pl)
+    return L(coeffs, pl, precision(p), v) == l
 end
 
 function test_equality(p::T, l::T) where T <: (
@@ -218,9 +220,11 @@ end
 
 function compare_series_coeffs(p::T, l::T,
                                h::Union{Map, typeof(identity)}) where T <: RelSeriesElem
-    coeffs_p = map(o -> h(coeff(p, o)), 0:pol_length(p))
+    v = valuation(p)
+    pl = pol_length(p)
+    coeffs_p = map(o -> h(coeff(p, o)), v:v + pl)
     L = parent(l)
-    return L(coeffs_p, pol_length(p), precision(p), valuation(p)) == l
+    return L(coeffs_p, pl, precision(p), v) == l
 end
 
 function compare_series_coeffs(p::T, l::T,
@@ -288,7 +292,7 @@ end
             @testset "Series" begin
                 @testset "Power Series over $(case[4])" begin
                     rel_R, rel_z = PowerSeriesRing(case[1], 10, "z")
-                    rel_p = rel_z^2 + case[2] * rel_z + case[3]
+                    rel_p = rel_z^2 + case[2] * rel_z + case[3] * rel_z^3
                     test_save_load_roundtrip(path, rel_p) do loaded
                         @test test_equality(rel_p, loaded)
                     end

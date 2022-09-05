@@ -295,12 +295,23 @@ reverseTypeMap["RelSeriesElem"] = RelSeriesElem
 encodeType(::Type{<:AbsSeriesElem}) = "AbsSeriesElem"
 reverseTypeMap["AbsSeriesElem"] = AbsSeriesElem
 
-function save_internal(s::SerializerState, r::SeriesElem)
+function save_internal(s::SerializerState, r::RelSeriesElem)
+    v = valuation(r)
+    coeffs = map(x -> coeff(r, x), v:v + pol_length(r))
+    return Dict(
+        :parent => save_type_dispatch(s, parent(r)),
+        :coeffs => save_type_dispatch(s, coeffs),
+        :valuation => save_type_dispatch(s, v),
+        :pol_length => save_type_dispatch(s, pol_length(r)),
+        :precision => save_type_dispatch(s, precision(r))
+    )
+end
+
+function save_internal(s::SerializerState, r::AbsSeriesElem)
     coeffs = map(x -> coeff(r, x), 0:pol_length(r))
     return Dict(
         :parent => save_type_dispatch(s, parent(r)),
         :coeffs => save_type_dispatch(s, coeffs),
-        :valuation => save_type_dispatch(s, valuation(r)),
         :pol_length => save_type_dispatch(s, pol_length(r)),
         :precision => save_type_dispatch(s, precision(r))
     )
