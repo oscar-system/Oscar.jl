@@ -1,0 +1,7 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterMarkdown = "997ab1e6-3595-5248-9280-8efb232c3433"
+FTheoryTools = "5ebb4081-3ebc-4667-8a5c-f5b3f044e3f8"
+
+[compat]
+Documenter = "^0.27"

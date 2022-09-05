@@ -1,0 +1,19 @@
+site_name:           FtheoryTools.jl
+repo_url:            https://github.com/HereAround/FTheoryTools.jl
+site_description:    FtheoryTools
+site_author:         Martin Bies
+
+theme:               readthedocs
+
+pages:
+
+markdown_extensions:
+  - extra
+  - tables
+  - fenced_code
+  - mdx_math:
+      enable_dollar_delimiter: True
+
+docs_dir: 'build'
+
+extra_javascript: ['mathjaxhelper.js', 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML']
