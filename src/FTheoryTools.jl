@@ -3,7 +3,6 @@ module FTheoryTools
 # use other Julia packages
 using Markdown
 using Pkg
-using Oscar
 
 """
 Initializing function for 'FTheoryTools'.
