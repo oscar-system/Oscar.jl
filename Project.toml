@@ -3,8 +3,11 @@ uuid = "5ebb4081-3ebc-4667-8a5c-f5b3f044e3f8"
 authors = ["Martin Bies <MBies87@googlemail.com>"]
 version = "0.1.0"
 
+[deps]
+Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+
 [compat]
-julia = "1"
+julia = "^1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
