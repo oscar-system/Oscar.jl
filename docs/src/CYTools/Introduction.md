@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = FtheoryTools
+CurrentModule = FTheoryTools
 ```
 
 ```@contents
