@@ -314,8 +314,10 @@ end
                     test_save_load_roundtrip(path, p) do loaded
                         @test test_equality(p, loaded)
                     end
-                    
 
+                    test_save_load_roundtrip(path, p; parent=L) do loaded
+                        @test p == loaded
+                    end
                 end
             end
         end

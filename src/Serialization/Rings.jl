@@ -457,3 +457,28 @@ function load_internal(s::DeserializerState,
     return parent(coeffs, pol_length, precision, valuation, scale)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   T::Type{<: Union{
+                                       Generic.LaurentSeriesElem, fmpz_laurent_series}},
+                                   dict::Dict,
+                                   parent_ring)
+        # cache parent inside serializer state in case parent needs
+    # to be checked against the passed parent
+    _ = load_unknown_type(s, dict[:parent])
+
+    coeff_ring = base_ring(parent_ring)
+    coeff_type = elem_type(coeff_ring)
+    coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
+    pol_length = load_type_dispatch(s, Int, dict[:pol_length])
+    precision = load_type_dispatch(s, Int, dict[:precision])
+    valuation = load_type_dispatch(s, Int, dict[:valuation])
+    scale = load_type_dispatch(s, Int, dict[:scale])
+
+    if precision > max_precision(parent_ring)
+        @warn("Precision Warning: given parent is less precise than serialized elem",
+              maxlog=1)
+    end
+
+    return parent_ring(coeffs, pol_length, precision, valuation, scale)
+end
+
