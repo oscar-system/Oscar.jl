@@ -1,6 +1,7 @@
-export pbw_algebra, build_ctx, PBWAlgElem, PBWAlgRing,
+export build_ctx, PBWAlgElem, PBWAlgRing,
        is_two_sided, is_left, is_right,
-       left_ideal, two_sided_ideal, right_ideal
+       left_ideal, two_sided_ideal, right_ideal,
+       pbw_algebra, weyl_algebra
 
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
@@ -324,6 +325,31 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
   s, gs = Singular.GAlgebra(sr, C, D)
   R = PBWAlgRing{T, S}(s, rel, ord)
   return R, [PBWAlgElem(R, x) for x in gs]
+end
+
+function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
+  n = length(xs)
+  n > 0 || error("empty list of variables")
+  n == length(dxs) || error("number of differentials should match number of variables")
+  r, v = PolynomialRing(K, vcat(xs, dxs))
+  rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
+  return pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r))
+end
+
+function weyl_algebra(
+  K::Ring,
+  xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}},
+  dxs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
+)
+  return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol(i) for i in dxs])
+end
+
+
+function weyl_algebra(
+  K::Ring,
+  xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
+)
+  return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol("∂", i) for i in xs])
 end
 
 ####

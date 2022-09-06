@@ -70,3 +70,15 @@ end
   @test !(x + 1 in I)
   @test isone(I + left_ideal([z^2]))
 end
+
+@testset "PBWAlgebra.weyl_algebra" begin
+  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  @test dx*x == 1 + x*dx
+
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  @test dx*x == 1 + x*dx
+  @test dy*y == 1 + y*dy
+  @test dx*y == y*dx
+  @test dy*x == x*dy
+  @test x*y == y*x
+end
