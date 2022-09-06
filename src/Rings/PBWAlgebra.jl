@@ -449,19 +449,16 @@ function isone(I::PBWAlgIdeal)
 end
 
 
-# TODO does it even make sense to mix directions here?
-function Base.:+(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, Db, T, S}
-  Dz = clamp(Da + Db, -1, 1)
-  return PBWAlgIdeal{Dz, T, S}(base_ring(a), a.sdata + b.sdata)
+function Base.:+(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata + b.sdata)
 end
 
-function Base.:*(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, Db, T, S}
-  Dz = (Db >= 0) - (Da <= 0)
-  return PBWAlgIdeal{Dz, T, S}(base_ring(a), a.sdata + b.sdata, is_two_sided(b))
+function Base.:*(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata + b.sdata)
 end
 
-function Base.:^(a::PBWAlgIdeal{Da, T, S}, b::Int) where {Da, T, S}
-  return PBWAlgIdeal{Da, T, S}(base_ring(a), a.sdata^b)
+function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
+  return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata^b)
 end
 
 function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
