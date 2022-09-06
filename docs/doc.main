@@ -3,6 +3,6 @@
 
    "FtheoryTools" => [
       "FTheoryTools/Introduction.md"
-      "FTheoryTools/Functions.md"
+      "FTheoryTools/Weierstrass.md"
    ],
 ]
