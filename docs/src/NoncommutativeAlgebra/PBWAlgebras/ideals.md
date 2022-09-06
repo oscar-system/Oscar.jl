@@ -24,4 +24,5 @@ left, right, or two-sided.
 ```@docs
 left_ideal(g::Vector{<:PBWAlgElem})
 two_sided_ideal(g::Vector{<:PBWAlgElem})
+right_ideal(g::Vector{<:PBWAlgElem})
 ```
