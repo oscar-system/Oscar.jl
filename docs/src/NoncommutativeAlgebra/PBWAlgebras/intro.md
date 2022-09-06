@@ -88,7 +88,7 @@ and if $>$ is an admissible monomial ordering for $A$, then define the "opposite
 \alpha >^{\text{op}}  \beta \;\Leftrightarrow\;  \alpha^{\text{op}} > \beta^{\text{op}}.
 ```
 Finally, reverse the order of the variables: set $x ^{\text{op}}=\{x_n, \ldots, x_1\}$, and consider the free associative $K$-algebra
-$K \langle x^\text{op}\rangle = K \langle x_{n},\dots, x_{1} \rangle.$ ltogether, we obtain a PBW-algebra which can be naturally
+$K \langle x^\text{op}\rangle = K \langle x_{n},\dots, x_{1} \rangle.$ Altogether, we obtain a PBW-algebra which can be naturally
 identified with $A^{\text{op}}$:
 ```math
 A ^{\text{op}}  = K\langle x_n, \dots , x_1 \mid x_ix_j = c_{ij}x_jx_i+d_{ij}^{\text{\;\!op}},  \ 1\leq i<j \leq n \rangle,
