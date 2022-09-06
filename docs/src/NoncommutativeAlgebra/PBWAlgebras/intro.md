@@ -35,7 +35,7 @@ x_jx_i = c_{ij}x_ix_j+d_{ij}.
 
 Working with Gröbner bases requires that we take monomial orderings into account (see the section
 on Gröbner bases in the commutative algebra chapter for monomial orderings). In our context here, we use the following notation.
-A *standard monomial* in $x$ is a word of type $x^\alpha=x_{1}^{\alpha_{1}}\cdots x_{n}^{\alpha_{n}},$
+A *standard monomial* in $K \langle x \rangle$ is a word of type $x^\alpha=x_{1}^{\alpha_{1}}\cdots x_{n}^{\alpha_{n}},$
 where $\alpha=(\alpha_1,\dots,\alpha_n)\in\mathbb N^n$. A *standard polynomial* in $K \langle x \rangle$
 is a $K$-linear combination of standard monomials. Each global monomial ordering $>$ on $\N^n$ gives rise to
 a (total) well-ordering $>$ on the set of standard monomials. In particular, it makes sense to speak of the
@@ -52,9 +52,9 @@ standard polynomials. Then $A$ is called a *PBW-algebra* if the following two co
 
 $d_{ij}=0\ \text{ or }\ x_ix_j> \text{LM}_>(d_{ij})\ \text{ for all }\ 1\leq i<j \leq n.$
 
-(2) ``\;`` The standard monomials represent a $K$-basis for $A$.  We then refer to this basis as a *PBW-basis* for $A$. 
+(2) ``\;`` The standard monomials in $K \langle x \rangle$ represent a $K$-basis for $A$.  We then refer to this basis as a *PBW-basis* for $A$. 
 
-Every ordering as in (1) is called *admissible* for $A$.
+Every ordering as in (1) is called *admissible* for the given relations or simply *admissible* for $A$.
 
 Given a PBW-algebra $A$ as above, we sometimes abuse our notation by denoting the class of a standard monomial $x^{\alpha}$ in $A$ also by $x^{\alpha}$,
 and refer to this class as a *standard monomial* in $A$. As these monomials form a $K$-basis for $A$, every element $0\neq f\in A$ has a unique representation
@@ -66,13 +66,6 @@ We refer to this representation as the *standard representation* of $f$, with *c
 !!! note
     PBW-algebras are also known as G-algebras or algebras of solvable type. See Remark 1 in [LS03](@cite) for a brief historical account.
  
-**Example.** ``\;`` The *$n$-th Weyl algebra over $K$* is the PBW-algebra
-```math
-D_n(K)=K \langle x_1,\ldots, x_n, \partial _1,\dots \partial _n \mid \partial_i x_i=x_i\partial _i +1, \partial _i x_j=x_j \partial _i \ \text { for }\ i\neq j\rangle.
-```
-Here,  we tacitly assume that $x_j x_i=x_i x _j$ and $\partial _j \partial_i=\partial_i \partial _j$ for all $i,j$.
-Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is admissible for $D_n(K)$.
-
 **Proposition.**  ``\;`` Let $A$ be a PBW-algebra. Then:
 - ``A`` is an integral domain,
 - ``A`` is (left and right) Noetherian.
@@ -95,7 +88,7 @@ and if $>$ is an admissible monomial ordering for $A$, then define the "opposite
 \alpha >^{\text{op}}  \beta \;\Leftrightarrow\;  \alpha^{\text{op}} > \beta^{\text{op}}.
 ```
 Finally, reverse the order of the variables: set $x ^{\text{op}}=\{x_n, \ldots, x_1\}$, and consider the free associative $K$-algebra
-$K \langle x^\text{op}\rangle = K \langle x_{n},\dots, x_{1} \rangle.$ Then, altogether, we obtain a PBW-algebra which can be naturally
+$K \langle x^\text{op}\rangle = K \langle x_{n},\dots, x_{1} \rangle.$ ltogether, we obtain a PBW-algebra which can be naturally
 identified with $A^{\text{op}}$:
 ```math
 A ^{\text{op}}  = K\langle x_n, \dots , x_1 \mid x_ix_j = c_{ij}x_jx_i+d_{ij}^{\text{\;\!op}},  \ 1\leq i<j \leq n \rangle,
