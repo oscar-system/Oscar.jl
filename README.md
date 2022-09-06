@@ -84,7 +84,7 @@ Contributions are highly appreciated. Please notice that:
 
 This software is work in progress of
 * [Martin Bies](https://martinbies.github.io/),
-* [Andrew Turner](https://www.physics.upenn.edu/people/andrew-turner).
+* [Andrew Turner](https://apturner.net/).
 
 If you are interested in contributing, please feel free to reach out to us for more details.
 
