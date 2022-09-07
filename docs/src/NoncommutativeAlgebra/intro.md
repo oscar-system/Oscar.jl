@@ -25,7 +25,10 @@ to the computational study of finitely presented associative $K$-algebras. At pr
     The class of PBW-algebras includes the Weyl algebras. Algebras which arise as quotients of PBW-algebras
     include the Clifford algebras (in particular, the exterior algebras).
 
-General textbooks offering details on the theory and algorithms include:
+The textbooks
 - [GP08](@cite)
 - [DL06](@cite)
 - [BGV03](@cite)
+and the thesis
+- [Lev05](@cite)
+offer details on theory and algorithms.
