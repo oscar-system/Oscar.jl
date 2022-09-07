@@ -4489,6 +4489,10 @@ function +(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
 end
+function *(a::RingElem, g::ModuleMap)
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
+end
 
 
 @doc Markdown.doc"""

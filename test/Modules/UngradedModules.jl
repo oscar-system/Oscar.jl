@@ -842,6 +842,9 @@ end
     for v in gens(N)
         @test H_1(v) == H(v)
     end
+	for v in gens(N)
+		@test ((x+y+R(1))*H_1)(v) == H_1((x+y+R(1))*v)
+	end
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
