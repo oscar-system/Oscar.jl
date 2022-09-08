@@ -1358,6 +1358,22 @@ function ideal(
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
 end
 
+### Further constructors for quotient rings
+function quo(
+    L::MPolyQuoLocalizedRing,
+    I::MPolyQuoLocalizedIdeal
+  )
+  base_ring(I) == L || error("ideal does not belong to the correct ring")
+  return quo(localized_ring(L), localized_modulus(L) + pre_image_ideal(I))
+end
+
+function quo(A::MPolyQuo, I::MPolyQuoIdeal)
+  base_ring(I) == A || error("ideal does not belong to the correct ring")
+  R = base_ring(A)
+  Q, _ = quo(R, modulus(A) + ideal(R, lift.(gens(I))))
+  return Q, hom(A, Q, Q.(gens(R)))
+end
+
 function divides(a::MPolyQuoLocalizedRingElem, b::MPolyQuoLocalizedRingElem)
   W = parent(a)
   W == parent(b) || error("elements do not belong to the same ring")
