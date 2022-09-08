@@ -171,7 +171,7 @@ classes, whereas some other properties and invariants make sense for arbitrary
 space germs, but may only be accesible to (efficient) computations in 
 particular classes. The information on the currently supported particular cases
 * [Hypersurface Singularities](@ref hypersurfaces.md)
-* Complete Intersections Singularities  LINK SETZEN
+* [Complete Intersections Singularities](@ref ICIS.md)
 * Cohen-Macaulay Codimension 2 Singularities  LINK SETZEN
 can be found on the respective pages.
 
@@ -250,9 +250,9 @@ As outlined in [decomposition of ideals](@ref ideal_decomp) and explained in the
 **Pitfall** **2:**  
 Even in cases, where pitfall 1 does not cause any problems, we might still not be able to separate all components of a space germ computationally. This is due to the fact that the inclusion of rings 
 ${\mathbb Q}[\underline{x}]_{\langle x \rangle} \subsetneq {\mathbb Q}\{\underline{x}\}$ is strict and computations are only possible in the smaller one, 
-whereas results often need to be interpreted in the larger one.
-
-HIER BEISPIEL fuer diese Schwierigkeit -- z.B. aus Sao Carlos Unterlagen
+whereas results often need to be interpreted in the larger one. For instance,
+the polynomial $y^2-x^2-x^3$ is irreducible in the smaller ring, but factors as
+$(y-x(\sqrt{1+x})\cdot(y+x(\sqrt{1+x})$ in the larger one.
 
 ## [Deformations of space germs](@id spacegerms_deform)
 

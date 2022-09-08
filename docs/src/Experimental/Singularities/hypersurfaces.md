@@ -16,7 +16,7 @@ Hypersurface singularities are space germs of the form $(V(f),p)$
 for some power series f at a point $p$. As explaind in
 section [Generalities on Space Germs](@ref space_germ_generalities), the need for exact computations forces OSCAR
 to restrict all considerations to the subring of those representable by means 
-of an element of the localization of an affine scheme at a point.
+of an element of the localization of an affine scheme at a point. Where no other reference is specified, we refer the reader to the textbook [GLS07](@cite).
 
 For simplicity of notation, $O_{n,p}$ will denote the localization of the
 polynomial ring in $n$ variables at the point $p$ here and $m_p$ denotes its 
@@ -66,7 +66,7 @@ this singular locus as the singular locus of the original germ.
 
 !!! note "Bemerkung zur Implementation: wrappe bzw. nutze slocus bzw. dim(slocus)"
 
-### finite determinacy
+### Finite determinacy
 
 A hypersurface germ $(V(f),0)$ is called finitely R-determined (or finitely
 C-determined), if 
@@ -79,13 +79,15 @@ is_finitely-determined(f::MPolyElemLoc)
 is_finitely-determined(X::SpaceGerm)
 ```
 
+BOOL -- bound separat...
+
 If the germ is finitely determined, the return value gives a (in general non-optimal) determinacy bound; otherwise, it returns the negative integer -1.
 
 **Provides:** integer
 
-!!! note "wir verwenden $\mu+1$, auch wenn sich bessere Schranken ueber $m^{k+2} \subset m^2 Jf$ berechnen lassen -- soll der Nutzer die Moeglichkeit haben, eine bessere Schranke ueber diese Formel konkret anzufordern?"
+!!! note "wir verwenden $\mu+1$, auch wenn sich bessere Schranken ueber $m^{k+2} \subset m^2 Jf$ oder über die höchste Ecke berechnen lassen -- soll der Nutzer die Moeglichkeit haben, eine bessere Schranke konkret anzufordern?"
 
-### quasihomogeneity
+### Quasihomogeneity
 
 (V(f),0) is called quasihomogeneous, if there are an integer $d$ and a tuple
 of positive rational numbers $w = (w_1,\dots,w_n)$ such that all monomials in f
@@ -98,10 +100,26 @@ is_quasihomogeneous(f::MPolyElemLoc)
 is_quasihomogeneous(X::SpaceGerm)
 ```
 
+BOOL -- bound separat...
+
 If the germ is quasihomogeneous w.r.t. a weight system $(d,w)$, this tuple is
 returned. Otherwise, a tuple $(0,0,\dots,0)$ is returned.
 
 **Provides:** List of n+1 rational numbers
+
+### is_Morse-critical-point
+
+A germ $(V(f),0)$ is called a Morse critical point, if it is singular and
+the Hessian Matrix $H(f)$ of $f$ at $0$ has full rank.
+
+```julia
+   is_Morse-critical-point(f::MPolyElemLoc)
+   is_Morse-critical-point(X::SpaceGerm)
+```
+
+**Provides:** Boolean Value
+
+## Newton polytope and related data
 
 ### Newton polytope
 
@@ -188,18 +206,6 @@ of $(V(\prod_{i=1}^n x_i),0)$.
 
 ```julia
    is_Newton-non-degenerate(f::MpolyElemLoc)
-```
-
-**Provides:** Boolean Value
-
-### is_Morse-critical-point
-
-A germ $(V(f),0)$ is called a Morse critical point, if it is singular and
-the Hessian Matrix $H(f)$ of $f$ at $0$ has full rank.
-
-```julia
-   is_Morse-critical-point(f::MPolyElemLoc)
-   is_Morse-critical-point(X::SpaceGerm)
 ```
 
 **Provides:** Boolean Value
@@ -484,8 +490,8 @@ F(x,t_1,\dots,t_{\tau})= f + \sum_{i=1}^{\tau} t_i g_i
 The Tjurina algebra of a hypersurface germ can be computed using
 
 ```julia 
-   tjurina_algebra(f::MPolyElemLoc)
-   tjurina_algebra(X::SpaceGerm)
+   tjurina-algebra(f::MPolyElemLoc)
+   tjurina-algebra(X::SpaceGerm)
 ```
 
 **Provides:** MPolyLocQuo
@@ -494,20 +500,18 @@ or alternatively (using the fact that the Tjurina algebra is a special
 instance of the T^1 of a space germ):  
 
 ```julia
-   T1(X::SpaceGerm)
+   T1-module(X::SpaceGerm)
+   T1-basis(X::SpaceGerm)
 ```
 
-**Provides:** Quotient of a free module 
-(@Janko: WIE HEISST DER TYP!!!)
-
 !!! note
-    Observe that the return value of tjurina_algebra is a localization of a polynomial ring, whereas the one of T1 is a quotient of a rank 1 free module over a localization of a polynomial ring. For finitely determined hypersurface singularities, both of these objects also carry the structure of a a finite dimensional vector space over the underlying field.  
+    Observe that the return value of tjurina_algebra is a localization of a polynomial ring, whereas the one of T1-module is a quotient of a rank 1 free module over a localization of a polynomial ring. For finitely determined hypersurface singularities, both of these objects also carry the structure of a a finite dimensional vector space over the underlying field. A basis thereof is returned by T1-basis.  
 
 !!! note "tjurina_algebra ist kurz und liefert ein gutes Beispiel auch fuer proggrammierende Nutzer, die mal spicken wollen -- daher in OSCAR schreiben; T1 siehe Kommentare in spacegerms.md"
 
 ### Versal Unfolding
 
-A versal unfolding of a given (computable), finitely determined  $f \in O_n$ may be computed using
+A versal unfolding of a given (computable,) finitely determined  $f \in O_n$ may be computed using
 
 ```julia
    versal_unfolding(f::MPolyLocElem)
