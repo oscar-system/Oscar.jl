@@ -4113,7 +4113,7 @@ julia> W = matrix(R, [y 0; x y; 0 z])
 
 julia> a = hom(F, G, W);
 
-julia> K, iota = image(a)
+julia> I, iota = image(a)
 (Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
