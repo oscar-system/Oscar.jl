@@ -1723,6 +1723,208 @@ function find_maximum(a::Vector{Int})
   return j
 end
 
+function _hilb_shifted_ring(n::Int, e::Int, S::PolyRing)
+  t = gens(S)[1]
+  n == 0 && return zero(S)
+  n == 1 && return one(S)
+  #n == 2 && return t-e+1
+  return inv(S(factorial(n-1)))*prod([t+n-1-k+e for k in 0:n-2])
+end
+
+using Infiltrator
+function _hilbert_function_from_leading_exponents(
+    a::Vector{Vector{Int}};
+    return_ring=(QQ["t"])[1],
+    #strategy=:generator
+    #strategy=:custom
+    #strategy=:gcd
+    #strategy=:indeterminate
+    strategy=:cocoa
+  )
+  t = gens(return_ring)[1]
+
+  if length(a) == 0 
+    return _hilb_shifted_ring(length(a0), 0, return_ring)
+  elseif length(a) == 1
+    a0 = a[1]
+    return _hilb_shifted_ring(length(a0), 0, return_ring) - _hilb_shifted_ring(length(a0), sum(a0), return_ring)
+  end
+
+  if strategy == :custom
+    @show a
+    p = Vector{Int}()
+    q = Vector{Int}()
+    max_deg = 0
+    for i in 1:length(a)
+      b = a[i]
+      for j in i+1:length(a)
+        c = a[j]
+        r = gcd([b, c])
+        if sum(r) > max_deg
+          max_deg = sum(r)
+          p = b
+          q = c
+        end
+      end
+    end
+
+    if length(p) == length(q) == 0
+      pivot = first(a)
+      rhs = a[2:end]
+      lhs = rhs
+      subst = t - sum(pivot)
+      @show subst
+      return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+    end
+
+    ### Assembly of the quotient ideal with less generators
+    pivot = gcd([p, q])
+    @show pivot
+    rhs = [e for e in a if !divides(e, pivot)]
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by(a, pivot)
+
+    subst = t - sum(pivot)
+    @show subst
+    return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+
+  elseif strategy == :gcd # see Remark 5.3.11
+    n = length(a)
+    @show a
+    counters = [0 for i in 1:length(a[1])]
+    for e in a
+      counters += [iszero(k) ? 0 : 1 for k in e]
+    end
+    j = find_maximum(counters)
+
+    if j == 1
+      b = copy(a)
+      pivot = pop!(b)
+      rhs = b
+      lhs = b
+      subst = t - sum(pivot)
+      @show subst
+      return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+    end
+
+    
+    p = a[rand(1:n)]
+    while p[j] == 0
+      p = a[rand(1:n)]
+    end
+
+    q = a[rand(1:n)]
+    while q[j] == 0 || p == q
+      @show p, q, j
+      q = a[rand(1:n)]
+    end
+
+    pivot = gcd([p, q])
+    
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if !divides(e, pivot)]
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by(a, pivot)
+
+    subst = t - sum(pivot)
+
+    return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+    
+  elseif strategy == :generator # just choosing on random generator, cf. Remark 5.3.8
+    b = copy(a)
+    pivot = pop!(b)
+    
+    c = divide_by(b, pivot)
+    p1 = _hilbert_function_from_leading_exponents(b, 
+                                                   return_ring=return_ring, 
+                                                   strategy=strategy
+                                                  )
+    p2 = _hilbert_function_from_leading_exponents(c, 
+                                                   return_ring=return_ring, 
+                                                   strategy=strategy
+                                                  )
+
+    subst = t - sum(pivot)
+    
+    return p1 - p2(subst)
+
+  elseif strategy == :indeterminate # see Remark 5.3.8
+    e = first(a)
+    pivot = Int[]
+    found_at = 0
+    for k in 1:length(e)
+      if e[k] == 0 || found_at > 0 
+        push!(pivot, 0)
+      else
+        push!(pivot, 1)
+        found_at = k 
+      end
+    end
+    
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if e[found_at] == 0]
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    @show a, pivot
+    lhs = divide_by(a, pivot)
+
+    subst = t - sum(pivot)
+
+    return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+
+  elseif strategy == :cocoa # see Remark 5.3.14
+    n = length(a)
+    m = length(a[1])
+    counters = [0 for i in 1:m]
+    for e in a
+      counters += [iszero(k) ? 0 : 1 for k in e]
+    end
+    j = find_maximum(counters)
+    
+    if j == 1
+      b = copy(a)
+      pivot = pop!(b)
+      rhs = b
+      lhs = b
+      subst = t - sum(pivot)
+      @show subst
+      return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+    end
+
+    p = a[rand(1:n)]
+    while p[j] == 0
+      p = a[rand(1:n)]
+    end
+
+    q = a[rand(1:n)]
+    while q[j] == 0 || p == q
+      q = a[rand(1:n)]
+    end
+
+    pivot = [0 for i in 1:m]
+    pivot[j] = minimum([p[j], q[j]])
+    
+    
+    ### Assembly of the quotient ideal with less generators
+    rhs = [e for e in a if !divides(e, pivot)]
+    push!(rhs, pivot)
+
+    ### Assembly of the division ideal with less total degree
+    lhs = divide_by_monomial_power(a, j, pivot[j])
+
+    subst = t - sum(pivot)
+
+    return _hilbert_function_from_leading_exponents(rhs, return_ring=return_ring, strategy=strategy) + _hilbert_function_from_leading_exponents(lhs, return_ring=return_ring, strategy=strategy)(subst)
+
+  end
+  error("invalid strategy")
+end
+
 function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}};
     return_ring=PolynomialRing(QQ, "t")[1],
