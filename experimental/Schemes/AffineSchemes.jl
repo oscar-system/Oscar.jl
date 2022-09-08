@@ -586,31 +586,6 @@ function graph(f::SpecMor{<:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElem
 end
 
 @Markdown.doc """
-    lift_map(f::SpecMor, g::SpecMor)
-
-For morphisms ``f : Y → X`` and ``g : Z → X`` this function attempts 
-to compute a lift ``h : Y → Z`` such that ``f = g ∘ h``.
-"""
-function lift_map(
-    f::SpecMor{SpecType, SpecType, <:Any}, 
-    g::SpecMor{SpecType, SpecType, <:Any}
-  ) where {SpecType<:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
-  error("not implemented")
-end
-
-@Markdown.doc """
-    find_section(f::SpecMor)
-
-For a morphism ``f : X → Y`` this function tries to compute a 
-morphism ``h : Y → X`` such that ``f ∘ h = Idₓ``.
-"""
-function find_section(
-    f::SpecMor{SpecType, SpecType, <:Any}
-  ) where {SpecType<:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
-  error("not implemented")
-end
-
-@Markdown.doc """
     fiber_product(f::SpecMor, g::SpecMor)
 
 For morphisms ``f : Y → X`` and ``g : Z → X`` return the fiber 
