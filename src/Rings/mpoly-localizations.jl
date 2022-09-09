@@ -1,4 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
+export prime_ideal
 export rand, sets, issubset, units_of, simplify!, is_trivial
 import Base: issubset
 

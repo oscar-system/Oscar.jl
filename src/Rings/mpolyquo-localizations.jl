@@ -12,6 +12,8 @@ export MPolyQuoLocalizedRingHom
 export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type, ideal_type
 export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
+export MPolyQuoLocalizedIdeal
+
 export is_isomorphism, inverse
 
 export simplify
