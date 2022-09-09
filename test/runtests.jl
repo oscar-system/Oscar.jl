@@ -7,6 +7,7 @@ using Oscar
 #############################################################
 
 w = GenericGlobalWeierstrassModelOverProjectiveSpace(3)
+Base.show(w)
 
 @testset "Test properties of Weierstrass models" begin
     @test parent(poly_f(w)) == cox_ring(toric_base_space(w))
@@ -29,4 +30,5 @@ g2 = sum([rand(Int)*b for b in basis_of_global_sections(anticanonical_bundle(F2)
     @test_throws ArgumentError GenericGlobalWeierstrassModelOverProjectiveSpace(0)
     @test_throws ArgumentError toric_base_space(GlobalWeierstrassModel([f,g]))
     @test_throws ArgumentError GlobalWeierstrassModel([f,g2])
+    @test_throws ArgumentError GlobalWeierstrassModel([f,g,g2])
 end
