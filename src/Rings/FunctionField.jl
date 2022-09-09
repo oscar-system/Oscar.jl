@@ -4,9 +4,9 @@ end
 
 # conversion between FractionField and Singular function field
 # univariate
-function Oscar.singular_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{fmpq_poly, gfp_poly}
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{fmpq_poly, gfp_poly}
   R = base_ring(F)
-  return Singular.FunctionField(singular_ring(base_ring(R)), [string(R.S)])[1]
+  return Singular.FunctionField(singular_coeff_ring(base_ring(R)), [string(R.S)])[1]
 end
 
 function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{fmpq_poly, gfp_poly}
@@ -24,9 +24,9 @@ function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where
 end
 
 # multivariate
-function Oscar.singular_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{fmpq_mpoly, gfp_mpoly}
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{fmpq_mpoly, gfp_mpoly}
   R = base_ring(F)
-  return Singular.FunctionField(singular_ring(base_ring(R)), string.(R.S))[1]
+  return Singular.FunctionField(singular_coeff_ring(base_ring(R)), string.(R.S))[1]
 end
 
 function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{fmpq_mpoly, gfp_mpoly}
@@ -44,8 +44,8 @@ function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where
 end
 
 # conversion between Singular and AbstractAlgebra function fields
-function Oscar.singular_ring(F::AbstractAlgebra.Generic.RationalFunctionField{T}) where T <: FieldElem
-  return singular_ring(F.fraction_field)
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.RationalFunctionField{T}) where T <: FieldElem
+  return singular_coeff_ring(F.fraction_field) # TODO: this is not correct
 end
 
 function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Rat{T}) where T <: FieldElem

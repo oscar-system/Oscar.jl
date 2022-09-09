@@ -1,21 +1,27 @@
 @testset "PolyhedralFan{$T}" for T in [fmpq, nf_elem]
     C0 = cube(T, 2)
+    @test normal_fan(C0) isa PolyhedralFan{T}
     NFsquare = normal_fan(C0)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]
     Cone4 = positive_hull(T, R)
     Cone5 = positive_hull(T, [1 0 0; 0 1 0])
 
+    @test PolyhedralFan([Cone4, Cone5]) isa PolyhedralFan{T}
     F0 = PolyhedralFan([Cone4, Cone5])
     I3 = [1 0 0; 0 1 0; 0 0 1]
     incidence1 = IncidenceMatrix([[1,2],[2,3]])
     incidence2 = IncidenceMatrix([[1,2]])
+    @test PolyhedralFan{T}(I3, incidence1) isa PolyhedralFan{T}
     F1 = PolyhedralFan{T}(I3, incidence1)
+    F1NR = PolyhedralFan{T}(I3, incidence1; non_redundant = true)
+    @test PolyhedralFan{T}(I3, incidence1) isa PolyhedralFan{T}
     F2 = PolyhedralFan{T}(R, L, incidence2)
+    F2NR = PolyhedralFan{T}(R, L, incidence2; non_redundant = true)
 
     @testset "core functionality" begin
         if T == fmpq
-            @test issmooth(NFsquare)
+            @test is_smooth(NFsquare)
             @test vector_matrix(rays(NFsquare)) == matrix(QQ, [1 0; -1 0; 0 1; 0 -1])
         else
             @test vector_matrix(rays(NFsquare)) == [1 0; -1 0; 0 1; 0 -1]
@@ -23,9 +29,9 @@
         @test rays(NFsquare) isa SubObjectIterator{RayVector{T}}
         @test length(rays(NFsquare)) == 4
         @test rays(NFsquare) == [[1, 0], [-1, 0], [0, 1], [0, -1]]
-        @test isregular(NFsquare)
-        @test iscomplete(NFsquare)
-        @test !iscomplete(F0)
+        @test is_regular(NFsquare)
+        @test is_complete(NFsquare)
+        @test !is_complete(F0)
         @test length(rays(F0)) == 3
         @test nrays(F1) == 3
         @test dim(F1) == 2
@@ -57,9 +63,14 @@
         FF0 = face_fan(C0)
         @test nrays(FF0) == 4
         if T == fmpq
-            @test !issmooth(FF0)
+            @test !is_smooth(FF0)
         end
         @test f_vector(NFsquare) == [4, 4]
+        @test rays(F1NR) == collect(eachrow(I3))
+        @test ray_indices(maximal_cones(F1NR)) == incidence1
+        @test rays(F2NR) == collect(eachrow(R))
+        @test lineality_space(F2NR) == collect(eachrow(L))
+        @test ray_indices(maximal_cones(F2NR)) == incidence2
     end
 
 end

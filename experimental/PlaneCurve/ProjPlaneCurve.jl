@@ -1,7 +1,7 @@
 #module ProjPlaneCurveModule
 
-export issmooth, tangent, common_components, curve_intersect,
-       curve_singular_locus, issmooth_curve, multiplicity,
+export is_smooth, tangent, common_components, curve_intersect,
+       curve_singular_locus, is_smooth_curve, multiplicity,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
 
@@ -14,11 +14,11 @@ export issmooth, tangent, common_components, curve_intersect,
 # curve.
 
 @doc Markdown.doc"""
-    issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+    is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -32,18 +32,18 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
 
-julia> Oscar.issmooth(C, P)
+julia> Oscar.is_smooth(C, P)
 false
 ```
 """
-function Oscar.issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function Oscar.is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
   iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve defined by ", C.eq)
   J = jacobi_ideal(C)
@@ -63,7 +63,7 @@ end
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -74,7 +74,7 @@ julia> T, _ = grade(S)
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -144,7 +144,7 @@ end
 
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -155,7 +155,7 @@ julia> T, _ = grade(S)
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -188,7 +188,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
   Fa = dehomogenization(F, r, 3)
   Ha = dehomogenization(H, r, 3)
-  if !isconstant(Fa) && !isconstant(Ha)
+  if !is_constant(Fa) && !is_constant(Ha)
      Ca = AffinePlaneCurve(Fa)
      Da = AffinePlaneCurve(Ha)
      L = curve_intersect(Ca, Da)
@@ -205,7 +205,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//leading_coefficient(h)
+        f = divexact(h, leading_coefficient(h))
         push!(ro, -f + gen(rr, 1))
      end
   end
@@ -223,7 +223,7 @@ end
 
 function curve_intersect(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
    R = parent(C.eq)
-   PP = projective_space(R.R.base_ring, 2)
+   PP = proj_space(R.R.base_ring, 2)
    curve_intersect(PP[1], C, D)
 end
 
@@ -258,7 +258,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
   # We compute the singular points in the chart z=1, then the ones of the form
   # (x:1:0) and then if (1:0:0) is singular.
   Fa = dehomogenization(D.eq, 3)
-  if !isconstant(Fa)
+  if !is_constant(Fa)
      Da = AffinePlaneCurve(Fa)
      L = curve_singular_locus(Da)
      if !isempty(L[2])
@@ -275,7 +275,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
   pY = phi(FY.f)
   pZ = phi(FZ.f)
   I = ideal([pF, pX, pY, pZ])
-  g = groebner_basis(I, ordering = :lex, complete_reduction=true)
+  g = collect(Oscar.groebner_assure(I, lex(gens(rr)), true))
   f = factor(g[1])
   ro = []
   for h in keys(f.fac)
@@ -298,7 +298,7 @@ end
 
 function curve_singular_locus(C::ProjectivePlaneCurve)
    R = parent(C.eq)
-   PP = projective_space(R.R.base_ring, 2)
+   PP = proj_space(R.R.base_ring, 2)
    curve_singular_locus(PP[1], C)
 end
 
@@ -306,11 +306,11 @@ end
 #
 
 @doc Markdown.doc"""
-    issmooth_curve(C::ProjectivePlaneCurve)
+    is_smooth_curve(C::ProjectivePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
 """
-function issmooth_curve(C::ProjectivePlaneCurve)
+function is_smooth_curve(C::ProjectivePlaneCurve)
    F = defining_equation(C)
    R = parent(F)
    J = jacobi_ideal(F)
@@ -440,7 +440,7 @@ end
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """
 function aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-  return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
+  return is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################
@@ -450,7 +450,7 @@ end
 
 Return the arithmetic genus of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -484,7 +484,7 @@ end
 
 Return the geometric genus of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 

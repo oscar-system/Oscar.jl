@@ -43,30 +43,26 @@ Objects of type `Cone` can be saved to a file and loaded from a file in the
 following way:
 ```@repl oscar
 C = positive_hull([1 0; 0 1])
-save_cone(C, "C.cone")
-CC = load_cone("C.cone")
+save("C.cone", C)
+CC = load("C.cone")
 collect(rays(CC))
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
 
-```@docs
-save_cone(C::Cone, filename::String)
-load_cone(filename::String)
-```
-
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)
+contains(C::Cone, v::AbstractVector)
 f_vector(C::Cone)
 hilbert_basis(C::Cone{fmpq})
 codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types
 intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
-ispointed(C::Cone)
-isfulldimensional(C::Cone)
+is_pointed(C::Cone)
+is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)

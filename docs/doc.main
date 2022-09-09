@@ -1,6 +1,13 @@
 [
   "index.md",
 
+  "General" => [
+     "General/architecture.md",
+     "General/other.md",
+     "General/faq.md",
+     "General/serialization.md",
+  ],
+
   "Groups" => [
      "Groups/intro.md",
      "Groups/basics.md",
@@ -87,6 +94,7 @@
         "Hecke/orders/frac_ideals.md",
      ],
      "NumberTheory/abelian_closure.md",
+     "Experimental/galois.md",
   ],
 
   "Polyhedral Geometry" => [
@@ -110,11 +118,17 @@
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
-     "CommutativeAlgebra/free_modules.md",
-     "CommutativeAlgebra/modules.md",
+     "Modules Over Multivariate Rings" => [
+        "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
+        "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
+     ],
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
      "CommutativeAlgebra/localizations.md",
+     "CommutativeAlgebra/module_localizations.md",
   ],
 
   "Invariant Theory" => [
@@ -140,29 +154,53 @@
         "ToricVarieties/ToricDivisors.md",
         "ToricVarieties/ToricDivisorClasses.md",
         "ToricVarieties/ToricLineBundles.md",
+        "ToricVarieties/cohomCalg.md",
+        "ToricVarieties/CohomologyClasses.md",
+        "ToricVarieties/Subvarieties.md",
+        "ToricVarieties/AlgebraicCycles.md",
      ],
      "Schemes" => [
         "AlgebraicGeometry/AffineSchemes.md",
      ],
+     "Tropical Geometry" => [
+        "TropicalGeometry/intro.md",
+        "TropicalGeometry/curve.md",
+     ]
+  ],
+
+ "Finitely Represented Algebras" => [
+    "NoncommutativeAlgebra/intro.md",
+    "PBW-Algebras" => [
+    "NoncommutativeAlgebra/PBWAlgebras/intro.md",
+    "NoncommutativeAlgebra/PBWAlgebras/creation.md",
+    "NoncommutativeAlgebra/PBWAlgebras/ideals.md",
+    "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
+    ],
+    "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
   "Combinatorics" => [
       "Combinatorics/graphs.md",
+      "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
   ],
 
+  "Straight Line Programs" => [
+      "StraightLinePrograms/intro.md",
+      "StraightLinePrograms/gapslps.md",
+      "StraightLinePrograms/abstractalgebra.md",
+   ],
 
-  "General" => [
-     "General/other.md",
-     "General/faq.md",
-  ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
   "Developer Documentation" => [
+    "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
-    "DeveloperDocumentation/build_documentation.md",
+    "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/serialization.md",
     "Polyhedral Geometry" => [
+        "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
     ],
   ],

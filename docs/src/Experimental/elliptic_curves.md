@@ -70,7 +70,7 @@ toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <:
 ```@docs
 discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
 j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
-istorsion_point(P::Point_EllCurve{fmpq})
+is_torsion_point(P::Point_EllCurve{fmpq})
 torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
 torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
 order(P::Point_EllCurve{fmpq})
@@ -104,7 +104,7 @@ A = ResidueRing(ZZ, ZZ(n))
 S, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
 T, _ = grade(S)
 E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
-PP = projective_space(A, 2)
+PP = proj_space(A, 2)
 Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
 P = Oscar.Point_EllCurve(E, Q)
 P2 = Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P)

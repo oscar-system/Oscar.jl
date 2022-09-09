@@ -19,33 +19,32 @@ Toric divisor classes are equivalence classes of Weil divisors modulo linear equ
 ### General constructors
 
 ```@docs
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{fmpz})
-ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+ToricDivisorClass(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
-### Special constructors
+### Addition, subtraction and scalar multiplication
+
+Toric divisor classes can be added and subtracted via the usual `+` and `-`
+operators. Moreover, multiplication by scalars from the left is supported
+for scalars which are integers or of type `fmpz`.
+
+### Special divisor classes
 
 ```@docs
-Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-Base.:*(c::fmpz, td::ToricDivisorClass)
-```
-
-### Equality
-
-```@docs
-Base.:(==)(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
+trivial_divisor_class(v::AbstractNormalToricVariety)
+anticanonical_divisor_class(v::AbstractNormalToricVariety)
+canonical_divisor_class(v::AbstractNormalToricVariety)
 ```
 
 
-## Properties of toric divisor classes
+## Properties
 
-```@docs
-istrivial(tdc::ToricDivisorClass)
-```
+Equality of toric divisor classes can be tested via `==`.
+
+To check if a toric divisor class is trivial, one can invoke `is_trivial`.
 
 
-## Operations for toric divisor classes
+## Attributes
 
 ```@docs
 divisor_class(tdc::ToricDivisorClass)

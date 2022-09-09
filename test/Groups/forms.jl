@@ -3,27 +3,27 @@
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
-   @test isskewsymmetric_matrix(B)
+   @test is_skewsymmetric_matrix(B)
    f = alternating_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test f==alternating_form(gram_matrix(f))
    @test base_ring(B)==F
-   @test !issymmetric(B)
-   @test !ishermitian_matrix(B)
-   @test isalternating_form(f)
-   @test !isquadratic_form(f)
-   @test !issymmetric_form(f)
-   @test !ishermitian_form(f)
+   @test !is_symmetric(B)
+   @test !is_hermitian_matrix(B)
+   @test is_alternating_form(f)
+   @test !is_quadratic_form(f)
+   @test !is_symmetric_form(f)
+   @test !is_hermitian_form(f)
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = hermitian_form(B)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
-   @test ishermitian_matrix(B)
+   @test is_hermitian_matrix(B)
    f = hermitian_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test ishermitian_form(f)
+   @test is_hermitian_form(f)
    @test f.X isa GAP.GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
@@ -31,12 +31,12 @@
    @test_throws ErrorException f = SesquilinearForm(B,:unitary)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 z+2 0])
-   @test issymmetric(B)
+   @test is_symmetric(B)
    f = symmetric_form(B)
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
-   @test issymmetric_form(f)
-   @test !ishermitian_form(f)
+   @test is_symmetric_form(f)
+   @test !is_hermitian_form(f)
    @test_throws AssertionError f = alternating_form(B)
    Qf = corresponding_quadratic_form(f)
    R = PolynomialRing(F,4)[1]
@@ -61,9 +61,9 @@
    R,x = PolynomialRing(F,"x")
    p = x^2*z
    Q = quadratic_form(p)
-   @test isquadratic_form(Q)
+   @test is_quadratic_form(Q)
    f = corresponding_bilinear_form(Q)
-   @test issymmetric_form(f)
+   @test is_symmetric_form(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
    T,t = PolynomialRing(GF(2),"t")
@@ -71,10 +71,10 @@
    R = PolynomialRing(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
-   @test isquadratic_form(Q)
+   @test is_quadratic_form(Q)
    @test gram_matrix(Q)==matrix(F,4,4,[0 1 0 0; 0 0 0 0; 0 0 0 z; 0 0 0 0])
    f = corresponding_bilinear_form(Q)
-   @test isalternating_form(f)
+   @test is_alternating_form(f)
    @test gram_matrix(f)==matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z; 0 0 z 0])
    @test_throws ArgumentError corresponding_quadratic_form(f)
 
@@ -129,9 +129,9 @@ end
    f = symmetric_form(x+transpose(x))
    @test radical(f)[1]==sub(V,[V[1],V[2]])[1]
    @test f*F(3)==F(3)*f;
-   @test issymmetric_form(f*F(3))
+   @test is_symmetric_form(f*F(3))
    @test gram_matrix(f*F(3))==F(3)*(x+transpose(x))
-   @test isdegenerate(f)
+   @test is_degenerate(f)
    x[1,2]=1;
 
    f = symmetric_form(x+transpose(x))
@@ -140,7 +140,7 @@ end
    @test radical(Q)[1]==radical(f)[1]
    @test witt_index(f)==3
    @test witt_index(Q)==3
-   @test !isdegenerate(f)
+   @test !is_degenerate(f)
 
    F = GF(2,1)
    x = matrix(F,2,2,[1,0,0,0])
@@ -159,7 +159,7 @@ end
    y = zero_matrix(F,6,6)
    y[1,3]=2;y[3,4]=1; y=y+transpose(y)
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -167,12 +167,12 @@ end
    x = diagonal_matrix(F.([1,4,2,3,6,5,4]))
    y = diagonal_matrix(F.([3,1,5,6,4,2,1]))
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    y = diagonal_matrix(F.([3,1,5,6,4,3,1]))
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test !is_true
    @test z==nothing
 
@@ -182,12 +182,12 @@ end
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
    y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
    f = symmetric_form(x); g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    y = diagonal_matrix(F.([a,1,1,a+1,2,2*a]))
    g = symmetric_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test !is_true
 
    #alternating
@@ -197,7 +197,7 @@ end
    y = zero_matrix(F,6,6)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -207,7 +207,7 @@ end
    y = zero_matrix(F,6,6)
    y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    x = zero_matrix(F,8,8)
@@ -215,25 +215,25 @@ end
    y = zero_matrix(F,8,8)
    y[1,8]=1; y[2,7]=a; y[3,6]=a^2+1; y[4,5] = -a^2-a-1; y = y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    y = zero_matrix(F,8,8)
    y[1,8]=1; y[2,7]=a; y[3,6]=a^2+1; y = y-transpose(y)
    f = alternating_form(x); g = alternating_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test !is_true
 
    y = zero_matrix(F,6,6)
    y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError iscongruent(f,g)
+   @test_throws AssertionError is_congruent(f,g)
 
    F = GF(3,1)
    y = zero_matrix(F,8,8)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    g = alternating_form(y)
-   @test_throws AssertionError iscongruent(f,g)
+   @test_throws AssertionError is_congruent(f,g)
 
    #hermitian
    F,a = FiniteField(3,2,"a")
@@ -242,14 +242,14 @@ end
    y = zero_matrix(F,6,6)
    y[1,2]=2; y=y+conjugate_transpose(y)
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    x = diagonal_matrix(F.([1,2,1,1,1]))
    y = diagonal_matrix(F.([2,1,0,0,2]))
    y[3,4]=a; y[4,3]=a^3; y[4,5]=1+a; y[5,4]=(1+a)^3;
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -259,14 +259,14 @@ end
    y = zero_matrix(F,6,6)
    y[1,2]=1; y=y+conjugate_transpose(y)
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
    x = diagonal_matrix(F.([1,1,1,1,1]))
    y = diagonal_matrix(F.([1,1,0,0,1]))
    y[3,4]=a; y[4,3]=a^2; y[4,5]=1+a; y[5,4]=(1+a)^2;
    f = hermitian_form(x); g = hermitian_form(y)
-   is_true,z = iscongruent(f,g)
+   is_true,z = is_congruent(f,g)
    @test is_true
    @test f^z == g
 
@@ -277,24 +277,24 @@ end
    p2 = R[4]*R[5]+3*R[4]^2
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p2 = R[4]*R[5]+3*R[4]^2+2*R[5]^2
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 
    p1 = R[1]^2+R[2]^2+R[3]^2+R[4]^2+R[5]*R[6]
    p2 = R[1]*R[6]+R[2]*R[5]+R[3]*R[4]
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p1 = R[1]^2+R[2]^2+R[3]^2+R[4]^2+R[5]^2+R[5]*R[6]+2*R[6]^2
    Q1 = quadratic_form(p1)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 
    F,a = FiniteField(2,2,"a")
@@ -303,23 +303,23 @@ end
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+a*R[6]^2
    Q1 = quadratic_form(p1)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
    p1 = R[1]*R[2]
    p2 = R[3]^2+(a+1)*R[3]*R[5]
    Q1 = quadratic_form(p1)
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test is_true
    @test Q1^z == Q2
    p2 = R[3]^2+R[3]*R[5]+(a+1)*R[5]^2
    Q2 = quadratic_form(p2)
-   is_true,z = iscongruent(Q1,Q2)
+   is_true,z = is_congruent(Q1,Q2)
    @test !is_true
 end
 
@@ -356,21 +356,21 @@ end
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test isconjugate(G,H,Op)[1]
+   @test is_conjugate(G,H,Op)[1]
    B[2,2]=1; B[3,3]=1;
    f = quadratic_form(B)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test isconjugate(G,H,Om)[1]
+   @test is_conjugate(G,H,Om)[1]
    Q = f
    f = corresponding_bilinear_form(Q)
    H = isometry_group(f)
    @testset for x in gens(H)
       @test f^x==f
    end
-   @test isconjugate(G,H,Sp(4,2))[1]
+   @test is_conjugate(G,H,Sp(4,2))[1]
 
    G = GL(5,9)
    F = base_ring(G)
@@ -473,7 +473,7 @@ end
    end
    B = Oscar.invariant_quadratic_form(G)
    @testset for g in gens(G)
-      @test isskewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+      @test is_skewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
    end
 
    G = GU(4,5)
@@ -487,6 +487,9 @@ end
    @testset for g in gens(G)
       @test g.elm*B*conjugate_transpose(g.elm)==B
    end
+
+   G = general_linear_group(2, 3)
+   @test_throws ArgumentError Oscar.invariant_sesquilinear_form(G)
 
    @testset for q in [2,3,4,5]
       G = GU(5,q)
@@ -597,4 +600,44 @@ end
       @test f^h==f
    end
    @test order(H)==order(GU(2,3))*order(GL(2,9))*9^4
+
+   @testset "orthogonal sign" begin
+      @test orthogonal_sign(orthogonal_group(+1, 4, 2)) == +1
+      @test orthogonal_sign(orthogonal_group(-1, 4, 2)) == -1
+      @test orthogonal_sign(orthogonal_group(+1, 4, 3)) == +1
+      @test orthogonal_sign(orthogonal_group(-1, 4, 3)) == -1
+      @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
+      # Odd dimensional orthogonal groups in char. 2 are not irreducible.
+      @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
+      @test orthogonal_sign(general_linear_group(4, 2)) == nothing
+      # If the abs. irred. module preserves an antisymmetric invariant
+      # bilinear form then there is no nondegenerate quadratic form.
+      F = GF(7)
+      G = MatrixGroup(6, F)
+      mats = [matrix(F, [0 1 0 0 0 0; 1 0 0 0 0 0; 0 0 0 1 0 0;
+                         0 0 1 0 0 0; 5 5 2 2 6 0; 3 3 4 4 0 6]),
+              matrix(F, [4 0 0 0 0 0; 0 0 1 0 0 0; 0 6 1 0 0 0;
+                         0 0 0 0 1 0; 0 0 0 0 0 1; 6 0 0 2 4 3])]
+      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      @test describe(G) == "PSU(3,3)"
+      @test orthogonal_sign(G) == nothing
+   end
+end
+
+@testset "Orthogonal groups of ZZ-lattices" begin
+  N1 = root_lattice(:A, 2)
+  N2 = rescale(N1, 4)
+  N,_,_ = Hecke.orthogonal_sum(N1,N2)
+  @test order(orthogonal_group(N))==144
+
+  L = Zlattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
+  G = orthogonal_group(L)
+  @test order(G)==32
+  @test order(oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
+  @test order(oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
+  @test order(oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
+
+  gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
+  L = Zlattice(gram=gram)
+  @test order(orthogonal_group(L)) == 267544166400
 end

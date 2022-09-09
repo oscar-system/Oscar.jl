@@ -75,11 +75,25 @@ end
 
 @testset "Ideal operations" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I = ideal(R, [0, x^2, 0])
+  Oscar.remove_zeroes!(I)
+  @test I == ideal(R, [x^2])
+  I = ideal(R, [0])
+  Oscar.remove_zeroes!(I)
+  @test I == ideal(R, [0])
+  I = ideal(R, [x^2, y^2])
+  J = ideal(R, [x*y^2, x^2])
+  S = ideal(R, [x^2, y^2, x*y^2])
+  P = ideal(R, [x^3*y^2, x^4, x*y^4, x^2*y^2])
+  @test Oscar.check_base_rings(I, J) == nothing
+  @test I+J == I-J == S
+  @test I*J == P
   f = x^2 + y^2
   g = x^4*y - x*y^3
   I = [f, g]
   S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
   J = ideal(S, [(c^2+1)*(c^3+2)^2, b-c^2])
+  @test_throws ErrorException Oscar.check_base_rings(P, J)
   r1 = c^2-b
   r2 = b^2*c+c^3+2*c^2+2
   L = gens(radical(J))
@@ -106,8 +120,8 @@ end
     j = ideal(R, [R(1)])
     for (q, p) in primary_decomposition(i, alg=method)
       j = intersect(j, q)
-      @test isprimary(q)
-      @test isprime(p)
+      @test is_primary(q)
+      @test is_prime(p)
       @test p == radical(q)
     end
     @test j == i
@@ -191,8 +205,8 @@ end
 @testset "Groebner" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   I = ideal([x+y^2+4*z-5,x+y*z+5*z-2])
-  @test groebner_basis(I;ordering=:lex) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
-  @test groebner_basis(I;ordering=:degrevlex, complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
+  @test groebner_basis(I, ordering=lex(gens(R))) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
+  @test groebner_basis(I, ordering=degrevlex(gens(R)), complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
 
   # Test coefficient rings that are actually fields for safety. The first three
   # are native to singular while gfp_fmpz_elem now has a proper wrapper
@@ -200,14 +214,14 @@ end
              GF(fmpz(10)^50+151)]
     R, (x, y) = PolynomialRing(Zn, ["x", "y"], ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
-    g = groebner_basis(ideal(R, l); ordering = :degrevlex)
+    g = groebner_basis(ideal(R, l); ordering = degrevlex(gens(R)))
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
   F, a = FiniteField(11, 2, "a")
   R, (x, y, z) = PolynomialRing(F, ["x", "y", "z"], ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
-  gb = groebner_basis(ideal(R, l); ordering = :degrevlex)
+  gb = groebner_basis(ideal(R, l); ordering = degrevlex(gens(R)))
   @test iszero(divrem(l[1] + l[2], gb)[2])
 end
 
@@ -217,14 +231,14 @@ end
   J = ideal(R, [x, y^2])
   L = primary_decomposition(I)
   Q = ideal(R, [R(1)])
-  @test isprime(I) == false
-  @test isprimary(I) == false
-  @test isprime(J) == false
-  @test isprimary(J) == true
+  @test is_prime(I) == false
+  @test is_primary(I) == false
+  @test is_prime(J) == false
+  @test is_primary(J) == true
   for (q, p) in L
     Q = intersect(Q, q)
-    @test isprimary(q)
-    @test isprime(p)
+    @test is_primary(q)
+    @test is_prime(p)
     @test p == radical(q)
   end
   @test Q == I
@@ -235,4 +249,26 @@ end
   I = ideal(R, zero(R))
   @test issubset(I, I)
   @test I == I
+end
+
+@testset "#975" begin
+  A, t = PolynomialRing(QQ, ["t"])
+  R, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
+  I = ideal(R, [x])
+  @test x in I
+end
+
+@testset "Fraction fields over polynomial rings" begin
+  R, x = PolynomialRing(QQ, "x")
+  F = FractionField(R)
+  @test gen(F) == F(x)
+  @test gens(F) == elem_type(F)[ F(x) ]
+
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  F = FractionField(R)
+  @test ngens(F) == 3
+  @test gen(F, 2) == F(y)
+  @test gens(F) == elem_type(F)[ F(x), F(y), F(z) ]
+  @test F[1] == F(x)
+  @test F[0] == zero(F)
 end

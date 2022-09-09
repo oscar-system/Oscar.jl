@@ -45,29 +45,24 @@ in the following way:
 ```@repl oscar
 square = cube(2)
 fan = normal_fan(square)
-save_polyhedralfan(fan, "F.fan")
-f = load_polyhedralfan("F.fan")
+save("F.fan", fan)
+f = load("F.fan")
 collect(rays(f))
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
 
-```@docs
-save_polyhedralfan(PF::PolyhedralFan, filename::String)
-load_polyhedralfan(filename::String)
-```
-
 ## Auxiliary functions
 ```@docs
 ambient_dim(PF::PolyhedralFan)
 dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
-iscomplete(PF::PolyhedralFan)
-ispointed(PF::PolyhedralFan)
-isregular(PF::PolyhedralFan)
-issimplicial(PF::PolyhedralFan)
-issmooth(PF::PolyhedralFan{fmpq})
+is_complete(PF::PolyhedralFan)
+is_pointed(PF::PolyhedralFan)
+is_regular(PF::PolyhedralFan)
+is_simplicial(PF::PolyhedralFan)
+is_smooth(PF::PolyhedralFan{fmpq})
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
 maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types

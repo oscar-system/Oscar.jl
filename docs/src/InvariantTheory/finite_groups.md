@@ -24,7 +24,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
 		   
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
-       $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
+       $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(f \;\!   . \;\! \pi).$
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
@@ -46,27 +46,27 @@ In the non-modular case, an alternative and typically more effective way to comp
 
 We discuss the relevant OSCAR functionality below.
 
-!!! warning
-    At current state, only the non-modular case is supported by OSCAR. 
-
-
 ## Creating Invariant Rings
 
-The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified.
+### How Groups are Given
 
-### Matrix Groups
+The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified:
+
+#### Matrix Groups
 
 Here, $G$ will be explicitly given as a matrix group $G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$ by linear substitution:
 
-$(\pi \;\!  . \;\! f) \;\! (x_1, \dots, x_n)  = f(\pi^{-1} \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)) \text{ for all } \pi\in G.$
 
+#### Permutation Groups
+
+Here, $G$ will be given as a permutation group, acting on $K[x_1, \dots, x_n]\cong K[V]$ by permuting the variables.
+
+### Constructors for Invariant Rings
 
 ```@docs
 invariant_ring(G::MatrixGroup)
 ```
-
-### Permutation Groups
-
 
 ## Basic Data Associated to Invariant Rings
 
@@ -76,7 +76,7 @@ If `IR` is the invariant ring $K[x_1,..., x_n]^G$ of a finite matrix group $G$, 
 - `coefficient_ring(IR)` to $K$, and
 - `polynomial_ring(IR)` to $K[x_1,..., x_n]$.
 
-Moreover, `ismodular(IR)` returns `true` in the modular case, and
+Moreover, `is_modular(IR)` returns `true` in the modular case, and
 `false` otherwise.
 
 ###### Examples
@@ -91,7 +91,7 @@ group(IR)
 coefficient_ring(IR)
 R = polynomial_ring(IR)
 x = gens(R)
-ismodular(IR)
+is_modular(IR)
 ```
 
 ## The Reynolds Operator
@@ -119,15 +119,7 @@ iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 ## Primary Invariants
 
 ```@docs
-primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
-```
-
-```@docs
-primary_invariants_via_optimal_hsop(IR::InvRing)
-```
-
-```@docs
-primary_invariants_via_successive_algo(IR::InvRing)
+primary_invariants(IR::InvRing)
 ```
 
 ## Secondary Invariants
@@ -143,7 +135,7 @@ irreducible_secondary_invariants(IR::InvRing)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing, algo::Symbol = :king)
+fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
 ```
 
 ## Invariant Rings as Affine Algebras

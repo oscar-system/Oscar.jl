@@ -52,6 +52,7 @@ true
 hom(G::GAPGroup, H::GAPGroup, img::Function)
 hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
 image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
@@ -87,7 +88,7 @@ julia> x^f
 
 A sort of "inverse" of the evaluation is the following
 ```@docs
-haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 ```
   **Example:**
 ```jldoctest
@@ -103,11 +104,6 @@ julia> haspreimage(f,x)
 
 !!! warning
     Do not confuse `haspreimage` with the function `has_preimage`, which works on variable of type `GrpGenToGrpGenMor`.
-
-A further function that produces isomorphisms is `isisomorphic`:
-```@docs
-isisomorphic(G::GAPGroup, H::GAPGroup)
-```
 
 ## Operations on homomorphisms
 
@@ -144,11 +140,11 @@ Oscar implements the following attributes of homomorphisms,
 in addition to the usual `domain` and `codomain`.
 
 ```@docs
-isinjective(f::GAPGroupHomomorphism)
-issurjective(f::GAPGroupHomomorphism)
-isbijective(f::GAPGroupHomomorphism)
-isinvertible(f::GAPGroupHomomorphism)
-isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
+is_injective(f::GAPGroupHomomorphism)
+is_surjective(f::GAPGroupHomomorphism)
+is_bijective(f::GAPGroupHomomorphism)
+is_invertible(f::GAPGroupHomomorphism)
+is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
 ## Subgroups described by homomorphisms
@@ -163,10 +159,16 @@ cokernel(f::GAPGroupHomomorphism)
 preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
 ```
 
-## Groups created by isomorphisms
+## Group isomorphisms
 
 ```@docs
-isomorphic_perm_group(G::GAPGroup)
-isomorphic_pc_group(G::GAPGroup)
-isomorphic_fp_group(G::GAPGroup)
+is_isomorphic(G::GAPGroup, H::GAPGroup)
+is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
+isomorphism(G::GAPGroup, H::GAPGroup)
+```
+
+```@docs
+isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+simplified_fp_group(G::FPGroup)
 ```

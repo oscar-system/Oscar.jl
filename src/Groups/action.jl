@@ -1,3 +1,10 @@
+export on_indeterminates,
+       on_sets,
+       on_sets_sets,
+       on_tuples,
+       permuted,
+       right_coset_action
+
 """
 A *group action* of a group G on a set Ω (from the right) is defined by
 a map μ: Ω × G → Ω that satisfies the compatibility conditions
@@ -33,8 +40,6 @@ The following ones are commonly used.
 ##  The idea is to delegate the action of `GAPGroupElem` objects
 ##  on `GAP.GapObj` objects to the corresponding GAP action,
 ##  and to implement the action on native Julia objects case by case.
-
-export on_tuples, on_sets, on_sets_sets, on_indeterminates, permuted
 
 """
 We try to avoid introducing `on_points` and `on_right`.
@@ -291,12 +296,18 @@ end
 """
     on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
     on_indeterminates(f::Nemo.MPolyElem, p::PermGroupElem)
+    on_indeterminates(f::MPolyIdeal, p::PermGroupElem)
+    on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
+    on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+    on_indeterminates(f::MPolyIdeal, p::MatrixGroupElem)
 
-Return the image of `f` under `p`, w.r.t. permuting the indeterminates
-with `p`.
+Return the image of `f` under `p`.
+If `p` is a `PermGroupElem` then it acts via permuting the indeterminates,
+if `p` is a `MatrixGroupElem` then it acts via evaluating `f` at the
+vector obtained by multiplying `p` with the (column) vector of indeterminates.
 
-For `Nemo.MPolyElem` objects, one can also call `^` instead of
-`on_indeterminates`.
+For `Nemo.MPolyElem` and `MPolyIdeal` objects,
+one can also call `^` instead of `on_indeterminates`.
 
 # Examples
 ```jldoctest
@@ -319,6 +330,18 @@ GAP: x_1*x_2+x_2*x_3
 julia> on_indeterminates(f, p)
 GAP: x_1*x_3+x_2*x_3
 
+julia> g = general_linear_group(2, 5);  m = g[2]
+[4   1]
+[4   0]
+
+julia> R, x = PolynomialRing(base_ring(g), degree(g));
+
+julia> f = x[1]*x[2] + x[1]
+x1*x2 + x1
+
+julia> f^m
+x1^2 + 4*x1*x2 + 4*x1 + x2
+
 ```
 """
 on_indeterminates(f::GAP.GapObj, p::PermGroupElem) = GAP.Globals.OnIndeterminates(f, p.X)
@@ -338,7 +361,42 @@ function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
   return finish(g)
 end
 
+function on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
+  # We assume that we act on the indeterminates with numbers 1, ..., nrows(p).
+  # (Note that `f` does not know about a polynomial ring to which it belongs.)
+  n = nrows(p)
+  fam = GAP.Globals.CoefficientsFamily(GAP.Globals.FamilyObj(f))
+  indets = GAP.GapObj([GAP.Globals.Indeterminate(fam, i) for i in 1:n])
+  return GAP.Globals.Value(f, indets, p.X * indets)
+end
+
+function on_indeterminates(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S
+  @assert base_ring(f) == base_ring(p)
+  @assert ngens(parent(f)) == degree(parent(p))
+  act = Oscar.right_action(parent(f), p)
+  return act(f)
+end
+
+function on_indeterminates(I::MPolyIdeal, p::PermGroupElem)
+  @assert ngens(parent(gen(I, 1))) == degree(parent(p))
+  imggens = [on_indeterminates(x, p) for x in gens(I)]
+  return ideal(parent(imggens[1]), imggens)
+end
+
+function on_indeterminates(I::MPolyIdeal, p::MatrixGroupElem)
+  @assert base_ring(gen(I, 1)) == base_ring(p)
+  @assert ngens(parent(gen(I, 1))) == degree(parent(p))
+  imggens = [on_indeterminates(x, p) for x in gens(I)]
+  return ideal(parent(imggens[1]), imggens)
+end
+
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
+
+^(f::Nemo.MPolyElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
+
+^(I::MPolyIdeal, p::PermGroupElem) = on_indeterminates(I, p)
+
+^(I::MPolyIdeal, p::MatrixGroupElem) = on_indeterminates(I, p)
 
 
 @doc Markdown.doc"""
@@ -393,3 +451,33 @@ stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET
 stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_tuples)
 
 stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_sets)
+
+
+"""
+    right_coset_action(G::T, U::T) where T <: GAPGroup
+
+Compute the action of `G` on the right cosets of its subgroup `U`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(6);
+
+julia> H = sylow_subgroup(G, 2)[1]
+Group([ (1,2), (3,4), (1,3)(2,4), (5,6) ])
+
+julia> index(G, H)
+45
+
+julia> act = right_coset_action(G, H);
+
+julia> degree(codomain(act)) == index(G, H)
+true
+
+```
+"""
+function right_coset_action(G::T, U::T) where T <: GAPGroup
+  mp = GAP.Globals.FactorCosetAction(G.X, U.X)
+  mp == GAP.Globals.fail && throw(ArgumentError("Invalid input"))
+  H = PermGroup(GAP.Globals.Range(mp))
+  return GAPGroupHomomorphism(G, H, mp)
+end

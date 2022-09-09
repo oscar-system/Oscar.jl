@@ -1,5 +1,6 @@
 @testset "show and print character tables" begin
   io = IOBuffer();
+
   t_a4 = character_table(alternating_group(4))
   t_a5 = character_table("A5")
 
@@ -8,7 +9,9 @@
   @test String(take!(io)) == "character_table(Alt( [ 1 .. 4 ] ))"
 
   # default `show`
-  show(io, t_a4)
+  Oscar.with_unicode() do
+    show(io, t_a4)
+  end
   @test String(take!(io)) ==
   """
   Alt( [ 1 .. 4 ] )
@@ -24,6 +27,24 @@
   χ₂  1  1 -ζ₃ - 1      ζ₃
   χ₃  1  1      ζ₃ -ζ₃ - 1
   χ₄  3 -1       .       .
+  """
+
+  show(io, t_a4)
+  @test String(take!(io)) ==
+  """
+  Alt( [ 1 .. 4 ] )
+  
+    2  2  2        .        .
+    3  1  .        1        1
+                             
+      1a 2a       3a       3b
+   2P 1a 1a       3b       3a
+   3P 1a 2a       1a       1a
+                             
+  X_1  1  1        1        1
+  X_2  1  1 -z_3 - 1      z_3
+  X_3  1  1      z_3 -z_3 - 1
+  X_4  3 -1        .        .
   """
 
   # LaTeX format
@@ -49,7 +70,9 @@
 
   # show a legend of irrationalities instead of self-explanatory values,
   # in the screen format ...
-  show(IOContext(io, :with_legend => true), t_a4)
+  Oscar.with_unicode() do
+    show(IOContext(io, :with_legend => true), t_a4)
+  end
   @test String(take!(io)) ==
   """
   Alt( [ 1 .. 4 ] )
@@ -68,6 +91,27 @@
 
   A = -ζ₃ - 1
   A̅ = ζ₃
+  """
+
+  show(IOContext(io, :with_legend => true), t_a4)
+  @test String(take!(io)) ==
+  """
+  Alt( [ 1 .. 4 ] )
+  
+    2  2  2  .  .
+    3  1  .  1  1
+                 
+      1a 2a 3a 3b
+   2P 1a 1a 3b 3a
+   3P 1a 2a 1a 1a
+                 
+  X_1  1  1  1  1
+  X_2  1  1  A /A
+  X_3  1  1 /A  A
+  X_4  3 -1  .  .
+  
+  A = -z_3 - 1
+  /A = z_3
   """
 
   # ... and in LaTeX format
@@ -95,7 +139,9 @@
   \$"""
 
   # show the screen format for a table with real and non-real irrationalities
-  show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+  Oscar.with_unicode() do
+    show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+  end
   @test String(take!(io)) ==
   """
   L2(11)
@@ -126,9 +172,42 @@
   B̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1
   """
 
+  show(IOContext(io, :with_legend => true), character_table("L2(11)"))
+  @test String(take!(io)) ==
+  """
+  L2(11)
+  
+    2  2  2  1  .  .  1   .   .
+    3  1  1  1  .  .  1   .   .
+    5  1  .  .  1  1  .   .   .
+   11  1  .  .  .  .  .   1   1
+                               
+      1a 2a 3a 5a 5b 6a 11a 11b
+   2P 1a 1a 3a 5b 5a 3a 11b 11a
+   3P 1a 2a 1a 5b 5a 2a 11a 11b
+   5P 1a 2a 3a 1a 1a 6a 11a 11b
+  11P 1a 2a 3a 5a 5b 6a  1a  1a
+                               
+  X_1  1  1  1  1  1  1   1   1
+  X_2  5  1 -1  .  .  1   B  /B
+  X_3  5  1 -1  .  .  1  /B   B
+  X_4 10 -2  1  .  .  1  -1  -1
+  X_5 10  2  1  .  . -1  -1  -1
+  X_6 11 -1 -1  1  1 -1   .   .
+  X_7 12  .  .  A A*  .   1   1
+  X_8 12  .  . A*  A  .   1   1
+  
+  A = -z_5^3 - z_5^2 - 1
+  A* = z_5^3 + z_5^2
+  B = z_11^9 + z_11^5 + z_11^4 + z_11^3 + z_11
+  /B = -z_11^9 - z_11^5 - z_11^4 - z_11^3 - z_11 - 1
+  """
+
   # show some separating lines, in the screen format ...
-  show(IOContext(io, :separators_col => [0,5],
-                     :separators_row => [0,5]), t_a5)
+  Oscar.with_unicode() do
+    show(IOContext(io, :separators_col => [0,5],
+                       :separators_row => [0,5]), t_a5)
+  end
   @test String(take!(io)) ==
   """
   A5
@@ -149,6 +228,30 @@
   χ₄│ 4  .  1            -1            -1│
   χ₅│ 5  1 -1             .             .│
   ──┼────────────────────────────────────┼
+  """
+
+  show(IOContext(io, :separators_col => [0,5],
+                     :separators_row => [0,5]), t_a5)
+  @test String(take!(io)) ==
+  """
+  A5
+  
+    2| 2  2  .                 .                 .|
+    3| 1  .  1                 .                 .|
+    5| 1  .  .                 1                 1|
+     |                                            |
+     |1a 2a 3a                5a                5b|
+   2P|1a 1a 3a                5b                5a|
+   3P|1a 2a 1a                5b                5a|
+   5P|1a 2a 3a                1a                1a|
+     |                                            |
+  ---+--------------------------------------------+
+  X_1| 1  1  1                 1                 1|
+  X_2| 3 -1  . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2|
+  X_3| 3 -1  .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1|
+  X_4| 4  .  1                -1                -1|
+  X_5| 5  1 -1                 .                 .|
+  ---+--------------------------------------------+
   """
 
   # ... and in LaTeX format
@@ -180,9 +283,11 @@
   \$"""
 
   # distribute the table into column portions, in the screen format ...
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_col => [2,3]), t_a5)
+  Oscar.with_unicode() do
+    show(IOContext(io, :separators_col => [0],
+                       :separators_row => [0],
+                       :portions_col => [2,3]), t_a5)
+  end
   @test String(take!(io)) ==
   """
   A5
@@ -218,6 +323,46 @@
   χ₃│ .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
   χ₄│ 1            -1            -1
   χ₅│-1             .             .
+  """
+
+  show(IOContext(io, :separators_col => [0],
+                     :separators_row => [0],
+                     :portions_col => [2,3]), t_a5)
+  @test String(take!(io)) ==
+  """
+  A5
+  
+    2| 2  2
+    3| 1  .
+    5| 1  .
+     |     
+     |1a 2a
+   2P|1a 1a
+   3P|1a 2a
+   5P|1a 2a
+     |     
+  ---+-----
+  X_1| 1  1
+  X_2| 3 -1
+  X_3| 3 -1
+  X_4| 4  .
+  X_5| 5  1
+  
+    2| .                 .                 .
+    3| 1                 .                 .
+    5| .                 1                 1
+     |                                      
+     |3a                5a                5b
+   2P|3a                5b                5a
+   3P|1a                5b                5a
+   5P|3a                1a                1a
+     |                                      
+  ---+--------------------------------------
+  X_1| 1                 1                 1
+  X_2| . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2
+  X_3| .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1
+  X_4| 1                -1                -1
+  X_5|-1                 .                 .
   """
 
   # ... and in LaTeX format
@@ -267,11 +412,14 @@
 
   # distribute the table into row portions,
   # in the screen format (perhaps not relevant) ...
-  show(IOContext(io, :separators_col => [0],
-                     :separators_row => [0],
-                     :portions_row => [2,3]), t_a5)
+  Oscar.with_unicode() do
+    show(IOContext(io, :separators_col => [0],
+                       :separators_row => [0],
+                       :portions_row => [2,3]), t_a5)
+  end
   @test String(take!(io)) ==
-  """A5
+  """
+  A5
 
    2│ 2  2  .             .             .
    3│ 1  .  1             .             .
@@ -299,6 +447,41 @@
   χ₃│ 3 -1  .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
   χ₄│ 4  .  1            -1            -1
   χ₅│ 5  1 -1             .             .
+  """
+
+  show(IOContext(io, :separators_col => [0],
+                     :separators_row => [0],
+                     :portions_row => [2,3]), t_a5)
+  @test String(take!(io)) ==
+  """
+  A5
+  
+    2| 2  2  .                 .                 .
+    3| 1  .  1                 .                 .
+    5| 1  .  .                 1                 1
+     |                                            
+     |1a 2a 3a                5a                5b
+   2P|1a 1a 3a                5b                5a
+   3P|1a 2a 1a                5b                5a
+   5P|1a 2a 3a                1a                1a
+     |                                            
+  ---+--------------------------------------------
+  X_1| 1  1  1                 1                 1
+  X_2| 3 -1  . z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2
+  
+    2| 2  2  .                 .                 .
+    3| 1  .  1                 .                 .
+    5| 1  .  .                 1                 1
+     |                                            
+     |1a 2a 3a                5a                5b
+   2P|1a 1a 3a                5b                5a
+   3P|1a 2a 1a                5b                5a
+   5P|1a 2a 3a                1a                1a
+     |                                            
+  ---+--------------------------------------------
+  X_3| 3 -1  .    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1
+  X_4| 4  .  1                -1                -1
+  X_5| 5  1 -1                 .                 .
   """
 
   # ... and in LaTeX format (may be interesting)
@@ -337,6 +520,47 @@
   \\chi_{3} & 3 & -1 & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\
   \\chi_{4} & 4 & . & 1 & -1 & -1 \\\\
   \\chi_{5} & 5 & 1 & -1 & . & . \\\\
+  \\end{array}
+  \$"""
+
+  # show indicators in the screen format ...
+  Oscar.with_unicode() do
+    show(IOContext(io, :indicator => [2]), t_a4)
+  end
+  @test String(take!(io)) ==
+  """
+  Alt( [ 1 .. 4 ] )
+
+      2  2  2       .       .
+      3  1  .       1       1
+                             
+        1a 2a      3a      3b
+     2P 1a 1a      3b      3a
+     3P 1a 2a      1a      1a
+      2                      
+  χ₁  +  1  1       1       1
+  χ₂  o  1  1 -ζ₃ - 1      ζ₃
+  χ₃  o  1  1      ζ₃ -ζ₃ - 1
+  χ₄  +  3 -1       .       .
+  """
+
+  # ... and in LaTeX format
+  show(IOContext(io, :indicator => [2]), MIME("text/latex"), t_a4)
+  @test String(take!(io)) ==
+  """\$Alt( [ 1 .. 4 ] )
+
+  \\begin{array}{rrrrrr}
+   & 2 & 2 & 2 & . & . \\\\
+   & 3 & 1 & . & 1 & 1 \\\\
+   &  &  &  &  &  \\\\
+   &  & 1a & 2a & 3a & 3b \\\\
+   & 2P & 1a & 1a & 3b & 3a \\\\
+   & 3P & 1a & 2a & 1a & 1a \\\\
+   & 2 &  &  &  &  \\\\
+  \\chi_{1} & + & 1 & 1 & 1 & 1 \\\\
+  \\chi_{2} & o & 1 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\
+  \\chi_{3} & o & 1 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\
+  \\chi_{4} & + & 3 & -1 & . & . \\\\
   \\end{array}
   \$"""
 end
@@ -381,7 +605,7 @@ end
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa fmpq
-  for T in [fmpz, fmpq, Int64, QabElem]
+  for T in [fmpz, fmpq, Int64, QQAbElem]
     scpT = scalar_product(T, t[1],t[1])
     @test scpT == scp
     @test scpT isa T
@@ -434,8 +658,8 @@ end
 @testset "Galois conjugacy of characters" begin
   g = alternating_group(4)
   t = character_table(g)
-  @test all(x -> conj(x) == QabAutomorphism(5)(x), t)
-  @test all(x -> x == QabAutomorphism(4)(x), t)
+  @test all(x -> conj(x) == QQAbAutomorphism(5)(x), t)
+  @test all(x -> x == QQAbAutomorphism(4)(x), t)
 end
 
 @testset "induction of characters" begin
@@ -494,4 +718,46 @@ end
 @testset "Schur index" begin
   t = character_table("2.A5")
   @test map(schur_index, collect(t)) == [1,1,1,1,1,2,2,2,2]
+
+  g = small_group(192, 1022)
+  h = derived_subgroup(g)[1];
+  s = character_table(h);
+  t = character_table(g);
+  trivial_character(s)^t;  # side-effect: stores a class fusion
+  @test length(names_of_fusion_sources(t)) > 0
+  for chi in t
+    try
+      schur_index(chi)
+    catch(e)
+      msg = sprint(showerror, e)
+      @test msg == "cannot determine the Schur index with the currently used criteria"
+    end
+  end
+end
+
+@testset "specialized generic tables" begin
+  inputs = [(:Cyclic, 3),
+            (:Dihedral, 8),
+            (:Symmetric, 4),
+            (:Alternating, 4),
+            (:WeylB, 3),
+            (:WeylD, 3),
+            (:DoubleCoverSymmetric, 5),
+            (:DoubleCoverAlternating, 5),
+            (:GL2, 3),
+            (:SL2odd, 7),
+            (:SL2even, 4),
+            (:PSL2odd, 7),
+            (:PSL2even, 5),
+            (:Suzuki, 8),
+            (:GU3, 2),
+            (:SU3, 2),
+            (Symbol("P:Q"), [5, 4]),
+            (:ExtraspecialPlusOdd, 27),
+           ];
+  for (series, para) in inputs
+    t = character_table(series, para)
+    @test length(character_parameters(t)) == length(t)
+    @test length(class_parameters(t)) == length(t)
+  end
 end

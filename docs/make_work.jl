@@ -52,9 +52,16 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
               mkpath(d)
           end
           for file in files
+              # HACK: delete Hecke's bibliography, to avoid warnings of the
+              # form "Warning: 'Eis95' is not unique" which actually turn into
+              # errors down the road
+              if file == "references.md"
+                continue
+              end
               src = normpath(joinpath(root, file))
               dst = normpath(joinpath(dstbase, relpath(root, srcbase), file))
               cp(src, dst; force = true)
+              chmod(dst, 0o644)
           end
       end
   end
@@ -64,6 +71,8 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
     DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive = true)
     DocMeta.setdocmeta!(Oscar.Graphs, :DocTestSetup, :(using Oscar; using Oscar.Graphs); recursive = true)
+    DocMeta.setdocmeta!(Oscar.AbstractAlgebra, :DocTestSetup, :(using AbstractAlgebra); recursive = true)
+    DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive = true)
 
 
     makedocs(bib,

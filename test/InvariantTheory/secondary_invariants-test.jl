@@ -1,8 +1,13 @@
-@testset "Secondary invariants" begin
+@testset "Secondary invariants (for matrix groups)" begin
   K, a = CyclotomicField(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
+
+  # Should fail if the wrong monomial ordering is used in
+  # secondary_invariants_nonmodular
+  M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0])
+  RGQQ = invariant_ring(M)
 
   F3 = GF(3)
   N1 = matrix(F3, 3, 3, [ 0, 1, 0, 2, 0, 0, 0, 0, 2 ])
@@ -14,7 +19,7 @@
   N4 = matrix(F9, [ 1 0 0 0; 1 1 0 0; 1 0 1 0; b -b b 1 ])
   RGm = invariant_ring(N3, N4) # char p, modular
 
-  for RG in [ RG0, RGp ]
+  for RG in [ RG0, RGQQ, RGp ]
     s_invars = secondary_invariants(RG)
     m = molien_series(RG)
     S = base_ring(parent(m))
@@ -93,7 +98,7 @@
     is_invars = irreducible_secondary_invariants(RG)
     for i = 1:length(RG.secondary.invars)
       f = RG.secondary.invars[i]
-      @test in(f, is_invars) == RG.secondary.isirreducible[i]
+      @test in(f, is_invars) == RG.secondary.is_irreducible[i]
       t = one(polynomial_ring(RG))
       for j = 1:length(is_invars)
         t *= is_invars[j]^RG.secondary.sec_in_irred[i][j]
@@ -118,5 +123,102 @@
   for m in gens
     @test haskey(exps, m)
     @test set_exponent_vector!(one(R), 1, exps[m]) == m
+  end
+end
+
+@testset "Secondary invariants (for permutation groups)" begin
+  G = sylow_subgroup(symmetric_group(6), 2)[1]
+  RG0 = invariant_ring(G)     # char. 0
+
+  F7 = GF(7)
+  RGp = invariant_ring(F7, G) # char. p, non-modular
+
+  F2 = GF(2)
+  RGm = invariant_ring(F2, G) # char. p, modular
+
+  for RG in [ RG0, RGp ]
+    s_invars = secondary_invariants(RG)
+    m = molien_series(RG)
+    S = base_ring(parent(m))
+    t = gen(S)
+    n = S()
+    for f in s_invars
+      @test reynolds_operator(RG, f) == f
+      n += t^total_degree(f.f)
+    end
+    d = prod( 1 - t^total_degree(f.f) for f in primary_invariants(RG) )
+    @test m == n//d
+
+    # The secondary invariants have to be a module basis. Let's test this for
+    # the degree 9 homogeneous component.
+    R = polynomial_ring(RG).R
+    C = Oscar.PowerProductCache(R, [ f.f for f in primary_invariants(RG) ])
+    b1, _ = Oscar.generators_for_given_degree!(C, [ f.f for f in secondary_invariants(RG) ], 9, false)
+    b2 = [ f.f for f in basis(RG, 9) ]
+    B = Oscar.BasisOfPolynomials(R, b1)
+    for f in b2
+      @test !Oscar.add_to_basis!(B, f)
+    end
+  end
+
+  s_invars = secondary_invariants(RGm)
+  actions = [Oscar.right_action(polynomial_ring(RGm), x) for x in gens(G)]
+  for f in s_invars
+    @test all(act -> act(f) == f, actions)
+  end
+  @test length(s_invars) == 2
+  # The secondary invariants have to be a module basis. Let's test this for
+  # the degree 9 homogeneous component.
+  R = polynomial_ring(RGm).R
+  C = Oscar.PowerProductCache(R, [ f.f for f in primary_invariants(RGm) ])
+  b1, _ = Oscar.generators_for_given_degree!(C, [ f.f for f in secondary_invariants(RGm) ], 9, false)
+  b2 = [ f.f for f in basis(RGm, 9) ]
+  B = Oscar.BasisOfPolynomials(R, b1)
+  for f in b2
+    @test !Oscar.add_to_basis!(B, f)
+  end
+
+  for RG in [ RG0, RGp ]
+    is_invars = irreducible_secondary_invariants(RG)
+    @test issubset(is_invars, secondary_invariants(RG))
+    @test length(is_invars) == 1
+
+    # The irreducible secondary invariants have to be algebra generators. Let's
+    # test this for the degree 9 homogeneous component.
+    R = polynomial_ring(RG).R
+    C = Oscar.PowerProductCache(R, append!([ f.f for f in primary_invariants(RG) ], [ f.f for f in is_invars ]))
+    b1 = Oscar.all_power_products_of_degree!(C, 9, false)
+    b2 = [ f.f for f in basis(RG, 9) ]
+    B = Oscar.BasisOfPolynomials(R, b1)
+    for f in b2
+      @test !Oscar.add_to_basis!(B, f)
+    end
+  end
+
+  is_invars = irreducible_secondary_invariants(RGm)
+  @test issubset(is_invars, secondary_invariants(RGm))
+  @test length(is_invars) == 1
+  # The irreducible secondary invariants have to be algebra generators. Let's
+  # test this for the degree 9 homogeneous component.
+  R = polynomial_ring(RGm).R
+  C = Oscar.PowerProductCache(R, append!([ f.f for f in primary_invariants(RGm) ], [ f.f for f in is_invars ]))
+  b1 = Oscar.all_power_products_of_degree!(C, 6, false)
+  b2 = [ f.f for f in basis(RGm, 6) ]
+  B = Oscar.BasisOfPolynomials(R, b1)
+  for f in b2
+    @test !Oscar.add_to_basis!(B, f)
+  end
+
+  for RG in [ RG0, RGp, RGm ]
+    is_invars = irreducible_secondary_invariants(RG)
+    for i = 1:length(RG.secondary.invars)
+      f = RG.secondary.invars[i]
+      @test in(f, is_invars) == RG.secondary.is_irreducible[i]
+      t = one(polynomial_ring(RG))
+      for j = 1:length(is_invars)
+        t *= is_invars[j]^RG.secondary.sec_in_irred[i][j]
+      end
+      @test f == t
+    end
   end
 end

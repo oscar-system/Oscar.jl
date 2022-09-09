@@ -22,12 +22,12 @@
   prphi = preimage(phi, S(a))
   prpsi = preimage(psi, R(x))
 
-  @test issurjective(f) == true
-  @test isinjective(f) == false
-  @test isbijective(f) == false
-  @test issurjective(phi) == true
-  @test isinjective(phi) == true
-  @test isbijective(phi) == true
+  @test is_surjective(f) == true
+  @test is_injective(f) == false
+  @test is_bijective(f) == false
+  @test is_surjective(phi) == true
+  @test is_injective(phi) == true
+  @test is_bijective(phi) == true
   @test prphi == R(1//2 * x-1//2*z)
   @test prpsi == S(2*a+c^2)
   @test W[1] == R(1//2 * x-1//2*z)
@@ -36,7 +36,7 @@
 
   # Something non-surjective
   f = hom(r, r, [x, x, x])
-  @test !(@inferred issurjective(f))
+  @test !(@inferred is_surjective(f))
 
   r, (X, Y, Z) = PolynomialRing(QQ, ["X", "Y", "Z"])
   s1, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
@@ -69,7 +69,7 @@
     R, vars = QQ["x","y"]
     x = vars[1]
     y = vars[2]
-    f = AlgebraHomomorphism(R, R, vars)
+    f = hom(R, R, vars)
     push!(vars, x)
     @test f(x) == x
   end

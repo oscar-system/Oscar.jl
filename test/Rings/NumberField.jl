@@ -43,7 +43,7 @@
     @test K.(gens(Pk)) == @inferred gens(K)
     @test K(gen(Pk, 1)) == @inferred gen(K, 1)
     @test K(gen(Pk, 2)) == @inferred gen(K, 2)
-    @test gen(Pk, 1) == @inferred Oscar.data(a[1])
+    @test gen(Pk, 1) == @inferred Hecke.data(a[1])
     @test K === @inferred parent(a[1])
     @test 2 == @inferred ngens(K)
     @test [:a1, :a2] == @inferred symbols(K)
@@ -256,7 +256,7 @@
       b = rand(K, -2:2)
       f = @inferred minpoly(b)
       @test iszero(f(b))
-      @test isirreducible(f)
+      @test is_irreducible(f)
 
       f = @inferred charpoly(b)
       @test iszero(f(b))

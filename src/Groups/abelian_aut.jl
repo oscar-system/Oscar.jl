@@ -7,59 +7,8 @@ AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem
 AbTorElem = Union{GrpAbFinGenElem,TorQuadModElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
-  # find independent generators
-  if isdiagonal(rels(A))
-    exponents = diagonal(rels(A))
-    A2 = A
-    A2_to_A = identity_map(A)
-    A_to_A2 = identity_map(A)
-  else
-    exponents = elementary_divisors(A)
-    A2, A2_to_A = snf(A)
-    A_to_A2 = inv(A2_to_A)
-  end
-  # the isomorphic gap group
-  Agap = abelian_group(T, exponents)
-  G = GAP.Globals
-  # the gap IndependentGenerators may differ from
-  # the generators even if the generators are independent
-  gensindep = G.IndependentGeneratorsOfAbelianGroup(Agap.X)
-  Aindep = abelian_group(fmpz[G.Order(g) for g in gensindep])
-
-  imgs = [Vector{fmpz}(G.IndependentGeneratorExponents(Agap.X, a.X)) for a in gens(Agap)]
-  A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
-  Aindep_to_A2 = inv(A2_to_Aindep)
-  Aindep_to_A = compose(Aindep_to_A2, A2_to_A)
-
-  function Agap_to_A(a)
-      return Aindep_to_A(_gap_to_oscar(a, Aindep))
-  end
-
-  function A_to_Agap(a)
-      return _oscar_to_gap(A_to_A2(a), Agap)
-  end
-
-  to_gap = Hecke.map_from_func(A_to_Agap, A, Agap)
-  to_oscar = Hecke.map_from_func(Agap_to_A, Agap, A)
-
-  return Agap, to_gap, to_oscar
-end
-
-function _oscar_to_gap(a::GrpAbFinGenElem, B::GAPGroup)
-  gensB = gens(B)
-  n = length(a.coeff)
-  @assert length(gensB) == n
-  img = one(B)
-  for i in 1:n
-    img *= gensB[i]^a[i]
-  end
-  return img
-end
-
-function _gap_to_oscar(a::Oscar.BasicGAPGroupElem, B::GrpAbFinGen)
-  A = parent(a)
-  exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(A.X, a.X))
-  return B(exp)
+  iso = isomorphism(T, A)
+  return codomain(iso), iso, inv(iso)
 end
 
 """
@@ -81,12 +30,12 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check=true)
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
   end
-  to_gap = get_attribute(aut,:to_gap)
-  to_oscar = get_attribute(aut,:to_oscar)
+  to_gap = get_attribute(aut, :to_gap)
+  to_oscar = get_attribute(aut, :to_oscar)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
-  imgap = typeof(xgap)(domGap, GAP.Globals.Image(f.X,xgap.X))
+  imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
   return to_oscar(imgap)
 end
  
@@ -95,13 +44,13 @@ Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
-function _as_subgroup(aut::AutGrpAbTor, subgrp::GapObj, ::Type{S}) where S
+function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Union{TorQuadMod,GrpAbFinGen}
   function img(x::S)
     return group_element(aut, x.X)
   end
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
-  subgrp1 = AutomorphismGroup{T}(subgrp, aut.G)
+  subgrp1 = AutomorphismGroup{S}(subgrp, aut.G)
   set_attribute!(subgrp1, :to_gap => to_gap, :to_oscar => to_oscar)
   return subgrp1, hom(subgrp1, aut, img)
 end
@@ -113,13 +62,13 @@ Return the element `f` of type `GrpAbFinGenMap`.
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
-  imgs = [f(a) for a in gens(A)]
+  imgs = elem_type(A)[f(a) for a in gens(A)]
   return hom(A, A, imgs)
 end
 
 
 function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=true)
-  !check || (domain(f) === codomain(f) === domain(aut) && isbijective(f)) || error("Map does not define an automorphism of the abelian group.")
+  !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   Agap = domain(to_oscar)
@@ -148,7 +97,7 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{fmpq, fmpq_mat}; check=true)
     @assert can_solve(B, B*matrix(g),side=:left)
   end
   T = domain(aut)
-  g = hom(T, T, [T(lift(t)*matrix(g)) for t in gens(T)])
+  g = hom(T, T, elem_type(T)[T(lift(t)*matrix(g)) for t in gens(T)])
   return aut(g)
 end
 """
@@ -164,7 +113,7 @@ matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
 """ 
-defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) = isbijective(hom(G,G,M))
+defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) = is_bijective(hom(G,G,M))
 
 
 
@@ -229,7 +178,7 @@ If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorph
 """
 function defines_automorphism(G::TorQuadMod, M::fmpz_mat)
   g = hom(G, G, M)
-  if !isbijective(g)
+  if !is_bijective(g)
     return false
   end
   # check that the form is preserved
@@ -265,7 +214,7 @@ end
 Return the full orthogonal group of this torsion quadratic module.
 """
 @attr AutomorphismGroup function orthogonal_group(T::TorQuadMod)
-  !isdegenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
+  !is_degenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
   N, i = normal_form(T)
   j = inv(i)
   gensOT = _compute_gens(N)

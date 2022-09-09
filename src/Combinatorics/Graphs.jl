@@ -2,6 +2,7 @@ module Graphs
 
 
 using Markdown
+using JSON
 import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
@@ -24,7 +25,6 @@ export
     has_edge,
     has_vertex,
     inneighbors,
-    load_graph,
     ne,
     neighbors,
     nv,
@@ -32,7 +32,6 @@ export
     rem_edge!,
     rem_vertex!,
     reverse,
-    save_graph,
     shortest_path_dijkstra,
     src
 
@@ -717,40 +716,6 @@ function complete_bipartite_graph(n::Int64, m::Int64)
 end
 
 
-################################################################################
-################################################################################
-##  Serialization
-################################################################################
-################################################################################
-@doc Markdown.doc"""
-    save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
-
-Save a graph to a file in JSON format.
-"""
-function save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
-    smallobject = pm_object(g)
-    Polymake.save(smallobject, filename)
-end
-
-
-@doc Markdown.doc"""
-    load_graph(filename::String)
-
-Load a graph from a file in JSON format.
-"""
-function load_graph(filename::String)
-    smallobj = Polymake.load(filename)
-    t = typeof(smallobj)
-    if t == Polymake.GraphAllocated{Polymake.Undirected}
-        return Graph{Undirected}(smallobj)
-    elseif t == Polymake.GraphAllocated{Polymake.Directed}
-        return Graph{Directed}(smallobj)
-    else
-        error("The object loaded was not a graph.")
-    end
-end
-
-
 end # end module
 
 
@@ -763,3 +728,39 @@ function visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Poly
     BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
     Polymake.visual(BigGraph)
 end
+
+
+
+# Some standard polytopes from graphs
+@doc Markdown.doc"""
+    fractional_cut_polytope(G::Graphs.Graph{Graphs.Undirected})
+
+Construct the fractional cut polytope of the graph $G$.
+
+
+# Examples
+```jldoctest
+julia> G = Graphs.complete_graph(4);
+
+julia> fractional_cut_polytope(G)
+A polyhedron in ambient dimension 6
+```
+"""
+fractional_cut_polytope(G::Graphs.Graph{Graphs.Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
+
+
+@doc Markdown.doc"""
+    fractional_matching_polytope(G::Graphs.Graph{Graphs.Undirected})
+
+Construct the fractional matching polytope of the graph $G$.
+
+
+# Examples
+```jldoctest
+julia> G = Graphs.complete_graph(4);
+
+julia> fractional_matching_polytope(G)
+A polyhedron in ambient dimension 6
+```
+"""
+fractional_matching_polytope(G::Graphs.Graph{Graphs.Undirected}) = Polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))

@@ -1,29 +1,39 @@
+function test_elem(K::QQAbField)
+  ns = rand(1:8, 3)
+  zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
+  return sum(zs)
+end
+
 @testset "AbelianClousre" begin
+  @testset "Interface" begin
+    K, z = abelian_closure(QQ)
+    test_Field_interface(K)
+  end
 
   @testset "Creation" begin
     K, z = abelian_closure(QQ)
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
-    @test K isa QabField
-    @test elem_type(K) === QabElem
-    @test elem_type(typeof(K)) === QabElem
-    @test parent_type(QabElem) === QabField
-    @test parent_type(one(K)) === QabField
+    @test K isa QQAbField
+    @test elem_type(K) === QQAbElem{nf_elem}
+    @test elem_type(typeof(K)) === QQAbElem{nf_elem}
+    @test parent_type(QQAbElem{nf_elem}) === QQAbField{AnticNumberField}
+    @test parent_type(one(K)) === QQAbField{AnticNumberField}
 
     a = @inferred K()
-    @test a isa QabElem
+    @test a isa QQAbElem
     @test parent(a) === K
 
     a = @inferred K(1)
     @test parent(a) === K
-    @test a isa QabElem
+    @test a isa QQAbElem
     @test isone(a)
     @test isone(one(a))
     @test !iszero(a)
 
     a = @inferred K(0)
     @test parent(a) === K
-    @test a isa QabElem
+    @test a isa QQAbElem
     @test iszero(a)
     @test iszero(zero(a))
     @test !isone(a)
@@ -73,8 +83,8 @@
 
   @testset "Coercion" begin
     K, z = abelian_closure(QQ)
-    @test Oscar.AbelianClosure.isconductor(3)
-    @test !Oscar.AbelianClosure.isconductor(2)
+    @test Oscar.AbelianClosure.is_conductor(3)
+    @test !Oscar.AbelianClosure.is_conductor(2)
     a, b = z(4), z(3)
     c, d = @inferred Oscar.AbelianClosure.make_compatible(a, b)
     fa = minpoly(Oscar.AbelianClosure.data(a))
@@ -86,16 +96,29 @@
     @test_throws Hecke.NotImplemented Oscar.AbelianClosure.coerce_down(Hecke.rationals_as_number_field()[1], 1, z(2))
   end
 
+  @testset "Conversion" begin
+    K, z = abelian_closure(QQ)
+    x  = z(5)
+    y = ZZ(x^5)
+    @test y isa fmpz
+    @test y == 1
+    y = QQ(x^5)
+    @test y isa fmpq
+    @test y == 1
+    @test_throws ErrorException ZZ(x)
+    @test_throws ErrorException QQ(x)
+  end
+
   @testset "Promote rule" begin
-    @test Oscar.AbstractAlgebra.promote_rule(QabElem, Int) == QabElem
-    @test Oscar.AbstractAlgebra.promote_rule(QabElem, fmpz) == QabElem
-    @test Oscar.AbstractAlgebra.promote_rule(QabElem, fmpq) == QabElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, Int) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, fmpz) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, fmpq) == QQAbElem
   end
 
   @testset "Arithmetic" begin
     K, z = abelian_closure(QQ)
-    @test isunit(z(1))
-    @test !isunit(zero(K))
+    @test is_unit(z(1))
+    @test !is_unit(zero(K))
     rand_elem() = begin n = rand([3, 4, 5]); sum(rand(-1:1) * z(n) for i in 1:3) end
     a = one(K)
     @test isone(inv(a))
@@ -174,6 +197,11 @@
       @test @inferred b == T(-1)
       @test @inferred T(-1) == b
     end
+
+    a = z(5)
+    b = z(15)^3
+    @test @inferred a == b
+    @test hash(a, zero(UInt)) == hash(b, zero(UInt))
   end
 
   @testset "Roots" begin
@@ -185,9 +213,13 @@
       @test length(bs) == n
       @test all(c -> c^n == b, bs)
 
-      @test isroot_of_unity(z(5))
-      @test !isroot_of_unity(z(5) + 1)
+      @test is_root_of_unity(z(5))
+      @test !is_root_of_unity(z(5) + 1)
     end
+
+    @test length(roots(8*b, 3)) == 3
+    Kx, x = PolynomialRing(K)
+    @test length(roots(x^15-2^15)) == 15
 
     @test order(z(5)) == 5
   end
@@ -235,8 +267,12 @@
 
   @testset "Singular ring" begin
     K, z = abelian_closure(QQ)
-    L = Oscar.singular_ring(K)
+    L = Oscar.singular_coeff_ring(K)
     a = z(4)
     @test K(L(a)) == a
   end
+
+  K, z = abelian_closure(QQ)
+  S = [z(3)]
+  @test degree(NumberField(QQ, S)[1]) == 2
 end

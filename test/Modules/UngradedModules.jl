@@ -26,13 +26,30 @@ end
 	v = [x, x^2*y+z^3, R(-1)]
 	@test v == Vector(F(v))
 
-	M = sub(F, [F(v), F([z, R(1), R(0)])])
-	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)])
+	M = sub(F, [F(v), F([z, R(1), R(0)])], :none)
+	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)], :none)
 	AN, ai = ambient_module(N, :with_morphism)
 	@test AN.quo === N.quo
 	for i=1:ngens(N)
 		@test AN(repres(N[i])) == ai(N[i])
 	end
+
+	G = FreeMod(R,2)
+	@test F(v) in F
+	@test !(F(v) in G)
+	@test (F(v) + F([z, R(1), R(0)])) in M
+	@test !(F([R(1), R(0), R(0)]) in M)
+	@test N[1] in M
+
+	M = SubQuo(F, [x*F[1]])
+	N = SubQuo(F, [y*F[1]])
+	G = FreeMod(R,3,"f")
+	M_2 = SubQuo(G, [x*G[1]])
+	@test !is_canonically_isomorphic(M,N)
+	is_iso, phi = is_canonically_isomorphic_with_map(M,M_2)
+	@test is_iso
+	@test is_welldefined(phi)
+	@test is_bijective(phi)
 end
 
 @testset "Intersection of modules" begin
@@ -58,15 +75,15 @@ end
   @test image(i)[1] == M1
 
   P,i = intersect(SubQuo(F2, A1, B1), SubQuo(F2, A2, B1))
-  @test iswelldefined(i)
-  @test isinjective(i)
+  @test is_welldefined(i)
+  @test is_injective(i)
   @test SubQuo(F2, res, B1) == P #macaulay2
 
   A1 = R[x y; x^2 y^2]
   A2 = R[x+x^2 y+y^2]
   P,i = intersect(SubQuo(F2, A1,B1), SubQuo(F2, A2,B1))
-  @test iswelldefined(i)
-  @test isinjective(i)
+  @test is_welldefined(i)
+  @test is_injective(i)
   @test SubQuo(F2, A2, B1) == P
 
   #Test that no obvious zeros are in the generator set
@@ -98,10 +115,10 @@ end
 
 		pres_SQ, i = present_as_cokernel(SQ, :both)
 		p = i.inverse_isomorphism
-		@test iswelldefined(i)
-		@test iswelldefined(p)
-		@test isbijective(i)
-		@test isbijective(p)
+		@test is_welldefined(i)
+		@test is_welldefined(p)
+		@test is_bijective(i)
+		@test is_bijective(p)
 	end
 
 
@@ -118,11 +135,186 @@ end
 
 		pres_SQ, i = present_as_cokernel(SQ, :both)
     	p = i.inverse_isomorphism
-		@test iswelldefined(i)
-		@test iswelldefined(p)
-		@test isbijective(i)
-		@test isbijective(p)
+		@test is_welldefined(i)
+		@test is_welldefined(p)
+		@test is_bijective(i)
+		@test is_bijective(p)
 	end
+
+	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	A = R[x; y]
+	B = R[x^2; x*y; y^2; z^4]
+	M = SubQuo(A, B)
+	free_res = free_resolution(M, length=1)
+    @test is_complete(free_res) == false
+	@test free_res[3] == free_module(R, 2)
+	@test free_res[4] == free_module(R, 0)
+    @test is_complete(free_res) == true
+	free_res = free_resolution(M, algorithm=:sres)
+	@test all(iszero, homology(free_res.C))
+	free_res = free_resolution_via_kernels(M)
+	@test all(iszero, homology(free_res))
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	tensor_resolution = tensor_product(N,free_res)
+	@test range(tensor_resolution) == range(free_res)
+	for i in range(tensor_resolution)
+		f = map(free_res,i)
+		M_i = domain(f)
+		tensored_f = map(tensor_resolution,i)
+		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+		for (n,mi) in zip(gens(N),gens(M_i))
+			@test tensored_f(to_pure_tensors_i((n,mi))) == to_pure_tensors_i_plus_1(n,f(mi))
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2*z; x+y-z], R[z^4;])
+	tensor_resolution = tensor_product(free_res,N)
+	@test range(tensor_resolution) == range(free_res)
+	for i in range(tensor_resolution)
+		f = map(free_res,i)
+		M_i = domain(f)
+		tensored_f = map(tensor_resolution,i)
+		to_pure_tensors_i = get_attribute(domain(tensored_f),:tensor_pure_function)
+		to_pure_tensors_i_plus_1 = get_attribute(codomain(tensored_f), :tensor_pure_function)
+		for (mi,n) in zip(gens(M_i),gens(N))
+			@test tensored_f(to_pure_tensors_i((mi,n))) == to_pure_tensors_i_plus_1(f(mi),n)
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
+	hom_resolution = hom(N,free_res)
+	@test range(hom_resolution) == range(free_res)
+	for i in range(hom_resolution)
+		f = map(free_res,i)
+		hom_f = map(hom_resolution,i)
+		hom_N_M_i = domain(hom_f)
+		for v in gens(hom_N_M_i)
+			@test homomorphism(hom_f(v)) == homomorphism(v)*f
+		end
+	end
+
+	N = SubQuo(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
+	hom_resolution = hom(free_res,N)
+	@test last(range(hom_resolution)) == first(range(free_res))
+	@test first(range(hom_resolution)) == last(range(free_res))
+	for i in range(hom_resolution)
+		f = map(free_res,i)
+		hom_f = map(hom_resolution,i)
+		hom_M_i_N = domain(hom_f)
+		for v in gens(hom_M_i_N)
+			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+		end
+	end
+
+	hom_hom_resolution = hom(hom_resolution,N)
+	@test range(hom_hom_resolution) == range(free_res)
+
+	hom_resolution = hom_without_reversing_direction(free_res,N)
+	@test last(range(hom_resolution)) == -first(range(free_res))
+	@test first(range(hom_resolution)) == -last(range(free_res))
+	for i in range(hom_resolution)
+		f = map(free_res,-i)
+		hom_f = map(hom_resolution,i)
+		hom_M_i_N = domain(hom_f)
+		for v in gens(hom_M_i_N)
+			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+		end
+	end
+	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
+	@test range(hom_hom_resolution) == range(free_res)
+end
+
+@testset "Ext, Tor" begin
+	# These tests are only meant to check that the ext and tor function don't throw any error
+	# These tests don't check the correctness of ext and tor
+
+	R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	A = R[x; y]
+	B = R[x^2; x*y; y^2; z^4]
+	M = SubQuo(A, B)
+	F = free_module(R, 1)
+	Q, _ = quo(F, [x*F[1]])
+	G = free_module(R, 2)
+	M_coker = present_as_cokernel(M)
+
+	T0 = tor(Q, M, 0)
+	T1 = tor(Q, M, 1)
+	T2 =  tor(Q, M, 2)
+	@test is_canonically_isomorphic(T0, M)
+	@test is_canonically_isomorphic(present_as_cokernel(T1), M_coker)
+	@test iszero(T2)
+	T0 = tor(M, Q, 0)
+	T1 = tor(M, Q, 1)
+	T2 = tor(M, Q, 2)
+	@test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+	@test is_canonically_isomorphic(simplify(present_as_cokernel(T1))[1], M_coker)
+	@test iszero(T2)
+
+	E0 = ext(Q, M, 0)
+	E1 = ext(Q, M, 1)
+	E2 = ext(Q, M, 2)
+	@test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+	@test is_canonically_isomorphic(E1, M_coker)
+	@test iszero(E2)
+	E0 = ext(M, Q, 0)
+	E1 = ext(M, Q, 1)
+	E2 = ext(M, Q, 2)
+	E3 = ext(M, Q, 3)
+	E4 = ext(M, Q, 4)
+	@test iszero(E0)
+	@test iszero(E1)
+	@test is_canonically_isomorphic(present_as_cokernel(simplify(E2)[1]), M_coker)
+	@test is_canonically_isomorphic(E3, M_coker)
+	@test iszero(E4)
+
+end
+
+@testset "Gröbner bases" begin
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	F = FreeMod(R, 1)
+
+	J = SubQuo(F, [x*F[1], (x^2)*F[1], (x+y)*F[1]])
+	@test leading_module(J) == SubQuo(F, [x*F[1], y*F[1]])
+
+	J = SubQuo(F, [(x*y^2+x*y)*F[1], (x^2*y+x^2-y)*F[1]])
+	@test leading_module(J) == SubQuo(F, [x^2*F[1], y^2*F[1], x*y*F[1]]) # Example 1.5.7 in Singular book
+
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R, 2)
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
+
+	M = SubQuo(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
+	@test leading_module(M,lp) == SubQuo(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
+
+	R, x = PolynomialRing(QQ, ["x_"*string(i) for i=1:4])
+	F = FreeMod(R, 1)
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
+
+	J = SubQuo(F, [(x[1]+x[2]+R(1))*F[1], (x[1]+x[2]+2*x[3]+2*x[4]+1)*F[1],(x[1]+x[2]+x[3]+x[4]+1)*F[1]])
+	@test reduced_groebner_basis(J, lp).O == Oscar.ModuleGens([(x[3]+x[4])*F[1], (x[1]+x[2]+1)*F[1]], F).O
+	@test haskey(J.groebner_basis, lp)
+
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	F = FreeMod(R, 1)
+	lp = lex(gens(base_ring(F)))*lex(gens(F))
+	I = SubQuo(F, [(x-1)*F[1], (y^2-1)*F[1]])
+	f = (x*y^2+y)*F[1]
+	@test Oscar.reduce(f, I) == (y+1)*F[1]
+
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R, 2)
+
+	A = R[x+1 y*z+x^2; (y+2*z) z^3]
+	B = R[2*z*(x*z+y^2) (x*z)^5]
+	M = SubQuo(F, A, B)
+	gb = groebner_basis(M)
+	P = sum(Oscar.SubModuleOfFreeModule(F, gb), Oscar.SubModuleOfFreeModule(F, gb.quo_GB))
+	Q = Oscar.SubModuleOfFreeModule(F, groebner_basis(M.sum))
+	@test P == Q
+	v = x*((x+1)*F[1] + (y*z+x^2)*F[2]) + (y-z)*((y+2*z)*F[1] + z^3*F[2]) + 2*z*(x*z+y^2)*F[1] + (x*z)^5*F[2]
+	@test represents_element(v,M)
 end
 
 
@@ -196,10 +388,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
@@ -212,10 +404,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
@@ -229,10 +421,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 
 	M1 = SubQuo(B1,A1)
 	M2,i2,p2 = simplify(M1)
@@ -243,10 +435,10 @@ end
 		@test elem == p2(i2(elem))
 	end
 
-	@test iswelldefined(i2)
-	@test iswelldefined(p2)
-	@test isbijective(i2)
-	@test isbijective(p2)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
 end
 
 @testset "quotient modules" begin
@@ -258,9 +450,10 @@ end
   Q1,p1 = quo(M1,N1,:cache_morphism)
 
   @test Q1 == SubQuo(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
+  @test p1 == find_morphism(M1, Q1)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)  
-    @test p1(elem) == map_canonically(Q1, elem)
+    @test p1(elem) == transport(Q1, elem)
   end
 
   F2 = FreeMod(R,2)
@@ -272,7 +465,7 @@ end
             R[x^3-y^2 y^4-x-y; x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y])
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M2)
-    @test p2(elem) == map_canonically(Q2, elem)
+    @test p2(elem) == transport(Q2, elem)
   end
 
   M3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1 x^4 2*x*y; y^4 3*x -1],R[y^2 x^3 y^2])
@@ -280,11 +473,11 @@ end
   N3 = SubQuo(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 2*x*y-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
   Q3,p3 = quo(M3,N3,:cache_morphism)
 
-  @test iszero(quo(M3,M3))
+  @test iszero(quo(M3,M3, :none))
   @test iszero(Q3)
   for k=1:5
     elem = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
-    @test p3(elem) == map_canonically(Q3, elem)
+    @test p3(elem) == transport(Q3, elem)
     @test iszero(p3(elem))
   end
 end
@@ -297,18 +490,20 @@ end
   S1,i1 = sub(M1, [M1(sparse_row(R[1 1])),M1(sparse_row(R[y -x]))], :cache_morphism)
 
   @test S1 == SubQuo(F2,R[x*y^2+x^3-x^2 x*y^3-x*y-x^2; x^2*y+x*y^2+x*y-x^2+x x*y^2],R[x^2 y^3-x])
+  @test i1 == find_morphism(S1, M1)
   for k=1:5
       elem = S1(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
-      @test i1(elem) == map_canonically(M1, elem)
+      @test i1(elem) == transport(M1, elem)
   end
 
   M2 = SubQuo(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
   S2,i2 = sub(M2,[M2(sparse_row(R[x*y -x*y^2 x*y])),M2(sparse_row(R[x 0 -1]))], :cache_morphism)
 
   @test S2 == SubQuo(F2,R[x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y],R[x^3-y^2 y^4-x-y])
+  @test i2 == find_morphisms(S2, M2)[1]
   for k=1:5
       elem = S2(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])))
-      @test i2(elem) == map_canonically(M2, elem)
+      @test i2(elem) == transport(M2, elem)
   end
 
   M3 = SubQuo(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
@@ -318,7 +513,7 @@ end
   @test S3 == M3
   for k=1:5
       elem = S3(sparse_row(matrix([randpoly(R) for _=1:1, i=1:3])))
-      @test i3(elem) == map_canonically(M3, elem)
+      @test i3(elem) == transport(M3, elem)
   end
 end
 
@@ -379,6 +574,12 @@ end
 		@test v == module_elem(SQ, homomorphism(v))
 	end
 
+	End_M = hom(M1,M1)[1]
+	R_as_module = FreeMod(R,1)
+	phi = multiplication_induced_morphism(R_as_module, End_M)
+	@test homomorphism(phi(R_as_module[1])) == identity_map(M1)
+	@test image(homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
+
 	# test if hom(zero-module, ...) is zero
 	Z = FreeMod(R,0)
 	@test iszero(hom(Z,Z)[1])
@@ -404,7 +605,7 @@ end
 			v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
 			H = HomNM(v)
 			H = homomorphism(H)
-			@test iswelldefined(H)
+			@test is_welldefined(H)
 		end
 	end
 end
@@ -442,7 +643,7 @@ end
 		N,pure_N = tensor_product(M3,F4, task=:map)
 
 		M3_to_M1 = SubQuoHom(M3,M1, matrix([randpoly(R,0:2,2,2) for i=1:ngens(M3), j=1:ngens(M1)]))
-		@assert iswelldefined(M3_to_M1)
+		@assert is_welldefined(M3_to_M1)
 		F4_to_M2 = FreeModuleHom(F4,M2, matrix([randpoly(R,0:2,2,2) for i=1:ngens(F4), j=1:ngens(M2)]))
 
 		phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
@@ -466,7 +667,20 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	M2 = SubQuo(F3,A2,B2)
 
-	prod_M, proj, emb = direct_sum(M1,M2,task=:both)
+	sum_M, emb = direct_sum(M1,M2)
+
+	@test domain(emb[1]) === M1
+	@test domain(emb[2]) === M2
+	@test codomain(emb[1]) === sum_M
+	@test codomain(emb[2]) === sum_M
+
+	sum_M, proj = direct_sum(M1,M2, task=:prod)
+	@test codomain(proj[1]) === M1
+	@test codomain(proj[2]) === M2
+	@test domain(proj[1]) === sum_M
+	@test domain(proj[2]) === sum_M
+
+	prod_M, emb, proj = direct_sum(M1,M2,task=:both)
 	@test length(proj) == length(emb) == 2
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
@@ -488,7 +702,7 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	N2 = SubQuo(F3,A2,B2)
 
-	prod_N = direct_product(N1,N2)
+	prod_N = direct_product(N1,N2,task=:none)
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
 	for g in gens(prod_N)
@@ -501,7 +715,7 @@ end
 		@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
 	end
 
-	# testing hom_prod_prod
+	# testing hom_product
 
 	M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
 	H12 = hom(M1,N2)[1]
@@ -509,12 +723,12 @@ end
 	M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : homomorphism(H12[1])
 	M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : homomorphism(H21[1])
 	M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
-	@assert iswelldefined(M1_to_N1)
-	@assert iswelldefined(M1_to_N2)
-	@assert iswelldefined(M2_to_N1)
-	@assert iswelldefined(M2_to_N2)
+	@assert is_welldefined(M1_to_N1)
+	@assert is_welldefined(M1_to_N2)
+	@assert is_welldefined(M2_to_N1)
+	@assert is_welldefined(M2_to_N2)
 
-	phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
+	phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
 	for g in gens(M1)
 		@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
 		@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
@@ -586,7 +800,7 @@ end
 	M = SubQuo(F2,A1,B1)
 	N, H = present_as_cokernel(M, :cache_morphism)
 	Hinv = H.inverse_isomorphism
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -596,8 +810,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H))
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -611,7 +825,7 @@ end
 	#######################################################################
 
 	# test, if H is bijective with inverse Hinv:
-	@test isbijective(H)
+	@test is_bijective(H)
 	@test all([inv(H)(H(g))==g for g in gens(N)])
 	@test all([H(inv(H)(g))==g for g in gens(M)])
 	@test inv(H) === Hinv
@@ -621,7 +835,7 @@ end
 
 	#2) H: N --> M = N/(submodule of N) canonical projection
 	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:cache_morphism)
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
     ## test additon/subtraction of morphisms
     H_1 = H+H-H
@@ -637,8 +851,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -667,7 +881,7 @@ end
 	N,iN = sub(NN,[NN(sparse_row(u1)), NN(sparse_row(u2)), NN(sparse_row(u3))], :cache_morphism)
 	
 	H = restrict_domain(p1*iM,N)
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -677,8 +891,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -700,7 +914,7 @@ end
 	u1 = R[x^2*y^2 4*x^2*y^2 0 5*x*y^2]
 	H = HomNM(sparse_row(u1))
 	H = homomorphism(H)
-	@test iswelldefined(H)
+	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -710,8 +924,8 @@ end
 	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-	@test iswelldefined(Hbar)
-	@test isbijective(Hbar)
+	@test is_welldefined(Hbar)
+	@test is_bijective(Hbar)
 
 	Hbar_inv = inv(Hbar)
 
@@ -740,9 +954,34 @@ end
 		H = homomorphism(H)
 
 		u = [SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
-		image_of_u = sub(M,map(x -> H(x),u))
-		preimage_test_module = image_of_u + sub(M,[M[1]])
+		image_of_u = sub(M,map(x -> H(x),u), :none)
+		preimage_test_module = image_of_u + sub(M,[M[1]], :none)
 		_,emb = preimage(H,preimage_test_module,:with_morphism)
-		@test issubset(sub(N,u), image(emb)[1])
+		@test issubset(sub(N,u, :none), image(emb)[1])
 	end
 end
+
+@testset "change of base rings" begin
+  R, (x,y) = QQ["x", "y"]
+  U = MPolyPowersOfElement(x)
+  S = MPolyLocalizedRing(R, U)
+  F = FreeMod(R, 2)
+  FS, mapF = change_base_ring(S, F)
+  @test 1//x*mapF(x*F[1]) == FS[1]
+
+  shift = hom(R, R, [x-1, y-2])
+  FSshift, mapFSshift = change_base_ring(shift, F)
+  @test mapFSshift(x*F[1]) == (x-1)*FSshift[1]
+
+  A = R[x y]
+  B = R[x^2 x*y]
+  M = SubQuo(F, A, B)
+  MS, mapM = change_base_ring(S, M)
+  @test iszero(mapM(M[1]))
+
+  f = MapFromFunc(x->S(x), R, S)
+  MS, mapM = change_base_ring(f, M)
+  @test iszero(mapM(M[1]))
+end
+
+

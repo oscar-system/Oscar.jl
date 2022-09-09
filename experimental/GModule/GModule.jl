@@ -1,6 +1,143 @@
 module GModuleFromGap
 using Oscar
 using Hecke
+import Hecke: data
+
+
+"""
+    restriction_of_scalars(M::GModule, phi::Map)
+
+Return the `S`-module obtained by restricting the scalars of `M`
+from `R` to `S`, where `phi` is an embedding of `S` into `R`.
+
+If `R` has `S`-rank `d` and `M` has rank `n` then the returned module
+has rank `d*n`.
+
+# Examples
+
+(cases that `R` is a finite field or a number field, and `S` is a subfield)
+"""
+function restriction_of_scalars(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    extension_of_scalars(M::GModule, phi::Map)
+
+Return the `S`-module obtained by extending the scalars of `M`
+from `R` to `S`, where `phi` is an embedding of `R` into `S`.
+
+If `M` has `R`-rank `d` then the returned module has `S`-rank `d`.
+
+The syntax `M ⊗ phi` is supported.
+
+# Examples
+
+(cases that `S` is a finite field or a number field, and `R` is a subfield;
+case that `S` is a number field and `R` is the ring of integers in `S`,
+for example `R = ZZ` and `S = QQ`)
+"""
+function extension_of_scalars(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    can_be_defined_over(M::GModule, phi::Map)
+
+Return `true` if there is an `S`-module `N` such that
+`extension_of_scalars(N, phi)` is isomorphic with `M`,
+and `false` otherwise.
+
+`phi` is an embedding of `S` into `R` and `M` is a module over `R`.
+
+# Examples
+
+(case that `R` is a number field and `S` is the ring of integers in `R`)
+"""
+function can_be_defined_over(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    can_be_defined_over_with_data(M::GModule, phi::Map)
+
+Is similar to [`can_be_defined_over`](@ref), but the return value is
+a triple `(true, N, psi)` if there is an `S`-module `N` such that
+`extension_of_scalars(N, phi)` is isomorphic with `M`
+and `psi` is a map from `N` to `M`.
+
+`phi` is an embedding of `S` into `R` and `M` is a module over `R`.
+
+# Examples
+
+(same as for `can_be_defined_over`)
+"""
+function can_be_defined_over_with_data(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    descent_to(M::GModule, phi::Map)
+
+Return an `S`-module `N` such that
+`extension_of_scalars(N, phi)` is isomorphic with `M` if such an `S`-module
+exists, otherwise throw an exception.
+
+`phi` is an embedding of `S` into `R` and `M` is a module over `R`.
+
+Use [`can_be_defined_over`](@ref) in order to check whether `M` can be
+written over `S`.
+Use [`can_be_defined_over_with_data`](@ref) in order to check whether `M` can be
+written over `S` and to get `N` if it exists.
+
+# Examples
+
+(case that `R` is a number field and `S` is the ring of integers in `R`)
+"""
+function descent_to(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
+
+"""
+    descent_to_minimal_degree_field(M::GModule)
+
+Return a module `N` over a field `S` of minimal degree such that
+`extension_of_scalars(N, phi)` and `extension_of_scalars(M, psi)`
+are isomorphic, where `phi` and `psi` are maps from `S` and `R`,
+respectively, to the compositum of `S` and `R`,
+where `M` is a module over `R`.
+
+(In general, `S` need not be a subfield of `R`.)
+
+# Examples
+
+(modules over finite fields or number fields)
+"""
+function descent_to_minimal_degree_field(M::GModule)
+  error("not yet ...")
+end
+
+
+"""
+    invariant_lattice_classes(M::GModule, phi::Map)
+
+Return representatives of the equivalence classes of `G`-invariant
+`S`-lattices in the `R`-module `M`,
+where `phi` is an embedding of `S` into `R`.
+
+# Examples
+
+(case that `R` is a number field and `S` is the ring of integers in `R`)
+"""
+function invariant_lattice_classes(M::GModule, phi::Map)
+  error("not yet ...")
+end
+
 
 #XXX: clash of names!
 #   gmodule(k, C) vs gmodule_ver(k, C)
@@ -27,6 +164,10 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
+function Hecke.number_field(::FlintRationalField, chi::Oscar.GAPGroupClassFunction; cached::Bool = false)
+  return number_field(QQ, map(x->GAP.gap_to_julia(QQAbElem, x), chi.values), cached = cached)
+end
+
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 
@@ -43,50 +184,6 @@ function irreducible_modules(G::Oscar.GAPGroup)
     push!(IM, gmodule(F, G, zz))
   end
   return IM
-end
-
-function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
-  fl, c = Hecke.iscyclotomic_type(parent(a[1]))
-  @assert all(x->parent(x) == parent(a[1]), a)
-  @assert fl
-  for p = keys(factor(c).fac)
-    while c % p == 0
-      K, _ = cyclotomic_field(Int(div(c, p)), cached = false)
-      b = similar(a)
-      OK = true
-      for x = eachindex(a)
-        y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
-        if y == false
-          OK = false
-        else
-          b[x] = y
-        end
-      end
-      if OK
-        a = b
-        c = div(c, p)
-      else
-        break
-      end
-    end
-  end
-  return a
-end
-
-function minimize(::typeof(CyclotomicField), a::MatElem{nf_elem})
-  return matrix(minimize(CyclotomicField, a.entries))
-end
-
-function minimize(::typeof(CyclotomicField), a::nf_elem)
-  return minimize(CyclotomicField, [a])[1]
-end
-
-function Oscar.conductor(a::nf_elem)
-  return conductor(parent(minimize(CyclotomicField, a)))
-end
-
-function Oscar.conductor(a::QabElem)
-  return conductor(data(a))
 end
 
 function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
@@ -142,11 +239,11 @@ function irreducible_modules(::FlintIntegerRing, G::Oscar.GAPGroup)
 end
 
 function gmodule(::typeof(CyclotomicField), C::GModule)
-  @assert isa(base_ring(C), QabField)
+  @assert isa(base_ring(C), QQAbField)
   d = dim(C)
   l = 1
   for g = C.ac
-    l = lcm(l, lcm(collect(map_entries(x->Hecke.iscyclotomic_type(parent(x.data))[2], mat(g)))))
+    l = lcm(l, lcm(collect(map_entries(x->Hecke.is_cyclotomic_type(parent(x.data))[2], mat(g)))))
   end
   K = cyclotomic_field(base_ring(C), l)[1]
   F = free_module(K, dim(C))
@@ -167,7 +264,7 @@ function ^(C::GModule{<:Any, T}, h::Map{S, S}) where T <: S where S
   return GModule(group(C), [inv(h)*x*h for x = C.ac])
 end
 
-function ^(C::GModule{<:Any, Generic.FreeModule{QabElem}}, phi::Map{QabField, QabField})
+function ^(C::GModule{<:Any, Generic.FreeModule{QQAbElem}}, phi::Map{QQAbField, QQAbField})
   F = free_module(codomain(phi), dim(C))
   return GModule(F, group(C), [hom(F, F, map_entries(phi, mat(x))) for x = C.ac])
 end
@@ -237,15 +334,15 @@ function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
   A = maximal_abelian_subfield(ClassField, k)
   c = Hecke.norm(conductor(A)[1])
-  Qab = abelian_closure(QQ)[1]
-  K = cyclotomic_field(Qab, Int(c))[1]
-  fl, em = issubfield(k, K)
-  return Oscar.group_class_function(group(C), [Qab(em(preimage(mkK, x[2]))) for x = chr])
+  QQAb = abelian_closure(QQ)[1]
+  K = cyclotomic_field(QQAb, Int(c))[1]
+  fl, em = is_subfield(k, K)
+  return Oscar.group_class_function(group(C), [QQAb(em(preimage(mkK, x[2]))) for x = chr])
 end
 
 function Oscar.character(C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
-  Qab = abelian_closure(QQ)[1]
-  return Oscar.group_class_function(group(C), [Qab(x[2]) for x = _character(C)])
+  QQAb = abelian_closure(QQ)[1]
+  return Oscar.group_class_function(group(C), [QQAb(x[2]) for x = _character(C)])
 end
 
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
@@ -539,13 +636,13 @@ function hilbert90_generic(X::Dict, mA)
       #Glasby shows that this approach, over a finite field,
       #has a high success probability.
       Y = matrix(K, n, n, [rand(K, -5:5) for i=1:n*n])
-      fl = isinvertible(Y)
+      fl = is_invertible(Y)
       fl && break
       cnt += 1
       if cnt > 10 error("s.th. wiered") end
     end
     S = sum(map_entries(mA(g), Y)*v for (g,v) = X)
-    fl, Si = isinvertible_with_inverse(S)
+    fl, Si = is_invertible_with_inverse(S)
     fl && return S, Si
   end
 end
@@ -568,7 +665,7 @@ function _norm_equation(K::FinField, a::FinFieldElem)
   kt, t = PolynomialRing(k, cached = false)
   while true
     f = t^os + a + sum(t^rand(1:os-1)*rand(k) for i=1:rand(1:os-1))
-    isirreducible(f) || continue
+    is_irreducible(f) || continue
     r = roots(map_coefficients(fkK, f))[1]
     return r
   end
@@ -653,17 +750,17 @@ function Gap(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}, h=Oscar.is
   return z
 end
 
-function Oscar.isirreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function Oscar.is_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsIrreducible(G)
 end
 
-function isabsolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function is_absolutely_irreducible(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
 end
 
-function isdecomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+function is_decomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   G = Gap(C)
   return !GAP.Globals.MTX.IsIndecomposable(G)
 end
@@ -810,18 +907,18 @@ function gmodule(K::AnticNumberField, M::GModule{<:Any, <:Generic.FreeModule{nf_
   return gmodule(F, group(M), [hom(F, F, map_entries(K, mat(x))) for x = M.ac])
 end
 
-function (K::QabField)(a::nf_elem)
-  fl, f = Hecke.iscyclotomic_type(parent(a))
+function (K::QQAbField)(a::nf_elem)
+  fl, f = Hecke.is_cyclotomic_type(parent(a))
   @assert fl
-  return QabElem(a, f)
+  return QQAbElem(a, f)
 end
 
-function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{QabElem}}
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{<:QQAbElem}}
   C1 = gmodule(CyclotomicField, C)
   D1 = gmodule(CyclotomicField, D)
-  fl, Cf = Hecke.iscyclotomic_type(base_ring(C1))
+  fl, Cf = Hecke.is_cyclotomic_type(base_ring(C1))
   @assert fl
-  fl, Df = Hecke.iscyclotomic_type(base_ring(D1))
+  fl, Df = Hecke.is_cyclotomic_type(base_ring(D1))
   @assert fl
   l = lcm(Cf, Df)
   K, _ = cyclotomic_field(base_ring(C), l)
@@ -1032,7 +1129,7 @@ function Hecke.induce_rational_reconstruction(a::fmpz_mat, pg::fmpz)
 end
 
 
-export irreducible_modules, isabsolutely_irreducible, isdecomposable
+export irreducible_modules, is_absolutely_irreducible, is_decomposable
 
 ## Fill in some stubs for Hecke
 
@@ -1078,7 +1175,7 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
-export irreducible_modules, isabsolutely_irreducible, isdecomposable
+export irreducible_modules, is_absolutely_irreducible, is_decomposable
 
 module RepPc
 using Oscar
@@ -1101,7 +1198,7 @@ end
  - allow trivial stuff
 =# 
 """
-  For K a finite field, Q, a number field or Qab, find all
+  For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
 
 Note: the reps are NOT neccessarily over the smallest field.
@@ -1124,19 +1221,19 @@ function reps(K, G::Oscar.GAPGroup)
   gG = [Oscar.group_element(G, x) for x = pcgs]
   s, ms = sub(G, [gG[end]])
   o = Int(order(s))
-  @assert isprime(o)
+  @assert is_prime(o)
   z = roots(K(1), o)
   @assert characteristic(K) == o || length(z) == o
   F = free_module(K, 1)
   R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
-  @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(R[1])
+  @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
 
   for i=length(gG)-1:-1:1
     h = gG[i]
     ns, mns = sub(G, gG[i:end])
     @assert mns(ns[1]) == h
     p = Int(divexact(order(ns), order(s)))
-    @assert isprime(p)
+    @assert is_prime(p)
     new_R = []
     todo = trues(length(R)) # which entries in `R` have to be handled
     #TODO: use extend below
@@ -1146,7 +1243,7 @@ function reps(K, G::Oscar.GAPGroup)
         F = r.M
         @assert group(r) == s
         rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
-        @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(rh)
+        @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(rh)
         l = Oscar.GModuleFromGap.hom_base(r, rh)
         @assert length(l) <= 1
         Y = mat(action(r, preimage(ms, h^p)))
@@ -1161,12 +1258,27 @@ function reps(K, G::Oscar.GAPGroup)
           C = divexact(Y[ii], Xp[ii])
           @assert C*Xp == Y
           # I think they should always be roots of one here.
+          # They should - but they are not:
+          # Given that X is defined up-to-scalars only, at best 
+          # C is a root-of-1 * a p-th power:
+          # Y is in the image of the rep (action matrix), hence has
+          # finite order (at least if the group is finite), hence
+          # det(Y) is a root-of-1, so X is defined up to scalars,
+          # xX for x in the field., hence Xp = X^p is defined up
+          # to p-th powers: x^p Xp, so
+          # C x^p Xp = Y
+          # appliying det:
+          # det(C x^p Xp) = C^n x^(pn) det(Xp) = det(Y) = root-of-1
+          # so I think that shows that C is (up to p-th powers)
+          # also a root-of-1
+          #
+          # However, I don't know how to use this...
           rt = roots(C, p)
           @assert characteristic(K) == p || length(rt) == p
           Y = r.ac
           for x = rt
             nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
-            @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nw)
+            @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(nw)
             push!(new_R, nw)
           end
         else #need to extend dim
@@ -1216,7 +1328,7 @@ function reps(K, G::Oscar.GAPGroup)
           end
 
           push!(new_R, gmodule(F, ns, md))
-          @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(new_R[end])
+          @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(new_R[end])
         end
       end
     end
@@ -1336,7 +1448,7 @@ function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
       iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
       @vtime :BruecknerSQ 2 l = lift(iii, mQ)
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
-      append!(allR, [x for x in l])# if issurjective(x)])
+      append!(allR, [x for x in l])# if is_surjective(x)])
     end
   end
   return allR
@@ -1345,20 +1457,20 @@ end
 Base.getindex(M::AbstractAlgebra.FPModule, i::Int) = i==0 ? zero(M) : gens(M)[i]
 Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 
-Oscar.isfree(M::Generic.FreeModule) = true
-Oscar.isfree(M::Generic.DirectSumModule) = all(isfree, M.m)
+Oscar.is_free(M::Generic.FreeModule) = true
+Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
 
 function Oscar.dual(h::Map{GrpAbFinGen, GrpAbFinGen})
   A = domain(h)
   B = codomain(h)
-  @assert isfree(A) && isfree(B)
+  @assert is_free(A) && is_free(B)
   return hom(B, A, transpose(h.map))
 end
 
 function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{fmpz}, <:AbstractAlgebra.FPModule{fmpz}})
   A = domain(h)
   B = codomain(h)
-  @assert isfree(A) && isfree(B)
+  @assert is_free(A) && is_free(B)
   return hom(B, A, transpose(mat(h)))
 end
 
@@ -1366,7 +1478,7 @@ function coimage(h::Map)
   return quo(domain(h), kernel(h)[1])
 end
 
-function Base.iterate(M::Generic.Submodule{<:FinFieldElem})
+function Base.iterate(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem
   k = base_ring(M)
   if dim(M) == 0
     return zero(M), iterate([1])
@@ -1376,16 +1488,24 @@ function Base.iterate(M::Generic.Submodule{<:FinFieldElem})
   return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
 end
 
-function Base.iterate(::AbstractAlgebra.Generic.Submodule{fq_nmod}, ::Tuple{Int64, Int64})
+function Base.iterate(::Union{Generic.FreeModule{fq_nmod}, Generic.Submodule{fq_nmod}}, ::Tuple{Int64, Int64})
   return nothing
 end
 
-function Base.iterate(M::Generic.Submodule{<:FinFieldElem}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator})
+function Base.iterate(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator}) where T <: FinFieldElem
   n = iterate(st[2], st[1])
   if n === nothing
     return n
   end
   return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
+end
+
+function Base.length(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem
+  return Int(order(base_ring(M))^dim(M))
+end
+
+function Base.eltype(M::Union{Generic.FreeModule{T}, Generic.Submodule{T}}) where T <: FinFieldElem
+  return elem_type(M)
 end
 
 """
@@ -1477,7 +1597,7 @@ function lift(C::GModule, mp::Map)
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
     if get_assert_level(:BruecknerSQ) > 1
       _GG, _ = Oscar.GrpCoh.extension(z(chn))
-      @assert isisomorphic(GG, _GG)[1]
+      @assert is_isomorphic(GG, _GG)
     end
 
     function reduce(g) #in G
@@ -1499,7 +1619,7 @@ function lift(C::GModule, mp::Map)
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
 
     h = hom(G, GG, gens(G), [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)])
-    if !issurjective(h)
+    if !is_surjective(h)
       @show :darn
       continue
     else

@@ -27,12 +27,12 @@ graph* the elements of $E$ are considered to be ordered pairs, for an
 two elements.
 
 The interface is modeled alongside the
-[LightGraphs](https://juliagraphs.org/LightGraphs.jl/stable/) interface to
+[Graphs.jl](https://juliagraphs.org/Graphs.jl/dev/) interface to
 allow for easier integration elsewhere.
 
 !!! warning
     The mechanism for removing a vertex is slightly different in out
-    implementation to the `LightGraphs` implementation: In `LightGraphs` first
+    implementation to the `Graphs.jl` implementation: In `Graphs.jl` first
     the vertex to be removed is swapped with the last vertex, then the last
     vertex is removed. In our implementation, the vertex is removed and all
     subsequent vertices have their labels changed. Hence edges can be different
@@ -81,12 +81,8 @@ src(e::Edge)
 
 ## Saving and loading
 
-Objects of type `Graph` can be saved to a file and loaded with the following
-two methods:
-```@docs
-save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
-load_graph(filename::String)
-```
-The file is in JSON format and contains the underlying polymake object. In
-particular, this file can now be read by both polymake and Oscar.
+Objects of type `Graph` can be saved to a file and loaded with the methods
+`load` and `save`.  The file is in JSON format and contains the underlying
+polymake object. In particular, this file can now be read by both polymake and
+Oscar.
 

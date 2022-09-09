@@ -8,7 +8,7 @@ rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = C.RAYS
+_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.RAYS, 0) : C.RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -100,7 +100,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_object(C).N_FACETS::Int
+nfacets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -118,7 +118,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_object(C).N_RAYS::Int
+nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)
@@ -214,7 +214,7 @@ A cone is pointed if and only if the dimension of its lineality space is zero.
 julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 A polyhedral cone in ambient dimension 3
 
-julia> ispointed(C)
+julia> is_pointed(C)
 true
 
 julia> lineality_dim(C)
@@ -223,7 +223,7 @@ julia> lineality_dim(C)
 julia> C1 = Cone([1 0],[0 1; 0 -1])
 A polyhedral cone in ambient dimension 2
 
-julia> ispointed(C1)
+julia> is_pointed(C1)
 false
 
 julia> lineality_dim(C1)
@@ -238,7 +238,7 @@ lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
-    ispointed(C::Cone)
+    is_pointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
 
@@ -247,19 +247,19 @@ A cone with lineality is not pointed, but a cone only consisting of a single ray
 ```jldoctest
 julia> C = Cone([1 0], [0 1]);
 
-julia> ispointed(C)
+julia> is_pointed(C)
 false
 
 julia> C = Cone([1 0]);
 
-julia> ispointed(C)
+julia> is_pointed(C)
 true
 ```
 """
-ispointed(C::Cone) = pm_object(C).POINTED::Bool
+is_pointed(C::Cone) = pm_object(C).POINTED::Bool
 
 @doc Markdown.doc"""
-    isfulldimensional(C::Cone)
+    is_fulldimensional(C::Cone)
 
 Determine whether `C` is full-dimensional.
 
@@ -268,11 +268,11 @@ The cone `C` in this example is 2-dimensional within a 3-dimensional ambient spa
 ```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
-julia> isfulldimensional(C)
+julia> is_fulldimensional(C)
 false
 ```
 """
-isfulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
+is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 
 ###############################################################################
 ## Points properties
@@ -300,7 +300,7 @@ julia> f = facets(Halfspace, c)
 -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
+facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
 _facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-C.FACETS[[i], :], 0)
 
@@ -338,7 +338,7 @@ lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{
 
 _lineality_cone(::Type{RayVector{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(C.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = C.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.LINEALITY_SPACE, 0) : C.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
@@ -385,7 +385,7 @@ julia> matrix(ZZ, hilbert_basis(C))
 ```
 """
 function hilbert_basis(C::Cone{fmpq})
-   if ispointed(C)
+   if is_pointed(C)
       return SubObjectIterator{PointVector{fmpz}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
    else
       throw(ArgumentError("Cone not pointed."))
@@ -394,6 +394,26 @@ end
 
 _hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(C.HILBERT_BASIS_GENERATORS[1][i, :])
 
-_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
+_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.HILBERT_BASIS_GENERATORS[1], 0) : C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
+
+
+@doc Markdown.doc"""
+    contains(C::Cone, v::AbstractVector)
+
+Check whether `C` contains `v`.
+
+# Examples
+The positive orthant only contains vectors with non-negative entries:
+```jldoctest
+julia> C = positive_hull([1 0; 0 1]);
+
+julia> contains(C, [1, 2])
+true
+
+julia> contains(C, [1, -2])
+false
+```
+"""
+contains(C::Cone, v::AbstractVector) = Polymake.polytope.contains(pm_object(C), v)::Bool

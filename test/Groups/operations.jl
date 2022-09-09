@@ -79,17 +79,17 @@ end
    f = t^4+2*t^3+4*t+1
    @test f(identity_matrix(F,6))==f(1)*identity_matrix(F,6)
    @test_throws ArgumentError conjugate_transpose(x)
-   @test issymmetric(P+transpose(P))
-   @test isskewsymmetric_matrix(P-transpose(P))
+   @test is_symmetric(P+transpose(P))
+   @test is_skewsymmetric_matrix(P-transpose(P))
 
    F,z = FiniteField(2,2)
    x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
    y=x+transpose(x)
-   @test issymmetric(y)
-   @test ishermitian_matrix(x+conjugate_transpose(x))
-   @test isskewsymmetric_matrix(y)
+   @test is_symmetric(y)
+   @test is_hermitian_matrix(x+conjugate_transpose(x))
+   @test is_skewsymmetric_matrix(y)
    y[1,1]=1
-   @test !isskewsymmetric_matrix(y)
+   @test !is_skewsymmetric_matrix(y)
    @test conjugate_transpose(x)==transpose(matrix(F,4,4,[1,z+1,0,0,0,1,z,z+1,z+1,0,0,1,0,0,z,0]))
 
 end
@@ -109,18 +109,17 @@ end
 
    v1=V([1,2,3,4,5])
    v2=V([1,6,0,5,2])
-   @test v1*v2==1
    G = GL(5,F)
    B=matrix(F,5,5,[1,2,3,1,0,4,5,2,0,1,3,2,5,4,0,1,6,4,3,5,2,0,4,1,1])
    @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
    @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
-   @test v1*B*v2==(v1*B)*v2
    B = G(B)
    @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
    @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
-   @test v1*B*v2==(v1*B)*v2
    @test map(x->x+1,v1)==V([2,3,4,5,6])
 
+   # see the discussion of pull/1368 and issues/872
+   @test_throws MethodError v1*v2
 end
 
 # from file matrices/stuff_field_gen.jl
@@ -141,8 +140,8 @@ end
    F = GF(17, 1)
    a = F(3)
    b = F(13)
-   @test a^Oscar._disc_log(a,b)==b
-   @test_throws ErrorException Oscar._disc_log(b,a)
-   @test Oscar._disc_log(F(16),F(1))==0
-   @test_throws ErrorException Oscar._disc_log(b,F(0))
+   @test a^Oscar.disc_log(a,b)==b
+   @test_throws String Oscar.disc_log(b,a)
+   @test Oscar.disc_log(F(16),F(1))==0
+   @test_throws String Oscar.disc_log(b,F(0))
 end

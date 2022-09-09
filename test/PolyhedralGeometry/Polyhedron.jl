@@ -13,6 +13,10 @@
     Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
     L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull(T, [0 1 0])
+    # this is to make sure the order of some matrices below doesn't change
+    Polymake.prefer("beneath_beyond") do
+        affine_hull(point)
+    end
     s = simplex(T, 2)
 
     @testset "core functionality" begin
@@ -33,13 +37,14 @@
             @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
             @test length(boundary_lattice_points(square)) == 8
             @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
-            @test issmooth(Q0)
-            @test isnormal(Q0)
+            @test is_smooth(Q0)
+            @test is_normal(Q0)
         end
-        @test isfeasible(Q0)
-        @test isbounded(Q0)
-        @test isfulldimensional(Q0)
+        @test is_feasible(Q0)
+        @test is_bounded(Q0)
+        @test is_fulldimensional(Q0)
         @test f_vector(Q0) == [3,3]
+        @test intersect(Q0, Q0) isa Polyhedron{T}
         @test intersect(Q0, Q0) == Q0
         @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
@@ -47,7 +52,7 @@
         @test f_vector(L) == [0, 1, 2]
         @test codim(square) == 0
         @test codim(point) == 3
-        @test !isfulldimensional(point)
+        @test !is_fulldimensional(point)
         @test recession_cone(Pos) isa Cone{T}
         @test nrays(recession_cone(Pos)) == 3
         @test vertices(PointVector{T}, point) isa SubObjectIterator{PointVector{T}}
@@ -179,9 +184,27 @@
     end
 
     @testset "standard_constructions" begin
+        @test convex_hull(T, pts, nothing, [1 1]) == Q2
+        @test Polyhedron{T}(nothing, ([1 0 0; 0 1 0; 0 0 1], [0, 1, 0])) == point
         nc = normal_cone(square, 1)
         @test nc isa Cone{T}
         @test rays(nc) == [[1, 0], [0, 1]]
+        let H = LinearHalfspace{T}([1, 1, 0])
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}([1 1 0], 0)
+        end
+        let H = AffineHalfspace{T}([1, 0, 1], 5)
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}([1 0 1], 5)
+        end
+        let H = LinearHyperplane{T}([0, 1, 1])
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([0 1 1], 0))
+        end
+        let H = AffineHyperplane{T}([1, 1, 1], 7)
+            @test Polyhedron(H) isa Polyhedron{T}
+            @test Polyhedron(H) == Polyhedron{T}((Polymake.Matrix{Polymake.Rational}(undef, 0, 3), Polymake.Rational[]), ([1 1 1], 7))
+        end
         if T == fmpq
             @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
             @test upper_bound_g_vector(4,8) == [1, 3, 6]
@@ -262,9 +285,9 @@
                 
             end
             
-            @test isfeasible(D)
-            @test isbounded(D)
-            @test isfulldimensional(D)
+            @test is_feasible(D)
+            @test is_bounded(D)
+            @test is_fulldimensional(D)
             @test f_vector(D) == [20, 30, 12]
             @test codim(D) == 0
             @test nrays(recession_cone(D)) == 0

@@ -17,6 +17,7 @@ concurrency:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
     continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     strategy:
       fail-fast: false
@@ -24,18 +25,20 @@ jobs:
         julia-version:
           - '1.6'
           - '~1.7.0-0'
+          - '~1.8.0-0'
           - 'nightly'
         julia-arch:
           - x64
         os:
           - ubuntu-latest
-          - macOS-latest
-        #exclude:
-        #  # Reduce the number of macOS jobs, as fewer can be run in parallel
-        #  - os: macos-latest
-        #    julia-version: '1.3'
-        #  - os: macos-latest
-        #    julia-version: '1.4'
+        include:
+          # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
+          - julia-version: '1.6'
+            julia-arch: x64
+            os: macOS-latest
+          - julia-version: 'nightly'
+            julia-arch: x64
+            os: macOS-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -50,6 +53,10 @@ jobs:
           arch: ${{ matrix.julia-arch }}
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@latest
+      - name: "limit OpenMP threads"
+        if: runner.os == 'macOS'
+        # restrict number of openMP threads on macOS due to oversubscription
+        run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
       - name: "Run doctests"

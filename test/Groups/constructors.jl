@@ -45,17 +45,17 @@
   @test_throws ArgumentError symmetric_group(0)
   @test_throws ArgumentError alternating_group(-1)
 
-  @test isnatural_alternating_group(alternating_group(4))
-  @test ! isnatural_alternating_group(omega_group(3,3))
-  @test isisomorphic_with_alternating_group(alternating_group(4))
-  @test isisomorphic_with_alternating_group(omega_group(3,3))
-  @test !isisomorphic_with_alternating_group(symmetric_group(4))
+  @test is_natural_alternating_group(alternating_group(4))
+  @test ! is_natural_alternating_group(omega_group(3,3))
+  @test is_isomorphic_with_alternating_group(alternating_group(4))
+  @test is_isomorphic_with_alternating_group(omega_group(3,3))
+  @test !is_isomorphic_with_alternating_group(symmetric_group(4))
 
-  @test isnatural_symmetric_group(symmetric_group(4))
-  @test ! isnatural_symmetric_group(symmetric_group(PcGroup,4))
-  @test isisomorphic_with_symmetric_group(symmetric_group(4))
-  @test isisomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
-  @test !isisomorphic_with_symmetric_group(alternating_group(4))
+  @test is_natural_symmetric_group(symmetric_group(4))
+  @test ! is_natural_symmetric_group(symmetric_group(PcGroup,4))
+  @test is_isomorphic_with_symmetric_group(symmetric_group(4))
+  @test is_isomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
+  @test !is_isomorphic_with_symmetric_group(alternating_group(4))
 end
 
 @testset "Special Constructors" begin
@@ -69,9 +69,9 @@ end
   
   @test isa(alternating_group(PcGroup,3), PcGroup)
   @test isa(symmetric_group(PcGroup,3), PcGroup)
-  @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))[1]
+  @test is_isomorphic(symmetric_group(4), symmetric_group(PcGroup,4))
 
-  @test isquaternion_group(small_group(8, 4))
+  @test is_quaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
   @test isa(small_group(60, 5), PermGroup)
@@ -80,23 +80,31 @@ end
   
   @test isa(cyclic_group(5), PcGroup)
   @test isa(cyclic_group(PermGroup, 5), PermGroup)
-  
+  @test_throws ArgumentError cyclic_group(-1)
+  @test_throws ArgumentError cyclic_group(PermGroup, -1)
+
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
-  @test iscyclic(G)
+  @test is_cyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
-  @test isisomorphic(G, G1)[1]
+  @test is_isomorphic(G, G1)
   G = abelian_group(PcGroup, [ZZ(2)^70])
 
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
 #=
   H = free_abelian_group(2)
   @test !isfinite(H)
-  @test isabelian(H)
+  @test is_abelian(H)
 =#
   
   @test mathieu_group(10) isa PermGroup
   @test order(mathieu_group(10))==720
+  @test_throws ArgumentError mathieu_group(-1)
+  @test_throws ArgumentError mathieu_group(8)
+  @test_throws ArgumentError mathieu_group(13)
+  @test_throws ArgumentError mathieu_group(20)
+  @test_throws ArgumentError mathieu_group(25)
+
 
   F = free_group("x","y")
   @test F isa FPGroup
@@ -104,17 +112,36 @@ end
   @test_throws ErrorException index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
   @test !isfinite(F)
-  @test !isabelian(F)
+  @test !is_abelian(F)
 
+  F = free_group(:x,:y)
+  @test F isa FPGroup
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
+  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws MethodError degree(F)
+  @test !isfinite(F)
+  @test !is_abelian(F)
+
+  F = free_group("x",:y)
+  @test F isa FPGroup
+  
   F = free_group(2)
   @test F isa FPGroup
   
   F = free_group(["x","y"])
   @test F isa FPGroup
   
+  F = free_group([:x,:y])
+  @test F isa FPGroup
+  
   F = free_group(3,"y")
   @test F isa FPGroup
   
+  F = free_group(3,:y)
+  @test F isa FPGroup
+
+  @test_throws ArgumentError free_group(-1)
+
   Q8 = quaternion_group(8)
   @test isa(Q8, PcGroup)
   

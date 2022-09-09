@@ -1,7 +1,7 @@
 #module MPolyModule
 
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
-       jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
+       jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime
 
 ##############################################################################
 #
@@ -91,7 +91,7 @@ function _collect_variables(c::Vector, v::Pair, start = 1)
   if lv isa Tuple
     res = Array{eltype(c)}(undef, map(length, lv))
   else
-    res = Array{eltype(c)}(undef, length(lv))
+    res = Vector{eltype(c)}(undef, length(lv))
   end
   for i in eachindex(res)
     res[i] = c[start]
@@ -111,6 +111,25 @@ end
 function Base.getindex(R::MPolyRing, i::Int)
   i == 0 && return zero(R)
   return gen(R, i)
+end
+
+ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyElem} = ngens(base_ring(F))
+
+function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyElem}
+  return F(gen(base_ring(F)))
+end
+
+function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyElem}
+  return F(gen(base_ring(F), i))
+end
+
+function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyElem, MPolyElem}}
+  return map(F, gens(base_ring(F)))
+end
+
+function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyElem}
+  i == 0 && return zero(F)
+  return gen(F, i)
 end
 
 ######################################################################
@@ -136,7 +155,9 @@ end
 using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       weights, MonomialOrdering, singular
+       matrix_ordering, weight_matrix, MonomialOrdering, singular,
+       is_global, is_local, is_mixed, monomial_ordering,
+       permutation_of_terms, weighted_ordering, canonical_weight_matrix
 
 
 ##############################################################################
@@ -158,36 +179,35 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
+default_ordering(R::MPolyRing) = degrevlex(gens(R))
+
 mutable struct BiPolyArray{S}
+  Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
+  Sx # Singular Poly Ring or Algebra, poss. with different ordering
   S::Singular.sideal
-  Ox #Oscar Poly Ring
-  Sx # Singular Poly Ring, poss. with different ordering
   isGB::Bool #if the Singular side (the sideal) will be a GB
-  ord :: Orderings.AbsOrdering #for this ordering
+  ord::Orderings.AbsOrdering #for this ordering
   keep_ordering::Bool
 
-  function BiPolyArray(a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
-    return BiPolyArray(parent(a[1]), a; keep_ordering = keep_ordering,
+  function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+    return BiPolyArray(parent(O[1]), O; keep_ordering = keep_ordering,
                                         isGB = isGB)
   end
 
-  function BiPolyArray(R::MPolyRing, a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
-    r = new{T}()
-    r.O = a
-    r.Ox = R
+  function BiPolyArray(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+    r = new{T}(Ox, O)
     r.isGB = isGB
     r.keep_ordering = keep_ordering
     return r
   end
 
-  function BiPolyArray(Ox::T, b::Singular.sideal) where {T <: MPolyRing}
-    r = new{elem_type(T)}()
-    r.S = b
-    r.O = Array{elem_type(T)}(undef, Singular.ngens(b))
-    r.Ox = Ox
-    r.isGB = b.isGB
-    r.Sx = base_ring(b)
+  function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
+    Sx = base_ring(S)
+    r = new{elem_type(T)}(Ox)
+    r.Sx = Sx
+    r.S = S
+    r.isGB = S.isGB
     r.keep_ordering = true
     return r
   end
@@ -201,8 +221,8 @@ function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
 end
 
 function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-  if !isassigned(A.O, i)
-    A.O[i] = A.Ox(A.S[i])
+    if !isdefined(A, :O)
+      oscar_assure(A)
   end
   return A.O[i]
 end
@@ -234,8 +254,23 @@ Base.eltype(::BiPolyArray{S}) where S = S
 # Needs convert(Target(Ring), elem)
 # Ring(s.th.)
 #
-# singular_ring(Nemo-Ring) tries to create the appropriate Ring
+# Singular's polynomial rings are not recursive:
+# 1. singular_poly_ring(R::Ring) tries to create a Singular.PolyRing (with
+#    elements of type Singular.spoly) isomorphic to R 
+# 2. singular_coeff_ring(R::Ring) tries to create a ring isomorphic to R that is
+#    acceptable to Singular.jl as 'coefficients'
 #
+# a real native Singular polynomial ring with Singular's native QQ as coefficients:
+#  singular_poly_ring(QQ[t]) => Singular.PolyRing{Singular.n_Q}
+#
+# Singular's native Fp(5):
+#  singular_coeff_ring(GF(5)) => Singular.N_ZpField
+#
+# Singular wrapper of the Oscar type fmpq_poly:
+#  singular_coeff_ring(QQ[t]) => Singular.N_Ring{fmpq_poly}
+#
+# even more wrappings of the immutable Oscar type gfp_fmpz_elem:
+#  singular_coeff_ring(GF(fmpz(5))) => Singular.N_Field{Singular.FieldElemWrapper{GaloisFmpzField, gfp_fmpz_elem}}
 
 for T in [:MPolyRing, :(AbstractAlgebra.Generic.MPolyRing)]
 @eval function (Ox::$T)(f::Singular.spoly)
@@ -262,22 +297,22 @@ end
 (F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
 
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
-singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
+singular_coeff_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
+singular_coeff_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 
 # if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 
-function singular_ring(F::Union{Nemo.NmodRing, Nemo.FmpzModRing})
+function singular_coeff_ring(F::Union{Nemo.NmodRing, Nemo.FmpzModRing})
   return Singular.ResidueRing(Singular.Integers(), BigInt(modulus(F)))
 end
 
-singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
+singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AnticNumberField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
@@ -290,7 +325,7 @@ function singular_ring(K::AnticNumberField)
   return SK
 end
 
-function singular_ring(F::FqNmodFiniteField)
+function singular_coeff_ring(F::FqNmodFiniteField)
   # TODO: the Fp(Int(char)) can throw
   minpoly = modulus(F)
   Fa = parent(minpoly)
@@ -335,105 +370,43 @@ function (SF::Singular.N_AlgExtField)(a::fq_nmod)
 end
 #### end stuff to move to singular.jl
 
-function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
+function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+    return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ordering(Rx),
               cached = false)[1]
   else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+    return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
   end
 end
 
-function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
 end
 
-function singular(o::Orderings.GenOrdering)
-  v = o.vars
-  @assert minimum(v)+length(v) == maximum(v)+1
-  if o.ord == :lex
-    return Singular.ordering_lp(length(v))
-  elseif o.ord == :degrevlex
-    return Singular.ordering_dp(length(v))
-  elseif o.ord == :deglex
-    return Singular.ordering_Dp(length(v))
-  elseif o.ord == :revlex
-    return Singular.ordering_rp(length(v))
-  elseif o.ord == :neglex
-    return Singular.ordering_ls(length(v))
-  elseif o.ord == :negdegrevlex
-    return Singular.ordering_ds(length(v))
-  elseif o.ord == :negdeglex
-    return Singular.ordering_Ds(length(v))
-   elseif o.ord == :wdeglex
-      return Singular.ordering_Wp(o.w)
-   elseif o.ord == :wdegrevlex
-      return Singular.ordering_wp(o.w)
-   elseif o.ord == :negwdeglex
-      return Singular.ordering_Ws(o.w)
-   elseif o.ord == :negwdegrevlex
-      return Singular.ordering_ws(o.w)
-   elseif o.ord == :weights
-    return Singular.ordering_M(o.wgt)
-  else
-    error("not done yet")
-  end
-end
-
-function singular(o::Orderings.ModOrdering)
-   v = o.gens
-   if o.ord == :lex
-     return Singular.ordering_C(length(v))
-   elseif o.ord == :revlex
-     return Singular.ordering_c(length(v))
-   else
-     error("unknown module ordering")
-   end
-end
-
-function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
-  #test if it can be mapped directly to singular:
-  # - consecutive, non-overlapping variables
-  # - covering everything
-  # if this fails, create a matrix...
-  f = Orderings.flat(ord)
-  st = 1
-  iseasy = true
-  for i = 1:length(f)
-    max_var = Orderings.max_used_variable(st, f[i])
-    if max_var == 0
-      iseasy = false
-      break
-    elseif max_var != -1
-      st = max_var
-    end
-  end
-
-  if iseasy
-    o = singular(f[1])
-    for i=2:length(f)
-      o = o*singular(f[i])
-    end
-  else
-    o = Singular.ordering_M(Orderings.simplify_weight_matrix(ord))
-  end
-
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
-              ordering = o,
+              ordering = ord,
+              cached = false)[1]
+end
+
+function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_coeff_ring(base_ring(Rx)),
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = singular(ord),
               cached = false)[1]
 end
 
 
 #catch all for generic nemo rings
-function Oscar.singular_ring(F::AbstractAlgebra.Ring)
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Ring)
   return Singular.CoefficientRing(F)
 end
 
@@ -460,28 +433,24 @@ Fields:
 """
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
-  gb::BiPolyArray{S}
+  gb::Dict{MonomialOrdering, BiPolyArray{S}}
   dim::Int
 
   function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
-    r = new{T}()
-    r.dim = -1 #not known
-    r.gens = BiPolyArray(g, keep_ordering = false)
-    return r
+    return MPolyIdeal(BiPolyArray(g, keep_ordering = false))
   end
+
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
-    r = new{elem_type(T)}()
-    r.dim = -1 #not known
-    r.gens = BiPolyArray(Ox, s)
+    r = MPolyIdeal(BiPolyArray(Ox, s))
     if s.isGB
-      r.gb = r.gens
+      ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      r.gb[ord] = r.gens
     end
     return r
   end
+
   function MPolyIdeal(B::BiPolyArray{T}) where T
-    r = new{T}()
-    r.dim = -1
-    r.gens = B
+    r = new{T}(B, Dict(), -1)
     return r
   end
 end
@@ -506,35 +475,48 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
-    I.Sx = singular_ring(I.Ox, keep_ordering=I.keep_ordering)
+    I.Sx = singular_poly_ring(I.Ox, keep_ordering=I.keep_ordering)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-    if I.isGB
-      I.S.isGB = true
-    end
+  end
+  if I.isGB
+    I.S.isGB = true
   end
 end
 
-function singular_assure(I::MPolyIdeal, O::MonomialOrdering)
-   singular_assure(I.gens, O)
+function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
+   singular_assure(I.gens, ordering)
 end
 
-function singular_assure(I::BiPolyArray, O::MonomialOrdering)
-   if !isdefined(I, :ord) || I.ord != O.o
-      I.ord = O.o
-      I.Sx = singular_ring(I.Ox, O.o)
-      I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-      I.isGB = false
-   else
-      singular_assure(I)
-   end
+function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
+    if !isdefined(I, :S) 
+        I.ord = ordering.o
+        I.Sx = singular_poly_ring(I.Ox, ordering)
+        I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+        if I.isGB
+            I.S.isGB = true
+        end
+    else
+        #= singular ideal exists, but the singular ring has the wrong ordering
+         = attached, thus we have to create a new singular ring and map the ideal. =#
+        if !isdefined(I, :ord) || I.ord != ordering.o
+            I.ord = ordering.o
+            SR    = singular_poly_ring(I.Ox, ordering)
+            f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
+            I.S   = Singular.map_ideal(f, I.S)
+            I.Sx  = SR
+        end
+    end
 end 
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
     I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
   end
-  if isdefined(I, :gb)
-    I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
+end
+
+function oscar_assure(B::BiPolyArray)
+  if !isdefined(B, :O) || !isassigned(B.O, 1)
+    B.O = [B.Ox(x) for x = gens(B.S)]
   end
 end
 
@@ -652,7 +634,6 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
   i::Vector{Int}
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Vector{Int}) where {T1 <: MPolyRing, T2 <: MPolyRing}
-    r = new()
     p = sortperm(i)
     j = Int[]
     for h = 1:length(p)
@@ -661,9 +642,8 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
         break
       end
     end
-    r.header = MapHeader{T1, T2}(R, S, x -> im_func(x, S, i), y-> im_func(y, R, j))
-    r.i = i
-    return r
+    header = MapHeader{T1, T2}(R, S, x -> im_func(x, S, i), y-> im_func(y, R, j))
+    return new(header, i)
   end
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2; type::Symbol = :none) where {T1 <: MPolyRing, T2 <: MPolyRing}
@@ -717,23 +697,23 @@ function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
   return coordinates(a, [b])[1]
 end
 
-function terms(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function terms(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( term(f, perm[i]) for i = 1:length(f) )
 end
 
-function coefficients(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function coefficients(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( coeff(f, perm[i]) for i = 1:length(f) )
 end
 
-function exponent_vectors(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( exponent_vector(f, perm[i]) for i = 1:length(f) )
 end
 
-function monomials(f::MPolyElem, ord::Function)
-  perm = _perm_of_terms(f, ord)
+function monomials(f::MPolyElem, ord::MonomialOrdering)
+  perm = permutation_of_terms(f, ord)
   return ( monomial(f, perm[i]) for i = 1:length(f) )
 end
 
@@ -744,27 +724,17 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
       if ord == ordering(R)
         return ($s)(f)
       end
-
-      lt = lt_from_ordering(R, ord)
-      return ($s)(f, lt)
+      return ($s)(f, monomial_ordering(gens(R), ord))
     end
 
     function ($s)(f::MPolyElem, M::Union{ Matrix{T}, MatElem{T} }) where T
       R = parent(f)
-      lt = lt_from_ordering(R, M)
-      return ($s)(f, lt)
+      return ($s)(f, matrix_ordering(gens(R), M))
     end
 
     function ($s)(f::MPolyElem, ord::Symbol, weights::Vector{Int})
       R = parent(f)
-      lt = lt_from_ordering(R, ord, weights)
-      return ($s)(f, lt)
-    end
-
-    function ($s)(f::MPolyElem, ord::MonomialOrdering)
-      R = parent(f)
-      lt = lt_from_ordering(R, ord.o)
-      return ($s)(f, lt)
+      return ($s)(f, monomial_ordering(gens(R), ord, weights))
     end
   end
 end
@@ -803,7 +773,7 @@ end
 =#
 
 # generic fallback since this is not implemented specifically anywhere yet
-function isirreducible(a::MPolyElem)
+function is_irreducible(a::MPolyElem)
   af = factor(a)
   return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
 end

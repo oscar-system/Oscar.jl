@@ -4,9 +4,9 @@ export
     double_cosets,
     GroupCoset,
     GroupDoubleCoset,
-    isbicoset,
-    isleft,
-    isright,
+    is_bicoset,
+    is_left,
+    is_right,
     left_acting_group,
     left_coset,
     left_cosets,
@@ -89,18 +89,18 @@ function show(io::IO, x::GroupCoset)
 end
 
 """
-    isleft(c::GroupCoset)
+    is_left(c::GroupCoset)
 
 Return whether the coset `c` is a left coset of its acting domain.
 """
-isleft(c::GroupCoset) = c.side == :left
+is_left(c::GroupCoset) = c.side == :left
 
 """
-    isright(c::GroupCoset)
+    is_right(c::GroupCoset)
 
 Return whether the coset `c` is a right coset of its acting domain.
 """
-isright(c::GroupCoset) = c.side == :right
+is_right(c::GroupCoset) = c.side == :right
 
 Base.:*(H::GAPGroup, g::GAPGroupElem) = right_coset(H,g)
 Base.:*(g::GAPGroupElem, H::GAPGroup) = left_coset(H,g)
@@ -147,11 +147,11 @@ representative(C::GroupCoset) = C.repr
 @deprecate elements(C::GroupCoset) collect(C)
 
 """
-    isbicoset(C::GroupCoset)
+    is_bicoset(C::GroupCoset)
 
 Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
 """
-isbicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
+is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
 """
     right_cosets(G::Group, H::Group)
@@ -282,8 +282,8 @@ function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
    if NC
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else
-      @assert issubgroup(G,H)[1] "H is not a subgroup of G"
-      @assert issubgroup(G,K)[1] "K is not a subgroup of G"
+      @assert is_subgroup(G,H)[1] "H is not a subgroup of G"
+      @assert is_subgroup(G,K)[1] "K is not a subgroup of G"
       dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
    end
    res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))
@@ -303,8 +303,8 @@ end
 
 Return the cardinality of the (double) coset `C`.
 """
-order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
-Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
+order(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, C::Union{GroupCoset,GroupDoubleCoset})
@@ -359,7 +359,7 @@ Return a vector containing all elements belonging to all groups and cosets
 in `V`.
 """
 function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
-   if typeof(V[1]) <: GAPGroup
+   if V[1] isa GAPGroup
       G = V[1]
    else
       G = V[1].G

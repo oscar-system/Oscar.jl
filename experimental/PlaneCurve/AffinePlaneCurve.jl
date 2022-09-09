@@ -4,9 +4,9 @@
 include("Variety.jl")
 using .VarietyModule
 
-export issmooth, tangent, common_components, curve_intersect, intersect,
+export is_smooth, tangent, common_components, curve_intersect, intersect,
        curve_singular_locus, multiplicity, tangent_lines, singular_locus,
-       intersection_multiplicity, aretransverse, issmooth_curve,
+       intersection_multiplicity, aretransverse, is_smooth_curve,
        arithmetic_genus, geometric_genus
 
 ################################################################################
@@ -15,11 +15,11 @@ export issmooth, tangent, common_components, curve_intersect, intersect,
 # curve.
 
 @doc Markdown.doc"""
-    issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+    is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -30,11 +30,11 @@ Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 julia> P = Oscar.Point([QQ(0), QQ(0)])
 Point with coordinates fmpq[0, 0]
 
-julia> Oscar.issmooth(C, P)
+julia> Oscar.is_smooth(C, P)
 false
 ```
 """
-function Oscar.issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+function Oscar.is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
   iszero(evaluate(C.eq, P.coord)) || error("The point is not on the curve defined by ", C.eq)
   J = jacobi_ideal(C)
@@ -53,7 +53,7 @@ end
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -92,7 +92,7 @@ end
 
 Return the affine plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -128,7 +128,7 @@ end
 
 Return a list whose first element is the affine plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -168,7 +168,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   # The constant coefficient is stored as a mpoly to be used later in evaluate.
   for g in keys(Z.fac)
      if total_degree(g) == 1
-        f = g//leading_coefficient(g)
+        f = divexact(g, leading_coefficient(g))
         push!(Y, -f + gen(R, 2))
      end
   end
@@ -181,7 +181,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
         ZZ = factor(GG)
         for g in keys(ZZ.fac)
            if total_degree(g) == 1
-              f = g//leading_coefficient(g)
+              f = divexact(g, leading_coefficient(g))
               # We use lc to convert the mpoly into element of S.
               push!(L, [leading_coefficient(-f + gen(R, 1)), leading_coefficient(y)])
            end
@@ -221,7 +221,7 @@ end
 
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -252,15 +252,15 @@ function curve_singular_locus(C::AffinePlaneCurve)
    FX, FY = gens(J)
    # The case FX = FY = 0 cannot occur in the reduced case.
    # With the fact that the equation is now squarefree, only points can appear.
-   if iszero(FX) && !isconstant(FY)
+   if iszero(FX) && !is_constant(FY)
       CY = AffinePlaneCurve(FY)
       L = curve_intersect(D, CY)
       append!(Pts, L[2])
-   elseif iszero(FY) && !isconstant(FX)
+   elseif iszero(FY) && !is_constant(FX)
       CX = AffinePlaneCurve(FX)
       L = curve_intersect(D, CX)
       append!(Pts, L[2])
-   elseif !isconstant(FX) && !isconstant(FY)
+   elseif !is_constant(FX) && !is_constant(FY)
       CX = AffinePlaneCurve(FX)
       CY = AffinePlaneCurve(FY)
       L = curve_intersect(CX, CY)
@@ -307,7 +307,7 @@ end
 
 Return the multiplicity of `C` at `P`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -343,7 +343,7 @@ end
 
 Return the tangent lines at `P` to `C` with their multiplicity.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -408,7 +408,7 @@ end
 
 Return the intersection multiplicity of `C` and `D` at `P`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -432,8 +432,8 @@ function intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S
   m = ideal_point(R, P)
   r = Localization(R, m)
   I = ideal(r, [C.eq, D.eq])
-  groebner_basis(I)
-  return Singular.vdim(I.gb.S)
+  G = Oscar.groebner_assure(I)
+  return Singular.vdim(G.S)
 end
 
 ################################################################################
@@ -444,7 +444,7 @@ end
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -469,18 +469,18 @@ true
 ```
 """
 function aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
-  return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
+  return is_smooth(C, P) && is_smooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################
 # Check if a reduced curve is smooth.
 
 @doc Markdown.doc"""
-    issmooth_curve(C::AffinePlaneCurve)
+    is_smooth_curve(C::AffinePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
@@ -488,11 +488,11 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
 
-julia> Oscar.issmooth_curve(C)
+julia> Oscar.is_smooth_curve(C)
 false
 ```
 """
-function issmooth_curve(C::AffinePlaneCurve)
+function is_smooth_curve(C::AffinePlaneCurve)
   S = curve_singular_locus(C)
   if isempty(S[1])
      return isempty(S[2])
@@ -525,7 +525,7 @@ end
 
 Return the geometric genus of the projective closure of `C`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])

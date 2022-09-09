@@ -13,6 +13,7 @@ export
     preserved_sesquilinear_forms,
     automorphism_group,
     orthogonal_group,
+    orthogonal_sign,
     unitary_group
 
 ########################################################################
@@ -67,7 +68,7 @@ over its prime subfield.
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
+   @assert F isa FinField "At the moment, only finite fields are considered"
    @assert iseven(degree(F)) "Base ring has no even degree"
    n = degree(G)
    M = T[]
@@ -202,7 +203,7 @@ over its prime subfield.
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
-   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
+   @assert F isa FinField "At the moment, only finite fields are considered"
    n = degree(G)
    M = T[]
 
@@ -440,12 +441,14 @@ end
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
-is not absolutely irreducible.
+is not absolutely irreducible or if the group is defined over a finite field
+of odd degree over the prime field.
 
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
+   isodd(degree(base_ring(G))) && throw(ArgumentError("group is defined over a field of odd degree"))
    V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
    return preimage_matrix(G.ring_iso, B)
@@ -454,7 +457,7 @@ end
 """
     invariant_quadratic_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`.
+Return an invariant quadratic form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
@@ -523,6 +526,37 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(R,f)
    end
    return R
+end
+
+
+"""
+    orthogonal_sign(G::MatrixGroup)
+
+For absolutely irreducible `G` of degree `n` and such that `base_ring(G)`
+is a finite field, return
+- `nothing` if `G` does not preserve a nonzero quadratic form,
+- `0` if `n` is odd and `G` preserves a nonzero quadratic form,
+- `1` if `n` is even and `G` preserves a nonzero quadratic form of `+` type,
+- `-1` if `n` is even and `G` preserves a nonzero quadratic form of `-` type.
+"""
+function orthogonal_sign(G::MatrixGroup)
+    R = base_ring(G)
+    R isa FinField || error("G must be a matrix group over a finite field")
+    M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X),
+                                  codomain(iso_oscar_gap(R)))
+    sign = GAP.Globals.MTX.OrthogonalSign(M)
+    sign === GAP.Globals.fail && return nothing
+    # If the characteristic is odd and there is an invariant
+    # antisymmetric bilinear form then `GAP.Globals.MTX.OrthogonalSign`
+    # does *not* return `fail`,
+    # see https://github.com/gap-system/gap/issues/4936.
+    if isodd(characteristic(R))
+      Q = GAP.Globals.MTX.InvariantQuadraticForm(M)
+      if Q === GAP.Globals.fail || Q == - GAP.Globals.TransposedMat(Q)
+        return nothing
+      end
+    end
+    return sign
 end
 
 
@@ -599,11 +633,11 @@ function isometry_group(f::SesquilinearForm{T}) where T
          e = -1
       end
    end
-   Xf = iscongruent(SesquilinearForm(preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+   Xf = is_congruent(SesquilinearForm(preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
    if Xf==nothing && isodd(r)
-      Xf = iscongruent(SesquilinearForm(primitive_element(F)*preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
    end
 
 
@@ -655,6 +689,174 @@ The transformations are represented with respect to the ambient space of `L`.
    gens = Hecke.automorphism_group_generators(L)
    G = matrix_group(gens)
    return G
+end
+
+@attr MatrixGroup{fmpq,fmpq_mat} function isometry_group(L::ZLat)
+   # corner case
+   if rank(L) == 0
+      return matrix_group(identity_matrix(QQ,degree(L)))
+   end
+   @req is_definite(L) "lattice must be definite"
+   G, _ = _isometry_group_via_decomposition(L)
+   return G
+end
+
+"""
+    _isometry_group_via_decomposition(L::ZLat) -> Tuple{MatrixGroup, Vector{fmpq_mat}}
+
+Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
+"""
+function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
+  # TODO: adapt the direct decomposition approach for AbsLat
+  # in most examples `direct=true` seems to be faster by a factor of 7
+  # but in some examples it is also slower ... up to a factor of 15
+  if gram_matrix(L)[1,1]<0
+    L = rescale(L, -1)
+  end
+  # construct the sublattice M1 of L generated by the shortest vectors
+  V = ambient_space(L)
+  # for simplicity we work with the ambient representation
+  sv = shortest_vectors(L)
+  sv1 = fmpq_mat[v*basis_matrix(L) for v in sv]
+  h = _row_span!(sv)*basis_matrix(L)
+  M1 = lattice(V, h)
+  if closed
+    # basically doubles the memory usage of this function
+    # a more elegant way could be to work with the corresponding projective representation
+    append!(sv1, [-v for v in sv1])
+  end
+
+  # base case of the recursion
+  M1primitive = primitive_closure(L, M1)
+
+  #=
+  # the following is slower than computing the automorphism_group generators of
+  # M1primitive outright
+  gensOM1 = Hecke.automorphism_group_generators(M1)
+  OM1 = matrix_group(gensOM1)
+  if M1primitive == M1
+    O1 = OM1
+  else
+    # M1 is generated by its shortest vectors only up to finite index
+    @vprint :Lattice 3 "Computing overlattice stabilizers \n"
+    O1,_ = stabilizer(OM1, M1primitive, on_lattices)
+  end
+  =#
+  O1 = matrix_group(Hecke.automorphism_group_generators(M1primitive))
+  _set_nice_monomorphism!(O1, sv1, closed=closed)
+  if rank(M1) == rank(L)
+    @hassert :Lattice 2 M1primitive == L
+    return O1, sv1
+  end
+
+  # decompose as a primitive extension: M1primitive + M2 \subseteq L
+  M2 = Hecke.orthogonal_submodule(L, M1)
+
+  @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
+  # recursion
+  O2, sv2 = _isometry_group_via_decomposition(M2, closed=closed,direct=direct)
+
+
+  # In what follows we compute the stabilizer of L in O1 x O2
+  if direct
+    gens12 = vcat(gens(O1),gens(O2))
+    G = matrix_group(gens12)
+    sv = append!(sv1, sv2)
+    S,_ = stabilizer(G, L, on_lattices)
+    _set_nice_monomorphism!(S, sv, closed=closed)
+    return S, sv
+  end
+
+  phi, i1, i2 = glue_map(L, M1primitive, M2)
+  H1 = domain(phi)
+  H2 = codomain(phi)
+
+
+  @vprint :Lattice 2 "glue order: $(order(H1))\n"
+  # the stabilizer and kernel computations are expensive
+  # alternatively we could first project to the orthogonal group of the
+  # discriminant group and create an on_subgroup action
+  @vprint :Lattice 3 "Computing glue stabilizers \n"
+  G1, _ = stabilizer(O1, cover(H1), on_lattices)
+  G2, _ = stabilizer(O2, cover(H2), on_lattices)
+  # _set_nice_monomorphism!(G1, sv1, closed=closed)
+  # _set_nice_monomorphism!(G2, sv2, closed=closed)
+
+  # now we may alter sv1
+  sv = append!(sv1, sv2)
+
+  G1q =  _orthogonal_group(H1, fmpz_mat[hom(H1, H1, TorQuadModElem[H1(lift(x) * matrix(g)) for x in gens(H1)]).map_ab.map for g in gens(G1)])
+  G2q =  _orthogonal_group(H2, fmpz_mat[hom(H2, H2, TorQuadModElem[H2(lift(x) * matrix(g)) for x in gens(H2)]).map_ab.map for g in gens(G2)])
+
+  psi1 = hom(G1, G1q, gens(G1q), check=false)
+  psi2 = hom(G2, G2q, gens(G2q), check=false)
+  @vprint :Lattice 2 "Computing the kernel of $(psi1)\n"
+  K = gens(kernel(psi1)[1])
+  @vprint :Lattice 2 "Computing the kernel of $(psi2)\n"
+  append!(K, gens(kernel(psi2)[1]))
+  @vprint :Lattice 2 "Lifting \n"
+
+  T = _orthogonal_group(H1, [(phi * hom(g) * inv(phi)).map_ab.map for g in gens(G2q)])
+  S = _as_subgroup(G1q, GAP.Globals.Intersection(T.X, G1q.X))[1]
+  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi)) for g in gens(S)])
+  G = matrix_group(matrix.(K))
+  @hassert :Lattice 2 all(on_lattices(L,g)==L for g in gens(G))
+  _set_nice_monomorphism!(G, sv, closed=closed)
+  @vprint :Lattice 2 "Done \n"
+  return G, sv
+end
+
+function on_lattices(L::ZLat, g::MatrixGroupElem{fmpq,fmpq_mat})
+  V = ambient_space(L)
+  return lattice(V, basis_matrix(L) * matrix(g), check=false)
+end
+
+"""
+    on_matrix(x, g::MatrixGroupElem{fmpq,fmpq_mat})
+
+Return `x*g`.
+"""
+function on_matrix(x, g::MatrixGroupElem{fmpq,fmpq_mat})
+  return x*matrix(g)
+end
+
+"""
+    _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
+
+Use the permutation action of `G` on `short_vectors` to represent `G` as a
+finite permutation group.
+
+Internally this sets a `NiceMonomorphism` for the underlying gap group.
+No input checks whatsoever are performed.
+
+It is assumed that the corresponding action homomorphism is injective.
+Setting `closed = true` assumes that `G` actually preserves `short_vectors`.
+"""
+#
+function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
+  phi = action_homomorphism(gset(G, on_matrix, short_vectors, closed=closed))
+  GAP.Globals.SetIsInjective(phi.map, true) # fixes an infinite recursion
+  GAP.Globals.SetIsHandledByNiceMonomorphism(G.X, true)
+  GAP.Globals.SetNiceMonomorphism(G.X, phi.map)
+end
+
+function _row_span!(L::Vector{fmpz_mat})
+  l = length(L)
+  d = ncols(L[1])
+  m = min(2*d,l)
+  B = sparse_matrix(reduce(vcat, L[1:m]))
+  h = matrix(hnf(B, truncate = true))
+  for i in (m+1):l
+    b = L[i]
+    Hecke.reduce_mod_hnf_ur!(b, h)
+    if iszero(b)
+      continue
+    else
+      h = vcat(h, b)
+      hnf!(h)
+    end
+  end
+  return h[1:rank(h),:]
 end
 
 automorphism_group(L::Hecke.AbsLat) = isometry_group(L)

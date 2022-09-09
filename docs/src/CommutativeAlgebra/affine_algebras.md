@@ -14,16 +14,22 @@ Pages = ["affine_algebras.md"]
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient ring of $R$
-modulo an ideal $I$ of $R$, we refer to $A$ as an affine algebra over $C$, or an affine $C$-algebra. In this section, we discuss
+modulo an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *affine $C$-algebra*. In this section, we discuss
 functionality for handling such algebras in OSCAR.
 
 !!! note
     As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
 
 !!! note
-    In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
+    In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
     Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
 
+!!! note
+    Each grading on a multivariate polynomial ring `R`  in OSCAR  descends to a grading on the affine algebra `A = R/I`
+    (recall that OSCAR ideals of graded polynomial rings are required to be homogeneous).
+    Functionality for dealing with such gradings and our notation for describing this functionality descend accordingly.
+	This applies, in particular, to the functions `ìs_graded`, `ìs_standard_graded`, `ìs_z_graded`, `ìs_zm_graded`,
+	and `ìs_positively_graded` which will not be discussed again here. 
 
 ## Types
 
@@ -44,8 +50,9 @@ If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an 
 
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
-- `gens(A)` to the generators of `A`, and
-- `ngens(A)` to the number of these generators.
+- `gens(A)` to the generators of `A`,
+- `ngens(A)` to the number of these generators, and
+- `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
 
 ###### Examples
 
@@ -56,6 +63,13 @@ base_ring(A)
 modulus(A)
 gens(A)
 ngens(A)
+gen(A, 2)
+```
+
+In the graded case, we additionally have:
+
+```@docs
+grading_group(q::MPolyQuo{<:MPolyElem_dec})
 ```
 
 ### Dimension
@@ -73,7 +87,8 @@ parametrized form `MPolyQuo{T}`, where `T` is the element type of the polynomial
 
 ### Creating Elements of Affine Algebras
 
-Elements of an affine algebra $R/I$ are created as images of elements of $R$ under the projection map.
+Elements of an affine algebra $A = R/I$ are created as images of elements of $R$ under the projection map
+or by directly coercing elements of $R$ into $A$.
 
 ###### Examples
 
@@ -82,6 +97,8 @@ R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
 f = p(x^3*y^2-y^3*x^2+x*y)
 typeof(f)
+g = A(x^3*y^2-y^3*x^2+x*y)
+f == g
 ```
 
 ### Reducing Elements of Affine Algebras
@@ -94,6 +111,32 @@ simplify(f::MPolyQuoElem)
 
 ```@docs
 ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
+```
+
+In the graded case, we additionally have:
+
+```@docs
+is_homogeneous(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
+### Data associated to Elements of Affine Algebras
+
+Given an element `f` of an affine algebra `A`, 
+
+- `parent(f)` refers to `A`.
+
+In the graded case,  we also have:
+
+```@docs
+ homogeneous_components(f::MPolyQuoElem{<:MPolyElem_dec})
+```
+
+```@docs
+homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
+```
+
+```@docs
+degree(f::MPolyQuoElem{<:MPolyElem_dec})
 ```
 
 ## Ideals in Affine Algebras
@@ -117,25 +160,34 @@ simplify(a::MPolyQuoIdeal)
 If `a` is an ideal of the affine algebra `A`, then
 
 - `base_ring(a)` refers to `A`,
-- `gens(a)` to the generators of `a`, and
-- `ngens(a)` to the number of these generators.
+- `gens(a)` to the generators of `a`,
+- `ngens(a)` to the number of these generators,  and
+- `gen(a, i)` as well as `a[i]` to the `i`-th such generator.
 
 ###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
-a = ideal(A, [x-y])
+a = ideal(A, [x-y, z^4])
 base_ring(a)
 gens(a)
 ngens(a)
+gen(a, 2)
 ```
-
 
 #### Dimension of Ideals in Affine Algebras
 
 ```@docs
 dim(a::MPolyQuoIdeal)
+```
+
+#### Minimal Sets of Generators
+
+In the graded case, we have:
+
+```@docs
+minimal_generating_set(I::MPolyQuoIdeal{<:MPolyElem_dec})
 ```
 
 ### Operations on Ideals in Affine Algebras
@@ -191,47 +243,54 @@ iszero(a::MPolyQuoIdeal)
 issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
-## Homomorphisms of Affine Algebras
+## Homomorphisms From Affine Algebras
 
-### Constructors
+If $A=R/I$ is an affine $C$-algebra, and $S$ is any ring, then defining a ring homomorphism
+$\overline{\phi}: A \rightarrow S$ means to define a ring homomorphism $\phi: R \rightarrow S$
+such that $I\subset \ker(\phi)$. Thus, $\overline{\phi} $ is determined by specifying its restriction
+to $C$, and by assigning an image to each generator of $A$.
+In OSCAR, such homomorphisms are created by using the following constructor:
 
 ```@docs
-AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-{T, S <: MPolyElem{T},
-U <: Union{MPolyRing{T}, MPolyQuo{S}},
-W <: Union{MPolyRing{T}, MPolyQuo{S}},
-X <: Union{S, MPolyQuoElem{S}}}
+hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
+Given a ring homomorphism `F` from `R` to `S` as above, `domain(F)` and `codomain(F)`
+refer to `R` and `S`, respectively. Given ring homomorphisms `F` from `R` to `S` and
+`G` from `S` to `T` as above, `compose(F, G)` refers to their composition.
+
+## Homomorphisms of Affine Algebras
+
+The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
+the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuo{U}}`, where `T <: FieldElem` and
+`U <: MPolyElem{T}`. Functionality for these homomorphism is discussed in what follows.
+       
 ### Data Associated to Homomorphisms of Affine Algebras
 
-The usual methods for maps are supported, such
-as `domain` and `codomain`.
-
 ```@docs
-preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
-kernel(F::AlgHom)
+preimage(F::AffAlgHom, I::MPolyIdeal)
+kernel(F::AffAlgHom)
 ```
 
 ###### Examples
 
 ```@repl oscar
-D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"])
-C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"])
-V1 = [s^3, s^2*t, s*t^2, t^3]
+D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"]);
+V1 = [s^3, s^2*t, s*t^2, t^3];
 para = hom(D1, C1, V1)
 twistedCubic = kernel(para)
-C2, p2 = quo(D1, twistedCubic)
-D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"])
-V2 = [p2(w-y), p2(x), p2(z)]
+C2, p2 = quo(D1, twistedCubic);
+D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"]);
+V2 = [p2(w-y), p2(x), p2(z)];
 proj = hom(D2, C2, V2)
 nodalCubic = kernel(proj)
 ```
 
 ```@repl oscar
-D3,y = PolynomialRing(QQ, "y" => 1:3)
-C3, x = PolynomialRing(QQ, "x" => 1:3)
-V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]]
+D3,y = PolynomialRing(QQ, "y" => 1:3);
+C3, x = PolynomialRing(QQ, "x" => 1:3);
+V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 F3 = hom(D3, C3, V3)
 sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
 steinerRomanSurface = preimage(F3, sphere)
@@ -241,38 +300,48 @@ steinerRomanSurface = preimage(F3, sphere)
 
 
 ```@docs
-isinjective(F::AlgHom)
-issurjective(F::AlgHom)
-isbijective(F::AlgHom)
-isfinite(F::AlgHom)
+is_injective(F::AffAlgHom)
+is_surjective(F::AffAlgHom)
+is_bijective(F::AffAlgHom)
+isfinite(F::AffAlgHom)
 ```
 
 ###### Examples
 
 ```@repl oscar
-D, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
-C, p = quo(S, ideal(S, [c-b^3]))
-V = [p(2*a + b^6), p(7*b - a^2), p(c^2)]
+D, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"]);
+C, p = quo(S, ideal(S, [c-b^3]));
+V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 F = hom(D, C, V)
-issurjective(F)
-D1, _ = quo(D, kernel(F))
-F1 = hom(D1, C, V)
-isbijective(F1)
+is_surjective(F)
+D1, _ = quo(D, kernel(F));
+F1 = hom(D1, C, V);
+is_bijective(F1)
 ```
+
 ```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"])
-C, (s, t) = PolynomialRing(QQ, ["s", "t"])
-V = [s*t, t, s^2]
+R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"]);
+C, (s, t) = PolynomialRing(QQ, ["s", "t"]);
+V = [s*t, t, s^2];
 paraWhitneyUmbrella = hom(R, C, V)
-D, _ = quo(R, kernel(paraWhitneyUmbrella))
+D, _ = quo(R, kernel(paraWhitneyUmbrella));
 isfinite(hom(D, C, V))
 ```
 
-### Composition of Homomorphisms of Affine Algebras
+### Inverting Homomorphisms of Affine Algebras
 
 ```@docs
-compose(F::AlgHom{T}, G::AlgHom{T}) where T
+inverse(F::AffAlgHom)
+```
+
+```@repl oscar
+D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+D, _ = quo(D1, [y-x^2, z-x^3])
+C, (t,) = PolynomialRing(QQ, ["t"]);
+para = hom(D, C, [t, t^2, t^3]);
+is_bijective(para)
+inverse(para)
 ```
 
 ## Subalgebras
@@ -280,7 +349,7 @@ compose(F::AlgHom{T}, G::AlgHom{T}) where T
 ### Subalgebra Membership
 
 ```@docs
-subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
+subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
 ```
 
 ### Minimal Subalgebra Generators
@@ -295,7 +364,7 @@ minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuo
 noether_normalization(A::MPolyQuo)
 ```
 
-###### Example
+###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
@@ -305,32 +374,14 @@ L[1]
 L[2]
 L[3]
 ```
-
-## Normalization of Rings
+## Normalization
 
 ```@docs
 normalization(A::MPolyQuo)
+```
+
+```@docs
 normalization_with_delta(A::MPolyQuo)
-```
-
-###### Examples
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
-L = normalization(A)
-```
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z^3-x*y^4]))
-L = normalization(A)
-```
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
-L = normalization_with_delta(A)
 ```
 
 ## Integral Bases
@@ -339,72 +390,87 @@ L = normalization_with_delta(A)
 integral_basis(f::MPolyElem, i::Int)
 ```
 
-###### Example
-
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-f = (y^2-2)^2 + x^5
-integral_basis(f, 2)
-```
-
 ## Tests on Affine Algebras
 
 ### Reducedness Test
 
 ```@docs
-isreduced(Q::MPolyQuo)
+is_reduced(Q::MPolyQuo)
 ```
 
 ### Normality Test
 
 ```@docs
-isnormal(A::MPolyQuo)
+is_normal(A::MPolyQuo)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z^2-x*y]))
-isnormal(A)
-```
-
-#### Cohen-Macaulayness Test
+### Cohen-Macaulayness Test
 
 iscohenmacaulay(R)
 
-###### Example
+###### Examples
 
 ## Hilbert Series and Hilbert Polynomial
 
+Given a multivariate polynomial ring $R$ over a field $K$ together with a (multi)grading
+on $R$ by a finitely generated abelian group $G$, let $I$ be an ideal of $R$ which is
+homogeneous with respect to this grading. Then the affine $K-$algebra $A=R/I$
+inherits the grading: $A = \bigoplus_{g\in G} A_g$. Suppose now that $R$ is positively
+graded by $G$. That is, $G$ is free and each graded piece $R_g$ has finite dimension.
+Then also $A_g$ is a finite dimensional $K$-vector space for each $g$, and we have the
+well-defined *Hilbert function* of $A$,
+
+$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
+
+The *Hilbert series* of $A$ is the generating function 
+
+$H_A(\mathbb t)=\sum_{g\in G} H(A, g) \mathbb t^g$
+
+(see  Section 8.2 in [MS05](@cite) for a formal discussion extending the classical case of
+$\mathbb Z$-gradings with positive weights to the more general case of multigradings).
+As in the classical case, the infinitely many values of the Hilbert function
+can be expressed in finite terms by representing the Hilbert series as a rational function
+(see Theorem 8.20 in [MS05](@cite) for a precise statement).
+
+By a result of Macaulay, if $A = R/I$ is an affine algebra, and $L_{>}(I)$ is the leading
+ideal of $I$ with respect to a global monomial ordering $>$, then the Hilbert function of $A$
+equals that of $R/L_{>}(I)$ (see Theorem 15.26 in [Eis95](@cite)).
+Thus, using Gröbner bases, the computation of Hilbert series can be reduced to the case where
+the modulus of the affine algebra is a monomial ideal. In the latter case, we face a problem 
+of combinatorial nature, and there are various strategies of how to proceed (see [KR05](@cite)).
+The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expanded`,
+`hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
+$\mathbb Z$-gradings with positive weights, relying on corresponding Singular
+functionality. The functions `multi_hilbert_series`, `multi_hilbert_series_reduced `,
+and `multi_hilbert_function` use different strategies and allow one to handle
+positive gradings in general.
+
+### $\mathbb Z$-Gradings With Positive Weights
+
 Let $R=K[x_1, \dots x_n]$ be a polynomial ring in $n$ variables over a field $K$.
 Assign positive integer weights $w_i$ to the variables $x_i$, and grade
-$R=\bigoplus_{d\geq 0} R_d$ according to the corresponding weighted degree. Let $I$ be an
+$R=\bigoplus_{d\in \mathbb Z} R_d=\bigoplus_{d\geq 0} R_d$ according
+to the corresponding weighted degree. Let $I$ be an
 ideal of $R$ which is homogeneous with respect to this
 grading. Then the affine $K$-algebra $A=R/I$ inherits the grading:
 $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensional
 $K$-vector space. In this situation, the *Hilbert function* of $A$ is
-the function
+of type
 
-$H(A, \underline{\phantom{d}}): \N \to \N, d \mapsto \dim_K(d).$
+$H(A, \underline{\phantom{d}}): \N \to \N, \;d \mapsto \dim_K(d),$
 
-The *Hilbert series* of $A$ is the generating function
+and the *Hilbert series* of $A$ is the formal power series
 
-$H_A(t)=\sum_{d\geq 0} H(A, d) t^d.$
+$H_A(t)=\sum_{d\geq 0} H(A, d) t^d\in\mathbb Z[[t]].$
 
-It can be written as a rational function in $t$, say, with denominator
+The Hilbert series can be written as a rational function $p(t)/q(t)$, with denominator
 
-$(1-t^{w_1})\cdots (1-t^{w_n}).$ 
+$q(t) = (1-t^{w_1})\cdots (1-t^{w_n}).$ 
 
-Now suppose that the weights on the variables are all 1. Then we also have the *Hilbert
-polynomial* $P_A(t)\in\mathbb{Q}[t]$ which satisfies $H(M,d)=P_M(d)$ for all $d \gg 0$.
-Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if this dimension
-is finite, and as the integer $d$ such that the leading term of the
-Hilbert polynomial has the form $d t^e/e!$, otherwise.
-
-!!! warning
-    Currently, all functions described below are only implemented in the case where the weights on the variables are all 1.
+In the standard $\mathbb Z$-graded case, where the weights on the variables are all 1, the Hilbert function is of polynomial nature: There exists
+ a unique polynomial $P_A(t)\in\mathbb{Q}[t]$, the *Hilbert polynomial*, which satisfies $H(M,d)=P_M(d)$
+for all $d \gg 0$. Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if this dimension
+is finite, and as the integer $d$ such that the leading term of the Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
 ```@docs
 hilbert_series(A::MPolyQuo)
@@ -415,15 +481,10 @@ hilbert_polynomial(A::MPolyQuo)
 degree(A::MPolyQuo)
 ```
 
-###### Examples
+### Positive Gradings in General
 
-```@repl oscar
-R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
-A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
-hilbert_series(A)
-hilbert_series_reduced(A)
-hilbert_series_expanded(A, 7)
-hilbert_function(A,7)
-hilbert_polynomial(A)
-degree(A)
+```@docs
+multi_hilbert_series(A::MPolyQuo)
+multi_hilbert_series_reduced(A::MPolyQuo)
+multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 ```

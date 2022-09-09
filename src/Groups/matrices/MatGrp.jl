@@ -21,6 +21,7 @@ abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 # NOTE: always defined are deg, ring and at least one between { X, gens, descr }
 """
     MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 
 At the moment, only rings of type `FqNmodFiniteField` are supported.
@@ -230,7 +231,7 @@ function assign_from_description(G::MatrixGroup)
      # Here d is odd, and we do not get here if d == 1 holds
      # because `omega_group` delegates to `SO` in this case.
      @assert G.deg > 1
-     if iseven(GAP.Globals.Size(F))
+     if iseven(GAPWrap.Size(F))
        G.X = GAP.Globals.SO(0, G.deg, F)
      else
        L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0, G.deg, F))
@@ -350,7 +351,7 @@ end
 
 # embedding an element of type MatElem into a group G
 # if check=false, there are no checks on the condition `x in G`
-function (G::MatrixGroup)(x::MatElem; check=true)
+function (G::MatrixGroup)(x::MatElem; check::Bool=true)
    if check
       _is_true, x_gap = lies_in(x,G,nothing)
       _is_true || throw(ArgumentError("Element not in the group"))
@@ -361,7 +362,7 @@ end
 
 # embedding an element of type MatrixGroupElem into a group G
 # if check=false, there are no checks on the condition `x in G`
-function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
+function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    if !check
       z = x
       z.parent = G
@@ -385,8 +386,8 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
    end
 end
 
-# embedding a nxn array into a group G
-function (G::MatrixGroup)(L::AbstractVecOrMat; check=true)
+# embedding a n x n array into a group G
+function (G::MatrixGroup)(L::AbstractVecOrMat; check::Bool=true)
    x = matrix(G.ring, G.deg, G.deg, L)
    return G(x; check=check)
 end
@@ -405,19 +406,31 @@ function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
    end
 end
 
+function _common_parent_group(x::T, y::T) where T <: MatrixGroup
+   @assert x.deg == y.deg
+   @assert x.ring === y.ring
+   x === y && return x
+   return GL(x.deg, x.ring)::T
+end
+
 # Base.:* is defined in src/Groups/GAPGroups.jl, and it calls the function _prod below
 # if the parents are different, the parent of the output product is set as GL(n,q)
-function _prod(x::MatrixGroupElem,y::MatrixGroupElem)
-   G = x.parent==y.parent ? x.parent : GL(x.parent.deg, x.parent.ring)
+function _prod(x::T,y::T) where {T <: MatrixGroupElem}
+   G = _common_parent_group(parent(x), parent(y))
+
+   # if the underlying GAP matrices are both defined, but not both Oscar matrices,
+   # then use the GAP matrices.
+   # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
+   # by the Base.getproperty(::MatrixGroupElem, ::Symbol) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
-      return MatrixGroupElem(G, x.X*y.X)
+      return T(G, x.X*y.X)
    else
-      return MatrixGroupElem(G, x.elm*y.elm)
+      return T(G, x.elm*y.elm)
    end
 end
 
-Base.:*(x::MatrixGroupElem, y::fq_nmod_mat) = x.elm*y
-Base.:*(x::fq_nmod_mat, y::MatrixGroupElem) = x*y.elm
+Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = x.elm*y
+Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*y.elm
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
 
@@ -440,14 +453,14 @@ comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
 """
     det(x::MatrixGroupElem)
     
-Return the determinant of `x`.
+Return the determinant of the underlying matrix of `x`.
 """
-det(x::MatrixGroupElem) = det(x.elm)
+det(x::MatrixGroupElem) = det(matrix(x))
 
 """
     base_ring(x::MatrixGroupElem)
 
-Return the base ring of `x`.
+Return the base ring of the underlying matrix of `x`.
 """
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
@@ -456,7 +469,7 @@ parent(x::MatrixGroupElem) = x.parent
 """
     matrix(x::MatrixGroupElem)
 
-Return the underlying `AbstractAlgebra` matrix of `x`.
+Return the underlying matrix of `x`.
 """
 matrix(x::MatrixGroupElem) = x.elm
 
@@ -465,18 +478,24 @@ Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 """
     nrows(x::MatrixGroupElem)
 
-Return the number of rows of the given matrix.
+Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = x.parent.deg
+nrows(x::MatrixGroupElem) = nrows(matrix(x))
 
 """
-    trace(x::MatrixGroupElem)
+    ncols(x::MatrixGroupElem)
+
+Return the number of columns of the underlying matrix of `x`.
+"""
+ncols(x::MatrixGroupElem) = ncols(matrix(x))
+
+
+"""
     tr(x::MatrixGroupElem)
 
-Return the trace of `x`.
+Return the trace of the underlying matrix of `x`.
 """
-trace(x::MatrixGroupElem) = trace(x.elm)
-tr(x::MatrixGroupElem) = tr(x.elm)
+tr(x::MatrixGroupElem) = tr(matrix(x))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
@@ -526,9 +545,27 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X)::GapInt)
+compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
 
-compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
+function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
+  #=
+    - For a matrix group G over the Rationals or over a number field,
+    the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
+    - If we know a reasonable ("nice") faithful permutation action of `G` in advance,
+    we can set this flag in `G.X` to true and store the action homomorphism in `G.X`,
+    and then this information should be used in the computation of the order.
+    - If the flag is not known to be true then the Oscar code from
+    `isomorphic_group_over_finite_field` shall be preferred.
+  =#
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAP.Globals.IsHandledByNiceMonomorphism(G.X)
+    # The call to `IsHandledByNiceMonomorphism` triggers an expensive
+    # computation of `IsFinite` which we avoid by checking
+    # `HasIsHandledByNiceMonomorphism` first.
+    return fmpz(GAPWrap.Order(G.X))
+  else
+    order(isomorphic_group_over_finite_field(G)[1])
+  end
+end
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    res = get_attribute!(G, :order) do
@@ -557,8 +594,8 @@ function general_linear_group(n::Int, F::Ring)
 end
 
 function general_linear_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return general_linear_group(n, GF(b, a))
 end
 
@@ -576,8 +613,8 @@ function special_linear_group(n::Int, F::Ring)
 end
 
 function special_linear_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return special_linear_group(n, GF(b, a))
 end
 
@@ -597,8 +634,8 @@ function symplectic_group(n::Int, F::Ring)
 end
 
 function symplectic_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return symplectic_group(n, GF(b, a))
 end
 
@@ -631,8 +668,8 @@ function orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return orthogonal_group(e, n, GF(b, a))
 end
 
@@ -669,8 +706,8 @@ function special_orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function special_orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return special_orthogonal_group(e, n, GF(b, a))
 end
 
@@ -706,8 +743,8 @@ function omega_group(e::Int, n::Int, F::Ring)
 end
 
 function omega_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    return omega_group(e, n, GF(b, a))
 end
 
@@ -721,8 +758,8 @@ omega_group(n::Int, F::Ring) = omega_group(0,n,F)
 Return the unitary group of dimension `n` over the field `GF(q^2)`.
 """
 function unitary_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
@@ -735,8 +772,8 @@ end
 Return the special unitary group of dimension `n` over the field `GF(q^2)`.
 """
 function special_unitary_group(n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   (a,b) = is_power(q)
+   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
    G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G

@@ -41,9 +41,13 @@ function _iso_gap_oscar(F::GAP.GapObj)
        elseif GAP.Globals.IsCyclotomicCollection(F)
          if GAP.Globals.IsCyclotomicField(F)
            return _iso_gap_oscar_field_cyclotomic(F)
+         elseif F === GAP.Globals.Cyclotomics
+           return _iso_gap_oscar_abelian_closure(F)
          end
        end
      end
+   elseif GAP.Globals.IsZmodnZObjNonprimeCollection(F)
+     return _iso_gap_oscar_residue_ring(F)
    elseif GAP.Globals.IsIntegers(F)
      return _iso_gap_oscar_ring_integers(F)
    elseif GAP.Globals.IsUnivariatePolynomialRing(F)
@@ -51,6 +55,18 @@ function _iso_gap_oscar(F::GAP.GapObj)
    end
 
    error("no method found")
+end
+
+function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
+   n = GAP.Globals.Size(RG)
+   if n isa GAP.GapObj
+     n = fmpz(n)
+   end
+   RO = ResidueRing(ZZ, n)
+
+   finv, f = _iso_oscar_gap_residue_ring_functions(RO, RG)
+
+   return MapFromFunc(f, finv, RG, RO)
 end
 
 function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
@@ -91,6 +107,13 @@ function _iso_gap_oscar_field_cyclotomic(FG::GAP.GapObj)
    return MapFromFunc(f, finv, FG, FO)
 end
 
+function _iso_gap_oscar_abelian_closure(FG::GAP.GapObj)
+   FO, _ = abelian_closure(QQ)
+   finv, f = _iso_oscar_gap_abelian_closure_functions(FO, FG)
+
+   return MapFromFunc(f, finv, FG, FO)
+end
+
 function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
    coeffs_iso = iso_gap_oscar(GAP.Globals.LeftActingDomain(RG))
    RO, x = PolynomialRing(codomain(coeffs_iso), "x")
@@ -109,6 +132,9 @@ function __init_IsoGapOscar()
       GAP.Globals.InstallMethod(GAP.Globals.IsoGapOscar,
         GAP.Obj([GAP.Globals.IsDomain]), GAP.GapObj(_iso_gap_oscar));
     end
+
+    GAP.Globals.BindGlobal(GapObj("_OSCAR_GroupElem"), AbstractAlgebra.GroupElem)
+    GAP.Globals.Read(GapObj(joinpath(Oscar.oscardir, "gap", "misc.g")))
 end
 
 iso_gap_oscar(F::GAP.GapObj) = GAP.Globals.IsoGapOscar(F)

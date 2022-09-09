@@ -14,7 +14,7 @@
 
  f = sum f_i(t) x^i
 
- By standart bounds on polynomials (assume f monic)
+ By standard bounds on polynomials (assume f monic)
 
  roots of f(z)(x) are bounded in abs. value by |f_i(z)| + 1 
  (or even 2*|f_i(z)|^(1/(n-i)) or so, 
@@ -87,7 +87,7 @@ for analysis of the denominator and the infinite valuations
 
 function _galois_init(F::Generic.FunctionField{fmpq}; tStart::Int = -1)
   f = defining_polynomial(F)
-  @assert ismonic(f)
+  @assert is_monic(f)
   Zxy, (x, y) = PolynomialRing(FlintZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
@@ -124,7 +124,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   while true
     t += 1
     g = evaluate(f, [gen(Zx), Zx(t)])
-    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && isirreducible(g)
+    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && is_irreducible(g)
       break
     end
     if t > 10
@@ -149,7 +149,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   return C, K, p
 end
 
-function galois_group(FF::Generic.FunctionField{fmpq})
+function galois_group(FF::Generic.FunctionField{fmpq}; overC::Bool = false)
   tStart = -1
   tr = -1
   while true
@@ -159,7 +159,8 @@ function galois_group(FF::Generic.FunctionField{fmpq})
       error("not plausible")
     end
     C, K, p = _galois_init(FF, tStart = tStart)
-    if issquare(discriminant(K)) != issquare(discriminant(FF))
+
+    if is_square(discriminant(K)) != is_square(discriminant(FF))
       @vprint :GaloisGroup 2 "bad evaluation point: parity changed\n"
       tStart += 1
       continue
@@ -170,7 +171,7 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     @vprint :GaloisGroup 1 "specialising at t = $tStart, computing over Q\n"
     Gal, S = galois_group(K, prime = p)
 
-    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_identification(Gal))\n"
+    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_group_identification(Gal))\n"
 
 #    @show S.start, S.chn
 
@@ -192,30 +193,33 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     prm = [findfirst(x->x == y, _rS) for y = _rC]
     pr = symmetric_group(length(prm))(prm)
 
-    if isdefined(S, :start) && length(S.start) > 0
-      if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start)
+    # need to verify the starting group
+    #either, if block-systems are there, find the subfields
+    #or verify the factorisation of the resolvent:
+    if isdefined(S, :start) && S.start[1] == 1 && length(S.start) > 0
+      if !all(x->is_subfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start[2])
         @vprint :GaloisGroup 2 "bad evaluation point: subfields don't exist\n"
         continue
       end
-      C.start = [[[inv(pr)(i) for i = y] for y = x] for x = S.start]
-    else
-      @assert isa(S.data[1][1], Tuple)
+      C.start = (1, [[[inv(pr)(i) for i = y] for y = x] for x = S.start[2]])
+    elseif isdefined(S, :start)
+      @assert S.start[1] == 2
         
-      if length(S.data) == 1 #msum was irreducible over Q, so also over Qt
+      if length(S.start[2]) == 1 #msum was irreducible over Q, so also over Qt
         @vprint :GaloisGroup 1 "msum irreducible over Q, starting with Sn/An\n"
       else
         O = sum_orbits(FF, Qt_to_G, map(x->mG(mF(x)), rC))
-        if sort(map(length, O)) != sort(map(length, S.data))
+        if sort(map(length, O)) != sort(map(length, S.data[2]))
           @vprint :GaloisGroup 2 "bad evaluation point: 2-sum polynomial has wrong factorisation\n"
           continue
         end
       end
+    else
+      #should be in the An/Sn case
+      #but the parity is already checked, so group is correct
     end
 
-    # need to verify the starting group
-    #either, if block-systems are there, find the subfields
-    #or verify the factorisation of the resolvent (no idea?)
-
+    C.data[3] = overC
     #then verify the descent-chain in S
     C.chn = typeof(S.chn)()
     more_t = false
@@ -267,11 +271,28 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     end
     more_t && continue
     C.G = Gal^inv(pr)
+    if overC
+      F = GroupFilter() # no filter: need also intransitive groups
+                        # could restrict (possibly) to only those
+                        # cannot use short_cosets...
+      descent(C, C.G, F, one(C.G), grp_id = x->order(x))
+      return C.G, C, fixed_field(S, C.G^pr)
+    end
     return C.G, C
   end
   #if any fails, "t" was bad and I need to find a way of restarting
 end
 
+"""
+    subfields(FF:Generic.FunctionField{fmpq})
+
+For a finite extension of the univariate function field over the rationals, 
+find all subfields. The implemented algorithm proceeds by substituting
+the transcendental element to an integer, then computing the subfields
+of the resulting number field and lifting this information.
+
+It is an adaptation of Klueners.
+"""
 function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   C, K, p = _galois_init(FF)
   f = C.C.f
@@ -322,7 +343,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
       r = map(ts, rc)
     end
     @vprint :Subfields 2 "... with block system $bs\n"
-    fl = issubfield(FF, C, bs, ts = ts)
+    fl = is_subfield(FF, C, bs, ts = ts)
     if fl === nothing
       continue
     end
@@ -332,7 +353,7 @@ function Hecke.subfields(FF::Generic.FunctionField{fmpq})
   return res
 end 
 
-function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
+function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::fmpz_poly = gen(Hecke.Globals.Zx))    
 
   SL = SLPolyRing(ZZ, length(bs)*length(bs[1]))
   sx = gens(SL)
@@ -454,7 +475,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
       we have (bound for) alpha (the conjugates), for g_j (above), then *n are
       bounds for b_j
 
-      On 2nd thougts I might also just compute the g_i via division in F[x]  
+      On 2nd thoughts I might also just compute the g_i via division in F[x]  
 
       Darn: need to think again: need estimates for poly * series.
   =#
@@ -561,7 +582,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
 end
 
 function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Generic.RelSeries{qadic})
-#  @show "testing", r, "against", p
+#  @show "testing", r, "against", B
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
 
@@ -575,10 +596,15 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
   f = Qx()
   x = gen(parent(f))
   xpow = parent(x)(1)
+
+  if G.data[3]
+    return true, x
+  end
   
   for i = 0:(r.length + r.val - 1)
     c = coeff(r, i)
     pr = prime(parent(c))
+    
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
       l = Hecke.mod_sym(lift(cc), pr^precision(cc))
@@ -592,12 +618,13 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Ge
     else
       return false, x
     end
+    
     xpow *= x
   end
   return true, f(gen(parent(f))-G.data[2]) #.. and unshift
 end
 
-function Hecke.newton_polygon(f::Generic.Poly{Generic.Rat{fmpq}})
+function Hecke.newton_polygon(f::Generic.Poly{<:Generic.Rat{fmpq}})
   pt = Tuple{Int, Int}[]
   for i=0:degree(f)
     c = coeff(f, i)
@@ -608,7 +635,7 @@ function Hecke.newton_polygon(f::Generic.Poly{Generic.Rat{fmpq}})
   return Hecke.lower_convex_hull(pt)
 end
 
-function valuations_of_roots(f::Generic.Poly{Generic.Rat{T}}) where {T}
+function valuations_of_roots(f::Generic.Poly{<:Generic.Rat{T}}) where {T}
   return [(slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 

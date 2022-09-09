@@ -21,11 +21,11 @@ Permutation groups can be defined as symmetric groups, alternating groups or the
 PermGroup
 PermGroupElem
 symmetric_group
-isnatural_symmetric_group(G::GAPGroup)
-isisomorphic_with_symmetric_group(G::GAPGroup)
+is_natural_symmetric_group(G::GAPGroup)
+is_isomorphic_with_symmetric_group(G::GAPGroup)
 alternating_group
-isnatural_alternating_group(G::GAPGroup)
-isisomorphic_with_alternating_group(G::GAPGroup)
+is_natural_alternating_group(G::GAPGroup)
+is_isomorphic_with_alternating_group(G::GAPGroup)
 ```
 
 In Oscar, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
@@ -36,44 +36,12 @@ degree(x::PermGroup)
 
 ## Permutations
 
-Permutations in Oscar are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions `perm`, `gap_perm` and `cperm`.
+Permutations in Oscar are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions `perm`, `cperm`, or `@perm`.
 
 ```@docs
 perm
-gap_perm
 cperm
-```
-
-Every permutation has always a permutation group as a parent. Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
-```jldoctest
-julia> G=symmetric_group(5);
-
-julia> A=alternating_group(5);
-
-julia> x=cperm(G,[1,2,3]);
-
-julia> y=cperm(A,[1,2,3]);
-
-julia> z=cperm([1,2,3]); parent(z)
-Sym( [ 1 .. 3 ] )
-
-julia> x==y
-true
-
-julia> x==z
-false
-```
-In the example above, `x` and `y` are equal because both act on a set of cardinality `5`, while `x` and `z` are different because `x` belongs to `Sym(5)` and `z` belongs to `Sym(3)`.
-
-If `G` is a group and `x` is a permutation,
-`G(x)` returns a permutation `x` with parent `G`;
-an exception is thrown if `x` does not embed into `G`.
-```@repl oscar
-G=symmetric_group(5);
-x=cperm([1,2,3]);
-y=G(x);
-parent(x)
-parent(y)
+@perm
 ```
 
 The function `Vector{T}` works in the opposite way with respect to `perm`:
@@ -110,13 +78,14 @@ julia> x(6)
 ## Operations for permutation groups
 
 ```@docs
-istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 all_blocks(G::PermGroup)
 ```

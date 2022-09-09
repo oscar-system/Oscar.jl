@@ -27,6 +27,10 @@ julia> ambient_dim(PC)
 """
 ambient_dim(PC::PolyhedralComplex) = Polymake.fan.ambient_dim(pm_object(PC))::Int
 
+# Alexej: The access functions for vertices/rays of polyhedra are used here.
+# As long as everything (e.g. implementation of access, meaningful definition of matrix methods)
+# is exactly the same, this can work, otherwise I suggest new access functions
+# like `_vertex_complex`.
 
 @doc Markdown.doc"""
     vertices([as::Type,] PC::PolyhedralComplex)
@@ -102,9 +106,15 @@ _ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_on
 
 _ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
 
-_vector_matrix(::Val{_ray_polyhedral_complex}, PC::Polymake.BigObject; homogenized = false) where T<:scalar_types = PC.VERTICES[_ray_indices_polyhedral_complex(PC), (homogenized ? 1 : 2):end]
+_vector_matrix(::Val{_ray_polyhedral_complex}, PC::Polymake.BigObject; homogenized = false) = PC.VERTICES[_ray_indices_polyhedral_complex(PC), (homogenized ? 1 : 2):end]
 
 _maximal_polyhedron(::Type{Polyhedron{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Polyhedron{T}(Polymake.fan.polytope(PC, i-1))
+
+_vertex_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES[:, _vertex_indices(PC)]
+
+_ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES[:, _ray_indices_polyhedral_complex(PC)]
+
+_vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::Polymake.BigObject) = PC.MAXIMAL_POLYTOPES
 
 
 @doc Markdown.doc"""
@@ -170,7 +180,7 @@ n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
 @doc Markdown.doc"""
-    issimplicial(PC::PolyhedralComplex)
+    is_simplicial(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is simplicial.
 
@@ -183,15 +193,15 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> issimplicial(PC)
+julia> is_simplicial(PC)
 true
 ```
 """
-issimplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
+is_simplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
 
 
 @doc Markdown.doc"""
-    ispure(PC::PolyhedralComplex)
+    is_pure(PC::PolyhedralComplex)
 
 Determine whether the polyhedral complex is pure.
 
@@ -204,11 +214,11 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> ispure(PC)
+julia> is_pure(PC)
 true
 ```
 """
-ispure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
+is_pure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
 
 
 @doc Markdown.doc"""
@@ -410,9 +420,9 @@ codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
 
 
 @doc Markdown.doc"""
-    isembedded(PC::PolyhedralComplex)
+    is_embedded(PC::PolyhedralComplex)
 
-Returns true if `PC` is embedded, i.e. if its vertices can be computed as a
+Return `true` if `PC` is embedded, i.e. if its vertices can be computed as a
 subset of some $\mathbb{R}^n$.
 
 # Examples
@@ -424,11 +434,11 @@ julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
-julia> isembedded(PC)
+julia> is_embedded(PC)
 true
 ```
 """
-function isembedded(PC::PolyhedralComplex)
+function is_embedded(PC::PolyhedralComplex)
     pmo = pm_object(PC)
     schedule = Polymake.call_method(pmo,:get_schedule,"VERTICES")
     return schedule != nothing

@@ -24,11 +24,11 @@ pm_object(pc::PolyhedralComplex) = pc.pm_complex
 # Arguments
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
   (i,j) if the ith polytope contains point j and 0 otherwise.
-- `vr::Matrix`: The points whose convex hulls make up the polyhedral
+- `vr::AbstractCollection[PointVector]`: The points whose convex hulls make up the polyhedral
   complex. This matrix also contains the far vertices.
 - `far_vertices::Vector{Int}`: Vector containing the indices of the rows
   corresponding to the far vertices in `vr`.
-- `L::Matrix`: Generators of the lineality space of the polyhedral complex.
+- `L::AbstractCollection[RayVector]`: Generators of the lineality space of the polyhedral complex.
 
 A polyhedral complex formed from points, rays, and lineality combined into
 polyhedra indicated by an incidence matrix, where the columns represent the
@@ -55,10 +55,10 @@ A polyhedral complex in ambient dimension 2
 """
 function PolyhedralComplex{T}(
                 polyhedra::IncidenceMatrix, 
-                vr::Union{SubObjectIterator{<:Union{PointVector,PointVector}}, Oscar.MatElem, AbstractMatrix}, 
+                vr::AbstractCollection[PointVector], 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
-                L::Union{SubObjectIterator{<:RayVector}, 
-                Oscar.MatElem, AbstractMatrix, Nothing} = nothing
+                L::Union{AbstractCollection[RayVector], Nothing} = nothing;
+                non_redundant::Bool = false
             ) where T<:scalar_types
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(vr, 2)) : L
 
@@ -72,11 +72,19 @@ function PolyhedralComplex{T}(
     # Lineality is homogenized
     lineality = homogenize(LM, 0)
 
-    PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
-        POINTS = points,
-        INPUT_LINEALITY = lineality,
-        INPUT_CONES = polyhedra,
-    ))
+    if non_redundant
+        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
+            VERTICES = points,
+            LINEALITY_SPACE = lineality,
+            MAXIMAL_CONES = polyhedra,
+        ))
+    else
+        return PolyhedralComplex{T}(Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(
+            POINTS = points,
+            INPUT_LINEALITY = lineality,
+            INPUT_CONES = polyhedra,
+        ))
+    end
 end
 
 # TODO: Only works for this specific case; implement generalization using `iter.Acc`

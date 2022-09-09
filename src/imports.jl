@@ -34,8 +34,10 @@ import Base:
     one,
     parent,
     print,
+    reduce,
     show,
     sum,
+    union,
     values,
     Vector,
     zero
@@ -49,6 +51,7 @@ import AbstractAlgebra:
     base_ring,
     canonical_unit,
     codomain,
+    data,
     degree,
     dim,
     domain,
@@ -96,6 +99,7 @@ import AbstractAlgebra:
 
 import AbstractAlgebra.GroupsCore
 import AbstractAlgebra.GroupsCore:
+    hasgens,
     isfiniteorder,
     istrivial
 
@@ -125,12 +129,11 @@ import Nemo:
     fq_nmod,
     FractionField,
     height,
-    isprime,
-    isprobable_prime,
+    is_prime,
+    is_probable_prime,
+    is_square,
+    is_unit,
     isqrtrem,
-    issquare,
-    isunit,
-    iszero,
     jacobi_symbol,
     MatrixSpace,
     moebius_mu,
@@ -144,7 +147,7 @@ import Nemo:
     ZZ
 
 exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer, :genus_symbol, :data,
-    :isdefintie, :narrow_class_group]
+    :narrow_class_group, :perm, :SymmetricGroup]
 
 for i in names(Hecke)
   i in exclude && continue
@@ -189,24 +192,23 @@ import Hecke:
     index,
     IntegerUnion,
     inv!,
-    isabelian,
-    isbijective,
-    ischaracteristic,
-    isconjugate,
-    iscyclic,
-    isinjective,
-    isinvertible,
-    isisomorphic,
-    isnormal,
-    isprimitive,
-    isregular,
-    issimple,
-    issubgroup,
-    issurjective,
+    is_abelian,
+    is_bijective,
+    is_characteristic,
+    is_conjugate,
+    is_cyclic,
+    is_injective,
+    is_invertible,
+    is_isomorphic,
+    is_normal,
+    is_primitive,
+    is_regular,
+    is_simple,
+    is_subgroup,
+    is_surjective,
     kernel,
     Map,
     MapHeader,
-    math_html,
     mul,
     mul!,
     multiplicative_jordan_decomposition,
@@ -214,7 +216,6 @@ import Hecke:
     nrows,
     one!,
     order,
-    perm,
     preimage,
     primitive_element,
     quo,

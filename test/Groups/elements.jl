@@ -11,7 +11,7 @@
     @test typeof(Vector(y))==Vector{Int64}
     @test typeof(Vector{fmpz}(y))==Vector{fmpz}
     @test x==G(Vector(x))
-    @test isfiniteorder(x)
+    @test is_finiteorder(x)
     @test order(x) == lcm(15,n-8)
     for T in [Int, BigInt, fmpz]
       @test order(T, x) == lcm(15,n-8)
@@ -34,20 +34,21 @@
   end
 
   G=symmetric_group(6)
-  x=gap_perm([2,3,4,5,6,1])
-  @test x==gap_perm(Int8[2,3,4,5,6,1])
-  @test x==gap_perm(fmpz[2,3,4,5,6,1])
+  x=perm([2,3,4,5,6,1])
+  @test x==perm(Int8[2,3,4,5,6,1])
+  @test x==perm(fmpz[2,3,4,5,6,1])
   @test x==perm(G,[2,3,4,5,6,1])
   @test x==perm(G,Int8[2,3,4,5,6,1])
   @test x==perm(G,fmpz[2,3,4,5,6,1])
   @test cperm(G,Int[])==one(G)
   @test x==cperm(G,1:6)
   @test x==cperm(G,[1,2,3,4,5,6])
-  @test one(G)==gap_perm(1:6)
-  @test_throws ArgumentError G(gap_perm([2,3,4,5,6,7,1]))
+  @test one(G)==perm(1:6)
+  @test_throws ArgumentError G(perm([2,3,4,5,6,7,1]))
   @test_throws ArgumentError G([2,3,1,4,6,5,7])
-  @test G(gap_perm([2,3,1,4,6,5,7]))==gap_perm([2,3,1,4,6,5])
+  @test G(perm([2,3,1,4,6,5,7]))==perm([2,3,1,4,6,5])
   @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
+  @test_throws ArgumentError perm(G, [1,1])
   @test one(G)==cperm(G,Int64[])
 end
 

@@ -1,12 +1,12 @@
-export ProjEllipticCurve, discriminant, issmooth, j_invariant,
+export ProjEllipticCurve, discriminant, is_smooth, j_invariant,
        Point_EllCurve, curve, weierstrass_form, toweierstrass,
-       iselliptic, list_rand, proj_space
+       iselliptic, list_rand
 
 ################################################################################
 # Helping functions
 ################################################################################
 
-function isweierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
+function is_weierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -39,12 +39,12 @@ function _iselliptic(F::Oscar.MPolyElem_dec)
 end
 
 function iselliptic(C::ProjPlaneCurve)
-   return degree(C) == 3 && issmooth_curve(C)
+   return degree(C) == 3 && is_smooth_curve(C)
 end
 
 ################################################################################
 
-function isinflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function is_inflection(F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    J = jacobi_matrix([jacobi_matrix(F)[i] for i in 1:3])
    H = det(J)
    return iszero(evaluate(F, P.v)) && iszero(evaluate(H, P.v))
@@ -99,7 +99,7 @@ function _change_coord(F::Oscar.MPolyElem_dec, P::Oscar.Geometry.ProjSpcElem)
    evaluate(F, P) == 0 || error("The point is not on the curve")
    D = ProjPlaneCurve(F)
    L = tangent(D, P)
-   isinflection(F, P) || error("The point is not an inflection point")
+   is_inflection(F, P) || error("The point is not an inflection point")
    R = parent(defining_equation(D))
    S = parent(F)
    Q = _point_line(L, P)
@@ -141,7 +141,7 @@ Return the Projective Elliptic Curve defined by the equation `eq`, with `P` as
 infinity point. If no point is specified it is expected that `eq` is in
 Weierstrass form, and the infinity point is `(0:1:0)`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -155,7 +155,7 @@ julia> T, _ = grade(S)
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -179,38 +179,38 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
 
   function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
+    is_weierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
-    PP = projective_space(K, 2)
+    PP = proj_space(K, 2)
     V = gens(T)
-    new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], v[1]))
+    new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)]), [hom(T, T, V), hom(T, T, V)], Hecke.EllipticCurve(v[2], check = v[1]))
   end
 
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
      nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
      iszero(evaluate(eq, P.v)) || error("The point is not on the curve")
-     !isconstant(eq) || error("The defining equation must be non constant")
-     ishomogeneous(eq) || error("The defining equation is not homogeneous")
-     isinflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
+     !is_constant(eq) || error("The defining equation must be non constant")
+     is_homogeneous(eq) || error("The defining equation is not homogeneous")
+     is_inflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
      _iselliptic(eq) || error("Not an elliptic curve")
      T = parent(eq)
      L = _change_coord(eq, P)
      H = L[1](eq)
-     isweierstrass_form(H) || error("Not in Weierstrass form")
+     is_weierstrass_form(H) || error("Not in Weierstrass form")
      v = shortformtest(H)
-     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], v[1]))
+     new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], check = v[1]))
   end
 
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
-    !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogeneous(eq) || error("The defining equation is not homogeneous")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
+    !is_constant(eq) || error("The defining equation must be non constant")
+    is_homogeneous(eq) || error("The defining equation is not homogeneous")
+    is_weierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
     v[1] || error("Not in short Weierstrass form")
     d = _discr(eq)
@@ -218,13 +218,13 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     K = T.R.base_ring
     n = modulus(K)
     gcd(Hecke.data(d), n) == ZZ(1) || error("The discriminant is not invertible")
-    PP = projective_space(K, 2)
+    PP = proj_space(K, 2)
     V = gens(T)
     E = new{S}()
     E.eq = eq
     E.degree = 3
     E.point = Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)])
-    E.Hecke_ec = Hecke.EllipticCurve(v[2], v[1])
+    E.Hecke_ec = Hecke.EllipticCurve(v[2], check = v[1])
     return E
   end
 end
@@ -260,7 +260,7 @@ end
 Return the equation of a projective elliptic curve defined by an equation in
 Weierstrass form and which is linearly equivalent to `E`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -274,7 +274,7 @@ julia> T, _ = grade(S)
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -319,7 +319,7 @@ function Oscar.discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
    return Hecke.discriminant(E.Hecke_ec)
 end
 
-function Oscar.issmooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
+function Oscar.is_smooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
    return true
 end
 
@@ -343,7 +343,7 @@ end
 
 Create the point `P` on the elliptic curve `E`.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -427,10 +427,14 @@ end
 ################################################################################
 
 function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.ProjSpc{S}, P::Hecke.EllCrvPt{S}) where S <: FieldElem
-   E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
+   if length(E.Hecke_ec.coeff) == 2
+     E.Hecke_ec.coeff == P.parent.coeff[end-1:end] || error("not the same curve")
+   else
+     E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
+   end
    L = E.maps
    K = P.parent.base_field
-   if P.isinfinite
+   if is_infinite(P)
       V = [K(0), K(1), K(0)]
    else
       V = [P.coordx, P.coordy, K(1)]
@@ -462,7 +466,7 @@ end
 
 Return the projective space to which the point `P` belongs.
 """
-function proj_space(P::Point_EllCurve{S}) where S <: FieldElem
+function Oscar.Geometry.proj_space(P::Point_EllCurve{S}) where S <: FieldElem
    return P.Pt.parent
 end
 
@@ -553,7 +557,7 @@ Given a smooth plane cubic projective curve `C` and a point `P` on the curve,
 return an elliptic curve birationally equivalent to `C` given by an equation in
 long Weierstrass form.
 
-# Example
+# Examples
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
@@ -564,7 +568,7 @@ julia> T, _ = grade(S)
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> PP = projective_space(QQ, 2)
+julia> PP = proj_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
@@ -638,7 +642,7 @@ end
 
 Return the projective space to which the base point of the elliptic curve `E` belongs.
 """
-function proj_space(E::ProjEllipticCurve{S}) where S <: FieldElem
+function Oscar.Geometry.proj_space(E::ProjEllipticCurve{S}) where S <: FieldElem
    return base_point(E).parent
 end
 
@@ -718,12 +722,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    istorsion_point(P::Point_EllCurve{fmpq})
+    is_torsion_point(P::Point_EllCurve{fmpq})
 
 Return whether the point `P` is a torsion point.
 """
-function Oscar.istorsion_point(P::Point_EllCurve{fmpq})
-   return Hecke.istorsion_point(P.Hecke_Pt)
+function Oscar.is_torsion_point(P::Point_EllCurve{fmpq})
+   return Hecke.is_torsion_point(P.Hecke_Pt)
 end
 
 ################################################################################

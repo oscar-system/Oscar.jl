@@ -3,7 +3,7 @@ import msolve_jll: libmsolve
 export msolve
 
 @doc Markdown.doc"""
-    get_rational_parametrization(nr::Int32, lens::Array{Int32,1}, cfs::Ptr{BigInt})
+    get_rational_parametrization(nr::Int32, lens::Vector{Int32}, cfs::Ptr{BigInt})
 
 Construct the rational parametrization of the solution set computed via msolve.
 
@@ -95,6 +95,7 @@ function msolve(
 
     mon_order       = 0
     elim_block_size = 0
+    use_signatures  = 0
 
     if field_char != 0
         error("At the moment msolve only supports the rationals as ground field.")
@@ -102,72 +103,93 @@ function msolve(
     # convert Singular ideal to flattened arrays of ints
     lens, cfs, exps   = convert_oscar_ideal_to_array(I)
 
-    res_ld    = Ref(Cint(0))
-    res_dim   = Ref(Cint(0))
-    res_dquot = Ref(Cint(0))
-    nb_sols   = Ref(Cint(0))
-    res_len   = Ref(Ptr{Cint}(0))
-    res_cf    = Ref(Ptr{Cvoid}(0))
-    sols_num  = Ref(Ptr{Cvoid}(0))
-    sols_den  = Ref(Ptr{Cint}(0))
+    res_ld      = Ref(Cint(0))
+    res_nr_vars = Ref(Cint(0))
+    res_dim     = Ref(Cint(0))
+    res_dquot   = Ref(Cint(0))
+    nb_sols     = Ref(Cint(0))
+    res_len     = Ref(Ptr{Cint}(0))
+    res_vnames  = Ref(Ptr{Ptr{Cchar}}(0))
+    res_cf_lf   = Ref(Ptr{Cvoid}(0))
+    res_cf      = Ref(Ptr{Cvoid}(0))
+    sols_num    = Ref(Ptr{Cvoid}(0))
+    sols_den    = Ref(Ptr{Cint}(0))
 
     ccall((:msolve_julia, libmsolve), Cvoid,
-        (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}},
-        Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint},
+        (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}},
+        Ptr{Ptr{Ptr{Cchar}}}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint},
         Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cchar}}, Ptr{Cchar}, Cint, Cint,
-        Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint,
+        Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint, Cint,
         Cint, Cint, Cint),
-        cglobal(:jl_malloc), res_ld, res_dim, res_dquot, res_len, res_cf,
+        cglobal(:jl_malloc), res_ld, res_nr_vars, res_dim, res_dquot, res_len, res_vnames,
+        res_cf_lf, res_cf,
         nb_sols, sols_num, sols_den, lens, exps, cfs, variable_names,
         "/dev/null", field_char, mon_order, elim_block_size, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
-        print_gb, get_param, genericity_handling, precision, info_level)
+        use_signatures, print_gb, get_param, genericity_handling, precision,
+        info_level)
     # convert to julia array, also give memory management to julia
     jl_ld       = res_ld[]
 
     jl_dim      = res_dim[]
     jl_dquot    = res_dquot[]
 
-    jl_nb_sols  = nb_sols[]
-    jl_len      = Base.unsafe_wrap(Array, res_len[], jl_ld)
+    jl_nb_sols	= nb_sols[]
 
-    nterms  = 0
-    
     # set dimension
     I.dim = jl_dim
     if jl_dim > 0
         error("Dimension of ideal is greater than zero, no solutions provided.")
     end
-    if jl_nb_sols == 0
-        return [], Vector{fmpq}[]
-    end
+
+    # get rational parametrization
+    jl_len  = Base.unsafe_wrap(Array, res_len[], jl_ld)
+    nterms  = 0
 
     [nterms += jl_len[i] for i=1:jl_ld]
     # if 0 == field_char
     jl_cf       = reinterpret(Ptr{BigInt}, res_cf[])
+
+    rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
+
+    if jl_nb_sols == 0
+        return rat_param, Vector{fmpq}[]
+    end
+
+    # get solutions
     jl_sols_num = reinterpret(Ptr{BigInt}, sols_num[])
     jl_sols_den = reinterpret(Ptr{Int32}, sols_den[])
-    # elseif isprime(field_char)
+    # elseif is_prime(field_char)
     #     jl_cf       = reinterpret(Ptr{Int32}, res_cf[])
     #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num[])
     # end
 
-    solutions = Array{Array{fmpq, 1}, 1}(undef, jl_nb_sols)
-    for i in 1:jl_nb_sols
+    #= solutions are returned as intervals, i.e. a minimum and a maximum entry for
+     = the numerator and denominator; thus we sum up and divide by  =#
+    solutions = Vector{Vector{fmpq}}(undef, jl_nb_sols)
+
+    len = 2*jl_nb_sols*nr_vars
+    i = 1
+    k = 1
+    while i <= len
+        j = 1
         tmp = Vector{Nemo.fmpq}(undef, nr_vars)
-        for j in 1:nr_vars
-            tmp[j]  = fmpq(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) >> Int64(unsafe_load(jl_sols_den, (i-1)*nr_vars+j))
+        while j <= nr_vars
+            tmp[j]  = fmpq(unsafe_load(jl_sols_num, i)) >> Int64(unsafe_load(jl_sols_den, i))
+            tmp[j] += fmpq(unsafe_load(jl_sols_num, i+1)) >> Int64(unsafe_load(jl_sols_den, i+1))
+            tmp[j] = tmp[j] >> 1
+            i += 2
+            j += 1
         end
-        solutions[i]  = tmp
+        solutions[k] = tmp
+        k += 1
     end
 
-    rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
-
     ccall((:free_msolve_julia_result_data, libmsolve), Nothing ,
-          (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
-           Ptr{Ptr{Cvoid}}, Ptr{Ptr{Cint}}, Cint, Cint, Cint),
-          cglobal(:jl_free), res_len, res_cf, sols_num, sols_den,
-          jl_ld, jl_nb_sols, field_char)
+        (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
+        Ptr{Ptr{Cvoid}}, Ptr{Ptr{Cint}}, Cint, Cint, Cint),
+        cglobal(:jl_free), res_len, res_cf, sols_num, sols_den,
+        jl_ld, jl_nb_sols, field_char)
 
     return rat_param, solutions
 end

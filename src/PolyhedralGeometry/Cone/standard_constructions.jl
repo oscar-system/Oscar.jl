@@ -34,8 +34,8 @@ end
 @doc Markdown.doc"""
     polarize(C::Cone)
 
-Return the dual cone of `C` consisting of all those linear functions that
-evaluate positively on all of `C`.
+Return the polar dual of `C`, the cone consisting of all those linear functions
+that evaluate positively on all of `C`.
 
 # Examples
 ```jldoctest

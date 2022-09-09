@@ -30,20 +30,20 @@ matrix(x::MatrixGroupElem)
 base_ring(x::MatrixGroupElem)
 nrows(x::MatrixGroupElem)
 det(x::MatrixGroupElem)
-trace(x::MatrixGroupElem)
+tr(x::MatrixGroupElem)
 multiplicative_jordan_decomposition(x::MatrixGroupElem)
-issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
-isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
+is_semisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
+is_unipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
 ```
 
 ## Sesquilinear forms
 
 ```@docs
 SesquilinearForm{T<:RingElem}
-isalternating_form(f::SesquilinearForm)
-ishermitian_form(f::SesquilinearForm)
-isquadratic_form(f::SesquilinearForm)
-issymmetric_form(f::SesquilinearForm)
+is_alternating_form(f::SesquilinearForm)
+is_hermitian_form(f::SesquilinearForm)
+is_quadratic_form(f::SesquilinearForm)
+is_symmetric_form(f::SesquilinearForm)
 alternating_form(B::MatElem{T}) where T <: FieldElem
 symmetric_form(B::MatElem{T}) where T <: FieldElem
 hermitian_form(B::MatElem{T}) where T <: FieldElem
@@ -55,9 +55,9 @@ gram_matrix(f::SesquilinearForm)
 defining_polynomial(f::SesquilinearForm)
 radical(f::SesquilinearForm{T}) where T
 witt_index(f::SesquilinearForm{T}) where T
-isdegenerate(f::SesquilinearForm{T}) where T
-issingular(f::SesquilinearForm{T}) where T
-iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
+is_degenerate(f::SesquilinearForm{T}) where T
+is_singular(f::SesquilinearForm{T}) where T
+is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 ```
 
 ## Invariant forms
@@ -75,6 +75,7 @@ invariant_quadratic_form(G::MatrixGroup)
 preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
 preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
 isometry_group(f::SesquilinearForm{T}) where T
+orthogonal_sign(G::MatrixGroup)
 ```
 
 ## Utilities for matrices (replace by available functions, or document elsewhere?)
@@ -83,14 +84,14 @@ isometry_group(f::SesquilinearForm{T}) where T
 pol_elementary_divisors(A::MatElem{T}) where T
 generalized_jordan_block(f::T, n::Int) where T<:PolyElem
 generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
-matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T<: FieldElem
+matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: RingElem
 upper_triangular_matrix(L)
 lower_triangular_matrix(L)
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
-isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
-ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
+is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 ```
 
 ## Classical groups

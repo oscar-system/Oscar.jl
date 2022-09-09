@@ -57,6 +57,13 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 
 We then also say that $>$ is a *global* , *local*, or *mixed* *monomial ordering* on $R[x]$.
 
+!!! note
+    - A monomial ordering on $\text{Mon}_n(x)$ is global iff it is a well-ordering.
+    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \N^n$ such that
+	   $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
+       Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
+	   (global, local, mixed) monomial ordering on $\N^n$.
+	
 Some monomial orderings are predefined in OSCAR.
 
 #### Predefined Global Orderings
@@ -198,6 +205,7 @@ neglex(::AbstractVector{<:MPolyElem})
 negrevlex(::AbstractVector{<:MPolyElem})
 negdeglex(::AbstractVector{<:MPolyElem})
 negdegrevlex(::AbstractVector{<:MPolyElem})
+monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
 ```
 
 ```@docs
@@ -205,10 +213,17 @@ wdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
+matrix_ordering(::AbstractVector{<:MPolyElem}, ::fmpz_mat)
+weighted_ordering(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 ```
 
 Block orderings can be obtained by concatening monomial orderings using the `*`
-operator.
+operator. The following function can be used to convert Singular.jl orderings:
+
+```@docs
+monomial_ordering(R::MPolyRing, ord::Singular.sordering)
+```
 
 Term over position and position over term module orderings are also available.
 These are also specified byy concatenation using the `*` operator. One creates
@@ -225,9 +240,10 @@ R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
 O1 = degrevlex(gens(R))
 O2 = lex([x, y])*deglex([s, t, u])
 O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+O4 = monomial_ordering(R, Singular.ordering_a([1,2,3,4,5])*Singular.ordering_rs(5))
 
 K = FreeModule(R, 3)
-O4 = revlex(gens(K))*degrevlex(gens(R))
+O5 = revlex(gens(K))*degrevlex(gens(R))
 ```
 
 ## Normal Forms
@@ -242,6 +258,10 @@ normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 ```@docs
 groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
 ```
+```@docs
+std_basis(I::MPolyIdeal, o::MonomialOrdering)
+```
+See e.g. [GP08](@cite) for the theoretical background on Groebner- and standard bases.
 
 #### Gröbner Bases with transformation matrix
 
@@ -268,8 +288,8 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 #### Leading Ideals
 
 ```@docs
-leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
-leading_ideal(I::MPolyIdeal)
+leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
+leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 ```
 
 #### Gröbner Bases over the integers
@@ -298,20 +318,25 @@ syzygy_generators(a::Vector{<:MPolyElem})
 
 ## Data Associated to Ideals
 
-```@docs
-base_ring(I::MPolyIdeal)
-```
+### Basic Data
 
-### Generators
+If `I` is an ideal of a multivariate polynomial ring  `R`, then
 
-```@docs
-gens(I::MPolyIdeal)
-```
+- `base_ring(I)` refers to `I`,
+- `gens(I)` to the generators of `I`,
+- `ngens(I)` to the number of these generators, and
+- `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
 
-### Number of Generators
+###### Examples
 
-```@docs
-ngens(I::MPolyIdeal)
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+base_ring(I)
+gens(I)
+ngens(I)
+gen(I, 2)
+x*y
 ```
 
 ### Dimension
@@ -324,6 +349,13 @@ dim(I::MPolyIdeal)
 
 ```@docs
 codim(I::MPolyIdeal)
+```
+### Minimal Sets of Generators
+
+In the graded case, we have:
+
+```@docs
+minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
 ```
     
 ## Operations on Ideals
@@ -393,7 +425,7 @@ isone(I::MPolyIdeal)
 ```
 
 ```@docs
-ismonomial(f::MPolyElem)
+is_monomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals
@@ -423,13 +455,13 @@ radical_membership(f::T, I::MPolyIdeal{T}) where T
 ### Primality Test
 
 ```@docs
-isprime(I::MPolyIdeal)
+is_prime(I::MPolyIdeal)
 ```
 
 ### Primary Test
 
 ```@docs
-isprimary(I::MPolyIdeal)
+is_primary(I::MPolyIdeal)
 ```
 
 ## Decomposition of Ideals
@@ -503,3 +535,12 @@ dehomogenization(F::MPolyElem_dec, pos::Int)
 ```
 
 
+## Generating Special Ideals
+
+```@docs
+katsura(n::Int)
+```
+
+```@docs
+katsura(R::MPolyRing)
+```

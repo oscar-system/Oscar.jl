@@ -36,31 +36,38 @@
       @test isa(delta, Int)
     end
   end
+
+  @test !is_normal(quo(R, ideal(R, [x^2 - y^3]))[1])
+  @test is_normal(quo(R, ideal(R, [x - y^3]))[1])
+
+  R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+  @test_throws ArgumentError is_normal(quo(R, ideal(R, [x - y^3]))[1])
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin
-
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2)
-  @test all(p -> parent(p) == R, nums)
-  @test parent(den) == R
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :hensel)
+  @test all(p -> base_ring(parent(p)) == R, nums)
+  @test base_ring(parent(den)) == R
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
   @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
 
-  R, (x, y) = Singular.PolynomialRing(Singular.QQ, ["x", "y"])
-  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2)
-  @test all(p -> parent(p) == R, nums)
-  @test parent(den) == R
-  @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
-  @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
-  @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
+  R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
+  @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2; alg = :what)
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_global)
+  (den, nums) = integral_basis(y^5-x^3*(x+1)^4, 2; alg = :normal_local)
+  @test all(p -> base_ring(parent(p)) == R, nums)
+  @test base_ring(parent(den)) == R
 
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2)
 
   R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
+
+  R, (x, y) = PolynomialRing(RationalFunctionField(QQ, ["s", "t"])[1], ["x", "y"])
+  @test_throws NotImplementedError integral_basis(y^5-x^3*(x+1)^4, 2)
 end
 
 @testset "Noether normalization" begin

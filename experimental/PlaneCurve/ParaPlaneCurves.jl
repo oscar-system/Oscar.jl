@@ -8,7 +8,7 @@ export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
 function _tosingular(C::ProjPlaneCurve{fmpq})
     F = C.eq
     T = parent(F)
-    Tx = singular_ring(T)
+    Tx = singular_poly_ring(T)
     return Tx(F)
 end
 
@@ -36,7 +36,7 @@ end
 
 Return a rational parametrization of  `C`. 
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
@@ -65,7 +65,7 @@ end
 
 Return the Gorenstein adjoint ideal of `C`. 
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
@@ -90,7 +90,7 @@ end
 If the conic `D` contains a rational point, return the homogeneous coordinates of such a point.
 If no such point exists, return a point on `D` defined over a quadratic field extension of $\mathbb Q$.
  
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
@@ -145,7 +145,7 @@ end
 
 Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
@@ -176,7 +176,7 @@ Return a vector `V` defining the anticanonical map `C --> PP^(n-2)`. Note that t
 entries of `V` should be considered as representatives of elements in R/I,
 where R is the basering.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"])
 (Multivariate Polynomial Ring in v, w, x, y, z over Rational Field graded by 
@@ -225,7 +225,7 @@ Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
 Note that the entries of `PHI` should be considered as
 representatives of elements in `R/I`, where `R` is the basering.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 
@@ -278,7 +278,7 @@ Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
 Note that the entries of `PHI` should be considered as
 representatives of elements in `R/I`, where `R` is the basering.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"]);
 

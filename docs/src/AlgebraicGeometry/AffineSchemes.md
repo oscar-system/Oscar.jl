@@ -42,32 +42,20 @@ affine; basically due to Rabinowitsch's trick:
 This flexibility allows us to introduce and handle subschemes using the natural 
 relations on their rings. Thus, we can, for instance, define subschemes via 
 ```@docs
-subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
-hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+subscheme(X::Spec, f::RingElem)
+hypersurface_complement(X::Spec, f::MPolyElem)
 ```
 Containments can be checked using 
 ```@docs 
-issubset(
-  X::Spec{BRT, BRET, RT, RET, MST1}, 
-  Y::Spec{BRT, BRET, RT, RET, MST2}
-) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-is_closed_embedding(
-  X::Spec{BRT, BRET, RT, RET, MST1}, 
-  Y::Spec{BRT, BRET, RT, RET, MST2}
-) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-is_open_embedding(
-  X::Spec{BRT, BRET, RT, RET, MST1}, 
-  Y::Spec{BRT, BRET, RT, RET, MST2}
-) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    issubset(X::Spec, Y::Spec)
+    is_open_embedding(X::Spec, Y::Spec)
+    is_closed_embedding(X::Spec, Y::Spec)
 ```
 The closure of a subscheme can be computed via
 ```@docs 
-closure(
-  X::Spec{BRT, BRET, RT, RET, MST1}, 
-  Y::Spec{BRT, BRET, RT, RET, MST2}
-) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    closure(X::Spec, Y::Spec)
 ```
 Among the basic functionality for affine schemes we have 
 ```@docs
-product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+    product(X::Spec, Y::Spec)
 ```

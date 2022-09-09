@@ -20,64 +20,13 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 
 ################################################################################
 #
-# Legacy construct
-#
-################################################################################
-
-#@doc Markdown.doc"""
-#    AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-#    {T, S <: MPolyElem{T},
-#    U <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    W <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    X <: Union{S, MPolyQuoElem{S}}}
-#   
-#Create the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
-#Allow types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
-#Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
-#
-## Examples
-#```jldoctest
-#julia> D, (t,) = PolynomialRing(QQ, ["t"])
-#(Multivariate Polynomial Ring in t over Rational Field, fmpq_mpoly[t])
-#
-#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-#(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-#
-#julia> C, p = quo(R,  ideal(R, [x*y-1]))
-#(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1), Map from
-#Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1) defined by a julia-function with inverse)
-#
-#julia> V = [p(y)]
-#1-element Vector{MPolyQuoElem{fmpq_mpoly}}:
-# y
-#
-#julia> P = hom(D, C, V)
-#Algebra homomorphism with
-#
-#domain: Multivariate Polynomial Ring in t over Rational Field
-#
-#codomain: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1)
-#
-#defining images of generators: MPolyQuoElem{fmpq_mpoly}[y]
-#```
-#"""
-#function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-#    {T, S <: MPolyElem{T},
-#    U <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    W <: Union{MPolyRing{T}, MPolyQuo{S}},
-#    X <: Union{S, MPolyQuoElem{S}}}
-#   return hom(D, C, copy(V))
-#end
-
-################################################################################
-#
 #  Singular data stuff
 #
 ################################################################################
 
-@attr Any _singular_ring_domain(f::MPolyAnyMap) = singular_ring(domain(f))
+@attr Any _singular_ring_domain(f::MPolyAnyMap) = singular_poly_ring(domain(f))
 
-@attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_ring(codomain(f))
+@attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_poly_ring(codomain(f))
 
 @attr Any function _singular_algebra_morphism(f::MPolyAnyMap)
   DS = _singular_ring_domain(f)
@@ -88,27 +37,15 @@ end
 
 ################################################################################
 #
-#  Preimage of ideal
-#
-################################################################################
-
-function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
-  @req base_ring(I) === codomain(f) "Parent mismatch"
-  D = domain(f)
-  salghom = _singular_algebra_morphism(f)
-  CS = codomain(salghom)
-  V = gens(I)
-  Ix = Singular.Ideal(CS, CS.(V))
-  prIx = Singular.preimage(salghom, Ix)
-  return ideal(D, D.(gens(prIx)))
-end
-
-################################################################################
-#
 #  Kernel
 #
 ################################################################################
 
+@doc Markdown.doc"""
+    kernel(F::AffAlgHom)
+
+Return the kernel of `F`.
+"""
 function kernel(f::AffAlgHom)
   get_attribute!(f, :kernel) do
     C = codomain(f)
@@ -123,11 +60,11 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isinjective(F::AlgHom)
+    is_injective(F::AffAlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
-function isinjective(F::AffAlgHom)
+function is_injective(F::AffAlgHom)
   iszero(kernel(F))
 end
 
@@ -157,7 +94,12 @@ end
 #
 ################################################################################
 
-function issurjective(F::AffAlgHom)
+@doc Markdown.doc"""
+    is_surjective(F::AffAlgHom)
+
+Return `true` if `F` is is_surjective, `false` otherwise.
+"""
+function is_surjective(F::AffAlgHom)
   # Compute data necessary for computation
   r = domain(F)
   s = codomain(F)
@@ -181,8 +123,13 @@ end
 #
 ################################################################################
 
-function isbijective(F::AffAlgHom)
-  return isinjective(F) && issurjective(F)
+@doc Markdown.doc"""
+    is_bijective(F::AffAlgHom)
+
+Return `true` if `F` is bijective, `false` otherwise.
+"""
+function is_bijective(F::AffAlgHom)
+  return is_injective(F) && is_surjective(F)
 end
 
 ################################################################################
@@ -192,13 +139,13 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    isfinite(F::AlgHom)
+    isfinite(F::AffAlgHom)
 
 Return `true` if `F` is finite, `false` otherwise.
 """
 function isfinite(F::AffAlgHom)
   (T, _, _, J, _) = _groebner_data(F, :lex)
-  G = collect(J.gb)
+  G = collect(groebner_assure(J))
   # Find all elements with leading monomial which contains the 
   # variables x_i.
   s = codomain(F)
@@ -222,9 +169,42 @@ end
 #
 ##############################################################################
 
+@doc Markdown.doc"""
+    inverse(F::AffAlgHom)
+
+If `F` is bijective, return its inverse.
+
+# Examples
+```jldoctest
+julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> D, _ = quo(D1, [y-x^2, z-x^3])
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
+
+julia> C, (t,) = PolynomialRing(QQ, ["t"]);
+
+julia> F = hom(D, C, [t, t^2, t^3]);
+
+julia> is_bijective(F)
+true
+
+julia> G = inverse(F)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
+
+julia> G(t)
+x
+```
+"""
 function inverse(F::AffAlgHom)
-  !isinjective(F) && error("Homomorphism is not injective")
-  !issurjective(F) && error("Homomorphism is not surjective")
+  !is_injective(F) && error("Homomorphism is not injective")
+  !is_surjective(F) && error("Homomorphism is not surjective")
 
   # Compute inverse map via preimages of algebra generators
   r = domain(F)
@@ -255,4 +235,20 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyElem, MPolyQuoElem})
   D = normal_form([inc(g)], J)
   !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
   return (pr(D[1]), kernel(F))
+end
+
+@doc Markdown.doc"""
+    preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+
+Return the preimage of the ideal `I` under `F`.
+"""
+function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
+  @req base_ring(I) === codomain(f) "Parent mismatch"
+  D = domain(f)
+  salghom = _singular_algebra_morphism(f)
+  CS = codomain(salghom)
+  V = gens(I)
+  Ix = Singular.Ideal(CS, CS.(V))
+  prIx = Singular.preimage(salghom, Ix)
+  return ideal(D, D.(gens(prIx)))
 end

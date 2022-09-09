@@ -32,7 +32,7 @@ mutable struct NmodComplementOfPrimeIdeal <: AbsMultSet{NmodRing, nmod}
     n = ZZ(modulus(R))
     a = lift(gen)
     r = gcd(n, a)
-    isprime(r) || error("the given element does not generate a prime ideal")
+    is_prime(r) || error("the given element does not generate a prime ideal")
     return new{}(R, R(r))
   end
 end
@@ -75,7 +75,10 @@ base_ring(W::NmodLocalizedRing) = W.R::NmodRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
-Localization(S::NmodComplementOfPrimeIdeal) = NmodLocalizedRing(S)
+function Localization(S::NmodComplementOfPrimeIdeal) 
+  L = NmodLocalizedRing(S)
+  return L, MapFromFunc(x->(L(x)), base_ring(L), L)
+end
 
 
 #######################################################################
@@ -124,6 +127,7 @@ end
 (W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b))
 (W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::fmpq) = W(numerator(q), denominator(q))
+(W::NmodLocalizedRing)(i::Int64) = W(base_ring(W)(i), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q))
 
 ### implementation of Oscar's general ring interface
@@ -149,7 +153,7 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == R
-  W = Localization(U)
+  W, _ = Localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)

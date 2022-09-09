@@ -7,6 +7,12 @@ Pages = ["faq.md"]
 
 ## General questions
 
+**Q: How do I install Oscar?**
+
+You can find our installation instructions [here](https://oscar.computeralgebra.de/install/).
+
+---
+
 **Q: Why do some of your types have funny names like `fmpz` or `fmpq_mat`?**
 
 This has historical reasons. We plan to rename these types before Oscar 1.0

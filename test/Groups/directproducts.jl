@@ -6,12 +6,13 @@
    @test G isa DirectProductGroup
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
-   @test typeof(rand(G))==elem_type(DirectProductGroup)
+   @test rand(G) isa elem_type(DirectProductGroup)
    @test factor_of_direct_product(G,1)==S
    @test factor_of_direct_product(G,2)==C
    @test_throws ArgumentError factor_of_direct_product(G,3)
    @test number_of_factors(G)==2
-   @test isfull_direct_product(G)
+   @test is_full_direct_product(G)
+   @test PermGroup(G) isa PermGroup
 
    G,emb,proj = direct_product(S,C; morphisms=true)
    @test G==direct_product(S,C)
@@ -31,9 +32,9 @@
    S1 = image(embedding(G,1))[1]
    C1 = image(embedding(G,2))[1]
    @test intersect(G,S1)[1]==S1
-   @test isisomorphic(S1,S)[1]
-   @test isisomorphic(quo(G,S1)[1],C)[1]
-   @test isisomorphic(quo(G,C1)[1],S1)[1]
+   @test is_isomorphic(S1,S)
+   @test is_isomorphic(quo(G,S1)[1],C)
+   @test is_isomorphic(quo(G,C1)[1],S1)
 
    x = G(cperm([1,2]),C[1])
    @test x==G([cperm([1,2]),C[1]])
@@ -74,7 +75,7 @@
       C3 = cyclic_group(3)
       G = inner_direct_product(C2,C2,C3,C3)
       @test G isa PcGroup
-      @test isisomorphic(G,direct_product(C2,C2,C3,C3))[1]
+      @test is_isomorphic(G,direct_product(C2,C2,C3,C3))
       A = alternating_group(3)
       G = inner_direct_product(A,A,A)
       @test G isa PermGroup
@@ -85,8 +86,8 @@
 
       G,Le,Lp = inner_direct_product(A,A,A; morphisms=true)
       @test G==G1
-      @test isinjective(Le[1])
-      @test issurjective(Lp[1])
+      @test is_injective(Le[1])
+      @test is_surjective(Lp[1])
       @testset for i in 1:3
          @test domain(Le[i])==L[i]
          @test codomain(Le[i])==G
@@ -109,18 +110,19 @@
       @test G isa DirectProductGroup
       @test order(G)==243
       @test number_of_factors(G)==5
-      @test isabelian(G)
+      @test is_abelian(G)
       @test factor_of_direct_product(G,5)==C
-      @test isisomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))[1]
+      @test is_isomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))
+      @test PermGroup(G) isa PermGroup
       x1 = G(C[1],one(C),one(C),one(C),one(C))
       x2 = G(one(C),C[1],one(C),one(C),one(C))
       x3 = G(one(C),one(C),C[1],one(C),one(C))
       H = sub(G,[x1,x2,x3])[1]
       K = sub(G,[x1*x2*x3])[1]
-      @test !isfull_direct_product(H)
-      @test !isfull_direct_product(K)
+      @test !is_full_direct_product(H)
+      @test !is_full_direct_product(K)
       Hf = write_as_full(H)
-      @test isfull_direct_product(Hf)
+      @test is_full_direct_product(Hf)
       @test_throws ArgumentError write_as_full(K)
    end
 end
@@ -135,23 +137,24 @@ end
    G = semidirect_product(Q,f,C)
    @test G isa SemidirectProductGroup{PcGroup,PcGroup}
    @test normal_subgroup(G)==Q
-   @test isisomorphic(acting_subgroup(G),C)[1]
+   @test is_isomorphic(acting_subgroup(G),C)
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
-   @test isfull_semidirect_product(G)
+   @test is_full_semidirect_product(G)
+   @test PermGroup(G) isa PermGroup
    x = G(Q[1]*Q[2],C[1])
    @test parent(x)==G
    H = sub(G,[x])[1]
    @test H(Q[1]*Q[2],C[1])==x
    @test_throws ArgumentError H(Q[1],C[1])
-   @test issubgroup(G,H)[1]
+   @test is_subgroup(G,H)[1]
    @test index(G,H)==4
-   @test !isfull_semidirect_product(H)
+   @test !is_full_semidirect_product(H)
    @test projection(G)(x)==projection(H)(x)
    @test H==center(G)[1]
    y=G(Q[1],one(C))
    K = sub(G,gens(G))[1]
-#   @test isfull_semidirect_product(K)
+#   @test is_full_semidirect_product(K)
    K = sub(G,[y])[1]
    @test K==sub(y)[1]
    @test K==sub(y)[1]
@@ -170,16 +173,17 @@ end
    W = wreath_product(C,H)
    @test W isa WreathProductGroup
    @test order(W)==48
-   @test isfull_wreath_product(W)
+   @test is_full_wreath_product(W)
    @test W==sub(W,gens(W))[1]
+   @test PermGroup(W) isa PermGroup
 
    H = sub(cperm([1,2,4]))[1]
    W = wreath_product(C,H)
 
-   @test typeof(W)==WreathProductGroup
+   @test W isa WreathProductGroup
    @test order(W)==2^4*3
-   @test !isabelian(W)
-   @test typeof(rand(W))==elem_type(WreathProductGroup)
+   @test !is_abelian(W)
+   @test rand(W) isa elem_type(WreathProductGroup)
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
    @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
@@ -190,13 +194,13 @@ end
    @test codomain(projection(W))==H
    @test domain(embedding(W,2))==C
    K = sub(W,gens(W))[1]
-#   @test isfull_wreath_product(K)
+#   @test is_full_wreath_product(K)
    K = sub(W,[x])[1]
    @test K==sub(x)[1]
    @test K==sub(x)[1]
-   @test typeof(K)==WreathProductGroup
+   @test K isa WreathProductGroup
    @test order(K)==6
-   @test iscyclic(K)
+   @test is_cyclic(K)
    @test index(W,K)==8
    @test_throws ArgumentError embedding(K,1)(f1) in K
 
@@ -205,8 +209,8 @@ end
    W = wreath_product(C,C,a)
    @test W isa WreathProductGroup
    @test order(W)==81
-   @test isisomorphic(normal_subgroup(W),C)[1]
-   @test isisomorphic(acting_subgroup(W),C)[1]
+   @test is_isomorphic(normal_subgroup(W),C)
+   @test is_isomorphic(acting_subgroup(W),C)
    @test homomorphism_of_wreath_product(W)==a
    @test embedding(W,1)(C[1]) in W
    @test W(C[1],one(C),one(C),C[1]) isa elem_type(WreathProductGroup)

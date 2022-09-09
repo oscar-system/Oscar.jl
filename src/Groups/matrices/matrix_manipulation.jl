@@ -9,9 +9,8 @@
 export
     complement,
     conjugate_transpose,
-    isconjugate_gl,
-    ishermitian_matrix,
-    isskewsymmetric_matrix,
+    is_hermitian_matrix,
+    is_skewsymmetric_matrix,
     lower_triangular_matrix,
     permutation_matrix,
     upper_triangular_matrix
@@ -26,12 +25,12 @@ export
 
 
 """
-    matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}})
+    matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem})
 
 Return the matrix whose rows are the vectors in `A`.
 All vectors in `A` must have the same length and the same base ring.
 """
-function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: FieldElem
+function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: RingElem
    c = length(A[1].v)
    @assert all(x -> length(x.v)==c, A) "Vectors must have the same length"
    X = zero_matrix(base_ring(A[1]), length(A), c)
@@ -103,12 +102,12 @@ end
 
 # computes a complement for W in V (i.e. a subspace U of V such that V is direct sum of U and W)
 """
-    complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T})
+    complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 
 Return a complement for `W` in `V`, i.e. a subspace `U` of `V` such that `V` is direct sum of `U` and `W`.
 """
 function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
-   @assert issubmodule(V,W) "The second argument is not a subspace of the first one"
+   @assert is_submodule(V,W) "The second argument is not a subspace of the first one"
    if dim(W)==0 return sub(V,basis(V)) end
 
    e = W.map
@@ -159,13 +158,13 @@ permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
 # TODO: not sure whether this definition of skew-symmetric is standard (for fields of characteristic 2)
 """
-    isskewsymmetric_matrix(B::MatElem{T}) where T <: Ring
+    is_skewsymmetric_matrix(B::MatElem{T}) where T <: Ring
 
 Return whether the matrix `B` is skew-symmetric,
 i.e. `B = -transpose(B)` and `B` has zeros on the diagonal.
 Return `false` if `B` is not a square matrix.
 """
-function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
+function is_skewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
    n = nrows(B)
    n==ncols(B) || return false
 
@@ -180,12 +179,12 @@ function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
 end
 
 """
-    ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+    is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
 Return `false` if `B` is not a square matrix, or the field has not even degree.
 """
-function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+function is_hermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)
    n==ncols(B) || return false
    e = degree(base_ring(B))
@@ -227,24 +226,26 @@ end
 
 Base.getindex(V::AbstractAlgebra.Generic.FreeModule, i::Int) = gen(V, i)
 
-# scalar product
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem = (v.v*transpose(u.v))[1]
 
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: FieldElem = v.parent(v.v*x)
-Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem = x*transpose(u.v)
+Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: RingElem = v.parent(v.v*x)
+Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = x*transpose(u.v)
 
 # evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem = (v.v*x*transpose(u.v))[1]
+Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*x*transpose(u.v))[1]
 
 
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: FieldElem = v.parent(v.v*x.elm)
-Base.:*(x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem = x.elm*transpose(u.v)
+Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
+Base.:*(x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = matrix(x)*transpose(u.v)
+
+
+Base.:*(v::Vector{T}, x::MatrixGroupElem{T}) where T <: RingElem = v*matrix(x)
+Base.:*(x::MatrixGroupElem{T}, u::Vector{T}) where T <: RingElem = matrix(x)*u
 
 # `on_tuples` and `on_sets` delegate to an action via `^` on the subobjects
 # (`^` is the natural action in GAP)
-Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: FieldElem = v.parent(v.v*x.elm)
+Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
 
 # evaluation of the form x into the vectors v and u
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem = (v.v*x.elm*transpose(u.v))[1]
+Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*matrix(x)*transpose(u.v))[1]
 
-map(f::Function, v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem = v.parent(map(f,v.v))
+map(f::Function, v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = v.parent(map(f,v.v))

@@ -32,18 +32,19 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
 Construct an abstract simplicial complex from a set of faces.
 While arbitrary nonnegative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 ```
-# Simplicial complex comprising the empty set only
+
+Simplicial complex comprising the empty set only:
 ```jldoctest
 julia> empty = SimplicialComplex(Vector{Set{Int}}([]))
 Abstract simplicial complex of dimension -1 on 0 vertices
 ```
-# Example with relabeling
-The original vertices can be recovered.
+
+The original vertices can be recovered:
 ```jldoctest
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
@@ -81,26 +82,22 @@ end
 ##  Auxiliary
 ################################################################################
 
-function _vertexindices(K::Polymake.BigObject)
-    if Polymake.exists(K,"VERTEX_INDICES")
-        return Vector{Int}(K.VERTEX_INDICES)
+function vertexindices(K::SimplicialComplex) 
+    bigobject = pm_object(K)
+    if Polymake.exists(bigobject,"VERTEX_INDICES")
+        return Vector{Int}(bigobject.VERTEX_INDICES)
     else
-        return Vector{Int}(1:K.N_VERTICES)
+        return Vector{Int}(1:bigobject.N_VERTICES)
     end
 end
 
-vertexindices(K::SimplicialComplex) = _vertexindices(pm_object(K))
-
-# currently unused
-_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x] for x in M ]
-
 function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
-    vec = ones(Int, Polymake.betti_number(A))
+    vec = zeros(Int, Polymake.betti_number(A))
     torsion_i = Polymake.torsion(A)
     for (p,k) in torsion_i
         append!(vec, fill(p,k))
     end
-    return vec
+    return abelian_group(vec)
 end
 
 ################################################################################
@@ -112,7 +109,7 @@ end
 
 Return the number of vertices of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nvertices(torus())
 7
@@ -143,7 +140,7 @@ dim(K::SimplicialComplex) = pm_object(K).DIM::Int
 
 Return the face vector (number of faces per dimension) of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> f_vector(torus())
 3-element Vector{Int64}:
@@ -159,7 +156,7 @@ f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
 
 Return the h-vector of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> h_vector(torus())
 4-element Vector{Int64}:
@@ -176,7 +173,7 @@ h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 Return the reduced rational Betti numbers of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> betti_numbers(klein_bottle())
 3-element Vector{Int64}:
@@ -192,7 +189,7 @@ betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(p
 
 Return the reduced Euler characteristic of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> euler_characteristic(complex_projective_plane())
 2
@@ -206,7 +203,7 @@ euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::
 Return `i`-th reduced integral homology group of `K`.
 Recall that the 0-th homology group is trivial if and only if `K` is connected.
 
-# Example
+# Examples
 ```jldoctest
 julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
 3-element Vector{GrpAbFinGen}:
@@ -215,30 +212,29 @@ julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
  GrpAb: Z/1
 ```
 """
-homology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1])) # index shift
+homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1]) # index shift
 
 @doc Markdown.doc"""
     cohomology(K::SimplicialComplex, i::Int)
 
 Return `i`-th reduced integral cohomology group of `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[0,1],[1,2],[0,2]]);
 
 julia> cohomology(K,1)
-(General) abelian group with relation matrix
-[1]
+GrpAb: Z
 ```
 """
-cohomology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1])) # index shift
+cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
 
 @doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
 
 Return the minimal non-faces of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -254,8 +250,13 @@ function minimal_nonfaces(::Type{Vector{Set{Int}}}, K::SimplicialComplex)
 end
 function minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex)
     # the following line must stay to ensure polymake uses the correct algorithm for the non-faces
-    nvertices(K)
-    return pm_object(K).MINIMAL_NON_FACES
+    nv = nvertices(K)
+    m = pm_object(K).MINIMAL_NON_FACES
+    # fix column number (see #1440) until this is fixed in polymake
+    if size(m, 2) < nv
+      resize!(m, size(m, 1), nv)
+    end
+    return m
 end
 
 @doc Markdown.doc"""
@@ -263,7 +264,7 @@ end
 
 Return the Alexander dual of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -278,7 +279,7 @@ alexander_dual(K::SimplicialComplex) = SimplicialComplex(Polymake.topaz.alexande
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> stanley_reisner_ideal(real_projective_plane())
 ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x4*x6, x2*x3*x5, x2*x4*x6)
@@ -295,7 +296,7 @@ end
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, _ = QQ["a","b","c","d","e","f"];
 
@@ -313,7 +314,7 @@ end
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -333,7 +334,7 @@ end
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
@@ -353,7 +354,7 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisne
 
 Return the fundamental group of the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> pi_1 = fundamental_group(torus());
 
@@ -426,7 +427,7 @@ complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective
 
 Return the star of the face `sigma` in the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -441,7 +442,7 @@ star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = Sim
 
 Return the link of the face `sigma` in the abstract simplicial complex `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
@@ -461,30 +462,3 @@ function Base.show(io::IO, K::SimplicialComplex)
     print(io, "Abstract simplicial complex of dimension $(d) on $(n) vertices")
 end
 
-###############################################################################
-## Serialization
-###############################################################################
-
-"""
-    save_simplicialcomplex(K::SimplicialComplex, filename::String)
-
-Save a SimplicialComplex to a file in JSON format.
-"""
-function save_simplicialcomplex(K::SimplicialComplex, filename::String)
-    bigobject = pm_object(K)
-    Polymake.save_bigobject(bigobject, filename)
-end
-
-"""
-    load_simplicialcomplex(filename::String)
-
-Load a SimplicialComplex stored in JSON format, given the filename as input.
-"""
-function load_simplicialcomplex(filename::String)
-   bigobject = Polymake.load_bigobject(filename)
-   typename = Polymake.type_name(bigobject)
-   if typename[1:17] != "SimplicialComplex"
-      throw(ArgumentError("Loaded object is not of type SimplicialComplex but rather " * typename))
-   end
-   return SimplicialComplex(bigobject)
-end
