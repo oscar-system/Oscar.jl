@@ -8,6 +8,12 @@ import AbstractAlgebra: Ring
 
 abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsSpec{BaseRingType, RingType} end
 
+function underlying_space_germ(X::AbsSpaceGerm) 
+  error("`underlying_space_germ(X)` not implemented for `X` of type $(typeof(X))")
+end
+
+### TODO: Document the particular interface for space germs
+
 GermAtClosedPoint = Spec{<:Ring, 
                          <:AbsLocalizedRing{<:Ring, <:Any, 
                                             <:MPolyComplementOfKPointIdeal}

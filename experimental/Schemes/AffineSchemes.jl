@@ -18,12 +18,21 @@ export strict_modulus
 
 export simplify
 
+export PrincipalOpenSubset
+export ambient_scheme, complement_equation, inclusion_morphism
+
+export OpenInclusion
+export complement_ideal, complement_scheme
+
+export ClosedEmbedding
+export image_ideal
+
 @Markdown.doc """
     Scheme{BaseRingType<:Ring} 
 
 A scheme over a ring ``𝕜`` of type `BaseRingType`.
 """
-abstract type Scheme{BaseRingType<:Ring} end
+abstract type Scheme{BaseRingType} end
 
 struct EmptyScheme{BaseRingType}<:Scheme{BaseRingType} 
   k::BaseRingType
@@ -38,12 +47,16 @@ end
 #
 ########################################################################
 
-abstract type AbsSpec{BaseRingType<:Ring, RingType<:Ring} <: Scheme{BaseRingType} end
+abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
 
 ### essential getter methods
 
 function OO(X::AbsSpec) 
   OO(underlying_scheme(X))
+end
+
+function ambient_ring(X::AbsSpec)
+  return ambient_ring(underlying_scheme(X))
 end
 
 ### type getters
@@ -151,18 +164,30 @@ over a base ring ``𝕜`` of type `BaseRingType`.
 @attributes mutable struct Spec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
   # the basic fields 
   OO::RingType
+  kk::BaseRingType
 
   function Spec(OO::MPolyQuoLocalizedRing) 
-    return new{typeof(coefficient_ring(base_ring(OO))), typeof(OO)}(OO)
+    kk = coefficient_ring(base_ring(OO))
+    return new{typeof(kk), typeof(OO)}(OO, kk)
   end
   function Spec(OO::MPolyLocalizedRing) 
-    return new{typeof(coefficient_ring(base_ring(OO))), typeof(OO)}(OO)
+    kk = coefficient_ring(base_ring(OO))
+    return new{typeof(kk), typeof(OO)}(OO, kk)
   end
   function Spec(OO::MPolyRing) 
-    return new{typeof(coefficient_ring(OO)), typeof(OO)}(OO)
+    kk = coefficient_ring(OO)
+    return new{typeof(kk), typeof(OO)}(OO, kk)
   end
   function Spec(OO::MPolyQuo) 
-    return new{typeof(coefficient_ring(base_ring(OO))), typeof(OO)}(OO)
+    kk = coefficient_ring(base_ring(OO))
+    return new{typeof(kk), typeof(OO)}(OO, kk)
+  end
+
+  function Spec(R::Ring)
+    return new{Nothing, typeof(R)}(R)
+  end
+  function Spec(kk::Ring, R::Ring)
+    return new{typeof(kk), typeof(R)}(R)
   end
 end
 
@@ -183,6 +208,7 @@ base_ring_type(X::Spec) = base_ring_type(typeof(X))
 For ``X = Spec R`` this returns ``R``.
 """
 OO(X::Spec) = X.OO
+base_ring(X::Spec) = X.kk
 
 ### constructors
 standard_spec(X::Spec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
@@ -218,8 +244,6 @@ function Base.show(io::IO, X::Spec)
   end
   print(io, "Spec of $(OO(X))")
 end
-
-base_ring(X::Spec) = coefficient_ring(ambient_ring(X))
 
 @attr defining_ideal(X::Spec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
 defining_ideal(X::Spec{<:Any, <:MPolyQuo}) = modulus(OO(X))
@@ -614,6 +638,14 @@ domain(f::AbsSpecMor) = domain(underlying_morphism(f))
 codomain(f::AbsSpecMor) = domain(underlying_morphism(f))
 pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
 
+### Type getters
+pullback_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType, CodType, PbType}} = PbType
+pullback_type(f::AbsSpecMor) = pullback_type(typeof(f))
+domain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType, CodType, PbType}} = DomType
+domain_type(f::AbsSpecMor) = domain_type(typeof(f))
+codomain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType, CodType, PbType}} = CodType
+codomain_type(f::AbsSpecMor) = codomain_type(typeof(f))
+
 
 @attributes mutable struct SpecMor{
                                    DomainType<:AbsSpec, 
@@ -856,8 +888,20 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   return Spec(R)
 end
 
-@attr function dim(X::Spec)
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   return dim(saturated_ideal(localized_modulus(OO(X))))
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+  return ngens(ambient_ring(X))
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyRing})
+  return ngens(ambient_ring(X))
+end
+
+@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuo})
+  return dim(modulus(OO(X)))
 end
 
 function codim(X::Spec)
@@ -875,21 +919,88 @@ end
 @attributes mutable struct PrincipalOpenSubset{BRT, RT, AmbientType} <: AbsSpec{BRT, RT}
   X::AmbientType
   U::Spec{BRT, RT}
-  f::MPolyElem
+  f::RingElem
   inc::SpecMor
 
-  function PrincipalOpenSubset(X::AbsSpec, f::MPolyElem)
-    f in ambient_ring(X) || error("element does not belong to the correct ring")
+  function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
+    parent(f) == ambient_ring(X) || error("element does not belong to the correct ring")
     U = hypersurface_complement(X, [f])
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f, inc)
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end
   
-  function PrincipalOpenSubset(X::AbsSpec, f::Vector{PolyType}) where {PolyType<:MPolyElem}
-    all(x->(x in ambient_ring(X)), f) || error("element does not belong to the correct ring")
+  function PrincipalOpenSubset(X::AbsSpec, f::Vector{RingElemType}) where {RingElemType<:MPolyElem}
+    all(x->(parent(x) == ambient_ring(X)), f) || error("element does not belong to the correct ring")
     U = hypersurface_complement(X, f)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f), inc)
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
   end
 end
+
+underlying_scheme(U::PrincipalOpenSubset) = U.U
+ambient_scheme(U::PrincipalOpenSubset) = U.X
+complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(ambient_ring(U))
+
+function inclusion_morphism(U::PrincipalOpenSubset) 
+  if !isdefined(U, :inc)
+    X = ambient_scheme(U)
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
+    U.inc = inc
+  end
+  return U.inc
+end
+
+@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType}
+  inc::SpecMor{DomainType, CodomainType, PullbackType}
+  I::Ideal
+  Z::Spec
+
+  function OpenInclusion(f::AbsSpecMor, I::Ideal; check::Bool=true)
+    U = domain(f)
+    X = codomain(f)
+    Z = subscheme(X, I)
+    if check
+      isempty(preimage(f, Z)) || error("image of the map is not contained in the complement of the vanishing locus of the ideal")
+      #TODO: Do checks
+    end
+    return new{typeof(U), typeof(X), pullback_type(f)}(f, I, Z)
+  end
+end
+
+underlying_morphism(f::OpenInclusion) = f.inc
+complement_ideal(f::OpenInclusion) = f.I
+complement_scheme(f::OpenInclusion) = f.Z
+
+
+@attributes mutable struct ClosedEmbedding{DomainType, 
+                                           CodomainType, 
+                                           PullbackType
+                                          }<:AbsSpecMor{DomainType, 
+                                                        CodomainType, 
+                                                        PullbackType
+                                                       }
+  inc::SpecMor{DomainType, CodomainType, PullbackType}
+  I::Ideal
+  U::SpecOpen
+
+  function ClosedEmbedding(X::AbsSpec, I::Ideal)
+    base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
+    Y = subscheme(X, I)
+    inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y))))
+    return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
+  end
+end
+
+underlying_morphism(f::ClosedEmbedding) = f.inc
+
+image_ideal(f::ClosedEmbedding) = f.I::ideal_type(OO(codomain(f)))
+
+function complement(f::ClosedEmbedding)
+  if !isdefined(f, :U)
+    U = SpecOpen(codomain(f), image_ideal(f))
+    f.U = U
+  end
+  return f.U
+end
+
+ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
+ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
 

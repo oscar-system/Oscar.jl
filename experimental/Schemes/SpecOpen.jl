@@ -145,11 +145,24 @@ function SpecOpen(X::Spec, I::MPolyIdeal; check::Bool=true)
   return SpecOpen(X, [g for g in gens(I) if !iszero(OO(X)(g))], check=check)
 end
 
-function complement(X::AbsSpec, Z::AbsSpec)
-  if !issubset(Z, X) 
-    Z = intersect(X, Z)
-  end
+function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyRing})
+  return EmptyScheme(base_ring(X))
+end
+
+function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuo})
   return SpecOpen(X, modulus(OO(Z)))
+end
+
+function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+  return subscheme(X, prod(denominators(inverted_set(OO(Z)))))
+end
+
+function complement(X::AbsSpec, 
+    Z::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing};
+    check::Bool=true
+  )
+  check && (is_closed_embedding(Z, X) || error("not a closed embedding"))
+  return SpecOpen(Y, modulus(OO(Z)))
 end
 
 SpecOpen(X::Spec) = SpecOpen(X, [one(ambient_ring(X))], check=false)
