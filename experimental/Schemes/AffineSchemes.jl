@@ -66,7 +66,7 @@ end
 # if something more sophisticated should be returned!
 
 function subscheme(X::AbsSpec, I::Ideal)
-  base_ring(I) == OO(X) || return subscheme(X, OO(X)(I)) # this will throw if coercion is not possible
+  base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
   return Spec(quo(OO(X), I)[1])
 end
 
@@ -105,6 +105,36 @@ end
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
+  W, _ = Localization(OO(X), U)
+  return Spec(W)
+end
+
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocalizedRing}}
+  all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
+  h = lifted_numerator.(f)
+  U = MPolyPowersOfElement(ambient_ring(X), h)
+  W, _ = Localization(OO(X), U)
+  return Spec(W)
+end
+
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyLocalizedRing}}
+  all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
+  h = numerator.(f)
+  U = MPolyPowersOfElement(ambient_ring(X), h)
+  W, _ = Localization(OO(X), U)
+  return Spec(W)
+end
+
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
+  all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
+  U = MPolyPowersOfElement(ambient_ring(X), f)
+  W, _ = Localization(OO(X), U)
+  return Spec(W)
+end
+
+function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
+  all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
+  U = MPolyPowersOfElement(ambient_ring(X), lift.(f))
   W, _ = Localization(OO(X), U)
   return Spec(W)
 end
@@ -189,7 +219,7 @@ function Base.show(io::IO, X::Spec)
   print(io, "Spec of $(OO(X))")
 end
 
-base_ring(X::Spec) = coefficient_ring(OO(X))
+base_ring(X::Spec) = coefficient_ring(ambient_ring(X))
 
 @attr defining_ideal(X::Spec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
 defining_ideal(X::Spec{<:Any, <:MPolyQuo}) = modulus(OO(X))
@@ -569,7 +599,6 @@ end
 
 #TODO: Add more cross-type methods as needed.
 
-
 ########################################################################
 # Morphisms of affine schemes                                      #
 ########################################################################
@@ -603,7 +632,7 @@ pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
       Y::CodomainType,
       pullback::PullbackType;
       check::Bool=true
-    ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType}
+    ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Hecke.Map}
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
     if check
@@ -628,9 +657,18 @@ codomain(phi::SpecMor) = phi.codomain
 
 ### additional constructors
 function SpecMor(
-      X::Spec,
-      Y::Spec,
-      f::Vector;
+      X::AbsSpec,
+      Y::AbsSpec{<:Ring, <:MPolyRing},
+      f::Vector{<:RingElem};
+      check::Bool=true
+  )
+  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f)), check=check)
+end
+
+function SpecMor(
+      X::AbsSpec,
+      Y::AbsSpec,
+      f::Vector{<:RingElem};
       check::Bool=true
   )
   return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
@@ -657,7 +695,7 @@ function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:AbsSpecMor}
   X = domain(f)
   X == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  OO(X).(images(pullback(f))) == OO(X).(images(pullback(g))) || return false
+  OO(X).(pullback(f).(gens(ambient_ring(codomain(f))))) == OO(X).(pullback(f).(gens(ambient_ring(codomain(g))))) || return false
   return true
 end
 
@@ -676,6 +714,14 @@ function preimage(
   new_units = MPolyPowersOfElement(R, [lifted_numerator(f(d)) for d in a])
   new_gens = lifted_numerator.(f.(gens(IZ)))
   return Spec(MPolyQuoLocalizedRing(R, ideal(R, new_gens) + modulus(OO(X)), inverted_set(OO(X))*new_units))
+end
+
+function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
+  return subscheme(domain(f), ideal(OO(domain(f)), zero(OO(domain(f)))))
+end
+
+function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing}; check::Bool=true)
+  return hypersurface_complement(domain(f), pullback(f).(denominators(inverted_set(OO(Z)))))
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec; check::Bool=true)
@@ -825,3 +871,25 @@ function simplify(X::Spec)
   Y = Spec(L)
   return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
 end
+
+@attributes mutable struct PrincipalOpenSubset{BRT, RT, AmbientType} <: AbsSpec{BRT, RT}
+  X::AmbientType
+  U::Spec{BRT, RT}
+  f::MPolyElem
+  inc::SpecMor
+
+  function PrincipalOpenSubset(X::AbsSpec, f::MPolyElem)
+    f in ambient_ring(X) || error("element does not belong to the correct ring")
+    U = hypersurface_complement(X, [f])
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f, inc)
+  end
+  
+  function PrincipalOpenSubset(X::AbsSpec, f::Vector{PolyType}) where {PolyType<:MPolyElem}
+    all(x->(x in ambient_ring(X)), f) || error("element does not belong to the correct ring")
+    U = hypersurface_complement(X, f)
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f), inc)
+  end
+end
+
