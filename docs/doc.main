@@ -179,16 +179,6 @@
     "NoncommutativeAlgebra/free_associative_algebra.md",
   ],
 
-  "Singularities" => [
-	"Experimental/Singularities/intro.md",
-	"Experimental/Singularities/space_germs.md",
-	"Experimental/Singularities/hypersurfaces.md",
-	"Experimental/Singularities/ICIS.md",
-#	"Experimental/Singularities/curvesing.md",
-#	"Experimental/Singularities/CMC2.md",
-  ],
-
-
   "Combinatorics" => [
       "Combinatorics/graphs.md",
       "Combinatorics/matroids.md",
