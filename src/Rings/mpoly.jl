@@ -162,17 +162,17 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 
 ##############################################################################
 #
-# workhorse: BiPolyArray
+# workhorse: IdealGens
 # ideals are (mostly) generated on the Nemo side, but structural computations
 # are in Singular. To avoid permanent conversion, the list of generators = sideal
-# is captured in BiPolyArray: for Ocsar this is Vector{MPoly}
+# is captured in IdealGens: for Ocsar this is Vector{MPoly}
 #                                 Singular      sideal
 #
 #TODO/ to think
 #  default in Nemo is     :lex
 #             Singular is :degrevlex -> better for std
 #by default, use different orders???
-#make BiPolyArray use different orders for both? make the type depend on it?
+#make IdealGens use different orders for both? make the type depend on it?
 #
 #for std: abstraction to allow Christian to be used
 #
@@ -181,7 +181,7 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 
 default_ordering(R::MPolyRing) = degrevlex(gens(R))
 
-mutable struct BiPolyArray{S}
+mutable struct IdealGens{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
   Sx # Singular Poly Ring or Algebra, poss. with different ordering
@@ -190,19 +190,19 @@ mutable struct BiPolyArray{S}
   ord::Orderings.AbsOrdering #for this ordering
   keep_ordering::Bool
 
-  function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
-    return BiPolyArray(parent(O[1]), O; keep_ordering = keep_ordering,
+  function IdealGens(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+    return IdealGens(parent(O[1]), O; keep_ordering = keep_ordering,
                                         isGB = isGB)
   end
 
-  function BiPolyArray(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+  function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
     r = new{T}(Ox, O)
     r.isGB = isGB
     r.keep_ordering = keep_ordering
     return r
   end
 
-  function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
+  function IdealGens(Ox::T, S::Singular.sideal) where {T <: NCRing}
     Sx = base_ring(S)
     r = new{elem_type(T)}(Ox)
     r.Sx = Sx
@@ -213,21 +213,21 @@ mutable struct BiPolyArray{S}
   end
 end
 
-function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
+function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
   if !isdefined(A, :S)
     A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
   end
   return A.S[i]
 end
 
-function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
+function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
     if !isdefined(A, :O)
       oscar_assure(A)
   end
   return A.O[i]
 end
 
-function Base.length(A::BiPolyArray)
+function Base.length(A::IdealGens)
   if isdefined(A, :S)
     return Singular.ngens(A.S)
   else
@@ -235,14 +235,14 @@ function Base.length(A::BiPolyArray)
   end
 end
 
-function Base.iterate(A::BiPolyArray, s::Int = 1)
+function Base.iterate(A::IdealGens, s::Int = 1)
   if s > length(A)
     return nothing
   end
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::BiPolyArray{S}) where S = S
+Base.eltype(::IdealGens{S}) where S = S
 
 ##############################################################################
 #
@@ -427,21 +427,21 @@ end
 Ideal in a multivariate polynomial ring R with elements of type `S`.
 
 Fields:
-  * `gens::BiPolyArray{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
-  * `gb::BiPolyArray{S}`, a field used for caching of Groebner basis computations;
+  * `gens::IdealGens{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
+  * `gb::IdealGens{S}`, a field used for caching of Groebner basis computations;
   * `dim::Int`, a field used for caching the dimension of the ideal.
 """
 mutable struct MPolyIdeal{S} <: Ideal{S}
-  gens::BiPolyArray{S}
-  gb::Dict{MonomialOrdering, BiPolyArray{S}}
+  gens::IdealGens{S}
+  gb::Dict{MonomialOrdering, IdealGens{S}}
   dim::Int
 
   function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
-    return MPolyIdeal(BiPolyArray(g, keep_ordering = false))
+    return MPolyIdeal(IdealGens(g, keep_ordering = false))
   end
 
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
-    r = MPolyIdeal(BiPolyArray(Ox, s))
+    r = MPolyIdeal(IdealGens(Ox, s))
     if s.isGB
       ord = monomial_ordering(Ox, ordering(base_ring(s)))
       r.gb[ord] = r.gens
@@ -449,7 +449,7 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
     return r
   end
 
-  function MPolyIdeal(B::BiPolyArray{T}) where T
+  function MPolyIdeal(B::IdealGens{T}) where T
     r = new{T}(B, Dict(), -1)
     return r
   end
@@ -473,7 +473,7 @@ function singular_assure(I::MPolyIdeal)
   singular_assure(I.gens)
 end
 
-function singular_assure(I::BiPolyArray)
+function singular_assure(I::IdealGens)
   if !isdefined(I, :S)
     I.Sx = singular_poly_ring(I.Ox, keep_ordering=I.keep_ordering)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
@@ -487,7 +487,7 @@ function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
    singular_assure(I.gens, ordering)
 end
 
-function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
+function singular_assure(I::IdealGens, ordering::MonomialOrdering)
     if !isdefined(I, :S) 
         I.ord = ordering.o
         I.Sx = singular_poly_ring(I.Ox, ordering)
@@ -514,7 +514,7 @@ function oscar_assure(I::MPolyIdeal)
   end
 end
 
-function oscar_assure(B::BiPolyArray)
+function oscar_assure(B::IdealGens)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
     B.O = [B.Ox(x) for x = gens(B.S)]
   end

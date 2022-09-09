@@ -338,7 +338,7 @@ ideal(-x*z + y^2, x*y - z, x^2 - y)
 """
 function eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
   singular_assure(I)
-  B = BiPolyArray(l)
+  B = IdealGens(l)
   S = base_ring(I.gens.S)
   s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
@@ -938,8 +938,7 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
-  groebner_assure(I, ordering, false, false)
-  GI = I.gb[ordering]
+  GI = std_basis(I, ordering, false, false)
   singular_assure(GI)
   Sx = base_ring(GI.S)
   return Singular.iszero(Singular.reduce(Sx(f), GI.S))

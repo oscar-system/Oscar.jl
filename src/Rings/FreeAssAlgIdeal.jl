@@ -16,17 +16,17 @@
 Two-sided ideal of a free associative algebra with elements of type `T`.
 """
 mutable struct FreeAssAlgIdeal{T}
-  gens::BiPolyArray{T}
-  gb::BiPolyArray{T}
+  gens::IdealGens{T}
+  gb::IdealGens{T}
 
   function FreeAssAlgIdeal(R::FreeAssAlgebra, g::Vector{T}) where {T <: FreeAssAlgElem}
     r = new{T}()
-    r.gens = BiPolyArray(R, g)
+    r.gens = IdealGens(R, g)
     return r
   end
   function FreeAssAlgIdeals(Ox::T, s::Singular.sideal) where {T <: FreeAssAlgElem}
     r = new{elem_type(T)}()
-    r.gens = BiPolyArray(Ox, s)
+    r.gens = IdealGens(Ox, s)
     r.deg_bound = -1
     if s.isGB
       r.gb = r.gens
@@ -116,7 +116,7 @@ function (R::Singular.LPRing)(a::FreeAssAlgElem)
 end
 
 # ensure we have singular data with degree bound at least deg_bound
-function singular_assure(I::BiPolyArray{T}, deg_bound::Int) where T <: FreeAssAlgElem
+function singular_assure(I::IdealGens{T}, deg_bound::Int) where T <: FreeAssAlgElem
   deg_bound = max(deg_bound, 1)
   if !isdefined(I, :S) || (isdefined(I, :S) && I.Sx.deg_bound < deg_bound)
     if !isdefined(I, :S)
@@ -137,7 +137,7 @@ end
 function groebner_assure(I::FreeAssAlgIdeal, deg_bound::Int)
   if !isdefined(I, :gb) || (isdefined(I.gb, :Sx) && I.gb.Sx.deg_bound < deg_bound)
     singular_assure(I.gens, deg_bound)
-    I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
+    I.gb = IdealGens(I.gens.Ox, Singular.std(I.gens.S))
     I.gb.isGB  = true
   end
   return I.gb

@@ -2,7 +2,7 @@ module ModStdQ
 
 using Oscar
 import Hecke
-import Oscar: MPolyIdeal, BiPolyArray, Hecke, AbstractAlgebra
+import Oscar: MPolyIdeal, IdealGens, Hecke, AbstractAlgebra
 import Hecke: induce_rational_reconstruction, induce_crt
 
 function __init__()
@@ -62,7 +62,7 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
 #    nbits(d) > 1700 && error("too long")
     R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
-    @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
+    @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp = Oscar.exp_groebner_basis(Ip, ord = ord, complete_reduction = true)
     Jp = map(x->lift(Zt, x), Gp)
     if d == 1
@@ -104,7 +104,7 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb[degrevlex(gens(Qt))] = BiPolyArray(gd, keep_ordering = false, isGB = true)
+            I.gb[degrevlex(gens(Qt))] = IdealGens(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end
@@ -116,7 +116,7 @@ end
 
 function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
-    I.gb[ord] = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
+    I.gb[ord] = IdealGens(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
     singular_assure(I.gb[ord])
     return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
   end
@@ -147,7 +147,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
 #    nbits(d) > 1700 && error("too long")
     R = GF(p)
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
-    @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
+    @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord, complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
@@ -198,7 +198,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
                I.gens.ord = ord.o
             end
             if ord.o == I.gens.ord && !isdefined(I, :gb)
-              I.gb[ord] = BiPolyArray(gd[1:length_gc], keep_ordering = false, isGB = true)
+              I.gb[ord] = IdealGens(gd[1:length_gc], keep_ordering = false, isGB = true)
               singular_assure(I.gb[ord])
             end
             return G, T
@@ -258,8 +258,8 @@ end
 
 
 #TODO? directly project down to Singular???
-#      operate on BiPolyArrays or arrays rather than ideals?
-# definitely: BiPolyArrays as list is what we do
+#      operate on IdealGenss or arrays rather than ideals?
+# definitely: IdealGenss as list is what we do
 # for induced stuff and majority voting and such think of data structures
 #   that allow to match monomials effectively.
 

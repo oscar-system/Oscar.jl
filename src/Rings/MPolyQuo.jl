@@ -854,11 +854,11 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
     J = gens(I)
   end
 
-  BS = BiPolyArray([a.f], keep_ordering = false)
+  BS = IdealGens([a.f], keep_ordering = false)
   singular_assure(BS)
 
   J = vcat(J, [b.f])
-  BJ = BiPolyArray(J, keep_ordering = false)
+  BJ = IdealGens(J, keep_ordering = false)
   singular_assure(BJ)
 
   s, rest = Singular.lift(BJ.S, BS.S)

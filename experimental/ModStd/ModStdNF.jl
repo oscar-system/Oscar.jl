@@ -2,7 +2,7 @@ module ModStdNF
 
 using Oscar
 import Hecke
-import Oscar: MPolyIdeal, BiPolyArray, Hecke, AbstractAlgebra
+import Oscar: MPolyIdeal, IdealGens, Hecke, AbstractAlgebra
 import Hecke: modular_lift, modular_proj, modular_env, RecoCtx, 
               induce_rational_reconstruction
 
@@ -26,16 +26,16 @@ function Oscar.binomial(a::RingElem, k::Int)
   return prod([a-i for i=0:k-1])*inv(p(factorial(k)))
 end
 
-function exp_groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+function exp_groebner_basis(B::IdealGens{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_poly_ring(B.Ox, ord)
     i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), h.data, complete_reduction = complete_reduction)
-    return BiPolyArray(B.Ox, i)
+    return IdealGens(B.Ox, i)
   end
   if !isdefined(B, :S)
     B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
   end 
-  return BiPolyArray(B.Ox, stdhilb(B.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
+  return IdealGens(B.Ox, stdhilb(B.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
 end
 
 #TODO (to dream)
@@ -129,7 +129,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb = BiPolyArray(gd, keep_ordering = false, isGB = true)
+            I.gb = IdealGens(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end
@@ -145,11 +145,11 @@ end
 
 
 #TODO? directly project down to Singular???
-#      operate on BiPolyArrays or arrays rather than ideals?
-# definitely: BiPolyArrays as list is what we do
+#      operate on IdealGenss or arrays rather than ideals?
+# definitely: IdealGenss as list is what we do
 # for induced stuff and majority voting and such think of data structures
 #   that allow to match monomials effectively.
-function Hecke.modular_proj(B::BiPolyArray{Generic.MPoly{nf_elem}}, me::Hecke.modular_env)
+function Hecke.modular_proj(B::IdealGens{Generic.MPoly{nf_elem}}, me::Hecke.modular_env)
   g = [Vector{nmod_mpoly}() for i = me.fld]
   for i=B
     h = Hecke.modular_proj(i, me)
@@ -157,10 +157,10 @@ function Hecke.modular_proj(B::BiPolyArray{Generic.MPoly{nf_elem}}, me::Hecke.mo
       push!(g[j], h[j])
     end
   end
-  return [BiPolyArray(x, keep_ordering = false) for x = g] 
+  return [IdealGens(x, keep_ordering = false) for x = g] 
 end
 
-function Hecke.modular_lift(f::Vector{BiPolyArray{nmod_mpoly}}, me::Hecke.modular_env)
+function Hecke.modular_lift(f::Vector{IdealGens{nmod_mpoly}}, me::Hecke.modular_env)
   g = []
   @assert all(x -> length(x) == length(f[1]), f)
   for i=1:length(f[1])

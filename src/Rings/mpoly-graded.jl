@@ -1519,7 +1519,7 @@ mutable struct HilbertData
     h = Singular.hilbert_series(G.S, W)
     return new(h, W, I)
   end
-  function HilbertData(B::BiPolyArray)
+  function HilbertData(B::IdealGens)
     return HilbertData(Oscar.MPolyIdeal(B))
   end
 end
