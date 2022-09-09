@@ -135,7 +135,6 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
                             parent=nothing) where T
     # File version to be dealt with on first breaking change
     # A file without version number is treated as the "first" version
-    
     if dict[:type] == string(backref_sym)
         backref = s.objs[UUID(dict[:id])]
         backref isa T || throw(ErrorException("Backref of incorrect type encountered: $backref !isa $T"))
@@ -187,7 +186,6 @@ function load_unknown_type(s::DeserializerState,
 
     T = decodeType(dict[:type])
     Base.issingletontype(T) && return T()
-
     return load_type_dispatch(s, T, dict; parent=parent)
 end
 
