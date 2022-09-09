@@ -9,6 +9,7 @@
         if parent(poly_f) != parent(poly_g)
             throw(ArgumentError("The two polynomials f, g must be elements of the same ring, i.e. a ring encoded by the same julia variable"))
         end
+        ## TODO: Check if there is a base space such that f and g are sections of Kbar^4 and Kbar^6, respectively?
         return new(poly_f, poly_g)
     end
 end
@@ -20,7 +21,7 @@ export GlobalWeierstrassModel
 #######################################
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModel(polys::Vector{MPolyElem{fmpq}})
+    GlobalWeierstrassModel(polys::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
 
 A global Weierstrass model is a hypersurface cut out by an
 equation of the form $P_w = y^2 - x^3 - f x z^4 - g z^6$.
@@ -28,7 +29,7 @@ Consequently, it is specified by two polynomials $f$ and $g$.
 For convenience, it can be constructed as
 `GlobalWeierstrassModel([f,g])` and via `GlobalWeierstrassModel(f,g)`.
 """
-function GlobalWeierstrassModel(polys::Vector{MPolyElem{fmpq}})
+function GlobalWeierstrassModel(polys::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
     if length(polys) != 2
         throw(ArgumentError("Exactly two polynomials f and g must be specified to define a Weierstrass model"))
     end
@@ -50,7 +51,7 @@ function GenericGlobalWeierstrassModelOverToricSpace(v::Oscar.AbstractNormalTori
     Kbar = anticanonical_bundle(v)
     f = sum([rand(Int)*b for b in basis_of_global_sections(Kbar^4)])
     g = sum([rand(Int)*b for b in basis_of_global_sections(Kbar^6)])
-    w = GlobalWeierstrassModel(f,g)
+    w = GlobalWeierstrassModel([f,g])
     set_attribute!(w, :toric_base_space, v)
     return w
 end
