@@ -725,6 +725,27 @@ base_ring_map(f::FreeModuleHom) = f.ring_map
 Given a homomorphism `a` of type  `FreeModuleHom` with domain `F`
 and codomain `M`, return a matrix `A` with `rank(F)` rows and 
 `ngens(M)` columns such that `a == hom(F, M, A)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> G = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+
+julia> a = hom(F, G, V);
+
+julia> matrix(a)
+[y   0]
+[x   y]
+[0   z]
+```
 """
 function matrix(a::FreeModuleHom)
   if !isdefined(a, :matrix)
@@ -757,6 +778,53 @@ basis vector of `F` to the `i`-th entry of `V`.
 Given a matrix `A` with `rank(F)` rows and `ngens(M)` columns, return the
 homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
 the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> G = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{fmpq_mpoly}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia> a = hom(F, G, V)
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> a(F[2])
+x*e[1] + y*e[2]
+
+julia> W = matrix(R, [y 0; x y; 0 z])
+[y   0]
+[x   y]
+[0   z]
+
+julia> b = hom(F, G, W)
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> a == b
+true
+```
 """
 function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
@@ -1523,15 +1591,6 @@ end
 
 Return the cokernel of `a` as an object of type `SubQuo`.
 
-    cokernel(F::FreeMod{T}, A::MatElem{T}) where T
-
-Given a matrix `A` with with rank `F` columns, return `cokernel(a)`, 
-where `a` is a free module homomorphism with codomain `F` represented by `A`.
-
-    cokernel(A::MatElem)
-
-Create a free module `F`, say, with rank `F` columns, and return `cokernel(F, A)`.
-
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -1543,9 +1602,12 @@ Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> G = free_module(R, 2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
-julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+julia> W = matrix(R, [y 0; x y; 0 z])
+[y   0]
+[x   y]
+[0   z]
 
-julia> a = hom(F, G, V);
+julia> a = hom(F, G, W);
 
 julia> cokernel(a)
 Subquotient of Submodule with 2 generators
@@ -1555,6 +1617,52 @@ by Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
+```
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F1 = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F1, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> b = hom(M, N, V);
+
+julia> cokernel(b)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 5 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+4 -> x*y^2*e[1]
+5 -> x*y*e[1]
 ```
 """
 function cokernel(f::ModuleMap)
@@ -3225,33 +3333,39 @@ by Submodule with 3 generators
 julia> is_welldefined(a)
 true
 
+julia> W = matrix(R,  [y^2 0; 0 x])
+[y^2   0]
+[  0   x]
+
+julia> b = hom(M, N, W);
+
+julia> a == b
+true
+```
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y];
+
+julia> B = R[x^2; y^3; z^4];
+
+julia> M = SubQuo(F, A, B);
+
+julia> N = M;
+
 julia> W = [y*N[1], x*N[2]]
 2-element Vector{SubQuoElem{fmpq_mpoly}}:
  x*y*e[1]
  x*y*e[1]
 
-julia> b = hom(M, N, W)
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> c = hom(M, N, W);
 
-julia> is_welldefined(b)
+julia> is_welldefined(c)
 false
 ```
 """
@@ -3321,31 +3435,9 @@ by Submodule with 3 generators
 
 julia> N = M;
 
-julia> V = [y^2*N[1], x*N[2]]
-2-element Vector{SubQuoElem{fmpq_mpoly}}:
- x*y^2*e[1]
- x*y*e[1]
+julia> V = [y^2*N[1], x*N[2]];
 
-julia> a = hom(M, N, V)
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+julia> a = hom(M, N, V);
 
 julia> A = matrix(a)
 [y^2   0]
@@ -4014,11 +4106,14 @@ Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> G = free_module(R, 2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
-julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+julia> W = matrix(R, [y 0; x y; 0 z])
+[y   0]
+[x   y]
+[0   z]
 
-julia> a = hom(F, G, V);
+julia> a = hom(F, G, W);
 
-julia> image(a)
+julia> I, iota = image(a)
 (Submodule with 3 generators
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
@@ -4034,6 +4129,68 @@ represented as subquotient with no relations.
 Codomain:
 =========
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+```
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F1 = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F1, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> b = hom(M, N, V);
+
+julia> image(b)
+(Subquotient of Submodule with 2 generators
+1 -> x*y^2*e[1]
+2 -> x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -> x*y^2*e[1]
+2 -> x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1])
 ```
 """
 function image(a::ModuleMap)
@@ -4079,9 +4236,12 @@ Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> G = free_module(R, 2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
-julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
+julia> W = matrix(R, [y 0; x y; 0 z])
+[y   0]
+[x   y]
+[0   z]
 
-julia> a = hom(F, G, V);
+julia> a = hom(F, G, W);
 
 julia> kernel(a)
 (Submodule with 1 generator
@@ -4095,6 +4255,70 @@ represented as subquotient with no relations.
 Codomain:
 =========
 Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field)
+```
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F1 = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F1, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> b = hom(M, N, V);
+
+julia> K, iota = kernel(b)
+(Subquotient of Submodule with 3 generators
+1 -> (-x + y^2)*e[1]
+2 -> x*y*e[1]
+3 -> -x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Map with following data
+Domain:
+=======
+Subquotient of Submodule with 3 generators
+1 -> (-x + y^2)*e[1]
+2 -> x*y*e[1]
+3 -> -x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1])
 ```
 """
 function kernel(a::ModuleMap)
@@ -4457,13 +4681,11 @@ function iszero(f::ModuleMap)
 end
 
 @doc Markdown.doc"""
-    hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
+    hom(M::ModuleFP, N::ModuleFP)
 
 Return the module `Hom(M,N)` as an object of type `SubQuo`.
 
 Additionally, if `H` is that object, return the map which sends an element of `H` to the corresponding homomorphism `M` $\to$ `N`.
-
-If `alg = :matrices`, a different implementation that is using matrices instead of maps is used.
 
 # Examples
 ```jldoctest
