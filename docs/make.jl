@@ -1,8 +1,8 @@
 push!(LOAD_PATH,"../src/")
-using Documenter, FTheoryTools, DocumenterMarkdown
+using Documenter, FTheoryTools, DocumenterMarkdown, Oscar
 
 # ensure FTheoryTools is loaded for the doc tests
-DocMeta.setdocmeta!(FTheoryTools, :DocTestSetup, :(using FTheoryTools, Random); recursive = true)
+DocMeta.setdocmeta!(FTheoryTools, :DocTestSetup, :(using FTheoryTools, Random; using FTheoryTools.Oscar); recursive = true)
 
 makedocs(
     format = Documenter.HTML(),
@@ -12,7 +12,7 @@ makedocs(
     doctest = false,
     pages = ["index.md",
             "FTheoryTools/Introduction.md",
-            "Tools" => ["FTheoryTools/Functions.md"],
+            "Tools" => ["FTheoryTools/Weierstrass.md"],
             ]
     )
 
