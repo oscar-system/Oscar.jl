@@ -3,11 +3,11 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       std_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, show_morphism, hom_tensor, hom_product, coordinates, 
       represents_element, free_resolution, free_resolution_via_kernels,
-      homomorphism, module_elem, generator_matrix, restrict_codomain,
-      restrict_domain, direct_product, tensor_product, free_module, tor,
-      lift_homomorphism_contravariant, lift_homomorphism_covariant,
-      hom_without_reversing_direction, ext, transport, find_morphism,
-      find_morphisms, is_canonically_isomorphic, 
+      element_to_homomorphism, homomorphism_to_element, generator_matrix, 
+      restrict_codomain, restrict_domain, direct_product, tensor_product, 
+      free_module, tor, ext, lift_homomorphism_contravariant, 
+      lift_homomorphism_covariant, hom_without_reversing_direction, transport, 
+      find_morphism, find_morphisms, is_canonically_isomorphic, 
       is_canonically_isomorphic_with_map, register_morphism!, dense_row,
       show_subquo, show_morphism, show_morphism_as_map,
       simplify_light, simplify_with_same_ambient_free_module,
@@ -4413,12 +4413,12 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
 end
 
 @doc Markdown.doc"""
-    homomorphism(f::Union{SubQuoElem,FreeModElem})
+    element_to_homomorphism(f::Union{SubQuoElem,FreeModElem})
 
 If `f` is an element in a module created via `hom(M,N)` for some `M` and `N`, 
 return the morphism $\phi : M \to N$ that corresponds to `f`.
 """
-function homomorphism(f::Union{AbstractSubQuoElem,AbstractFreeModElem})
+function element_to_homomorphism(f::Union{AbstractSubQuoElem,AbstractFreeModElem})
   H = f.parent
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("element doesn't live in a hom module")  
@@ -4426,12 +4426,12 @@ function homomorphism(f::Union{AbstractSubQuoElem,AbstractFreeModElem})
 end
 
 @doc Markdown.doc"""
-    module_elem(H::ModuleFP, phi::ModuleMap)
+    homomorphism_to_element(H::ModuleFP, phi::ModuleMap)
 
 Let `H` be created via `hom(M,N)` for some `M` and `N`. Return 
 the element in `H` corresponding to `phi`.
 """
-function module_elem(H::ModuleFP, phi::ModuleMap)
+function homomorphism_to_element(H::ModuleFP, phi::ModuleMap)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
@@ -4473,7 +4473,7 @@ function multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
   M_N === nothing && error("module must be a hom module")
   M,N = M_N
   @assert M === N
-  return hom(F, H, [module_elem(H, multiplication_morphism(F[1], M))])
+  return hom(F, H, [homomorphism_to_element(H, multiplication_morphism(F[1], M))])
 end
 
 #TODO
@@ -5087,7 +5087,7 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
   @assert domain(phi) === N
   @assert codomain(phi) === M
   
-  phi_lifted = hom(Hom_MP, Hom_NP, Vector{elem_type(Hom_NP)}([module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)]))
+  phi_lifted = hom(Hom_MP, Hom_NP, Vector{elem_type(Hom_NP)}([homomorphism_to_element(Hom_NP, phi*element_to_homomorphism(f)) for f in gens(Hom_MP)]))
   return phi_lifted
 end
 
@@ -5113,7 +5113,7 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
   if iszero(Hom_PN)
     return hom(Hom_PM, Hom_PN, Vector{elem_type(Hom_PN)}([zero(Hom_PN) for _=1:ngens(Hom_PM)]))
   end
-  phi_lifted = hom(Hom_PM, Hom_PN, Vector{elem_type(Hom_PN)}([module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)]))
+  phi_lifted = hom(Hom_PM, Hom_PN, Vector{elem_type(Hom_PN)}([homomorphism_to_element(Hom_PN, element_to_homomorphism(f)*phi) for f in gens(Hom_PM)]))
   return phi_lifted
 end
 
