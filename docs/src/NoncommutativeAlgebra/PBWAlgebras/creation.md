@@ -25,6 +25,41 @@ The basic constructor below allows one to build PBW-algebras:
 ```@docs
 pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering) where T
 ```
+Some PBW-algebras are predefined in OSCAR.
+
+### Weyl Algebras
+
+The *$n$-th Weyl algebra over a field $K$* is the PBW-algebra
+```math
+D_n(K)=K \langle x_1,\ldots, x_n, \partial _1,\dots \partial _n \mid \partial_i x_i=x_i\partial _i +1, \partial _i x_j=x_j \partial _i \ \text { for }\ i\neq j\rangle.
+```
+Here,  we tacitly assume that
+```math
+x_j x_i=x_i x _j \; \text{ and } \; \partial _j \partial_i=\partial_i \partial _j \; \text{ for all } \; i,j.
+```
+Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is admissible for $D_n(K)$.
+
+The constructor below returns the algebras equipped with `degrevlex`.
+
+### Universal Enveloping Algebras of Finite Dimensional Lie Algebras
+
+Let $\mathfrak g$ be an $n$-dimensional Lie algebra over a field $K$, and let $x_1, \dots, x_n$ be a $K$-basis of $\mathfrak g$.
+Consider $n$ indeterminates which are also denoted by $x_1, \dots, x_n$.  The *universal enveloping algebra of $\mathfrak g$*
+is the PBW-algebra
+```math
+U(\mathfrak g)=K \langle x_1,\ldots, x_n \mid x_jx_i = x_ix_j+[x_j, x_i],  \ 1\leq i<j \leq n \rangle,
+```
+where $[x_j, x_i]$ corresponds to evaluating the Lie bracket $[x_j, x_i]_\mathfrak g$. That the standard monomials
+in $U(\mathfrak g)$ indeed form a $K$-basis for $U(\mathfrak g)$ is the content of the
+Poincar``\'{\text{e}}``-Birkhoff-Witt theorem (the names PBW-basis and PBW-algebra are derived from this fact).
+
+Note that any degree compatible global monomial ordering on $\N^n$ is admissible for $U(\mathfrak g)$.
+
+The constructors below return the algebras equipped with `degrevlex`.
+
+### Quantized Enveloping Algebras
+
+### Non-Standard Quantum Deformation of $so_3$
 
 ## Data Associated to PBW-Algebras
 

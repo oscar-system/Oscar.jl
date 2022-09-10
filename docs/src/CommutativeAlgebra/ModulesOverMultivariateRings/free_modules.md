@@ -144,18 +144,6 @@ is recovered by the following function:
 matrix(a::FreeModuleHom)
 ```
 
-##### Examples
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 3)
-G = free_module(R, 2)
-V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
-a = hom(F, G, V)
-A = matrix(a)
-a(F[2])
-```
-
 The domain and codomain of a homomorphism `a`  of type `FreeModuleHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
 

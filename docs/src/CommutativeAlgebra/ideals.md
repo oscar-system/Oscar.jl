@@ -57,6 +57,13 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 
 We then also say that $>$ is a *global* , *local*, or *mixed* *monomial ordering* on $R[x]$.
 
+!!! note
+    - A monomial ordering on $\text{Mon}_n(x)$ is global iff it is a well-ordering.
+    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \N^n$ such that
+	   $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
+       Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
+	   (global, local, mixed) monomial ordering on $\N^n$.
+	
 Some monomial orderings are predefined in OSCAR.
 
 #### Predefined Global Orderings
