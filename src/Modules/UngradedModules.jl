@@ -10,6 +10,7 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       find_morphisms, is_canonically_isomorphic, 
       is_canonically_isomorphic_with_map, register_morphism!, dense_row,
       show_subquo, show_morphism, show_morphism_as_map,
+      simplify_light, simplify_with_same_ambient_free_module,
       matrix_kernel, simplify, map, is_injective,
       is_surjective, is_bijective, is_welldefined, subquotient,
       multiplication_morphism, multiplication_induced_morphism,
@@ -109,6 +110,10 @@ function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
+end
+
+function hash(F::FreeMod, h::UInt)
+  return hash((base_ring(F), rank(F), F.S), h)
 end
 
 @doc Markdown.doc"""
@@ -377,6 +382,10 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
     return false
   end
   return a.coords == b.coords
+end
+
+function hash(a::AbstractFreeModElem, h::UInt)
+  return hash(tuple(parent(a), coords(a)), h)
 end
 
 # scalar multiplication with polynomials, integers
@@ -1987,7 +1996,8 @@ function sum(M::SubQuo{T},N::SubQuo{T}) where T
   register_morphism!(iM)
   register_morphism!(iN)
 
-  return SQ, iM, iN
+  SQ_simplified, _, s_proj = simplify_light(SQ)
+  return SQ_simplified, iM*s_proj, iN*s_proj
 end
 
 @doc Markdown.doc"""
@@ -2174,7 +2184,8 @@ function intersect(M::SubQuo{T}, N::SubQuo{T}) where T
     register_morphism!(M_hom)
     register_morphism!(N_hom)
 
-    return SQ,M_hom,N_hom
+    SQ_simplified, s_inj, _ = simplify_light(SQ)
+    return SQ_simplified, s_inj*M_hom, s_inj*N_hom
   end
   throw(ArgumentError("Relations of M and N are not equal."))
 end
@@ -4379,9 +4390,12 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
   projected_kernel::Vector{elem_type(H_s0_t0)} = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
   H = quo(sub(H_s0_t0, projected_kernel, :module), image(rho_prime)[1], :module)
 
+  H_simplified, s_inj, s_proj = simplify_light(H)
+
   function im(x::SubQuoElem)
-    @assert parent(x) === H
-    return hom(M, N, Vector{elem_type(N)}([g0(mH_s0_t0(repres(x))(preimage(f0, g))) for g = gens(M)]))
+    #@assert parent(x) === H
+    @assert parent(x) === H_simplified
+    return hom(M, N, Vector{elem_type(N)}([g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)]))
   end
 
   function pre(f::ModuleMap)
@@ -4391,11 +4405,11 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
     Rt0 = domain(g0)
     g = hom(Rs0, Rt0, Vector{elem_type(Rt0)}([preimage(g0, f(f0(g))) for g = gens(Rs0)]))
 
-    return SubQuoElem(repres(preimage(mH_s0_t0, g)), H)
+    return s_proj(SubQuoElem(repres(preimage(mH_s0_t0, g)), H))
   end
-  to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
-  set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
-  return H, to_hom_map
+  to_hom_map = MapFromFunc(im, pre, H_simplified, Hecke.MapParent(M, N, "homomorphisms"))
+  set_attribute!(H_simplified, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
+  return H_simplified, to_hom_map
 end
 
 @doc Markdown.doc"""
@@ -5044,7 +5058,7 @@ Compute $\text{Tor}_i(M,N)$.
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
   lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
-  return homology(lifted_resolution,i)
+  return simplify_light(homology(lifted_resolution,i))[1]
 end
 
 #TODO, mF
@@ -5221,7 +5235,7 @@ Compute $\text{Ext}^i(M,N)$.
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
   lifted_resolution = hom(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
-  return homology(lifted_resolution,i)
+  return simplify_light(homology(lifted_resolution,i))[1]
 end
 
 #############################
@@ -5402,6 +5416,9 @@ Convert `A` to a sparse row.
 """
 function sparse_row(A::MatElem)
   @assert nrows(A) == 1
+  if ncols(A) == 0
+    return sparse_row(base_ring(A))
+  end
   return Hecke.sparse_matrix(A)[1]
 end
 
@@ -5523,6 +5540,50 @@ function matrix_kernel(A::MatElem)
   phi = FreeModuleHom(F_domain, F_codomain, A)
   _, inclusion = kernel(phi)
   return matrix(inclusion)
+end
+
+@doc Markdown.doc"""
+    simplify_light(M::SubQuo)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms.
+The only simplifications which are done are the following: 
+- Remove all generators which are represented by the zero element in the ambient 
+free module.
+- Remove all generators which are in the generating set of the relations.
+- Remove all duplicates in the generators and relations sets.
+"""
+function simplify_light(M::SubQuo)
+  M_gens = ambient_representatives_generators(M)
+  M_rels = relations(M)
+
+  N_rels = unique(filter(x -> !iszero(x), M_rels))
+  N_gens = unique(setdiff(filter(x -> !iszero(x), M_gens), N_rels))
+
+  N = length(N_rels) == 0 ? SubQuo(ambient_free_module(M), N_gens) : SubQuo(ambient_free_module(M), N_gens, N_rels)
+
+  index_of_N_in_M = indexin(N_gens, M_gens)
+  inj = hom(N, M, Vector{elem_type(M)}([M[index_of_N_in_M[i]] for i in 1:ngens(N)]))
+
+  index_of_M_in_N = indexin(M_gens, N_gens)
+  proj = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]))
+
+  return N, inj, proj
+end
+
+@doc Markdown.doc"""
+    simplify_with_same_ambient_free_module(M::SubQuo)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms. The ambient free module of `N` is the same as that of `M`.
+"""
+function simplify_with_same_ambient_free_module(M::SubQuo)
+  _, to_M, from_M = simplify(M)
+  N, N_to_M = image(to_M)
+  return N, N_to_M, hom(M, N, [N(coeffs(from_M(g))) for g in gens(M)])
+  #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
 end
 
 @doc Markdown.doc"""

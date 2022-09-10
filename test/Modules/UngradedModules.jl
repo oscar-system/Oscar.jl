@@ -393,6 +393,15 @@ end
 	@test is_bijective(i2)
 	@test is_bijective(p2)
 
+	M2,i2,p2 = simplify_with_same_ambient_free_module(M1)
+	@test ambient_free_module(M2) === ambient_free_module(M1)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
+	@test i2*p2 == identity_map(M2)
+	@test p2*i2 == identity_map(M1)
+
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 	M1 = SubQuo(A1,B1)
@@ -944,7 +953,7 @@ end
 @testset "preimage" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
-	for _=1:5
+	for _=1:10
 		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
 		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
 		B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:1])
@@ -953,6 +962,9 @@ end
 		N = SubQuo(A1,B1)
 		M = SubQuo(A2,B2)
 		HomNM = hom(N,M)[1]
+		if iszero(HomNM)
+			continue
+		end
 		H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
 		H = homomorphism(H)
 
