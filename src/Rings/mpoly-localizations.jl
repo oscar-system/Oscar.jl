@@ -1073,6 +1073,9 @@ parent(a::MPolyLocalizedRingElem) = a.W
 
 ### additional getter functions
 fraction(a::MPolyLocalizedRingElem) = a.frac
+# to assure compatibility with generic code for MPolyQuoLocalizedRings:
+lifted_numerator(a::MPolyLocalizedRingElem) = numerator(a)
+lifted_denominator(a::MPolyLocalizedRingElem) = denominator(a)
 
 ### required conversions
 function (W::MPolyLocalizedRing{

@@ -39,7 +39,7 @@ function inclusion_morphism(U::PrincipalOpenSubset)
   return U.inc
 end
 
-@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType}
+@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal
   Z::Spec
@@ -66,7 +66,9 @@ complement_scheme(f::OpenInclusion) = f.Z
                                            PullbackType
                                           }<:AbsSpecMor{DomainType, 
                                                         CodomainType, 
-                                                        PullbackType
+                                                        PullbackType, 
+                                                        ClosedEmbedding,
+                                                        Nothing
                                                        }
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal

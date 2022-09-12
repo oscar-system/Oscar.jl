@@ -25,6 +25,28 @@ A scheme over a ring ``𝕜`` of type `BaseRingType`.
 """
 abstract type Scheme{BaseRingType} end
 
+@Markdown.doc """
+    SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType} <: Hecke.Map{DomainType, CodomainType, SetMap, MorphismType}
+A morphism of schemes ``f : X → Y`` of type `MorphismType` with 
+``X`` of type `DomainType` and ``Y`` of type `CodomainType`. 
+
+When ``X`` and ``Y`` are defined over schemes ``BX`` and ``BY`` other 
+than ``Spec(𝕜)``, `BaseMorType` is the type of the underlying 
+morphism ``BX → BY``; otherwise, it can be set to `Nothing`.
+"""
+abstract type SchemeMor{
+                        DomainType, 
+                        CodomainType, 
+                        MorphismType,
+                        BaseMorType
+                       } <: Hecke.Map{
+                                      DomainType, 
+                                      CodomainType, 
+                                      SetMap, 
+                                      MorphismType
+                                     } 
+end
+
 struct EmptyScheme{BaseRingType}<:Scheme{BaseRingType} 
   k::BaseRingType
   function EmptyScheme(k::BaseRingType) where {BaseRingType<:Ring}
@@ -175,10 +197,15 @@ over a base ring ``𝕜`` of type `BaseRingType`.
   end
 
   function Spec(R::Ring)
-    return new{Nothing, typeof(R)}(R)
+    return new{typeof(ZZ), typeof(R)}(R, ZZ)
   end
+
   function Spec(kk::Ring, R::Ring)
     return new{typeof(kk), typeof(R)}(R)
+  end
+
+  function Spec(kk::Field)
+    return new{typeof(kk), typeof(kk)}(kk, kk)
   end
 end
 
@@ -217,6 +244,7 @@ ambient_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
 ambient_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
 ambient_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
 ambient_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
+ambient_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
 
 
 
@@ -621,8 +649,10 @@ end
 abstract type AbsSpecMor{
                          DomainType<:AbsSpec, 
                          CodomainType<:AbsSpec, 
-                         PullbackType<:Hecke.Map
-                        }<:Hecke.Map{DomainType, CodomainType, SetMap, AbsSpecMor}
+                         PullbackType<:Hecke.Map,
+                         MorphismType, 
+                         BaseMorType
+                        }<:SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
 end
 
 underlying_morphism(f::AbsSpecMor) = error("`underlying_morphism(f)` not implemented for `f` of type $(typeof(f))")
@@ -645,7 +675,9 @@ codomain_type(f::AbsSpecMor) = codomain_type(typeof(f))
                                    PullbackType<:Hecke.Map
                                   } <: AbsSpecMor{DomainType, 
                                                   CodomainType, 
-                                                  PullbackType
+                                                  PullbackType, 
+                                                  SpecMor, 
+                                                  Nothing
                                                  }
   domain::DomainType
   codomain::CodomainType
@@ -799,7 +831,7 @@ function product(X::AbsSpec, Y::AbsSpec;
   Xstd = standard_spec(X)
   Ystd = standard_spec(Y)
   XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
-  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)))), compose(prY, Y, gens(OO(Ystd)))
+  return XxY, compose(prX, SpecMor(Xstd, X, gens(OO(Xstd)))), compose(prY, SpecMor(Ystd, Y, gens(OO(Ystd))))
 end
 
 function product(X::StdSpec, Y::StdSpec;

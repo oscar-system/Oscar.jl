@@ -754,7 +754,7 @@ affine patches of the domain to the affine ambient scheme of the codomain.
 """
 mutable struct SpecOpenMor{DomainType<:SpecOpen, 
                            CodomainType<:SpecOpen
-                          }<:Hecke.Map{DomainType, CodomainType, SetMap, SpecOpenMor}
+                          }<:SchemeMor{DomainType, CodomainType, SpecOpenMor, Nothing}
   domain::DomainType
   codomain::CodomainType
   maps_on_patches::Vector{AbsSpecMor}
