@@ -7,7 +7,7 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
        weight_matrix, isweighted, is_global, is_local, is_mixed,
        permutation_of_terms, weighted_ordering, canonical_weight_matrix,
-       MonomialOrdering, ModuleOrdering, singular
+       MonomialOrdering, ModuleOrdering, singular, opposite_ordering
 
 abstract type AbsOrdering end
 
@@ -908,7 +908,6 @@ end
 
 ############ printing ############
 
-
 function _expressify(o::SymbOrdering{S}, sym)  where S
   return Expr(:call, S, Expr(:vect, (sym[i] for i in o.vars)...))
 end
@@ -943,6 +942,39 @@ function AbstractAlgebra.expressify(M::ModuleOrdering; context = nothing)
 end
 
 @enable_all_show_via_expressify ModuleOrdering
+
+############ opposite ordering ############
+
+# TODO return singular-friendly orderings if that is how they come in
+function _opposite_ordering(nvars::Int, o::SymbOrdering{T}) where T
+  return SymbOrdering(T, nvars+1 .- o.vars)
+end
+
+# TODO ditto
+function _opposite_ordering(nvars::Int, o::WSymbOrdering{T}) where T
+  return WSymbOrdering(T, nvars+1 .- o.vars, o.weights)
+end
+
+function _opposite_ordering(nvars::Int, o::MatrixOrdering)
+  M = o.matrix
+  M = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
+  return MatrixOrdering(reverse(nvars+1 .- o.vars), M)
+end
+
+function _opposite_ordering(n::Int, o::ProdOrdering)
+  return ProdOrdering(_opposite_ordering(n, o.a), _opposite_ordering(n, o.b))
+end
+
+@doc Markdown.doc"""
+    opposite_ordering(R::MPolyRing, o::MonomialOrdering)
+
+Return an ordering on `R` whose weight matrix is the column-wise reverse of the
+weight matrix of `o`.
+"""
+function opposite_ordering(R::MPolyRing, o::MonomialOrdering)
+  @assert nvars(R) == nvars(base_ring(o))
+  return MonomialOrdering(R, _opposite_ordering(nvars(R), o.o))
+end
 
 ############ Singular conversions ############
 
