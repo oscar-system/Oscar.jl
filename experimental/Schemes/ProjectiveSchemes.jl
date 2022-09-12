@@ -159,7 +159,7 @@ base_ring(P::ProjectiveScheme) = P.A
 
 Return the base scheme ``Y`` for ``X ⊂ ℙʳ×ₖ Y → Y`` with ``Y`` defined over a field ``𝕜``.
 """
-function base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{MPolyRing, MPolyQuoLocalizedRing}, CRET, RT, RET}
+function base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Ring, CRET, RT, RET}
   if !isdefined(X, :Y)
     X.Y = Spec(base_ring(X))
   end
@@ -170,12 +170,14 @@ function base_scheme(X::ProjectiveScheme{<:SpecOpenRing})
   return domain(base_ring(X))
 end
 
-function set_base_scheme!(P::ProjectiveScheme{CRT, CRET, RT, RET}, X::Spec) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+function set_base_scheme!(
+    P::ProjectiveScheme{CRT, CRET, RT, RET}, 
+    X::AbsSpec
+  ) where {CRT<:Ring, CRET, RT, RET}
   OO(X) == base_ring(P) || error("schemes are not compatible")
   P.Y = X
   return P
 end
-
 
 function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
   if !isdefined(X, :projection_to_base)
@@ -242,54 +244,6 @@ function Base.show(io::IO, P::ProjectiveScheme)
 end
 
 original_ring(S::MPolyRing_dec) = S.R
-
-function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Ring, CRET, RT, RET}
-  return Spec{typeof(base_ring(X)), 
-              elem_type(base_ring(X)), 
-              typeof(original_ring(homogeneous_poly_ring(X))), 
-              elem_type(original_ring(homogeneous_poly_ring(X))), 
-              MPolyPowersOfElement{
-                                   typeof(base_ring(X)), 
-                                   elem_type(base_ring(X)), 
-                                   typeof(original_ring(homogeneous_poly_ring(X))), 
-                                   elem_type(original_ring(homogeneous_poly_ring(X)))
-                                  }
-             }
-end
-
-function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
-  return Spec{typeof(coefficient_ring(base_ring(X))), 
-              elem_type(coefficient_ring(base_ring(X))), 
-              typeof(base_ring(X)), 
-              elem_type(base_ring(X)),
-              MPolyPowersOfElement{
-                                   typeof(coefficient_ring(base_ring(X))), 
-                                   elem_type(coefficient_ring(base_ring(X))), 
-                                   typeof(original_ring(homogeneous_poly_ring(X))), 
-                                   elem_type(original_ring(homogeneous_poly_ring(X)))
-                                  }
-             }
-end
-
-# TODO: This only supports the localizations at hypersurfaces for now. 
-# In the future this will have to be modified as in the commented line; 
-# but then caching on the type should be used to avoid the computations of 
-# the product of multiplicative sets. 
-function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
-  Y = base_scheme(X)
-  return Spec{typeof(coefficient_ring(base_ring(OO(Y)))), 
-              elem_type(coefficient_ring(base_ring(OO(Y)))), 
-              typeof(base_ring(OO(Y))), 
-              elem_type(base_ring(OO(Y))),
-              MPolyPowersOfElement{
-                                   typeof(coefficient_ring(base_ring(OO(Y)))), 
-                                   elem_type(coefficient_ring(base_ring(OO(Y)))), 
-                                   typeof(base_ring(OO(Y))), 
-                                   elem_type(base_ring(OO(Y)))
-                                  }
-              #typeof(inverted_set(OO(affine_cone(X)))*Localization(OO(affine_cone(X)), prod(lifted_numerator.(homogeneous_coordinates(X)))))
-             }
-end
 
 function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
   S = homogeneous_poly_ring(P)
