@@ -213,7 +213,7 @@ fiber_dimension(P::ProjectiveScheme) = P.r
 On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
 homogeneous_poly_ring(P::ProjectiveScheme) = P.S
-ambient_ring(P::ProjectiveScheme) = homogeneous_poly_ring
+ambient_ring(P::ProjectiveScheme) = homogeneous_poly_ring(P)
 
 @Markdown.doc """
     homogeneous_coordinates(X::ProjectiveScheme)
@@ -378,10 +378,86 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
   return X.C
 end
 
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuo, CRET, RT, RET}
+  if !isdefined(X, :C)
+    A = base_ring(X)
+    R = base_ring(A)
+    Y = base_scheme(X)
+    kk = base_ring(R)
+    F = affine_space(kk, symbols(homogeneous_poly_ring(X)))
+    C, pr_fiber, pr_base = product(F, Y)
+    X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
+
+    S = homogeneous_poly_ring(X)
+    # use the new mapping types for polynomial rings.
+    inner_help_map = hom(A, OO(C), [pullback(pr_base)(x) for x in gens(OO(Y))])
+    help_map = hom(S, OO(C), inner_help_map, [pullback(pr_fiber)(y) for y in gens(OO(F))])
+
+    # use the map to convert ideals:
+    #I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
+    I = help_map(defining_ideal(X))
+    CX = subscheme(C, I)
+    set_attribute!(X, :affine_cone, CX)
+    X.C = get_attribute(X, :affine_cone)
+    pr_base_res = restrict(pr_base, CX, Y, check=false)
+    pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
+
+    # store the various conversion maps
+    set_attribute!(X, :homog_to_frac, 
+                    hom(S, OO(CX), 
+                          hom(A, OO(CX), [pullback(pr_base_res)(x) for x in gens(OO(Y))]),
+                          [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
+                       )
+                  )
+    pth = hom(base_ring(OO(CX)), S, vcat(gens(S), S.(gens(A))))
+    set_attribute!(X, :poly_to_homog, pth)
+    set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_denominator(OO(CX)(f))))))
+    X.projection_to_base = pr_base_res
+  end
+  return X.C
+end
+
 function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
   return ideal(codomain(f), [f(g) for g in gens(I)])
 end
 
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyLocalizedRing, CRET, RT, RET}
+  if !isdefined(X, :C)
+    A = base_ring(X)
+    Y = base_scheme(X)
+    R = base_ring(A)
+    kk = coefficient_ring(R)
+    F = affine_space(kk, symbols(homogeneous_poly_ring(X)))
+    C, pr_fiber, pr_base = product(F, Y)
+    X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
+    S = homogeneous_poly_ring(X)
+
+    # store the various conversion maps
+    help_map = hom(S, OO(C), 
+                   (x -> pullback(pr_base)(x)),
+                   [pullback(pr_fiber)(y) for y in gens(OO(F))]
+                  )
+
+    I = help_map(defining_ideal(X))
+    CX = subscheme(C, pre_image_ideal(I))
+    pr_base_res = restrict(pr_base, CX, Y, check=false)
+    pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
+
+    set_attribute!(X, :homog_to_frac, 
+                    hom(S, OO(CX), 
+                        pullback(pr_base_res),
+                        [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
+                       )
+                  )
+    pth = hom(base_ring(OO(CX)), S, vcat(gens(S), S.(gens(A))))
+    set_attribute!(X, :poly_to_homog, pth)
+    set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
+    X.C = CX
+    X.projection_to_base = pr_base_res
+  end
+  return X.C
+end
+    
 function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
   if !isdefined(X, :C)
     A = base_ring(X)
@@ -758,12 +834,78 @@ function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuoLocalizedRing}
   return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
 end
 
+function covered_projection_to_base(X::ProjectiveScheme{<:MPolyLocalizedRing})
+  if !has_attribute(X, :covered_projection_to_base) 
+    C = standard_covering(X)
+  end
+  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
+end
+
+function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuo})
+  if !has_attribute(X, :covered_projection_to_base) 
+    C = standard_covering(X)
+  end
+  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
+end
+
+function covered_projection_to_base(X::ProjectiveScheme{<:MPolyRing})
+  if !has_attribute(X, :covered_projection_to_base) 
+    C = standard_covering(X)
+  end
+  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
+end
+
 
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     i::Int
   ) where {
     CRT<:MPolyQuoLocalizedRing
+  }
+  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
+  S = homogeneous_poly_ring(X)
+  C = standard_covering(X)
+  U = C[i+1]
+  p = covered_projection_to_base(X)
+  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
+  return hom(S, OO(U), pullback(p[U]), s)
+end
+
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
+    i::Int
+  ) where {
+    CRT<:MPolyLocalizedRing
+  }
+  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
+  S = homogeneous_poly_ring(X)
+  C = standard_covering(X)
+  U = C[i+1]
+  p = covered_projection_to_base(X)
+  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
+  return hom(S, OO(U), pullback(p[U]), s)
+end
+
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
+    i::Int
+  ) where {
+    CRT<:MPolyRing
+  }
+  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
+  S = homogeneous_poly_ring(X)
+  C = standard_covering(X)
+  U = C[i+1]
+  p = covered_projection_to_base(X)
+  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
+  return hom(S, OO(U), pullback(p[U]), s)
+end
+
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
+    i::Int
+  ) where {
+    CRT<:MPolyQuo
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_poly_ring(X)
@@ -788,10 +930,9 @@ end
 
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
-    U::SpecType
+    U::AbsSpec
   ) where {
-    CRT<:MPolyQuoLocalizedRing,
-    SpecType<:Spec
+    CRT<:MPolyQuoLocalizedRing
   }
   # look up U in the coverings of X
   cover_of_U, index_of_U = X[U]

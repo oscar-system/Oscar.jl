@@ -1251,6 +1251,22 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   return Lnew, floc, flocinv
 end
 
+#TODO: Fill the following three methods with meaning:
+function simplify(L::MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
+  f = identity_map(L)
+  return L, f, f
+end
+
+function simplify(L::MPolyQuo)
+  f = identity_map(L)
+  return L, f, f
+end
+
+function simplify(L::MPolyRing)
+  f = identity_map(L)
+  return L, f, f
+end
+
 @Markdown.doc """
     MPolyQuoLocalizedIdeal{
         LocRingType<:MPolyQuoLocalizedRing, 

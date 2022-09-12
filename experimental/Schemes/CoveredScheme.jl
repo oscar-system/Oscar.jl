@@ -19,14 +19,10 @@ export CoveredSchemeMorphism, domain, codomain, covering_morphism
 export simplify
 
 @Markdown.doc """
-    Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
+    Covering
 
 A covering of a scheme ``X`` by affine patches ``Uᵢ`` which are glued 
 along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
-
- * `SpecType` is the type of the affine patches;
- * `GlueingType` is the type of the glueings;
- * `SpecOpenType` is the type of the affine refinements of the ``Uᵢ``.
 
 **Note:** The distinction between the different affine patches of the scheme 
 is made from their hashes. Thus, an affine scheme must not appear more than once 
@@ -35,7 +31,7 @@ in any covering!
 mutable struct Covering{BaseRingType}
   patches::Vector{<:AbsSpec} # the basic affine patches of X
   glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
-  affine_refinements::Dict{<:AbsSpec, Vector{Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements 
+  affine_refinements::Dict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements 
       # of the basic affine patches.
       # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen, 
       # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty 
@@ -50,14 +46,14 @@ mutable struct Covering{BaseRingType}
   edge_dict::Dict{Tuple{Int, Int}, Int}
 
   function Covering(
-      patches::Vector{SpecType},
-      glueings::Dict{Tuple{SpecType, SpecType}, GlueingType};
+      patches::Vector{<:AbsSpec},
+      glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
+      check::Bool=true,
       affine_refinements::Dict{
-          SpecType, 
-          Vector{Tuple{SpecOpenType, Vector{RingElemType}}}
-         }=Dict{SpecType, Vector{Tuple{open_subset_type(SpecType), Vector{elem_type(ring_type(SpecType))}}}}(),
-      check::Bool=true
-    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem}
+          <:AbsSpec, 
+          <:Vector{<:Tuple{<:SpecOpen, <:Vector{<:RingElem}}}
+         }=Dict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
+    )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
     kk = coefficient_ring(base_ring(OO(patches[1])))
@@ -92,7 +88,7 @@ mutable struct Covering{BaseRingType}
         end
       end
     end
-    return new{base_ring_type(SpecType)}(patches, glueings, affine_refinements)
+    return new{base_ring_type(patches[1])}(patches, glueings, affine_refinements)
   end
 end
 
@@ -111,7 +107,7 @@ npatches(C::Covering) = length(C.patches)
 glueings(C::Covering) = C.glueings
 getindex(C::Covering, i::Int) = C.patches[i]
 getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j])]
-getindex(C::Covering, X::SpecType, Y::SpecType) where {SpecType<:Spec} = glueings(C)[(X, Y)]
+getindex(C::Covering, X::AbsSpec, Y::AbsSpec) = glueings(C)[(X, Y)]
 edge_dict(C::Covering) = C.edge_dict
 
 affine_refinements(C::Covering) = C.affine_refinements
@@ -217,7 +213,7 @@ end
 # Returns a scheme in which every affine patch is only 
 # glued to itself via the identity.
 function Covering(patches::Vector{<:AbsSpec})
-  g = Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing}()
+  g = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for X in patches
     U = SpecOpen(X)
     f = identity_map(U)
@@ -284,7 +280,7 @@ end
     R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
     I = ideal(R, phi.(gens(defining_ideal(X))))
-    push!(U, Spec(R, I))
+    push!(U, Spec(quo(R, I)[1]))
   end
   result = Covering(U)
   for i in 1:r
@@ -328,8 +324,62 @@ end
   kk = coefficient_ring(R)
   S = homogeneous_poly_ring(X)
   r = fiber_dimension(X)
-  U = Vector{affine_patch_type(X)}()
-  pU = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X), typeof(Y))}()
+  U = Vector{AbsSpec}()
+  pU = Dict{AbsSpec, AbsSpecMor}()
+  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
+  s = symbols(S)
+  # for each homogeneous variable, set up the chart 
+  for i in 0:r
+    R_fiber, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    F = Spec(R_fiber)
+    ambient_space, pF, pY = product(F, Y)
+    fiber_vars = pullback(pF).(gens(R_fiber))
+    mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
+    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
+    push!(U, patch)
+    pU[patch] = restrict(pY, patch, Y, check=false)
+  end
+  result = Covering(U)
+  for i in 1:r
+    for j in i+1:r+1
+      x = gens(base_ring(OO(U[i])))
+      y = gens(base_ring(OO(U[j])))
+      f = SpecOpenMor(U[i], x[j-1], 
+                      U[j], y[i],
+                      vcat([x[k]//x[j-1] for k in 1:i-1],
+                           [1//x[j-1]],
+                           [x[k-1]//x[j-1] for k in i+1:j-1],
+                           [x[k]//x[j-1] for k in j:r],
+                           x[r+1:end]),
+                      check=false
+                     )
+      g = SpecOpenMor(U[j], y[i],
+                      U[i], x[j-1],
+                      vcat([y[k]//y[i] for k in 1:i-1],
+                           [y[k+1]//y[i] for k in i:j-2],
+                           [1//y[i]],
+                           [y[k]//y[i] for k in j:r],
+                           y[r+1:end]),
+                      check=false
+                     )
+      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+    end
+  end
+  covered_projection = CoveringMorphism(result, Covering(Y), pU)
+  set_attribute!(X, :covered_projection_to_base, covered_projection)
+  return result
+end
+
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuo}
+  CX = affine_cone(X)
+  Y = base_scheme(X)
+  A = OO(Y)
+  R = base_ring(A)
+  kk = coefficient_ring(R)
+  S = homogeneous_poly_ring(X)
+  r = fiber_dimension(X)
+  U = Vector{AbsSpec}()
+  pU = Dict{AbsSpec, AbsSpecMor}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -512,7 +562,7 @@ mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, Ba
         !found && error("patch $U of the domain not covered")
       end
     end
-    return new{SpecType, CoveringType, Nothing}(dom, cod, mor)
+    return new{DomainType, CodomainType, Nothing}(dom, cod, mor)
   end
 end
 
@@ -902,11 +952,14 @@ domain(f::CoveredSchemeMorphism) = f.X
 codomain(f::CoveredSchemeMorphism) = f.Y
 covering_morphism(f::CoveredSchemeMorphism) = f.f
 
+lifted_numerator(f::MPolyElem) = f
+lifted_numerator(f::MPolyQuoElem) = lift(f)
+
 function simplify(C::Covering)
   n = npatches(C)
   new_patches = [simplify(X) for X in patches(C)]
   GD = glueings(C)
-  new_glueings = Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:Glueing}()
+  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, Glueing}()
   for (X, Y) in keys(GD)
     Xsimp, iX, jX = new_patches[C[X]]
     Ysimp, iY, jY = new_patches[C[Y]]
@@ -938,8 +991,8 @@ function simplify(C::Covering)
                        )
     new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=false)
   end
-  iDict = Dict{<:AbsSpec, <:AbsSpecMor}()
-  jDict = Dict{<:AbsSpec, <:AbsSpecMor}()
+  iDict = Dict{AbsSpec, AbsSpecMor}()
+  jDict = Dict{AbsSpec, AbsSpecMor}()
   for i in 1:length(new_patches)
     iDict[new_patches[i][1]] = new_patches[i][2]
     jDict[C[i]] = new_patches[i][3]
@@ -975,7 +1028,7 @@ function Base.length(C::Covering)
 end
 
 function all_patches(C::Covering)
-  result = Vector{affine_patch_type(C)}()
+  result = Vector{AbsSpec}()
   for U in patches(C)
     push!(result, U)
     if haskey(affine_refinements(C), U)
@@ -993,7 +1046,7 @@ function Base.iterate(C::Covering, s::Int=1)
   return U[s], s+1
 end
 
-Base.eltype(C::Covering) = affine_patch_type(C)
+Base.eltype(C::Covering) = AbsSpec
 
 ### Miscellaneous helper routines
 function as_vector(v::SRow{T}, n::Int) where {T<:RingElem}

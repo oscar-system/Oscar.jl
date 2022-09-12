@@ -277,8 +277,8 @@ Base.deepcopy_internal(X::Spec, dict::IdDict) = Spec(deepcopy_internal(OO(X), di
 
 ### additional constructors 
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, I, U))
-Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, ideal(R, [zero(R)]), U))
-Spec(R::MPolyRing, I::MPolyIdeal) = Spec(MPolyQuoLocalizedRing(R, I, units_of(R)))
+Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(Localization(R, U)[1])
+Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
 
 ### closed subschemes defined by elements
 @Markdown.doc """

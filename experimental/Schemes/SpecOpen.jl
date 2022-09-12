@@ -35,7 +35,7 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
       f::Vector{RET}; 
       name::String="", 
       check::Bool=true
-    ) where {SpecType<:Spec, RET<:RingElem}
+    ) where {SpecType<:AbsSpec, RET<:RingElem}
     for a in f
       parent(a) == ambient_ring(X) || error("element does not belong to the correct ring")
       if check
@@ -129,19 +129,19 @@ end
 
 Return the complement of the zero locus of ``I`` in ``X``.
 """
-function SpecOpen(X::Spec, I::MPolyLocalizedIdeal; check::Bool=true)
+function SpecOpen(X::AbsSpec, I::MPolyLocalizedIdeal; check::Bool=true)
   base_ring(I) === OO(X) || error("Ideal does not belong to the correct ring")
   g = [numerator(a) for a in gens(I) if !iszero(numerator(a))]
   return SpecOpen(X, g, check=check)
 end
 
-function SpecOpen(X::Spec, I::MPolyQuoLocalizedIdeal; check::Bool=true)
+function SpecOpen(X::AbsSpec, I::MPolyQuoLocalizedIdeal; check::Bool=true)
   base_ring(I) === OO(X) || error("Ideal does not belong to the correct ring")
   g = [lifted_numerator(a) for a in gens(I) if !iszero(numerator(a))]
   return SpecOpen(X, g, check=check)
 end
 
-function SpecOpen(X::Spec, I::MPolyIdeal; check::Bool=true)
+function SpecOpen(X::AbsSpec, I::MPolyIdeal; check::Bool=true)
   return SpecOpen(X, [g for g in gens(I) if !iszero(OO(X)(g))], check=check)
 end
 
@@ -983,7 +983,14 @@ function restriction(
   return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end
 
-identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], check=false)
+function identity_map(U::SpecOpen) 
+  [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)]
+  phi = SpecOpenMor(U, U, 
+                    [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], 
+                    check=false
+                   )
+  return phi
+end
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
   is_canonically_isomorphic(domain(f), domain(g)) || return false
