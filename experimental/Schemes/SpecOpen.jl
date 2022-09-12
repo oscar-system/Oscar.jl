@@ -24,9 +24,9 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
 
   # fields used for caching
   name::String
-  patches::Vector{Spec}
-  intersections::Dict{Tuple{Int, Int}, Spec}
-  complement::Spec
+  patches::Vector{AbsSpec}
+  intersections::Dict{Tuple{Int, Int}, AbsSpec}
+  complement::AbsSpec
   complement_ideal::Ideal
   ring_of_functions::Ring
 
@@ -357,7 +357,7 @@ mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
   function SpecOpenRing(
       X::SpecType, 
       U::OpenType
-    ) where {SpecType<:Spec, OpenType<:SpecOpen}
+    ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
     issubset(U, X) || error("open set does not lay in the scheme")
     return new{SpecType, OpenType}(X, U)
   end
@@ -402,34 +402,31 @@ function is_canonically_isomorphic(R::T, S::T) where {T<:SpecOpenRing}
 end
 
 @Markdown.doc """
-    SpecOpenRingElem{SpecOpenType, RestrictionType}
+    SpecOpenRingElem{SpecOpenType}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
 an open set ``U`` of an affine scheme ``X``.
 
- * `SpecOpenType` is the type of the open sets ``U`` of ``X``;
- * `RestrictionType` is the type of the restrictions of ``f`` to
-the affine patches of ``U``.
+The type parameter `SpecOpenType` is the type of the open set
+``U`` of ``X``.
 """
 mutable struct SpecOpenRingElem{
-      SpecOpenRingType<:SpecOpenRing, 
-      RestrictionType<:RingElem
+      SpecOpenRingType<:SpecOpenRing
     } <: RingElem
   parent::SpecOpenRingType
-  restrictions::Vector{RestrictionType}
+  restrictions::Vector{<:RingElem}
 
   function SpecOpenRingElem(
       R::SpecOpenRingType,
-      f::Vector{RestrictionType};
+      f::Vector{<:RingElem};
       check::Bool=true
     ) where {
-        SpecOpenRingType<:SpecOpenRing, 
-        RestrictionType<:RingElem
+        SpecOpenRingType<:SpecOpenRing
     }
     n = length(f)
     U = domain(R)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
-    g = RestrictionType[OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
+    g = [OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
     if check
       for i in 1:n-1
         for j in i+1:n
@@ -438,16 +435,16 @@ mutable struct SpecOpenRingElem{
         end
       end
     end
-    return new{SpecOpenRingType, RestrictionType}(R, g)
+    return new{SpecOpenRingType}(R, g)
   end
 end
 
 ### type getters
-elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}, elem_type(ring_type(S))}
+elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}}
 
 elem_type(R::SpecOpenRing) = elem_type(typeof(R))
 
-parent_type(::Type{SpecOpenRingElem{S, T}}) where {S, T} = S
+parent_type(::Type{SpecOpenRingElem{S}}) where {S} = S
 parent_type(f::SpecOpenRingElem) = parent_type(typeof(f))
 
 parent(f::SpecOpenRingElem) = f.parent
@@ -1110,6 +1107,16 @@ function preimage(f::SpecMor, V::SpecOpen; check::Bool=true)
   return SpecOpen(Z, lifted_numerator.(new_gens), check=check)
 end
 
+### Assure compatibility with the other rings
+function (R::MPolyQuo)(a::RingElem, b::RingElem; check::Bool=true)
+  return R(a)*inv(R(b))
+end
+
+function (R::MPolyRing)(a::RingElem, b::RingElem; check::Bool=true)
+  return R(a)*inv(R(b))
+end
+
+
 # For an open subsety U ⊂ Y of an affine scheme Y and a hypersurface 
 # complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction 
 # map ρ : 𝒪(U) → 𝒪(X)
@@ -1139,11 +1146,11 @@ function restriction_map(
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
   d = gens(U)
   I = complement_ideal(U)
-  (k, poh) = Oscar._minimal_power_such_that(h, x->(x in I))
-  a = coordinates(poh, I)
+  (k, poh) = Oscar._minimal_power_such_that(h, x->(base_ring(I)(x) in I))
+  a = coordinates(base_ring(I)(poh), I)
   r = length(d)
 
-  # the local representatives of the inpun f will be of the form gᵢ⋅1//dᵢˢ⁽ⁱ⁾
+  # the local representatives of the input f will be of the form gᵢ⋅1//dᵢˢ⁽ⁱ⁾
   # with gᵢ∈ 𝒪(Y). For higher powers s(i) > 1 we need other coefficients 
   # cᵢ for the relation 
   #
@@ -1212,7 +1219,10 @@ end
 
 # Automatically find a hypersurface equation h such that X = D(h) in 
 # the ambient scheme Y of U. 
-function restriction_map(U::SpecOpen, X::Spec; check::Bool=true)
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}}, 
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+    check::Bool=true
+  )
   Y = ambient(U)
   R = base_ring(OO(Y))
   R == base_ring(OO(X)) || error("rings not compatible")
@@ -1228,6 +1238,38 @@ function restriction_map(U::SpecOpen, X::Spec; check::Bool=true)
     (i, o) = ppio(d, p)
     h = h*o
   end
+  return restriction_map(U, X, h, check=false)
+end
+
+# Automatically find a hypersurface equation h such that X = D(h) in 
+# the ambient scheme Y of U. 
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}}, 
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+    check::Bool=true
+  )
+  Y = ambient(U)
+  R = ambient_ring(Y)
+  R == ambient_ring(X) || error("rings not compatible")
+  if check
+    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    issubset(X, U) || error("$X is not a subset of $U")
+  end
+  h = prod(denominators(inverted_set(OO(X))))
+  return restriction_map(U, X, h, check=false)
+end
+
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}}, 
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+    check::Bool=true
+  )
+  Y = ambient(U)
+  R = ambient_ring(Y)
+  R == ambient_ring(X) || error("rings not compatible")
+  if check
+    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    issubset(X, U) || error("$X is not a subset of $U")
+  end
+  h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
 end
 
@@ -1290,9 +1332,10 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
   return Hecke.MapFromFunc(mythirdmap, OO(U), OO(V))
 end
 
+using Infiltrator
 function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
   domain(f) == codomain(f) || return false
-  R = base_ring(OO(scheme(domain(f))))
+  R = ambient_ring(scheme(domain(f)))
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
 end
 

@@ -785,7 +785,7 @@ function preimage(
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
-  return subscheme(domain(f), ideal(OO(domain(f)), zero(OO(domain(f)))))
+  return subscheme(domain(f), ideal(OO(domain(f)), [zero(OO(domain(f)))]))
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing}; check::Bool=true)
