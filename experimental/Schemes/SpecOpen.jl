@@ -1332,7 +1332,6 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
   return Hecke.MapFromFunc(mythirdmap, OO(U), OO(V))
 end
 
-using Infiltrator
 function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
   domain(f) == codomain(f) || return false
   R = ambient_ring(scheme(domain(f)))
