@@ -1305,7 +1305,7 @@ base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
-pre_image_ideal(I) = I.J
+pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 

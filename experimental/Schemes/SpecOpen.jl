@@ -466,7 +466,7 @@ end
 
 function restrict(
     f::SpecOpenRingElem, 
-    V::Spec
+    V::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}
   )
   isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
@@ -479,6 +479,25 @@ function restrict(
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
   a = dot(l, OO(V).(lifted_numerator.(g)))
+  return a
+end
+
+function restrict(
+    f::SpecOpenRingElem, 
+    V::AbsSpec{<:Ring, <:MPolyLocalizedRing}
+  )
+  isempty(V) && return zero(OO(V))
+  for i in 1:length(restrictions(f))
+    if V == affine_patches(domain(f))[i]
+      return restrictions(f)[i]
+    end
+  end
+  issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
+  VU = [intersect(V, U) for U in affine_patches(domain(f))]
+  g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
+  J = ideal(OO(V), denominator.(g))
+  l = coordinates(one(OO(V)), ideal(OO(V), denominator.(g)))
+  a = dot(l, OO(V).(numerator.(g)))
   return a
 end
 
@@ -733,7 +752,9 @@ then
  * `CodomainType` is the type of the codomain;
 affine patches of the domain to the affine ambient scheme of the codomain. 
 """
-mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen}
+mutable struct SpecOpenMor{DomainType<:SpecOpen, 
+                           CodomainType<:SpecOpen
+                          }<:Hecke.Map{DomainType, CodomainType, SetMap, SpecOpenMor}
   domain::DomainType
   codomain::CodomainType
   maps_on_patches::Vector{AbsSpecMor}
@@ -787,7 +808,8 @@ function getindex(f::SpecOpenMor, D::Spec)
 end
 
 function Base.show(io::IO, f::SpecOpenMor) 
-  print(io, "Morphism from $(domain(f)) to $(codomain(f)) given by the rational map $(generic_fractions(f))")
+  print(io, "Morphism from $(domain(f)) to $(codomain(f))")
+  #given by the rational map $(generic_fractions(f))")
 end
 
 function SpecOpenMor(U::T, V::T, f::Vector{<:RingElem}; check::Bool=true) where {T<:SpecOpen}
@@ -994,31 +1016,24 @@ end
 function preimage(f::SpecOpenMor, V::SpecOpen)
   U = domain(f)
   X = ambient(U)
-  R = base_ring(OO(X))
+  R = ambient_ring(X)
   I = ideal(R, one(R))
   for i in 1:npatches(U)
-    I = intersect(I, saturated_ideal(Oscar.pre_image_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V))))))
+    I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
   end
   return intersect(U, SpecOpen(X, I))
 end
 
 function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
-  for V in affine_patches(U)
-    I = ideal(OO(V), [zero(OO(V))])
-    zero_ideal = Oscar.pre_image_ideal(I)
-    J = Oscar.pre_image_ideal(ideal(OO(V), [f]))
-    Q = quotient(zero_ideal, J)
-    zero_ideal == Q || return false
-  end
-  return true
+  return all(x->(is_non_zero_divisor(f, x)), affine_patches(U))
 end
 
 function find_non_zero_divisor(U::SpecOpen)
   n = length(gens(U))
   X = ambient(U)
-  R = base_ring(OO(X))
+  R = ambient_ring(X)
   n == 0 && return zero(R)
-  kk = coefficient_ring(R)
+  kk = base_ring(X)
   coeff = elem_type(kk)[rand(kk, 0:100) for i in 1:n]
   d = sum([coeff[i]*gens(U)[i] for i in 1:n])
   while !is_non_zero_divisor(d, U)
@@ -1046,8 +1061,8 @@ function generic_fractions(f::SpecOpenMor)
   V = codomain(f)
   Y = ambient(V)
   d = find_non_zero_divisor(U)
-  V = hypersurface_complement(X, d)
-  result = fraction.([restrict(pullback(f, y), V) for y in gens(ambient_ring(Y))])
+  W = hypersurface_complement(X, d)
+  result = fraction.([restrict(pullback(f)(OO(V)(y)), W) for y in gens(ambient_ring(Y))])
   return result
 end
 

@@ -18,15 +18,6 @@ export strict_modulus
 
 export simplify
 
-export PrincipalOpenSubset
-export ambient_scheme, complement_equation, inclusion_morphism
-
-export OpenInclusion
-export complement_ideal, complement_scheme
-
-export ClosedEmbedding
-export image_ideal
-
 @Markdown.doc """
     Scheme{BaseRingType<:Ring} 
 
@@ -630,7 +621,8 @@ end
 abstract type AbsSpecMor{
                          DomainType<:AbsSpec, 
                          CodomainType<:AbsSpec, 
-                         PullbackType<:Hecke.Map} 
+                         PullbackType<:Hecke.Map
+                        }<:Hecke.Map{DomainType, CodomainType, SetMap, AbsSpecMor}
 end
 
 underlying_morphism(f::AbsSpecMor) = error("`underlying_morphism(f)` not implemented for `f` of type $(typeof(f))")
@@ -706,7 +698,19 @@ function SpecMor(
   return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
+function SpecMor(
+      X::AbsSpec,
+      Y::AbsSpec,
+      f::Vector;
+      check::Bool=true
+  )
+  return SpecMor(X, Y, OO(X).(f), check=check)
+end
+
 identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(base_ring(OO(X))), check=false))
+identity_map(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(base_ring(OO(X))), check=false))
+identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))))
+identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X))))
 inclusion_map(X::T, Y::T) where {T<:AbsSpec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
 
 function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
@@ -776,7 +780,7 @@ function is_inverse_of(f::S, g::T) where {S<:AbsSpecMor, T<:AbsSpecMor}
   return is_isomorphism(f) && (inverse(f) == g)
 end
 
-is_identity_map(f::AbsSpecMor) = is_isomorphism(f) && is_inverse_of(f, f)
+is_identity_map(f::AbsSpecMor) = (domain(f) == codomain(f)) && all(x->(pullback(f)(x) == x), gens(OO(domain(f))))
 
 @attr AbsSpecMor function inverse(f::AbsSpecMor) 
   is_isomorphism(f) || error("the given morphism is not an isomorphism")
@@ -916,91 +920,24 @@ function simplify(X::Spec)
   return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
 end
 
-@attributes mutable struct PrincipalOpenSubset{BRT, RT, AmbientType} <: AbsSpec{BRT, RT}
-  X::AmbientType
-  U::Spec{BRT, RT}
-  f::RingElem
-  inc::SpecMor
-
-  function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
-    parent(f) == ambient_ring(X) || error("element does not belong to the correct ring")
-    U = hypersurface_complement(X, [f])
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
-  end
-  
-  function PrincipalOpenSubset(X::AbsSpec, f::Vector{RingElemType}) where {RingElemType<:MPolyElem}
-    all(x->(parent(x) == ambient_ring(X)), f) || error("element does not belong to the correct ring")
-    U = hypersurface_complement(X, f)
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
-  end
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
+  return !iszero(OO(X)(f))
 end
 
-underlying_scheme(U::PrincipalOpenSubset) = U.U
-ambient_scheme(U::PrincipalOpenSubset) = U.X
-complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(ambient_ring(U))
-
-function inclusion_morphism(U::PrincipalOpenSubset) 
-  if !isdefined(U, :inc)
-    X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
-    U.inc = inc
-  end
-  return U.inc
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuo})
+  I = modulus(OO(X))
+  J = ideal(OO(X), f)
+  return I == quotient(I, J)
 end
 
-@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType}
-  inc::SpecMor{DomainType, CodomainType, PullbackType}
-  I::Ideal
-  Z::Spec
-
-  function OpenInclusion(f::AbsSpecMor, I::Ideal; check::Bool=true)
-    U = domain(f)
-    X = codomain(f)
-    Z = subscheme(X, I)
-    if check
-      isempty(preimage(f, Z)) || error("image of the map is not contained in the complement of the vanishing locus of the ideal")
-      #TODO: Do checks
-    end
-    return new{typeof(U), typeof(X), pullback_type(f)}(f, I, Z)
-  end
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+  return !iszero(OO(X)(f))
 end
 
-underlying_morphism(f::OpenInclusion) = f.inc
-complement_ideal(f::OpenInclusion) = f.I
-complement_scheme(f::OpenInclusion) = f.Z
-
-
-@attributes mutable struct ClosedEmbedding{DomainType, 
-                                           CodomainType, 
-                                           PullbackType
-                                          }<:AbsSpecMor{DomainType, 
-                                                        CodomainType, 
-                                                        PullbackType
-                                                       }
-  inc::SpecMor{DomainType, CodomainType, PullbackType}
-  I::Ideal
-  U::SpecOpen
-
-  function ClosedEmbedding(X::AbsSpec, I::Ideal)
-    base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
-    Y = subscheme(X, I)
-    inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y))))
-    return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
-  end
+function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+  I = ideal(OO(X), [zero(OO(X))])
+  zero_ideal = Oscar.pre_image_ideal(I)
+  J = Oscar.pre_image_ideal(ideal(OO(X), [f]))
+  Q = quotient(zero_ideal, J)
+  return zero_ideal == Q 
 end
-
-underlying_morphism(f::ClosedEmbedding) = f.inc
-
-image_ideal(f::ClosedEmbedding) = f.I::ideal_type(OO(codomain(f)))
-
-function complement(f::ClosedEmbedding)
-  if !isdefined(f, :U)
-    U = SpecOpen(codomain(f), image_ideal(f))
-    f.U = U
-  end
-  return f.U
-end
-
-ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
-ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
-
