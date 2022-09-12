@@ -66,6 +66,10 @@
    @test L[2] == alternating_group(4)
    @test L[3] == sub(G, [cperm([1,2],[3,4]), cperm([1,3],[2,4])])[1]
    @test L[4] == sub(G, [one(G)])[1]
+
+   G = symmetric_group(4)
+   A = alternating_group(4)
+   @test_throws ErrorException sub(A, gens(G))
 end
 
 @testset "Centralizers and Normalizers in Sym(n)" begin
