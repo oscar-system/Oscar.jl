@@ -179,7 +179,7 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-default_ordering(R::MPolyRing) = degrevlex(gens(R))
+default_ordering(R::MPolyRing) = degrevlex(R)
 
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
@@ -724,17 +724,17 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
       if ord == ordering(R)
         return ($s)(f)
       end
-      return ($s)(f, monomial_ordering(gens(R), ord))
+      return ($s)(f, monomial_ordering(R, ord))
     end
 
     function ($s)(f::MPolyElem, M::Union{ Matrix{T}, MatElem{T} }) where T
       R = parent(f)
-      return ($s)(f, matrix_ordering(gens(R), M))
+      return ($s)(f, matrix_ordering(R, M))
     end
 
     function ($s)(f::MPolyElem, ord::Symbol, weights::Vector{Int})
       R = parent(f)
-      return ($s)(f, monomial_ordering(gens(R), ord, weights))
+      return ($s)(f, monomial_ordering(R, ord, weights))
     end
   end
 end
