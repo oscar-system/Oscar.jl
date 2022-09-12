@@ -57,12 +57,9 @@ true
 """
 function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <: GAPGroupElem
   @assert elem_type(G) == S
+  check && ! all(x -> parent(x) === G || x in G, gens) && throw(ArgumentError("not all elements of gens lie in G"))
   elems_in_GAP = GapObj([x.X for x in gens])
-  if check
-    H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
-  else
-    H = GAP.Globals.SubgroupNC(G.X,elems_in_GAP)::GapObj
-  end
+  H = GAP.Globals.SubgroupNC(G.X, elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
 end
 
