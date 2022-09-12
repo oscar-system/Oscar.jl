@@ -69,7 +69,7 @@
 
    G = symmetric_group(4)
    A = alternating_group(4)
-   @test_throws ErrorException sub(A, gens(G))
+   @test_throws ArgumentError sub(A, gens(G))
 end
 
 @testset "Centralizers and Normalizers in Sym(n)" begin
