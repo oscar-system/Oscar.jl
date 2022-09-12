@@ -18,7 +18,7 @@ Pages = ["subgroups.md"]
 The following functions are available in Oscar for subgroup properties:
 
 ```@docs
-sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem})
+sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
 is_subgroup
 embedding(G::T, H::T) where T <: GAPGroup
 index(G::T, H::T) where T <: GAPGroup
