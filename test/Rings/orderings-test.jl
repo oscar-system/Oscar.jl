@@ -76,6 +76,19 @@
    @test_throws ArgumentError monomial_ordering(gens(R), :lex, ones(Int, ngens(R)+1))
    @test_throws ArgumentError monomial_ordering(gens(R), :foo, ones(Int, ngens(R)))
    @test_throws ArgumentError matrix_ordering(gens(R), zero_matrix(ZZ, 2, ngens(R) + 1))
+
+   @test lex(R) == lex(gens(R))
+   @test deglex(R) == deglex(gens(R))
+   @test degrevlex(R) == degrevlex(gens(R))
+   @test revlex(R) == revlex(gens(R))
+   @test neglex(R) == neglex(gens(R))
+   @test negrevlex(R) == negrevlex(gens(R))
+   @test negdegrevlex(R) == negdegrevlex(gens(R))
+   @test negdeglex(R) == negdeglex(gens(R))
+   @test wdeglex(R, [1,2,3]) == wdeglex(gens(R), [1,2,3])
+   @test wdegrevlex(R, [1,2,3]) == wdegrevlex(gens(R), [1,2,3])
+   @test negwdeglex(R, [1,2,3]) == negwdeglex(gens(R), [1,2,3])
+   @test negwdegrevlex(R, [1,2,3]) == negwdegrevlex(gens(R), [1,2,3])
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin

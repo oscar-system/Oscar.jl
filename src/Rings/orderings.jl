@@ -714,10 +714,6 @@ function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) where
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(1, length(w), w)))
 end
 
-function weighted_ordering(R::MPolyRing, w::Vector{Int}) where T
-  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), fmpz_mat(1, length(w), w)))
-end
-
 function _weight_matrix(nvars::Int, o::MatrixOrdering)
   r = nrows(o.matrix)
   c = length(o.vars)
