@@ -61,23 +61,26 @@ is_filtered(R::MPolyRing_dec) = isdefined(R, :lt)
 function show(io::IO, W::MPolyRing_dec)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
+  println(IOContext(io, :compact => true), W.R)
   if is_filtered(W)
-    println(io, "$(W.R) filtrated by ")
+    println(io, "filtrated by ")
   else
-    println(io, "$(W.R) graded by ")
+    println(io, "graded by ")
   end
+  println(IOContext(io, :compact => true), W.D)
+  println(io, "via")
+  local max_vars = 5 # largest number of variables to print
   R = W.R
   g = gens(R)
-  for i = 1:ngens(R)
-    if i == ngens(R)
-       print(io, "  $(g[i]) -> $(W.d[i].coeff)")
-    else  
-       println(io, "  $(g[i]) -> $(W.d[i].coeff)")
-    end  
+  n = length(g)
+  for i = 1:min(n - 1, max_vars - 1)
+    print(IOContext(io, :compact => true), "$(g[i]) -> $(W.d[i]), ")
   end
-#  println(IOContext(io, :compact => true, ), W.d)
+  if n > max_vars
+    print(io, "..., ")
+  end
+  print(IOContext(io, :compact => true), "$(g[n]) -> $(W.d[n])")
 end
-
 
 function decorate(R::MPolyRing)
   A = abelian_group([0])
@@ -429,7 +432,7 @@ end
 filtrate(R::MPolyRing) = decorate(R)
 
 function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
-  if get(io, :compact, false)
+  if get(io, :compact, true)
     print(io, a.coeff)
   else
     print(io, "graded by $(a.coeff)")

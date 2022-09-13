@@ -78,9 +78,9 @@ invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 
 function Base.show(io::IO, IR::InvRing)
   print(io, "Invariant ring of\n")
-  print(io, group(IR), "\n")
-  print(io, "with generators\n")
-  print(io, action(IR))
+  print(IOContext(io, :compact => true), group(IR), "\n")
+  print(io, "with coefficient ring\n")
+  print(IOContext(io, :compact => true), coefficient_ring(IR))
 end
 
 # Return a map performing the right action of M on the ring R

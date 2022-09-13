@@ -25,7 +25,12 @@ function show(io::IO, Q::MPolyQuo)
   Hecke.@show_name(io, Q)
   Hecke.@show_special(io, Q)
   io = IOContext(io, :compact => true)
-  print(io, "Quotient of $(Q.R) by $(Q.I)")
+  println(io, "Quotient of")
+  println(io, "===========")
+  println(io, Q.R)
+  println(io, "\nby the ideal")
+  println(io, "============")
+  print(Q.I)
 end
 
 gens(Q::MPolyQuo) = [Q(x) for x = gens(Q.R)]
