@@ -61,6 +61,13 @@ complement_ideal(f::OpenInclusion) = f.I
 complement_scheme(f::OpenInclusion) = f.Z
 
 
+@Markdown.doc """
+    ClosedEmbedding{DomainType, CodomainType, PullbackType}
+
+A closed embedding ``f : X → Y`` of affine schemes ``X = Spec(S)`` 
+into ``Y = Spec(R)`` such that ``S ≅ R/I`` via ``f`` for some 
+ideal ``I ⊂ R``.
+"""
 @attributes mutable struct ClosedEmbedding{DomainType, 
                                            CodomainType, 
                                            PullbackType
@@ -84,6 +91,13 @@ end
 
 underlying_morphism(f::ClosedEmbedding) = f.inc
 
+@Markdown.doc """
+    image_ideal(f::ClosedEmbedding)
+
+For a closed embedding ``f : X → Y`` of affine schemes ``X = Spec(S)`` 
+into ``Y = Spec(R)`` such that ``S ≅ R/I`` via ``f`` for some ideal 
+``I ⊂ R`` this returns ``I``.
+"""
 image_ideal(f::ClosedEmbedding) = f.I::ideal_type(OO(codomain(f)))
 
 function complement(f::ClosedEmbedding)

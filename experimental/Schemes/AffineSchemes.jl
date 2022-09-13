@@ -26,7 +26,8 @@ A scheme over a ring ``𝕜`` of type `BaseRingType`.
 abstract type Scheme{BaseRingType} end
 
 @Markdown.doc """
-    SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType} <: Hecke.Map{DomainType, CodomainType, SetMap, MorphismType}
+    SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
+
 A morphism of schemes ``f : X → Y`` of type `MorphismType` with 
 ``X`` of type `DomainType` and ``Y`` of type `CodomainType`. 
 
@@ -60,16 +61,37 @@ end
 #
 ########################################################################
 
+@Markdown.doc """
+    AbsSpec{BaseRingType, RingType<:Ring}
+
+An affine scheme ``X = Spec(R)`` with ``R`` of type `RingType` over 
+a ring ``𝕜`` of type `BaseRingType`.
+"""
 abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
 
 ### essential getter methods
 
-function OO(X::AbsSpec) 
-  OO(underlying_scheme(X))
+@Markdown.doc """
+    OO(X::AbsSpec) 
+
+On an affine scheme ``X = Spec(R)`` this returns the ring `R`.
+"""
+function OO(X::AbsSpec{BRT, RT}) where {BRT, RT} 
+  OO(underlying_scheme(X))::RT
 end
 
+@Markdown.doc """
+    ambient_ring(X::AbsSpec)
+
+On an affine scheme ``X = Spec(R)`` over ``𝕜`` this returns a 
+polynomial ring ``P = 𝕜[x₁,…,xₙ]`` with natural coercion 
+``P → R`` and the property that for every other (commutative) 
+ring ``S`` and any homomorphism ``φ : R → S`` there is a morphism 
+``ψ : P → S`` factoring through ``φ`` and such that ``φ`` 
+is uniquely determined by ``ψ``.
+"""
 function ambient_ring(X::AbsSpec)
-  return ambient_ring(underlying_scheme(X))
+  return ambient_ring(underlying_scheme(X))::MPolyRing
 end
 
 ### type getters
@@ -82,8 +104,13 @@ base_ring_elem_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}
 base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
 
 ### generically derived getters
-function base_ring(X::AbsSpec{BRT, BRET}) where {BRT, BRET}
-  return coefficient_ring(OO(X))::BRT
+@Markdown.doc """
+    base_ring(X::AbsSpec) 
+
+On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring `𝕜`.
+"""
+function base_ring(X::AbsSpec{BRT, RT}) where {BRT, RT}
+  return base_ring(underlying_scheme(X))::BRT
 end
 
 ### constructors
@@ -91,6 +118,12 @@ end
 # Note that these default to the plain type Spec and must be overwritten 
 # if something more sophisticated should be returned!
 
+@Markdown.doc """
+    subscheme(X::AbsSpec, f::RingElem)
+
+For a scheme ``X = Spec(R)`` and an element ``f ∈ R``
+this returns the closed subscheme defined by the ideal ``⟨f⟩``.
+"""
 function subscheme(X::AbsSpec, I::Ideal)
   base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
   return Spec(quo(OO(X), I)[1])
@@ -100,11 +133,15 @@ end
 @Markdown.doc """
     hypersurface_complement(X::AbsSpec, f::RingElem)
 
-For a scheme ``X = Spec R`` and an element ``f ∈ R`` 
-this returns the open subscheme ``U = Spec R[f⁻¹] = X ∖ V(f)`` 
+For a scheme ``X = Spec(R)`` and an element ``f ∈ R`` 
+this returns the open subscheme ``U = Spec(R[f⁻¹]) = X ∖ V(f)`` 
 defined by the complement of the vanishing 
 locus of ``f``.
 """
+function hypersurface_complement(X::AbsSpec, f::RingElem)::AbsSpec
+  return hypersurface_complement(underlying_scheme(X), f)
+end
+
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocalizedRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
@@ -169,9 +206,9 @@ end
 StdSpec = AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
 
 @Markdown.doc """
-    Spec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
+    Spec{BaseRingType, RingType}
 
-An affine scheme ``X = Spec R`` with ``R`` a Noetherian ring of type `RingType`
+An affine scheme ``X = Spec(R)`` with ``R`` a Noetherian ring of type `RingType`
 over a base ring ``𝕜`` of type `BaseRingType`.
 """
 @attributes mutable struct Spec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
@@ -220,11 +257,6 @@ base_ring_type(X::Spec) = base_ring_type(typeof(X))
 
 ### Getter functions
 
-@Markdown.doc """
-    OO(X::Spec)
-
-For ``X = Spec R`` this returns ``R``.
-"""
 OO(X::Spec) = X.OO
 base_ring(X::Spec) = X.kk
 
@@ -281,17 +313,6 @@ Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(Localization(R, U)[1])
 Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
 
 ### closed subschemes defined by elements
-@Markdown.doc """
-    subscheme(X::Spec, f::RingElem)
-
-For a scheme ``X = Spec R`` and an element ``f ∈ R``
-this returns the closed subscheme defined by the ideal ``⟨f⟩``.
-"""
-function subscheme(X::Spec, f::RingElem)
-  parent(f) == OO(X) || return subscheme(X, OO(X)(f))
-  return subscheme(X, ideal(OO(X), [f]))
-end
-
 function subscheme(X::Spec, f::Vector{<:RingElem})
   all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
   return subscheme(X, ideal(OO(X), f))
@@ -419,11 +440,11 @@ is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y
 Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
-    is_open_embedding(X::Spec, Y::Spec)
+    is_open_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
 """
-function is_open_embedding(X::Spec, Y::Spec)
+function is_open_embedding(X::AbsSpec, Y::AbsSpec)
   return is_open_embedding(standard_spec(X), standard_spec(Y))
 end
 
@@ -451,11 +472,11 @@ end
 #TODO: Add more cross-type methods as needed.
 
 @Markdown.doc """
-    is_closed_embedding(X::Spec, Y::Spec)
+    is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
 """
-function is_closed_embedding(X::Spec, Y::Spec)
+function is_closed_embedding(X::AbsSpec, Y::AbsSpec)
   error("`is_closed_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
 end
 
@@ -618,7 +639,7 @@ end
 
 ### compute the closure of X in Y
 @Markdown.doc """
-    closure(X::Spec, Y::Spec)
+    closure(X::AbsSpec, Y::AbsSpec) 
 
 Returns the closure of ``X`` in ``Y``.
 """
@@ -646,6 +667,24 @@ end
 # Morphisms of affine schemes                                      #
 ########################################################################
 
+@Markdown.doc """
+    AbsSpecMor{DomainType<:AbsSpec, 
+               CodomainType<:AbsSpec, 
+               PullbackType<:Hecke.Map,
+               MorphismType, 
+               BaseMorType
+               }
+
+Abstract type for morphisms ``f : X → Y`` of affine schemes where
+
+  * ``X = Spec(S)`` is of type `DomainType`, 
+  * ``Y = Spec(R)`` is of type `CodomainType`, 
+  * ``f^* : R → S`` is a ring homomorphism of type `PullbackType`, 
+  * ``f`` itself is of type `MorphismType` (required for the Map interface),
+  * if ``f`` is defined over a morphism of base schemes ``BX → BY`` 
+    (e.g. a field extension), then this base scheme morphism is of 
+    type `BaseMorType`; otherwise, this can be set to `Nothing`.
+"""
 abstract type AbsSpecMor{
                          DomainType<:AbsSpec, 
                          CodomainType<:AbsSpec, 
@@ -656,8 +695,26 @@ abstract type AbsSpecMor{
 end
 
 underlying_morphism(f::AbsSpecMor) = error("`underlying_morphism(f)` not implemented for `f` of type $(typeof(f))")
+@Markdown.doc """
+    domain(f::AbsSpecMor)
+
+On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
+"""
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
+
+@Markdown.doc """
+    codomain(f::AbsSpecMor)
+
+On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
+"""
 codomain(f::AbsSpecMor) = domain(underlying_morphism(f))
+
+@Markdown.doc """
+    pullback(f::AbsSpecMor)
+
+On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and 
+``Y = Spec(R)``, this returns the ring homomorphism ``f^* : R → S``.
+"""
 pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
 
 ### Type getters
@@ -669,6 +726,17 @@ codomain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType,
 codomain_type(f::AbsSpecMor) = codomain_type(typeof(f))
 
 
+@Markdown.doc """
+    SpecMor{DomainType<:AbsSpec, 
+            CodomainType<:AbsSpec, 
+            PullbackType<:Hecke.Map
+           }
+
+A morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` of type 
+`DomainType` and ``Y = Spec(R)`` of type `CodomainType`, both defined 
+over the same `base_ring`, with underlying ring homomorphism 
+``f^* : R → S`` of type `PullbackType`.
+"""
 @attributes mutable struct SpecMor{
                                    DomainType<:AbsSpec, 
                                    CodomainType<:AbsSpec, 
