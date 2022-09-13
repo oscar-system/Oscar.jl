@@ -61,12 +61,24 @@ end
   r, (x, y, z) = QQ["x", "y", "z"]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
 
-  I = ideal([x^2, y^2])
+  I = left_ideal([x^2, y^2])
   @test length(string(I)) > 2
   @test ngens(I) > 1
   @test !iszero(I)
   @test !isone(I)
   @test x^2 - y^2 in I
   @test !(x + 1 in I)
-  @test isone(I + ideal([z^2]))
+  @test isone(I + left_ideal([z^2]))
+end
+
+@testset "PBWAlgebra.weyl_algebra" begin
+  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  @test dx*x == 1 + x*dx
+
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  @test dx*x == 1 + x*dx
+  @test dy*y == 1 + y*dy
+  @test dx*y == y*dx
+  @test dy*x == x*dy
+  @test x*y == y*x
 end
