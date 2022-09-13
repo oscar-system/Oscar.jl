@@ -119,15 +119,17 @@ end
 # if something more sophisticated should be returned!
 
 @Markdown.doc """
-    subscheme(X::AbsSpec, f::RingElem)
+    subscheme(X::AbsSpec, I::Ideal)
 
-For a scheme ``X = Spec(R)`` and an element ``f ∈ R``
-this returns the closed subscheme defined by the ideal ``⟨f⟩``.
+For a scheme ``X = Spec(R)`` and an ideal ``I ⊂ 𝒪(X)`` 
+this returns the closed subscheme defined by ``I``.
 """
 function subscheme(X::AbsSpec, I::Ideal)
   base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
   return Spec(quo(OO(X), I)[1])
 end
+subscheme(X::AbsSpec, f::RingElem) = subscheme(X, ideal(OO(X), [f]))
+subscheme(X::AbsSpec, f::Vector{<:RingElem}) = subscheme(X, ideal(OO(X), f))
 
 ### open subschemes defined by complements of hypersurfaces
 @Markdown.doc """

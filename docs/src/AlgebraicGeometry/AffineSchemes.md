@@ -130,8 +130,8 @@ forwarded to any instance of `MySpec`.
 In particular, the following additional package of 
 commands will run out of the box:
 ```@docs
-  subscheme(X::AbsSpec, f::RingElem)
-  hypersurface_complement(X::AbsSpec, f::RingElem)
+    subscheme(X::AbsSpec, I::Ideal)
+    hypersurface_complement(X::AbsSpec, f::RingElem)
 ```
 Schemes can be compared based on their `ambient_ring`, leading to the methods for 
 ```@docs 
