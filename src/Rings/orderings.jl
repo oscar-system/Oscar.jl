@@ -18,7 +18,7 @@ abstract type AbsModOrdering <: AbsOrdering end
 # lex, deglex, ...
 struct SymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
-  function SymbOrdering(S::Symbol, v::Vector{Int})
+  function SymbOrdering(S::Symbol, v)
     S in (:lex, :deglex, :degrevlex, :revlex,
           :neglex, :negdeglex, :negdegrevlex, :negrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
@@ -30,7 +30,7 @@ end
 struct WSymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
   weights::Vector{Int}
-  function WSymbOrdering(S::Symbol, v::Vector{Int}, w::Vector{Int})
+  function WSymbOrdering(S::Symbol, v, w::Vector{Int})
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
     length(v) == length(w) ||
@@ -42,7 +42,7 @@ end
 struct MatrixOrdering <: AbsGenOrdering
   vars::Vector{Int}
   matrix::fmpz_mat
-  function MatrixOrdering(v::Vector{Int}, m::fmpz_mat)
+  function MatrixOrdering(v, m::fmpz_mat)
     length(v) == ncols(m) ||
         throw(ArgumentError("number of variables should match the number of columns"))
     return new(v, m)
@@ -126,16 +126,25 @@ function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
   return MonomialOrdering(parent(first(v)), SymbOrdering(s, i))
 end
 
+function monomial_ordering(R::MPolyRing, s::Symbol)
+  return MonomialOrdering(R, SymbOrdering(s, 1:nvars(R)))
+end
+
 #### lex ####
 
 @doc Markdown.doc"""
     lex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    lex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `lex` (lexicographic) ordering on the variables given.
 """
 function lex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:lex, i))
+end
+
+function lex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:lex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:lex})
@@ -165,12 +174,17 @@ end
 
 @doc Markdown.doc"""
     deglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    deglex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `deglex` ordering on the variables given.
 """
 function deglex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:deglex, i))
+end
+
+function deglex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:deglex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:deglex})
@@ -208,12 +222,17 @@ end
 
 @doc Markdown.doc"""
     degrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    degrevlex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `degrevlex` ordering on the variables given.
 """
 function degrevlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:degrevlex, i))
+end
+
+function degrevlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:degrevlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:degrevlex})
@@ -251,12 +270,17 @@ end
 
 @doc Markdown.doc"""
     revlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    revlex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `revlex` ordering on the variables given.
 """
 function revlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:revlex, i))
+end
+
+function revlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:revlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:revlex})
@@ -286,12 +310,17 @@ end
 
 @doc Markdown.doc"""
     neglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    neglex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `neglex` ordering on the variables given.
 """
 function neglex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:neglex, i))
+end
+
+function neglex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:neglex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:neglex})
@@ -321,12 +350,17 @@ end
 
 @doc Markdown.doc"""
     negrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    negrevlex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `negrevlex` ordering on the variables given.
 """
 function negrevlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negrevlex, i))
+end
+
+function negrevlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:negrevlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:negrevlex})
@@ -356,12 +390,17 @@ end
 
 @doc Markdown.doc"""
     negdegrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    negdegrevlex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `negdegrevlex` ordering on the variables given.
 """
 function negdegrevlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negdegrevlex, i))
+end
+
+function negdegrevlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:negdegrevlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:negdegrevlex})
@@ -399,12 +438,17 @@ end
 
 @doc Markdown.doc"""
     negdeglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    negdeglex(R::MPolyRing) -> MonomialOrdering
 
 Defines the `negdeglex` ordering on the variables given.
 """
 function negdeglex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negdeglex, i))
+end
+
+function negdeglex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:negdeglex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:negdeglex})
@@ -442,6 +486,7 @@ end
 
 @doc Markdown.doc"""
     monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
+    monomial_ordering(R::MPolyRing, s::Symbol, w::Vector{Int}) -> MonomialOrdering
 
 Defines a weighted ordering to be applied to the variables in `v`. The weight
 vector `w` should be the same length as `v`, and the symbol `s` should be one
@@ -450,6 +495,10 @@ of `:wdeglex`, `:wdegrevlex`, `:negwdeglex`, `:negwdegrevlex`.
 function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(s, i, w))
+end
+
+function monomial_ordering(R::MPolyRing, s::Symbol, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(s, 1:nvars(R), w))
 end
 
 function _cmp_weighted_degree(f::MPolyElem, k::Int, l::Int, vars::Vector{Int}, w::Vector{Int})
@@ -467,12 +516,17 @@ end
 
 @doc Markdown.doc"""
     wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    wdeglex(R, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `wdeglex` ordering on the variables given with the weights `w`.
 """
 function wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdeglex, i, w))
+end
+
+function wdeglex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:wdeglex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdeglex})
@@ -505,12 +559,17 @@ end
 
 @doc Markdown.doc"""
     wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    wdegrevlex(R::MPolyRing, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `wdegrevlex` ordering on the variables given with the weights `w`.
 """
 function wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdegrevlex, i, w))
+end
+
+function wdegrevlex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:wdegrevlex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdegrevlex})
@@ -543,12 +602,17 @@ end
 
 @doc Markdown.doc"""
     negwdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    negwdeglex(R::MPolyRing, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `negwdeglex` ordering on the variables given with the weights `w`.
 """
 function negwdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdeglex, i, w))
+end
+
+function negwdeglex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:negwdeglex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdeglex})
@@ -581,12 +645,17 @@ end
 
 @doc Markdown.doc"""
     negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    negwdegrevlex(R::MPolyRing, w::Vector{Int}) -> MonomialOrdering
 
 Defines the `negwdegrevlex` ordering on the variables given with the weights `w`.
 """
 function negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdegrevlex, i, w))
+end
+
+function negwdegrevlex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:negwdegrevlex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
@@ -618,7 +687,8 @@ end
 #### matrix, M ####
 
 @doc Markdown.doc"""
-    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}})
+    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) -> MonomialOrdering
+    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}) -> MonomialOrdering
 
 Defines the matrix ordering on the variables given with the matrix `M`. The
 matrix need not be square nor have full row rank, thus the resulting ordering
@@ -627,6 +697,10 @@ may be only a partial ordering on the given variables.
 function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M)))
+end
+
+function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}) where T
+  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), fmpz_mat(M)))
 end
 
 @doc Markdown.doc"""
