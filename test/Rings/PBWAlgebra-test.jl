@@ -57,20 +57,6 @@ end
   @test p == R(collect(coefficients(p)), collect(exponent_vectors(p)))
 end
 
-@testset "PBWAlgebra.ideals" begin
-  r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
-
-  I = left_ideal([x^2, y^2])
-  @test length(string(I)) > 2
-  @test ngens(I) > 1
-  @test !iszero(I)
-  @test !isone(I)
-  @test x^2 - y^2 in I
-  @test !(x + 1 in I)
-  @test isone(I + left_ideal([z^2]))
-end
-
 @testset "PBWAlgebra.weyl_algebra" begin
   R, (x, dx) = weyl_algebra(QQ, ["x"])
   @test dx*x == 1 + x*dx
@@ -81,4 +67,38 @@ end
   @test dx*y == y*dx
   @test dy*x == x*dy
   @test x*y == y*x
+end
+
+@testset "PBWAlgebra.opposite_algebra" begin
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  opR, M = opposite_algebra(R)
+  @test M(dy*dx*x*y) == M(y)*M(x)*M(dx)*M(dy)
+  @test inv(M)(M(x)) == x
+end
+
+@testset "PBWAlgebra.ideals" begin
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+
+  I = left_ideal([x^2, y^2])
+  @test length(string(I)) > 2
+  @test ngens(I) > 1
+  @test !iszero(I)
+  @test !isone(I)
+  @test x^2 - y^2 in I
+  @test !(x + 1 in I)
+  @test isone(I + left_ideal([dy^2]))
+
+  @test y*dy in left_ideal(R, [dy])
+  @test !(dy*y in left_ideal(R, [dy]))
+  @test dy*y in right_ideal(R, [dy])
+  @test !(y*dy in right_ideal(R, [dy]))
+  @test_throws NotImplementedError y*dy*y in two_sided_ideal(R, [dy])
+
+  I = intersect(left_ideal(R, [dy]), left_ideal(R, [dx]))
+  @test x*dy*dx in I
+  @test !(dy*dx*x in I)
+  I = intersect(right_ideal(R, [dy]), right_ideal(R, [dx]))
+  @test dy*dx*x in I
+  @test !(x*dy*dx in I)
+  @test_throws NotImplementedError intersect(two_sided_ideal(R, [dy]), two_sided_ideal(R, [x]))
 end
