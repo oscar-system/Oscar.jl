@@ -1925,31 +1925,15 @@ function _hilbert_function_from_leading_exponents(
   error("invalid strategy")
 end
 
-_kgV(a::Vector{Int}, b::Vector{Int}) = [ i >= j ? i : j for (i,j) in zip(a, b)]
-function _kgV(b::Vector{Vector{Int}})
-  n = length(b)
-  if n == 1
-    return b
-  elseif n == 2
-    return [ i >= j ? i : j for (i,j) in zip(b[1], b[2])]
-  else
-    k = div(n, 2)
-    return _kgV(_kgV(b[1:k]), _kgV(b[k+1:end]))
-  end
-end
-
 function _cmp_revlex(a::Vector{Int}, b::Vector{Int})
-  for i in length(a):-1:1
+  for i in 1:length(a)
     a[i] == b[i] && continue
-    return a[i] > b[i] 
+    return a[i] > b[i]
   end
   return true
 end
 
-function _sort_lex(a::Vector{Int})
-  ### quicksort
-  length(a) == 1 && return a
-
+function _sort_lex(a::Vector{Vector{Int}})
   pivot = a[1]
   less = [m for m in a[2:end] if _cmp_revlex(pivot, m)]
   more = [m for m in a[2:end] if _cmp_revlex(m, pivot)]
@@ -1967,75 +1951,57 @@ function _hilbert_numerator_from_leading_exponents(
     #strategy=:cocoa
     strategy=:BayerStillmanA
   )
-  @infiltrate
-  @show length(a)
+  length(a) == 0 && return one(return_ring)
+
   t = gens(return_ring)
 
   # See Proposition 5.3.6
   are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
   if strategy == :BayerStillmanA
-    ##################################################################################
-    # For this strategy see 
+    S = return_ring
+    ###########################################################################
+    # For this strategy see
     #
-    # Bayer, Stillman: Computation of Hilbert Functions 
-    # J. Symbolic Computation (1992), No. 14, pp. 31--50.
-    # 
-    # Algorithm 2.6 on page 35.
-    ##################################################################################
-    length(a) = r
+    # Bayer, Stillman: Computation of Hilber Series
+    # J. Symbolic Computation (1992) No. 14, pp. 31--50
+    #
+    # Algorithm 2.6, page 35
+    ###########################################################################
+    r = length(a)
 
     # End of recursion
-    r == 0 && return one(return_ring)
+    r == 0 && return one(S)
 
-    # Make sure we have the correct ordering of elements 
+    # make sure we have lexicographically ordered monomials
     a = _sort_lex(a)
 
-    # Initialize h
-    h = one(return_ring)
-    for i in 1:nvars(return_ring)
-      z = t[i]
-      mul!(h, h, z^(sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])])))
-    end
-    sub!(h, one(return_ring), h)
-
+    # initialize the result 
+    h = one(S) - prod([t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t)])
     for i in 2:r
-      b = divide_by(a[1:i-1], a[i])
+      J = divide_by(a[1:i-1], a[i])
       J1 = Vector{Vector{Int}}()
-      linear_monomials = Vector{Int}()
-      for m in b
+      linear_mons = Vector{Int}()
+      for m in J
         if sum(m) > 1
           push!(J1, m)
         else
           for k in 1:length(m)
-            if m[k] == 1 
-              push!(linear_monomials, k)
+            if m[k] > 0 
+              push!(linear_mons, k)
               break
             end
           end
         end
       end
-      p = one(return_ring)
-      for k in linear_monomials
-        q = one(return_ring)
-        for l in 1:length(t)
-          mul!(q, t[l]^weight_matrix[l, k])
-        end
-        q = one(return_ring) - q
-        mul!(p, p, q)
+      q = _hilbert_numerator_from_leading_exponents(J1, return_ring=S, 
+                                                    weight_matrix=weight_matrix, 
+                                                    strategy=strategy)
+      for k in linear_mons
+        q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
       end
-      mul!(p, _hilbert_numerator_from_leading_exponents(J1, 
-                                                        return_ring=return_ring, 
-                                                        weight_matrix=weight_matrix,
-                                                        strategy=strategy
-                                                       ))
 
-      q = one(return_ring)
-      for i in 1:nvars(return_ring)
-        mul!(q, q, t[i]^(sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])])))
-      end
-      mul!(p, p, q)
-      sub!(h, h, p)
+      h = h - prod([t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t)])*q
     end
     return h
 
@@ -2043,7 +2009,6 @@ function _hilbert_numerator_from_leading_exponents(
     p = Vector{Int}()
     q = Vector{Int}()
     max_deg = 0
-    @infiltrate
     for i in 1:length(a)
       b = a[i]
       for j in i+1:length(a)
