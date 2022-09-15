@@ -3108,7 +3108,7 @@ Given a vector `V` of module homorphisms between successive modules over a multi
 return the cochain complex defined by these homomorphisms.
 
 !!! note
-    The integer `start` indicates the lowest homological degree of a module in the complex.
+    The integer `start` indicates the lowest homological degree of a module of the complex.
 
 !!! note
     The function checks whether succesive homomorphisms indeed compose to zero.
