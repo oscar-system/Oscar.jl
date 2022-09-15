@@ -240,7 +240,7 @@ over a base ring ``𝕜`` of type `BaseRingType`.
   end
 
   function Spec(kk::Ring, R::Ring)
-    return new{typeof(kk), typeof(R)}(R)
+    return new{typeof(kk), typeof(R)}(R, kk)
   end
 
   function Spec(kk::Field)
@@ -615,7 +615,7 @@ function Base.intersect(
   ) where {BRT}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
-  return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
+  return Spec(R, modulus(OO(Y)), inverted_set(OO(X))*inverted_set(OO(Y)))
 end
 
 function Base.intersect(
@@ -892,12 +892,14 @@ end
 @Markdown.doc """
     product(X::AbsSpec, Y::AbsSpec)
     
-Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` and the two projections 
-``p₁ : X×Y → X`` and ``p₂ : X×Y → Y``.
+Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over 
+the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and 
+``p₂ : X×Y → Y``.
 """
 function product(X::AbsSpec, Y::AbsSpec;
     change_var_names_to::Vector{String}=["", ""]
   )
+  base_ring(X) == base_ring(Y) || error("schemes are not defined over the same base ring")
   Xstd = standard_spec(X)
   Ystd = standard_spec(Y)
   XxY, prX, prY = product(Xstd, Ystd, change_var_names_to=change_var_names_to)
@@ -999,19 +1001,23 @@ end
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
-  return ngens(ambient_ring(X))
+  # the following line is supposed to refer the problem to the 
+  # algebra side of the problem 
+  return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))]))
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyRing})
-  return ngens(ambient_ring(X))
+  return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))]))
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuo})
   return dim(modulus(OO(X)))
 end
 
-function codim(X::Spec)
-  return ngens(base_ring(OO(X)))-dim(X)
+# TODO: This is not 100% mathematically correct, since codimension is 
+# a local concept. Should we therefore forbid this method?
+@attr function codim(X::Spec)
+  return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))])) - dim(X)
 end
 
 strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))

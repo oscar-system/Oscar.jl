@@ -111,8 +111,17 @@ end
 ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
 ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
 
+
 export SimpleGlueing
 
+########################################################################
+# SimpleGlueing is for glueings X ↩ U ≅ V ↪ Y along principal 
+# open subsets U ⊂ X and V ⊂ Y along identifications f : U ↔ V : g. 
+# For general glueings it can not be guaranteed to have this setup, 
+# but it is a situation often encountered and with significant 
+# simplification of underlying algorithms in the background. 
+# Hence, the special type.
+########################################################################
 @attributes mutable struct SimpleGlueing{LST<:AbsSpec, 
                                          RST<:AbsSpec, 
                                          LOT<:PrincipalOpenSubset, 

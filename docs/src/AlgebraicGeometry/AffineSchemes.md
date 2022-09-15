@@ -8,8 +8,8 @@ using Oscar
 
 # General schemes and their interfaces
 
-Arbitrary schemes over a base ring ``\mathbb k`` which are given by means 
-of their affine patches and glueings are instances of the abstract type
+Arbitrary schemes over a commutative base ring ``\mathbb k`` with unit 
+are instances of the abstract type
 ```@docs
 Scheme{BaseRingType<:Ring}
 ```

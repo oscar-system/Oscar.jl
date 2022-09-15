@@ -981,7 +981,6 @@ function restriction(
 end
 
 function identity_map(U::SpecOpen) 
-  [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)]
   phi = SpecOpenMor(U, U, 
                     [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], 
                     check=false
@@ -1146,6 +1145,8 @@ function restriction_map(
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
   d = gens(U)
   I = complement_ideal(U)
+  # _minimal_power_such_that(P, h) returns a tuple (k, h^k) with 
+  # k the minimal exponent such that the property P(h^k) returns `true`.
   (k, poh) = Oscar._minimal_power_such_that(h, x->(base_ring(I)(x) in I))
   a = coordinates(base_ring(I)(poh), I)
   r = length(d)
@@ -1225,7 +1226,7 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   )
   Y = ambient(U)
   R = base_ring(OO(Y))
-  R == base_ring(OO(X)) || error("rings not compatible")
+  R == base_ring(OO(X)) || error("`ambient_ring`s of the schemes not compatible")
   if check
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
