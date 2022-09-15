@@ -3080,11 +3080,6 @@ return the chain complex defined by these homomorphisms.
 
 !!! note
     The function checks whether succesive homomorphisms indeed compose to zero.
-
-# Examples
-```jldoctest
-
-```
 """
 function chain_complex(V::ModuleFPHom...; start::Int = 0)
   return ChainComplex(collect(V); direction = :left, start = start)
@@ -3116,11 +3111,6 @@ return the cochain complex defined by these homomorphisms.
 
 !!! note
     The function checks whether succesive homomorphisms indeed compose to zero.
-
-# Examples
-```jldoctest
-
-```
 """
 function cochain_complex(V::ModuleFPHom...; start::Int = 0)
   return ChainComplex(collect(V); direction = :right, start = start)
