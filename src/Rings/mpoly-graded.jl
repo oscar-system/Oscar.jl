@@ -1691,29 +1691,6 @@ function _divide_by_monomial_power(a::Vector{Vector{Int}}, j::Int, k::Int)
   return result
 end
 
-function _hilbert_numerator_from_leading_ideal(
-    I::MPolyIdeal;
-    return_ring=PolynomialRing(QQ, "t")[1]
-  )
-  exp_vec(f::MPolyElem) = first(exponent_vectors(f))
-  return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in gens(I)], return_ring=return_ring)
-end
-
-function _hilbert_numerator_from_leading_ideal(
-    I::MPolyIdeal{T}, S::Ring
-  ) where {T<:MPolyElem_dec}
-  exp_vec(f::MPolyElem) = first(exponent_vectors(f))
-  P = base_ring(I)
-  g = minimal_generating_set(I)
-  W = hcat([degree(Vector{Int}, x) for x in gens(P)]...)
-  #S, z = LaurentPolynomialRing(QQ, ["z$i" for i in 1:nrows(W)])
-  z = gens(S)
-  return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in g], 
-                                                   return_ring=S, 
-                                                   weight_matrix=W
-                                                  )
-end
-
 function _find_maximum(a::Vector{Int})
   m = a[1]
   j = 1
@@ -1760,7 +1737,7 @@ function _hilbert_numerator_from_leading_exponents(
     #strategy=:gcd
     #strategy=:indeterminate
     #strategy=:cocoa
-    strategy=:BayerStillmanA
+    strategy=:BayerStillmanA # This is by far the fastest strategy. Should be used.
   )
   length(a) == 0 && return one(return_ring)
 

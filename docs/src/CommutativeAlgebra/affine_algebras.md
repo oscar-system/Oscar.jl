@@ -442,7 +442,7 @@ The functions `hilbert_series`, `hilbert_series_reduced`, `hilbert_series_expand
 `hilbert_function`, `hilbert_polynomial`, and `degree` address the case of
 $\mathbb Z$-gradings with positive weights, relying on corresponding Singular
 functionality. The functions `multi_hilbert_series`, `multi_hilbert_series_reduced `,
-and `multi_hilbert_function` use different strategies and allow one to handle
+and `multi_hilbert_function` offer a variety of different strategies and allow one to handle
 positive gradings in general.
 
 ### $\mathbb Z$-Gradings With Positive Weights
@@ -484,7 +484,7 @@ degree(A::MPolyQuo)
 ### Positive Gradings in General
 
 ```@docs
-multi_hilbert_series(A::MPolyQuo)
-multi_hilbert_series_reduced(A::MPolyQuo)
-multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
+  multi_hilbert_series(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
+  multi_hilbert_series_reduced(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
+  multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 ```
