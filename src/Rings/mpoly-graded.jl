@@ -1620,6 +1620,8 @@ end
 ########################################################################
 exp_vec(f::MPolyElem) = first(exponent_vectors(f))
 
+_divides(a::Vector{Int}, b::Vector{Int}) = all(x->(x>=0), a-b)
+
 function _gcd(a::Vector{Vector{Int}}) 
   length(a) == 1 && return a[1]
   n = length(a[1]) # assumed to be the length of all entries of a
@@ -1749,7 +1751,10 @@ end
 function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}};
     weight_matrix= [1 for i in 1:1, j in 1:length(a[1])],
-    return_ring=LaurentPolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1],
+    return_ring=(all(x->(x>=0), weight_matrix) ? 
+                 PolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1] : 
+                 LaurentPolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1]
+                ),
     #strategy=:generator
     #strategy=:custom
     #strategy=:gcd
@@ -1831,7 +1836,7 @@ function _hilbert_numerator_from_leading_exponents(
 
     ### Assembly of the quotient ideal with less generators
     pivot = _gcd([p, q])
-    rhs = [e for e in a if !divides(e, pivot)]
+    rhs = [e for e in a if !_divides(e, pivot)]
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
@@ -1866,7 +1871,7 @@ function _hilbert_numerator_from_leading_exponents(
     pivot = _gcd([p, q])
     
     ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if !divides(e, pivot)]
+    rhs = [e for e in a if !_divides(e, pivot)]
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
@@ -1956,7 +1961,7 @@ function _hilbert_numerator_from_leading_exponents(
     
     
     ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if !divides(e, pivot)]
+    rhs = [e for e in a if !_divides(e, pivot)]
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
