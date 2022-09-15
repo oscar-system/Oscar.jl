@@ -14,7 +14,8 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       is_surjective, is_bijective, is_welldefined, subquotient,
       multiplication_morphism, multiplication_induced_morphism,
       ambient_free_module, ambient_module, ambient_representative,
-      ambient_representatives_generators, relations, img_gens, is_complete
+      ambient_representatives_generators, relations, img_gens, is_complete,
+      chain_complex, cochain_complex
 
 # TODO replace asserts by error messages?
 
