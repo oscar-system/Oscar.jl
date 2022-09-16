@@ -4978,11 +4978,11 @@ julia> m = module_elem(H, a)
 (e[1] -> e[1]) + y*(e[2] -> e[2])
 ```
 """
-function homomorphism_to_element(H::ModuleFP, phi::ModuleFPHom)
+function homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
-  return map_to_hom(phi)
+  return map_to_hom(a)
 end
 
 @doc Markdown.doc"""
