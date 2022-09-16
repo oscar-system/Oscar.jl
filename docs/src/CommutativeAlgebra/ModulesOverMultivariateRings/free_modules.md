@@ -128,10 +128,11 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms from Free Modules
 
+All OSCAR types for homomorphisms of finitely presented modules over multivariate polynomial rings belong
+to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
-of the basis vectors of $F$ in $M$. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
-`T1` and `T2` are the element types of the domain and codomain, respectively. They are created
-by using one of the following constructors:
+of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
+`FreeModuleHom{T1, T2} <: ModuleFPHom{T1, T2}` as well as the following constructors:
 
 ```@docs
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 

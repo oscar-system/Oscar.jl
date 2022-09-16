@@ -14,7 +14,8 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       is_surjective, is_bijective, is_welldefined, subquotient,
       multiplication_morphism, multiplication_induced_morphism,
       ambient_free_module, ambient_module, ambient_representative,
-      ambient_representatives_generators, relations, img_gens, is_complete
+      ambient_representatives_generators, relations, img_gens, is_complete,
+      chain_complex, cochain_complex
 
 # TODO replace asserts by error messages?
 
@@ -1571,7 +1572,7 @@ function show_subquo(SQ::SubQuo)
   end
 end
 
-function show_morphism_as_map(f::ModuleMap, print_non_zero_only = false)
+function show_morphism_as_map(f::ModuleFPHom, print_non_zero_only = false)
   D = domain(f)
   for i in 1:ngens(D)
     generator = gen(D, i)
@@ -1587,7 +1588,7 @@ function show_morphism_as_map(f::ModuleMap, print_non_zero_only = false)
 end
 
 @doc Markdown.doc"""
-    cokernel(a::ModuleMap)
+    cokernel(a::ModuleFPHom)
 
 Return the cokernel of `a` as an object of type `SubQuo`.
 
@@ -1665,7 +1666,7 @@ by Submodule with 5 generators
 5 -> x*y*e[1]
 ```
 """
-function cokernel(f::ModuleMap)
+function cokernel(f::ModuleFPHom)
   return quo(codomain(f), image(f)[1], :module)
 end
 
@@ -3060,9 +3061,71 @@ function *(a::FreeModElem, b::Vector{FreeModElem})
   return s
 end
 
+####################
+### Chain Complexes
+####################
+
+@doc Markdown.doc"""
+    chain_complex(V::ModuleFPHom...; start::Int = 0)
+
+Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
+return the chain complex defined by these homomorphisms.
+
+    chain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
+
+Given a vector `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
+return the chain complex defined by these homomorphisms.
+
+!!! note
+    The integer `start` indicates the lowest homological degree of a module in the complex.
+
+!!! note
+    The function checks whether succesive homomorphisms indeed compose to zero.
+"""
+function chain_complex(V::ModuleFPHom...; start::Int = 0)
+  return ChainComplex(collect(V); direction = :left, start = start)
+end
+
+function chain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
+  return ChainComplex(V; direction = :left, start = start)
+end
+
+####################
+
+####################
+### Cochain Complexes
+####################
+
+@doc Markdown.doc"""
+    cochain_complex(V::ModuleFPHom...; start::Int = 0)
+
+Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
+return the cochain complex defined by these homomorphisms.
+
+    cochain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
+
+Given a vector `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
+return the cochain complex defined by these homomorphisms.
+
+!!! note
+    The integer `start` indicates the lowest homological degree of a module of the complex.
+
+!!! note
+    The function checks whether succesive homomorphisms indeed compose to zero.
+"""
+function cochain_complex(V::ModuleFPHom...; start::Int = 0)
+  return ChainComplex(collect(V); direction = :right, start = start)
+end
+
+function cochain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
+  return ChainComplex(V; direction = :right, start = start)
+end
+
+####################
+
 @doc Markdown.doc"""
     presentation(M::SubQuo)
-
+ive
 Return a free presentation of `M`. 
 """
 function presentation(SQ::SubQuo)
@@ -3110,7 +3173,7 @@ function presentation(SQ::SubQuo)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ChainComplex(ModuleFP, ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-2)
+  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-2)
 end
 
 @doc Markdown.doc"""
@@ -3121,7 +3184,7 @@ Return a free presentation of $F$.
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
-  return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, start=-2)
+  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, start=-2)
 end
 
 @doc Markdown.doc"""
@@ -3272,7 +3335,7 @@ the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
 If you are uncertain with regard to well-definedness, use the function below.
 Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
 
-    is_welldefined(a::ModuleMap)
+    is_welldefined(a::ModuleFPHom)
 
 Return `true` if `a` is well-defined, and `false` otherwise.
 
@@ -3372,7 +3435,7 @@ false
 hom(M::SubQuo, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
 hom(M::SubQuo, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {RingMapType, T} = SubQuoHom(M, N, V, h) 
 hom(M::SubQuo, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
-function is_welldefined(H::ModuleMap)
+function is_welldefined(H::ModuleFPHom)
   if H isa Union{FreeModuleHom,FreeModuleHom_dec}
     return true
   end
@@ -3389,7 +3452,7 @@ function is_welldefined(H::ModuleMap)
   return true
 end
 
-function (==)(f::ModuleMap, g::ModuleMap)
+function (==)(f::ModuleFPHom, g::ModuleFPHom)
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   M = domain(f)
@@ -3461,19 +3524,19 @@ function matrix(f::SubQuoHom)
   return f.matrix
 end
 
-function show_morphism(f::ModuleMap)
+function show_morphism(f::ModuleFPHom)
   display(matrix(f))
 end
 
 @doc Markdown.doc"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleMap})
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
 
 Given modules `M`, `N` which are tensor products with the same number of factors,
 say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
 and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
 $a_1 \otimes \cdots \otimes a_r$.
 """
-function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleMap})
+function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")
   tN = get_attribute(N, :tensor_product)
@@ -3497,14 +3560,14 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleMap})
 end
 
 @doc Markdown.doc"""
-    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
+    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
 
 Given modules `M`, `N` which are products with the same number of factors,  
 say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^r N_j$, and given a matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \rightarrow N$ with $ij$-components $a_{ij}$.
 """
-function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleMap})
+function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
   tM = get_attribute(M, :direct_product)
   tM === nothing && error("both modules must be direct products")
   tN = get_attribute(N, :direct_product)
@@ -4089,7 +4152,7 @@ function image(h::SubQuoHom)
 end
 
 @doc Markdown.doc"""
-    image(a::ModuleMap)
+    image(a::ModuleFPHom)
 
 Return the image of `a` as an object of type `SubQuo`.
 
@@ -4193,7 +4256,7 @@ by Submodule with 3 generators
 3 -> z^4*e[1])
 ```
 """
-function image(a::ModuleMap)
+function image(a::ModuleFPHom)
  error("kernel is not implemented for the given types.")
 end
 
@@ -4219,7 +4282,7 @@ function kernel(h::SubQuoHom)
 end
 
 @doc Markdown.doc"""
-    kernel(a::ModuleMap)
+    kernel(a::ModuleFPHom)
 
 Return the kernel of `a` as an object of type `SubQuo`.
 
@@ -4321,7 +4384,7 @@ by Submodule with 3 generators
 3 -> z^4*e[1])
 ```
 """
-function kernel(a::ModuleMap)
+function kernel(a::ModuleFPHom)
  error("kernel is not implemented for the given types.")
 end
 
@@ -4672,11 +4735,11 @@ function free_resolution(Q::MPolyQuo)
 end
 
 @doc Markdown.doc"""
-    iszero(f::ModuleMap)
+    iszero(f::ModuleFPHom)
 
 Return true iff `f` is the zero map.
 """
-function iszero(f::ModuleMap)
+function iszero(f::ModuleFPHom)
   return all(iszero, map(f, gens(domain(f))))
 end
 
@@ -4767,7 +4830,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
     return hom(M, N, Vector{elem_type(N)}([g0(mH_s0_t0(repres(x))(preimage(f0, g))) for g = gens(M)]))
   end
 
-  function pre(f::ModuleMap)
+  function pre(f::ModuleFPHom)
     @assert domain(f) === M
     @assert codomain(f) === N
     Rs0 = domain(f0)
@@ -4850,7 +4913,7 @@ function homomorphism(f::ModuleFPElem)
 end
 
 @doc Markdown.doc"""
-    module_elem(H::ModuleFP, a::ModuleMap)
+    module_elem(H::ModuleFP, a::ModuleFPHom)
 
 If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
 `a`: `M` $\to$ `N` is a homomorphism, then return the element of `H` corresponding to `a`.
@@ -4901,7 +4964,7 @@ julia> m = module_elem(H, a)
 (e[1] -> e[1]) + y*(e[2] -> e[2])
 ```
 """
-function module_elem(H::ModuleFP, phi::ModuleMap)
+function module_elem(H::ModuleFP, phi::ModuleFPHom)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
@@ -4951,24 +5014,24 @@ end
 #  relshp to store the maps elsewhere
 
 @doc Markdown.doc"""
-    *(h::ModuleMap, g::ModuleMap)
+    *(h::ModuleFPHom, g::ModuleFPHom)
 
 Return the composition $g \circ h$.
 """
-function *(h::ModuleMap, g::ModuleMap)
+function *(h::ModuleFPHom, g::ModuleFPHom)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
 end
 
-compose(h::ModuleMap, g::ModuleMap) = h*g
+compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
--(h::ModuleMap) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
-function -(h::ModuleMap, g::ModuleMap)
+-(h::ModuleFPHom) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+function -(h::ModuleFPHom, g::ModuleFPHom)
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]))
 end
-function +(h::ModuleMap, g::ModuleMap)
+function +(h::ModuleFPHom, g::ModuleFPHom)
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
@@ -4976,12 +5039,12 @@ end
 
 
 @doc Markdown.doc"""
-    restrict_codomain(H::ModuleMap, M::SubQuo)
+    restrict_codomain(H::ModuleFPHom, M::SubQuo)
 
 Return, if possible, a homomorphism, which is mathematically identical to `H`,
 but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
 """
-function restrict_codomain(H::ModuleMap, M::SubQuo)
+function restrict_codomain(H::ModuleFPHom, M::SubQuo)
   D = domain(H)
   return hom(D, M, map(v -> SubQuoElem(v, M), map(x -> repres(H(x)), gens(D))))
 end
@@ -5023,11 +5086,11 @@ function induced_map(f::FreeModuleHom, M::SubQuo, check::Bool = true)
 end
 
 @doc Markdown.doc"""
-    inv(H::ModuleMap)
+    inv(H::ModuleFPHom)
 
 Compute $H^{-1}$. `H` must be bijective.
 """
-function inv(H::ModuleMap)
+function inv(H::ModuleFPHom)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
@@ -5084,8 +5147,8 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   set_attribute!(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
-  projection_dictionary = IdDict{Int,ModuleMap}()
-  injection_dictionary = IdDict{Int,ModuleMap}()
+  projection_dictionary = IdDict{Int,ModuleFPHom}()
+  injection_dictionary = IdDict{Int,ModuleFPHom}()
   set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
   i = 0
   for f = F
@@ -5130,8 +5193,8 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
     s, pro_quo = quo(s, q, :both)
   end
   set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => M)
-  projection_dictionary = IdDict{Int,ModuleMap}()
-  injection_dictionary = IdDict{Int,ModuleMap}()
+  projection_dictionary = IdDict{Int,ModuleFPHom}()
+  injection_dictionary = IdDict{Int,ModuleFPHom}()
   set_attribute!(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
   if task == :none
     return s
@@ -5608,12 +5671,12 @@ end
 #
 #################################################
 @doc Markdown.doc"""
-    lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
+    lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleFPHom)
 
 Let `Hom_MP` $= \text{Hom}(M,P)$, `Hom_NP` $= \text{Hom}(N,P)$ and `phi` $= \phi : N \to M$ a morphism.
 Compute $\phi^{\ast} : \text{Hom}(M,P) \to \text{Hom}(N,P)$.
 """
-function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
+function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleFPHom)
   # phi : N -> M
   M_P = get_attribute(Hom_MP, :hom)
   M_P === nothing && error("Both modules must be hom modules")
@@ -5631,12 +5694,12 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
 end
 
 @doc Markdown.doc"""
-    lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
+    lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleFPHom)
 
 Let `Hom_PM` $= \text{Hom}(P,M)$, `Hom_PN` $= \text{Hom}(P,N)$ and `phi` $= \phi : M \to N$ a morphism.
 Compute $\phi_{\ast} : \text{Hom}(P,M) \to \text{Hom}(P,N)$.
 """
-function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
+function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleFPHom)
   # phi : M -> N
   P_M = get_attribute(Hom_PM, :hom)
   P_M === nothing && error("Both modules must be hom modules")
@@ -5926,7 +5989,7 @@ function find_sequence_of_morphisms(N::SubQuo, M::SubQuo)
   if M===N
     return [identity_map(M)]
   end
-  parent_hom = IdDict{SubQuo,ModuleMap}()
+  parent_hom = IdDict{SubQuo,ModuleFPHom}()
   modules = [M]
   found_N = false
   for A in modules
@@ -5950,7 +6013,7 @@ function find_sequence_of_morphisms(N::SubQuo, M::SubQuo)
   if !found_N
     throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
   end
-  morphisms = Vector{ModuleMap}()
+  morphisms = Vector{ModuleFPHom}()
   A = N
   while A !== M
     f = parent_hom[A]
@@ -5997,7 +6060,7 @@ function find_morphisms(N::SubQuo, M::SubQuo)
 
   all_paths = []
 
-  function helper_dfs!(U::SubQuo, D::SubQuo, visited::Vector{<:ModuleMap}, path::Vector)
+  function helper_dfs!(U::SubQuo, D::SubQuo, visited::Vector{<:ModuleFPHom}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
@@ -6009,9 +6072,9 @@ function find_morphisms(N::SubQuo, M::SubQuo)
     end
   end
 
-  helper_dfs!(N, M, Vector{ModuleMap}(), [])
+  helper_dfs!(N, M, Vector{ModuleFPHom}(), [])
 
-  morphisms = Vector{ModuleMap}()
+  morphisms = Vector{ModuleFPHom}()
   for path in all_paths
     phi = identity_map(N)
     for h in path
@@ -6028,11 +6091,11 @@ end
 #############################
 
 @doc Markdown.doc"""
-    register_morphism!(f::ModuleMap)
+    register_morphism!(f::ModuleFPHom)
 
 Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
 """
-function register_morphism!(f::ModuleMap)
+function register_morphism!(f::ModuleFPHom)
   push!(domain(f).outgoing_morphisms, f)
   push!(codomain(f).incoming_morphisms, f)
 end
@@ -6381,29 +6444,29 @@ function map(A::MatElem)
 end
 
 @doc Markdown.doc"""
-    is_injective(f::ModuleMap)
+    is_injective(f::ModuleFPHom)
 
 Test if `f` is injective.
 """
-function is_injective(f::ModuleMap)
+function is_injective(f::ModuleFPHom)
   return iszero(kernel(f)[1])
 end
 
 @doc Markdown.doc"""
-    is_surjective(f::ModuleMap)
+    is_surjective(f::ModuleFPHom)
 
 Test if `f` is surjective.
 """
-function is_surjective(f::ModuleMap)
+function is_surjective(f::ModuleFPHom)
   return image(f)[1] == codomain(f)
 end
 
 @doc Markdown.doc"""
-    is_bijective(f::ModuleMap)
+    is_bijective(f::ModuleFPHom)
 
 Test if `f` is bijective.
 """
-function is_bijective(f::ModuleMap)
+function is_bijective(f::ModuleFPHom)
   return is_injective(f) && is_surjective(f)
 end
 
@@ -6496,7 +6559,7 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
       A = convert_to_matrix(elem2)
       return SubQuoHom(M,N,A)
     end
-    to_subquotient_elem = function(H::ModuleMap)
+    to_subquotient_elem = function(H::ModuleFPHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
@@ -6508,7 +6571,7 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
 
     return SQ2, to_hom_map
   else
-    to_subquotient_elem = function(H::ModuleMap)
+    to_subquotient_elem = function(H::ModuleFPHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
