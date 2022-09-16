@@ -215,9 +215,9 @@ end
 function Covering(patches::Vector{<:AbsSpec})
   g = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for X in patches
-    U = SpecOpen(X)
+    U = PrincipalOpenSubset(X)
     f = identity_map(U)
-    g[X,X] = Glueing(X, X, f, f, check=false)
+    g[X,X] = SimpleGlueing(X, X, f, f, check=false)
   end
   return Covering(patches, g, check=false)
 end
@@ -606,33 +606,36 @@ base_ring_type(::Type{T}) where {BRT, T<:AbsCoveredScheme{BRT}} = BRT
 base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 
 ### essential getters for the interface
+base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
+
+@Markdown.doc """
+    coverings(X::AbsCoveredScheme)
+
+Returns the available coverings for ``X``.
+"""
 function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
   return coverings(underlying_scheme(X))
 end
 
-function refinements(X::AbsCoveredScheme)::Dict{Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
-  return refinements(underlying_scheme(X))
-end
+@Markdown.doc """
+    patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
-function getindex(X::AbsCoveredScheme, C::Covering, D::Covering)::CoveringMorphism
-  return getindex(underlying_scheme(X), C, D)
-end
-
-function setindex!(X::AbsCoveredScheme, C::Covering, D::Covering)::CoveringMorphism
-  return setindex!(underlying_scheme(X), C, D)
-end
-
-function default_covering(X::AbsCoveredScheme)::Covering
-  return default_covering(underlying_scheme(X))
-end
-
-function getindex(X::AbsCoveredScheme, i::Int)::Covering
-  return coverings(underlying_scheme(X))[i]
-end
-
+Returns the affine patches in the `default_covering` of ``X``.
+"""
 patches(X::AbsCoveredScheme) = patches(default_covering(X))
-glueings(X::AbsCoveredScheme) = glueings(default_covering(X))
 
+### Forwarding of the non-documented getters
+Base.in(U::AbsSpec, X::AbsCoveredScheme) = (U in underlying_scheme(X))::Bool
+getindex(X::AbsCoveredScheme, i::Int) = coverings(underlying_scheme(X))[i]::Covering
+getindex(X::AbsCoveredScheme, C::Covering, D::Covering) = getindex(underlying_scheme(X), C, D)::Int
+setindex(X::AbsCoveredScheme, f::CoveringMorphism, C::Covering, D::Covering) = setindex(underlying_scheme(X), f, C, D)::CoveringMorphism
+refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Vector{<:CoveringMorphism}
+glueings(X::AbsCoveredScheme) = glueings(underlying_scheme(X))::AbsGlueing
+
+
+########################################################################
+# A minimal implementation of AbsCoveredScheme                         #
+########################################################################
 @Markdown.doc """
     mutable struct CoveredScheme{
       CoveringType<:Covering, 
@@ -654,8 +657,9 @@ canonically compared).
 """
 @attributes mutable struct CoveredScheme{BaseRingType} <: AbsCoveredScheme{BaseRingType}
   coverings::Vector{<:Covering}
-  refinements::Dict{Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
+  refinements::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
   refinement_graph::Graph{Directed}
+  kk::BaseRingType
 
   default_covering::Covering
 
@@ -667,9 +671,12 @@ canonically compared).
     all(x->(base_ring_type(x) == BaseRingType), coverings) || error("coverings are not compatible")
     X = new{BaseRingType}(coverings, refinements)
     X.default_covering = X.coverings[1]
+    X.kk = base_ring(patches(coverings[1])[1])
     return X
   end
 end
+
+base_ring(X::CoveredScheme) = X.kk
 
 ### type getters
 #covering_type(X::CoveredScheme{S, T}) where {S, T} = S
@@ -744,7 +751,7 @@ end
 ### constructors 
 
 function CoveredScheme(C::Covering)
-  refinements = Dict{Tuple{typeof(C), typeof(C)}, morphism_type(C)}()
+  refinements = Dict{Tuple{Covering, Covering}, CoveringMorphism}()
   X = CoveredScheme([C], refinements)
   set_attribute!(X, :seed_covering, C)
   return X

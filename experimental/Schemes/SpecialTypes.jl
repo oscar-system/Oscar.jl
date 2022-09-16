@@ -14,13 +14,13 @@ export image_ideal
   inc::SpecMor
 
   function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
-    parent(f) == ambient_ring(X) || error("element does not belong to the correct ring")
+    parent(f) == OO(X) || error("element does not belong to the correct ring")
     U = hypersurface_complement(X, [f])
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end
   
   function PrincipalOpenSubset(X::AbsSpec, f::Vector{RingElemType}) where {RingElemType<:MPolyElem}
-    all(x->(parent(x) == ambient_ring(X)), f) || error("element does not belong to the correct ring")
+    all(x->(parent(x) == OO(X)), f) || error("element does not belong to the correct ring")
     U = hypersurface_complement(X, f)
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
   end
@@ -38,6 +38,8 @@ function inclusion_morphism(U::PrincipalOpenSubset)
   end
   return U.inc
 end
+
+PrincipalOpenSubset(X::AbsSpec) = PrincipalOpenSubset(X, one(OO(X)))
 
 @attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
