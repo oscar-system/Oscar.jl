@@ -4927,7 +4927,7 @@ function element_to_homomorphism(f::ModuleFPElem)
 end
 
 @doc Markdown.doc"""
-    homomorphism_to_element(H::ModuleFP, a::ModuleMap)
+    homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
 
 If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
 `a`: `M` $\to$ `N` is a homomorphism, then return the element of `H` corresponding to `a`.
@@ -4978,7 +4978,7 @@ julia> m = module_elem(H, a)
 (e[1] -> e[1]) + y*(e[2] -> e[2])
 ```
 """
-function homomorphism_to_element(H::ModuleFP, phi::ModuleMap)
+function homomorphism_to_element(H::ModuleFP, phi::ModuleFPHom)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
@@ -5050,7 +5050,7 @@ function +(h::ModuleFPHom, g::ModuleFPHom)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
 end
-function *(a::RingElem, g::ModuleMap)
+function *(a::RingElem, g::ModuleFPHom)
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
 end
