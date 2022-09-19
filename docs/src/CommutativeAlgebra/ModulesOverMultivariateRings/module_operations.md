@@ -121,11 +121,11 @@ hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
 ```
 
 ```@docs
-homomorphism(f::ModuleFPElem)
+element_to_homomorphism(f::ModuleFPElem)
 ```
 
 ```@docs
-module_elem(H::ModuleFP, phi::ModuleFPHom)
+homomorphism_to_element(H::ModuleFP, phi::ModuleFPHom)
 ```
 
 ```@docs
