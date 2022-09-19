@@ -11,7 +11,7 @@ equivalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
@@ -38,7 +38,7 @@ rational equivalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
@@ -68,7 +68,7 @@ ring if desired.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
@@ -124,7 +124,7 @@ Return a polynomial in the Cox ring mapping to `polynomial(ac)`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
@@ -158,7 +158,7 @@ Return the coefficients of `polynomial(ac)`.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
@@ -195,7 +195,7 @@ class is identical to the one given to this method.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
@@ -234,7 +234,7 @@ equilvalence class of algebraic cycles.
 
 # Examples
 ```jldoctest
-julia> dP2 = del_pezzo(2)
+julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> d = ToricDivisor(dP2, [1,2,3,4,5])
