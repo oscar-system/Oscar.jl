@@ -91,6 +91,12 @@ Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polym
 
 Base.convert(::Type{<:Polymake.Rational}, x::fmpz) = GC.@preserve x return Polymake.new_rational_from_fmpz(x)
 
+function Base.convert(::Type{fmpz}, x::Polymake.Integer)
+    GC.@preserve x np = Polymake.new_fmpz_from_integer(x)
+    rp = Ptr{fmpz}(np)
+    return unsafe_load(rp)
+end
+
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz}) = Polymake.Integer
