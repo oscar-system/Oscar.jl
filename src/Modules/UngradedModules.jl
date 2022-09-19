@@ -2209,7 +2209,7 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> intersect(M, N)
-(Subquotient of Submodule with 3 generators
+(Subquotient of Submodule with 2 generators
 1 -> -x*y*e[1]
 2 -> x*z^4*e[1]
 by Submodule with 3 generators
@@ -2218,7 +2218,7 @@ by Submodule with 3 generators
 3 -> z^4*e[1], Map with following data
 Domain:
 =======
-Subquotient of Submodule with 3 generators
+Subquotient of Submodule with 2 generators
 1 -> -x*y*e[1]
 2 -> x*z^4*e[1]
 by Submodule with 3 generators
@@ -2235,7 +2235,7 @@ by Submodule with 3 generators
 3 -> z^4*e[1], Map with following data
 Domain:
 =======
-Subquotient of Submodule with 3 generators
+Subquotient of Submodule with 2 generators
 1 -> -x*y*e[1]
 2 -> x*z^4*e[1]
 by Submodule with 3 generators
@@ -4788,7 +4788,7 @@ by Submodule with 2 generators
 2 -> y^2*e[2])
 
 julia> gens(H)
-4-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
 
@@ -4877,7 +4877,7 @@ by Submodule with 2 generators
 julia> H = hom(M, M)[1];
 
 julia> gens(H)
-4-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
 
@@ -4943,7 +4943,7 @@ by Submodule with 2 generators
 julia> H = hom(M, M)[1];
 
 julia> gens(H)
-4-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
 
@@ -5646,7 +5646,7 @@ julia> T0 = tor(Q, M, 0)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1] \otimes e[1]
 2 -> y*e[1] \otimes e[1]
-by Submodule with 5 generators
+by Submodule with 4 generators
 1 -> x^2*e[1] \otimes e[1]
 2 -> y^3*e[1] \otimes e[1]
 3 -> z^4*e[1] \otimes e[1]
@@ -5954,7 +5954,7 @@ julia> ext(M, M, 1)
 Subquotient of Submodule with 2 generators
 1 -> (e[2] -> e[1])
 2 -> (e[1] -> e[1])
-by Submodule with 5 generators
+by Submodule with 4 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
 3 -> x*(e[2] -> e[1])
@@ -5963,14 +5963,14 @@ by Submodule with 5 generators
 julia> ext(M, M, 2)
 Subquotient of Submodule with 1 generator
 1 -> (e[1] -> e[1])
-by Submodule with 4 generators
+by Submodule with 3 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
 3 -> -y*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
-represented  as subquotient with no relations.
+represented as subquotient with no relations.
 ```
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
