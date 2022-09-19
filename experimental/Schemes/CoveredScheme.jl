@@ -202,7 +202,7 @@ function getindex(C::Covering, X::AbsSpec)
   error("affine scheme could not be found among the patches")
 end
 
-function add_glueing!(C::Covering, G::Glueing)
+function add_glueing!(C::Covering, G::AbsGlueing)
   (X, Y) = patches(G)
   C.glueings[(X, Y)] = G
   C.glueings[(Y, X)] = inverse(G)
