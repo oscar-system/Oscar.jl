@@ -28,7 +28,11 @@ end
 
 underlying_scheme(U::PrincipalOpenSubset) = U.U
 ambient_scheme(U::PrincipalOpenSubset) = U.X
-complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(ambient_ring(U))
+complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U)))
+
+### assure compatibility with SpecOpen 
+gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
+getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
 function inclusion_morphism(U::PrincipalOpenSubset) 
   if !isdefined(U, :inc)
@@ -40,6 +44,14 @@ function inclusion_morphism(U::PrincipalOpenSubset)
 end
 
 PrincipalOpenSubset(X::AbsSpec) = PrincipalOpenSubset(X, one(OO(X)))
+
+function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true) 
+  if ambient_scheme(U) != codomain(f) 
+    Z = preimage(f, ambient_scheme(U), check=check)
+    return PrincipalOpenSubset(Z, OO(Z)(pullback(f)(complement_equation(U)), check=false))
+  end
+  return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
+end
 
 @attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
@@ -211,3 +223,12 @@ function restriction(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   g_res = restrict(g, VY, UX, check=check)
   return SimpleGlueing(X, Y, f_res, g_res)
 end
+
+function Glueing(
+    X::AbsSpec, Y::AbsSpec, 
+    f::AbsSpecMor{<:PrincipalOpenSubset}, 
+    g::AbsSpecMor{<:PrincipalOpenSubset};
+    check::Bool=true)
+  return SimpleGlueing(X, Y, f, g, check=check)
+end
+

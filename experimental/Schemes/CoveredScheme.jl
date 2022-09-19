@@ -966,37 +966,12 @@ function simplify(C::Covering)
   n = npatches(C)
   new_patches = [simplify(X) for X in patches(C)]
   GD = glueings(C)
-  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, Glueing}()
+  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (X, Y) in keys(GD)
     Xsimp, iX, jX = new_patches[C[X]]
     Ysimp, iY, jY = new_patches[C[Y]]
     G = GD[(X, Y)]
-    U, V = glueing_domains(G)
-    f, g = glueing_morphisms(G)
-    Usimp = SpecOpen(Xsimp, lifted_numerator.(pullback(iX).(gens(U))), check=false)
-    Vsimp = SpecOpen(Ysimp, lifted_numerator.(pullback(iY).(gens(V))), check=false)
-
-    fsimp = SpecOpenMor(Usimp, Vsimp, 
-                        [
-                         compose(
-                                 compose(
-                                         restrict(iX, Usimp[k], U[k], check=false), 
-                                         f[k]),
-                                 jY)
-                         for k in 1:npatches(Usimp)],
-                        check=false
-                       )
-    gsimp = SpecOpenMor(Vsimp, Usimp, 
-                        [
-                         compose(
-                                 compose(
-                                         restrict(iY, Vsimp[k], V[k], check=false), 
-                                         g[k]),
-                                 jX)
-                         for k in 1:npatches(Vsimp)],
-                        check=false
-                       )
-    new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=false)
+    new_glueings[(Xsimp, Ysimp)] = restriction(G, jX, jY, check=false)
   end
   iDict = Dict{AbsSpec, AbsSpecMor}()
   jDict = Dict{AbsSpec, AbsSpecMor}()
