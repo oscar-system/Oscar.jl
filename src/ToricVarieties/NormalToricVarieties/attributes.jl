@@ -88,7 +88,7 @@ cached, then this function returns `true` and otherwise `false`.
 
 # Examples
 ```jldoctest
-julia> is_finalized(del_pezzo(3))
+julia> is_finalized(del_pezzo_surface(3))
 false
 ```
 """
