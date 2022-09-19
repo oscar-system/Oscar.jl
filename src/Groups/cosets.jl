@@ -273,13 +273,13 @@ end
 Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
-    double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
+    double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
 
 Return the vector of all the double cosets `HxK` for `x` in `G`.
-If `NC == true`, do not check whether `H` and `K` are subgroups of `G`.
+If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 """
-function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
-   if NC
+function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+   if !check
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else
       @assert is_subgroup(G,H)[1] "H is not a subgroup of G"
