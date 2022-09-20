@@ -30,7 +30,8 @@
   Gamma_psi, p, q = graph(psi)
   @test iszero(pullback(p)(OO(phi_L)(y//z)) - pullback(q)(OO(L)(v)))
   
-  mirr = SpecMor(X, X, [y, x, z])
+  Xstd = Oscar.standard_spec(X)
+  mirr = SpecMor(Xstd, Xstd, [y, x, z])
   @test is_isomorphism(mirr)
-  @test pullback(compose(inverse(mirr), mirr))(OO(X)(x^2-34*z)) == OO(X)(x^2-34*z+ f^2)
+  @test pullback(compose(inverse(mirr), mirr))(OO(Xstd)(x^2-34*z)) == OO(Xstd)(x^2-34*z+ f^2)
 end

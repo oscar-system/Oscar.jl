@@ -12,6 +12,8 @@ export MPolyQuoLocalizedRingHom
 export domain, codomain, images, morphism_type, domain_type, codomain_type, restricted_map_type, ideal_type
 export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
+export MPolyQuoLocalizedIdeal
+
 export is_isomorphism, inverse
 
 export simplify
@@ -444,7 +446,8 @@ function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRi
 end
 
 function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST} 
-  parent(f) == quotient_ring(L) || error("the given element does not belong to the correct ring") 
+  base_ring(parent(f)) == base_ring(L) || error("the given element does not belong to the correct ring") 
+  check && (parent(f) == quotient_ring(L) || all(x->(iszero(L(x))), gens(modulus(parent(f)))) || error("coercion is not well defined"))
   return L(lift(f))
 end
 
@@ -1249,6 +1252,22 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   return Lnew, floc, flocinv
 end
 
+#TODO: Fill the following three methods with meaning:
+function simplify(L::MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
+  f = identity_map(L)
+  return L, f, f
+end
+
+function simplify(L::MPolyQuo)
+  f = identity_map(L)
+  return L, f, f
+end
+
+function simplify(L::MPolyRing)
+  f = identity_map(L)
+  return L, f, f
+end
+
 @Markdown.doc """
     MPolyQuoLocalizedIdeal{
         LocRingType<:MPolyQuoLocalizedRing, 
@@ -1303,7 +1322,7 @@ base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
-pre_image_ideal(I) = I.J
+pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 
@@ -1356,6 +1375,22 @@ function ideal(
     I::MPolyIdeal
   )
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
+end
+
+### Further constructors for quotient rings
+function quo(
+    L::MPolyQuoLocalizedRing,
+    I::MPolyQuoLocalizedIdeal
+  )
+  base_ring(I) == L || error("ideal does not belong to the correct ring")
+  return quo(localized_ring(L), localized_modulus(L) + pre_image_ideal(I))
+end
+
+function quo(A::MPolyQuo, I::MPolyQuoIdeal)
+  base_ring(I) == A || error("ideal does not belong to the correct ring")
+  R = base_ring(A)
+  Q, _ = quo(R, modulus(A) + ideal(R, lift.(gens(I))))
+  return Q, hom(A, Q, Q.(gens(R)))
 end
 
 function divides(a::MPolyQuoLocalizedRingElem, b::MPolyQuoLocalizedRingElem)
