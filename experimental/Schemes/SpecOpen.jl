@@ -868,7 +868,7 @@ function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
 
-function restrict(f::SpecOpenMor, W::Spec, Y::Spec; check::Bool=true)
+function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
   if check
     issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
     issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
@@ -1101,9 +1101,11 @@ end
 Base.inv(M::MatElem) = inv(det(M))*adjoint(M)
 
 function preimage(f::SpecMor, V::SpecOpen; check::Bool=true)
-  Z = preimage(f, ambient(V))
+  if check
+    issubset(codomain(f), ambient(V)) || error("set is not guaranteed to be open in the codomain")
+  end
   new_gens = pullback(f).(gens(V))
-  return SpecOpen(Z, lifted_numerator.(new_gens), check=check)
+  return SpecOpen(domain(f), lifted_numerator.(new_gens), check=check)
 end
 
 ### Assure compatibility with the other rings

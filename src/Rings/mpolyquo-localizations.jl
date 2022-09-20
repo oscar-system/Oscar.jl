@@ -446,7 +446,8 @@ function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRi
 end
 
 function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST} 
-  parent(f) == quotient_ring(L) || error("the given element does not belong to the correct ring") 
+  base_ring(parent(f)) == base_ring(L) || error("the given element does not belong to the correct ring") 
+  check && (parent(f) == quotient_ring(L) || all(x->(iszero(L(x))), gens(modulus(parent(f)))) || error("coercion is not well defined"))
   return L(lift(f))
 end
 

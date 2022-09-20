@@ -36,7 +36,7 @@ function Base.show(io::IO, G::AbsGlueing)
 end
 
 @Markdown.doc """
-Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
+    Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
 
 Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets 
 ``U ⊂ X`` and ``V ⊂ Y via some isomorphism ``φ : U → V``.
@@ -194,4 +194,38 @@ function restriction(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) whe
     is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
   return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check), check=check)
+end
+
+@Markdown.doc """
+    restriction(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+
+Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 
+``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
+"""
+function restriction(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+  (X1, Y1) = patches(G)
+  X1 == domain(f) || error("maps not compatible")
+  X2 = codomain(f)
+  finv = inverse(f)
+
+  Y1 == domain(g) || error("maps not compatible")
+  Y2 = codomain(g)
+  ginv = inverse(g)
+
+  (h1, h2) = glueing_morphisms(G)
+
+  U2 = preimage(finv, domain(h1), check=check)
+  V2 = preimage(ginv, domain(h2), check=check)
+
+  return Glueing(X2, Y2, 
+                 compose(restrict(finv, U2, domain(h1), check=check), 
+                         compose(h1, restrict(g, domain(h2), V2, check=check), check=check),
+                         check=check
+                        ),
+                 compose(restrict(ginv, V2, domain(h2), check=check), 
+                         compose(h2, restrict(f, domain(h1), U2), check=check), 
+                         check=check
+                        ),
+                 check=check
+                )
 end

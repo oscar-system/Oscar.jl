@@ -612,55 +612,21 @@ function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
   return coverings(underlying_scheme(X))
 end
 
-function refinements(X::AbsCoveredScheme)::Dict{Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
-  return refinements(underlying_scheme(X))
-end
-
-function getindex(X::AbsCoveredScheme, C::Covering, D::Covering)::CoveringMorphism
-  return getindex(underlying_scheme(X), C, D)
-end
-
-function setindex!(X::AbsCoveredScheme, C::Covering, D::Covering)::CoveringMorphism
-  return setindex!(underlying_scheme(X), C, D)
-end
-
-function default_covering(X::AbsCoveredScheme)::Covering
-  return default_covering(underlying_scheme(X))
-end
-
-function getindex(X::AbsCoveredScheme, i::Int)::Covering
-  return coverings(underlying_scheme(X))[i]
-end
-
-patches(X::AbsCoveredScheme) = patches(default_covering(X))
-glueings(X::AbsCoveredScheme) = glueings(default_covering(X))
-
-#=
-########################################################################
-# Covered schemes and their interface
-########################################################################
-abstract type AbsCoveredScheme{BRT} <: Scheme{BRT} end
-
 @Markdown.doc """
     coverings(X::AbsCoveredScheme)
 
 Returns the available coverings for ``X``.
 """
-coverings(X::AbsCoveredScheme) = coverings(underlying_scheme(X))
-
-@Markdown.doc """
-    default_covering(X::AbsCoveredScheme)
-
-Returns the default covering of ``X``.
-"""
-default_covering(X::AbsCoveredScheme) = default_covering(underlying_scheme(X))
+function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
+  return coverings(underlying_scheme(X))
+end
 
 @Markdown.doc """
     patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
 Returns the affine patches in the `default_covering` of ``X``.
 """
-patches(X::AbsCoveredScheme) = patches(underlying_scheme(X))
+patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
 ### Forwarding of the non-documented getters
 Base.in(U::AbsSpec, X::AbsCoveredScheme) = (U in underlying_scheme(X))::Bool
@@ -670,7 +636,7 @@ setindex(X::AbsCoveredScheme, f::CoveringMorphism, C::Covering, D::Covering) = s
 refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Vector{<:CoveringMorphism}
 glueings(X::AbsCoveredScheme) = glueings(underlying_scheme(X))::AbsGlueing
 
-=#
+
 ########################################################################
 # A minimal implementation of AbsCoveredScheme                         #
 ########################################################################
@@ -1004,37 +970,12 @@ function simplify(C::Covering)
   n = npatches(C)
   new_patches = [simplify(X) for X in patches(C)]
   GD = glueings(C)
-  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, Glueing}()
+  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (X, Y) in keys(GD)
     Xsimp, iX, jX = new_patches[C[X]]
     Ysimp, iY, jY = new_patches[C[Y]]
     G = GD[(X, Y)]
-    U, V = glueing_domains(G)
-    f, g = glueing_morphisms(G)
-    Usimp = SpecOpen(Xsimp, lifted_numerator.(pullback(iX).(gens(U))), check=false)
-    Vsimp = SpecOpen(Ysimp, lifted_numerator.(pullback(iY).(gens(V))), check=false)
-
-    fsimp = SpecOpenMor(Usimp, Vsimp, 
-                        [
-                         compose(
-                                 compose(
-                                         restrict(iX, Usimp[k], U[k], check=false), 
-                                         f[k]),
-                                 jY)
-                         for k in 1:npatches(Usimp)],
-                        check=false
-                       )
-    gsimp = SpecOpenMor(Vsimp, Usimp, 
-                        [
-                         compose(
-                                 compose(
-                                         restrict(iY, Vsimp[k], V[k], check=false), 
-                                         g[k]),
-                                 jX)
-                         for k in 1:npatches(Vsimp)],
-                        check=false
-                       )
-    new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=false)
+    new_glueings[(Xsimp, Ysimp)] = restriction(G, jX, jY, check=false)
   end
   iDict = Dict{AbsSpec, AbsSpecMor}()
   jDict = Dict{AbsSpec, AbsSpecMor}()

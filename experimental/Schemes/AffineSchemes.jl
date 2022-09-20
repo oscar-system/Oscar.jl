@@ -263,16 +263,16 @@ OO(X::Spec) = X.OO
 base_ring(X::Spec) = X.kk
 
 ### constructors
-standard_spec(X::Spec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
-function standard_spec(X::Spec{<:Any, <:MPolyQuo}) 
+function standard_spec(X::AbsSpec{<:Any, <:MPolyQuo}) 
   A = OO(X)
   R = base_ring(A)
   return Spec(MPolyQuoLocalizedRing(R, modulus(A), units_of(R)))
 end
 
-standard_spec(X::Spec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedRing(base_ring(OO(X)), ideal(base_ring(OO(X)), [zero(base_ring(OO(X)))]), inverted_set(OO(X))))
-standard_spec(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = Spec(X)
+standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedRing(base_ring(OO(X)), ideal(base_ring(OO(X)), [zero(base_ring(OO(X)))]), inverted_set(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = Spec(OO(X))
 
 ambient_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
 ambient_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
@@ -815,7 +815,7 @@ identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), g
 identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X))))
 inclusion_map(X::T, Y::T) where {T<:AbsSpec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
 
-function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
+function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   if check
     issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
     issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
@@ -824,9 +824,9 @@ function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   return SpecMor(U, V, OO(U).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
 
-function compose(f::SpecMor, g::SpecMor)
+function compose(f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   codomain(f) == domain(g) || error("Morphisms can not be composed")
-  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
+  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=check)
 end
 
 function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:AbsSpecMor}
@@ -839,26 +839,31 @@ end
 
 ### functionality
 function preimage(
-    phi::AbsSpecMor{SpecType, SpecType},
-    Z::SpecType
-  ) where {SpecType<:StdSpec}
+    phi::AbsSpecMor,
+    Z::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                               <:MPolyPowersOfElement}};
+    check::Bool=true
+  )
   X = domain(phi)
   Y = codomain(phi)
-  issubset(Z, Y) || (Z = intersect(Y, Z))
+  check && (issubset(Z, Y) || (Z = intersect(Y, Z)))
   IZ = modulus(OO(Z))
   a = denominators(inverted_set(OO(Z)))
-  R = base_ring(OO(X))
+  R = ambient_ring(X)
   f = pullback(phi)
-  new_units = MPolyPowersOfElement(R, [lifted_numerator(f(d)) for d in a])
+  new_units = [lifted_numerator(f(d)) for d in a]
   new_gens = lifted_numerator.(f.(gens(IZ)))
-  return Spec(MPolyQuoLocalizedRing(R, ideal(R, new_gens) + modulus(OO(X)), inverted_set(OO(X))*new_units))
+  return hypersurface_complement(subscheme(X, new_gens), new_units)
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
   return subscheme(domain(f), ideal(OO(domain(f)), [zero(OO(domain(f)))]))
 end
 
-function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing}; check::Bool=true)
+function preimage(f::AbsSpecMor, 
+    Z::AbsSpec{<:Ring, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                            <:MPolyPowersOfElement}}; 
+    check::Bool=true)
   return hypersurface_complement(domain(f), pullback(f).(denominators(inverted_set(OO(Z)))))
 end
 
@@ -1023,7 +1028,11 @@ strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
 function simplify(X::Spec)
   L, f, g = simplify(OO(X))
   Y = Spec(L)
-  return Y, SpecMor(Y, X, f), SpecMor(X, Y, g)
+  YtoX = SpecMor(Y, X, f)
+  XtoY = SpecMor(X, Y, g)
+  set_attribute!(YtoX, :inverse, XtoY)
+  set_attribute!(XtoY, :inverse, YtoX)
+  return Y, YtoX, XtoY
 end
 
 function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
