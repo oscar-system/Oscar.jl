@@ -1014,8 +1014,6 @@ end
   return dim(modulus(OO(X)))
 end
 
-# TODO: This is not 100% mathematically correct, since codimension is 
-# a local concept. Should we therefore forbid this method?
 @attr function codim(X::Spec)
   return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))])) - dim(X)
 end

@@ -27,6 +27,7 @@ end
 
 underlying_scheme(X::ToricSpec) = X.X
 affine_normal_toric_variety(X::ToricSpec) = X.antv
+#antv(X::ToricSpec) = affine_normal_toric_variety(X)
 antv = affine_normal_toric_variety
 cone(X::ToricSpec) = cone(antv(X))
 dual_cone(X::ToricSpec) = X.dual_cone
@@ -86,6 +87,7 @@ end
         Y = patch_list[j]
         CY = cone(Y)
         CYdual = dual_cone(Y)
+
         ### Now glue X and Y 
         # the cone of the intersection
         facet = intersect(CX, CY)
@@ -126,7 +128,7 @@ end
         V = PrincipalOpenSubset(Y, OO(Y)(fY))
         
         # set up the glueing isomorphisms 
-        # We assume that the v element must be part of the hilbert basis 
+        # We assume that the v element must be part of the Hilbert basis 
         # already. 
         l = 0
         for j in 1:ncols(AX)
@@ -172,3 +174,4 @@ end
 underlying_scheme(X::ToricCoveredScheme) = X.X
 normal_toric_variety(X::ToricCoveredScheme) = X.ntv
 ntv = normal_toric_variety
+fan(X::ToricCoveredScheme) = fan(normal_toric_variety(X))
