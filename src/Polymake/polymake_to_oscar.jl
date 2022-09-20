@@ -10,7 +10,7 @@ function convert(p::Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(
         parent, _ = PolynomialRing(QQ, "x" => 0:n_vars - 1, cached=false)
     end
 
-    return parent(coeff_vec, [monomials[:, i] for i in 1:ncols(monomials)])
+    return parent(coeff_vec, [monomials[i, :] for i in 1:nrows(monomials)])
 end
 
 function convert(O::Polymake.BigObject)
