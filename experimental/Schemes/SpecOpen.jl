@@ -907,7 +907,7 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   return SpecOpenMor(U, W, maps_on_patches)
 end
 
-function pullback(f::SpecOpenMor, a::RingElem) where {RET<:RingElem}
+function pullback(f::SpecOpenMor, a::RingElem)
   U = domain(f)
   X = ambient(U)
   V = codomain(f)

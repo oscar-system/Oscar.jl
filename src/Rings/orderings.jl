@@ -709,7 +709,7 @@ end
 Defines the (partial) weighted ordering on the variables given with the weight
 vector `w`. This is equivalent to a matrix ordering with just one row.
 """
-function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) where T
+function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(1, length(w), w)))
 end
@@ -991,7 +991,7 @@ function _expressify(o::WSymbOrdering{S}, sym)  where S
                         Expr(:vect, o.weights...))
 end
 
-function _expressify(o::MatrixOrdering, sym) where S
+function _expressify(o::MatrixOrdering, sym)
   return Expr(:call, nrows(o.matrix) == 1 ? :weighted_ordering : :matrix_ordering,
                      Expr(:vect, (sym[i] for i in o.vars)...),
                      AbstractAlgebra.expressify(o.matrix))

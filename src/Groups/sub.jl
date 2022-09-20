@@ -322,7 +322,7 @@ i.e., `G` is finite and has a normal series with cyclic factors.
 #
 ################################################################################
 
-function quo(G::FPGroup, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
+function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   @assert elem_type(G) == S
   # GAP cannot handle the case that `G.X` is not a *full* free or f.p. group.
   # If `G.X` is a subgroup of a free group then GAP returns a quotient group

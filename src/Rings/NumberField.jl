@@ -484,11 +484,11 @@ end
 
 ==(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = Hecke.data(a) == b
 
-==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) where {T, S} = a == Hecke.data(b)
+==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a == Hecke.data(b)
 
 ==(a::NfNSGenElem{fmpq, fmpq_mpoly}, b::fmpq) = Hecke.data(a) == b
 
-==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) where {T, S} = Hecke.data(b) == a
+==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) = Hecke.data(b) == a
 
 ################################################################################
 #
