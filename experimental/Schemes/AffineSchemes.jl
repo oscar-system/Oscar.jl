@@ -857,6 +857,7 @@ function preimage(
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
+  OO(Z) == ambient_ring(codomain(f)) || error("schemes can not be compared")
   return subscheme(domain(f), ideal(OO(domain(f)), [zero(OO(domain(f)))]))
 end
 
