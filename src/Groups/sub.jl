@@ -5,6 +5,7 @@ export
     derived_series, has_derived_series, set_derived_series,
     derived_subgroup, has_derived_subgroup, set_derived_subgroup,
     embedding,
+    epimorphism_from_free_group,
     index,
     is_characteristic,
     is_maximal,
@@ -484,6 +485,41 @@ function __create_fun(mp, codom, ::Type{S}) where S
     return group_element(codom, el)
   end
   return mp_julia
+end
+
+"""
+    epimorphism_from_free_group(G::GAPGroup)
+
+Return an epimorphism `epi` from a free group `F == domain(epi)` onto `G`,
+where `F` has the same number of generators as `G` and such that for each `i`
+it maps `gen(F,i)` to `gen(G,i)`.
+
+A useful application of this function is expressing an element of `G` as
+a word in its generators.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> epi = epimorphism_from_free_group(G)
+Group homomorphism from
+<free group on the generators [ x1, x2 ]>
+to
+Sym( [ 1 .. 4 ] )
+
+julia> pi = G([2,4,3,1])
+(1,2,4)
+
+julia> w = preimage(epi, pi);
+
+julia> map_word(w, gens(G))
+(1,2,4)
+```
+"""
+function epimorphism_from_free_group(G::GAPGroup)
+  mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
+  fG = FPGroup(GAP.Globals.Source(mfG))
+  return Oscar.GAPGroupHomomorphism(fG, G, mfG)
 end
 
 ################################################################################
