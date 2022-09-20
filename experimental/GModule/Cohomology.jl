@@ -1469,13 +1469,8 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 #  @assert is_surjective(QtoG)
 #  @assert is_injective(MtoQ)
 
-  mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
-  fG = FPGroup(GAP.Globals.Source(mfG))
-  mfG = Oscar.GAPGroupHomomorphism(fG, G, mfG)
-
-  mffM = GAP.Globals.EpimorphismFromFreeGroup(fM.X)
-  ffM = FPGroup(GAP.Globals.Source(mffM))
-  mffM = Oscar.GAPGroupHomomorphism(ffM, fM, mffM)
+  mfG = epimorphism_from_free_group(G)
+  mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
     wm = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(preimage(mffM, preimage(mfM, m)).X))

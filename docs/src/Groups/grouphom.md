@@ -172,3 +172,9 @@ isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup
 isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```
+
+## Other homomorphisms
+
+```@docs
+epimorphism_from_free_group(G::GAPGroup)
+```
