@@ -5679,10 +5679,11 @@ end
 #
 #################################################
 @doc Markdown.doc"""
-    lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleFPHom)
+    lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, a::ModuleFPHom)
 
-Let `Hom_MP` $= \text{Hom}(M,P)$, `Hom_NP` $= \text{Hom}(N,P)$ and `phi` $= \phi : N \to M$ a morphism.
-Compute $\phi^{\ast} : \text{Hom}(M,P) \to \text{Hom}(N,P)$.
+Given modules of homomorphism, say, `Hom_MP` $= \text{Hom}(M,P)$ and `Hom_NP` $= \text{Hom}(N,P)$, 
+and given a homomorphism `a` $: N \to M$, return the induced homomorphism
+$\text{Hom}(M,P) \to \text{Hom}(N,P)$.
 """
 function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleFPHom)
   # phi : N -> M
@@ -5702,10 +5703,11 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
 end
 
 @doc Markdown.doc"""
-    lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleFPHom)
+    lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, a::ModuleFPHom)
 
-Let `Hom_PM` $= \text{Hom}(P,M)$, `Hom_PN` $= \text{Hom}(P,N)$ and `phi` $= \phi : M \to N$ a morphism.
-Compute $\phi_{\ast} : \text{Hom}(P,M) \to \text{Hom}(P,N)$.
+Given modules of homomorphism, say, `Hom_PM` $= \text{Hom}(P,M)$ and `Hom_PN` $= \text{Hom}(P,N)$,
+and given a homomorphism `a` $: M \to N$, return the induced homomorphism
+$\text{Hom}(P,M) \to \text{Hom}(P,N)$.
 """
 function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleFPHom)
   # phi : M -> N
@@ -5728,9 +5730,9 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
 end
 
 @doc Markdown.doc"""
-    hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+    hom(P::ModuleFP, C::ChainComplex{ModuleFP})
 
-Apply $\text{Hom}(P,-)$ to `C`. Return the lifted chain complex.
+Return the complex obtained by applying $\text{Hom}($`M`, $-)$ to `C`.
 """
 function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   #hom_chain = Hecke.map_type(C)[]
@@ -5752,9 +5754,9 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
 end
 
 @doc Markdown.doc"""
-    hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+    hom(C::ChainComplex{ModuleFP}, P::ModuleFP)
 
-Apply $\text{Hom}(-,P)$ to `C`. Return the lifted chain complex.
+Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 """
 function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #hom_chain = Hecke.map_type(C)[]
