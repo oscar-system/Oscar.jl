@@ -297,23 +297,23 @@ function transform_to_positive_orthant(rs::Matrix{Int})
     return original * transformation, transformation
 end
 
-function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; strategy=:BayerStillmanA)
+function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:BayerStillmanA)
   x = gens(base_ring(I))
   W = [degree(Vector{Int}, x[i])[j] for j in 1:m, i in 1:length(x)]
   return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in gens(I)], 
                                                    return_ring=S, weight_matrix=W, 
-                                                   strategy=:BayerStillmanA
+                                                   alg=:BayerStillmanA
                                                   )
 end
 
 
 @doc Markdown.doc"""
-    multi_hilbert_series(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
+    multi_hilbert_series(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
 
 Return the Hilbert series of the positively graded affine algebra `A`.
 
 !!! note 
-    The advanced user can select a `strategy` for the computation; 
+    The advanced user can select a `alg` for the computation; 
     see the code for details.
 
 # Examples
@@ -385,7 +385,7 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function multi_hilbert_series(A::MPolyQuo; strategy=:BayerStillmanA)
+function multi_hilbert_series(A::MPolyQuo; alg=:BayerStillmanA)
    R = A.R
    I = A.I
    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
@@ -434,7 +434,7 @@ function multi_hilbert_series(A::MPolyQuo; strategy=:BayerStillmanA)
       p = one(S)
    else
       LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      p = _numerator_monomial_multi_hilbert_series(LI, S, m, strategy=strategy)
+      p = _numerator_monomial_multi_hilbert_series(LI, S, m, alg=alg)
    end
    return  (p, q), (H, iso)
 end
@@ -504,12 +504,12 @@ end
 #end
 
 @doc Markdown.doc"""
-    multi_hilbert_series_reduced(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
+    multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
 
 !!! note 
-    The advanced user can select a `strategy` for the computation; 
+    The advanced user can select a `alg` for the computation; 
     see the code for details.
 
 # Examples
@@ -581,8 +581,8 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function multi_hilbert_series_reduced(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
-   (p, q), (H, iso) = multi_hilbert_series(A, strategy=strategy)
+function multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
+   (p, q), (H, iso) = multi_hilbert_series(A, alg=alg)
    f = p//q
    p = numerator(f)
    q = denominator(f)

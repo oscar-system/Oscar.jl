@@ -1732,12 +1732,12 @@ function _hilbert_numerator_from_leading_exponents(
                  PolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1] : 
                  LaurentPolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1]
                 ),
-    #strategy=:generator
-    #strategy=:custom
-    #strategy=:gcd
-    #strategy=:indeterminate
-    #strategy=:cocoa
-    strategy=:BayerStillmanA # This is by far the fastest strategy. Should be used.
+    #alg=:generator
+    #alg=:custom
+    #alg=:gcd
+    #alg=:indeterminate
+    #alg=:cocoa
+    alg=:BayerStillmanA # This is by far the fastest strategy. Should be used.
   )
   length(a) == 0 && return one(return_ring)
 
@@ -1746,7 +1746,7 @@ function _hilbert_numerator_from_leading_exponents(
   # See Proposition 5.3.6
   _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
-  if strategy == :BayerStillmanA
+  if alg == :BayerStillmanA
     S = return_ring
     ###########################################################################
     # For this strategy see
@@ -1785,7 +1785,7 @@ function _hilbert_numerator_from_leading_exponents(
       end
       q = _hilbert_numerator_from_leading_exponents(J1, return_ring=S, 
                                                     weight_matrix=weight_matrix, 
-                                                    strategy=strategy)
+                                                    alg=alg)
       for k in linear_mons
         q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
       end
@@ -1794,7 +1794,7 @@ function _hilbert_numerator_from_leading_exponents(
     end
     return h
 
-  elseif strategy == :custom
+  elseif alg == :custom
     p = Vector{Int}()
     q = Vector{Int}()
     max_deg = 0
@@ -1825,9 +1825,9 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
 
-  elseif strategy == :gcd # see Remark 5.3.11
+  elseif alg == :gcd # see Remark 5.3.11
     n = length(a)
     counters = [0 for i in 1:length(a[1])]
     for e in a
@@ -1860,9 +1860,9 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
     
-  elseif strategy == :generator # just choosing on random generator, cf. Remark 5.3.8
+  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
     b = copy(a)
     pivot = pop!(b)
     
@@ -1876,17 +1876,17 @@ function _hilbert_numerator_from_leading_exponents(
     p1 = _hilbert_numerator_from_leading_exponents(b, 
                                                    return_ring=return_ring, 
                                                    weight_matrix=weight_matrix,
-                                                   strategy=strategy
+                                                   alg=alg
                                                   )
     p2 = _hilbert_numerator_from_leading_exponents(c, 
                                                    return_ring=return_ring, 
                                                    weight_matrix=weight_matrix,
-                                                   strategy=strategy
+                                                   alg=alg
                                                   )
 
     return p1 - f * p2
 
-  elseif strategy == :indeterminate # see Remark 5.3.8
+  elseif alg == :indeterminate # see Remark 5.3.8
     e = first(a)
     pivot = Int[]
     found_at = 0
@@ -1912,9 +1912,9 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
 
-  elseif strategy == :cocoa # see Remark 5.3.14
+  elseif alg == :cocoa # see Remark 5.3.14
     n = length(a)
     m = length(a[1])
     counters = [0 for i in 1:m]
@@ -1950,10 +1950,10 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, strategy=strategy)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
     
   end
-  error("invalid strategy")
+  error("invalid algorithm")
 end
 
 ############################################################################
