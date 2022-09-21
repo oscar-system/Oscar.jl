@@ -3,13 +3,14 @@ export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       std_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, hom_tensor, hom_product, coordinates, 
       represents_element, free_resolution, free_resolution_via_kernels,
-      homomorphism, module_elem, generator_matrix, restrict_codomain,
-      restrict_domain, direct_product, tensor_product, free_module, tor,
-      lift_homomorphism_contravariant, lift_homomorphism_covariant,
-      hom_without_reversing_direction, ext, transport, find_morphism,
-      find_morphisms, is_canonically_isomorphic, 
+      element_to_homomorphism, homomorphism_to_element, generator_matrix, 
+      restrict_codomain, restrict_domain, direct_product, tensor_product, 
+      free_module, tor, ext, lift_homomorphism_contravariant, 
+      lift_homomorphism_covariant, hom_without_reversing_direction, transport, 
+      find_morphism, find_morphisms, is_canonically_isomorphic, 
       is_canonically_isomorphic_with_map, register_morphism!, dense_row,
       show_subquo, show_morphism, show_morphism_as_map,
+      simplify_light, simplify_with_same_ambient_free_module,
       matrix_kernel, simplify, map, is_injective,
       is_surjective, is_bijective, is_welldefined, subquotient,
       multiplication_morphism, multiplication_induced_morphism,
@@ -110,6 +111,10 @@ function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
+end
+
+function hash(F::FreeMod, h::UInt)
+  return hash((base_ring(F), rank(F), F.S), h)
 end
 
 @doc Markdown.doc"""
@@ -378,6 +383,10 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
     return false
   end
   return a.coords == b.coords
+end
+
+function hash(a::AbstractFreeModElem, h::UInt)
+  return hash(tuple(parent(a), coords(a)), h)
 end
 
 # scalar multiplication with polynomials, integers
@@ -2085,7 +2094,8 @@ function sum(M::SubQuo{T},N::SubQuo{T}) where T
   register_morphism!(iM)
   register_morphism!(iN)
 
-  return SQ, iM, iN
+  SQ_simplified, _, s_proj = simplify_light(SQ)
+  return SQ_simplified, iM*s_proj, iN*s_proj
 end
 
 @doc Markdown.doc"""
@@ -2199,20 +2209,18 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> intersect(M, N)
-(Subquotient of Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> -x*y*e[1]
-3 -> x*z^4*e[1]
+(Subquotient of Submodule with 2 generators
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1], Map with following data
 Domain:
 =======
-Subquotient of Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> -x*y*e[1]
-3 -> x*z^4*e[1]
+Subquotient of Submodule with 2 generators
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
@@ -2227,10 +2235,9 @@ by Submodule with 3 generators
 3 -> z^4*e[1], Map with following data
 Domain:
 =======
-Subquotient of Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> -x*y*e[1]
-3 -> x*z^4*e[1]
+Subquotient of Submodule with 2 generators
+1 -> -x*y*e[1]
+2 -> x*z^4*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
@@ -2272,7 +2279,8 @@ function intersect(M::SubQuo{T}, N::SubQuo{T}) where T
     register_morphism!(M_hom)
     register_morphism!(N_hom)
 
-    return SQ,M_hom,N_hom
+    SQ_simplified, s_inj, _ = simplify_light(SQ)
+    return SQ_simplified, s_inj*M_hom, s_inj*N_hom
   end
   throw(ArgumentError("Relations of M and N are not equal."))
 end
@@ -4780,11 +4788,9 @@ by Submodule with 2 generators
 2 -> y^2*e[2])
 
 julia> gens(H)
-4-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
- y^2*(e[1] -> e[2])
- x*(e[2] -> e[1])
 
 julia> relations(H)
 4-element Vector{FreeModElem{fmpq_mpoly}}:
@@ -4825,9 +4831,12 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
   projected_kernel::Vector{elem_type(H_s0_t0)} = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
   H = quo(sub(H_s0_t0, projected_kernel, :module), image(rho_prime)[1], :module)
 
+  H_simplified, s_inj, s_proj = simplify_light(H)
+
   function im(x::SubQuoElem)
-    @assert parent(x) === H
-    return hom(M, N, Vector{elem_type(N)}([g0(mH_s0_t0(repres(x))(preimage(f0, g))) for g = gens(M)]))
+    #@assert parent(x) === H
+    @assert parent(x) === H_simplified
+    return hom(M, N, Vector{elem_type(N)}([g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)]))
   end
 
   function pre(f::ModuleFPHom)
@@ -4837,15 +4846,15 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
     Rt0 = domain(g0)
     g = hom(Rs0, Rt0, Vector{elem_type(Rt0)}([preimage(g0, f(f0(g))) for g = gens(Rs0)]))
 
-    return SubQuoElem(repres(preimage(mH_s0_t0, g)), H)
+    return s_proj(SubQuoElem(repres(preimage(mH_s0_t0, g)), H))
   end
-  to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
-  set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
-  return H, to_hom_map
+  to_hom_map = MapFromFunc(im, pre, H_simplified, Hecke.MapParent(M, N, "homomorphisms"))
+  set_attribute!(H_simplified, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
+  return H_simplified, to_hom_map
 end
 
 @doc Markdown.doc"""
-    homomorphism(f::ModuleFPElem)
+    element_to_homomorphism(f::ModuleFPElem)
 
 If `f` is an element of a module created via `hom(M,N)`, for some modules `M` and `N`, 
 return the homomorphism `M` $\to$ `N` corresponding to `f`.
@@ -4868,11 +4877,9 @@ by Submodule with 2 generators
 julia> H = hom(M, M)[1];
 
 julia> gens(H)
-4-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
- y^2*(e[1] -> e[2])
- x*(e[2] -> e[1])
 
 julia> relations(H)
 4-element Vector{FreeModElem{fmpq_mpoly}}:
@@ -4881,7 +4888,7 @@ julia> relations(H)
  x*(e[2] -> e[1])
  y^2*(e[2] -> e[2])
 
-julia> a = homomorphism(H[1]+y*H[2])
+julia> a = element_to_homomorphism(H[1]+y*H[2])
 Map with following data
 Domain:
 =======
@@ -4905,7 +4912,7 @@ julia> matrix(a)
 [0   y]
 ```
 """
-function homomorphism(f::ModuleFPElem)
+function element_to_homomorphism(f::ModuleFPElem)
   H = f.parent
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("element doesn't live in a hom module")  
@@ -4913,7 +4920,7 @@ function homomorphism(f::ModuleFPElem)
 end
 
 @doc Markdown.doc"""
-    module_elem(H::ModuleFP, a::ModuleFPHom)
+    homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
 
 If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
 `a`: `M` $\to$ `N` is a homomorphism, then return the element of `H` corresponding to `a`.
@@ -4936,11 +4943,9 @@ by Submodule with 2 generators
 julia> H = hom(M, M)[1];
 
 julia> gens(H)
-4-element Vector{SubQuoElem{fmpq_mpoly}}:
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
  (e[1] -> e[1])
  (e[2] -> e[2])
- y^2*(e[1] -> e[2])
- x*(e[2] -> e[1])
 
 julia> relations(H)
 4-element Vector{FreeModElem{fmpq_mpoly}}:
@@ -4960,15 +4965,15 @@ julia> matrix(a)
 [1   0]
 [0   y]
 
-julia> m = module_elem(H, a)
+julia> m = homomorphism_to_element(H, a)
 (e[1] -> e[1]) + y*(e[2] -> e[2])
 ```
 """
-function module_elem(H::ModuleFP, phi::ModuleFPHom)
+function homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
-  return map_to_hom(phi)
+  return map_to_hom(a)
 end
 
 @doc Markdown.doc"""
@@ -5006,7 +5011,7 @@ function multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
   M_N === nothing && error("module must be a hom module")
   M,N = M_N
   @assert M === N
-  return hom(F, H, [module_elem(H, multiplication_morphism(F[1], M))])
+  return hom(F, H, [homomorphism_to_element(H, multiplication_morphism(F[1], M))])
 end
 
 #TODO
@@ -5035,6 +5040,10 @@ function +(h::ModuleFPHom, g::ModuleFPHom)
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
+end
+function *(a::RingElem, g::ModuleFPHom)
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
 end
 
 
@@ -5637,12 +5646,11 @@ julia> T0 = tor(Q, M, 0)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1] \otimes e[1]
 2 -> y*e[1] \otimes e[1]
-by Submodule with 5 generators
+by Submodule with 4 generators
 1 -> x^2*e[1] \otimes e[1]
 2 -> y^3*e[1] \otimes e[1]
 3 -> z^4*e[1] \otimes e[1]
-4 -> x^2*e[1] \otimes e[1]
-5 -> x*y*e[1] \otimes e[1]
+4 -> x*y*e[1] \otimes e[1]
 
 julia> T1 = tor(Q, M, 1)
 Subquotient of Submodule with 1 generator
@@ -5660,7 +5668,7 @@ represented as subquotient with no relations.
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
   lifted_resolution = tensor_product(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
-  return homology(lifted_resolution,i)
+  return simplify_light(homology(lifted_resolution,i))[1]
 end
 
 #TODO, mF
@@ -5689,7 +5697,7 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
   @assert domain(phi) === N
   @assert codomain(phi) === M
   
-  phi_lifted = hom(Hom_MP, Hom_NP, Vector{elem_type(Hom_NP)}([module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)]))
+  phi_lifted = hom(Hom_MP, Hom_NP, Vector{elem_type(Hom_NP)}([homomorphism_to_element(Hom_NP, phi*element_to_homomorphism(f)) for f in gens(Hom_MP)]))
   return phi_lifted
 end
 
@@ -5715,7 +5723,7 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
   if iszero(Hom_PN)
     return hom(Hom_PM, Hom_PN, Vector{elem_type(Hom_PN)}([zero(Hom_PN) for _=1:ngens(Hom_PM)]))
   end
-  phi_lifted = hom(Hom_PM, Hom_PN, Vector{elem_type(Hom_PN)}([module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)]))
+  phi_lifted = hom(Hom_PM, Hom_PN, Vector{elem_type(Hom_PN)}([homomorphism_to_element(Hom_PN, element_to_homomorphism(f)*phi) for f in gens(Hom_PM)]))
   return phi_lifted
 end
 
@@ -5946,32 +5954,29 @@ julia> ext(M, M, 1)
 Subquotient of Submodule with 2 generators
 1 -> (e[2] -> e[1])
 2 -> (e[1] -> e[1])
-by Submodule with 5 generators
+by Submodule with 4 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
 3 -> x*(e[2] -> e[1])
 4 -> y*(e[2] -> e[1])
-5 -> 0
 
 julia> ext(M, M, 2)
 Subquotient of Submodule with 1 generator
 1 -> (e[1] -> e[1])
-by Submodule with 4 generators
+by Submodule with 3 generators
 1 -> x*(e[1] -> e[1])
 2 -> y*(e[1] -> e[1])
 3 -> -y*(e[1] -> e[1])
-4 -> 0
 
 julia> ext(M, M, 3)
-Subquotient of Submodule with 0 generators
-by Submodule with 1 generator
-1 -> 0
+Submodule with 0 generators
+represented as subquotient with no relations.
 ```
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
   lifted_resolution = hom(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
-  return homology(lifted_resolution,i)
+  return simplify_light(homology(lifted_resolution,i))[1]
 end
 
 #############################
@@ -6152,6 +6157,9 @@ Convert `A` to a sparse row.
 """
 function sparse_row(A::MatElem)
   @assert nrows(A) == 1
+  if ncols(A) == 0
+    return sparse_row(base_ring(A))
+  end
   return Hecke.sparse_matrix(A)[1]
 end
 
@@ -6273,6 +6281,50 @@ function matrix_kernel(A::MatElem)
   phi = FreeModuleHom(F_domain, F_codomain, A)
   _, inclusion = kernel(phi)
   return matrix(inclusion)
+end
+
+@doc Markdown.doc"""
+    simplify_light(M::SubQuo)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms.
+The only simplifications which are done are the following: 
+- Remove all generators which are represented by the zero element in the ambient 
+free module.
+- Remove all generators which are in the generating set of the relations.
+- Remove all duplicates in the generators and relations sets.
+"""
+function simplify_light(M::SubQuo)
+  M_gens = ambient_representatives_generators(M)
+  M_rels = relations(M)
+
+  N_rels = unique(filter(x -> !iszero(x), M_rels))
+  N_gens = unique(setdiff(filter(x -> !iszero(x), M_gens), N_rels))
+
+  N = length(N_rels) == 0 ? SubQuo(ambient_free_module(M), N_gens) : SubQuo(ambient_free_module(M), N_gens, N_rels)
+
+  index_of_N_in_M = indexin(N_gens, M_gens)
+  inj = hom(N, M, Vector{elem_type(M)}([M[index_of_N_in_M[i]] for i in 1:ngens(N)]))
+
+  index_of_M_in_N = indexin(M_gens, N_gens)
+  proj = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]))
+
+  return N, inj, proj
+end
+
+@doc Markdown.doc"""
+    simplify_with_same_ambient_free_module(M::SubQuo)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms. The ambient free module of `N` is the same as that of `M`.
+"""
+function simplify_with_same_ambient_free_module(M::SubQuo)
+  _, to_M, from_M = simplify(M)
+  N, N_to_M = image(to_M)
+  return N, N_to_M, hom(M, N, [N(coeffs(from_M(g))) for g in gens(M)])
+  #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
 end
 
 @doc Markdown.doc"""
