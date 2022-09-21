@@ -3091,11 +3091,11 @@ return the chain complex defined by these homomorphisms.
     The function checks whether succesive homomorphisms indeed compose to zero.
 """
 function chain_complex(V::ModuleFPHom...; start::Int = 0)
-  return ChainComplex(collect(V); direction = :left, start = start)
+  return ChainComplex(ModuleFP, collect(V); direction = :left, start = start)
 end
 
 function chain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
-  return ChainComplex(V; direction = :left, start = start)
+  return ChainComplex(ModuleFP, V; direction = :left, start = start)
 end
 
 ####################
@@ -3122,11 +3122,11 @@ return the cochain complex defined by these homomorphisms.
     The function checks whether succesive homomorphisms indeed compose to zero.
 """
 function cochain_complex(V::ModuleFPHom...; start::Int = 0)
-  return ChainComplex(collect(V); direction = :right, start = start)
+  return ChainComplex(ModuleFP, collect(V); direction = :right, start = start)
 end
 
 function cochain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
-  return ChainComplex(V; direction = :right, start = start)
+  return ChainComplex(ModuleFP, V; direction = :right, start = start)
 end
 
 ####################
@@ -5019,9 +5019,9 @@ end
 #  relshp to store the maps elsewhere
 
 @doc Markdown.doc"""
-    *(h::ModuleFPHom, g::ModuleFPHom)
+    *(a::ModuleFPHom, b::ModuleFPHom)
 
-Return the composition $g \circ h$.
+Return the composition `b` $\circ$ `a`.
 """
 function *(h::ModuleFPHom, g::ModuleFPHom)
   @assert codomain(h) === domain(g)
@@ -5095,9 +5095,9 @@ function induced_map(f::FreeModuleHom, M::SubQuo, check::Bool = true)
 end
 
 @doc Markdown.doc"""
-    inv(H::ModuleFPHom)
+    inv(a::ModuleFPHom)
 
-Compute $H^{-1}$. `H` must be bijective.
+If `a` is bijective, return its inverse.
 """
 function inv(H::ModuleFPHom)
   if isdefined(H, :inverse_isomorphism)
@@ -5577,9 +5577,9 @@ end
 # Tor
 #############################
 @doc Markdown.doc"""
-    tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+    tensor_product(M::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
 
-Apply $P \otimes \bullet$ to `C`.
+Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 """
 function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   #tensor_chain = Hecke.map_type(C)[]
@@ -5600,9 +5600,9 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
 end
 
 @doc Markdown.doc"""
-    tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+    tensor_product(C::Hecke.ChainComplex{ModuleFP}, M::ModuleFP)
 
-Apply $\bullet \otimes P$ to `C`.
+Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
 function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #tensor_chain = Hecke.map_type(C)[]
@@ -5730,7 +5730,7 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
 end
 
 @doc Markdown.doc"""
-    hom(P::ModuleFP, C::ChainComplex{ModuleFP})
+    hom(M::ModuleFP, C::ChainComplex{ModuleFP})
 
 Return the complex obtained by applying $\text{Hom}($`M`, $-)$ to `C`.
 """
@@ -5754,7 +5754,7 @@ function hom(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
 end
 
 @doc Markdown.doc"""
-    hom(C::ChainComplex{ModuleFP}, P::ModuleFP)
+    hom(C::ChainComplex{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 """
