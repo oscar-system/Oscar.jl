@@ -98,6 +98,13 @@ end
   for g in gens(P)
 	@test !iszero(ambient_representative(g))
   end
+
+
+  F = FreeMod(R, 1)
+  I, _ = sub(F, [F[1]])
+  K, _ = sub(F, [zero(R)*F[1]])
+  I, _ = intersect(I, K)
+  @test iszero(I)
 end
 
 @testset "Presentation" begin
