@@ -608,10 +608,6 @@ base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 ### essential getters for the interface
 base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
 
-function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
-  return coverings(underlying_scheme(X))
-end
-
 @Markdown.doc """
     coverings(X::AbsCoveredScheme)
 
