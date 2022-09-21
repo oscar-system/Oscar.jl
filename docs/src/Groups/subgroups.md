@@ -18,7 +18,7 @@ Pages = ["subgroups.md"]
 The following functions are available in Oscar for subgroup properties:
 
 ```@docs
-sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem})
+sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
 is_subgroup
 embedding(G::T, H::T) where T <: GAPGroup
 index(G::T, H::T) where T <: GAPGroup
@@ -114,7 +114,7 @@ right_transversal(G::T, H::T) where T<: GAPGroup
 left_transversal(G::T, H::T) where T<: GAPGroup
 GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
-double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
+double_cosets(G::T, H::T, K::T; check::Bool) where T<: GAPGroup
 left_acting_group(C::GroupDoubleCoset)
 right_acting_group(C::GroupDoubleCoset)
 representative(C::GroupDoubleCoset)

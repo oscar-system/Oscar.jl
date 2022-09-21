@@ -198,7 +198,7 @@ end
 		hom_f = map(hom_resolution,i)
 		hom_N_M_i = domain(hom_f)
 		for v in gens(hom_N_M_i)
-			@test homomorphism(hom_f(v)) == homomorphism(v)*f
+			@test element_to_homomorphism(hom_f(v)) == element_to_homomorphism(v)*f
 		end
 	end
 
@@ -211,7 +211,7 @@ end
 		hom_f = map(hom_resolution,i)
 		hom_M_i_N = domain(hom_f)
 		for v in gens(hom_M_i_N)
-			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+			@test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
 		end
 	end
 
@@ -226,7 +226,7 @@ end
 		hom_f = map(hom_resolution,i)
 		hom_M_i_N = domain(hom_f)
 		for v in gens(hom_M_i_N)
-			@test homomorphism(hom_f(v)) == f*homomorphism(v)
+			@test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
 		end
 	end
 	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
@@ -400,6 +400,15 @@ end
 	@test is_bijective(i2)
 	@test is_bijective(p2)
 
+	M2,i2,p2 = simplify_with_same_ambient_free_module(M1)
+	@test ambient_free_module(M2) === ambient_free_module(M1)
+	@test is_welldefined(i2)
+	@test is_welldefined(p2)
+	@test is_bijective(i2)
+	@test is_bijective(p2)
+	@test i2*p2 == identity_map(M2)
+	@test p2*i2 == identity_map(M1)
+
 	A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 	M1 = SubQuo(A1,B1)
@@ -566,7 +575,7 @@ end
 	M2 = SubQuo(A2,B2)
 	SQ = hom(M1,M2)[1]
 	for v in gens(SQ)
-		@test v == module_elem(SQ, homomorphism(v))
+		@test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
 	end
 
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
@@ -578,14 +587,14 @@ end
 	M2 = SubQuo(A2,B2)
 	SQ = hom(M1,M2,:matrices)[1]
 	for v in gens(SQ)
-		@test v == module_elem(SQ, homomorphism(v))
+		@test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
 	end
 
 	End_M = hom(M1,M1)[1]
 	R_as_module = FreeMod(R,1)
 	phi = multiplication_induced_morphism(R_as_module, End_M)
-	@test homomorphism(phi(R_as_module[1])) == identity_map(M1)
-	@test image(homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
+	@test element_to_homomorphism(phi(R_as_module[1])) == identity_map(M1)
+	@test image(element_to_homomorphism(phi((x+y)*R_as_module[1])))[1] == (ideal(R,x+y)*M1)[1]
 
 	# test if hom(zero-module, ...) is zero
 	Z = FreeMod(R,0)
@@ -599,7 +608,7 @@ end
 		@test iszero(hom(Z,N)[1])
 	end
 
-	# test welldefinedness of randomly generated homomorphisms (using hom() and homomorphism())
+	# test welldefinedness of randomly generated homomorphisms (using hom() and element_to_homomorphism())
 	for k=1:10
 		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
@@ -611,7 +620,7 @@ end
 		for l=1:10
 			v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
 			H = HomNM(v)
-			H = homomorphism(H)
+			H = element_to_homomorphism(H)
 			@test is_welldefined(H)
 		end
 	end
@@ -727,8 +736,8 @@ end
 	M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
 	H12 = hom(M1,N2)[1]
 	H21 = hom(M2,N1)[1]
-	M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : homomorphism(H12[1])
-	M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : homomorphism(H21[1])
+	M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
+	M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(H21[1])
 	M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
 	@assert is_welldefined(M1_to_N1)
 	@assert is_welldefined(M1_to_N2)
@@ -849,6 +858,9 @@ end
     for v in gens(N)
         @test H_1(v) == H(v)
     end
+	for v in gens(N)
+		@test ((x+y+R(1))*H_1)(v) == H_1((x+y+R(1))*v)
+	end
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
@@ -920,7 +932,7 @@ end
 	HomNM = hom(N,M)[1]
 	u1 = R[x^2*y^2 4*x^2*y^2 0 5*x*y^2]
 	H = HomNM(sparse_row(u1))
-	H = homomorphism(H)
+	H = element_to_homomorphism(H)
 	@test is_welldefined(H)
 
 	## testing the homomorphism theorem: #################################
@@ -948,7 +960,7 @@ end
 @testset "preimage" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
-	for _=1:5
+	for _=1:10
 		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
 		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
 		B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:1])
@@ -957,8 +969,11 @@ end
 		N = SubQuo(A1,B1)
 		M = SubQuo(A2,B2)
 		HomNM = hom(N,M)[1]
+		if iszero(HomNM)
+			continue
+		end
 		H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
-		H = homomorphism(H)
+		H = element_to_homomorphism(H)
 
 		u = [SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
 		image_of_u = sub(M,map(x -> H(x),u), :none)
