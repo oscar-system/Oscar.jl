@@ -35,3 +35,12 @@
   @test is_isomorphism(mirr)
   @test pullback(compose(inverse(mirr), mirr))(OO(Xstd)(x^2-34*z)) == OO(Xstd)(x^2-34*z+ f^2)
 end
+
+@testset "smoothness tests" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  M = R[x y+1 z-2 x+y; y z-3 x-y+5 y-z; z x-y z-2 x+y+z]
+  I = ideal(R, minors(M, 3))
+  Q, _ = quo(R, I)
+  X = Spec(Q)
+  @test is_smooth(X)
+end

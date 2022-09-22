@@ -418,21 +418,24 @@ function issubset(
   return issubset(L(modulus(OO(Y))), localized_modulus(OO(X)))
 end
 
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuo}, 
+    Y::AbsSpec{BRT, <:MPolyRing}
+  ) where {BRT}
+  R = ambient_ring(Y)
+  R == ambient_ring(X) || error("schemes can not be compared")
+  return true
+end
+
 # TODO: Add further cross-type comparison methods as needed.
 
 function ==(X::T, Y::T) where {T<:Spec}
   return X === Y
 end
 
-function is_canonically_isomorphic(X::SpecType, Y::SpecType) where {SpecType <: AbsSpec}
+function is_canonically_isomorphic(X::AbsSpec, Y::AbsSpec)
   X === Y && return true
   return issubset(X, Y) && issubset(Y, X)
-end
-
-### The following case is only triggered if X and Y do not 
-# have the same concrete type; so we assume the answer is false.
-function is_canonically_isomorphic(X::AbsSpec, Y::AbsSpec)
-  return false
 end
 
 function is_canonically_isomorphic(X::AbsSpec, Y::EmptyScheme)
