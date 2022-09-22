@@ -36,7 +36,7 @@ end
 function syz(A::MatrixElem{<:MPolyQuoLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
-  return L*D
+  return L[:, 1:nrows(D)]*D
 end
 
 function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocalizedRingElem, MatrixType<:MatrixElem{T}}

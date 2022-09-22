@@ -26,15 +26,16 @@ so that ``Rʳ ≅ M ⊕ N`` splits as a direct sum via the projector
 ``σ ∘ π``.
 """
 function is_projective(M::SubQuo; check::Bool=true)
-  if check
-    iszero(annihilator(M)) || return false, proj, nothing
-  end
-
   ### Assemble a presentation of M over its base ring
   R = base_ring(M)
   r = ngens(M)
   Rr = FreeMod(R, r)
   proj = hom(Rr, M, gens(M))
+
+  if check
+    iszero(annihilator(M)) || return false, proj, nothing
+  end
+
   K, inc = kernel(proj)
   s = ngens(K)
   Rs = FreeMod(R, s)
@@ -44,6 +45,7 @@ function is_projective(M::SubQuo; check::Bool=true)
 
   success, P = _is_projective(A, Spec(R))
   !success && return false, zero_map(Rr, M), zero_map(M, Rr)
+  return true, hom(Rr, M, gens(M)), hom(M, Rr, [sum([P[i, j]*Rr[i] for i in 1:ngens(Rr)]) for j in 1:ncols(P)])
 end
 
 ### This function assumes that the entry aᵢⱼ is a unit in 𝒪(X).

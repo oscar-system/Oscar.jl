@@ -14,4 +14,18 @@
   success, P = Oscar._is_projective(A, X)
   @test success
   @test P^2 == P
+
+  W = MPolyQuoLocalizedRing(R, I, units_of(R))
+  F3 = FreeMod(W, 3)
+  F4 = FreeMod(W, 4)
+  h = hom(F3, F4, map_entries(W, M))
+
+  mod, _ = cokernel(h)
+  
+  success, pr, inc = is_projective(mod)
+  @test success
+  Palt = compose(pr, inc)
+  Palt2 = compose(Palt, Palt)
+  @test all(x->(Palt2(x) == Palt(x)), gens(domain(Palt)))
+
 end
