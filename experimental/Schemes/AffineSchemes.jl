@@ -332,20 +332,16 @@ end
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
-function issubset(X::AbsSpec, Y::AbsSpec)
-  return issubset(standard_spec(X), standard_spec(Y))
-end
-
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyRing}
   return OO(X) === OO(Y)
 end
 
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuo}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
@@ -353,8 +349,8 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocalizedRing}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
@@ -371,8 +367,8 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyLocalizedRing}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
@@ -382,8 +378,8 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, <:MPolyRing}, 
-    Y::Spec{BRT, <:MPolyQuoLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyRing}, 
+    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = OO(X)
   R == base_ring(OO(Y)) || error("schemes can not be compared")
@@ -391,8 +387,8 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, <:MPolyQuo}, 
-    Y::Spec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsSpec{BRT, <:MPolyQuo}, 
+    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
                                          <:MPolyPowersOfElement
                                         }
            }
@@ -404,8 +400,8 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, <:MPolyQuoLocalizedRing},
-    Y::Spec{BRT, <:MPolyRing} 
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
+    Y::AbsSpec{BRT, <:MPolyRing} 
   ) where {BRT}
   R = OO(Y)
   R == base_ring(OO(X)) || error("schemes can not be compared")
@@ -413,8 +409,8 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, <:MPolyQuoLocalizedRing}, 
-    Y::Spec{BRT, <:MPolyQuo}
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing}, 
+    Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
   R = base_ring(OO(Y))
   R == base_ring(OO(X)) || error("schemes can not be compared")
@@ -428,12 +424,18 @@ function ==(X::T, Y::T) where {T<:Spec}
   return X === Y
 end
 
-function is_canonically_isomorphic(X::Spec, Y::Spec)
+function is_canonically_isomorphic(X::SpecType, Y::SpecType) where {SpecType <: AbsSpec}
   X === Y && return true
   return issubset(X, Y) && issubset(Y, X)
 end
 
-function is_canonically_isomorphic(X::Spec, Y::EmptyScheme)
+### The following case is only triggered if X and Y do not 
+# have the same concrete type; so we assume the answer is false.
+function is_canonically_isomorphic(X::AbsSpec, Y::AbsSpec)
+  return false
+end
+
+function is_canonically_isomorphic(X::AbsSpec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
