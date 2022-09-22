@@ -13,5 +13,6 @@ include("Schemes/SpecialTypes.jl")
 include("Schemes/ProjectiveSchemes.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/ProjectiveModules.jl")
+include("Schemes/FurtherFunctionality.jl")
 
 include("Matrix/matrix.jl")
