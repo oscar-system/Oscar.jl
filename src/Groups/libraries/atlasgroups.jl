@@ -2,6 +2,7 @@ export
     all_atlas_group_infos,
     atlas_group,
     atlas_program,
+    atlas_subgroup,
     number_atlas_groups
 
 ###################################################################
@@ -77,7 +78,7 @@ function atlas_group(info::Dict)
   G === GAP.Globals.fail && error("the group atlas does not provide a representation for $info")
 
   if haskey(info, :base_ring_iso)
-    # make sure that the riven ring is used
+    # make sure that the given ring is used
     deg = GAP.Globals.DimensionOfMatrixGroup(G)
     iso = info[:base_ring_iso]
     ring = domain(iso)
@@ -90,6 +91,68 @@ function atlas_group(info::Dict)
     return TT(G)
   end
 end
+
+
+"""
+    atlas_subgroup(G::GAPGroup, nr::Int)
+    atlas_subgroup([::Type{T}, ]name::String, nr::Int) where T <: Union{PermGroup, MatrixGroup}
+    atlas_subgroup(info::Dict, nr::Int)
+
+Return a pair `(H, emb)` where `H` is a representative of the `nr`-th class
+of maximal subgroups of the group `G`,
+and `emb` is an embedding of `H` into `G`.
+
+The group `G` can be given as the first argument,
+in this case it is assumed that `G` has been created with
+[`atlas_group`](@ref).
+Otherwise `G` is the group obtained by calling [`atlas_group`](@ref)
+with (`T` and) `name` or with `info`.
+
+If the Atlas of Group Representations does not provide the information to
+compute `G` or to compute generators of `H` from `G` then an exception is
+thrown.
+
+# Examples
+```jldoctest
+julia> g = atlas_group("M11");  # Mathieu group M11
+
+julia> h1, emb = atlas_subgroup(g, 1);  h1
+Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
+
+julia> order(h1)  # largest maximal subgroup of M11
+720
+
+julia> h2, emb = atlas_subgroup("M11", 1);  h2
+Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
+
+julia> h3, emb = atlas_subgroup(MatrixGroup, "M11", 1 );  h3
+Matrix group of degree 10 over Galois field with characteristic 2
+
+julia> info = all_atlas_group_infos("M11", degree => 11);
+
+julia> h4, emb = atlas_subgroup(info[1], 1);  h4
+Group([ (1,4)(2,10)(3,7)(6,9), (1,6,10,7,11,3,9,2)(4,5) ])
+```
+"""
+function atlas_subgroup(G::GAPGroup, nr::Int)
+  GAP.Globals.HasAtlasRepInfoRecord(G.X) || error("$G was not constructed with atlas_group")
+  info = GAP.Globals.AtlasRepInfoRecord(G.X)
+  info.groupname == info.identifier[1] || error("$G was not constructed with atlas_group")
+  H = GAP.Globals.AtlasSubgroup(G.X, nr)
+  if H === GAP.Globals.fail
+    name = string(info.groupname)
+    error("the group atlas does not provide the restriction to the $nr-th class of maximal subgroups of $name")
+  end
+  return _as_subgroup(G, H)
+end
+
+atlas_subgroup(name::String, nr::Int) = atlas_subgroup(atlas_group(name), nr)
+
+function atlas_subgroup(::Type{T}, name::String, nr::Int) where T <: Union{PermGroup, MatrixGroup}
+  return atlas_subgroup(atlas_group(T, name), nr)
+end
+
+atlas_subgroup(info::Dict, nr::Int) = atlas_subgroup(atlas_group(info), nr)
 
 
 """
