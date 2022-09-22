@@ -1,12 +1,10 @@
 export is_equidimensional
-export singular_locus_with_decomposition
+export singular_locus
 export reduced_scheme
-export relative_polar_loci, relative_polar_multiplicities
-export polar_multiplicities, polar_loci
-export random_linear_forms
+export is_smooth
 
-function singular_locus(X::Spec)
-  comp = singular_locus_with_decomposition(X)
+function singular_locus(X::AbsSpec)
+  comp = _singular_locus_with_decomposition(X)
   if length(comp) == 0 
     return subscheme(X, one(OO(X)))
   end
@@ -14,7 +12,7 @@ function singular_locus(X::Spec)
   return Spec(R, prod([modulus(OO(Y)) for Y in comp]), inverted_set(OO(X)))
 end
 
-function singular_locus_with_decomposition(X::Spec)
+function _singular_locus_with_decomposition(X::AbsSpec)
   I = localized_modulus(OO(X))
   result = typeof(X)[]
   if is_equidimensional(X)
@@ -46,7 +44,7 @@ function singular_locus_with_decomposition(X::Spec)
   return result
 end
 
-@attr Bool function is_equidimensional(X::Spec)
+@attr Bool function is_equidimensional(X::AbsSpec)
   I = localized_modulus(OO(X))
   P = primary_decomposition(saturated_ideal(I))
   length(P) == 0 && return true
@@ -55,17 +53,22 @@ end
   return false
 end
 
-@attr function reduced_scheme(X::Spec)
+@attr function reduced_scheme(X::AbsSpec)
   I = localized_modulus(OO(X))
   J = radical(saturated_ideal(I))
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
-@attr function is_reduced(X::Spec)
+@attr function is_reduced(X::AbsSpec)
   I = localized_modulus(OO(X))
   J = saturated_ideal(I)
   return is_reduced(quo(base_ring(OO(X)), J)[1])
 end
+
+
+########################################################################
+# Additional functionality for fractions                               #
+########################################################################
 
 function derivative(f::MPolyLocalizedRingElem, i::Int)
   num = derivative(numerator(f), i)*denominator(f) - derivative(denominator(f), i)*numerator(f)
@@ -107,97 +110,38 @@ function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-function random_linear_forms(R::MPolyRing, d::Int)
-  n = ngens(R)
-  kk = coefficient_ring(R)
-  A = MatrixSpace(kk, d, n)
-  M = zero(A)
-  for i in 1:nrows(A)
-    for j in 1:ncols(A)
-      M[i,j] = rand(kk, -10:10)
-    end
-  end
-  b = [sum([R[j]*M[i,j] for j in 1:n]) for i in 1:d]
-  return b
-end
+########################################################################
+# Smoothness test based on projective modules.
+#
+# The routine checks whether the module for the cotangent sheaf Ω¹(X)
+# is locally free over 𝒪(X) and returns `true` if this is the case. 
+########################################################################
 
-function polar_loci(X::Spec, a::RingElem)
+@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   R = base_ring(OO(X))
-  kk = coefficient_ring(R)
-  d = dim(X)
-  n = ngens(R)
-  A = MatrixSpace(kk, d, n)
-  M = zero(A)
-  for i in 1:nrows(A)
-    for j in 1:ncols(A)
-      M[i,j] = rand(kk, -10:10)
-    end
-  end
-  b = [sum([R[j]*M[i,j] for j in 1:n]) for i in 1:d]
-  return relative_polar_loci(X, a, b)
-end
-
-function polar_multiplicities(X::Spec, a::RingElem)
-  R = base_ring(OO(X))
-  kk = coefficient_ring(R)
-  d = dim(X)
-  n = ngens(R)
-  A = MatrixSpace(kk, d, n)
-  M = zero(A)
-  for i in 1:nrows(A)
-    for j in 1:ncols(A)
-      M[i,j] = rand(kk, -10:10)
-    end
-  end
-  b = [sum([R[j]*M[i,j] for j in 1:n]) for i in 1:d]
-  return relative_polar_multiplicities(X, a, b)
-end
-
-function relative_polar_loci(X::Spec, a::RingElem, b::Vector{<:RingElem})
+  characteristic(base_ring(X)) == 0 || error("method not implemented in positive characteristic")
   L = localized_ring(OO(X))
-  f = L(a)
-  l = L.(b)
-  g = gens(localized_modulus(OO(X)))
-  is_equidimensional(X) && is_reduced(X) || error("method not implemented for $X unreduced or of mixed dimension.")
-  Z = singular_locus(X)
-  Dl = jacobi_matrix(l)
+  I = localized_modulus(OO(X))
+  f = gens(I)
   Df = jacobi_matrix(f)
-  Dg = jacobi_matrix(g)
-  n = ngens(base_ring(OO(X)))
-  d = dim(X)
-  k = n-d
-  result = typeof(X)[]
-  for i in 1:d
-    A = hcat(Df, Dl[:,1:i], Dg)
-    I = ideal(L, minors(A, k+i+1))
-    P = subscheme(X, I)
-    push!(result, P)
-  end
-  return result
+
+  A = map_entries(x->OO(X)(x), Df)
+  success, _ = Oscar._is_projective(A, X)
+  return success
 end
 
-function relative_polar_multiplicities(X::Spec, a::RingElem, b::Vector{<:RingElem})
-  P = relative_polar_loci(X, a, b)
-  PI = [localized_modulus(OO(Y))+ideal(localized_ring(OO(Y)), b[1:i]) for (Y, i) in zip(P, 1:length(b))]
-  m = multiplicity.(PI)
-  return reverse(m)
-end
+is_smooth(X::AbsSpec{<:Field, <:MPolyRing}) = true
+is_smooth(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) = true
 
-function length(X::Spec)
+@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuo})
   R = base_ring(OO(X))
-  I = saturated_ideal(localized_modulus(OO(X)))
-  leadI = leading_ideal(I)
-  dim(leadI) <= 0 || error("scheme is not zero dimensional")
-  d=0
-  result = 0
-  mons = [x for x in all_monomials(R, d) if !(x in leadI)]
-  while length(mons) > 0
-    result = result + length(mons)
-    d = d+1
-    mons = [x for x in all_monomials(R, d) if !(x in leadI)]
-  end
-  return result
+  characteristic(base_ring(X)) == 0 || error("method not implemented in positive characteristic")
+  I = modulus(OO(X))
+  f = gens(I)
+  Df = jacobi_matrix(f)
+
+  A = map_entries(x->OO(X)(x), Df)
+  success, _ = Oscar._is_projective(A, X)
+  return success
 end
-
-
 
