@@ -1326,6 +1326,18 @@ pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
 ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 getindex(I::MPolyQuoLocalizedIdeal, k::Int) = copy(I.gens[k])
 
+### Additional constructors
+function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  L == base_ring(J) || error("ideals must be defined in the same ring")
+  preI = Oscar.pre_image_ideal(I)
+  preJ = Oscar.pre_image_ideal(J) 
+  R = base_ring(L)
+  K = intersect(preI, preJ)
+  return L(K)
+end
+
+### Basic functionality
 function Base.in(a::RingElem, I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
   parent(a) == L || return L(a) in I

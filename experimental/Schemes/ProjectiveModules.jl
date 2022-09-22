@@ -1,27 +1,5 @@
 export is_projective, annihilator
 
-using Infiltrator
-
-function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
-  L = base_ring(I)
-  L == base_ring(J) || error("ideals must be defined in the same ring")
-  preI = Oscar.pre_saturated_ideal(I)
-  preJ = Oscar.pre_saturated_ideal(J) 
-  R = base_ring(L)
-  K = intersect(I, J)
-  return L(K)
-end
-
-function intersect(I::MPolyQuoLocalizedIdeal, J::MPolyQuoLocalizedIdeal)
-  L = base_ring(I)
-  L == base_ring(J) || error("ideals must be defined in the same ring")
-  preI = Oscar.pre_image_ideal(I)
-  preJ = Oscar.pre_image_ideal(J) 
-  R = base_ring(L)
-  K = intersect(preI, preJ)
-  return L(K)
-end
-
 function annihilator(M::SubQuo)
   R = base_ring(M)
   F = FreeMod(R, 1)
@@ -63,31 +41,9 @@ function is_projective(M::SubQuo; check::Bool=true)
   a = compose(hom(Rs, K, gens(K)), inc)
   # This is the presentation matrix
   A = matrix(a)
-  X = Spec(R)
 
-  # First clear all units
-  for i in 1:nrows(A)
-    for j in 1:ncols(A)
-      if is_unit(A[i,j]) 
-        return _is_projective(A, X, unit_entry=(i,j))
-      end
-    end
-  end
-
-  A1 = ideal(R, [g for g in minors(A, 1) if !iszero(g)])
-  one(R) in A1 || return false, proj, nothing
-  l = coordinates(one(R), A1)
-  X = Spec(R)
-  local_data = []
-  for g in A1
-    L = PrincipalOpenSubset(X, g)
-    Ares = map_entries(x->(L(x, check=false)), A)
-    success, proj_res, sec_res = _is_projective(Ares)
-    if !success 
-      return false, proj, nothing
-    end
-    push!(local_data, (proj_res, sec_res))
-  end
+  success, P = _is_projective(A, Spec(R))
+  !success && return false, zero_map(Rr, M), zero_map(M, Rr)
 end
 
 ### This function assumes that the entry aᵢⱼ is a unit in 𝒪(X).
