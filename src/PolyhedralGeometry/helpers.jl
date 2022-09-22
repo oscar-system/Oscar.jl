@@ -91,8 +91,28 @@ Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polym
 
 Base.convert(::Type{<:Polymake.Rational}, x::fmpz) = GC.@preserve x return Polymake.new_rational_from_fmpz(x)
 
+Base.convert(::Type{<:Polymake.Integer}, x::fmpq) = GC.@preserve x return Polymake.new_integer_from_fmpq(x)
+
 function Base.convert(::Type{fmpz}, x::Polymake.Integer)
     GC.@preserve x np = Polymake.new_fmpz_from_integer(x)
+    rp = Ptr{fmpz}(np)
+    return unsafe_load(rp)
+end
+
+function Base.convert(::Type{fmpq}, x::Polymake.Rational)
+    GC.@preserve x np = Polymake.new_fmpq_from_rational(x)
+    rp = Ptr{fmpq}(np)
+    return unsafe_load(rp)
+end
+
+function Base.convert(::Type{fmpq}, x::Polymake.Integer)
+    GC.@preserve x np = Polymake.new_fmpq_from_integer(x)
+    rp = Ptr{fmpq}(np)
+    return unsafe_load(rp)
+end
+
+function Base.convert(::Type{fmpz}, x::Polymake.Rational)
+    GC.@preserve x np = Polymake.new_fmpz_from_rational(x)
     rp = Ptr{fmpz}(np)
     return unsafe_load(rp)
 end
@@ -232,10 +252,6 @@ end
 function decompose_hdata(A)
     (A = -A[:, 2:end], b = A[:, 1])
 end
-
-Base.convert(::Type{fmpq}, q::Polymake.Rational) = fmpq(Polymake.numerator(q), Polymake.denominator(q))
-
-Base.convert(::Type{fmpz}, q::Polymake.Rational) = convert(fmpz, convert(Polymake.Integer, q))
 
 # TODO: different printing within oscar? if yes, implement the following method
 # Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))
