@@ -320,7 +320,7 @@ julia> L = [x*y, x*z, y*z + 1];
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational Field with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+(PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 ```
 """
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
@@ -481,7 +481,7 @@ julia> L = [x*y, x*z, y*z + 1];
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational Field with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+(PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 
 julia> I = left_ideal(A, [x^2*y^2, x*z+y*z])
 left_ideal(x^2*y^2, x*z + y*z)
