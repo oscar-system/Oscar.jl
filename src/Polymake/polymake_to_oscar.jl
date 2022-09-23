@@ -4,8 +4,9 @@ function convert(p::Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(
                           parent::Union{MPolyRing, Nothing} = nothing)
     coeff_vec = convert(Vector{fmpq}, Polymake.coefficients_as_vector(p))
     monomials = Matrix{Int}(Polymake.monomials_as_matrix(p))
-    n_vars = length(monomials[:, 1])
-    # not sure if the numbering is the best choice but it matches Polymake
+    n_vars = ncols(monomials)
+
+    # variable labeling from polymake is preserved
     if isnothing(parent)
         parent, _ = PolynomialRing(QQ, "x" => 0:n_vars - 1, cached=false)
     end
