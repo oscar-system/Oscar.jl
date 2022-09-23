@@ -77,7 +77,7 @@ function load_internal(s::DeserializerState, ::Type{<:NamedTuple}, dict::Dict)
     tup = load_unknown_type(s, dict[:content])
     keys = load_type_dispatch(s, Tuple, dict[:keys])
     named_tuple_type = NamedTuple{keys, typeof(tup)}
-    println(keys)
+
     return named_tuple_type(tup)
 end
 
