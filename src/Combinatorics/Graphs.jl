@@ -12,7 +12,6 @@ export
     add_vertex!,
     add_vertices!,
     all_neighbors,
-    automorphisms,
     complete_graph,
     complete_bipartite_graph,
     dst,
@@ -534,7 +533,7 @@ end
 ################################################################################
 ################################################################################
 @doc Markdown.doc"""
-    automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return generators of the automorphism group of the graph `g`.
 
@@ -542,16 +541,16 @@ Return generators of the automorphism group of the graph `g`.
 ```jldoctest
 julia> g = complete_graph(4);
 
-julia> automorphisms(g)
+julia> automorphism_group_generators(g)
 3-element Vector{Vector{Int64}}:
  [1, 2, 4, 3]
  [1, 3, 2, 4]
  [2, 1, 3, 4]
 ```
 """
-function automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g);
-    result = Polymake.graph.automorphisms(pmg)
+    result = Polymake.graph.automorphism_group_generators(pmg)
     return [[x+1 for x in a] for a in result]
 end
 

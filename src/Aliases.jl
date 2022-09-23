@@ -6,6 +6,7 @@
 @alias is_valid isvalid
 
 # for backwards compatibility
+@alias automorphisms automorphism_group_generators
 @alias hasrelshp has_relshp
 @alias hastorusfactor has_torusfactor
 @alias inner_automorphisms_group inner_automorphism_group

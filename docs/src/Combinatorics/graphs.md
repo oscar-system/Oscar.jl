@@ -53,7 +53,7 @@ rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 ## Auxiliary functions
 ```@docs
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
