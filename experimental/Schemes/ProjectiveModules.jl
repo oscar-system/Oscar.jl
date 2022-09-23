@@ -19,8 +19,9 @@ iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
 @Markdown.doc """
     is_projective(M::SubQuo)
 
-Given a subquotient ``M = (A + B)/B`` over a ring ``R``, test whether 
-``M`` is projective and return a pair of maps ``π : Rʳ ↔ M : σ`` 
+Given a subquotient ``M = (A + B)/B`` over a ring ``R`` return a triple 
+`(success, π, σ)` where `success` is `true` or `false` depending on 
+whether or not ``M`` is projective and maps ``π : Rʳ ↔ M : σ`` 
 where ``π`` is a projection onto ``M`` and ``σ`` a section of ``π`` 
 so that ``Rʳ ≅ M ⊕ N`` splits as a direct sum via the projector 
 ``σ ∘ π``.
