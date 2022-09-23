@@ -40,7 +40,7 @@ toric toric variety `v`.
 julia> polynomial(volume_form(projective_space(NormalToricVariety, 2)))
 x3^2
 
-julia> polynomial(volume_form(del_pezzo(3)))
+julia> polynomial(volume_form(del_pezzo_surface(3)))
 -e3^2
 
 julia> polynomial(volume_form(hirzebruch_surface(5)))

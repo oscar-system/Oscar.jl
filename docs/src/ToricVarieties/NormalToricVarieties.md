@@ -42,7 +42,7 @@ NormalToricVariety(P::Polyhedron)
 
 ```@docs
 affine_space(::Type{NormalToricVariety}, d::Int)
-del_pezzo(b::Int)
+del_pezzo_surface(b::Int)
 hirzebruch_surface(r::Int)
 projective_space(::Type{NormalToricVariety}, d::Int)
 ```

@@ -557,6 +557,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
                                     ( x == "-1" ? "-" : "?" ) ), indicators[i])
       end
     end
+    emptycor = ["" for i in 1:length(ind)]
 
     # Fetch the Orthogonal Discriminants if applicable.
     # (This is possible only if the OD database is available.
@@ -565,11 +566,26 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
       ODs = [replace(x -> isnothing(x) ? "" : string(x),
                      Vector{Any}(GAP.Globals.OrthogonalDiscriminants(gaptbl)::GapObj))]
       ODlabel = ["OD"]
-      emptycor = ["" for i in 1:(length(ind)+1)]
+      push!(emptycor, "")
     else
       ODs = []
       ODlabel = []
-      emptycor = ["" for i in 1:length(ind)]
+    end
+
+    # Compute the degrees of the character fields if applicable.
+    field_degrees = get(io, :character_field, false)::Bool
+    if field_degrees
+      p = tbl.characteristic
+      if p == 0
+        field_degrees = [[string(GAP.Globals.Dimension(GAP.Globals.Field(GAP.Globals.Rationals, x.values))) for x in tbl]]
+      else
+        field_degrees = [[string(collect(factor(GAP.Globals.SizeOfFieldOfDefinition(x.values, p)))[1][2]) for x in tbl]]
+      end
+      field_label = ["d"]
+      push!(emptycor, "")
+    else
+      field_degrees = []
+      field_label = []
     end
 
     emptycol = ["" for i in 1:n]
@@ -601,7 +617,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
 
       # row labels:
       # character names and perhaps indicators.
-      :labels_row => hcat(["\\chi_{$i}" for i in 1:n], ODs..., indicators...),
+      :labels_row => hcat(["\\chi_{$i}" for i in 1:n], field_degrees..., ODs..., indicators...),
 
       # corner:
       # primes in the centralizer rows,
@@ -614,7 +630,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
                       vcat(emptycor, [""]),
                       vcat(emptycor, [""]),
                       [vcat(emptycor, [x]) for x in power_maps_primes]...,
-                      vcat([""], ODlabel, [string(x) for x in ind]))),
+                      vcat([""], field_label, ODlabel, [string(x) for x in ind]))),
 
       # footer (an array of strings)
       :footer => length(legend) == 0 ? [] :

@@ -422,7 +422,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
+    X::AbsSpec{BRT, <:MPolyLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyQuo} 
   ) where {BRT}
   R = ambient_ring(Y)

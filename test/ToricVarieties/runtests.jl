@@ -215,11 +215,11 @@ dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,
 dP2 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,1]])
 dP3 = NormalToricVariety([[1,0], [1,1], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
 set_coordinate_names(dP3,["x1","e1","x2","e3","x3","e2"])
-dP3v2 = del_pezzo(3)
+dP3v2 = del_pezzo_surface(3)
 
 @testset "Argument errors for del Pezzo surfaces" begin
-    @test_throws ArgumentError del_pezzo(-1)
-    @test_throws ArgumentError del_pezzo(4)
+    @test_throws ArgumentError del_pezzo_surface(-1)
+    @test_throws ArgumentError del_pezzo_surface(4)
 end
 
 @testset "Attributes of del Pezzo surfaces" begin
@@ -232,8 +232,9 @@ end
     @test picard_group(dP3) == codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP3))
 end
 
-@testset "Test constructor for delPezzo surfaces" begin
-  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(dP3v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(dP3v2))]) == matrix(ZZ, [[1,1,1,0],[1,1,0,1],[1,0,1,1],[0,-1,0,0],[0,0,-1,0],[0,0,0,-1]])
+@testset "Test constructor for del Pezzo surfaces" begin
+  phi = map_from_torusinvariant_weil_divisor_group_to_class_group(dP3v2)
+  @test vcat([phi(x).coeff for x in gens(torusinvariant_weil_divisor_group(dP3v2))]) == matrix(ZZ, [[1,1,1,0],[1,1,0,1],[1,0,1,1],[0,-1,0,0],[0,0,-1,0],[0,0,0,-1]])
   @test coordinate_names(dP3v2) == ["x1","x2","x3","e1","e2","e3"]
 end
 

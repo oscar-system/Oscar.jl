@@ -1,4 +1,4 @@
-export ModuleFP, ModuleFPElem, ModuleFPHom, ModuleMap, FreeMod,
+export ModuleFP, ModuleFPElem, ModuleFPHom, FreeMod,
        FreeModElem, SubQuo, SubQuoElem, FreeModuleHom, SubQuoHom,
        FreeMod_dec, FreeModElem_dec, FreeModuleHom_dec, FreeResolution
 
@@ -46,17 +46,17 @@ The abstract supertype of all elements of subquotient modules.
 """
 abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
-abstract type ModuleFPHom end
+abstract type ModuleFPHomDummy end
 
 @doc Markdown.doc"""
-    ModuleMap{T1, T2}
+    ModuleFPHom{T1, T2}
 
-The abstract supertype of module morphisms.
+The abstract supertype for morphisms of finitely presented modules over multivariate polynomial rings .
 `T1` and `T2` are the types of domain and codomain respectively.
 """
-abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
+abstract type ModuleFPHom{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
 
-parent(f::ModuleMap) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
+parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
 @doc Markdown.doc"""
     FreeMod{T <: RingElem} <: ModuleFP{T}
@@ -73,8 +73,8 @@ option is set in suitable functions.
   n::Int
   S::Vector{Symbol}
 
-  incoming_morphisms::Vector{<:ModuleMap}
-  outgoing_morphisms::Vector{<:ModuleMap}
+  incoming_morphisms::Vector{<:ModuleFPHom}
+  outgoing_morphisms::Vector{<:ModuleFPHom}
 
   function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
     r = new{elem_type(R)}()
@@ -82,8 +82,8 @@ option is set in suitable functions.
     r.R = R
     r.S = S
 
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
+    r.incoming_morphisms = Vector{ModuleFPHom}()
+    r.outgoing_morphisms = Vector{ModuleFPHom}()
 
     return r
   end
@@ -228,8 +228,8 @@ option is set in suitable functions.
 
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
 
-  incoming_morphisms::Vector{<:ModuleMap}
-  outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
+  incoming_morphisms::Vector{<:ModuleFPHom}
+  outgoing_morphisms::Vector{<:ModuleFPHom} # TODO is it possible to make ModuleFPHom to SubQuoHom?
 
   function SubQuo{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
@@ -237,8 +237,8 @@ option is set in suitable functions.
     r.F = F
 
     r.groebner_basis = Dict()
-    r.incoming_morphisms = Vector{ModuleMap}()
-    r.outgoing_morphisms = Vector{ModuleMap}()
+    r.incoming_morphisms = Vector{ModuleFPHom}()
+    r.outgoing_morphisms = Vector{ModuleFPHom}()
 
     return r
   end
@@ -317,11 +317,11 @@ mutable struct SubQuoHom{
     T1<:AbstractSubQuo, 
     T2<:ModuleFP, 
     RingMapType<:Any
-  } <: ModuleMap{T1, T2}
+  } <: ModuleFPHom{T1, T2}
   matrix::MatElem
   header::Hecke.MapHeader
   im::Vector
-  inverse_isomorphism::ModuleMap
+  inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
 
   # Constructors for maps without change of base ring
@@ -480,23 +480,23 @@ const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will b
 
 
 @doc Markdown.doc"""
-    FreeModuleHom{T1, T2, RingMapType} <: ModuleMap{T1, T2} 
+    FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
 `T1` and `T2` are the types of domain and codomain respectively.
-`FreeModuleHom` is a subtype of `ModuleMap`.
+`FreeModuleHom` is a subtype of `ModuleFPHom`.
 When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 (in case there exists one) (via `inv()`) are cached.
 """
 @attributes mutable struct FreeModuleHom{
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleMap{T1, T2} 
+    RingMapType <: Any} <: ModuleFPHom{T1, T2} 
   header::MapHeader
   ring_map::RingMapType
   
   matrix::MatElem
-  inverse_isomorphism::ModuleMap
+  inverse_isomorphism::ModuleFPHom
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
@@ -589,7 +589,7 @@ end
 struct FreeModuleHom_dec{
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleMap{T1, T2}
+    RingMapType <: Any} <: ModuleFPHom{T1, T2}
   f::FreeModuleHom{T1,T2, RingMapType}
   header::MapHeader
   # TODO degree and homogeneity

@@ -358,23 +358,23 @@ export hirzebruch_surface
 
 
 @doc Markdown.doc"""
-    del_pezzo(b::Int)
+    del_pezzo_surface(b::Int)
 
-Constructs the delPezzo surface with b blowups for b at most 3.
+Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
 
 # Examples
 ```jldoctest
-julia> del_pezzo(3)
+julia> del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function del_pezzo(b::Int)
+function del_pezzo_surface(b::Int)
     # check for valid input
     if b < 0
-        throw(ArgumentError("Number of blowups for construction of delPezzo surfaces must be non-negative"))
+        throw(ArgumentError("Number of blowups for construction of del Pezzo surfaces must be non-negative"))
     end
     if b > 3
-        throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
+        throw(ArgumentError("Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
     end
     
     # special case of projective space
@@ -476,7 +476,7 @@ function del_pezzo(b::Int)
     
     return variety
 end
-export del_pezzo
+export del_pezzo_surface
 
 
 ############################

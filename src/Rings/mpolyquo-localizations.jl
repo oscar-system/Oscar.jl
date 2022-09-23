@@ -1011,7 +1011,7 @@ end
 function as_affine_algebra(
     L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
     inverse_name::String="θ"
-  ) where {BRT, BRET, RT, RET}
+  )
   R = base_ring(L)
   A, phi, t = _add_variables_first(R, [inverse_name])
   theta = t[1]

@@ -336,7 +336,7 @@ end
 
 ## evaluate
 
-function evaluate(p::SLPoly{T}, xs::Vector{S}) where {T<:RingElement,S<:RingElement,F}
+function evaluate(p::SLPoly{T}, xs::Vector{S}) where {T<:RingElement,S<:RingElement}
     if isempty(xs)
         SLP.evaluate(p.slprogram, xs)
     else

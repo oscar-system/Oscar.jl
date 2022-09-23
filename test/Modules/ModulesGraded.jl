@@ -88,10 +88,10 @@ end
 
     H,_ = hom(G,F)
     for v in gens(H)
-        @test v == module_elem(H, homomorphism(v))
+        @test v == homomorphism_to_element(H, element_to_homomorphism(v))
     end
     
     phi = H[1]
     v = x[1]*F[1] + F[2]
-    @test degree(phi) == degree(homomorphism(phi)(v)) - degree(v)
+    @test degree(phi) == degree(element_to_homomorphism(phi)(v)) - degree(v)
 end

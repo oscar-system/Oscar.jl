@@ -130,7 +130,6 @@ function Glueing(
     check::Bool=true
   ) where {
            SpecType<:Spec, 
-           SpecMorType<:SpecMor,
            RET<:MPolyElem,
            FracType
           }
