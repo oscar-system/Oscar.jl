@@ -277,6 +277,62 @@ function load_internal_with_parent(s::DeserializerState,
 end
 
 ################################################################################
+# RationalFunctionField
+
+encodeType(::Type{<:AbstractAlgebra.Generic.RationalFunctionField}) = "RationalFunctionField"
+reverseTypeMap["RationalFunctionField"] = AbstractAlgebra.Generic.RationalFunctionField
+
+function save_internal(s::SerializerState,
+                       RF::AbstractAlgebra.Generic.RationalFunctionField)
+    return Dict(
+        :base_ring => save_type_dispatch(s, base_ring(RF)),
+        :symbols => save_type_dispatch(s, symbols(RF))
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: AbstractAlgebra.Generic.RationalFunctionField},
+                       dict::Dict)
+    R = load_unknown_type(s, dict[:base_ring])
+    symbols = load_unknown_type(s, dict[:symbols])
+
+    return RationalFunctionField(R, symbols, cached=false)[1]
+end
+
+#elements
+encodeType(::Type{<:AbstractAlgebra.Generic.Rat}) = "Rat"
+reverseTypeMap["Rat"] = AbstractAlgebra.Generic.Rat
+
+function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.Rat)
+    frac_elem_parent = save_type_dispatch(s, parent(denominator(f)))
+    return Dict(
+        :parent => save_type_dispatch(s, parent(f)),
+        :frac_elem_parent => frac_elem_parent,
+        :den => save_type_dispatch(s, denominator(f)),
+        :num => save_type_dispatch(s, numerator(f))
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.Rat}, dict::Dict)
+    _ = load_unknown_type(s, dict[:frac_elem_parent])
+    R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
+    num = load_unknown_type(s, dict[:num])
+    den = load_unknown_type(s, dict[:den])
+
+    try
+        num = evaluate(num, gens(R))
+        den = evaluate(den, gens(R))
+    catch
+        num = evaluate(num, gen(R))
+        den = evaluate(den, gen(R))
+    end
+
+    return num // den
+end
+
+# still need to work out loading with parent
+
+################################################################################
 # RealField
 @registerSerializationType(ArbField)
 @registerSerializationType(arb)
