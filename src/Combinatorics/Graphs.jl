@@ -1,6 +1,3 @@
-module Graphs
-
-
 using Markdown
 using JSON
 import Oscar: Polyhedron, Polymake, pm_object
@@ -266,7 +263,7 @@ julia> E = collect(edges(g));
 julia> e = E[1]
 Edge(2, 1)
 
-julia> Graphs.reverse(e)
+julia> reverse(e)
 Edge(1, 2)
 ```
 """
@@ -545,7 +542,7 @@ Return generators of the automorphism group of the graph `g`.
 ```jldoctest
 julia> g = complete_graph(4);
 
-julia> Graphs.automorphisms(g)
+julia> automorphisms(g)
 3-element Vector{Vector{Int64}}:
  [1, 2, 4, 3]
  [1, 3, 2, 4]
@@ -716,15 +713,13 @@ function complete_bipartite_graph(n::Int64, m::Int64)
 end
 
 
-end # end module
-
 
 @doc Markdown.doc"""
-    visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
 
 Visualize a graph.
 """
-function visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
     BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
     Polymake.visual(BigGraph)
 end
@@ -733,34 +728,34 @@ end
 
 # Some standard polytopes from graphs
 @doc Markdown.doc"""
-    fractional_cut_polytope(G::Graphs.Graph{Graphs.Undirected})
+    fractional_cut_polytope(G::Graph{Undirected})
 
 Construct the fractional cut polytope of the graph $G$.
 
 
 # Examples
 ```jldoctest
-julia> G = Graphs.complete_graph(4);
+julia> G = complete_graph(4);
 
 julia> fractional_cut_polytope(G)
 A polyhedron in ambient dimension 6
 ```
 """
-fractional_cut_polytope(G::Graphs.Graph{Graphs.Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
+fractional_cut_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
 
 
 @doc Markdown.doc"""
-    fractional_matching_polytope(G::Graphs.Graph{Graphs.Undirected})
+    fractional_matching_polytope(G::Graph{Undirected})
 
 Construct the fractional matching polytope of the graph $G$.
 
 
 # Examples
 ```jldoctest
-julia> G = Graphs.complete_graph(4);
+julia> G = complete_graph(4);
 
 julia> fractional_matching_polytope(G)
 A polyhedron in ambient dimension 6
 ```
 """
-fractional_matching_polytope(G::Graphs.Graph{Graphs.Undirected}) = Polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))
+fractional_matching_polytope(G::Graph{Undirected}) = Polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))

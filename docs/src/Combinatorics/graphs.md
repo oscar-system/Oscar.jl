@@ -1,10 +1,5 @@
 ```@meta
-CurrentModule = Oscar.Graphs
-```
-
-```@setup oscar
-using Oscar
-using Oscar.Graphs
+CurrentModule = Oscar
 ```
 
 ```@contents

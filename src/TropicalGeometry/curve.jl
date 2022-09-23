@@ -440,9 +440,9 @@ The tropical Jacobian is then isomorphic to $\prod (Z/(n_i)Z)$.
 
 # Examples
 ```jldoctest
-julia> cg = Oscar.Graphs.complete_graph(5);
+julia> cg = complete_graph(5);
 
-julia> IM1=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in Oscar.Graphs.edges(cg)])
+julia> IM1=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg)])
 10×5 IncidenceMatrix
 [1, 2]
 [1, 3]
@@ -462,9 +462,9 @@ julia> structure_tropical_jacobian(TC1)
 (General) abelian group with relation matrix
 [1 0 0 0; 0 5 0 0; 0 0 5 0; 0 0 0 5]
 
-julia> cg2 = Oscar.Graphs.complete_graph(3);
+julia> cg2 = complete_graph(3);
 
-julia> IM2=IncidenceMatrix([[Oscar.Graphs.src(e), Oscar.Graphs.dst(e)] for e in Oscar.Graphs.edges(cg2)])
+julia> IM2=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg2)])
 3×3 IncidenceMatrix
 [1, 2]
 [1, 3]
@@ -494,11 +494,11 @@ julia> G = structure_tropical_jacobian(TC3)
 ```
 """
 function structure_tropical_jacobian(TC::TropicalCurve)
-    gg=Graphs.Graph{Graphs.Undirected}(n_nodes(TC))
+    gg=Graph{Undirected}(n_nodes(TC))
     IM = graph(TC)
     for i in 1:Polymake.nrows(IM)
         row = Vector{Int}(Polymake.row(IM,i))
-        Graphs.add_edge!(gg, row[1],row[2])
+        add_edge!(gg, row[1],row[2])
     end
     lap = Polymake.graph.laplacian(Oscar.pm_object(gg))
     L = Polymake.@convert_to Matrix{Int} lap

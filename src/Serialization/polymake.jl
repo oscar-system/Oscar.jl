@@ -3,13 +3,13 @@
 
 ##############################################################################
 """
-    load_from_polymake(::Type{Graphs.Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+    load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Directed, Undirected}}
 
 Load a graph stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{Graphs.Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+function load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Directed, Undirected}}
     polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-    return Graphs.Graph{T}(polymake_object)
+    return Graph{T}(polymake_object)
 end
 
 
@@ -20,8 +20,8 @@ const polymake2OscarTypes = Dict{String, Type}([
     "fan::PolyhedralComplex<Rational>" => PolyhedralComplex{fmpq},
     "fan::SubdivisionOfPoints<Rational>" => SubdivisionOfPoints{fmpq},
     "topaz::SimplicialComplex" => SimplicialComplex,
-    "common::GraphAdjacency<Undirected>" => Graphs.Graph{Graphs.Undirected},
-    "common::GraphAdjacency<Directed>" => Graphs.Graph{Graphs.Directed},
+    "common::GraphAdjacency<Undirected>" => Graph{Undirected},
+    "common::GraphAdjacency<Directed>" => Graph{Directed},
 ])
 
 @registerSerializationType(Polymake.BigObjectAllocated, "Polymake.BigObject")

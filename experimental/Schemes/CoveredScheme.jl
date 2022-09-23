@@ -12,8 +12,6 @@ export empty_covered_scheme
 export coverings, refinements, default_covering, set_name!, name_of, has_name, dim
 export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
-import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
-
 export CoveredSchemeMorphism, domain, codomain, covering_morphism
 
 export simplify

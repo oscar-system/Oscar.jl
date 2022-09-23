@@ -74,3 +74,6 @@
 @alias isunital is_unital
 @alias iswelldefined is_welldefined
 
+# Allow backwards compatibility after removal of Oscar.Graphs module.
+Graphs = Oscar
+export Graphs

@@ -2,12 +2,12 @@
     
     mktempdir() do path
         @testset "Graph" begin
-            G = Graphs.complete_graph(4)
+            G = complete_graph(4)
             test_save_load_roundtrip(path, G) do loaded
-              @test loaded isa Graphs.Graph{Graphs.Undirected}
+              @test loaded isa Graph{Undirected}
               @test Base.propertynames(G) == Base.propertynames(loaded)
-              @test Graphs.nv(G) == Graphs.nv(loaded)
-              @test Graphs.ne(G) == Graphs.ne(loaded)
+              @test nv(G) == nv(loaded)
+              @test ne(G) == ne(loaded)
             end
         end
 
