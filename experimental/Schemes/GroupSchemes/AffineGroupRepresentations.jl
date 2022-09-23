@@ -261,22 +261,6 @@ function reynolds_operator_from_omega_process(
 
   StoRS = hom(S, RS, v)
 
-# function I_func(p::Int, q::Int, f::MPolyElem)
-#   parent(f) == S || error("polynomial does not belong to the correct ring")
-#   p < q && return zero(RS)
-#   h = det_M^q*evaluate(f, [W[1, i] for i in 1:ncols(W)])
-#   for i in 1:p
-#     h = Omega_t(h)
-#   end
-#   return h
-# end
-#
-# function I_func(g::Int, f::MPolyElem) 
-#   return evaluate(I_func(g, 0, f), vcat([zero(S) for i in 1:ngens(R)], gens(S)))
-# end
-#
-# o = lex(t)*lex(v)
-#
   function reynolds(f::MPolyElem; raw::Bool=false)
     parent(f) == S || error("polynomial does not belong to the correct ring")
     is_zero(f) && return f
@@ -308,9 +292,6 @@ end
   I = nullcone_ideal(rho)
   R = reynolds_operator(rho)
   inv = [R(g) for g in gens(I)]
-
-  #check = check_invariance_function(rho)
-  #@show [check(g) for g in inv]
 
   kk = coefficient_ring(S)
   A, y = PolynomialRing(kk, ["y$i" for i in 1:length(inv)])
