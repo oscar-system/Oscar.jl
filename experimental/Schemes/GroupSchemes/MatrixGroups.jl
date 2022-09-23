@@ -138,7 +138,7 @@ function _help_inv(M::MatrixElem)
   return f*N
 end
 
-function special_linear_group(n::Int, kk::Field)
+function special_linear_group(::Type{AffineMatrixGroup}, n::Int, kk::Field)
   R, a = PolynomialRing(kk, ["a_$(i)_$(j)" for i in 1:n for j in 1:n])
   M = zero(MatrixSpace(R, n, n))
   for i in 1:n
@@ -151,7 +151,7 @@ function special_linear_group(n::Int, kk::Field)
   return AffineMatrixGroup(M, I, check=true) #set to false, eventually!!!
 end
 
-function general_linear_group(n::Int, kk::Field)
+function general_linear_group(::Type{AffineMatrixGroup}, n::Int, kk::Field)
   R, a = PolynomialRing(kk, ["a_$(i)_$(j)" for i in 1:n for j in 1:n])
   M = zero(MatrixSpace(R, n, n))
   for i in 1:n

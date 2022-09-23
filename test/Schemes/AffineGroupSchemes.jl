@@ -29,7 +29,7 @@ end
 
 @testset "matrix groups" begin
 
-  G = special_linear_group(2, QQ)
+  G = special_linear_group(AffineMatrixGroup, 2, QQ)
   rho = canonical_representation(G)
   rep = induced_representation_on_symmetric_power(G, 4)
 
