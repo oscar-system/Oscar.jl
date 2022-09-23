@@ -1,13 +1,12 @@
 export AffineMatrixGroup
 export coordinate_matrix, coordinate_ring, modulus, inverted_set, ground_field
 export special_linear_group
-using Infiltrator
 
-@attributes mutable struct AffineMatrixGroup{BRT, BRET, 
+@attributes mutable struct AffineMatrixGroup{BaseRingType, RingType, 
                                        SpecType<:AbsAffineGroupScheme, 
                                        MatrixType<:MatrixElem,
                                        FuncType1, FuncType2
-                                      } <: AbsAffineGroupScheme{BRT, BRET}
+                                      } <: AbsAffineGroupScheme{BaseRingType, RingType}
   G::SpecType # the underlying group scheme
   M::MatrixType# the coordinate matrix
   to_linear_index::FuncType1 # translation between the indices of the coordinates and the matrix entries
@@ -77,7 +76,7 @@ using Infiltrator
     G = AffineGroupScheme(X, XxX, diag, p1, p2, inc1, inc2, prod_map, inv_map, 
                           kk.([(to_square(k)[1] == to_square(k)[2] ? 1 : 0) for k in 1:ngens(R)]),
                           check=check)
-    return new{typeof(kk), elem_type(kk), 
+    return new{typeof(kk), typeof(OO(G)), 
                typeof(G), typeof(M), 
                typeof(to_linear), typeof(to_square)
               }(

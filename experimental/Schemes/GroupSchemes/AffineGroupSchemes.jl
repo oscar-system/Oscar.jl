@@ -14,7 +14,7 @@ export AffineGroupScheme
 #
 ########################################################################
 
-abstract type AbsAffineGroupScheme{BRT, BRET} <: AbsSpec{BRT, BRET} end
+abstract type AbsAffineGroupScheme{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType} end
 
 @Markdown.doc """
     multiplication_map(G::AbsAffineGroupScheme)
@@ -138,7 +138,7 @@ underlying_scheme_type(::Type{T}) where {T<:AbsAffineGroupScheme} = underlying_s
 # types of affine group schemes, see the example `_kk_star` below.
 #
 ########################################################################
-@attributes mutable struct AffineGroupScheme{BRT, BRET, SpecType} <: AbsAffineGroupScheme{BRT, BRET}
+@attributes mutable struct AffineGroupScheme{BaseRingType, RingType, SpecType} <: AbsAffineGroupScheme{BaseRingType, RingType}
   X::SpecType
   product_over_ground_field::AbsSpec
   diagonal_embedding::SpecMor
@@ -148,7 +148,7 @@ underlying_scheme_type(::Type{T}) where {T<:AbsAffineGroupScheme} = underlying_s
   second_inclusion::SpecMor
   multiplication_map::SpecMor
   inverse_map::SpecMor
-  neutral_element::Vector{BRET}
+  neutral_element::Vector{<:RingElem}
 
   function AffineGroupScheme(
       X::AbsSpec, XxX::AbsSpec, 
@@ -186,7 +186,7 @@ underlying_scheme_type(::Type{T}) where {T<:AbsAffineGroupScheme} = underlying_s
 
     G = new{
             base_ring_type(X), 
-            ring_type(X), 
+            typeof(OO(X)), 
             typeof(X)
            }(
              X, XxX
@@ -211,7 +211,8 @@ underlying_scheme(G::AffineGroupScheme) = G.X
 ### type getters
 function underlying_scheme_type(
     ::Type{AffineGroupSchemeType}
-  ) where {SpecType, AffineGroupSchemeType<:AffineGroupScheme{<:Any, <:Any, SpecType}}
+  ) where {SpecType<:AbsSpec, 
+           AffineGroupSchemeType<:AffineGroupScheme{<:Ring, <:Ring, SpecType}}
   return SpecType
 end
 
@@ -235,7 +236,7 @@ neutral_element_coordinates(G::AffineGroupScheme) = G.neutral_element
 #
 ########################################################################
 
-@attributes mutable struct _kk_star{BRT, BRET, GroupSchemeType} <: AbsAffineGroupScheme{BRT, BRET}
+@attributes mutable struct _kk_star{BaseRingType, RingType, GroupSchemeType} <: AbsAffineGroupScheme{BaseRingType, RingType}
   X::GroupSchemeType
 
   function _kk_star(kk::AbstractAlgebra.Field; var_name::String="x")
@@ -253,7 +254,7 @@ neutral_element_coordinates(G::AffineGroupScheme) = G.neutral_element
 
     G = AffineGroupScheme(X, XxX, diag, p1, p2, i1, i2, mult_map, inv_map, e)
 
-    return new{typeof(kk), elem_type(kk), typeof(G)}(G)
+    return new{typeof(kk), typeof(OO(G)), typeof(G)}(G)
   end
 end
 
