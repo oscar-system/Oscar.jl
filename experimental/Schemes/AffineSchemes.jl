@@ -332,6 +332,10 @@ end
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
+function issubset(X::AbsSpec, Y::AbsSpec)
+  error("method `issubset(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
+end
+
 function issubset(
     X::AbsSpec{BRT, RT}, 
     Y::AbsSpec{BRT, RT}
