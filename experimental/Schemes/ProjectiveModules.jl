@@ -161,6 +161,10 @@ function (R::MPolyQuo)(a::MPolyQuoLocalizedRingElem; check::Bool=true)
   if check
     all(x->(x in localized_modulus(parent(a))), gens(modulus(R))) || error("no valid coercion")
   end
-  isone(lifted_numerator(a)) && return R(lifted_denominator(a))
-  return R(lift(divexact(denominator(a), numerator(a))))
+  (iszero(lifted_numerator(a)) || iszero(numerator(a))) && return zero(R)
+  isone(lifted_denominator(a)) && return R(lifted_numerator(a))
+  ### TODO: divexact is still not implemented for MPolyQuo. 
+  # Once this is done, return to that method.
+  #return R(lift(divexact(numerator(a), denominator(a))))
+  error("`divexact` not implemented for `MPolyQuo`")
 end

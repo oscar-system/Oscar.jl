@@ -3,7 +3,7 @@ export singular_locus
 export reduced_scheme
 export is_smooth
 
-function singular_locus(X::AbsSpec)
+function singular_locus(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   comp = _singular_locus_with_decomposition(X)
   if length(comp) == 0 
     return subscheme(X, one(OO(X)))
@@ -12,7 +12,7 @@ function singular_locus(X::AbsSpec)
   return Spec(R, prod([modulus(OO(Y)) for Y in comp]), inverted_set(OO(X)))
 end
 
-function _singular_locus_with_decomposition(X::AbsSpec)
+function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
   result = typeof(X)[]
   if is_equidimensional(X)
@@ -44,7 +44,7 @@ function _singular_locus_with_decomposition(X::AbsSpec)
   return result
 end
 
-@attr Bool function is_equidimensional(X::AbsSpec)
+@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
   P = primary_decomposition(saturated_ideal(I))
   length(P) == 0 && return true
@@ -53,13 +53,13 @@ end
   return false
 end
 
-@attr function reduced_scheme(X::AbsSpec)
+@attr function reduced_scheme(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
   J = radical(saturated_ideal(I))
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
-@attr function is_reduced(X::AbsSpec)
+@attr function is_reduced(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
   J = saturated_ideal(I)
   return is_reduced(quo(base_ring(OO(X)), J)[1])
