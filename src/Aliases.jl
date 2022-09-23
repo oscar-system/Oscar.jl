@@ -6,6 +6,9 @@
 @alias is_valid isvalid
 
 # for backwards compatibility
+@alias hasrelshp has_relshp
+@alias hastorusfactor has_torusfactor
+@alias inner_automorphisms_group inner_automorphism_group
 @alias isabsolutely_irreducible is_absolutely_irreducible
 @alias isaffine is_affine
 @alias isalmostsimple is_almostsimple
@@ -71,6 +74,3 @@
 @alias isunital is_unital
 @alias iswelldefined is_welldefined
 
-# for backwards compatibility
-@alias hasrelshp has_relshp
-@alias hastorusfactor has_torusfactor

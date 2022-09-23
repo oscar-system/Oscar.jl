@@ -9,7 +9,7 @@ export
     image,
     induced_automorphism,
     inner_automorphism,
-    inner_automorphisms_group,
+    inner_automorphism_group,
     is_bijective,
     is_injective,
     is_inner_automorphism,
@@ -989,11 +989,11 @@ function is_inner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <:
 end
 
 """
-    inner_automorphisms_group(A::AutomorphismGroup{T})
+    inner_automorphism_group(A::AutomorphismGroup{T})
 
 Return the subgroup of `A` of the inner automorphisms.
 """
-function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
+function inner_automorphism_group(A::AutomorphismGroup{T}) where T <: GAPGroup
    AutGAP = GAP.Globals.InnerAutomorphismsAutomorphismGroup(A.X)
    return _as_subgroup(A, AutGAP)
 end
