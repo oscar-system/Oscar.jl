@@ -550,7 +550,7 @@ julia> automorphism_group_generators(g)
 """
 function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g);
-    result = Polymake.graph.automorphism_group_generators(pmg)
+    result = Polymake.graph.automorphisms(pmg)
     return [[x+1 for x in a] for a in result]
 end
 
