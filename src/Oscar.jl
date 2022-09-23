@@ -415,6 +415,7 @@ include("Serialization/main.jl")
 
 include("Aliases.jl")
 
+include("Deprecations.jl")
 
 const global OSCAR = Oscar
 const global oscar = Oscar
