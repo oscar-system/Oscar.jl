@@ -393,7 +393,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
     if fl
       @vprint :ModStdQt 1 "success\n"
       if ord == :degrevlex
-        I.gb = Oscar.BiPolyArray(res, keep_ordering = false, isGB = true)
+        I.gb = Oscar.IdealGens(res, keep_ordering = false, isGB = true)
       end
       return res
     end

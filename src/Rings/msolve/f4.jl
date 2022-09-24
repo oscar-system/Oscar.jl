@@ -105,7 +105,7 @@ function f4(
           cglobal(:jl_free), gb_len, gb_exp, gb_cf, jl_ld, field_char)
 
     vars = gens(R)[eliminate+1:end]
-    I.gb[degrevlex(vars)] = BiPolyArray(basis, keep_ordering=false, isGB=true)
+    I.gb[degrevlex(vars)] = IdealGens(basis, keep_ordering=false, isGB=true)
     
     return basis
 end

@@ -338,7 +338,6 @@ ideal(-x*z + y^2, x*y - z, x^2 - y)
 """
 function eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
   singular_assure(I)
-  B = BiPolyArray(l)
   S = base_ring(I.gens.S)
   s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
