@@ -15,7 +15,9 @@ end
 function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
   result = typeof(X)[]
-  if is_equidimensional(X)
+  ## TODO: This is the scheme case, for varieties case use ..._radical
+  P = equidimensional_decomposition_weak(saturated_ideal(I))
+  if length(P)==1
     d = dim(X)
     R = base_ring(OO(X))
     n = ngens(R)
@@ -25,8 +27,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocaliz
     one(OO(X)) in OO(X)(K) && return result
     return [subscheme(X, K)]
   else
-    P = primary_decomposition(saturated_ideal(I))
-    components = [subscheme(X, J[2]) for J in P]
+    components = [subscheme(X, J) for J in P]
     for Y in components
       for Z in components
         if !(Y == Z)
@@ -46,10 +47,8 @@ end
 
 @attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
-  P = primary_decomposition(saturated_ideal(I))
-  length(P) == 0 && return true
-  d = dim(P[1][1])
-  all(x->dim(x[1])==d, P[2:end]) && return true
+  P = equidimensional_decomposition_weak(saturated_ideal(I))
+  length(P) < 2 && return true
   return false
 end
 
