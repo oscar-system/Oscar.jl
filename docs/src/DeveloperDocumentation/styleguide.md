@@ -13,10 +13,13 @@ apply to Oscar, too (that said, for various reasons our code still violates
 quite some of them; but in general we strive to reduce these).
 Here is a summary of the naming convention followed in Oscar:
 
-- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal functions do not have to follow these rules.) Types (and their constructor) tend to be in `CamelCase`. However, please ALSO provide the constructor/ a constructor in underscore_case. As a
-user I do usually not know if something is a constructor or a function (nor do I
-want to).
-- Noteworthy difference to Julia base is that we do not have exceptions `is*` or `has*`.
+- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal
+  functions do not have to follow these rules.) Types (and their constructor)
+  tend to be in `CamelCase`. However, please ALSO provide the constructor/ a
+  constructor in underscore_case. As a user I do usually not know if something
+  is a constructor or a function (nor do I want to).
+- Noteworthy difference to Julia base is that we do not have exceptions `is*`
+  or `has*`.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
   The main reason is to avoid awkward constructions like `isvery_ample`, while
   also being consistent.
@@ -26,16 +29,17 @@ want to).
 - In Julia we have multiple dispatch, so we do not need functions like
   `point_from_matrix` as the "from" part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.
-  Similarly for `matrix_to_points`. Of course it is fine to use them internally, where
-  useful.
+  Similarly for `matrix_to_points`. Of course it is fine to use them
+  internally, where useful.
 - Follow the mathematics. If your function needs a list of points, you should
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
 - If already existing types in Oscar are almost what you need, consider
-  improving them instead of writing your own. While it might be
-  tempting to create a new polynomial ring type for the new application because
-  some feature is missing, it causes a lot of work and compatibility issues: Will the new type support
+  improving them instead of writing your own. While it might be tempting to
+  create a new polynomial ring type for the new application because some
+  feature is missing, it causes a lot of work and compatibility issues: Will
+  the new type support
   - normal functions (gcd, factor),
   - quotient fields,
   - modules and residue rings,
