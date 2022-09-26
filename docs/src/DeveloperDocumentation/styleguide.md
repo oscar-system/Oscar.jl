@@ -18,6 +18,8 @@ user I do usually not know if something is a constructor or a function (nor do I
 want to).
 - Noteworthy difference to Julia base is that we do not have exceptions `is*` or `has*`.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
+  The main reason is to avoid awkward constructions like `isvery_ample`, while
+  also being consistent.
 - For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
 - Use Julia conventions where applicable.
