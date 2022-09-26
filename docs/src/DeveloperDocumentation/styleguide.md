@@ -18,14 +18,18 @@ Here is a summary of the naming convention followed in Oscar:
   tend to be in `CamelCase`. However, please ALSO provide the constructor/ a
   constructor in underscore_case. As a user I do usually not know if something
   is a constructor or a function (nor do I want to).
-- Noteworthy difference to Julia base is that we do not have exceptions `is*`
-  or `has*`.
+- Noteworthy difference to Julia base is that we do not have exceptions for
+  `is*` or `has*` as prefix.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
   The main reason is to avoid awkward constructions like `isvery_ample`, while
   also being consistent.
+  For compatibility with standard Julia, while staying consistent internally,
+  we also provide aliases (using `AbstractAlgebra.@alias`) for various standard
+  Julia functions, e.g. `is_one` as alias for `isone`
 - For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
-- Use Julia conventions where applicable.
+- Use Julia conventions where applicable and when they don't contradict our
+  own rules above.
 - In Julia we have multiple dispatch, so we do not need functions like
   `point_from_matrix` as the "from" part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.
