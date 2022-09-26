@@ -1,4 +1,4 @@
-@testset "Serialization/Containers" begin
+@testset "Serialization.Containers" begin
     mktempdir() do path
         @testset "Vector{LinearProgram}" begin
             c = cube(3)
@@ -79,8 +79,17 @@
             end
         end
 
-      @testset "NamedTuple" begin
-        
-      end
+        @testset "(de)serialization NamedTuple{$(S), $(T)}" for (S, T) in
+            (
+                (UInt, UInt128), (UInt16, UInt32), (UInt64, UInt8),
+                (Int, Int128), (Int16, Int32), (Int64, Int8),
+                (Float16, Float32)
+            )
+            original = (first = S(30), second = T(3.0))
+            test_save_load_roundtrip(path, original) do loaded
+                @test loaded isa NamedTuple{(:first, :second), Tuple{S, T}}
+                @test original == loaded
+            end
+        end
     end
 end
