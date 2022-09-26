@@ -15,9 +15,9 @@ Here is a summary of the naming convention followed in Oscar:
 
 - Use `CamelCase` for types and `snake_case` for *everything* else. (Internal
   functions do not have to follow these rules.) Types (and their constructor)
-  tend to be in `CamelCase`. However, please ALSO provide the constructor/ a
-  constructor in underscore_case. As a user I do usually not know if something
-  is a constructor or a function (nor do I want to).
+  tend to be in `CamelCase`. However, please *also* provide the constructor (or a
+  constructor) in `snake_case`. As a user one usually does not know if something
+  is a constructor or a function.
 - Noteworthy difference to Julia base is that we do not have exceptions for
   `is*` or `has*` as prefix.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
