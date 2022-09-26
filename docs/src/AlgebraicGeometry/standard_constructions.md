@@ -17,6 +17,6 @@ available in Oscar.
 
 ## Grassman Plücker Ideal
 ```@docs
-grassman_pluecker_ideal([ring::MPolyRing,] subspace_dimension::Int, ambient_dimension::Int)
+grassman_pluecker_ideal
 ```
 
