@@ -81,6 +81,19 @@ recommend the following steps:
    without exiting Julia. Thanks to the Revise package, any runs after
    the first will be much faster.
 
+### Running the doctests
+For running the doctests, `build_doc` takes an optional parameter `doctest`.
+The default value is `false`, so to run the doctests run
+```
+build_doc(doctest = true)
+```
+The documentation in the github actions is build using Julia 1.6. Differences
+in output may be caused by a difference in Julia versions.
+
+You can also use this parameter to autofix your documentation, in case you
+changed the output of some function appearing in many places. See the section
+on repairing `jldoctest`s below.
+
 
 ## Updating the bibliography
 
