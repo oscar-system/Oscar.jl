@@ -122,7 +122,7 @@ end
   characteristic(base_ring(X)) == 0 || error("method not implemented in positive characteristic")
   L = localized_ring(OO(X))
   I = localized_modulus(OO(X))
-  f = gens(I)
+  f = gens(Oscar.pre_saturated_ideal(I))
   Df = jacobi_matrix(f)
 
   A = map_entries(x->OO(X)(x), Df)
