@@ -1333,7 +1333,7 @@ end
 #
 ################################################################################
 function grassman_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
-    return convert(Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
+    return convert(MPolyIdeal{fmpq_mpoly}, Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
 end
 
 @doc Markdown.doc"""
