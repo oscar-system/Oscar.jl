@@ -1369,9 +1369,9 @@ function grassman_pluecker_ideal(ring::MPolyRing,
                                  ambient_dimension::Int) 
     pluecker_ideal = convert(Polymake.ideal.pluecker_ideal(
         subspace_dimension, ambient_dimension))
-    converted_generators = []
+    converted_generators = elem_type(R)[]
+    coeff_ring = base_ring(ring)
     for g in gens(pluecker_ideal)
-        coeff_ring = base_ring(ring)
         converted_coeffs = [coeff_ring(numerator(c)) for c in coefficients(g)]
         polynomial = MPolyBuildCtx(ring)
 
