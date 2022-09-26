@@ -146,7 +146,6 @@
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
          "AlgebraicGeometry/para_rational_curves.md",
-	 "AlgebraicGeometry/standard_constructions.md",
      ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
@@ -166,6 +165,9 @@
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
+     ],
+     "Standard Constructions" => [
+       "AlgebraicGeometry/standard_constructions.md",
      ]
   ],
 
