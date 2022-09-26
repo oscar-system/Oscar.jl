@@ -1382,5 +1382,5 @@ function grassman_pluecker_ideal(ring::MPolyRing,
         converted_g = finish(polynomial)
         push!(converted_generators, converted_g)
     end
-    return  ideal(ring, converted_generators)
+    return ideal(ring, converted_generators)
 end
