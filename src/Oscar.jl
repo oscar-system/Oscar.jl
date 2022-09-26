@@ -384,7 +384,6 @@ include("PolyhedralGeometry/main.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 include("Combinatorics/Graphs.jl")
-export Graphs
 include("Combinatorics/SimplicialComplexes.jl")
 
 include("Combinatorics/Matroids/JMatroids.jl")
@@ -416,6 +415,7 @@ include("Serialization/main.jl")
 
 include("Aliases.jl")
 
+include("Deprecations.jl")
 
 const global OSCAR = Oscar
 const global oscar = Oscar
