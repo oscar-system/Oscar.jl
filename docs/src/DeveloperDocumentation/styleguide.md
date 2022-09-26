@@ -38,6 +38,13 @@ want to).
   - quotient fields,
   - modules and residue rings,
   - conversion to and from other already existing types?
+- Whenever functions return the same mathematical object, but in different
+  mathematical categories, the first argument should be the desired return
+  type. One example is `projective_space(NormalToricVariety, *)` vs
+  `projective_space(ProjectiveScheme, *)`. However, if the return type is
+  different, even if the result describes the same mathematical object, it
+  should be indicated in the function name, for example `automorphism_group` vs
+  `automorphism_group_generators` vs `automorphism_list`.
 
 ## Code formatting
 
