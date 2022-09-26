@@ -28,6 +28,8 @@ so that ``Rʳ ≅ M ⊕ N`` splits as a direct sum via the projector
 """
 function is_projective(M::SubQuo; check::Bool=true)
   ### Assemble a presentation of M over its base ring
+  # TODO: Eventually replace by the methods for free 
+  # presentation from the module package. 
   R = base_ring(M)
   r = ngens(M)
   Rr = FreeMod(R, r)
@@ -152,7 +154,8 @@ function _is_projective(A::MatElem, X::AbsSpec)
 end
 
 function (R::MPolyRing)(a::MPolyLocalizedRingElem; check::Bool=true)
-  isone(numerator(a)) && return denominator(a)
+  R == base_ring(parent(a)) || error("rings not compatible")
+  isone(denominator(a)) && return numerator(a)
   return divexact(numerator(a), denominator(a))
 end
 
