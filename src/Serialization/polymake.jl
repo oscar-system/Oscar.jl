@@ -45,15 +45,16 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     else 
         # We just try to default to something from Polymake.jl
         deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-        try
-            return convert(deserialized)
-        catch e
-            if e isa MethodError
-                @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
-                return deserialized
-            else
-                throw(e)
-            end
+        if !isa(deserialized, Polymake.BigObject)
+            @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
+            return deserialized
+        end
+        
+        if Polymake.type_name(deserialized) == "Ideal"
+            return convert(MPolyIdeal{fmpq_mpoly}, deserialized)
+        else
+            @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
+            return deserialized
         end
     end
 end

@@ -165,6 +165,9 @@
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
+     ],
+     "Standard Constructions" => [
+       "AlgebraicGeometry/standard_constructions.md",
      ]
   ],
 
