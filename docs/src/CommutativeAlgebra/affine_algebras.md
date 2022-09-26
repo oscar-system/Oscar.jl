@@ -484,7 +484,7 @@ degree(A::MPolyQuo)
 ### Positive Gradings in General
 
 ```@docs
-  multi_hilbert_series(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
-  multi_hilbert_series_reduced(A::MPolyQuo; strategy::Symbol=:BayerStillmanA)
-  multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
+multi_hilbert_series(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
+multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
+multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 ```
