@@ -295,3 +295,133 @@ git fetch oscar-system
 git rebase oscar-system/master
 ```
 Adding the remote only has to be executed once.
+
+### Pitfalls: Mutable objects in Oscar code
+
+The objects in Oscar that can be changed (mutable objects) can be linked
+together into an arbitrary dependency graph. Therefore, a change to one object
+may have unintended consequences on another object in the system.
+The simplest way to avoid such unintended behaviour is to *never* modify an
+existing object. However, if you intended to use mutable objects the way they
+were intended to be used, namely, for mutation, then Oscar provides plenty of
+places to burn your fingers.
+
+The simplest example is the creation of a polynomial ring. If we mutate the
+array of symbols used for printing, we have effectively changed the ring.
+
+```
+julia> v = [:x, :y, :z]; R = PolynomialRing(QQ, v)[1]
+Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> v[3] = :w; R
+Multivariate Polynomial Ring in x, y, w over Rational Field
+```
+
+It turns out that strings do not have this effect.
+
+```
+julia> v = ["x", "y", "z"]; R = PolynomialRing(QQ, v)[1]
+Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> v[3] = "w"; R
+Multivariate Polynomial Ring in x, y, z over Rational Field
+```
+
+This behaviour where changes to one object can have hidden and unexpected
+effects on another object is by no means limited to polynomial rings.
+Here we create the factored element `x = 2^3`. By modifying the object `2`, we
+are able to change `x` as well.
+
+```julia
+julia> a = fmpz(2)
+2
+
+julia> x = FacElem([a], [fmpz(3)]); evaluate(x)
+8
+
+julia> a = one!(a)  # inplace assignment of a to 1
+1
+
+julia> evaluate(x)  # x has been changed
+1
+```
+
+In the previous example, the link between the object `x` and the object `a` can
+be broken by passing a `deepcopy` of `a` to the `FacElem` function.
+
+```julia
+julia> a = fmpz(2)
+2
+
+julia> x = FacElem([deepcopy(a)], [fmpz(3)]); evaluate(x)
+8
+
+julia> a = one!(a)  # modyfy a
+1
+
+julia> evaluate(x)  # x is now unchanged
+8
+```
+
+The previous two examples dealt with the fact that ownership conventions on
+function *arguments* are completely unspecified in Oscar. If you are going to
+mutate existing objects anywhere in your code (`v[3] = :w` or `one!(a)`) and
+these objects have "touched" Oscar in anyway, expect fragile behaviour. If you
+suspect that something funny is going on, try passing a `deepcopy` to all Oscar
+functions.
+
+It turns out that the ownership conventions on the function *return* values are
+also completely unspecifed in Oscar. Here is an example where the return of a
+function might need a `deepcopy` depending on your specific usage scenario.
+
+First, we create the Gaussian rationals and the two primes above `5`.
+
+```julia
+julia> K, i = quadratic_field(-1)
+(Imaginary quadratic field defined by x^2 + 1, sqrt(-1))
+
+julia> m = Hecke.modular_init(K, 5)
+modular environment for p=5, using 2 ideals
+```
+
+The function `modular_project` returns the projection of an element of `K` into
+each of the residue fields.
+
+```julia
+julia> a = Hecke.modular_proj(1+2*i, m)
+2-element Vector{fq_nmod}:
+ 2
+ 0
+```
+
+While the function has produced the correct answer, if we run it again on a
+different input, we will find that `a` has changed.
+
+```julia
+julia> b = Hecke.modular_proj(2+3*i, m)
+2-element Vector{fq_nmod}:
+ 1
+ 3
+
+julia> a
+2-element Vector{fq_nmod}:
+ 1
+ 3
+```
+
+Therefore, the following `deepcopy`s may be necessary for your code to function
+correctly.
+```julia
+julia> a = deepcopy(Hecke.modular_proj(1+2*i, m))
+2-element Vector{fq_nmod}:
+ 2
+ 0
+
+julia> b = deepcopy(Hecke.modular_proj(2+3*i, m))
+2-element Vector{fq_nmod}:
+ 1
+ 3
+
+julia> (a, b)
+(fq_nmod[2, 0], fq_nmod[1, 3])
+```
