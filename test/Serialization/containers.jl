@@ -1,5 +1,4 @@
-@testset "Vectors" begin
-    
+@testset "Serialization/Containers" begin
     mktempdir() do path
         @testset "Vector{LinearProgram}" begin
             c = cube(3)
@@ -79,5 +78,9 @@
               @test original == loaded
             end
         end
+
+      @testset "NamedTuple" begin
+        
+      end
     end
 end
