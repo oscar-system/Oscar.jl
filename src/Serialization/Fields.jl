@@ -313,24 +313,43 @@ function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.Rat)
     )
 end
 
-function load_internal(s::DeserializerState, ::Type{<: AbstractAlgebra.Generic.Rat}, dict::Dict)
+function load_internal(s::DeserializerState,
+                       ::Type{<: AbstractAlgebra.Generic.Rat},
+                       dict::Dict)
     _ = load_unknown_type(s, dict[:frac_elem_parent])
     R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
     num = load_unknown_type(s, dict[:num])
     den = load_unknown_type(s, dict[:den])
 
-    try
-        num = evaluate(num, gens(R))
-        den = evaluate(den, gens(R))
-    catch
+    if typeof(num) <: fmpq_poly
         num = evaluate(num, gen(R))
         den = evaluate(den, gen(R))
+    else
+        num = evaluate(num, gens(R))
+        den = evaluate(den, gens(R))
     end
 
     return num // den
 end
 
-# still need to work out loading with parent
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: AbstractAlgebra.Generic.Rat},
+                                   dict::Dict,
+                                   parent:: AbstractAlgebra.Generic.RationalFunctionField)
+    _ = load_unknown_type(s, dict[:frac_elem_parent])
+    num = load_unknown_type(s, dict[:num])
+    den = load_unknown_type(s, dict[:den])
+
+    if typeof(num) <: fmpq_poly
+        num = evaluate(num, gen(parent))
+        den = evaluate(den, gen(parent))
+    else
+        num = evaluate(num, gens(parent))
+        den = evaluate(den, gens(parent))
+    end
+
+    return num // den
+end
 
 ################################################################################
 # RealField
