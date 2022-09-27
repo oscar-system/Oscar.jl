@@ -825,6 +825,7 @@ function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   return SpecMor(U, V, OO(U).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
 
+# TODO: Alias for compatibility. Needs to be cleaned up and removed.
 restriction(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true) = restrict(f,U,V,check=check)
 
 
