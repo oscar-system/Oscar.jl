@@ -4,6 +4,7 @@ export representative_patch, variety, representative_field
 export VarietyFunctionFieldElem
 export representative
 
+
 ### Check for irreducibility
 @attr Bool function is_irreducible(X::AbsCoveredScheme)
   for U in basic_patches(default_covering(X))
@@ -188,6 +189,7 @@ end
 
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a))
+isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 
 ########################################################################
 # Conversion of rational functions on arbitrary patches                #
@@ -249,3 +251,71 @@ end
 function Base.show(io::IO, f::VarietyFunctionFieldElem)
   print(io, representative(f))
 end
+
+########################################################################
+# Implementation of the rest of the interfaces                         #
+########################################################################
+
+function elem_type(::Type{T}) where {FracFieldType, 
+                                     T<:VarietyFunctionField{<:Field, 
+                                                             <:FracFieldType
+                                                            }
+                                    }
+  return VarietyFunctionFieldElem{elem_type(FracFieldType), T}
+end
+
+function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<:Any, ParentType}}
+  return ParentType
+end
+
+base_ring(KK::VarietyFunctionFieldElem) = base_ring(representative_field(KK))
+is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
+is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
+
+function Base.hash(f::VarietyFunctionFieldElem, h::UInt)
+  r = 57103
+  return xor(r, hash(representative(f), h))
+end
+
+function deepcopy_internal(f::VarietyFunctionFieldElem, dict::IdDict)
+  return parent(f)(deepcopy_internal(numerator(representative(f)), dict), 
+                   deepcopy_internal(denominator(representative(f)), dict), 
+                   check=false)
+end
+
+(KK::VarietyFunctionField)() = zero(KK)
+(KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
+(KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
+(KK::VarietyFunctionField)(a::MPolyElem) = (parent(a) == base_ring(KK) ? KK(a, one(a), check=false) : error("element can not be coerced"))
+canonical_unit(f::VarietyFunctionFieldElem) = f
+
+function Base.show(io::IO, KK::VarietyFunctionField)
+  print(io, "function field of $(variety(KK))")
+end
+
+function divexact(f::VarietyFunctionFieldElem, 
+    g::VarietyFunctionFieldElem;
+    check::Bool=true
+  )
+  return f//g
+end
+inv(f::VarietyFunctionFieldElem) = KK(denominator(representative(f)),
+                                      numerator(representative(f)),
+                                      check=false
+                                     )
+
+AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:Integer} = T
+AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:AbstractAlgebra.Generic.Frac} = T
+
+AbstractAlgebra.promote_rule(::Type{T}, ::Type{T}) where {T<:VarietyFunctionFieldElem} = T
+
+function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{T}, U<:RingElement}
+  promote_rule(T, U) ? FFET : Union{}
+end 
+
+function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{AbstractAlgebra.Generic.Frac{T}}, U<:RingElement}
+  promote_rule(T, U) ? FFET : Union{}
+end 
+
+characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
+
