@@ -254,6 +254,17 @@ folder structure and choose sensibly where to place your code (when fixing a
 bug this is probably a minor question).
 
 ### Adding tests
+There are two ways to add tests:
+  - There are combined tests and examples in the docstrings, namely the
+    `jldoctest` blocks. For these have a closer look at [Documenting OSCAR
+    code](@ref).
+  - Larger tests and tests that aren't useful examples are in the `test`
+    folder. The main file there is `test/runtests.jl` which then includes other
+    testfiles. 
+
+```@doc
+Oscar.test_module
+```
 
 ### Adding documentation
 There are two places where documentation can be added:
