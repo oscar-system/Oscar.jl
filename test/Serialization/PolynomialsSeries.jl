@@ -44,7 +44,8 @@ end
 
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{Hecke.NfRelElem{nf_elem}}, PolyRing{Hecke.NfRelElem{nf_elem}},
-    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
+    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}},
+    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.RationalFunctionField{fmpq, fmpq_poly}}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
     D_base_field = base_field(D)
@@ -163,15 +164,19 @@ end
 
 function test_equality(p::T, l:: T) where T  <: Union{
     MPolyElem{S}, PolyElem{S}} where S <: Union{
-    AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
+        AbstractAlgebra.Generic.Frac{fmpq_poly},
+        AbstractAlgebra.Generic.Rat{fmpq, fmpq_poly},
+        fmpq_poly}
     g = gen(base_ring(parent(l)))
     mapped_coeffs = map(i -> evaluate(i, g), coefficients(p))
     return mapped_coeffs == collect(coefficients(l))
 end
 
 function test_equality(p::T, l:: T) where T  <: Union{
-    Generic.LaurentSeriesElem{S},SeriesElem{S}} where S <: Union{
-    AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
+    Generic.LaurentSeriesElem{S}, SeriesElem{S}} where S <: Union{
+        AbstractAlgebra.Generic.Frac{fmpq_poly},
+        AbstractAlgebra.Generic.Rat{fmpq, fmpq_poly},
+        fmpq_poly}
     dom = base_ring(parent(p))
     codom = base_ring(parent(l))
     g = gen(base_ring(parent(l)))
