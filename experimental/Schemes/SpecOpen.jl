@@ -1,7 +1,7 @@
 export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 export restriction_map
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, is_domain_type, is_exact_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
@@ -496,6 +496,15 @@ function restrict(
   l = coordinates(one(OO(V)), ideal(OO(V), denominator.(g)))
   a = dot(l, OO(V).(numerator.(g)))
   return a
+end
+
+function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
+  U == domain(a) || error("domains are not compatible")
+  X = ambient(U)
+  d = find_non_zero_divisor(U)
+  W = hypersurface_complement(X, d)
+  b = restrict(a, W)
+  return lifted_numerator(b)//lifted_denominator(b)
 end
 
 (R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))

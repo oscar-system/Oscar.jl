@@ -53,6 +53,12 @@ function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true)
   return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
 end
 
+function generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
+  X = ambient(U)
+  parent(a) == OO(U) || error("domains are not compatible")
+  return lifted_numerator(a)//lifted_denominator(a)
+end
+
 @attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal

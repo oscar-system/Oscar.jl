@@ -439,7 +439,7 @@ end
 
 is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
 
-Base.isempty(X::Spec) = iszero(one(OO(X)))
+Base.isempty(X::AbsSpec) = iszero(one(OO(X)))
 
 @Markdown.doc """
     is_open_embedding(X::AbsSpec, Y::AbsSpec)
