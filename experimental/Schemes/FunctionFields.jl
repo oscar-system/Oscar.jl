@@ -187,8 +187,8 @@ function ^(a::VarietyFunctionFieldElem, i::fmpz)
   return parent(a)(representative(a)^i, check=false)
 end
 
-iszero(a::VarietyFunctionFieldElem) = iszero(representative(a))
-isone(a::VarietyFunctionFieldElem) = isone(representative(a))
+iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
+isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))
 isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 
 ########################################################################
