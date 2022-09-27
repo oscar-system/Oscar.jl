@@ -162,17 +162,17 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 
 ##############################################################################
 #
-# workhorse: BiPolyArray
+# workhorse: IdealGens
 # ideals are (mostly) generated on the Nemo side, but structural computations
 # are in Singular. To avoid permanent conversion, the list of generators = sideal
-# is captured in BiPolyArray: for Ocsar this is Vector{MPoly}
+# is captured in IdealGens: for Ocsar this is Vector{MPoly}
 #                                 Singular      sideal
 #
 #TODO/ to think
 #  default in Nemo is     :lex
 #             Singular is :degrevlex -> better for std
 #by default, use different orders???
-#make BiPolyArray use different orders for both? make the type depend on it?
+#make IdealGens use different orders for both? make the type depend on it?
 #
 #for std: abstraction to allow Christian to be used
 #

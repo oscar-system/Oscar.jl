@@ -35,7 +35,7 @@ end
    M = matrix_ordering([x, y, z], [1 1 1; 0 1 0; 1 0 0])
    @test groebner_basis(I, ordering = M) == [ x + y + z, 2*x^2 + 2*x*z + z^3 + z^2 ]
    @test_throws ErrorException groebner_basis(I, ordering = negdeglex([x, y, z]))
-   @test groebner_basis(I, ordering = negdeglex([x, y, z]), enforce_global_ordering = false) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
+   @test std_basis(I, negdeglex([x, y, z])) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
 
    @test groebner_basis_with_transformation_matrix(I, ordering=lex([x])*lex([y,z])) == groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
    @test groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
