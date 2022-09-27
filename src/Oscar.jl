@@ -233,6 +233,23 @@ function open_doc()
     end
 end
 
+
+@doc Markdown.doc"""
+    build_doc(; doctest=false, strict=false)
+
+Build the documentation of `Oscar.jl` locally and open the front page in a
+browser.
+
+The optional parameter `doctest` can take three values:
+  - `false`: Do not run the doctests (default).
+  - `true`: Run the doctests and report errors.
+  - `:fix`: Run the doctests and replace the output in the documentation with
+    the output produced by Oscar. Please use this option carefully.
+
+The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
+and if set to `true` then according to the documentation of `Documenter.jl` "a
+doctesting error will always make makedocs throw an error in this mode".
+"""
 function build_doc(; doctest=false, strict=false)
   if !isdefined(Main, :BuildDoc)
     doc_init()
@@ -274,6 +291,17 @@ function build()
 end
 
 
+@doc Markdown.doc"""
+    test_module(x, new::Bool = true)
+
+Run the Oscar tests in the file `x.jl` where `x` is a string.
+
+If `x == "all"` run the entire testsuite.
+
+The optional parameter `new` takes the values `false` and `true` (default). If
+`true`, then the tests are run in a new session, otherwise the currently active
+session is used.
+"""
 function test_module(x, new::Bool = true)
    julia_exe = Base.julia_cmd()
    if x == "all"
