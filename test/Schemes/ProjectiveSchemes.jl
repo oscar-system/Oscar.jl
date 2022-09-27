@@ -63,3 +63,14 @@ end
   a = OO(U)([x//y, z//x])
   @test pullback(projection_to_base(Y))(a)*s0 == s1
 end
+
+
+@testset "projective schemes as covered schemes" begin
+  P3 = projective_space(QQ,3)
+  S = ambient_ring(P3)
+  F = subscheme(P3,ideal(S,S[1]^4+S[2]^4+S[3]^4+S[4]^4))
+  Fc = as_covered_scheme(F)
+  U = patches(Fc)[1]
+  V = patches(Fc)[2]
+  oscar.intersect_in_covering(U,V,Fc[1])
+end
