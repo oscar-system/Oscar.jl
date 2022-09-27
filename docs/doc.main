@@ -198,6 +198,7 @@
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
     "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
