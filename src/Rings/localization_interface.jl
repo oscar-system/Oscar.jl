@@ -627,7 +627,7 @@ end
 
 function kernel(f::AbsLocalizedRingHom)
   L = domain(f)
-  return ideal(L, [L(g) for g in kernel(restricted_map(f))])
+  return ideal(L, [L(g) for g in gens(kernel(restricted_map(f)))])
 end
 
 function preimage(f::AbsLocalizedRingHom, I::Ideal)
