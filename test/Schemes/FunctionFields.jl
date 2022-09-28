@@ -20,6 +20,8 @@
 end
 
 @testset "fraction fields of varieties II" begin
+  # We construct by hand the projective bundle
+  # P(O_{P^1}(4)+O_{P^1}(6)+O_{P^1}(1))
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t

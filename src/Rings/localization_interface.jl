@@ -631,7 +631,7 @@ function kernel(f::AbsLocalizedRingHom)
 end
 
 function preimage(f::AbsLocalizedRingHom, I::Ideal)
-  base_ring(I) == codomain(f) || return preimage(f, ideal(codomain(f), codomain(f).(gens(I))))
+  base_ring(I) == codomain(f) || error("ideal must be in the codomain of f")
   Q, proj = quo(codomain(f), I)
   return kernel(compose(f, proj))
 end

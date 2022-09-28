@@ -11,6 +11,7 @@ export representative
     is_irreducible(U) || return false
   end
   C = default_covering(X)
+  # Check that X is connected
   for U in patches(C)
     for V in patches(C) 
       A, _ = glueing_domains(C[U, V])
@@ -58,7 +59,7 @@ end
 ########################################################################
 
 @attr Bool function Base.isempty(U::SpecOpen)
-  return all(V->isempty(V), affine_patches(U))
+  return all(isempty, affine_patches(U))
 end
 
 ########################################################################
@@ -72,7 +73,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
                                    } <: Field
   kk::BaseRingType
   X::CoveredSchemeType
-  U::SpecType
+  U::SpecType  # representative patch to represent rational functions
   KK::FracFieldType
 
   function VarietyFunctionField(X::AbsCoveredScheme; check::Bool=true)
@@ -135,12 +136,12 @@ zero(KK::VarietyFunctionField) = VarietyFunctionFieldElem(KK, zero(ambient_ring(
 
 ### arithmetic 
 function +(a::T, b::T) where {T<:VarietyFunctionFieldElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  parent(a) === parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(representative(a) + representative(b), check=false)
 end
 
 function -(a::T, b::T) where {T<:VarietyFunctionFieldElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  parent(a) === parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(representative(a) - representative(b), check=false)
 end
 
@@ -149,7 +150,7 @@ function -(a::T) where {T<:VarietyFunctionFieldElem}
 end
 
 function *(a::T, b::T) where {T<:VarietyFunctionFieldElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  parent(a) === parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(representative(a) * representative(b), check=false)
 end
 
@@ -184,6 +185,7 @@ function ^(a::VarietyFunctionFieldElem, i::fmpz)
   return parent(a)(representative(a)^i, check=false)
 end
 
+# try to avoid a groebner basis computation
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))
 isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
