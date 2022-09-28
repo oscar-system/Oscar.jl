@@ -237,26 +237,30 @@ end
 @doc Markdown.doc"""
     build_doc(; doctest=false, strict=false)
 
-Build the documentation of `Oscar.jl` locally and open the front page in a
+Build the manual of `Oscar.jl` locally and open the front page in a
 browser.
 
 The optional parameter `doctest` can take three values:
   - `false`: Do not run the doctests (default).
   - `true`: Run the doctests and report errors.
-  - `:fix`: Run the doctests and replace the output in the documentation with
+  - `:fix`: Run the doctests and replace the output in the manual with
     the output produced by Oscar. Please use this option carefully.
 
-In github actions the Julia version used for building the documentation and
+In github actions the Julia version used for building the manual and
 running the doctests is 1.6. Using a different Julia version will produce
 errors in some parts of Oscar, so please be careful, especially when setting
 `doctest=:fix`.
 
 The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
-and if set to `true` then according to the documentation of `Documenter.jl` "a
+and if set to `true` then according to the manual of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
 
-When working on the documentation the `Revise` package can significantly sped
-up running `build_doc`. First load `Revise` before Oscar:
+When working on the manual the `Revise` package can significantly sped
+up running `build_doc`. First, install `Revise` in the following way:
+```
+using Pkg ; Pkg.add("Revise")
+```
+Second, restart Julia and load `Revise` before Oscar:
 ```
 using Revise, Oscar;
 ```
