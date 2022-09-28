@@ -231,6 +231,22 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
 
   # convert it 
   U = representative_patch(KK)
+  h_generic = move_representative(a, b, V, U, C)
+  return VarietyFunctionFieldElem(KK, numerator(h_generic),
+                                  denominator(h_generic)
+                                  )
+end
+### move_representative
+# Given a fraction a//b ∈ Quot(P) with P = 𝕜[x] the `ambient_ring` 
+# of an affine patch V in a covering C, move that fraction to 
+# one in Quot(P') where P' is the ambient ring of another patch U.
+#
+# **Note:** This is only guaranteed to work for irreducible schemes! 
+function move_representative(
+    a::MPolyElem, b::MPolyElem,
+    V::AbsSpec, U::AbsSpec,
+    C::Covering
+  )
   G = C[U, V]
   f, _ = glueing_morphisms(G)
   A, B = glueing_domains(G)
@@ -239,9 +255,7 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
   iszero(pbb) && error("pullback of denominator is zero")
   # in the next line, A is either a SpecOpen or a PrincipalOpenSubset
   h_generic = generic_fraction(pba, A)//generic_fraction(pbb, A)
-  return VarietyFunctionFieldElem(KK, numerator(h_generic),
-                                  denominator(h_generic)
-                                  )
+  return h_generic
 end
 
 function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.Frac; check::Bool=true)
@@ -286,7 +300,7 @@ end
 (KK::VarietyFunctionField)() = zero(KK)
 (KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
-(KK::VarietyFunctionField)(a::MPolyElem) = (parent(a) == base_ring(KK) ? KK(a, one(a), check=false) : error("element can not be coerced"))
+(KK::VarietyFunctionField)(a::MPolyElem) = (parent(a) == base_ring(representative_field(KK)) ? representative_field(KK)(a, one(a), check=false) : KK(a, one(a), check=false))
 canonical_unit(f::VarietyFunctionFieldElem) = f
 
 function Base.show(io::IO, KK::VarietyFunctionField)

@@ -3,7 +3,7 @@ export restriction_map
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
-export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension, canonical_isomorphism
 
@@ -682,10 +682,10 @@ function maximal_extension(
   R == base_ring(OO(X)) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
-  W = localized_ring(OO(X))
+  W = OO(X)
   I = ideal(W, one(W))
   for p in f
-    I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
