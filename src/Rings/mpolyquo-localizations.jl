@@ -1020,6 +1020,9 @@ function as_affine_algebra(
   return A, I, f, phi, theta
 end
 
+# needed for instance to compute kernels
+# adds a single extra variable to turn the localization into an affine_algebra
+# return the isomorphism L -> SomeAffineAlgebra
 function _as_affine_algebra(
     L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
     inverse_name::String="θ"
@@ -1042,12 +1045,15 @@ end
 function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing})
   P = domain(f)
   L = codomain(f)
+  I = ideal(L, zero(L))
   R = base_ring(L)
+  J = saturated_ideal(I)
   d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
   W = MPolyQuoLocalizedRing(R, modulus(L), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
-  h = hom(P, codomain(id), id.(f.(gens(P))))
-  return kernel(h)
+  A = codomain(id)
+  h = hom(P, A, id.(f.(gens(P))))
+  return preimage(h, ideal(A, id.(W.(gens(J)))))
 end
 
 function is_isomorphism(
