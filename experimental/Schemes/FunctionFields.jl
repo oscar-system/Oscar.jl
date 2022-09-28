@@ -125,9 +125,6 @@ denominator(f::VarietyFunctionFieldElem) = denominator(f.f)
 parent(f::VarietyFunctionFieldElem) = f.KK
 representative(f::VarietyFunctionFieldElem) = f.f
 
-### conversion
-# see below
-
 ### constructors
 one(KK::VarietyFunctionField) = VarietyFunctionFieldElem(KK, one(ambient_ring(representative_patch(KK))),
                                                          one(ambient_ring(representative_patch(KK)))
@@ -264,6 +261,34 @@ end
 
 function Base.show(io::IO, f::VarietyFunctionFieldElem)
   print(io, representative(f))
+end
+
+### given the fraction field of the `ambient_ring` in one 
+# affine chart, return a representative of `f` in that field
+function (K::AbstractAlgebra.Generic.FracField)(f::VarietyFunctionFieldElem)
+  R = base_ring(K)
+  V = representative_patch(parent(f))
+  C = default_covering(variety(parent(f)))
+  for U in patches(C)
+    if ambient_ring(U) == R 
+      V = U
+      break
+    end
+  end
+  f_mov = move_representative(numerator(f), denominator(f), 
+                              representative_patch(parent(f)),
+                              V, C
+                             )
+  return K(numerator(f_mov), denominator(f_mov))
+end
+
+function getindex(f::VarietyFunctionFieldElem, V::AbsSpec)
+  C = default_covering(variety(parent(f))) 
+  V in C || error("patch not found")
+  return move_representative(numerator(f), denominator(f), 
+                             representative_patch(parent(f)),
+                             V, C
+                            )
 end
 
 ########################################################################
