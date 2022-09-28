@@ -1043,7 +1043,7 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing})
   P = domain(f)
   L = codomain(f)
   R = base_ring(L)
-  d = [denominator(g) for g in images(f)]
+  d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
   W = MPolyQuoLocalizedRing(R, modulus(L), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
   h = hom(P, codomain(id), id.(f.(gens(P))))
@@ -1387,7 +1387,8 @@ function quo(
     I::MPolyQuoLocalizedIdeal
   )
   base_ring(I) == L || error("ideal does not belong to the correct ring")
-  return quo(localized_ring(L), localized_modulus(L) + pre_image_ideal(I))
+  W, _ = quo(localized_ring(L), localized_modulus(L) + pre_image_ideal(I))
+  return W, hom(L, W, gens(W), check=false)
 end
 
 function quo(A::MPolyQuo, I::MPolyQuoIdeal)

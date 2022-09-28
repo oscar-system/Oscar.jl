@@ -233,7 +233,48 @@ function open_doc()
     end
 end
 
+
+@doc Markdown.doc"""
+    build_doc(; doctest=false, strict=false)
+
+Build the manual of `Oscar.jl` locally and open the front page in a
+browser.
+
+The optional parameter `doctest` can take three values:
+  - `false`: Do not run the doctests (default).
+  - `true`: Run the doctests and report errors.
+  - `:fix`: Run the doctests and replace the output in the manual with
+    the output produced by Oscar. Please use this option carefully.
+
+In github actions the Julia version used for building the manual and
+running the doctests is 1.6. Using a different Julia version will produce
+errors in some parts of Oscar, so please be careful, especially when setting
+`doctest=:fix`.
+
+The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
+and if set to `true` then according to the manual of `Documenter.jl` "a
+doctesting error will always make makedocs throw an error in this mode".
+
+When working on the manual the `Revise` package can significantly sped
+up running `build_doc`. First, install `Revise` in the following way:
+```
+using Pkg ; Pkg.add("Revise")
+```
+Second, restart Julia and load `Revise` before Oscar:
+```
+using Revise, Oscar;
+```
+The first run of `build_doc` will take the usual few minutes, subsequently runs
+will be significantly faster.
+"""
 function build_doc(; doctest=false, strict=false)
+  versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
+  versionwarn = 
+"The Julia reference version for the doctests is 1.6, but you are using
+$(VERSION). Running the doctests will produce errors that you do not expect."
+  if doctest && !versioncheck
+    @warn versionwarn
+  end
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
@@ -241,6 +282,9 @@ function build_doc(; doctest=false, strict=false)
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
   open_doc()
+  if doctest && !versioncheck
+    @warn versionwarn
+  end
 end
 
 export build_doc
@@ -274,7 +318,18 @@ function build()
 end
 
 
-function test_module(x, new::Bool = true)
+@doc Markdown.doc"""
+    test_module(x, new::Bool = true)
+
+Run the Oscar tests in the file `x.jl` where `x` is a string.
+
+If `x == "all"` run the entire testsuite.
+
+The optional parameter `new` takes the values `false` and `true` (default). If
+`true`, then the tests are run in a new session, otherwise the currently active
+session is used.
+"""
+function test_module(x::AbstractString, new::Bool = true)
    julia_exe = Base.julia_cmd()
    if x == "all"
      test_file = joinpath(oscardir, "test/runtests.jl")
