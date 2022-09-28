@@ -262,7 +262,7 @@ There are two ways to add tests:
     folder. The main file there is `test/runtests.jl` which then includes other
     testfiles. 
 
-```@doc
+```@docs
 Oscar.test_module
 ```
 
