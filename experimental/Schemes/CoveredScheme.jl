@@ -619,8 +619,8 @@ end
 
 Returns the default covering for ``X``.
 """
-function default_covering(X::AbsCoveredScheme)::Covering
-  return default_covering(underlying_scheme(X))
+function default_covering(X::AbsCoveredScheme)
+  return default_covering(underlying_scheme(X))::Covering
 end
 
 @Markdown.doc """
