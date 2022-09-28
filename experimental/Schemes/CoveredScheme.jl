@@ -293,7 +293,7 @@ end
                            [x[k-1]//x[j-1] for k in i+1:j-1],
                            [x[k]//x[j-1] for k in j:r],
                            x[r+1:end]),
-                      check=true
+                      check=false
                      )
       g = SpecMor(Uj, Ui,
                       vcat([y[k]//y[i] for k in 1:i-1],
@@ -301,7 +301,7 @@ end
                            [1//y[i]],
                            [y[k]//y[i] for k in j:r],
                            y[r+1:end]),
-                      check=true
+                      check=false
                      )
       add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
