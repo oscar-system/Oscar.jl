@@ -490,8 +490,6 @@ function fill_transitions!(C::Covering)
           # intersection of U and V is dense in both U and V and not in their ambient 
           # variety. This implementation certainly works, but it is not as general 
           # as it could be, yet. 
-          @show typeof(glueing_domains(C[W[i],v])[2])
-          @show typeof(glueing_domains(C[v,W[j]])[1])
           if !has_edge(gg, W[i], W[j]) && is_dense(intersect(glueing_domains(C[W[i],v])[2], glueing_domains(C[v,W[j]])[1]))
             new_glueing = maximal_extension(compose(C[W[i], v], C[v, W[j]]))
             add_glueing!(C, new_glueing)

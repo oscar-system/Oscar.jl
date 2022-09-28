@@ -1379,6 +1379,7 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   return true
 end
 
+# TODO: Also add a special dispatch for localizations at 𝕜-points
 @attr function is_prime(I::MPolyLocalizedIdeal)
   return is_prime(saturated_ideal(I))
 end

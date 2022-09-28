@@ -132,7 +132,7 @@ function IdealSheaf(X::CoveredScheme, C::Covering, U::Spec, g::Vector{RET}) wher
   C in coverings(X) || error("the covering does not belong to the scheme")
   U in patches(C) || error("the affine open patch does not belong to the covering")
   for f in g
-    parent(f) == base_ring(OO(U)) || error("the generators do not belong to the correct ring")
+    parent(f) == ambient_ring(U) || error("the generators do not belong to the correct ring")
   end
   D = Dict{AbsSpec, Ideal}()
   D[U] = ideal(OO(U), g)
@@ -152,7 +152,7 @@ function IdealSheaf(X::CoveredScheme, g::Vector{RET}) where {RET<:MPolyElem}
   end
   for C in coverings(X)
     for U in patches(C)
-      R == base_ring(OO(U)) && return IdealSheaf(X, C, U, g)
+      R == ambient_ring(U) && return IdealSheaf(X, C, U, g)
     end
   end
   error("the given set of generators could not be associated to an affine patch of the scheme")
@@ -441,6 +441,32 @@ function is_prime(I::IdealSheaf)
   return all(U->is_prime(I[U]), patches(default_covering(scheme(I))))
 end
 
+function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+  whole_ring = ideal(base_ring(I), [one(base_ring(I))])
+  P(whole_ring) && return (0, whole_ring)
+  P(I) && return (1, I)
+  I_powers = [(1,I)]
+
+  while !P(last(I_powers)[2])
+    push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
+  end
+  upper = pop!(I_powers)
+  lower = pop!(I_powers)
+  while upper[1]!=lower[1]+1
+    middle = pop!(I_powers)
+    middle = (lower[1]+middle[1], lower[2]*middle[2])
+    if P(middle[2])
+      upper = middle
+    else
+      lower = middle
+    end
+  end
+  return upper
+end
+
+### resolve another compatibility issue
+saturated_ideal(I::MPolyIdeal) = I
+
 function order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf;
     check::Bool=true
   )
@@ -462,11 +488,14 @@ function order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf;
                      MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
                                            <:MPolyComplementOfPrimeIdeal}
                     } || error("localization was not successful")
-    @show L
     floc = f[U]
     a = numerator(floc)
     b = denominator(floc)
-    @show a, b
+    P = L(prime_ideal(inverted_set(L)))
+    upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
+    lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
+    order_dict[U] = upper-lower
   end
+  return minimum(values(order_dict))
 end
 

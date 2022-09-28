@@ -69,5 +69,15 @@
   @test h[V] == (f+2*g-5)//g
   K = FractionField(R)
   @test K(h) == (f+2*g-5)//g
-  #order_on_divisor(one(KK), I)
+
+end
+@testset "orders on divisors" begin
+  R, (s,t) = PolynomialRing(kk, ["s", "t"])
+  X = Spec(R)
+  Xc = CoveredScheme(X)
+  KK = VarietyFunctionField(Xc)
+  f = s^2 + t^2-1
+  I = IdealSheaf(Xc, [f])
+  F = KK(f^70)
+  @test order_on_divisor(F, I) == 70
 end
