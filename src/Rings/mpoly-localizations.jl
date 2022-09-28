@@ -1379,6 +1379,10 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   return true
 end
 
+@attr function is_prime(I::MPolyLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
+
 ### Additional constructors
 function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
   L = base_ring(I)

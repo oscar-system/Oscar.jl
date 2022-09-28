@@ -16,39 +16,36 @@ ideal sheaves of type `IdealSheafType` with coefficients
 in a ring ``R`` of type `CoefficientRingType`.
 """
 @attributes mutable struct WeilDivisor{
-    CoveredSchemeType<:CoveredScheme, 
-    IdealSheafType<:IdealSheaf, 
+    CoveredSchemeType<:AbsCoveredScheme, 
     CoefficientRingType<:AbstractAlgebra.Ring, 
     CoefficientRingElemType<:AbstractAlgebra.RingElem
    }
   X::CoveredSchemeType # the parent
   R::CoefficientRingType # the ring of coefficients
-  coefficients::Dict{IdealSheafType, CoefficientRingElemType} # the formal linear combination
+  coefficients::Dict{IdealSheaf, CoefficientRingElemType} # the formal linear combination
 
   function WeilDivisor(
-      X::CoveredSchemeType, 
+      X::AbsCoveredScheme,
       R::CoefficientRingType, 
-      coefficients::Dict{IdealSheafType, CoefficientRingElemType}
-    ) where {CoveredSchemeType, IdealSheafType, CoefficientRingType, CoefficientRingElemType}
+      coefficients::Dict{<:IdealSheaf, CoefficientRingElemType}
+    ) where {CoefficientRingType, CoefficientRingElemType}
     # TODO: Do we want to require that the different effective divisors 
     # have the same underlying covering? Probably not.
     for D in keys(coefficients)
       scheme(D) == X || error("component of divisor does not lay in the given scheme")
       parent(coefficients[D]) == R || error("coefficients do not lay in the given ring")
     end
-    return new{CoveredSchemeType, IdealSheafType, CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
+    return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
   end
 end
 
 ### type getters 
-scheme_type(D::WeilDivisor{S, T, U, V}) where{S, T, U, V} = S
-scheme_type(::Type{WeilDivisor{S, T, U, V}}) where{S, T, U, V} = S
-ideal_sheaf_type(D::WeilDivisor{S, T, U, V}) where{S, T, U, V} = T
-ideal_sheaf_type(::Type{WeilDivisor{S, T, U, V}}) where{S, T, U, V} = T
-coefficient_ring_type(D::WeilDivisor{S, T, U, V}) where{S, T, U, V} = U
-coefficient_ring_type(::Type{WeilDivisor{S, T, U, V}}) where{S, T, U, V} = U
-coefficient_type(D::WeilDivisor{S, T, U, V}) where{S, T, U, V} = V
-coefficient_type(::Type{WeilDivisor{S, T, U, V}}) where{S, T, U, V} = V
+scheme_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = S
+scheme_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = S
+coefficient_ring_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = U
+coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = U
+coefficient_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = V
+coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = V
 
 ### getter methods
 scheme(D::WeilDivisor) = D.X
@@ -61,17 +58,17 @@ set_name!(X::WeilDivisor, name::String) = set_attribute!(X, :name, name)
 name_of(X::WeilDivisor) = get_attribute(X, :name)::String
 has_name(X::WeilDivisor) = has_attribute(X, :name)
 
-function setindex!(D::WeilDivisor, c::RET, I::IdealSheaf) where {RET<:AbstractAlgebra.RingElem}
+function setindex!(D::WeilDivisor, c::RingElem, I::IdealSheaf)
   parent(c) == coefficient_ring(D) || error("coefficient does not belong to the correct ring")
   coefficient_dict(D)[I] = c
 end
 
-function WeilDivisor(X::CoveredScheme, R::RingType) where {RingType<:AbstractAlgebra.Ring}
-  D = Dict{ideal_sheaf_type(X), elem_type(R)}()
+function WeilDivisor(X::CoveredScheme, R::Ring)
+  D = Dict{IdealSheaf, elem_type(R)}()
   return WeilDivisor(X, R, D)
 end
 
-function WeilDivisor(I::IdealSheaf, R::RT) where {RT<:AbstractAlgebra.Ring} 
+function WeilDivisor(I::IdealSheaf, R::Ring)
   D = WeilDivisor(scheme(I), R)
   D[I] = one(R)
   return D
@@ -138,7 +135,7 @@ end
 
 -(D::T, E::T) where {T<:WeilDivisor} = D + (-E)
 
-function *(a::RET, E::WeilDivisor) where {RET<:AbstractAlgebra.RingElem}
+function *(a::RingElem, E::WeilDivisor)
   c = coefficient_ring(E)()
   D = WeilDivisor(E)
   parent(a) == coefficient_ring(E) ? (c = a)::elem_type(coefficient_ring(E)) : c = coefficient_ring(E)(a)
@@ -152,6 +149,14 @@ end
 *(a::Integer, E::WeilDivisor) = coefficient_ring(E)(a)*E
 
 +(D::WeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
+
+function ==(D::WeilDivisor, E::WeilDivisor) 
+  keys(coefficient_dict(D)) == keys(coefficient_dict(E)) || return false
+  for I in keys(coefficient_dict(D))
+    D[I] == E[I] || return false
+  end
+  return true
+end
 
 function intersection(D::T, E::T) where {T<:WeilDivisor}
   X = scheme(D)

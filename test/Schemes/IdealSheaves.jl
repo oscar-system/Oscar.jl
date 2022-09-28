@@ -1,4 +1,4 @@
-@testset "Ideal sheaves" begin
+@testset "Ideal sheaves and Weil divisors" begin
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
@@ -44,4 +44,10 @@
   U = C[1]
   x = gens(ambient_ring(U))
   I = IdealSheaf(X, [x[1]-1, x[2]-2, x[3]-3])
+  set_name!(I, "I")
+  J = IdealSheaf(X, [x[1]-5, x[2]-1, x[3]])
+  set_name!(J, "J")
+  D = WeilDivisor(I)
+  E = WeilDivisor(J)
+  @test D + 2*E == D + E + E
 end

@@ -434,4 +434,7 @@ end
 #  return W, spec_dict
 #end
 #
-#
+
+function is_prime(I::IdealSheaf) 
+  return all(U->is_prime(I[U]), patches(default_covering(scheme(I))))
+end
