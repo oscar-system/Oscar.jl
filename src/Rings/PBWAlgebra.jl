@@ -25,8 +25,8 @@ end
 
 mutable struct PBWAlgIdeal{D, T, S}
   basering::PBWAlgRing{T, S}
-  sdata::Singular.sideal{Singular.spluralg{S}}
-  sopdata::Singular.sideal{Singular.spluralg{S}}
+  sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal
+  sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite
   gb::Singular.sideal{Singular.spluralg{S}}
   opgb::Singular.sideal{Singular.spluralg{S}}
   # Singular.jl may or may not keep track of two-sidedness correctly
@@ -39,6 +39,7 @@ mutable struct PBWAlgIdeal{D, T, S}
     return new{D, T, S}(p)
   end
 end
+# the meaning of the direction parameter D
 is_left(a::PBWAlgIdeal{D}) where D = (D <= 0)
 is_right(a::PBWAlgIdeal{D}) where D = (D >= 0)
 is_two_sided(a::PBWAlgIdeal{D}) where D = (D == 0)
@@ -414,12 +415,12 @@ function inv(a::PBWAlgOppositeMap)
   return PBWAlgOppositeMap(_opposite(a.source))
 end
 
-function _map(B::PBWAlgRing{T, S}, a::Singular.spluralg{S}, A::PBWAlgRing{T, S}) where {T, S}
+function _opmap(B::PBWAlgRing{T, S}, a::Singular.spluralg{S}, A::PBWAlgRing{T, S}) where {T, S}
   ptr = GC.@preserve A a B Singular.libSingular.pOppose(A.sring.ptr, a.ptr, B.sring.ptr)
   return B.sring(ptr)
 end
 
-function _map(B::PBWAlgRing{T, S}, a::Singular.sideal{Singular.spluralg{S}}, A::PBWAlgRing{T, S}) where {T, S}
+function _opmap(B::PBWAlgRing{T, S}, a::Singular.sideal{Singular.spluralg{S}}, A::PBWAlgRing{T, S}) where {T, S}
   ptr = GC.@preserve A a B Singular.libSingular.idOppose(A.sring.ptr, a.ptr, B.sring.ptr)
   return B.sring(ptr)
 end
@@ -427,7 +428,13 @@ end
 function (M::PBWAlgOppositeMap{T, S})(a::PBWAlgElem{T, S}) where {T, S}
   @assert a.parent === M.source
   opM = _opposite(M.source)
-  return PBWAlgElem{T, S}(opM, _map(opM, a.sdata, M.source))
+  return PBWAlgElem{T, S}(opM, _opmap(opM, a.sdata, M.source))
+end
+
+function Base.broadcasted(M::PBWAlgOppositeMap{T, S}, a::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  @assert base_ring(a) === M.source
+  opM = _opposite(M.source)
+  return PBWAlgIdeal{-D, T, S}(opM, _opmap(opM, a.sdata, M.source))
 end
 
 ####
@@ -450,6 +457,7 @@ function _set_opdata!(a::PBWAlgIdeal{D}, b::Singular.sideal) where D
 end
 
 function ngens(a::PBWAlgIdeal)
+  # this assumes a.sdata and a.sopdata have the same number of gens
   return ngens(_any_gens(a))
 end
 
@@ -458,6 +466,14 @@ function gens(a::PBWAlgIdeal{D, T, S}) where {D, T, S}
   R = base_ring(a)
   return PBWAlgElem{T, S}[PBWAlgElem(R, x) for x in gens(a.sdata)]
 end
+
+function gen(a::PBWAlgIdeal, i::Int)
+  _sdata_assure!(a)
+  R = base_ring(a)
+  return PBWAlgElem(R, a.sdata[i])
+end
+
+getindex(I::PBWAlgIdeal, i::Int) = gen(I, i)
 
 function expressify(a::PBWAlgIdeal{D}; context = nothing) where D
   dir = D < 0 ? :left_ideal : D > 0 ? :right_ideal : :two_sided_ideal
@@ -535,17 +551,19 @@ function right_ideal(R::PBWAlgRing{T, S}, g::AbstractVector) where {T, S}
   return PBWAlgIdeal{1, T, S}(R, i)
 end
 
+# assure a.sdata is defined
 function _sdata_assure!(a::PBWAlgIdeal)
   if !isdefined(a, :sdata)
     R = base_ring(a)
-    I.sdata = _map(R, a.sopdata, _opposite(R))
+    I.sdata = _opmap(R, a.sopdata, _opposite(R))
   end
 end
 
+# assure a.sopdata is defined
 function _sopdata_assure!(a::PBWAlgIdeal)
   if !isdefined(a, :sopdata)
     R = base_ring(a)
-    a.sopdata = _map(_opposite(R), a.sdata, R)
+    a.sopdata = _opmap(_opposite(R), a.sdata, R)
   end
 end
 
@@ -604,39 +622,73 @@ function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
   return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata^b)
 end
 
-function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+# extend to b...
+function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) where {D, T, S}
   R = base_ring(a)
-  @assert R == base_ring(b)
+  isempty(b) && return a
+  for bi in b
+    @assert R === base_ring(bi)
+  end
   if D < 0
     _sdata_assure!(a)
-    _sdata_assure!(b)
-    return PBWAlgIdeal{D, T, S}(R, Singular.intersection(a.sdata, b.sdata))
+    res = a.sdata
+    for bi in b
+      _sdata_assure!(bi)
+      res = Singular.intersection(res, bi.sdata)
+    end
+    return PBWAlgIdeal{D, T, S}(R, res)
   elseif D > 0
     _sopdata_assure!(a)
-    _sopdata_assure!(b)
-    return _set_opdata!(PBWAlgIdeal{D, T, S}(R), Singular.intersection(a.sopdata, b.sopdata))
+    res = a.sopdata
+    for bi in b
+      _sopdata_assure!(bi)
+      res = Singular.intersection(res, bi.sopdata)
+    end
+    return _set_opdata!(PBWAlgIdeal{D, T, S}(R), res)
   else
     # two-sided algorithm missing
-    throw(NotImplementedError(:intersect, a, b))
+    throw(NotImplementedError(:intersect, a, b...))
   end
 end
 
 function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D, T, S}
   R = base_ring(I)
-  @assert parent(f) == R
-  if D < 0
+  @assert R === parent(f)
+  if D <= 0
+    # Fact: If G = {g1, ..., gN} is a two-sided GB, then the two-sided normal
+    #       form wrt G is the same as the left normal form wrt G.
+    # Since groebner_assure! calls id_TwoStd for D = 0, and Singular.reduce is
+    # a left normal form, this code works for both D < 0 and D = 0.
     groebner_assure!(I)
     return Singular.iszero(Singular.reduce(f.sdata, I.gb))
-  elseif D > 0
-    opgroebner_assure!(I)
-    opf = _map(_opposite(R), f.sdata, R)
-    return Singular.iszero(Singular.reduce(opf, I.opgb))
   else
-    # two-sided reduce seems to be missing
-    throw(NotImplementedError(:ideal_membership, f, I))
+    opgroebner_assure!(I)
+    opf = _opmap(_opposite(R), f.sdata, R)
+    return Singular.iszero(Singular.reduce(opf, I.opgb))
   end
 end
 
 function Base.in(f::PBWAlgElem, I::PBWAlgIdeal)
   return ideal_membership(f, I)
 end
+
+function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  @assert base_ring(a) === base_ring(b)
+  if D <= 0
+    # Ditto comment ideal_membership
+    _sdata_assure!(a)
+    groebner_assure!(b)
+    return Singular.iszero(Singular.reduce(a.sdata, b.gb))
+  else
+    _sopdata_assure!(a)
+    opgroebner_assure!(b)
+    return Singular.iszero(Singular.reduce(a.sopdata, I.opgb))
+  end
+end
+
+function Base.:(==)(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  a === b && return true
+  gens(a) == gens(b) && return true
+  return issubset(a, b) && issubset(b, a)
+end
+
