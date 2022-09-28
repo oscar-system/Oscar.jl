@@ -15,8 +15,15 @@ end
 function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
   I = localized_modulus(OO(X))
   result = typeof(X)[]
-  ## TODO: This is the scheme case, for varieties case use ..._radical
-  P = equidimensional_decomposition_weak(saturated_ideal(I))
+
+  P = []
+  if has_attribute(X, :is_equidimensional) && is_equidimensional(X) 
+    push!(P, saturated_ideal(I))
+  else 
+    ## TODO: This is the scheme case, for varieties case use ..._radical
+    P = equidimensional_decomposition_weak(saturated_ideal(I))
+  end
+
   if length(P)==1
     d = dim(X)
     R = base_ring(OO(X))
