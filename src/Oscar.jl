@@ -246,11 +246,32 @@ The optional parameter `doctest` can take three values:
   - `:fix`: Run the doctests and replace the output in the documentation with
     the output produced by Oscar. Please use this option carefully.
 
+In github actions the Julia version used for building the documentation and
+running the doctests is 1.6. Using a different Julia version will produce
+errors in some parts of Oscar, so please be careful, especially when setting
+`doctest=:fix`.
+
 The optional parameter `strict` is passed on to `makedocs` of `Documenter.jl`
 and if set to `true` then according to the documentation of `Documenter.jl` "a
 doctesting error will always make makedocs throw an error in this mode".
+
+When working on the documentation the `Revise` package can significantly sped
+up running `build_doc`. First load `Revise` before Oscar:
+```
+using Revise, Oscar;
+```
+The first run of `build_doc` will take the usual few minutes, subsequently runs
+will be significantly faster.
 """
 function build_doc(; doctest=false, strict=false)
+  versioncheck = (VersionNumber(1,6) <= VERSION) && (VERSION < VersionNumber(1,7))
+  versionwarn = 
+"WARNING: The Julia reference version for the doctests is 1.6, but you are
+using $(VERSION). Running the doctests will produce errors that you do not
+expect."
+  if doctest && !versioncheck
+    println(versionwarn)
+  end
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
@@ -258,6 +279,9 @@ function build_doc(; doctest=false, strict=false)
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
   open_doc()
+  if doctest && !versioncheck
+    println(versionwarn)
+  end
 end
 
 export build_doc
