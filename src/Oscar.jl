@@ -268,13 +268,12 @@ The first run of `build_doc` will take the usual few minutes, subsequently runs
 will be significantly faster.
 """
 function build_doc(; doctest=false, strict=false)
-  versioncheck = (VersionNumber(1,6) <= VERSION) && (VERSION < VersionNumber(1,7))
+  versioncheck = (VERSION.major == 1) && (VERSION.minor == 6)
   versionwarn = 
-"WARNING: The Julia reference version for the doctests is 1.6, but you are
-using $(VERSION). Running the doctests will produce errors that you do not
-expect."
+"The Julia reference version for the doctests is 1.6, but you are using
+$(VERSION). Running the doctests will produce errors that you do not expect."
   if doctest && !versioncheck
-    println(versionwarn)
+    @warn versionwarn
   end
   if !isdefined(Main, :BuildDoc)
     doc_init()
@@ -284,7 +283,7 @@ expect."
   end
   open_doc()
   if doctest && !versioncheck
-    println(versionwarn)
+    @warn versionwarn
   end
 end
 
