@@ -1379,6 +1379,18 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   return true
 end
 
+### Additional constructors
+function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  L == base_ring(J) || error("ideals must be defined in the same ring")
+  preI = Oscar.pre_saturated_ideal(I)
+  preJ = Oscar.pre_saturated_ideal(J) 
+  R = base_ring(L)
+  K = intersect(I, J)
+  return L(K)
+end
+
+### Further functionality
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
   L = base_ring(I)
   parent(a) == L || return coordinates(L(a), I, check=check)
