@@ -14,12 +14,12 @@ end
 
    I = ideal(R, [x + y + t + z, x^2 + y^2 + t^3])
 
-   @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z])), ordering=lex([t, x, y, z])) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, ordering=degrevlex([t, x, y, z])), ordering=degrevlex([t, x, y, z])) == ideal(R, [t, x^3])
-   @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z])), ordering=lex([t, x, y, z])) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, ordering=revlex([t, x, y, z])), ordering=revlex([t, x, y, z])) == ideal(R, [y^2, z])
-   @test leading_ideal(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4])), ordering=wdeglex([t, x, y, z], [2, 3, 1, 4])) == ideal(R, [z, t^3])
-   @test leading_ideal(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1])), ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1])) == ideal(R, [t, x^3])
+   @test leading_ideal(gens(groebner_basis(I, ordering=lex([t, x, y, z]); return_vector=false)), ordering=lex([t, x, y, z])) == ideal(R, [x^3, t])
+   @test leading_ideal(gens(groebner_basis(I, ordering=degrevlex([t, x, y, z]); return_vector=false)), ordering=degrevlex([t, x, y, z])) == ideal(R, [t, x^3])
+   @test leading_ideal(gens(groebner_basis(I, ordering=lex([t, x, y, z]); return_vector=false)), ordering=lex([t, x, y, z])) == ideal(R, [x^3, t])
+   @test leading_ideal(gens(groebner_basis(I, ordering=revlex([t, x, y, z]); return_vector=false)), ordering=revlex([t, x, y, z])) == ideal(R, [y^2, z])
+   @test leading_ideal(gens(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4]); return_vector=false)), ordering=wdeglex([t, x, y, z], [2, 3, 1, 4])) == ideal(R, [z, t^3])
+   @test leading_ideal(gens(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1]); return_vector=false)), ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1])) == ideal(R, [t, x^3])
 end
 
 @testset "groebner orderings" begin
@@ -33,9 +33,9 @@ end
    @test groebner_basis(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis(I, ordering=deglex([x, y, z])) == groebner_basis(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
    M = matrix_ordering([x, y, z], [1 1 1; 0 1 0; 1 0 0])
-   @test groebner_basis(I, ordering = M) == [ x + y + z, 2*x^2 + 2*x*z + z^3 + z^2 ]
+   @test gens(groebner_basis(I, ordering = M)) == [ x + y + z, 2*x^2 + 2*x*z + z^3 + z^2 ]
    @test_throws ErrorException groebner_basis(I, ordering = negdeglex([x, y, z]))
-   @test std_basis(I, negdeglex([x, y, z])) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
+   @test gens(std_basis(I, negdeglex([x, y, z]))) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
 
    @test groebner_basis_with_transformation_matrix(I, ordering=lex([x])*lex([y,z])) == groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
    @test groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))

@@ -257,23 +257,9 @@ function Base.getproperty(idealgens::IdealGens, name::Symbol)
 end
 
 function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
-  #=if name == :Ox
-    idealgens.gens.Ox = x
-  elseif name == :O
-    idealgens.gens.O = x
-  elseif name == :Sx
-    idealgens.gens.Sx = x
-  elseif name == :S
-    idealgens.gens.S = x=#
   if name == :Ox || name == :O || name == :Sx || name == :S
     setfield!(idealgens.gens, name, x)
-  elseif name == :gens
-    setfield!(idealgens, name, x)
-  elseif name == :isGB
-    setfield!(idealgens, name, x)
-  elseif name == :ord
-    setfield!(idealgens, name, x)
-  elseif name == :keep_ordering
+  elseif name == :gens || name == :isGB || name == :ord || name == :keep_ordering
     setfield!(idealgens, name, x)
   else
     error("undefined property: ", string(name))
@@ -331,6 +317,10 @@ function Base.iterate(A::IdealGens, s::Int = 1)
 end
 
 Base.eltype(::IdealGens{S}) where S = S
+
+function gens(I::IdealGens)
+  return return(collect(I))
+end
 
 ##############################################################################
 #

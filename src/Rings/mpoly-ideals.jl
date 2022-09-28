@@ -1201,7 +1201,7 @@ function isone(I::MPolyIdeal)
   if any(x -> (is_constant(x) && is_unit(first(coefficients(x)))), gens(I))
     return true
   end
-  gb = groebner_basis(I, complete_reduction = true)
+  gb = gens(groebner_basis(I, complete_reduction = true; return_vector=false))
   return is_constant(gb[1]) && is_unit(first(coefficients(gb[1])))
 end
 
@@ -1257,7 +1257,7 @@ function is_monomial(I::MPolyIdeal)
   if _ismonomial(gens(I))
     return true
   end
-  GB = groebner_basis(I, complete_reduction = true)
+  GB = gens(groebner_basis(I, complete_reduction = true; return_vector=false))
   if _ismonomial(GB)
     return true
   end
