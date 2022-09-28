@@ -330,7 +330,7 @@ The optional parameter `new` takes the values `false` and `true` (default). If
 `true`, then the tests are run in a new session, otherwise the currently active
 session is used.
 """
-function test_module(x, new::Bool = true)
+function test_module(x::AbstractString, new::Bool = true)
    julia_exe = Base.julia_cmd()
    if x == "all"
      test_file = joinpath(oscardir, "test/runtests.jl")
