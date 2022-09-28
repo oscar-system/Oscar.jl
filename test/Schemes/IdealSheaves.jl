@@ -50,4 +50,24 @@
   D = WeilDivisor(I)
   E = WeilDivisor(J)
   @test D + 2*E == D + E + E
+
+  KK = VarietyFunctionField(X)
+  U = representative_patch(KK)
+  V = C[3]
+  R = ambient_ring(V)
+  x = gens(R)
+  f = x[1]^2 - 2*x[2]^5*x[3]^3
+  g = 4*x[3]^2 - 5*x[2]
+  @test KK(f, g) + KK(f, g) == KK(2*f//g)
+  h = KK(f, g)
+  @test h[V] == f//g
+  K = FractionField(R)
+  @test K(h) == f//g
+
+  @test KK(f+2*g-5, g) + KK(f+2*g-5, g) == KK(2*(f+2*g-5)//g)
+  h = KK(f+2*g-5, g)
+  @test h[V] == (f+2*g-5)//g
+  K = FractionField(R)
+  @test K(h) == (f+2*g-5)//g
+  #order_on_divisor(one(KK), I)
 end

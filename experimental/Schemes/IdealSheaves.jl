@@ -6,6 +6,8 @@ export ideal_sheaf_type
 
 export is_regular_sequence, as_smooth_lci, is_defined_on
 
+export order_on_divisor
+
 @attributes mutable struct IdealSheaf{
     CoveredSchemeType<:AbsCoveredScheme,
     CoveringType<:Covering
@@ -33,6 +35,7 @@ export is_regular_sequence, as_smooth_lci, is_defined_on
     for U in basic_patches(C)
       if !haskey(I, U) 
         haskey(affine_refinements(C), U) || error("patch $U not covered by the given ideal sheaf")
+
         Uref = affine_refinements(C)[U]
         found = false
         for (V, a) in Uref
@@ -311,17 +314,16 @@ function extend!(
   dirty_patches = collect(keys(D))
   while length(dirty_patches) > 0
     U = pop!(dirty_patches)
-    @show "extending from $U"
     N = neighbor_patches(C, U)
     Z = subscheme(U, D[U])
     for V in N
       # check whether this node already knows about D
       haskey(D, V)  && continue
-      @show "to $V"
 
       # if not, extend D to this patch
       f, _ = glueing_morphisms(C[V, U])
-      ZV = closure(preimage(f, Z))
+      pZ = preimage(f, Z)
+      ZV = closure(pZ, V)
       D[V] = ideal(OO(V), defining_ideal(ZV))
       V in dirty_patches || push!(dirty_patches, V)
       if check
@@ -438,3 +440,33 @@ end
 function is_prime(I::IdealSheaf) 
   return all(U->is_prime(I[U]), patches(default_covering(scheme(I))))
 end
+
+function order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf;
+    check::Bool=true
+  )
+  if check
+    is_prime(I) || error("ideal sheaf must be a sheaf of prime ideals")
+  end
+  X = scheme(I) 
+  X == variety(parent(f)) || error("schemes not compatible")
+  C = covering(I)
+  C == default_covering(X) || error("change of coverings not implemented")
+  
+  order_dict = Dict{AbsSpec, Int}()
+  for U in patches(C)
+    L, map = Localization(OO(U), 
+                          MPolyComplementOfPrimeIdeal(saturated_ideal(I[U]))
+                         )
+    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                        <:MPolyComplementOfPrimeIdeal},
+                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                           <:MPolyComplementOfPrimeIdeal}
+                    } || error("localization was not successful")
+    @show L
+    floc = f[U]
+    a = numerator(floc)
+    b = denominator(floc)
+    @show a, b
+  end
+end
+

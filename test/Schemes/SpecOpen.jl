@@ -8,9 +8,7 @@
   U = SpecOpen(A, [x, y])
   UX = intersect(X, U)
 
-  Y = closure(UX)
-  Z = closure(UX, A)
-  @test is_canonically_isomorphic(Z, Y)
+  Y = closure(UX, A)
 end
 
 @testset "SpecOpen_2" begin

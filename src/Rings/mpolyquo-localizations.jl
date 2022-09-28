@@ -1367,6 +1367,7 @@ end
 function ideal(
     W::MPolyQuoLocalizedRing, gens::Vector
   )
+  length(gens) == 0 && return MPolyQuoLocalizedIdeal(W, [zero(W)])
   return MPolyQuoLocalizedIdeal(W, W.(gens))
 end
 

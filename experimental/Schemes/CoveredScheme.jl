@@ -285,29 +285,26 @@ end
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
-      # the following two lines are necessary to assure correct parenthood 
-      # of elements
-      f = restriction(f, domain(f), domain(g), check=false)
-      g = restriction(g, domain(g), domain(f), check=false)
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+      domUi = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      domUj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+
+      f = SpecMor(domUi, domUj,
+                  vcat([x[k]//x[j-1] for k in 1:i-1],
+                       [1//x[j-1]],
+                       [x[k-1]//x[j-1] for k in i+1:j-1],
+                       [x[k]//x[j-1] for k in j:r],
+                       x[r+1:end]),
+                  check=false
+                 )
+      g = SpecMor(domUj, domUi,
+                  vcat([y[k]//y[i] for k in 1:i-1],
+                       [y[k+1]//y[i] for k in i:j-2],
+                       [1//y[i]],
+                       [y[k]//y[i] for k in j:r],
+                       y[r+1:end]),
+                  check=false
+                 )
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
   return result
@@ -342,25 +339,26 @@ end
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+      domUi = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      domUj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+
+      f = SpecMor(domUi, domUj,
+                  vcat([x[k]//x[j-1] for k in 1:i-1],
+                       [1//x[j-1]],
+                       [x[k-1]//x[j-1] for k in i+1:j-1],
+                       [x[k]//x[j-1] for k in j:r],
+                       x[r+1:end]),
+                  check=false
+                 )
+      g = SpecMor(domUj, domUi,
+                  vcat([y[k]//y[i] for k in 1:i-1],
+                       [y[k+1]//y[i] for k in i:j-2],
+                       [1//y[i]],
+                       [y[k]//y[i] for k in j:r],
+                       y[r+1:end]),
+                  check=false
+                 )
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
@@ -396,25 +394,26 @@ end
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+      domUi = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      domUj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+
+      f = SpecMor(domUi, domUj,
+                  vcat([x[k]//x[j-1] for k in 1:i-1],
+                       [1//x[j-1]],
+                       [x[k-1]//x[j-1] for k in i+1:j-1],
+                       [x[k]//x[j-1] for k in j:r],
+                       x[r+1:end]),
+                  check=false
+                 )
+      g = SpecMor(domUj, domUi,
+                  vcat([y[k]//y[i] for k in 1:i-1],
+                       [y[k+1]//y[i] for k in i:j-2],
+                       [1//y[i]],
+                       [y[k]//y[i] for k in j:r],
+                       y[r+1:end]),
+                  check=false
+                 )
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
@@ -491,6 +490,8 @@ function fill_transitions!(C::Covering)
           # intersection of U and V is dense in both U and V and not in their ambient 
           # variety. This implementation certainly works, but it is not as general 
           # as it could be, yet. 
+          @show typeof(glueing_domains(C[W[i],v])[2])
+          @show typeof(glueing_domains(C[v,W[j]])[1])
           if !has_edge(gg, W[i], W[j]) && is_dense(intersect(glueing_domains(C[W[i],v])[2], glueing_domains(C[v,W[j]])[1]))
             new_glueing = maximal_extension(compose(C[W[i], v], C[v, W[j]]))
             add_glueing!(C, new_glueing)

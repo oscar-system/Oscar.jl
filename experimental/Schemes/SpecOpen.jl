@@ -216,7 +216,7 @@ function name(U::SpecOpen)
 end
 
 function intersect(
-    Y::Spec, 
+    Y::AbsSpec, 
     U::SpecOpen;
     check::Bool=true
   )
@@ -231,7 +231,7 @@ end
 
 function intersect(
     U::SpecOpen,
-    Y::Spec
+    Y::AbsSpec
   )
   return intersect(Y, U)
 end
@@ -300,44 +300,33 @@ function is_canonically_isomorphic(
 end
 
 @Markdown.doc """
-    closure(U::SpecOpen)
+    closure(U::SpecOpen, X::AbsSpec)
 
 Compute the Zariski closure of an open set ``U ⊂ X`` 
 where ``X`` is the affine ambient scheme of ``U``.
 """
-function closure(U::SpecOpen{<:StdSpec})
-  X = ambient(U)
+function closure(U::SpecOpen{<:StdSpec}, X::AbsSpec)
+  X == ambient(U) || issubset(ambient(U), X) || error("schemes not compatible")
   R = base_ring(OO(X))
   I = saturated_ideal(localized_modulus(OO(X)))
   I = saturation(I, ideal(R, gens(U)))
   return subscheme(X, I)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyRing}}
+function closure(U::SpecOpen{SpecType}, X::AbsSpec) where {SpecType<:AbsSpec{<:Ring, <:MPolyRing}}
+  X == ambient(U) || issubset(ambient(U), X) || error("schemes not compatible")
   return ambient(U)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuo}}
-  X = ambient(U)
+function closure(U::SpecOpen{SpecType}, X::AbsSpec) where {SpecType<:AbsSpec{<:Ring, <:MPolyQuo}}
+  X == ambient(U) || issubset(ambient(U), X) || error("schemes not compatible")
   R = ambient_ring(X)
   I = modulus(OO(X))
   I = saturation(I, ideal(R, gens(U)))
   return subscheme(X, I)
 end
 
-@Markdown.doc """
-    closure(U::SpecOpen, Y::Spec)
-
-Compute the closure of ``U ⊂ Y``.
-"""
-function closure(
-    U::SpecOpen,
-    Y::Spec 
-  )
-  issubset(U, Y) || error("the first set is not contained in the second")
-  X = closure(U)
-  return intersect(X, Y)
-end
+modulus(R::MPolyRing) = ideal(R, [zero(R)])
 
 
 @Markdown.doc """
