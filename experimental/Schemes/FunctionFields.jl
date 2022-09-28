@@ -48,11 +48,6 @@ end
   return is_prime(localized_modulus(OO(X)))
 end
 
-# TODO: Do a special dispatch for localizations at 𝕜-points
-@attr Bool function is_prime(I::MPolyLocalizedIdeal)
-  return is_prime(saturated_ideal(I))
-end
-
 ########################################################################
 # Check for emptyness                                                  #
 ########################################################################
@@ -325,7 +320,7 @@ end
 (KK::VarietyFunctionField)() = zero(KK)
 (KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
-(KK::VarietyFunctionField)(a::MPolyElem) = (parent(a) == base_ring(representative_field(KK)) ? representative_field(KK)(a, one(a), check=false) : KK(a, one(a), check=false))
+(KK::VarietyFunctionField)(a::MPolyElem) = KK(a, one(a), check=false)
 canonical_unit(f::VarietyFunctionFieldElem) = f
 
 function Base.show(io::IO, KK::VarietyFunctionField)
