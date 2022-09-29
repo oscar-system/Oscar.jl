@@ -56,7 +56,7 @@ end
 @Markdown.doc """
     poly_to_homog(X::ProjectiveScheme)
 
-Return a map that converts an element of the `base_ring` of 
+Return a map that converts an element of the `base_ring` of the
 ring of functions `OO` of the `affine_cone` of `X` into 
 an element of the `ambient_ring` of `X`.
 """
@@ -65,7 +65,7 @@ function poly_to_homog(P::AbsProjectiveScheme)
 end
 
 @Markdown.doc """
-    function frac_to_homog_pair(X::ProjectiveScheme)
+    frac_to_homog_pair(X::ProjectiveScheme)
 
 Return a map that converts an element ``f = p/q`` of the ring of 
 functions `OO` of the `affine_cone` of `X` into a pair 
@@ -256,8 +256,8 @@ function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MP
 end
 
 function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
-  S = homogeneous_coordinate_ring(P)
   length(f) == 0 && return P #TODO: Replace P by an honest copy!
+  S = homogeneous_coordinate_ring(P)
   for i in 1:length(f)
     parent(f[i]) == S || error("ring element does not belong to the correct ring")
   end
