@@ -190,11 +190,11 @@ end
 
 # Handle vector spaces of multivariate polynomials by writing them in the basis
 # of the monomials.
-mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
+mutable struct BasisOfPolynomials{PolyRingT, FieldElemT}
   R::PolyRingT
 
-  # Number the basis monomials
-  monomial_to_column::Dict{PolyElemT, Int}
+  # Number the basis monomials, we identify a monomial with its exponent vector
+  monomial_to_column::Dict{Vector{Int}, Int}
 
   # Write the polynomials coefficient-wise in the rows of a sparse matrix. The
   # column i contains the coefficients corresponding to the monomial m with
@@ -203,24 +203,24 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
 
   function BasisOfPolynomials(R::MPolyRing)
     K = coefficient_ring(R)
-    B = new{elem_type(R), typeof(R), elem_type(K)}()
+    B = new{typeof(R), elem_type(K)}()
     B.R = R
-    B.monomial_to_column = Dict{elem_type(R), Int}()
+    B.monomial_to_column = Dict{Vector{Int}, Int}()
     B.M = sparse_matrix(K)
     return B
   end
 
-  function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
+  function BasisOfPolynomials(R::PolyRingT, polys::Vector{<: MPolyElem}) where {PolyRingT <: MPolyRing}
     return BasisOfPolynomials(R, polys, enumerate_monomials(polys))
   end
 
-  function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}, monomial_to_column::Dict{PolyElemT, Int}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
+  function BasisOfPolynomials(R::PolyRingT, polys::Vector{<: MPolyElem}, monomial_to_column::Dict{Vector{Int}, Int}) where {PolyRingT <: MPolyRing}
     if isempty(polys)
       return BasisOfPolynomials(R)
     end
 
     K = coefficient_ring(R)
-    B = new{elem_type(R), typeof(R), elem_type(K)}()
+    B = new{typeof(R), elem_type(K)}()
     B.R = R
 
     B.monomial_to_column = monomial_to_column
