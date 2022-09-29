@@ -7,7 +7,7 @@
   @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
-  S = homogeneous_poly_ring(P)
+  S = ambient_ring(P)
   C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
   Ccov = as_covered_scheme(C)
 
@@ -77,21 +77,44 @@ end
   @test h[V] == f//g
   K = FractionField(R)
   @test K(h) == f//g
+  @test KK(f, g) == KK(f//g)
 
   @test KK(f+2*g-5, g) + KK(f+2*g-5, g) == KK(2*(f+2*g-5)//g)
   h = KK(f+2*g-5, g)
   @test deepcopy(h)==h
   @test KK(1) == one(KK)
-  @test zero(KK) == KK(0)
+  @test iszero(zero(KK))
   @test h[V] == (f+2*g-5)//g
   @test divexact(h,h) == one(KK)
   @test h*inv(h) == one(KK)
   @test isone(h*inv(h))
   @test h^2 == h*h
   @test h^fmpz(2)==h^2
-  KK(h[V]+h[V]) == h + h
+  @test h^fmpz(2)==h^Int8(2)
+  @test KK(h[V]+h[V]) == h + h
+  @test coefficient_ring(KK) === kk
+  @test -h == KK(-h[V])
+  @test 2//h == KK(2)//h
+  @test 2//h == ZZ(2)//h
+  @test elem_type(typeof(KK))==typeof(h)
+  @test parent_type(typeof(h)) == typeof(KK)
+  @test base_ring(KK)==base_ring(h)
+  @test is_domain_type(typeof(h))
+  @test is_exact_type(typeof(h))
+  @test iszero(KK())
+  @test KK(h)==h
+  @test !iszero(KK(numerator(h)))
+  @test_throws ErrorException KK(f,0*f)
 
   K = FractionField(R)
   @test K(h) == (f+2*g-5)//g
+
+  P2 = projective_space(QQ,2)
+  S = ambient_ring(P2)
+  s0 = gens(S)[1]
+  X = subscheme(P2, ideal(S, s0))
+  Xc = as_covered_scheme(X)
+  KX = function_field(Xc)
+  @test is_irreducible(Xc) #fails
 
 end
