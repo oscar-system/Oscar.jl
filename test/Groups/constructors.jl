@@ -52,9 +52,9 @@
   @test !is_isomorphic_with_alternating_group(symmetric_group(4))
 
   @test is_natural_symmetric_group(symmetric_group(4))
-  @test ! is_natural_symmetric_group(symmetric_group(PcGroup,4))
+  @test ! is_natural_symmetric_group(PcGroup(symmetric_group(4)))
   @test is_isomorphic_with_symmetric_group(symmetric_group(4))
-  @test is_isomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
+  @test is_isomorphic_with_symmetric_group(PcGroup(symmetric_group(4)))
   @test !is_isomorphic_with_symmetric_group(alternating_group(4))
 end
 
@@ -66,10 +66,6 @@ end
     
   @test isa(dihedral_group(6), PcGroup)
   @test isa(dihedral_group(PermGroup, 6), PermGroup)
-  
-  @test isa(alternating_group(PcGroup,3), PcGroup)
-  @test isa(symmetric_group(PcGroup,3), PcGroup)
-  @test is_isomorphic(symmetric_group(4), symmetric_group(PcGroup,4))
 
   @test is_quaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)

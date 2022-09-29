@@ -3,13 +3,13 @@
 
 ##############################################################################
 """
-    load_from_polymake(::Type{Graphs.Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+    load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Directed, Undirected}}
 
 Load a graph stored in JSON format, given the filename as input.
 """
-function load_from_polymake(::Type{Graphs.Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+function load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Directed, Undirected}}
     polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-    return Graphs.Graph{T}(polymake_object)
+    return Graph{T}(polymake_object)
 end
 
 
@@ -20,8 +20,8 @@ const polymake2OscarTypes = Dict{String, Type}([
     "fan::PolyhedralComplex<Rational>" => PolyhedralComplex{fmpq},
     "fan::SubdivisionOfPoints<Rational>" => SubdivisionOfPoints{fmpq},
     "topaz::SimplicialComplex" => SimplicialComplex,
-    "common::GraphAdjacency<Undirected>" => Graphs.Graph{Graphs.Undirected},
-    "common::GraphAdjacency<Directed>" => Graphs.Graph{Graphs.Directed},
+    "common::GraphAdjacency<Undirected>" => Graph{Undirected},
+    "common::GraphAdjacency<Directed>" => Graph{Directed},
 ])
 
 @registerSerializationType(Polymake.BigObjectAllocated, "Polymake.BigObject")
@@ -45,15 +45,16 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     else 
         # We just try to default to something from Polymake.jl
         deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-        try
-            return convert(deserialized)
-        catch e
-            if e isa MethodError
-                @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
-                return deserialized
-            else
-                throw(e)
-            end
+        if !isa(deserialized, Polymake.BigObject)
+            @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
+            return deserialized
+        end
+        
+        if Polymake.type_name(deserialized) == "Ideal"
+            return convert(MPolyIdeal{fmpq_mpoly}, deserialized)
+        else
+            @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
+            return deserialized
         end
     end
 end

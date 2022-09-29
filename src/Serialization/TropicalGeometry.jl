@@ -1,12 +1,9 @@
 # Tropical Semiring
-
-encodeType(::Type{TropicalSemiring{S}}) where S = "TropicalSemiring{$S}"
-reverseTypeMap["TropicalSemiring{typeof(min)}"] = TropicalSemiring{typeof(min)}
-reverseTypeMap["TropicalSemiring{typeof(max)}"] = TropicalSemiring{typeof(max)}
+@registerSerializationType(TropicalSemiring{typeof(min)})
+@registerSerializationType(TropicalSemiring{typeof(max)})
 
 ## elements
-encodeType(::Type{<:TropicalSemiringElem})= "TropicalSemiringElem"
-reverseTypeMap["TropicalSemiringElem"] = TropicalSemiringElem
+@registerSerializationType(TropicalSemiringElem)
 
 function save_internal(s::SerializerState, t::TropicalSemiringElem)
   T = parent(t)
@@ -32,8 +29,7 @@ end
 
 
 # Tropical Hypersurfaces
-encodeType(::Type{<: TropicalHypersurface}) = "TropicalHypersurface"
-reverseTypeMap["TropicalHypersurface"] = TropicalHypersurface
+@registerSerializationType(TropicalHypersurface)
 
 function save_internal(s::SerializerState, t_surf::TropicalHypersurface)
     return Dict(
@@ -49,8 +45,7 @@ function load_internal(s::DeserializerState,
 end
 
 # Tropical Curves
-encodeType(::Type{<: TropicalCurve}) = "TropicalCurve"
-reverseTypeMap["TropicalCurve"] = TropicalCurve
+@registerSerializationType(TropicalCurve)
 
 function save_internal(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
   if EMB

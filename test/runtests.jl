@@ -43,6 +43,8 @@ include("Schemes/SpecOpen.jl")
 include("Schemes/Glueing.jl")
 include("Schemes/ProjectiveSchemes.jl")
 include("Schemes/CoveredScheme.jl")
+include("Modules/ProjectiveModules.jl")
+include("Schemes/singular_locus.jl")
 
 include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")

@@ -12,8 +12,6 @@ export empty_covered_scheme
 export coverings, refinements, default_covering, set_name!, name_of, has_name, dim
 export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
-import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
-
 export CoveredSchemeMorphism, domain, codomain, covering_morphism
 
 export simplify
@@ -148,22 +146,22 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
   (l, m, n) = indexin(V, C)
   if i == l # U and V are affine opens of the same patch X in C
     X = C[i]
-    if X == U == V 
-      iso = identity_map(SpecOpen(X))
+    if X == U == V
+      iso = identity_map(X)
       return iso, iso, iso, iso
     end
-    f = one(base_ring(OO(X))) # For the case where U is already a basic patch
+    f = one(ambient_ring(X)) # For the case where U is already a basic patch
     if j != 0 # In this case, U appears in some refinement
-      f = gens(affine_refinements(C)[C[i]][j][1])[k]
+      f = gens(affine_refinements(C)[X][j][1])[k]
     end
-    g = one(base_ring(OO(X)))
+    g = one(ambient_ring(X))
     if m != 0
-      g = gens(affine_refinements(C)[C[l]][m][1])[n]
+      g = gens(affine_refinements(C)[X][m][1])[n]
     end
-    W = SpecOpen(X, [f*g])
+    W = PrincipalOpenSubset(X, [f*g])
     isoW = identity_map(W)
-    incWtoU = inclusion_morphism(W, SpecOpen(U), check=false)
-    incWtoV = inclusion_morphism(W, SpecOpen(V), check=false)
+    incWtoU = inclusion_morphism(W, U, check=false)
+    incWtoV = inclusion_morphism(W, V, check=false)
     return isoW, isoW, incWtoU, incWtoV
   else
     G = C[i, l]
@@ -174,8 +172,8 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
     WV = intersect(preimU, V)
     isoWUtoWV = restriction(f, WU, WV, check=false)
     isoWVtoWU = restriction(g, WV, WU, check=false)
-    incWUtoU = inclusion_morphism(WU, SpecOpen(U), check=false)
-    incWVtoV = inclusion_morphism(WV, SpecOpen(V), check=false)
+    incWUtoU = inclusion_morphism(WU, U, check=false)
+    incWVtoV = inclusion_morphism(WV, V, check=false)
     return isoWUtoWV, isoWVtoWU, incWUtoU, incWVtoV
   end
 end
@@ -287,8 +285,9 @@ end
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      f = SpecMor(Ui, Uj,
                       vcat([x[k]//x[j-1] for k in 1:i-1],
                            [1//x[j-1]],
                            [x[k-1]//x[j-1] for k in i+1:j-1],
@@ -296,8 +295,7 @@ end
                            x[r+1:end]),
                       check=false
                      )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
+      g = SpecMor(Uj, Ui,
                       vcat([y[k]//y[i] for k in 1:i-1],
                            [y[k+1]//y[i] for k in i:j-2],
                            [1//y[i]],
@@ -305,11 +303,7 @@ end
                            y[r+1:end]),
                       check=false
                      )
-      # the following two lines are necessary to assure correct parenthood 
-      # of elements
-      f = restriction(f, domain(f), domain(g), check=false)
-      g = restriction(g, domain(g), domain(f), check=false)
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
   return result

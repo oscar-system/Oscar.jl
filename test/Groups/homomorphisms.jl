@@ -492,7 +492,7 @@ end
    @test A.G == G
    @test is_isomorphic(G,A)
    @test order(A) == 24
-   @test A==inner_automorphisms_group(A)[1]
+   @test A==inner_automorphism_group(A)[1]
 
    f = rand(A)
    g = rand(A)
@@ -553,7 +553,7 @@ end
    A = automorphism_group(G)
 
    @test is_isomorphic(A,GL(2,3))
-   @test order(inner_automorphisms_group(A)[1])==1
+   @test order(inner_automorphism_group(A)[1])==1
 end
 
 @testset "Composition of mappings" begin

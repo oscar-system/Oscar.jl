@@ -333,19 +333,59 @@ end
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 """
 function issubset(X::AbsSpec, Y::AbsSpec)
-  return issubset(standard_spec(X), standard_spec(Y))
+  error("method `issubset(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
 end
 
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyRing}
   return OO(X) === OO(Y)
 end
 
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
+    X::AbsSpec{BRT, <:MPolyRing}, 
+    Y::AbsSpec{BRT, <:MPolyQuo}
+  ) where {BRT}
+  R = OO(X)
+  R == ambient_ring(Y) || error("schemes can not be compared")
+  return iszero(modulus(OO(Y)))
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyRing}, 
+    Y::AbsSpec{BRT, <:MPolyLocalizedRing}
+  ) where {BRT}
+  R = OO(X)
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  return issubset(inverted_set(OO(Y)), units_of(R))
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyRing}, 
+    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+  ) where {BRT}
+  R = OO(X)
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(defining_ideal(Y))
+end
+
+########################################################################
+# MPolyQuo in first argument
+########################################################################
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuo}, 
+    Y::AbsSpec{BRT, <:MPolyRing}
+  ) where {BRT}
+  R = ambient_ring(Y)
+  R == ambient_ring(X) || error("schemes can not be compared")
+  return true
+end
+
+function issubset(
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuo}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
@@ -353,9 +393,112 @@ function issubset(
 end
 
 function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing}
+    X::AbsSpec{BRT, <:MPolyQuo}, 
+    Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
+  return iszero(localized_ring(OO(Y))(modulus(OO(X))))
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuo}, 
+    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
+  return issubset(localized_modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
+end
+
+########################################################################
+# MPolyLocalizedRing in first argument
+########################################################################
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyLocalizedRing},
+    Y::AbsSpec{BRT, <:MPolyRing} 
+  ) where {BRT}
+  R = OO(Y)
+  R == base_ring(OO(X)) || error("schemes can not be compared")
+  return true
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyLocalizedRing},
+    Y::AbsSpec{BRT, <:MPolyQuo} 
+  ) where {BRT}
+  R = ambient_ring(Y)
+  R == base_ring(OO(X)) || error("schemes can not be compared")
+  return all(x->(iszero(OO(X)(x))), gens(modulus(OO(Y))))
+end
+
+function issubset(
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
+  ) where {BRT, RT<:MPolyLocalizedRing}
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  UX = inverted_set(OO(X))
+  UY = inverted_set(OO(Y))
+  return issubset(UY, UX)
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyLocalizedRing}, 
+    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
+  ) where {BRT}
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  UX = inverted_set(OO(X))
+  UY = inverted_set(OO(Y))
+  return issubset(UY, UX) && iszero(localized_modulus(OO(Y)))
+end
+
+########################################################################
+# MPolyQuoLocalizedRing in first argument
+########################################################################
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
+    Y::AbsSpec{BRT, <:MPolyRing} 
+  ) where {BRT}
+  R = OO(Y)
+  R == base_ring(OO(X)) || error("schemes can not be compared")
+  return true
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing}, 
+    Y::AbsSpec{BRT, <:MPolyQuo}
+  ) where {BRT}
+  R = base_ring(OO(Y))
+  R == base_ring(OO(X)) || error("schemes can not be compared")
+  L = localized_ring(OO(X))
+  return issubset(L(modulus(OO(Y))), localized_modulus(OO(X)))
+end
+
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing}, 
+    Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
+  R = base_ring(OO(X))
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  UX = inverted_set(OO(X))
+  UY = inverted_set(OO(Y))
+  if !issubset(UY, UX) 
+    # check whether the inverted elements in Y are units anyway
+    for a in denominators(UY)
+      is_unit(OO(X)(a)) || return false
+    end
+  end
+  return iszero(OO(Y)(modulus(OO(X))))
+end
+
+function issubset(
+    X::AbsSpec{BRT, RT}, 
+    Y::AbsSpec{BRT, RT}
+  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
@@ -370,70 +513,18 @@ function issubset(
   return issubset(J, localized_modulus(OO(X)))
 end
 
-function issubset(
-    X::Spec{BRT, RT}, 
-    Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyLocalizedRing}
-  R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
-  UX = inverted_set(OO(X))
-  UY = inverted_set(OO(Y))
-  return issubset(UY, UX)
-end
-
-function issubset(
-    X::Spec{BRT, <:MPolyRing}, 
-    Y::Spec{BRT, <:MPolyQuoLocalizedRing}
-  ) where {BRT}
-  R = OO(X)
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
-  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(defining_ideal(Y))
-end
-
-function issubset(
-    X::Spec{BRT, <:MPolyQuo}, 
-    Y::Spec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                         <:MPolyPowersOfElement
-                                        }
-           }
-  ) where {BRT}
-  R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
-  all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
-  return issubset(localized_modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
-end
-
-function issubset(
-    X::Spec{BRT, <:MPolyQuoLocalizedRing},
-    Y::Spec{BRT, <:MPolyRing} 
-  ) where {BRT}
-  R = OO(Y)
-  R == base_ring(OO(X)) || error("schemes can not be compared")
-  return true
-end
-
-function issubset(
-    X::Spec{BRT, <:MPolyQuoLocalizedRing}, 
-    Y::Spec{BRT, <:MPolyQuo}
-  ) where {BRT}
-  R = base_ring(OO(Y))
-  R == base_ring(OO(X)) || error("schemes can not be compared")
-  L = localized_ring(OO(X))
-  return issubset(L(modulus(OO(Y))), localized_modulus(OO(X)))
-end
-
 # TODO: Add further cross-type comparison methods as needed.
 
 function ==(X::T, Y::T) where {T<:Spec}
   return X === Y
 end
 
-function is_canonically_isomorphic(X::Spec, Y::Spec)
+function is_canonically_isomorphic(X::AbsSpec, Y::AbsSpec)
   X === Y && return true
   return issubset(X, Y) && issubset(Y, X)
 end
 
-function is_canonically_isomorphic(X::Spec, Y::EmptyScheme)
+function is_canonically_isomorphic(X::AbsSpec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
@@ -813,7 +904,8 @@ identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = SpecMor(X, X, hom(OO(
 identity_map(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(base_ring(OO(X))), check=false))
 identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))))
 identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X))))
-inclusion_map(X::T, Y::T) where {T<:AbsSpec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
+inclusion_map(X::AbsSpec, Y::AbsSpec) = SpecMor(X, Y, gens(base_ring(OO(Y))))  # TODO: Remove
+inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(base_ring(OO(Y))), check=check)
 
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   if check
@@ -823,6 +915,10 @@ function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   end
   return SpecMor(U, V, OO(U).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
+
+# TODO: Alias for compatibility. Needs to be cleaned up and removed.
+restriction(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true) = restrict(f,U,V,check=check)
+
 
 function compose(f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   codomain(f) == domain(g) || error("Morphisms can not be composed")
