@@ -486,7 +486,21 @@ function restrict(
   a = dot(l, OO(V).(numerator.(g)))
   return a
 end
+@Markdown.doc """
+    generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
 
+Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open 
+subset ``U ⊂ X`` of an affine scheme ``X``, return a 
+fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
+the `ambient` scheme ``X`` of ``U``) which represents ``a``
+in the sense that the maximal extension of its restriction 
+to ``U`` returns ``a``.
+
+**Note:** The seemingly superfluous argument ``U`` is needed 
+to have a coherent syntax with the method for regular functions 
+``a`` on `PrincipalOpenSubset`s. There, the element ``a`` does 
+not know about its scheme, so it has to be passed as an extra argument.
+"""
 function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
   U == domain(a) || error("domains are not compatible")
   X = ambient(U)
@@ -820,6 +834,8 @@ function inclusion_morphism(U::T, V::T; check::Bool=true) where {T<:SpecOpen}
   end
   return SpecOpenMor(U, V, gens(ambient_ring(X)), check=false)
 end
+
+inclusion_morphism(X::SpecOpen, Y::AbsSpec; check::Bool=true) = inclusion_morphism(X, SpecOpen(Y), check=check)
 
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
   U = SpecOpen(X, [d], check=check)

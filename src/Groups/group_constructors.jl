@@ -33,16 +33,23 @@ _gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
 # `_gap_filter(::Type{MatrixGroup})` is on the file `matrices/MatGrp.jl`
 
 """
-    symmetric_group(::Type{T} = PermGroup, n::Int)
+    symmetric_group(n::Int)
 
-Return the full symmetric group on the set `{1, 2, ..., n}`,
-as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
+Return the full symmetric group on the set `{1, 2, ..., n}`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> order(G)
+120
+
+```
 """
-symmetric_group(n::Int) = symmetric_group(PermGroup, n)
-
-function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
+function symmetric_group(n::Int)
   n >= 1 || throw(ArgumentError("n must be a positive integer"))
-  return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n)::GapObj)
+  return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
 end
 
 """
@@ -62,16 +69,23 @@ and `false` otherwise.
 @gapattribute is_isomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
 
 """
-    alternating_group(::Type{T} = PermGroup, n::Int)
+    alternating_group(n::Int)
 
-Return the full alternating group on the set `{1, 2, ..., n}`,
-as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
+Return the full alternating group on the set `{1, 2, ..., n}`..
+
+# Examples
+```jldoctest
+julia> G = alternating_group(5)
+Alt( [ 1 .. 5 ] )
+
+julia> order(G)
+60
+
+```
 """
-alternating_group(n::Int) = alternating_group(PermGroup, n)
-
-function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
+function alternating_group(n::Int)
   n >= 1 || throw(ArgumentError("n must be a positive integer"))
-  return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n)::GapObj)
+  return PermGroup(GAP.Globals.AlternatingGroup(n)::GapObj)
 end
 
 """
