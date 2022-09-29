@@ -1,9 +1,9 @@
 export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 export restriction_map
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, is_domain_type, is_exact_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
-export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension, canonical_isomorphism
 
@@ -497,6 +497,29 @@ function restrict(
   a = dot(l, OO(V).(numerator.(g)))
   return a
 end
+@Markdown.doc """
+    generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
+
+Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open 
+subset ``U ⊂ X`` of an affine scheme ``X``, return a 
+fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
+the `ambient` scheme ``X`` of ``U``) which represents ``a``
+in the sense that the maximal extension of its restriction 
+to ``U`` returns ``a``.
+
+**Note:** The seemingly superfluous argument ``U`` is needed 
+to have a coherent syntax with the method for regular functions 
+``a`` on `PrincipalOpenSubset`s. There, the element ``a`` does 
+not know about its scheme, so it has to be passed as an extra argument.
+"""
+function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
+  U == domain(a) || error("domains are not compatible")
+  X = ambient(U)
+  d = find_non_zero_divisor(U)
+  W = hypersurface_complement(X, d)
+  b = restrict(a, W)
+  return lifted_numerator(b)//lifted_denominator(b)
+end
 
 (R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
@@ -673,10 +696,10 @@ function maximal_extension(
   R == base_ring(OO(X)) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
-  W = localized_ring(OO(X))
+  W = OO(X)
   I = ideal(W, one(W))
   for p in f
-    I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)

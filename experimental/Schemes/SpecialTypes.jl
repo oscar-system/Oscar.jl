@@ -53,6 +53,29 @@ function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true)
   return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
 end
 
+@Markdown.doc """
+    generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
+
+Given a regular function ``a ∈ 𝒪(U)`` on a principal open 
+subset ``U ⊂ X`` of an affine scheme ``X``, return a 
+fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
+the `ambient` scheme ``X`` of ``U``) which represents ``a``
+in the sense that the maximal extension of its restriction 
+to ``U`` returns ``a``.
+"""
+function generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
+  X = ambient_scheme(U)
+  parent(a) == OO(U) || error("domains are not compatible")
+  return lifted_numerator(a)//lifted_denominator(a)
+end
+
+function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
+  X = ambient_scheme(U)
+  parent(a) == OO(U) || error("domains are not compatible")
+  return lifted_numerator(a)//lifted_denominator(a)
+end
+
+
 @attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal
@@ -232,3 +255,7 @@ function Glueing(
   return SimpleGlueing(X, Y, f, g, check=check)
 end
 
+@attr function is_dense(U::PrincipalOpenSubset)
+  f = complement_equation(U)
+  return is_non_zero_divisor(f, ambient_scheme(U))
+end

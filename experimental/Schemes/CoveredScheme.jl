@@ -54,7 +54,7 @@ mutable struct Covering{BaseRingType}
     )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
-    kk = coefficient_ring(base_ring(OO(patches[1])))
+    kk = coefficient_ring(ambient_ring(patches[1]))
     for i in 2:n
       kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
     end
@@ -609,6 +609,15 @@ Returns the available coverings for ``X``.
 """
 function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
   return coverings(underlying_scheme(X))
+end
+
+@Markdown.doc """
+    default_covering(X::AbsCoveredScheme)::Covering
+
+Returns the default covering for ``X``.
+"""
+function default_covering(X::AbsCoveredScheme)
+  return default_covering(underlying_scheme(X))::Covering
 end
 
 @Markdown.doc """
