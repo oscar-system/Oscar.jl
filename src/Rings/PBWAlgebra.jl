@@ -1,12 +1,21 @@
 export build_ctx, PBWAlgElem, PBWAlgRing,
        is_two_sided, is_left, is_right,
        left_ideal, two_sided_ideal, right_ideal,
-       pbw_algebra, weyl_algebra
+       pbw_algebra, weyl_algebra, opposite_algebra
 
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
-  relations
-  ordering::MonomialOrdering
+  relations::Singular.smatrix{Singular.spoly{S}}
+  coeff_ring
+  opposite::PBWAlgRing{T, S}
+
+  function PBWAlgRing{T, S}(sring, relations, coeff_ring) where {T, S}
+    return new{T, S}(sring, relations, coeff_ring)
+  end
+end
+
+struct PBWAlgOppositeMap{T, S}
+  source::PBWAlgRing{T, S}  # target is _opposite(source)
 end
 
 mutable struct PBWAlgElem{T, S} <: NCRingElem
@@ -16,15 +25,21 @@ end
 
 mutable struct PBWAlgIdeal{D, T, S}
   basering::PBWAlgRing{T, S}
-  sdata::Singular.sideal{Singular.spluralg{S}}
+  sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal
+  sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite
   gb::Singular.sideal{Singular.spluralg{S}}
+  opgb::Singular.sideal{Singular.spluralg{S}}
   # Singular.jl may or may not keep track of two-sidedness correctly
   function PBWAlgIdeal{D, T, S}(p::PBWAlgRing{T, S},
                       d::Singular.sideal{Singular.spluralg{S}}) where {D, T, S}
     d.isTwoSided = (D == 0)
     return new{D, T, S}(p, d)
   end
+  function PBWAlgIdeal{D, T, S}(p::PBWAlgRing{T, S}) where {D, T, S}
+    return new{D, T, S}(p)
+  end
 end
+# the meaning of the direction parameter D
 is_left(a::PBWAlgIdeal{D}) where D = (D <= 0)
 is_right(a::PBWAlgIdeal{D}) where D = (D >= 0)
 is_two_sided(a::PBWAlgIdeal{D}) where D = (D == 0)
@@ -39,7 +54,7 @@ parent(a::PBWAlgElem) = a.parent
 
 symbols(a::PBWAlgRing) = symbols(a.sring)
 
-coefficient_ring(a::PBWAlgRing) = coefficient_ring(base_ring(a.ordering))
+coefficient_ring(a::PBWAlgRing) = a.coeff_ring
 
 coefficient_ring(a::PBWAlgElem) = coefficient_ring(parent(a))
 
@@ -60,6 +75,8 @@ function expressify(a::PBWAlgRing; context = nothing)
          for i in 1:n-1 for j in i+1:n]
   return Expr(:sequence, Expr(:text, "PBW-algebra over "),
                          expressify(coefficient_ring(a); context=context),
+                         Expr(:text, " in "),
+                         Expr(:series, x...),
                          Expr(:text, " with relations "),
                          Expr(:series, rel...))
 end
@@ -304,7 +321,7 @@ julia> L = [x*y, x*z, y*z + 1];
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational Field with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+(PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 ```
 """
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
@@ -314,6 +331,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
   S = elem_type(scr)
   sr, _ = Singular.PolynomialRing(scr, [string(x) for x in symbols(r)]; ordering = singular(ord))
   sr::Singular.PolyRing{S}
+  srel = Singular.zero_matrix(sr, n, n)
   C = Singular.zero_matrix(sr, n, n)
   D = Singular.zero_matrix(sr, n, n)
   for i in 1:n-1, j in i+1:n
@@ -321,9 +339,10 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
     leading_monomial(t) == gen(sr, i)*gen(sr, j) || error("incorrect leading monomial in relations")
     C[i,j] = sr(leading_coefficient(t))
     D[i,j] = tail(t)
+    srel[i,j] = t
   end
   s, gs = Singular.GAlgebra(sr, C, D)
-  R = PBWAlgRing{T, S}(s, rel, ord)
+  R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r))
   return R, [PBWAlgElem(R, x) for x in gs]
 end
 
@@ -349,7 +368,73 @@ function weyl_algebra(
   K::Ring,
   xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}}
 )
-  return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol("∂", i) for i in xs])
+  return weyl_algebra(K, [Symbol(i) for i in xs], [Symbol("d", i) for i in xs])
+end
+
+####
+
+function expressify(a::PBWAlgOppositeMap; context = nothing)
+  return Expr(:sequence, Expr(:text, "Map to opposite of "),
+                         expressify(a.source; context=context))
+end
+
+@enable_all_show_via_expressify PBWAlgOppositeMap
+
+function _convert_rel(R, a)
+  z = MPolyBuildCtx(R)
+  for (c, e) in zip(coefficients(a), exponent_vectors(a))
+    push_term!(z, c, reverse(e))
+  end
+  return finish(z)
+end
+
+function _opposite(a::PBWAlgRing{T, S}) where {T, S}
+  if !isdefined(a, :opposite)
+    ptr = Singular.libSingular.rOpposite(a.sring.ptr)
+    revs = reverse(symbols(a))
+    n = length(revs)
+    bsring = Singular.PluralRing{S}(ptr, a.sring.base_ring, revs)
+    bspolyring, _ = Singular.PolynomialRing(a.sring.base_ring,
+                                map(string, revs), ordering = ordering(bsring))
+    bsrel = Singular.zero_matrix(bspolyring, n, n)
+    for i in 1:n-1, j in i+1:n
+      bsrel[i,j] = _convert_rel(bspolyring, a.relations[n+1-j,n+1-i])
+    end
+    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring)
+    a.opposite = b
+    b.opposite = a
+  end
+  return a.opposite
+end
+
+function opposite_algebra(a::PBWAlgRing)
+  return _opposite(a), PBWAlgOppositeMap(a)
+end
+
+function inv(a::PBWAlgOppositeMap)
+  return PBWAlgOppositeMap(_opposite(a.source))
+end
+
+function _opmap(B::PBWAlgRing{T, S}, a::Singular.spluralg{S}, A::PBWAlgRing{T, S}) where {T, S}
+  ptr = GC.@preserve A a B Singular.libSingular.pOppose(A.sring.ptr, a.ptr, B.sring.ptr)
+  return B.sring(ptr)
+end
+
+function _opmap(B::PBWAlgRing{T, S}, a::Singular.sideal{Singular.spluralg{S}}, A::PBWAlgRing{T, S}) where {T, S}
+  ptr = GC.@preserve A a B Singular.libSingular.idOppose(A.sring.ptr, a.ptr, B.sring.ptr)
+  return B.sring(ptr)
+end
+
+function (M::PBWAlgOppositeMap{T, S})(a::PBWAlgElem{T, S}) where {T, S}
+  @assert a.parent === M.source
+  opM = _opposite(M.source)
+  return PBWAlgElem{T, S}(opM, _opmap(opM, a.sdata, M.source))
+end
+
+function Base.broadcasted(M::PBWAlgOppositeMap{T, S}, a::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  @assert base_ring(a) === M.source
+  opM = _opposite(M.source)
+  return PBWAlgIdeal{-D, T, S}(opM, _opmap(opM, a.sdata, M.source))
 end
 
 ####
@@ -358,18 +443,41 @@ function base_ring(a::PBWAlgIdeal)
   return a.basering
 end
 
+function _any_gens(a::PBWAlgIdeal)
+  return isdefined(a, :sdata) ? a.sdata : a.sopdata
+end
+
+function _set_opdata!(a::PBWAlgIdeal{D}, b::Singular.sideal) where D
+  @assert !isdefined(a, :sdata)
+  @assert !isdefined(a, :gb)
+  @assert !isdefined(a, :opgb)
+  b.isTwoSided = (D == 0)
+  a.sopdata = b
+  return a
+end
+
 function ngens(a::PBWAlgIdeal)
-  return ngens(a.sdata)
+  # this assumes a.sdata and a.sopdata have the same number of gens
+  return ngens(_any_gens(a))
 end
 
 function gens(a::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  _sdata_assure!(a)
   R = base_ring(a)
   return PBWAlgElem{T, S}[PBWAlgElem(R, x) for x in gens(a.sdata)]
 end
 
-function AbstractAlgebra.expressify(a::PBWAlgIdeal{D}; context = nothing) where D
+function gen(a::PBWAlgIdeal, i::Int)
+  _sdata_assure!(a)
+  R = base_ring(a)
+  return PBWAlgElem(R, a.sdata[i])
+end
+
+getindex(I::PBWAlgIdeal, i::Int) = gen(I, i)
+
+function expressify(a::PBWAlgIdeal{D}; context = nothing) where D
   dir = D < 0 ? :left_ideal : D > 0 ? :right_ideal : :two_sided_ideal
-  return Expr(:call, dir, [expressify(g, context = context) for g in collect(gens(a))]...)
+  return Expr(:call, dir, [expressify(g, context = context) for g in gens(a)]...)
 end
 
 @enable_all_show_via_expressify PBWAlgIdeal
@@ -389,7 +497,7 @@ julia> L = [x*y, x*z, y*z + 1];
 julia> REL = strictly_upper_triangular_matrix(L);
 
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
-(PBW-algebra over Rational Field with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
+(PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 
 julia> I = left_ideal(A, [x^2*y^2, x*z+y*z])
 left_ideal(x^2*y^2, x*z + y*z)
@@ -443,15 +551,38 @@ function right_ideal(R::PBWAlgRing{T, S}, g::AbstractVector) where {T, S}
   return PBWAlgIdeal{1, T, S}(R, i)
 end
 
+# assure a.sdata is defined
+function _sdata_assure!(a::PBWAlgIdeal)
+  if !isdefined(a, :sdata)
+    R = base_ring(a)
+    I.sdata = _opmap(R, a.sopdata, _opposite(R))
+  end
+end
+
+# assure a.sopdata is defined
+function _sopdata_assure!(a::PBWAlgIdeal)
+  if !isdefined(a, :sopdata)
+    R = base_ring(a)
+    a.sopdata = _opmap(_opposite(R), a.sdata, R)
+  end
+end
+
 function groebner_assure!(a::PBWAlgIdeal)
+  _sdata_assure!(a)
   if !isdefined(a, :gb)
     a.gb = Singular.std(a.sdata)
   end
-  return a
 end
 
-function iszero(I::PBWAlgIdeal)
-  return iszero(I.sdata)
+function opgroebner_assure!(a::PBWAlgIdeal)
+  _sopdata_assure!(a)
+  if !isdefined(a, :gb)
+    a.opgb = Singular.std(a.sopdata)
+  end
+end
+
+function iszero(a::PBWAlgIdeal)
+  return iszero(_any_gens(a))
 end
 
 function _one_check(I::Singular.sideal)
@@ -463,17 +594,21 @@ function _one_check(I::Singular.sideal)
   return false
 end
 
-function isone(I::PBWAlgIdeal)
-  if iszero(I)
+function isone(a::PBWAlgIdeal{D}) where D
+  if iszero(_any_gens(a))
     return false
   end
-  if _one_check(I.sdata)
+  if _one_check(_any_gens(a))
     return true
   end
-  groebner_assure!(I)
-  return _one_check(I.gb)
+  if D > 0
+    opgroebner_assure!(a)
+    return _one_check(a.opgb)
+  else
+    groebner_assure!(a)
+    return _one_check(a.gb)
+  end
 end
-
 
 function Base.:+(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
   return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata + b.sdata)
@@ -487,18 +622,73 @@ function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
   return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata^b)
 end
 
-function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
-  is_right(I) && error("intersection only implemented for left ideals")
-  return PBWAlgIdeal{D, T, S}(base_ring(a), Singular.intersection(a.sdata, b.sdata))
+# extend to b...
+function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) where {D, T, S}
+  R = base_ring(a)
+  isempty(b) && return a
+  for bi in b
+    @assert R === base_ring(bi)
+  end
+  if D < 0
+    _sdata_assure!(a)
+    res = a.sdata
+    for bi in b
+      _sdata_assure!(bi)
+      res = Singular.intersection(res, bi.sdata)
+    end
+    return PBWAlgIdeal{D, T, S}(R, res)
+  elseif D > 0
+    _sopdata_assure!(a)
+    res = a.sopdata
+    for bi in b
+      _sopdata_assure!(bi)
+      res = Singular.intersection(res, bi.sopdata)
+    end
+    return _set_opdata!(PBWAlgIdeal{D, T, S}(R), res)
+  else
+    # two-sided algorithm missing
+    throw(NotImplementedError(:intersect, a, b...))
+  end
 end
 
 function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D, T, S}
-  parent(f) == base_ring(I) || error("parent mismatch")
-  is_right(I) && error("ideal membership only implemented for left ideals")
-  groebner_assure!(I)
-  return Singular.iszero(Singular.reduce(f.sdata, I.gb))
+  R = base_ring(I)
+  @assert R === parent(f)
+  if D <= 0
+    # Fact: If G = {g1, ..., gN} is a two-sided GB, then the two-sided normal
+    #       form wrt G is the same as the left normal form wrt G.
+    # Since groebner_assure! calls id_TwoStd for D = 0, and Singular.reduce is
+    # a left normal form, this code works for both D < 0 and D = 0.
+    groebner_assure!(I)
+    return Singular.iszero(Singular.reduce(f.sdata, I.gb))
+  else
+    opgroebner_assure!(I)
+    opf = _opmap(_opposite(R), f.sdata, R)
+    return Singular.iszero(Singular.reduce(opf, I.opgb))
+  end
 end
 
 function Base.in(f::PBWAlgElem, I::PBWAlgIdeal)
   return ideal_membership(f, I)
 end
+
+function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  @assert base_ring(a) === base_ring(b)
+  if D <= 0
+    # Ditto comment ideal_membership
+    _sdata_assure!(a)
+    groebner_assure!(b)
+    return Singular.iszero(Singular.reduce(a.sdata, b.gb))
+  else
+    _sopdata_assure!(a)
+    opgroebner_assure!(b)
+    return Singular.iszero(Singular.reduce(a.sopdata, I.opgb))
+  end
+end
+
+function Base.:(==)(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
+  a === b && return true
+  gens(a) == gens(b) && return true
+  return issubset(a, b) && issubset(b, a)
+end
+
