@@ -904,7 +904,8 @@ identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = SpecMor(X, X, hom(OO(
 identity_map(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(base_ring(OO(X))), check=false))
 identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))))
 identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X))))
-inclusion_map(X::T, Y::T) where {T<:AbsSpec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
+inclusion_map(X::AbsSpec, Y::AbsSpec) = SpecMor(X, Y, gens(base_ring(OO(Y))))  # TODO: Remove
+inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(base_ring(OO(Y))), check=check)
 
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   if check
@@ -914,6 +915,10 @@ function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   end
   return SpecMor(U, V, OO(U).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
+
+# TODO: Alias for compatibility. Needs to be cleaned up and removed.
+restriction(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true) = restrict(f,U,V,check=check)
+
 
 function compose(f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   codomain(f) == domain(g) || error("Morphisms can not be composed")

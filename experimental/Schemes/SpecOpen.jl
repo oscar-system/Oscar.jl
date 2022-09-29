@@ -846,6 +846,8 @@ function inclusion_morphism(U::T, V::T; check::Bool=true) where {T<:SpecOpen}
   return SpecOpenMor(U, V, gens(ambient_ring(X)), check=false)
 end
 
+inclusion_morphism(X::SpecOpen, Y::AbsSpec; check::Bool=true) = inclusion_morphism(X, SpecOpen(Y), check=check)
+
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
