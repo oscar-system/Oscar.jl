@@ -322,7 +322,7 @@ syzygy_generators(a::Vector{<:MPolyElem})
 
 If `I` is an ideal of a multivariate polynomial ring  `R`, then
 
-- `base_ring(I)` refers to `I`,
+- `base_ring(I)` refers to `R`,
 - `gens(I)` to the generators of `I`,
 - `ngens(I)` to the number of these generators, and
 - `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
@@ -336,7 +336,6 @@ base_ring(I)
 gens(I)
 ngens(I)
 gen(I, 2)
-x*y
 ```
 
 ### Dimension
@@ -365,18 +364,18 @@ minimal_generating_set(I::MPolyIdeal{<:MPolyElem_dec})
 #### Powers of Ideal
 
 ```@docs
-:^(I::MPolyIdeal, m::Int)
+^(I::MPolyIdeal, m::Int)
 ```
 #### Sum of Ideals
 
 ```@docs
-:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
++(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 #### Product of Ideals
 
 ```@docs
-:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Intersection of Ideals

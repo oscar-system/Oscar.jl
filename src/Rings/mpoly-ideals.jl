@@ -94,7 +94,7 @@ function remove_zeroes!(I::MPolyIdeal{T}) where T
 end
 
 @doc Markdown.doc"""
-    :^(I::MPolyIdeal, m::Int)
+    ^(I::MPolyIdeal, m::Int)
 
 Return the `m`-th power of `I`.
 
@@ -116,7 +116,7 @@ function Base.:^(I::MPolyIdeal, m::Int)
 end
 
 @doc Markdown.doc"""
-    :+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    +(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return the sum of `I` and `J`.
 
@@ -144,7 +144,7 @@ end
 Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
 @doc Markdown.doc"""
-    :*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+    *(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 Return the product of `I` and `J`.
 
