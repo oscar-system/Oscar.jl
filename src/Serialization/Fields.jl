@@ -271,7 +271,7 @@ end
 ################################################################################
 # RationalFunctionField
 
-@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionField)
+@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionField, "RationalFunctionField")
 
 function save_internal(s::SerializerState,
                        RF::AbstractAlgebra.Generic.RationalFunctionField)
@@ -291,7 +291,7 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
-@registerSerializationType(AbstractAlgebra.Generic.Rat)
+@registerSerializationType(AbstractAlgebra.Generic.Rat, "Rat")
 
 function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.Rat)
     frac_elem_parent = save_type_dispatch(s, parent(denominator(f)))
