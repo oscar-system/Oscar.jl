@@ -2,7 +2,7 @@ export SpaceGerm
 
 export representative, point
 
-export germ_at_point
+export germ_at_point, ring_of_germ, ideal_of_germ, ambient_germ
 
 import AbstractAlgebra: Ring
 
@@ -13,9 +13,6 @@ A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`
 """
 abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsSpec{BaseRingType, RingType} end
 
-function underlying_space_germ(X::AbsSpaceGerm) 
-  error("`underlying_space_germ(X)` not implemented for `X` of type $(typeof(X))")
-end
 
 ####################################################################
 ## two short hand definitions for internal use only
