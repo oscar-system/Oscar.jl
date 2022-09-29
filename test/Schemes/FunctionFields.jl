@@ -80,7 +80,18 @@ end
 
   @test KK(f+2*g-5, g) + KK(f+2*g-5, g) == KK(2*(f+2*g-5)//g)
   h = KK(f+2*g-5, g)
+  @test deepcopy(h)==h
+  @test KK(1) == one(KK)
+  @test zero(KK) == KK(0)
   @test h[V] == (f+2*g-5)//g
+  @test divexact(h,h) == one(KK)
+  @test h*inv(h) == one(KK)
+  @test isone(h*inv(h))
+  @test h^2 == h*h
+  @test h^fmpz(2)==h^2
+  KK(h[V]+h[V]) == h + h
+
   K = FractionField(R)
   @test K(h) == (f+2*g-5)//g
+
 end

@@ -1,4 +1,4 @@
-export VarietyFunctionField
+export VarietyFunctionField, function_field, FunctionField
 export representative_patch, variety, representative_field
 
 export VarietyFunctionFieldElem
@@ -84,14 +84,30 @@ coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
 
 ### user facing constructors 
+@doc Markdown.doc"""
+    function_field(X::CoveredScheme;
+               check::Bool=true,
+               representative_patch::AbsSpec=default_covering(X)[1])
+
+Return the function field of the irreducible variety `X`.
+
+Internally, a rational function is represented by an element in the field of
+fractions of the coordinate ring of the representative patch.
+"""
 function_field(X::CoveredScheme; 
                check::Bool=true, 
                representative_patch::AbsSpec=default_covering(X)[1]
               ) = VarietyFunctionField(X,check=check,representative_patch=representative_patch)
-# TODO: It was also requested to have `FunctionField` as an alias. 
-# Would that not conflict with other function fields? 
-# For the time being, we deliberately decided to call this 
-# `VarietyFunctionField` in order not to interfer with anyone else.
+
+
+@doc Markdown.doc"""
+    FunctionField(X::CoveredScheme; kw...)
+
+Return the function field of the irreducible variety `X`.
+
+See [`function_field(X::CoveredScheme)`](@ref).
+"""
+FunctionField(X::CoveredScheme; kw... ) = function_field(X; kw...)
 
 ### elements of such function fields
 mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac, 
@@ -318,7 +334,8 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
   return ParentType
 end
 
-base_ring(KK::VarietyFunctionFieldElem) = base_ring(representative_field(KK))
+base_ring(KK::VarietyFunctionField) = base_ring(representative_field(KK))
+base_ring(a::VarietyFunctionFieldElem) = base_ring(representative_field(a))
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 
@@ -349,7 +366,7 @@ function divexact(f::VarietyFunctionFieldElem,
   )
   return f//g
 end
-inv(f::VarietyFunctionFieldElem) = KK(denominator(representative(f)),
+inv(f::VarietyFunctionFieldElem) = parent(f)(denominator(representative(f)),
                                       numerator(representative(f)),
                                       check=false
                                      )
