@@ -271,8 +271,7 @@ end
 ################################################################################
 # RationalFunctionField
 
-encodeType(::Type{<:AbstractAlgebra.Generic.RationalFunctionField}) = "RationalFunctionField"
-reverseTypeMap["RationalFunctionField"] = AbstractAlgebra.Generic.RationalFunctionField
+@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionField)
 
 function save_internal(s::SerializerState,
                        RF::AbstractAlgebra.Generic.RationalFunctionField)
@@ -292,8 +291,7 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
-encodeType(::Type{<:AbstractAlgebra.Generic.Rat}) = "Rat"
-reverseTypeMap["Rat"] = AbstractAlgebra.Generic.Rat
+@registerSerializationType(AbstractAlgebra.Generic.Rat)
 
 function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.Rat)
     frac_elem_parent = save_type_dispatch(s, parent(denominator(f)))
