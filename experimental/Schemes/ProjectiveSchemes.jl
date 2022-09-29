@@ -1,4 +1,4 @@
-export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
+export ProjectiveScheme, base_ring, fiber_dimension, ambient_ring, gens, getindex, affine_patch_type
 export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
 export projective_space, subscheme
 export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
@@ -208,12 +208,11 @@ On ``X ⊂ ℙʳ(A)`` this returns ``r``.
 fiber_dimension(P::ProjectiveScheme) = P.r
 
 @Markdown.doc """
-    homogeneous_coordinate_ring(X::ProjectiveScheme)
+    ambient_ring(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
-homogeneous_coordinate_ring(P::ProjectiveScheme) = P.S
-ambient_ring(P::ProjectiveScheme) = homogeneous_coordinate_ring(P)
+ambient_ring(P::ProjectiveScheme) = P.S
 
 @Markdown.doc """
     homogeneous_coordinates(X::ProjectiveScheme)
@@ -246,7 +245,7 @@ end
 original_ring(S::MPolyRing_dec) = S.R
 
 function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
-  S = homogeneous_coordinate_ring(P)
+  S = ambient_ring(P)
   parent(f) == S || error("ring element does not belong to the correct ring")
   Q = ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)), [f])))
   if isdefined(P, :Y) 
@@ -257,7 +256,7 @@ end
 
 function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
   length(f) == 0 && return P #TODO: Replace P by an honest copy!
-  S = homogeneous_coordinate_ring(P)
+  S = ambient_ring(P)
   for i in 1:length(f)
     parent(f[i]) == S || error("ring element does not belong to the correct ring")
   end
@@ -269,7 +268,7 @@ function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElem
 end
 
 function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
-  S = homogeneous_coordinate_ring(P)
+  S = ambient_ring(P)
   base_ring(I) == S || error("ideal does not belong to the correct ring")
   Q = ProjectiveScheme(S, ideal(S, vcat(gens(I), gens(defining_ideal(P)))))
   if isdefined(P, :Y) 
@@ -345,11 +344,11 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     Y = Spec(A)
     X.Y = Y
     kk = base_ring(A)
-    F = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
+    F = affine_space(kk, symbols(ambient_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
 
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
     # use the new mapping types for polynomial rings.
     inner_help_map = hom(A, OO(C), [pullback(pr_base)(x) for x in gens(OO(Y))])
     help_map = hom(S, OO(C), inner_help_map, [pullback(pr_fiber)(y) for y in gens(OO(F))])
@@ -384,11 +383,11 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
     R = base_ring(A)
     Y = base_scheme(X)
     kk = base_ring(R)
-    F = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
+    F = affine_space(kk, symbols(ambient_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
 
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
     # use the new mapping types for polynomial rings.
     inner_help_map = hom(A, OO(C), [pullback(pr_base)(x) for x in gens(OO(Y))])
     help_map = hom(S, OO(C), inner_help_map, [pullback(pr_fiber)(y) for y in gens(OO(F))])
@@ -427,10 +426,10 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyL
     Y = base_scheme(X)
     R = base_ring(A)
     kk = coefficient_ring(R)
-    F = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
+    F = affine_space(kk, symbols(ambient_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
 
     # store the various conversion maps
     help_map = hom(S, OO(C), 
@@ -464,10 +463,10 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
     Y = base_scheme(X)
     R = base_ring(A)
     kk = coefficient_ring(R)
-    F = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
+    F = affine_space(kk, symbols(ambient_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
 
     # store the various conversion maps
     help_map = hom(S, OO(C), 
@@ -501,9 +500,9 @@ lift(f::MPolyElem) = f
 function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Ring, CRET, RT, RET}
   if !isdefined(X, :C)
     kk = base_ring(X)
-    C = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
+    C = affine_space(kk, symbols(ambient_ring(X)))
     X.homog_coord = gens(OO(C))
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
     help_map = hom(S, OO(C), gens(OO(C)))
     I = help_map(defining_ideal(X))
     CX = subscheme(C, I)
@@ -520,13 +519,13 @@ end
 
 function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOpenRing, CRET, RT, RET}
   if !isdefined(X, :C)
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
     B = coefficient_ring(S)
     Y = scheme(B)
     U = domain(B)
     R = base_ring(OO(Y))
     kk = base_ring(R)
-    F = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
+    F = affine_space(kk, symbols(ambient_ring(X)))
     C, pr_base, pr_fiber = product(U, F)
     X.homog_coord = [pullback(pr_fiber)(u) 
                            for u in OO(codomain(pr_fiber)).(gens(OO(F)))]
@@ -588,8 +587,8 @@ mutable struct ProjectiveSchemeMor{
       f::PullbackType;
       check::Bool=true
     ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
-    T = homogeneous_coordinate_ring(P)
-    S = homogeneous_coordinate_ring(Q)
+    T = ambient_ring(P)
+    S = ambient_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     if check
       #TODO: Check map on ideals (not available yet)
@@ -609,8 +608,8 @@ mutable struct ProjectiveSchemeMor{
              PullbackType<:Map,
              BaseMorType<:SchemeMor
             }
-    T = homogeneous_coordinate_ring(P)
-    S = homogeneous_coordinate_ring(Q)
+    T = ambient_ring(P)
+    S = ambient_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
     codomain(h) == coefficient_ring(T) || error("base scheme map not compatible")
@@ -639,8 +638,8 @@ base_ring_morphism(phi::ProjectiveSchemeMor) = coefficient_map(pullback(phi))
 ### additional constructors
 function ProjectiveSchemeMor(X::T, Y::T, a::Vector{RET}) where {T<:ProjectiveScheme, RET<:MPolyElem_dec}
   base_ring(X) === base_ring(Y) || error("projective schemes must be defined over the same base ring")
-  Q = homogeneous_coordinate_ring(X)
-  P = homogeneous_coordinate_ring(Y)
+  Q = ambient_ring(X)
+  P = ambient_ring(Y)
   return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
 end
 
@@ -655,8 +654,8 @@ end
 function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}}) 
   if !isdefined(phi, :map_on_affine_cones)
     A = base_ring(domain(phi))
-    S = homogeneous_coordinate_ring(codomain(phi))
-    T = homogeneous_coordinate_ring(domain(phi))
+    S = ambient_ring(codomain(phi))
+    T = ambient_ring(domain(phi))
     P = domain(phi)
     Q = codomain(phi)
     pb_P = pullback(projection_to_base(P))
@@ -672,8 +671,8 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPoly
   if !isdefined(phi, :map_on_affine_cones)
     Y = base_scheme(domain(phi))
     A = OO(Y)
-    S = homogeneous_coordinate_ring(codomain(phi))
-    T = homogeneous_coordinate_ring(domain(phi))
+    S = ambient_ring(codomain(phi))
+    T = ambient_ring(domain(phi))
     P = domain(phi)
     Q = codomain(phi)
     pb_P = pullback(projection_to_base(P))
@@ -687,8 +686,8 @@ end
     
 function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:AbstractAlgebra.Ring}})
   if !isdefined(phi, :map_on_affine_cones)
-    S = homogeneous_coordinate_ring(codomain(phi))
-    T = homogeneous_coordinate_ring(domain(phi))
+    S = ambient_ring(codomain(phi))
+    T = ambient_ring(domain(phi))
     P = domain(phi)
     Q = codomain(phi)
     imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
@@ -709,7 +708,7 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecO
     Q = ambient(CY)
     BY = base_scheme(Y)
     BQ = ambient(BY)
-    fiber_coord_imgs = homog_to_frac(X).(pullback(phi).(gens(homogeneous_coordinate_ring(Y)))) # elements in OO(CX)
+    fiber_coord_imgs = homog_to_frac(X).(pullback(phi).(gens(ambient_ring(Y)))) # elements in OO(CX)
     base_coord_imgs = pullback(phi).(pullback(projection_to_base(Y)).(gens(OO(BY))))
     coord_imgs = vcat(fiber_coord_imgs, base_coord_imgs)
     phi.map_on_affine_cones = SpecOpenMor(CX, CY, 
@@ -731,7 +730,7 @@ end
 function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
-  for s in gens(homogeneous_coordinate_ring(codomain(f)))
+  for s in gens(ambient_ring(codomain(f)))
     pullback(f)(s) - pullback(g)(s) in defining_ideal(domain(f)) || return false
   end
   return true
@@ -750,31 +749,31 @@ function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomTy
   R = base_ring(P) 
   R == domain(f) || error("rings not compatible")
   Rnew = codomain(f)
-  S = homogeneous_coordinate_ring(P)
+  S = ambient_ring(P)
   Qambient = projective_space(Rnew, symbols(S))
-  Snew = homogeneous_coordinate_ring(Qambient)
+  Snew = ambient_ring(Qambient)
   phi = hom(S, Snew, f, gens(Snew))
   Q = subscheme(Qambient, phi(defining_ideal(P)))
-  return Q, ProjectiveSchemeMor(Q, P, hom(S, homogeneous_coordinate_ring(Q), f, gens(homogeneous_coordinate_ring(Q))))
+  return Q, ProjectiveSchemeMor(Q, P, hom(S, ambient_ring(Q), f, gens(ambient_ring(Q))))
 end
 
 function fiber_product(f::AbsSpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRing})
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
   X = domain(f)
   Y = codomain(f)
-  Q_ambient = projective_space(X, symbols(homogeneous_coordinate_ring(P)))
-  help_map = hom(homogeneous_coordinate_ring(P),
-                 homogeneous_coordinate_ring(Q_ambient),
+  Q_ambient = projective_space(X, symbols(ambient_ring(P)))
+  help_map = hom(ambient_ring(P),
+                 ambient_ring(Q_ambient),
                  pullback(f),
-                 gens(homogeneous_coordinate_ring(Q_ambient))
+                 gens(ambient_ring(Q_ambient))
                 )
   I = help_map(defining_ideal(P))
   Q = subscheme(Q_ambient, pre_image_ideal(I))
   return Q, ProjectiveSchemeMor(Q, P, 
-                                hom(homogeneous_coordinate_ring(P),
-                                    homogeneous_coordinate_ring(Q),
+                                hom(ambient_ring(P),
+                                    ambient_ring(Q),
                                     pullback(f),
-                                    gens(homogeneous_coordinate_ring(Q))
+                                    gens(ambient_ring(Q))
                                    )
                                )
 end
@@ -794,10 +793,10 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:MPolyQuoLocalize
   Y = base_scheme(Q)
   f = inclusion_map(X, Y) # will throw if X and Y are not compatible
   return ProjectiveSchemeMor(P, Q, 
-                             hom(homogeneous_coordinate_ring(Q),
-                                 homogeneous_coordinate_ring(P),
+                             hom(ambient_ring(Q),
+                                 ambient_ring(P),
                                  pullback(f), 
-                                 gens(homogeneous_coordinate_ring(P))
+                                 gens(ambient_ring(P))
                                 )
                             )
 end
@@ -807,17 +806,17 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:AbstractAlgebra.
   B = base_ring(P)
   A === B || error("can not compare schemes for non-equal base rings") # TODO: Extend by check for canonical maps, once they are available
   return ProjectiveSchemeMor(P, Q, 
-                             hom(homogeneous_coordinate_ring(Q),
-                                 homogeneous_coordinate_ring(P),
-                                 gens(homogeneous_coordinate_ring(P))
+                             hom(ambient_ring(Q),
+                                 ambient_ring(P),
+                                 gens(ambient_ring(P))
                                 )
                             )
 end
 
 identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P, 
-                                                        hom(homogeneous_coordinate_ring(P),
-                                                            homogeneous_coordinate_ring(P),
-                                                            gens(homogeneous_coordinate_ring(P))
+                                                        hom(ambient_ring(P),
+                                                            ambient_ring(P),
+                                                            gens(ambient_ring(P))
                                                            )
                                                        )
 
@@ -863,7 +862,7 @@ function dehomogenize(
     CRT<:MPolyQuoLocalizedRing
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = homogeneous_coordinate_ring(X)
+  S = ambient_ring(X)
   C = standard_covering(X)
   U = C[i+1]
   p = covered_projection_to_base(X)
@@ -878,7 +877,7 @@ function dehomogenize(
     CRT<:MPolyLocalizedRing
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = homogeneous_coordinate_ring(X)
+  S = ambient_ring(X)
   C = standard_covering(X)
   U = C[i+1]
   p = covered_projection_to_base(X)
@@ -893,7 +892,7 @@ function dehomogenize(
     CRT<:MPolyRing
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = homogeneous_coordinate_ring(X)
+  S = ambient_ring(X)
   C = standard_covering(X)
   U = C[i+1]
   p = covered_projection_to_base(X)
@@ -908,7 +907,7 @@ function dehomogenize(
     CRT<:MPolyQuo
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = homogeneous_coordinate_ring(X)
+  S = ambient_ring(X)
   C = standard_covering(X)
   U = C[i+1]
   p = covered_projection_to_base(X)
@@ -937,11 +936,11 @@ function dehomogenize(
   # look up U in the coverings of X
   cover_of_U, index_of_U = X[U]
   Xcov = as_covered_scheme(X)
-  S = homogeneous_coordinate_ring(X)
+  S = ambient_ring(X)
 
   s = Vector{elem_type(OO(U))}()
   if cover_of_U === standard_covering(X)
-    S = homogeneous_coordinate_ring(X)
+    S = ambient_ring(X)
     C = standard_covering(X)
     p = covered_projection_to_base(X)
     s = vcat(gens(OO(U))[1:index_of_U-1], [one(OO(U))], gens(OO(U))[index_of_U:fiber_dimension(X)])
@@ -964,7 +963,7 @@ function dehomogenize(
     CRT<:AbstractAlgebra.Ring
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = homogeneous_coordinate_ring(X)
+  S = ambient_ring(X)
   C = standard_covering(X)
   U = C[i+1]
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
