@@ -46,11 +46,9 @@ end
 ################################################################################
 #  Polynomial Rings
 
-encodeType(::Type{<:PolyRing}) = "PolyRing"
-reverseTypeMap["PolyRing"] = PolyRing
+@registerSerializationType(PolyRing)
 
-encodeType(::Type{<:MPolyRing}) = "MPolyRing"
-reverseTypeMap["MPolyRing"] = MPolyRing
+@registerSerializationType(MPolyRing)
 
 @registerSerializationType(FmpqMPolyRing)
 @registerSerializationType(FmpqPolyRing)
@@ -88,8 +86,7 @@ end
 @registerSerializationType(fmpz_mpoly)
 @registerSerializationType(fq_nmod_mpoly)
 @registerSerializationType(nmod_mpoly)
-encodeType(::Type{<:MPolyElem}) = "MPolyElem"
-reverseTypeMap["MPolyElem"] = MPolyElem
+@registerSerializationType(MPolyElem)
 
 function save_internal(s::SerializerState, p::MPolyElem)
     parent_ring = parent(p)
@@ -146,8 +143,7 @@ end
 ################################################################################
 # Univariate Polynomials
 
-encodeType(::Type{<:PolyElem}) = "PolyElem"
-reverseTypeMap["PolyElem"] = PolyElem
+@registerSerializationType(PolyElem)
 
 @registerSerializationType(fmpq_poly)
 @registerSerializationType(fmpz_poly)
@@ -192,8 +188,7 @@ end
 ################################################################################
 # Polynomial Ideals
 
-encodeType(::Type{<:MPolyIdeal}) = "MPolyIdeal"
-reverseTypeMap["MPolyIdeal"] = MPolyIdeal
+@registerSerializationType(MPolyIdeal)
 
 function save_internal(s::SerializerState, i::MPolyIdeal)
     generators = gens(i)
@@ -223,13 +218,11 @@ end
 ################################################################################
 # Matrices
 
-encodeType(::Type{<:MatElem}) = "MatElem"
-reverseTypeMap["MatElem"] = MatElem
+@registerSerializationType(MatElem)
 
 @registerSerializationType(fmpz_mat)
 @registerSerializationType(fmpq_mat)
 @registerSerializationType(fq_nmod_mat)
-@registerSerializationType(nmod)
 @registerSerializationType(nmod_mat)
 
 function save_internal(s::SerializerState, m::MatrixElem)
@@ -248,8 +241,7 @@ end
 
 ################################################################################
 # Power Series
-encodeType(::Type{<:SeriesRing}) = "SeriesRing"
-reverseTypeMap["SeriesRing"] = SeriesRing
+@registerSerializationType(SeriesRing)
 
 function save_internal(s::SerializerState, R::Union{
     Generic.RelSeriesRing,
@@ -289,11 +281,9 @@ function load_internal(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
 end
 
 # elements
-encodeType(::Type{<:RelSeriesElem}) = "RelSeriesElem"
-reverseTypeMap["RelSeriesElem"] = RelSeriesElem
+@registerSerializationType(RelSeriesElem)
 
-encodeType(::Type{<:AbsSeriesElem}) = "AbsSeriesElem"
-reverseTypeMap["AbsSeriesElem"] = AbsSeriesElem
+@registerSerializationType(AbsSeriesElem)
 
 function save_internal(s::SerializerState, r::RelSeriesElem)
     v = valuation(r)
@@ -384,11 +374,9 @@ end
 
 ################################################################################
 # Laurent Series
-encodeType(::Type{<:Generic.LaurentSeriesRing}) = "LaurentSeriesRing"
-reverseTypeMap["LaurentSeriesRing"] = Generic.LaurentSeriesRing
+@registerSerializationType(Generic.LaurentSeriesRing, "LaurentSeriesRing")
 
-encodeType(::Type{<:Generic.LaurentSeriesField}) = "LaurentSeriesField"
-reverseTypeMap["LaurentSeriesField"] = Generic.LaurentSeriesField
+@registerSerializationType(Generic.LaurentSeriesField, "LaurentSeriesField")
 
 @registerSerializationType(FmpzLaurentSeriesRing)
 
@@ -417,12 +405,9 @@ function load_internal(s::DeserializerState,
 end
 
 # elements
-encodeType(::Type{<:Generic.LaurentSeriesFieldElem}) = "LaurentSeriesFieldElem"
-reverseTypeMap["LaurentSeriesFieldElem"] = Generic.LaurentSeriesFieldElem
+@registerSerializationType(Generic.LaurentSeriesFieldElem, "LaurentSeriesFieldElem")
 
-
-encodeType(::Type{<:Generic.LaurentSeriesRingElem}) = "LaurentSeriesRingElem"
-reverseTypeMap["LaurentSeriesRingElem"] = Generic.LaurentSeriesRingElem
+@registerSerializationType(Generic.LaurentSeriesRingElem, "LaurentSeriesRingElem")
 
 @registerSerializationType(fmpz_laurent_series)
 
