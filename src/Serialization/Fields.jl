@@ -340,7 +340,7 @@ function load_internal_with_parent(s::DeserializerState,
     num = load_unknown_type(s, dict[:num])
     den = load_unknown_type(s, dict[:den])
 
-    if typeof(num) <: fmpq_poly
+    if num isa PolyElem
         num = evaluate(num, gen(parent))
         den = evaluate(den, gen(parent))
     else
