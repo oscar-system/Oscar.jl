@@ -1863,7 +1863,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
 end
 function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyElem}
   # TODO: Adjust as soon as new GB concept is implemented
-  return ideal(homogenization(gens(groebner_basis(I, ordering=ordering; return_vector=false)), var, pos))
+  return ideal(homogenization(gens(groebner_basis(I, ordering=ordering)), var, pos))
 end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl

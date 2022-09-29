@@ -55,7 +55,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
       I = ideal(R, GO)
 
       if total_degree(S[end]) == d - 2
-        GO = gens(groebner_basis(I, ordering = ordR; return_vector = false))
+        GO = gens(groebner_basis(I, ordering = ordR))
         if is_zero(dim(I))
           mons = gens(ideal(R, Singular.kbase(I.gb[ordR].S)))
           dmax = maximum( total_degree(f) for f in mons )

@@ -266,6 +266,25 @@ function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
   end
 end
 
+function show(io::IO, I::IdealGens)
+  if I.isGB
+    if is_global(I.ord)
+      print(io, "Gröbner basis with elements")
+    else
+      print(io, "Standard basis with elements")
+    end
+  else
+    print(io, "Ideal generating system with elements")
+  end
+  for (i,g) in enumerate(gens(I))
+    print(io, "\n", i, " -> ", g)
+  end
+  if I.isGB
+    print(io, "\nwith respect to the ordering")
+    print(io, "\n", I.ord)
+  end
+end
+
 function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
   if !isdefined(A, :S)
     A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])

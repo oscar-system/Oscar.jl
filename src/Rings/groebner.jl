@@ -74,6 +74,7 @@ function _compute_std_basis(B::IdealGens, ordering::MonomialOrdering, complete_r
    i  = Singular.std(I, complete_reduction = complete_reduction)
    BA = IdealGens(B.Ox, i)
    BA.isGB  = true
+   BA.ord = ordering.o
    if isdefined(BA, :S)
        BA.S.isGB  = true
    end
@@ -105,13 +106,13 @@ julia> std_basis(I, negdegrevlex(gens(R)))
  y
 ```
 """
-function std_basis(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false, return_vector::Bool = false)
+function std_basis(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
   complete_reduction && @assert is_global(ordering)
   if !haskey(I.gb, ordering)
     GB = _compute_std_basis(I.gens, ordering, complete_reduction)
     I.gb[ordering] = GB
   end
-  return return_vector ? collect(I.gb[ordering]) : I.gb[ordering]
+  return I.gb[ordering]
 end
 
 @doc Markdown.doc"""
@@ -138,9 +139,9 @@ julia> H = groebner_basis(I, ordering=lex(gens(R)))
  6*x^2 - y^3
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false, return_vector::Bool = false)
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
     is_global(ordering) || error("Ordering must be global")
-    return std_basis(I, ordering, complete_reduction, return_vector)
+    return std_basis(I, ordering, complete_reduction)
 end
 
 @doc Markdown.doc"""
@@ -284,7 +285,7 @@ ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
-  G = gens(groebner_basis(I, ordering=ordering; return_vector=false))
+  G = gens(groebner_basis(I, ordering=ordering))
   return ideal(base_ring(I), [first(monomials(g, ordering)) for g in G])
 end
 
@@ -307,7 +308,7 @@ julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
-julia> gens(groebner_basis(J; return_vector=false))
+julia> gens(groebner_basis(J))
 2-element Vector{fmpq_mpoly}:
  b + c - 1
  a*c - 2*a + c
@@ -350,7 +351,7 @@ julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
-julia> gens(groebner_basis(J; return_vector=false))
+julia> gens(groebner_basis(J))
 2-element Vector{fmpq_mpoly}:
  b + c - 1
  a*c - 2*a + c
@@ -389,7 +390,7 @@ julia> A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
-julia> gens(groebner_basis(J; return_vector=false))
+julia> gens(groebner_basis(J))
 2-element Vector{fmpq_mpoly}:
  b + c - 1
  a*c - 2*a + c

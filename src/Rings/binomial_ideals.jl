@@ -22,7 +22,7 @@ function is_binomial(I::MPolyIdeal)
   if _isbinomial(gens(I))
     return true
   end
-  return _isbinomial(gens(groebner_basis(I, complete_reduction = true; return_vector=false)))
+  return _isbinomial(gens(groebner_basis(I, complete_reduction = true)))
 end
 
 function _isbinomial(v::Vector{<: MPolyElem})
@@ -229,7 +229,7 @@ function is_unital(I::MPolyIdeal)
   if _isbinomial(gI) && _isunital(gI)
     return true
   end
-  gB = gens(groebner_basis(I, complete_reduction = true; return_vector=false))
+  gB = gens(groebner_basis(I, complete_reduction = true))
   return _isbinomial(gB) && _isunital(gB)
 end
 
@@ -466,7 +466,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   end
   #now case if J \neq 0
   #let ts be a list of minimal binomial generators for J
-  gb = gens(groebner_basis(J, complete_reduction = true; return_vector=false))
+  gb = gens(groebner_basis(J, complete_reduction = true))
   vs = zero_matrix(FlintZZ, 0, nvars(R))
   images = QQAbElem{nf_elem}[]
   for t in gb
@@ -629,7 +629,7 @@ function __cellular_hull(I::MPolyIdeal)
   if isempty(M)
     return I
   end
-  return ideal(R, gens(groebner_basis(I + ideal(R, M), complete_reduction = true; return_vector=false)))
+  return ideal(R, gens(groebner_basis(I + ideal(R, M), complete_reduction = true)))
 end
 
 ###################################################################################

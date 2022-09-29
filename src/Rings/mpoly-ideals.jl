@@ -937,7 +937,7 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
-  GI = std_basis(I, ordering, false, false)
+  GI = std_basis(I, ordering, false)
   singular_assure(GI)
   Sx = base_ring(GI.S)
   return Singular.iszero(Singular.reduce(Sx(f), GI.S))
@@ -1201,7 +1201,7 @@ function isone(I::MPolyIdeal)
   if any(x -> (is_constant(x) && is_unit(first(coefficients(x)))), gens(I))
     return true
   end
-  gb = gens(groebner_basis(I, complete_reduction = true; return_vector=false))
+  gb = gens(groebner_basis(I, complete_reduction = true))
   return is_constant(gb[1]) && is_unit(first(coefficients(gb[1])))
 end
 
@@ -1257,7 +1257,7 @@ function is_monomial(I::MPolyIdeal)
   if _ismonomial(gens(I))
     return true
   end
-  GB = gens(groebner_basis(I, complete_reduction = true; return_vector=false))
+  GB = gens(groebner_basis(I, complete_reduction = true))
   if _ismonomial(GB)
     return true
   end
