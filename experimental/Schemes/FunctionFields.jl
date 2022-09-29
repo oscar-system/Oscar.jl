@@ -87,7 +87,7 @@ representative_field(KK::VarietyFunctionField) = KK.KK
 function_field(X::CoveredScheme; 
                check::Bool=true, 
                representative_patch::AbsSpec=default_covering(X)[1]
-              ) = VarietyFunctionField(X)
+              ) = VarietyFunctionField(X,check=check,representative_patch=representative_patch)
 # TODO: It was also requested to have `FunctionField` as an alias. 
 # Would that not conflict with other function fields? 
 # For the time being, we deliberately decided to call this 
