@@ -749,7 +749,7 @@ Return the intersection of two or more ideals.
 ```jldoctest
 julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"]);
 
-julia> I = intersect(left_ideal(D, [x, dy])^2+left_ideal(D, [dx]), left_ideal(D, [dy^2-x^3+x]))
+julia> I = intersect(left_ideal(D, [x^2, x*dy, dy^2])+left_ideal(D, [dx]), left_ideal(D, [dy^2-x^3+x]))
 left_ideal(-x^3 + dy^2 + x)
 ```
 """
