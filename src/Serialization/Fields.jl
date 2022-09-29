@@ -321,7 +321,7 @@ function load_internal(s::DeserializerState,
     num = load_unknown_type(s, dict[:num])
     den = load_unknown_type(s, dict[:den])
 
-    if typeof(num) <: fmpq_poly
+    if num isa PolyElem
         num = evaluate(num, gen(R))
         den = evaluate(den, gen(R))
     else
