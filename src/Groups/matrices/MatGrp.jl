@@ -580,6 +580,12 @@ end
 #
 ########################################################################
 
+function _field_from_q(q::Int)
+   (n,p) = is_power(q)
+   is_prime(p) || throw(ArgumentError("The field size must be a prime power"))
+   return GF(p, n)
+end
+
 """
     general_linear_group(n::Int, q::Int)
     general_linear_group(n::Int, F::FqNmodFiniteField)
@@ -594,9 +600,7 @@ function general_linear_group(n::Int, F::Ring)
 end
 
 function general_linear_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return general_linear_group(n, GF(b, a))
+   return general_linear_group(n, _field_from_q(q))
 end
 
 """
@@ -613,9 +617,7 @@ function special_linear_group(n::Int, F::Ring)
 end
 
 function special_linear_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return special_linear_group(n, GF(b, a))
+   return special_linear_group(n, _field_from_q(q))
 end
 
 """
@@ -634,9 +636,7 @@ function symplectic_group(n::Int, F::Ring)
 end
 
 function symplectic_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return symplectic_group(n, GF(b, a))
+   return symplectic_group(n, _field_from_q(q))
 end
 
 """
@@ -668,9 +668,7 @@ function orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return orthogonal_group(e, n, GF(b, a))
+   return orthogonal_group(e, n, _field_from_q(q))
 end
 
 orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
@@ -706,9 +704,7 @@ function special_orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function special_orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return special_orthogonal_group(e, n, GF(b, a))
+   return special_orthogonal_group(e, n, _field_from_q(q))
 end
 
 special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
@@ -743,9 +739,7 @@ function omega_group(e::Int, n::Int, F::Ring)
 end
 
 function omega_group(e::Int, n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return omega_group(e, n, GF(b, a))
+   return omega_group(e, n, _field_from_q(q))
 end
 
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
