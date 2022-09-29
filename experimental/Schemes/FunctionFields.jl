@@ -21,14 +21,6 @@ export representative
   return true
 end
 
-### store a default patch to represent elements of the fraction field
-@attr AbsSpec function default_patch(X::AbsCoveredScheme)
-  # TODO: find the affine chart with the least possible complexity.
-  # Number of variables small?
-  U = default_covering(X)[1]
-  return U
-end
-
 
 ########################################################################
 # lower checks for irreducibility                                      #
@@ -48,6 +40,7 @@ end
 @attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}) 
   return is_prime(localized_modulus(OO(X)))
 end
+
 
 ########################################################################
 # Check for emptyness                                                  #
@@ -71,12 +64,16 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
   U::SpecType  # representative patch to represent rational functions
   KK::FracFieldType
 
-  function VarietyFunctionField(X::AbsCoveredScheme; check::Bool=true)
+  function VarietyFunctionField(
+      X::AbsCoveredScheme; 
+      check::Bool=true,
+      representative_patch::AbsSpec=default_covering(X)[1]
+    )
     check && (is_irreducible(X) || error("variety is not irreducible"))
-    U = default_patch(X)
-    KK = FractionField(ambient_ring(U))
+    representative_patch in default_covering(X) || error("representative patch not found")
+    KK = FractionField(ambient_ring(representative_patch))
     kk = base_ring(X)
-    return new{typeof(kk), typeof(KK), typeof(X), typeof(U)}(kk, X, U, KK)
+    return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
   end
 end
 
@@ -85,6 +82,16 @@ representative_patch(KK::VarietyFunctionField) = KK.U
 variety(KK::VarietyFunctionField) = KK.X
 coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
+
+### user facing constructors 
+function_field(X::CoveredScheme; 
+               check::Bool=true, 
+               representative_patch::AbsSpec=default_covering(X)[1]
+              ) = VarietyFunctionField(X)
+# TODO: It was also requested to have `FunctionField` as an alias. 
+# Would that not conflict with other function fields? 
+# For the time being, we deliberately decided to call this 
+# `VarietyFunctionField` in order not to interfer with anyone else.
 
 ### elements of such function fields
 mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac, 
@@ -230,12 +237,19 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
                                   denominator(h_generic)
                                   )
 end
-### move_representative
-# Given a fraction a//b ∈ Quot(P) with P = 𝕜[x] the `ambient_ring` 
-# of an affine patch V in a covering C, move that fraction to 
-# one in Quot(P') where P' is the ambient ring of another patch U.
-#
-# **Note:** This is only guaranteed to work for irreducible schemes! 
+@Markdown.doc """
+    function move_representative(
+        a::MPolyElem, b::MPolyElem,
+        V::AbsSpec, U::AbsSpec,
+        C::Covering
+      )
+
+Given a fraction ``a/b ∈ Quot(P)`` with ``P = 𝕜[x]`` the `ambient_ring` 
+of an affine patch ``V`` in a covering `C`, move that fraction to 
+one in ``Quot(P')`` where ``P'`` is the ambient ring of another patch ``U``.
+
+**Note:** This is only guaranteed to work for irreducible schemes! 
+"""
 function move_representative(
     a::MPolyElem, b::MPolyElem,
     V::AbsSpec, U::AbsSpec,
@@ -323,7 +337,7 @@ end
 (KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
 (KK::VarietyFunctionField)(a::MPolyElem) = KK(a, one(a), check=false)
-canonical_unit(f::VarietyFunctionFieldElem) = f
+canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)
   print(io, "function field of $(variety(KK))")
@@ -346,11 +360,11 @@ AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFiel
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{T}) where {T<:VarietyFunctionFieldElem} = T
 
 function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{T}, U<:RingElement}
-  promote_rule(T, U) ? FFET : Union{}
+  promote_rule(T, U) == T ? FFET : Union{}
 end 
 
 function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{AbstractAlgebra.Generic.Frac{T}}, U<:RingElement}
-  promote_rule(T, U) ? FFET : Union{}
+  promote_rule(T, U) == T ? FFET : Union{}
 end 
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
