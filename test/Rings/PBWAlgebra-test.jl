@@ -57,16 +57,73 @@ end
   @test p == R(collect(coefficients(p)), collect(exponent_vectors(p)))
 end
 
-@testset "PBWAlgebra.ideals" begin
-  r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
+@testset "PBWAlgebra.weyl_algebra" begin
+  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  @test dx*x == 1 + x*dx
 
-  I = ideal([x^2, y^2])
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  @test dx*x == 1 + x*dx
+  @test dy*y == 1 + y*dy
+  @test dx*y == y*dx
+  @test dy*x == x*dy
+  @test x*y == y*x
+end
+
+@testset "PBWAlgebra.opposite_algebra" begin
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  opR, M = opposite_algebra(R)
+  @test M(dy*dx*x*y) == M(y)*M(x)*M(dx)*M(dy)
+  @test inv(M)(M(x)) == x
+  @test M.([x, y, dx, dy]) == [M(x), M(y), M(dx), M(dy)]
+
+  g = [1-dx, dy]
+  @test base_ring(M.(right_ideal(g))) === opR
+  @test M.(left_ideal(g)) == right_ideal(M.(g))
+  @test M.(right_ideal(g)) == left_ideal(M.(g))
+  @test M.(two_sided_ideal(g)) == two_sided_ideal(M.(g))
+end
+
+@testset "PBWAlgebra.ideals" begin
+  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+
+  I = left_ideal([x^2, y^2])
   @test length(string(I)) > 2
   @test ngens(I) > 1
   @test !iszero(I)
   @test !isone(I)
   @test x^2 - y^2 in I
   @test !(x + 1 in I)
-  @test isone(I + ideal([z^2]))
+  @test isone(I + left_ideal([dy^2]))
+  @test gens(I) == [I[k] for k in 1:ngens(I)]
+
+  @test y*dy in left_ideal(R, [dy])
+  @test !(dy*y in left_ideal(R, [dy]))
+  @test dy*y in right_ideal(R, [dy])
+  @test !(y*dy in right_ideal(R, [dy]))
+
+  I = two_sided_ideal(R, [dy])
+  @test y*dy*y in I
+  @test isone(I)
+
+  I = intersect(left_ideal(R, [dy]), left_ideal(R, [dx]))
+  @test x*dy*dx in I
+  @test !(dy*dx*x in I)
+
+  I = intersect(right_ideal(R, [dy]), right_ideal(R, [dx]))
+  @test dy*dx*x in I
+  @test !(x*dy*dx in I)
+
+  @test_throws NotImplementedError intersect(two_sided_ideal(R, [dy]), two_sided_ideal(R, [x]))
+
+  I = intersect(left_ideal([dx]), left_ideal([dy]), left_ideal([x]))
+  @test x^2*dx == (x*dx-1)*x
+  @test x^2*dx*dy in I
+  @test dx^2*x == (x*dx+2)*dx
+  @test dx^2*x*dy in I
+  @test !(x in I)
+  @test !(y in I)
+  @test !(dx in I)
+  @test !(dy in I)
+
+  @test intersect(left_ideal([dx])) == left_ideal([dx])
 end

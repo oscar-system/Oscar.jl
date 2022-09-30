@@ -12,30 +12,24 @@ export empty_covered_scheme
 export coverings, refinements, default_covering, set_name!, name_of, has_name, dim
 export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
-import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
-
 export CoveredSchemeMorphism, domain, codomain, covering_morphism
 
 export simplify
 
 @Markdown.doc """
-    Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen}
+    Covering
 
 A covering of a scheme ``X`` by affine patches ``Uᵢ`` which are glued 
 along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
-
- * `SpecType` is the type of the affine patches;
- * `GlueingType` is the type of the glueings;
- * `SpecOpenType` is the type of the affine refinements of the ``Uᵢ``.
 
 **Note:** The distinction between the different affine patches of the scheme 
 is made from their hashes. Thus, an affine scheme must not appear more than once 
 in any covering!
 """
-mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem}
-  patches::Vector{SpecType} # the basic affine patches of X
-  glueings::Dict{Tuple{SpecType, SpecType}, GlueingType} # the glueings of the basic affine patches
-  affine_refinements::Dict{SpecType, Vector{Tuple{SpecOpenType, Vector{RingElemType}}}} # optional lists of refinements 
+mutable struct Covering{BaseRingType}
+  patches::Vector{<:AbsSpec} # the basic affine patches of X
+  glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
+  affine_refinements::Dict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements 
       # of the basic affine patches.
       # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen, 
       # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty 
@@ -50,17 +44,17 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
   edge_dict::Dict{Tuple{Int, Int}, Int}
 
   function Covering(
-      patches::Vector{SpecType},
-      glueings::Dict{Tuple{SpecType, SpecType}, GlueingType};
+      patches::Vector{<:AbsSpec},
+      glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
+      check::Bool=true,
       affine_refinements::Dict{
-          SpecType, 
-          Vector{Tuple{SpecOpenType, Vector{RingElemType}}}
-         }=Dict{SpecType, Vector{Tuple{open_subset_type(SpecType), Vector{elem_type(ring_type(SpecType))}}}}(),
-      check::Bool=true
-    ) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem}
+          <:AbsSpec, 
+          <:Vector{<:Tuple{<:SpecOpen, <:Vector{<:RingElem}}}
+         }=Dict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
+    )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
-    kk = coefficient_ring(base_ring(OO(patches[1])))
+    kk = coefficient_ring(ambient_ring(patches[1]))
     for i in 2:n
       kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
     end
@@ -92,21 +86,26 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:Spec
         end
       end
     end
-    return new{SpecType, GlueingType, SpecOpenType, RingElemType}(patches, glueings, affine_refinements)
+    return new{base_ring_type(patches[1])}(patches, glueings, affine_refinements)
   end
 end
 
-### type constructors
-covering_type(::Type{T}) where {T<:Spec} = Covering{T, glueing_type(T)}
-covering_type(X::Spec) = covering_type(typeof(X))
+### type getters 
+base_ring_type(::Type{Covering{T}}) where {T} = T
+base_ring_type(C::Covering) = base_ring_type(typeof(C))
 
+### type constructors
+#covering_type(::Type{T}) where {T<:Spec} = Covering{T, glueing_type(T)}
+#covering_type(X::Spec) = covering_type(typeof(X))
+
+### essential getters
 patches(C::Covering) = C.patches
 basic_patches(C::Covering) = C.patches
 npatches(C::Covering) = length(C.patches)
 glueings(C::Covering) = C.glueings
 getindex(C::Covering, i::Int) = C.patches[i]
 getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j])]
-getindex(C::Covering, X::SpecType, Y::SpecType) where {SpecType<:Spec} = glueings(C)[(X, Y)]
+getindex(C::Covering, X::AbsSpec, Y::AbsSpec) = glueings(C)[(X, Y)]
 edge_dict(C::Covering) = C.edge_dict
 
 affine_refinements(C::Covering) = C.affine_refinements
@@ -140,29 +139,29 @@ end
 
 # functions for handling sets in coverings
 
-function intersect_in_covering(U::SpecType, V::SpecType, C::Covering) where {SpecType<:Spec}
+function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
   U in C || error("first patch not found in covering")
   V in C || error("second patch not found in covering")
   (i, j, k) = indexin(U, C)
   (l, m, n) = indexin(V, C)
   if i == l # U and V are affine opens of the same patch X in C
     X = C[i]
-    if X == U == V 
-      iso = identity_map(SpecOpen(X))
+    if X == U == V
+      iso = identity_map(X)
       return iso, iso, iso, iso
     end
-    f = one(base_ring(OO(X))) # For the case where U is already a basic patch
+    f = one(ambient_ring(X)) # For the case where U is already a basic patch
     if j != 0 # In this case, U appears in some refinement
-      f = gens(affine_refinements(C)[C[i]][j][1])[k]
+      f = gens(affine_refinements(C)[X][j][1])[k]
     end
-    g = one(base_ring(OO(X)))
+    g = one(ambient_ring(X))
     if m != 0
-      g = gens(affine_refinements(C)[C[l]][m][1])[n]
+      g = gens(affine_refinements(C)[X][m][1])[n]
     end
-    W = SpecOpen(X, [f*g])
+    W = PrincipalOpenSubset(X, [f*g])
     isoW = identity_map(W)
-    incWtoU = inclusion_morphism(W, SpecOpen(U), check=false)
-    incWtoV = inclusion_morphism(W, SpecOpen(V), check=false)
+    incWtoU = inclusion_morphism(W, U, check=false)
+    incWtoV = inclusion_morphism(W, V, check=false)
     return isoW, isoW, incWtoU, incWtoV
   else
     G = C[i, l]
@@ -173,35 +172,35 @@ function intersect_in_covering(U::SpecType, V::SpecType, C::Covering) where {Spe
     WV = intersect(preimU, V)
     isoWUtoWV = restriction(f, WU, WV, check=false)
     isoWVtoWU = restriction(g, WV, WU, check=false)
-    incWUtoU = inclusion_morphism(WU, SpecOpen(U), check=false)
-    incWVtoV = inclusion_morphism(WV, SpecOpen(V), check=false)
+    incWUtoU = inclusion_morphism(WU, U, check=false)
+    incWVtoV = inclusion_morphism(WV, V, check=false)
     return isoWUtoWV, isoWVtoWU, incWUtoU, incWVtoV
   end
 end
 
-function neighbor_patches(C::Covering, U::Spec)
+function neighbor_patches(C::Covering, U::AbsSpec)
   gg = glueing_graph(C)
   n = neighbors(gg, C[U])
   return [C[i] for i in n]
 end
 
-affine_patch_type(C::Covering) = affine_patch_type(typeof(C))
-glueing_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
-affine_patch_type(::Type{Covering{SpecType, GlueingType, SpecOpenType, RingElemType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
-glueing_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
-open_subset_type(::Type{Covering{R, S, T}}) where {R, S, T} = T
-open_subset_type(C::Covering) = open_subset_type(typeof(C))
+#affine_patch_type(C::Covering) = affine_patch_type(typeof(C))
+#glueing_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
+#affine_patch_type(::Type{Covering{SpecType, GlueingType, SpecOpenType, RingElemType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
+#glueing_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
+#open_subset_type(::Type{Covering{R, S, T}}) where {R, S, T} = T
+#open_subset_type(C::Covering) = open_subset_type(typeof(C))
 
 # TODO: For some reason, the `indexin` method won't work. In the long 
 # run, one should probably find out why and fix it. 
-function getindex(C::Covering, X::SpecType) where {SpecType<:Spec} 
+function getindex(C::Covering, X::AbsSpec)
   for i in 1:length(patches(C))
     X === patches(C)[i] && return i
   end
   error("affine scheme could not be found among the patches")
 end
 
-function add_glueing!(C::Covering, G::Glueing)
+function add_glueing!(C::Covering, G::AbsGlueing)
   (X, Y) = patches(G)
   C.glueings[(X, Y)] = G
   C.glueings[(Y, X)] = inverse(G)
@@ -211,17 +210,17 @@ end
 ### The default constructor
 # Returns a scheme in which every affine patch is only 
 # glued to itself via the identity.
-function Covering(patches::Vector{SpecType}) where {SpecType<:Spec}
-  g = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
+function Covering(patches::Vector{<:AbsSpec})
+  g = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for X in patches
-    U = SpecOpen(X)
+    U = PrincipalOpenSubset(X)
     f = identity_map(U)
-    g[X,X] = Glueing(X, X, f, f, check=false)
+    g[X,X] = SimpleGlueing(X, X, f, f, check=false)
   end
   return Covering(patches, g, check=false)
 end
 
-Covering(X::SpecType) where {SpecType<:Spec} = Covering([X])
+Covering(X::AbsSpec) = Covering([X])
 
 function Base.show(io::IO, C::Covering) 
   print(io, 
@@ -231,7 +230,7 @@ function Base.show(io::IO, C::Covering)
 #   print(io, glueing_graph(C))
 end
 
-function Base.in(U::Spec, C::Covering)
+function Base.in(U::AbsSpec, C::Covering)
   for i in 1:npatches(C)
     U == C[i] && return true
   end
@@ -246,7 +245,7 @@ function Base.in(U::Spec, C::Covering)
   return false
 end
 
-function Base.indexin(U::Spec, C::Covering)
+function Base.indexin(U::AbsSpec, C::Covering)
   for i in 1:npatches(C)
     U == C[i] && return (i, 0, 0)
   end
@@ -270,16 +269,69 @@ end
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX = affine_cone(X)
   kk = base_ring(X)
-  S = homogeneous_poly_ring(X)
+  S = ambient_ring(X)
   r = fiber_dimension(X)
-  U = Vector{affine_patch_type(X)}()
+  U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   for i in 0:r
     R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
     I = ideal(R, phi.(gens(defining_ideal(X))))
-    push!(U, Spec(R, I))
+    push!(U, Spec(quo(R, I)[1]))
+  end
+  result = Covering(U)
+  for i in 1:r
+    for j in i+1:r+1
+      x = gens(base_ring(OO(U[i])))
+      y = gens(base_ring(OO(U[j])))
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      f = SpecMor(Ui, Uj,
+                      vcat([x[k]//x[j-1] for k in 1:i-1],
+                           [1//x[j-1]],
+                           [x[k-1]//x[j-1] for k in i+1:j-1],
+                           [x[k]//x[j-1] for k in j:r],
+                           x[r+1:end]),
+                      check=false
+                     )
+      g = SpecMor(Uj, Ui,
+                      vcat([y[k]//y[i] for k in 1:i-1],
+                           [y[k+1]//y[i] for k in i:j-2],
+                           [1//y[i]],
+                           [y[k]//y[i] for k in j:r],
+                           y[r+1:end]),
+                      check=false
+                     )
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+    end
+  end
+  return result
+end
+
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
+  CX = affine_cone(X)
+  Y = base_scheme(X)
+  L = OO(Y)
+  W = localized_ring(L)
+  R = base_ring(L)
+  kk = coefficient_ring(R)
+  S = ambient_ring(X)
+  r = fiber_dimension(X)
+  U = Vector{AbsSpec}()
+  pU = Dict{AbsSpec, AbsSpecMor}()
+  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
+  s = symbols(S)
+  # for each homogeneous variable, set up the chart 
+  for i in 0:r
+    R_fiber, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    F = Spec(R_fiber)
+    ambient_space, pF, pY = product(F, Y)
+    fiber_vars = pullback(pF).(gens(R_fiber))
+    mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
+    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
+    push!(U, patch)
+    pU[patch] = restrict(pY, patch, Y, check=false)
   end
   result = Covering(U)
   for i in 1:r
@@ -304,27 +356,24 @@ end
                            y[r+1:end]),
                       check=false
                      )
-      # the following two lines are necessary to assure correct parenthood 
-      # of elements
-      f = restriction(f, domain(f), domain(g), check=false)
-      g = restriction(g, domain(g), domain(f), check=false)
       add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
     end
   end
+  covered_projection = CoveringMorphism(result, Covering(Y), pU)
+  set_attribute!(X, :covered_projection_to_base, covered_projection)
   return result
 end
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuo}
   CX = affine_cone(X)
   Y = base_scheme(X)
-  L = OO(Y)
-  W = localized_ring(L)
-  R = base_ring(L)
+  A = OO(Y)
+  R = base_ring(A)
   kk = coefficient_ring(R)
-  S = homogeneous_poly_ring(X)
+  S = ambient_ring(X)
   r = fiber_dimension(X)
-  U = Vector{affine_patch_type(X)}()
-  pU = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X), typeof(Y))}()
+  U = Vector{AbsSpec}()
+  pU = Dict{AbsSpec, AbsSpecMor}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -473,22 +522,21 @@ some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``
 do not need to coincide! However, given the glueings in `C` and `D`, all affine maps 
 have to coincide on their overlaps.
 """
-mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorType<:SpecMor}
-  domain::CoveringType
-  codomain::CoveringType
-  morphisms::Dict{SpecType, SpecMorType} # on a patch X of the domain covering, this 
+mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, BaseMorType}
+  domain::DomainType
+  codomain::CodomainType
+  morphisms::Dict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this 
                                          # returns the morphism φ : X → Y to the corresponding 
                                          # patch Y of the codomain covering. 
 
   function CoveringMorphism(
-      dom::CoveringType, 
-      cod::CoveringType, 
-      mor::Dict{SpecType, SpecMorType}; 
+      dom::DomainType, 
+      cod::CodomainType, 
+      mor::Dict{<:AbsSpec, <:AbsSpecMor}; 
       check::Bool=true
     ) where {
-             SpecType<:Spec, 
-             CoveringType<:Covering, 
-             SpecMorType<:SpecMor
+             DomainType<:Covering,
+             CodomainType<:Covering
             }
     # TODO: check domain/codomain compatibility
     # TODO: if check is true, check that all morphisms glue and that the domain patches 
@@ -508,33 +556,89 @@ mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorT
         !found && error("patch $U of the domain not covered")
       end
     end
-    return new{SpecType, CoveringType, SpecMorType}(dom, cod, mor)
+    return new{DomainType, CodomainType, Nothing}(dom, cod, mor)
   end
 end
 
 ### type getters
-covering_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = S
-covering_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = S
-affine_patch_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = R
-affine_patch_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = R
+base_morphism_type(::Type{T}) where {DT, CT, BMT, T<:CoveringMorphism{DT, CT, BMT}} = BMT
+base_morphism_type(C::Covering) = base_morphism_type(typeof(C))
 
-morphism_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
-morphism_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+domain_type(::Type{T}) where {DT, CT, BMT, T<:CoveringMorphism{DT, CT, BMT}} = DT
+domain_type(C::Covering) = domain_type(typeof(C))
+
+codomain_type(::Type{T}) where {DT, CT, BMT, T<:CoveringMorphism{DT, CT, BMT}} = CT
+codomain_type(C::Covering) = codomain_type(typeof(C))
+
+
+#covering_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = S
+#covering_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = S
+#affine_patch_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = R
+#affine_patch_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = R
+
+#morphism_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+#morphism_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
 
 domain(f::CoveringMorphism) = f.domain
 codomain(f::CoveringMorphism) = f.codomain
 getindex(f::CoveringMorphism, U::Spec) = f.morphisms[U]
 morphisms(f::CoveringMorphism) = f.morphisms
 
-function compose(f::T, g::T) where {T<:CoveringMorphism}
+function compose(f::CoveringMorphism, g::CoveringMorphism)
   domain(g) == codomain(f) || error("morphisms can not be composed")
-  morphism_dict = Dict{affine_patch_type(f), morphism_type(affine_patch_type(f), affine_patch_type(f))}()
+  morphism_dict = Dict{<:AbsSpec, <:AbsSpecMor}()
   for U in patches(domain(f))
     morphism_dict[U] = compose(f[U], g[codomain(f[U])])
   end
   return CoveringMorphism(domain(f), codomain(g), morphism_dict)
 end
 
+abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
+
+### type getters
+base_ring_type(::Type{T}) where {BRT, T<:AbsCoveredScheme{BRT}} = BRT
+base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
+
+### essential getters for the interface
+base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
+
+@Markdown.doc """
+    coverings(X::AbsCoveredScheme)
+
+Returns the available coverings for ``X``.
+"""
+function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
+  return coverings(underlying_scheme(X))
+end
+
+@Markdown.doc """
+    default_covering(X::AbsCoveredScheme)::Covering
+
+Returns the default covering for ``X``.
+"""
+function default_covering(X::AbsCoveredScheme)
+  return default_covering(underlying_scheme(X))::Covering
+end
+
+@Markdown.doc """
+    patches(X::AbsCoveredScheme) = patches(default_covering(X))
+
+Returns the affine patches in the `default_covering` of ``X``.
+"""
+patches(X::AbsCoveredScheme) = patches(default_covering(X))
+
+### Forwarding of the non-documented getters
+Base.in(U::AbsSpec, X::AbsCoveredScheme) = (U in underlying_scheme(X))::Bool
+getindex(X::AbsCoveredScheme, i::Int) = coverings(underlying_scheme(X))[i]::Covering
+getindex(X::AbsCoveredScheme, C::Covering, D::Covering) = getindex(underlying_scheme(X), C, D)::Int
+setindex(X::AbsCoveredScheme, f::CoveringMorphism, C::Covering, D::Covering) = setindex(underlying_scheme(X), f, C, D)::CoveringMorphism
+refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Vector{<:CoveringMorphism}
+glueings(X::AbsCoveredScheme) = glueings(underlying_scheme(X))::AbsGlueing
+
+
+########################################################################
+# A minimal implementation of AbsCoveredScheme                         #
+########################################################################
 @Markdown.doc """
     mutable struct CoveredScheme{
       CoveringType<:Covering, 
@@ -554,35 +658,43 @@ into the corresponding patch ``V`` of `C2` is an open embedding for which
 both ``𝒪(U)`` and ``𝒪(V)`` have the same `base_ring` (so that they can be 
 canonically compared). 
 """
-@attributes mutable struct CoveredScheme{CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
-  coverings::Vector{CoveringType}
-  refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}
+@attributes mutable struct CoveredScheme{BaseRingType} <: AbsCoveredScheme{BaseRingType}
+  coverings::Vector{<:Covering}
+  refinements::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
   refinement_graph::Graph{Directed}
+  kk::BaseRingType
 
-  default_covering::CoveringType
+  default_covering::Covering
 
-  function CoveredScheme(coverings::Vector{CoveringType}, refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}) where {CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
+  function CoveredScheme(coverings::Vector{<:Covering}, 
+      refinements::Dict{Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
+    )
     # TODO: Check whether the refinements form a connected graph.
-    X = new{CoveringType, CoveringMorphismType}(coverings, refinements)
+    BaseRingType = base_ring_type(coverings[1])
+    all(x->(base_ring_type(x) == BaseRingType), coverings) || error("coverings are not compatible")
+    X = new{BaseRingType}(coverings, refinements)
     X.default_covering = X.coverings[1]
+    X.kk = base_ring(patches(coverings[1])[1])
     return X
   end
 end
 
+base_ring(X::CoveredScheme) = X.kk
+
 ### type getters
-covering_type(X::CoveredScheme{S, T}) where {S, T} = S
-covering_type(::Type{CoveredScheme{S, T}}) where {S, T} = S
-covering_morphism_type(X::CoveredScheme{S, T}) where {S, T} = T
-covering_morphism_type(::Type{CoveredScheme{S, T}}) where {S, T} = T
-affine_patch_type(X::CoveredSchemeType) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
-affine_patch_type(::Type{CoveredSchemeType}) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
+#covering_type(X::CoveredScheme{S, T}) where {S, T} = S
+#covering_type(::Type{CoveredScheme{S, T}}) where {S, T} = S
+#covering_morphism_type(X::CoveredScheme{S, T}) where {S, T} = T
+#covering_morphism_type(::Type{CoveredScheme{S, T}}) where {S, T} = T
+#affine_patch_type(X::CoveredSchemeType) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
+#affine_patch_type(::Type{CoveredSchemeType}) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
 
 ### type constructors
-covered_scheme_type(::Type{T}) where {T<:Spec} = CoveredScheme{covering_type(T), morphism_type(covering_type(T))}
-covered_scheme_type(X::Spec) = covered_scheme_type(typeof(X))
-
-covered_scheme_type(::Type{T}) where {T<:ProjectiveScheme} = covered_scheme_type(affine_patch_type(P))
-covered_scheme_type(P::ProjectiveScheme) = covered_scheme_type(typeof(P))
+#covered_scheme_type(::Type{T}) where {T<:Spec} = CoveredScheme{covering_type(T), morphism_type(covering_type(T))}
+#covered_scheme_type(X::Spec) = covered_scheme_type(typeof(X))
+#
+#covered_scheme_type(::Type{T}) where {T<:ProjectiveScheme} = covered_scheme_type(affine_patch_type(P))
+#covered_scheme_type(P::ProjectiveScheme) = covered_scheme_type(typeof(P))
 
 ### getter methods
 coverings(X::CoveredScheme) = X.coverings
@@ -642,7 +754,7 @@ end
 ### constructors 
 
 function CoveredScheme(C::Covering)
-  refinements = Dict{Tuple{typeof(C), typeof(C)}, morphism_type(C)}()
+  refinements = Dict{Tuple{Covering, Covering}, CoveringMorphism}()
   X = CoveredScheme([C], refinements)
   set_attribute!(X, :seed_covering, C)
   return X
@@ -784,78 +896,88 @@ function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
   return (C_new, f, g)
 end
 
-
-@attributes mutable struct CoveredSchemeMorphism{
+########################################################################
+# Morphisms of covered schemes                                         #
+########################################################################
+abstract type AbsCoveredSchemeMorphism{
     DomainType<:CoveredScheme, 
     CodomainType<:CoveredScheme, 
-    CoveringMorphismType<:CoveringMorphism
-  }
+    BaseMorphismType,
+    CoveredSchemeMorphismType
+   } <: SchemeMor{DomainType, CodomainType, CoveredSchemeMorphismType, BaseMorphismType}
+end
+
+### essential getters 
+function domain(f::AbsCoveredSchemeMorphism)::CoveredScheme
+  return domain(underlying_morphism(f))
+end
+
+function codomain(f::AbsCoveredSchemeMorphism)::CoveredScheme
+  return codomain(underlying_morphism(f))
+end
+
+function covering_morphism(f::AbsCoveredSchemeMorphism)::CoveringMorphism
+  return covering_morphism(underlying_morphism(f))
+end
+
+### generically derived getters
+domain_covering(f::AbsCoveredSchemeMorphism) = domain(covering_morphism(f))
+codomain_covering(f::AbsCoveredSchemeMorphism) = codomain(covering_morphism(f))
+getindex(f::AbsCoveredSchemeMorphism, U::Spec) = covering_morphism(f)[U]
+
+########################################################################
+# Concrete minimal type for morphisms of covered schemes               #
+########################################################################
+@attributes mutable struct CoveredSchemeMorphism{
+    DomainType<:AbsCoveredScheme, 
+    CodomainType<:AbsCoveredScheme, 
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType, 
+                                 CodomainType, 
+                                 CoveredSchemeMorphism, 
+                                 BaseMorphismType
+                                }
   X::DomainType
   Y::CodomainType
-  f::CoveringMorphismType
+  f::CoveringMorphism
 
   function CoveredSchemeMorphism(
       X::DomainType, 
       Y::CodomainType, 
-      f::CoveringMorphismType;
+      f::CoveringMorphism{<:Any, <:Any, BaseMorType};
       check::Bool=true
     ) where {
              DomainType<:CoveredScheme, 
-             CodomainType<:CoveredScheme, 
-             CoveringMorphismType<:CoveringMorphism
+             CodomainType<:CoveredScheme,
+             BaseMorType
             }
     domain(f) in coverings(X) || error("covering not found in domain")
     codomain(f) in coverings(Y) || error("covering not found in codomain")
-    return new{DomainType, CodomainType, CoveringMorphismType}(X, Y, f)
+    return new{DomainType, CodomainType, BaseMorType}(X, Y, f)
   end
 end
 
 domain(f::CoveredSchemeMorphism) = f.X
 codomain(f::CoveredSchemeMorphism) = f.Y
 covering_morphism(f::CoveredSchemeMorphism) = f.f
-domain_covering(f::CoveredSchemeMorphism) = domain(covering_morphism(f))
-codomain_covering(f::CoveredSchemeMorphism) = codomain(covering_morphism(f))
-getindex(f::CoveredSchemeMorphism, U::Spec) = covering_morphism(f)[U]
+
+lifted_numerator(f::MPolyElem) = f
+lifted_numerator(f::MPolyQuoElem) = lift(f)
 
 function simplify(C::Covering)
   n = npatches(C)
-  SpecType = affine_patch_type(C)
   new_patches = [simplify(X) for X in patches(C)]
   GD = glueings(C)
-  new_glueings = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
+  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (X, Y) in keys(GD)
     Xsimp, iX, jX = new_patches[C[X]]
     Ysimp, iY, jY = new_patches[C[Y]]
     G = GD[(X, Y)]
-    U, V = glueing_domains(G)
-    f, g = glueing_morphisms(G)
-    Usimp = SpecOpen(Xsimp, lifted_numerator.(pullback(iX).(gens(U))), check=false)
-    Vsimp = SpecOpen(Ysimp, lifted_numerator.(pullback(iY).(gens(V))), check=false)
-
-    fsimp = SpecOpenMor(Usimp, Vsimp, 
-                        [
-                         compose(
-                                 compose(
-                                         restrict(iX, Usimp[k], U[k], check=false), 
-                                         f[k]),
-                                 jY)
-                         for k in 1:npatches(Usimp)],
-                        check=false
-                       )
-    gsimp = SpecOpenMor(Vsimp, Usimp, 
-                        [
-                         compose(
-                                 compose(
-                                         restrict(iY, Vsimp[k], V[k], check=false), 
-                                         g[k]),
-                                 jX)
-                         for k in 1:npatches(Vsimp)],
-                        check=false
-                       )
-    new_glueings[(Xsimp, Ysimp)] = Glueing(Xsimp, Ysimp, fsimp, gsimp, check=false)
+    new_glueings[(Xsimp, Ysimp)] = restriction(G, jX, jY, check=false)
   end
-  iDict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
-  jDict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+  iDict = Dict{AbsSpec, AbsSpecMor}()
+  jDict = Dict{AbsSpec, AbsSpecMor}()
   for i in 1:length(new_patches)
     iDict[new_patches[i][1]] = new_patches[i][2]
     jDict[C[i]] = new_patches[i][3]
@@ -868,7 +990,7 @@ end
 
 
 
-function simplify!(X::CoveredScheme)
+function simplify!(X::AbsCoveredScheme)
   C = default_covering(X)
   Csimp, i, j = simplify(C)
   push!(coverings(X), Csimp)
@@ -891,7 +1013,7 @@ function Base.length(C::Covering)
 end
 
 function all_patches(C::Covering)
-  result = Vector{affine_patch_type(C)}()
+  result = Vector{AbsSpec}()
   for U in patches(C)
     push!(result, U)
     if haskey(affine_refinements(C), U)
@@ -909,7 +1031,7 @@ function Base.iterate(C::Covering, s::Int=1)
   return U[s], s+1
 end
 
-Base.eltype(C::Covering) = affine_patch_type(C)
+Base.eltype(C::Covering) = AbsSpec
 
 ### Miscellaneous helper routines
 function as_vector(v::SRow{T}, n::Int) where {T<:RingElem}

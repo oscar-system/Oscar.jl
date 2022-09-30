@@ -38,6 +38,19 @@ function coordinates(f::MPolyElem, I::MPolyIdeal)
   return A
 end
 
+### This is a dirty hack to bring the `coordinates` command to 
+# MPolyQuo ideals. Should be replaced by something better!
+# I tried to at least cache the ideal K via attributes, but 
+# even that is not possible.
+function coordinates(f::MPolyQuoElem, I::MPolyQuoIdeal)
+  Q = base_ring(I)
+  f in I || error("element is not in the ideal")
+  J = modulus(Q)
+  R = base_ring(Q)
+  K = ideal(R, vcat(lift.(gens(I)), gens(J)))
+  return Q.(coordinates(lift(f), K)[1, 1:ngens(I)])
+end
+
 function lift(f::MPolyElem, I::MPolyIdeal, o::MonomialOrdering)
   iszero(f) && return zero(MatrixSpace(base_ring(I), 1, ngens(I)))
   R = parent(f)

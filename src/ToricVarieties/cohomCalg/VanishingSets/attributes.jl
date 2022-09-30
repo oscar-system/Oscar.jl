@@ -9,7 +9,7 @@ Return the toric variety of the vanishing set `tvs`.
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo(1)
+julia> dP1 = del_pezzo_surface(1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)
@@ -35,7 +35,7 @@ Return the vector of the polyhedra whose complement defines the vanishing set `t
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo(1)
+julia> dP1 = del_pezzo_surface(1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)
@@ -62,7 +62,7 @@ Return the cohomology index of the toric vanishing set `tvs`.
 
 # Examples
 ```jldoctest
-julia> dP1 = del_pezzo(1)
+julia> dP1 = del_pezzo_surface(1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> vs = vanishing_sets(dP1)

@@ -292,7 +292,7 @@ end
 
 function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, fmpq}}})
   G = group(C)
-  phi = GAP.Globals.EpimorphismFromFreeGroup(G.X)
+  phi = epimorphism_from_free_group(G)
   ac = Oscar.GrpCoh.action(C)
   iac = Oscar.GrpCoh.inv_action(C)
 
@@ -306,12 +306,8 @@ function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, fmpq
       push!(chr, (c, K(n)))
       continue
     end
-    p = GAP.Globals.PreImagesRepresentative(phi, r.X)
-    w = map(Int, GAP.Globals.LetterRepAssocWord(p))
-    T = w[1]<0 ? iac[-w[1]] : ac[w[1]]
-    for i=2:length(w)
-      T = T*(w[i]<0 ? iac[-w[i]] : ac[w[i]])
-    end
+    p = preimage(phi, r)
+    T = map_word(p, ac; genimgs_inv = iac)
     push!(chr, (c, trace(mat(T))))
   end
   return chr

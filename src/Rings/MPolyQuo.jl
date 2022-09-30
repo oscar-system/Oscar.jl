@@ -12,7 +12,7 @@ export issubset
   I::MPolyIdeal{S}
   SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_poly_ring()
 
-  function MPolyQuo(R, I) where S
+  function MPolyQuo(R, I)
     @assert base_ring(I) === R
     r = new{elem_type(R)}()
     r.R = R

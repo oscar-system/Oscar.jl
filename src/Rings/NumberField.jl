@@ -484,11 +484,11 @@ end
 
 ==(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = Hecke.data(a) == b
 
-==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) where {T, S} = a == Hecke.data(b)
+==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a == Hecke.data(b)
 
 ==(a::NfNSGenElem{fmpq, fmpq_mpoly}, b::fmpq) = Hecke.data(a) == b
 
-==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) where {T, S} = Hecke.data(b) == a
+==(a::fmpq, b::NfNSGenElem{fmpq, fmpq_mpoly}) = Hecke.data(b) == a
 
 ################################################################################
 #
@@ -862,7 +862,7 @@ Hecke.map_data_type(T::Type{NfAbsNSGen}, L::Type) = MapDataFromNfAbsNSGen{Vector
 
 Hecke.map_data(K::NfAbsNSGen, L, ::Bool) = MapDataFromNfAbsNSGen{Vector{elem_type(L)}}(true)
 
-function Hecke.map_data(K::NfAbsNSGen, L, x::Vector; check = true)
+function Hecke.map_data(K::NfAbsNSGen, L, x::Vector; check::Bool = true)
   if length(x) != ngens(K)
     error("Data does not define a morphism")
   end
@@ -960,7 +960,7 @@ function Hecke.map_data(K::NfNSGen, L, ::Bool)
   return z
 end
 
-function Hecke.map_data(K::NfNSGen, L, x...; check = true)
+function Hecke.map_data(K::NfNSGen, L, x...; check::Bool = true)
   z = Hecke.map_data(base_field(K), L, Base.front(x)...; check = check)
 
   local yy::Vector{elem_type(L)}

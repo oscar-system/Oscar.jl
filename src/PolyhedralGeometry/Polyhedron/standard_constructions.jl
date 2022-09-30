@@ -833,13 +833,13 @@ true
 fano_simplex(d::Int) = Polyhedron{fmpq}(Polymake.polytope.fano_simplex(d))
 
 @doc Markdown.doc"""
-    delpezzo(d::Int)
+    del_pezzo_polytope(d::Int)
 
-Produce the d-dimensional del-Pezzo polytope, which is the convex hull of
+Produce the d-dimensional del Pezzo polytope, which is the convex hull of
 the cross polytope together with the all-ones and minus all-ones vector.
 
 ```jldoctest
-julia> DP = delpezzo(4)
+julia> DP = del_pezzo_polytope(4)
 A polyhedron in ambient dimension 4
 
 julia> f_vector(DP)
@@ -850,7 +850,7 @@ julia> f_vector(DP)
  30
 ```
 """
-delpezzo(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))
+del_pezzo_polytope(d::Int) = Polyhedron{fmpq}(Polymake.polytope.delpezzo(d))
 
 
 

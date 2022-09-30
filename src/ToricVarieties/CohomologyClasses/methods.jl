@@ -6,7 +6,7 @@ toric variety `toric_variety(c)`.
 
 # Examples
 ```jldoctest
-julia> dP3 = del_pezzo(3)
+julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1,x2,x3,e1,e2,e3) = gens(cohomology_ring(dP3))

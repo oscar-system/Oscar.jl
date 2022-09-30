@@ -1,4 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
+export prime_ideal
 export rand, sets, issubset, units_of, simplify!, is_trivial
 import Base: issubset
 
@@ -966,7 +967,7 @@ function Localization(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  issubset(S, inverted_set(W)) && return W
+  issubset(S, inverted_set(W)) && return W, identity_map(W)
   U = S*inverted_set(W)
   L, _ = Localization(U)
   #return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
@@ -1072,6 +1073,9 @@ parent(a::MPolyLocalizedRingElem) = a.W
 
 ### additional getter functions
 fraction(a::MPolyLocalizedRingElem) = a.frac
+# to assure compatibility with generic code for MPolyQuoLocalizedRings:
+lifted_numerator(a::MPolyLocalizedRingElem) = numerator(a)
+lifted_denominator(a::MPolyLocalizedRingElem) = denominator(a)
 
 ### required conversions
 function (W::MPolyLocalizedRing{
@@ -1375,6 +1379,23 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   return true
 end
 
+# TODO: Also add a special dispatch for localizations at 𝕜-points
+@attr function is_prime(I::MPolyLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
+
+### Additional constructors
+function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  L == base_ring(J) || error("ideals must be defined in the same ring")
+  preI = Oscar.pre_saturated_ideal(I)
+  preJ = Oscar.pre_saturated_ideal(J) 
+  R = base_ring(L)
+  K = intersect(I, J)
+  return L(K)
+end
+
+### Further functionality
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
   L = base_ring(I)
   parent(a) == L || return coordinates(L(a), I, check=check)
@@ -2063,11 +2084,12 @@ end
 function MPolyLocalizedRingHom(
       W::MPolyLocalizedRing,
       S::Ring,
-      a::Vector{RingElemType}
+      a::Vector{RingElemType};
+      check::Bool=true
   ) where {RingElemType<:RingElem}
   R = base_ring(W)
   res = hom(R, S, a)
-  return MPolyLocalizedRingHom(W, S, res)
+  return MPolyLocalizedRingHom(W, S, res, check=check)
 end
 
 @doc Markdown.doc"""
@@ -2115,8 +2137,8 @@ julia> is_unit(PHI(iota(x)))
 true
 ```
 """
-hom(W::MPolyLocalizedRing, S::Ring, res::Map) = MPolyLocalizedRingHom(W, S, res)
-hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a)
+hom(W::MPolyLocalizedRing, S::Ring, res::Map; check::Bool=true) = MPolyLocalizedRingHom(W, S, res, check=check)
+hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}; check::Bool=true) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a, check=check)
 
 ### required getter functions
 domain(PHI::MPolyLocalizedRingHom) = PHI.W

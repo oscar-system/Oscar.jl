@@ -507,7 +507,7 @@ function isinteger(GC::GaloisCtx{ComplexRootCtx}, B::BoundRingElem, e)
   end
 end
 
-function bound_to_precision(G::GaloisCtx{ComplexRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+function bound_to_precision(G::GaloisCtx{ComplexRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5)
   return 2*clog(B.val, 2) + 10
 end
 
@@ -559,7 +559,7 @@ function isinteger(GC::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem, e)
   end
 end
 
-function bound_to_precision(G::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+function bound_to_precision(G::GaloisCtx{SymbolicRootCtx}, B::BoundRingElem{fmpz}, extra::Int = 5)
   return 1
 end
 
@@ -2105,7 +2105,7 @@ function extension_field(f::Generic.Poly{<:Generic.Rat{T}}, n::String = "_a";  c
   return FunctionField(f, n, cached = cached)
 end
 
-function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
+function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
   return NumberField(f, n, cached = cached)
 end
 

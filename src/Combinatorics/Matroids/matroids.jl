@@ -331,7 +331,7 @@ Matroid of rank 2 on 4 elements
 matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc Markdown.doc"""
-    cycle_matroid(g::Oscar.Graphs.Graph)
+    cycle_matroid(g::Graph)
 
 The cycle matroid of a graph `g`.
 
@@ -340,22 +340,22 @@ See Section 1.1 of [Oxl11](@cite).
 # Examples
 To construct the cycle matroid of the complete graph of 4 vertices write:
 ```jldoctest
-julia> g = Oscar.Graphs.complete_graph(4);
+julia> g = complete_graph(4);
 
 julia> M = cycle_matroid(g)
 Matroid of rank 3 on 6 elements
 ```
 """
-function cycle_matroid(g::Oscar.Graphs.Graph)
+function cycle_matroid(g::Graph)
     pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
     M = Polymake.matroid.matroid_from_graph(pm_Graph)
-    n = Oscar.Graphs.ne(g)
+    n = ne(g)
     gs2num = create_gs2num(1:n)
     return Matroid(M,1:n,gs2num)
 end
 
 @doc Markdown.doc"""
-    bond_matroid(g::Oscar.Graphs.Graph)
+    bond_matroid(g::Graph)
 
 The "bond matroid" or "cocycle matroid" of a graph which is the dual of a cycle matroid, i.e., cographic.
 
@@ -364,7 +364,7 @@ See Section 2.3 of [Oxl11](@cite).
 # Examples
 To construct the bond or cocycle matroid of the complete graph of 4 vertices write:
 ```jldoctest
-julia> g = Oscar.Graphs.complete_graph(4);
+julia> g = complete_graph(4);
 
 julia> M = bond_matroid(g)
 Matroid of rank 3 on 6 elements
@@ -373,18 +373,18 @@ Matroid of rank 3 on 6 elements
 or equivalently
 
 ```jldoctest
-julia> g = Oscar.Graphs.complete_graph(4);
+julia> g = complete_graph(4);
 
 julia> M = cocycle_matroid(g)
 Matroid of rank 3 on 6 elements
 ```
 """
-bond_matroid(g::Oscar.Graphs.Graph) = dual_matroid(cycle_matroid(g))
+bond_matroid(g::Graph) = dual_matroid(cycle_matroid(g))
 
 @doc Markdown.doc"""
 See `bond_matroid`.
 """
-cocycle_matroid(g::Oscar.Graphs.Graph) = bond_matroid(g::Oscar.Graphs.Graph)
+cocycle_matroid(g::Graph) = bond_matroid(g::Graph)
 
 
 @doc Markdown.doc"""

@@ -624,3 +624,14 @@ function ==(f::T, g::T) where {T<:AbsLocalizedRingHom}
   codomain(f) === codomain(g) || return false
   return restricted_map(f) == restricted_map(g)
 end
+
+function kernel(f::AbsLocalizedRingHom)
+  L = domain(f)
+  return ideal(L, [L(g) for g in gens(kernel(restricted_map(f)))])
+end
+
+function preimage(f::AbsLocalizedRingHom, I::Ideal)
+  base_ring(I) == codomain(f) || error("ideal must be in the codomain of f")
+  Q, proj = quo(codomain(f), I)
+  return kernel(compose(f, proj))
+end

@@ -1,8 +1,6 @@
 ################################################################################
 # field of rationals (singleton type)
-encodeType(::Type{FlintRationalField}) = "FlintRationalField"
-reverseTypeMap["FlintRationalField"] = FlintRationalField
-
+@registerSerializationType(FlintRationalField)
 
 ################################################################################
 # non-fmpz variant
@@ -79,8 +77,7 @@ end
 ################################################################################
 # SimpleNumField
 
-encodeType(::Type{<:Hecke.NfRel}) = "Hecke.NfRel"
-reverseTypeMap["Hecke.NfRel"] = Hecke.NfRel
+@registerSerializationType(Hecke.NfRel)
 
 @registerSerializationType(AnticNumberField)
 
@@ -118,8 +115,7 @@ end
 @registerSerializationType(fq_nmod)
 @registerSerializationType(nf_elem)
 
-encodeType(::Type{<:Hecke.NfRelElem}) = "Hecke.NfRelElem"
-reverseTypeMap["Hecke.NfRelElem"] = Hecke.NfRelElem
+@registerSerializationType(Hecke.NfRelElem)
 
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
@@ -154,8 +150,7 @@ end
 ################################################################################
 # Non Simple Extension
 
-encodeType(::Type{<:Hecke.NfRelNS}) = "Hecke.NfRelNS"
-reverseTypeMap["Hecke.NfRelNS"] = Hecke.NfRelNS
+@registerSerializationType(Hecke.NfRelNS)
 
 @registerSerializationType(NfAbsNS)
 @registerSerializationType(NfAbsNSElem)
@@ -178,8 +173,7 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
-encodeType(::Type{<:Hecke.NfRelNSElem}) = "Hecke.NfRelNSElem"
-reverseTypeMap["Hecke.NfRelNSElem"] = Hecke.NfRelNSElem
+@registerSerializationType(Hecke.NfRelNSElem)
 
 function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     K = parent(k)
@@ -228,8 +222,7 @@ end
 ################################################################################
 # FracField
 
-encodeType(::Type{<:FracField}) = "FracField"
-reverseTypeMap["FracField"] = FracField
+@registerSerializationType(FracField)
 
 function save_internal(s::SerializerState, K::FracField)
     return Dict(
@@ -240,14 +233,13 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R, _ = load_unknown_type(s, dict[:base_ring])
+    R = load_unknown_type(s, dict[:base_ring])
 
     return FractionField(R, cached=false)
 end
 
 # elements
-encodeType(::Type{<:FracElem}) = "FracElem"
-reverseTypeMap["FracElem"] = FracElem
+@registerSerializationType(FracElem)
 
 function save_internal(s::SerializerState, f::FracElem)
     return Dict(
@@ -467,5 +459,3 @@ function load_internal_with_parent(s::DeserializerState,
     
     return parent(rational_rep)
 end
-
-

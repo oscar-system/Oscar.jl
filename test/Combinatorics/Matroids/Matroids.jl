@@ -116,13 +116,13 @@
         @test mm6 isa Matroid
         @test rank(mm6) == 0
 
-        g1 = Oscar.Graphs.complete_graph(5);
+        g1 = complete_graph(5);
         mg1 = cycle_matroid(g1)
         @test mg1 isa Matroid
         @test length(bases(mg1)) == 125
 
-        g2 = Oscar.Graphs.Graph{Oscar.Graphs.Undirected}(1)
-        Oscar.Graphs.add_edge!(g2,1,1)
+        g2 = Graph{Undirected}(1)
+        add_edge!(g2,1,1)
         mg2 = cycle_matroid(g2)
         @test length(mg2) == 1
         @test rank(mg2) == 0
@@ -147,7 +147,7 @@
     end
 
     @testset "matroid modifications" begin
-        g3 = Oscar.Graphs.complete_graph(4);
+        g3 = complete_graph(4);
         m1 = cycle_matroid(g3)
         m2 = direct_sum(m1,m1)
         @test m2 isa Matroid
@@ -314,7 +314,7 @@
         @test connectivity_function(O,[]) == 0
         @test_throws KeyError connectivity_function(N,[1,3])
 
-        K23 = cycle_matroid(Graphs.complete_bipartite_graph(2,3));
+        K23 = cycle_matroid(complete_bipartite_graph(2,3));
         @test !is_vertical_k_separation(K23,2,[1,3,6])
         @test is_vertical_k_separation(K23,3,[1,3,6])
         @test !is_vertical_k_separation(K23,4,[1,3,6])

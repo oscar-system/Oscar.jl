@@ -34,9 +34,9 @@ matroid_from_circuits(circuits::AbstractVector{T}, nelements::IntegerUnion) wher
 matroid_from_hyperplanes(hyperplanes::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType
 matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
 matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true)
-cycle_matroid(g::Oscar.Graphs.Graph)
-bond_matroid(g::Oscar.Graphs.Graph)
-cocycle_matroid(g::Oscar.Graphs.Graph)
+cycle_matroid(g::Graph)
+bond_matroid(g::Graph)
+cocycle_matroid(g::Graph)
 Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vector{Integer}(1:pm_matroid.N_ELEMENTS))
 matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
 ```

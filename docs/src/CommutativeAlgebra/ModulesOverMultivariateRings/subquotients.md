@@ -219,9 +219,10 @@ quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism)
 
 ## Homomorphisms From Subqotients
 
-In OSCAR, homomorphisms from subquotients have type `SubQuoHom{T1, T2}`, where
-`T1` and `T2` are the element types of the domain and codomain, respectively. They are created
-by using one of the following constructors:
+All OSCAR types for homomorphisms of finitely presented modules over multivariate polynomial rings belong
+to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
+For homomorphisms from subquotients, OSCAR provides the concrete type `SubQuoHom{T1, T2} <: ModuleFPHom{T1, T2}`
+as well as the following constructors:
 
 ```@docs
 hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T

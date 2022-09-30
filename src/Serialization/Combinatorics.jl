@@ -3,10 +3,10 @@ using JSON
 ###############################################################################
 ## Graphs
 ###############################################################################
-@registerSerializationType(Graphs.Graph{Graphs.Directed}, "Oscar.Graphs.Graph{Oscar.Graphs.Directed}")
-@registerSerializationType(Graphs.Graph{Graphs.Undirected}, "Oscar.Graphs.Graph{Oscar.Graphs.Undirected}")
+@registerSerializationType(Graph{Directed}, "Graph{Directed}")
+@registerSerializationType(Graph{Undirected}, "Graph{Undirected}")
 
-function save_internal(s::SerializerState, g::Graphs.Graph{T}) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+function save_internal(s::SerializerState, g::Graph{T}) where {T <: Union{Directed, Undirected}}
     smallobject = pm_object(g)
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, smallobject)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
@@ -14,7 +14,7 @@ function save_internal(s::SerializerState, g::Graphs.Graph{T}) where {T <: Union
 end
 
 
-function load_internal(s::DeserializerState, g::Type{Graphs.Graph{T}}, dict::Dict) where {T <: Union{Graphs.Directed, Graphs.Undirected}}
+function load_internal(s::DeserializerState, g::Type{Graph{T}}, dict::Dict) where {T <: Union{Directed, Undirected}}
     smallobj = Polymake.call_function(:common, :deserialize_json_string, json(dict))
     return g(smallobj)
 end

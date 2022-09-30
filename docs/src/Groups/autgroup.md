@@ -33,5 +33,5 @@ Oscar disposes of the following functions to handle inner automorphisms of a gro
 ```@docs
 inner_automorphism(g::GAPGroupElem)
 is_inner_automorphism(f::GAPGroupHomomorphism)
-inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
+inner_automorphism_group(A::AutomorphismGroup{T}) where T <: GAPGroup
 ```
