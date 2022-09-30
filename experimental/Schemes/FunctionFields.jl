@@ -15,7 +15,7 @@ export representative
   for U in patches(C)
     for V in patches(C) 
       A, _ = glueing_domains(C[U, V])
-      is_empty(A) && return false
+      is_empty(A) && !is_empty(U) && !is_empty(V) && return false
     end
   end
   return true
@@ -335,7 +335,7 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
 end
 
 base_ring(KK::VarietyFunctionField) = base_ring(representative_field(KK))
-base_ring(a::VarietyFunctionFieldElem) = base_ring(representative_field(a))
+base_ring(a::VarietyFunctionFieldElem) = base_ring(parent(a))
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 

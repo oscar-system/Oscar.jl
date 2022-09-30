@@ -1,8 +1,7 @@
 ################################################################################
 # Saving and loading vectors
 
-encodeType(::Type{<:Vector}) = "Vector"
-reverseTypeMap["Vector"] = Vector
+@registerSerializationType(Vector)
 
 function save_internal(s::SerializerState, vec::Vector)
     return Dict(
@@ -60,8 +59,7 @@ end
 ################################################################################
 # Saving and loading matrices
 
-encodeType(::Type{<:Matrix}) = "Matrix"
-reverseTypeMap["Matrix"] = Matrix
+@registerSerializationType(Matrix)
 
 function save_internal(s::SerializerState, mat::Matrix{T}) where T
     m, n = size(mat)

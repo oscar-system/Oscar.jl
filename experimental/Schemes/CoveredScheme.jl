@@ -269,7 +269,7 @@ end
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX = affine_cone(X)
   kk = base_ring(X)
-  S = homogeneous_poly_ring(X)
+  S = ambient_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
@@ -279,8 +279,8 @@ end
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
     I = ideal(R, phi.(gens(defining_ideal(X))))
     # TODO: Temporary fix because ideal membership is broken in MPolyQuos.
-    push!(U, Spec(MPolyQuoLocalizedRing(R, I, units_of(R))))
-    #push!(U, Spec(quo(R, I, units_of(R))[1]))
+    #push!(U, Spec(MPolyQuoLocalizedRing(R, I, units_of(R))))
+    push!(U, Spec(quo(R, I)[1]))
   end
   result = Covering(U)
   for i in 1:r
@@ -318,7 +318,7 @@ end
   W = localized_ring(L)
   R = base_ring(L)
   kk = coefficient_ring(R)
-  S = homogeneous_poly_ring(X)
+  S = ambient_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   pU = Dict{AbsSpec, AbsSpecMor}()
@@ -373,7 +373,7 @@ end
   A = OO(Y)
   R = base_ring(A)
   kk = coefficient_ring(R)
-  S = homogeneous_poly_ring(X)
+  S = ambient_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   pU = Dict{AbsSpec, AbsSpecMor}()
