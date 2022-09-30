@@ -1393,7 +1393,8 @@ function quo(
     I::MPolyQuoLocalizedIdeal
   )
   base_ring(I) == L || error("ideal does not belong to the correct ring")
-  return quo(localized_ring(L), modulus(L) + pre_image_ideal(I))
+  W, _ = quo(localized_ring(L), modulus(L) + pre_image_ideal(I))
+  return W, hom(L, W, gens(W), check=false)
 end
 
 function quo(A::MPolyQuo, I::MPolyQuoIdeal)
