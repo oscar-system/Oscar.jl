@@ -264,8 +264,6 @@ function simplify!(I::IdealSheaf)
 end
 
 
-
-
 ### Given an ideal sheaf I, return the associated 
 # subscheme
 #
@@ -467,10 +465,14 @@ end
 ### resolve another compatibility issue
 saturated_ideal(I::MPolyIdeal) = I
 
-function order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf;
+function order_on_divisor(
+    f::VarietyFunctionFieldElem, 
+    I::IdealSheaf;
     check::Bool=true
   )
+  @show "call"
   if check
+    @show "check"
     is_prime(I) || error("ideal sheaf must be a sheaf of prime ideals")
   end
   X = scheme(I) 
@@ -480,6 +482,7 @@ function order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf;
   
   order_dict = Dict{AbsSpec, Int}()
   for U in patches(C)
+    @show U
     L, map = Localization(OO(U), 
                           MPolyComplementOfPrimeIdeal(saturated_ideal(I[U]))
                          )
@@ -489,13 +492,27 @@ function order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf;
                                            <:MPolyComplementOfPrimeIdeal}
                     } || error("localization was not successful")
     floc = f[U]
+    @show floc
     a = numerator(floc)
     b = denominator(floc)
+    # TODO: cache groebner bases in a reasonable way.
     P = L(prime_ideal(inverted_set(L)))
+    @show gens(P)
+    if one(L) in P 
+      continue # the multiplicity is -∞ in this case and does not count
+    end
     upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
     lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
+    @show upper
+    @show lower
     order_dict[U] = upper-lower
   end
   return minimum(values(order_dict))
 end
 
+### Compatibility fix
+@attr function saturated_ideal(I::MPolyQuoIdeal) 
+  A = base_ring(I)
+  R = base_ring(A)
+  return ideal(R, lift.(gens(I))) + modulus(A)
+end

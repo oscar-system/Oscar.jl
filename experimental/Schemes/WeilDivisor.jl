@@ -1,6 +1,7 @@
 export WeilDivisor
 export scheme_type, ideal_sheaf_type, coefficient_ring_type, coefficient_type
 export scheme, components, coefficient_dict, coefficient_ring
+export is_in_linear_system
 
 @Markdown.doc """
     WeilDivisor{
@@ -179,5 +180,16 @@ function intersection(D::T, E::T) where {T<:WeilDivisor}
   end
   # TODO: Work out the intersection
 end
+
+function is_in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
+  X = scheme(D) 
+  X == variety(parent(f)) || error("schemes not compatible")
+  for I in components(D)
+    order_on_divisor(f, I, check=check) >= D[I] || return false
+  end
+  return true
+end
+
+  
 
 
