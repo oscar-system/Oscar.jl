@@ -819,8 +819,8 @@ end
 #
 ##############################################################################
 
-# helper function for the containement problem, surjectivity and preimage
-function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
+# helper function for the containment problem, surjectivity and preimage
+function _containment_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
    T, _ = PolynomialRing(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
                                                                # since we do not have block orderings in Oscar
    phi = hom(R, T, [gen(T, i) for i in 1:M])
@@ -896,10 +896,10 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, M
    m = ngens(R)
 
    # Build auxilliary objects
-   (T, phi, J) = _containement_helper(R, n, m, I, W, :degrevlex)
+   (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
    TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    
-   # Check containement
+   # Check containment
    D = normal_form([phi(F)], J)
    if leading_monomial(D[1]) < gen(T, m)
       A = [zero(TT) for i in 1:m]
