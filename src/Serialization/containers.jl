@@ -41,8 +41,7 @@ end
 
 ################################################################################
 # Saving and loading Tuple
-encodeType(::Type{<:Tuple}) = "Tuple"
-reverseTypeMap["Tuple"] = Tuple
+@registerSerializationType(Tuple)
 
 function save_internal(s::SerializerState, tup::T) where T <: Tuple
     n = fieldcount(T)
@@ -53,7 +52,7 @@ function save_internal(s::SerializerState, tup::T) where T <: Tuple
 end
 
 function load_internal(s::DeserializerState, T::Type{<:Tuple}, dict::Dict)
-    field_types = [reverseTypeMap[field_type] for field_type in dict[:field_types]]
+    field_types = map(decodeType, dict[:field_types])
     n = length(field_types)
     content = dict[:content]
     @assert length(content) == n  "Wrong length of tuple, data may be corrupted."
@@ -62,8 +61,7 @@ end
 
 ################################################################################
 # Saving and loading NamedTuple
-encodeType(::Type{<:NamedTuple}) = "NamedTuple"
-reverseTypeMap["NamedTuple"] = NamedTuple
+@registerSerializationType(NamedTuple)
 
 function save_internal(s::SerializerState, n_tup::T) where T <: NamedTuple
     return Dict(
