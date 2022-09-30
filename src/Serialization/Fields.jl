@@ -308,18 +308,11 @@ function load_internal(s::DeserializerState,
                        dict::Dict)
     _ = load_unknown_type(s, dict[:frac_elem_parent])
     R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
-    num = load_unknown_type(s, dict[:num])
-    den = load_unknown_type(s, dict[:den])
+    parent = base_ring(AbstractAlgebra.Generic.fraction_field(R))
+    num = load_unknown_type(s, dict[:num]; parent=parent)
+    den = load_unknown_type(s, dict[:den]; parent=parent)
 
-    if num isa PolyElem
-        num = evaluate(num, gen(R))
-        den = evaluate(den, gen(R))
-    else
-        num = evaluate(num, gens(R))
-        den = evaluate(den, gens(R))
-    end
-
-    return num // den
+    return R(num, den)
 end
 
 function load_internal_with_parent(s::DeserializerState,
@@ -327,18 +320,11 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent:: AbstractAlgebra.Generic.RationalFunctionField)
     _ = load_unknown_type(s, dict[:frac_elem_parent])
-    num = load_unknown_type(s, dict[:num])
-    den = load_unknown_type(s, dict[:den])
+    forced_parent = base_ring(AbstractAlgebra.Generic.fraction_field(parent))
+    num = load_unknown_type(s, dict[:num]; parent=forced_parent)
+    den = load_unknown_type(s, dict[:den]; parent=forced_parent)
 
-    if num isa PolyElem
-        num = evaluate(num, gen(parent))
-        den = evaluate(den, gen(parent))
-    else
-        num = evaluate(num, gens(parent))
-        den = evaluate(den, gens(parent))
-    end
-
-    return num // den
+    return parent(num, den)
 end
 
 ################################################################################
