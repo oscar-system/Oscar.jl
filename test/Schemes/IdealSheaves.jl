@@ -94,10 +94,11 @@ end
   KK = function_field(X)
   R = ambient_ring(representative_patch(KK))
   x = gens(R)
-  @test is_in_linear_system(KK(x[1]), D)
-  @test !is_in_linear_system(KK(x[1]^2), D)
-  @test is_in_linear_system(KK(x[1]^2), 2*D)
-  #@test !is_in_linear_system(KK(x[1], x[2]), D)
+  @test in_linear_system(KK(x[1]), D)
+  @test !in_linear_system(KK(x[1]^2), D)
+  @test in_linear_system(KK(x[1]^2), 2*D)
+  # Not running at the moment; work in progress
+  #@test !in_linear_system(KK(x[1], x[2]), D)
 
   L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
   H = S[1]+S[2]+S[3]
