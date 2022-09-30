@@ -26,6 +26,29 @@ mutable struct SecondaryInvarsCache{T}
   end
 end
 
+mutable struct FundamentalInvarsCache{PolyElemT, PolyRingT}
+  invars::Vector{PolyElemT} # fundamental invariants
+
+  # Graded polynomial ring in length(invars) variables such that
+  # deg(gens(S)[i]) == deg(invars[i])
+  S::PolyRingT
+
+  # Remember whether the fundamental invariants were computed from the primary
+  # and secondary ones
+  via_primary_and_secondary::Bool
+
+  # For a primary or irreducible secondary invariant f, toS[f] gives the
+  # representation of f as a polynomial in the fundamental invariants.
+  # This field is only set, if via_primary_and_secondary is true.
+  toS::Dict{PolyElemT, PolyElemT}
+
+  function FundamentalInvarsCache{PolyElemT, PolyRingT}() where {PolyElemT <: MPolyElem, PolyRingT <: MPolyRing}
+    z = new{PolyElemT, PolyRingT}()
+    z.invars = PolyElemT[]
+    return z
+  end
+end
+
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
   field::FldT
   poly_ring::PolyRingT
@@ -37,7 +60,7 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
 
   primary::PrimaryInvarsCache{PolyElemT}
   secondary::SecondaryInvarsCache{PolyElemT}
-  fundamental::Vector{PolyElemT}
+  fundamental::FundamentalInvarsCache{PolyElemT, PolyRingT}
 
   reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
 
