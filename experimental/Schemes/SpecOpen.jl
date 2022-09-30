@@ -724,7 +724,7 @@ function maximal_extension(
   W = ambient_ring(X)
   I = ideal(W, one(W))
   for p in f
-    I = intersect(quotient(ideal(W, denominator(p)) + modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
