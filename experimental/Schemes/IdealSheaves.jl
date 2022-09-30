@@ -1,5 +1,3 @@
-using Infiltrator
-
 export IdealSheaf
 
 export scheme, covering, getindex, subscheme, covered_patches, extend!, ideal_dict
