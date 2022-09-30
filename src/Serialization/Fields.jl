@@ -308,6 +308,8 @@ function load_internal(s::DeserializerState,
                        dict::Dict)
     _ = load_unknown_type(s, dict[:frac_elem_parent])
     R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
+    # There is no official way to get the underlying polynomial ring of a rational function field.
+    # So we do the detour via the FractionField object, of which the rational function field is build from.
     parent = base_ring(AbstractAlgebra.Generic.fraction_field(R))
     num = load_unknown_type(s, dict[:num]; parent=parent)
     den = load_unknown_type(s, dict[:den]; parent=parent)
