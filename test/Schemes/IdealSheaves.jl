@@ -71,7 +71,9 @@
   @test K(h) == (f+2*g-5)//g
 
 end
+
 @testset "orders on divisors" begin
+  kk = QQ
   R, (s,t) = PolynomialRing(kk, ["s", "t"])
   X = Spec(R)
   Xc = CoveredScheme(X)
@@ -80,4 +82,27 @@ end
   I = IdealSheaf(Xc, [f])
   F = KK(f^70)
   @test order_on_divisor(F, I) == 70
+end
+
+@testset "linear systems" begin
+  P2 = projective_space(QQ, 2)
+  S = ambient_ring(P2)
+  X = as_covered_scheme(P2)
+  I = IdealSheaf(P2, [S[1]])
+  D = WeilDivisor(I)
+
+  KK = function_field(X)
+  R = ambient_ring(representative_patch(KK))
+  x = gens(R)
+  @test is_in_linear_system(KK(x[1]), D)
+  @test !is_in_linear_system(KK(x[1]^2), D)
+  @test is_in_linear_system(KK(x[1]^2), 2*D)
+  #@test !is_in_linear_system(KK(x[1], x[2]), D)
+
+  L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
+  H = S[1]+S[2]+S[3]
+  P = IdealSheaf(P2, [H])
+  @test find_subsystem(L, P, 1)[1] == 3
+  @test find_subsystem(L, P, 2)[1] == 1
+  @test find_subsystem(L, P, 3)[1] == 0
 end

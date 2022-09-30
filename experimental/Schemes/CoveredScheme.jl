@@ -278,7 +278,9 @@ end
     R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
     I = ideal(R, phi.(gens(defining_ideal(X))))
-    push!(U, Spec(quo(R, I)[1]))
+    # TODO: Temporary fix because ideal membership is broken in MPolyQuos.
+    push!(U, Spec(MPolyQuoLocalizedRing(R, I, units_of(R))))
+    #push!(U, Spec(quo(R, I, units_of(R))[1]))
   end
   result = Covering(U)
   for i in 1:r

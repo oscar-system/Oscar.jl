@@ -1,3 +1,5 @@
+using Infiltrator
+
 export IdealSheaf
 
 export scheme, covering, getindex, subscheme, covered_patches, extend!, ideal_dict
@@ -482,29 +484,35 @@ function order_on_divisor(
   
   order_dict = Dict{AbsSpec, Int}()
   for U in patches(C)
+    # TODO: This shouldn't be necessary. Fix products of multiplicative sets.
+    if one(OO(U)) in I[U]
+      continue
+    end
     @show U
     L, map = Localization(OO(U), 
                           MPolyComplementOfPrimeIdeal(saturated_ideal(I[U]))
                          )
+    @infiltrate !(typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                        <:MPolyComplementOfPrimeIdeal},
+                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                           <:MPolyComplementOfPrimeIdeal}
+                    } )
     typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
                                         <:MPolyComplementOfPrimeIdeal},
                      MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
                                            <:MPolyComplementOfPrimeIdeal}
                     } || error("localization was not successful")
+
     floc = f[U]
-    @show floc
     a = numerator(floc)
     b = denominator(floc)
     # TODO: cache groebner bases in a reasonable way.
     P = L(prime_ideal(inverted_set(L)))
-    @show gens(P)
     if one(L) in P 
       continue # the multiplicity is -∞ in this case and does not count
     end
     upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
     lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
-    @show upper
-    @show lower
     order_dict[U] = upper-lower
   end
   return minimum(values(order_dict))

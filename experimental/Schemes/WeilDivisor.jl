@@ -3,6 +3,9 @@ export scheme_type, ideal_sheaf_type, coefficient_ring_type, coefficient_type
 export scheme, components, coefficient_dict, coefficient_ring
 export is_in_linear_system
 
+export LinearSystem 
+export divisor, find_subsystem
+
 @Markdown.doc """
     WeilDivisor{
       CoveredSchemeType<:CoveredScheme, 
@@ -184,12 +187,87 @@ end
 function is_in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
   X = scheme(D) 
   X == variety(parent(f)) || error("schemes not compatible")
+  C = default_covering(X)
   for I in components(D)
-    order_on_divisor(f, I, check=check) >= D[I] || return false
+    order_on_divisor(f, I, check=check) >= -D[I] || return false
+  end
+  for U in patches(C)
+    # we have to check that f[U] has no poles outside D[U]
   end
   return true
 end
 
-  
+@attributes mutable struct LinearSystem{DivisorType<:WeilDivisor}
+  D::DivisorType
+  f::Vector{<:VarietyFunctionFieldElem}
 
+  function LinearSystem(f::Vector, D::WeilDivisor; check::Bool=true)
+    length(f) == 0 && return new{typeof(D)}(D, Vector{VarietyFunctionFieldElem}())
+    KK = parent(f[1])
+    all(g -> (parent(g) == KK), f[2:end]) || error("elements must have the same parent")
+    X = scheme(D)
+    X == variety(KK) || error("input not compatible")
+
+    if check
+      all(g->is_in_linear_system(g, D), f) || error("element not in linear system")
+    end
+    f = Vector{VarietyFunctionFieldElem}(f)
+    return new{typeof(D)}(D, f)
+  end
+end
+
+### essential getters 
+divisor(L::LinearSystem) = L.D
+gens(L::LinearSystem) = L.f
+ngens(L::LinearSystem) = length(L.f)
+variety(L::LinearSystem) = scheme(divisor(L))
+
+function find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
+  # find one chart in which P is supported
+  # TODO: There might be preferred choices for charts with 
+  # the least complexity.
+  X = variety(L)
+  X == scheme(P) || error("input incompatible")
+  C = default_covering(X)
+  U = first(patches(C))
+  for V in patches(C)
+    if !(one(OO(V)) in P[V])
+      U = V
+      break
+    end
+  end
+  # Now U it is.
+
+  # Assemble the local representatives
+  R = ambient_ring(U)
+  loc_rep = [g[U] for g in gens(L)]
+  common_denominator = gcd([denominator(g) for g in loc_rep])
+  numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
+  RP, _ = Localization(R, complement_of_ideal(saturated_ideal(P[U])))
+  PP = RP(prime_ideal(inverted_set(RP)))
+  denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
+  w = n + denom_mult # Ajust!
+  pPw = saturated_ideal(PP^w) # the symbolic power
+  images = []
+  for a in numerators
+    push!(images, normal_form(a, pPw))
+  end
+
+  # collect a monomial basis in which to represent the results
+  all_mons = []
+  for b in images
+    all_mons = vcat(all_mons, [m for m in monomials(b) if !(b in all_mons)])
+  end
+
+  kk = base_ring(X)
+  A = zero(MatrixSpace(kk, ngens(L), length(all_mons)))
+  for i in 1:ngens(L)
+    for (c, m) in zip(coefficients(images[i]), monomials(images[i]))
+      k = findfirst(x->(x==m), all_mons)
+      A[i, k] = c
+    end
+  end
+
+  return left_kernel(A)
+end
 
