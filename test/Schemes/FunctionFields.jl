@@ -1,10 +1,3 @@
-@testset "fraction fields of varieties" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-  @test is_irreducible(Spec(R))
-  @test is_irreducible(Spec(R, ideal(R, x)))
-  @test !is_irreducible(Spec(R, ideal(R, x*y)))
-  @test is_irreducible(Spec(Localization(R, units_of(R))[1]))
-  @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
   S = ambient_ring(P)
@@ -77,6 +70,7 @@ end
   @test h[V] == f//g
   K = FractionField(R)
   @test K(h) == f//g
+  @test KK(f, g) == KK(f//g)
 
   @test KK(f+2*g-5, g) + KK(f+2*g-5, g) == KK(2*(f+2*g-5)//g)
   h = KK(f+2*g-5, g)
