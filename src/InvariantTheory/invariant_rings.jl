@@ -118,7 +118,6 @@ function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
   return MapFromFunc(right_action_by_p, R, R)
 end
 
-
 ################################################################################
 #
 #  Reynolds operator

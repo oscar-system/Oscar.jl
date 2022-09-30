@@ -29,7 +29,7 @@ which algorithm for the computation of the relations between the fundamental
 invariants is used. With `:groebner_basis`, the relations are computed via the
 standard computation of a kernel of a morphism between multivariate polynomial
 rings. The option `:linear_algebra` uses an algorithm by Kemper and Steel
-[KS99, Section 17.5.5] to compute the relations without the use of Groebner
+[KS99](@cite), Section 17.5.5, to compute the relations without the use of Groebner
 bases. Note that this option is only available, if the fundamental invariants
 are computed via primary and secondary invariants (i.e.
 `algo_gens = :primary_and_secondary`).
@@ -66,18 +66,18 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> affine_algebra(IR)
-(Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
-  y[1] -> [3]
-  y[2] -> [3]
-  y[3] -> [6]
-  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Map with following data
+(Quotient of Multivariate Polynomial Ring in y1, y2, y3, y4 over Cyclotomic field of order 3 graded by
+  y1 -> [3]
+  y2 -> [3]
+  y3 -> [6]
+  y4 -> [9] by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2), Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
-  y[1] -> [3]
-  y[2] -> [3]
-  y[3] -> [6]
-  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2)
+Quotient of Multivariate Polynomial Ring in y1, y2, y3, y4 over Cyclotomic field of order 3 graded by
+  y1 -> [3]
+  y2 -> [3]
+  y3 -> [6]
+  y4 -> [9] by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2)
 Codomain:
 =========
 Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
@@ -214,9 +214,6 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
 
     N = polys_to_smat([ t[1] for t in products_sorted[d] ], monomial_to_column, copy = false)
     N.c = M.c
-    if d == 10
-      return M, N
-    end
 
     # Write the products (in N) in the basis of K[V]^G_d given by the secondary
     # invariants (in M)
