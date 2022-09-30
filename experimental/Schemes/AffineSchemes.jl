@@ -112,7 +112,7 @@ base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
 On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring `𝕜`.
 """
 function base_ring(X::AbsSpec{BRT, RT}) where {BRT, RT}
- return base_ring(underlying_scheme(X))::BRT
+  return base_ring(underlying_scheme(X))::BRT
 end
 
 ### constructors
