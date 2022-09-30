@@ -977,7 +977,6 @@ end
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
 
-Localization(R::MPolyRing, f::MPolyElem) = Localization(MPolyPowersOfElement(R, [f]))
 Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = Localization(MPolyPowersOfElement(R, v))
 
 function Localization(
@@ -2216,3 +2215,22 @@ function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
   x = coordinates(a*F[1], M)
   return true, W(x[1])
 end
+
+# This had to be moved after behind the definition of the elements.
+function Localization(R::MPolyRing, f::MPolyElem)
+  U = MPolyPowersOfElement(R, [f])
+  L = MPolyLocalizedRing(R, U)
+  function func(a::MPolyElem)
+    parent(a) == R || error("element does not belong to the correct ring")
+    return L(a)
+  end
+  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+                                              <:MPolyPowersOfElement}
+    )
+    L == parent(a) || error("element does not belong to the correct ring")
+    isone(denominator(a)) && return numerator(a)
+    return divexact(numerator(a), denominator(a))
+  end
+  return L, MapFromFunc(func, func_inv, R, L)
+end
+

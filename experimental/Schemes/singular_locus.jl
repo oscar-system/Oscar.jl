@@ -132,7 +132,7 @@ end
   Df = jacobi_matrix(f)
 
   A = map_entries(x->OO(X)(x), Df)
-  success, _ = Oscar._is_projective(A, X)
+  success, _ = Oscar._is_projective(A)
   return success
 end
 
@@ -147,7 +147,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) = true
   Df = jacobi_matrix(f)
 
   A = map_entries(x->OO(X)(x), Df)
-  success, _ = Oscar._is_projective(A, X)
+  success, _ = Oscar._is_projective(A)
   return success
 end
 
