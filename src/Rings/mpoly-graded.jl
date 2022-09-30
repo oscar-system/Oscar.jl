@@ -1620,7 +1620,7 @@ end
 ########################################################################
 exp_vec(f::MPolyElem) = first(exponent_vectors(f))
 
-_divides(a::Vector{Int}, b::Vector{Int}) = all(x->(x>=0), a-b)
+_divides(a::Vector{Int}, b::Vector{Int}) = all(k->(a[k]>=b[k]), 1:length(a))
 
 function _gcd(a::Vector{Vector{Int}}) 
   length(a) == 1 && return a[1]
@@ -1642,35 +1642,28 @@ end
 ### Assume that a is minimal. We divide by `pivot` and return 
 # a minimal set of generators for the resulting monomial ideal.
 function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
-  good = Vector{Vector{Int}}()
-  bad = Vector{Vector{Int}}()
+  # The good ones will contribute to a minimal generating 
+  # set of the lhs ideal.
+  #
+  # The bad monomials come from those which hop over the boundaries of 
+  # the monomial diagram by the shift. Their span has a new 
+  # generator which is collected in `bad` a priori. It is checked 
+  # whether they become superfluous and if not, they are added to 
+  # the good ones.
+  good = similar(a, 0)
+  bad = similar(a, 0)
   for e in a
-    if all(>=, zip(e, pivot))
+    if all(k->(e[k]>=pivot[k]), 1:length(e))
       push!(good, e-pivot)
     else
       push!(bad, e-pivot)
     end
   end
 
-  #shifted = [e-pivot for e in a]
-  # The good ones will contribute to a minimal generating 
-  # set of the lhs ideal.
-
-  #good = [e for e in shifted if all(x->(x>=0), e)]
-
-  # The bad monomials come from those which hop over the boundaries of 
-  # the monomial diagram by the shift. Their span has a new 
-  # generator which is collected in `bad` a priori. It is checked 
-  # whether they become superfluous and if not, they are added to 
-  # the good ones.
-  #bad = [e for e in shifted if !all(x->(x>=0), e)]
-
-  divides(a::Vector{Int}, b::Vector{Int}) = all(k->(k>=0), b - a)
-
   for e in bad 
     m = [k < 0 ? 0 : k for k in e]
-    if all(x->(!divides(x, m)), good)
-      good = [x for x in good if !divides(m, x)]
+    if all(x->(!divides(m, x)), good)
+      good = [x for x in good if !divides(x, m)]
       push!(good, m)
     end
   end
