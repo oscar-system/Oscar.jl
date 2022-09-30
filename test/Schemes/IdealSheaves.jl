@@ -102,7 +102,7 @@ end
   L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
   H = S[1]+S[2]+S[3]
   P = IdealSheaf(P2, [H])
-  @test find_subsystem(L, P, 1)[1] == 3
-  @test find_subsystem(L, P, 2)[1] == 1
-  @test find_subsystem(L, P, 3)[1] == 0
+  @test ngens(find_subsystem(L, P, 1)[1]) == 3
+  @test ngens(find_subsystem(L, P, 2)[1]) == 1
+  @test ngens(find_subsystem(L, P, 3)[1]) == 0
 end
