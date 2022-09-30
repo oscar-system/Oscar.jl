@@ -62,6 +62,8 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
   secondary::SecondaryInvarsCache{PolyElemT}
   fundamental::FundamentalInvarsCache{PolyElemT, PolyRingT}
 
+  presentation::MPolyAnyMap{MPolyQuo{PolyElemT}, PolyRingT, Nothing, PolyElemT}
+
   reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
 
   molien_series::Generic.Frac{fmpq_poly}
