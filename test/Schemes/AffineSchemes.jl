@@ -110,6 +110,7 @@ end
   U = hypersurface_complement(A3, x)
   @test issubset(intersect(A3,U),intersect(U,A3))
   V  = PrincipalOpenSubset(U)
+  @test dim(V) == 3
   @test issubset(U,V)
   @test issubset(V,V)
 
