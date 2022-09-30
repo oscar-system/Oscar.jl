@@ -409,7 +409,7 @@ function issubset(
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
-  return issubset(localized_modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
+  return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(quotient_ring(OO(X)))))
 end
 
 ########################################################################
@@ -453,7 +453,7 @@ function issubset(
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
-  return issubset(UY, UX) && iszero(localized_modulus(OO(Y)))
+  return issubset(UY, UX) && iszero(modulus(OO(Y)))
 end
 
 ########################################################################
@@ -475,7 +475,7 @@ function issubset(
   R = base_ring(OO(Y))
   R == base_ring(OO(X)) || error("schemes can not be compared")
   L = localized_ring(OO(X))
-  return issubset(L(modulus(OO(Y))), localized_modulus(OO(X)))
+  return issubset(L(modulus(OO(Y))), modulus(OO(X)))
 end
 
 function issubset(
@@ -509,8 +509,8 @@ function issubset(
       is_unit(OO(X)(a)) || return false
     end
   end
-  J = localized_ring(OO(X))(modulus(OO(Y)))
-  return issubset(J, localized_modulus(OO(X)))
+  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  return issubset(J, modulus(OO(X)))
 end
 
 # TODO: Add further cross-type comparison methods as needed.
@@ -551,8 +551,8 @@ function is_open_embedding(
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
-  J = localized_ring(OO(X))(modulus(OO(Y)))
-  return localized_modulus(OO(X)) == J 
+  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  return modulus(OO(X)) == J 
 end
 
 function is_open_embedding(
@@ -581,8 +581,8 @@ function is_closed_embedding(
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || return false
   inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
-  J = localized_ring(OO(X))(modulus(OO(Y)))
-  return issubset(J, localized_modulus(OO(X)))
+  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  return issubset(J, modulus(OO(X)))
 end
 
 function is_closed_embedding(
@@ -600,7 +600,7 @@ function is_closed_embedding(
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   all(x->(isunit(OO(X)(x))), denominators(inverted_set(OO(Y)))) || return false
-  return issubset(localized_modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
+  return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(quotient_ring(OO(X)))))
 end
 
 #TODO: Add more cross-type methods as needed.
@@ -706,7 +706,7 @@ function Base.intersect(
   ) where {BRT}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
-  return Spec(R, modulus(OO(Y)), inverted_set(OO(X))*inverted_set(OO(Y)))
+  return Spec(R, modulus(quotient_ring(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
 end
 
 function Base.intersect(
@@ -723,8 +723,8 @@ function Base.intersect(
   ) where {BRT}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
-  Q, _ = quo(R, modulus(OO(X)) + modulus(OO(Y)))
-  return Spec(R, modulus(OO(X)) + modulus(OO(Y)), 
+#  Q, _ = quo(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))))
+  return Spec(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))), 
               inverted_set(OO(X)) * inverted_set(OO(Y)))
 end
 
@@ -938,7 +938,7 @@ function preimage(
   X = domain(phi)
   Y = codomain(phi)
   check && (issubset(Z, Y) || (Z = intersect(Y, Z)))
-  IZ = modulus(OO(Z))
+  IZ = modulus(quotient_ring(OO(Z)))
   a = denominators(inverted_set(OO(Z)))
   R = ambient_ring(X)
   f = pullback(phi)
@@ -1094,7 +1094,7 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  return dim(saturated_ideal(localized_modulus(OO(X))))
+  return dim(saturated_ideal(modulus(OO(X))))
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
@@ -1115,7 +1115,7 @@ end
   return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))])) - dim(X)
 end
 
-strict_modulus(X::Spec) = saturated_ideal(localized_modulus(OO(X)))
+strict_modulus(X::Spec) = saturated_ideal(modulus(OO(X)))
 
 function simplify(X::Spec)
   L, f, g = simplify(OO(X))

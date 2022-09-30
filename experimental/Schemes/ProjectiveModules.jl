@@ -162,7 +162,7 @@ end
 function (R::MPolyQuo)(a::MPolyQuoLocalizedRingElem; check::Bool=true)
   base_ring(R) === base_ring(parent(a)) || error("rings not compatible")
   if check
-    all(x->(x in localized_modulus(parent(a))), gens(modulus(R))) || error("no valid coercion")
+    all(x->(x in modulus(parent(a))), gens(modulus(R))) || error("no valid coercion")
   end
   (iszero(lifted_numerator(a)) || iszero(numerator(a))) && return zero(R)
   isone(lifted_denominator(a)) && return R(lifted_numerator(a))

@@ -2,7 +2,7 @@ import AbstractAlgebra: Ring, RingElem, Generic.Frac
 import Base: issubset
 
 export MPolyQuoLocalizedRing
-export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, localized_modulus, gens
+export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, gens
 export Localization
 
 export MPolyQuoLocalizedRingElem
@@ -153,20 +153,13 @@ inverted_set(L::MPolyQuoLocalizedRing) = L.S
 @Markdown.doc """
     modulus(L::MPolyQuoLocalizedRing)
 
-For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``I``.
-"""
-modulus(L::MPolyQuoLocalizedRing) = L.I
-
-@Markdown.doc """
-    localized_modulus(L::MPolyQuoLocalizedRing)
-
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
 """
-function localized_modulus(L::MPolyQuoLocalizedRing) 
-  if !has_attribute(L, :localized_modulus)
-    set_attribute!(L, :localized_modulus, localized_ring(L)(modulus(L)))
+function modulus(L::MPolyQuoLocalizedRing) 
+  if !has_attribute(L, :modulus)
+    set_attribute!(L, :modulus, localized_ring(L)(L.I))
   end
-  return get_attribute(L, :localized_modulus)::ideal_type(localized_ring_type(L))
+  return get_attribute(L, :modulus)::ideal_type(localized_ring_type(L))
 end
 
 @Markdown.doc """
@@ -226,7 +219,7 @@ function quo(
   R = base_ring(L)
   S = inverted_set(L)
   W = localized_ring(L) 
-  J = J + modulus(L)
+  J = J + modulus(quotient_ring(L))
   P = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
   return P, hom(L, P, gens(P))
 end
@@ -243,7 +236,7 @@ function Localization(
   ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
   issubset(S, inverted_set(L)) && return L, MapFromFunc(x->x, L, L)
   U = inverted_set(L)*S
-  W = MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U)[1])
+  W = MPolyQuoLocalizedRing(base_ring(L), modulus(quotient_ring(L)), U, quotient_ring(L), Localization(U)[1])
   return W, MapFromFunc((x->W(lifted_numerator(x), lifted_denominator(x), check=false)), L, W)
 end
 
@@ -462,25 +455,26 @@ lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lift
 
 function is_unit(f::MPolyQuoLocalizedRingElem) 
   lifted_numerator(f) in inverted_set(parent(f)) && return true
-  return one(localized_ring(parent(f))) in localized_modulus(parent(f)) + ideal(localized_ring(parent(f)), lift(f))
+  R=localized_ring(parent(f))
+  return one(R) in modulus(parent(f)) + ideal(R, lift(f))
 end
 
 function is_unit(L::MPolyQuoLocalizedRing, f::MPolyLocalizedRingElem) 
   parent(f) == localized_ring(L) || error("element does not belong to the correct ring")
   numerator(f) in inverted_set(L) && return true
-  one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), f)
+  one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), f)
 end
 
 function is_unit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   parent(f) == base_ring(L) || error("element does not belong to the correct ring")
   f in inverted_set(L) && return true
-  return one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
+  return one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
 function is_unit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST}
   parent(f) == quotient_ring(L) || error("element does not belong to the correct ring")
   lift(f) in inverted_set(L) && return true
-  one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
+  one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
 # WARNING: This routine runs forever if f is not a unit in L. 
@@ -491,7 +485,7 @@ function inv(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{B
   parent(f) == quotient_ring(L) || error("element does not belong to the correct ring")
   W = localized_ring(L)
   R = base_ring(L)
-  I = saturated_ideal(localized_modulus(L))
+  I = saturated_ideal(modulus(L))
   d = prod(denominators(inverted_set(W)))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power dᵏ ≡  c ⋅ f mod I
@@ -539,7 +533,7 @@ function convert(
   parent(a) == base_ring(L) || error("element does not belong to the correct ring")
   W = localized_ring(L)
   R = base_ring(L)
-  I = saturated_ideal(localized_modulus(L))
+  I = saturated_ideal(modulus(L))
   d = prod(denominators(inverted_set(W)))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
@@ -646,7 +640,7 @@ end
 
 function ==(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a) in localized_modulus(parent(a))
+  return lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a) in modulus(parent(a))
 end
 
 function ^(a::MPolyQuoLocalizedRingElem, i::fmpz)
@@ -658,11 +652,11 @@ function ^(a::MPolyQuoLocalizedRingElem, i::Integer)
 end
 
 function isone(a::MPolyQuoLocalizedRingElem) 
-  return lifted_numerator(a) - lifted_denominator(a) in localized_modulus(parent(a))
+  return lifted_numerator(a) - lifted_denominator(a) in modulus(parent(a))
 end
 
 function iszero(a::MPolyQuoLocalizedRingElem)
-  return lift(a) in localized_modulus(parent(a))
+  return lift(a) in modulus(parent(a))
 end
 
 ### enhancement of the arithmetic
@@ -832,7 +826,7 @@ constructor takes as input the triple
       for f in U
         is_unit(S(res(f))) || error("map is not well defined")
       end
-      for g in gens(modulus(L))
+      for g in gens(modulus(quotient_ring(L)))
         iszero(S(res(g))) || error("map is not well defined")
       end
     end
@@ -1016,7 +1010,7 @@ function as_affine_algebra(
   A, phi, t = _add_variables_first(R, [inverse_name])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
-  I = ideal(A, [phi(g) for g in gens(modulus(L))]) + ideal(A, [one(A)-theta*phi(f)])
+  I = ideal(A, [phi(g) for g in gens(modulus(quotient_ring(L)))]) + ideal(A, [one(A)-theta*phi(f)])
   return A, I, f, phi, theta
 end
 
@@ -1204,8 +1198,8 @@ of `L` by eliminating superfluous variables.
 """
 function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
   W = localized_ring(L)
-  I = localized_modulus(L)
-  J = saturated_ideal(I)
+  I = modulus(L)
+  J = modulus(quotient_ring(L))
   singular_assure(J)
   R = base_ring(L)
   SR = singular_poly_ring(R)
@@ -1306,7 +1300,7 @@ Ideals in localizations of affine algebras.
     end
 
     L = localized_ring(W)
-    J = ideal(L, vcat(lift.(g), gens(localized_modulus(W))))
+    J = ideal(L, vcat(lift.(g), gens(modulus(W))))
     I = new{typeof(W), LocRingElemType, typeof(J)}()
     I.gens = g
     I.W = W
@@ -1395,7 +1389,7 @@ function quo(
     I::MPolyQuoLocalizedIdeal
   )
   base_ring(I) == L || error("ideal does not belong to the correct ring")
-  return quo(localized_ring(L), localized_modulus(L) + pre_image_ideal(I))
+  return quo(localized_ring(L), modulus(L) + pre_image_ideal(I))
 end
 
 function quo(A::MPolyQuo, I::MPolyQuoIdeal)
