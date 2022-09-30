@@ -230,11 +230,13 @@ end
 
 ### essential getters 
 @Markdown.doc """
-    divisor(L::LinearSystem)
+    weil_divisor(L::LinearSystem)
 
 Returns `D` on a linear system `L = |D|`.
 """
-divisor(L::LinearSystem) = L.D
+function weil_divisor(L::LinearSystem) 
+  return L.D
+end
 gens(L::LinearSystem) = L.f
 ngens(L::LinearSystem) = length(L.f)
 @Markdown.doc """
@@ -242,7 +244,7 @@ ngens(L::LinearSystem) = length(L.f)
 
 Returns the variety on which `L` is defined.
 """
-variety(L::LinearSystem) = scheme(divisor(L))
+variety(L::LinearSystem) = scheme(weil_divisor(L))
 
 @Markdown.doc """
     find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
@@ -301,6 +303,6 @@ function find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
 
   r, K = left_kernel(A)
   new_gens = [sum([K[i,j]*gens(L)[j] for j in 1:ncols(K)]) for i in 1:nrows(K)]
-  return LinearSystem(new_gens, divisor(L) + n*WeilDivisor(P)), K
+  return LinearSystem(new_gens, weil_divisor(L) + n*WeilDivisor(P)), K
 end
 
