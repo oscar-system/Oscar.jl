@@ -90,3 +90,10 @@ end
 
 end
 
+@testset "Issue #1580" begin 
+  R,(x,) = PolynomialRing(GF(3),["x"])
+  Rx,i = localization(R, x)
+  x = Rx(x)
+  P2 = projective_space(Rx, 2)
+  affine_cone(P2) 
+end
