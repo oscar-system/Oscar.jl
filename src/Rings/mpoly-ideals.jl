@@ -53,6 +53,10 @@ function ideal(g::Vector{T}) where {T <: MPolyElem}
   return MPolyIdeal(g)
 end
 
+function ideal(I::IdealGens{T}) where {T <: MPolyElem}
+  return MPolyIdeal(I)
+end
+
 # TODO: Can we make this the default?
 # (Or maybe remove ideal(...) without a ring completely?)
 function ideal(R::MPolyRing, g::Vector)
@@ -1201,7 +1205,7 @@ function isone(I::MPolyIdeal)
   if any(x -> (is_constant(x) && is_unit(first(coefficients(x)))), gens(I))
     return true
   end
-  gb = gens(groebner_basis(I, complete_reduction = true))
+  gb = groebner_basis(I, complete_reduction = true)
   return is_constant(gb[1]) && is_unit(first(coefficients(gb[1])))
 end
 

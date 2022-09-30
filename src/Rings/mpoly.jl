@@ -208,7 +208,7 @@ end
 mutable struct IdealGens{S}
   gens::BiPolyArray{S}
   isGB::Bool
-  ord::Orderings.AbsOrdering
+  ord::Orderings.MonomialOrdering
   keep_ordering::Bool
 
   function IdealGens(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
@@ -228,6 +228,9 @@ mutable struct IdealGens{S}
     r = new{elem_type(T)}()
     r.gens = BiPolyArray(Ox, S)
     r.isGB = S.isGB
+    if T <: Union{MPolyRing, MPolyRingLoc, MPolyQuo}
+      r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+    end
     r.keep_ordering = true
     return r
   end
@@ -277,7 +280,7 @@ function show(io::IO, I::IdealGens)
     print(io, "Ideal generating system with elements")
   end
   for (i,g) in enumerate(gens(I))
-    print(io, "\n", i, " -> ", g)
+    print(io, "\n", i, " -> ", AbstractAlgebra.expr_to_string(AbstractAlgebra.canonicalize(Expr(:call, :+, map(expressify, terms(g, I.ord))...))))
   end
   if I.isGB
     print(io, "\nwith respect to the ordering")
@@ -324,8 +327,17 @@ function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
   return A.gens[Val(:O), i]
 end
 
+function Base.getindex(A::IdealGens, i::Int)
+  oscar_assure(A)
+  return A.gens.O[i]
+end
+
 function Base.length(A::IdealGens)
   return length(A.gens)
+end
+
+function base_ring(A::IdealGens)
+  return A.gens.Ox
 end
 
 function Base.iterate(A::IdealGens, s::Int = 1)
@@ -539,15 +551,23 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
 
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(IdealGens(Ox, s))
-    if s.isGB
+    #=if s.isGB
       ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      r.ord = ord
+      r.isGB = true
       r.gb[ord] = r.gens
-    end
+    end=#
     return r
   end
 
   function MPolyIdeal(B::IdealGens{T}) where T
-    r = new{T}(B, Dict(), -1)
+    r = new{T}()
+    r.gens = B
+    r.dim = -1
+    r.gb = Dict()
+    if isdefined(B, :isGB) && B.isGB
+      r.gb[B.ord] = B
+    end
     return r
   end
 end
@@ -593,7 +613,7 @@ end
 
 function singular_assure(I::IdealGens, ordering::MonomialOrdering)
   if !isdefined(I.gens, :S)
-      I.ord = ordering.o
+      I.ord = ordering
       I.gens.Sx = singular_poly_ring(I.Ox, ordering)
       I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
       if I.isGB
@@ -603,7 +623,7 @@ function singular_assure(I::IdealGens, ordering::MonomialOrdering)
       #= singular ideal exists, but the singular ring has the wrong ordering
        = attached, thus we have to create a new singular ring and map the ideal. =#
       if !isdefined(I, :ord) || I.ord != ordering.o
-          I.ord = ordering.o
+          I.ord = ordering
           SR    = singular_poly_ring(I.Ox, ordering)
           f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
           I.gens.S   = Singular.map_ideal(f, I.S)

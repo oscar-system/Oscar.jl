@@ -466,7 +466,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   end
   #now case if J \neq 0
   #let ts be a list of minimal binomial generators for J
-  gb = gens(groebner_basis(J, complete_reduction = true))
+  gb = groebner_basis(J, complete_reduction = true)
   vs = zero_matrix(FlintZZ, 0, nvars(R))
   images = QQAbElem{nf_elem}[]
   for t in gb

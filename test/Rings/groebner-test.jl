@@ -14,12 +14,12 @@ end
 
    I = ideal(R, [x + y + t + z, x^2 + y^2 + t^3])
 
-   @test leading_ideal(gens(groebner_basis(I, ordering=lex([t, x, y, z]))), ordering=lex([t, x, y, z])) == ideal(R, [x^3, t])
-   @test leading_ideal(gens(groebner_basis(I, ordering=degrevlex([t, x, y, z]))), ordering=degrevlex([t, x, y, z])) == ideal(R, [t, x^3])
-   @test leading_ideal(gens(groebner_basis(I, ordering=lex([t, x, y, z]))), ordering=lex([t, x, y, z])) == ideal(R, [x^3, t])
-   @test leading_ideal(gens(groebner_basis(I, ordering=revlex([t, x, y, z]))), ordering=revlex([t, x, y, z])) == ideal(R, [y^2, z])
-   @test leading_ideal(gens(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4]))), ordering=wdeglex([t, x, y, z], [2, 3, 1, 4])) == ideal(R, [z, t^3])
-   @test leading_ideal(gens(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1]))), ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1])) == ideal(R, [t, x^3])
+   @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
+   @test leading_ideal(groebner_basis(I, ordering=degrevlex([t, x, y, z]))) == ideal(R, [t, x^3])
+   @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
+   @test leading_ideal(groebner_basis(I, ordering=revlex([t, x, y, z]))) == ideal(R, [y^2, z])
+   @test leading_ideal(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4]))) == ideal(R, [z, t^3])
+   @test leading_ideal(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1]))) == ideal(R, [t, x^3])
 end
 
 @testset "groebner orderings" begin

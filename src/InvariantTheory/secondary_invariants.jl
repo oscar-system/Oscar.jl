@@ -183,7 +183,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   is_invars = Vector{Int}()
 
   # The Groebner basis should already be cached
-  gbI = [ f.f for f in gens(groebner_basis(I, ordering = degrevlex(gens(base_ring(I))))) ]
+  gbI = [ f.f for f in groebner_basis(I, ordering = degrevlex(gens(base_ring(I)))) ]
 
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
