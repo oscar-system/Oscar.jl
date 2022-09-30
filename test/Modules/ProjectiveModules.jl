@@ -9,9 +9,7 @@
 
   A = map_entries(Q, M)
 
-  X = Spec(Q)
-
-  success, P = Oscar._is_projective(A, X)
+  success, P = Oscar._is_projective(A)
   @test success
   @test P^2 == P
 

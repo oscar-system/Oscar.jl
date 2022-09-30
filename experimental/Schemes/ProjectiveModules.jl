@@ -46,7 +46,7 @@ function is_projective(M::SubQuo; check::Bool=true)
   # This is the presentation matrix
   A = matrix(a)
 
-  success, P = _is_projective(A, Spec(R))
+  success, P = _is_projective(A)
   !success && return false, zero_map(Rr, M), zero_map(M, Rr)
   return true, hom(Rr, M, gens(M)), hom(M, Rr, [sum([P[i, j]*Rr[i] for i in 1:ngens(Rr)]) for j in 1:ncols(P)])
 end
@@ -54,9 +54,8 @@ end
 ### This function assumes that the entry aᵢⱼ is a unit in 𝒪(X).
 # Row reduction is performed, then the projector is computed 
 # recursively for the lower block matrix.
-function _is_projective(A::MatrixElem, X::AbsSpec, i::Int, j::Int)
+function _is_projective(A::MatrixElem, i::Int, j::Int)
   R = base_ring(A)
-  R == OO(X) || error("rings not compatible")
 
   m = nrows(A)
   n = ncols(A)
@@ -83,7 +82,7 @@ function _is_projective(A::MatrixElem, X::AbsSpec, i::Int, j::Int)
   end
 
   ### Harvest the projector on the subspace
-  success, Psub = _is_projective(Asub, X)
+  success, Psub = _is_projective(Asub)
   !success && return false, P
 
   Qinc = zero(P)
@@ -107,9 +106,8 @@ function _is_projective(A::MatrixElem, X::AbsSpec, i::Int, j::Int)
   return true, P*Qinc
 end
 
-function _is_projective(A::MatElem, X::AbsSpec)
+function _is_projective(A::MatElem)
   R = base_ring(A)
-  R == OO(X) || error("rings not compatible")
 
   m = nrows(A)
   n = ncols(A)
@@ -130,10 +128,12 @@ function _is_projective(A::MatElem, X::AbsSpec)
   ### Localize at the hypersurfaces given by the involved entries 
   # and collect the local projectors. 
   rec_results = []
+  restriction_maps = []
   for k in involved_entries
-    U = hypersurface_complement(X, entry_list[k][1])
-    AU = map_entries(x->(OO(U)(x, check=false)), A)
-    push!(rec_results, _is_projective(AU, U, entry_list[k][2], entry_list[k][3]))
+    L, res = Localization(R, entry_list[k][1])
+    AU = map_entries(res, A)
+    push!(rec_results, _is_projective(AU, entry_list[k][2], entry_list[k][3]))
+    push!(restriction_maps, res)
     if last(rec_results)[1] == false
       return false, zero(MatrixSpace(R, n, n))
     end
@@ -142,32 +142,86 @@ function _is_projective(A::MatElem, X::AbsSpec)
   ### Lift all the local projectors to the top ring and return their 
   # linear combination.
   Q = zero(MatrixSpace(R, n, n))
-  for (k, (_, Psub)) in zip(involved_entries, rec_results)
+  for (k, (_, Psub), res) in zip(involved_entries, rec_results, restriction_maps)
     r = entry_list[k][2]
     s = entry_list[k][3]
     Rloc = base_ring(Psub)
     u = Rloc(entry_list[k][1], check=false)
-    Q += c[k] * map_entries(x->(R(lift(x))), u*Psub)
+    Q += c[k] * map_entries(x->preimage(res, x), u*Psub)
   end
 
   return true, Q
 end
 
-function (R::MPolyRing)(a::MPolyLocalizedRingElem; check::Bool=true)
-  R == base_ring(parent(a)) || error("rings not compatible")
-  isone(denominator(a)) && return numerator(a)
-  return divexact(numerator(a), denominator(a))
+########################################################################
+# Various localization routines for localizing at powers of elements   #
+#                                                                      #
+# This deserves special constructors, because we can deliver maps for  # 
+# lifting which is not possible in general.                            #
+########################################################################
+function Localization(A::MPolyQuo, f::MPolyQuoElem)
+  R = base_ring(A)
+  U = MPolyPowersOfElement(R, [lift(f)])
+  L = MPolyQuoLocalizedRing(R, modulus(A), U)
+  function func(a::MPolyQuoElem)
+    parent(a) == A || error("element does not belong to the correct ring")
+    return L(a, check=false)
+  end
+  function func_inv(a::MPolyQuoLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+                                                 <:MPolyPowersOfElement}
+    )
+    L == parent(a) || error("element does not belong to the correct ring")
+    iszero(numerator(a)) && return zero(A)
+    isone(lifted_denominator(a)) && return A(lifted_numerator(a))
+    #TODO: Fix this once division in quotient rings works!
+    R = base_ring(A)
+    W = MPolyQuoLocalizedRing(R, modulus(A), units_of(R))
+    b = W(a)
+    return A(lifted_numerator(b))
+    return divexact(numerator(a), denominator(a))
+  end
+  return L, MapFromFunc(func, func_inv, A, L)
 end
 
-function (R::MPolyQuo)(a::MPolyQuoLocalizedRingElem; check::Bool=true)
-  base_ring(R) === base_ring(parent(a)) || error("rings not compatible")
-  if check
-    all(x->(x in localized_modulus(parent(a))), gens(modulus(R))) || error("no valid coercion")
+function Localization(A::MPolyLocalizedRing, f::MPolyLocalizedRingElem)
+  R = base_ring(A)
+  d = numerator(f)
+  U = MPolyPowersOfElement(R, [d])
+  L = MPolyLocalizedRing(R, U*inverted_set(A))
+  function func(a::MPolyLocalizedRingElem)
+    parent(a) == A || error("element does not belong to the correct ring")
+    return L(a, check=false)
   end
-  (iszero(lifted_numerator(a)) || iszero(numerator(a))) && return zero(R)
-  isone(lifted_denominator(a)) && return R(lifted_numerator(a))
-  ### TODO: divexact is still not implemented for MPolyQuo. 
-  # Once this is done, return to that method.
-  #return R(lift(divexact(numerator(a), denominator(a))))
-  error("`divexact` not implemented for `MPolyQuo`")
+  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+                                              <:MPolyPowersOfElement}
+    )
+    L == parent(a) || error("element does not belong to the correct ring")
+    isone(denominator(a)) && return A(numerator(a))
+    i, o = ppio(denominator, d)
+    return A(divexact(numerator(f), i), o, check=false)
+  end
+  return L, MapFromFunc(func, func_inv, A, L)
 end
+
+function Localization(A::MPolyQuoLocalizedRing, f::MPolyQuoLocalizedRingElem)
+  R = base_ring(A)
+  d = lifted_numerator(f)
+  U = MPolyPowersOfElement(R, [d])
+  L = MPolyQuoLocalizedRing(R, modulus(quotient_ring(A)), U*inverted_set(A))
+  function func(a::MPolyQuoLocalizedRingElem)
+    parent(a) == A || error("element does not belong to the correct ring")
+    return L(a)
+  end
+  function func_inv(a::MPolyQuoLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+                                              <:MPolyPowersOfElement}
+    )
+    L == parent(a) || error("element does not belong to the correct ring")
+    isone(lifted_denominator(a)) && return A(lifted_numerator(a))
+    #TODO: Once division in quotient rings works, we would like to replace 
+    # this routine by a more efficient one. Up to now, this uses 
+    # the implicit conversion from the localized rings. 
+    return A(a)
+  end
+  return L, MapFromFunc(func, func_inv, A, L)
+end
+
