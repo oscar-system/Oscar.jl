@@ -494,7 +494,7 @@ function issubset(
       is_unit(OO(X)(a)) || return false
     end
   end
-  return true
+  return true  # Spec R/I[S^-1] is a closed subscheme of Spec R[S^-1]
 end
 
 function issubset(
