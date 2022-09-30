@@ -41,6 +41,10 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 
 The constructor below returns the algebras equipped with `degrevlex`.
 
+```@docs
+weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+```
+
 ### Universal Enveloping Algebras of Finite Dimensional Lie Algebras
 
 Let $\mathfrak g$ be an $n$-dimensional Lie algebra over a field $K$, and let $x_1, \dots, x_n$ be a $K$-basis of $\mathfrak g$.
@@ -141,7 +145,16 @@ Given a PBW-algebra `A`, `zero(A)` and `one(A)` refer to the additive and multip
 Relevant test calls on an element `f` of `A` are  `iszero(f)` and `isone(f)`.
 
 
-### Data Associated to Elements of Multivariate Rings
+### Data Associated to Elements of PBW-algebras
 
 Given an element `f` of a PBW-algebra `A`, 
 - `parent(f)` refers to `A`,
+
+## Opposite Algebras
+
+```@docs
+opposite_algebra(A::PBWAlgRing)
+```
+
+If a map `opp` from a PBW-algebra to its opposite algebra is given,
+then `inv(opp)` refers to the inverse of `opp`.

@@ -1018,6 +1018,42 @@ function as_affine_algebra(
   return A, I, f, phi, theta
 end
 
+# needed for instance to compute kernels
+# adds a single extra variable to turn the localization into an affine_algebra
+# return the isomorphism L -> SomeAffineAlgebra
+function _as_affine_algebra(
+    L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement};
+    inverse_name::String="θ"
+  )
+  R = base_ring(L)
+  A, phi, t = _add_variables_first(R, [inverse_name])
+  theta = t[1]
+  f = prod(denominators(inverted_set(L)))
+  I = ideal(A, [phi(g) for g in gens(modulus(L))]) + ideal(A, [one(A)-theta*phi(f)])
+  Q, _ = quo(A, I)
+  id = hom(L, Q, gens(A)[2:end], check=false)
+  id_inv = hom(Q, L, pushfirst!(gens(L), inv(L(f))), check=false)
+  set_attribute!(id, :inverse, id_inv)
+  set_attribute!(id_inv, :inverse, id)
+  return id
+end
+
+### The following method is also required for the internals of the generic 
+# kernel routine for localized rings.
+function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing})
+  P = domain(f)
+  L = codomain(f)
+  I = ideal(L, zero(L))
+  R = base_ring(L)
+  J = saturated_ideal(I)
+  d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
+  W = MPolyQuoLocalizedRing(R, modulus(L), MPolyPowersOfElement(R, d))
+  id =  _as_affine_algebra(W)
+  A = codomain(id)
+  h = hom(P, A, id.(f.(gens(P))))
+  return preimage(h, ideal(A, id.(W.(gens(J)))))
+end
+
 function is_isomorphism(
     phi::MPolyQuoLocalizedRingHom{T, T}
   ) where {T<:MPolyQuoLocalizedRing}
@@ -1154,44 +1190,6 @@ function _add_variables_first(R::RingType, v::Vector{String}) where {RingType<:M
   n = length(gens(R))
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)])
   return ext_R, phi, gens(ext_R)[(1:length(v))]
-end
-
-
-
-function preimage(
-    f::MPolyQuoLocalizedRingHom{
-                                <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                                        <:MPolyPowersOfElement
-                                                       },
-                                <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                                        <:MPolyPowersOfElement
-                                                       }
-                               },
-    I::MPolyLocalizedIdeal
-  )
-  base_ring(I) == localized_ring(codomain(f)) || error("the ideal does not belong to the codomain of the map")
-  R = base_ring(domain(f))
-  S = base_ring(codomain(f))
-  Sc = helper_ring(f)
-  Isat = saturated_ideal(I)
-  J = ideal(Sc, [helper_kappa(f)(g) for g in gens(Isat)]) + helper_ideal(f)
-  return localized_ring(domain(f))(preimage(helper_eta(f), J))
-end
-
-function preimage(
-    f::MPolyQuoLocalizedRingHom{
-                                <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                                        <:MPolyPowersOfElement
-                                                       },
-                                <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                                        <:MPolyComplementOfKPointIdeal
-                                                       }
-                               },
-    I::MPolyLocalizedIdeal
-  )
-  base_ring(I) == localized_ring(codomain(f)) || error("the ideal does not belong to the codomain of the map")
-  J = ideal(helper_ring(f), helper_kappa(f).(gens(saturated_ideal(I)))) + helper_ideal(f)
-  return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
 
 @Markdown.doc """
@@ -1413,4 +1411,8 @@ function divides(a::MPolyQuoLocalizedRingElem, b::MPolyQuoLocalizedRingElem)
   represents_element(a*F[1], M) || return (false, zero(W))
   x = coordinates(a*F[1], M)
   return true, W(x[1])
+end
+
+function quotient(I::IdealType, J::IdealType) where {IdealType<:MPolyQuoLocalizedIdeal}
+  return base_ring(I)(quotient(pre_image_ideal(I), pre_image_ideal(J)))
 end
