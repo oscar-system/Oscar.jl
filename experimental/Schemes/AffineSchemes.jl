@@ -648,7 +648,6 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
-  @show "hi"
   R = OO(X)
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   return Spec(Y)
