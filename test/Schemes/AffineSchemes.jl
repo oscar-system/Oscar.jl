@@ -79,7 +79,6 @@
   @test issubset(intersect(A3,A3), A3)
   @test dim(A3) == 3
   @test dim(U) == 3
-  @test dim(V) == 3
   @test dim(X) == 2
   @test codim(A3) == 0
   @test_broken codim(V) == 0
