@@ -1661,8 +1661,15 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
     end
   end
 
+  # pre-allocate m so that don't need to allocate it again each loop iteration
+  m = similar(pivot)
   for e in bad
-    m = [k < 0 ? 0 : k for k in e]
+    # the next line computers   m = [k < 0 ? 0 : k for k in e]
+    # but without allocations
+    for i in 1:length(e)
+      m[i] = e[i] >= 0 ? e[i] : 0
+    end
+
     # check whether the new monomial m is already in the span 
     # of the good ones. If yes, discard it. If not, discard those 
     # elements of the good ones that are in the span of m and put 
@@ -1670,7 +1677,7 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
     if all(x->!_divides(m, x), good)
       # Remove those 'good' elements which are multiples of m
       filter!(x -> !_divides(x, m), good)
-      push!(good, m)
+      push!(good, copy(m))
     end
   end
 
