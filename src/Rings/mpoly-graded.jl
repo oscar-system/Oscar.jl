@@ -1641,11 +1641,7 @@ end
 
 ### Assume that a is minimal. We divide by `pivot` and return 
 # a minimal set of generators for the resulting monomial ideal.
-function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int};
-    # short exponent vectors where the k-th bit indicates that the k-th 
-    # exponent is non-zero.
-    shorts = [sum([(e[k]>0 ? 1 : 0) << (k-1) for k in 1:length(e)]) for e in a]
-  )
+function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
   # The good ones will contribute to a minimal generating 
   # set of the lhs ideal.
   #
@@ -1655,48 +1651,36 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int};
   # whether they become superfluous and if not, they are added to 
   # the good ones.
   good = similar(a, 0)
-  good_shorts = similar(shorts, 0)
   bad = similar(a, 0)
-  bad_shorts = similar(shorts, 0)
-  short_piv = sum([(pivot[k]>0 ? 1 : 0) << (k-1) for k in 1:length(pivot)])
-  for (e, s) in zip(a, shorts)
+  for e in a
     next = e-pivot
-    # The first condition checks whether short_piv has a non-zero entry 
-    # where s does not. The inner expression evaluates to zero in the 
-    # affirmative case and pivot can not divide e.
-    if iszero(short_piv & ~ s) && all(k->(e[k]>=pivot[k]), 1:length(e)) # tuned version of divides(e, pivot)
+    if all(x -> x >= 0, next) # tuned version of divides(e, pivot)
       push!(good, next)
-      push!(good_shorts, sum([(next[k]>0 ? 1 : 0) << (k-1) for k in 1:length(next)]))
     else
       push!(bad, next)
-      push!(bad_shorts, sum([(next[k]>0 ? 1 : 0) << (k-1) for k in 1:length(next)]))
     end
   end
 
-  for (e, s) in zip(bad, bad_shorts)
+  for e in bad
     m = [k < 0 ? 0 : k for k in e]
-    new_good = similar(good, 0)
-    new_good_shorts = similar(good_shorts, 0)
     # check whether the new monomial m is already in the span 
     # of the good ones. If yes, discard it. If not, discard those 
     # elements of the good ones that are in the span of m and put 
     # m in the list of good ones instead. 
-    if all(x->!(iszero(x[2] & ~ s) && all(k->(m[k]>=x[1][k]), 1:length(x[1]))), zip(good, good_shorts)) # tuned version of !divides(m, x)
+    if all(x->!_divides(m, x), good)
       # Find those 'good' elements which can be replaced by m.
-      for (x, xs) in zip(good, good_shorts)
-        if !(iszero(s & ~ xs) && all(k->(x[k]>=m[k]), 1:length(e))) #!divides(x, m)
+      new_good = similar(good, 0)
+      for x in good
+        if !_divides(x, m)
           push!(new_good, x)
-          push!(new_good_shorts, xs)
         end
       end
       push!(new_good, m)
-      push!(new_good_shorts, s)
       good = new_good
-      good_shorts = new_good_shorts
     end
   end
 
-  return good, good_shorts
+  return good
 end
 
 ### This implements the speedup from the CoCoA strategy, 
@@ -1803,14 +1787,12 @@ function _hilbert_numerator_from_leading_exponents(
     # initialize the result 
     h = one(S) - prod([t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t)])
     for i in 2:r
-      J, J_shorts = _divide_by(a[1:i-1], a[i], shorts=shorts[1:i-1])
+      J = _divide_by(a[1:i-1], a[i])
       J1 = Vector{Vector{Int}}()
-      J1_shorts = Vector{Int}()
       linear_mons = Vector{Int}()
-      for (m, s) in zip(J, J_shorts)
+      for m in J
         if sum(m) > 1
           push!(J1, m)
-          push!(J1_shorts, s)
         else
           for k in 1:length(m)
             if m[k] > 0 
@@ -1822,7 +1804,7 @@ function _hilbert_numerator_from_leading_exponents(
       end
       q = _hilbert_numerator_from_leading_exponents(J1, return_ring=S, 
                                                     weight_matrix=weight_matrix, 
-                                                    alg=alg, shorts=J1_shorts)
+                                                    alg=alg)
       for k in linear_mons
         q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
       end
@@ -1854,7 +1836,7 @@ function _hilbert_numerator_from_leading_exponents(
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
-    lhs, _ = _divide_by(a, pivot)
+    lhs = _divide_by(a, pivot)
 
     f = one(return_ring)
     for i in 1:nvars(return_ring)
@@ -1889,7 +1871,7 @@ function _hilbert_numerator_from_leading_exponents(
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
-    lhs, _ = _divide_by(a, pivot)
+    lhs = _divide_by(a, pivot)
 
     f = one(return_ring)
     for i in 1:nvars(return_ring)
@@ -1909,7 +1891,7 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
     
-    c, _ = _divide_by(b, pivot)
+    c = _divide_by(b, pivot)
     p1 = _hilbert_numerator_from_leading_exponents(b, 
                                                    return_ring=return_ring, 
                                                    weight_matrix=weight_matrix,
@@ -1941,7 +1923,7 @@ function _hilbert_numerator_from_leading_exponents(
     push!(rhs, pivot)
 
     ### Assembly of the division ideal with less total degree
-    lhs, _ = _divide_by(a, pivot)
+    lhs = _divide_by(a, pivot)
 
     f = one(return_ring)
     for i in 1:nvars(return_ring)
