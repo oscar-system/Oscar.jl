@@ -1668,15 +1668,9 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
     # elements of the good ones that are in the span of m and put 
     # m in the list of good ones instead. 
     if all(x->!_divides(m, x), good)
-      # Find those 'good' elements which can be replaced by m.
-      new_good = similar(good, 0)
-      for x in good
-        if !_divides(x, m)
-          push!(new_good, x)
-        end
-      end
-      push!(new_good, m)
-      good = new_good
+      # Remove those 'good' elements which are multiples of m
+      filter!(x -> !_divides(x, m), good)
+      push!(good, m)
     end
   end
 
