@@ -158,6 +158,13 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
 
   S, t = grade(PolynomialRing(K, "t" => 1:(np + length(is_invars)))[1], append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ]))
 
+  if isempty(is_invars)
+    I = ideal(S, elem_type(S)[])
+    Q, StoQ = quo(S, I)
+    QtoR = hom(Q, Rgraded, primary_invariants(RG))
+    return Q, QtoR
+  end
+
   RtoS = Vector{elem_type(S)}(undef, np + length(s_invars))
   for i = 1:np
     RtoS[i] = t[i]
@@ -167,7 +174,6 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
     g = set_exponent_vector!(one(S), 1, exps)
     RtoS[np + i] = g
   end
-
 
   # Build all products g*h of secondary invariants g and irreducible secondary
   # invariants h
