@@ -724,8 +724,8 @@ function _isometry_group_via_decomposition(L::ZLat; closed = true, direct=true)
     sv = _sv
   end
   bL = basis_matrix(L)
-  h = _row_span!(sv)*bL
   sv1 = fmpq_mat[v*bL for v in sv]
+  h = _row_span!(sv)*bL
   M1 = lattice(V, h)
   if closed
     # basically doubles the memory usage of this function
