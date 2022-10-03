@@ -49,6 +49,10 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
   end
 end
 
+function set_name!(U::SpecOpen, name::String)
+  U.name = name
+end
+
 open_subset_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = SpecOpen{SpecType, BRT}
 open_subset_type(X::Spec) = open_subset_type(typeof(X))
 
@@ -64,6 +68,13 @@ poly_type(U::SpecOpen) = poly_type(typeof(U))
 Return the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
 """
 ambient(U::SpecOpen) = U.X
+
+@doc Markdown.doc"""
+    ambient_ring(U::SpecOpen)
+
+For the open set `U = X \ V` return the ambient ring of `X`.
+"""
+ambient_ring(U::SpecOpen) = ambient_ring(ambient(U))
 
 @Markdown.doc """
     npatches(U::SpecOpen)
@@ -145,15 +156,25 @@ function SpecOpen(X::AbsSpec, I::MPolyIdeal; check::Bool=true)
   return SpecOpen(X, [g for g in gens(I) if !iszero(OO(X)(g))], check=check)
 end
 
+@doc Markdown.doc"""
+  complement(X::Scheme,Y::Scheme) -> Scheme
+
+Return the complement `X \ Y` of `Y` in `X`.
+"""
+complement(X::Scheme,Y::Scheme)
+
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyRing})
+  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
   return EmptyScheme(base_ring(X))
 end
 
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuo})
+  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
   return SpecOpen(X, modulus(OO(Z)))
 end
 
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing})
+  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
   return subscheme(X, prod(denominators(inverted_set(OO(Z)))))
 end
 
@@ -378,7 +399,7 @@ The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
-gens(R::SpecOpenRing) = R.(gens(base_ring(OO(scheme(R)))))
+gens(R::SpecOpenRing) = error("not implemented")
 
 @Markdown.doc """
     domain(R::SpecOpenRing)
@@ -504,7 +525,7 @@ Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open
 subset ``U ⊂ X`` of an affine scheme ``X``, return a 
 fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
 the `ambient` scheme ``X`` of ``U``) which represents ``a``
-in the sense that the maximal extension of its restriction 
+in the sense that the maximal extension of its restriction
 to ``U`` returns ``a``.
 
 **Note:** The seemingly superfluous argument ``U`` is needed 
@@ -522,13 +543,15 @@ function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
 end
 
 (R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+(R::MPolyLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+(R::MPolyRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
 (R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
 (R::SpecOpenRing)(f::MPolyQuoLocalizedRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
 
 (R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
 
-function (R::SpecOpenRing)(f::SpecOpenRingElem) 
+function (R::SpecOpenRing)(f::SpecOpenRingElem)
   parent(f) === R && return f
   return SpecOpenRingElem(R, [restrict(f, U) for U in affine_patches(domain(R))])
 end
@@ -621,7 +644,7 @@ end
 @Markdown.doc """
     maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
 
-Return the maximal extension of the restriction of ``f`` 
+Return the maximal extension of the restriction of ``f``
 to a rational function on ``X`` on a maximal domain of 
 definition ``U ⊂ X``. 
 
@@ -633,6 +656,7 @@ function maximal_extension(
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
   ) where {RET<:RingElem}
+
   a = numerator(f)
   b = denominator(f)
   W = localized_ring(OO(X))
@@ -674,7 +698,7 @@ end
 @Markdown.doc """
     maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
 
-Return the extension of the restriction of the ``fᵢ`` as a 
+Return the extension of the restriction of the ``fᵢ`` as a
 set of rational functions on ``X`` as *regular* functions to a 
 common maximal domain of definition ``U ⊂ X``.
 
@@ -877,6 +901,13 @@ function pullback(f::SpecOpenMor)
   return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
 end
 
+@doc Markdown.doc"""
+    restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool=true)
+
+Return the restriction `g: U -> V` of `f` to `U` and `V`.
+"""
+restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
+
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   if check
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
@@ -903,19 +934,17 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
   return SpecMor(W, Y, fy, check=false)
 end
 
-
 @Markdown.doc """
-    compose(f::T, g::T) where {T<:SpecOpenMor}
+    compose(f::SpecMor, g::SpecMor) -> SpecMor
 
-Compute the composition of two morphisms 
+Return the composition of two morphisms.
 
       f    g
     U →  V →  W
-    ∩    ∩    ∩
-    X    Y    Z
+ """
+compose(f::SpecMor, g::SpecMor; check::Bool=true)
 
-of open sets of affine varieties.
-"""
+
 function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
@@ -975,7 +1004,7 @@ function maximal_extension(
 end
 
 ### the restriction of a morphism to open subsets in domain and codomain
-function restriction(
+function restrict(
     f::SpecOpenMor,
     U::SpecOpen,
     V::SpecOpen;
@@ -991,7 +1020,7 @@ function restriction(
 end
 
 ### the restriction of a morphism to closed subsets in domain and codomain
-function restriction(
+function restrict(
     f::SpecOpenMor,
     X::SpecType,
     Y::SpecType;
@@ -1143,8 +1172,8 @@ function (R::MPolyRing)(a::RingElem, b::RingElem; check::Bool=true)
 end
 
 
-# For an open subsety U ⊂ Y of an affine scheme Y and a hypersurface 
-# complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction 
+# For an open subset U ⊂ Y of an affine scheme Y and a hypersurface
+# complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction
 # map ρ : 𝒪(U) → 𝒪(X)
 function restriction_map(
     U::SpecOpen, 
@@ -1247,7 +1276,7 @@ end
 
 # Automatically find a hypersurface equation h such that X = D(h) in 
 # the ambient scheme Y of U. 
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}}, 
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
     check::Bool=true
   )
@@ -1269,10 +1298,10 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   return restriction_map(U, X, h, check=false)
 end
 
-# Automatically find a hypersurface equation h such that X = D(h) in 
-# the ambient scheme Y of U. 
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}}, 
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+# Automatically find a hypersurface equation h such that X = D(h) in
+# the ambient scheme Y of U.
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}},
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
   Y = ambient(U)
@@ -1286,8 +1315,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}},
   return restriction_map(U, X, h, check=false)
 end
 
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}}, 
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
   Y = ambient(U)
@@ -1397,7 +1426,7 @@ function product(U::SpecOpen, Y::Spec)
 end
   
 function subscheme(U::SpecOpen, I::Ideal)
-  if !base_ring(I) == OO(ambient(U)) 
+  if base_ring(I) != OO(ambient(U))
     return subscheme(U, OO(ambient(U))(I))
   end
   Z = subscheme(ambient(U), I)
