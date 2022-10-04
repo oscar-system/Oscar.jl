@@ -653,7 +653,22 @@ the numerator and denominator of ``f`` have to be elements of
 the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
+    X::AbsSpec{<:Ring, <:MPolyLocalizedRing}, 
+    f::AbstractAlgebra.Generic.Frac{RET}
+  ) where {RET<:RingElem}
+
+  a = numerator(f)
+  b = denominator(f)
+  W = OO(X)
+  I = quotient(ideal(W, b), ideal(W, a))
+  U = SpecOpen(X, I)
+  g = [OO(V)(f) for V in affine_patches(U)]
+  R = SpecOpenRing(X, U)
+  return R(g)
+end
+
+function maximal_extension(
+    X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
   ) where {RET<:RingElem}
 
@@ -917,9 +932,12 @@ function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
 end
 
 function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+  ambient(codomain(f)) == ambient(V) || error("open sets not compatible")
   if check
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
-    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+    help_map = SpecOpenMor(U, codomain(f), [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+    Z = complement(V)
+    isempty(preimage(help_map, Z)) || error("image does not lay in the codomain candidate")
   end
   return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
@@ -1057,18 +1075,20 @@ function ==(f::T, g::T) where {T<:SpecOpenMor}
   return true
 end
 
-function preimage(f::SpecOpenMor, Z::Spec)
+function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   U = domain(f) 
   X = ambient(U)
-  n = length(affine_patches(U))
-  W = localized_ring(OO(X))
-  I = ideal(W, one(W))
-  for i in 1:n 
-    I = intersect(I, localized_modulus(OO(closure(preimage(f[i], Z), X))))
+  if check
+    is_closed_embedding(Z, ambient(codomain(f))) || error("second argument must be closed in the codomain")
   end
-  fZbar = subscheme(X, I)
-  return SpecOpen(fZbar, [g for g in gens(U) if !iszero(OO(fZbar)(g))])
-end
+  n = length(affine_patches(U))
+  pbZ = [preimage(f[i], Z) for i in 1:n]
+  Y = X 
+  for K in pbZ
+    Y = subscheme(Y, gens(modulus(OO(K))))
+  end
+  return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
+ end
 
 function preimage(f::SpecOpenMor, V::SpecOpen)
   U = domain(f)
@@ -1185,7 +1205,7 @@ function restriction_map(
 
   # handle the shortcut 
   if X in affine_patches(U)
-    i = findfirst(x->(is_equal(x, V), affine_patches(U)))
+    i = findfirst(x->(is_equal(x, X)), affine_patches(U))
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
@@ -1426,11 +1446,8 @@ function product(U::SpecOpen, Y::Spec)
 end
   
 function subscheme(U::SpecOpen, I::Ideal)
-  if base_ring(I) != OO(ambient(U))
-    return subscheme(U, OO(ambient(U))(I))
-  end
-  Z = subscheme(ambient(U), I)
-  return SpecOpen(Z, gens(U))
+  Z = subscheme(ambient(U), I) #Takes care of coercion and complains if necessary
+  return SpecOpen(Z, [g for g in gens(U) if !iszero(OO(Z)(g))])
 end
 
 function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}

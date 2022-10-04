@@ -576,8 +576,75 @@ function is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 end
 
 function is_closed_embedding(
-    X::Spec{BRT, RT},
-    Y::Spec{BRT, RT}
+    X::AbsSpec{<:Ring, <:MPolyQuo},
+    Y::AbsSpec{<:Ring, <:MPolyRing}
+  )
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  return true
+end
+
+function is_closed_embedding(
+    X::AbsSpec{<:Ring, <:MPolyRing},
+    Y::AbsSpec{<:Ring, <:MPolyQuo}
+  )
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  return iszero(modulus(OO(Y)))
+end
+
+function is_closed_embedding(
+    X::AbsSpec{<:Ring, <:MPolyQuo},
+    Y::AbsSpec{<:Ring, <:MPolyQuo}
+  )
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  return issubset(modulus(OO(Y)), modulus(OO(X)))
+end
+
+function is_closed_embedding(
+    X::AbsSpec{<:Ring, <:MPolyRing},
+    Y::AbsSpec{<:Ring, <:MPolyRing}
+  )
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  return true
+end
+
+function is_closed_embedding(
+    X::AbsSpec{<:Ring, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                            <:MPolyPowersOfElement}},
+
+    Y::AbsSpec{<:Ring, <:MPolyRing}
+  )
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  for f in inverted_set(OO(X))
+    isunit(OO(Y)(f)) || return false
+  end
+  return true
+end
+
+function is_closed_embedding(
+    X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                              <:MPolyPowersOfElement}},
+
+    Y::AbsSpec{<:Ring, <:MPolyQuo}
+  )
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  for x in inverted_set(OO(X)) 
+    isunit(OO(Y)(x)) || return false
+  end
+  for g in gens(modulus(OO(Y)))
+    iszero(OO(X)(g)) || return false
+  end
+  return true
+end
+
+function is_closed_embedding(
+    X::AbsSpec{BRT, RT},
+    Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
