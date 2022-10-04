@@ -12,7 +12,7 @@ on these things online.
 
 Oscar is the innovative, next generation Computer Algebra System. The ultimate
 goal for Oscar is to compete with (and ideally beat) Magma and Sage in our
-areas of expertise. Oscar should be accessable, even for the youngest student
+areas of expertise. Oscar should be accessible, even for the youngest student
 who is familiar with these objects. Oscar should follow general mathematical
 conventions to support the widest possible range of applications.
 
@@ -20,7 +20,7 @@ conventions to support the widest possible range of applications.
 
 Oscar is written in Julia, but is not Julia, nor can it be. 
 Some examples to illustrate what that means:
-Julias matrices are (C) arrays (of arbitrary dimension), parametrized by
+Julia's matrices are (C) arrays (of arbitrary dimension), parameterized by
 the type of the entries (apart from banded, sparse, ... special matrices).
 In the numerical world, the type mostly defines the representation of an object
 - double and variations
@@ -36,7 +36,7 @@ Then either:
 -  $n$ is part of the type -> every function is recompiled for every $n$ -
   which kills all modular (Chinese remainder theorem  (CRT) based)
   algorithms
--  $n$ is not part of the type, then it need to be elsewhere, ie. in the
+-  $n$ is not part of the type, then it need to be elsewhere, i.e. in the
   parent, every element, additional arguments, ...
 
 Furthermore, if $n$ is BigInt (fmpz), so no bittype, then it cannot be part of
@@ -84,7 +84,7 @@ We have a large codebase for infrastructure in place, comprising at least
  - polytopes, cones, linear programs
  - polyhedral fans
  - ... and MUCH more
-As well as specialised stuff
+As well as specialized stuff
  - polymake
  - Singular
  - Gap
@@ -119,8 +119,8 @@ change, quickly.  We work in a team of ~ 10(?) people.
 We lack infrastructure as everyone will notice immediately.
 As a result, the classical
 
-   I work for 6 month in a separate repo on a branch and then will dazzle you with perfect
-   code and cool examples
+    I work for 6 month in a separate repo on a branch and then will dazzle you
+    with perfect code and cool examples
 
 approach is not going to work for now. It will result in everyone fixing the same
 infrastructure problems over and over again. Please consider to work, e.g. in
