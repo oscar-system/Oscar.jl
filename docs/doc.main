@@ -200,6 +200,7 @@
   "Developer Documentation" => [
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
+    "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
