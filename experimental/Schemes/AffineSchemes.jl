@@ -55,6 +55,8 @@ struct EmptyScheme{BaseRingType}<:Scheme{BaseRingType}
   end
 end
 
+is_empty(X::EmptyScheme) = true
+
 ########################################################################
 #
 # Interface for affine schemes
@@ -140,8 +142,8 @@ this returns the open subscheme ``U = Spec(R[f⁻¹]) = X ∖ V(f)``
 defined by the complement of the vanishing 
 locus of ``f``.
 """
-function hypersurface_complement(X::AbsSpec, f::RingElem)::AbsSpec
-  return hypersurface_complement(underlying_scheme(X), f)
+function hypersurface_complement(X::AbsSpec, f::RingElem)
+  return hypersurface_complement(underlying_scheme(X), f)::AbsSpec
 end
 
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocalizedRing}}
@@ -353,7 +355,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyRing}, 
+    X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT}
   R = OO(X)
@@ -362,7 +364,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyRing}, 
+    X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = OO(X)
@@ -375,7 +377,7 @@ end
 ########################################################################
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuo}, 
+    X::AbsSpec{BRT, <:MPolyQuo},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = ambient_ring(Y)
@@ -384,7 +386,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, RT}, 
+    X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuo}
   R = base_ring(OO(X))
@@ -393,7 +395,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuo}, 
+    X::AbsSpec{BRT, <:MPolyQuo},
     Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = base_ring(OO(X))
@@ -403,7 +405,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuo}, 
+    X::AbsSpec{BRT, <:MPolyQuo},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = base_ring(OO(X))
@@ -418,7 +420,7 @@ end
 
 function issubset(
     X::AbsSpec{BRT, <:MPolyLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyRing} 
+    Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = OO(Y)
   R == base_ring(OO(X)) || error("schemes can not be compared")
@@ -427,7 +429,7 @@ end
 
 function issubset(
     X::AbsSpec{BRT, <:MPolyLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyQuo} 
+    Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
   R = ambient_ring(Y)
   R == base_ring(OO(X)) || error("schemes can not be compared")
@@ -435,7 +437,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, RT}, 
+    X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyLocalizedRing}
   R = base_ring(OO(X))
@@ -446,7 +448,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyLocalizedRing}, 
+    X::AbsSpec{BRT, <:MPolyLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
@@ -461,7 +463,7 @@ end
 ########################################################################
 function issubset(
     X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
-    Y::AbsSpec{BRT, <:MPolyRing} 
+    Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = OO(Y)
   R == base_ring(OO(X)) || error("schemes can not be compared")
@@ -469,7 +471,7 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing}, 
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
   R = base_ring(OO(Y))
@@ -479,31 +481,31 @@ function issubset(
 end
 
 function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing}, 
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
-  if !issubset(UY, UX) 
+  if !issubset(UY, UX)
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
       is_unit(OO(X)(a)) || return false
     end
   end
-  return iszero(OO(Y)(modulus(OO(X))))
+  return true  # Spec R/I[S^-1] is a closed subscheme of Spec R[S^-1]
 end
 
 function issubset(
-    X::AbsSpec{BRT, RT}, 
+    X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
-  if !issubset(UY, UX) 
+  if !issubset(UY, UX)
     # check whether the inverted elements in Y are units anyway
     for a in denominators(UY)
       is_unit(OO(X)(a)) || return false
@@ -542,9 +544,9 @@ function is_open_embedding(X::AbsSpec, Y::AbsSpec)
 end
 
 function is_open_embedding(
-    X::Spec{BRT, RT}, 
+    X::Spec{BRT, RT},
     Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || return false
@@ -552,14 +554,14 @@ function is_open_embedding(
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
   J = localized_ring(OO(X))(modulus(OO(Y)))
-  return localized_modulus(OO(X)) == J 
+  return localized_modulus(OO(X)) == J
 end
 
 function is_open_embedding(
-    X::Spec{BRT, <:MPolyQuoLocalizedRing}, 
+    X::Spec{BRT, <:MPolyQuoLocalizedRing},
     Y::Spec{BRT, <:MPolyRing}
   ) where {BRT}
-  return OO(Y) == base_ring(OO(X)) && all(x->iszero(x), gens(modulus(OO(X))))
+  return OO(Y) == base_ring(OO(X)) && all(iszero, gens(modulus(OO(X))))
 end
 
 #TODO: Add more cross-type methods as needed.
@@ -574,9 +576,9 @@ function is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 end
 
 function is_closed_embedding(
-    X::Spec{BRT, RT}, 
+    X::Spec{BRT, RT},
     Y::Spec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || return false
@@ -586,16 +588,16 @@ function is_closed_embedding(
 end
 
 function is_closed_embedding(
-    X::Spec{BRT, <:MPolyQuo}, 
+    X::Spec{BRT, <:MPolyQuo},
     Y::Spec{BRT, <:MPolyRing}
   ) where {BRT}
-  return OO(Y) == base_ring(OO(X)) 
+  return OO(Y) == base_ring(OO(X))
 end
 
 function is_closed_embedding(
-    X::Spec{BRT, <:MPolyQuo}, 
+    X::Spec{BRT, <:MPolyQuo},
     Y::Spec{BRT, <:RT}
-  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+  ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
@@ -612,6 +614,9 @@ Base.intersect(X::Scheme{BRT}, E::EmptyScheme{BRT}) where {BRT} = E
 Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT} = E
 
 ### For Specs of MPolyRings
+# TODO  intersect X,Y for X<Y should return a copy of X with === ambient_rings
+# Spec(X) does not apply for instance to principal open subsets hence a change
+# is necessary
 function Base.intersect(
     X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyRing}
@@ -904,7 +909,8 @@ identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = SpecMor(X, X, hom(OO(
 identity_map(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(base_ring(OO(X))), check=false))
 identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))))
 identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X))))
-inclusion_map(X::AbsSpec, Y::AbsSpec) = SpecMor(X, Y, gens(ambient_ring(Y)))
+inclusion_map(X::AbsSpec, Y::AbsSpec) = SpecMor(X, Y, gens(base_ring(OO(Y))))  # TODO: Remove
+inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_ring(Y)), check=check)
 
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   if check
