@@ -18,7 +18,7 @@ interface.
 
 Oscar is written in Julia, but is not Julia, nor can it be. 
 Some examples to illustrate what that means:
-Julia's matrices are (C) arrays (of arbitrary dimension), parameterized by
+Julia's matrices are arrays (of arbitrary dimension), parameterized by
 the type of the entries (apart from banded, sparse, ... special matrices).
 In the numerical world, the type mostly defines the representation of an object
 - double and variations
@@ -34,18 +34,19 @@ Then either:
 -  $n$ is part of the type -> every function is recompiled for every $n$ -
   which kills all modular (Chinese remainder theorem  (CRT) based)
   algorithms
--  $n$ is not part of the type, then it need to be elsewhere, i.e. in the
-  parent, every element, additional arguments, ...
+-  $n$ is not part of the type, then it needs to be elsewhere, e.g. in the
+   parent, or in every element, or by passing additional arguments, or ...
 
 Furthermore, if $n$ is BigInt (fmpz), so no bittype, then it cannot be part of
 the type.
 
-For non-empty matrices, this does not matter as the entries have enough
+For non-empty matrices, this can be compensated if the entries store enough
 information, but for empty matrices this information needs to be collected
 elsewhere.
 
 To summarize, normal Julia infrastructure does not suffice for our purposes in
-many places, so please use ours. If functions are missing then
+many places. Hence we provide our own, which any code contributions should use.
+If functions are missing in it, then please
 - add them
 - or tell us
 
@@ -91,9 +92,14 @@ software frameworks on a lower level:
 So: Please use it. It is safe to assume all can be improved, however, if we try
 to perfect every single line of code again and again, we we won't get anywhere;
 there is a balance to be found.
-For preference: interoperability is much more important than speed, readability
-is much more important than speed. Having said that: of course, sometimes pure
-speed matters, but not nearly as often as people think.
+For preference: 
+```
+Correctness > Interoperability, Readability
+Interoperability > Speed
+Readability > Speed
+```
+Having said that: of course, sometimes pure speed matters, but not nearly as
+often as people think.
 
 
 ## What Is Missing?
