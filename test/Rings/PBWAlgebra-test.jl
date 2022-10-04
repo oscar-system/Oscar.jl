@@ -13,6 +13,8 @@
   @test R[2] == y
 
   3*x^2 + y*z == R([3, 1], [[2, 0, 0], [0, 1, 1]])
+
+  @test_throws Exception pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], lex(r))
 end
 
 @testset "PBWAlgebra.printing" begin

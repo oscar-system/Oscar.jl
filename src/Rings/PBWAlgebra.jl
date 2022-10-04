@@ -296,7 +296,7 @@ end
 
 ####
 @doc Markdown.doc"""
-    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering) where T
+    pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
 
 Given a multivariate polynomial ring `R` over a field, say ``R=K[x_1, \dots, x_n]``, given
 a strictly upper triangular matrix `rel` with entries in `R` of type ``c_{ij} \cdot x_ix_j+d_{ij}``,
@@ -314,7 +314,8 @@ A = K\langle x_1, \dots , x_n \mid x_jx_i = c_{ij} \cdot x_ix_j+d_{ij},  \ 1\leq
     See the definition of PBW-algebras in the OSCAR documentation for details.
 
 !!! warning
-    The `K`-basis condition above is not checked by the function.
+    The `K`-basis condition above is checked by default. This check may be
+    skipped by passing `check = false`.
 
 # Examples
 ```jldoctest
@@ -328,7 +329,7 @@ julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 ```
 """
-function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
+function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
   n = nvars(r)
   nrows(rel) == n && ncols(rel) == n || error("oops")
   scr = singular_coeff_ring(coefficient_ring(r))
@@ -346,6 +347,9 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering) where T
     srel[i,j] = t
   end
   s, gs = Singular.GAlgebra(sr, C, D)
+  if check && !iszero(Singular.LibNctools.ndcond(s))
+    error("non-degeneracy condition is non-zero")
+  end
   R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r))
   return R, [PBWAlgElem(R, x) for x in gs]
 end
@@ -356,7 +360,7 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   n == length(dxs) || error("number of differentials should match number of variables")
   r, v = PolynomialRing(K, vcat(xs, dxs))
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
-  return pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r))
+  return pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
 end
 
 function weyl_algebra(
