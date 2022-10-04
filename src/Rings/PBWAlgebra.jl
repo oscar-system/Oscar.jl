@@ -25,7 +25,7 @@ end
 
 mutable struct PBWAlgIdeal{D, T, S}
   basering::PBWAlgRing{T, S}
-  sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal
+  sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal, always defined
   sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite
   gb::Singular.sideal{Singular.spluralg{S}}
   opgb::Singular.sideal{Singular.spluralg{S}}
@@ -35,8 +35,12 @@ mutable struct PBWAlgIdeal{D, T, S}
     d.isTwoSided = (D == 0)
     return new{D, T, S}(p, d)
   end
-  function PBWAlgIdeal{D, T, S}(p::PBWAlgRing{T, S}) where {D, T, S}
-    return new{D, T, S}(p)
+  function PBWAlgIdeal{D, T, S}(p::PBWAlgRing{T, S},
+                      d::Singular.sideal{Singular.spluralg{S}},
+                    opd::Singular.sideal{Singular.spluralg{S}}) where {D, T, S}
+    d.isTwoSided = (D == 0)
+    opd.isTwoSided = (D == 0)
+    return new{D, T, S}(p, d, opd)
   end
 end
 # the meaning of the direction parameter D
@@ -480,32 +484,16 @@ function base_ring(a::PBWAlgIdeal)
   return a.basering
 end
 
-function _any_gens(a::PBWAlgIdeal)
-  return isdefined(a, :sdata) ? a.sdata : a.sopdata
-end
-
-function _set_opdata!(a::PBWAlgIdeal{D}, b::Singular.sideal) where D
-  @assert !isdefined(a, :sdata)
-  @assert !isdefined(a, :gb)
-  @assert !isdefined(a, :opgb)
-  b.isTwoSided = (D == 0)
-  a.sopdata = b
-  return a
-end
-
 function ngens(a::PBWAlgIdeal)
-  # this assumes a.sdata and a.sopdata have the same number of gens
-  return ngens(_any_gens(a))
+  return ngens(a.sdata)
 end
 
 function gens(a::PBWAlgIdeal{D, T, S}) where {D, T, S}
-  _sdata_assure!(a)
   R = base_ring(a)
   return PBWAlgElem{T, S}[PBWAlgElem(R, x) for x in gens(a.sdata)]
 end
 
 function gen(a::PBWAlgIdeal, i::Int)
-  _sdata_assure!(a)
   R = base_ring(a)
   return PBWAlgElem(R, a.sdata[i])
 end
@@ -597,14 +585,6 @@ function right_ideal(R::PBWAlgRing{T, S}, g::AbstractVector) where {T, S}
   return PBWAlgIdeal{1, T, S}(R, i)
 end
 
-# assure a.sdata is defined
-function _sdata_assure!(a::PBWAlgIdeal)
-  if !isdefined(a, :sdata)
-    R = base_ring(a)
-    I.sdata = _opmap(R, a.sopdata, _opposite(R))
-  end
-end
-
 # assure a.sopdata is defined
 function _sopdata_assure!(a::PBWAlgIdeal)
   if !isdefined(a, :sopdata)
@@ -614,7 +594,6 @@ function _sopdata_assure!(a::PBWAlgIdeal)
 end
 
 function groebner_assure!(a::PBWAlgIdeal)
-  _sdata_assure!(a)
   if !isdefined(a, :gb)
     a.gb = Singular.std(a.sdata)
   end
@@ -622,7 +601,7 @@ end
 
 function opgroebner_assure!(a::PBWAlgIdeal)
   _sopdata_assure!(a)
-  if !isdefined(a, :gb)
+  if !isdefined(a, :opgb)
     a.opgb = Singular.std(a.sopdata)
   end
 end
@@ -645,7 +624,7 @@ false
 ```
 """
 function iszero(a::PBWAlgIdeal)
-  return iszero(_any_gens(a))
+  return iszero(a.sdata)
 end
 
 function _one_check(I::Singular.sideal)
@@ -697,10 +676,10 @@ false
 ```
 """
 function isone(a::PBWAlgIdeal{D}) where D
-  if iszero(_any_gens(a))
+  if iszero(a.sdata)
     return false
   end
-  if _one_check(_any_gens(a))
+  if _one_check(a.sdata)
     return true
   end
   if D > 0
@@ -721,24 +700,50 @@ function Base.:+(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, 
   return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata + b.sdata)
 end
 
-#### To be rewritten for two-sided ideals only
-####@doc Markdown.doc"""
-####    *(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
-####
-####Return the product of `I` and `J`.
-####"""
-####function Base.:*(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, T, S}
-####  return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata + b.sdata)
-####end
 
-####@doc Markdown.doc"""
-####    ^(I::PBWAlgIdeal{D, T, S}, m::Int) where {D, T, S}
-####
-####Return the `m`-th power of `I`.
-####"""
-####function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
-####  return PBWAlgIdeal{D, T, S}(base_ring(a), a.sdata^b)
-####end
+function _as_left_ideal(a::PBWAlgIdeal{D}) where D
+  is_left(a) || error("cannot convert to left ideal")
+  if D < 0
+    return a.sdata
+  else
+    groebner_assure!(a)
+    return a.gb
+  end
+end
+
+function _as_right_ideal(a::PBWAlgIdeal{D}) where D
+  is_right(a) || error("cannot convert to right ideal")
+  if D > 0
+    return a.sdata
+  else
+    opgroebner_assure!(a)
+    R = base_ring(a)
+    return _opmap(R, a.opgb, _opposite(R))
+  end
+end
+
+function Base.:*(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, Db, T, S}
+  @assert base_ring(a) == base_ring(b)
+  is_left(a) && is_right(b) || throw(NotImplementedError(:*, a, b))
+  # Singular.jl's cartesian product is correct for left*right
+  return PBWAlgIdeal{0, T, S}(base_ring(a), _as_left_ideal(a)*_as_right_ideal(b))
+end
+
+function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
+  @assert b >= 0
+  b == 0 && return PBWAlgIdeal{D, T, S}(base_ring(a), [one(base_ring(a))])
+  b == 1 && return a
+  if D == 0
+    # Note: repeated mul seems better than nested squaring
+    res = a
+    while (b -= 1) > 0
+      res = res*a
+    end
+    return res
+  else
+    throw(NotImplementedError(:^, a, b))
+  end
+end
 
 @doc Markdown.doc"""
     intersect(I::PBWAlgIdeal{D, T, S}, Js::PBWAlgIdeal{D, T, S}...) where {D, T, S}
@@ -760,10 +765,8 @@ function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) whe
     @assert R === base_ring(bi)
   end
   if D < 0
-    _sdata_assure!(a)
     res = a.sdata
     for bi in b
-      _sdata_assure!(bi)
       res = Singular.intersection(res, bi.sdata)
     end
     return PBWAlgIdeal{D, T, S}(R, res)
@@ -774,10 +777,13 @@ function Base.intersect(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}...) whe
       _sopdata_assure!(bi)
       res = Singular.intersection(res, bi.sopdata)
     end
-    return _set_opdata!(PBWAlgIdeal{D, T, S}(R), res)
+    return PBWAlgIdeal{D, T, S}(R, _opmap(R, res, _opposite(R)), res)
   else
-    # two-sided algorithm missing
-    throw(NotImplementedError(:intersect, a, b...))
+    res = _as_left_ideal(a)
+    for bi in b
+      res = Singular.intersection(res, _as_left_ideal(bi))
+    end
+    return PBWAlgIdeal{D, T, S}(R, res)
   end
 end
 
@@ -851,7 +857,6 @@ function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {
   @assert base_ring(a) === base_ring(b)
   if D <= 0
     # Ditto comment ideal_membership
-    _sdata_assure!(a)
     groebner_assure!(b)
     return Singular.iszero(Singular.reduce(a.sdata, b.gb))
   else
