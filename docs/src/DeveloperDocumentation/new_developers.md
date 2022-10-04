@@ -91,9 +91,8 @@ people think.
 
 The infrastructure is incomplete, e.g. we do not have
  - varieties, (we've started with curves recently)
- - simplicial complexes, combinatorial manifolds
+ - combinatorial manifolds
  - surfaces
- - tropical varieties, in particular hypersurfaces
  - tropical polytopes
  - ....
 
