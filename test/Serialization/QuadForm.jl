@@ -30,7 +30,6 @@
       test_save_load_roundtrip(path, VFF) do loaded
           FF1 = base_ring(loaded)
           F1 = base_field(FF1)
-          @show FF1
           isoF = hom(F1,F,gen(F))
           isoFF = hom(FF1,FF,isoF,gen(FF))
           @test gram_matrix(VFF) == map_entries(isoFF,gram_matrix(loaded))
