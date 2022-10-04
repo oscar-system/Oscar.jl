@@ -108,7 +108,7 @@ sparse. Please also pay attention to the documentation section of the
 Using `Revise` you can avoid having to restart Julia and reloading OSCAR when
 editing the code.
 
-### Ask Oscar related questions in the Oscar slack
+### Ask Oscar Related Questions in the [Oscar Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
 
 ### Use `]up`
 Working with the development version also entails that the packages Oscar
