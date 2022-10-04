@@ -35,7 +35,9 @@ the following six steps for submitting changes to the Oscar source:
 1. Fork the main Oscar.jl repository. For this go to the [Oscar.jl GitHub
    page](https://github.com/oscar-system/Oscar.jl) and click on "Fork" at the
    upper right.
-2. Clone your forked repository to your local machine.
+2. [Clone your forked repository to your local
+   machine](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
+   If you have set up ssh access you can do this in the following way:
    ```
    git clone git@github.com:your_github_username/Oscar.jl
    ```
@@ -107,6 +109,10 @@ sparse. Please also pay attention to the documentation section of the
 
 
 ## Further hints
+
+### Give [gh](https://github.com/cli/cli) a try
+Especially if you will be developing a lot, this can speed up your workflow
+tremendously.
 
 ### Use the [`Revise`](https://github.com/timholy/Revise.jl) package
 Using `Revise` you can avoid having to restart Julia and reloading OSCAR when
