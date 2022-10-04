@@ -30,16 +30,16 @@ In the numerical world, the type mostly defines the representation of an object
 - BigInt
 
 In algebra, this is either not true or terribly inefficient (or impossible)
-Take Z/nZ integers modulo n, and matrices over it
+Take $\mathbb{Z}/n\mathbb{Z}$ integers modulo $n$, and matrices over it
    
 Then either:
-- $n$ is part of the type -> every function is recompiled for every $n$ -
+-  $n$ is part of the type -> every function is recompiled for every $n$ -
   which kills all modular (Chinese remainder theorem  (CRT) based)
   algorithms
-- $n$ is not part of the type, then it need to be elsewhere, ie. in the
+-  $n$ is not part of the type, then it need to be elsewhere, ie. in the
   parent, every element, additional arguments, ...
 
-Furthermore, if n is BigInt (fmpz), so no bittype, then it cannot be part of
+Furthermore, if $n$ is BigInt (fmpz), so no bittype, then it cannot be part of
 the type.
 
 For non-empty matrices, this does not matter as the entries have enough
