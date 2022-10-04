@@ -199,6 +199,7 @@
   "Index" => "manualindex.md",
   "Developer Documentation" => [
     "DeveloperDocumentation/new_developers.md",
+    "DeveloperDocumentation/way_of_working.md",
     "DeveloperDocumentation/styleguide.md",
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/debugging.md",
