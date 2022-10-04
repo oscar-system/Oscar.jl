@@ -1699,6 +1699,7 @@ function saturated_ideal(
       for g in gens(J)
         g in I
       end
+
     end
     I.is_saturated = true
   end
@@ -1725,6 +1726,7 @@ function Base.in(
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
+  b in pre_saturated_ideal(I) && return true
   return b in saturated_ideal(I)
 end
 
