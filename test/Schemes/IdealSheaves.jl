@@ -47,4 +47,7 @@
   set_name!(I, "I")
   J = IdealSheaf(X, [x[1]-5, x[2]-1, x[3]])
   set_name!(J, "J")
+
+  @test is_canonically_isomorphic(I+J, IdealSheaf(X, [one(x[1])]))
+  K = I*J
 end
