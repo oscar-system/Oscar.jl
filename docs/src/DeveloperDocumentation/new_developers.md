@@ -14,9 +14,12 @@ to the [Introduction for new developers](@ref) if you are new to OSCAR.
 2. Please have a look at the [Developer Style Guide](@ref) and the [Design
    Decisions](@ref). Adhering to the style guide makes reviewing code easier
    for us, and hence your new feature can be merged faster.
-3. Let us know what you are working on:
+3. Let us know what you are working on early:
    - You can open a draft pull request on GitHub right at the beginning of your
-     work.
+     work. We are more than happy to look at incomplete prototypes to get an
+     idea of what you are working on. This allows us to assess what kind of
+     problems you might encounter and whether we can mitigate these by making
+     changes to OSCAR.
    - Feel free to contact us on
      [Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
    - Have a look at [our community page](https://oscar.computeralgebra.de/community/).

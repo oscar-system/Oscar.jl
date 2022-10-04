@@ -10,6 +10,10 @@ areas of expertise. Oscar should be accessible, even for the youngest student
 who is familiar with these objects. Oscar should follow general mathematical
 conventions to support the widest possible range of applications.
 
+The key idea for development of OSCAR is to pick a single textbook for every
+area and follow the conventions in there.  This way we get a consistent
+interface.
+
 ## Oscar and Julia
 
 Oscar is written in Julia, but is not Julia, nor can it be. 
@@ -78,7 +82,8 @@ We have a large codebase for infrastructure in place, comprising at least
  - polytopes, cones, linear programs
  - polyhedral fans
  - ... and MUCH more
-As well as specialized stuff
+For specialized functionality we can access the entirety of the following
+software frameworks on a lower level:
  - polymake
  - Singular
  - Gap
@@ -90,6 +95,10 @@ For preference: interoperability is much more important than speed, readability
 is much more important than speed. Having said that: of course, sometimes pure
 speed matters, but not nearly as often as people think.
 
+
+## What Is Missing?
+
+
 The infrastructure is incomplete, e.g. we do not have
  - varieties, (we've started with curves recently)
  - combinatorial manifolds
@@ -97,16 +106,6 @@ The infrastructure is incomplete, e.g. we do not have
  - tropical polytopes
  - ....
 
-If you need them, e.g. you want a library/ package for (elliptic) curves, then
-step ONE should be to define a curve. It does not need to be perfect, support
-all of Hartshorn immediately, but it should not contradict him either. It is OK
-for a function to say: sorry, not (yet) implemented. Then if I need it, I can
-add and re-use the infrastructure.
-
-The key idea is to pick a single textbook and follow the conventions in there.
-This way we get a consistent interface.
-
-## What Is Missing?
 
 At this point we have, mathematically speaking, almost nothing. This has to
 change, quickly.  We work in a team of ~ 10(?) people.
