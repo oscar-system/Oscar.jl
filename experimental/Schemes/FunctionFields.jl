@@ -13,7 +13,7 @@ export representative
   C = default_covering(X)
   # Check that X is connected
   for U in patches(C)
-    for V in patches(C)
+    for V in patches(C) 
       A, _ = glueing_domains(C[U, V])
       is_empty(A) && !is_empty(U) && !is_empty(V) && return false
     end
@@ -170,6 +170,14 @@ end
 function *(a::T, b::T) where {T<:VarietyFunctionFieldElem}
   parent(a) === parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(representative(a) * representative(b), check=false)
+end
+
+function *(a::RingElem, b::VarietyFunctionFieldElem)
+  return parent(b)(a)*b
+end
+
+function *(b::VarietyFunctionFieldElem, a::RingElem)
+  return a*b
 end
 
 function Base.:(//)(a::Integer, b::T) where {T<:VarietyFunctionFieldElem}
@@ -353,7 +361,8 @@ end
 (KK::VarietyFunctionField)() = zero(KK)
 (KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
-(KK::VarietyFunctionField)(a::MPolyElem) = KK(a, one(parent(a)), check=false)
+(KK::VarietyFunctionField)(a::MPolyElem) = KK(a, one(a), check=false)
+(KK::VarietyFunctionField)(a::RingElem) = KK(representative_field(KK)(a), check=false)
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
 
 function Base.show(io::IO, KK::VarietyFunctionField)

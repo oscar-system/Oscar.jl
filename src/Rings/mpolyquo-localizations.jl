@@ -1354,6 +1354,9 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
 end
 
+@attr function is_prime(I::MPolyQuoLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
 
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
@@ -1370,6 +1373,7 @@ end
 function ideal(
     W::MPolyQuoLocalizedRing, gens::Vector
   )
+  length(gens) == 0 && return MPolyQuoLocalizedIdeal(W, [zero(W)])
   return MPolyQuoLocalizedIdeal(W, W.(gens))
 end
 

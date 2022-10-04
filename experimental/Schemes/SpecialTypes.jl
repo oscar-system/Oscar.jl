@@ -34,6 +34,12 @@ complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U
 gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
 getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
+function SpecOpen(U::PrincipalOpenSubset) 
+  X = ambient_scheme(U)
+  h = lifted_numerator(complement_equation(U))
+  return SpecOpen(X, [h])
+end
+
 function inclusion_morphism(U::PrincipalOpenSubset) 
   if !isdefined(U, :inc)
     X = ambient_scheme(U)
@@ -259,3 +265,28 @@ end
   f = complement_equation(U)
   return is_non_zero_divisor(f, ambient_scheme(U))
 end
+
+### conversion
+function Glueing(G::SimpleGlueing)
+  X, Y = patches(G)
+  f, g = glueing_morphisms(G)
+  U, V = glueing_domains(G)
+  UU = SpecOpen(U)
+  VV = SpecOpen(V)
+  ff = SpecOpenMor(UU, VV, [compose(restrict(f, UU[1], V, check=true),
+                                    inclusion_map(V, Y))
+                           ])
+  gg = SpecOpenMor(VV, UU, [compose(restrict(g, VV[1], U, check=true),
+                                    inclusion_map(U, X))
+                           ])
+  return Glueing(X, Y, ff, gg)
+end
+
+function compose(G::Glueing, H::SimpleGlueing) 
+  return compose(G, Glueing(H))
+end
+
+function compose(G::SimpleGlueing, H::Glueing) 
+  return compose(Glueing(G), H)
+end
+

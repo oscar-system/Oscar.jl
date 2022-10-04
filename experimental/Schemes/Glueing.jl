@@ -68,7 +68,9 @@ Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets
     )
     ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
     ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
-    if check
+    domain(f) == codomain(g) || error("maps are not compatible")
+    domain(g) == codomain(f) || error("maps are not compatible")
+    if true
       (is_canonically_isomorphic(domain(f), codomain(g)) && 
        is_canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
       compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")

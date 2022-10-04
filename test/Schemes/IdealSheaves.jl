@@ -1,20 +1,4 @@
-
-  P = projective_space(QQ, 2)
-  S = ambient_ring(P)
-  C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
-  Ccov = as_covered_scheme(C)
-
-  KK = VarietyFunctionField(Ccov)
-  U2 = patches(Ccov)[2]
-  a = 5*gens(OO(U2))[1]*gens(OO(U2))[2]
-
-  b = KK(a, one(a))
-  @test b^2 - b == KK(a^2-a, one(a))
-end
-
-@testset "fraction fields of varieties II" begin
-  # We construct by hand the projective bundle
-  # P(O_{P^1}(4)+O_{P^1}(6)+O_{P^1}(1))
+@testset "Ideal sheaves and Weil divisors" begin
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
@@ -57,10 +41,19 @@ end
 
   X = CoveredScheme(C)
 
-  KK = VarietyFunctionField(X)
+  U = C[1]
+  x = gens(ambient_ring(U))
+  I = IdealSheaf(X, [x[1]-1, x[2]-2, x[3]-3])
+  set_name!(I, "I")
+  J = IdealSheaf(X, [x[1]-5, x[2]-1, x[3]])
+  set_name!(J, "J")
+  D = WeilDivisor(I)
+  E = WeilDivisor(J)
+  @test D + 2*E == D + E + E
 
+  KK = VarietyFunctionField(X)
   U = representative_patch(KK)
-  V = C[5]
+  V = C[3]
   R = ambient_ring(V)
   x = gens(R)
   f = x[1]^2 - 2*x[2]^5*x[3]^3
@@ -70,44 +63,47 @@ end
   @test h[V] == f//g
   K = FractionField(R)
   @test K(h) == f//g
-  @test KK(f, g) == KK(f//g)
 
   @test KK(f+2*g-5, g) + KK(f+2*g-5, g) == KK(2*(f+2*g-5)//g)
   h = KK(f+2*g-5, g)
-  @test deepcopy(h)==h
-  @test KK(1) == one(KK)
-  @test zero(KK) == KK(0)
   @test h[V] == (f+2*g-5)//g
-  @test divexact(h,h) == one(KK)
-  @test h*inv(h) == one(KK)
-  @test isone(h*inv(h))
-  @test h^2 == h*h
-  @test h^fmpz(2)==h^2
-  @test h^fmpz(2)==h^Int8(2)
-  @test KK(h[V]+h[V]) == h + h
-  @test coefficient_ring(KK) === kk
-  @test -h == KK(-h[V])
-  @test 2//h == KK(2)//h
-  @test 2//h == ZZ(2)//h
-  @test elem_type(typeof(KK))==typeof(h)
-  @test parent_type(typeof(h)) == typeof(KK)
-  @test base_ring(KK)==base_ring(h)
-  @test is_domain_type(typeof(h))
-  @test is_exact_type(typeof(h))
-  @test iszero(KK())
-  @test KK(h)==h
-  @test !iszero(KK(numerator(h)))
-  @test_throws ErrorException KK(f,0*f)
-
   K = FractionField(R)
   @test K(h) == (f+2*g-5)//g
 
-  P2 = projective_space(QQ,2)
-  S = ambient_ring(P2)
-  s0 = gens(S)[1]
-  X = subscheme(P2, ideal(S, s0))
-  Xc = as_covered_scheme(X)
-  KX = function_field(Xc)
-  @test is_irreducible(Xc) #fails
+end
 
+@testset "orders on divisors" begin
+  kk = QQ
+  R, (s,t) = PolynomialRing(kk, ["s", "t"])
+  X = Spec(R)
+  Xc = CoveredScheme(X)
+  KK = VarietyFunctionField(Xc)
+  f = s^2 + t^2-1
+  I = IdealSheaf(Xc, [f])
+  F = KK(f^70)
+  @test order_on_divisor(F, I) == 70
+end
+
+@testset "linear systems" begin
+  P2 = projective_space(QQ, 2)
+  S = ambient_ring(P2)
+  X = as_covered_scheme(P2)
+  I = IdealSheaf(P2, [S[1]])
+  D = WeilDivisor(I)
+
+  KK = function_field(X)
+  R = ambient_ring(representative_patch(KK))
+  x = gens(R)
+  @test in_linear_system(KK(x[1]), D)
+  @test !in_linear_system(KK(x[1]^2), D)
+  @test in_linear_system(KK(x[1]^2), 2*D)
+  # Not running at the moment; work in progress
+  #@test !in_linear_system(KK(x[1], x[2]), D)
+
+  L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
+  H = S[1]+S[2]+S[3]
+  P = IdealSheaf(P2, [H])
+  @test ngens(find_subsystem(L, P, 1)[1]) == 3
+  @test ngens(find_subsystem(L, P, 2)[1]) == 1
+  @test ngens(find_subsystem(L, P, 3)[1]) == 0
 end
