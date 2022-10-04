@@ -106,11 +106,7 @@ The infrastructure is incomplete, e.g. we do not have
  - tropical polytopes
  - ....
 
-
-At this point we have, mathematically speaking, almost nothing. This has to
-change, quickly.  We work in a team of ~ 10(?) people.
-We lack infrastructure as everyone will notice immediately.
-As a result, the classical
+Since we are a relatively small team and OSCAR is still very new, the usual
 
     I work for 6 month in a separate repo on a branch and then will dazzle you
     with perfect code and cool examples
@@ -118,21 +114,15 @@ As a result, the classical
 approach is not going to work for now. It will result in everyone fixing the same
 infrastructure problems over and over again. Please consider to work, e.g. in
 a file/directory  in `Oscar/examples` and push on a regular basis, even, or in
-particular, incomplete code. Break it down into small pull requests.
- - it is in examples, so no-one is accidentally going to automatically use it
- - it is in the main repo, so everyone can see it and try to use it, producing feedback
- - infrastructure, in Oscar at least, can be added in the same repo, immediately and thus
-   is available to others, immediately. (feedback, ...)
- - [Talk to us!](https://oscar.computeralgebra.de/community/) - as early as
-   possible. There is a chance that what you're trying to do is already there -
-   in a different package maybe, not linked in, ....
+particular, incomplete code. Break it down into small pull requests. Please also see
+the [Introduction for new developers](@ref).
 
 
 
 ## Practical Development
 
 ### Creating New Basic Types
-Whenever you feel the urge to define a new basic type, say a new multivariate
+If you encounter the need for a new basic type, say a new multivariate
 ring, please consider the ramifications:
  - can you do matrices?
  - modules?
@@ -142,8 +132,6 @@ ring, please consider the ramifications:
  - interaction with other types? (map to residue rings, apply automorphisms, ...)
  - in fact, everything the other MPoly type can?
 
-If yes: still reconsider, but go ahead.
-
 If no: at least use "our" types to interface your function, better still, use
 our type and complain about lack of functionality/ speed/ interface (or provide
 patches).
@@ -152,17 +140,15 @@ This applies to all foundations! They are all incomplete, and they can all
 be improved BUT if everyone does their own foundations, we cannot work
 together.
 
-As a reminder, please stick to "global definitions" and not "experts" versions
-of definitions. Reasoning such as: "but all experts know and expect this - it
-is always done this way" will make your function impossible to be used by
-outsiders. Feel free to add the other "expert" definition layer if you need.
+!!! danger "Expert definitions"
+    As a reminder, please stick to "global definitions" and not "experts"
+    versions of definitions. Reasoning such as: "but all experts know and
+    expect this - it is always done this way" will make your function
+    impossible to be used by outsiders. Feel free to add the other "expert"
+    definition layer if you need.
 
-### Including Outside Packages
-Unless really really necessary, don't include outside packages
-as dependencies. Every outside package means that the testing, releases, ...
-are more complicated. You're at the whim of others. If you need a highly
-non-trivial 10000 line package, well, there is no help and we need to see how
-to arrange it. In particular, for the near future, it will be your job to
-ensure that this outside package still works with us. If you need a trivial 10
-line function from a 10000 line package, just don't.
+### Adding new dependencies
+Unless really really necessary, don't add new dependencies. Every new
+dependency complicates the development workflow, in that we will need to stay
+compatible with this package. 
 
