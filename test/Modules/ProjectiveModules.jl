@@ -26,4 +26,9 @@
   Palt2 = compose(Palt, Palt)
   @test all(x->(Palt2(x) == Palt(x)), gens(domain(Palt)))
 
+  # Testing for free polynomial rings
+  A = R[x+y 3*x+z-4 5*w-x+3 27*w+5*x-z+7 28*x+y-2*z-5]
+  success, P = Oscar._is_projective(A)
+  @test success
+  @test P^2 == P
 end
