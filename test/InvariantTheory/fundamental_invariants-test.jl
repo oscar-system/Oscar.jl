@@ -116,6 +116,25 @@
   for f in invars
     @test reynolds_operator(RG, f) == f
   end
+
+  # `:primary_and_secondary` actually removes invariants
+  K, a = CyclotomicField(3, "a")
+  M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
+  M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
+
+  RG = invariant_ring(M1, M2)
+  primary_invariants(RG, primary_degrees = [ 3, 6, 6 ])
+
+  invars = fundamental_invariants(RG, :primary_and_secondary)
+  @test [ total_degree(f.f) for f in invars ] == [ 3, 3, 3, 6 ]
+
+  S = RG.fundamental.S
+  RtoS = RG.fundamental.toS
+  R = polynomial_ring(RG)
+  StoR = hom(S, R, invars)
+  for (f, g) in RtoS
+    @test StoR(g) == f
+  end
 end
 
 @testset "Fundamental invariants (for permutation groups)" begin

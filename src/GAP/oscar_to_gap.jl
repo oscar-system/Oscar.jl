@@ -14,6 +14,9 @@ end
 ## `fmpq` to GAP rational
 GAP.julia_to_gap(obj::fmpq) = GAP.Globals.QUO(GAP.julia_to_gap(numerator(obj)), GAP.julia_to_gap(denominator(obj)))
 
+## `PosInf` to GAP infinity
+GAP.julia_to_gap(obj::PosInf) = GAP.Globals.infinity
+
 ## `fmpz_mat` to matrix of GAP integers
 GAP.julia_to_gap(obj::fmpz_mat) = GAP.julia_to_gap(Matrix(obj), recursive = true)
 

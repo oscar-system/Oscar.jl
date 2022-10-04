@@ -79,6 +79,31 @@ end
   @test_throws ArgumentError cyclic_group(-1)
   @test_throws ArgumentError cyclic_group(PermGroup, -1)
 
+  for p in [next_prime(2^62), next_prime(fmpz(2)^66)]
+    g = cyclic_group(p)
+    @test is_cyclic(g)
+    @test !is_dihedral_group(g)
+    @test is_finite(g)
+    @test order(g) == p
+
+    n = 2*fmpz(p)
+    g = dihedral_group(n)
+    @test !is_cyclic(g)
+    #@test is_dihedral_group(g)
+    @test is_finite(g)
+    @test order(g) == n
+  end
+
+  g = cyclic_group(PosInf())
+  @test is_cyclic(g)
+  @test !is_finite(g)
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+
+  g = dihedral_group(PosInf())
+  @test !is_cyclic(g)
+  @test !is_finite(g)
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
   @test is_cyclic(G)

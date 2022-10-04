@@ -6,6 +6,7 @@ K, a = NumberField(q)
 Ky, y = K["y"]
 Tow, b = NumberField(y^2 + 1, "b")
 NonSimRel, c = NumberField([y^2 - 5 * a, y^2 - 7 * a])
+Qu, u = RationalFunctionField(QQ, "u")
 Zt, t = PolynomialRing(ResidueRing(ZZ, 2), "t")
 Fin, d = FiniteField(t^2 + t + 1)
 Frac = FractionField(R)
@@ -14,7 +15,6 @@ T = TropicalSemiring()
 
 cases = [
     (QQ, fmpq(3, 4), fmpq(1, 2), "Rationals"),
-    (ZZ, 3, 4, "Integers"),
     (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
     (ResidueRing(ZZ, 6), 3, 5, "Integers Modulo 6"),
     (L, e, f, "Non Simple Extension"),
@@ -22,6 +22,7 @@ cases = [
     (Tow, a^2 * b, a + b, "Tower Extension"),
     (NonSimRel, c[1], c[2] * a, "Non Simple Rel Extension"),
     (Fin, d, 1, "Finite Field"),
+    (Qu, u, 1 // u, "RationalFunctionField"),
     (Frac, 1 // x, x^2, "Fraction Field"),
     (P7, 7 + 3*7^2, 7^5, "Padic Field"),
     (T, T(1), T(3)^2, "Tropical Semiring")
@@ -43,7 +44,8 @@ end
 
 function get_hom(R1::T, R2::T) where T <: Union{
     MPolyRing{Hecke.NfRelElem{nf_elem}}, PolyRing{Hecke.NfRelElem{nf_elem}},
-    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}}}
+    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.Frac{fmpq_poly}},
+    AbstractAlgebra.PolyRing{AbstractAlgebra.Generic.RationalFunctionField{fmpq, fmpq_poly}}}
     D = coefficient_ring(R1)
     I = coefficient_ring(R2)
     D_base_field = base_field(D)
@@ -162,15 +164,19 @@ end
 
 function test_equality(p::T, l:: T) where T  <: Union{
     MPolyElem{S}, PolyElem{S}} where S <: Union{
-    AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
+        AbstractAlgebra.Generic.Frac{fmpq_poly},
+        AbstractAlgebra.Generic.Rat{fmpq, fmpq_poly},
+        fmpq_poly}
     g = gen(base_ring(parent(l)))
     mapped_coeffs = map(i -> evaluate(i, g), coefficients(p))
     return mapped_coeffs == collect(coefficients(l))
 end
 
 function test_equality(p::T, l:: T) where T  <: Union{
-    Generic.LaurentSeriesElem{S},SeriesElem{S}} where S <: Union{
-    AbstractAlgebra.Generic.Frac{fmpq_poly}, fmpq_poly}
+    Generic.LaurentSeriesElem{S}, SeriesElem{S}} where S <: Union{
+        AbstractAlgebra.Generic.Frac{fmpq_poly},
+        AbstractAlgebra.Generic.Rat{fmpq, fmpq_poly},
+        fmpq_poly}
     dom = base_ring(parent(p))
     codom = base_ring(parent(l))
     g = gen(base_ring(parent(l)))
@@ -243,7 +249,7 @@ function compare_series_coeffs(p::T, l::T,
     return L(coeffs_p, pol_length(p), precision(p), v, Generic.scale(p)) == l
 end
 
-@testset "Polynomials and Series" begin
+@testset "Serialization.Polynomials.and.Series" begin
     mktempdir() do path
         for case in cases
             @testset "Univariate Polynomial over $(case[4])" begin
@@ -273,11 +279,11 @@ end
                     end
                 end
 
-                @testset "MPoly Ideals over $(case[4])" begin
-                    q = w^2 + z
-                    i = Oscar.ideal(R, [p, q])
-                    test_save_load_roundtrip(path, i) do loaded_i
-                        if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
+                if R isa MPolyRing{T} where T <: Union{fmpq, fmpz, nmod}
+                    @testset "MPoly Ideals over $(case[4])" begin
+                        q = w^2 + z
+                        i = Oscar.ideal(R, [p, q])
+                        test_save_load_roundtrip(path, i) do loaded_i
                             S = parent(loaded_i[1])
                             h = hom(R, S, gens(S))
                             @test h(i) == loaded_i

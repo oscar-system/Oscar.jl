@@ -9,9 +9,7 @@
 
   A = map_entries(Q, M)
 
-  X = Spec(Q)
-
-  success, P = Oscar._is_projective(A, X)
+  success, P = Oscar._is_projective_without_denominators(A)
   @test success
   @test P^2 == P
 
@@ -28,4 +26,9 @@
   Palt2 = compose(Palt, Palt)
   @test all(x->(Palt2(x) == Palt(x)), gens(domain(Palt)))
 
+  # Testing for free polynomial rings
+  A = R[x+y 3*x+z-4 5*y-x+3 27*y+5*x-z+7 28*x+y-2*z-5]
+  success, P = Oscar._is_projective_without_denominators(A)
+  @test success
+  @test P^2 == P
 end

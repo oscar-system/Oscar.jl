@@ -26,6 +26,29 @@ mutable struct SecondaryInvarsCache{T}
   end
 end
 
+mutable struct FundamentalInvarsCache{PolyElemT, PolyRingT}
+  invars::Vector{PolyElemT} # fundamental invariants
+
+  # Graded polynomial ring in length(invars) variables such that
+  # deg(gens(S)[i]) == deg(invars[i])
+  S::PolyRingT
+
+  # Remember whether the fundamental invariants were computed from the primary
+  # and secondary ones
+  via_primary_and_secondary::Bool
+
+  # For a primary or irreducible secondary invariant f, toS[f] gives the
+  # representation of f as a polynomial in the fundamental invariants.
+  # This field is only set, if via_primary_and_secondary is true.
+  toS::Dict{PolyElemT, PolyElemT}
+
+  function FundamentalInvarsCache{PolyElemT, PolyRingT}() where {PolyElemT <: MPolyElem, PolyRingT <: MPolyRing}
+    z = new{PolyElemT, PolyRingT}()
+    z.invars = PolyElemT[]
+    return z
+  end
+end
+
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
   field::FldT
   poly_ring::PolyRingT
@@ -37,7 +60,9 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT}
 
   primary::PrimaryInvarsCache{PolyElemT}
   secondary::SecondaryInvarsCache{PolyElemT}
-  fundamental::Vector{PolyElemT}
+  fundamental::FundamentalInvarsCache{PolyElemT, PolyRingT}
+
+  presentation::MPolyAnyMap{MPolyQuo{PolyElemT}, PolyRingT, Nothing, PolyElemT}
 
   reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
 
@@ -190,11 +215,11 @@ end
 
 # Handle vector spaces of multivariate polynomials by writing them in the basis
 # of the monomials.
-mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
+mutable struct BasisOfPolynomials{PolyRingT, FieldElemT}
   R::PolyRingT
 
-  # Number the basis monomials
-  monomial_to_column::Dict{PolyElemT, Int}
+  # Number the basis monomials, we identify a monomial with its exponent vector
+  monomial_to_column::Dict{Vector{Int}, Int}
 
   # Write the polynomials coefficient-wise in the rows of a sparse matrix. The
   # column i contains the coefficients corresponding to the monomial m with
@@ -203,24 +228,24 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
 
   function BasisOfPolynomials(R::MPolyRing)
     K = coefficient_ring(R)
-    B = new{elem_type(R), typeof(R), elem_type(K)}()
+    B = new{typeof(R), elem_type(K)}()
     B.R = R
-    B.monomial_to_column = Dict{elem_type(R), Int}()
+    B.monomial_to_column = Dict{Vector{Int}, Int}()
     B.M = sparse_matrix(K)
     return B
   end
 
-  function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
+  function BasisOfPolynomials(R::PolyRingT, polys::Vector{<: MPolyElem}) where {PolyRingT <: MPolyRing}
     return BasisOfPolynomials(R, polys, enumerate_monomials(polys))
   end
 
-  function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}, monomial_to_column::Dict{PolyElemT, Int}) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
+  function BasisOfPolynomials(R::PolyRingT, polys::Vector{<: MPolyElem}, monomial_to_column::Dict{Vector{Int}, Int}) where {PolyRingT <: MPolyRing}
     if isempty(polys)
       return BasisOfPolynomials(R)
     end
 
     K = coefficient_ring(R)
-    B = new{elem_type(R), typeof(R), elem_type(K)}()
+    B = new{typeof(R), elem_type(K)}()
     B.R = R
 
     B.monomial_to_column = monomial_to_column
