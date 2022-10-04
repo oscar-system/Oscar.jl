@@ -41,6 +41,12 @@ g_vector(P::Polyhedron)
 h_vector(P::Polyhedron)
 ```
 
+## Symmetries
+```@docs
+linear_symmetries(P::Polyhedron)
+combinatorial_symmetries(P::Polyhedron)
+```
+
 ## Other
 
 ```@docs
