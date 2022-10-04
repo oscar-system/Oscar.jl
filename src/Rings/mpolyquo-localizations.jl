@@ -1047,7 +1047,7 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocalizedRing})
   R = base_ring(L)
   J = saturated_ideal(I)
   d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
-  W = MPolyQuoLocalizedRing(R, modulus(L), MPolyPowersOfElement(R, d))
+  W = MPolyQuoLocalizedRing(R, modulus(quotient_ring(L)), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
   A = codomain(id)
   h = hom(P, A, id.(f.(gens(P))))

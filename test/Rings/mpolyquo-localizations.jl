@@ -1,4 +1,4 @@
-@testset "mpolyquo-localizations.jl" begin
+#@testset "mpolyquo-localizations.jl" begin
   R, v = QQ["x", "y", "u", "v"]
   x = v[1]
   y = v[2] 
@@ -30,7 +30,9 @@
   W = MPolyQuoLocalizedRing(S, J, U)
 
   h = MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
-  @test preimage(h, ideal(V, [x*(x-1), y*(y-3)])) == ideal(W, [x, y])
+  J1 = ideal(V, [x*(x-1), y*(y-3)])
+  J2 = ideal(W, [x, y])
+  @test preimage(h, J1) == J2
   
   ### second round of tests
   #kk = GF(101)
@@ -105,4 +107,4 @@
   @test W(a[2]*lifted_numerator(g[1]), d) == g[1]
   @test (one(localized_ring(W)) in ideal(W, g))
   @test one(W) == dot(write_as_linear_combination(one(W), g), g) 
-end
+#end
