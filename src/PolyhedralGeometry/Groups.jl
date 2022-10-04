@@ -59,14 +59,14 @@ A polyhedron in ambient dimension 2
 julia> G = combinatorial_symmetries(quad)
 Group([ (1,2)(3,4), (1,3) ])
 
-julia> size(elements(G))
-(8,)
+julia> length(elements(G))
+8
 
 julia> G = linear_symmetries(quad)
 Group([ (2,4) ])
 
-julia> size(elements(G))
-(2,)
+julia> length(elements(G))
+2
 ```
 """
 function combinatorial_symmetries(P::Polyhedron)
@@ -94,8 +94,8 @@ A polyhedron in ambient dimension 3
 julia> G = linear_symmetries(c)
 Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
 
-julia> size(elements(G))
-(48,)
+julia> length(elements(G))
+48
 ```
 
 The quadrangle one obtains from moving one vertex of the square out along the
@@ -107,8 +107,8 @@ A polyhedron in ambient dimension 2
 julia> G = linear_symmetries(quad)
 Group([ (2,4) ])
 
-julia> size(elements(G))
-(2,)
+julia> length(elements(G))
+2
 ```
 """
 function linear_symmetries(P::Polyhedron)
