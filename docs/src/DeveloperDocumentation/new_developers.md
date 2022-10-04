@@ -4,7 +4,7 @@ of programming in Julia or working with git, as there are far better resources
 on these things online.
 
 !!! note "Pay attention to your GitHub notifications!"
-    Once you open a pull request on GitHub you will receive feedback, comments,
+    Once you open a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on GitHub you will receive feedback, comments,
     and questions on GitHub. So please pay attention to your GitHub
     notifications.
 
@@ -16,7 +16,7 @@ on these things online.
    Decisions](@ref). Adhering to the style guide makes reviewing code easier
    for us, and hence your new feature can be merged faster.
 3. Let us know what you are working on early:
-   - You can open a draft pull request on GitHub right at the beginning of your
+   - You can open a draft [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on GitHub right at the beginning of your
      work. We are more than happy to look at incomplete prototypes to get an
      idea of what you are working on. This allows us to assess what kind of
      problems you might encounter and whether we can mitigate these by making
@@ -55,11 +55,11 @@ the following six steps for submitting changes to the Oscar source:
    ```
    If this succeeds, you can enter `using Oscar` in Julia and it will use your local
    copy.
-5. Once you are done editing, push your branch and open a pull request. It is
-   recommended that you open a draft pull request to the main Oscar repository
+5. Once you are done editing, push your branch and open a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request). It is
+   recommended that you open a draft [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to the main Oscar repository
    as soon as you start working. That way Oscar developers are aware of work
    being done and can give feedback early in the process.
-6. Once you have finished your work, mark your pull request as ready. It will
+6. Once you have finished your work, mark your [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) as ready. It will
    then be reviewed and, probably after feedback and requests for changes,
    merged.
 
