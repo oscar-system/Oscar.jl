@@ -411,7 +411,7 @@ function issubset(
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
-  return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(quotient_ring(OO(X)))))
+  return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
 
 ########################################################################
@@ -602,7 +602,7 @@ function is_closed_embedding(
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || error("schemes can not be compared")
   all(x->(isunit(OO(X)(x))), denominators(inverted_set(OO(Y)))) || return false
-  return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(quotient_ring(OO(X)))))
+  return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
 
 #TODO: Add more cross-type methods as needed.
