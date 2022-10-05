@@ -542,16 +542,34 @@ Return generators of the automorphism group of the graph `g`.
 julia> g = complete_graph(4);
 
 julia> automorphism_group_generators(g)
-3-element Vector{Vector{Int64}}:
- [1, 2, 4, 3]
- [1, 3, 2, 4]
- [2, 1, 3, 4]
+3-element Vector{PermGroupElem}:
+ (3,4)
+ (2,3)
+ (1,2)
 ```
 """
 function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
-    return [[x+1 for x in a] for a in result]
+    return pm_arr_arr_to_group_generators(result)
+end
+
+
+@doc Markdown.doc"""
+    automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return the automorphism group of the graph `g`.
+
+# Examples
+```jldoctest
+julia> g = complete_graph(4);
+
+julia> automorphism_group(g)
+Group([ (3,4), (2,3), (1,2) ])
+```
+"""
+function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    return gens_to_group(automorphism_group_generators(g))
 end
 
 
