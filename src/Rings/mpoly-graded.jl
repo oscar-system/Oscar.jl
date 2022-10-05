@@ -1914,7 +1914,7 @@ function _hilbert_numerator_gcd(
     q = a[rand(1:n)]
   end
 
-  pivot = _gcd([p, q])
+  pivot = _gcd(p, q)
 
   ### Assembly of the quotient ideal with less generators
   rhs = [e for e in a if !_divides(e, pivot)]
@@ -1947,7 +1947,7 @@ function _hilbert_numerator_custom(
     b = a[i]
     for j in i+1:length(a)
       c = a[j]
-      r = _gcd([b, c])
+      r = _gcd(b, c)
       if sum(r) > max_deg
         max_deg = sum(r)
         p = b
@@ -1957,7 +1957,7 @@ function _hilbert_numerator_custom(
   end
 
   ### Assembly of the quotient ideal with less generators
-  pivot = _gcd([p, q])
+  pivot = _gcd(p, q)
   rhs = [e for e in a if !_divides(e, pivot)]
   push!(rhs, pivot)
 
@@ -1988,7 +1988,25 @@ function _hilbert_numerator_bayer_stillman(
   r = length(a)
   t = gens(S)
   r == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
+  kk = coefficient_ring(S)
+  if _are_pairwise_coprime(a) 
+    return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
+    ### The following code should be faster, but the build context in Nemo is not 
+    # yet sufficiently tuned. Try it again, once it's done.
+    factors = elem_type(S)[]
+    sizehint!(factors, length(a))
+    o = one(kk)
+    mo = -o
+    z = [0 for i in 1:nvars(S)]
+    ctx = MPolyBuildCtx(S)
+    for e in a
+      exponents = weight_matrix*e
+      push_term!(ctx, mo, exponents) 
+      push_term!(ctx, o, z)
+      push!(factors, finish(ctx))
+    end
+    return prod(x for x in factors)
+  end
 
   # make sure we have lexicographically ordered monomials
   a = _sort_lex(a)
