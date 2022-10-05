@@ -9,7 +9,7 @@ function singular_locus(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
     return subscheme(X, one(OO(X)))
   end
   R = base_ring(OO(X))
-  return Spec(R, prod([modulus(OO(Y)) for Y in comp]), inverted_set(OO(X)))
+  return Spec(R, prod([modulus(quotient_ring(OO(Y))) for Y in comp]), inverted_set(OO(X)))
 end
 
 function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
