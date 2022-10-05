@@ -1771,13 +1771,13 @@ function _hilbert_numerator_from_leading_exponents(
   elseif alg == :custom
     return _hilbert_numerator_custom(a, weight_matrix, return_ring)
   elseif alg == :gcd # see Remark 5.3.11
-    return _hilbert_numerator_gcd(a, weight_matrix, return_ring)
+    return _hilbert_numerator_gcd(a, weight_matrix, return_ring) #typestability OK
   elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
-    return _hilbert_numerator_generator(a, weight_matrix, return_ring)
+    return _hilbert_numerator_generator(a, weight_matrix, return_ring) #typestability OK
   elseif alg == :indeterminate # see Remark 5.3.8
-    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring)
+    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring)#typestability OK
   elseif alg == :cocoa # see Remark 5.3.14
-    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring)
+    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring) #typestability OK
   end
   error("invalid algorithm")
 end
@@ -1836,20 +1836,12 @@ function _hilbert_numerator_indeterminate(
   r = length(a)
   t = gens(S)
   r == 0 && return one(S)
-  @show a
   _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
   e = first(a)
-  pivot = Int[]
-  found_at = 0
-  for k in 1:length(e)
-    if e[k] == 0 || found_at > 0 
-      push!(pivot, 0)
-    else
-      push!(pivot, 1)
-      found_at = k 
-    end
-  end
+  found_at = findfirst(!iszero, e)::Int64
+  pivot = zero(e)
+  pivot[found_at] = 1
 
   ### Assembly of the quotient ideal with less generators
   rhs = [e for e in a if e[found_at] == 0]
@@ -1940,9 +1932,8 @@ function _hilbert_numerator_custom(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
     S::Ring
   )
-  r = length(a)
   t = gens(S)
-  r == 0 && return one(S)
+  length(a) == 0 && return one(S)
   _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
   p = Vector{Int}()
@@ -1994,9 +1985,6 @@ function _hilbert_numerator_bayer_stillman(
   t = gens(S)
   r == 0 && return one(S)
   _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
-
-  # End of recursion
-  r == 0 && return one(S)
 
   # make sure we have lexicographically ordered monomials
   a = _sort_lex(a)
