@@ -1767,203 +1767,267 @@ function _hilbert_numerator_from_leading_exponents(
   _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
   if alg == :BayerStillmanA
-    S = return_ring
-    ###########################################################################
-    # For this strategy see
-    #
-    # Bayer, Stillman: Computation of Hilber Series
-    # J. Symbolic Computation (1992) No. 14, pp. 31--50
-    #
-    # Algorithm 2.6, page 35
-    ###########################################################################
-    r = length(a)
+    return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring)
+  elseif alg == :custom
+    return _hilbert_numerator_custom(a, weight_matrix, return_ring)
+  elseif alg == :gcd # see Remark 5.3.11
+    return _hilbert_numerator_gcd(a, weight_matrix, return_ring)
+  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
+    return _hilbert_numerator_generator(a, weight_matrix, return_ring)
+  elseif alg == :indeterminate # see Remark 5.3.8
+    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring)
+  elseif alg == :cocoa # see Remark 5.3.14
+    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring)
+  end
+  error("invalid algorithm")
+end
 
-    # End of recursion
-    r == 0 && return one(S)
+function _hilbert_numerator_cocoa(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
+    S::Ring
+  )
+  r = length(a)
+  t = gens(S)
+  r == 0 && return one(S)
+  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
 
-    # make sure we have lexicographically ordered monomials
-    a = _sort_lex(a)
+  n = length(a)
+  m = length(a[1])
+  counters = [0 for i in 1:m]
+  for e in a
+    counters += [iszero(k) ? 0 : 1 for k in e]
+  end
+  j = _find_maximum(counters)
+
+  p = a[rand(1:n)]
+  while p[j] == 0
+    p = a[rand(1:n)]
+  end
+
+  q = a[rand(1:n)]
+  while q[j] == 0 || p == q
+    q = a[rand(1:n)]
+  end
+
+  pivot = [0 for i in 1:m]
+  pivot[j] = minimum([p[j], q[j]])
 
 
-    # initialize the result 
-    h = one(S) - prod([t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t)])
-    for i in 2:r
-      J = _divide_by(a[1:i-1], a[i])
-      J1 = Vector{Vector{Int}}()
-      linear_mons = Vector{Int}()
-      for m in J
-        if sum(m) > 1
-          push!(J1, m)
-        else
-          for k in 1:length(m)
-            if m[k] > 0 
-              push!(linear_mons, k)
-              break
-            end
+  ### Assembly of the quotient ideal with less generators
+  rhs = [e for e in a if !_divides(e, pivot)]
+  push!(rhs, pivot)
+
+  ### Assembly of the division ideal with less total degree
+  lhs = _divide_by_monomial_power(a, j, pivot[j])
+
+  f = one(S)
+  for i in 1:nvars(S)
+    z = gens(S)[i]
+    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+  end
+
+  return _hilbert_numerator_cocoa(rhs, weight_matrix, S) + f*_hilbert_numerator_cocoa(lhs, weight_matrix, S)
+end
+
+function _hilbert_numerator_indeterminate(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
+    S::Ring
+  )
+  r = length(a)
+  t = gens(S)
+  r == 0 && return one(S)
+  @show a
+  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+
+  e = first(a)
+  pivot = Int[]
+  found_at = 0
+  for k in 1:length(e)
+    if e[k] == 0 || found_at > 0 
+      push!(pivot, 0)
+    else
+      push!(pivot, 1)
+      found_at = k 
+    end
+  end
+
+  ### Assembly of the quotient ideal with less generators
+  rhs = [e for e in a if e[found_at] == 0]
+  push!(rhs, pivot)
+
+  ### Assembly of the division ideal with less total degree
+  lhs = _divide_by(a, pivot)
+
+  f = one(S)
+  for i in 1:nvars(S)
+    z = gens(S)[i]
+    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+  end
+
+  return _hilbert_numerator_indeterminate(rhs, weight_matrix, S) + f*_hilbert_numerator_indeterminate(lhs, weight_matrix, S)
+end
+
+function _hilbert_numerator_generator(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
+    S::Ring
+  )
+  r = length(a)
+  t = gens(S)
+  r == 0 && return one(S)
+  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+
+  b = copy(a)
+  pivot = pop!(b)
+
+  f = one(S)
+  for i in 1:nvars(S)
+    z = gens(S)[i]
+    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+  end
+
+  c = _divide_by(b, pivot)
+  p1 = _hilbert_numerator_generator(b, weight_matrix, S)
+  p2 = _hilbert_numerator_generator(c, weight_matrix, S)
+
+  return p1 - f * p2
+end
+
+function _hilbert_numerator_gcd(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
+    S::Ring
+  )
+  r = length(a)
+  t = gens(S)
+  r == 0 && return one(S)
+  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+
+  n = length(a)
+  counters = [0 for i in 1:length(a[1])]
+  for e in a
+    counters += [iszero(k) ? 0 : 1 for k in e]
+  end
+  j = _find_maximum(counters)
+
+  p = a[rand(1:n)]
+  while p[j] == 0
+    p = a[rand(1:n)]
+  end
+
+  q = a[rand(1:n)]
+  while q[j] == 0 || p == q
+    q = a[rand(1:n)]
+  end
+
+  pivot = _gcd([p, q])
+
+  ### Assembly of the quotient ideal with less generators
+  rhs = [e for e in a if !_divides(e, pivot)]
+  push!(rhs, pivot)
+
+  ### Assembly of the division ideal with less total degree
+  lhs = _divide_by(a, pivot)
+
+  f = one(S)
+  for i in 1:nvars(S)
+    z = gens(S)[i]
+    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+  end
+
+  return _hilbert_numerator_gcd(rhs, weight_matrix, S) + f*_hilbert_numerator_gcd(lhs, weight_matrix, S)
+end
+
+function _hilbert_numerator_custom(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
+    S::Ring
+  )
+  r = length(a)
+  t = gens(S)
+  r == 0 && return one(S)
+  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+
+  p = Vector{Int}()
+  q = Vector{Int}()
+  max_deg = 0
+  for i in 1:length(a)
+    b = a[i]
+    for j in i+1:length(a)
+      c = a[j]
+      r = _gcd([b, c])
+      if sum(r) > max_deg
+        max_deg = sum(r)
+        p = b
+        q = c
+      end
+    end
+  end
+
+  ### Assembly of the quotient ideal with less generators
+  pivot = _gcd([p, q])
+  rhs = [e for e in a if !_divides(e, pivot)]
+  push!(rhs, pivot)
+
+  ### Assembly of the division ideal with less total degree
+  lhs = _divide_by(a, pivot)
+
+  f = one(S)
+  for i in 1:nvars(S)
+    z = gens(S)[i]
+    f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
+  end
+
+  return _hilbert_numerator_custom(rhs, weight_matrix, S) + f*_hilbert_numerator_custom(lhs, weight_matrix, S)
+end
+
+function _hilbert_numerator_bayer_stillman(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
+    S::Ring
+  )
+  ###########################################################################
+  # For this strategy see
+  #
+  # Bayer, Stillman: Computation of Hilber Series
+  # J. Symbolic Computation (1992) No. 14, pp. 31--50
+  #
+  # Algorithm 2.6, page 35
+  ###########################################################################
+  r = length(a)
+  t = gens(S)
+  r == 0 && return one(S)
+  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+
+  # End of recursion
+  r == 0 && return one(S)
+
+  # make sure we have lexicographically ordered monomials
+  a = _sort_lex(a)
+
+
+  # initialize the result 
+  h = one(S) - prod(t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t))
+  for i in 2:r
+    J = _divide_by(a[1:i-1], a[i])
+    J1 = Vector{Vector{Int}}()
+    linear_mons = Vector{Int}()
+    for m in J
+      if sum(m) > 1
+        push!(J1, m)
+      else
+        for k in 1:length(m)
+          if m[k] > 0 
+            push!(linear_mons, k)
+            break
           end
         end
       end
-      q = _hilbert_numerator_from_leading_exponents(J1, weight_matrix, S, alg)
-      for k in linear_mons
-        q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
-      end
-
-      h = h - prod([t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t)])*q
     end
-    return h
-
-  elseif alg == :custom
-    p = Vector{Int}()
-    q = Vector{Int}()
-    max_deg = 0
-    for i in 1:length(a)
-      b = a[i]
-      for j in i+1:length(a)
-        c = a[j]
-        r = _gcd([b, c])
-        if sum(r) > max_deg
-          max_deg = sum(r)
-          p = b
-          q = c
-        end
-      end
+    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S)
+    for k in linear_mons
+      q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
     end
 
-    ### Assembly of the quotient ideal with less generators
-    pivot = _gcd([p, q])
-    rhs = [e for e in a if !_divides(e, pivot)]
-    push!(rhs, pivot)
-
-    ### Assembly of the division ideal with less total degree
-    lhs = _divide_by(a, pivot)
-
-    f = one(return_ring)
-    for i in 1:nvars(return_ring)
-      z = gens(return_ring)[i]
-      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-    end
-
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring, weight_matrix, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring, weight_matrix, alg)
-
-  elseif alg == :gcd # see Remark 5.3.11
-    n = length(a)
-    counters = [0 for i in 1:length(a[1])]
-    for e in a
-      counters += [iszero(k) ? 0 : 1 for k in e]
-    end
-    j = _find_maximum(counters)
-    
-    p = a[rand(1:n)]
-    while p[j] == 0
-      p = a[rand(1:n)]
-    end
-
-    q = a[rand(1:n)]
-    while q[j] == 0 || p == q
-      q = a[rand(1:n)]
-    end
-
-    pivot = _gcd([p, q])
-    
-    ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if !_divides(e, pivot)]
-    push!(rhs, pivot)
-
-    ### Assembly of the division ideal with less total degree
-    lhs = _divide_by(a, pivot)
-
-    f = one(return_ring)
-    for i in 1:nvars(return_ring)
-      z = gens(return_ring)[i]
-      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-    end
-
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring, weight_matrix, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring, weight_matrix, alg)
-    
-  elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
-    b = copy(a)
-    pivot = pop!(b)
-    
-    f = one(return_ring)
-    for i in 1:nvars(return_ring)
-      z = gens(return_ring)[i]
-      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-    end
-    
-    c = _divide_by(b, pivot)
-    p1 = _hilbert_numerator_from_leading_exponents(b, return_ring, weight_matrix, alg)
-    p2 = _hilbert_numerator_from_leading_exponents(c, return_ring, weight_matrix, alg)
-
-    return p1 - f * p2
-
-  elseif alg == :indeterminate # see Remark 5.3.8
-    e = first(a)
-    pivot = Int[]
-    found_at = 0
-    for k in 1:length(e)
-      if e[k] == 0 || found_at > 0 
-        push!(pivot, 0)
-      else
-        push!(pivot, 1)
-        found_at = k 
-      end
-    end
-    
-    ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if e[found_at] == 0]
-    push!(rhs, pivot)
-
-    ### Assembly of the division ideal with less total degree
-    lhs = _divide_by(a, pivot)
-
-    f = one(return_ring)
-    for i in 1:nvars(return_ring)
-      z = gens(return_ring)[i]
-      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-    end
-
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring, weight_matrix, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
-
-  elseif alg == :cocoa # see Remark 5.3.14
-    n = length(a)
-    m = length(a[1])
-    counters = [0 for i in 1:m]
-    for e in a
-      counters += [iszero(k) ? 0 : 1 for k in e]
-    end
-    j = _find_maximum(counters)
-    
-    p = a[rand(1:n)]
-    while p[j] == 0
-      p = a[rand(1:n)]
-    end
-
-    q = a[rand(1:n)]
-    while q[j] == 0 || p == q
-      q = a[rand(1:n)]
-    end
-
-    pivot = [0 for i in 1:m]
-    pivot[j] = minimum([p[j], q[j]])
-    
-    
-    ### Assembly of the quotient ideal with less generators
-    rhs = [e for e in a if !_divides(e, pivot)]
-    push!(rhs, pivot)
-
-    ### Assembly of the division ideal with less total degree
-    lhs = _divide_by_monomial_power(a, j, pivot[j])
-
-    f = one(return_ring)
-    for i in 1:nvars(return_ring)
-      z = gens(return_ring)[i]
-      f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
-    end
-
-    return _hilbert_numerator_from_leading_exponents(rhs, weight_matrix, return_ring, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, weight_matrix, return_ring, alg)
-    
+    h = h - prod([t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t)])*q
   end
-  error("invalid algorithm")
+  return h
 end
 
 ############################################################################
