@@ -36,6 +36,15 @@ end
   Z = Spec(S)
   g = maximal_extension(Y, Z, [x//z, y])
   g = restrict(g, domain(g), SpecOpen(Z, [v]))
+
+  R, (x,y,z) = QQ["x", "y", "z"]
+  X = hypersurface_complement(Spec(R),x)
+  F = FractionField(R)
+  f = x//y
+  g = F(x,x)
+  D = domain(maximal_extension(X, f))
+  @test is_canonically_isomorphic(D, hypersurface_complement(X,y))
+  @test is_canonically_isomorphic(X,domain(maximal_extension(X, g)))
 end
 
 @testset "SpecOpen_3" begin

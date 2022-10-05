@@ -159,7 +159,10 @@ end
 @doc Markdown.doc"""
   complement(X::Scheme,Y::Scheme) -> Scheme
 
-Return the complement `X \ Y` of `Y` in `X`.
+Return complement `X \ Y` of `Y` in `X`.
+
+Since we want the complement `U = X \ Y` to be a Scheme,
+we require that `Y` is closed in `X`.
 """
 complement(X::Scheme,Y::Scheme)
 
@@ -655,12 +658,18 @@ the ring ``𝕜[x₁,…,xₙ]``.
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyLocalizedRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
-  ) where {RET<:RingElem}
+  ) where {RET<:MPolyElem}
 
   a = numerator(f)
   b = denominator(f)
+  g = gcd(a, b)
+  if !isone(g)
+    a = divexact(a, g)
+    b = divexact(b, g)
+    f = parent(f)(a,b)
+  end
   W = OO(X)
-  I = quotient(ideal(W, b), ideal(W, a))
+  I = ideal(W, b)
   U = SpecOpen(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
   R = SpecOpenRing(X, U)
