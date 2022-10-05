@@ -1628,12 +1628,16 @@ function _gcd(a::Vector{Vector{Int}})
   return [minimum([a[i][j] for i in 1:length(a)]) for j in 1:n]
 end
 
+function _gcd(a::Vector{Int}, b::Vector{Int})
+  return [a[k] > b[k] ? b[k] : a[k] for k in 1:length(a)]
+end
+
 function _are_pairwise_coprime(a::Vector{Vector{Int}})
   length(a) <= 1 && return true
   n = length(a)
   for i in 1:n-1
     for j in i+1:n
-      all(x->(x==0), _gcd([a[i], a[j]])) || return false
+      all(iszero, _gcd(a[i], a[j])) || return false
     end
   end
   return true
@@ -1984,7 +1988,7 @@ function _hilbert_numerator_bayer_stillman(
   r = length(a)
   t = gens(S)
   r == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  _are_pairwise_coprime(a) && return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
 
   # make sure we have lexicographically ordered monomials
   a = _sort_lex(a)
@@ -2010,10 +2014,10 @@ function _hilbert_numerator_bayer_stillman(
     end
     q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S)
     for k in linear_mons
-      q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
+      q = q*(one(S) - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
     end
 
-    h = h - prod([t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t)])*q
+    h = h - prod(t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t))*q
   end
   return h
 end
