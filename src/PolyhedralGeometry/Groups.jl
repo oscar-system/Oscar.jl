@@ -15,18 +15,23 @@ function PermGroup_to_polymake_array(G::PermGroup)
 end
 
 function pm_group_to_oscar_group(G)
-    pm_arr_arr_to_group(G.GENERATORS)
+    gens = pm_arr_arr_to_group_generators(G.GENERATORS)
+    return gens_to_group(gens)
 end
 
-function pm_arr_arr_to_group(M)
+function gens_to_group(gens::Vector{PermGroupElem})
+    S = parent(gens[1])
+    return sub(S, gens)[1]
+end
+
+function pm_arr_arr_to_group_generators(M)
     n=length(M[1])
     S=symmetric_group(n)
     perm_bucket = Vector{Oscar.BasicGAPGroupElem{PermGroup}}()
     for g in M
         push!(perm_bucket,perm(S, Polymake.to_one_based_indexing(g)))
     end
-    H=sub(S,perm_bucket)[1]
-    return H
+    return perm_bucket
 end
 
 #TODO: rename this. It is the automorphism group of the vertex facet incidence
@@ -71,7 +76,8 @@ julia> length(elements(G))
 """
 function combinatorial_symmetries(P::Polyhedron)
     if pm_object(P).BOUNDED
-        pm_group_to_oscar_group(Polymake.polytope.combinatorial_symmetries(pm_object(P)))
+        result = automorphism_group(P; type=:combinatorial)
+        return result[:vertex_action]
     else
         throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
     end
@@ -117,4 +123,54 @@ function linear_symmetries(P::Polyhedron)
     else
         throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
     end
+end
+
+
+@doc Markdown.doc"""
+    automorphism_group_generators(P::Polyhedron; type = :combinatorial)
+
+Compute generators of the group of combinatorial automorphisms of a polyhedron.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> automorphism_group_generators(c)
+Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
+  :vertex_action => [(3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8)]
+  :facet_action  => [(3,5)(4,6), (1,3)(2,4), (1,2)]
+```
+"""
+function automorphism_group_generators(P::Polyhedron; type = :combinatorial)
+    gens = Polymake.graph.automorphisms(vertex_indices(facets(P)))
+    facet_action = pm_arr_arr_to_group_generators([first(g) for g in gens])
+    vertex_action = pm_arr_arr_to_group_generators([last(g) for g in gens])
+    return Dict{Symbol, Vector{PermGroupElem}}(:vertex_action => vertex_action,
+            :facet_action => facet_action)
+end
+
+
+@doc Markdown.doc"""
+    automorphism_group(P::Polyhedron; type = :combinatorial)
+
+Compute the group of combinatorial automorphisms of a polyhedron.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> automorphism_group(c)
+Dict{Symbol, PermGroup} with 2 entries:
+  :vertex_action => Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
+  :facet_action  => Group([ (3,5)(4,6), (1,3)(2,4), (1,2) ])
+```
+"""
+function automorphism_group(P::Polyhedron; type = :combinatorial)
+    result = automorphism_group_generators(P; type = type)
+    va = gens_to_group(result[:vertex_action])
+    fa = gens_to_group(result[:facet_action])
+    return Dict{Symbol, PermGroup}(:vertex_action => va,
+            :facet_action => fa)
 end
