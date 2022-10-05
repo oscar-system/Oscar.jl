@@ -1029,7 +1029,7 @@ function _as_affine_algebra(
   A, phi, t = _add_variables_first(R, [inverse_name])
   theta = t[1]
   f = prod(denominators(inverted_set(L)))
-  I = ideal(A, [phi(g) for g in gens(modulus(L))]) + ideal(A, [one(A)-theta*phi(f)])
+  I = ideal(A, [phi(g) for g in gens(modulus(quotient_ring(L)))]) + ideal(A, [one(A)-theta*phi(f)])
   Q, _ = quo(A, I)
   id = hom(L, Q, gens(A)[2:end], check=false)
   id_inv = hom(Q, L, pushfirst!(gens(L), inv(L(f))), check=false)
