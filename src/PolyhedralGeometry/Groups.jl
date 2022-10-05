@@ -23,7 +23,7 @@ function pm_arr_arr_to_group(M)
     S=symmetric_group(n)
     perm_bucket = Vector{Oscar.BasicGAPGroupElem{PermGroup}}()
     for g in M
-        push!(perm_bucket,perm(S,[a+1 for a in g]))
+        push!(perm_bucket,perm(S, Polymake.to_one_based_indexing(g)))
     end
     H=sub(S,perm_bucket)[1]
     return H
