@@ -1743,21 +1743,21 @@ function _sort_lex(a::Vector{Vector{Int}})
 end
 
 function _hilbert_numerator_from_leading_exponents(
-    a::Vector{Vector{Int}};
-    weight_matrix= [1 for i in 1:1, j in 1:length(a[1])],
-    return_ring=(all(x->(x>=0), weight_matrix) ? 
-                 PolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1] : 
-                 LaurentPolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1]
-                ),
+    a::Vector{Vector{Int}},
+    weight_matrix::Matrix{Int}, # = [1 for i in 1:1, j in 1:length(a[1])],
+    return_ring::Ring, # =(all(x->(x>=0), weight_matrix) ? 
+              #   PolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1] : 
+              #   LaurentPolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1]
+              #  ),
     #alg=:generator
     #alg=:custom
     #alg=:gcd
     #alg=:indeterminate
     #alg=:cocoa
-    alg=:BayerStillmanA, # This is by far the fastest strategy. Should be used.
+    alg::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
-    shorts = [sum([(e[k]>0 ? 1 : 0) << (k-1) for k in 1:length(e)]) for e in a]
+    # shorts = [sum([(e[k]>0 ? 1 : 0) << (k-1) for k in 1:length(e)]) for e in a]
   )
   length(a) == 0 && return one(return_ring)
 
@@ -1803,9 +1803,7 @@ function _hilbert_numerator_from_leading_exponents(
           end
         end
       end
-      q = _hilbert_numerator_from_leading_exponents(J1, return_ring=S, 
-                                                    weight_matrix=weight_matrix, 
-                                                    alg=alg)
+      q = _hilbert_numerator_from_leading_exponents(J1, weight_matrix, S, alg)
       for k in linear_mons
         q = q*(one(S) - prod([t[i]^weight_matrix[i, k] for i in 1:length(t)]))
       end
@@ -1845,7 +1843,7 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring, weight_matrix, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring, weight_matrix, alg)
 
   elseif alg == :gcd # see Remark 5.3.11
     n = length(a)
@@ -1880,7 +1878,7 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring, weight_matrix, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring, weight_matrix, alg)
     
   elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
     b = copy(a)
@@ -1893,16 +1891,8 @@ function _hilbert_numerator_from_leading_exponents(
     end
     
     c = _divide_by(b, pivot)
-    p1 = _hilbert_numerator_from_leading_exponents(b, 
-                                                   return_ring=return_ring, 
-                                                   weight_matrix=weight_matrix,
-                                                   alg=alg
-                                                  )
-    p2 = _hilbert_numerator_from_leading_exponents(c, 
-                                                   return_ring=return_ring, 
-                                                   weight_matrix=weight_matrix,
-                                                   alg=alg
-                                                  )
+    p1 = _hilbert_numerator_from_leading_exponents(b, return_ring, weight_matrix, alg)
+    p2 = _hilbert_numerator_from_leading_exponents(c, return_ring, weight_matrix, alg)
 
     return p1 - f * p2
 
@@ -1932,7 +1922,7 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
+    return _hilbert_numerator_from_leading_exponents(rhs, return_ring, weight_matrix, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
 
   elseif alg == :cocoa # see Remark 5.3.14
     n = length(a)
@@ -1970,7 +1960,7 @@ function _hilbert_numerator_from_leading_exponents(
       f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
     end
 
-    return _hilbert_numerator_from_leading_exponents(rhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg) + f*_hilbert_numerator_from_leading_exponents(lhs, return_ring=return_ring, weight_matrix=weight_matrix, alg=alg)
+    return _hilbert_numerator_from_leading_exponents(rhs, weight_matrix, return_ring, alg) + f*_hilbert_numerator_from_leading_exponents(lhs, weight_matrix, return_ring, alg)
     
   end
   error("invalid algorithm")
