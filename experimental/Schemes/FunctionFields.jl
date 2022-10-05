@@ -38,7 +38,7 @@ end
 end
 
 @attr Bool function is_irreducible(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}) 
-  return is_prime(localized_modulus(OO(X)))
+  return is_prime(modulus(OO(X)))
 end
 
 

@@ -186,7 +186,7 @@ function complement(X::AbsSpec,
     check::Bool=true
   )
   check && (is_closed_embedding(Z, X) || error("not a closed embedding"))
-  return SpecOpen(Y, modulus(OO(Z)))
+  return SpecOpen(Y, modulus(quotient_ring(OO(Z))))
 end
 
 SpecOpen(X::Spec) = SpecOpen(X, [one(ambient_ring(X))], check=false)
@@ -332,7 +332,7 @@ where ``X`` is the affine ambient scheme of ``U``.
 function closure(U::SpecOpen{<:StdSpec})
   X = ambient(U)
   R = base_ring(OO(X))
-  I = saturated_ideal(localized_modulus(OO(X)))
+  I = saturated_ideal(modulus(OO(X)))
   I = saturation(I, ideal(R, gens(U)))
   return subscheme(X, I)
 end
@@ -684,7 +684,7 @@ function maximal_extension(
   a = numerator(f)
   b = denominator(f)
   W = localized_ring(OO(X))
-  I = quotient(ideal(W, b) + localized_modulus(OO(X)), ideal(W, a))
+  I = quotient(ideal(W, b) + modulus(OO(X)), ideal(W, a))
   U = SpecOpen(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
   R = SpecOpenRing(X, U)
@@ -795,7 +795,7 @@ function maximal_extension(
   W = ambient_ring(X)
   I = ideal(W, one(W))
   for p in f
-    I = intersect(quotient(ideal(W, denominator(p)) + modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
@@ -1083,7 +1083,7 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   pbZ = [preimage(f[i], Z) for i in 1:n]
   Y = X 
   for K in pbZ
-    Y = subscheme(Y, gens(modulus(OO(K))))
+    Y = subscheme(Y, gens(modulus(quotient_ring(OO(K)))))
   end
   return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
  end
@@ -1143,12 +1143,12 @@ end
 
 function is_dense(U::SpecOpen)
   X = ambient(U)
-  I = [localized_modulus(OO(closure(V, X))) for V in affine_patches(U)]
+  I = [modulus(OO(closure(V, X))) for V in affine_patches(U)]
   J = pre_image_ideal(ideal(OO(X), [one(OO(X))]))
   for i in I
     J = intersect(J, i)
   end
-  return J == localized_modulus(OO(X))
+  return J == modulus(OO(X))
 end
 
 #function Base.adjoint(M::AbstractAlgebra.Generic.MatSpaceElem{T}) where {T} 
