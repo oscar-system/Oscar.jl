@@ -75,12 +75,8 @@ julia> length(elements(G))
 ```
 """
 function combinatorial_symmetries(P::Polyhedron)
-    if pm_object(P).BOUNDED
-        result = automorphism_group(P; type=:combinatorial)
-        return result[:vertex_action]
-    else
-        throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
-    end
+    result = automorphism_group(P; type=:combinatorial)
+    return result[:vertex_action]
 end
 
 @doc Markdown.doc"""
@@ -118,18 +114,25 @@ julia> length(elements(G))
 ```
 """
 function linear_symmetries(P::Polyhedron)
-    if pm_object(P).BOUNDED
-        pm_group_to_oscar_group(Polymake.polytope.linear_symmetries(pm_object(P).VERTICES).PERMUTATION_ACTION)
-    else
-        throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
-    end
+    result = automorphism_group(P; type=:linear)
+    return result[:vertex_action]
 end
 
 
 @doc Markdown.doc"""
     automorphism_group_generators(P::Polyhedron; type = :combinatorial)
 
-Compute generators of the group of combinatorial automorphisms of a polyhedron.
+Compute generators of the group of automorphisms of a polyhedron.
+
+The optional parameter `type` takes two values:
+- `:combinatorial` (default) -- Return the combinatorial symmetries, the
+    automorphisms of the face lattice.
+- `:linear` -- Return the linear automorphisms.
+
+The return value is a `Dict{Symbol, Vector{PermGroupElem}}` with two entries,
+one for the key `:vertex_action` containing the generators for the action
+permuting vertices, and `:facet_action` for the facets.
+
 
 # Examples
 ```jldoctest
@@ -143,12 +146,21 @@ Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
 ```
 """
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial)
-    gens = Polymake.graph.automorphisms(vertex_indices(facets(P)))
-    facet_action = pm_arr_arr_to_group_generators([first(g) for g in gens])
-    vertex_action = pm_arr_arr_to_group_generators([last(g) for g in gens])
+    if type == :combinatorial
+        gens = Polymake.graph.automorphisms(vertex_indices(facets(P)))
+        facet_action = pm_arr_arr_to_group_generators([first(g) for g in gens])
+        vertex_action = pm_arr_arr_to_group_generators([last(g) for g in gens])
+    elseif type == :linear
+        gp = Polymake.polytope.linear_symmetries(pm_polytope(P))
+        facet_action = pm_arr_arr_to_group_generators(gp.FACETS_ACTION.GENERATORS)
+        vertex_action = pm_arr_arr_to_group_generators(gp.VERTICES_ACTION.GENERATORS)
+    else
+        throw(ArgumentError("Action type $(type) not supported."))
+    end
     return Dict{Symbol, Vector{PermGroupElem}}(:vertex_action => vertex_action,
             :facet_action => facet_action)
 end
+
 
 
 @doc Markdown.doc"""
