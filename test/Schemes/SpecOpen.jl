@@ -25,10 +25,7 @@ end
   Y = subscheme(X, I)
   Xx = hypersurface_complement(X, x)
   Yx = hypersurface_complement(Y, x)
-  #@test_broken complement(Y, Yx) # Not a valid test! `complement` can only be carried out 
-                                  # whenever the first argument is closed in the second. 
   @test !is_closed_embedding(Y, Yx)
-  #complement(X,Xx) # same as above
   U = SpecOpen(Y, [x^5, y-7*x^7])
   f = maximal_extension(Y, x//z)
   intersections(U)
@@ -65,10 +62,9 @@ end
   @test isone(OU(1))
   @test iszero(f-f)
   @test f == OU(OO(affine_patches(f)[1])(f))
-  #@test R(f) This does not make sense, because f is not defined on all of Spec(R)!
   Axy = hypersurface_complement(A,x*y)
-  # @test h = maximal_extension(Axy, 1//x) # What is this supposed to return?
-  #@test is_canonically_isomorphic(Axy, V) # this can not be right since Axy and V live in totally different ambient rings.
+  V = domain(maximal_extension(Axy, 1//x))
+  @test is_canonically_isomorphic(Axy, V)
 
   M = MatrixSpace(R,2,2)([x u; y v])
   h = det(M)
@@ -78,7 +74,7 @@ end
   B = Spec(S)
   maximal_extension(X, x//u)
   maximal_extension(A, x//u)
-  # maximal_extension(X, B, [x//u]) # This is not a valid call: the number of elements in the last vector must be equal to the number of variables for B.
+  maximal_extension(X, [x//u])
   f = maximal_extension(X, B, [x//y, x//u])
 end
 
