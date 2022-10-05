@@ -131,7 +131,7 @@ The optional parameter `type` takes two values:
 
 The return value is a `Dict{Symbol, Vector{PermGroupElem}}` with two entries,
 one for the key `:vertex_action` containing the generators for the action
-permuting vertices, and `:facet_action` for the facets.
+permuting the vertices, and `:facet_action` for the facets.
 
 
 # Examples
@@ -166,7 +166,16 @@ end
 @doc Markdown.doc"""
     automorphism_group(P::Polyhedron; type = :combinatorial)
 
-Compute the group of combinatorial automorphisms of a polyhedron.
+Compute the group of automorphisms of a polyhedron.
+
+The optional parameter `type` takes two values:
+- `:combinatorial` (default) -- Return the combinatorial symmetries, the
+    automorphisms of the face lattice.
+- `:linear` -- Return the linear automorphisms.
+
+The return value is a `Dict{Symbol, PermGroup}` with two entries, one for the
+key `:vertex_action` containing the group permuting the vertices, and
+`:facet_action` for the facets.
 
 # Examples
 ```jldoctest
