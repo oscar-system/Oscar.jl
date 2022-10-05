@@ -348,7 +348,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   end
   s, gs = Singular.GAlgebra(sr, C, D)
   if check && !iszero(Singular.LibNctools.ndcond(s))
-    error("non-degeneracy condition is non-zero")
+    error("PBW-basis condition not satisfied")
   end
   R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r))
   return R, [PBWAlgElem(R, x) for x in gs]

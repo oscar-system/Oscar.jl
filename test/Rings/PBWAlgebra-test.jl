@@ -14,7 +14,10 @@
 
   3*x^2 + y*z == R([3, 1], [[2, 0, 0], [0, 1, 1]])
 
+  r, (x, y, z) = QQ["x", "y", "z"]
   @test_throws Exception pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], lex(r))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], deglex(r); check = false)
+  @test (z*y)*x != z*(y*x)
 end
 
 @testset "PBWAlgebra.printing" begin
@@ -133,7 +136,6 @@ end
 @testset "PBWAlgebra.ideals.multiplication" begin
   r, (x, y, z) = QQ["x", "y", "z"]
   R, (x, y, z) = pbw_algebra(r, [0 x*y+y x*z+z+y; 0 0 y*z; 0 0 0], lex(r))
-  @test iszero(Singular.LibNctools.ndcond(R.sring))
 
   e1 = y*z
   e2 = x*y*z
