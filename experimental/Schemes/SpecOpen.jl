@@ -545,9 +545,9 @@ function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
   return lifted_numerator(b)//lifted_denominator(b)
 end
 
-(R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
-(R::MPolyLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
-(R::MPolyRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
 (R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
 (R::SpecOpenRing)(f::MPolyQuoLocalizedRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
@@ -940,15 +940,19 @@ function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
 
-function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
-  ambient(codomain(f)) == ambient(V) || error("open sets not compatible")
+function restrict(
+    f::SpecOpenMor,
+    U::SpecOpen,
+    V::SpecOpen;
+    check::Bool=true
+  )
   if check
-    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
-    help_map = SpecOpenMor(U, codomain(f), [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
-    Z = complement(V)
-    isempty(preimage(help_map, Z)) || error("image does not lay in the codomain candidate")
+    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
+    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
   end
-  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+  inc = inclusion_morphism(U, domain(f), check=check)
+  help_map = compose(inc, f, check=check)
+  return SpecOpenMor(U, V, maps_on_patches(help_map), check=check)
 end
 
 function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
@@ -959,6 +963,22 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
   phi = restriction_map(domain(f), W)
   fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(OO(Y)))]
   return SpecMor(W, Y, fy, check=false)
+end
+
+
+### the restriction of a morphism to closed subsets in domain and codomain
+function restrict(
+    f::SpecOpenMor,
+    X::SpecType,
+    Y::SpecType;
+    check::Bool=true
+  ) where {SpecType<:Spec}
+  U = intersect(X, domain(f), check=check)
+  V = intersect(Y, codomain(f), check=check)
+
+  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
+
+  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end
 
 @Markdown.doc """
@@ -1028,37 +1048,6 @@ function maximal_extension(
   )
   h = maximal_extension(X, Y, FractionField(ambient_ring(X)).(f))
   return h
-end
-
-### the restriction of a morphism to open subsets in domain and codomain
-function restrict(
-    f::SpecOpenMor,
-    U::SpecOpen,
-    V::SpecOpen;
-    check::Bool=true
-  )
-  if check
-    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
-    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
-  end
-  inc = inclusion_morphism(U, domain(f), check=check)
-  help_map = compose(inc, f, check=check)
-  return SpecOpenMor(U, V, maps_on_patches(help_map), check=check)
-end
-
-### the restriction of a morphism to closed subsets in domain and codomain
-function restrict(
-    f::SpecOpenMor,
-    X::SpecType,
-    Y::SpecType;
-    check::Bool=true
-  ) where {SpecType<:Spec}
-  U = intersect(X, domain(f), check=check)
-  V = intersect(Y, codomain(f), check=check)
-
-  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
-
-  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end
 
 function identity_map(U::SpecOpen) 

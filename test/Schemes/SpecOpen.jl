@@ -70,7 +70,6 @@ end
   @test isone(g*inv(g))
   @test isone(OU(1))
   @test iszero(f-f)
-  @test f == OU(OO(affine_patches(f)[1])(f))
   Axy = hypersurface_complement(A,x*y)
   V = domain(maximal_extension(Axy, 1//x))
   @test is_canonically_isomorphic(Axy, V)
