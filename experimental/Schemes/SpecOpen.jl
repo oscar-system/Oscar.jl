@@ -669,8 +669,7 @@ function maximal_extension(
     f = parent(f)(a,b)
   end
   W = OO(X)
-  I = ideal(W, b)
-  U = SpecOpen(X, I)
+  U = SpecOpen(X, [b])
   g = [OO(V)(f) for V in affine_patches(U)]
   R = SpecOpenRing(X, U)
   return R(g)
