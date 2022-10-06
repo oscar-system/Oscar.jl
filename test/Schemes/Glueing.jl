@@ -31,9 +31,9 @@
   fyz = maximal_extension(Ay, Az, [xy//zy, 1//zy])
   fzy = maximal_extension(Az, Ay, [xz//yz, 1//yz])
 
-  gxy = Glueing(Ax, Ay, restriction(fxy, domain(fxy), domain(fyx)), restriction(fyx, domain(fyx), domain(fxy)))
-  gxz = Glueing(Ax, Az, restriction(fxz, domain(fxz), domain(fzx)), restriction(fzx, domain(fzx), domain(fxz)))
-  gyz = Glueing(Ay, Az, restriction(fyz, domain(fyz), domain(fzy)), restriction(fzy, domain(fzy), domain(fyz)))
+  gxy = Glueing(Ax, Ay, restrict(fxy, domain(fxy), domain(fyx)), restrict(fyx, domain(fyx), domain(fxy)))
+  gxz = Glueing(Ax, Az, restrict(fxz, domain(fxz), domain(fzx)), restrict(fzx, domain(fzx), domain(fxz)))
+  gyz = Glueing(Ay, Az, restrict(fyz, domain(fyz), domain(fzy)), restrict(fzy, domain(fzy), domain(fyz)))
 
   gyz_alt = compose(gxy, gxz)
   @test gyz == maximal_extension(gyz_alt)

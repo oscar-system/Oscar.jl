@@ -233,7 +233,7 @@ function compose(G::GT, H::GT) where {GT<:SimpleGlueing}
   return SimpleGlueing(X, Z, h, h_inv)
 end
 
-function restriction(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
