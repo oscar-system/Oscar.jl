@@ -170,8 +170,8 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
     preimU = preimage(g, U)
     WU = intersect(preimV, U)
     WV = intersect(preimU, V)
-    isoWUtoWV = restriction(f, WU, WV, check=false)
-    isoWVtoWU = restriction(g, WV, WU, check=false)
+    isoWUtoWV = restrict(f, WU, WV, check=false)
+    isoWVtoWU = restrict(g, WV, WU, check=false)
     incWUtoU = inclusion_morphism(WU, U, check=false)
     incWVtoV = inclusion_morphism(WV, V, check=false)
     return isoWUtoWV, isoWVtoWU, incWUtoU, incWVtoV
@@ -878,7 +878,7 @@ function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
     V_patches = [V for V in new_patches if codomain(inc0[V]) == W2]
     for U in U_patches
       for V in V_patches
-        new_glueings[(U, V)] = restriction(C0[W1, W2], U, V)
+        new_glueings[(U, V)] = restrict(C0[W1, W2], U, V)
       end
     end
   end
@@ -974,7 +974,7 @@ function simplify(C::Covering)
     Xsimp, iX, jX = new_patches[C[X]]
     Ysimp, iY, jY = new_patches[C[Y]]
     G = GD[(X, Y)]
-    new_glueings[(Xsimp, Ysimp)] = restriction(G, jX, jY, check=false)
+    new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
   end
   iDict = Dict{AbsSpec, AbsSpecMor}()
   jDict = Dict{AbsSpec, AbsSpecMor}()

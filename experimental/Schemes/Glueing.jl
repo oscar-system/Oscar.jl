@@ -118,8 +118,8 @@ function compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
   W_new = preimage(g_inv, codomain(f))
   V_new = intersect(codomain(f), domain(g))
   return Glueing(X, Z, 
-             compose(restriction(f, U_new, V_new), restriction(g, V_new, W_new)),
-             compose(restriction(g_inv, W_new, V_new), restriction(f_inv, V_new, U_new))
+             compose(restrict(f, U_new, V_new), restrict(g, V_new, W_new)),
+             compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new))
 	     )
 end
 
@@ -163,8 +163,8 @@ function maximal_extension(G::Glueing)
   U_new = preimage(f_ext, domain(g_ext))
   V_new = preimage(g_ext, U_new)
   issubset(domain(g_ext), V_new) || error("extension failed")
-  f_ext = restriction(f_ext, U_new, V_new)
-  g_ext = restriction(g_ext, V_new, U_new)
+  f_ext = restrict(f_ext, U_new, V_new)
+  g_ext = restrict(g_ext, V_new, U_new)
   return Glueing(X, Y, f_ext, g_ext)
 end
 
@@ -185,23 +185,23 @@ function glueing_type(::Type{SpecType}) where {SpecType<:Spec}
   return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
 end
 
-function restriction(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) where {SpecType<:Spec}
+function restrict(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) where {SpecType<:Spec}
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
     is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check), check=check)
+  return Glueing(X, Y, restrict(f, X, Y, check=check), restrict(g, Y, X, check=check), check=check)
 end
 
 @Markdown.doc """
-    restriction(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+    restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
 Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 
 ``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
 """
-function restriction(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   (X1, Y1) = patches(G)
   X1 == domain(f) || error("maps not compatible")
   X2 = codomain(f)

@@ -1,6 +1,6 @@
 @testset "PBWAlgebra.constructor" begin
   r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
   @test elem_type(R) == PBWAlgElem{fmpq, Singular.n_Q}
   @test parent_type(x) == PBWAlgRing{fmpq, Singular.n_Q}
@@ -13,11 +13,16 @@
   @test R[2] == y
 
   3*x^2 + y*z == R([3, 1], [[2, 0, 0], [0, 1, 1]])
+
+  r, (x, y, z) = QQ["x", "y", "z"]
+  @test_throws Exception pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], lex(r))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], deglex(r); check = false)
+  @test (z*y)*x != z*(y*x)
 end
 
 @testset "PBWAlgebra.printing" begin
   r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
   @test length(string(R)) > 2
   @test length(string(x + y)) > 2
@@ -26,7 +31,7 @@ end
 
 @testset "PBWAlgebra.iteration" begin
   r, (x, y, z) = QQ["x", "y", "z"]
-  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(gens(r)))
+  R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
   p = -((x*z*y)^6 - 1)
 
@@ -113,7 +118,7 @@ end
   @test dy*dx*x in I
   @test !(x*dy*dx in I)
 
-  @test_throws NotImplementedError intersect(two_sided_ideal(R, [dy]), two_sided_ideal(R, [x]))
+  @test is_one(intersect(two_sided_ideal(R, [dy]), two_sided_ideal(R, [x])))
 
   I = intersect(left_ideal([dx]), left_ideal([dy]), left_ideal([x]))
   @test x^2*dx == (x*dx-1)*x
@@ -126,4 +131,29 @@ end
   @test !(dy in I)
 
   @test intersect(left_ideal([dx])) == left_ideal([dx])
+
+  I = right_ideal(R, [dx^2])
+  J = right_ideal(R, [dx^4*x, dx^2*y])
+  @test intersect(I, J) != I
+  @test intersect(I, J) == J
+end
+
+@testset "PBWAlgebra.ideals.multiplication" begin
+  r, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = pbw_algebra(r, [0 x*y+y x*z+z+y; 0 0 y*z; 0 0 0], lex(r))
+
+  e1 = y*z
+  e2 = x*y*z
+
+  @test !is_one(two_sided_ideal([e1]))
+  @test !is_one(two_sided_ideal([e2]))
+
+  I = two_sided_ideal([e1*e2])
+
+  @test I == left_ideal([e1])*right_ideal([e2])
+  @test I != two_sided_ideal([e1])*right_ideal([e2])
+  @test issubset(I, two_sided_ideal([e1])*right_ideal([e2]))
+  @test issubset(I, two_sided_ideal([e1])*two_sided_ideal([e2]))
+
+  @test I^4 == (I^2)^2
 end

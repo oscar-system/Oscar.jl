@@ -59,7 +59,7 @@ function secondary_invariants_modular(RG::InvRing)
     # We need to reverse the columns of this matrix, see below.
     Bd = iterate_basis_linear_algebra(RG, d)
     ncB1 = length(Bd.monomials_collected) + 1
-    mons_to_cols = Dict{elem_type(R), Int}(Bd.monomials_collected[i].f => ncB1 - i for i = 1:length(Bd.monomials_collected))
+    mons_to_cols = Dict{Vector{Int}, Int}(first(exponent_vectors(Bd.monomials_collected[i].f)) => ncB1 - i for i = 1:length(Bd.monomials_collected))
     B = BasisOfPolynomials(R, Md, mons_to_cols)
 
     # Do a slight detour and first try to build invariants as products of ones

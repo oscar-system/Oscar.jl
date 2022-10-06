@@ -610,6 +610,8 @@ parent_type(::Type{MPolyElem_dec{T, S}}) where {T, S} = MPolyRing_dec{T, parent_
 (W::MPolyRing_dec)(i::Int) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(f::Singular.spoly) = MPolyElem_dec(W.R(f), W)
 
+### Coercion of elements of the underlying polynomial ring 
+# into the graded ring. 
 function (W::MPolyRing_dec{S, T})(f::U) where {S, T, U}
   if parent_type(U) === T
     @assert W.R === parent(f)
