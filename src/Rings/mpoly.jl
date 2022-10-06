@@ -276,11 +276,14 @@ function show(io::IO, I::IdealGens)
     else
       print(io, "Standard basis with elements")
     end
+    for (i,g) in enumerate(gens(I))
+      print(io, "\n", i, " -> ", AbstractAlgebra.expr_to_string(AbstractAlgebra.canonicalize(Expr(:call, :+, map(expressify, terms(g, I.ord))...))))
+    end
   else
     print(io, "Ideal generating system with elements")
-  end
-  for (i,g) in enumerate(gens(I))
-    print(io, "\n", i, " -> ", AbstractAlgebra.expr_to_string(AbstractAlgebra.canonicalize(Expr(:call, :+, map(expressify, terms(g, I.ord))...))))
+    for (i,g) in enumarate(gens(I))
+      print(io, "\n", i, " -> ", g)
+    end
   end
   if I.isGB
     print(io, "\nwith respect to the ordering")

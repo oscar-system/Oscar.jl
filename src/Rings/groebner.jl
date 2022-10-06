@@ -106,11 +106,10 @@ julia> std_basis(I, negdegrevlex(gens(R)))
  y
 ```
 """
-function std_basis(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function std_basis(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   complete_reduction && @assert is_global(ordering)
   if !haskey(I.gb, ordering)
-    GB = _compute_std_basis(I.gens, ordering, complete_reduction)
-    I.gb[ordering] = GB
+    I.gb[ordering] = _compute_std_basis(I.gens, ordering, complete_reduction)
   end
   return I.gb[ordering]
 end
@@ -418,7 +417,6 @@ end
 
 function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
   stdJ = std_basis(J, o, false)
-  stdJ = J.gb[o]
   Sx = stdJ.Sx
   Ox = parent(f)
   I = Singular.Ideal(Sx, Sx(f))
