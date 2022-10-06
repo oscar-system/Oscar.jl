@@ -730,7 +730,7 @@ end
     *(I::PBWAlgIdeal{DI, T, S}, J::PBWAlgIdeal{DJ, T, S}) where {DI, DJ, T, S}
 
 Given two ideals `I` and `J` such that both `I` and `J` are two-sided ideals
-or `I` and `J` are a left and right ideal, respectively, return the product of `I` and `J`.
+or `I` and `J` are a left and a right ideal, respectively, return the product of `I` and `J`.
 
 # Examples
 ```jldoctest
