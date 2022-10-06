@@ -55,7 +55,7 @@ end
   @test is_canonically_isomorphic(A, closure(U))
   Oscar.SpecOpenRing(U)
   OU = OO(U)
-  @test_throws ErrorException gens(OO(U))
+  gens(OO(U))
   f = OO(U)(x)
   @test Oscar.scheme(f) === A
   @test affine_patches(f) == affine_patches(U)
