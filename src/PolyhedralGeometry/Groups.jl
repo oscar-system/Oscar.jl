@@ -23,6 +23,9 @@ function _gens_to_group(gens::Vector{PermGroupElem})
     S = parent(gens[1])
     return sub(S, gens)[1]
 end
+function _gens_to_group(gens::Dict{Symbol, Vector{PermGroupElem}})
+    return Dict{Symbol, PermGroup}([k => _gens_to_group(v) for (k,v) in gens])
+end
 
 function _pm_arr_arr_to_group_generators(M)
     n=length(M[1])
@@ -34,16 +37,8 @@ function _pm_arr_arr_to_group_generators(M)
     return perm_bucket
 end
 
-#TODO: rename this. It is the automorphism group of the vertex facet incidence
-#also applies to tests and exports
-function vf_group(P::Polyhedron)
-    if pm_object(P).BOUNDED
-        _pm_group_to_oscar_group(Polymake.group.automorphism_group(pm_object(P).VERTICES_IN_FACETS).PERMUTATION_ACTION)
-    else
-        throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
-    end
-end
 
+@deprecate vf_group(P::Polyhedron) automorphism_group(P; action = :on_facets)
 
 
 @doc Markdown.doc"""
@@ -76,7 +71,7 @@ julia> length(elements(G))
 """
 function combinatorial_symmetries(P::Polyhedron)
     result = automorphism_group(P; type=:combinatorial)
-    return result[:vertex_action]
+    return result[:on_vertices]
 end
 
 @doc Markdown.doc"""
@@ -115,7 +110,7 @@ julia> length(elements(G))
 """
 function linear_symmetries(P::Polyhedron)
     result = automorphism_group(P; type=:linear)
-    return result[:vertex_action]
+    return result[:on_vertices]
 end
 
 
@@ -130,8 +125,8 @@ The optional parameter `type` takes two values:
 - `:linear` -- Return the linear automorphisms.
 
 The return value is a `Dict{Symbol, Vector{PermGroupElem}}` with two entries,
-one for the key `:vertex_action` containing the generators for the action
-permuting the vertices, and `:facet_action` for the facets.
+one for the key `:on_vertices` containing the generators for the action
+permuting the vertices, and `:on_facets` for the facets.
 
 
 # Examples
@@ -141,25 +136,76 @@ A polyhedron in ambient dimension 3
 
 julia> automorphism_group_generators(c)
 Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
-  :vertex_action => [(3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8)]
-  :facet_action  => [(3,5)(4,6), (1,3)(2,4), (1,2)]
+  :on_vertices => [(3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8)]
+  :on_facets  => [(3,5)(4,6), (1,3)(2,4), (1,2)]
 ```
 """
-function automorphism_group_generators(P::Polyhedron; type = :combinatorial)
+function automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
+    pm_object(P).BOUNDED || throw(ArgumentError("Automorphism groups not supported for unbounded polyhedra."))
     if type == :combinatorial
-        gens = Polymake.graph.automorphisms(vertex_indices(facets(P)))
-        facet_action = _pm_arr_arr_to_group_generators([first(g) for g in gens])
-        vertex_action = _pm_arr_arr_to_group_generators([last(g) for g in gens])
+        IM = vertex_indices(facets(P))
+        if action == :all
+            result = automorphism_group_generators(IM; action = action)
+            return Dict{Symbol, Vector{PermGroupElem}}(
+                    :on_vertices => result[:on_cols],
+                    :on_facets => result[:on_rows])
+        elseif action == :on_vertices
+            return automorphism_group_generators(IM; action = :on_cols)
+        elseif action == :on_facets
+            return automorphism_group_generators(IM; action = :on_rows)
+        else
+            throw(ArgumentError("Action $(action) not supported."))
+        end
     elseif type == :linear
-        gp = Polymake.polytope.linear_symmetries(pm_polytope(P))
-        facet_action = _pm_arr_arr_to_group_generators(gp.FACETS_ACTION.GENERATORS)
-        vertex_action = _pm_arr_arr_to_group_generators(gp.VERTICES_ACTION.GENERATORS)
+        return _linear_symmetries_generators(P; action = action)
     else
         throw(ArgumentError("Action type $(type) not supported."))
     end
-    return Dict{Symbol, Vector{PermGroupElem}}(:vertex_action => vertex_action,
-            :facet_action => facet_action)
+    return Dict{Symbol, Vector{PermGroupElem}}(:on_vertices => vertex_action,
+            :on_facets => facet_action)
 end
+
+
+function automorphism_group_generators(IM::IncidenceMatrix; action = :all)
+    gens = Polymake.graph.automorphisms(IM)
+    rows_action = _pm_arr_arr_to_group_generators([first(g) for g in gens])
+    if action == :on_rows
+        return rows_action
+    end
+    cols_action = _pm_arr_arr_to_group_generators([last(g) for g in gens])
+    if action == :on_cols
+        return cols_action
+    elseif action == :all
+        return Dict{Symbol, Vector{PermGroupElem}}(:on_rows => rows_action,
+                :on_cols => cols_action)
+    else
+        throw(ArgumentError("Action $(action) not supported."))
+    end
+end
+    
+
+
+function _linear_symmetries_generators(P::Polyhedron; action = :all)
+    if pm_object(P).BOUNDED
+        gp = Polymake.polytope.linear_symmetries(vertices(P))
+        vgens = gp.PERMUTATION_ACTION.GENERATORS
+        if action == :on_vertices
+            return _pm_arr_arr_to_group_generators(vgens)
+        end
+        hgens = Polymake.group.induced_permutations(vgens, vertex_indices(facets(P)))
+        if action == :on_facets
+            return _pm_arr_arr_to_group_generators(hgens)
+        end
+        return Dict{Symbol, Vector{PermGroupElem}}(
+                :on_vertices => _pm_arr_arr_to_group_generators(vgens),
+                :on_facets => _pm_arr_arr_to_group_generators(hgens)
+            )
+    else
+        throw(ArgumentError("Linear symmetries supported for bounded polyhedra only"))
+    end
+end
+
+
 
 
 
@@ -174,8 +220,8 @@ The optional parameter `type` takes two values:
 - `:linear` -- Return the linear automorphisms.
 
 The return value is a `Dict{Symbol, PermGroup}` with two entries, one for the
-key `:vertex_action` containing the group permuting the vertices, and
-`:facet_action` for the facets.
+key `:on_vertices` containing the group permuting the vertices, and
+`:on_facets` for the facets.
 
 # Examples
 ```jldoctest
@@ -184,14 +230,11 @@ A polyhedron in ambient dimension 3
 
 julia> automorphism_group(c)
 Dict{Symbol, PermGroup} with 2 entries:
-  :vertex_action => Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
-  :facet_action  => Group([ (3,5)(4,6), (1,3)(2,4), (1,2) ])
+  :on_vertices => Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
+  :on_facets  => Group([ (3,5)(4,6), (1,3)(2,4), (1,2) ])
 ```
 """
-function automorphism_group(P::Polyhedron; type = :combinatorial)
-    result = automorphism_group_generators(P; type = type)
-    va = _gens_to_group(result[:vertex_action])
-    fa = _gens_to_group(result[:facet_action])
-    return Dict{Symbol, PermGroup}(:vertex_action => va,
-            :facet_action => fa)
+function automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
+    result = automorphism_group_generators(P; type = type, action = action)
+    return _gens_to_group(result)
 end
