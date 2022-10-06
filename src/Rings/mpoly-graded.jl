@@ -1746,6 +1746,41 @@ function _sort_lex(a::Vector{Vector{Int}})
   return vcat(less, [pivot], more)
 end
 
+#######################################################################
+# 06.10.2022
+# The following internal routine can probably still be tuned.
+#
+# Compared to the implementation in Singular, it is still about 10 
+# times slower. We spotted the following possible deficits:
+#
+#   1) The returned polynomials are not yet built with MPolyBuildCtx.
+#      We tried that, but as for now, the code for the build context 
+#      is even slower than the direct implementation that is in place 
+#      now. Once MPolyBuildCtx is tuned, we should try that again; 
+#      the code snippets are still there. In total, building the return 
+#      values takes up more than one third of the computation time 
+#      at this moment.
+#
+#   2) Numerous allocations for integer vectors. The code below 
+#      performs lots of iterative allocations for lists of integer 
+#      vectors. If we constructed a container data structure to 
+#      maintain this list internally and do the allocations at once  
+#      (for instance in a big matrix), this could significantly 
+#      speed up the code. However, that is too much work for 
+#      the time being, as long as a high-performing Hilbert series 
+#      computation is not of technical importance.
+#
+#   3) Singular uses bitmasking for exponent vectors to decide on 
+#      divisibility more quickly. This is particularly important in 
+#      the method _divide_by. For singular, this leads to a speedup 
+#      of factor 5. Here, only less than one third of the time is 
+#      spent in `_divide_by`, so it does not seem overly important 
+#      at this point, but might become relevant in the future. 
+#      A particular modification of the singular version of bitmasking 
+#      is to compute means for the exponents occuring for each variable 
+#      and set the bits depending on whether a given exponent is greater 
+#      or less than that mean value. 
+
 function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}},
     weight_matrix::Matrix{Int}, # = [1 for i in 1:1, j in 1:length(a[1])],
@@ -1761,7 +1796,6 @@ function _hilbert_numerator_from_leading_exponents(
     alg::Symbol # =:BayerStillmanA, # This is by far the fastest strategy. Should be used.
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
-    # shorts = [sum([(e[k]>0 ? 1 : 0) << (k-1) for k in 1:length(e)]) for e in a]
   )
   length(a) == 0 && return one(return_ring)
 
