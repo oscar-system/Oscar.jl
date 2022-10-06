@@ -928,7 +928,7 @@ end
 @doc Markdown.doc"""
     restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool=true)
 
-Return the restriction `g: U -> V` of `f` to `U` and `V`.
+Return the restriction ``g: U → V`` of ``f`` to ``U`` and ``V``.
 """
 restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
 
