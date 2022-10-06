@@ -14,17 +14,17 @@ function PermGroup_to_polymake_array(G::PermGroup)
    return result
 end
 
-function pm_group_to_oscar_group(G)
-    gens = pm_arr_arr_to_group_generators(G.GENERATORS)
-    return gens_to_group(gens)
+function _pm_group_to_oscar_group(G)
+    gens = _pm_arr_arr_to_group_generators(G.GENERATORS)
+    return _gens_to_group(gens)
 end
 
-function gens_to_group(gens::Vector{PermGroupElem})
+function _gens_to_group(gens::Vector{PermGroupElem})
     S = parent(gens[1])
     return sub(S, gens)[1]
 end
 
-function pm_arr_arr_to_group_generators(M)
+function _pm_arr_arr_to_group_generators(M)
     n=length(M[1])
     S=symmetric_group(n)
     perm_bucket = Vector{Oscar.BasicGAPGroupElem{PermGroup}}()
@@ -38,7 +38,7 @@ end
 #also applies to tests and exports
 function vf_group(P::Polyhedron)
     if pm_object(P).BOUNDED
-        pm_group_to_oscar_group(Polymake.group.automorphism_group(pm_object(P).VERTICES_IN_FACETS).PERMUTATION_ACTION)
+        _pm_group_to_oscar_group(Polymake.group.automorphism_group(pm_object(P).VERTICES_IN_FACETS).PERMUTATION_ACTION)
     else
         throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
     end
@@ -148,12 +148,12 @@ Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial)
     if type == :combinatorial
         gens = Polymake.graph.automorphisms(vertex_indices(facets(P)))
-        facet_action = pm_arr_arr_to_group_generators([first(g) for g in gens])
-        vertex_action = pm_arr_arr_to_group_generators([last(g) for g in gens])
+        facet_action = _pm_arr_arr_to_group_generators([first(g) for g in gens])
+        vertex_action = _pm_arr_arr_to_group_generators([last(g) for g in gens])
     elseif type == :linear
         gp = Polymake.polytope.linear_symmetries(pm_polytope(P))
-        facet_action = pm_arr_arr_to_group_generators(gp.FACETS_ACTION.GENERATORS)
-        vertex_action = pm_arr_arr_to_group_generators(gp.VERTICES_ACTION.GENERATORS)
+        facet_action = _pm_arr_arr_to_group_generators(gp.FACETS_ACTION.GENERATORS)
+        vertex_action = _pm_arr_arr_to_group_generators(gp.VERTICES_ACTION.GENERATORS)
     else
         throw(ArgumentError("Action type $(type) not supported."))
     end
@@ -190,8 +190,8 @@ Dict{Symbol, PermGroup} with 2 entries:
 """
 function automorphism_group(P::Polyhedron; type = :combinatorial)
     result = automorphism_group_generators(P; type = type)
-    va = gens_to_group(result[:vertex_action])
-    fa = gens_to_group(result[:facet_action])
+    va = _gens_to_group(result[:vertex_action])
+    fa = _gens_to_group(result[:facet_action])
     return Dict{Symbol, PermGroup}(:vertex_action => va,
             :facet_action => fa)
 end
