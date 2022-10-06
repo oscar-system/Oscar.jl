@@ -1777,11 +1777,8 @@ end
 
 function _hilbert_numerator_from_leading_exponents(
     a::Vector{Vector{Int}},
-    weight_matrix::Matrix{Int}, # = [1 for i in 1:1, j in 1:length(a[1])],
-    return_ring::Ring, # =(all(x->(x>=0), weight_matrix) ? 
-              #   PolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1] : 
-              #   LaurentPolynomialRing(QQ, [Symbol("t_$i") for i in 1:nrows(weight_matrix)])[1]
-              #  ),
+    weight_matrix::Matrix{Int},
+    return_ring::Ring,
     #alg=:generator
     #alg=:custom
     #alg=:gcd
@@ -1791,12 +1788,8 @@ function _hilbert_numerator_from_leading_exponents(
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
-  length(a) == 0 && return one(return_ring)
-
-  t = gens(return_ring)
-
-  # See Proposition 5.3.6
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring)
+  ret !== nothing && return ret
 
   if alg == :BayerStillmanA
     return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring)
@@ -1814,14 +1807,47 @@ function _hilbert_numerator_from_leading_exponents(
   error("invalid algorithm")
 end
 
+function _hilbert_numerator_trivial_cases(
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring
+  )
+  length(a) == 0 && return one(S)
+
+  # See Proposition 5.3.6
+  if _are_pairwise_coprime(a)
+    t = gens(S)
+    return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
+
+#=
+    ### The following code should be faster, but the build context is not
+    # yet fully tuned (will be better in the next Nemo release). Try it again, once it's done.
+    # Also if S is univariate then a direct approach may still be faster
+    factors = elem_type(S)[]
+    sizehint!(factors, length(a))
+    o = one(coefficient_ring(S))
+    mo = -o
+    z = [0 for i in 1:nvars(S)]
+    ctx = MPolyBuildCtx(S)
+    for e in a
+      exponents = weight_matrix*e
+      push_term!(ctx, mo, exponents)
+      push_term!(ctx, o, z)
+      push!(factors, finish(ctx))
+    end
+    return prod(factors)
+=#
+  end
+
+  return nothing
+end
+
+
 function _hilbert_numerator_cocoa(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
     S::Ring
   )
-  r = length(a)
-  t = gens(S)
-  r == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret !== nothing && return ret
 
   n = length(a)
   m = length(a[1])
@@ -1865,10 +1891,8 @@ function _hilbert_numerator_indeterminate(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
     S::Ring
   )
-  r = length(a)
-  t = gens(S)
-  r == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret !== nothing && return ret
 
   e = first(a)
   found_at = findfirst(!iszero, e)::Int64
@@ -1895,10 +1919,8 @@ function _hilbert_numerator_generator(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
     S::Ring
   )
-  r = length(a)
-  t = gens(S)
-  r == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret !== nothing && return ret
 
   b = copy(a)
   pivot = pop!(b)
@@ -1920,10 +1942,8 @@ function _hilbert_numerator_gcd(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
     S::Ring
   )
-  r = length(a)
-  t = gens(S)
-  r == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret !== nothing && return ret
 
   n = length(a)
   counters = [0 for i in 1:length(a[1])]
@@ -1964,9 +1984,8 @@ function _hilbert_numerator_custom(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
     S::Ring
   )
-  t = gens(S)
-  length(a) == 0 && return one(S)
-  _are_pairwise_coprime(a) && return prod([1-prod([t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)]) for e in a])
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret !== nothing && return ret
 
   p = Vector{Int}()
   q = Vector{Int}()
@@ -2013,28 +2032,10 @@ function _hilbert_numerator_bayer_stillman(
   #
   # Algorithm 2.6, page 35
   ###########################################################################
-  r = length(a)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret !== nothing && return ret
+
   t = gens(S)
-  r == 0 && return one(S)
-  kk = coefficient_ring(S)
-  if _are_pairwise_coprime(a) 
-    return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
-    ### The following code should be faster, but the build context in Nemo is not 
-    # yet sufficiently tuned. Try it again, once it's done.
-    factors = elem_type(S)[]
-    sizehint!(factors, length(a))
-    o = one(kk)
-    mo = -o
-    z = [0 for i in 1:nvars(S)]
-    ctx = MPolyBuildCtx(S)
-    for e in a
-      exponents = weight_matrix*e
-      push_term!(ctx, mo, exponents) 
-      push_term!(ctx, o, z)
-      push!(factors, finish(ctx))
-    end
-    return prod(x for x in factors)
-  end
 
   # make sure we have lexicographically ordered monomials
   a = _sort_lex(a)
@@ -2042,7 +2043,7 @@ function _hilbert_numerator_bayer_stillman(
 
   # initialize the result 
   h = one(S) - prod(t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t))
-  for i in 2:r
+  for i in 2:length(a)
     J = _divide_by(a[1:i-1], a[i])
     J1 = Vector{Vector{Int}}()
     linear_mons = Vector{Int}()
