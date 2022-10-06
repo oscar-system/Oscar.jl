@@ -364,7 +364,7 @@ function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) wh
    else
       G = V[1].G
    end
-   l = GAP.julia_to_gap([v.X for v in V])
+   l = GAP.Obj([v.X for v in V])
    ints = GAP.Globals.Intersection(l)
    L = Vector{typeof(G)}(undef, length(ints))
    for i in 1:length(ints)

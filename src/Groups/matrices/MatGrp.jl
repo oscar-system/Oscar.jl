@@ -806,7 +806,7 @@ matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(col
 
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    @assert elem_type(G) === S
-   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
+   elems_in_GAP = GAP.Obj(GapObj[x.X for x in elements])
    H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)

@@ -418,8 +418,8 @@ julia> permutation(Omega, x)
 ```
 """
 function permutation(Omega::GSetByElements{T}, g::GAPGroupElem) where T<:GAPGroup
-    omega_list = GAP.julia_to_gap(elements(Omega))
-    gfun = GAP.julia_to_gap(action_function(Omega))
+    omega_list = GAP.Obj(elements(Omega))
+    gfun = GAP.Obj(action_function(Omega))
 
     # The following works only because GAP does not check
     # whether the given group element 'g' is a group element.
@@ -494,13 +494,13 @@ true
 """
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = acting_group(Omega)
-  omega_list = GAP.julia_to_gap(collect(Omega))
+  omega_list = GAP.Obj(collect(Omega))
   gap_gens = map(x -> x.X, gens(G))
-  gfun = GAP.julia_to_gap(action_function(Omega))
+  gfun = GAP.Obj(action_function(Omega))
 
   # The following works only because GAP does not check
   # whether the given generators in GAP and Julia fit together.
-  acthom = GAP.Globals.ActionHomomorphism(G.X, omega_list, GAP.julia_to_gap(gap_gens), GAP.julia_to_gap(gens(G)), gfun)
+  acthom = GAP.Globals.ActionHomomorphism(G.X, omega_list, GAP.Obj(gap_gens), GAP.Obj(gens(G)), gfun)
 
   # The first difficulty on the GAP side is `ImagesRepresentative`
   # (which is the easy direction of the action homomorphism):
@@ -516,7 +516,7 @@ true
   # (Yes, this is also overhead.
   # The alternative would be to create a new type of Oscar homomorphism,
   # which uses `permutation` or something better for mapping elements.)
-  GAP.Globals.SetJuliaData(acthom, GAP.julia_to_gap([Omega, G]))
+  GAP.Globals.SetJuliaData(acthom, GAP.Obj([Omega, G]))
 
   sym = get_attribute!(Omega, :action_range) do
     return symmetric_group(length(Omega))
