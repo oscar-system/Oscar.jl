@@ -159,9 +159,9 @@ end
 @doc Markdown.doc"""
   complement(X::Scheme,Y::Scheme) -> Scheme
 
-Return complement `X \ Y` of `Y` in `X`.
+Return the complement ``X \ Y`` of ``Y`` in ``X``.
 
-Since we want the complement `U = X \ Y` to be a Scheme,
+Since we want the complement `U = X \ Y` to have a well defined scheme structure, 
 we require that `Y` is closed in `X`.
 """
 complement(X::Scheme,Y::Scheme)
