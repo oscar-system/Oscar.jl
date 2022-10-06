@@ -1621,12 +1621,6 @@ end
 
 _divides(a::Vector{Int}, b::Vector{Int}) = all(k->(a[k]>=b[k]), 1:length(a))
 
-function _gcd(a::Vector{Vector{Int}}) 
-  length(a) == 1 && return a[1]
-  n = length(a[1]) # assumed to be the length of all entries of a
-  return [minimum([a[i][j] for i in 1:length(a)]) for j in 1:n]
-end
-
 function _gcd(a::Vector{Int}, b::Vector{Int})
   return [a[k] > b[k] ? b[k] : a[k] for k in 1:length(a)]
 end
