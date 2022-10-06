@@ -726,6 +726,26 @@ function _as_right_ideal(a::PBWAlgIdeal{D}) where D
   end
 end
 
+@doc Markdown.doc"""
+    *(I::PBWAlgIdeal{DI, T, S}, J::PBWAlgIdeal{DJ, T, S}) where {DI, DJ, T, S}
+
+Given two ideals `I` and `J` such that both `I` and `J` are two-sided ideals
+or `I` and `J` are a left and right ideal, respectively, return the product of `I` and `J`.
+
+# Examples
+```jldoctest
+julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), ["x", "y"]);
+
+julia> I = left_ideal(D, [x^3+y^3, x*y^2])
+left_ideal(x^3 + y^3, x*y^2)
+
+julia> J = right_ideal(D, [dx^3, dy^5])
+right_ideal(dx^3, dy^5)
+
+julia> I*J
+two_sided_ideal(x^3*dx^3 + y^3*dx^3, x^3*dy^5 + y^3*dy^5, x*y^2*dx^3, x*y^2*dy^5)
+```
+"""
 function Base.:*(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, Db, T, S}
   @assert base_ring(a) == base_ring(b)
   is_left(a) && is_right(b) || throw(NotImplementedError(:*, a, b))
@@ -733,6 +753,22 @@ function Base.:*(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, 
   return PBWAlgIdeal{0, T, S}(base_ring(a), _as_left_ideal(a)*_as_right_ideal(b))
 end
 
+@doc Markdown.doc"""
+    ^(I::PBWAlgIdeal{D, T, S}, k::Int) where {D, T, S}
+
+Given a two_sided ideal `I`, return the `k`-th power of `I`.
+
+# Examples
+```jldoctest
+julia> D, (x, dx) = weyl_algebra(GF(3), ["x"]);
+
+julia> I = two_sided_ideal(D, [x^3])
+two_sided_ideal(x^3)
+
+julia> I^2
+two_sided_ideal(x^6)
+```
+"""
 function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
   @assert b >= 0
   b == 0 && return PBWAlgIdeal{D, T, S}(base_ring(a), [one(base_ring(a))])
