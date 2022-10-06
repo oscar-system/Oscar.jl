@@ -176,10 +176,6 @@ function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuo})
   return SpecOpen(X, modulus(OO(Z)))
 end
 
-function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing})
-  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
-  return subscheme(X, prod(denominators(inverted_set(OO(Z)))))
-end
 
 function complement(X::AbsSpec, 
     Z::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing};
