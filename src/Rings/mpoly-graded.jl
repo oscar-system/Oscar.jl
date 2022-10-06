@@ -1618,7 +1618,6 @@ end
 # [Kreuzer, Robbiano: Computational Commutative Algebra 2, Springer]
 # Section 5.3.
 ########################################################################
-exp_vec(f::MPolyElem) = first(exponent_vectors(f))
 
 _divides(a::Vector{Int}, b::Vector{Int}) = all(k->(a[k]>=b[k]), 1:length(a))
 

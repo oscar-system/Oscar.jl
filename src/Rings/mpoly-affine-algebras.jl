@@ -300,7 +300,7 @@ end
 function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:BayerStillmanA)
   x = gens(base_ring(I))
   W = [degree(Vector{Int}, x[i])[j] for j in 1:m, i in 1:length(x)]
-  return _hilbert_numerator_from_leading_exponents([exp_vec(f) for f in gens(I)], W, S, :BayerStillmanA)
+  return _hilbert_numerator_from_leading_exponents([leading_exponent_vector(f) for f in gens(I)], W, S, :BayerStillmanA)
 end
 
 
