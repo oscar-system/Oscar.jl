@@ -976,17 +976,6 @@ function restrict(
   return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 end
 
-@Markdown.doc """
-    compose(f::SpecMor, g::SpecMor) -> SpecMor
-
-Return the composition of two morphisms.
-
-      f    g
-    U →  V →  W
- """
-compose(f::SpecMor, g::SpecMor; check::Bool=true)
-
-
 function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
