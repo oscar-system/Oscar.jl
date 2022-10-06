@@ -398,7 +398,7 @@ The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
-gens(R::SpecOpenRing) = error("not implemented")
+gens(R::SpecOpenRing) = R.(gens(ambient_ring(scheme(R))))
 
 @Markdown.doc """
     domain(R::SpecOpenRing)
