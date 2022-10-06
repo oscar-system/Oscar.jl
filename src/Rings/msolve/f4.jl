@@ -107,5 +107,5 @@ function f4(
     vars = gens(R)[eliminate+1:end]
     I.gb[degrevlex(vars)] = IdealGens(basis, keep_ordering=false, isGB=true)
     
-    return basis
+    return I.gb[degrevlex(vars)]
 end
