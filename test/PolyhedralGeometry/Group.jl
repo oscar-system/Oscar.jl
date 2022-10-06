@@ -38,7 +38,7 @@
     @testset "combinatorial_symmetries" begin
         C = cube(3)
         A = combinatorial_symmetries(C)
-        @test degree(A) == 6
+        @test degree(A) == 8
         P = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
         @test_throws ArgumentError combinatorial_symmetries(P)
     end
