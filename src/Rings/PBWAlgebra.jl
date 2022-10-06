@@ -866,7 +866,7 @@ function Base.issubset(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {
   else
     _sopdata_assure!(a)
     opgroebner_assure!(b)
-    return Singular.iszero(Singular.reduce(a.sopdata, I.opgb))
+    return Singular.iszero(Singular.reduce(a.sopdata, b.opgb))
   end
 end
 

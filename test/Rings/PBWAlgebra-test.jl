@@ -131,6 +131,11 @@ end
   @test !(dy in I)
 
   @test intersect(left_ideal([dx])) == left_ideal([dx])
+
+  I = right_ideal(R, [dx^2])
+  J = right_ideal(R, [dx^4*x, dx^2*y])
+  @test intersect(I, J) != I
+  @test intersect(I, J) == J
 end
 
 @testset "PBWAlgebra.ideals.multiplication" begin
