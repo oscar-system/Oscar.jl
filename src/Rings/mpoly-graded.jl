@@ -1628,9 +1628,10 @@ end
 function _are_pairwise_coprime(a::Vector{Vector{Int}})
   length(a) <= 1 && return true
   n = length(a)
+  m = length(a[1])
   for i in 1:n-1
     for j in i+1:n
-      all(iszero, _gcd(a[i], a[j])) || return false
+      all(k -> a[i][k] == 0 || a[j][k] == 0, 1:m) || return false
     end
   end
   return true
