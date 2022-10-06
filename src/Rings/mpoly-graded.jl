@@ -1718,28 +1718,6 @@ function _find_maximum(a::Vector{Int})
   return j
 end
 
-function _cmp_revlex(a::Vector{Int}, b::Vector{Int})
-  for i in 1:length(a)
-    a[i] == b[i] && continue
-    return a[i] > b[i]
-  end
-  return true
-end
-
-function _sort_lex(a::Vector{Vector{Int}})
-  pivot = a[1]
-  less = Vector{Vector{Int}}()
-  more = Vector{Vector{Int}}()
-  for m in a[2:end]
-    if _cmp_revlex(pivot, m)
-      push!(less, m)
-    else
-      push!(more, m)
-    end
-  end
-  return vcat(less, [pivot], more)
-end
-
 #######################################################################
 # 06.10.2022
 # The following internal routine can probably still be tuned.
@@ -2038,8 +2016,7 @@ function _hilbert_numerator_bayer_stillman(
   t = gens(S)
 
   # make sure we have lexicographically ordered monomials
-  a = _sort_lex(a)
-
+  sort!(a)
 
   # initialize the result 
   h = one(S) - prod(t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t))
