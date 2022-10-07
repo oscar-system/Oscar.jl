@@ -262,12 +262,13 @@ end
   end
 
   W = [1 1 1 1 1]
-  custom = Oscar._hilbert_numerator_from_leading_exponents(g, alg=:custom);
-  gcd = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:gcd);
-  generator = Oscar._hilbert_numerator_from_leading_exponents(g, alg=:generator);
-  cocoa = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:cocoa);
-  indeterminate = Oscar._hilbert_numerator_from_leading_exponents(g, alg=:indeterminate);
-  bayer = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:BayerStillmanA);
+  S, _ = PolynomialRing(QQ, "t")
+  custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
+  gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
+  generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
+  cocoa = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :cocoa)
+  indeterminate = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :indeterminate)
+  bayer = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :BayerStillmanA)
 
   @test custom == gcd == generator == cocoa == indeterminate
 
@@ -280,12 +281,12 @@ end
   @test evaluate(sing[1], gens(parent(cocoa))[1]) == cocoa
 
   W = [1 1 1 1 1; 2 5 3 4 1; 9 2 -3 5 0]
-  custom = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:custom);
-  gcd = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:gcd);
-  generator = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:generator);
-  cocoa = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:cocoa);
-  indeterminate = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:indeterminate);
-  bayer = Oscar._hilbert_numerator_from_leading_exponents(g, weight_matrix=W, alg=:BayerStillmanA);
-
+  S, _ = LaurentPolynomialRing(QQ, ["t₁", "t₂", "t₃"])
+  custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
+  gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
+  generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
+  cocoa = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :cocoa)
+  indeterminate = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :indeterminate)
+  bayer = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :BayerStillmanA)
   @test custom == gcd == generator == cocoa == indeterminate
 end
