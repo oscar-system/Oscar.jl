@@ -202,13 +202,31 @@ function optimal_value(milp::MixedIntegerLinearProgram{T}) where T<:scalar_types
 end
 
 
-"""
+@doc Markdown.doc"""
     solve_milp(MILP::MixedIntegerLinearProgram)
 
-Return a pair `(m,v)` where the optimal value `m` of the objective
- function of `MILP` is attained at `v` (if `m` exists). If the optimum
- is not attained, `m` may be `inf` or `-inf` in which case `v` is
- `nothing`.
+Return a pair `(m,v)` where the optimal value `m` of the objective function of
+`MILP` is attained at `v` (if `m` exists). If the optimum is not attained, `m`
+may be `inf` or `-inf` in which case `v` is `nothing`.
+
+# Examples
+Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
+```jldoctest
+julia> c = cube(2, -1//2, 3//2)
+A polyhedron in ambient dimension 2
+
+julia> milp = MixedIntegerLinearProgram(c, [1,1], integer_variables=[1])
+A mixed integer linear program
+
+julia> solve_milp(milp)
+(5/2, fmpq[1, 3//2])
+
+julia> milp = MixedIntegerLinearProgram(c, [1,1])
+A mixed integer linear program
+
+julia> solve_milp(milp)
+(2, fmpq[1, 1])
+```
 """
 function solve_milp(milp::MixedIntegerLinearProgram)
    return optimal_value(milp),optimal_solution(milp)
