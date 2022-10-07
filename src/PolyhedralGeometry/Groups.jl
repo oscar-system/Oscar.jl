@@ -109,13 +109,12 @@ julia> length(elements(G))
 ```
 """
 function linear_symmetries(P::Polyhedron)
-    result = automorphism_group(P; type=:linear)
-    return result[:on_vertices]
+    return automorphism_group(P; type=:linear, action=:on_vertices)
 end
 
 
 @doc Markdown.doc"""
-    automorphism_group_generators(P::Polyhedron; type = :combinatorial)
+    automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
 
 Compute generators of the group of automorphisms of a polyhedron.
 
@@ -124,12 +123,21 @@ The optional parameter `type` takes two values:
     automorphisms of the face lattice.
 - `:linear` -- Return the linear automorphisms.
 
+The optional parameter `action` takes three values:
+- `:all` (default) -- Return the generators of the permutation action on both
+    vertices and facets as a Dict{Symbol, Vector{PermGroupElem}}.
+- `:on_vertices` -- Only return generators of the permutation action on the
+    vertices.
+- `:on_facets` -- Only return generators of the permutation action on the
+    facets.
+
 The return value is a `Dict{Symbol, Vector{PermGroupElem}}` with two entries,
 one for the key `:on_vertices` containing the generators for the action
 permuting the vertices, and `:on_facets` for the facets.
 
 
 # Examples
+Compute the automorphisms of the 3dim cube:
 ```jldoctest
 julia> c = cube(3)
 A polyhedron in ambient dimension 3
@@ -137,7 +145,41 @@ A polyhedron in ambient dimension 3
 julia> automorphism_group_generators(c)
 Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
   :on_vertices => [(3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8)]
-  :on_facets  => [(3,5)(4,6), (1,3)(2,4), (1,2)]
+  :on_facets   => [(3,5)(4,6), (1,3)(2,4), (1,2)]
+
+julia> automorphism_group_generators(c; action = :on_vertices)
+3-element Vector{PermGroupElem}:
+ (3,5)(4,6)
+ (2,3)(6,7)
+ (1,2)(3,4)(5,6)(7,8)
+
+julia> automorphism_group_generators(c; action = :on_facets)
+3-element Vector{PermGroupElem}:
+ (3,5)(4,6)
+ (1,3)(2,4)
+ (1,2)
+```
+
+Compute the automorphisms of a non-quadratic quadrangle. Since it has less
+symmetry than the square, it has less linear symmetries.
+```jldoctest
+julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
+A polyhedron in ambient dimension 2
+
+julia> automorphism_group_generators(quad)
+Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
+  :on_vertices => [(2,4), (1,2)(3,4)]
+  :on_facets   => [(1,2)(3,4), (1,3)]
+
+julia> automorphism_group_generators(quad; type = :combinatorial)
+Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
+  :on_vertices => [(2,4), (1,2)(3,4)]
+  :on_facets   => [(1,2)(3,4), (1,3)]
+
+julia> automorphism_group_generators(quad; type = :linear)
+Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
+  :on_vertices => [(2,4)]
+  :on_facets   => [(1,2)(3,4)]
 ```
 """
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
@@ -166,6 +208,53 @@ function automorphism_group_generators(P::Polyhedron; type = :combinatorial, act
 end
 
 
+@doc Markdown.doc"""
+    automorphism_group_generators(IM::IncidenceMatrix; action = :all)
+
+Compute the generators of the group of automorphisms of an IncidenceMatrix. 
+
+The optional parameter `action` takes three values:
+- `:all` (default) -- Return the generators of the permutation action on both
+    columns and rows as a Dict{Symbol, Vector{PermGroupElem}}.
+- `:on_cols` -- Only return generators of the permutation action on the
+    columns.
+- `:on_rows` -- Only return generators of the permutation action on the
+    rows.
+
+# Examples
+Compute the automorphisms of the incidence matrix of the 3dim cube:
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> IM = vertex_indices(facets(c))
+6×8 IncidenceMatrix
+[1, 3, 5, 7]
+[2, 4, 6, 8]
+[1, 2, 5, 6]
+[3, 4, 7, 8]
+[1, 2, 3, 4]
+[5, 6, 7, 8]
+
+
+julia> automorphism_group_generators(IM)
+Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
+  :on_cols => [(3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8)]
+  :on_rows => [(3,5)(4,6), (1,3)(2,4), (1,2)]
+
+julia> automorphism_group_generators(IM; action = :on_rows)
+3-element Vector{PermGroupElem}:
+ (3,5)(4,6)
+ (1,3)(2,4)
+ (1,2)
+
+julia> automorphism_group_generators(IM; action = :on_cols)
+3-element Vector{PermGroupElem}:
+ (3,5)(4,6)
+ (2,3)(6,7)
+ (1,2)(3,4)(5,6)(7,8)
+```
+"""
 function automorphism_group_generators(IM::IncidenceMatrix; action = :all)
     gens = Polymake.graph.automorphisms(IM)
     rows_action = _pm_arr_arr_to_group_generators([first(g) for g in gens])
@@ -210,31 +299,28 @@ end
 
 
 @doc Markdown.doc"""
-    automorphism_group(P::Polyhedron; type = :combinatorial)
+    automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
 
-Compute the group of automorphisms of a polyhedron.
-
-The optional parameter `type` takes two values:
-- `:combinatorial` (default) -- Return the combinatorial symmetries, the
-    automorphisms of the face lattice.
-- `:linear` -- Return the linear automorphisms.
-
-The return value is a `Dict{Symbol, PermGroup}` with two entries, one for the
-key `:on_vertices` containing the group permuting the vertices, and
-`:on_facets` for the facets.
-
-# Examples
-```jldoctest
-julia> c = cube(3)
-A polyhedron in ambient dimension 3
-
-julia> automorphism_group(c)
-Dict{Symbol, PermGroup} with 2 entries:
-  :on_vertices => Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
-  :on_facets  => Group([ (3,5)(4,6), (1,3)(2,4), (1,2) ])
-```
+Compute the group of automorphisms of a polyhedron. The parameters and return
+values are the same as for [`automorphism_group_generators(P::Polyhedron; type
+= :combinatorial, action = :all)`](@ref) except that groups are returned
+instead of generators of groups.
 """
 function automorphism_group(P::Polyhedron; type = :combinatorial, action = :all)
     result = automorphism_group_generators(P; type = type, action = action)
+    return _gens_to_group(result)
+end
+
+
+@doc Markdown.doc"""
+    automorphism_group(IM::IncidenceMatrix; action = :all)
+
+Compute the group of automorphisms of an IncidenceMatrix. The parameters and
+return values are the same as for
+[`automorphism_group_generators(IM::IncidenceMatrix; action = :all)`](@ref)
+except that groups are returned instead of generators of groups.
+"""
+function automorphism_group(IM::IncidenceMatrix; action = :all)
+    result = automorphism_group_generators(P; action = action)
     return _gens_to_group(result)
 end
