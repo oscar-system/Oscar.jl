@@ -32,6 +32,10 @@ given as a set of integers, their respective indices.
 
 ```@docs
 MixedIntegerLinearProgram
+```
+
+## Functions
+```@docs
 optimal_value(milp::MixedIntegerLinearProgram{T}) where T<:scalar_types
 optimal_solution
 solve_milp
