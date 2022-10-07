@@ -977,7 +977,6 @@ end
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
 
-Localization(R::MPolyRing, f::MPolyElem) = Localization(MPolyPowersOfElement(R, [f]))
 Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = Localization(MPolyPowersOfElement(R, v))
 
 function Localization(
@@ -1379,6 +1378,11 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   return true
 end
 
+# TODO: Also add a special dispatch for localizations at 𝕜-points
+@attr function is_prime(I::MPolyLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
+
 ### Additional constructors
 function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
   L = base_ring(I)
@@ -1655,6 +1659,7 @@ function saturated_ideal(
       for g in gens(J)
         g in I
       end
+
     end
     I.is_saturated = true
   end
@@ -1681,6 +1686,7 @@ function Base.in(
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
+  b in pre_saturated_ideal(I) && return true
   return b in saturated_ideal(I)
 end
 
@@ -2211,3 +2217,22 @@ function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
   x = coordinates(a*F[1], M)
   return true, W(x[1])
 end
+
+# This had to be moved after behind the definition of the elements.
+function Localization(R::MPolyRing, f::MPolyElem)
+  U = MPolyPowersOfElement(R, [f])
+  L = MPolyLocalizedRing(R, U)
+  function func(a::MPolyElem)
+    parent(a) == R || error("element does not belong to the correct ring")
+    return L(a)
+  end
+  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+                                              <:MPolyPowersOfElement}
+    )
+    L == parent(a) || error("element does not belong to the correct ring")
+    isone(denominator(a)) && return numerator(a)
+    return divexact(numerator(a), denominator(a))
+  end
+  return L, MapFromFunc(func, func_inv, R, L)
+end
+

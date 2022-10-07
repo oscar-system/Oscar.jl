@@ -54,7 +54,7 @@ end
   X = Spec(R, I)
   U = SpecOpen(X, [x, y])
   P = projective_space(OO(U), 1)
-  S = homogeneous_poly_ring(P)
+  S = ambient_ring(P)
   Y = subscheme(P, [x*S[1]- y*S[2], z*S[1] - x*S[2]])
   C = affine_cone(Y)
   phi = homog_to_frac(Y)
@@ -62,4 +62,38 @@ end
   s0 = phi(S[1])
   a = OO(U)([x//y, z//x])
   @test pullback(projection_to_base(Y))(a)*s0 == s1
+end
+
+
+@testset "projective schemes as covered schemes" begin
+  P3 = projective_space(QQ,3)
+  S = ambient_ring(P3)
+  F = subscheme(P3,ideal(S,S[1]^4+S[2]^4+S[3]^4+S[4]^4))
+  Fc = as_covered_scheme(F)
+  U = patches(Fc)[1]
+  V = patches(Fc)[2]
+  oscar.intersect_in_covering(U,V,Fc[1])
+end
+
+@testset "Fermat lines" begin
+  K,a = cyclotomic_field(8)
+  P3 = projective_space(K,3)
+  S = ambient_ring(P3)
+  @test Oscar.homogeneous_coordinate(P3,1) == S[1]
+  F = subscheme(P3, ideal(S, S[1]^4 + S[2]^4 + S[3]^4 + S[4]^4))
+  Fc = as_covered_scheme(F)
+  U = patches(Fc)[1]
+  V = patches(Fc)[2]
+  oscar.intersect_in_covering(U,V,Fc[1]);
+  line = subscheme(F, ideal(S, [S[1]+a*S[2],S[3]+a*S[4]]))
+  groebner_basis(defining_ideal(line))
+
+end
+
+@testset "Issue #1580" begin 
+  R,(x,) = PolynomialRing(GF(3),["x"])
+  Rx,i = localization(R, x)
+  x = Rx(x)
+  P2 = projective_space(Rx, 2)
+  affine_cone(P2) 
 end

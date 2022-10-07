@@ -1,18 +1,11 @@
-export AbsGlueing
-export Glueing
 export glueing_morphisms, patches, glueing_domains, inverse_glueing_morphism, inverse
 export glueing_type
 
 export compose, maximal_extension, restriction
 
-abstract type AbsGlueing{LeftSpecType<:AbsSpec, 
-                         RightSpecType<:AbsSpec,
-                         LeftOpenType<:Scheme, 
-                         RightOpenType<:Scheme,
-                         LeftMorType<:Hecke.Map,
-                         RightMorType<:Hecke.Map
-                        } end
-
+########################################################################
+# The interface for abstract glueings of affine schemes                #
+########################################################################
 function patches(G::AbsGlueing)
   return patches(underlying_glueing(G))
 end
@@ -35,52 +28,9 @@ function Base.show(io::IO, G::AbsGlueing)
   print(io, "Glueing of $(patches(G)[1]) and $(patches(G)[2]) along the map $(glueing_morphisms(G)[1])")
 end
 
-@Markdown.doc """
-    Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
-
-Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets 
-``U ⊂ X`` and ``V ⊂ Y via some isomorphism ``φ : U → V``.
-"""
-@attributes mutable struct Glueing{
-                                   LeftSpecType<:AbsSpec, 
-                                   RightSpecType<:AbsSpec,
-                                   LeftOpenType<:SpecOpen, 
-                                   RightOpenType<:SpecOpen,
-                                   LeftMorType<:SpecOpenMor,
-                                   RightMorType<:SpecOpenMor
-                                  } <: AbsGlueing{
-                                   LeftSpecType,
-                                   RightSpecType,
-                                   LeftOpenType,
-                                   RightOpenType,
-                                   LeftMorType,
-                                   RightMorType
-                                  }
-  X::LeftSpecType	
-  Y::RightSpecType
-  U::LeftOpenType
-  V::RightOpenType
-  f::LeftMorType # f : U → V 
-  g::RightMorType
-
-  function Glueing(
-      X::AbsSpec, Y::AbsSpec, f::SpecOpenMor, g::SpecOpenMor; check::Bool=true
-    )
-    ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
-    ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
-    if check
-      (is_canonically_isomorphic(domain(f), codomain(g)) && 
-       is_canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
-      compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
-      compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
-    end
-    return new{typeof(X), typeof(Y), 
-               typeof(domain(f)), typeof(domain(g)), 
-               typeof(f), typeof(g)
-              }(X, Y, domain(f), domain(g), f, g)
-  end
-end
-
+########################################################################
+# Methods for Glueing                                                  #
+########################################################################
 patches(G::Glueing) = G.X, G.Y
 glueing_morphisms(G::Glueing) = G.f, G.g
 glueing_domains(G::Glueing) = domain(G.f), domain(G.g)
@@ -118,8 +68,8 @@ function compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
   W_new = preimage(g_inv, codomain(f))
   V_new = intersect(codomain(f), domain(g))
   return Glueing(X, Z, 
-             compose(restriction(f, U_new, V_new), restriction(g, V_new, W_new)),
-             compose(restriction(g_inv, W_new, V_new), restriction(f_inv, V_new, U_new))
+             compose(restrict(f, U_new, V_new), restrict(g, V_new, W_new)),
+             compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new))
 	     )
 end
 
@@ -163,8 +113,8 @@ function maximal_extension(G::Glueing)
   U_new = preimage(f_ext, domain(g_ext))
   V_new = preimage(g_ext, U_new)
   issubset(domain(g_ext), V_new) || error("extension failed")
-  f_ext = restriction(f_ext, U_new, V_new)
-  g_ext = restriction(g_ext, V_new, U_new)
+  f_ext = restrict(f_ext, U_new, V_new)
+  g_ext = restrict(g_ext, V_new, U_new)
   return Glueing(X, Y, f_ext, g_ext)
 end
 
@@ -185,23 +135,23 @@ function glueing_type(::Type{SpecType}) where {SpecType<:Spec}
   return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
 end
 
-function restriction(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) where {SpecType<:Spec}
+function restrict(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) where {SpecType<:Spec}
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
     is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check), check=check)
+  return Glueing(X, Y, restrict(f, X, Y, check=check), restrict(g, Y, X, check=check), check=check)
 end
 
 @Markdown.doc """
-    restriction(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+    restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
 Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 
 ``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
 """
-function restriction(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   (X1, Y1) = patches(G)
   X1 == domain(f) || error("maps not compatible")
   X2 = codomain(f)

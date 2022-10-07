@@ -9,11 +9,11 @@ function singular_locus(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
     return subscheme(X, one(OO(X)))
   end
   R = base_ring(OO(X))
-  return Spec(R, prod([modulus(OO(Y)) for Y in comp]), inverted_set(OO(X)))
+  return Spec(R, prod([modulus(quotient_ring(OO(Y))) for Y in comp]), inverted_set(OO(X)))
 end
 
 function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  I = localized_modulus(OO(X))
+  I = modulus(OO(X))
   result = typeof(X)[]
 
   P = []
@@ -53,20 +53,20 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocaliz
 end
 
 @attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  I = localized_modulus(OO(X))
+  I = modulus(OO(X))
   P = equidimensional_decomposition_weak(saturated_ideal(I))
   length(P) < 2 && return true
   return false
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  I = localized_modulus(OO(X))
+  I = modulus(OO(X))
   J = radical(saturated_ideal(I))
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function is_reduced(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  I = localized_modulus(OO(X))
+  I = modulus(OO(X))
   J = saturated_ideal(I)
   return is_reduced(quo(base_ring(OO(X)), J)[1])
 end
@@ -127,12 +127,12 @@ end
   R = base_ring(OO(X))
   characteristic(base_ring(X)) == 0 || error("method not implemented in positive characteristic")
   L = localized_ring(OO(X))
-  I = localized_modulus(OO(X))
+  I = modulus(OO(X))
   f = gens(Oscar.pre_saturated_ideal(I))
   Df = jacobi_matrix(f)
 
   A = map_entries(x->OO(X)(x), Df)
-  success, _ = Oscar._is_projective(A, X)
+  success, _, _ = Oscar._is_projective_without_denominators(A)
   return success
 end
 
@@ -147,7 +147,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) = true
   Df = jacobi_matrix(f)
 
   A = map_entries(x->OO(X)(x), Df)
-  success, _ = Oscar._is_projective(A, X)
+  success, _, _ = Oscar._is_projective_without_denominators(A)
   return success
 end
 

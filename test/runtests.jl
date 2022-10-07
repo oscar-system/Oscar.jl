@@ -43,6 +43,7 @@ include("Schemes/SpecOpen.jl")
 include("Schemes/Glueing.jl")
 include("Schemes/ProjectiveSchemes.jl")
 include("Schemes/CoveredScheme.jl")
+include("Schemes/FunctionFields.jl")
 include("Modules/ProjectiveModules.jl")
 include("Schemes/singular_locus.jl")
 

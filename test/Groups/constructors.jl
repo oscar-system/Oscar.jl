@@ -52,9 +52,9 @@
   @test !is_isomorphic_with_alternating_group(symmetric_group(4))
 
   @test is_natural_symmetric_group(symmetric_group(4))
-  @test ! is_natural_symmetric_group(symmetric_group(PcGroup,4))
+  @test ! is_natural_symmetric_group(PcGroup(symmetric_group(4)))
   @test is_isomorphic_with_symmetric_group(symmetric_group(4))
-  @test is_isomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
+  @test is_isomorphic_with_symmetric_group(PcGroup(symmetric_group(4)))
   @test !is_isomorphic_with_symmetric_group(alternating_group(4))
 end
 
@@ -66,10 +66,6 @@ end
     
   @test isa(dihedral_group(6), PcGroup)
   @test isa(dihedral_group(PermGroup, 6), PermGroup)
-  
-  @test isa(alternating_group(PcGroup,3), PcGroup)
-  @test isa(symmetric_group(PcGroup,3), PcGroup)
-  @test is_isomorphic(symmetric_group(4), symmetric_group(PcGroup,4))
 
   @test is_quaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)
@@ -82,6 +78,31 @@ end
   @test isa(cyclic_group(PermGroup, 5), PermGroup)
   @test_throws ArgumentError cyclic_group(-1)
   @test_throws ArgumentError cyclic_group(PermGroup, -1)
+
+  for p in [next_prime(2^62), next_prime(fmpz(2)^66)]
+    g = cyclic_group(p)
+    @test is_cyclic(g)
+    @test !is_dihedral_group(g)
+    @test is_finite(g)
+    @test order(g) == p
+
+    n = 2*fmpz(p)
+    g = dihedral_group(n)
+    @test !is_cyclic(g)
+    #@test is_dihedral_group(g)
+    @test is_finite(g)
+    @test order(g) == n
+  end
+
+  g = cyclic_group(PosInf())
+  @test is_cyclic(g)
+  @test !is_finite(g)
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+
+  g = dihedral_group(PosInf())
+  @test !is_cyclic(g)
+  @test !is_finite(g)
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
 
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)

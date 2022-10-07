@@ -1,7 +1,6 @@
 ############################################################
 # QuadSpace
-encodeType(::Type{<: Hecke.QuadSpace}) = "Hecke.QuadSpace"
-reverseTypeMap["Hecke.QuadSpace"] = Hecke.QuadSpace
+@registerSerializationType(Hecke.QuadSpace)
 
 @registerSerializationType(ZLat)
 

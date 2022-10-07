@@ -41,22 +41,12 @@ const versionInfo = get_version_info()
 ################################################################################
 # (De|En)coding types
 #
-# Right now this is still quite primitive, however there is functionality for
-# encoding Vectors without explicitly adding them to the typeMap. This will
-# have to be adapted though to make it more generic for matrices, arrays, etc.
-const typeMap = Dict{Type, String}()
 const reverseTypeMap = Dict{String, Type}()
 
 function registerSerializationType(@nospecialize(T::Type), str::String)
-  isconcretetype(T) || error("Currently only concrete types can be registered, but $T is not")
-  if haskey(typeMap, T) && typeMap[T] != str
-    error("type $T already registered with a different encoding: $str versus $(typeMap[T])")
-  end
-
   if haskey(reverseTypeMap, str) && reverseTypeMap[str] != T
     error("encoded type $str already registered for a different type: $T versus $(reverseTypeMap[str])")
   end
-  typeMap[T] = str
   reverseTypeMap[str] = T
 end
 
@@ -67,11 +57,13 @@ macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
   if str === nothing
     str = string(ex)
   end
-  return :( registerSerializationType($ex, $str) )
+  return esc(quote
+    registerSerializationType($ex, $str)
+    encodeType(::Type{<:$ex}) = $str
+  end)
 end
 
 function encodeType(::Type{T}) where T
-    haskey(typeMap, T) && return typeMap[T]
     error("unspported type '$T' for encoding")
 end
 

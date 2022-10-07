@@ -115,7 +115,7 @@ end
 # f = f_1^e_1 \cdots f_n^e_k \cdot g_1^e_{k + 1} \cdots g_m^{e_{k + m}} was
 # computed, then D[f] = [ e_1, ..., e_{k + m} ] where e_l in { 0, 1 } for l > k.
 # (If remember_exponents is false, the dictionary is empty.)
-function generators_for_given_degree!(C::PowerProductCache{S, T}, module_gens::Vector{T}, d::Int, remember_exponents) where {S, T <: MPolyElem}
+function generators_for_given_degree!(C::PowerProductCache{S, T}, module_gens::Vector{T}, d::Int, remember_exponents::Bool = true) where {S, T <: MPolyElem}
   @assert !isempty(module_gens)
   @assert all(!iszero, module_gens)
 
@@ -167,19 +167,19 @@ end
 # Adds f to the span of the polynomials in BasisOfPolynomials.
 # Returns true iff the rank of the span increased, i.e. if f was not an element
 # of the span.
-function add_to_basis!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
+function add_to_basis!(B::BasisOfPolynomials, f::MPolyElem)
   @assert B.R === parent(f)
 
   c = ncols(B.M)
   srow = sparse_row(coefficient_ring(B.R))
-  for (a, m) in zip(coefficients(f), monomials(f))
-    if !haskey(B.monomial_to_column, m)
+  for (a, e) in zip(coefficients(f), exponent_vectors(f))
+    if !haskey(B.monomial_to_column, e)
       c += 1
-      B.monomial_to_column[m] = c
+      B.monomial_to_column[e] = c
       push!(srow.pos, c)
       push!(srow.values, deepcopy(a))
     else
-      col = B.monomial_to_column[m]
+      col = B.monomial_to_column[e]
       k = searchsortedfirst(srow.pos, col)
       insert!(srow.pos, k, col)
       insert!(srow.values, k, deepcopy(a))
@@ -189,27 +189,27 @@ function add_to_basis!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
 end
 
 function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPolyElem}
-  enum_mons = Dict{PolyElemT, Int}()
+  enum_mons = Dict{Vector{Int}, Int}()
   c = 0
   for f in polys
-    for m in monomials(f)
-      if !haskey(enum_mons, m)
+    for e in exponent_vectors(f)
+      if !haskey(enum_mons, e)
         c += 1
-        enum_mons[m] = c
+        enum_mons[e] = c
       end
     end
   end
   return enum_mons
 end
 
-function polys_to_smat(polys::Vector{PolyElemT}, monomial_to_column::Dict{PolyElemT, Int}; copy = true) where {PolyElemT <: MPolyElem}
+function polys_to_smat(polys::Vector{PolyElemT}, monomial_to_column::Dict{Vector{Int}, Int}; copy = true) where {PolyElemT <: MPolyElem}
   @assert !isempty(polys)
   K = coefficient_ring(parent(polys[1]))
   M = sparse_matrix(K)
-  for i = 1:length(polys)
+  for f in polys
     srow = sparse_row(K)
-    for (a, m) in zip(coefficients(polys[i]), monomials(polys[i]))
-      col = get(monomial_to_column, m) do
+    for (a, e) in zip(coefficients(f), exponent_vectors(f))
+      col = get(monomial_to_column, e) do
         error("Monomial not found in the given dictionary")
       end
       k = searchsortedfirst(srow.pos, col)

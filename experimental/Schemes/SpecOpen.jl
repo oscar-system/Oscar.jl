@@ -1,52 +1,19 @@
 export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
 export restriction_map
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, is_domain_type, is_exact_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
-export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension, canonical_isomorphism
 
 export adjoint
 
-@Markdown.doc """
-    SpecOpen{SpecType, BRT} <: Scheme{BRT}
-
-Zariski open subset ``U`` of an affine scheme ``X = Spec(R)``. 
-This stores a list of generators ``f₁,…,fᵣ`` of an ideal 
-``I`` defining the complement ``Z = X ∖ U``. 
-The scheme ``X`` is referred to as the *ambient scheme* and 
-the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
-"""
-@attributes mutable struct SpecOpen{SpecType, BRT} <: Scheme{BRT}
-  X::SpecType # the ambient scheme
-  gens::Vector # a list of functions defining the complement of the open subset
-
-  # fields used for caching
-  name::String
-  patches::Vector{AbsSpec}
-  intersections::Dict{Tuple{Int, Int}, AbsSpec}
-  complement::AbsSpec
-  complement_ideal::Ideal
-  ring_of_functions::Ring
-
-  function SpecOpen(
-      X::SpecType, 
-      f::Vector{RET}; 
-      name::String="", 
-      check::Bool=true
-    ) where {SpecType<:AbsSpec, RET<:RingElem}
-    for a in f
-      parent(a) == ambient_ring(X) || error("element does not belong to the correct ring")
-      if check
-        !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
-      end
-    end
-    U = new{SpecType, typeof(base_ring(X))}(X, f)
-    U.intersections = Dict{Tuple{Int, Int}, SpecType}()
-    length(name) > 0 && set_name!(U, name)
-    return U
-  end
+########################################################################
+# Implementations of methods for SpecOpen                              #
+########################################################################
+function set_name!(U::SpecOpen, name::String)
+  U.name = name
 end
 
 open_subset_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = SpecOpen{SpecType, BRT}
@@ -64,6 +31,13 @@ poly_type(U::SpecOpen) = poly_type(typeof(U))
 Return the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
 """
 ambient(U::SpecOpen) = U.X
+
+@doc Markdown.doc"""
+    ambient_ring(U::SpecOpen)
+
+For the open set `U = X \ V` return the ambient ring of `X`.
+"""
+ambient_ring(U::SpecOpen) = ambient_ring(ambient(U))
 
 @Markdown.doc """
     npatches(U::SpecOpen)
@@ -145,24 +119,33 @@ function SpecOpen(X::AbsSpec, I::MPolyIdeal; check::Bool=true)
   return SpecOpen(X, [g for g in gens(I) if !iszero(OO(X)(g))], check=check)
 end
 
+@doc Markdown.doc"""
+  complement(X::Scheme,Y::Scheme) -> Scheme
+
+Return the complement ``X \ Y`` of ``Y`` in ``X``.
+
+Since we want the complement `U = X \ Y` to have a well defined scheme structure, 
+we require that `Y` is closed in `X`.
+"""
+complement(X::Scheme,Y::Scheme)
+
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyRing})
+  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
   return EmptyScheme(base_ring(X))
 end
 
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuo})
+  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
   return SpecOpen(X, modulus(OO(Z)))
 end
 
-function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyLocalizedRing})
-  return subscheme(X, prod(denominators(inverted_set(OO(Z)))))
-end
 
 function complement(X::AbsSpec, 
     Z::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing};
     check::Bool=true
   )
   check && (is_closed_embedding(Z, X) || error("not a closed embedding"))
-  return SpecOpen(Y, modulus(OO(Z)))
+  return SpecOpen(Y, modulus(quotient_ring(OO(Z))))
 end
 
 SpecOpen(X::Spec) = SpecOpen(X, [one(ambient_ring(X))], check=false)
@@ -308,7 +291,7 @@ where ``X`` is the affine ambient scheme of ``U``.
 function closure(U::SpecOpen{<:StdSpec})
   X = ambient(U)
   R = base_ring(OO(X))
-  I = saturated_ideal(localized_modulus(OO(X)))
+  I = saturated_ideal(modulus(OO(X)))
   I = saturation(I, ideal(R, gens(U)))
   return subscheme(X, I)
 end
@@ -339,30 +322,9 @@ function closure(
   return intersect(X, Y)
 end
 
-
-@Markdown.doc """
-    SpecOpenRing{SpecType, OpenType}
-
-The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
-affine scheme ``X``.
-
- * `SpecType` is the type of the affine scheme ``X`` on which 
-this sheaf is defined;
- * `OpenType` is the type of the (Zariski) open subsets of ``U``.
-"""
-mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
-  scheme::SpecType
-  domain::OpenType
-
-  function SpecOpenRing(
-      X::SpecType, 
-      U::OpenType
-    ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
-    issubset(U, X) || error("open set does not lay in the scheme")
-    return new{SpecType, OpenType}(X, U)
-  end
-end
-
+########################################################################
+# Methods for SpecOpenRing                                             #
+########################################################################
 SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 
 spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
@@ -378,7 +340,7 @@ The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
-gens(R::SpecOpenRing) = R.(gens(base_ring(OO(scheme(R)))))
+gens(R::SpecOpenRing) = R.(gens(ambient_ring(scheme(R))))
 
 @Markdown.doc """
     domain(R::SpecOpenRing)
@@ -401,44 +363,9 @@ function is_canonically_isomorphic(R::T, S::T) where {T<:SpecOpenRing}
   return is_canonically_isomorphic(scheme(R), scheme(S)) && is_canonically_isomorphic(domain(R), domain(S))
 end
 
-@Markdown.doc """
-    SpecOpenRingElem{SpecOpenType}
-
-An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
-an open set ``U`` of an affine scheme ``X``.
-
-The type parameter `SpecOpenType` is the type of the open set
-``U`` of ``X``.
-"""
-mutable struct SpecOpenRingElem{
-      SpecOpenRingType<:SpecOpenRing
-    } <: RingElem
-  parent::SpecOpenRingType
-  restrictions::Vector{<:RingElem}
-
-  function SpecOpenRingElem(
-      R::SpecOpenRingType,
-      f::Vector{<:RingElem};
-      check::Bool=true
-    ) where {
-        SpecOpenRingType<:SpecOpenRing
-    }
-    n = length(f)
-    U = domain(R)
-    n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
-    g = [OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
-    if check
-      for i in 1:n-1
-        for j in i+1:n
-          W = U[i,j]
-          OO(W)(f[i], check=false) == OO(W)(f[j], check=false) || error("elements are not compatible on overlap")
-        end
-      end
-    end
-    return new{SpecOpenRingType}(R, g)
-  end
-end
-
+########################################################################
+# Methods for SpecOpenRingElem                                         #
+########################################################################
 ### type getters
 elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}}
 
@@ -497,15 +424,40 @@ function restrict(
   a = dot(l, OO(V).(numerator.(g)))
   return a
 end
+@Markdown.doc """
+    generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
 
-(R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open 
+subset ``U ⊂ X`` of an affine scheme ``X``, return a 
+fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
+the `ambient` scheme ``X`` of ``U``) which represents ``a``
+in the sense that the maximal extension of its restriction
+to ``U`` returns ``a``.
+
+**Note:** The seemingly superfluous argument ``U`` is needed 
+to have a coherent syntax with the method for regular functions 
+``a`` on `PrincipalOpenSubset`s. There, the element ``a`` does 
+not know about its scheme, so it has to be passed as an extra argument.
+"""
+function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
+  U == domain(a) || error("domains are not compatible")
+  X = ambient(U)
+  d = find_non_zero_divisor(U)
+  W = hypersurface_complement(X, d)
+  b = restrict(a, W)
+  return lifted_numerator(b)//lifted_denominator(b)
+end
+
+#(R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+#(R::MPolyRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
 
 (R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
 (R::SpecOpenRing)(f::MPolyQuoLocalizedRingElem) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f)) for U in affine_patches(domain(R))], check=false)
 
 (R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
 
-function (R::SpecOpenRing)(f::SpecOpenRingElem) 
+function (R::SpecOpenRing)(f::SpecOpenRingElem)
   parent(f) === R && return f
   return SpecOpenRingElem(R, [restrict(f, U) for U in affine_patches(domain(R))])
 end
@@ -598,7 +550,7 @@ end
 @Markdown.doc """
     maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
 
-Return the maximal extension of the restriction of ``f`` 
+Return the maximal extension of the restriction of ``f``
 to a rational function on ``X`` on a maximal domain of 
 definition ``U ⊂ X``. 
 
@@ -607,13 +559,34 @@ the numerator and denominator of ``f`` have to be elements of
 the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
+    X::AbsSpec{<:Ring, <:MPolyLocalizedRing}, 
+    f::AbstractAlgebra.Generic.Frac{RET}
+  ) where {RET<:MPolyElem}
+
+  a = numerator(f)
+  b = denominator(f)
+  g = gcd(a, b)
+  if !isone(g)
+    a = divexact(a, g)
+    b = divexact(b, g)
+    f = parent(f)(a,b)
+  end
+  W = OO(X)
+  U = SpecOpen(X, [b])
+  g = [OO(V)(f) for V in affine_patches(U)]
+  R = SpecOpenRing(X, U)
+  return R(g)
+end
+
+function maximal_extension(
+    X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}, 
     f::AbstractAlgebra.Generic.Frac{RET}
   ) where {RET<:RingElem}
+
   a = numerator(f)
   b = denominator(f)
   W = localized_ring(OO(X))
-  I = quotient(ideal(W, b) + localized_modulus(OO(X)), ideal(W, a))
+  I = quotient(ideal(W, b) + modulus(OO(X)), ideal(W, a))
   U = SpecOpen(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
   R = SpecOpenRing(X, U)
@@ -651,7 +624,7 @@ end
 @Markdown.doc """
     maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
 
-Return the extension of the restriction of the ``fᵢ`` as a 
+Return the extension of the restriction of the ``fᵢ`` as a
 set of rational functions on ``X`` as *regular* functions to a 
 common maximal domain of definition ``U ⊂ X``.
 
@@ -673,10 +646,10 @@ function maximal_extension(
   R == base_ring(OO(X)) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
-  W = localized_ring(OO(X))
+  W = OO(X)
   I = ideal(W, one(W))
   for p in f
-    I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
@@ -724,7 +697,7 @@ function maximal_extension(
   W = ambient_ring(X)
   I = ideal(W, one(W))
   for p in f
-    I = intersect(quotient(ideal(W, denominator(p)) + modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
@@ -734,60 +707,9 @@ function maximal_extension(
 end
 #TODO: implement the catchall versions of the above functions.
 
-@Markdown.doc """
-    SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen}
-
-Morphisms ``f : U → V`` of open sets ``U ⊂ X`` and ``V ⊂ Y`` of affine schemes.
-These are stored as morphisms ``fᵢ: Uᵢ→ Y`` on the affine patches 
-``Uᵢ`` of ``U``.
-
-The type parameters stand for the following: When ``X = Spec(R)`` and 
-``Y = Spec(S)`` with ``R = (𝕜[x₁,…,xₘ]/I)[A⁻¹]`` and ``S = (𝕜[y₁,…,yₙ]/J)[B⁻¹]``
-then 
-
- * `DomainType` is the type of the domain;
- * `CodomainType` is the type of the codomain;
-affine patches of the domain to the affine ambient scheme of the codomain. 
-"""
-mutable struct SpecOpenMor{DomainType<:SpecOpen, 
-                           CodomainType<:SpecOpen
-                          }<:SchemeMor{DomainType, CodomainType, SpecOpenMor, Nothing}
-  domain::DomainType
-  codomain::CodomainType
-  maps_on_patches::Vector{AbsSpecMor}
-
-  # fields used for caching
-  inverse::SpecOpenMor
-  pullback::Hecke.Map
-
-  function SpecOpenMor(
-      U::DomainType,
-      V::CodomainType,
-      f::Vector{<:AbsSpecMor};
-      check::Bool=true
-    ) where {DomainType<:SpecOpen, CodomainType<:SpecOpen}
-    Y = ambient(V)
-    n = length(f)
-    n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
-    if check
-      for i in 1:n
-        domain(f[i]) == affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
-        codomain(f[i]) == Y || error("codomain is not compatible")
-      end
-      for i in 1:n-1
-	for j in i+1:n
-	  A = intersect(domain(f[i]), domain(f[j]))
-	  restrict(f[i], A, Y) == restrict(f[j], A, Y) || error("maps don't glue")
-	end
-      end
-      for g in f
-        is_empty(subscheme(domain(g), pullback(g).(gens(V)))) || error("image is not contained in the codomain")
-      end
-    end
-    return new{DomainType, CodomainType}(U, V, f)
-  end
-end
-
+########################################################################
+# Methods for SpecOpenMor                                              #
+########################################################################
 morphism_type(U::S, V::T) where {S<:SpecOpen, T<:SpecOpen} = SpecOpenMor{S, T}
 morphism_type(::Type{DomainType}, ::Type{CodomainType}) where {DomainType<:SpecOpen, CodomainType<:SpecOpen} = SpecOpenMor{DomainType, CodomainType}
 
@@ -823,6 +745,8 @@ function inclusion_morphism(U::T, V::T; check::Bool=true) where {T<:SpecOpen}
   return SpecOpenMor(U, V, gens(ambient_ring(X)), check=false)
 end
 
+inclusion_morphism(X::SpecOpen, Y::AbsSpec; check::Bool=true) = inclusion_morphism(X, SpecOpen(Y), check=check)
+
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
@@ -852,6 +776,13 @@ function pullback(f::SpecOpenMor)
   return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
 end
 
+@doc Markdown.doc"""
+    restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool=true)
+
+Return the restriction ``g: U → V`` of ``f`` to ``U`` and ``V``.
+"""
+restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
+
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   if check
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
@@ -860,12 +791,19 @@ function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
 end
 
-function restrict(f::SpecOpenMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
+function restrict(
+    f::SpecOpenMor,
+    U::SpecOpen,
+    V::SpecOpen;
+    check::Bool=true
+  )
   if check
-    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
-    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
+    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
   end
-  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+  inc = inclusion_morphism(U, domain(f), check=check)
+  help_map = compose(inc, f, check=check)
+  return SpecOpenMor(U, V, maps_on_patches(help_map), check=check)
 end
 
 function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
@@ -879,18 +817,21 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
 end
 
 
-@Markdown.doc """
-    compose(f::T, g::T) where {T<:SpecOpenMor}
+### the restriction of a morphism to closed subsets in domain and codomain
+function restrict(
+    f::SpecOpenMor,
+    X::SpecType,
+    Y::SpecType;
+    check::Bool=true
+  ) where {SpecType<:Spec}
+  U = intersect(X, domain(f), check=check)
+  V = intersect(Y, codomain(f), check=check)
 
-Compute the composition of two morphisms 
+  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
 
-      f    g
-    U →  V →  W
-    ∩    ∩    ∩
-    X    Y    Z
+  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
+end
 
-of open sets of affine varieties.
-"""
 function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
@@ -949,37 +890,6 @@ function maximal_extension(
   return h
 end
 
-### the restriction of a morphism to open subsets in domain and codomain
-function restriction(
-    f::SpecOpenMor,
-    U::SpecOpen,
-    V::SpecOpen;
-    check::Bool=true
-  )
-  if check
-    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
-    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
-  end
-  inc = inclusion_morphism(U, domain(f), check=check)
-  help_map = compose(inc, f, check=check)
-  return SpecOpenMor(U, V, maps_on_patches(help_map), check=check)
-end
-
-### the restriction of a morphism to closed subsets in domain and codomain
-function restriction(
-    f::SpecOpenMor,
-    X::SpecType,
-    Y::SpecType;
-    check::Bool=true
-  ) where {SpecType<:Spec}
-  U = intersect(X, domain(f), check=check)
-  V = intersect(Y, codomain(f), check=check)
-
-  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
-
-  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
-end
-
 function identity_map(U::SpecOpen) 
   phi = SpecOpenMor(U, U, 
                     [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], 
@@ -1003,18 +913,20 @@ function ==(f::T, g::T) where {T<:SpecOpenMor}
   return true
 end
 
-function preimage(f::SpecOpenMor, Z::Spec)
+function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   U = domain(f) 
   X = ambient(U)
-  n = length(affine_patches(U))
-  W = localized_ring(OO(X))
-  I = ideal(W, one(W))
-  for i in 1:n 
-    I = intersect(I, localized_modulus(OO(closure(preimage(f[i], Z), X))))
+  if check
+    is_closed_embedding(Z, ambient(codomain(f))) || error("second argument must be closed in the codomain")
   end
-  fZbar = subscheme(X, I)
-  return SpecOpen(fZbar, [g for g in gens(U) if !iszero(OO(fZbar)(g))])
-end
+  n = length(affine_patches(U))
+  pbZ = [preimage(f[i], Z) for i in 1:n]
+  Y = X 
+  for K in pbZ
+    Y = subscheme(Y, gens(modulus(quotient_ring(OO(K)))))
+  end
+  return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
+ end
 
 function preimage(f::SpecOpenMor, V::SpecOpen)
   U = domain(f)
@@ -1071,12 +983,12 @@ end
 
 function is_dense(U::SpecOpen)
   X = ambient(U)
-  I = [localized_modulus(OO(closure(V, X))) for V in affine_patches(U)]
+  I = [modulus(OO(closure(V, X))) for V in affine_patches(U)]
   J = pre_image_ideal(ideal(OO(X), [one(OO(X))]))
   for i in I
     J = intersect(J, i)
   end
-  return J == localized_modulus(OO(X))
+  return J == modulus(OO(X))
 end
 
 #function Base.adjoint(M::AbstractAlgebra.Generic.MatSpaceElem{T}) where {T} 
@@ -1118,8 +1030,8 @@ function (R::MPolyRing)(a::RingElem, b::RingElem; check::Bool=true)
 end
 
 
-# For an open subsety U ⊂ Y of an affine scheme Y and a hypersurface 
-# complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction 
+# For an open subset U ⊂ Y of an affine scheme Y and a hypersurface
+# complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction
 # map ρ : 𝒪(U) → 𝒪(X)
 function restriction_map(
     U::SpecOpen, 
@@ -1131,7 +1043,7 @@ function restriction_map(
 
   # handle the shortcut 
   if X in affine_patches(U)
-    i = findfirst(x->(is_equal(x, V), affine_patches(U)))
+    i = findfirst(x->(is_equal(x, X)), affine_patches(U))
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
@@ -1222,7 +1134,7 @@ end
 
 # Automatically find a hypersurface equation h such that X = D(h) in 
 # the ambient scheme Y of U. 
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}}, 
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
     check::Bool=true
   )
@@ -1244,10 +1156,10 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   return restriction_map(U, X, h, check=false)
 end
 
-# Automatically find a hypersurface equation h such that X = D(h) in 
-# the ambient scheme Y of U. 
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}}, 
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+# Automatically find a hypersurface equation h such that X = D(h) in
+# the ambient scheme Y of U.
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}},
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
   Y = ambient(U)
@@ -1261,8 +1173,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}},
   return restriction_map(U, X, h, check=false)
 end
 
-function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}}, 
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
   Y = ambient(U)
@@ -1372,11 +1284,8 @@ function product(U::SpecOpen, Y::Spec)
 end
   
 function subscheme(U::SpecOpen, I::Ideal)
-  if !base_ring(I) == OO(ambient(U)) 
-    return subscheme(U, OO(ambient(U))(I))
-  end
-  Z = subscheme(ambient(U), I)
-  return SpecOpen(Z, gens(U))
+  Z = subscheme(ambient(U), I) #Takes care of coercion and complains if necessary
+  return SpecOpen(Z, [g for g in gens(U) if !iszero(OO(Z)(g))])
 end
 
 function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}

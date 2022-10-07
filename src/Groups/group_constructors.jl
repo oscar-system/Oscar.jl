@@ -33,16 +33,23 @@ _gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
 # `_gap_filter(::Type{MatrixGroup})` is on the file `matrices/MatGrp.jl`
 
 """
-    symmetric_group(::Type{T} = PermGroup, n::Int)
+    symmetric_group(n::Int)
 
-Return the full symmetric group on the set `{1, 2, ..., n}`,
-as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
+Return the full symmetric group on the set `{1, 2, ..., n}`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> order(G)
+120
+
+```
 """
-symmetric_group(n::Int) = symmetric_group(PermGroup, n)
-
-function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
+function symmetric_group(n::Int)
   n >= 1 || throw(ArgumentError("n must be a positive integer"))
-  return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n)::GapObj)
+  return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
 end
 
 """
@@ -62,16 +69,23 @@ and `false` otherwise.
 @gapattribute is_isomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
 
 """
-    alternating_group(::Type{T} = PermGroup, n::Int)
+    alternating_group(n::Int)
 
-Return the full alternating group on the set `{1, 2, ..., n}`,
-as an instance of `T`, where `T` is in {`PermGroup`, `PcGroup`}.
+Return the full alternating group on the set `{1, 2, ..., n}`..
+
+# Examples
+```jldoctest
+julia> G = alternating_group(5)
+Alt( [ 1 .. 5 ] )
+
+julia> order(G)
+60
+
+```
 """
-alternating_group(n::Int) = alternating_group(PermGroup, n)
-
-function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
+function alternating_group(n::Int)
   n >= 1 || throw(ArgumentError("n must be a positive integer"))
-  return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n)::GapObj)
+  return PermGroup(GAP.Globals.AlternatingGroup(n)::GapObj)
 end
 
 """
@@ -91,15 +105,30 @@ and `false` otherwise.
 @gapattribute is_isomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
 
 """
-    cyclic_group(::Type{T} = PcGroup, n::Int) where T <: GAPGroup
+    cyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
+    cyclic_group(::Type{T} = FPGroup, n::PosInf)
 
-Return the cyclic group of order `n`, as an instance of `T`.
+Return the cyclic group of order `n`, as an instance of type `T`.
+
+# Examples
+```jldoctest
+julia> G = cyclic_group(5)
+<pc group of size 5 with 1 generators>
+
+julia> G = cyclic_group(PermGroup, 5)
+Group([ (1,2,3,4,5) ])
+
+julia> G = cyclic_group(PosInf())
+<free group on the generators [ a ]>
+
+```
 """
-cyclic_group(n::Int) = cyclic_group(PcGroup, n)
+cyclic_group(n::IntegerUnion) = cyclic_group(PcGroup, n)
+cyclic_group(n::PosInf) = cyclic_group(FPGroup, n)
 
-function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
-  n >= 1 || throw(ArgumentError("n must be a positive integer"))
-  return T(GAP.Globals.CyclicGroup(_gap_filter(T), n)::GapObj)
+function cyclic_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: GAPGroup
+  n > 0 || throw(ArgumentError("n must be a positive integer or infinity"))
+  return T(GAP.Globals.CyclicGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 
 """
@@ -220,30 +249,65 @@ end
 ################################################################################
 
 """
-    dihedral_group(::Type{T} = PcGroup, n::Int)
+    dihedral_group(::Type{T} = PcGroup, n::IntegerUnion)
+    dihedral_group(::Type{T} = FPGroup, n::PosInf)
 
-Return the dihedral group of order `n`,
-as an instance of `T`,
+Return the dihedral group of order `n`, as an instance of `T`,
 where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
-An exception is thrown if `n` is odd.
-"""
-dihedral_group(n::Int) = dihedral_group(PcGroup, n)
 
-function dihedral_group(::Type{T}, n::Int) where T <: GAPGroup
-  @assert iseven(n)
-  return T(GAP.Globals.DihedralGroup(_gap_filter(T), n)::GapObj)
+!!! warning
+
+    There are two competing conventions for interpreting the argument `n`:
+    In the one we use, the returned group has order `n`, and thus `n` must
+    always be even.
+    In the other, `n` indicates that the group describes the symmetry of an
+    `n`-gon, and thus the group has order `2n`.
+
+# Examples
+```jldoctest
+julia> dihedral_group(6)
+<pc group of size 6 with 2 generators>
+
+julia> dihedral_group(PermGroup, 6)
+Group([ (1,2,3), (2,3) ])
+
+julia> dihedral_group(PosInf())
+<fp group of size infinity on the generators [ r, s ]>
+
+julia> dihedral_group(7)
+ERROR: ArgumentError: n must be a positive even integer or infinity
+```
+"""
+dihedral_group(n::IntegerUnion) = dihedral_group(PcGroup, n)
+dihedral_group(n::PosInf) = dihedral_group(FPGroup, n)
+
+function dihedral_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: GAPGroup
+  if !is_infinite(n) && !(iseven(n) && n > 0)
+    throw(ArgumentError("n must be a positive even integer or infinity"))
+  end
+  return T(GAP.Globals.DihedralGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 
 @doc Markdown.doc"""
     is_dihedral_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic with a dihedral group,
+Return `true` if `G` is isomorphic to a dihedral group,
 and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> is_dihedral_group(small_group(8,3))
+true
+
+julia> is_dihedral_group(small_group(8,4))
+false
+
+```
 """
 @gapattribute is_dihedral_group(G::GAPGroup) = GAP.Globals.IsDihedralGroup(G.X)::Bool
 
 """
-    quaternion_group(::Type{T} = PcGroup, n::Int)
+    quaternion_group(::Type{T} = PcGroup, n::IntegerUnion)
 
 Return the (generalized) quaternion group of order `n`,
 as an instance of `T`,
@@ -268,17 +332,30 @@ julia> relators(g)
 
 ```
 """
-quaternion_group(n::Int) = quaternion_group(PcGroup, n)
+quaternion_group(n::IntegerUnion) = quaternion_group(PcGroup, n)
 
-function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup
-   @assert iszero(mod(n, 4))
+function quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
+  # FIXME: resolve naming: dicyclic vs (generalized) quaternion: only the
+  # former should be for any n divisible by 4; the latter only for powers of 2.
+  # see also debate on the GAP side
+  @assert iszero(mod(n, 4))
   return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
 end
 
 @doc Markdown.doc"""
     is_quaternion_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic with a (generalized) quaternion group
+Return `true` if `G` is isomorphic to a (generalized) quaternion group
 of order $2^{k+1}, k \geq 2$, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> is_quaternion_group(small_group(8, 3))
+false
+
+julia> is_quaternion_group(small_group(8, 4))
+true
+
+```
 """
 @gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(G.X)::Bool
