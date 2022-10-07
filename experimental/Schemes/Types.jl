@@ -266,6 +266,13 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
 end
 
 ########################################################################
+# Common type fo subsets of affine space                               #
+########################################################################
+
+SpecSubset = Union{SpecOpen,AbsSpec,PrincipalOpenSubset}
+
+
+########################################################################
 # Morphisms of Zariski-open subsets of affine schemes                  #
 ########################################################################
 @Markdown.doc """
@@ -684,8 +691,8 @@ in any covering!
 """
 mutable struct Covering{BaseRingType}
   patches::Vector{<:AbsSpec} # the basic affine patches of X
-  glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
-  affine_refinements::Dict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements 
+  glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
+  affine_refinements::IdDict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements
       # of the basic affine patches.
       # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen, 
       # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty 
@@ -701,12 +708,12 @@ mutable struct Covering{BaseRingType}
 
   function Covering(
       patches::Vector{<:AbsSpec},
-      glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
+      glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
       check::Bool=true,
-      affine_refinements::Dict{
+      affine_refinements::IdDict{
           <:AbsSpec, 
           <:Vector{<:Tuple{<:SpecOpen, <:Vector{<:RingElem}}}
-         }=Dict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
+         }=IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
     )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
@@ -763,14 +770,14 @@ have to coincide on their overlaps.
 mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, BaseMorType}
   domain::DomainType
   codomain::CodomainType
-  morphisms::Dict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this 
+  morphisms::IdDict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this
                                          # returns the morphism φ : X → Y to the corresponding 
                                          # patch Y of the codomain covering. 
 
   function CoveringMorphism(
       dom::DomainType, 
       cod::CodomainType, 
-      mor::Dict{<:AbsSpec, <:AbsSpecMor}; 
+      mor::IdDict{<:AbsSpec, <:AbsSpecMor};
       check::Bool=true
     ) where {
              DomainType<:Covering,

@@ -138,7 +138,7 @@ end
 # Returns a scheme in which every affine patch is only 
 # glued to itself via the identity.
 function Covering(patches::Vector{<:AbsSpec})
-  g = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  g = IdIdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for X in patches
     U = PrincipalOpenSubset(X)
     f = identity_map(U)
@@ -246,7 +246,7 @@ end
   S = ambient_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
-  pU = Dict{AbsSpec, AbsSpecMor}()
+  pU = IdDict{AbsSpec, AbsSpecMor}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -300,7 +300,7 @@ end
   S = ambient_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
-  pU = Dict{AbsSpec, AbsSpecMor}()
+  pU = IdDict{AbsSpec, AbsSpecMor}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -467,7 +467,7 @@ morphisms(f::CoveringMorphism) = f.morphisms
 
 function compose(f::CoveringMorphism, g::CoveringMorphism)
   domain(g) == codomain(f) || error("morphisms can not be composed")
-  morphism_dict = Dict{<:AbsSpec, <:AbsSpecMor}()
+  morphism_dict = IdDict{<:AbsSpec, <:AbsSpecMor}()
   for U in patches(domain(f))
     morphism_dict[U] = compose(f[U], g[codomain(f[U])])
   end
@@ -681,9 +681,9 @@ function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
 
   # prepare for the common refinement
   new_patches = Vector{affine_patch_type(X)}()
-  inc1 = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X))}()
-  inc2 = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X))}()
-  inc0 = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X))}()
+  inc1 = IdDict{affine_patch_type(X), morphism_type(affine_patch_type(X))}()
+  inc2 = IdDict{affine_patch_type(X), morphism_type(affine_patch_type(X))}()
+  inc0 = IdDict{affine_patch_type(X), morphism_type(affine_patch_type(X))}()
   for U in patches(C1)
     W = codomain(f[U])
     V_candidates = [V for V in patches(C2) if codomain(g[V]) == W]
@@ -714,7 +714,7 @@ function common_refinement(X::CoveredScheme, C1::T, C2::T) where {T<:Covering}
   end
   
   # cook up the glueings for the new patches from those in the common root.
-  new_glueings = Dict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(affine_patch_type(X))}()
+  new_glueings = IdDict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(affine_patch_type(X))}()
   for (W1, W2) in keys(glueings(C0))
     U_patches = [U for U in new_patches if codomain(inc0[U]) == W1]
     V_patches = [V for V in new_patches if codomain(inc0[V]) == W2]
@@ -773,15 +773,15 @@ function simplify(C::Covering)
   n = npatches(C)
   new_patches = [simplify(X) for X in patches(C)]
   GD = glueings(C)
-  new_glueings = Dict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (X, Y) in keys(GD)
     Xsimp, iX, jX = new_patches[C[X]]
     Ysimp, iY, jY = new_patches[C[Y]]
     G = GD[(X, Y)]
     new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
   end
-  iDict = Dict{AbsSpec, AbsSpecMor}()
-  jDict = Dict{AbsSpec, AbsSpecMor}()
+  iDict = IdDict{AbsSpec, AbsSpecMor}()
+  jDict = IdDict{AbsSpec, AbsSpecMor}()
   for i in 1:length(new_patches)
     iDict[new_patches[i][1]] = new_patches[i][2]
     jDict[C[i]] = new_patches[i][3]

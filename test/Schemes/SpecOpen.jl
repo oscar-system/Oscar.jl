@@ -10,7 +10,7 @@
 
   Y = closure(UX)
   Z = closure(UX, A)
-  @test is_canonically_isomorphic(Z, Y)
+  @test Z==Y
 
   @test isempty(complement(Y,Y))
 end
@@ -43,8 +43,8 @@ end
   f = x//y
   g = F(x,x)
   D = domain(maximal_extension(X, f))
-  @test is_canonically_isomorphic(D, hypersurface_complement(X,y))
-  @test is_canonically_isomorphic(X,domain(maximal_extension(X, g)))
+  @test D == hypersurface_complement(X,y)
+  @test X ==domain(maximal_extension(X, g))
 end
 
 @testset "SpecOpen_3" begin
@@ -52,7 +52,7 @@ end
   A = Spec(R)
   O = subscheme(A, [x,y,u,v])
   U = complement(A, O)
-  @test is_canonically_isomorphic(A, closure(U))
+  @test A==closure(U)
   Oscar.SpecOpenRing(U)
   OU = OO(U)
   gens(OO(U))
@@ -72,7 +72,7 @@ end
   @test iszero(f-f)
   Axy = hypersurface_complement(A,x*y)
   V = domain(maximal_extension(Axy, 1//x))
-  @test is_canonically_isomorphic(Axy, V)
+  @test Axy == V
 
   M = MatrixSpace(R,2,2)([x u; y v])
   h = det(M)
@@ -153,7 +153,7 @@ end
   @test Oscar.is_identity_map(pullback(compose(f,g)))
   W = subscheme(X, x)
   preimage(f, W)
-  @test is_canonically_isomorphic(U,preimage(f, V))
+  @test U ==preimage(f, V)
 
 
   S, (u, v) = QQ["u", "v"]
@@ -162,7 +162,7 @@ end
   U = SpecOpen(X, [x, y])
   V = SpecOpen(B, [u, v])
   pres = restrict(p, U, V)
-  @test is_canonically_isomorphic(U, preimage(p, V))
+  @test U == preimage(p, V)
 
   g = pullback(pres)
   pullback(pres, u)

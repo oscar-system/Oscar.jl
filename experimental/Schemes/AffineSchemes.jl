@@ -263,7 +263,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
   R = OO(X)
-  R == ambient_ring(Y) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return iszero(modulus(OO(Y)))
 end
 
@@ -272,7 +272,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT}
   R = OO(X)
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return issubset(inverted_set(OO(Y)), units_of(R))
 end
 
@@ -281,7 +281,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = OO(X)
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(defining_ideal(Y))
 end
 
@@ -294,7 +294,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
   R = ambient_ring(Y)
-  R == ambient_ring(X) || error("schemes can not be compared")
+  R === ambient_ring(X) || error("schemes can not be compared")
   return true
 end
 
@@ -303,7 +303,7 @@ function issubset(
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuo}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === base_ring(OO(Y)) || error("schemes can not be compared")
   return issubset(defining_ideal(Y), defining_ideal(X))
 end
 
@@ -312,7 +312,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === base_ring(OO(Y)) || error("schemes can not be compared")
   all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
   return iszero(localized_ring(OO(Y))(modulus(OO(X))))
 end
@@ -322,7 +322,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   all(x->isunit(OO(X)(x)), denominators(inverted_set(OO(Y)))) || return false
   return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
@@ -354,7 +354,7 @@ function issubset(
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyLocalizedRing}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   return issubset(UY, UX)
@@ -365,7 +365,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   return issubset(UY, UX) && iszero(modulus(OO(Y)))
@@ -387,7 +387,7 @@ function issubset(
     X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
-  R = base_ring(OO(Y))
+  R = ambient_ring(Y)
   R == base_ring(OO(X)) || error("schemes can not be compared")
   L = localized_ring(OO(X))
   return issubset(L(modulus(OO(Y))), modulus(OO(X)))
@@ -398,7 +398,7 @@ function issubset(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   if !issubset(UY, UX)
@@ -415,7 +415,7 @@ function issubset(
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   if !issubset(UY, UX)
@@ -462,7 +462,7 @@ function is_open_embedding(
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || return false
+  R == ambient_ring(Y) || return false
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
@@ -561,7 +561,7 @@ function is_closed_embedding(
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || return false
+  R == ambient_ring(Y) || return false
   inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
   J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
   return issubset(J, modulus(OO(X)))
@@ -580,7 +580,7 @@ function is_closed_embedding(
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   all(x->(isunit(OO(X)(x))), denominators(inverted_set(OO(Y)))) || return false
   return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
@@ -611,7 +611,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
   R = OO(X)
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(Y)
 end
 
@@ -620,7 +620,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT}
   R = OO(X)
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(Y)
 end
 
@@ -629,7 +629,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = OO(X)
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(Y)
 end
 
@@ -646,7 +646,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(quo(R, modulus(OO(X)) + modulus(OO(Y)))[1])
 end
 
@@ -655,7 +655,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
 end
 
@@ -664,7 +664,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
 end
 
@@ -681,7 +681,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(Localization(R, inverted_set(OO(X)) * inverted_set(OO(Y)))[1])
 end
 
@@ -690,7 +690,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
   return Spec(R, modulus(quotient_ring(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
 end
 
@@ -707,7 +707,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("schemes can not be compared")
+  R === ambient_ring(Y) || error("schemes can not be compared")
 #  Q, _ = quo(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))))
   return Spec(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))), 
               inverted_set(OO(X)) * inverted_set(OO(Y)))
