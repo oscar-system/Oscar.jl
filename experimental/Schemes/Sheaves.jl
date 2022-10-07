@@ -1,6 +1,8 @@
 export AbsSheaf
 export space, restriction_map
 export SheafOnSpec
+export SheafOO
+
 @Markdown.doc """
     AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
@@ -48,7 +50,7 @@ open sets ``U, V ⊂ X`` check whether ``U ⊂ V ⊂ X`` are open and
 return the restriction map ``ℱ(V) → ℱ(U)``.
 """
 function restriction_map(F::AbsSheaf{<:Any, OpenType, OutputType, RestrictionType},
-    U::Type1, V::Type1
+    U::Type1, V::Type2
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   return restriction_map(underlying_sheaf(F), U, V)::RestrictionType
 end
@@ -80,7 +82,10 @@ end
 @attributes mutable struct SheafOnSpec{SpaceType, OpenType, OutputType, RestrictionType, 
                                        IsOpenFuncType, ProductionFuncType,
                                        RestrictionFuncType
-                                      } <: AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType}
+                                      } <: AbsSheaf{
+                                       SpaceType, OpenType, 
+                                       OutputType, RestrictionType
+                                      }
   X::SpaceType
 
   # caches
@@ -114,22 +119,60 @@ production_func(F::SheafOnSpec) = F.production_func
 restriction_func(F::SheafOnSpec) = F.restriction_func
 
 function (F::SheafOnSpec{<:Any, OpenType, OutputType})(U::T) where {OpenType, OutputType, T<:OpenType}
-  haskey(object_cache(F), U) && return object_cache(F)[U]
+  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType
 
   is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
   G = production_func(F)(U)
   object_cache(F)[U] = G
-  return G
+  return G::OutputType
 end
 
 function restriction_map(F::SheafOnSpec{<:Any, OpenType, OutputType, RestrictionType},
-    U::Type1, V::Type1
+    U::Type1, V::Type2
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
-  haskey(restriction_cache(F), (U, V)) && return object_cache(F)[(U, V)]
+  haskey(restriction_cache(F), (U, V)) && return (restriction_cache(F)[(U, V)])::RestrictionType
 
   is_open_func(F)(V, U) || error("the second argument is not open in the first")
   rho = restriction_func(F)(U, V)
   restriction_cache(F)[(U, V)] = rho
-  return rho
+  return rho::RestrictionType
 end
+
+########################################################################
+# The structure sheaf of affine schemes                                #
+########################################################################
+@attributes mutable struct SheafOO{SpaceType, OpenType, OutputType,
+                                          RestrictionType, ProductionFuncType,
+                                          RestrictionFuncType,
+                                          SheafType
+                                         } <: AbsSheaf{
+                                          SpaceType, OpenType, 
+                                          OutputType, RestrictionType
+                                         }
+  OO::SheafType
+
+  function SheafOO(X::AbsSpec)
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
+    end
+    function production_func(U::AbsSpec)
+      return OO(U)
+    end
+    function restriction_func(V::AbsSpec, U::AbsSpec)
+      return hom(OO(V), OO(U), gens(OO(U)), check=false) # check=false assures quicker computation
+    end
+
+    R = SheafOnSpec(X, production_func, restriction_func, 
+                    OpenType=AbsSpec, OutputType=Ring, 
+                    RestrictionType=Hecke.Map,
+                    is_open_func=is_open_func
+                   )
+    return new{typeof(X), AbsSpec, Ring, Hecke.Map, 
+               typeof(production_func), typeof(restriction_func), 
+               typeof(R)}(R)
+  end
+end
+
+underlying_sheaf(S::SheafOO) = S.OO
+
 
