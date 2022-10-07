@@ -15,6 +15,7 @@ export AffineHalfspace,
     LinearHalfspace,
     LinearHyperplane,
     LinearProgram,
+    MixedIntegerLinearProgram,
     RayVector,
     SubObjectIterator,
     affine_equation_matrix,
@@ -120,6 +121,7 @@ export AffineHalfspace,
     secondary_polytope,
     simplex,
     solve_lp,
+    solve_milp,
     starsubdivision,
     star_triangulations,
     subdivision_of_vertices,
@@ -158,6 +160,7 @@ include("SubdivisionOfPoints/constructors.jl")
 include("SubdivisionOfPoints/properties.jl")
 include("SubdivisionOfPoints/functions.jl")
 include("LinearProgram.jl")
+include("MixedIntegerLinearProgram.jl")
 include("Groups.jl")
 include("type_functions.jl")
 include("Visualization.jl")
