@@ -350,12 +350,6 @@ julia> Vector{fmpz}(pi, 2)
 Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion = T[x(i) for i in 1:n]
 Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
-#embedding of a permutation in permutation group
-function (G::PermGroup)(x::PermGroupElem)
-   x.X in G.X && return group_element(G, x.X)
-   throw(ArgumentError("the element does not embed in the group"))
-end
-
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
 
