@@ -1,31 +1,13 @@
 export PrincipalOpenSubset
 export ambient_scheme, complement_equation, inclusion_morphism
 
-export OpenInclusion
 export complement_ideal, complement_scheme
 
-export ClosedEmbedding
 export image_ideal
 
-@attributes mutable struct PrincipalOpenSubset{BRT, RT, AmbientType} <: AbsSpec{BRT, RT}
-  X::AmbientType
-  U::Spec{BRT, RT}
-  f::RingElem
-  inc::SpecMor
-
-  function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
-    parent(f) == OO(X) || error("element does not belong to the correct ring")
-    U = hypersurface_complement(X, [f])
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
-  end
-  
-  function PrincipalOpenSubset(X::AbsSpec, f::Vector{RingElemType}) where {RingElemType<:MPolyElem}
-    all(x->(parent(x) == OO(X)), f) || error("element does not belong to the correct ring")
-    U = hypersurface_complement(X, f)
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
-  end
-end
-
+########################################################################
+# Methods for PrincipalOpenSubset                                      #
+########################################################################
 underlying_scheme(U::PrincipalOpenSubset) = U.U
 ambient_scheme(U::PrincipalOpenSubset) = U.X
 complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U)))
@@ -75,57 +57,17 @@ function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
-
-@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
-  inc::SpecMor{DomainType, CodomainType, PullbackType}
-  I::Ideal
-  Z::Spec
-
-  function OpenInclusion(f::AbsSpecMor, I::Ideal; check::Bool=true)
-    U = domain(f)
-    X = codomain(f)
-    Z = subscheme(X, I)
-    if check
-      isempty(preimage(f, Z)) || error("image of the map is not contained in the complement of the vanishing locus of the ideal")
-      #TODO: Do checks
-    end
-    return new{typeof(U), typeof(X), pullback_type(f)}(f, I, Z)
-  end
-end
-
+########################################################################
+# Methods for OpenInclusion                                            #
+########################################################################
 underlying_morphism(f::OpenInclusion) = f.inc
 complement_ideal(f::OpenInclusion) = f.I
 complement_scheme(f::OpenInclusion) = f.Z
 
 
-@Markdown.doc """
-    ClosedEmbedding{DomainType, CodomainType, PullbackType}
-
-A closed embedding ``f : X → Y`` of affine schemes ``X = Spec(S)`` 
-into ``Y = Spec(R)`` such that ``S ≅ R/I`` via ``f`` for some 
-ideal ``I ⊂ R``.
-"""
-@attributes mutable struct ClosedEmbedding{DomainType, 
-                                           CodomainType, 
-                                           PullbackType
-                                          }<:AbsSpecMor{DomainType, 
-                                                        CodomainType, 
-                                                        PullbackType, 
-                                                        ClosedEmbedding,
-                                                        Nothing
-                                                       }
-  inc::SpecMor{DomainType, CodomainType, PullbackType}
-  I::Ideal
-  U::SpecOpen
-
-  function ClosedEmbedding(X::AbsSpec, I::Ideal)
-    base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
-    Y = subscheme(X, I)
-    inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y))))
-    return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
-  end
-end
-
+########################################################################
+# Methods for ClosedEmbedding                                          #
+########################################################################
 underlying_morphism(f::ClosedEmbedding) = f.inc
 
 @Markdown.doc """
@@ -149,53 +91,9 @@ ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
 ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
 
 
-export SimpleGlueing
-
 ########################################################################
-# SimpleGlueing is for glueings X ↩ U ≅ V ↪ Y along principal 
-# open subsets U ⊂ X and V ⊂ Y along identifications f : U ↔ V : g. 
-# For general glueings it can not be guaranteed to have this setup, 
-# but it is a situation often encountered and with significant 
-# simplification of underlying algorithms in the background. 
-# Hence, the special type.
+# Methods for SimpleGlueing                                            #
 ########################################################################
-@attributes mutable struct SimpleGlueing{LST<:AbsSpec, 
-                                         RST<:AbsSpec, 
-                                         LOT<:PrincipalOpenSubset, 
-                                         ROT<:PrincipalOpenSubset, 
-                                         LMT<:AbsSpecMor, 
-                                         RMT<:AbsSpecMor
-                                        } <: AbsGlueing{LST, RST, LOT, ROT, LMT, RMT} 
-  X::LST
-  Y::RST
-  U::LOT
-  V::ROT
-  f::LMT
-  g::RMT
-
-  function SimpleGlueing(
-      X::AbsSpec, Y::AbsSpec, 
-      f::AbsSpecMor{<:PrincipalOpenSubset}, 
-      g::AbsSpecMor{<:PrincipalOpenSubset};
-      check::Bool=true
-    )
-    U = domain(f)
-    V = domain(g)
-    X == ambient_scheme(U) && Y == ambient_scheme(V) || error("schemes are not compatible")
-    domain(f) == codomain(g) && domain(g) == codomain(f) || error("maps are not compatible")
-    if check
-      is_identity_map(compose(f, g)) || error("maps are not inverse to each other")
-      is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
-    end
-    set_attribute!(f, :inverse, g)
-    set_attribute!(g, :inverse, f)
-    return new{typeof(X), typeof(Y), 
-               typeof(U), typeof(V), 
-               typeof(f), typeof(g)
-              }(X, Y, U, V, f, g)
-  end
-end
-
 patches(G::SimpleGlueing) = (G.X, G.Y)
 glueing_morphisms(G::SimpleGlueing) = (G.f, G.g)
 glueing_domains(G::SimpleGlueing) = (G.U, G.V)
