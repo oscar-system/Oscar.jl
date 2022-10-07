@@ -9,46 +9,9 @@ export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generi
 
 export adjoint
 
-@Markdown.doc """
-    SpecOpen{SpecType, BRT} <: Scheme{BRT}
-
-Zariski open subset ``U`` of an affine scheme ``X = Spec(R)``. 
-This stores a list of generators ``f₁,…,fᵣ`` of an ideal 
-``I`` defining the complement ``Z = X ∖ U``. 
-The scheme ``X`` is referred to as the *ambient scheme* and 
-the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
-"""
-@attributes mutable struct SpecOpen{SpecType, BRT} <: Scheme{BRT}
-  X::SpecType # the ambient scheme
-  gens::Vector # a list of functions defining the complement of the open subset
-
-  # fields used for caching
-  name::String
-  patches::Vector{AbsSpec}
-  intersections::Dict{Tuple{Int, Int}, AbsSpec}
-  complement::AbsSpec
-  complement_ideal::Ideal
-  ring_of_functions::Ring
-
-  function SpecOpen(
-      X::SpecType, 
-      f::Vector{RET}; 
-      name::String="", 
-      check::Bool=true
-    ) where {SpecType<:AbsSpec, RET<:RingElem}
-    for a in f
-      parent(a) == ambient_ring(X) || error("element does not belong to the correct ring")
-      if check
-        !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
-      end
-    end
-    U = new{SpecType, typeof(base_ring(X))}(X, f)
-    U.intersections = Dict{Tuple{Int, Int}, SpecType}()
-    length(name) > 0 && set_name!(U, name)
-    return U
-  end
-end
-
+########################################################################
+# Implementations of methods for SpecOpen                              #
+########################################################################
 function set_name!(U::SpecOpen, name::String)
   U.name = name
 end
@@ -359,30 +322,9 @@ function closure(
   return intersect(X, Y)
 end
 
-
-@Markdown.doc """
-    SpecOpenRing{SpecType, OpenType}
-
-The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
-affine scheme ``X``.
-
- * `SpecType` is the type of the affine scheme ``X`` on which 
-this sheaf is defined;
- * `OpenType` is the type of the (Zariski) open subsets of ``U``.
-"""
-mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
-  scheme::SpecType
-  domain::OpenType
-
-  function SpecOpenRing(
-      X::SpecType, 
-      U::OpenType
-    ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
-    issubset(U, X) || error("open set does not lay in the scheme")
-    return new{SpecType, OpenType}(X, U)
-  end
-end
-
+########################################################################
+# Methods for SpecOpenRing                                             #
+########################################################################
 SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 
 spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
@@ -421,44 +363,9 @@ function is_canonically_isomorphic(R::T, S::T) where {T<:SpecOpenRing}
   return is_canonically_isomorphic(scheme(R), scheme(S)) && is_canonically_isomorphic(domain(R), domain(S))
 end
 
-@Markdown.doc """
-    SpecOpenRingElem{SpecOpenType}
-
-An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
-an open set ``U`` of an affine scheme ``X``.
-
-The type parameter `SpecOpenType` is the type of the open set
-``U`` of ``X``.
-"""
-mutable struct SpecOpenRingElem{
-      SpecOpenRingType<:SpecOpenRing
-    } <: RingElem
-  parent::SpecOpenRingType
-  restrictions::Vector{<:RingElem}
-
-  function SpecOpenRingElem(
-      R::SpecOpenRingType,
-      f::Vector{<:RingElem};
-      check::Bool=true
-    ) where {
-        SpecOpenRingType<:SpecOpenRing
-    }
-    n = length(f)
-    U = domain(R)
-    n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
-    g = [OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
-    if check
-      for i in 1:n-1
-        for j in i+1:n
-          W = U[i,j]
-          OO(W)(f[i], check=false) == OO(W)(f[j], check=false) || error("elements are not compatible on overlap")
-        end
-      end
-    end
-    return new{SpecOpenRingType}(R, g)
-  end
-end
-
+########################################################################
+# Methods for SpecOpenRingElem                                         #
+########################################################################
 ### type getters
 elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}}
 
