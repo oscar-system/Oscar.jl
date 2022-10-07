@@ -138,7 +138,7 @@ end
 # Returns a scheme in which every affine patch is only 
 # glued to itself via the identity.
 function Covering(patches::Vector{<:AbsSpec})
-  g = IdIdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  g = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for X in patches
     U = PrincipalOpenSubset(X)
     f = identity_map(U)
