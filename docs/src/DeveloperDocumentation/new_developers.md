@@ -96,7 +96,8 @@ Oscar.test_module
 ```
 
 ### Adding documentation
-There are two places where documentation can be added:
+For more information on docstrings, please read our page on [Documenting OSCAR
+code](@ref).  There are two places where documentation can be added:
 1. In the docstrings above the functions in the `src` folder;
 2. In the documentation files in the `docs/src` folder.
 3. The overall structure is fixed in the file `docs/doc.main`. If you create a
