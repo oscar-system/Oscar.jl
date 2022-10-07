@@ -6,7 +6,7 @@ export spec_type, ring_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
 
-export is_open_embedding, is_closed_embedding, is_canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
+export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
 export morphism_type
@@ -434,16 +434,16 @@ function ==(X::T, Y::T) where {T<:Spec}
   return X === Y
 end
 
-function is_canonically_isomorphic(X::AbsSpec, Y::AbsSpec)
+function ==(X::AbsSpec, Y::AbsSpec)
   X === Y && return true
   return issubset(X, Y) && issubset(Y, X)
 end
 
-function is_canonically_isomorphic(X::AbsSpec, Y::EmptyScheme)
+function ==(X::AbsSpec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
-is_canonically_isomorphic(X::EmptyScheme, Y::Spec) = is_canonically_isomorphic(Y, X)
+==(X::EmptyScheme, Y::Spec) = (Y == X)
 
 Base.isempty(X::AbsSpec) = iszero(one(OO(X)))
 
