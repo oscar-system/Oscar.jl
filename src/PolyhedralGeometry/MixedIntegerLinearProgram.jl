@@ -3,8 +3,9 @@
 
 The mixed integer linear program on the feasible set `P` (a Polyhedron) with
 respect to the function x ↦ dot(c,x)+k, where $x_i\in\mathbb{Z}$ for all $i$ in
-`integer_variables`.
-
+`integer_variables`. If `integer_variables` is empty, or not specified, all
+entries of `x` are required to be integral. If this is not intended, consider
+using a [`LinearProgram`](@ref) instead.
 """
 struct MixedIntegerLinearProgram{T}
    feasible_region::Polyhedron{T}
@@ -84,7 +85,7 @@ function _integer_variables(milp::MixedIntegerLinearProgram)
     return milp.polymake_milp.INTEGER_VARIABLES
 end
 
-"""
+@doc Markdown.doc"""
     objective_function(MILP::MixedIntegerLinearProgram; as = :pair)
 
 Return the objective function x ↦ dot(c,x)+k of the mixed integer linear program MILP.

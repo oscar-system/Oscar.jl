@@ -32,7 +32,7 @@ given as a set of integers, their respective indices.
 
 ```@docs
 MixedIntegerLinearProgram
-optimal_value(MixedIntegerLinearProgram)
+optimal_value(milp::MixedIntegerLinearProgram{T}) where T<:scalar_types
 optimal_solution
 solve_milp
 ```

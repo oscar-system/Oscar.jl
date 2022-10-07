@@ -68,33 +68,12 @@ V = optimal_vertex(LP)
 
 ## Functions
 
-After constructing a linear program, it is straightforward to extract the
-feasible region and objective function
-
 ```@docs
-feasible_region
-objective_function
-```
-
-Calling `solve_lp` on a linear program outputs a pair: the optimal value and
-the vertex at which the optimum is obtained
-
-```@docs
-solve_lp
-```
-
-One can obtain the optimal value of the objective function over the
-feasible region, if it exists.
-
-```@docs
-optimal_value
-```
-
-One can also obtain an optimal vertex at which the objective
-function attains its optimal value (respectively).
-
-```@docs
-optimal_vertex
+feasible_region(lp::LinearProgram)
+objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_types
+solve_lp(LP::LinearProgram)
+optimal_value(lp::LinearProgram{T}) where T<:scalar_types
+optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
 ```
 
 ## Saving and loading
