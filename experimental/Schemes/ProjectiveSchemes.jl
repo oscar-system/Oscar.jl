@@ -7,7 +7,9 @@ export fiber_product, inclusion_map, identity_map
 
 export ==
 
-abstract type AbsProjectiveScheme{BaseRingType, RingType} <: Scheme{BaseRingType} end
+########################################################################
+# Interface for abstract projective schemes                            #
+########################################################################
 
 function base_ring(P::AbsProjectiveScheme) 
   return base_ring(underlying_scheme(P))
@@ -76,55 +78,9 @@ function frac_to_homog_pair(P::AbsProjectiveScheme)
   return frac_to_homog_pair(underlying_scheme(P))
 end
 
-
-@Markdown.doc """
-    ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
-
-Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r`` 
-over a ring of coefficients ``A`` of type `CoeffRingType` with elements of 
-type `CoeffRingElemType`. The subscheme ``X`` is given by means of a homogeneous 
-ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type 
-`RingType` with elements of type `RingElemType`.
-"""
-@attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType} <: AbsProjectiveScheme{CoeffRingType, RingType}
-  A::CoeffRingType	# the base ring
-  r::Int	# the relative dimension
-  S::RingType   # A[s₀,…,sᵣ]
-  I::MPolyIdeal{RingElemType} # generators for the defining ideal
-
-  # fields used for caching
-  C::Scheme # The affine cone of this scheme.
-  Y::Scheme # the base scheme 
-  projection_to_base::AbsSpecMor
-  homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
-
-  function ProjectiveScheme(S::MPolyRing_dec)
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
-    n = ngens(S)-1
-    A = coefficient_ring(S)
-    I = ideal(S, [zero(S)])
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
-  end
-
-  function ProjectiveScheme(S::MPolyRing_dec, I::MPolyIdeal{T}) where {T<:RingElem}
-    for f in gens(I)
-      parent(f) == S || error("elements do not belong to the correct ring")
-    end
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
-    n = ngens(S)-1
-    A = coefficient_ring(S)
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
-  end
-
-  function ProjectiveScheme(Q::MPolyQuo{MPolyElem_dec{T, AbstractAlgebra.Generic.MPoly{T}}}) where {T}
-    all(x->(total_degree(x) == 1), gens(S)) || error("ring is not standard graded")
-    S = base_ring(Q)
-    A = coefficient_ring(S)
-    I = gens(modulus(Q))
-    r = ngens(S)-1
-    return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, r, S, I)
-  end
-end
+########################################################################
+# Methods for ProjectiveScheme                                         #
+########################################################################
 
 ### type getters & constructors
 projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme_type(typeof(A))
@@ -540,88 +496,10 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOp
   end
   return X.C
 end
-    
-@Markdown.doc """
-    ProjectiveSchemeMor
 
-A morphism of projective schemes 
-
-    ℙˢ(B)     ℙʳ(A)
-      ∪         ∪
-      P    →    Q
-      ↓         ↓
-   Spec(B) → Spec(A)
-    
-given by means of a commutative diagram of homomorphisms of 
-graded rings 
-
-  A[v₀,…,vᵣ] → B[u₀,…,uₛ]
-      ↑            ↑
-      A      →     B
-
-If no morphism `A → B` of the base rings is specified, then 
-both ``P`` and ``Q`` are assumed to be defined in relative projective 
-space over the same ring with the identity on the base. 
-"""
-mutable struct ProjectiveSchemeMor{
-    DomainType<:ProjectiveScheme, 
-    CodomainType<:ProjectiveScheme, 
-    PullbackType<:Hecke.Map, 
-    BaseMorType
-  } <: SchemeMor{DomainType, CodomainType,
-                 ProjectiveSchemeMor, 
-                 BaseMorType
-                }
-  domain::DomainType
-  codomain::CodomainType
-  pullback::PullbackType
-
-  #fields for caching
-  map_on_base_schemes::SchemeMor
-  map_on_affine_cones::SchemeMor
-
-  ### Simple morphism of projective schemes over the same base scheme
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType;
-      check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    if check
-      #TODO: Check map on ideals (not available yet)
-    end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
-  end
-
-  ### complicated morphisms over a non-trivial morphism of base schemes
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType,
-      h::BaseMorType;
-      check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, 
-             CodomainType<:ProjectiveScheme, 
-             PullbackType<:Map,
-             BaseMorType<:SchemeMor
-            }
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    pbh = pullback(h)
-    codomain(h) == coefficient_ring(T) || error("base scheme map not compatible")
-    domain(h) == coefficient_ring(S) || error("base scheme map not compatible")
-    if check
-      T(pbh(one(domain(h)))) == f(S(one(domain(h)))) == one(T) || error("maps not compatible")
-      coefficient_map(f) == pbh || error("maps not compatible")
-    end
-    return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, h)
-  end
-end
-
+########################################################################
+# Methods for ProjectiveSchemeMor                                      #
+########################################################################
 ### type getters
 morphism_type(P::S, Q::T) where {S<:ProjectiveScheme, T<:ProjectiveScheme} = morphism_type(S, T)
 morphism_type(::Type{S}, ::Type{T}) where {S<:ProjectiveScheme, T<:ProjectiveScheme} = ProjectiveSchemeMor{S, T, MPolyAnyMap{ring_type(T), ring_type(S), morphism_type(base_ring_type(T), base_ring_type(S)), elem_type(ring_type(T))}}
