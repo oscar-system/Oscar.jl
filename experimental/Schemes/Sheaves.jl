@@ -39,7 +39,7 @@ end
 
 @Markdown.doc """
     restriction_map(F::AbsSheaf{<:Any, OpenType, OutputType},
-                    U::Type1, V::Type1
+                    U::Type1, V::Type2
                    ) where {
                      OpenType, OutputType, 
                      Type1<:OpenType, Type2<:OpenType
@@ -57,7 +57,7 @@ end
 
 # An alias for shorter notation
 function (F::AbsSheaf{<:Any, OpenType, OutputType, RestrictionType})(
-    U::Type1, V::Type1
+    U::Type1, V::Type2
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   return restriction_map(F, U, V)::RestrictionType
 end
