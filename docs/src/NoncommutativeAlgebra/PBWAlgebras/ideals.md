@@ -55,6 +55,10 @@ gen(I, 2)
 
 #### Powers of Ideal
 
+```@docs
+^(I::PBWAlgIdeal{D, T, S}, k::Int) where {D, T, S}
+```
+
 #### Sum of Ideals
 
 ```@docs
@@ -62,6 +66,10 @@ gen(I, 2)
 ```
 
 #### Product of Ideals
+
+```@docs
+*(I::PBWAlgIdeal{DI, T, S}, J::PBWAlgIdeal{DJ, T, S}) where {DI, DJ, T, S}
+```
 
 ### Intersection of Ideals
 
