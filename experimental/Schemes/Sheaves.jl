@@ -1,6 +1,6 @@
 export AbsSheaf
 export space, restriction_map
-export SheafOnSpec
+export SheafOnScheme
 export SheafOO
 
 @Markdown.doc """
@@ -79,7 +79,7 @@ end
 ########################################################################
 # A minimal implementation of the sheaf interface on an affine scheme  #
 ########################################################################
-@attributes mutable struct SheafOnSpec{SpaceType, OpenType, OutputType, RestrictionType, 
+@attributes mutable struct SheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType, 
                                        IsOpenFuncType, ProductionFuncType,
                                        RestrictionFuncType
                                       } <: AbsSheaf{
@@ -97,7 +97,7 @@ end
   production_func::ProductionFuncType # To produce ℱ(U) for U ⊂ X
   restriction_func::RestrictionFuncType
 
-  function SheafOnSpec(X::AbsSpec, production_func::Any, restriction_func::Any;
+  function SheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
       OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
@@ -111,14 +111,14 @@ end
 end
 
 ### implementing the essential functionality
-space(F::SheafOnSpec) = F.X
-object_cache(F::SheafOnSpec) = F.obj_cache
-restriction_cache(F::SheafOnSpec) = F.res_cache
-is_open_func(F::SheafOnSpec) = F.is_open_func
-production_func(F::SheafOnSpec) = F.production_func
-restriction_func(F::SheafOnSpec) = F.restriction_func
+space(F::SheafOnScheme) = F.X
+object_cache(F::SheafOnScheme) = F.obj_cache
+restriction_cache(F::SheafOnScheme) = F.res_cache
+is_open_func(F::SheafOnScheme) = F.is_open_func
+production_func(F::SheafOnScheme) = F.production_func
+restriction_func(F::SheafOnScheme) = F.restriction_func
 
-function (F::SheafOnSpec{<:Any, OpenType, OutputType})(U::T) where {OpenType, OutputType, T<:OpenType}
+function (F::SheafOnScheme{<:Any, OpenType, OutputType})(U::T) where {OpenType, OutputType, T<:OpenType}
   haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType
 
   is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
@@ -127,7 +127,7 @@ function (F::SheafOnSpec{<:Any, OpenType, OutputType})(U::T) where {OpenType, Ou
   return G::OutputType
 end
 
-function restriction_map(F::SheafOnSpec{<:Any, OpenType, OutputType, RestrictionType},
+function restriction_map(F::SheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
     U::Type1, V::Type2
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   haskey(restriction_cache(F), (U, V)) && return (restriction_cache(F)[(U, V)])::RestrictionType
@@ -151,6 +151,7 @@ end
                                          }
   OO::SheafType
 
+  ### Structure sheaf on affine schemes
   function SheafOO(X::AbsSpec)
     function is_open_func(U::AbsSpec, V::AbsSpec)
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
@@ -162,7 +163,114 @@ end
       return hom(OO(V), OO(U), gens(OO(U)), check=false) # check=false assures quicker computation
     end
 
-    R = SheafOnSpec(X, production_func, restriction_func, 
+    R = SheafOnScheme(X, production_func, restriction_func, 
+                    OpenType=AbsSpec, OutputType=Ring, 
+                    RestrictionType=Hecke.Map,
+                    is_open_func=is_open_func
+                   )
+    return new{typeof(X), AbsSpec, Ring, Hecke.Map, 
+               typeof(production_func), typeof(restriction_func), 
+               typeof(R)}(R)
+  end
+
+  ### Structure sheaf on covered schemes
+  function SheafOO(X::AbsCoveredScheme)
+
+    ### Checks for open containment. 
+    #
+    # We allow the following cases:
+    #
+    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
+    #    and U and V contained in the glueing domains of their ambient schemes
+    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
+    #  * U::AbsSpec ⊂ X for U in the basic charts
+    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
+    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+      C = default_covering(X)
+      A = ambient_scheme(U) 
+      A in C || return false
+      B = ambient_scheme(V) 
+      B in C || return false
+      if A == B
+        is_subset(U, V) || return false
+      else
+        G = C[A, B] # Get the glueing
+        f, g = glueing_morphisms(G)
+        is_subset(U, domain(f)) || return false
+        is_subset(V, domain(g)) || return false
+        gU = preimage(g, U)
+        is_subset(gU, V) || return false
+      end
+      return true
+    end
+    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+      return Y === X && ambient_scheme(U) in default_covering(X)
+    end
+    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+      return Y === X && U in default_covering(X)
+    end
+    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+      return X === Y === Z
+    end
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      return U === V && U in default_covering(X)
+    end
+    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient_scheme(U) === V && return true
+      W = ambient_scheme(U)
+      W in default_covering(X) || return false
+      G = default_covering(X)[W, V]
+      return is_subset(U, glueing_domains(G)[1])
+    end
+
+
+    function production_func(U::AbsSpec)
+      return OO(U)
+    end
+
+    function restriction_func(V::AbsSpec, U::AbsSpec)
+      X === U || error("schemes must be the same")
+      return identity_map(OO(X))
+    end
+    function restriction_func(V::AbsSpec, U::PrincipalOpenSubset)
+      if ambient_scheme(U) === V
+        return hom(OO(V), OO(U), gens(OO(U)), check=false)
+      else
+        W = ambient_scheme(U)
+        G = default_covering(X)[V, W]
+        f, g = glueing_morphisms(G)
+        function rho_func(x::RingElem)
+          parent(x) == OO(V) || error("element does not belong to the correct domain")
+          return restrict(pullback(g)(x), U) # should probably be tuned to avoid checks. 
+        end
+        return MapFromFunc(rho_func, OO(V), OO(U))
+      end
+      error("arguments are not valid")
+    end
+    function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+      A = ambient_scheme(V)
+      if A === ambient_scheme(U)
+        return hom(OO(V), OO(U), gens(OO(U)), check=false)
+      else 
+        B = ambient_scheme(U)
+        G = default_covering(X)[A, B]
+        f, g = glueing_morphisms(G)
+        gV = preimage(g, V)
+        gres = restrict(g, gV, V, check=false)
+        h = inclusion_morphism(U, gV)
+        function rho_func(x::RingElem)
+          parent(x) == OO(V) || error("input not valid")
+          return pullback(h)(pullback(gres)(x))
+        end
+        return MapFromFunc(rho_func, OO(V), OO(U))
+      end
+      error("arguments are invalid")
+    end
+
+    R = SheafOnScheme(X, production_func, restriction_func, 
                     OpenType=AbsSpec, OutputType=Ring, 
                     RestrictionType=Hecke.Map,
                     is_open_func=is_open_func

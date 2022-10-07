@@ -28,3 +28,23 @@
   @test domain(rho) === const_sheaf_ZZ(U)
   @test codomain(rho) === const_sheaf_ZZ(V)
 end
+
+@testset "structure sheaf on covered schemes" begin
+  P = projective_space(QQ, 1)
+  PC = as_covered_scheme(P)
+  F = SheafOO(PC)
+  U = patches(default_covering(PC))
+  F(U[1])
+  W = PrincipalOpenSubset(U[1], gens(OO(U[1]))[1])
+  rho = F(U[2], W)
+  @test rho === F(U[2], W)
+  B = PrincipalOpenSubset(U[2], gens(OO(U[2]))[1])
+  eta = F(U[1], B)
+  @test eta === F(U[1], B)
+  tmp1 = F(W, B)
+  tmp2 = F(B, W)
+  @test tmp1(gens(OO(W))[1])== inv(gens(OO(B))[1])
+  @test tmp2(gens(OO(B))[1])== inv(gens(OO(W))[1])
+  h = compose(tmp1, tmp2)
+  @test h(gens(OO(W))[1]) == gens(OO(W))[1]
+end
