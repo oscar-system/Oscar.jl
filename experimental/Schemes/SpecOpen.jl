@@ -224,7 +224,7 @@ function intersect(
 end
 
 function Base.union(U::T, V::T) where {T<:SpecOpen}
-  ambient(U) == ambient(V) || error("the two open sets do not lie in the same ambient scheme")
+  ambient(U) == ambient(V) || error("the two open sets are not contained in the same ambient scheme")
   return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
