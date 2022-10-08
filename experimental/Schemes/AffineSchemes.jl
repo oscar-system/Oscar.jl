@@ -191,9 +191,9 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedR
 standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = Spec(OO(X))
 
 ambient_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
-ambient_ring(X::Spec{<:Any, <:MPolyQuo}) = ambient_ring(X)
-ambient_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = ambient_ring(X)
-ambient_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = ambient_ring(X)
+ambient_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
+ambient_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
+ambient_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
 ambient_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
 
 
