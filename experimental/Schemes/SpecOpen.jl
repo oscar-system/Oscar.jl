@@ -204,7 +204,7 @@ function intersect(
     check::Bool=true
   )
   X = ambient(U)
-  ambient_ring(U) === ambient_ring(Y) || error("schemes do not compare")
+  ambient_ring(U) === ambient_ring(Y) || error("schemes can not be compared")
   X == Y && return SpecOpen(Y, gens(U), check=check)
   if check && !issubset(Y, X)
     Y = intersect(Y, X)
