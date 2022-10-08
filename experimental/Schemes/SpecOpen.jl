@@ -244,7 +244,7 @@ function issubset(
 end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
-  ambient_ring(U) === ambient_ring(V) || return false
+  ambient_ring(U) === ambient_ring(V) || error("schemes do not compare")
   Z = complement(V)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
   # efficient than computing radicals.
@@ -256,7 +256,7 @@ function issubset(U::T, V::T) where {T<:SpecOpen}
 end
 
 function ==(U::SpecSubset, V::SpecSubset)
-  ambient_ring(U) === ambient_ring(V) || return false
+  ambient_ring(U) === ambient_ring(V) || error("schemes do not compare")
   return issubset(U, V) && issubset(V, U)
 end
 

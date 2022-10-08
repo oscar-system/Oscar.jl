@@ -462,7 +462,7 @@ function is_open_embedding(
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
@@ -492,9 +492,7 @@ function is_closed_embedding(
     X::AbsSpec{<:Ring, <:MPolyQuo},
     Y::AbsSpec{<:Ring, <:MPolyRing}
   )
-  R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
-  return true
+  return ambient_ring(X) === ambient_ring(Y)
 end
 
 function is_closed_embedding(
@@ -502,7 +500,7 @@ function is_closed_embedding(
     Y::AbsSpec{<:Ring, <:MPolyQuo}
   )
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   return iszero(modulus(OO(Y)))
 end
 
@@ -511,7 +509,7 @@ function is_closed_embedding(
     Y::AbsSpec{<:Ring, <:MPolyQuo}
   )
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   return issubset(modulus(OO(Y)), modulus(OO(X)))
 end
 
@@ -520,7 +518,7 @@ function is_closed_embedding(
     Y::AbsSpec{<:Ring, <:MPolyRing}
   )
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   return true
 end
 
@@ -531,7 +529,7 @@ function is_closed_embedding(
     Y::AbsSpec{<:Ring, <:MPolyRing}
   )
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   for f in inverted_set(OO(X))
     isunit(OO(Y)(f)) || return false
   end
@@ -545,7 +543,7 @@ function is_closed_embedding(
     Y::AbsSpec{<:Ring, <:MPolyQuo}
   )
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   for x in inverted_set(OO(X)) 
     isunit(OO(Y)(x)) || return false
   end
@@ -561,7 +559,7 @@ function is_closed_embedding(
   ) where {BRT, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || error("schemes do not compare")
   inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
   J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
   return issubset(J, modulus(OO(X)))
@@ -571,7 +569,8 @@ function is_closed_embedding(
     X::Spec{BRT, <:MPolyQuo},
     Y::Spec{BRT, <:MPolyRing}
   ) where {BRT}
-  return OO(Y) == ambient_ring(X)
+  OO(Y) === ambient_ring(X) || error("schemes do not compare")
+  return true
 end
 
 function is_closed_embedding(
