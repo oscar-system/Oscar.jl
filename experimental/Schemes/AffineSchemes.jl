@@ -429,10 +429,10 @@ function issubset(
 end
 
 # TODO: Add further cross-type comparison methods as needed.
-
-function ==(X::T, Y::T) where {T<:Spec}
-  return X === Y
+function ==(X::T, Y::T) where {T<:Spec{MPolyRing}}
+  return OO(X) === OO(Y)
 end
+
 
 function ==(X::AbsSpec, Y::AbsSpec)
   X === Y && return true
