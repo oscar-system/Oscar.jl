@@ -103,6 +103,8 @@ end
   #psi_res = restrict(psi, domain(psi), domain(phi))
   p = compose(psi, phi)
   q = compose(phi_res, psi)
+  phi1 = restrict(phi,domain(phi),codomain(phi))
+  @test phi == phi1
   @test restrict(p, domain(p), domain(p)) == identity_map(domain(p))
   @test restrict(q, domain(q), domain(q)) == identity_map(domain(q))
 end

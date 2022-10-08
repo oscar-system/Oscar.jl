@@ -731,23 +731,23 @@ function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; c
   return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
 end
 
-function pullback(f::SpecOpenMor)
+function pullback(f::SpecOpenMor; check::Bool=true)
   if !isdefined(f, :pullback)
     U = codomain(f)
     V = domain(f)
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
-    W = [SpecOpen(V[i], ideal(OO(V[i]), pullback(f[i]).(gens(U))), check=false) for i in 1:ngens(V)]
-    pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=false)) for j in 1:ngens(U)] for i in 1:ngens(V)]
-    lift_maps = [restriction_map(W[i], V[i], one(ambient_ring(V[i])), check=false) for i in 1:ngens(V)]
+    W = [SpecOpen(V[i], ideal(OO(V[i]), pullback(f[i]).(gens(U))), check=check) for i in 1:ngens(V)]
+    pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=check)) for j in 1:ngens(U)] for i in 1:ngens(V)]
+    lift_maps = [restriction_map(W[i], V[i], one(ambient_ring(V[i])), check=check) for i in 1:ngens(V)]
     function mymap(a::SpecOpenRingElem)
       b = [lift_maps[i](
               SpecOpenRingElem(
                   OO(W[i]), 
                   [pb_res[i][j](a[j]) for j in 1:ngens(U)],
-                  check=false)
+                  check=check)
              ) for i in 1:ngens(V)
           ]
-      return SpecOpenRingElem(OO(V), b, check=false)
+      return SpecOpenRingElem(OO(V), b, check=check)
     end
     f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
   end
@@ -778,6 +778,7 @@ function restrict(
   if check
     issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
     issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
+    issubset(preimage(f,V), U) || error("f(U) is not contained in V")
   end
   inc = inclusion_morphism(U, domain(f), check=check)
   help_map = compose(inc, f, check=check)
