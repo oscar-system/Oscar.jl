@@ -268,7 +268,7 @@ where ``X`` is the affine ambient scheme of ``U``.
 """
 function closure(U::SpecOpen{<:StdSpec})
   X = ambient(U)
-  R = base_ring(OO(X))
+  R = ambient_ring(X)
   I = saturated_ideal(modulus(OO(X)))
   I = saturation(I, ideal(R, gens(U)))
   return subscheme(X, I)
@@ -621,7 +621,7 @@ function maximal_extension(
   for a in f
     R == base_ring(parent(a)) || error("fractions do not belong to the same ring")
   end
-  R == base_ring(OO(X)) || error("fractions do not belong to the base ring of the scheme")
+  R == ambient_ring(X) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
   W = OO(X)
@@ -1117,8 +1117,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     check::Bool=true
   )
   Y = ambient(U)
-  R = base_ring(OO(Y))
-  R == base_ring(OO(X)) || error("`ambient_ring`s of the schemes not compatible")
+  R = ambient_ring(Y)
+  R == ambient_ring(X) || error("`ambient_ring`s of the schemes not compatible")
   if check
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
@@ -1234,8 +1234,8 @@ end
 function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
   X = scheme(S)
   Y = scheme(T)
-  R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("rings can not be canonically compared")
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || error("rings can not be canonically compared")
   if check
     (domain(S) == domain(T)) || error("open domains are not isomorphic")
   end
