@@ -69,7 +69,7 @@ getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
 
 function getindex(U::SpecOpen, X::Spec) 
   for i in 1:npatches(U)
-    X == U[i] && return i
+    X === U[i] && return i
   end
   error("scheme $X not found among the open patches in $U")
 end
@@ -374,7 +374,7 @@ function restrict(
   )
   isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
-    if V == affine_patches(domain(f))[i]
+    if V === affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
@@ -392,7 +392,7 @@ function restrict(
   )
   isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
-    if V == affine_patches(domain(f))[i]
+    if V === affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
@@ -420,7 +420,7 @@ to have a coherent syntax with the method for regular functions
 not know about its scheme, so it has to be passed as an extra argument.
 """
 function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
-  U == domain(a) || error("domains are not compatible")
+  U === domain(a) || error("domains are not compatible")
   X = ambient(U)
   d = find_non_zero_divisor(U)
   W = hypersurface_complement(X, d)
@@ -702,7 +702,7 @@ function getindex(f::SpecOpenMor, D::Spec)
   U = affine_patches(domain(f))
   D in U || error("affine patch not found in the domain")
   for i = 1:length(U)
-    D == U[i] && return f[i]
+    D === U[i] && return f[i]
   end
 end
 
@@ -1206,14 +1206,14 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
     issubset(V, U) || error("$V is not a subset of $U")
   end
 
-  if U == V
+  if U === V
     function mymap(f::SpecOpenRingElem)
       return f
     end
     return Hecke.MapFromFunc(mymap, OO(U), OO(V))
   end
 
-  if ambient(U) == ambient(V)
+  if ambient(U) === ambient(V)
     g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
     function mysecondmap(f::SpecOpenRingElem)
       return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
@@ -1229,7 +1229,7 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
 end
 
 function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
-  domain(f) == codomain(f) || return false
+  domain(f) === codomain(f) || return false
   R = ambient_ring(scheme(domain(f)))
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
 end
