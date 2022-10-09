@@ -733,6 +733,7 @@ function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; c
   return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
 end
 
+using Infiltrator
 function pullback(f::SpecOpenMor; check::Bool=true)
   if !isdefined(f, :pullback)
     U = codomain(f)
@@ -742,13 +743,10 @@ function pullback(f::SpecOpenMor; check::Bool=true)
     pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=check)) for j in 1:ngens(U)] for i in 1:ngens(V)]
     lift_maps = [restriction_map(W[i], V[i], one(ambient_ring(V[i])), check=check) for i in 1:ngens(V)]
     function mymap(a::SpecOpenRingElem)
-      b = [lift_maps[i](
-              SpecOpenRingElem(
-                  OO(W[i]), 
-                  [pb_res[i][j](a[j]) for j in 1:ngens(U)],
-                  check=check)
-             ) for i in 1:ngens(V)
-          ]
+      e = SpecOpenRingElem(
+                  OO(W[1]), 
+                  [pb_res[1][j](a[j]) for j in 1:ngens(U)]
+                 )
       return SpecOpenRingElem(OO(V), b, check=check)
     end
     f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
@@ -1023,8 +1021,8 @@ function restriction_map(
   Y = ambient(U)
 
   # handle the shortcut 
-  if X in affine_patches(U)
-    i = findfirst(x->(is_equal(x, X)), affine_patches(U))
+  if any(x->(x===X), affine_patches(U))
+    i = findfirst(x->(x === X), affine_patches(U))
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
@@ -1108,7 +1106,7 @@ function restriction_map(
     end
     g = [W(p, q, check=false) for (p, q, dk, k) in sep]
     dk = [dk for (p, q, dk, k) in sep]
-    return OO(X)(sum([a*b for (a, b) in zip(g, c)]), check=false)*OO(X)(1//poh^m, check=false)
+    return OO(X)(sum([a*b for (a, b) in zip(g, c)]), check=true)*OO(X)(1//poh^m, check=true)
   end
   return Hecke.MapFromFunc(mysecondmap, OO(U), OO(X))
 end
