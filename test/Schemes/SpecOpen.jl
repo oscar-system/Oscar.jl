@@ -265,6 +265,21 @@ end
 end
 
 @testset "is_open_embedding" begin
+  R, (x, y) = QQ["x", "y", "z"]
+  # Spec{..., MPolyRing}
+  A2 = Spec(R)
+  # Spec{..., MPolyQuo}
+  Vxy = subscheme(A2, x*y)
+  # Spec{MPolyLocalizedRing}
+  A2_minus_Vxy = hypersurface_complement(A2, x*y)
+  A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
+  # SpecOpen{Spec{...,MPolyRing},...}
+  A2_minus_origin = SpecOpen(A2, [x,y])
+  # SpecOpen{Spec{MPolyQuo},...}
+  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # PrincipalOpenSubset{MPolyQuoLocalized....}
+  Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
+
   @test is_open_embedding(A2, A2)
   @test !is_open_embedding(Vxy, A2)
   @test_broken is_open_embedding(A2_minus_origin, A2)
@@ -324,9 +339,23 @@ end
 end
 
 @testset "is_closed_embedding" begin
+  R, (x, y) = QQ["x", "y", "z"]
+  # Spec{..., MPolyRing}
+  A2 = Spec(R)
+  # Spec{..., MPolyQuo}
+  Vxy = subscheme(A2, x*y)
+  # Spec{MPolyLocalizedRing}
+  A2_minus_Vxy = hypersurface_complement(A2, x*y)
+  A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
+  # SpecOpen{Spec{...,MPolyRing},...}
+  A2_minus_origin = SpecOpen(A2, [x,y])
+  # SpecOpen{Spec{MPolyQuo},...}
+  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # PrincipalOpenSubset{MPolyQuoLocalized....}
+  Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
 
   @test is_closed_embedding(A2, A2)
-  @test is_closed_embedding(Vxy, A2)
+  @test is_closed_embedding(Vxy, A2)s
   @test_broken !is_closed_embedding(A2_minus_origin, A2)
   @test !is_closed_embedding(A2_minus_Vxy, A2)
   @test !is_closed_embedding(A2_minus_Vxy_p, A2)
