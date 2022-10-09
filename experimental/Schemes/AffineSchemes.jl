@@ -443,7 +443,7 @@ function ==(X::AbsSpec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
-==(X::EmptyScheme, Y::Spec) = (Y == X)
+==(X::EmptyScheme, Y::AbsSpec) = (Y == X)
 
 Base.isempty(X::AbsSpec) = iszero(one(OO(X)))
 
