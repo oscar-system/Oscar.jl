@@ -138,7 +138,6 @@ end
   @test Oscar.is_identity_map(compose(resVU, resUV))
   @test Oscar.is_identity_map(compose(resUV, resVU))
 end
-
 @testset "pullbacks" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   X = Spec(R, ideal(R, [x^2-y*z]))
@@ -193,7 +192,7 @@ end
 end
 
 
-@testset "subset relations" begin
+@testset "issubset" begin
   R, (x, y) = QQ["x", "y", "z"]
   # Spec{..., MPolyRing}
   A2 = Spec(R)
@@ -228,9 +227,9 @@ end
   @test !issubset(Vxy, A2_minus_origin)
   @test issubset(A2_minus_origin, A2_minus_origin)
   @test issubset(A2_minus_Vxy, A2_minus_origin)
-  #@test issubset(A2_minus_Vxy_p, A2_minus_origin)
-  #@test issubset(Vxy_minus_origin, A2_minus_origin)
-  #@test issubset(Vxy_minus_origin_p, A2_minus_origin)
+  @test_broken issubset(A2_minus_Vxy_p, A2_minus_origin)
+  @test_broken issubset(Vxy_minus_origin, A2_minus_origin)
+  @test_broken issubset(Vxy_minus_origin_p, A2_minus_origin)
 
   @test !issubset(A2, A2_minus_Vxy)
   @test !issubset(Vxy, A2_minus_Vxy)
@@ -242,25 +241,144 @@ end
 
   @test !issubset(A2, A2_minus_Vxy_p)
   @test !issubset(Vxy, A2_minus_Vxy_p)
-  #@test !issubset(A2_minus_origin, A2_minus_Vxy_p)
+  @test_broken !issubset(A2_minus_origin, A2_minus_Vxy_p)
   @test issubset(A2_minus_Vxy, A2_minus_Vxy_p)
   @test issubset(A2_minus_Vxy_p, A2_minus_Vxy_p)
-  #@test !issubset(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test_broken !issubset(Vxy_minus_origin, A2_minus_Vxy_p)
   @test !issubset(Vxy_minus_origin_p, A2_minus_Vxy_p)
 
   @test !issubset(A2, Vxy_minus_origin)
   @test !issubset(Vxy, Vxy_minus_origin)
-  #@test !issubset(A2_minus_origin, Vxy_minus_origin)
+  @test_broken !issubset(A2_minus_origin, Vxy_minus_origin)
   @test !issubset(A2_minus_Vxy, Vxy_minus_origin)
-  #@test !issubset(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test_broken !issubset(A2_minus_Vxy_p, Vxy_minus_origin)
   @test issubset(Vxy_minus_origin, Vxy_minus_origin)
-  #@test issubset(Vxy_minus_origin_p, Vxy_minus_origin)
+  @test_broken issubset(Vxy_minus_origin_p, Vxy_minus_origin)
 
   @test !issubset(A2, Vxy_minus_origin_p)
   @test !issubset(Vxy, Vxy_minus_origin_p)
-  #@test !issubset(A2_minus_origin, Vxy_minus_origin_p)
+  @test_broken !issubset(A2_minus_origin, Vxy_minus_origin_p)
   @test !issubset(A2_minus_Vxy, Vxy_minus_origin_p)
-  #@test !issubset(A2_minus_Vxy_p, Vxy_minus_origin_p)
-  #@test issubset(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test !issubset(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  @test_broken issubset(Vxy_minus_origin, Vxy_minus_origin_p)
   @test issubset(Vxy_minus_origin_p, Vxy_minus_origin_p)
+end
+
+@testset "is_open_embedding" begin
+  @test is_open_embedding(A2, A2)
+  @test !is_open_embedding(Vxy, A2)
+  @test_broken is_open_embedding(A2_minus_origin, A2)
+  @test is_open_embedding(A2_minus_Vxy, A2)
+  @test is_open_embedding(A2_minus_Vxy_p, A2)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2)
+  @test !is_open_embedding(Vxy_minus_origin_p, A2)
+
+  @test !is_open_embedding(A2, Vxy)
+  @test is_open_embedding(Vxy, Vxy)
+  @test_broken !is_open_embedding(A2_minus_origin, Vxy)
+  @test !is_open_embedding(A2_minus_Vxy, Vxy)
+  @test !is_open_embedding(A2_minus_Vxy_p, Vxy)
+  @test_broken is_open_embedding(Vxy_minus_origin, Vxy)
+  @test is_open_embedding(Vxy_minus_origin_p, Vxy)
+
+  @test_broken !is_open_embedding(A2, A2_minus_origin)
+  @test_broken !is_open_embedding(Vxy, A2_minus_origin)
+  @test_broken is_open_embedding(A2_minus_origin, A2_minus_origin)
+  @test_broken is_open_embedding(A2_minus_Vxy, A2_minus_origin)
+  @test_broken is_open_embedding(A2_minus_Vxy_p, A2_minus_origin)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2_minus_origin)
+  @test_broken !is_open_embedding(Vxy_minus_origin_p, A2_minus_origin)
+
+  @test !is_open_embedding(A2, A2_minus_Vxy)
+  @test !is_open_embedding(Vxy, A2_minus_Vxy)
+  #@test !is_open_embedding(A2_minus_origin, A2_minus_Vxy)
+  @test is_open_embedding(A2_minus_Vxy, A2_minus_Vxy)
+  @test is_open_embedding(A2_minus_Vxy_p, A2_minus_Vxy)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2_minus_Vxy)
+  @test !is_open_embedding(Vxy_minus_origin_p, A2_minus_Vxy)
+
+  @test !is_open_embedding(A2, A2_minus_Vxy_p)
+  @test !is_open_embedding(Vxy, A2_minus_Vxy_p)
+  @test_broken !is_open_embedding(A2_minus_origin, A2_minus_Vxy_p)
+  @test is_open_embedding(A2_minus_Vxy, A2_minus_Vxy_p)
+  @test is_open_embedding(A2_minus_Vxy_p, A2_minus_Vxy_p)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test !is_open_embedding(Vxy_minus_origin_p, A2_minus_Vxy_p)
+
+  @test_broken !is_open_embedding(A2, Vxy_minus_origin)
+  @test_broken !is_open_embedding(Vxy, Vxy_minus_origin)
+  @test_broken !is_open_embedding(A2_minus_origin, Vxy_minus_origin)
+  @test_broken !is_open_embedding(A2_minus_Vxy, Vxy_minus_origin)
+  @test_broken !is_open_embedding(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test_broken is_open_embedding(Vxy_minus_origin, Vxy_minus_origin)
+  @test_broken is_open_embedding(Vxy_minus_origin_p, Vxy_minus_origin)
+
+  @test !is_open_embedding(A2, Vxy_minus_origin_p)
+  @test !is_open_embedding(Vxy, Vxy_minus_origin_p)
+  @test_broken !is_open_embedding(A2_minus_origin, Vxy_minus_origin_p)
+  @test !is_open_embedding(A2_minus_Vxy, Vxy_minus_origin_p)
+  @test !is_open_embedding(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  @test_broken is_open_embedding(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test is_open_embedding(Vxy_minus_origin_p, Vxy_minus_origin_p)
+
+end
+
+@testset "is_closed_embedding" begin
+
+  @test is_closed_embedding(A2, A2)
+  @test is_closed_embedding(Vxy, A2)
+  @test_broken !is_closed_embedding(A2_minus_origin, A2)
+  @test !is_closed_embedding(A2_minus_Vxy, A2)
+  @test !is_closed_embedding(A2_minus_Vxy_p, A2)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, A2)
+  @test_broken !is_closed_embedding(Vxy_minus_origin_p, A2)
+
+  @test !is_closed_embedding(A2, Vxy)
+  @test is_closed_embedding(Vxy, Vxy)
+  @test_broken !is_closed_embedding(A2_minus_origin, Vxy)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, Vxy)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, Vxy)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, Vxy)
+  @test !is_closed_embedding(Vxy_minus_origin_p, Vxy)
+
+  @test_broken !is_closed_embedding(A2, A2_minus_origin)
+  @test_broken is_closed_embedding(Vxy, A2_minus_origin)
+  @test_broken is_closed_embedding(A2_minus_origin, A2_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, A2_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, A2_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin, A2_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin_p, A2_minus_origin)
+
+  @test_broken !is_closed_embedding(A2, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(Vxy, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(A2_minus_origin, A2_minus_Vxy)
+  @test_broken is_closed_embedding(A2_minus_Vxy, A2_minus_Vxy)
+  @test_broken is_closed_embedding(A2_minus_Vxy_p, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(Vxy_minus_origin_p, A2_minus_Vxy)
+
+  @test_broken !is_closed_embedding(A2, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(Vxy, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(A2_minus_origin, A2_minus_Vxy_p)
+  @test_broken is_closed_embedding(A2_minus_Vxy, A2_minus_Vxy_p)
+  @test_broken is_closed_embedding(A2_minus_Vxy_p, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(Vxy_minus_origin_p, A2_minus_Vxy_p)
+
+  @test_broken !is_closed_embedding(A2, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(Vxy, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_origin, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin, Vxy_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin_p, Vxy_minus_origin)
+
+  @test_broken !is_closed_embedding(A2, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(Vxy, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(A2_minus_origin, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  @test_broken is_closed_embedding(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test is_closed_embedding(Vxy_minus_origin_p, Vxy_minus_origin_p)
+
 end
