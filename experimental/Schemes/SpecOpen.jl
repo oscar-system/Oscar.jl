@@ -229,7 +229,7 @@ function Base.union(U::T, V::T) where {T<:SpecOpen}
 end
 
 function issubset(
-    Y::Spec,
+    Y::AbsSpec,
     U::SpecOpen
   )
   ambient_ring(Y) === ambient_ring(U) || return false
