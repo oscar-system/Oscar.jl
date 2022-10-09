@@ -245,7 +245,7 @@ function issubset(
   return all(issubset(V, Y) for V in affine_patches(U))
 end
 
-function issubset(U::T, V::T) where {T<:SpecOpen}
+function issubset(U::SpecOpen, V::SpecOpen)
   ambient_ring(U) === ambient_ring(V) || return false
   Z = complement(V)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
