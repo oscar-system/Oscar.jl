@@ -1023,8 +1023,8 @@ function restriction_map(
   Y = ambient(U)
 
   # handle the shortcut 
-  if X in affine_patches(U)
-    i = findfirst(x->(is_equal(x, X)), affine_patches(U))
+  if any(x->(x===X), affine_patches(U))
+    i = findfirst(x->(x === X), affine_patches(U))
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
