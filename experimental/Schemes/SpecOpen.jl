@@ -240,7 +240,7 @@ end
 
 function issubset(
     U::SpecOpen,
-    Y::Spec
+    Y::AbsSpec
   ) 
   return all(issubset(V, Y) for V in affine_patches(U))
 end
