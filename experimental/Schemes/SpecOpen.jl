@@ -733,7 +733,6 @@ function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; c
   return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
 end
 
-using Infiltrator
 function pullback(f::SpecOpenMor; check::Bool=true)
   if !isdefined(f, :pullback)
     U = codomain(f)
