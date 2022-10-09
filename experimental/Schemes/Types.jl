@@ -312,8 +312,8 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
     if check
       for i in 1:n
-        domain(f[i]) == affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
-        codomain(f[i]) == Y || error("codomain is not compatible")
+        domain(f[i]) === affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
+        codomain(f[i]) === Y || error("codomain is not compatible")
       end
       for i in 1:n-1
 	for j in i+1:n
@@ -475,8 +475,8 @@ Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets
     ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
     ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
     if check
-      (domain(f) == codomain(g) &&
-      domain(g) ==  codomain(f)) || error("maps can not be isomorphisms")
+      (domain(f) === codomain(g) &&
+      domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
       compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
       compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
     end
@@ -520,8 +520,8 @@ end
     )
     U = domain(f)
     V = domain(g)
-    X == ambient_scheme(U) && Y == ambient_scheme(V) || error("schemes are not compatible")
-    domain(f) == codomain(g) && domain(g) == codomain(f) || error("maps are not compatible")
+    X === ambient_scheme(U) && Y === ambient_scheme(V) || error("schemes are not compatible")
+    domain(f) === codomain(g) && domain(g) === codomain(f) || error("maps are not compatible")
     if check
       is_identity_map(compose(f, g)) || error("maps are not inverse to each other")
       is_identity_map(compose(g, f)) || error("maps are not inverse to each other")

@@ -105,15 +105,15 @@ glueing_domains(G::SimpleGlueing) = (G.U, G.V)
 end
 
 function compose(G::GT, H::GT) where {GT<:SimpleGlueing}
-  if patches(G)[2] == patches(H)[2] 
+  if patches(G)[2] === patches(H)[2]
     return compose(G, inverse(H))
-  elseif patches(G)[1] == patches(H)[1]
+  elseif patches(G)[1] === patches(H)[1]
     return compose(inverse(G), H)
-  elseif patches(G)[1] == patches(H)[2]
+  elseif patches(G)[1] === patches(H)[2]
     return compose(inverse(G), inverse(H))
   end
   X, Y = patches(G)
-  Y == patches(H)[1] || error("Glueings not compatible")
+  Y === patches(H)[1] || error("Glueings not compatible")
   Z = patches(H)[2]
   f, f_inv = glueing_morphisms(G)
   g, g_inv = glueing_morphisms(H)
