@@ -191,3 +191,76 @@ end
   U = SpecOpen(X,[x])
   restriction_map(U, hypersurface_complement(X,x))
 end
+
+
+@testset "subset relations" begin
+  R, (x, y) = QQ["x", "y", "z"]
+  # Spec{..., MPolyRing}
+  A2 = Spec(R)
+  # Spec{..., MPolyQuo}
+  Vxy = subscheme(A2, x*y)
+  # Spec{MPolyLocalizedRing}
+  A2_minus_Vxy = hypersurface_complement(A2, x*y)
+  A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
+  # SpecOpen{Spec{...,MPolyRing},...}
+  A2_minus_origin = SpecOpen(A2, [x,y])
+  # SpecOpen{Spec{MPolyQuo},...}
+  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # PrincipalOpenSubset{MPolyQuoLocalized....}
+  Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
+
+  @test issubset(A2, A2)
+  @test issubset(Vxy, A2)
+  @test issubset(A2_minus_origin, A2)
+  @test issubset(A2_minus_Vxy, A2)
+  @test issubset(A2_minus_Vxy_p, A2)
+  @test issubset(Vxy_minus_origin, A2)
+  @test issubset(Vxy_minus_origin_p, A2)
+
+  @test issubset(Vxy, Vxy)
+  @test !issubset(A2_minus_origin, Vxy)
+  @test !issubset(A2_minus_Vxy, Vxy)
+  @test !issubset(A2_minus_Vxy_p, Vxy)
+  @test issubset(Vxy_minus_origin, Vxy)
+  @test issubset(Vxy_minus_origin_p, Vxy)
+
+  @test !issubset(A2, A2_minus_origin)
+  @test !issubset(Vxy, A2_minus_origin)
+  @test issubset(A2_minus_origin, A2_minus_origin)
+  @test issubset(A2_minus_Vxy, A2_minus_origin)
+  #@test issubset(A2_minus_Vxy_p, A2_minus_origin)
+  #@test issubset(Vxy_minus_origin, A2_minus_origin)
+  #@test issubset(Vxy_minus_origin_p, A2_minus_origin)
+
+  @test !issubset(A2, A2_minus_Vxy)
+  @test !issubset(Vxy, A2_minus_Vxy)
+  @test !issubset(A2_minus_origin, A2_minus_Vxy)
+  @test issubset(A2_minus_Vxy, A2_minus_Vxy)
+  @test issubset(A2_minus_Vxy_p, A2_minus_Vxy)
+  @test !issubset(Vxy_minus_origin, A2_minus_Vxy)
+  @test !issubset(Vxy_minus_origin_p, A2_minus_Vxy)
+
+  @test !issubset(A2, A2_minus_Vxy_p)
+  @test !issubset(Vxy, A2_minus_Vxy_p)
+  #@test !issubset(A2_minus_origin, A2_minus_Vxy_p)
+  @test issubset(A2_minus_Vxy, A2_minus_Vxy_p)
+  @test issubset(A2_minus_Vxy_p, A2_minus_Vxy_p)
+  #@test !issubset(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test !issubset(Vxy_minus_origin_p, A2_minus_Vxy_p)
+
+  @test !issubset(A2, Vxy_minus_origin)
+  @test !issubset(Vxy, Vxy_minus_origin)
+  #@test !issubset(A2_minus_origin, Vxy_minus_origin)
+  @test !issubset(A2_minus_Vxy, Vxy_minus_origin)
+  #@test !issubset(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test issubset(Vxy_minus_origin, Vxy_minus_origin)
+  #@test issubset(Vxy_minus_origin_p, Vxy_minus_origin)
+
+  @test !issubset(A2, Vxy_minus_origin_p)
+  @test !issubset(Vxy, Vxy_minus_origin_p)
+  #@test !issubset(A2_minus_origin, Vxy_minus_origin_p)
+  @test !issubset(A2_minus_Vxy, Vxy_minus_origin_p)
+  #@test !issubset(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  #@test issubset(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test issubset(Vxy_minus_origin_p, Vxy_minus_origin_p)
+end

@@ -229,12 +229,14 @@ function Base.union(U::T, V::T) where {T<:SpecOpen}
 end
 
 function issubset(
-    Y::Spec, 
+    Y::Spec,
     U::SpecOpen
   )
-  ambient_ring(Y) === ambient_ring(U) || error("schemes do not compare")
+  ambient_ring(Y) === ambient_ring(U) || return false
+  issubset(Y, ambient(U)) || return false
   return one(OO(Y)) in ideal(OO(Y), gens(U))
 end
+
 
 function issubset(
     U::SpecOpen,
