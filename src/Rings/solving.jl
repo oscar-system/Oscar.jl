@@ -7,7 +7,7 @@ Given an ideal `I` with a finite solution set over the complex numbers, return a
 See [BES21](@cite) for more information.
 
 **Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
-is greater then zero an empty array is returned.
+is greater than zero an empty array is returned.
 
 # Arguments
 - `Ì::MPolyIdeal`: input ideal.
