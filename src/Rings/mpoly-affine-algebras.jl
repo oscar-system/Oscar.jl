@@ -297,60 +297,21 @@ function transform_to_positive_orthant(rs::Matrix{Int})
     return original * transformation, transformation
 end
 
-function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m)
-   ###for use in _multi_hilbert_series only
-   ###if !is_monomial(I)
-   ###      throw(ArgumentError("The ideal is not monomial"))
-   ###end
-   ### V = minimal_monomial_generators(I)  ### to be written
-   V = gens(I)
-   s = ngens(I)
-   d = degree(Vector{Int}, V[s])
-   p = one(S)
-   for j = 1:m
-        p = p*gen(S, j)^d[j]
-   end	
-   if s == 1
-      return 1-p
-   end
-   v = V[s]
-   V = deleteat!(V, s)
-   J = ideal(base_ring(I), V)
-   p1 = _numerator_monomial_multi_hilbert_series(J, S, m)
-   p2 = _numerator_monomial_multi_hilbert_series(J:v, S, m)
-   ### TODO: Do I have the minimal set of monomial generators here?
-   return p1-p*p2
+function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:BayerStillmanA)
+  x = gens(base_ring(I))
+  W = [degree(Vector{Int}, x[i])[j] for j in 1:m, i in 1:length(x)]
+  return _hilbert_numerator_from_leading_exponents([leading_exponent_vector(f) for f in gens(I)], W, S, :BayerStillmanA)
 end
 
-### TODO: use following version once build complex is completely adapted to Laurent polynomial case
-#function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
-   ###for use in _multi_hilbert_series only
-   ###if !is_monomial(I)
-   ###      throw(ArgumentError("The ideal is not monomial"))
-   ###end
-   ### V = minimal_monomial_generators(I)  ### to be written
-#   V = gens(I)
-#   s = ngens(I)
-#   d = degree(Vector{Int}, V[s])
-#   B = MPolyBuildCtx(S)
-#   push_term!(B, 1, d)
-#   p = finish(B)
-#   if s == 1
-#      return 1-p
-#   end
-#   v = V[s]
-#   V = deleteat!(V, s)
-#   J = ideal(base_ring(I), V)
-#   p1 = _numerator_monomial_multi_hilbert_series(J, S)
-#   p2 = _numerator_monomial_multi_hilbert_series(J:v, S)
-   ### TODO: Do I have the minimal set of monomial generators here?
-#   return p1-p*p2
-#end
 
 @doc Markdown.doc"""
-    multi_hilbert_series(A::MPolyQuo)
+    multi_hilbert_series(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
 
 Return the Hilbert series of the positively graded affine algebra `A`.
+
+!!! note 
+    The advanced user can select a `alg` for the computation; 
+    see the code for details.
 
 # Examples
 ```jldoctest
@@ -421,7 +382,7 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function multi_hilbert_series(A::MPolyQuo)
+function multi_hilbert_series(A::MPolyQuo; alg=:BayerStillmanA)
    R = A.R
    I = A.I
    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
@@ -466,20 +427,11 @@ function multi_hilbert_series(A::MPolyQuo)
       push_term!(B, 1, e)
       q = q*(1-finish(B))
    end
-#   q = elem_type(S)[]
-#   for i = 1:n
-#      e = [Int(MI[i, :][j]) for j = 1:m]
-#      qq = one(S)
-#      for j = 1:m
-#        qq = qq*gen(S, j)^e[j]
-#      end
-#      q = push!(q, 1-qq)
-#   end
    if iszero(I)
       p = one(S)
    else
       LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      p = _numerator_monomial_multi_hilbert_series(LI, S, m)
+      p = _numerator_monomial_multi_hilbert_series(LI, S, m, alg=alg)
    end
    return  (p, q), (H, iso)
 end
@@ -549,9 +501,13 @@ end
 #end
 
 @doc Markdown.doc"""
-    multi_hilbert_series_reduced(A::MPolyQuo)
+    multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
+
+!!! note 
+    The advanced user can select a `alg` for the computation; 
+    see the code for details.
 
 # Examples
 ```jldoctest
@@ -622,8 +578,8 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function multi_hilbert_series_reduced(A::MPolyQuo)
-   (p, q), (H, iso) = multi_hilbert_series(A)
+function multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
+   (p, q), (H, iso) = multi_hilbert_series(A, alg=alg)
    f = p//q
    p = numerator(f)
    q = denominator(f)

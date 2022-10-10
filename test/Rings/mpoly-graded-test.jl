@@ -247,3 +247,46 @@ begin
   @assert iszero(t)
   @assert parent(t) == R
 end
+
+@testset "Hilbert series" begin
+  n = 5
+  AbstractAlgebra.divides(a::Vector{Int}, b::Vector{Int}) = all(x->(x>=0), a-b)
+
+  g = Vector{Vector{Int}}()
+  for i in 1:50
+    e = [rand(20:50) for i in 1:n]
+    if all(v->!divides(e, v), g)
+      g = [v for v in g if !divides(v, e)]
+      push!(g, e)
+    end
+  end
+
+  W = [1 1 1 1 1]
+  S, _ = PolynomialRing(QQ, "t")
+  custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
+  gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
+  generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
+  cocoa = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :cocoa)
+  indeterminate = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :indeterminate)
+  bayer = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :BayerStillmanA)
+
+  @test custom == gcd == generator == cocoa == indeterminate
+
+  R, x = PolynomialRing(QQ, ["x$i" for i in 1:5])
+  P, _ = grade(R)
+  I = ideal(P, [prod([x[i]^e[i] for i in 1:length(x)]) for e in g])
+  Q, _ = quo(P, I)
+
+  sing = hilbert_series(Q)
+  @test evaluate(sing[1], gens(parent(cocoa))[1]) == cocoa
+
+  W = [1 1 1 1 1; 2 5 3 4 1; 9 2 -3 5 0]
+  S, _ = LaurentPolynomialRing(QQ, ["t₁", "t₂", "t₃"])
+  custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
+  gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
+  generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
+  cocoa = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :cocoa)
+  indeterminate = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :indeterminate)
+  bayer = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :BayerStillmanA)
+  @test custom == gcd == generator == cocoa == indeterminate
+end
