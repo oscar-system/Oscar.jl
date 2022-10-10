@@ -30,7 +30,7 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
-                        "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
+                        "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
 
 # When a specific branch is loaded via `]add Package#branch` julia will only
@@ -387,10 +387,8 @@ include("Rings/mpoly.jl")
 include("Rings/mpoly_types.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")
-include("Rings/msolve/interface.jl")
-include("Rings/msolve/f4.jl")
-include("Rings/msolve/msolve.jl")
 include("Rings/groebner.jl")
+include("Rings/solving.jl")
 include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")
