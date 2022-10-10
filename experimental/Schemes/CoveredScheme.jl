@@ -390,8 +390,8 @@ function transition_graph(C::Covering)
         end
       end
     end
+    C.edge_dict = edge_dict
   end
-  C.edge_dict = edge_dict
   return C.transition_graph
 end
 

@@ -732,57 +732,11 @@ function covered_projection_to_base(X::ProjectiveScheme{<:MPolyRing})
   return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
 end
 
-
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     i::Int
   ) where {
-    CRT<:MPolyQuoLocalizedRing
-  }
-  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = ambient_ring(X)
-  C = standard_covering(X)
-  U = C[i+1]
-  p = covered_projection_to_base(X)
-  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
-  return hom(S, OO(U), pullback(p[U]), s)
-end
-
-function dehomogenize(
-    X::ProjectiveScheme{CRT}, 
-    i::Int
-  ) where {
-    CRT<:MPolyLocalizedRing
-  }
-  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = ambient_ring(X)
-  C = standard_covering(X)
-  U = C[i+1]
-  p = covered_projection_to_base(X)
-  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
-  return hom(S, OO(U), pullback(p[U]), s)
-end
-
-function dehomogenize(
-    X::ProjectiveScheme{CRT}, 
-    i::Int
-  ) where {
-    CRT<:MPolyRing
-  }
-  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
-  S = ambient_ring(X)
-  C = standard_covering(X)
-  U = C[i+1]
-  p = covered_projection_to_base(X)
-  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
-  return hom(S, OO(U), pullback(p[U]), s)
-end
-
-function dehomogenize(
-    X::ProjectiveScheme{CRT}, 
-    i::Int
-  ) where {
-    CRT<:MPolyQuo
+    CRT<:Union{MPolyQuoLocalizedRing,MPolyRing, MPolyQuo}
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = ambient_ring(X)
@@ -835,7 +789,7 @@ function dehomogenize(
 end
 
 function dehomogenize(
-    X::ProjectiveScheme{CRT}, 
+    X::ProjectiveScheme{CRT},
     i::Int
   ) where {
     CRT<:AbstractAlgebra.Ring

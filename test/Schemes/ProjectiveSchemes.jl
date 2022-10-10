@@ -96,4 +96,16 @@ end
   x = Rx(x)
   P2 = projective_space(Rx, 2)
   affine_cone(P2) 
+  @test_broken as_covered_scheme(P2)
 end
+
+@testset "affine cone" begin
+  R,(x,) = PolynomialRing(GF(3),["x"])
+  Rx,i = localization(R, x)
+  x = Rx(x)
+  Rq,j = quo(Rx,ideal(Rx,x))
+  P2 = projective_space(Rx, 2)
+  affine_cone(P2)
+  @test_broken as_covered_scheme(P2)  # too exotic
+end
+
