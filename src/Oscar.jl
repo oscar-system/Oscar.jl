@@ -272,7 +272,7 @@ function build_doc(; doctest=false, strict=false)
   versionwarn = 
 "The Julia reference version for the doctests is 1.6, but you are using
 $(VERSION). Running the doctests will produce errors that you do not expect."
-  if doctest && !versioncheck
+  if doctest != false && !versioncheck
     @warn versionwarn
   end
   if !isdefined(Main, :BuildDoc)
@@ -282,7 +282,7 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
   open_doc()
-  if doctest && !versioncheck
+  if doctest != false && !versioncheck
     @warn versionwarn
   end
 end
