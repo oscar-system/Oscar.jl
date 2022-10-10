@@ -9,8 +9,8 @@
   J = ideal(R, [f, x])
   A3empty = subscheme(A3,ideal(R,R(1)))
   absempty = EmptyScheme(QQ)
-  @test is_canonically_isomorphic(A3empty, absempty)
-  @test is_canonically_isomorphic(absempty, A3empty)
+  @test (A3empty==absempty)
+  @test (absempty==A3empty)
   X = subscheme(A3, I)
   @test_broken !is_non_zero_divisor(f,X)
   @test is_non_zero_divisor(f,A3)
@@ -45,13 +45,13 @@
   @test issubset(UX, X)
   @test issubset(UX, U)
   @test name(UX) == "U ∩ X"
-  @test is_canonically_isomorphic(X, closure(UX, A3))
+  @test X == closure(UX, A3)
   @test is_open_embedding(UX, X)
   @test is_closed_embedding(X, A3)
   UZ = subscheme(UX, y^2)
   subscheme(UX, [y^2])
   Z = subscheme(X, y^2)
-  @test is_canonically_isomorphic(closure(UZ, X), Z)
+  @test closure(UZ, X)==Z
   
   S, (u,v) = QQ["u", "v"]
   A2 = Spec(S)

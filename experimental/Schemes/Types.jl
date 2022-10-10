@@ -266,6 +266,13 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
 end
 
 ########################################################################
+# Common type fo subsets of affine space                               #
+########################################################################
+
+SpecSubset = Union{SpecOpen,AbsSpec,PrincipalOpenSubset}
+
+
+########################################################################
 # Morphisms of Zariski-open subsets of affine schemes                  #
 ########################################################################
 @Markdown.doc """
@@ -305,8 +312,8 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen,
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
     if check
       for i in 1:n
-        domain(f[i]) == affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
-        codomain(f[i]) == Y || error("codomain is not compatible")
+        domain(f[i]) === affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
+        codomain(f[i]) === Y || error("codomain is not compatible")
       end
       for i in 1:n-1
 	for j in i+1:n
@@ -468,8 +475,8 @@ Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets
     ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
     ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
     if check
-      (is_canonically_isomorphic(domain(f), codomain(g)) && 
-       is_canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
+      (domain(f) === codomain(g) &&
+      domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
       compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
       compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
     end
@@ -513,8 +520,8 @@ end
     )
     U = domain(f)
     V = domain(g)
-    X == ambient_scheme(U) && Y == ambient_scheme(V) || error("schemes are not compatible")
-    domain(f) == codomain(g) && domain(g) == codomain(f) || error("maps are not compatible")
+    X === ambient_scheme(U) && Y === ambient_scheme(V) || error("schemes are not compatible")
+    domain(f) === codomain(g) && domain(g) === codomain(f) || error("maps are not compatible")
     if check
       is_identity_map(compose(f, g)) || error("maps are not inverse to each other")
       is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
@@ -684,8 +691,8 @@ in any covering!
 """
 mutable struct Covering{BaseRingType}
   patches::Vector{<:AbsSpec} # the basic affine patches of X
-  glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
-  affine_refinements::Dict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements 
+  glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
+  affine_refinements::IdDict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements
       # of the basic affine patches.
       # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen, 
       # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty 
@@ -701,12 +708,12 @@ mutable struct Covering{BaseRingType}
 
   function Covering(
       patches::Vector{<:AbsSpec},
-      glueings::Dict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
+      glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
       check::Bool=true,
-      affine_refinements::Dict{
+      affine_refinements::IdDict{
           <:AbsSpec, 
           <:Vector{<:Tuple{<:SpecOpen, <:Vector{<:RingElem}}}
-         }=Dict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
+         }=IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
     )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
@@ -763,14 +770,14 @@ have to coincide on their overlaps.
 mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, BaseMorType}
   domain::DomainType
   codomain::CodomainType
-  morphisms::Dict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this 
+  morphisms::IdDict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this
                                          # returns the morphism φ : X → Y to the corresponding 
                                          # patch Y of the codomain covering. 
 
   function CoveringMorphism(
       dom::DomainType, 
       cod::CodomainType, 
-      mor::Dict{<:AbsSpec, <:AbsSpecMor}; 
+      mor::IdDict{<:AbsSpec, <:AbsSpecMor};
       check::Bool=true
     ) where {
              DomainType<:Covering,
