@@ -704,28 +704,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
     return X
 end
 
-function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuoLocalizedRing})
-  if !has_attribute(X, :covered_projection_to_base) 
-    C = standard_covering(X)
-  end
-  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
-end
-
-function covered_projection_to_base(X::ProjectiveScheme{<:MPolyLocalizedRing})
-  if !has_attribute(X, :covered_projection_to_base) 
-    C = standard_covering(X)
-  end
-  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
-end
-
-function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuo})
-  if !has_attribute(X, :covered_projection_to_base) 
-    C = standard_covering(X)
-  end
-  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
-end
-
-function covered_projection_to_base(X::ProjectiveScheme{<:MPolyRing})
+function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyQuo, <:MPolyRing}})
   if !has_attribute(X, :covered_projection_to_base) 
     C = standard_covering(X)
   end
