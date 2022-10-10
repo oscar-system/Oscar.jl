@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -60,9 +63,6 @@ julia> c, k = objective_function(LP)
 
 julia> P == feasible_region(LP)
 true
-
-julia> ℓ = objective_function(LP; as = :function)
-#1977 (generic function with 1 method)
 ```
 
 To solve the optimization problem call `solve_lp`, which returns a pair `m, v`
@@ -75,6 +75,8 @@ julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
 
 julia> m, v = solve_lp(LP)
 (-7, fmpq[-1, 1, -1])
+
+julia> ℓ = objective_function(LP; as = :function);
 
 julia> ℓ(v) == convert(fmpq, m)
 true
@@ -100,9 +102,6 @@ julia> V = optimal_vertex(LP)
  -1
  1
  -1
-
-julia> ℓ(V) == convert(fmpq, M)
-true
 ```
 
 
