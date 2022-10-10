@@ -355,7 +355,7 @@ end
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
 
   @test is_closed_embedding(A2, A2)
-  @test is_closed_embedding(Vxy, A2)s
+  @test is_closed_embedding(Vxy, A2)
   @test_broken !is_closed_embedding(A2_minus_origin, A2)
   @test !is_closed_embedding(A2_minus_Vxy, A2)
   @test !is_closed_embedding(A2_minus_Vxy_p, A2)
