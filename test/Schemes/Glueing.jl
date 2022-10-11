@@ -38,3 +38,46 @@
   gyz_alt = compose(gxy, gxz)
   @test gyz == maximal_extension(gyz_alt)
 end
+
+@testset "further glueings" begin
+  R, (x, y) = QQ["x", "y"]
+  S, (u, v) = QQ["u", "v"]
+  T, (a, b) = QQ["a", "b"]
+
+  X = Spec(R)
+  Y = Spec(S)
+  Z = Spec(T)
+
+  Ux = PrincipalOpenSubset(X, x)
+  Vu = PrincipalOpenSubset(Y, u)
+
+  pbf = hom(OO(Vu), OO(Ux), [inv(OO(Ux)(x)), OO(Ux)(y)])
+  pbg = hom(OO(Ux), OO(Vu), [inv(OO(Vu)(u)), OO(Vu)(v)])
+
+  f = SpecMor(Ux, Vu, pbf)
+  g = SpecMor(Vu, Ux, pbg)
+
+  simpleG = SimpleGlueing(X, Y, f, g)
+  G1 = Glueing(simpleG)
+  @test sprint(show, G1) isa String
+
+  Vv = PrincipalOpenSubset(Y, v)
+  Wb = PrincipalOpenSubset(Z, b)
+
+  f = SpecMor(Vv, Wb, [u, 1//v])
+  g = SpecMor(Wb, Vv, [a, 1//b])
+  Vvo = SpecOpen(Vv)
+  Wbo = SpecOpen(Wb)
+  G2 = Glueing(Y, Z, 
+               SpecOpenMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]), 
+               SpecOpenMor(Wbo, Vvo, [compose(g, inclusion_morphism(Vv, Y))]))
+
+  G3 = compose(G1, G2)
+  @test G3 == compose(G1, inverse(G2))
+  @test G3 == inverse(compose(inverse(G1), G2))
+  @test G3 == inverse(G3)
+
+  Xsub = subscheme(X, y-x^2)
+  Ysub = subscheme(Y, u^2*v-1)
+  G1res = restrict(G1, Xsub, Ysub)
+end
