@@ -94,26 +94,30 @@ Base.convert(::Type{<:Polymake.Rational}, x::fmpz) = GC.@preserve x return Polym
 Base.convert(::Type{<:Polymake.Integer}, x::fmpq) = GC.@preserve x return Polymake.new_integer_from_fmpq(x)
 
 function Base.convert(::Type{fmpz}, x::Polymake.Integer)
-    GC.@preserve x np = Polymake.new_fmpz_from_integer(x)
-    rp = Ptr{fmpz}(np)
+    res = pointer_from_objref(fmpz())
+    GC.@preserve x Polymake.new_fmpz_from_integer(x, res)
+    rp = Ptr{fmpz}(res)
     return unsafe_load(rp)
 end
 
 function Base.convert(::Type{fmpq}, x::Polymake.Rational)
-    GC.@preserve x np = Polymake.new_fmpq_from_rational(x)
-    rp = Ptr{fmpq}(np)
+    res = pointer_from_objref(fmpq())
+    GC.@preserve x Polymake.new_fmpq_from_rational(x, res)
+    rp = Ptr{fmpq}(res)
     return unsafe_load(rp)
 end
 
 function Base.convert(::Type{fmpq}, x::Polymake.Integer)
-    GC.@preserve x np = Polymake.new_fmpq_from_integer(x)
-    rp = Ptr{fmpq}(np)
+    res = pointer_from_objref(fmpq())
+    GC.@preserve x Polymake.new_fmpq_from_integer(x, res)
+    rp = Ptr{fmpq}(res)
     return unsafe_load(rp)
 end
 
 function Base.convert(::Type{fmpz}, x::Polymake.Rational)
-    GC.@preserve x np = Polymake.new_fmpz_from_rational(x)
-    rp = Ptr{fmpz}(np)
+    res = pointer_from_objref(fmpz())
+    GC.@preserve x Polymake.new_fmpz_from_rational(x, res)
+    rp = Ptr{fmpz}(res)
     return unsafe_load(rp)
 end
 
