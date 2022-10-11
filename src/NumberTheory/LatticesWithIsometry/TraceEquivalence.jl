@@ -115,17 +115,3 @@ function inverse_trace_lattice(L::ZLat, f::fmpq_mat; n::Integer = -1, check::Boo
   return Lh
 end
 
-function image_centralizer_in_Oq(L::ZLat, f::fmpq_mat; check::Bool = true)
-  if check
-    @req is_integral(L) "Lattice L must be integral"
-    @req Oscar._order(f) >0 "f is not of finite exponent"
-    @req f*gram_matrix(L)*transpose(f) == gram_matrix(L) "f does not define an isometry of L"
-  end
-
-  qL = discriminant_group(L)
-  OqL = orthogonal_group(qL)
-  MGf = matrix_group([f])
-  fqL = OqL(gens(MGf)[1])
-  return centralizer(OqL, fqL)
-end
-

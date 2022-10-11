@@ -81,6 +81,7 @@ For now, in order for the genus to exist, the lattice must be integral.
 """
 genus(Lf::LatticeWithIsometry) = begin; L = lattice(Lf); is_integral(L) ? genus(L) : error("Underlying lattice must be integral"); end
 
+ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))
 
 ###############################################################################
 #
@@ -198,6 +199,31 @@ function discriminant_group(Lf::LatticeWithIsometry)
   return q, Oq(gens(matrix_group(f))[1])
 end
 
+@attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
+  n = order_of_isometry(Lf)
+  L = lattice(Lf)
+  f = isometry(Lf)
+  @req is_integral(L) "Underlying lattice must be integral"
+  if n in [1,2]
+      return image_in_Oq(L)
+  elseif is_definite(L)
+    OL = orthogonal_group(L)
+    f = G(f)
+    UL = [OL(s.X) for s in gens(centralizer(OL, f)[1])]
+    OqL = orthogonal_group(discriminant_group(L))
+    return sub(OqL, [OqL(g) for f in UL])[1]
+  elseif rank(L) == euler_phi(n)
+    gene = matrix_group([-f^0, f])
+    OqL = orthogonal_group(discriminant_group(L))
+    return sub(OqL, [OqL(g.X) for g in gens(gene)])[1]
+  else
+    qL, fqL = discriminant_group(Lf)
+    OqL = orthogonal_group(qL)
+    CdL, _ =  centralizer(OqL, fqL)
+    return sub(OqL, [OqL(s.X) for s in CdL])[1]
+  end
+end
+
 ###############################################################################
 #
 #  Signatures
@@ -281,6 +307,18 @@ function kernel_lattice(Lf::LatticeWithIsometry, l::Integer)
   @req divides(order_of_isometry(Lf), l)[1] "l must divide the order of the underlying isometry"
   p = Oscar._cyclotomic_polynomial(l)
   return kernel_lattice(Lf, p)
+end
+
+invariant_lattice(Lf::LatticeWithIsometry) = kernel_lattice(Lf, 1)
+
+function coinvariant_lattice(Lf::LatticeWithIsometry)
+  chi = minpoly(Lf)
+  if chi(1) == 0
+    R = parent(chi)
+    x = gen(R)
+    chi = divexact(chi, x-1)
+  end
+  return kernel_lattice(Lf, chi)
 end
 
 ###############################################################################

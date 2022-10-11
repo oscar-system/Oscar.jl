@@ -135,16 +135,16 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   b1 = sum(Int64[s[2] for s in Bp if s[1] == 1])
   b2 = sum(Int64[s[2] for s in Bp if s[1] >= 2])
 
-  if l != 0
-    ker_min = max(g-a1, g-b1, a_max)
-  else
-    ker_min = max(g-a1, g-b1)
-  end
-  ker_max = min(a2+div(a1,2), b2+div(b1,2), g)
+  #if l != 0
+  #  ker_min = max(g-a1, g-b1, a_max)
+  #else
+  #  ker_min = max(g-a1, g-b1)
+  #end
+  #ker_max = min(a2+div(a1,2), b2+div(b1,2), g)
 
-  if ker_max < ker_min
-    return false
-  end
+  #if ker_max < ker_min
+  #  return false
+  #end
 
   ABp = symbol(local_symbol(AperpB, p))
   Cp = symbol(local_symbol(C, p))
@@ -238,15 +238,97 @@ function admissible_triples(G::ZGenus, p::Int64)
   return L
 end
 
-admissible_triples(L::ZLat, p::Integer) = admissible_triple(genus(L), p)
-
+admissible_triples(L::ZLat, p::Integer) = admissible_triples(genus(L), p)
 
 function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
+  @req is_prime(p) "p must be a prime number"
   A, B, C = lattice.([Afa, Bfb, Cfc])
   @req is_admissible_triple(A, B, C, p) "(A, B, C) must be p-admissble"
-  L = []
-  g = div(valuation(divexact(det(A)*det(B), det(C)), p),2)
-  fA, fB, fC = isometry.([Afa, Bfb, Cfc])
-  mua, mub = minpoly.([fA, fB])
+  results = LatticeWithIsometry[]
+  g = div(valuation(divexact(det(A)*det(B), det(C)), p), 2)
+  fA, fB = isometry.([Afa, Bfb])
+  nB = order_of_isometry(Bfb)
+  qA, fqA = discriminant_group(Afa)
+  qB, fqB = discriminant_group(Bfb)
+  GA = image_centralizer_in_Oq(Afa)
+  GB = image_centralizer_in_Oq(Bfb)
+  _VA = intersect(lattice_in_same_ambient_space(A, inv(fA^nB - fA^0)), dual(A))
+  VA, VAinqA = sub(qA, [qA(vec(collect(basis_matrix(_VA)[j,:]))) for j in 1:nrows(basis_matrix(_VA))])
+  VB, VBinqB = sub(qB, [g*divexact(order(g), p) for g in gens(primary_part(qB, p))])
+
+  if min(order(VA), order(VB)) < g
+    return results
+  end
+
+  l = level(genus(C))
+  H10 = rescale(qA, l)
+  @assert is_normal(VA, H10) && issubset(H10, VA)
+  HA, VAtoHA = quo(VA, H10)
+  H20 = rescale(qB, l)
+  @assert is_normal(VB, H20) && issubset(H20, VB)
+  HB, VBtoHB = quo(VB, H20)
   
+  D, qAinD, qBinD = orthogonal_sum(qA, qB)
+  OD = orthogonal_group(D)
+  prim_e:wqxt = Tuple{TorQuadMod, AutomorphismGroup}[]
+  OqAinOD, OqBinOD = _embedding_orthogonal_group(qAinD, qBinD)
+
+  if g == 0
+    geneA = OqAinOD.(gens(GA))
+    geneB = OqBinOD.(gens(GB))
+    gene = vcat(geneA, geneB)
+    push!(prim_ext, (sub(D, elem_type(D)[])[1], sub(OD, gene)[1]))
+    @goto exit
+  end
+
+  if (order(VA) == 1) || (order(VB) == 1)
+    @goto exit
+  end
+
+  glue_order = p^g
+  subsA = _subgroups_representatives(HA, GA, glue_order, g = fqA)
+  subsA = [(VAtoHA\s[1], s[2]) for s in subsA]
+  subsB = _subgroups_representatives(HB, GB, glue_order, g = fqB)
+  subsB = [(VBtoHB\s[1], s[2]) for s in subsB]
+  
+  for (SA, stabSA) in subsA
+    NSA, SAtoNSA = normal_form(SA)
+    OSA = orthogonal_sum(SA)
+    actSA = hom(stabSA, OSA, [OSA(lift(x)) for x in gens(stabSA)])
+    imSA = image(actSA, stabSA)[1]
+    kerSA = image(OqAinOD, kernel(actSA))
+    fSA = OSA(fqA)
+    for (SB, stabSB) in subsB
+      bool, phi = is_anti_isometric_with_anti_isometry(SA, SB)
+      bool || continue
+      NSB, NSBtoSB = normal_form(SB)
+      OSB = orthogonal_group(SB)
+      actSB = hom(stabSB, OSB, [OSB(lift(x)) for x in gens(stabSB)])
+      imSB = image(actSB, stabSB)[1]
+      kerSB = image(OqBinOD, kernel(actSB))
+      fSB = OSB(fqB)
+      fSAinOSB = OSB(compose(inv(phi), compose(fSA, phi)))
+      bool, g0 = representative_action(OSB, fSAinOSB, fSB)
+      bool || continue
+      phi = compose(phi, g0)
+      fSAinOSB = OSB(compose(inv(phi), compose(fSA, phi)))
+      @assert fSAinOSB == fSB
+      center = centralizer(OSB, fSB)
+      stabSAphi = [OSB(compose(inv(phi), compose(g, phi))) for g in gens(stabSA)]
+      stabSAphi = sub(center, stabSAphi)[1]
+      stabSB = sub(center, gens(stabSB))[1]
+      reps = double_cosets(center, stabSAphi, stabSB)
+      for g in reps
+        g = representative(g)
+        phig = compose(phi, g)
+        g0g = OSB(compose(g0, g))
+        gene = [qAtoD(SAtoNSA\NSA[i]) + qBtoD(g0g(SBtoNSB\NSB[i])) for i in 1:ngens(NSA)]
+        ext = sub(D, gene)[1]
+        perp = orthogonal_submodule(D, ext)[1]
+
+
+
+
+
+  @label exit
 end
