@@ -124,6 +124,12 @@ function parent(x::GAPGroupElem)
   return x.parent
 end
 
+# coercion embeds a group element into a different parent
+function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
+   x.X in G.X && return group_element(G, x.X)
+   throw(ArgumentError("the element does not embed in the group"))
+end
+
 """
     isfinite(G::GAPGroup) -> Bool
 
