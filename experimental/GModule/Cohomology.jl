@@ -160,7 +160,7 @@ function Oscar.relations(G::Oscar.GAPGroup)
 end
 
 function Oscar.relations(G::PcGroup)
-   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.julia_to_gap("g"))
+   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.Obj("g"))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
@@ -1138,7 +1138,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   h = rels(M)
   @assert !any(x->h[x,x] == 1, 1:ncols(h))
 
-  C = GAP.Globals.SingleCollector(G.X, GAP.julia_to_gap([h[i,i] for i=1:nrows(h)], recursive = true))
+  C = GAP.Globals.SingleCollector(G.X, GAP.Obj([h[i,i] for i=1:nrows(h)], recursive = true))
   F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
 
   for i=1:ngens(M)-1
@@ -1148,7 +1148,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
       push!(r, -h[i, j])
       GAP.Globals.SetConjugate(C, j, i, gen(G, j).X)
     end
-    rr = GAP.Globals.ObjByExtRep(F, GAP.julia_to_gap(r, recursive = true))
+    rr = GAP.Globals.ObjByExtRep(F, GAP.Obj(r, recursive = true))
     GAP.Globals.SetPower(C, i, rr)
   end
 
@@ -1163,7 +1163,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
         push!(r, a[i])
       end
     end
-    return GAP.Globals.ObjByExtRep(FB, GAP.julia_to_gap(r, recursive = true))
+    return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
   end
 
   gap_to_julia = function(a::GAP.GapObj)
@@ -1209,7 +1209,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
   G = free_group(degree(k)*dim(M))
 
   C = GAP.Globals.CombinatorialCollector(G.X, 
-                  GAP.julia_to_gap([p for i=1:ngens(G)], recursive = true))
+                  GAP.Obj([p for i=1:ngens(G)], recursive = true))
   F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
 
   B = PcGroup(GAP.Globals.GroupByRws(C))
@@ -1223,7 +1223,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
         push!(r, lift(a[i]))
       end
     end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.julia_to_gap(r, recursive = true))
+    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
     return g
   end
 
@@ -1239,7 +1239,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
         end
       end
     end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.julia_to_gap(r, recursive = true))
+    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
     return g
   end
 
@@ -1450,12 +1450,12 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
     end
   end
 
-#  l = GAP.julia_to_gap([])
+#  l = GAP.Obj([])
 #  GAP.Globals.FinitePolycyclicCollector_IsConfluent(CN, l)
 #  @show l
 
 #  z = GAP.Globals.GroupByRwsNC(CN)
-#  s = GAP.Globals.GapInputPcGroup(z, GAP.julia_to_gap("Z"))
+#  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
 #  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
   fQ = GAP.Globals.FamilyObj(one(Q).X)
@@ -1478,7 +1478,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
       push!(wg, wm[i]+ngens(G))
       push!(wg, wm[i+1])
     end
-    return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.julia_to_gap(wg))))
+    return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.Obj(wg))))
   end
 
   return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
