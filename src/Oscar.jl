@@ -166,6 +166,7 @@ function __init__()
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
+    GAP.Packages.load("wedderga") # provides a function to compute Schur indices
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()

@@ -801,12 +801,30 @@ end
   t = character_table("2.A5")
   @test map(schur_index, collect(t)) == [1,1,1,1,1,2,2,2,2]
 
+  # Test a character table with group.
   g = small_group(192, 1022)
   h = derived_subgroup(g)[1];
   s = character_table(h);
   t = character_table(g);
   trivial_character(s)^t;  # side-effect: stores a class fusion
   @test length(names_of_fusion_sources(t)) > 0
+  if hasproperty(GAP.Globals, :SchurIndexByCharacter)
+    # We can compute the values.
+    @test sort!(map(schur_index, collect(t))) == append!(repeat([1],15), repeat([2],4))
+  else
+    # We can fail.
+    for chi in t
+      try
+        schur_index(chi)
+      catch(e)
+        msg = sprint(showerror, e)
+        @test msg == "cannot determine the Schur index with the currently used criteria"
+      end
+    end
+  end
+
+  # For a character table without group, we can fail.
+  t = character_table("S6")
   for chi in t
     try
       schur_index(chi)
