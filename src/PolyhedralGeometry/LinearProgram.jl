@@ -69,7 +69,7 @@ end
 ###############################################################################
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     objective_function(LP::LinearProgram; as = :pair)
 
 Return the objective function x ↦ dot(c,x)+k of the linear program LP.
@@ -90,7 +90,7 @@ function objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:s
    end
 end
 
-"""
+@doc Markdown.doc"""
     feasible_region(lp::LinearProgram)
 
 Return the feasible region of the linear program `lp`, which is a `Polyhedron`.
@@ -105,7 +105,7 @@ feasible_region(lp::LinearProgram) = lp.feasible_region
 ###############################################################################
 
 
-"""
+@doc Markdown.doc"""
     optimal_vertex(LP::LinearProgram)
 
 Return either a point of the feasible region of `LP` which optimizes the objective
@@ -147,7 +147,7 @@ function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
 end
 
 
-"""
+@doc Markdown.doc"""
     optimal_value(LP::LinearProgram)
 
 Return, if it exists, the optimal value of the objective function of `LP` over the feasible region
@@ -183,7 +183,7 @@ function optimal_value(lp::LinearProgram{T}) where T<:scalar_types
 end
 
 
-"""
+@doc Markdown.doc"""
     solve_lp(LP::LinearProgram)
 
 Return a pair `(m,v)` where the optimal value `m` of the objective

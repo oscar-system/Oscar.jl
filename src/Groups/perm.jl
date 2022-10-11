@@ -286,7 +286,7 @@ function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
       return one(symmetric_group(1))
    else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y]))) for y in L])
+      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in L])
 #TODO: better create the product of GAP permutations?
    end
 end
@@ -298,7 +298,7 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
       return one(g)
    else
-      x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y])), L)
+      x=prod(y -> GAP.Globals.CycleFromList(GAP.Obj([Int(k) for k in y])), L)
       if length(L) <= degree(g) && x in g.X
          return PermGroupElem(g, x)
       else
@@ -349,12 +349,6 @@ julia> Vector{fmpz}(pi, 2)
 """
 Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion = T[x(i) for i in 1:n]
 Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
-
-#embedding of a permutation in permutation group
-function (G::PermGroup)(x::PermGroupElem)
-   x.X in G.X && return group_element(G, x.X)
-   throw(ArgumentError("the element does not embed in the group"))
-end
 
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
