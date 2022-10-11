@@ -80,4 +80,41 @@ end
   Xsub = subscheme(X, y-x^2)
   Ysub = subscheme(Y, u^2*v-1)
   G1res = restrict(G1, Xsub, Ysub)
+
+  ### test the abstract interface
+  @attributes mutable struct DummyGlueing{
+                                          LeftSpecType<:AbsSpec, 
+                                          RightSpecType<:AbsSpec,
+                                          LeftOpenType<:SpecOpen, 
+                                          RightOpenType<:SpecOpen,
+                                          LeftMorType<:SpecOpenMor,
+                                          RightMorType<:SpecOpenMor
+                                         } <: AbsGlueing{
+                                                         LeftSpecType,
+                                                         RightSpecType,
+                                                         LeftOpenType,
+                                                         RightOpenType,
+                                                         LeftMorType,
+                                                         RightMorType
+                                                        }
+    G::Glueing
+    function DummyGlueing(G::Glueing{A, B, C, D, E, F}) where {A, B, C, D, E, F}
+      return new{A, B, C, D, E, F}(G)
+    end
+  end
+
+  function Oscar.underlying_glueing(DG::DummyGlueing)
+    return DG.G
+  end
+
+  function (DG::DummyGlueing)(G::Glueing)
+    return DummyGlueing(G)
+  end
+
+  ### now everything should work
+  DG = DummyGlueing(G1)
+  @test (X, Y) == patches(DG)
+  @test glueing_morphisms(G1) == glueing_morphisms(DG)
+  @test glueing_domains(G1) == glueing_domains(DG)
+  @test inverse(DG) == DG
 end

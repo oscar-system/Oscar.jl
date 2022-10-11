@@ -1,11 +1,15 @@
 export glueing_morphisms, patches, glueing_domains, inverse_glueing_morphism, inverse
-export glueing_type
+export underlying_glueing
 
 export compose, maximal_extension, restriction
 
 ########################################################################
 # The interface for abstract glueings of affine schemes                #
 ########################################################################
+function underlying_glueing(G::AbsGlueing)
+  error("trying to call for `underlying_glueing` of $G but nothing is implemented")
+end
+
 function patches(G::AbsGlueing)
   return patches(underlying_glueing(G))
 end
@@ -93,7 +97,7 @@ function maximal_extension(G::Glueing)
   return Glueing(X, Y, f_ext, g_ext)
 end
 
-function ==(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
+function ==(G::AbsGlueing, H::AbsGlueing)
   if patches(G)[1] != patches(H)[1]
     return G == inverse(H)
   end
