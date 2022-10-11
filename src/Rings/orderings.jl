@@ -847,12 +847,12 @@ end
 #### negwdegrevlex, ws ####
 
 @doc Markdown.doc"""
-    negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    negwdegrevlex(V::AbstractVector{<:MPolyElem}, W::Vector{Int}) -> MonomialOrdering
     
 Given a vector `V` of variables and a vector `W` of positive integers, return the corresponding negative
 weighted reverse lexicographical ordering on the set of monomials in the given variables.
 
-    negwdegrevlex(R::MPolyRing, w::Vector{Int}) -> MonomialOrdering
+    negwdegrevlex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
 
 If `W` is a vector of positive integers, return the corresponding negative weighted
 reverse lexicographical ordering on the set of monomials in the variables of `R`.
