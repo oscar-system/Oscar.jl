@@ -1,4 +1,4 @@
-export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, is_canonically_isomorphic
+export SpecOpen, ambient, gens, ngens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type
 export restriction_map
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type, generic_fraction
@@ -69,7 +69,7 @@ getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
 
 function getindex(U::SpecOpen, X::Spec) 
   for i in 1:npatches(U)
-    X == U[i] && return i
+    X === U[i] && return i
   end
   error("scheme $X not found among the open patches in $U")
 end
@@ -204,7 +204,7 @@ function intersect(
     check::Bool=true
   )
   X = ambient(U)
-  ambient_ring(X) === ambient_ring(Y) || error("Schemes can not be compared")
+  ambient_ring(U) === ambient_ring(Y) || error("schemes can not be compared")
   X == Y && return SpecOpen(Y, gens(U), check=check)
   if check && !issubset(Y, X)
     Y = intersect(Y, X)
@@ -212,49 +212,42 @@ function intersect(
   return SpecOpen(Y, gens(U), check=check)
 end
 
-function intersect(
-    U::SpecOpen,
-    Y::Spec
-  )
-  return intersect(Y, U)
-end
+intersect(U::SpecOpen, Y::Spec) = intersect(Y, U)
 
 function intersect(
     U::SpecOpen,
     V::SpecOpen
   )
   X = ambient(U) 
-  is_canonically_isomorphic(X, ambient(V)) || error("ambient schemes do not coincide")
+  X == ambient(V) || error("ambient schemes do not coincide")
   return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
 end
 
 function Base.union(U::T, V::T) where {T<:SpecOpen}
-  is_canonically_isomorphic(ambient(U), ambient(V)) || error("the two open sets do not lay in the same ambient scheme")
+  ambient(U) == ambient(V) || error("the two open sets are not contained in the same ambient scheme")
   return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
 function issubset(
-    Y::Spec, 
+    Y::AbsSpec,
     U::SpecOpen
   )
+  ambient_ring(Y) === ambient_ring(U) || return false
+  issubset(Y, ambient(U)) || return false
   return one(OO(Y)) in ideal(OO(Y), gens(U))
 end
 
+
 function issubset(
     U::SpecOpen,
-    Y::Spec
+    Y::AbsSpec
   ) 
-  for V in affine_patches(U)
-    issubset(V, Y) || return false
-  end
-  return true
+  return all(issubset(V, Y) for V in affine_patches(U))
 end
 
-function issubset(U::T, V::T) where {T<:SpecOpen}
-  base_ring(OO(ambient(U))) === base_ring(OO(ambient(V))) || return false
-  W = V
-  issubset(W, ambient(U)) || (W = intersect(V, ambient(U)))
-  Z = complement(W)
+function issubset(U::SpecOpen, V::SpecOpen)
+  ambient_ring(U) === ambient_ring(V) || return false
+  Z = complement(V)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
   # efficient than computing radicals.
   for g in gens(U)
@@ -264,22 +257,9 @@ function issubset(U::T, V::T) where {T<:SpecOpen}
   #return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
-function is_canonically_isomorphic(U::T, V::T) where {T<:SpecOpen}
+function ==(U::SpecSubset, V::SpecSubset)
+  ambient_ring(U) === ambient_ring(V) || return false
   return issubset(U, V) && issubset(V, U)
-end
-
-function is_canonically_isomorphic(
-    U::SpecOpen,
-    Y::Spec
-  )
-  return issubset(U, Y) && issubset(Y, U)
-end
-
-function is_canonically_isomorphic(
-    Y::Spec,
-    U::SpecOpen
-  )
-  return is_canonically_isomorphic(U, Y)
 end
 
 @Markdown.doc """
@@ -290,7 +270,7 @@ where ``X`` is the affine ambient scheme of ``U``.
 """
 function closure(U::SpecOpen{<:StdSpec})
   X = ambient(U)
-  R = base_ring(OO(X))
+  R = ambient_ring(X)
   I = saturated_ideal(modulus(OO(X)))
   I = saturation(I, ideal(R, gens(U)))
   return subscheme(X, I)
@@ -359,8 +339,8 @@ end
 
 OO(X::Spec, U::SpecOpen) = SpecOpenRing(X, U)
 
-function is_canonically_isomorphic(R::T, S::T) where {T<:SpecOpenRing}
-  return is_canonically_isomorphic(scheme(R), scheme(S)) && is_canonically_isomorphic(domain(R), domain(S))
+function ==(R::T, S::T) where {T<:SpecOpenRing}
+  return scheme(R)==scheme(S) && domain(R)==domain(S)
 end
 
 ########################################################################
@@ -394,7 +374,7 @@ function restrict(
   )
   isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
-    if V == affine_patches(domain(f))[i]
+    if V === affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
@@ -412,7 +392,7 @@ function restrict(
   )
   isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
-    if V == affine_patches(domain(f))[i]
+    if V === affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
@@ -440,7 +420,7 @@ to have a coherent syntax with the method for regular functions
 not know about its scheme, so it has to be passed as an extra argument.
 """
 function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
-  U == domain(a) || error("domains are not compatible")
+  U === domain(a) || error("domains are not compatible")
   X = ambient(U)
   d = find_non_zero_divisor(U)
   W = hypersurface_complement(X, d)
@@ -643,7 +623,7 @@ function maximal_extension(
   for a in f
     R == base_ring(parent(a)) || error("fractions do not belong to the same ring")
   end
-  R == base_ring(OO(X)) || error("fractions do not belong to the base ring of the scheme")
+  R == ambient_ring(X) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
   W = OO(X)
@@ -722,7 +702,7 @@ function getindex(f::SpecOpenMor, D::Spec)
   U = affine_patches(domain(f))
   D in U || error("affine patch not found in the domain")
   for i = 1:length(U)
-    D == U[i] && return f[i]
+    D === U[i] && return f[i]
   end
 end
 
@@ -800,6 +780,7 @@ function restrict(
   if check
     issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
     issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
+    issubset(preimage(f,V), U) || error("f(U) is not contained in V")
   end
   inc = inclusion_morphism(U, domain(f), check=check)
   help_map = compose(inc, f, check=check)
@@ -899,8 +880,8 @@ function identity_map(U::SpecOpen)
 end
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
-  is_canonically_isomorphic(domain(f), domain(g)) || return false
-  is_canonically_isomorphic(codomain(f), codomain(g)) || return false
+  (domain(f) == domain(g)) || return false
+  (codomain(f) == codomain(g)) || return false
   Y = ambient(codomain(f))
   m = length(affine_patches(domain(f)))
   n = length(affine_patches(domain(g)))
@@ -1042,8 +1023,8 @@ function restriction_map(
   Y = ambient(U)
 
   # handle the shortcut 
-  if X in affine_patches(U)
-    i = findfirst(x->(is_equal(x, X)), affine_patches(U))
+  if any(x->(x===X), affine_patches(U))
+    i = findfirst(x->(x === X), affine_patches(U))
     function mymap(f::SpecOpenRingElem)
       return f[i]
     end
@@ -1052,7 +1033,7 @@ function restriction_map(
 
   # do the checks
   if check
-    is_canonically_isomorphic(X, hypersurface_complement(Y, h)) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
+    X == hypersurface_complement(Y, h) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
     issubset(X, U) || error("$X is not a subset of $U")
   end
 
@@ -1139,8 +1120,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     check::Bool=true
   )
   Y = ambient(U)
-  R = base_ring(OO(Y))
-  R == base_ring(OO(X)) || error("`ambient_ring`s of the schemes not compatible")
+  R = ambient_ring(Y)
+  R == ambient_ring(X) || error("`ambient_ring`s of the schemes not compatible")
   if check
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
@@ -1225,14 +1206,14 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
     issubset(V, U) || error("$V is not a subset of $U")
   end
 
-  if U == V
+  if U === V
     function mymap(f::SpecOpenRingElem)
       return f
     end
     return Hecke.MapFromFunc(mymap, OO(U), OO(V))
   end
 
-  if ambient(U) == ambient(V)
+  if ambient(U) === ambient(V)
     g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
     function mysecondmap(f::SpecOpenRingElem)
       return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
@@ -1248,7 +1229,7 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
 end
 
 function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
-  domain(f) == codomain(f) || return false
+  domain(f) === codomain(f) || return false
   R = ambient_ring(scheme(domain(f)))
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
 end
@@ -1256,10 +1237,10 @@ end
 function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
   X = scheme(S)
   Y = scheme(T)
-  R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || error("rings can not be canonically compared")
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || error("rings can not be canonically compared")
   if check
-    is_canonically_isomorphic(domain(S), domain(T)) || error("open domains are not isomorphic")
+    (domain(S) == domain(T)) || error("open domains are not isomorphic")
   end
 
   pb_to_Vs = [restriction_map(domain(S), V) for V in affine_patches(domain(T))]

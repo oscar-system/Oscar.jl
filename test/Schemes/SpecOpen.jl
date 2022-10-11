@@ -10,7 +10,7 @@
 
   Y = closure(UX)
   Z = closure(UX, A)
-  @test is_canonically_isomorphic(Z, Y)
+  @test Z==Y
 
   @test isempty(complement(Y,Y))
 end
@@ -43,8 +43,8 @@ end
   f = x//y
   g = F(x,x)
   D = domain(maximal_extension(X, f))
-  @test is_canonically_isomorphic(D, hypersurface_complement(X,y))
-  @test is_canonically_isomorphic(X,domain(maximal_extension(X, g)))
+  @test D == hypersurface_complement(X,y)
+  @test X ==domain(maximal_extension(X, g))
 end
 
 @testset "SpecOpen_3" begin
@@ -52,7 +52,7 @@ end
   A = Spec(R)
   O = subscheme(A, [x,y,u,v])
   U = complement(A, O)
-  @test is_canonically_isomorphic(A, closure(U))
+  @test A==closure(U)
   Oscar.SpecOpenRing(U)
   OU = OO(U)
   gens(OO(U))
@@ -72,7 +72,7 @@ end
   @test iszero(f-f)
   Axy = hypersurface_complement(A,x*y)
   V = domain(maximal_extension(Axy, 1//x))
-  @test is_canonically_isomorphic(Axy, V)
+  @test Axy == V
 
   M = MatrixSpace(R,2,2)([x u; y v])
   h = det(M)
@@ -103,6 +103,8 @@ end
   #psi_res = restrict(psi, domain(psi), domain(phi))
   p = compose(psi, phi)
   q = compose(phi_res, psi)
+  phi1 = restrict(phi,domain(phi),codomain(phi))
+  @test phi == phi1
   @test restrict(p, domain(p), domain(p)) == identity_map(domain(p))
   @test restrict(q, domain(q), domain(q)) == identity_map(domain(q))
 end
@@ -136,7 +138,6 @@ end
   @test Oscar.is_identity_map(compose(resVU, resUV))
   @test Oscar.is_identity_map(compose(resUV, resVU))
 end
-
 @testset "pullbacks" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   X = Spec(R, ideal(R, [x^2-y*z]))
@@ -153,7 +154,7 @@ end
   @test Oscar.is_identity_map(pullback(compose(f,g)))
   W = subscheme(X, x)
   preimage(f, W)
-  @test is_canonically_isomorphic(U,preimage(f, V))
+  @test U ==preimage(f, V)
 
 
   S, (u, v) = QQ["u", "v"]
@@ -162,7 +163,7 @@ end
   U = SpecOpen(X, [x, y])
   V = SpecOpen(B, [u, v])
   pres = restrict(p, U, V)
-  @test is_canonically_isomorphic(U, preimage(p, V))
+  @test U == preimage(p, V)
 
   g = pullback(pres)
   pullback(pres, u)
@@ -188,4 +189,225 @@ end
   X = Spec(R)
   U = SpecOpen(X,[x])
   restriction_map(U, hypersurface_complement(X,x))
+end
+
+
+@testset "issubset" begin
+  R, (x, y) = QQ["x", "y", "z"]
+  # Spec{..., MPolyRing}
+  A2 = Spec(R)
+  # Spec{..., MPolyQuo}
+  Vxy = subscheme(A2, x*y)
+  # Spec{MPolyLocalizedRing}
+  A2_minus_Vxy = hypersurface_complement(A2, x*y)
+  A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
+  # SpecOpen{Spec{...,MPolyRing},...}
+  A2_minus_origin = SpecOpen(A2, [x,y])
+  # SpecOpen{Spec{MPolyQuo},...}
+  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # PrincipalOpenSubset{MPolyQuoLocalized....}
+  Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
+
+  @test issubset(A2, A2)
+  @test issubset(Vxy, A2)
+  @test issubset(A2_minus_origin, A2)
+  @test issubset(A2_minus_Vxy, A2)
+  @test issubset(A2_minus_Vxy_p, A2)
+  @test issubset(Vxy_minus_origin, A2)
+  @test issubset(Vxy_minus_origin_p, A2)
+
+  @test issubset(Vxy, Vxy)
+  @test !issubset(A2_minus_origin, Vxy)
+  @test !issubset(A2_minus_Vxy, Vxy)
+  @test !issubset(A2_minus_Vxy_p, Vxy)
+  @test issubset(Vxy_minus_origin, Vxy)
+  @test issubset(Vxy_minus_origin_p, Vxy)
+
+  @test !issubset(A2, A2_minus_origin)
+  @test !issubset(Vxy, A2_minus_origin)
+  @test issubset(A2_minus_origin, A2_minus_origin)
+  @test issubset(A2_minus_Vxy, A2_minus_origin)
+  @test issubset(A2_minus_Vxy_p, A2_minus_origin)
+  @test issubset(Vxy_minus_origin, A2_minus_origin)
+  @test issubset(Vxy_minus_origin_p, A2_minus_origin)
+
+  @test !issubset(A2, A2_minus_Vxy)
+  @test !issubset(Vxy, A2_minus_Vxy)
+  @test !issubset(A2_minus_origin, A2_minus_Vxy)
+  @test issubset(A2_minus_Vxy, A2_minus_Vxy)
+  @test issubset(A2_minus_Vxy_p, A2_minus_Vxy)
+  @test !issubset(Vxy_minus_origin, A2_minus_Vxy)
+  @test !issubset(Vxy_minus_origin_p, A2_minus_Vxy)
+
+  @test !issubset(A2, A2_minus_Vxy_p)
+  @test !issubset(Vxy, A2_minus_Vxy_p)
+  @test !issubset(A2_minus_origin, A2_minus_Vxy_p)
+  @test issubset(A2_minus_Vxy, A2_minus_Vxy_p)
+  @test issubset(A2_minus_Vxy_p, A2_minus_Vxy_p)
+  @test !issubset(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test !issubset(Vxy_minus_origin_p, A2_minus_Vxy_p)
+
+  @test !issubset(A2, Vxy_minus_origin)
+  @test !issubset(Vxy, Vxy_minus_origin)
+  @test_broken !issubset(A2_minus_origin, Vxy_minus_origin)
+  @test !issubset(A2_minus_Vxy, Vxy_minus_origin)
+  @test !issubset(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test issubset(Vxy_minus_origin, Vxy_minus_origin)
+  @test issubset(Vxy_minus_origin_p, Vxy_minus_origin)
+
+  @test !issubset(A2, Vxy_minus_origin_p)
+  @test !issubset(Vxy, Vxy_minus_origin_p)
+  @test !issubset(A2_minus_origin, Vxy_minus_origin_p)
+  @test !issubset(A2_minus_Vxy, Vxy_minus_origin_p)
+  @test !issubset(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  @test issubset(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test issubset(Vxy_minus_origin_p, Vxy_minus_origin_p)
+end
+
+@testset "is_open_embedding" begin
+  R, (x, y) = QQ["x", "y", "z"]
+  # Spec{..., MPolyRing}
+  A2 = Spec(R)
+  # Spec{..., MPolyQuo}
+  Vxy = subscheme(A2, x*y)
+  # Spec{MPolyLocalizedRing}
+  A2_minus_Vxy = hypersurface_complement(A2, x*y)
+  A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
+  # SpecOpen{Spec{...,MPolyRing},...}
+  A2_minus_origin = SpecOpen(A2, [x,y])
+  # SpecOpen{Spec{MPolyQuo},...}
+  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # PrincipalOpenSubset{MPolyQuoLocalized....}
+  Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
+
+  @test is_open_embedding(A2, A2)
+  @test !is_open_embedding(Vxy, A2)
+  @test_broken is_open_embedding(A2_minus_origin, A2)
+  @test is_open_embedding(A2_minus_Vxy, A2)
+  @test is_open_embedding(A2_minus_Vxy_p, A2)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2)
+  @test !is_open_embedding(Vxy_minus_origin_p, A2)
+
+  @test !is_open_embedding(A2, Vxy)
+  @test is_open_embedding(Vxy, Vxy)
+  @test_broken !is_open_embedding(A2_minus_origin, Vxy)
+  @test !is_open_embedding(A2_minus_Vxy, Vxy)
+  @test !is_open_embedding(A2_minus_Vxy_p, Vxy)
+  @test_broken is_open_embedding(Vxy_minus_origin, Vxy)
+  @test is_open_embedding(Vxy_minus_origin_p, Vxy)
+
+  @test_broken !is_open_embedding(A2, A2_minus_origin)
+  @test_broken !is_open_embedding(Vxy, A2_minus_origin)
+  @test_broken is_open_embedding(A2_minus_origin, A2_minus_origin)
+  @test_broken is_open_embedding(A2_minus_Vxy, A2_minus_origin)
+  @test_broken is_open_embedding(A2_minus_Vxy_p, A2_minus_origin)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2_minus_origin)
+  @test_broken !is_open_embedding(Vxy_minus_origin_p, A2_minus_origin)
+
+  @test !is_open_embedding(A2, A2_minus_Vxy)
+  @test !is_open_embedding(Vxy, A2_minus_Vxy)
+  #@test !is_open_embedding(A2_minus_origin, A2_minus_Vxy)
+  @test is_open_embedding(A2_minus_Vxy, A2_minus_Vxy)
+  @test is_open_embedding(A2_minus_Vxy_p, A2_minus_Vxy)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2_minus_Vxy)
+  @test !is_open_embedding(Vxy_minus_origin_p, A2_minus_Vxy)
+
+  @test !is_open_embedding(A2, A2_minus_Vxy_p)
+  @test !is_open_embedding(Vxy, A2_minus_Vxy_p)
+  @test_broken !is_open_embedding(A2_minus_origin, A2_minus_Vxy_p)
+  @test is_open_embedding(A2_minus_Vxy, A2_minus_Vxy_p)
+  @test is_open_embedding(A2_minus_Vxy_p, A2_minus_Vxy_p)
+  @test_broken !is_open_embedding(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test !is_open_embedding(Vxy_minus_origin_p, A2_minus_Vxy_p)
+
+  @test_broken !is_open_embedding(A2, Vxy_minus_origin)
+  @test_broken !is_open_embedding(Vxy, Vxy_minus_origin)
+  @test_broken !is_open_embedding(A2_minus_origin, Vxy_minus_origin)
+  @test_broken !is_open_embedding(A2_minus_Vxy, Vxy_minus_origin)
+  @test_broken !is_open_embedding(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test_broken is_open_embedding(Vxy_minus_origin, Vxy_minus_origin)
+  @test_broken is_open_embedding(Vxy_minus_origin_p, Vxy_minus_origin)
+
+  @test !is_open_embedding(A2, Vxy_minus_origin_p)
+  @test !is_open_embedding(Vxy, Vxy_minus_origin_p)
+  @test_broken !is_open_embedding(A2_minus_origin, Vxy_minus_origin_p)
+  @test !is_open_embedding(A2_minus_Vxy, Vxy_minus_origin_p)
+  @test !is_open_embedding(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  @test_broken is_open_embedding(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test is_open_embedding(Vxy_minus_origin_p, Vxy_minus_origin_p)
+
+end
+
+@testset "is_closed_embedding" begin
+  R, (x, y) = QQ["x", "y", "z"]
+  # Spec{..., MPolyRing}
+  A2 = Spec(R)
+  # Spec{..., MPolyQuo}
+  Vxy = subscheme(A2, x*y)
+  # Spec{MPolyLocalizedRing}
+  A2_minus_Vxy = hypersurface_complement(A2, x*y)
+  A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
+  # SpecOpen{Spec{...,MPolyRing},...}
+  A2_minus_origin = SpecOpen(A2, [x,y])
+  # SpecOpen{Spec{MPolyQuo},...}
+  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # PrincipalOpenSubset{MPolyQuoLocalized....}
+  Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
+
+  @test is_closed_embedding(A2, A2)
+  @test is_closed_embedding(Vxy, A2)
+  @test_broken !is_closed_embedding(A2_minus_origin, A2)
+  @test !is_closed_embedding(A2_minus_Vxy, A2)
+  @test !is_closed_embedding(A2_minus_Vxy_p, A2)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, A2)
+  @test_broken !is_closed_embedding(Vxy_minus_origin_p, A2)
+
+  @test !is_closed_embedding(A2, Vxy)
+  @test is_closed_embedding(Vxy, Vxy)
+  @test_broken !is_closed_embedding(A2_minus_origin, Vxy)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, Vxy)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, Vxy)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, Vxy)
+  @test !is_closed_embedding(Vxy_minus_origin_p, Vxy)
+
+  @test_broken !is_closed_embedding(A2, A2_minus_origin)
+  @test_broken is_closed_embedding(Vxy, A2_minus_origin)
+  @test_broken is_closed_embedding(A2_minus_origin, A2_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, A2_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, A2_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin, A2_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin_p, A2_minus_origin)
+
+  @test_broken !is_closed_embedding(A2, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(Vxy, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(A2_minus_origin, A2_minus_Vxy)
+  @test_broken is_closed_embedding(A2_minus_Vxy, A2_minus_Vxy)
+  @test_broken is_closed_embedding(A2_minus_Vxy_p, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, A2_minus_Vxy)
+  @test_broken !is_closed_embedding(Vxy_minus_origin_p, A2_minus_Vxy)
+
+  @test_broken !is_closed_embedding(A2, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(Vxy, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(A2_minus_origin, A2_minus_Vxy_p)
+  @test_broken is_closed_embedding(A2_minus_Vxy, A2_minus_Vxy_p)
+  @test_broken is_closed_embedding(A2_minus_Vxy_p, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(Vxy_minus_origin, A2_minus_Vxy_p)
+  @test_broken !is_closed_embedding(Vxy_minus_origin_p, A2_minus_Vxy_p)
+
+  @test_broken !is_closed_embedding(A2, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(Vxy, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_origin, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, Vxy_minus_origin)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, Vxy_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin, Vxy_minus_origin)
+  @test_broken is_closed_embedding(Vxy_minus_origin_p, Vxy_minus_origin)
+
+  @test_broken !is_closed_embedding(A2, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(Vxy, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(A2_minus_origin, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(A2_minus_Vxy, Vxy_minus_origin_p)
+  @test_broken !is_closed_embedding(A2_minus_Vxy_p, Vxy_minus_origin_p)
+  @test_broken is_closed_embedding(Vxy_minus_origin, Vxy_minus_origin_p)
+  @test is_closed_embedding(Vxy_minus_origin_p, Vxy_minus_origin_p)
+
 end
