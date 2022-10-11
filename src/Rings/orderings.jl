@@ -576,13 +576,13 @@ julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
 (Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
 
 julia> o1 = negdeglex([w, x])
-negdegrevlex([w, x])
+negdeglex([w, x])
 
 julia> o2 = negdeglex(gens(R)[3:4])
-negdegrevlex([y, z])
+negdeglex([y, z])
 
 julia> o3 = negdeglex(R)
-negdegrevlex([w, x, y, z])
+negdeglex([w, x, y, z])
 ```
 """
 function negdeglex(v::AbstractVector{<:MPolyElem})
@@ -805,7 +805,7 @@ negwdeglex([w, x], [1, 2])
 julia> o2 = negwdeglex(gens(R)[3:4], [3, 4])
 negwdeglex([y, z], [3, 4])
 
-julia> o3 = newwdeglex(R, [1, 2, 3, 4])
+julia> o3 = negwdeglex(R, [1, 2, 3, 4])
 negwdeglex([w, x, y, z], [1, 2, 3, 4])
 ```
 """
