@@ -795,25 +795,25 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
     issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end
   phi = restriction_map(domain(f), W)
-  fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(OO(Y)))]
+  fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(ambient_ring(Y)))]
   return SpecMor(W, Y, fy, check=false)
 end
 
 
 ### the restriction of a morphism to closed subsets in domain and codomain
-function restrict(
-    f::SpecOpenMor,
-    X::AbsSpec,
-    Y::AbsSpec;
-    check::Bool=true
-  )
-  U = intersect(X, domain(f), check=check)
-  V = intersect(Y, codomain(f), check=check)
-
-  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
-
-  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
-end
+#function restrict(
+#    f::SpecOpenMor,
+#    X::AbsSpec,
+#    Y::AbsSpec;
+#    check::Bool=true
+#  )
+#  U = intersect(X, domain(f), check=check)
+#  V = intersect(Y, codomain(f), check=check)
+#
+#  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
+#
+#  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
+#end
 
 function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
