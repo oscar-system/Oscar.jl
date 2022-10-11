@@ -52,15 +52,15 @@ Use `maximal_extension` to extend the glueing.
 function compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
   # make sure that Y is the second patch of the first glueing and 
   # the first patch of the second
-  if patches(G)[2] == patches(H)[2] 
+  if patches(G)[2] === patches(H)[2]
     return compose(G, inverse(H))
-  elseif patches(G)[1] == patches(H)[1]
+  elseif patches(G)[1] === patches(H)[1]
     return compose(inverse(G), H)
-  elseif patches(G)[1] == patches(H)[2]
+  elseif patches(G)[1] === patches(H)[2]
     return compose(inverse(G), inverse(H))
   end
   X, Y = patches(G)
-  Y == patches(H)[1] || error("Glueings not compatible")
+  Y === patches(H)[1] || error("Glueings not compatible")
   Z = patches(H)[2]
   f, f_inv = glueing_morphisms(G)
   g, g_inv = glueing_morphisms(H)
@@ -122,7 +122,7 @@ function ==(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
   if patches(G)[1] != patches(H)[1]
     return G == inverse(H)
   end
-  patches(G)[2] == patches(H)[2] || return false
+  patches(G)[2] === patches(H)[2] || return false
   glueing_morphisms(G) == glueing_morphisms(H) || return false
   return true
 end
@@ -153,11 +153,11 @@ Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and
 """
 function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   (X1, Y1) = patches(G)
-  X1 == domain(f) || error("maps not compatible")
+  X1 === domain(f) || error("maps not compatible")
   X2 = codomain(f)
   finv = inverse(f)
 
-  Y1 == domain(g) || error("maps not compatible")
+  Y1 === domain(g) || error("maps not compatible")
   Y2 = codomain(g)
   ginv = inverse(g)
 

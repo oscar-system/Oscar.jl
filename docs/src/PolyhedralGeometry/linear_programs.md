@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -36,65 +39,80 @@ the linear function $\ell$, given by $\ell(x,y,z) = 3x-2y+4z+2$. Minimizing
 $\ell$ over $P$ can be done by solving the corresponding linear program.
 Computationally, this means first defining a linear program:
 
-```@repl oscar
-P = cube(3)
-LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
+```jldoctest
+julia> P = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
+The linear program
+   min{c⋅x + k | x ∈ P}
+where P is a Polyhedron{fmpq} and
+   c=Polymake.Rational[3 -2 4]
+   k=2
 ```
 
 The information about the linear program `LP` can be easily extracted.
 
-```@repl oscar
-c, k = objective_function(LP)
-P == feasible_region(LP)
-ℓ = objective_function(LP; as = :function)
+```jldoctest
+julia> P = cube(3);
+
+julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
+
+julia> c, k = objective_function(LP)
+(fmpq[3, -2, 4], 2)
+
+julia> P == feasible_region(LP)
+true
 ```
 
 To solve the optimization problem call `solve_lp`, which returns a pair `m, v`
 where the optimal value is `m`, and that value is attained at `v`.
 
-```@repl oscar
-m, v = solve_lp(LP)
-ℓ(v) == m
+```jldoctest
+julia> P = cube(3);
+
+julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
+
+julia> m, v = solve_lp(LP)
+(-7, fmpq[-1, 1, -1])
+
+julia> ℓ = objective_function(LP; as = :function);
+
+julia> ℓ(v) == convert(fmpq, m)
+true
 ```
+
+!!! note "Infinite solutions"
+    Note that the optimal value may be $\pm\infty$ which currently is
+    well-defined by `Polymake.jl`, but not with the `fmpq` number type. Hence
+    manual conversion is necessary, until this issue has been resolved.
 
 The optimal value and an optimal vertex may be obtained individually as well.
 
-```@repl oscar
-M = optimal_value(LP)
-V = optimal_vertex(LP)
-ℓ(V) == M
+```jldoctest
+julia> P = cube(3);
+
+julia> LP = LinearProgram(P,[3,-2,4];k=2,convention = :min);
+
+julia> M = optimal_value(LP)
+-7
+
+julia> V = optimal_vertex(LP)
+3-element PointVector{fmpq}:
+ -1
+ 1
+ -1
 ```
 
 
 ## Functions
 
-After constructing a linear program, it is straightforward to extract the
-feasible region and objective function
-
 ```@docs
-feasible_region
-objective_function
-```
-
-Calling `solve_lp` on a linear program outputs a pair: the optimal value and
-the vertex at which the optimum is obtained
-
-```@docs
-solve_lp
-```
-
-One can obtain the optimal value of the objective function over the
-feasible region, if it exists.
-
-```@docs
-optimal_value
-```
-
-One can also obtain an optimal vertex at which the objective
-function attains its optimal value (respectively).
-
-```@docs
-optimal_vertex
+feasible_region(lp::LinearProgram)
+objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_types
+solve_lp(LP::LinearProgram)
+optimal_value(lp::LinearProgram{T}) where T<:scalar_types
+optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
 ```
 
 ## Saving and loading
