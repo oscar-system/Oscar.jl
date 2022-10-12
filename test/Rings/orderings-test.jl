@@ -310,3 +310,11 @@ end
    @test simplify(a) isa MonomialOrdering
 end
 
+@testset "Polynomial Ordering elimination" begin
+   R, (x, y, z, w) = QQ["x", "y", "z", "w"]
+   @test is_elimination_ordering(lex(R), [x])
+   @test is_elimination_ordering(lex(R), [x,y])
+   @test is_elimination_ordering(lex(R), [x,y,z])
+   @test !is_elimination_ordering(lex(R), [y,z])
+   @test is_elimination_ordering(deglex([x,y])*deglex([y,z,w]), [x,y])
+end

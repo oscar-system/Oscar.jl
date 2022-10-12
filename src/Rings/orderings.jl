@@ -8,7 +8,8 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
        isweighted, is_global, is_local, is_mixed,
        permutation_of_terms, weight_ordering, canonical_matrix,
-       MonomialOrdering, ModuleOrdering, singular, opposite_ordering
+       MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
+       is_elimination_ordering
 
 abstract type AbsOrdering end
 
@@ -1215,6 +1216,70 @@ function is_mixed(ord::MonomialOrdering)
     end
   end
   return false
+end
+
+
+# ex: nvars = 7, sigmaC = {    2, 3,       6   }
+#             =>  sigma = { 1,       4, 5,    7}
+#                varmap = {-1,+1,+2,-2,-3,+3,-4}
+function _elimination_data(n::Int, sigmaC::Vector)
+  varmap = zeros(Int, n)
+  for si in sigmaC
+    varmap[si] = 1
+  end
+  sigma = Int[]
+  sigmaC = Int[]
+  for i in 1:n
+    if varmap[i] == 0
+      push!(sigma, i)
+      varmap[i] = -length(sigma)
+    else
+      push!(sigmaC, i)
+      varmap[i] = +length(sigmaC)
+    end
+  end
+  return varmap, sigma, sigmaC
+end
+
+@doc Markdown.doc"""
+    is_elimination_ordering(M::MonomialOrdering, v::Vector{Int})
+    is_elimination_ordering(M::MonomialOrdering, v::Vector{<:MPolyElem})
+
+Return `true` if the given ordering eliminates the variables in `v`.
+"""
+function is_elimination_ordering(o::MonomialOrdering, sigmaC::Vector{Int})
+# This is probably correct: o is elimination ordering for sigma^C <=>
+#   For each j in sigma^C, the first non-zero weight M[i,j] in column j is >= 0,
+#   and the weights in columns corresponding to sigma in rows <= i are zero.
+  M = canonical_weight_matrix(o)
+  m = nrows(M)
+  n = ncols(M)
+  varmap, sigma, sigmaC = _elimination_data(n, sigmaC)
+  maxrow = 1
+  for j in sigmaC
+    found = false
+    for i in 1:m
+      Mij = M[i,j]
+      if Mij > 0
+        maxrow = max(maxrow, i)
+        found = true
+        break # continue j loop
+      elseif Mij < 0
+        return false
+      end
+    end
+    found || return false
+  end
+  for i in 1:maxrow
+    for k in sigma
+      iszero(M[i,k]) || return false
+    end
+  end
+  return true
+end
+
+function is_elimination_ordering(o::MonomialOrdering, sigmaC::Vector{<:MPolyElem})
+  return is_elimination_ordering(o, Int[var_index(v) for v in sigmaC])
 end
 
 ###################################################

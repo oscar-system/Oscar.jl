@@ -157,3 +157,17 @@ end
 
   @test I^4 == (I^2)^2
 end
+
+@testset "PBWAlgebra.ideals.eliminate" begin
+  r, (e, f, h, a) = QQ["e", "f", "h", "a"]
+  rel = [0 e*f-h e*h+2*e e*a; 0 0 f*h-2*f f*a; 0 0 0 h*a; 0 0 0 0]
+  for o in [lex(r),
+            deglex(r),
+            weighted_ordering(gens(r), [1,1,1,0])*deglex(r)
+           ]
+    R, (e, f, h, a) = pbw_algebra(r, rel, o)
+    I = left_ideal([e^3, f^3, h^3-4*h, 4*e*f+h^2-2*h - a])
+    @test eliminate(I, [e, f, h]) == left_ideal([a^3 - 32*a^2 + 192*a])
+    @test_throws ErrorException eliminate(I, [h])
+  end
+end
