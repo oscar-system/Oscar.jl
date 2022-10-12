@@ -1653,11 +1653,10 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
   good = sizehint!(Vector{Vector{Int}}(), length(a))
   bad = sizehint!(Vector{Vector{Int}}(), length(a))
   for e in a
-    next = e-pivot
-    if all(x -> x >= 0, next) # tuned version of divides(e, pivot)
-      push!(good, next)
+    if _divides(e, pivot)
+      push!(good, e - pivot)
     else
-      push!(bad, next)
+      push!(bad, e)
     end
   end
 
@@ -1667,7 +1666,7 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
     # the next line computers   m = [k < 0 ? 0 : k for k in e]
     # but without allocations
     for i in 1:length(e)
-      m[i] = e[i] >= 0 ? e[i] : 0
+      m[i] = max(e[i] - pivot[i], 0)
     end
 
     # check whether the new monomial m is already in the span 
