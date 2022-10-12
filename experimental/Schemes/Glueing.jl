@@ -1,11 +1,15 @@
 export glueing_morphisms, patches, glueing_domains, inverse_glueing_morphism, inverse
-export glueing_type
+export underlying_glueing
 
 export compose, maximal_extension, restriction
 
 ########################################################################
 # The interface for abstract glueings of affine schemes                #
 ########################################################################
+function underlying_glueing(G::AbsGlueing)
+  error("trying to call for `underlying_glueing` of $G but nothing is implemented")
+end
+
 function patches(G::AbsGlueing)
   return patches(underlying_glueing(G))
 end
@@ -49,7 +53,7 @@ Given glueings `X ↩ U ≅ V ↪  Y` and `Y ↩ V' ≅ W ↪ Z`, return the glu
 **WARNING:** In general such a glueing will not provide a separated scheme. 
 Use `maximal_extension` to extend the glueing.
 """
-function compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
+function compose(G::Glueing, H::Glueing) 
   # make sure that Y is the second patch of the first glueing and 
   # the first patch of the second
   if patches(G)[2] === patches(H)[2]
@@ -73,31 +77,6 @@ function compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
 	     )
 end
 
-# A simplified constructor for the common case to glue along principal open sets
-function Glueing(
-    X::SpecType, p::RET, Y::SpecType, q::RET,
-    a::Vector{FracType}, b::Vector{FracType};
-    check::Bool=true
-  ) where {
-           SpecType<:Spec, 
-           RET<:MPolyElem,
-           FracType
-          }
-  parent(p) == base_ring(OO(X)) || error("polynomial does not belong to the correct ring")
-  parent(q) == base_ring(OO(Y)) || error("polynomial does not belong to the correct ring")
-  UU = SpecOpen(X, [p])
-  VV = SpecOpen(Y, [q])
-  U = UU[1]
-  V = VV[1]
-  f = SpecMor(U, Y, a)
-  g = SpecMor(V, X, b)
-  if check
-    compose(restrict(f,U, V), restrict(g, V, U)) == identity_map(U) || error("glueing maps are not inverse to each other")
-    compose(restrict(g, V, U), restrict(f, U, V)) == identity_map(V) || error("glueing maps are not inverse to each other")
-  end
-  return Glueing(X, Y, SpecOpenMor(UU, VV, [f]), SpecOpenMor(VV, UU, [g]))
-end
-
 @Markdown.doc """
 maximal_extension(G::Glueing)
 
@@ -118,7 +97,7 @@ function maximal_extension(G::Glueing)
   return Glueing(X, Y, f_ext, g_ext)
 end
 
-function ==(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
+function ==(G::AbsGlueing, H::AbsGlueing)
   if patches(G)[1] != patches(H)[1]
     return G == inverse(H)
   end
@@ -127,22 +106,16 @@ function ==(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
   return true
 end
 
-function glueing_type(X::SpecType) where {SpecType<:Spec}
-  return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
-end
-
-function glueing_type(::Type{SpecType}) where {SpecType<:Spec}
-  return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
-end
-
-function restrict(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) where {SpecType<:Spec}
+function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
     is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  return Glueing(X, Y, restrict(f, X, Y, check=check), restrict(g, Y, X, check=check), check=check)
+  Ures = intersect(X, U)
+  Vres = intersect(Y, V)
+  return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
 @Markdown.doc """

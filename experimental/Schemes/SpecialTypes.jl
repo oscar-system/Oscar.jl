@@ -57,6 +57,7 @@ function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
+
 ########################################################################
 # Methods for OpenInclusion                                            #
 ########################################################################
@@ -156,4 +157,18 @@ end
 @attr function is_dense(U::PrincipalOpenSubset)
   f = complement_equation(U)
   return is_non_zero_divisor(f, ambient_scheme(U))
+end
+
+### Conversion of a SimpleGlueing to a sophisticated one
+function Glueing(G::SimpleGlueing)
+  X, Y = patches(G)
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  incY = inclusion_morphism(V, Y)
+  incX = inclusion_morphism(U, X)
+  Uo = SpecOpen(U)
+  Vo = SpecOpen(V)
+  fo = SpecOpenMor(Uo, Vo, [compose(f, incY)], check=false)
+  go = SpecOpenMor(Vo, Uo, [compose(g, incX)], check=false)
+  return Glueing(X, Y, fo, go, check=false)
 end

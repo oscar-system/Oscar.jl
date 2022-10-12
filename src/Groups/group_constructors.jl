@@ -145,7 +145,7 @@ function abelian_group(v::Vector{Int})
   for i = 1:length(v)
     iszero(v[i]) && error("Cannot represent an infinite group as a polycyclic group")
   end
-  v1 = GAP.julia_to_gap(v)
+  v1 = GAP.Obj(v)
   return PcGroup(GAP.Globals.AbelianGroup(v1))
 end
 =#
@@ -168,7 +168,7 @@ function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
 end
 
 function abelian_group(::Type{T}, v::Vector{fmpz}) where T <: GAPGroup
-  vgap = GAP.julia_to_gap(v, recursive=true)
+  vgap = GAP.Obj(v, recursive=true)
   return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap)::GapObj)
 end
 

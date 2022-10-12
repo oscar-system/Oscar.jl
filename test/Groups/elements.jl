@@ -73,6 +73,19 @@ end
 
     @test cperm(K,Int64[]) == one(K)
   end
+
+  for G in [
+            PermGroup(small_group(2, 1))
+            PcGroup(small_group(2, 1))
+            FPGroup(small_group(2, 1))
+            GL(2,2)
+           ]
+    H = first(subgroups(G))
+    @test parent(one(H)) === H
+    @test parent(G(one(H))) === G
+  end
+
+
 end
 
 @testset "Eltypes" begin

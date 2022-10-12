@@ -124,6 +124,12 @@ function parent(x::GAPGroupElem)
   return x.parent
 end
 
+# coercion embeds a group element into a different parent
+function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
+   x.X in G.X && return group_element(G, x.X)
+   throw(ArgumentError("the element does not embed in the group"))
+end
+
 """
     isfinite(G::GAPGroup) -> Bool
 
@@ -1084,7 +1090,7 @@ function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
    is_solvable(G) || throw(ArgumentError("The group is not solvable"))
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P, recursive=true)))
+   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true)))
 end
 
 """
@@ -1124,7 +1130,7 @@ julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
 function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
-   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))::GapObj
+   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
    elseif GAPWrap.IsList(res_gap)
@@ -1393,7 +1399,7 @@ has_prime_of_pgroup(G::GAPGroup) = has__prime_of_pgroup(G)
 Set the value for `prime_of_pgroup(G)` to `p` if it has't been set already.
 """
 function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
-  set__prime_of_pgroup(G, GAP.julia_to_gap(p))
+  set__prime_of_pgroup(G, GAP.Obj(p))
 end
 
 

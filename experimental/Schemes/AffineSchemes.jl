@@ -1049,9 +1049,10 @@ function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuo})
+function is_non_zero_divisor(f::MPolyQuoElem, X::AbsSpec{<:Ring, <:MPolyQuo})
+  R = ambient_ring(X)
   I = modulus(OO(X))
-  J = ideal(OO(X), f)
+  J = ideal(R, lift(f))
   return I == quotient(I, J)
 end
 

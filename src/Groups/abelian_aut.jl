@@ -79,7 +79,7 @@ function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check::Bool=t
     return b.X 
   end
   gene = GAP.Globals.GeneratorsOfGroup(AA)
-  img = GAP.julia_to_gap([img_gap(a) for a in gene])
+  img = GAP.Obj([img_gap(a) for a in gene])
   fgap = GAP.Globals.GroupHomomorphismByImagesNC(AA,AA,img)
   return aut(fgap)
 end
