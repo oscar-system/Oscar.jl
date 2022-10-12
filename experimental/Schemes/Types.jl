@@ -259,9 +259,18 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
       end
     end
     U = new{SpecType, typeof(base_ring(X))}(X, f)
-    U.intersections = Dict{Tuple{Int, Int}, SpecType}()
+    U.intersections = Dict{Tuple{Int, Int}, AbsSpec}()
     length(name) > 0 && set_name!(U, name)
     return U
+  end
+  ### Conversion from PrincipalOpenSubsets
+  function SpecOpen(U::PrincipalOpenSubset)
+    X = ambient_scheme(U)
+    h = complement_equation(U)
+    V = new{typeof(X), typeof(base_ring(X))}(X, [lifted_numerator(h)])
+    V.intersections = Dict{Tuple{Int, Int}, AbsSpec}()
+    V.patches = [U]
+    return V
   end
 end
 
