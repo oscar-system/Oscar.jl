@@ -122,6 +122,7 @@
   "Commutative Algebra" => [
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
+     "CommutativeAlgebra/orderings.md",
      "CommutativeAlgebra/ideals.md",
      "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
