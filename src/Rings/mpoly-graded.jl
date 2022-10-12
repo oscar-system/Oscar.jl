@@ -1810,32 +1810,13 @@ end
 
 function _hilbert_numerator_trivial_cases(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
+    S::Ring, t::Vector, oneS = one(S)
   )
-  length(a) == 0 && return one(S)
+  length(a) == 0 && return oneS
 
   # See Proposition 5.3.6
   if _are_pairwise_coprime(a)
-    return prod(1-_expvec_to_poly(S, t, weight_matrix, e) for e in a)
-
-#=
-    ### The following code should be faster, but the build context is not
-    # yet fully tuned (will be better in the next Nemo release). Try it again, once it's done.
-    # Also if S is univariate then a direct approach may still be faster
-    factors = elem_type(S)[]
-    sizehint!(factors, length(a))
-    o = one(coefficient_ring(S))
-    mo = -o
-    z = [0 for i in 1:nvars(S)]
-    ctx = MPolyBuildCtx(S)
-    for e in a
-      exponents = weight_matrix*e
-      push_term!(ctx, mo, exponents)
-      push_term!(ctx, o, z)
-      push!(factors, finish(ctx))
-    end
-    return prod(factors)
-=#
+    return prod(oneS - _expvec_to_poly(S, t, weight_matrix, e) for e in a)
   end
 
   return nothing
@@ -2022,7 +2003,7 @@ end
 
 function _hilbert_numerator_bayer_stillman(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring, t::Vector
+    S::Ring, t::Vector, oneS = one(S)
   )
   ###########################################################################
   # For this strategy see
@@ -2032,14 +2013,14 @@ function _hilbert_numerator_bayer_stillman(
   #
   # Algorithm 2.6, page 35
   ###########################################################################
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t, oneS)
   ret !== nothing && return ret
 
   # make sure we have lexicographically ordered monomials
   sort!(a)
 
   # initialize the result 
-  h = one(S) - _expvec_to_poly(S, t, weight_matrix, a[1])
+  h = oneS - _expvec_to_poly(S, t, weight_matrix, a[1])
   for i in 2:length(a)
     J = _divide_by(a[1:i-1], a[i])
     J1 = Vector{Vector{Int}}()
@@ -2056,12 +2037,12 @@ function _hilbert_numerator_bayer_stillman(
         end
       end
     end
-    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S, t)
+    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S, t, oneS)
     for k in linear_mons
-      q = q*(one(S) - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
+      q *= (oneS - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
     end
 
-    h = h - q * _expvec_to_poly(S, t, weight_matrix, a[i])
+    h -= q * _expvec_to_poly(S, t, weight_matrix, a[i])
   end
   return h
 end
