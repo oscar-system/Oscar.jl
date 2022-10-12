@@ -2020,21 +2020,18 @@ function _hilbert_numerator_bayer_stillman(
 
   # initialize the result 
   h = oneS - _expvec_to_poly(S, t, weight_matrix, a[1])
+  linear_mons = Vector{Int}()
   for i in 2:length(a)
     J = _divide_by(a[1:i-1], a[i])
-    J1 = Vector{Vector{Int}}()
-    linear_mons = Vector{Int}()
-    for m in J
-      if sum(m) > 1
-        push!(J1, m)
-      else
-        for k in 1:length(m)
-          if m[k] > 0 
-            push!(linear_mons, k)
-            break
-          end
-        end
+    empty!(linear_mons)
+    J1 = filter!(J) do m
+      k = findfirst(!iszero, m)
+      k === nothing && return false # filter out zero vector
+      if m[k] == 1 && findnext(!iszero, m, k + 1) === nothing
+        push!(linear_mons, k)
+        return false
       end
+      return true
     end
     q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S, t, oneS)
     for k in linear_mons
