@@ -2016,7 +2016,7 @@ function _hilbert_numerator_bayer_stillman(
   ret !== nothing && return ret
 
   # make sure we have lexicographically ordered monomials
-  sort!(a)
+  sort!(a, alg=QuickSort)
 
   # initialize the result 
   h = oneS - _expvec_to_poly(S, t, weight_matrix, a[1])
