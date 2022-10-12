@@ -1787,6 +1787,26 @@ function _hilbert_numerator_from_leading_exponents(
   error("invalid algorithm")
 end
 
+# compute t ^ (weight_matrix * expvec), where t == gens(S)
+function _expvec_to_poly(S::Ring, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
+  o = one(coefficient_ring(S))  # TODO: cache this ?!
+  return S([o], [weight_matrix * expvec])
+end
+
+# special case for univariate polynomial ring
+function _expvec_to_poly(S::PolyRing, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
+  @assert length(t) == 1
+  @assert size(weight_matrix) == (1, length(expvec))
+
+  # compute the dot-product of weight_matrix[1,:] and expvec, but faster than dot
+  # TODO: what about overflows?
+  s = weight_matrix[1,1] * expvec[1]
+  for i in 2:length(expvec)
+    @inbounds s += weight_matrix[1,i] * expvec[i]
+  end
+  return t[1]^s
+end
+
 function _hilbert_numerator_trivial_cases(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
     S::Ring
@@ -1796,7 +1816,7 @@ function _hilbert_numerator_trivial_cases(
   # See Proposition 5.3.6
   if _are_pairwise_coprime(a)
     t = gens(S)
-    return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
+    return prod(1-_expvec_to_poly(S, t, weight_matrix, e) for e in a)
 
 #=
     ### The following code should be faster, but the build context is not
@@ -2021,7 +2041,7 @@ function _hilbert_numerator_bayer_stillman(
   sort!(a)
 
   # initialize the result 
-  h = one(S) - prod(t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t))
+  h = one(S) - _expvec_to_poly(S, t, weight_matrix, a[1])
   for i in 2:length(a)
     J = _divide_by(a[1:i-1], a[i])
     J1 = Vector{Vector{Int}}()
@@ -2043,7 +2063,7 @@ function _hilbert_numerator_bayer_stillman(
       q = q*(one(S) - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
     end
 
-    h = h - prod(t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t))*q
+    h = h - q * _expvec_to_poly(S, t, weight_matrix, a[i])
   end
   return h
 end
