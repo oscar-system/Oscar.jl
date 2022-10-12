@@ -1650,8 +1650,8 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
   # generator which is collected in `bad` a priori. It is checked 
   # whether they become superfluous and if not, they are added to 
   # the good ones.
-  good = similar(a, 0)
-  bad = similar(a, 0)
+  good = sizehint!(Vector{Vector{Int}}(), length(a))
+  bad = sizehint!(Vector{Vector{Int}}(), length(a))
   for e in a
     next = e-pivot
     if all(x -> x >= 0, next) # tuned version of divides(e, pivot)
