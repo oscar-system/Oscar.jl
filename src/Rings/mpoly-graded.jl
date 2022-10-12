@@ -1768,21 +1768,22 @@ function _hilbert_numerator_from_leading_exponents(
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring)
+  t = gens(return_ring)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
   ret !== nothing && return ret
 
   if alg == :BayerStillmanA
-    return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring)
+    return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
   elseif alg == :custom
-    return _hilbert_numerator_custom(a, weight_matrix, return_ring)
+    return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
   elseif alg == :gcd # see Remark 5.3.11
-    return _hilbert_numerator_gcd(a, weight_matrix, return_ring) #typestability OK
+    return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
   elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
-    return _hilbert_numerator_generator(a, weight_matrix, return_ring) #typestability OK
+    return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
   elseif alg == :indeterminate # see Remark 5.3.8
-    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring)#typestability OK
+    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
   elseif alg == :cocoa # see Remark 5.3.14
-    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring) #typestability OK
+    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
   end
   error("invalid algorithm")
 end
@@ -1809,13 +1810,12 @@ end
 
 function _hilbert_numerator_trivial_cases(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring
+    S::Ring, t::Vector
   )
   length(a) == 0 && return one(S)
 
   # See Proposition 5.3.6
   if _are_pairwise_coprime(a)
-    t = gens(S)
     return prod(1-_expvec_to_poly(S, t, weight_matrix, e) for e in a)
 
 #=
@@ -1843,10 +1843,10 @@ end
 
 
 function _hilbert_numerator_cocoa(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   n = length(a)
@@ -1880,18 +1880,18 @@ function _hilbert_numerator_cocoa(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_cocoa(rhs, weight_matrix, S) + f*_hilbert_numerator_cocoa(lhs, weight_matrix, S)
+  return _hilbert_numerator_cocoa(rhs, weight_matrix, S, t) + f*_hilbert_numerator_cocoa(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_indeterminate(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   e = first(a)
@@ -1908,18 +1908,18 @@ function _hilbert_numerator_indeterminate(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_indeterminate(rhs, weight_matrix, S) + f*_hilbert_numerator_indeterminate(lhs, weight_matrix, S)
+  return _hilbert_numerator_indeterminate(rhs, weight_matrix, S, t) + f*_hilbert_numerator_indeterminate(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_generator(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   b = copy(a)
@@ -1927,22 +1927,22 @@ function _hilbert_numerator_generator(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
   c = _divide_by(b, pivot)
-  p1 = _hilbert_numerator_generator(b, weight_matrix, S)
-  p2 = _hilbert_numerator_generator(c, weight_matrix, S)
+  p1 = _hilbert_numerator_generator(b, weight_matrix, S, t)
+  p2 = _hilbert_numerator_generator(c, weight_matrix, S, t)
 
   return p1 - f * p2
 end
 
 function _hilbert_numerator_gcd(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   n = length(a)
@@ -1973,18 +1973,18 @@ function _hilbert_numerator_gcd(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_gcd(rhs, weight_matrix, S) + f*_hilbert_numerator_gcd(lhs, weight_matrix, S)
+  return _hilbert_numerator_gcd(rhs, weight_matrix, S, t) + f*_hilbert_numerator_gcd(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_custom(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   p = Vector{Int}()
@@ -2013,16 +2013,16 @@ function _hilbert_numerator_custom(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_custom(rhs, weight_matrix, S) + f*_hilbert_numerator_custom(lhs, weight_matrix, S)
+  return _hilbert_numerator_custom(rhs, weight_matrix, S, t) + f*_hilbert_numerator_custom(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_bayer_stillman(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
   ###########################################################################
   # For this strategy see
@@ -2032,10 +2032,8 @@ function _hilbert_numerator_bayer_stillman(
   #
   # Algorithm 2.6, page 35
   ###########################################################################
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
-
-  t = gens(S)
 
   # make sure we have lexicographically ordered monomials
   sort!(a)
@@ -2058,7 +2056,7 @@ function _hilbert_numerator_bayer_stillman(
         end
       end
     end
-    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S)
+    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S, t)
     for k in linear_mons
       q = q*(one(S) - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
     end
