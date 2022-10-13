@@ -3,7 +3,7 @@ export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_ty
 export projective_space, subscheme
 export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
 export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
-export fiber_product, inclusion_map, identity_map
+export fiber_product, inclusion_morphism, identity_map
 
 export ==
 
@@ -532,6 +532,22 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPoly
   return phi.map_on_affine_cones::AbsSpecMor
 end
 
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyLocalizedRing}}) 
+  if !isdefined(phi, :map_on_affine_cones)
+    A = base_ring(domain(phi))
+    S = ambient_ring(codomain(phi))
+    T = ambient_ring(domain(phi))
+    P = domain(phi)
+    Q = codomain(phi)
+    pb_P = pullback(projection_to_base(P))
+    pb_Q = pullback(projection_to_base(Q))
+    imgs_base = pb_P.(gens(A))
+    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
+    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
+  end
+  return phi.map_on_affine_cones::AbsSpecMor
+end
+
 function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyRing}})
   if !isdefined(phi, :map_on_affine_cones)
     Y = base_scheme(domain(phi))
@@ -548,6 +564,24 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPoly
   end
   return phi.map_on_affine_cones::AbsSpecMor
 end
+
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuo}})
+  if !isdefined(phi, :map_on_affine_cones)
+    Y = base_scheme(domain(phi))
+    A = OO(Y)
+    S = ambient_ring(codomain(phi))
+    T = ambient_ring(domain(phi))
+    P = domain(phi)
+    Q = codomain(phi)
+    pb_P = pullback(projection_to_base(P))
+    pb_Q = pullback(projection_to_base(Q))
+    imgs_base = pb_P.(gens(A))
+    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
+    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
+  end
+  return phi.map_on_affine_cones::AbsSpecMor
+end
+    
     
 function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:AbstractAlgebra.Ring}})
   if !isdefined(phi, :map_on_affine_cones)
@@ -643,20 +677,23 @@ function fiber_product(f::AbsSpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRin
                                )
 end
 
-fiber_product(X::AbsSpec, P::ProjectiveScheme{<:MPolyQuoLocalizedRing}) = fiber_product(inclusion_map(X, base_scheme(P)), P)
+fiber_product(X::AbsSpec, P::ProjectiveScheme{<:MPolyQuoLocalizedRing}) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
 
 ### canonical map constructors
 
 @Markdown.doc """
-    inclusion_map(P::T, Q::T)
+    inclusion_morphism(P::T, Q::T)
 
 Assuming that ``P ⊂ Q`` is a subscheme, both proper over an inclusion of 
 their base schemes, this returns the associated `ProjectiveSchemeMor`.
 """
-function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:MPolyQuoLocalizedRing}}
+function inclusion_morphism(
+    P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}},
+    Q::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}
+  )
   X = base_scheme(P)
   Y = base_scheme(Q)
-  f = inclusion_map(X, Y) # will throw if X and Y are not compatible
+  f = inclusion_morphism(X, Y) # will throw if X and Y are not compatible
   return ProjectiveSchemeMor(P, Q, 
                              hom(ambient_ring(Q),
                                  ambient_ring(P),
@@ -666,7 +703,7 @@ function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:MPolyQuoLocalize
                             )
 end
 
-function inclusion_map(P::T, Q::T) where {T<:ProjectiveScheme{<:AbstractAlgebra.Ring}}
+function inclusion_morphism(P::T, Q::T) where {T<:AbsProjectiveScheme{<:AbstractAlgebra.Ring}}
   A = base_ring(Q)
   B = base_ring(P)
   A === B || error("can not compare schemes for non-equal base rings") # TODO: Extend by check for canonical maps, once they are available
