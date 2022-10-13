@@ -282,7 +282,7 @@ end
 _collected_exponent_words(a::AbstractAlgebra.Generic.FreeAssAlgElem) = view(a.exps, 1:length(a))
 _collected_coefficients(a::AbstractAlgebra.Generic.FreeAssAlgElem) = view(a.coeffs, 1:length(a))
 
-function permutation_of_terms(a::FreeAssAlgElem, o::WordOrdering)
+function Orderings.permutation_of_terms(a::FreeAssAlgElem, o::WordOrdering)
   return sortperm(_collected_exponent_words(a);
                   lt = (a, b) -> (_cmp_words(o.o, a, b) > 0))
 end
