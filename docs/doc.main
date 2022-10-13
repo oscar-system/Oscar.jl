@@ -75,6 +75,10 @@
         "Hecke/quad_forms/introduction.md",
         "Hecke/quad_forms/basics.md",
         "Hecke/quad_forms/lattices.md",
+        "Hecke/quad_forms/genusherm.md",
+        "Hecke/quad_forms/integer_lattices.md",
+        "Hecke/quad_forms/Zgenera.md",
+        "Hecke/quad_forms/discriminant_group.md"
      ],
   ],
 

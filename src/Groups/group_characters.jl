@@ -1523,6 +1523,11 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
       end
     end
 
+    if isdefined(tbl, :GAPGroup) && hasproperty(GAP.Globals, :SchurIndexByCharacter)
+      g = tbl.GAPGroup
+      return GAP.Globals.SchurIndexByCharacter(GAP.Globals.Rationals, g.X, values)
+    end
+
     # For the moment, we do not have more character theoretic criteria.
     error("cannot determine the Schur index with the currently used criteria")
 end

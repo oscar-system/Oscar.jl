@@ -236,12 +236,10 @@ end
   return result
 end
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
+@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}
   CX = affine_cone(X)
   Y = base_scheme(X)
-  L = OO(Y)
-  W = localized_ring(L)
-  R = base_ring(L)
+  R = ambient_ring(Y)
   kk = coefficient_ring(R)
   S = ambient_ring(X)
   r = fiber_dimension(X)
@@ -291,59 +289,6 @@ end
   return result
 end
 
-@attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuo}
-  CX = affine_cone(X)
-  Y = base_scheme(X)
-  A = OO(Y)
-  R = base_ring(A)
-  kk = coefficient_ring(R)
-  S = ambient_ring(X)
-  r = fiber_dimension(X)
-  U = Vector{AbsSpec}()
-  pU = IdDict{AbsSpec, AbsSpecMor}()
-  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
-  s = symbols(S)
-  # for each homogeneous variable, set up the chart 
-  for i in 0:r
-    R_fiber, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    F = Spec(R_fiber)
-    ambient_space, pF, pY = product(F, Y)
-    fiber_vars = pullback(pF).(gens(R_fiber))
-    mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
-    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
-    push!(U, patch)
-    pU[patch] = restrict(pY, patch, Y, check=false)
-  end
-  result = Covering(U)
-  for i in 1:r
-    for j in i+1:r+1
-      x = gens(base_ring(OO(U[i])))
-      y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
-    end
-  end
-  covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :covered_projection_to_base, covered_projection)
-  return result
-end
 
 function glueing_graph(C::Covering) 
   if !isdefined(C, :glueing_graph)
@@ -390,8 +335,8 @@ function transition_graph(C::Covering)
         end
       end
     end
+    C.edge_dict = edge_dict
   end
-  C.edge_dict = edge_dict
   return C.transition_graph
 end
 

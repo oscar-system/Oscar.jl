@@ -831,7 +831,7 @@ Base.conj(elm::QQAbElem) = elm^QQAbAutomorphism(-1)
 ###############################################################################
 
 function generators_galois_group_cyclotomic_field(n::Int)
-  res = GAP.Globals.GeneratorsPrimeResidues(GAP.julia_to_gap(n))
+  res = GAP.Globals.GeneratorsPrimeResidues(GAP.Obj(n))
   return [QQAbAutomorphism(k)
           for k in Vector{Int}(GAP.Globals.Flat(res.generators))]
 end

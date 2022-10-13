@@ -8,6 +8,7 @@ S, (u,v) = grade(R_ext, [1,1])
 I = ideal(S, [x*v - y*u])
 X = ProjectiveScheme(S, I)
 CX = affine_cone(X)
+p = covered_projection_to_base(X)
 @test OO(CX).(homogeneous_coordinates(X)) == [homog_to_frac(X)(g) for g in gens(S)]
 hc = homogeneous_coordinates(X)
 frac_to_homog_pair(X)(hc[1]*hc[2])
@@ -96,4 +97,16 @@ end
   x = Rx(x)
   P2 = projective_space(Rx, 2)
   affine_cone(P2) 
+  @test_broken as_covered_scheme(P2)
 end
+
+@testset "affine cone" begin
+  R,(x,) = PolynomialRing(GF(3),["x"])
+  Rx,i = localization(R, x)
+  x = Rx(x)
+  Rq,j = quo(Rx,ideal(Rx,x))
+  P2 = projective_space(Rx, 2)
+  affine_cone(P2)
+  @test_broken as_covered_scheme(P2)  # too exotic
+end
+
