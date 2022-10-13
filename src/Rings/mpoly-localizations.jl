@@ -815,6 +815,18 @@ function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
 end
 
 function product(
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET},
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  for a in denominators(T)
+    a in U || return MPolyProductOfMultSets(R, [U, T])
+  end
+  return U
+end
+
+function product(
     T::MPolyPowersOfElement{BRT, BRET, RT, RET},
     U::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -1580,6 +1592,34 @@ end
 
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
+    with_generator_transition::Bool=false
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
+  if !isdefined(I, :saturated_ideal)
+    is_saturated(I) && return pre_saturated_ideal(I)
+    J = pre_saturated_ideal(I)
+    pdec = primary_decomposition(J)
+    L = base_ring(I)
+    R = base_ring(L)
+    result = ideal(R, [one(R)])
+    U = inverted_set(base_ring(I))
+    for (Q, P) in pdec
+      if issubset(prime_ideal(U), P)
+        result = intersect(result, Q)
+      end
+    end
+    I.saturated_ideal = result
+    if with_generator_transition
+      error("computation of the transition matrix for the generators is not supposed to happen because of using local orderings")
+      for g in gens(result) 
+        g in I || error("generator not found") # assures caching with transitions
+      end
+    end
+  end
+  return I.saturated_ideal
+end
+
+function saturated_ideal(
+    I::MPolyLocalizedIdeal{LRT};
     strategy::Symbol=:iterative_saturation,
     with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
@@ -1659,7 +1699,6 @@ function saturated_ideal(
       for g in gens(J)
         g in I
       end
-
     end
     I.is_saturated = true
   end
@@ -1686,7 +1725,6 @@ function Base.in(
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
-  b in pre_saturated_ideal(I) && return true
   return b in saturated_ideal(I)
 end
 
