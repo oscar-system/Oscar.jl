@@ -87,16 +87,16 @@ projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme
 projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = 
 ProjectiveScheme{T, elem_type(T), mpoly_dec_ring_type(mpoly_ring_type(T)), mpoly_dec_type(mpoly_ring_type(T))}
 
-base_ring_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = S
+base_ring_type(P::ProjectiveScheme) = base_ring_type(typeof(P))
 base_ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = S
 
-ring_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = U
+ring_type(P::ProjectiveScheme) = ring_type(typeof(P))
 ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = U
 
 ### type constructors 
 
 # the type of a relative projective scheme over a given base scheme
-projective_scheme_type(X::T) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
+projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
 projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
 
 
@@ -180,8 +180,6 @@ defining_ideal(X::ProjectiveScheme) = X.I
 function Base.show(io::IO, P::ProjectiveScheme) 
   print(io, "subscheme of ℙ^$(fiber_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
 end
-
-original_ring(S::MPolyRing_dec) = S.R
 
 function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
   S = ambient_ring(P)
@@ -483,12 +481,6 @@ end
 ########################################################################
 # Methods for ProjectiveSchemeMor                                      #
 ########################################################################
-### type getters
-morphism_type(P::S, Q::T) where {S<:AbsProjectiveScheme, T<:AbsProjectiveScheme} = morphism_type(S, T)
-morphism_type(::Type{S}, ::Type{T}) where {S<:AbsProjectiveScheme, T<:AbsProjectiveScheme} = ProjectiveSchemeMor{S, T, MPolyAnyMap{ring_type(T), ring_type(S), morphism_type(base_ring_type(T), base_ring_type(S)), elem_type(ring_type(T))}}
-
-morphism_type(P::S) where {S<:AbsProjectiveScheme} = morphism_type(S, S)
-morphism_type(::Type{S}) where {S<:AbsProjectiveScheme} = morphism_type(S, S)
 
 ### getters 
 domain(phi::ProjectiveSchemeMor) = phi.domain
@@ -656,7 +648,10 @@ function fiber_product(f::Hecke.Map{DomType, CodType}, P::ProjectiveScheme{DomTy
   return Q, ProjectiveSchemeMor(Q, P, hom(S, ambient_ring(Q), f, gens(ambient_ring(Q))))
 end
 
-function fiber_product(f::AbsSpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRing})
+function fiber_product(
+    f::AbsSpecMor, 
+    P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}
+  )
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
   X = domain(f)
   Y = codomain(f)
@@ -667,7 +662,7 @@ function fiber_product(f::AbsSpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRin
                  gens(ambient_ring(Q_ambient))
                 )
   I = help_map(defining_ideal(P))
-  Q = subscheme(Q_ambient, pre_image_ideal(I))
+  Q = subscheme(Q_ambient, I)
   return Q, ProjectiveSchemeMor(Q, P, 
                                 hom(ambient_ring(P),
                                     ambient_ring(Q),
@@ -677,7 +672,9 @@ function fiber_product(f::AbsSpecMor, P::ProjectiveScheme{<:MPolyQuoLocalizedRin
                                )
 end
 
-fiber_product(X::AbsSpec, P::ProjectiveScheme{<:MPolyQuoLocalizedRing}) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
+fiber_product(X::AbsSpec, 
+              P::ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}
+             ) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
 
 ### canonical map constructors
 

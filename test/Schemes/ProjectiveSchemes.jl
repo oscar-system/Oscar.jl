@@ -114,22 +114,30 @@ end
   R, (x,y) = QQ["x", "y"]
 
   IP2_X = projective_space(R, 2, var_name="u")
+  projective_space(R, ["u", "v", "w"])
   X = base_scheme(IP2_X)
+  projective_space(X, ["u", "v", "w"])
 
   inc = ClosedEmbedding(X, ideal(OO(X), [x^2 - y^2]))
   Y = domain(inc)
 
   IP2_Y = projective_space(Y, 2, var_name="v")
+  projective_space(Y, ["u", "v", "w"])
+  projective_space(OO(Y), ["u", "v", "w"])
 
   U = PrincipalOpenSubset(X, x)
 
   IP2_U = projective_space(OO(U), 2, var_name="u")
+  projective_space(U, ["u", "v", "w"])
+  projective_space(OO(U), ["u", "v", "w"])
   set_base_scheme!(IP2_U, U)
   @test base_scheme(IP2_U) === U
 
   UY = intersect(U, Y)
 
   IP2_UY = projective_space(UY, 2, var_name="v")
+  projective_space(UY, ["u", "v", "w"])
+  projective_space(OO(UY), ["u", "v", "w"])
 
   @test projective_scheme_type(OO(X)) == typeof(IP2_X)
   @test projective_scheme_type(OO(Y)) == typeof(IP2_Y)
@@ -145,6 +153,11 @@ end
   @test base_ring_type(IP2_Y) == typeof(OO(Y))
   @test base_ring_type(IP2_U) == typeof(OO(U))
   @test base_ring_type(IP2_UY) == typeof(OO(UY))
+
+  @test ring_type(IP2_X) == typeof(ambient_ring(IP2_X))
+  @test ring_type(IP2_Y) == typeof(ambient_ring(IP2_Y))
+  @test ring_type(IP2_U) == typeof(ambient_ring(IP2_U))
+  @test ring_type(IP2_UY) == typeof(ambient_ring(IP2_UY))
 
   CX = affine_cone(IP2_X)
   CY = affine_cone(IP2_Y)
@@ -193,23 +206,47 @@ end
                              h, 
                              incYtoX
                             );
+  @test YtoX == inclusion_morphism(IP2_Y, IP2_X)
+  IP2_Y2, map = fiber_product(incYtoX, IP2_X)
+  h2 = hom(ambient_ring(IP2_Y2), ambient_ring(IP2_Y), gens(ambient_ring(IP2_Y)))
+  YtoY2 = ProjectiveSchemeMor(IP2_Y, IP2_Y2, h2)
+  @test compose(YtoY2, map) == YtoX
+
   incUtoX = inclusion_morphism(U, X)
   h = hom(ambient_ring(IP2_X), ambient_ring(IP2_U), pullback(incUtoX), gens(ambient_ring(IP2_U)))
   UtoX = ProjectiveSchemeMor(IP2_U, IP2_X, 
                              h, 
                              incUtoX
                             );
+  @test UtoX == inclusion_morphism(IP2_U, IP2_X)
+  IP2_U2, map = fiber_product(incUtoX, IP2_X)
+  h2 = hom(ambient_ring(IP2_U2), ambient_ring(IP2_U), gens(ambient_ring(IP2_U)))
+  UtoU2 = ProjectiveSchemeMor(IP2_U, IP2_U2, h2)
+  @test compose(UtoU2, map) == UtoX
+
   incUYtoY = inclusion_morphism(UY, Y)
   h = hom(ambient_ring(IP2_Y), ambient_ring(IP2_UY), pullback(incUYtoY), gens(ambient_ring(IP2_UY)))
   UYtoY = ProjectiveSchemeMor(IP2_UY, IP2_Y, 
                               h, 
                               incUYtoY
                              );
+  @test UYtoY == inclusion_morphism(IP2_UY, IP2_Y)
+  IP2_UY2, map = fiber_product(incUYtoY, IP2_Y)
+  h2 = hom(ambient_ring(IP2_UY2), ambient_ring(IP2_UY), gens(ambient_ring(IP2_UY)))
+  UYtoUY2 = ProjectiveSchemeMor(IP2_UY, IP2_UY2, h2)
+  @test compose(UYtoUY2, map) == UYtoY
+
   incUYtoX = inclusion_morphism(UY, X)
   h = hom(ambient_ring(IP2_X), ambient_ring(IP2_UY), pullback(incUYtoX), gens(ambient_ring(IP2_UY)))
   UYtoX = ProjectiveSchemeMor(IP2_UY, IP2_X, 
                               h, 
                               incUYtoX
                              );
+  IP2_UY2, map = fiber_product(incUYtoX, IP2_X)
+  h2 = hom(ambient_ring(IP2_UY2), ambient_ring(IP2_UY), gens(ambient_ring(IP2_UY)))
+  UYtoUY2 = ProjectiveSchemeMor(IP2_UY, IP2_UY2, h2)
+  @test compose(UYtoUY2, map) == UYtoX
+
+  @test UYtoX == inclusion_morphism(IP2_UY, IP2_X)
   @test compose(UYtoY, YtoX) == UYtoX
 end
