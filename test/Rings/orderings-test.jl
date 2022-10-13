@@ -270,7 +270,7 @@ end
    @test length(string(O6)) > 2
    @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
 
-   O7 = weighted_ordering(gens(R),[-1,2,0,2,0])*degrevlex(gens(R))
+   O7 = weight_ordering([-1,2,0,2,0], degrevlex(gens(R)))
    @test monomial_ordering(R, singular(O7)) == O7
    @test length(string(O7)) > 2
    @test string(singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
@@ -278,7 +278,7 @@ end
    O8 = lex([gen(K,1), gen(K,3), gen(K,4), gen(K,2)]) * degrevlex(gens(R))
    @test_throws ErrorException singular(O8)
 
-   O9 = matrix_ordering([x, y], [1 2; 1 2]) * lex(gens(R))
+   O9 = matrix_ordering([x, y], [1 2; 1 2]; check = false) * lex(gens(R))
    @test monomial_ordering(R, singular(O9)) == O9
    @test singular(O9) isa Singular.sordering
 end
@@ -295,9 +295,9 @@ end
    @test matrix_ordering([x, y, z], weight_matrix(a)) ==
          matrix_ordering([x, y, z], [-5 -6 -4; 0 -1 0; -1 0 0; 0 0 -1])
 
-   a = weighted_ordering([y, z, x], [4, 6, 8])
+   a = matrix_ordering([y, z, x], [4 6 8; 1 0 0; 0 1 0])
    test_opposite_ordering(a)
-   @test canonical_weight_matrix(a) == matrix(ZZ, 1, 3, [4, 2, 3])
+   @test canonical_weight_matrix(a) == matrix(ZZ, 3, 3, [4 2 3; 0 1 0; 0 0 1])
    @test simplify(a) isa MonomialOrdering
 end
 

@@ -157,7 +157,7 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
        matrix_ordering, weight_matrix, MonomialOrdering, singular,
        is_global, is_local, is_mixed, monomial_ordering, opposite_ordering,
-       permutation_of_terms, weighted_ordering, canonical_weight_matrix
+       permutation_of_terms, weight_ordering, canonical_weight_matrix
 
 
 ##############################################################################
