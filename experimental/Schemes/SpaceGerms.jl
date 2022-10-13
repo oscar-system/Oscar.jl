@@ -27,13 +27,8 @@ GermAtGeometricPoint = Spec{<:Ring,
                            }
 
 ###################################################################
-## TODO; This should go to AffineSchemes
-## modulus should return something appropriate for all MPoly...Rings
+## start of the definition of space germ functionality
 ###################################################################
-
-localized_modulus(R::MPolyLocalizedRing)
-   return ideal(R,[zero(R)])
-end
 
 @Markdown.doc """
     SpaceGerm{BaseRingType, RingType, SpecType}
@@ -80,7 +75,7 @@ end
 ring_of_germ(X::AbsSpaceGerm) = OO(X)
 
 function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
-    return localized_ring(OO(X))(modulus(OO(X))
+    return localized_ring(OO(X))(modulus(OO(X)))
 end
 
 function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
@@ -187,23 +182,24 @@ end
 
 ### basic functionality for space germs
 
-##########################################################################################
-# note: issubset, isempty, is_canonically_isomorphic, intersect are inherited from Spec
-##########################################################################################
+##############################################################################
+# note: issubset, isempty, is_canonically_isomorphic, intersect are 
+#       inherited from Spec
+##############################################################################
 
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   ambient_ring(X)==ambient_ring(Y) || error("not subgerms of a common space germ")
   point(X)==point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
-  I=intersect(localized_modulus(X),localized_modulus(Y))
-  Z,_ = germ_at_point(quo(localized_ring(OO(X)),I)
+  I=intersect(modulus(X),modulus(Y))
+  Z,_ = germ_at_point(quo(localized_ring(OO(X)),I))
   return Z
 end
 
-##########################################################################################
+##############################################################################
 # note: singular_locus, is_smooth and is_regular are inherited from Spec
-##########################################################################################
+##############################################################################
 
 
 
