@@ -118,8 +118,17 @@ function compose(G::GT, H::GT) where {GT<:SimpleGlueing}
   Z = patches(H)[2]
   f, f_inv = glueing_morphisms(G)
   g, g_inv = glueing_morphisms(H)
-  U_new = PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(domain(g))))
-  W_new = PrincipalOpenSubset(domain(g_inv), pullback(g_inv)(complement_equation(domain(f_inv))))
+                              tmp = [complement_equation(domain(f)), 
+                                     lifted_numerator(pullback(f)(complement_equation(domain(g))))
+                              ]
+  U_new = PrincipalOpenSubset(ambient_scheme(domain(f)), 
+                              [complement_equation(domain(f)), 
+                               lifted_numerator(pullback(f)(complement_equation(domain(g))))
+                              ])
+  W_new = PrincipalOpenSubset(ambient_scheme(domain(g_inv)), 
+                              [complement_equation(domain(g_inv)), 
+                               lifted_numerator(pullback(g_inv)(complement_equation(domain(f_inv))))
+                              ])
   V_new = PrincipalOpenSubset(ambient_scheme(domain(g)), 
                               [complement_equation(domain(g)), complement_equation(domain(f_inv))]
                              )

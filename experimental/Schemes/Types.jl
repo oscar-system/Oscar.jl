@@ -215,8 +215,8 @@ end
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end
   
-  function PrincipalOpenSubset(X::AbsSpec, f::Vector{RingElemType}) where {RingElemType<:MPolyElem}
-    all(x->(parent(x) == OO(X)), f) || error("element does not belong to the correct ring")
+  function PrincipalOpenSubset(X::AbsSpec, f::Vector{<:RingElem})
+    all(x->(parent(x) == OO(X)), f) || return PrincipalOpenSubset(X, OO(X).(f))
     U = hypersurface_complement(X, f)
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
   end
