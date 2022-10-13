@@ -1122,27 +1122,13 @@ function Base.hash(M::MonomialOrdering, u::UInt)
   return hash(canonical_weight_matrix(M), u)
 end
 
-# Return two arrays of indices containing the variables which are > 1 and < 1
-# respectively.
-function _global_and_local_vars(M::MonomialOrdering)
-  globals = Int[]
-  locals = Int[]
-  n = nvars(base_ring(M))
-  d = zeros(Int, n)
-  w = weight_matrix(M)
-  m = nrows(w)
-  @assert n == ncols(w)
-  for i in 1:m, j in 1:n
-    d[j] == 0 || continue
-    if w[i, j] > 0
-      d[j] = 1
-      push!(globals, j)
-    elseif w[i, j] < 0
-      d[j] = -1
-      push!(locals, j)
-    end
+function _cmp_var(M, j::Int)
+  for i in 1:nrows(M)
+    e = M[i,j]
+    e > 0 && return +1
+    e < 0 && return -1
   end
-  return globals, locals
+  return 0
 end
 
 @doc Markdown.doc"""
@@ -1152,66 +1138,83 @@ Return `true` if `ord` is global, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> M = [1 1; 0 -1];
-
-julia> o = matrix_ordering(R, M)
+julia> o = matrix_ordering([x, y], [1 1; 0 -1])
 matrix_ordering([x, y], [1 1; 0 -1])
 
 julia> is_global(o)
 true
 ```
 """
-function is_global(M::MonomialOrdering)
-  globals, locals = _global_and_local_vars(M)
-  return length(globals) == nvars(base_ring(M))
+function is_global(ord::MonomialOrdering)
+  M = weight_matrix(ord)
+  for i in _support_indices(ord.o)
+    if _cmp_var(M, i) <= 0
+      return false
+    end
+  end
+  return true
 end
 
 @doc Markdown.doc"""
     is_local(ord::MonomialOrdering)
 
-Return `true` if `ord` is local, `false` otherwise.
+Return `true` if `v<1` for each `v` in `support(ord)`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> M = [-1 -1; 0 -1];
-
-julia> o = matrix_ordering(R, M)
+julia> o = matrix_ordering([x, y], [-1 -1; 0 -1])
 matrix_ordering([x, y], [-1 -1; 0 -1])
 
 julia> is_local(o)
 true
 ```
 """
-function is_local(M::MonomialOrdering)
-  globals, locals = _global_and_local_vars(M)
-  return length(locals) == nvars(base_ring(M))
+function is_local(ord::MonomialOrdering)
+  M = weight_matrix(ord)
+  for i in _support_indices(ord.o)
+    if _cmp_var(M, i) >= 0
+      return false
+    end
+  end
+  return true
 end
 
 @doc Markdown.doc"""
     is_mixed(ord::MonomialOrdering)
 
-Return `true` if `ord` is mixed, `false` otherwise. 
+Return `!is_global(ord) && !is_local(ord)`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> M = [1 -1; 0 -1];
-
-julia> o = matrix_ordering(R, M)
+julia> o = matrix_ordering([x, y], [1 -1; 0 -1])
 matrix_ordering([x, y], [1 -1; 0 -1])
 
 julia> is_mixed(o)
 true
 ```
 """
-function is_mixed(M::MonomialOrdering)
-  globals, locals = _global_and_local_vars(M)
-  return !isempty(globals) && !isempty(locals)
+function is_mixed(ord::MonomialOrdering)
+  M = weight_matrix(ord)
+  s = _support_indices(ord.o)
+  for i in s
+    if _cmp_var(M, i) <= 0
+      @goto is_not_global
+    end
+  end
+  return false
+@label is_not_global
+  for i in s
+    if _cmp_var(M, i) >= 0
+      return true
+    end
+  end
+  return false
 end
 
 ###################################################
