@@ -140,7 +140,7 @@ end
 function test_opposite_ordering(a)
   R = base_ring(a)
   b = opposite_ordering(R, a)
-  M = weight_matrix(a)
+  M = matrix(a)
   N = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
   @test b == matrix_ordering(gens(R), N)
   @test a == opposite_ordering(R, b)
@@ -301,12 +301,12 @@ end
 
    a = negwdegrevlex([z, x, y], [4, 5, 6])
    test_opposite_ordering(a)
-   @test matrix_ordering([x, y, z], weight_matrix(a)) ==
+   @test matrix_ordering([x, y, z], matrix(a)) ==
          matrix_ordering([x, y, z], [-5 -6 -4; 0 -1 0; -1 0 0; 0 0 -1])
 
    a = matrix_ordering([y, z, x], [4 6 8; 1 0 0; 0 1 0])
    test_opposite_ordering(a)
-   @test canonical_weight_matrix(a) == matrix(ZZ, 3, 3, [4 2 3; 0 1 0; 0 0 1])
+   @test canonical_matrix(a) == matrix(ZZ, 3, 3, [4 2 3; 0 1 0; 0 0 1])
    @test simplify(a) isa MonomialOrdering
 end
 
