@@ -1,9 +1,11 @@
 export PrincipalOpenSubset
 export ambient_scheme, complement_equation, inclusion_morphism
 
-export complement_ideal, complement_scheme
+export underlying_morphism, complement_ideal, complement_scheme
 
 export image_ideal
+
+export ideal_type
 
 ########################################################################
 # Methods for PrincipalOpenSubset                                      #
@@ -16,11 +18,12 @@ complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U
 gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
 getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
-function inclusion_morphism(U::PrincipalOpenSubset) 
+function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
   if !isdefined(U, :inc)
     X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
-    U.inc = inc
+    # TODO: Eventually make this an OpenInclusion
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check))
+    U.inc = OpenInclusion(inc, ideal(OO(X), complement_equation(U)), check=check)
   end
   return U.inc
 end
@@ -90,6 +93,7 @@ end
 
 ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
 ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
+ideal_type(R::Ring) = ideal_type(typeof(R))
 
 
 ########################################################################

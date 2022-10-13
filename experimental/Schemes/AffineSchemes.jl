@@ -756,7 +756,7 @@ domain(f::AbsSpecMor) = domain(underlying_morphism(f))
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 """
-codomain(f::AbsSpecMor) = domain(underlying_morphism(f))
+codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
 
 @Markdown.doc """
     pullback(f::AbsSpecMor)

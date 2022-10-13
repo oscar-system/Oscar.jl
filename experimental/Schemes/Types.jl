@@ -207,7 +207,7 @@ end
   X::AmbientType
   U::Spec{BRT, RT}
   f::RingElem
-  inc::SpecMor
+  inc::OpenInclusion
 
   function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
     parent(f) == OO(X) || error("element does not belong to the correct ring")
@@ -433,6 +433,16 @@ ideal ``I ⊂ R``.
     Y = subscheme(X, I)
     inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y))))
     return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
+  end
+  function ClosedEmbedding(f::SpecMor, I::Ideal; check::Bool=true)
+    Y = domain(f)
+    X = codomain(f)
+    base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
+    if check
+      Y == subscheme(X, I)
+      pullback(f).(gens(OO(X))) == gens(OO(Y))
+    end
+    return new{typeof(Y), typeof(X), pullback_type(f)}(f, I)
   end
 end
 
