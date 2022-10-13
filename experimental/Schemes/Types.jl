@@ -580,7 +580,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   # fields used for caching
   C::Scheme # The affine cone of this scheme.
   Y::Scheme # the base scheme 
-  projection_to_base::AbsSpecMor
+  projection_to_base::SchemeMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
 
   function ProjectiveScheme(S::MPolyRing_dec)
@@ -685,10 +685,10 @@ mutable struct ProjectiveSchemeMor{
     S = ambient_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
-    codomain(h) == coefficient_ring(T) || error("base scheme map not compatible")
-    domain(h) == coefficient_ring(S) || error("base scheme map not compatible")
+    OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
+    OO(codomain(h)) == coefficient_ring(S) || error("base scheme map not compatible")
     if check
-      T(pbh(one(domain(h)))) == f(S(one(domain(h)))) == one(T) || error("maps not compatible")
+      T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) || error("maps not compatible")
       coefficient_map(f) == pbh || error("maps not compatible")
     end
     return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, h)

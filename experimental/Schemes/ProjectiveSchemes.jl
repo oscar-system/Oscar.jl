@@ -93,9 +93,6 @@ base_ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = S
 ring_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = U
 ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = U
 
-base_scheme_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = spec_type(S)
-base_scheme_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = spec_type(S)
-
 ### type constructors 
 
 # the type of a relative projective scheme over a given base scheme
@@ -128,32 +125,18 @@ end
 
 function set_base_scheme!(
     P::ProjectiveScheme{CRT, CRET, RT, RET}, 
-    X::AbsSpec
+    X::Union{<:AbsSpec, <:SpecOpen}
   ) where {CRT<:Ring, CRET, RT, RET}
   OO(X) == base_ring(P) || error("schemes are not compatible")
   P.Y = X
   return P
 end
 
-function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
+function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing, <:SpecOpenRing}, CRET, RT, RET}
   if !isdefined(X, :projection_to_base)
     affine_cone(X)
   end
   return X.projection_to_base
-end
-
-function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
-  if !isdefined(X, :projection_to_base)
-    affine_cone(X)
-  end
-  return X.projection_to_base
-end
-
-function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOpenRing, CRET, RT, RET}
-  if !isdefined(X, :projection_to_base)
-    affine_cone(X)
-  end
-  return get_attribute(X, :projection_to_base)
 end
 
 @Markdown.doc """
@@ -251,19 +234,19 @@ function projective_space(A::CoeffRingType, r::Int; var_name::String="s") where 
   return ProjectiveScheme(S, I)
 end
 
-function projective_space(W::Spec, r::Int; var_name::String="s") 
+function projective_space(W::Union{<:SpecOpen, <:AbsSpec}, r::Int; var_name::String="s") 
   P = projective_space(OO(W), r, var_name=var_name)
   set_base_scheme!(P, W)
   return P
 end
 
-function projective_space(W::Spec, var_names::Vector{Symbol}) 
+function projective_space(W::Union{<:SpecOpen, <:AbsSpec}, var_names::Vector{Symbol}) 
   P = projective_space(OO(W), var_names)
   set_base_scheme!(P, W)
   return P
 end
 
-function projective_space(W::Spec, var_names::Vector{String}) 
+function projective_space(W::Union{<:SpecOpen, <:AbsSpec}, var_names::Vector{String}) 
   P = projective_space(OO(W), var_names)
   set_base_scheme!(P, W)
   return P
@@ -492,7 +475,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:SpecOp
 
     set_attribute!(X, :homog_to_frac, compose(phi, restriction_map(C, CX)))
     set_attribute!(X, :base_scheme, U)
-    set_attribute!(X, :projection_to_base, restrict(pr_base, CX, U, check=false))
+    X.projection_to_base = restrict(pr_base, CX, U, check=false)
   end
   return X.C
 end
@@ -501,11 +484,11 @@ end
 # Methods for ProjectiveSchemeMor                                      #
 ########################################################################
 ### type getters
-morphism_type(P::S, Q::T) where {S<:ProjectiveScheme, T<:ProjectiveScheme} = morphism_type(S, T)
-morphism_type(::Type{S}, ::Type{T}) where {S<:ProjectiveScheme, T<:ProjectiveScheme} = ProjectiveSchemeMor{S, T, MPolyAnyMap{ring_type(T), ring_type(S), morphism_type(base_ring_type(T), base_ring_type(S)), elem_type(ring_type(T))}}
+morphism_type(P::S, Q::T) where {S<:AbsProjectiveScheme, T<:AbsProjectiveScheme} = morphism_type(S, T)
+morphism_type(::Type{S}, ::Type{T}) where {S<:AbsProjectiveScheme, T<:AbsProjectiveScheme} = ProjectiveSchemeMor{S, T, MPolyAnyMap{ring_type(T), ring_type(S), morphism_type(base_ring_type(T), base_ring_type(S)), elem_type(ring_type(T))}}
 
-morphism_type(P::S) where {S<:ProjectiveScheme} = morphism_type(S, S)
-morphism_type(::Type{S}) where {S<:ProjectiveScheme} = morphism_type(S, S)
+morphism_type(P::S) where {S<:AbsProjectiveScheme} = morphism_type(S, S)
+morphism_type(::Type{S}) where {S<:AbsProjectiveScheme} = morphism_type(S, S)
 
 ### getters 
 domain(phi::ProjectiveSchemeMor) = phi.domain
@@ -514,7 +497,11 @@ pullback(phi::ProjectiveSchemeMor) = phi.pullback
 base_ring_morphism(phi::ProjectiveSchemeMor) = coefficient_map(pullback(phi))
 
 ### additional constructors
-function ProjectiveSchemeMor(X::T, Y::T, a::Vector{RET}) where {T<:ProjectiveScheme, RET<:MPolyElem_dec}
+function ProjectiveSchemeMor(
+    X::AbsProjectiveScheme, 
+    Y::AbsProjectiveScheme, 
+    a::Vector{<:MPolyElem_dec}
+  )
   base_ring(X) === base_ring(Y) || error("projective schemes must be defined over the same base ring")
   Q = ambient_ring(X)
   P = ambient_ring(Y)
@@ -522,7 +509,7 @@ function ProjectiveSchemeMor(X::T, Y::T, a::Vector{RET}) where {T<:ProjectiveSch
 end
 
 # in case we have honest base schemes, also make the map of schemes available
-function base_map(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}})
+function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocalizedRing}})
   if !isdefined(phi, :map_on_base_schemes)
     phi.map_on_base_schemes = SpecMor(base_scheme(domain(phi)), base_scheme(codomain(phi)), coefficient_map(pullback(phi)))
   end
@@ -601,7 +588,7 @@ function is_well_defined(phi::ProjectiveSchemeMor)
   return issubset(CP, preimage(map_on_affine_cones(phi), CQ))
 end
 
-function compose(f::T, g::T) where {T<:ProjectiveSchemeMor}
+function compose(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
   return ProjectiveSchemeMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
 end
 
@@ -614,8 +601,8 @@ function ==(f::ProjectiveSchemeMor, g::ProjectiveSchemeMor)
   return true
 end
 
-function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}}, 
-            g::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}}) 
+function ==(f::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}}, 
+            g::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuo, <:MPolyLocalizedRing, <:MPolyQuoLocalizedRing}}}) 
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   return map_on_affine_cones(f) == map_on_affine_cones(g)
