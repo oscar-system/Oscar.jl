@@ -89,6 +89,10 @@
    @test wdegrevlex(R, [1,2,3]) == wdegrevlex(gens(R), [1,2,3])
    @test negwdeglex(R, [1,2,3]) == negwdeglex(gens(R), [1,2,3])
    @test negwdegrevlex(R, [1,2,3]) == negwdegrevlex(gens(R), [1,2,3])
+
+   @test support(lex([x])) == [x]
+   @test support(lex([x, y])) == [x,y] || support(lex([x,y])) == [y,x]
+   @test 3 == length(support(deglex([x,y])*wdeglex([y,z], [1,2])))
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin

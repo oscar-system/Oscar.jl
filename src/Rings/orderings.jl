@@ -154,6 +154,11 @@ end
 
 base_ring(a::MonomialOrdering) = a.R
 
+@doc Markdown.doc"""
+    support(o::MonomialOrdering)
+
+Return the vector of variables on which `o` is defined.
+"""
 function support(o::MonomialOrdering)
   return [gen(base_ring(o), i) for i in _support_indices(o.o)]
 end
