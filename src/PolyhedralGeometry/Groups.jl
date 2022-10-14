@@ -57,7 +57,7 @@ julia> quad = convex_hull([0 0; 1 0; 2 2; 0 1])
 A polyhedron in ambient dimension 2
 
 julia> G = combinatorial_symmetries(quad)
-Group([ (1,2)(3,4), (1,3) ])
+Group([ (2,4), (1,2)(3,4) ])
 
 julia> length(elements(G))
 8
