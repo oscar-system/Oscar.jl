@@ -569,7 +569,7 @@ Group([ (3,4), (2,3), (1,2) ])
 ```
 """
 function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return gens_to_group(automorphism_group_generators(g))
+    return _gens_to_group(automorphism_group_generators(g))
 end
 
 
