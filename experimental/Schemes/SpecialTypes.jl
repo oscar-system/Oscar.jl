@@ -121,9 +121,6 @@ function compose(G::GT, H::GT) where {GT<:SimpleGlueing}
   Z = patches(H)[2]
   f, f_inv = glueing_morphisms(G)
   g, g_inv = glueing_morphisms(H)
-                              tmp = [complement_equation(domain(f)), 
-                                     lifted_numerator(pullback(f)(complement_equation(domain(g))))
-                              ]
   U_new = PrincipalOpenSubset(ambient_scheme(domain(f)), 
                               [complement_equation(domain(f)), 
                                lifted_numerator(pullback(f)(complement_equation(domain(g))))
