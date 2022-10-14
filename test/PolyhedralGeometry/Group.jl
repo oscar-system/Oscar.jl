@@ -27,12 +27,12 @@
         @test_throws ArgumentError linear_symmetries(P)
     end
 
-    @testset "vf_group" begin
+    @testset "automorphism_group(P; action = :on_facets)" begin
         C = cube(3)
-        A = vf_group(C)
+        A = automorphism_group(C; action = :on_facets)
         @test degree(A) == 6
         P = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
-        @test_throws ArgumentError vf_group(P)
+        @test_throws ArgumentError automorphism_group(P; action = :on_facets)
     end
 
     @testset "combinatorial_symmetries" begin
