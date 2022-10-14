@@ -91,74 +91,101 @@ function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
     return X
 end
 
+############################################################################################################
+# allow user to specify point also as ideal
+# currently broken -- suggestions welcome on how to do this Oscar-style
+############################################################################################################
+function _maxideal_to_point(I::MPolyIdeal)
+  G = groebner_assure(I)
+  dim(I)==0 || error("Ideal does not describe finite set of points")
+  singular_assure(G)
+  vdim(G)==1 || error("Ideal does not describe a single K-point")
+  return [singular.reduce(v,G) for v in gens(base_ring(I))]
+end
+
 ### constructors
-function SpaceGerm(X::Spec, I::MPolyLocalizedIdeal; check::Bool=true)
-  R = base_ring(base_ring(I))
-  R == ambient_ring(X) || error("rings are not compatible")
-  P = saturated_ideal(I)
-  if check
-    is_prime(P) || error("the given ideal is not prime")
-  end
-  U = complement_of_ideal(P, check=check)
+function SpaceGerm(X::Spec, a::Vector)
+  R = ambient_ring(X)
+  kk = coefficient_ring(R)
+  b = [kk.(v) for v in a]  ## throws and error, if vector entries are not compatible
+  U = MPolyComplementOfKPointIdeal(R,b)
   Y = Spec(Localization(OO(X), U)[1])
   return SpaceGerm(Y)
 end
-
-function SpaceGerm(X::Spec, I::MPolyQuoLocalizedIdeal; check::Bool=true)
+  
+function SpaceGerm(X::Spec, I::MPolyLocalizedIdeal)
   R = base_ring(base_ring(I))
   R == ambient_ring(X) || error("rings are not compatible")
-  P = saturated_ideal(I)
-  if check
-    is_prime(P) || error("the given ideal is not prime")
-  end
-  U = complement_of_ideal(P, check=check)
-  Y = Spec(Localization(OO(X), U)[1])
-  return SpaceGerm(Y)
+  J = ideal(R, [numerator(p) for p in gens(I)]) # expected to be a single k-point, only tested in nex line
+  a = _maxideal_to_point(J)
+  Y = SpaceGerm(X,a)
+  return Y
 end
 
-function SpaceGerm(X::Spec, I::MPolyIdeal; check::Bool=true)
-  if check
-    is_prime(I) || error("the given ideal is not prime")
-  end
+function SpaceGerm(X::Spec, I::MPolyQuoLocalizedIdeal)
+  L = base_ring(I)
+  R = base_ring(L)
+  R == ambient_ring(X) || error("rings are not compatible")
+  J = ideal(R, [numerator(p) for p in lift.(gens(I))]) + modulus(quotient_ring(L))
+  a = _maxideal_to_point(J)
+  Y = SpaceGerm(X,a)
+  return Y
+end  
+
+function SpaceGerm(X::Spec, I::MPolyIdeal)
   R = base_ring(I)
   R == ambient_ring(X) || error("rings are not compatible")
-
-  U = complement_of_ideal(I, check=check)
-  Y = Spec(Localization(OO(X), U)[1])
-
-  return SpaceGerm(Y)
+  a = _maxideal_to_point(I)
+  Y = SpaceGerm(X,a)
+  return Y
 end
 
-function SpaceGerm(X::Spec, I::MPolyQuoIdeal; check::Bool=true)
+function SpaceGerm(X::Spec, I::MPolyQuoIdeal)
   A = base_ring(I)
   A == OO(X) || error("rings are not compatible")
   R = base_ring(A)
-  P = ideal(R, lift.(gens(I))) + modulus(A)
-  if check
-    is_prime(P) || error("the given ideal is not prime")
-  end
-  U = complement_of_ideal(P, check=check)
-  Y = Spec(Localization(OO(X), U)[1])
-
-  return SpaceGerm(Y)
+  I = ideal(R, lift.(gens(I))) + modulus(A)
+  a = _maxideal_to_point(I)
+  Y = SpaceGerm(X,a)
+  return Y
 end
 
-function germ_at_point(X::Spec, I::Ideal; check::Bool=true)
-  Y = SpaceGerm(X, I, check=check)
+function germ_at_point(X::Spec, I::Ideal)
+  Y = SpaceGerm(X, I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(A::MPolyRing, I::Ideal; check::Bool=true)
-  X = Spec(A)
-  Y = SpaceGerm(X, I, check=check)
+function germ_at_point(X::Spec, a::Vector)
+  Y = SpaceGerm(X, a)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(A::MPolyQuo, I::Ideal; check::Bool=true)
+function germ_at_point(A::MPolyRing, I::Ideal)
   X = Spec(A)
-  Y = SpaceGerm(X, I, check=check)
+  Y = SpaceGerm(X, I)
+  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+  return Y, restr_map
+end
+
+function germ_at_point(A::MPolyRing, a::Vector)
+  X = Spec(A)
+  Y = SpaceGerm(X, a)
+  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+  return Y, restr_map
+end
+
+function germ_at_point(A::MPolyQuo, I::Ideal)
+  X = Spec(A)
+  Y = SpaceGerm(X, I)
+  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+  return Y, restr_map
+end
+
+function germ_at_point(A::MPolyQuo, a::Vector)
+  X = Spec(A)
+  Y = SpaceGerm(X, a)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
