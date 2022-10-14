@@ -170,4 +170,15 @@ end
     @test eliminate(I, [e, f, h]) == left_ideal([a^3 - 32*a^2 + 192*a])
     @test_throws ErrorException eliminate(I, [h])
   end
+
+  r, (a, b, x, d) = QQ["a", "b", "x", "d"]
+  rel = [0 a*b+3*a a*x a*d+3*x^2; 0 0 b*x-x b*d+d; 0 0 0 x*d+1; 0 0 0 0]
+  for o in [lex(r),     # forces the discovery of the weight [0,0,1,2]
+            deglex(r),  # ditto
+            weighted_ordering(gens(r), [0,0,1,2])*deglex(r)
+           ]
+    R, (a, b, x, d) = pbw_algebra(r, rel, o)
+    I = left_ideal([a, x])
+    @test eliminate(I, [x, d]) == left_ideal([a])
+  end
 end
