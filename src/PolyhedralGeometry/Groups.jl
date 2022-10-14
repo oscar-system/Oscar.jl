@@ -70,8 +70,7 @@ julia> length(elements(G))
 ```
 """
 function combinatorial_symmetries(P::Polyhedron)
-    result = automorphism_group(P; type=:combinatorial)
-    return result[:on_vertices]
+    return automorphism_group(P; type=:combinatorial, action=:on_vertices)
 end
 
 @doc Markdown.doc"""
@@ -183,7 +182,7 @@ Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
 ```
 """
 function automorphism_group_generators(P::Polyhedron; type = :combinatorial, action = :all)
-    pm_object(P).BOUNDED || throw(ArgumentError("Automorphism groups not supported for unbounded polyhedra."))
+    is_bounded(P) || throw(ArgumentError("Automorphism groups not supported for unbounded polyhedra."))
     if type == :combinatorial
         IM = vertex_indices(facets(P))
         if action == :all
@@ -275,7 +274,7 @@ end
 
 
 function _linear_symmetries_generators(P::Polyhedron; action = :all)
-    if pm_object(P).BOUNDED
+    if is_bounded(P)
         gp = Polymake.polytope.linear_symmetries(vertices(P))
         vgens = gp.PERMUTATION_ACTION.GENERATORS
         if action == :on_vertices
