@@ -68,6 +68,10 @@ end
   g = SpecMor(Wb, Vv, [a, 1//b])
   Vvo = SpecOpen(Vv)
   Wbo = SpecOpen(Wb)
+  simpleG2 = SimpleGlueing(Y, Z, f, g)
+  @test compose(simpleG, simpleG2) == compose(simpleG, inverse(simpleG2))
+  @test compose(inverse(simpleG), simpleG2) == compose(simpleG, inverse(simpleG2))
+  @test compose(inverse(simpleG), inverse(simpleG2)) == compose(simpleG, inverse(simpleG2))
   G2 = Glueing(Y, Z, 
                SpecOpenMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]), 
                SpecOpenMor(Wbo, Vvo, [compose(g, inclusion_morphism(Vv, Y))]))

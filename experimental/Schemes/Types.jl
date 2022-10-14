@@ -207,7 +207,7 @@ end
   X::AmbientType
   U::Spec{BRT, RT}
   f::RingElem
-  inc::SpecMor
+  inc::OpenInclusion
 
   function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
     parent(f) == OO(X) || error("element does not belong to the correct ring")
@@ -215,8 +215,8 @@ end
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end
   
-  function PrincipalOpenSubset(X::AbsSpec, f::Vector{RingElemType}) where {RingElemType<:MPolyElem}
-    all(x->(parent(x) == OO(X)), f) || error("element does not belong to the correct ring")
+  function PrincipalOpenSubset(X::AbsSpec, f::Vector{<:RingElem})
+    all(x->(parent(x) == OO(X)), f) || return PrincipalOpenSubset(X, OO(X).(f))
     U = hypersurface_complement(X, f)
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
   end
@@ -434,6 +434,16 @@ ideal ``I ⊂ R``.
     inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y))))
     return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
   end
+  function ClosedEmbedding(f::SpecMor, I::Ideal; check::Bool=true)
+    Y = domain(f)
+    X = codomain(f)
+    base_ring(I) == OO(X) || error("ideal does not belong to the correct ring")
+    if check
+      Y == subscheme(X, I)
+      pullback(f).(gens(OO(X))) == gens(OO(Y))
+    end
+    return new{typeof(Y), typeof(X), pullback_type(f)}(f, I)
+  end
 end
 
 ########################################################################
@@ -570,7 +580,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   # fields used for caching
   C::Scheme # The affine cone of this scheme.
   Y::Scheme # the base scheme 
-  projection_to_base::AbsSpecMor
+  projection_to_base::SchemeMor
   homog_coord::Vector # the homogeneous coordinates as functions on the affine cone
 
   function ProjectiveScheme(S::MPolyRing_dec)
@@ -675,10 +685,10 @@ mutable struct ProjectiveSchemeMor{
     S = ambient_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
-    codomain(h) == coefficient_ring(T) || error("base scheme map not compatible")
-    domain(h) == coefficient_ring(S) || error("base scheme map not compatible")
+    OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
+    OO(codomain(h)) == coefficient_ring(S) || error("base scheme map not compatible")
     if check
-      T(pbh(one(domain(h)))) == f(S(one(domain(h)))) == one(T) || error("maps not compatible")
+      T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) || error("maps not compatible")
       coefficient_map(f) == pbh || error("maps not compatible")
     end
     return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, h)
