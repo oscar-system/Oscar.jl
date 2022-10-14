@@ -508,39 +508,7 @@ function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocal
   return phi.map_on_base_schemes::SchemeMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}}) 
-  if !isdefined(phi, :map_on_affine_cones)
-    A = base_ring(domain(phi))
-    S = ambient_ring(codomain(phi))
-    T = ambient_ring(domain(phi))
-    P = domain(phi)
-    Q = codomain(phi)
-    pb_P = pullback(projection_to_base(P))
-    pb_Q = pullback(projection_to_base(Q))
-    imgs_base = pb_P.(gens(A))
-    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
-  end
-  return phi.map_on_affine_cones::AbsSpecMor
-end
-
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyLocalizedRing}}) 
-  if !isdefined(phi, :map_on_affine_cones)
-    A = base_ring(domain(phi))
-    S = ambient_ring(codomain(phi))
-    T = ambient_ring(domain(phi))
-    P = domain(phi)
-    Q = codomain(phi)
-    pb_P = pullback(projection_to_base(P))
-    pb_Q = pullback(projection_to_base(Q))
-    imgs_base = pb_P.(gens(A))
-    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
-  end
-  return phi.map_on_affine_cones::AbsSpecMor
-end
-
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyRing}})
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}})
   if !isdefined(phi, :map_on_affine_cones)
     Y = base_scheme(domain(phi))
     A = OO(Y)
@@ -557,24 +525,9 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPoly
   return phi.map_on_affine_cones::AbsSpecMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuo}})
-  if !isdefined(phi, :map_on_affine_cones)
-    Y = base_scheme(domain(phi))
-    A = OO(Y)
-    S = ambient_ring(codomain(phi))
-    T = ambient_ring(domain(phi))
-    P = domain(phi)
-    Q = codomain(phi)
-    pb_P = pullback(projection_to_base(P))
-    pb_Q = pullback(projection_to_base(Q))
-    imgs_base = pb_P.(gens(A))
-    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
-  end
-  return phi.map_on_affine_cones::AbsSpecMor
-end
-    
-    
+### This method is for the case of a morphism of 
+# projective schemes over a common and unchanged base ring/field.
+# So it will be the most usual case. 
 function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:AbstractAlgebra.Ring}})
   if !isdefined(phi, :map_on_affine_cones)
     S = ambient_ring(codomain(phi))
@@ -600,10 +553,11 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:SpecO
     BY = base_scheme(Y)
     BQ = ambient(BY)
     fiber_coord_imgs = homog_to_frac(X).(pullback(phi).(gens(ambient_ring(Y)))) # elements in OO(CX)
-    base_coord_imgs = pullback(phi).(pullback(projection_to_base(Y)).(gens(OO(BY))))
-    coord_imgs = vcat(fiber_coord_imgs, base_coord_imgs)
-    phi.map_on_affine_cones = SpecOpenMor(CX, CY, 
-                                          [SpecMor(U, Q, (f->restriction_map(U, f)).(coord_imgs)) for U in CX], check=false)
+    #@show pullback(phi).(pullback(projection_to_base(Y)).(gens(OO(BY))))
+    base_coord_imgs = homog_to_frac(X).(pullback(phi).(ambient_ring(Y).(gens(OO(BY)))))
+    coord_imgs = vcat(base_coord_imgs, fiber_coord_imgs)
+    list = [SpecMor(CX[i], Q, restriction_map(CX, CX[i]).(coord_imgs)) for i in 1:ngens(CX)]
+    phi.map_on_affine_cones = SpecOpenMor(CX, CY, list, check=false)
   end
   return phi.map_on_affine_cones::SpecOpenMor
 end

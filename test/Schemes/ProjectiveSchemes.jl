@@ -189,6 +189,13 @@ end
   CW = affine_cone(IP2_W)
   pCW = projection_to_base(IP2_W)
 
+  WY = SpecOpen(Y, [x-y, x+y-2])
+  WtoWY = inclusion_morphism(W, WY)
+  IP2_WY = projective_space(WY, 2, var_name="w")
+  _, map = fiber_product(pullback(WtoWY), IP2_WY)
+
+  map_on_affine_cones(map)
+
   IP2_Xh = subscheme(IP2_X, gens(ambient_ring(IP2_X))[1])
   ProjectiveSchemeMor(IP2_Xh, IP2_X, gens(ambient_ring(IP2_Xh)))
   IP2_Yh = subscheme(IP2_Y, gens(ambient_ring(IP2_Y))[1])
@@ -249,4 +256,10 @@ end
 
   @test UYtoX == inclusion_morphism(IP2_UY, IP2_X)
   @test compose(UYtoY, YtoX) == UYtoX
+
+  WW = hypersurface_complement(ambient(W), [x-y])
+  phi = MapFromFunc(restriction_map(W, WW), OO(W), OO(WW))
+  IP2_WW, map = fiber_product(phi, IP2_W)
+  @test base_scheme(IP2_WW) == WW
+  @test !(base_scheme(IP2_WW) === WW)
 end
