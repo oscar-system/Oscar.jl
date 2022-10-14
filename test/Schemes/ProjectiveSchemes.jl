@@ -262,4 +262,8 @@ end
   IP2_WW, map = fiber_product(phi, IP2_W)
   @test base_scheme(IP2_WW) == WW
   @test !(base_scheme(IP2_WW) === WW)
+
+  IP2_QQ = projective_space(QQ, 2)
+  id = identity_map(IP2_QQ)
+  @test id == identity_map(IP2_QQ)
 end
