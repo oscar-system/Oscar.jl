@@ -250,13 +250,12 @@ end
 
 @testset "Hilbert series" begin
   n = 5
-  AbstractAlgebra.divides(a::Vector{Int}, b::Vector{Int}) = all(x->(x>=0), a-b)
 
   g = Vector{Vector{Int}}()
   for i in 1:50
     e = [rand(20:50) for i in 1:n]
-    if all(v->!divides(e, v), g)
-      g = [v for v in g if !divides(v, e)]
+    if all(v->!Oscar._divides(e, v), g)
+      filter!(v -> !Oscar._divides(v, e), g)
       push!(g, e)
     end
   end
