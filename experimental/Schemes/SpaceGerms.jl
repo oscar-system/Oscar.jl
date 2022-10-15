@@ -17,11 +17,11 @@ abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsSpec{BaseRi
 ####################################################################
 ## two short hand definitions for internal use only
 ####################################################################
-GermAtClosedPoint = Spec{<:Ring, 
+GermAtClosedPoint = Spec{<:Field, 
                          <:AbsLocalizedRing{<:Ring, <:Any, 
                                             <:MPolyComplementOfKPointIdeal}
                         }
-GermAtGeometricPoint = Spec{<:Ring, 
+GermAtGeometricPoint = Spec{<:Field, 
                             <:AbsLocalizedRing{<:Ring, <:Any, 
                                                <:MPolyComplementOfPrimeIdeal}
                            }
@@ -53,14 +53,11 @@ function underlying_scheme(X::SpaceGerm)
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyQuoLocalizedRing})
-    R = base_ring(OO(X))
-    I = modulus(OO(X))
-    Q, _ = quo(R, I)
-    return Spec(Q)
+    return Spec(quotient_ring(X))
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocalizedRing})
-    R = base_ring(OO(X))
+    R = ambient_ring(X)
     return Spec(R)
 end
 
@@ -75,7 +72,7 @@ end
 ring_of_germ(X::AbsSpaceGerm) = OO(X)
 
 function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
-    return localized_ring(OO(X))(modulus(OO(X)))
+    return modulus(OO(X)
 end
 
 function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
@@ -98,13 +95,12 @@ end
 function _maxideal_to_point(I::MPolyIdeal)
   G = groebner_assure(I)
   dim(I)==0 || error("Ideal does not describe finite set of points")
-  singular_assure(G)
-  vdim(G)==1 || error("Ideal does not describe a single K-point")
-  return [singular.reduce(v,G) for v in gens(base_ring(I))]
+  vectorspace_dim(G)==1 || error("Ideal does not describe a single K-point")
+  return [normal_form(v,G) for v in gens(base_ring(I))]
 end
 
 ### constructors
-function SpaceGerm(X::Spec, a::Vector)
+function SpaceGerm(X::AbsSpec, a::Vector)
   R = ambient_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws and error, if vector entries are not compatible
@@ -112,27 +108,8 @@ function SpaceGerm(X::Spec, a::Vector)
   Y = Spec(Localization(OO(X), U)[1])
   return SpaceGerm(Y)
 end
-  
-function SpaceGerm(X::Spec, I::MPolyLocalizedIdeal)
-  R = base_ring(base_ring(I))
-  R == ambient_ring(X) || error("rings are not compatible")
-  J = ideal(R, [numerator(p) for p in gens(I)]) # expected to be a single k-point, only tested in nex line
-  a = _maxideal_to_point(J)
-  Y = SpaceGerm(X,a)
-  return Y
-end
 
-function SpaceGerm(X::Spec, I::MPolyQuoLocalizedIdeal)
-  L = base_ring(I)
-  R = base_ring(L)
-  R == ambient_ring(X) || error("rings are not compatible")
-  J = ideal(R, [numerator(p) for p in lift.(gens(I))]) + modulus(quotient_ring(L))
-  a = _maxideal_to_point(J)
-  Y = SpaceGerm(X,a)
-  return Y
-end  
-
-function SpaceGerm(X::Spec, I::MPolyIdeal)
+function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
   R == ambient_ring(X) || error("rings are not compatible")
   a = _maxideal_to_point(I)
@@ -140,7 +117,7 @@ function SpaceGerm(X::Spec, I::MPolyIdeal)
   return Y
 end
 
-function SpaceGerm(X::Spec, I::MPolyQuoIdeal)
+function SpaceGerm(X::ABsSpec, I::MPolyQuoIdeal)
   A = base_ring(I)
   A == OO(X) || error("rings are not compatible")
   R = base_ring(A)
@@ -150,13 +127,17 @@ function SpaceGerm(X::Spec, I::MPolyQuoIdeal)
   return Y
 end
 
-function germ_at_point(X::Spec, I::Ideal)
+##### still missing: case of MPolyLocalizedIdeal and quo
+#####                problem: does only make sense for inverting powers of elements
+#####                for complements of ideals: either I is the complement of the inverted set or nonsense
+
+function germ_at_point(X::AbsSpec, I::Ideal)
   Y = SpaceGerm(X, I)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
-function germ_at_point(X::Spec, a::Vector)
+function germ_at_point(X::AbsSpec, a::Vector)
   Y = SpaceGerm(X, a)
   restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
