@@ -295,7 +295,7 @@ function show(io::IO, I::IdealGens)
     end
   else
     print(io, "Ideal generating system with elements")
-    for (i,g) in enumarate(gens(I))
+    for (i,g) in enumerate(gens(I))
       print(io, "\n", i, " -> ", g)
     end
   end
