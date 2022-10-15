@@ -24,7 +24,12 @@ ideal(x*y - 3*x, -2*x^2*y + y^3)
 julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
 
 julia> I.gb[degrevlex(gens(R))]
-Oscar.IdealGens{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
+Gröbner basis with elements
+1 -> x*y - 3*x
+2 -> y^3 - 6*x^2
+3 -> 2*x^3 - 9*x
+with respect to the ordering
+degrevlex([x, y])
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
@@ -101,9 +106,11 @@ julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
 ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
 
 julia> std_basis(I, negdegrevlex(gens(R)))
-2-element Vector{fmpq_mpoly}:
- x
- y
+Standard basis with elements
+1 -> x
+2 -> y
+with respect to the ordering
+negdegrevlex([x, y])
 ```
 """
 function std_basis(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
