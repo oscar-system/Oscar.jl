@@ -37,7 +37,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocaliz
     components = [subscheme(X, J) for J in P]
     for Y in components
       for Z in components
-        if !(Y == Z)
+        if !(Y === Z)
           W = intersect(Y, Z)
           if !isempty(W) 
             push!(result, W)

@@ -30,7 +30,7 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 const cornerstones = String["AbstractAlgebra", "GAP", "Hecke", "Nemo", "Polymake", "Singular"];
 const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP_jll",
-                        "libpolymake_julia_jll", "libsingular_julia_jll", "msolve_jll",
+                        "libpolymake_julia_jll", "libsingular_julia_jll",
                         "polymake_jll", "Singular_jll"];
 
 # When a specific branch is loaded via `]add Package#branch` julia will only
@@ -163,13 +163,14 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    __GAP_info_messages_off()
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
+    GAP.Packages.load("wedderga") # provides a function to compute Schur indices
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()
-    __GAP_info_messages_off()
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -272,7 +273,7 @@ function build_doc(; doctest=false, strict=false)
   versionwarn = 
 "The Julia reference version for the doctests is 1.6, but you are using
 $(VERSION). Running the doctests will produce errors that you do not expect."
-  if doctest && !versioncheck
+  if doctest != false && !versioncheck
     @warn versionwarn
   end
   if !isdefined(Main, :BuildDoc)
@@ -282,7 +283,7 @@ $(VERSION). Running the doctests will produce errors that you do not expect."
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
   end
   open_doc()
-  if doctest && !versioncheck
+  if doctest != false && !versioncheck
     @warn versionwarn
   end
 end
@@ -387,10 +388,8 @@ include("Rings/mpoly.jl")
 include("Rings/mpoly_types.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")
-include("Rings/msolve/interface.jl")
-include("Rings/msolve/f4.jl")
-include("Rings/msolve/msolve.jl")
 include("Rings/groebner.jl")
+include("Rings/solving.jl")
 include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
 include("Rings/FractionalIdeal.jl")

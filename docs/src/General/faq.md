@@ -134,3 +134,19 @@ the system copy is used. This can be achieved by executing the following Julia c
 
 If for some reason you need to restore the C++ library bundled with Julia, you can
 simply rename it back.
+
+**Q:  Oscar fails to precompile when using it with GNU parallel**
+
+You get errors like the following when trying to run some script using Oscar
+with GNU parallel:
+```
+  ERROR: LoadError: InitError: ArgumentError: '.../deps/<something>_jll' exists. `force=true` is required to remove '...' before copying.
+```
+
+There was a [bug](https://github.com/JuliaLang/julia/issues/35343) in julia
+versions before 1.8 that ignored the parent argument for the `tempname`
+function when the `TMPDIR` environment variable is set and GNU parallel by
+default sets `TMPDIR` to `/tmp`.
+
+Either upgrade to julia 1.8 or later, or add `ENV["TMPDIR"]=nothing;` to the
+beginning of your julia code (before importing / using Oscar).

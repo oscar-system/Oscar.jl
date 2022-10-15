@@ -16,10 +16,25 @@ end
 
 @testset "Covered schemes 2" begin
   P = projective_space(QQ, ["x", "y", "z", "w"])
+  Pc = as_covered_scheme(P)
   S = ambient_ring(P)
   (x,y,z,w) = gens(S)
   X = subscheme(P, [x*w - y*z])
+  @test dim(Pc)==3
+  @test dim(as_covered_scheme(X))==2
+  Y = subscheme(P, [x*z,y*z])
+  @test dim(as_covered_scheme(Y)) == 2
   C = standard_covering(X)
   D, i, j = simplify(C) # not functional for the moment
   @test all( x->(ngens(ambient_ring(x)) == 3), collect(D)) # should be replaced by == 2 when fixed
+  @test_broken transition_graph(Pc[1])
+  @test_broken transition_graph(C)
+end
+
+@testset "standard_covering" begin
+  R, t = PolynomialRing(QQ,["t"])
+  T = Oscar.standard_spec(subscheme(Spec(R),t))
+  Pt= projective_space(T, 2)
+  X = as_covered_scheme(Pt)
+  @test dim(X) == 2
 end

@@ -52,10 +52,6 @@ end
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
-Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
-Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
-Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
-
 # export nf_scalar
 
 Base.zero(::Type{nf_scalar}) = fmpq()
@@ -88,6 +84,38 @@ function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake
 end
 
 Base.convert(T::Type{<:Polymake.Matrix}, x::Union{fmpz_mat,fmpq_mat}) = Base.convert(T, Matrix(x))
+
+Base.convert(::Type{<:Polymake.Integer}, x::fmpz) = GC.@preserve x return Polymake.new_integer_from_fmpz(x)
+
+Base.convert(::Type{<:Polymake.Rational}, x::fmpq) = GC.@preserve x return Polymake.new_rational_from_fmpq(x)
+
+Base.convert(::Type{<:Polymake.Rational}, x::fmpz) = GC.@preserve x return Polymake.new_rational_from_fmpz(x)
+
+Base.convert(::Type{<:Polymake.Integer}, x::fmpq) = GC.@preserve x return Polymake.new_integer_from_fmpq(x)
+
+function Base.convert(::Type{fmpz}, x::Polymake.Integer)
+    res = fmpz()
+    GC.@preserve x Polymake.new_fmpz_from_integer(x, pointer_from_objref(res))
+    return res
+end
+
+function Base.convert(::Type{fmpq}, x::Polymake.Rational)
+    res = fmpq()
+    GC.@preserve x Polymake.new_fmpq_from_rational(x, pointer_from_objref(res))
+    return res
+end
+
+function Base.convert(::Type{fmpq}, x::Polymake.Integer)
+    res = fmpq()
+    GC.@preserve x Polymake.new_fmpq_from_integer(x, pointer_from_objref(res))
+    return res
+end
+
+function Base.convert(::Type{fmpz}, x::Polymake.Rational)
+    res = fmpz()
+    GC.@preserve x Polymake.new_fmpz_from_rational(x, pointer_from_objref(res))
+    return res
+end
 
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
@@ -224,10 +252,6 @@ end
 function decompose_hdata(A)
     (A = -A[:, 2:end], b = A[:, 1])
 end
-
-Base.convert(::Type{fmpq}, q::Polymake.Rational) = fmpq(Polymake.numerator(q), Polymake.denominator(q))
-
-Base.convert(::Type{fmpz}, q::Polymake.Rational) = convert(fmpz, convert(Polymake.Integer, q))
 
 # TODO: different printing within oscar? if yes, implement the following method
 # Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))

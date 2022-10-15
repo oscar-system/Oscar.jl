@@ -9,8 +9,8 @@
   J = ideal(R, [f, x])
   A3empty = subscheme(A3,ideal(R,R(1)))
   absempty = EmptyScheme(QQ)
-  @test is_canonically_isomorphic(A3empty, absempty)
-  @test is_canonically_isomorphic(absempty, A3empty)
+  @test (A3empty==absempty)
+  @test (absempty==A3empty)
   X = subscheme(A3, I)
   @test_broken !is_non_zero_divisor(f,X)
   @test is_non_zero_divisor(f,A3)
@@ -45,13 +45,13 @@
   @test issubset(UX, X)
   @test issubset(UX, U)
   @test name(UX) == "U ∩ X"
-  @test is_canonically_isomorphic(X, closure(UX, A3))
+  @test X == closure(UX, A3)
   @test is_open_embedding(UX, X)
   @test is_closed_embedding(X, A3)
   UZ = subscheme(UX, y^2)
   subscheme(UX, [y^2])
   Z = subscheme(X, y^2)
-  @test is_canonically_isomorphic(closure(UZ, X), Z)
+  @test closure(UZ, X)==Z
   
   S, (u,v) = QQ["u", "v"]
   A2 = Spec(S)
@@ -139,4 +139,22 @@ end
 @testset "Spec ZZ" begin
   Spec(ZZ)
   Spec(QQ)
+end
+
+@testset "fiber product" begin
+  R, _ = QQ["x","t"]
+  S, _ = QQ["y","t"]
+  T, _ = PolynomialRing(QQ,["t"])
+  X = Oscar.standard_spec(Spec(R))
+  Y = Oscar.standard_spec(Spec(S))
+  B = Oscar.standard_spec(Spec(T))
+  phi1 = hom(OO(B), OO(X), [gens(OO(X))[2]])
+  phi2 = hom(OO(B), OO(Y), [gens(OO(Y))[2]])
+  Phi1 = SpecMor(X, B, phi1)
+  Phi2 = SpecMor(Y, B, phi2)
+  Z = fiber_product(Phi1, Phi2)[1]
+  A = ambient_ring(Z)
+  a = gens(A)
+  fib = subscheme(Spec(A), ideal(A, [a[2]-a[4]]))
+  @test fib==Z
 end
