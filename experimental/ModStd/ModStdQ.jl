@@ -116,7 +116,7 @@ end
 
 function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
-    I.gb[ord] = IdealGens(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
+    I.gb[ord] = IdealGens(base_ring(I), fmpq_mpoly[], ord, isGB = true, keep_ordering = false)
     singular_assure(I.gb[ord])
     return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
   end

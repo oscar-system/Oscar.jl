@@ -211,15 +211,29 @@ mutable struct IdealGens{S}
   ord::Orderings.MonomialOrdering
   keep_ordering::Bool
 
-  function IdealGens(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
-    return IdealGens(parent(O[1]), O; keep_ordering = keep_ordering,
-                                        isGB = isGB)
+  function IdealGens(O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
+    return IdealGens(parent(O[1]), O; keep_ordering = keep_ordering)
   end
 
-  function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+  function IdealGens(O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+    return IdealGens(parent(O[1]), O, ordering; keep_ordering = keep_ordering, isGB)
+  end
+
+  function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
     r = new{T}()
     r.gens = BiPolyArray(Ox, O)
+    r.ord = ordering
     r.isGB = isGB
+    r.keep_ordering = keep_ordering
+    return r
+  end
+
+  function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
+    r = new{T}()
+    if isdefined(r, :isGB) # why can this even happen?
+      r.isGB = false
+    end
+    r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
   end
@@ -353,7 +367,11 @@ end
 Base.eltype(::IdealGens{S}) where S = S
 
 function gens(I::IdealGens)
-  return return(collect(I))
+  return collect(I)
+end
+
+function elements(I::IdealGens)
+  return collect(I)
 end
 
 ##############################################################################

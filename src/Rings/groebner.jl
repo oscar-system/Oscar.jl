@@ -208,8 +208,9 @@ function f4(
                 info_level = info_level)
 
     vars = gens(base_ring(I))[eliminate+1:end]
-    I.gb[degrevlex(vars)] =
-        IdealGens(AI.gb[eliminate], keep_ordering = false, isGB = true)
+    ord = degrevlex(vars)
+    I.gb[ord] =
+        IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
 
     return AI.gb[eliminate]
 end
