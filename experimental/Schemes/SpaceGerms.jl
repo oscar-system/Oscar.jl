@@ -79,13 +79,13 @@ function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
     return ideal(OO(X),[zero(OO(X))])
 end
 
-function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
+@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
     Y,_ = germ_at_point(localized_ring(OO(X)))
     return Y
 end
 
-function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
-    return X
+@attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
+    return X   ### how do I make this a copy of X, instead of X itself
 end
 
 ############################################################################################################
@@ -95,7 +95,7 @@ end
 function _maxideal_to_point(I::MPolyIdeal)
   G = groebner_assure(I)
   dim(I)==0 || error("Ideal does not describe finite set of points")
-  vectorspace_dim(G)==1 || error("Ideal does not describe a single K-point")
+  vectorspace_dimension(G)==1 || error("Ideal does not describe a single K-point")
   return [normal_form(v,G) for v in gens(base_ring(I))]
 end
 
