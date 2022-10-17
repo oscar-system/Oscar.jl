@@ -35,9 +35,38 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 	   $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
        Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
 	   (global, local, mixed) monomial ordering on $\N^n$.
-	
-Some monomial orderings are predefined in OSCAR. In this section, we fix our notation with respect to  these orderings
-and illustrate their creation using several explicit examples. We then discuss block and matrix orderings.
+
+!!! note
+    The lexicograpical monomial ordering `lex` specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
+    The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering `deglex` and the degree reverse lexicographical
+	ordering`degrevlex`. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
+
+In this section we show  how to create monomial orderings in OSCAR. We start with a list of predefined orderings.
+Then we discuss matrix, weight, and block orderings (product orderings).
+
+!!! note
+    For the convenient construction of block orderings on the set of monomials of a given multivariate polynomial ring, we allow to construct orderings on the
+    monomials in blocks of variables, viewing these orderings as partial orderings on the monomials in all variables.
+
+Here is an illustrating example:
+
+# Example
+
+```@repl oscar
+S, (w, x) = PolynomialRing(QQ, ["w", "x"])
+o = lex([w, x])
+canonical_matrix(o)
+R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+o1 = degrevlex([w, x])
+is_global(o1)
+canonical_matrix(o1)
+o2 = neglex([y, z])
+is_local(o2)
+canonical_matrix(o2)
+o3 = o1*o2
+canonical_matrix(o3)
+is_mixed(o3)
+```
 
 ## Predefined Global Orderings
 
@@ -171,27 +200,6 @@ $x^\alpha > x^\beta \;  \Leftrightarrow \; \text{wdeg}(x^\alpha) < \text{wdeg}(x
 negwdegrevlex(V::AbstractVector{<:MPolyElem}, W::Vector{Int})
 ```
 
-## Block Orderings
-
-The concept of block orderings allows one to construct new monomial orderings from already given ones: If $>_1$ and $>_2$ are monomial orderings on $\text{Mon}_s(x_1, \ldots, x_s)$ and $\text{Mon}_{n-s}(x_{s+1}, \ldots, x_n)$, respectively, then the *block ordering*
-$>=(>_1, >_2)$ on $\text{Mon}_n(x)=\text{Mon}_n(x_1, \ldots, x_n)$ is defined by setting
-          
-$x^\alpha>x^\beta  \;\Leftrightarrow\;  x_1^{\alpha_1}\cdots x_s^{\alpha_s} >_1 x_1^{\beta_1}\cdots x_s^{\beta_s} \;\text{ or }\;
-\bigl(x_1^{\alpha_1}\cdots x_s^{\alpha_s} = x_1^{\beta_1}\cdots x_s^{\beta_s} \text{ and }  x_{s+1}^{\alpha_{s+1}}\cdots x_n^{\alpha_n} >_2
-x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
-          
-Note that $>=(>_1, >_2)$ is global (local) iff both $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing
-one of $>_1$ and $>_2$ global and the other one local.
-
-In Oscar, block orderings are obtained by the concatination of individually given orderings using the `*` operator.
-
-##### Examples
-
-```@repl oscar
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-o = degrevlex([w, x])*degrevlex([y, z])
-```
-
 ## Matrix Orderings
 
 Given a matrix $M\in \text{Mat}(k\times n,\mathbb R)$ of rank $n$, with rows $m_1,\dots,m_k$,
@@ -245,6 +253,27 @@ o = degrevlex(R)
 matrix(o)
 oW = weight_ordering(W, o)
 matrix(oW)
+```
+
+## Block Orderings
+
+The concept of block orderings (product orderings) allows one to construct new monomial orderings from already given ones: If $>_1$ and $>_2$ are monomial orderings on $\text{Mon}_s(x_1, \ldots, x_s)$ and $\text{Mon}_{n-s}(x_{s+1}, \ldots, x_n)$, respectively, then the *block ordering*
+$>=(>_1, >_2)$ on $\text{Mon}_n(x)=\text{Mon}_n(x_1, \ldots, x_n)$ is defined by setting
+          
+$x^\alpha>x^\beta  \;\Leftrightarrow\;  x_1^{\alpha_1}\cdots x_s^{\alpha_s} >_1 x_1^{\beta_1}\cdots x_s^{\beta_s} \;\text{ or }\;
+\bigl(x_1^{\alpha_1}\cdots x_s^{\alpha_s} = x_1^{\beta_1}\cdots x_s^{\beta_s} \text{ and }  x_{s+1}^{\alpha_{s+1}}\cdots x_n^{\alpha_n} >_2
+x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
+          
+Note that $>=(>_1, >_2)$ is global (local) iff both $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing
+one of $>_1$ and $>_2$ global and the other one local.
+
+In Oscar, block orderings are obtained by the concatination of individually given orderings using the `*` operator.
+
+##### Examples
+
+```@repl oscar
+R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+o = degrevlex([w, x])*degrevlex([y, z])
 ```
 
 ## Tests on Monomial Orderings
