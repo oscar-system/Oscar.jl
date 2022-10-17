@@ -62,6 +62,7 @@ returned in `B.S`.
 
 # Examples
 ```jldoctest
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
