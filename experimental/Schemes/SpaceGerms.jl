@@ -85,7 +85,7 @@ end
 end
 
 @attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
-    return X   ### how do I make this a copy of X, instead of X itself
+    return X   ### how do I make this a copy of X, instead of X itself?
 end
 
 ############################################################################################################
@@ -181,10 +181,14 @@ LocalRing = Union{MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyComplementOfPrimeIdeal}
                  }
 
-function germ_at_point(A::LocalRing; check::Bool=true)
-  X = Spec(A)
-  Y = SpaceGerm(X)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+## for users thinking in terms of local rings
+function SpaceGerm(A::LocalRing)
+  return SpaceGerm(Spec(A))
+
+## and with identity map to keep usage consistent
+function germ_at_point(A::LocalRing)
+  X = SpaceGerm(A)
+  restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
   return Y, restr_map
 end
 
