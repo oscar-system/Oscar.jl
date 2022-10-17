@@ -58,12 +58,12 @@ In general, space germs in Oscar are created in the following ways:
    ```julia
    SpaceGerm(X::AffineScheme, I::Ideal)
    ```
-   where I is a (maximal) ideal describing the chosen basering(X)-point on the scheme.  
+   where I is a (maximal) ideal describing the chosen kk-point on the affine kk-scheme X.  
    **Provides:** SpaceGerm.
    ```julia
    germ_at-point(X::AffineScheme, I::Ideal)
    ```
-   where I is a (maximal) ideal describing the chosen basering(X)-point on the scheme.  
+   where I is a (maximal) ideal describing the chosen kk-point on the affine kk-scheme.  
 
    **Provides:** SpaceGerm, restriction map.
 
@@ -80,6 +80,11 @@ In general, space germs in Oscar are created in the following ways:
 
  * localized ring with respect to complement of prime ideal or complement of maximal ideal)
 
+   ```julia
+   SpaceGerm(R::MPolyLocalizedRing)
+   SpaceGerm(R::MPolyQuoLocalizedRing)
+   ```
+   **Provides:** Space germ
    ```julia
    germ_at_point(R::MPolyLocalizedRing)
    germ_at_point(R::MPolyQuoLocalizedRing)
@@ -119,13 +124,13 @@ for convenience and consistence of functionality:
  
  * Given a space germ $(X,x)$, the corresponding local ring ${\mathcal O}_{(X,x)}$ is returned by:
    ```julia
-   ring_of_germ(X::SpaceGerm)
+   ring(X::SpaceGerm)
    ```
    **Provides:** MPolyQuoLocalizedRing
 
  * Analogously, the modulus of the ring of a given germ $(X,x)$ can be obtained by:
    ```julia
-   ideal_of_germ(X::SpaceGerm)
+   ideal(X::SpaceGerm)
    ```
    **Provides:** Ideal
 

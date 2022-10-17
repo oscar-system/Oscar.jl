@@ -1,8 +1,8 @@
-export SpaceGerm
+export SpaceGerm, germ_at_point
 
 export representative, point
 
-export germ_at_point, ring_of_germ, ideal_of_germ, ambient_germ
+export ambient_germ
 
 import AbstractAlgebra: Ring
 
@@ -69,13 +69,13 @@ function point(X::SpaceGerm{<:Any, <:Any, <:GermAtGeometricPoint})
   return prime_ideal(inverted_set(OO(X)))
 end
 
-ring_of_germ(X::AbsSpaceGerm) = OO(X)
+Oscar.ring(X::AbsSpaceGerm) = OO(X)
 
-function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
+function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
     return modulus(OO(X))
 end
 
-function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
+function Oscar.ideal(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
     return ideal(OO(X),[zero(OO(X))])
 end
 
@@ -99,11 +99,13 @@ function _maxideal_to_point(I::MPolyIdeal)
   return [normal_form(v,G) for v in gens(base_ring(I))]
 end
 
+############################################################################################################
 ### constructors
+############################################################################################################
 function SpaceGerm(X::AbsSpec, a::Vector)
   R = ambient_ring(X)
   kk = coefficient_ring(R)
-  b = [kk.(v) for v in a]  ## throws and error, if vector entries are not compatible
+  b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
   Y = Spec(Localization(OO(X), U)[1])
   return SpaceGerm(Y)
@@ -171,6 +173,10 @@ function germ_at_point(A::MPolyQuo, a::Vector)
   return Y, restr_map
 end
 
+#########################################################################################
+## for convenience of users thinking in terms of local rings
+#########################################################################################
+
 LocalRing = Union{MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
                                         <:MPolyComplementOfKPointIdeal},
                   MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
@@ -181,7 +187,7 @@ LocalRing = Union{MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyComplementOfPrimeIdeal}
                  }
 
-## for users thinking in terms of local rings
+
 function SpaceGerm(A::LocalRing)
   return SpaceGerm(Spec(A))
 end
