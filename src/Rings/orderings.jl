@@ -1,12 +1,13 @@
 module Orderings
 
 using Oscar, Markdown
-import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion, base_ring
+import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion, base_ring,
+       support, matrix
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
-       weight_matrix, isweighted, is_global, is_local, is_mixed,
-       permutation_of_terms, weighted_ordering, canonical_weight_matrix,
+       isweighted, is_global, is_local, is_mixed,
+       permutation_of_terms, weight_ordering, canonical_matrix,
        MonomialOrdering, ModuleOrdering, singular, opposite_ordering
 
 abstract type AbsOrdering end
@@ -35,19 +36,63 @@ struct WSymbOrdering{S} <: AbsGenOrdering
         throw(ArgumentError("unsupported ordering $S"))
     length(v) == length(w) ||
         throw(ArgumentError("number of variables should match the number of weights"))
+    all(>(0), v) || throw(ArgumentError("all weights should be positive"))
     return new{S}(v, w)
   end
 end
 
+# in general denotes a partial ordering on vars
+# if fullrank is true, then the matrix should be invertible
 struct MatrixOrdering <: AbsGenOrdering
   vars::Vector{Int}
   matrix::fmpz_mat
-  function MatrixOrdering(v, m::fmpz_mat)
+  fullrank::Bool
+  function MatrixOrdering(v, m::fmpz_mat, fullrank::Bool)
     length(v) == ncols(m) ||
         throw(ArgumentError("number of variables should match the number of columns"))
-    return new(v, m)
+    if fullrank
+      if nrows(m) > ncols(m)
+        m = _canonical_matrix(m)
+      end
+      if nrows(m) < ncols(m)
+        throw(ArgumentError("weight matrix is rank deficient"))
+      else
+        @assert nrows(m) == ncols(m)
+        !iszero(det(m)) || throw(ArgumentError("weight matrix is not invertible"))
+      end
+    end
+    return new(v, m, fullrank)
   end
 end
+
+function _canonical_matrix(w)
+  ww = matrix(ZZ, 0, ncols(w), [])
+  for i in 1:nrows(w)
+    if is_zero_row(w, i)
+      continue
+    end
+    nw = w[i, :]
+    c = content(nw)
+    if !isone(c)
+      nw = divexact(nw, c)
+    end
+    for j in 1:nrows(ww)
+      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
+      if !iszero(nw[1, h])
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j, :]
+      end
+    end
+    if !iszero(nw)
+      c = content(nw)
+      if !isone(c)
+        nw = divexact(nw, c)
+      end
+      ww = vcat(ww, nw)
+    end
+  end
+  return ww
+end
+
 
 # convert (y,x,z) => (2,1,3) and check uniqueness
 function _unique_var_indices(a::AbstractVector{<:MPolyElem})
@@ -85,10 +130,18 @@ function anti_diagonal(R::Ring, n::Int)
   return a
 end
 
+function _support_indices(o::ProdOrdering)
+  i = _support_indices(o.a)
+  j = _support_indices(o.b)
+  if i == j
+    return i
+  else
+    return union(i, j)
+  end
+end
 
-
-function _weight_matrix(nvars::Int, o::ProdOrdering)
-  return vcat(_weight_matrix(nvars, o.a), _weight_matrix(nvars, o.b))
+function _matrix(nvars::Int, o::ProdOrdering)
+  return vcat(_matrix(nvars, o.a), _matrix(nvars, o.b))
 end
 
 """
@@ -102,6 +155,15 @@ end
 base_ring(a::MonomialOrdering) = a.R
 
 @doc Markdown.doc"""
+    support(o::MonomialOrdering)
+
+Return the vector of variables on which `o` is defined.
+"""
+function support(o::MonomialOrdering)
+  return [gen(base_ring(o), i) for i in _support_indices(o.o)]
+end
+
+@doc Markdown.doc"""
     *(M::MonomialOrdering, N::MonomialOrdering)
 
 The product ordering `M*N` tries to order by `M` first, and in the case of a
@@ -113,6 +175,10 @@ function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
 end
 
 ######## non-weighted orderings ########
+
+function _support_indices(o::SymbOrdering)
+  return o.vars
+end
 
 @doc Markdown.doc"""
     monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
@@ -165,7 +231,7 @@ function lex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:lex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:lex})
+function _matrix(nvars::Int, o::SymbOrdering{:lex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = 1
   for j in o.vars
@@ -223,7 +289,7 @@ function deglex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:deglex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:deglex})
+function _matrix(nvars::Int, o::SymbOrdering{:deglex})
   m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
   i = 2
   for j in o.vars
@@ -288,7 +354,7 @@ function degrevlex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:degrevlex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:degrevlex})
+function _matrix(nvars::Int, o::SymbOrdering{:degrevlex})
   m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
   i = 1 + length(o.vars)
   for j in o.vars
@@ -354,7 +420,7 @@ function revlex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:revlex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:revlex})
+function _matrix(nvars::Int, o::SymbOrdering{:revlex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = length(o.vars)
   for j in o.vars
@@ -412,7 +478,7 @@ function neglex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:neglex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:neglex})
+function _matrix(nvars::Int, o::SymbOrdering{:neglex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = 1
   for j in o.vars
@@ -470,7 +536,7 @@ function negrevlex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:negrevlex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:negrevlex})
+function _matrix(nvars::Int, o::SymbOrdering{:negrevlex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = length(o.vars)
   for j in o.vars
@@ -528,7 +594,7 @@ function negdegrevlex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:negdegrevlex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:negdegrevlex})
+function _matrix(nvars::Int, o::SymbOrdering{:negdegrevlex})
   m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
   i = 1 + length(o.vars)
   for j in o.vars
@@ -594,7 +660,7 @@ function negdeglex(R::MPolyRing)
   return MonomialOrdering(R, SymbOrdering(:negdeglex, 1:nvars(R)))
 end
 
-function _weight_matrix(nvars::Int, o::SymbOrdering{:negdeglex})
+function _matrix(nvars::Int, o::SymbOrdering{:negdeglex})
   m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
   i = 2
   for j in o.vars
@@ -626,6 +692,10 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdeglex
 end
 
 ######## weighted orderings ########
+
+function _support_indices(o::WSymbOrdering)
+  return o.vars
+end
 
 @doc Markdown.doc"""
     monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
@@ -692,7 +762,7 @@ function wdeglex(R::MPolyRing, w::Vector{Int})
   return MonomialOrdering(R, WSymbOrdering(:wdeglex, 1:nvars(R), w))
 end
 
-function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdeglex})
+function _matrix(nvars::Int, o::WSymbOrdering{:wdeglex})
   n = length(o.vars)
   m = zero_matrix(ZZ, 1 + n, nvars)
   for i in 1:n
@@ -755,7 +825,7 @@ function wdegrevlex(R::MPolyRing, w::Vector{Int})
   return MonomialOrdering(R, WSymbOrdering(:wdegrevlex, 1:nvars(R), w))
 end
 
-function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdegrevlex})
+function _matrix(nvars::Int, o::WSymbOrdering{:wdegrevlex})
   n = length(o.vars)
   m = zero_matrix(ZZ, 1 + n, nvars)
   for i in 1:n
@@ -818,7 +888,7 @@ function negwdeglex(R::MPolyRing, w::Vector{Int})
   return MonomialOrdering(R, WSymbOrdering(:negwdeglex, 1:nvars(R), w))
 end
 
-function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdeglex})
+function _matrix(nvars::Int, o::WSymbOrdering{:negwdeglex})
   n = length(o.vars)
   m = zero_matrix(ZZ, 1 + n, nvars)
   for i in 1:n
@@ -881,7 +951,7 @@ function negwdegrevlex(R::MPolyRing, w::Vector{Int})
   return MonomialOrdering(R, WSymbOrdering(:negwdegrevlex, 1:nvars(R), w))
 end
 
-function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
+function _matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
   n = length(o.vars)
   m = zero_matrix(ZZ, 1 + n, nvars)
   for i in 1:n
@@ -909,19 +979,27 @@ end
 
 #### matrix, M ####
 
+function _support_indices(o::MatrixOrdering)
+  return o.vars
+end
+
 @doc Markdown.doc"""
-    matrix_ordering(V::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T -> MonomialOrdering
+    matrix_ordering(V::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T -> MonomialOrdering
 
 Given a vector `V` of variables and an integer matrix `M` such that `length(V) = ncols(M) = rank(M)`, 
 return the corresponding matrix ordering on the set of monomials in the given variables. 
 
-    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}) -> MonomialOrdering
+    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) -> MonomialOrdering
 
 Given an integer matrix `M` such that `nvars(R) = ncols(M) = rank(M)`, 
 return the matrix ordering on the set of variables of `R` which is defined by `M`.
 
 !!! note
     The matrix `M` need not be square.
+
+!!! note
+    If `check = false` is supplied, the rank check is omitted, and the resulting
+    ordering may only be partial.
 
 # Examples
 ```jldoctest
@@ -938,29 +1016,33 @@ matrix_ordering([x, y, z], [1 1 1; 0 0 -1; 0 -1 0])
 
 julia> o == degrevlex(R)
 true
+
+julia> canonical_matrix(matrix_ordering([x, y, z], [1 2 3; 2 4 6]; check = false))
+[1   2   3]
 ```
 """
-function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T
+function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
   i = _unique_var_indices(v)
-  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M)))
+  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M), check))
 end
 
-function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}) where T
-  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), fmpz_mat(M)))
+function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check = true) where T
+  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), fmpz_mat(M), check))
 end
 
 @doc Markdown.doc"""
-    weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
+    weight_ordering(w::Vector{Int}, ord::MonomialOrdering)
 
-Defines the (partial) weighted ordering on the variables given with the weight
-vector `w`. This is equivalent to a matrix ordering with just one row.
+Returns the ordering on `support(ord)` obtained by first comparing the
+`w`-weighted degrees and then using `ord` in the case of tie.
 """
-function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
-  i = _unique_var_indices(v)
-  return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(1, length(w), w)))
+function weight_ordering(w::Vector{Int}, o::MonomialOrdering)
+  i = _support_indices(o.o)
+  m = fmpz_mat(1, length(w), w)
+  return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
 end
 
-function _weight_matrix(nvars::Int, o::MatrixOrdering)
+function _matrix(nvars::Int, o::MatrixOrdering)
   r = nrows(o.matrix)
   c = length(o.vars)
   @assert c == ncols(o.matrix)
@@ -1000,12 +1082,12 @@ end
 ###################################
 
 @doc Markdown.doc"""
-    weight_matrix(M::MonomialOrdering)
+    matrix(M::MonomialOrdering)
 
 Return a corresponding weight matrix for the given ordering.
 """
-function weight_matrix(M::MonomialOrdering)
-  return _weight_matrix(nvars(base_ring(M)), M.o)
+function matrix(M::MonomialOrdering)
+  return _matrix(nvars(base_ring(M)), M.o)
 end
 
 @doc Markdown.doc"""
@@ -1014,78 +1096,39 @@ end
 Returns a matrix ordering with a unique weight matrix.
 """
 function Hecke.simplify(M::MonomialOrdering)
-  w = canonical_weight_matrix(M)
-  return MonomialOrdering(M.R, MatrixOrdering(collect(1:ncols(w)), w))
+  w = canonical_matrix(M)
+  return MonomialOrdering(M.R, MatrixOrdering(collect(1:ncols(w)), w, true))
 end
 
-function canonical_weight_matrix(nvars::Int, M::AbsOrdering)
-  w = _weight_matrix(nvars, M)
-  ww = matrix(ZZ, 0, ncols(w), [])
-  for i in 1:nrows(w)
-    if is_zero_row(w, i)
-      continue
-    end
-    nw = w[i, :]
-    c = content(nw)
-    if !isone(c)
-      nw = divexact(nw, c)
-    end
-    for j in 1:nrows(ww)
-      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j, :]
-      end
-    end
-    if !iszero(nw)
-      c = content(nw)
-      if !isone(c)
-        nw = divexact(nw, c)
-      end
-      ww = vcat(ww, nw)
-    end
-  end
-  return ww
+function canonical_matrix(nvars::Int, M::AbsOrdering)
+  return _canonical_matrix(_matrix(nvars, M))
 end
 
 @doc Markdown.doc"""
-    canonical_weight_matrix(M::MonomialOrdering)
+    canonical_matrix(M::MonomialOrdering)
 
 Return the corresponding canonical weight matrix for the given ordering.
 """
-function canonical_weight_matrix(M::MonomialOrdering)
-  return canonical_weight_matrix(nvars(base_ring(M)), M.o)
+function canonical_matrix(M::MonomialOrdering)
+  return canonical_matrix(nvars(base_ring(M)), M.o)
 end
 
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-  return canonical_weight_matrix(M) == canonical_weight_matrix(N)
+  return canonical_matrix(M) == canonical_matrix(N)
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
-  return hash(canonical_weight_matrix(M), u)
+  return hash(canonical_matrix(M), u)
 end
 
-# Return two arrays of indices containing the variables which are > 1 and < 1
-# respectively.
-function _global_and_local_vars(M::MonomialOrdering)
-  globals = Int[]
-  locals = Int[]
-  n = nvars(base_ring(M))
-  d = zeros(Int, n)
-  w = weight_matrix(M)
-  m = nrows(w)
-  @assert n == ncols(w)
-  for i in 1:m, j in 1:n
-    d[j] == 0 || continue
-    if w[i, j] > 0
-      d[j] = 1
-      push!(globals, j)
-    elseif w[i, j] < 0
-      d[j] = -1
-      push!(locals, j)
-    end
+function _cmp_var(M, j::Int)
+  for i in 1:nrows(M)
+    e = M[i,j]
+    e > 0 && return +1
+    e < 0 && return -1
   end
-  return globals, locals
+  return 0
 end
 
 @doc Markdown.doc"""
@@ -1095,66 +1138,83 @@ Return `true` if `ord` is global, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> M = [1 1; 0 -1];
-
-julia> o = matrix_ordering(R, M)
+julia> o = matrix_ordering([x, y], [1 1; 0 -1])
 matrix_ordering([x, y], [1 1; 0 -1])
 
 julia> is_global(o)
 true
 ```
 """
-function is_global(M::MonomialOrdering)
-  globals, locals = _global_and_local_vars(M)
-  return length(globals) == nvars(base_ring(M))
+function is_global(ord::MonomialOrdering)
+  M = matrix(ord)
+  for i in _support_indices(ord.o)
+    if _cmp_var(M, i) <= 0
+      return false
+    end
+  end
+  return true
 end
 
 @doc Markdown.doc"""
     is_local(ord::MonomialOrdering)
 
-Return `true` if `ord` is local, `false` otherwise.
+Return `true` if `v<1` for each `v` in `support(ord)`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> M = [-1 -1; 0 -1];
-
-julia> o = matrix_ordering(R, M)
+julia> o = matrix_ordering([x, y], [-1 -1; 0 -1])
 matrix_ordering([x, y], [-1 -1; 0 -1])
 
 julia> is_local(o)
 true
 ```
 """
-function is_local(M::MonomialOrdering)
-  globals, locals = _global_and_local_vars(M)
-  return length(locals) == nvars(base_ring(M))
+function is_local(ord::MonomialOrdering)
+  M = matrix(ord)
+  for i in _support_indices(ord.o)
+    if _cmp_var(M, i) >= 0
+      return false
+    end
+  end
+  return true
 end
 
 @doc Markdown.doc"""
     is_mixed(ord::MonomialOrdering)
 
-Return `true` if `ord` is mixed, `false` otherwise. 
+Return `!is_global(ord) && !is_local(ord)`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> M = [1 -1; 0 -1];
-
-julia> o = matrix_ordering(R, M)
+julia> o = matrix_ordering([x, y], [1 -1; 0 -1])
 matrix_ordering([x, y], [1 -1; 0 -1])
 
 julia> is_mixed(o)
 true
 ```
 """
-function is_mixed(M::MonomialOrdering)
-  globals, locals = _global_and_local_vars(M)
-  return !isempty(globals) && !isempty(locals)
+function is_mixed(ord::MonomialOrdering)
+  M = matrix(ord)
+  s = _support_indices(ord.o)
+  for i in s
+    if _cmp_var(M, i) <= 0
+      @goto is_not_global
+    end
+  end
+  return false
+@label is_not_global
+  for i in s
+    if _cmp_var(M, i) >= 0
+      return true
+    end
+  end
+  return false
 end
 
 ###################################################
@@ -1273,9 +1333,8 @@ function _expressify(o::WSymbOrdering{S}, sym)  where S
 end
 
 function _expressify(o::MatrixOrdering, sym)
-  return Expr(:call, nrows(o.matrix) == 1 ? :weighted_ordering : :matrix_ordering,
-                     Expr(:vect, (sym[i] for i in o.vars)...),
-                     AbstractAlgebra.expressify(o.matrix))
+  return Expr(:call, :matrix_ordering, Expr(:vect, (sym[i] for i in o.vars)...),
+                                          AbstractAlgebra.expressify(o.matrix))
 end
 
 function _expressify(o::Union{ProdOrdering, ModProdOrdering}, sym)
@@ -1313,7 +1372,7 @@ end
 function _opposite_ordering(nvars::Int, o::MatrixOrdering)
   M = o.matrix
   M = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
-  return MatrixOrdering(reverse(nvars+1 .- o.vars), M)
+  return MatrixOrdering(reverse(nvars+1 .- o.vars), M, false)
 end
 
 function _opposite_ordering(n::Int, o::ProdOrdering)
@@ -1379,7 +1438,7 @@ end
 function _try_singular_easy(Q::order_conversion_ctx, o::MatrixOrdering)
   _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
   n = length(o.vars)
-  if nrows(o.matrix) == n && !iszero(det(o.matrix))
+  if nrows(o.matrix) == n && (o.fullrank || !iszero(det(o.matrix)))
     Q.last_var += n
     return (true, Singular.ordering_M(o.matrix; check=false))
   elseif nrows(o.matrix) == 1
@@ -1412,7 +1471,7 @@ function singular(ord::MonomialOrdering)
     return sord
   else
     # Singular.jl checks det != 0 (and is square)
-    return Singular.ordering_M(canonical_weight_matrix(ord))
+    return Singular.ordering_M(canonical_matrix(ord))
   end
 end
 
@@ -1465,10 +1524,10 @@ function _convert_sblock(nvars::Int, o::Singular.sorder_block, lastvar::Int)
     newlastvar <= nvars || error("too many weights in Singular.ordering_a")
     i = collect(lastvar+1:newlastvar)
     m = fmpz_mat(1, length(o.weights), o.weights)
-    return MatrixOrdering(i, m), lastvar
+    return MatrixOrdering(i, m, false), lastvar
   elseif o.order == Singular.ringorder_M
     m = fmpz_mat(o.size, o.size, o.weights)
-    return MatrixOrdering(i, m), newlastvar
+    return MatrixOrdering(i, m, true), newlastvar
 
   elseif o.order == Singular.ringorder_C
     return nothing, lastvar
