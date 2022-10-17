@@ -85,7 +85,7 @@ end
 end
 
 @attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
-    return X   ### how do I make this a copy of X, instead of X itself
+    return copy(X)
 end
 
 ############################################################################################################
