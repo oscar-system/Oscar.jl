@@ -801,8 +801,14 @@ two_sided_ideal(x^6)
 """
 function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
   @assert b >= 0
-  b == 0 && return PBWAlgIdeal{D, T, S}(base_ring(a), [one(base_ring(a))])
-  b == 1 && return a
+
+  if b == 0
+    R = base_ring(a)
+    return PBWAlgIdeal{D, T, S}(R, Singular.Ideal(R.sring, one(R.sring)))
+  elseif b == 1
+    return a
+  end
+
   if D == 0
     # Note: repeated mul seems better than nested squaring
     res = a
@@ -1058,7 +1064,8 @@ function eliminate(I::PBWAlgIdeal{-1, T, S}, sigmaC::Vector{Int}) where {T, S}
 
   if is_empty(sigma)
     # eliminating all variables
-    return PBWAlgIdeal{-1, T, S}(R, [one(R)])
+    z = isone(I) ? one(R.sring) : zero(R.sring)
+    return PBWAlgIdeal{-1, T, S}(R, Singular.Ideal(R.sring, z))
   elseif is_empty(sigmaC)
     # eliminating no variables
     return I

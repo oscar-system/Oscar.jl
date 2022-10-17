@@ -155,6 +155,8 @@ end
   @test issubset(I, two_sided_ideal([e1])*right_ideal([e2]))
   @test issubset(I, two_sided_ideal([e1])*two_sided_ideal([e2]))
 
+  @test isone(I^0)
+  @test I^1 == I
   @test I^4 == (I^2)^2
 end
 
@@ -181,4 +183,8 @@ end
     I = left_ideal([a, x])
     @test eliminate(I, [x, d]) == left_ideal([a])
   end
+
+  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  @test is_zero(eliminate(left_ideal([x*dx]), [x, dx]))
+  @test is_one(eliminate(left_ideal([x, 1-x]), [x, dx]))
 end
