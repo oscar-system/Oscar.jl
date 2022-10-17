@@ -72,7 +72,7 @@ end
 ring_of_germ(X::AbsSpaceGerm) = OO(X)
 
 function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyQuoLocalizedRing})
-    return modulus(OO(X)
+    return modulus(OO(X))
 end
 
 function ideal_of_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
@@ -117,7 +117,7 @@ function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   return Y
 end
 
-function SpaceGerm(X::ABsSpec, I::MPolyQuoIdeal)
+function SpaceGerm(X::AbsSpec, I::MPolyQuoIdeal)
   A = base_ring(I)
   A == OO(X) || error("rings are not compatible")
   R = base_ring(A)
@@ -184,6 +184,7 @@ LocalRing = Union{MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any,
 ## for users thinking in terms of local rings
 function SpaceGerm(A::LocalRing)
   return SpaceGerm(Spec(A))
+end
 
 ## and with identity map to keep usage consistent
 function germ_at_point(A::LocalRing)
