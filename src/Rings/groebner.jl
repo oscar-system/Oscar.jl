@@ -62,14 +62,20 @@ returned in `B.S`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
-Oscar.IdealGens{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, #undef, false, #undef, true)
+Ideal generating system with elements
+1 -> x*y - 3*x
+2 -> -2*x^2*y + y^3
 
 julia> B = Oscar._compute_std_basis(A, degrevlex(gens(R)))
-Oscar.IdealGens{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
+Gröbner basis with elements
+1 -> x*y - 3*x
+2 -> y^3 - 6*x^2
+3 -> 2*x^3 - 9*x
+with respect to the ordering
+degrevlex([x, y])
 ```
 """
 function _compute_std_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -139,10 +145,12 @@ julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
 julia> H = groebner_basis(I, ordering=lex(gens(R)))
-3-element Vector{fmpq_mpoly}:
- y^4 - 3*y^3
- x*y - 3*x
- 6*x^2 - y^3
+Gröbner basis with elements
+1 -> y^4 - 3*y^3
+2 -> x*y - 3*x
+3 -> 6*x^2 - y^3
+with respect to the ordering
+lex([x, y])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
@@ -230,10 +238,15 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
-Oscar.IdealGens{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, #undef, false, #undef, true)
+Ideal generating system with elements
+1 -> x*y - 3*x
+2 -> -2*x^2*y + y^3
 
 julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(gens(R)))
-(Oscar.IdealGens{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+(Ideal generating system with elements
+1 -> x*y - 3*x
+2 -> -6*x^2 + y^3
+3 -> 6*x^3 - 27*x, [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
