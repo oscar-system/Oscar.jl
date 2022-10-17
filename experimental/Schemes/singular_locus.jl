@@ -3,45 +3,63 @@ export singular_locus
 export reduced_scheme
 export is_smooth
 
-function singular_locus(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  comp = _singular_locus_with_decomposition(X)
+QuoRing = Union{MPolyQuoLocalizedRing, 
+                MPolyQuo
+               }
+
+### TODO: The following two functions need to be made type-sensitive 
+###       and reduced=true needs to be set for varieties 
+###       as soon as not only schemes, but also varieties as special 
+###       schemes have been introduced
+function singular_locus(X::AbsSpec{<:Ring, <:QuoRing})
+  comp = _singular_locus_with_decomposition(X,reduced=false)
   if length(comp) == 0 
     return subscheme(X, one(OO(X)))
   end
   R = base_ring(OO(X))
-  return Spec(R, prod([modulus(quotient_ring(OO(Y))) for Y in comp]), inverted_set(OO(X)))
+  I= prod([modulus(quotient_ring(OO(Y))) for Y in comp])
+  return Spec(R, I, inverted_set(OO(X)))
 end
 
-function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  I = modulus(OO(X))
+function singular_locus_reduced(X::AbsSpec{<:Ring, <:QuoRing})
+  comp =  _singular_locus_with_decomposition(X, reduced=true)
+  I= ideal(ambient_ring(X),one(ambient_ring(X)))
+  for Z in comp
+    I = intersect(I, modulus(quotient_ring(Z)))
+  end     
+  return subscheme(X,I)
+end
+
+function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:QuoRing}, reduced::Bool=true)
+  I = saturated_ideal(modulus(OO(X)))
   result = typeof(X)[]
 
   P = []
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) 
-    push!(P, saturated_ideal(I))
+    push!(P, I)
   else 
-    ## TODO: This is the scheme case, for varieties case use ..._radical
-    P = equidimensional_decomposition_weak(saturated_ideal(I))
+    if reduced
+      P = equidimensional_decomposition_radical(I)
+    else
+      P = equidimensional_decomposition_weak(I)
+    end
   end
 
   if length(P)==1
     d = dim(X)
     R = base_ring(OO(X))
     n = ngens(R)
-    J = saturated_ideal(I)
-    M = jacobi_matrix(gens(J))
-    K = ideal(R, minors(M, n-d))
-    one(OO(X)) in OO(X)(K) && return result
-    return [subscheme(X, K)]
+    M = jacobi_matrix(gens(I))
+    J = ideal(R, minors(M, n-d))
+    one(OO(X)) in OO(X)(J) && return result
+    return [subscheme(X, J)]
   else
     components = [subscheme(X, J) for J in P]
-    for Y in components
-      for Z in components
-        if !(Y === Z)
-          W = intersect(Y, Z)
-          if !isempty(W) 
-            push!(result, W)
-          end
+    for i in 1:length(components)
+      for j in (i+1):length(components)
+        W = intersect(components[i],components[j])
+        if !isempty(W) 
+          push!(result, W)
         end
       end
     end
@@ -52,23 +70,27 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPolyQuoLocaliz
   return result
 end
 
-@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+#####################################################################
+### TODO: create a 'dummy' saturated_ideal for the global case
+###       which is just a NOOP
+#####################################################################
+@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:QuoRing})
   I = modulus(OO(X))
-  P = equidimensional_decomposition_weak(saturated_ideal(I))
+  P = equidimensional_decomposition_radical(saturated_ideal(I))
   length(P) < 2 && return true
   return false
 end
 
-@attr function reduced_scheme(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+@attr function reduced_scheme(X::AbsSpec{<:Ring, <:QuoRing})
   I = modulus(OO(X))
   J = radical(saturated_ideal(I))
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
-@attr function is_reduced(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+@attr function is_reduced(X::AbsSpec{<:Ring, <:QuoRing})
   I = modulus(OO(X))
   J = saturated_ideal(I)
-  return is_reduced(quo(base_ring(OO(X)), J)[1])
+  return is_reduced(quo(base_ring(J), J)[1])
 end
 
 
