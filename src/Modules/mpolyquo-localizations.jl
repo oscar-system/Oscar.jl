@@ -19,7 +19,7 @@ end
 # F is the free module of rank n over the base ring R 
 # and I is the modulus.
 function modulus_matrix(L::MPolyQuoLocalizedRing, n::Int)
-  I = modulus(L)
+  I = modulus(quotient_ring(L))
   m = length(gens(I))
   R = base_ring(L)
   B = zero(MatrixSpace(R, 0, n))
@@ -36,7 +36,7 @@ end
 function syz(A::MatrixElem{<:MPolyQuoLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
-  return L*D
+  return map_entries(base_ring(A), L[:,1:nrows(D)]*D)
 end
 
 function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocalizedRingElem, MatrixType<:MatrixElem{T}}

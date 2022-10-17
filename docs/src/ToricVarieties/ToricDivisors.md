@@ -25,24 +25,29 @@ DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T
 ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
 ```
 
-### Special constructors
+### Addition, subtraction and scalar multiplication
 
-Addition of toric divisors `td1` and `td2` (on the same toric variety) and
-scalar multiplication with `c` (it can be either valued in `Int64` or `fmpz`)
-is supported via `c * td1 + td2`. One can subtract them via `td1 - td2`.
+Toric divisors can be added and subtracted via the usual `+` and `-`
+operators. Moreover, multiplication by scalars from the left is supported
+for scalars which are integers or of type `fmpz`.
 
+### Special divisors
 
-### Equality
-
-Equality of two toric divisors `td1` and `td2` (on the same toric variety)
-is achieved by checking if their coefficients are identical.
-This is implemented via `td1 == td2`.
+```@docs
+trivial_divisor(v::AbstractNormalToricVariety)
+anticanonical_divisor(v::AbstractNormalToricVariety)
+canonical_divisor(v::AbstractNormalToricVariety)
+```
 
 
 ## Properties of toric divisors
 
-To check if a toric divisor `td` is trivial, one can invoke `is_trivial(td)`.
-Internally, this executes the following method:
+Equality of toric divisors can be tested via `==`.
+
+To check if a toric divisor is trivial, one can invoke `is_trivial`.
+This checks if all `coefficients` of the toric divisor in question
+are zero. This must not be confused with a toric divisor being principal,
+for which we support the following:
 ```@docs
 is_principal(td::ToricDivisor)
 ```
@@ -59,18 +64,11 @@ is_q_cartier(td::ToricDivisor)
 is_very_ample(td::ToricDivisor)
 ```
 
-## Operations for toric divisors
+
+## Attributes
 
 ```@docs
 coefficients(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
 toric_variety(td::ToricDivisor)
-```
-
-## Special divisors
-
-```@docs
-trivial_divisor(v::AbstractNormalToricVariety)
-anticanonical_divisor(v::AbstractNormalToricVariety)
-canonical_divisor(v::AbstractNormalToricVariety)
 ```

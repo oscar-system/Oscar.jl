@@ -6,7 +6,7 @@ toric variety `toric_variety(c)`.
 
 # Examples
 ```jldoctest
-julia> dP3 = del_pezzo(3)
+julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> (x1,x2,x3,e1,e2,e3) = gens(cohomology_ring(dP3))
@@ -44,7 +44,7 @@ julia> integrate(c)
 function integrate(c::CohomologyClass)::fmpq
     # can only integrate if the variety is simplicial, complete
     if !is_simplicial(toric_variety(c)) || !is_complete(toric_variety(c))
-        throw(ArgumentError("Integration only supported over complete and simplicial toric varieties."))
+        throw(ArgumentError("Integration only supported over complete and simplicial toric varieties"))
     end
     
     # if the intersection form is known, we can use it

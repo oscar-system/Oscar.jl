@@ -102,3 +102,18 @@ end
   K, _ = kernel(g)
   @test iszero(det(Oscar.generator_matrix(K))*M[1])
 end
+
+@testset "syzygies over quotient rings" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  M = R[x-1 y; z x]
+  I = ideal(R, det(M))
+  Q = MPolyQuoLocalizedRing(R, I, units_of(R))
+  A = map_entries(Q, M)
+  K1 = syz(A)
+  K2 = syz(K1)
+  F2 = FreeMod(Q, 2)
+  B0 = sub(F2, A)[1]
+  B1 = sub(F2, K2)[1] 
+  @test all(g->(g in B1), gens(B0))
+  @test all(g->(g in B0), gens(B1))
+end

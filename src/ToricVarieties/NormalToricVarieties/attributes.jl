@@ -88,7 +88,7 @@ cached, then this function returns `true` and otherwise `false`.
 
 # Examples
 ```jldoctest
-julia> is_finalized(del_pezzo(3))
+julia> is_finalized(del_pezzo_surface(3))
 false
 ```
 """
@@ -128,10 +128,10 @@ julia> coordinate_names(antv)
 """
 function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
     if is_finalized(v)
-        error("The coordinate names cannot be modified since the toric variety is finalized.")
+        error("The coordinate names cannot be modified since the toric variety is finalized")
     end
     if length(coordinate_names) != nrays(v)
-        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
+        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan"))
     end
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
@@ -157,10 +157,10 @@ julia> coordinate_names_of_torus(F3)
 """
 function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
     if is_finalized(v)
-        error("The coordinate names of the torus cannot be modified since the toric variety is finalized.")
+        error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
     if length(coordinate_names) != ambient_dim(v)
-        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan."))
+        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan"))
     end
     set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
 end
@@ -360,7 +360,7 @@ julia> length(gens(irrelevant_ideal(R, p2)))
 """
 function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     monoms = _irrelevant_ideal_monomials(v)
-    nvars(R) == nrays(v) || throw(ArgumentError("Wrong number of variables in polynomial ring."))
+    nvars(R) == nrays(v) || throw(ArgumentError("Wrong number of variables in polynomial ring"))
     return ideal([R([1], [x]) for x in monoms])
 end
 
@@ -538,7 +538,7 @@ in the given polynomial ring `R`.
 function coordinate_ring_of_torus(R::MPolyRing, v::AbstractNormalToricVariety)
     n = length(coordinate_names_of_torus(v))
     if length(gens(R)) < 2 * n
-        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates."))
+        throw(ArgumentError("The given ring must have at least $(length( coordinate_names_of_torus(v))) indeterminates"))
     end
     relations = [gens(R)[i] * gens(R)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(R)) for i in 1:length(coordinate_names_of_torus(v))]
     return quo(R, ideal(relations))[1]
@@ -609,7 +609,7 @@ x2^2*x3
 """
 function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, character::Vector{fmpz})
     if ambient_dim(v) != length(character)
-        throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety."))
+        throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety"))
     end
     generators = gens(coordinate_ring_of_torus(R,v))
     rational_function = one(coefficient_ring(R))
@@ -792,7 +792,7 @@ GrpAb: Z^3
 @attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     # check input
     if has_torusfactor(v)
-        throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
+        throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"))
     end
     
     # identify fan_rays and cones
@@ -895,7 +895,7 @@ Abelian group with structure: Z
 @attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
     # check input
     if has_torusfactor(v)
-        throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
+        throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor"))
     end
     
     # compute mapping

@@ -36,7 +36,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 
 # Examples
 ```jldoctest
-julia> dP3 = del_pezzo(3)
+julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> all_cohomologies(ToricLineBundle(dP3, [1,2,3,4]))
@@ -50,7 +50,7 @@ function all_cohomologies(l::ToricLineBundle)
     # check if we can apply cohomCalg
     v = toric_variety(l)
     if !((is_smooth(v) && is_complete(v)) || (is_simplicial(v) && is_projective(v)))
-        throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective."))
+        throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective"))
     end
     
     # extract vector of currently-known cohomology dimensions (or create it if necessary)
@@ -170,7 +170,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 
 # Examples
 ```jldoctest
-julia> dP3 = del_pezzo(3)
+julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> cohomology(ToricLineBundle(dP3, [4,1,1,1]), 0)

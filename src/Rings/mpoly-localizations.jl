@@ -1,4 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets, MPolyLeadingMonOne
+export prime_ideal
 export rand, sets, issubset, units_of, simplify!, is_trivial
 import Base: issubset
 
@@ -120,7 +121,7 @@ end
 ### generation of random elements 
 function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   R = ambient_ring(S)
-  return prod(f^rand(0:9) for f in denominators(S); init = one(R))::elem_type(R)
+  return prod(f^rand(0:5) for f in denominators(S); init = one(R))::elem_type(R)
 end
 
 ### simplification. 
@@ -966,7 +967,7 @@ function Localization(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  issubset(S, inverted_set(W)) && return W
+  issubset(S, inverted_set(W)) && return W, identity_map(W)
   U = S*inverted_set(W)
   L, _ = Localization(U)
   #return L, MapFromFunc((x->(L(numerator(x), denominator(x), check=false))), W, L)
@@ -976,7 +977,6 @@ end
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
 
-Localization(R::MPolyRing, f::MPolyElem) = Localization(MPolyPowersOfElement(R, [f]))
 Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = Localization(MPolyPowersOfElement(R, v))
 
 function Localization(
@@ -1072,6 +1072,9 @@ parent(a::MPolyLocalizedRingElem) = a.W
 
 ### additional getter functions
 fraction(a::MPolyLocalizedRingElem) = a.frac
+# to assure compatibility with generic code for MPolyQuoLocalizedRings:
+lifted_numerator(a::MPolyLocalizedRingElem) = numerator(a)
+lifted_denominator(a::MPolyLocalizedRingElem) = denominator(a)
 
 ### required conversions
 function (W::MPolyLocalizedRing{
@@ -1253,7 +1256,10 @@ elem_type(T::Type{MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, R
 parent_type(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(W, fraction(f), check=check)
+function (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
+  parent(f) === W && return f
+  return MPolyLocalizedRingElem(W, fraction(f), check=check)
+end
 
 (W::MPolyLocalizedRing)() = zero(W)
 (W::MPolyLocalizedRing)(a::Integer) = W(base_ring(W)(a), check=false)
@@ -1375,6 +1381,23 @@ function Base.in(a::RingElem, I::MPolyLocalizedIdeal)
   return true
 end
 
+# TODO: Also add a special dispatch for localizations at 𝕜-points
+@attr function is_prime(I::MPolyLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
+
+### Additional constructors
+function intersect(I::MPolyLocalizedIdeal, J::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  L == base_ring(J) || error("ideals must be defined in the same ring")
+  preI = Oscar.pre_saturated_ideal(I)
+  preJ = Oscar.pre_saturated_ideal(J) 
+  R = base_ring(L)
+  K = intersect(I, J)
+  return L(K)
+end
+
+### Further functionality
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
   L = base_ring(I)
   parent(a) == L || return coordinates(L(a), I, check=check)
@@ -1639,6 +1662,7 @@ function saturated_ideal(
       for g in gens(J)
         g in I
       end
+
     end
     I.is_saturated = true
   end
@@ -1665,6 +1689,7 @@ function Base.in(
   L = base_ring(I)
   parent(a) == L || return L(a) in I
   b = numerator(a)
+  b in pre_saturated_ideal(I) && return true
   return b in saturated_ideal(I)
 end
 
@@ -2063,11 +2088,12 @@ end
 function MPolyLocalizedRingHom(
       W::MPolyLocalizedRing,
       S::Ring,
-      a::Vector{RingElemType}
+      a::Vector{RingElemType};
+      check::Bool=true
   ) where {RingElemType<:RingElem}
   R = base_ring(W)
   res = hom(R, S, a)
-  return MPolyLocalizedRingHom(W, S, res)
+  return MPolyLocalizedRingHom(W, S, res, check=check)
 end
 
 @doc Markdown.doc"""
@@ -2115,8 +2141,8 @@ julia> is_unit(PHI(iota(x)))
 true
 ```
 """
-hom(W::MPolyLocalizedRing, S::Ring, res::Map) = MPolyLocalizedRingHom(W, S, res)
-hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a)
+hom(W::MPolyLocalizedRing, S::Ring, res::Map; check::Bool=true) = MPolyLocalizedRingHom(W, S, res, check=check)
+hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}; check::Bool=true) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a, check=check)
 
 ### required getter functions
 domain(PHI::MPolyLocalizedRingHom) = PHI.W
@@ -2194,3 +2220,22 @@ function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
   x = coordinates(a*F[1], M)
   return true, W(x[1])
 end
+
+# This had to be moved after behind the definition of the elements.
+function Localization(R::MPolyRing, f::MPolyElem)
+  U = MPolyPowersOfElement(R, [f])
+  L = MPolyLocalizedRing(R, U)
+  function func(a::MPolyElem)
+    parent(a) == R || error("element does not belong to the correct ring")
+    return L(a)
+  end
+  function func_inv(a::MPolyLocalizedRingElem{<:Any, <:Any, <:Any, <:Any, 
+                                              <:MPolyPowersOfElement}
+    )
+    L == parent(a) || error("element does not belong to the correct ring")
+    isone(denominator(a)) && return numerator(a)
+    return divexact(numerator(a), denominator(a))
+  end
+  return L, MapFromFunc(func, func_inv, R, L)
+end
+

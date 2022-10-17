@@ -37,7 +37,8 @@ export
     is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
     is_finiteorder,
     is_perfect, has_is_perfect, set_is_perfect,
-    is_pgroup,
+    is_pgroup, has_is_pgroup, set_is_pgroup,
+    is_pgroup_with_prime,
     is_quasisimple, has_is_quasisimple, set_is_quasisimple,
     is_simple, has_is_simple, set_is_simple,
     is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple,
@@ -57,6 +58,7 @@ export
     order, has_order, set_order,
     pcore,
     perm,
+    prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup,
     radical_subgroup, has_radical_subgroup, set_radical_subgroup,
     rand_pseudo,
     relators,
@@ -120,6 +122,12 @@ end
 
 function parent(x::GAPGroupElem)
   return x.parent
+end
+
+# coercion embeds a group element into a different parent
+function (G::GAPGroup)(x::BasicGAPGroupElem{T}) where T<:GAPGroup
+   x.X in G.X && return group_element(G, x.X)
+   throw(ArgumentError("the element does not embed in the group"))
 end
 
 """
@@ -1082,7 +1090,7 @@ function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
    is_solvable(G) || throw(ArgumentError("The group is not solvable"))
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P, recursive=true)))
+   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true)))
 end
 
 """
@@ -1122,7 +1130,7 @@ julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
 function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
-   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))::GapObj
+   res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P))::GapObj
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
    elseif GAPWrap.IsList(res_gap)
@@ -1278,24 +1286,122 @@ false
 """
     is_pgroup(G)
 
+Return `true` if `G` is a ``p``-group for some prime ``p``, that is, if the
+order of every element in `G` is a power of ``p``.
+
+Note that a finite group is a ``p``-group if and only if its order is a prime
+power. In particular, the trivial group is a ``p``-group for every prime.
+
+# Examples
+```jldoctest
+julia> is_pgroup(symmetric_group(1))
+true
+
+julia> is_pgroup(symmetric_group(2))
+true
+
+julia> is_pgroup(symmetric_group(3))
+false
+
+```
+"""
+@gapattribute is_pgroup(G::GAPGroup) = GAP.Globals.IsPGroup(G.X)::Bool
+
+
+"""
+    is_pgroup_with_prime(G)
+
 Return `(true, nothing)` if `G` is the trivial group,
 `(true, p)` if the order of every element in `G` is a power of a prime `p`,
 and `(false, nothing)` otherwise.
 
 For finite groups `G`, the first return value is `true` if and only if
 the order of `G` is a prime power.
+
+# Examples
+```jldoctest
+julia> is_pgroup_with_prime(symmetric_group(1))
+(true, nothing)
+
+julia> is_pgroup_with_prime(symmetric_group(2))
+(true, 2)
+
+julia> is_pgroup_with_prime(symmetric_group(3))
+(false, nothing)
+
+```
 """
-function is_pgroup(G::GAPGroup)
-   if GAPWrap.IsPGroup(G.X)
-      p = GAP.Globals.PrimePGroup(G.X)
-      if p != GAP.Globals.fail
-         return true, fmpz(p)  # TODO: allow specifying the type used for the prime
-      else
-         return true, nothing
-      end
-   end
-   return false, nothing
+function is_pgroup_with_prime(G::GAPGroup)
+  is_trivial(G) && return true, nothing
+  if is_pgroup(G)
+    p = GAP.Globals.PrimePGroup(G.X)::GapInt
+    return true, fmpz(p)  # TODO: allow specifying the type used for the prime
+  end
+  return false, nothing
 end
+
+
+# helper for prime_of_pgroup: this helper is efficient thanks to
+# @gapattribute, but we also want prime_of_pgroup to accept an optional
+# type argument; so we cannot use @gapattribute directly. Instead we set
+# up this auxiliary _prime_of_pgroup which then is called by the real
+# prime_of_pgroup.
+# TODO: enhance @gapattribute so this is not necessary
+@gapattribute function _prime_of_pgroup(G::GAPGroup)
+  if is_trivial(G) || !is_pgroup(G)
+    error("only supported for non-trivial p-groups")
+  end
+  return GAP.Globals.PrimePGroup(G.X)::GapInt
+end
+
+
+"""
+    prime_of_pgroup(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
+
+Return the prime ``p`` if `G` is a non-trivial ``p``-group.
+
+An exception is thrown if `G` is not a ``p``-group or
+is a trivial group.
+
+# Examples
+```jldoctest
+julia> prime_of_pgroup(quaternion_group(8))
+2
+
+julia> prime_of_pgroup(UInt16, quaternion_group(8))
+0x0002
+
+julia> prime_of_pgroup(symmetric_group(1))
+ERROR: only supported for non-trivial p-groups
+
+julia> prime_of_pgroup(symmetric_group(3))
+ERROR: only supported for non-trivial p-groups
+
+```
+"""
+function prime_of_pgroup(::Type{T}, G::GAPGroup) where T <: IntegerUnion
+  return T(_prime_of_pgroup(G))
+end
+
+# set default value for first argument T to fmpz
+prime_of_pgroup(G::GAPGroup) = prime_of_pgroup(fmpz, G)
+
+"""
+    has_prime_of_pgroup(G::GAPGroup)
+
+Return `true` if the value for `prime_of_pgroup(G)` has already been computed.
+"""
+has_prime_of_pgroup(G::GAPGroup) = has__prime_of_pgroup(G)
+
+"""
+    set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
+
+Set the value for `prime_of_pgroup(G)` to `p` if it has't been set already.
+"""
+function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
+  set__prime_of_pgroup(G, GAP.Obj(p))
+end
+
 
 """
     is_finitelygenerated(G)

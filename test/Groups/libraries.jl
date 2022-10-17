@@ -205,3 +205,37 @@ end
      @test base_ring(G) == R
    end
 end
+
+@testset "Atlas subgroups" begin
+   # `atlas_subgroup` for group name and position
+   H, emb = atlas_subgroup("M11", 1)
+   @test order(H) == 720
+   # `atlas_subgroup` for type, group name, and position
+   H, emb = atlas_subgroup(PermGroup, "M11", 1)
+   @test order(H) == 720
+   H, emb = atlas_subgroup(MatrixGroup, "M11", 1)
+   @test order(H) == 720
+   # no representation of the group
+   @test_throws ErrorException atlas_subgroup(PermGroup, "B", 1)
+   # no restriction to the subgroup
+   @test_throws ErrorException atlas_subgroup("M11", 100)
+
+   # `atlas_subgroup` for group and position
+   G = atlas_group("M11")
+   H, emb = atlas_subgroup(G, 1)
+   @test order(H) == 720
+   @test is_subgroup(G, H)[1]
+   @test domain(emb) == H
+   @test codomain(emb) == G
+   # the group was not created with `atlas_group`
+   @test_throws ErrorException atlas_subgroup(symmetric_group(5), 1)
+   @test_throws ErrorException atlas_subgroup(H, 1)
+   # no restriction to the subgroup
+   @test_throws ErrorException atlas_subgroup(G, 100)
+
+   # `atlas_subgroup` for info dictionary and position
+   info = all_atlas_group_infos("M11", transitivity => 4)
+   @test length(info) > 0
+   H, emb = atlas_subgroup(info[1], 1)
+   @test order(H) == 720
+end

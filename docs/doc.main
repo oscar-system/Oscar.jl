@@ -75,6 +75,10 @@
         "Hecke/quad_forms/introduction.md",
         "Hecke/quad_forms/basics.md",
         "Hecke/quad_forms/lattices.md",
+        "Hecke/quad_forms/genusherm.md",
+        "Hecke/quad_forms/integer_lattices.md",
+        "Hecke/quad_forms/Zgenera.md",
+        "Hecke/quad_forms/discriminant_group.md"
      ],
   ],
 
@@ -111,18 +115,21 @@
       "PolyhedralGeometry/fans.md",
       "PolyhedralGeometry/polyhedral_complexes.md",
       "PolyhedralGeometry/linear_programs.md",
+      "PolyhedralGeometry/mixed_integer_linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
   ],
 
   "Commutative Algebra" => [
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
+     "CommutativeAlgebra/orderings.md",
      "CommutativeAlgebra/ideals.md",
      "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
      ],
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
@@ -155,6 +162,7 @@
         "ToricVarieties/ToricLineBundles.md",
         "ToricVarieties/cohomCalg.md",
         "ToricVarieties/CohomologyClasses.md",
+        "ToricVarieties/Subvarieties.md",
         "ToricVarieties/AlgebraicCycles.md",
      ],
      "Schemes" => [
@@ -163,6 +171,9 @@
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
+     ],
+     "Standard Constructions" => [
+       "AlgebraicGeometry/standard_constructions.md",
      ]
   ],
 
@@ -171,6 +182,7 @@
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
     "NoncommutativeAlgebra/PBWAlgebras/creation.md",
+    "NoncommutativeAlgebra/PBWAlgebras/ideals.md",
     "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
     ],
     "NoncommutativeAlgebra/free_associative_algebra.md",
@@ -194,7 +206,9 @@
   "Developer Documentation" => [
     "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
+    "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/documentation.md",
+    "DeveloperDocumentation/debugging.md",
     "DeveloperDocumentation/serialization.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",

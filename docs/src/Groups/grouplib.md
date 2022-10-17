@@ -122,4 +122,5 @@ see [`character_table(id::String, p::Int = 0)`](@ref).
 number_atlas_groups
 all_atlas_group_infos
 atlas_group
+atlas_subgroup
 ```

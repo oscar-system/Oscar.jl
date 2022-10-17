@@ -1,8 +1,6 @@
 ################################################################################
 # field of rationals (singleton type)
-encodeType(::Type{FlintRationalField}) = "FlintRationalField"
-reverseTypeMap["FlintRationalField"] = FlintRationalField
-
+@registerSerializationType(FlintRationalField)
 
 ################################################################################
 # non-fmpz variant
@@ -79,8 +77,7 @@ end
 ################################################################################
 # SimpleNumField
 
-encodeType(::Type{<:Hecke.NfRel}) = "Hecke.NfRel"
-reverseTypeMap["Hecke.NfRel"] = Hecke.NfRel
+@registerSerializationType(Hecke.NfRel)
 
 @registerSerializationType(AnticNumberField)
 
@@ -118,8 +115,7 @@ end
 @registerSerializationType(fq_nmod)
 @registerSerializationType(nf_elem)
 
-encodeType(::Type{<:Hecke.NfRelElem}) = "Hecke.NfRelElem"
-reverseTypeMap["Hecke.NfRelElem"] = Hecke.NfRelElem
+@registerSerializationType(Hecke.NfRelElem)
 
 function save_internal(s::SerializerState, k::Union{nf_elem, fq_nmod, Hecke.NfRelElem})
     K = parent(k)
@@ -154,8 +150,7 @@ end
 ################################################################################
 # Non Simple Extension
 
-encodeType(::Type{<:Hecke.NfRelNS}) = "Hecke.NfRelNS"
-reverseTypeMap["Hecke.NfRelNS"] = Hecke.NfRelNS
+@registerSerializationType(Hecke.NfRelNS)
 
 @registerSerializationType(NfAbsNS)
 @registerSerializationType(NfAbsNSElem)
@@ -178,8 +173,7 @@ function load_internal(s::DeserializerState,
 end
 
 #elements
-encodeType(::Type{<:Hecke.NfRelNSElem}) = "Hecke.NfRelNSElem"
-reverseTypeMap["Hecke.NfRelNSElem"] = Hecke.NfRelNSElem
+@registerSerializationType(Hecke.NfRelNSElem)
 
 function save_internal(s::SerializerState, k::Union{NfAbsNSElem, Hecke.NfRelNSElem})
     K = parent(k)
@@ -228,8 +222,7 @@ end
 ################################################################################
 # FracField
 
-encodeType(::Type{<:FracField}) = "FracField"
-reverseTypeMap["FracField"] = FracField
+@registerSerializationType(FracField)
 
 function save_internal(s::SerializerState, K::FracField)
     return Dict(
@@ -240,14 +233,13 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: FracField},
                        dict::Dict)
-    R, _ = load_unknown_type(s, dict[:base_ring])
+    R = load_unknown_type(s, dict[:base_ring])
 
     return FractionField(R, cached=false)
 end
 
 # elements
-encodeType(::Type{<:FracElem}) = "FracElem"
-reverseTypeMap["FracElem"] = FracElem
+@registerSerializationType(FracElem)
 
 function save_internal(s::SerializerState, f::FracElem)
     return Dict(
@@ -273,6 +265,67 @@ function load_internal_with_parent(s::DeserializerState,
     num = load_unknown_type(s, dict[:num]; parent=parts_parent)
     den = load_unknown_type(s, dict[:den]; parent=parts_parent)
     
+    return parent(num, den)
+end
+
+################################################################################
+# RationalFunctionField
+
+@registerSerializationType(AbstractAlgebra.Generic.RationalFunctionField, "RationalFunctionField")
+
+function save_internal(s::SerializerState,
+                       RF::AbstractAlgebra.Generic.RationalFunctionField)
+    return Dict(
+        :base_ring => save_type_dispatch(s, base_ring(RF)),
+        :symbols => save_type_dispatch(s, symbols(RF))
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: AbstractAlgebra.Generic.RationalFunctionField},
+                       dict::Dict)
+    R = load_unknown_type(s, dict[:base_ring])
+    symbols = load_unknown_type(s, dict[:symbols])
+
+    return RationalFunctionField(R, symbols, cached=false)[1]
+end
+
+#elements
+@registerSerializationType(AbstractAlgebra.Generic.Rat, "Rat")
+
+function save_internal(s::SerializerState, f::AbstractAlgebra.Generic.Rat)
+    frac_elem_parent = save_type_dispatch(s, parent(denominator(f)))
+    return Dict(
+        :parent => save_type_dispatch(s, parent(f)),
+        :frac_elem_parent => frac_elem_parent,
+        :den => save_type_dispatch(s, denominator(f)),
+        :num => save_type_dispatch(s, numerator(f))
+    )
+end
+
+function load_internal(s::DeserializerState,
+                       ::Type{<: AbstractAlgebra.Generic.Rat},
+                       dict::Dict)
+    _ = load_unknown_type(s, dict[:frac_elem_parent])
+    R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
+    # There is no official way to get the underlying polynomial ring of a rational function field.
+    # So we do the detour via the FractionField object, of which the rational function field is build from.
+    parent = base_ring(AbstractAlgebra.Generic.fraction_field(R))
+    num = load_unknown_type(s, dict[:num]; parent=parent)
+    den = load_unknown_type(s, dict[:den]; parent=parent)
+
+    return R(num, den)
+end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: AbstractAlgebra.Generic.Rat},
+                                   dict::Dict,
+                                   parent:: AbstractAlgebra.Generic.RationalFunctionField)
+    _ = load_unknown_type(s, dict[:frac_elem_parent])
+    forced_parent = base_ring(AbstractAlgebra.Generic.fraction_field(parent))
+    num = load_unknown_type(s, dict[:num]; parent=forced_parent)
+    den = load_unknown_type(s, dict[:den]; parent=forced_parent)
+
     return parent(num, den)
 end
 
@@ -467,5 +520,3 @@ function load_internal_with_parent(s::DeserializerState,
     
     return parent(rational_rep)
 end
-
-

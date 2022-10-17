@@ -1,7 +1,5 @@
 @testset "Graphs" begin
 
-    using Oscar.Graphs
-
     @testset "core functionality" begin
         g = Graph{Directed}(5)
         @test nv(g) == 5

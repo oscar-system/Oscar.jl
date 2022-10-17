@@ -7,6 +7,7 @@ using Test
 
 # our packages
 import AbstractAlgebra
+import AlgebraicSolving
 import GAP
 import Hecke
 import Nemo

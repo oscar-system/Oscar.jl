@@ -111,7 +111,7 @@ catalan_solid
 cross
 cube
 cyclic_polytope
-delpezzo
+del_pezzo_polytope
 fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope

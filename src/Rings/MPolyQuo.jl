@@ -12,7 +12,7 @@ export issubset
   I::MPolyIdeal{S}
   SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_poly_ring()
 
-  function MPolyQuo(R, I) where S
+  function MPolyQuo(R, I)
     @assert base_ring(I) === R
     r = new{elem_type(R)}()
     r.R = R
@@ -361,6 +361,9 @@ function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
   return MPolyQuoIdeal(A, ideal(A.R, map(p->p.f, V)))
 end
 
+function ideal(A::MPolyQuo{T}, x::MPolyQuoElem{T}) where T <: MPolyElem
+  return ideal(A,[x])
+end
 ##################################################################
 
 function singular_poly_ring(Rx::MPolyQuo, ordering::MonomialOrdering = default_ordering(Rx); keep_ordering::Bool = true)

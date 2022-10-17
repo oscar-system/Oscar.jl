@@ -7,7 +7,7 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
        weight_matrix, isweighted, is_global, is_local, is_mixed,
        permutation_of_terms, weighted_ordering, canonical_weight_matrix,
-       MonomialOrdering, ModuleOrdering, singular
+       MonomialOrdering, ModuleOrdering, singular, opposite_ordering
 
 abstract type AbsOrdering end
 
@@ -18,7 +18,7 @@ abstract type AbsModOrdering <: AbsOrdering end
 # lex, deglex, ...
 struct SymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
-  function SymbOrdering(S::Symbol, v::Vector{Int})
+  function SymbOrdering(S::Symbol, v)
     S in (:lex, :deglex, :degrevlex, :revlex,
           :neglex, :negdeglex, :negdegrevlex, :negrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
@@ -30,7 +30,7 @@ end
 struct WSymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
   weights::Vector{Int}
-  function WSymbOrdering(S::Symbol, v::Vector{Int}, w::Vector{Int})
+  function WSymbOrdering(S::Symbol, v, w::Vector{Int})
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
     length(v) == length(w) ||
@@ -42,7 +42,7 @@ end
 struct MatrixOrdering <: AbsGenOrdering
   vars::Vector{Int}
   matrix::fmpz_mat
-  function MatrixOrdering(v::Vector{Int}, m::fmpz_mat)
+  function MatrixOrdering(v, m::fmpz_mat)
     length(v) == ncols(m) ||
         throw(ArgumentError("number of variables should match the number of columns"))
     return new(v, m)
@@ -126,16 +126,43 @@ function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol)
   return MonomialOrdering(parent(first(v)), SymbOrdering(s, i))
 end
 
+function monomial_ordering(R::MPolyRing, s::Symbol)
+  return MonomialOrdering(R, SymbOrdering(s, 1:nvars(R)))
+end
+
 #### lex ####
 
 @doc Markdown.doc"""
-    lex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    lex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `lex` (lexicographic) ordering on the variables given.
+Given a vector `V` of variables, return the lexicographical ordering on the set of monomials in these variables.
+
+    lex(R::MPolyRing) -> MonomialOrdering
+
+Return the lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = lex([w, x])
+lex([w, x])
+
+julia> o2 = lex(gens(R)[3:4])
+lex([y, z])
+
+julia> o3 = lex(R)
+lex([w, x, y, z])
+```
 """
 function lex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:lex, i))
+end
+
+function lex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:lex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:lex})
@@ -164,13 +191,36 @@ end
 #### deglex ####
 
 @doc Markdown.doc"""
-    deglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    deglex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    
+Given a vector `V` of variables, return the degree lexicographical ordering on the set of monomials in these variables.
 
-Defines the `deglex` ordering on the variables given.
+    deglex(R::MPolyRing) -> MonomialOrdering
+
+Return the degree lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = deglex([w, x])
+deglex([w, x])
+
+julia> o2 = deglex(gens(R)[3:4])
+deglex([y, z])
+
+julia> o3 = deglex(R)
+deglex([w, x, y, z])
+```
 """
 function deglex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:deglex, i))
+end
+
+function deglex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:deglex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:deglex})
@@ -207,13 +257,35 @@ end
 #### degrevlex ####
 
 @doc Markdown.doc"""
-    degrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    degrevlex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `degrevlex` ordering on the variables given.
+Given a vector `V` of variables, return the degree reverse lexicographical ordering on the set of monomials in these variables
+    degrevlex(R::MPolyRing) -> MonomialOrdering
+
+Return the degree reverse lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = degrevlex([w, x])
+degrevlex([w, x])
+
+julia> o2 = degrevlex(gens(R)[3:4])
+degrevlex([y, z])
+
+julia> o3 = degrevlex(R)
+degrevlex([w, x, y, z])
+```
 """
 function degrevlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:degrevlex, i))
+end
+
+function degrevlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:degrevlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:degrevlex})
@@ -250,13 +322,36 @@ end
 #### revlex ####
 
 @doc Markdown.doc"""
-    revlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    revlex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `revlex` ordering on the variables given.
+Given a vector `V` of variables, return the reverse lexicographical ordering on the set of monomials in these variables.
+
+    revlex(R::MPolyRing) -> MonomialOrdering
+
+Return the reverse lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = revlex([w, x])
+revlex([w, x])
+
+julia> o2 = revlex(gens(R)[3:4])
+revlex([y, z])
+
+julia> o3 = revlex(R)
+revlex([w, x, y, z])
+```
 """
 function revlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:revlex, i))
+end
+
+function revlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:revlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:revlex})
@@ -285,13 +380,36 @@ end
 #### neglex ####
 
 @doc Markdown.doc"""
-    neglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    neglex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `neglex` ordering on the variables given.
+Given a vector `V` of variables, return the negative lexicographical ordering on the set of monomials in these variables.
+
+    neglex(R::MPolyRing) -> MonomialOrdering
+
+Return the negative lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = neglex([w, x])
+neglex([w, x])
+
+julia> o2 = neglex(gens(R)[3:4])
+neglex([y, z])
+
+julia> o3 = neglex(R)
+neglex([w, x, y, z])
+```
 """
 function neglex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:neglex, i))
+end
+
+function neglex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:neglex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:neglex})
@@ -320,13 +438,36 @@ end
 #### negrevlex ####
 
 @doc Markdown.doc"""
-    negrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    negrevlex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `negrevlex` ordering on the variables given.
+Given a vector `V` of variables, return the negative reverse lexicographical ordering on the set of monomials in these variables.
+
+    negrevlex(R::MPolyRing) -> MonomialOrdering
+
+Return the negative reverse lexicographical ordering  on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = negrevlex([w, x])
+negrevlex([w, x])
+
+julia> o2 = negrevlex(gens(R)[3:4])
+negrevlex([y, z])
+
+julia> o3 = negrevlex(R)
+negrevlex([w, x, y, z])
+```
 """
 function negrevlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negrevlex, i))
+end
+
+function negrevlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:negrevlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:negrevlex})
@@ -355,13 +496,36 @@ end
 #### negdegrevlex ####
 
 @doc Markdown.doc"""
-    negdegrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    negdegrevlex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `negdegrevlex` ordering on the variables given.
+Given a vector `V` of variables, return the negative degree reverse lexicographical ordering on the set of monomials in these variables.
+
+    negdegrevlex(R::MPolyRing) -> MonomialOrdering
+
+Return the negative degree reverse lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = negdegrevlex([w, x])
+negdegrevlex([w, x])
+
+julia> o2 = negdegrevlex(gens(R)[3:4])
+negdegrevlex([y, z])
+
+julia> o3 = negdegrevlex(R)
+negdegrevlex([w, x, y, z])
+```
 """
 function negdegrevlex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negdegrevlex, i))
+end
+
+function negdegrevlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:negdegrevlex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:negdegrevlex})
@@ -398,13 +562,36 @@ end
 #### negdeglex ####
 
 @doc Markdown.doc"""
-    negdeglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+    negdeglex(V::AbstractVector{<:MPolyElem}) -> MonomialOrdering    
 
-Defines the `negdeglex` ordering on the variables given.
+Given a vector `V` of variables, return the negative degree lexicographical ordering on the set of monomials in these variables.
+
+    negdeglex(R::MPolyRing) -> MonomialOrdering
+
+Return the negative degree lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = negdeglex([w, x])
+negdeglex([w, x])
+
+julia> o2 = negdeglex(gens(R)[3:4])
+negdeglex([y, z])
+
+julia> o3 = negdeglex(R)
+negdeglex([w, x, y, z])
+```
 """
 function negdeglex(v::AbstractVector{<:MPolyElem})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negdeglex, i))
+end
+
+function negdeglex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:negdeglex, 1:nvars(R)))
 end
 
 function _weight_matrix(nvars::Int, o::SymbOrdering{:negdeglex})
@@ -442,6 +629,7 @@ end
 
 @doc Markdown.doc"""
     monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
+    monomial_ordering(R::MPolyRing, s::Symbol, w::Vector{Int}) -> MonomialOrdering
 
 Defines a weighted ordering to be applied to the variables in `v`. The weight
 vector `w` should be the same length as `v`, and the symbol `s` should be one
@@ -450,6 +638,10 @@ of `:wdeglex`, `:wdegrevlex`, `:negwdeglex`, `:negwdegrevlex`.
 function monomial_ordering(v::AbstractVector{<:MPolyElem}, s::Symbol, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(s, i, w))
+end
+
+function monomial_ordering(R::MPolyRing, s::Symbol, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(s, 1:nvars(R), w))
 end
 
 function _cmp_weighted_degree(f::MPolyElem, k::Int, l::Int, vars::Vector{Int}, w::Vector{Int})
@@ -466,13 +658,38 @@ end
 #### wdeglex, Wp ####
 
 @doc Markdown.doc"""
-    wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    wdeglex(V::AbstractVector{<:MPolyElem}, W::Vector{Int}) -> MonomialOrdering
+    
+Given a vector `V` of variables and a vector `W` of positive integers, return the corresponding weighted 
+lexicographical ordering on the set of monomials in the given variables.
 
-Defines the `wdeglex` ordering on the variables given with the weights `w`.
+    wdeglex(R, W::Vector{Int}) -> MonomialOrdering
+
+If `W` is a vector of positive integers, return the corresponding weighted 
+lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = wdeglex([w, x], [1, 2])
+wdeglex([w, x], [1, 2])
+
+julia> o2 = wdeglex(gens(R)[3:4], [3, 4])
+wdeglex([y, z], [3, 4])
+
+julia> o3 = wdeglex(R, [1, 2, 3, 4])
+wdeglex([w, x, y, z], [1, 2, 3, 4])
+```
 """
 function wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdeglex, i, w))
+end
+
+function wdeglex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:wdeglex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdeglex})
@@ -504,13 +721,38 @@ end
 #### wdegrevlex, wp ####
 
 @doc Markdown.doc"""
-    wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    wdegrevlex(V::AbstractVector{<:MPolyElem}, W::Vector{Int}) -> MonomialOrdering
 
-Defines the `wdegrevlex` ordering on the variables given with the weights `w`.
+Given a vector `V` of variables and a vector `W` of positive integers, return the corresponding weighted reverse 
+lexicographical ordering on the set of monomials in the given variables.
+
+    wdegrevlex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
+
+If `W` is a vector of positive integers, return the corresponding weighted reverse 
+lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = wdegrevlex([w, x], [1, 2])
+wdegrevlex([w, x], [1, 2])
+
+julia> o2 = wdegrevlex(gens(R)[3:4], [3, 4])
+wdegrevlex([y, z], [3, 4])
+
+julia> o3 = wdegrevlex(R, [1, 2, 3, 4])
+wdegrevlex([w, x, y, z], [1, 2, 3, 4])
+```
 """
 function wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdegrevlex, i, w))
+end
+
+function wdegrevlex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:wdegrevlex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:wdegrevlex})
@@ -542,13 +784,38 @@ end
 #### negwdeglex, Ws ####
 
 @doc Markdown.doc"""
-    negwdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    negwdeglex(V::AbstractVector{<:MPolyElem}, W::Vector{Int}) -> MonomialOrdering
+    
+Given a vector `V` of variables and a vector `W` of positive integers, return the corresponding
+negative weighted lexicographical ordering on the set of monomials in the given variables.
 
-Defines the `negwdeglex` ordering on the variables given with the weights `w`.
+    negwdeglex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
+
+If `W` is a vector of positive integers, return the corresponding negative weighted 
+lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = negwdeglex([w, x], [1, 2])
+negwdeglex([w, x], [1, 2])
+
+julia> o2 = negwdeglex(gens(R)[3:4], [3, 4])
+negwdeglex([y, z], [3, 4])
+
+julia> o3 = negwdeglex(R, [1, 2, 3, 4])
+negwdeglex([w, x, y, z], [1, 2, 3, 4])
+```
 """
 function negwdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdeglex, i, w))
+end
+
+function negwdeglex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:negwdeglex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdeglex})
@@ -580,13 +847,38 @@ end
 #### negwdegrevlex, ws ####
 
 @doc Markdown.doc"""
-    negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+    negwdegrevlex(V::AbstractVector{<:MPolyElem}, W::Vector{Int}) -> MonomialOrdering
+    
+Given a vector `V` of variables and a vector `W` of positive integers, return the corresponding negative
+weighted reverse lexicographical ordering on the set of monomials in the given variables.
 
-Defines the `negwdegrevlex` ordering on the variables given with the weights `w`.
+    negwdegrevlex(R::MPolyRing, W::Vector{Int}) -> MonomialOrdering
+
+If `W` is a vector of positive integers, return the corresponding negative weighted
+reverse lexicographical ordering on the set of monomials in the variables of `R`.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = negwdegrevlex([w, x], [1, 2])
+negwdegrevlex([w, x], [1, 2])
+
+julia> o2 = negwdegrevlex(gens(R)[3:4], [3, 4])
+negwdegrevlex([y, z], [3, 4])
+
+julia> o3 = negwdegrevlex(R, [1, 2, 3, 4])
+negwdegrevlex([w, x, y, z], [1, 2, 3, 4])
+```
 """
 function negwdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdegrevlex, i, w))
+end
+
+function negwdegrevlex(R::MPolyRing, w::Vector{Int})
+  return MonomialOrdering(R, WSymbOrdering(:negwdegrevlex, 1:nvars(R), w))
 end
 
 function _weight_matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
@@ -618,15 +910,43 @@ end
 #### matrix, M ####
 
 @doc Markdown.doc"""
-    matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}})
+    matrix_ordering(V::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T -> MonomialOrdering
 
-Defines the matrix ordering on the variables given with the matrix `M`. The
-matrix need not be square nor have full row rank, thus the resulting ordering
-may be only a partial ordering on the given variables.
+Given a vector `V` of variables and an integer matrix `M` such that `length(V) = ncols(M) = rank(M)`, 
+return the corresponding matrix ordering on the set of monomials in the given variables. 
+
+    matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}) -> MonomialOrdering
+
+Given an integer matrix `M` such that `nvars(R) = ncols(M) = rank(M)`, 
+return the matrix ordering on the set of variables of `R` which is defined by `M`.
+
+!!! note
+    The matrix `M` need not be square.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> M =[1 1 1; 0 0 -1; 0 -1 0]
+3×3 Matrix{Int64}:
+ 1   1   1
+ 0   0  -1
+ 0  -1   0
+
+julia> o = matrix_ordering(R, M)
+matrix_ordering([x, y, z], [1 1 1; 0 0 -1; 0 -1 0])
+
+julia> o == degrevlex(R)
+true
+```
 """
 function matrix_ordering(v::AbstractVector{<:MPolyElem}, M::Union{Matrix{T}, MatElem{T}}) where T
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(M)))
+end
+
+function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}) where T
+  return MonomialOrdering(R, MatrixOrdering(1:nvars(R), fmpz_mat(M)))
 end
 
 @doc Markdown.doc"""
@@ -635,7 +955,7 @@ end
 Defines the (partial) weighted ordering on the variables given with the weight
 vector `w`. This is equivalent to a matrix ordering with just one row.
 """
-function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) where T
+function weighted_ordering(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, fmpz_mat(1, length(w), w)))
 end
@@ -769,10 +1089,22 @@ function _global_and_local_vars(M::MonomialOrdering)
 end
 
 @doc Markdown.doc"""
-    is_global(M::MonomialOrdering)
+    is_global(ord::MonomialOrdering)
 
-Return `true` if the given ordering is global, i.e. if $1 < x$ for
-each variable $x$ in the ring `M.R` for which `M` is defined.
+Return `true` if `ord` is global, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> M = [1 1; 0 -1];
+
+julia> o = matrix_ordering(R, M)
+matrix_ordering([x, y], [1 1; 0 -1])
+
+julia> is_global(o)
+true
+```
 """
 function is_global(M::MonomialOrdering)
   globals, locals = _global_and_local_vars(M)
@@ -780,10 +1112,22 @@ function is_global(M::MonomialOrdering)
 end
 
 @doc Markdown.doc"""
-    is_local(M::MonomialOrdering)
+    is_local(ord::MonomialOrdering)
 
-Return `true` if the given ordering is local, i.e. if $1 > x$ for
-each variable $x$ in the ring `M.R` for which `M` is defined.
+Return `true` if `ord` is local, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> M = [-1 -1; 0 -1];
+
+julia> o = matrix_ordering(R, M)
+matrix_ordering([x, y], [-1 -1; 0 -1])
+
+julia> is_local(o)
+true
+```
 """
 function is_local(M::MonomialOrdering)
   globals, locals = _global_and_local_vars(M)
@@ -791,11 +1135,22 @@ function is_local(M::MonomialOrdering)
 end
 
 @doc Markdown.doc"""
-    is_mixed(M::MonomialOrdering)
+    is_mixed(ord::MonomialOrdering)
 
-Return `true` if the given ordering is mixed, i.e. if $1 < x_i$ for
-a variable $x_i$ and $1 > x_j$ for another variable $x_j$ in the ring `M.R`
-for which `M` is defined.
+Return `true` if `ord` is mixed, `false` otherwise. 
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> M = [1 -1; 0 -1];
+
+julia> o = matrix_ordering(R, M)
+matrix_ordering([x, y], [1 -1; 0 -1])
+
+julia> is_mixed(o)
+true
+```
 """
 function is_mixed(M::MonomialOrdering)
   globals, locals = _global_and_local_vars(M)
@@ -908,7 +1263,6 @@ end
 
 ############ printing ############
 
-
 function _expressify(o::SymbOrdering{S}, sym)  where S
   return Expr(:call, S, Expr(:vect, (sym[i] for i in o.vars)...))
 end
@@ -918,7 +1272,7 @@ function _expressify(o::WSymbOrdering{S}, sym)  where S
                         Expr(:vect, o.weights...))
 end
 
-function _expressify(o::MatrixOrdering, sym) where S
+function _expressify(o::MatrixOrdering, sym)
   return Expr(:call, nrows(o.matrix) == 1 ? :weighted_ordering : :matrix_ordering,
                      Expr(:vect, (sym[i] for i in o.vars)...),
                      AbstractAlgebra.expressify(o.matrix))
@@ -943,6 +1297,39 @@ function AbstractAlgebra.expressify(M::ModuleOrdering; context = nothing)
 end
 
 @enable_all_show_via_expressify ModuleOrdering
+
+############ opposite ordering ############
+
+# TODO return singular-friendly orderings if that is how they come in
+function _opposite_ordering(nvars::Int, o::SymbOrdering{T}) where T
+  return SymbOrdering(T, nvars+1 .- o.vars)
+end
+
+# TODO ditto
+function _opposite_ordering(nvars::Int, o::WSymbOrdering{T}) where T
+  return WSymbOrdering(T, nvars+1 .- o.vars, o.weights)
+end
+
+function _opposite_ordering(nvars::Int, o::MatrixOrdering)
+  M = o.matrix
+  M = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
+  return MatrixOrdering(reverse(nvars+1 .- o.vars), M)
+end
+
+function _opposite_ordering(n::Int, o::ProdOrdering)
+  return ProdOrdering(_opposite_ordering(n, o.a), _opposite_ordering(n, o.b))
+end
+
+@doc Markdown.doc"""
+    opposite_ordering(R::MPolyRing, o::MonomialOrdering)
+
+Return an ordering on `R` whose weight matrix is the column-wise reverse of the
+weight matrix of `o`.
+"""
+function opposite_ordering(R::MPolyRing, o::MonomialOrdering)
+  @assert nvars(R) == nvars(base_ring(o))
+  return MonomialOrdering(R, _opposite_ordering(nvars(R), o.o))
+end
 
 ############ Singular conversions ############
 
@@ -994,7 +1381,7 @@ function _try_singular_easy(Q::order_conversion_ctx, o::MatrixOrdering)
   n = length(o.vars)
   if nrows(o.matrix) == n && !iszero(det(o.matrix))
     Q.last_var += n
-    return (true, Singular.ordering_M(o.matrix, false))
+    return (true, Singular.ordering_M(o.matrix; check=false))
   elseif nrows(o.matrix) == 1
     return (true, Singular.ordering_a([Int(o.matrix[1,i]) for i in 1:n]))
   end

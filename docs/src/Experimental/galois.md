@@ -56,7 +56,7 @@ recovering the true roots from this information.
 
 The main information is included in the number field chaper, see for example
 
-  - [`automorphisms(::Hecke.NumFieldMor)`](@ref)
+  - [`automorphism_list(::Hecke.NumFieldMor)`](@ref)
   - [`automorphism_group(::NumField)`](@ref)
   - [`automorphism_group(::NumField, ::NumField)`](@ref)
 

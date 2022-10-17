@@ -76,6 +76,7 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 Base.isfinite(G::GAPGroup)
 is_abelian(G::GAPGroup)
 is_pgroup
+is_pgroup_with_prime
 is_nilpotent
 is_supersolvable
 is_solvable
@@ -92,7 +93,8 @@ is_finitelygenerated
 
 ```@docs
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
-exponent(x::GAPGroup)
-describe(x::GAPGroup)
+exponent(G::GAPGroup)
+describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)
+prime_of_pgroup
 ```

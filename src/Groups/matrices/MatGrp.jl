@@ -547,7 +547,25 @@ ngens(G::MatrixGroup) = length(gens(G))
 
 compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
 
-compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
+function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
+  #=
+    - For a matrix group G over the Rationals or over a number field,
+    the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
+    - If we know a reasonable ("nice") faithful permutation action of `G` in advance,
+    we can set this flag in `G.X` to true and store the action homomorphism in `G.X`,
+    and then this information should be used in the computation of the order.
+    - If the flag is not known to be true then the Oscar code from
+    `isomorphic_group_over_finite_field` shall be preferred.
+  =#
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAP.Globals.IsHandledByNiceMonomorphism(G.X)
+    # The call to `IsHandledByNiceMonomorphism` triggers an expensive
+    # computation of `IsFinite` which we avoid by checking
+    # `HasIsHandledByNiceMonomorphism` first.
+    return fmpz(GAPWrap.Order(G.X))
+  else
+    order(isomorphic_group_over_finite_field(G)[1])
+  end
+end
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    res = get_attribute!(G, :order) do
@@ -561,6 +579,12 @@ end
 # Constructors
 #
 ########################################################################
+
+function _field_from_q(q::Int)
+   (n,p) = is_power(q)
+   is_prime(p) || throw(ArgumentError("The field size must be a prime power"))
+   return GF(p, n)
+end
 
 """
     general_linear_group(n::Int, q::Int)
@@ -576,9 +600,7 @@ function general_linear_group(n::Int, F::Ring)
 end
 
 function general_linear_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return general_linear_group(n, GF(b, a))
+   return general_linear_group(n, _field_from_q(q))
 end
 
 """
@@ -595,9 +617,7 @@ function special_linear_group(n::Int, F::Ring)
 end
 
 function special_linear_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return special_linear_group(n, GF(b, a))
+   return special_linear_group(n, _field_from_q(q))
 end
 
 """
@@ -616,9 +636,7 @@ function symplectic_group(n::Int, F::Ring)
 end
 
 function symplectic_group(n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return symplectic_group(n, GF(b, a))
+   return symplectic_group(n, _field_from_q(q))
 end
 
 """
@@ -650,9 +668,7 @@ function orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return orthogonal_group(e, n, GF(b, a))
+   return orthogonal_group(e, n, _field_from_q(q))
 end
 
 orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
@@ -688,9 +704,7 @@ function special_orthogonal_group(e::Int, n::Int, F::Ring)
 end
 
 function special_orthogonal_group(e::Int, n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return special_orthogonal_group(e, n, GF(b, a))
+   return special_orthogonal_group(e, n, _field_from_q(q))
 end
 
 special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
@@ -725,9 +739,7 @@ function omega_group(e::Int, n::Int, F::Ring)
 end
 
 function omega_group(e::Int, n::Int, q::Int)
-   (a,b) = is_power(q)
-   is_prime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return omega_group(e, n, GF(b, a))
+   return omega_group(e, n, _field_from_q(q))
 end
 
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
@@ -794,7 +806,7 @@ matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(col
 
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    @assert elem_type(G) === S
-   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
+   elems_in_GAP = GAP.Obj(GapObj[x.X for x in elements])
    H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)

@@ -37,7 +37,7 @@ A torus-invariant, non-prime divisor on a normal toric variety
 function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{T}) where {T <: IntegerUnion}
     # check input
     if length(coeffs) != pm_object(v).N_RAYS
-        throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
+        throw(ArgumentError("Number of coefficients needs to match number of prime divisors"))
     end
     
     # construct the divisor
@@ -75,7 +75,7 @@ A torus-invariant, non-prime divisor on a normal toric variety
 """
 function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{T}) where {T <: IntegerUnion}
     if length(character) != rank(character_lattice(v))
-        throw(ArgumentError("Character must consist of $(rank(character_lattice(v))) integers!"))
+        throw(ArgumentError("Character must consist of $(rank(character_lattice(v))) integers"))
     end
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))
@@ -91,7 +91,7 @@ export DivisorOfCharacter
 
 function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
     if toric_variety(td1) !== toric_variety(td2)
-        throw(ArgumentError("The toric divisors must be defined on identically the same toric variety."))
+        throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     new_coeffiicients = coefficients(td1) + coefficients(td2)
     return ToricDivisor(toric_variety(td1), new_coeffiicients)
@@ -100,7 +100,7 @@ end
 
 function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
     if toric_variety(td1) !== toric_variety(td2)
-        throw(ArgumentError("The toric divisors must be defined on identically the same toric variety."))
+        throw(ArgumentError("The toric divisors must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     new_coeffiicients = coefficients(td1) - coefficients(td2)
     return ToricDivisor(toric_variety(td1), new_coeffiicients)

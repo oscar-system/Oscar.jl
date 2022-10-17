@@ -1,7 +1,7 @@
 
 export normalization_with_delta
 export noether_normalization, normalization, integral_basis
-export is_reduced, subalgebra_membership, minimal_subalgebra_generators
+export is_reduced, subalgebra_membership, subalgebra_membership_homogeneous, minimal_subalgebra_generators
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
 export is_surjective, is_injective, is_bijective, inverse, preimage, isfinite
 export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
@@ -297,60 +297,21 @@ function transform_to_positive_orthant(rs::Matrix{Int})
     return original * transformation, transformation
 end
 
-function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m)
-   ###for use in _multi_hilbert_series only
-   ###if !is_monomial(I)
-   ###      throw(ArgumentError("The ideal is not monomial"))
-   ###end
-   ### V = minimal_monomial_generators(I)  ### to be written
-   V = gens(I)
-   s = ngens(I)
-   d = degree(Vector{Int}, V[s])
-   p = one(S)
-   for j = 1:m
-        p = p*gen(S, j)^d[j]
-   end	
-   if s == 1
-      return 1-p
-   end
-   v = V[s]
-   V = deleteat!(V, s)
-   J = ideal(base_ring(I), V)
-   p1 = _numerator_monomial_multi_hilbert_series(J, S, m)
-   p2 = _numerator_monomial_multi_hilbert_series(J:v, S, m)
-   ### TODO: Do I have the minimal set of monomial generators here?
-   return p1-p*p2
+function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:BayerStillmanA)
+  x = gens(base_ring(I))
+  W = [degree(Vector{Int}, x[i])[j] for j in 1:m, i in 1:length(x)]
+  return _hilbert_numerator_from_leading_exponents([leading_exponent_vector(f) for f in gens(I)], W, S, :BayerStillmanA)
 end
 
-### TODO: use following version once build complex is completely adapted to Laurent polynomial case
-#function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S)
-   ###for use in _multi_hilbert_series only
-   ###if !is_monomial(I)
-   ###      throw(ArgumentError("The ideal is not monomial"))
-   ###end
-   ### V = minimal_monomial_generators(I)  ### to be written
-#   V = gens(I)
-#   s = ngens(I)
-#   d = degree(Vector{Int}, V[s])
-#   B = MPolyBuildCtx(S)
-#   push_term!(B, 1, d)
-#   p = finish(B)
-#   if s == 1
-#      return 1-p
-#   end
-#   v = V[s]
-#   V = deleteat!(V, s)
-#   J = ideal(base_ring(I), V)
-#   p1 = _numerator_monomial_multi_hilbert_series(J, S)
-#   p2 = _numerator_monomial_multi_hilbert_series(J:v, S)
-   ### TODO: Do I have the minimal set of monomial generators here?
-#   return p1-p*p2
-#end
 
 @doc Markdown.doc"""
-    multi_hilbert_series(A::MPolyQuo)
+    multi_hilbert_series(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
 
 Return the Hilbert series of the positively graded affine algebra `A`.
+
+!!! note 
+    The advanced user can select a `alg` for the computation; 
+    see the code for details.
 
 # Examples
 ```jldoctest
@@ -421,7 +382,7 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function multi_hilbert_series(A::MPolyQuo)
+function multi_hilbert_series(A::MPolyQuo; alg=:BayerStillmanA)
    R = A.R
    I = A.I
    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
@@ -466,20 +427,11 @@ function multi_hilbert_series(A::MPolyQuo)
       push_term!(B, 1, e)
       q = q*(1-finish(B))
    end
-#   q = elem_type(S)[]
-#   for i = 1:n
-#      e = [Int(MI[i, :][j]) for j = 1:m]
-#      qq = one(S)
-#      for j = 1:m
-#        qq = qq*gen(S, j)^e[j]
-#      end
-#      q = push!(q, 1-qq)
-#   end
    if iszero(I)
       p = one(S)
    else
       LI = leading_ideal(I, ordering=degrevlex(gens(R)))
-      p = _numerator_monomial_multi_hilbert_series(LI, S, m)
+      p = _numerator_monomial_multi_hilbert_series(LI, S, m, alg=alg)
    end
    return  (p, q), (H, iso)
 end
@@ -549,9 +501,13 @@ end
 #end
 
 @doc Markdown.doc"""
-    multi_hilbert_series_reduced(A::MPolyQuo)
+    multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
+
+!!! note 
+    The advanced user can select a `alg` for the computation; 
+    see the code for details.
 
 # Examples
 ```jldoctest
@@ -622,8 +578,8 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function multi_hilbert_series_reduced(A::MPolyQuo)
-   (p, q), (H, iso) = multi_hilbert_series(A)
+function multi_hilbert_series_reduced(A::MPolyQuo; alg::Symbol=:BayerStillmanA)
+   (p, q), (H, iso) = multi_hilbert_series(A, alg=alg)
    f = p//q
    p = numerator(f)
    q = denominator(f)
@@ -819,8 +775,8 @@ end
 #
 ##############################################################################
 
-# helper function for the containement problem, surjectivity and preimage
-function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
+# helper function for the containment problem, surjectivity and preimage
+function _containment_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
    T, _ = PolynomialRing(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
                                                                # since we do not have block orderings in Oscar
    phi = hom(R, T, [gen(T, i) for i in 1:M])
@@ -896,10 +852,10 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, M
    m = ngens(R)
 
    # Build auxilliary objects
-   (T, phi, J) = _containement_helper(R, n, m, I, W, :degrevlex)
+   (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
    TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    
-   # Check containement
+   # Check containment
    D = normal_form([phi(F)], J)
    if leading_monomial(D[1]) < gen(T, m)
       A = [zero(TT) for i in 1:m]
@@ -909,6 +865,75 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, M
    else
       return (false, TT(0))
    end
+end
+
+@doc Markdown.doc"""
+    subalgebra_membership_homogeneous(f::T, V::Vector{T}; check::Bool = true)
+      where T <: Union{MPolyElem_dec, MPolyQuoElem{TT} where TT <: MPolyElem_dec}
+
+Given a homogeneous element `f` of a positively `Z`-graded multivariate polynomial
+ring over a field or a quotient of such a ring and a vector `V` of homogeneous
+elements in the same ring, consider the subalgebra generated by the entries of `V`
+in that ring. If `f` is contained in the subalgebra, return `(true, h)`, where `h`
+is giving the polynomial relation.
+Return, `(false, 0)`, otherwise.
+
+If `check` is `true` (the default), the homogeneity of the given polynomials is
+checked.
+"""
+function subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}; check::Bool = true) where PolyElemT <: MPolyElem_dec
+  return _subalgebra_membership_homogeneous(f, v, ideal(parent(f), [ zero(parent(f)) ]), check = check)
+end
+
+function subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}; check::Bool = true) where PolyElemT <: MPolyQuoElem{T} where T <: MPolyElem_dec
+  return _subalgebra_membership_homogeneous(f.f, [ g.f for g in v ], modulus(parent(f)), check = check)
+end
+
+function _subalgebra_membership_homogeneous(f::PolyElemT, v::Vector{PolyElemT}, I::MPolyIdeal{PolyElemT}; check::Bool = true) where PolyElemT <: MPolyElem_dec
+  R = parent(f)
+  @assert !isempty(v)
+  @assert all(g -> parent(g) == R, v)
+  if check
+    @assert is_z_graded(R)
+    @assert is_positively_graded(R)
+    @assert is_homogeneous(f)
+    @assert all(is_homogeneous, v)
+  end
+
+  # This is basically [GP09, p. 86, Solution 2], but we only compute a degree
+  # truncated Gröbner basis
+
+  T, _ = PolynomialRing(base_ring(R), ngens(R) + length(v), ordering = :lex)
+
+  RtoT = hom(R, T, gens(T)[1:ngens(R)])
+
+  J = RtoT(I) + ideal(T, [ RtoT(v[i]) - gen(T, ngens(R) + i) for i = 1:length(v) ])
+
+  o = degrevlex(gens(T)[1:ngens(R)])*wdegrevlex(gens(T)[ngens(R) + 1:ngens(T)], [ Int(degree(g)[1]) for g in v ])
+
+  # Everything is homogeneous, so a truncated Gröbner basis up to the degree
+  # of f suffices to check containment of f in J
+  GJ = _groebner_basis(J, Int(degree(f)[1]), ordering = o)
+
+  ###
+  # This computes the normal form of f w.r.t. the truncated Gröbner basis GJ.
+  # Since we have a product ordering, we cannot use divrem, and since GJ is
+  # "not really" a Gröbner basis, we cannot use normal_form...
+  singular_assure(GJ)
+  I = Singular.Ideal(GJ.Sx, GJ.Sx(RtoT(f)))
+  K = ideal(T, reduce(I, GJ.S))
+  @assert is_one(length(gens(K.gens.S)))
+  nf = GJ.Ox(gens(K.gens.S)[1])
+  ###
+
+  S, _ = PolynomialRing(base_ring(R), [ "t$i" for i in 1:length(v) ])
+  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+
+  if leading_monomial(nf) < gen(T, ngens(R))
+    return (true, TtoS(nf))
+  else
+    return (false, zero(S))
+  end
 end
 
 ################################################################################

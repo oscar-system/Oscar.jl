@@ -66,6 +66,10 @@
    @test L[2] == alternating_group(4)
    @test L[3] == sub(G, [cperm([1,2],[3,4]), cperm([1,3],[2,4])])[1]
    @test L[4] == sub(G, [one(G)])[1]
+
+   G = symmetric_group(4)
+   A = alternating_group(4)
+   @test_throws ArgumentError sub(A, gens(G))
 end
 
 @testset "Centralizers and Normalizers in Sym(n)" begin
@@ -257,10 +261,13 @@ end
    @test is_perfect(alternating_group(5))
    @test !is_perfect(alternating_group(4))
    
-   @test !is_pgroup(alternating_group(4))[1]
-   @test is_pgroup(alternating_group(3)) == (true,3)
-   @test is_pgroup(quaternion_group(8)) == (true,2)
-   @test is_pgroup(alternating_group(1))==(true,nothing)
+   @test !is_pgroup(alternating_group(4))
+   @test is_pgroup(alternating_group(3))
+   @test is_pgroup(quaternion_group(8))
+   @test is_pgroup(alternating_group(1))
+
+   @test prime_of_pgroup(alternating_group(3)) == 3
+   @test prime_of_pgroup(quaternion_group(8)) == 2
 
    @test is_solvable(alternating_group(4))
    @test !is_solvable(alternating_group(5))

@@ -13,31 +13,48 @@ apply to Oscar, too (that said, for various reasons our code still violates
 quite some of them; but in general we strive to reduce these).
 Here is a summary of the naming convention followed in Oscar:
 
-- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal functions do not have to follow these rules.) Types (and their constructor) tend to be in `CamelCase`. However, please ALSO provide the constructor/ a constructor in underscore_case. As a
-user I do usually not know if something is a constructor or a function (nor do I
-want to).
-- Noteworthy difference to Julia base is that we do not have exceptions `is*` or `has*`.
+- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal
+  functions do not have to follow these rules.) Types (and their constructor)
+  tend to be in `CamelCase`. However, please *also* provide the constructor (or a
+  constructor) in `snake_case`. As a user one usually does not know if something
+  is a constructor or a function.
+- Noteworthy difference to Julia base is that we do not have exceptions for
+  `is*` or `has*` as prefix.
   It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
+  The main reason is to avoid awkward constructions like `isvery_ample`, while
+  also being consistent.
+  For compatibility with standard Julia, while staying consistent internally,
+  we also provide aliases (using `AbstractAlgebra.@alias`) for various standard
+  Julia functions, e.g. `is_one` as alias for `isone`
 - For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
-- Use Julia conventions where applicable.
+- Use Julia conventions where applicable and when they don't contradict our
+  own rules above.
 - In Julia we have multiple dispatch, so we do not need functions like
   `point_from_matrix` as the "from" part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.
-  Similarly for `matrix_to_points`. Of course it is fine to use them internally, where
-  useful.
+  Similarly for `matrix_to_points`. Of course it is fine to use them
+  internally, where useful.
 - Follow the mathematics. If your function needs a list of points, you should
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
 - If already existing types in Oscar are almost what you need, consider
-  improving them instead of writing your own. While it might be
-  tempting to create a new polynomial ring type for the new application because
-  some feature is missing, it causes a lot of work and compatibility issues: Will the new type support
+  improving them instead of writing your own. While it might be tempting to
+  create a new polynomial ring type for the new application because some
+  feature is missing, it causes a lot of work and compatibility issues: Will
+  the new type support
   - normal functions (gcd, factor),
   - quotient fields,
   - modules and residue rings,
   - conversion to and from other already existing types?
+- Whenever functions return the same mathematical object, but in different
+  mathematical categories, the first argument should be the desired return
+  type. One example is `projective_space(NormalToricVariety, *)` vs
+  `projective_space(ProjectiveScheme, *)`. However, if the return type is
+  different, even if the result describes the same mathematical object, it
+  should be indicated in the function name, for example `automorphism_group` vs
+  `automorphism_group_generators` vs `automorphism_list`.
 
 ## Code formatting
 

@@ -9,7 +9,7 @@ export
     image,
     induced_automorphism,
     inner_automorphism,
-    inner_automorphisms_group,
+    inner_automorphism_group,
     is_bijective,
     is_injective,
     is_inner_automorphism,
@@ -102,7 +102,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
     img_el = img(el)
     return img_el.X
   end
-  mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun))
+  mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun))
   return GAPGroupHomomorphism(G, H, mp)
 end
 
@@ -122,9 +122,9 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known
   end
 
   if is_known_to_be_bijective
-    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), GAP.julia_to_gap(gap_pre_fun))
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), GAP.Obj(gap_pre_fun))
   else
-    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun), false, GAP.julia_to_gap(gap_pre_fun))
+    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), false, GAP.Obj(gap_pre_fun))
   end
 
   return GAPGroupHomomorphism(G, H, mp)
@@ -989,11 +989,11 @@ function is_inner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <:
 end
 
 """
-    inner_automorphisms_group(A::AutomorphismGroup{T})
+    inner_automorphism_group(A::AutomorphismGroup{T})
 
 Return the subgroup of `A` of the inner automorphisms.
 """
-function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
+function inner_automorphism_group(A::AutomorphismGroup{T}) where T <: GAPGroup
    AutGAP = GAP.Globals.InnerAutomorphismsAutomorphismGroup(A.X)
    return _as_subgroup(A, AutGAP)
 end
