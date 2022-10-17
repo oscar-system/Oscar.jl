@@ -1,7 +1,8 @@
 export build_ctx, PBWAlgElem, PBWAlgRing,
        is_two_sided, is_left, is_right,
        left_ideal, two_sided_ideal, right_ideal,
-       pbw_algebra, weyl_algebra, opposite_algebra, is_admissible_ordering
+       pbw_algebra, weyl_algebra, opposite_algebra, is_admissible_ordering,
+       @pbw_relations
 
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
@@ -390,6 +391,35 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   end
   R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r))
   return R, [PBWAlgElem(R, x) for x in gs]
+end
+
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyElem{T}}
+  n = nvars(r)
+  gs = gens(r)
+  relm = strictly_upper_triangular_matrix([gs[i]*gs[j] for i in 1:n-1 for j in i+1:n])
+  for (j, i, p) in rel
+    i < j || error("variable indices out of order")
+    relm[i, j] = p
+  end
+  return pbw_algebra(r, relm, ord)
+end
+
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyElem{T}}
+  rel2 = Tuple{Int, Int, U}[(var_index(i[1]), var_index(i[2]), i[3]) for i in rel]
+  return pbw_algebra(r, rel2, ord)
+end
+
+macro pbw_relations(relations...)
+  z = Expr(:vect)
+  for a in relations
+    (a isa Expr) && (a.head == :call) && (length(a.args) == 3) && (a.args[1] == :(==)) ||
+        error("bad relation: need ==")
+    b = a.args[2]
+    (b isa Expr) && (b.head == :call) && (length(b.args) == 3) && (b.args[1] == :*) ||
+        error("bad relation: need * on left hand side")
+    push!(z.args, :(($(b.args[2]), $(b.args[3]), $(a.args[3]))))
+  end
+  return esc(z)
 end
 
 function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})

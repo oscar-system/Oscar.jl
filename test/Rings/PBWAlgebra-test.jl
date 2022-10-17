@@ -165,7 +165,7 @@ end
   rel = [0 e*f-h e*h+2*e e*a; 0 0 f*h-2*f f*a; 0 0 0 h*a; 0 0 0 0]
   for o in [lex(r),
             deglex(r),
-            weighted_ordering(gens(r), [1,1,1,0])*deglex(r)
+            weight_ordering([1,1,1,0], deglex(r))
            ]
     R, (e, f, h, a) = pbw_algebra(r, rel, o)
     I = left_ideal([e^3, f^3, h^3-4*h, 4*e*f+h^2-2*h - a])
@@ -174,10 +174,15 @@ end
   end
 
   r, (a, b, x, d) = QQ["a", "b", "x", "d"]
-  rel = [0 a*b+3*a a*x a*d+3*x^2; 0 0 b*x-x b*d+d; 0 0 0 x*d+1; 0 0 0 0]
+  rel = @pbw_relations(b*a == a*b+3*a,
+                       d*a == a*d+3*x^2,
+                       x*b == b*x-x,
+                       d*b == b*d+d,
+                       d*x == x*d+1)
+
   for o in [lex(r),     # forces the discovery of the weight [0,0,1,2]
             deglex(r),  # ditto
-            weighted_ordering(gens(r), [0,0,1,2])*deglex(r)
+            weight_ordering([0,0,1,2], deglex(r))
            ]
     R, (a, b, x, d) = pbw_algebra(r, rel, o)
     I = left_ideal([a, x])

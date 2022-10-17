@@ -1251,7 +1251,7 @@ function is_elimination_ordering(o::MonomialOrdering, sigmaC::Vector{Int})
 # This is probably correct: o is elimination ordering for sigma^C <=>
 #   For each j in sigma^C, the first non-zero weight M[i,j] in column j is >= 0,
 #   and the weights in columns corresponding to sigma in rows <= i are zero.
-  M = canonical_weight_matrix(o)
+  M = canonical_matrix(o)
   m = nrows(M)
   n = ncols(M)
   varmap, sigma, sigmaC = _elimination_data(n, sigmaC)
