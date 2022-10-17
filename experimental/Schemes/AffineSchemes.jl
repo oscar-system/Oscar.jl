@@ -58,6 +58,13 @@ base_ring_type(X::AbsSpec) = base_ring_type(typeof(X))
 base_ring_elem_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = elem_type(BRT)
 base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
 
+poly_type(::Type{SpecType}) where {BRT, RT<:MPolyRing, SpecType<:AbsSpec{BRT, RT}} = elem_type(RT)
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuo{T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(X::AbsSpec) = poly_type(typeof(X))
+
+
 ### generically derived getters
 @Markdown.doc """
     base_ring(X::AbsSpec) 
@@ -1035,7 +1042,7 @@ end
 
 strict_modulus(X::Spec) = saturated_ideal(modulus(OO(X)))
 
-function simplify(X::Spec)
+function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
   Y = Spec(L)
   YtoX = SpecMor(Y, X, f)

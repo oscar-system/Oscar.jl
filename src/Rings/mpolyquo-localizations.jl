@@ -1248,20 +1248,61 @@ function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPo
   return Lnew, floc, flocinv
 end
 
-#TODO: Fill the following three methods with meaning:
 function simplify(L::MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
-  f = identity_map(L)
-  return L, f, f
+  Lnew = MPolyLocalizedRing(base_ring(L), inverted_set(L))
+  R = base_ring(L)
+  finv = hom(R, L, gens(L))
+  f = hom(R, Lnew, gens(Lnew))
+  return Lnew, hom(L, Lnew, f), hom(Lnew, L, finv)
 end
 
 function simplify(L::MPolyQuo)
-  f = identity_map(L)
-  return L, f, f
+  J = modulus(L)
+  singular_assure(J)
+  R = base_ring(L)
+  SR = singular_poly_ring(R)
+  SJ = J.gens.S
+
+  # collect the output from elimpart in Singular
+  l = Singular.LibPresolve.elimpart(SJ)
+
+  # set up the ring with the fewer variables 
+  kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
+  Rnew, new_vars = PolynomialRing(coefficient_ring(R), kept_var_symb, cached=false)
+
+  # and the maps to go back and forth
+  subst_map_R = hom(R, R, R.(gens(l[5])))
+  imgs = Vector{elem_type(Rnew)}()
+  j = 1
+  for i in 1:ngens(R)
+    if !iszero(l[4][i])
+      push!(imgs, gens(Rnew)[j])
+      j = j+1
+    else
+      push!(imgs, zero(Rnew))
+    end
+  end
+  proj_map = hom(R, Rnew, imgs)
+
+  # the full substitution map 
+  f = compose(subst_map_R, proj_map)
+
+  # the transformed ideal
+  Jnew = ideal(Rnew, f.(gens(J)))
+  Lnew, _ = quo(Rnew, Jnew)
+
+  # the inverse of the identification map
+  fres = hom(L, Lnew, Lnew.(f.(gens(R))), check=true)
+  fresinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
+
+  return Lnew, fres, fresinv
 end
 
-function simplify(L::MPolyRing)
-  f = identity_map(L)
-  return L, f, f
+function simplify(R::MPolyRing)
+  Rnew, new_vars = PolynomialRing(coefficient_ring(R), symbols(R), cached=false)
+  f = hom(R, Rnew, gens(Rnew))
+  finv = hom(Rnew, R, gens(R))
+  return Rnew, f, finv
 end
 
 @Markdown.doc """
