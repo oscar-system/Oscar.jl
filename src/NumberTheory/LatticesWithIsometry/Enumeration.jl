@@ -17,16 +17,16 @@ end
 # discriminant for the genera A and B to glue to fit in C. d is
 # the determinant of C, m the maximal p-valuation of the gcd of
 # d1 and dp.
-function _find_D(d::fmpz, m::Integer, p::Integer)
-  @req is_prime(p) "p must be a prime number"
-  @req d != 0 "The discriminant of a non-degenerate form is non-zero"
+function _find_D(d::fmpz, m::Int, p::Int)
+  @assert is_prime(p)
+  @assert d != 0
 
   # If m == 0, there are no conditions on the gcd of d1 and dp
   if m == 0
     return _tuples_divisors(d)
   end
   
-  D = Tuple{Int64,Int64}[]
+  D = Tuple{Int,Int}[]
   # We try all the values of g possible, from 1 to p^m
   for j=0:m 
     g = p^j
@@ -43,7 +43,7 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Integer, d, s::fmpz, l::fmpz, p::Integer, even = true)
+function _find_L(r::Int, d, s::fmpz, l::fmpz, p::Int, even = true)
   L = ZGenus[]
   for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
     gen = genera((s1,s2), d, even=even)
@@ -109,17 +109,15 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   # At this point, if C is unimodular at p, the glueing condition is equivalent to have 
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   if !divides(det(C), p)[1]
-    qA = gram_matrix_quadratic(normal_form(primary_part(discriminant_group(A), p)[1])[1])
-    qB = gram_matrix_quadratic(normal_form(rescale(primary_part(discriminant_group(B), p)[1], -1))[1])
-    return qA == qB
+    return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])
   end
 
   l = valuation(level(C), p)
   Ap = symbol(local_symbol(A, p))
-  Bp = symbol(local_symbol(B,p))
-  a_max = sum(Int64[s[2] for s in Ap if s[1] == l+1])
-  b_max = sum(Int64[s[2] for s in Bp if s[1] == l+1])
-  # For the glueing, rho_{l+1}(A) and rho_{l+1}(B) are anti-isometric, so they must have the
+  Bp = symbol(local_symbol(B, p))
+  a_max = sum(Int[s[2] for s in Ap if s[1] == l+1])
+  b_max = sum(Int[s[2] for s in Bp if s[1] == l+1])
+  # For the glueing, rho_{l+1}(A_p) and rho_{l+1}(B_p) are anti-isometric, so they must have the
   # same order
   if a_max != b_max
     return false
@@ -130,21 +128,10 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
     return false
   end
 
-  a1 = sum(Int64[s[2] for s in Ap if s[1] == 1])
-  a2 = sum(Int64[s[2] for s in Ap if s[1] >= 2])
-  b1 = sum(Int64[s[2] for s in Bp if s[1] == 1])
-  b2 = sum(Int64[s[2] for s in Bp if s[1] >= 2])
-
-  #if l != 0
-  #  ker_min = max(g-a1, g-b1, a_max)
-  #else
-  #  ker_min = max(g-a1, g-b1)
-  #end
-  #ker_max = min(a2+div(a1,2), b2+div(b1,2), g)
-
-  #if ker_max < ker_min
-  #  return false
-  #end
+  a1 = sum(Int[s[2] for s in Ap if s[1] == 1])
+  a2 = sum(Int[s[2] for s in Ap if s[1] >= 2])
+  b1 = sum(Int[s[2] for s in Bp if s[1] == 1])
+  b2 = sum(Int[s[2] for s in Bp if s[1] >= 2])
 
   ABp = symbol(local_symbol(AperpB, p))
   Cp = symbol(local_symbol(C, p))
@@ -192,7 +179,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   end
   Cp = ZpGenus(p, Cp)
   
-  if !represented(local_symbol(AperpB, p), Cp)
+  if !represents(local_symbol(AperpB, p), Cp)
     return false
   end
   if !represents(C, AperpB)
@@ -247,14 +234,14 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   results = LatticeWithIsometry[]
   g = div(valuation(divexact(det(A)*det(B), det(C)), p), 2)
   fA, fB = isometry.([Afa, Bfb])
-  nB = order_of_isometry(Bfb)
+  nA = order_of_isometry(Afa)
   qA, fqA = discriminant_group(Afa)
   qB, fqB = discriminant_group(Bfb)
   GA = image_centralizer_in_Oq(Afa)
   GB = image_centralizer_in_Oq(Bfb)
-  _VA = intersect(lattice_in_same_ambient_space(A, inv(fA^nB - fA^0)), dual(A))
-  VA, VAinqA = sub(qA, [qA(vec(collect(basis_matrix(_VA)[j,:]))) for j in 1:nrows(basis_matrix(_VA))])
-  VB, VBinqB = sub(qB, [g*divexact(order(g), p) for g in gens(primary_part(qB, p))])
+  VA, VAinqA = sub(qA, [g*divexact(order(g), p) for g in gens(primary_part(qA, p))]) 
+  _VB = intersect(lattice_in_same_ambient_space(B, inv(fB^nA - fB^0)), dual(B))
+  VB, VBinqB = sub(qB, [qB(vec(collect(basis_matrix(_VB)[j,:]))) for j in 1:nrows(basis_matrix(_VB))])
 
   if min(order(VA), order(VB)) < g
     return results

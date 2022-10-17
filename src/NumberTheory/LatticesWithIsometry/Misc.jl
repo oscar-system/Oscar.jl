@@ -48,41 +48,49 @@ function _exponent(f::Union{fmpq_mat, fmpz_mat})
   return divmd[n]
 end
 
+function _image(p::fmpz_poly, f::TorQuadModMor)
+  M = f.map_ab.map
+  M = p(M)
+  fab = hom(domain(f.map_ab), codomain(f.map_ab), M)
+  pf = hom(domain(f), codomain(f), fab)
+  return pf
+end
+
 ##############################################################################
 #
 #  Group functionalities
 #
-##############################################################################:q
+##############################################################################
 
-function _embedding_orthogonal_group(i1, i2)                                                       
-   D = codomain(i1)                                                                                 
-   A = domain(i1)                                                                                   
-   B = domain(i2)                                                                                   
-   gene = vcat(i1.(gens(A)), i2.gens(B))                                                            
-   n = ngens(A)                                                                                     
-   OD, OA, OB = orthogonal_group.([D, A, B])                                                        
-                                                                                                    
-   geneOA = elem_type(OD)[]                                                                         
-   for f in gens(OA)                                                                                
-     imgs = [i1(f(a)) for a in gens(A)]                                                             
-     imgs = vcat(imgs, gene[n+1:end])                                                               
-     _f = hom(lift.(gene), lift.(imgs))                                                             
+function embedding_orthogonal_group(i1, i2)
+   D = codomain(i1)
+   A = domain(i1)
+   B = codomain(i2)
+   gene = vcat(i1.(gens(A)), i2.(gens(B)))
+   n = ngens(A)
+   OD, OA, OB = orthogonal_group.([D, A, B])
+
+   geneOA = elem_type(OD)[]
+   for f in gens(OA)
+     imgs = [i1(f(a)) for a in gens(A)]
+     imgs = vcat(imgs, gene[n+1:end])
+     _f = hom(lift.(gene), lift.(imgs))
      f = TorQuadModMor(D, D, _f)                                                                    
-     push!(geneOA, f)                                                                               
-   end                                                                                              
-   geneOB = elem_type(OD)[]                                                                         
-   for f in gens(OB)                                                                                
-     imgs = [i2(f(a)) for a in gens(B)]                                                             
-     imgs = vcat(imgs, gene[1:n])                                                                   
-     _f = hom(lift.(gene), lift.(imgs))                                                             
-     f = TorQuadModMor(D, D, _f)                                                                    
-     push!(geneOB, f)                                                                               
-   end                                                                                              
-                                                                                                    
-   OAtoOD = hom(OA, OD, gens(OA), geneOA)                                                           
-   OBtoOD = hom(OB, OD, gens(OB), geneOB)                                                           
-   return OAtoOD, OBtoOD                                                                            
- end                                                                                                
+     push!(geneOA, f)
+   end
+   geneOB = elem_type(OD)[]
+   for f in gens(OB)
+     imgs = [i2(f(a)) for a in gens(B)]
+     imgs = vcat(gene[1:n], imgs)
+     _f = hom(lift.(gene), lift.(imgs))
+     f = TorQuadModMor(D, D, _f)
+     push!(geneOB, f)
+   end
+
+   OAtoOD = hom(OA, OD, gens(OA), geneOA)
+   OBtoOD = hom(OB, OD, gens(OB), geneOB)
+   return OAtoOD, OBtoOD
+ end
 
 function __orbits_and_stabilizers_elementary_abelian_subgroups(G, aut, gens_aut, gens_act, min_order, max_order)
   Gap = G.X
