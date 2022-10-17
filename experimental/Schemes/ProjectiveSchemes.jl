@@ -702,7 +702,7 @@ function dehomogenize(
 end
 
 function getindex(X::ProjectiveScheme, U::Spec)
-  Xcov = as_covered_scheme(X)
+  Xcov = covered_scheme(X)
   for C in coverings(Xcov)
     for j in 1:npatches(C)
       if U === C[j] 
@@ -721,7 +721,7 @@ function dehomogenize(
   }
   # look up U in the coverings of X
   cover_of_U, index_of_U = X[U]
-  Xcov = as_covered_scheme(X)
+  Xcov = covered_scheme(X)
   S = ambient_ring(X)
 
   s = Vector{elem_type(OO(U))}()
