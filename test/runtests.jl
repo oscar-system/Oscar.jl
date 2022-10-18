@@ -46,6 +46,7 @@ include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Modules/ProjectiveModules.jl")
 include("Schemes/singular_locus.jl")
+include("Schemes/SpecialTypes.jl")
 
 include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")

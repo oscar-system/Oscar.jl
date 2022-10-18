@@ -4,23 +4,31 @@
 #
 ################################################################################
 
-function _check_imgs_quo(R, S::NCRing, imgs)
+function _check_imgs_quo(R, S::NCRing, imgs, coeff_map = nothing)
   n = length(imgs)
   for i in 1:n, j in 1:(i - 1)
     @req imgs[i] * imgs[j] == imgs[j] * imgs[i] "Images $i and $j do not commute"
   end
   gensI = gens(modulus(R))
   for g in gensI
-    @req iszero(evaluate(g, imgs)) "Morphism is not well-defined"
+    if coeff_map !== nothing
+      @req is_zero(evaluate(map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
+    else
+      @req iszero(evaluate(g, imgs)) "Morphism is not well-defined"
+    end
   end
   return nothing
 end
 
 # no check for commutative codomains
-function _check_imgs_quo(R, S::Ring, imgs) 
+function _check_imgs_quo(R, S::Ring, imgs, coeff_map = nothing)
   gensI = gens(modulus(R))
   for g in gensI
-    @req iszero(evaluate(g, imgs)) "Morphism is not well-defined"
+    if coeff_map !== nothing
+      @req is_zero(evaluate(map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
+    else
+      @req iszero(evaluate(g, imgs)) "Morphism is not well-defined"
+    end
   end
 end
 
@@ -28,7 +36,7 @@ end
     hom(A::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 
     hom(A::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
-    
+
 Given a homomorphism `coeff_map` from `C` to `S`, where `C` is the 
 coefficient ring of the base ring of `A`, and given a vector `images` of `ngens(A)` 
 elements of `S`, return the homomorphism `A` $\to$ `S` whose restriction 
@@ -73,7 +81,7 @@ function hom(R::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = tr
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
   if check
-    _check_imgs_quo(R, S, imgs)
+    _check_imgs_quo(R, S, imgs, coeff_map)
     _check_homo(S, imgs)
   end
 

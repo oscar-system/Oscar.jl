@@ -1,7 +1,8 @@
 export build_ctx, PBWAlgElem, PBWAlgRing,
        is_two_sided, is_left, is_right,
        left_ideal, two_sided_ideal, right_ideal,
-       pbw_algebra, weyl_algebra, opposite_algebra
+       pbw_algebra, weyl_algebra, opposite_algebra, is_admissible_ordering,
+       @pbw_relations
 
 mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
@@ -226,6 +227,10 @@ function Base.getindex(R::PBWAlgRing, i::Int)
   return gen(R, i)
 end
 
+function var_index(a::PBWAlgElem)
+  return Singular.var_index(a.sdata)
+end
+
 function zero(R::PBWAlgRing)
   return PBWAlgElem(R, zero(R.sring))
 end
@@ -295,6 +300,50 @@ function (R::PBWAlgRing)(cs::AbstractVector, es::AbstractVector{Vector{Int}})
 end
 
 ####
+
+function _unsafe_coerce(R::Union{MPolyRing, Singular.PluralRing}, a::Union{MPolyElem, Singular.spluralg}, rev::Bool)
+  z = MPolyBuildCtx(R)
+  for (c, e) in zip(coefficients(a), exponent_vectors(a))
+    push_term!(z, base_ring(R)(c), rev ? reverse(e) : e)
+  end
+  return finish(z)
+end
+
+function _unsafe_coerse(R::Singular.PluralRing, I::Singular.sideal, rev::Bool)
+  return Singular.Ideal(R, elem_type(R)[_unsafe_coerce(R, a, rev) for a in gens(I)])
+end
+
+function is_admissible_ordering(R::PBWAlgRing, o::MonomialOrdering)
+  r = base_ring(o)
+  n = ngens(R)
+  gs = gens(r)
+  @assert n == length(gs)
+  for i in 1:n-1, j in i+1:n
+    t = _unsafe_coerce(r, R.relations[i,j], false)
+    if leading_monomial(t, o) != gs[i]*gs[j]
+      return false
+    end
+  end
+  return true
+end
+
+function _g_algebra_internal(sr::Singular.PolyRing, rel)
+  n = nvars(sr)
+  srel = Singular.zero_matrix(sr, n, n)
+  C = Singular.zero_matrix(sr, n, n)
+  D = Singular.zero_matrix(sr, n, n)
+  for i in 1:n-1, j in i+1:n
+    t = _unsafe_coerce(sr, rel[i,j], false)
+    leading_monomial(t) == gen(sr, i)*gen(sr, j) || error("incorrect leading monomial in relations")
+    C[i,j] = sr(leading_coefficient(t))
+    D[i,j] = tail(t)
+    srel[i,j] = t
+  end
+  s, gs = Singular.GAlgebra(sr, C, D)
+  return s, gs, srel
+end
+
+
 @doc Markdown.doc"""
     pbw_algebra(R::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) where T
 
@@ -336,22 +385,41 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   S = elem_type(scr)
   sr, _ = Singular.PolynomialRing(scr, [string(x) for x in symbols(r)]; ordering = singular(ord))
   sr::Singular.PolyRing{S}
-  srel = Singular.zero_matrix(sr, n, n)
-  C = Singular.zero_matrix(sr, n, n)
-  D = Singular.zero_matrix(sr, n, n)
-  for i in 1:n-1, j in i+1:n
-    t = sr(rel[i,j])
-    leading_monomial(t) == gen(sr, i)*gen(sr, j) || error("incorrect leading monomial in relations")
-    C[i,j] = sr(leading_coefficient(t))
-    D[i,j] = tail(t)
-    srel[i,j] = t
-  end
-  s, gs = Singular.GAlgebra(sr, C, D)
+  s, gs, srel = _g_algebra_internal(sr, rel)
   if check && !iszero(Singular.LibNctools.ndcond(s))
     error("PBW-basis condition not satisfied")
   end
   R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r))
   return R, [PBWAlgElem(R, x) for x in gs]
+end
+
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{Int, Int, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyElem{T}}
+  n = nvars(r)
+  gs = gens(r)
+  relm = strictly_upper_triangular_matrix([gs[i]*gs[j] for i in 1:n-1 for j in i+1:n])
+  for (j, i, p) in rel
+    i < j || error("variable indices out of order")
+    relm[i, j] = p
+  end
+  return pbw_algebra(r, relm, ord)
+end
+
+function pbw_algebra(r::MPolyRing{T}, rel::Vector{Tuple{U, U, U}}, ord::MonomialOrdering; check = true) where {T, U <: MPolyElem{T}}
+  rel2 = Tuple{Int, Int, U}[(var_index(i[1]), var_index(i[2]), i[3]) for i in rel]
+  return pbw_algebra(r, rel2, ord)
+end
+
+macro pbw_relations(relations...)
+  z = Expr(:vect)
+  for a in relations
+    (a isa Expr) && (a.head == :call) && (length(a.args) == 3) && (a.args[1] == :(==)) ||
+        error("bad relation: need ==")
+    b = a.args[2]
+    (b isa Expr) && (b.head == :call) && (length(b.args) == 3) && (b.args[1] == :*) ||
+        error("bad relation: need * on left hand side")
+    push!(z.args, :(($(b.args[2]), $(b.args[3]), $(a.args[3]))))
+  end
+  return esc(z)
 end
 
 function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
@@ -403,14 +471,6 @@ end
 
 @enable_all_show_via_expressify PBWAlgOppositeMap
 
-function _convert_rel(R, a)
-  z = MPolyBuildCtx(R)
-  for (c, e) in zip(coefficients(a), exponent_vectors(a))
-    push_term!(z, c, reverse(e))
-  end
-  return finish(z)
-end
-
 function _opposite(a::PBWAlgRing{T, S}) where {T, S}
   if !isdefined(a, :opposite)
     ptr = Singular.libSingular.rOpposite(a.sring.ptr)
@@ -421,7 +481,7 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
                                 map(string, revs), ordering = ordering(bsring))
     bsrel = Singular.zero_matrix(bspolyring, n, n)
     for i in 1:n-1, j in i+1:n
-      bsrel[i,j] = _convert_rel(bspolyring, a.relations[n+1-j,n+1-i])
+      bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)
     end
     b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring)
     a.opposite = b
@@ -726,6 +786,26 @@ function _as_right_ideal(a::PBWAlgIdeal{D}) where D
   end
 end
 
+@doc Markdown.doc"""
+    *(I::PBWAlgIdeal{DI, T, S}, J::PBWAlgIdeal{DJ, T, S}) where {DI, DJ, T, S}
+
+Given two ideals `I` and `J` such that both `I` and `J` are two-sided ideals
+or `I` and `J` are a left and a right ideal, respectively, return the product of `I` and `J`.
+
+# Examples
+```jldoctest
+julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), ["x", "y"]);
+
+julia> I = left_ideal(D, [x^3+y^3, x*y^2])
+left_ideal(x^3 + y^3, x*y^2)
+
+julia> J = right_ideal(D, [dx^3, dy^5])
+right_ideal(dx^3, dy^5)
+
+julia> I*J
+two_sided_ideal(x^3*dx^3 + y^3*dx^3, x^3*dy^5 + y^3*dy^5, x*y^2*dx^3, x*y^2*dy^5)
+```
+"""
 function Base.:*(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, Db, T, S}
   @assert base_ring(a) == base_ring(b)
   is_left(a) && is_right(b) || throw(NotImplementedError(:*, a, b))
@@ -733,10 +813,32 @@ function Base.:*(a::PBWAlgIdeal{Da, T, S}, b::PBWAlgIdeal{Db, T, S}) where {Da, 
   return PBWAlgIdeal{0, T, S}(base_ring(a), _as_left_ideal(a)*_as_right_ideal(b))
 end
 
+@doc Markdown.doc"""
+    ^(I::PBWAlgIdeal{D, T, S}, k::Int) where {D, T, S}
+
+Given a two_sided ideal `I`, return the `k`-th power of `I`.
+
+# Examples
+```jldoctest
+julia> D, (x, dx) = weyl_algebra(GF(3), ["x"]);
+
+julia> I = two_sided_ideal(D, [x^3])
+two_sided_ideal(x^3)
+
+julia> I^2
+two_sided_ideal(x^6)
+```
+"""
 function Base.:^(a::PBWAlgIdeal{D, T, S}, b::Int) where {D, T, S}
   @assert b >= 0
-  b == 0 && return PBWAlgIdeal{D, T, S}(base_ring(a), [one(base_ring(a))])
-  b == 1 && return a
+
+  if b == 0
+    R = base_ring(a)
+    return PBWAlgIdeal{D, T, S}(R, Singular.Ideal(R.sring, one(R.sring)))
+  elseif b == 1
+    return a
+  end
+
   if D == 0
     # Note: repeated mul seems better than nested squaring
     res = a
@@ -895,3 +997,147 @@ function Base.:(==)(a::PBWAlgIdeal{D, T, S}, b::PBWAlgIdeal{D, T, S}) where {D, 
   return issubset(a, b) && issubset(b, a)
 end
 
+
+#### elimination
+
+function _depends_on_vars(p::Union{Singular.spoly, Singular.spluralg}, sigmaC::Vector{Int})
+  for e in exponent_vectors(p)
+    for k in sigmaC
+      e[k] == 0 || return true
+    end
+  end
+  return false
+end
+
+function is_elimination_subalgebra_admissible(R::PBWAlgRing, sigmaC::Vector{Int})
+  n = ngens(R)
+  varmap, sigma, sigmaC = Orderings._elimination_data(n, sigmaC)
+  for i in sigma, j in sigma
+    i < j || continue
+    if _depends_on_vars(tail(R.relations[i,j]), sigmaC)
+      return false
+    end
+  end
+  return true
+end
+
+function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
+  n = ngens(R)
+  varmap, sigma, sigmaC = Orderings._elimination_data(n, sigmaC)
+
+  # would like
+  #  w[i] = 0, for i in sigma
+  #  w[i] >= 1, for i in sigma^C
+  #  w[i] + w[j] >= e.w, for 1 <= i < j <= n, for e in D[i,j]
+
+  # Build Ax <= b. The set of variables is 1:n
+  A = Vector{Vector{Int}}()
+  b = Vector{BigInt}()
+  for i in sigmaC
+    r = zeros(Int, n)
+    r[i] = -1
+    push!(A, r)
+    push!(b, -1)
+  end
+  for i in 1:n-1, j in i+1:n, e in exponent_vectors(tail(R.relations[i,j]))
+    e[i] -= 1
+    e[j] -= 1
+    push!(A, e)
+    push!(b, 0)
+  end
+
+  # compress variables to sigma^C since w[i] = 0, for i in sigma
+  AA = zeros(BigInt, length(A)+1, length(sigmaC))
+  for i in 1:length(A), j in sigmaC
+    AA[i,varmap[j]] = A[i][j]
+  end
+
+  # minimize c.w
+  c = ones(Int, length(sigmaC))
+
+  # extra condition c.w <= 2^16 to help polymake
+  i = length(A) + 1
+  for j in 1:length(sigmaC)
+    AA[i,j] = c[j]
+  end
+  push!(b, 2^16)
+
+  P = Polyhedron(AA, b)
+  LP = MixedIntegerLinearProgram(P, c; convention = :min)
+  s = optimal_solution(LP)
+  if isnothing(s)
+    return false, Int[]
+  end
+
+  w = Int[varmap[i] > 0 ? ZZ(s[varmap[i]]) : 0 for i in 1:n]
+  return true, w
+end
+
+# use I's ordering to do the elimination
+function _eliminate_via_given_ordering(I::Singular.sideal{S}, sigmaC::Vector{Int}) where S
+  J = Singular.std(I)
+  @assert J !== I
+  for i in 1:ngens(J)
+    g = J[i]
+    if _depends_on_vars(g, sigmaC)
+      J[i] = zero(base_ring(J))
+    end
+  end
+  GC.@preserve J Singular.libSingular.idSkipZeroes(J.ptr)
+  return J
+end
+
+function eliminate(I::PBWAlgIdeal{-1, T, S}, sigmaC::Vector{Int}) where {T, S}
+  iszero(I) && return I
+  R = base_ring(I)
+  _, sigma, sigmaC = Orderings._elimination_data(ngens(R), sigmaC)
+
+  if is_empty(sigma)
+    # eliminating all variables
+    z = isone(I) ? one(R.sring) : zero(R.sring)
+    return PBWAlgIdeal{-1, T, S}(R, Singular.Ideal(R.sring, z))
+  elseif is_empty(sigmaC)
+    # eliminating no variables
+    return I
+  end
+
+  if !is_elimination_subalgebra_admissible(R, sigmaC)
+    error("no elimination is possible: subalgebra is not admissible")
+  end
+
+  # if R's given orderings works, use that
+  r = PolynomialRing(coefficient_ring(R), symbols(R))[1]
+  o = monomial_ordering(r, Singular.ordering(base_ring(R.relations)))
+  if is_elimination_ordering(o, sigmaC)
+    z = _eliminate_via_given_ordering(I.sdata, sigmaC)
+    return PBWAlgIdeal{-1, T, S}(R, z)
+  end
+
+  # if degrevlex(sigmaC)*degrevlex(sigma) works, use that
+  dpdp = MonomialOrdering(r, Orderings.SymbOrdering(:degrevlex, sigmaC)*
+                             Orderings.SymbOrdering(:degrevlex, sigma))
+  # This dpdp is fast when sigma and sigmaC are consecutive variables
+  # _elimination_data sorts sigma and sigmaC, so consecutive test is easy.
+  if length(sigma) == 1 + sigma[end] - sigma[1] &&
+     length(sigmaC) == 1 + sigmaC[end] - sigmaC[1] &&
+     is_admissible_ordering(R, dpdp)
+    o = singular(dpdp)
+  else
+    # dpdp didn't work, so try to prepend a weight vector to the ordering
+    ok, w = _elimination_ordering_weights(base_ring(I), sigmaC)
+    ok || error("could not find elimination ordering")
+    o = Singular.ordering_a(w)*Singular.ordering(base_ring(R.relations))
+    @assert is_admissible_ordering(R, monomial_ordering(r, o))
+  end
+
+  sr, _ = Singular.PolynomialRing(base_ring(R.sring), string.(symbols(r)); ordering = o)
+  s, gs, _ = _g_algebra_internal(sr, R.relations)
+  Io = _unsafe_coerse(s, I.sdata, false)
+  Io = _eliminate_via_given_ordering(Io, sigmaC)
+  z = _unsafe_coerse(R.sring, Io, false)
+  return PBWAlgIdeal{-1, T, S}(R, z)
+end
+
+function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem})
+  return eliminate(I, [var_index(i) for i in sigmaC])
+end

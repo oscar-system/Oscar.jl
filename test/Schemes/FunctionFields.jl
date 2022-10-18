@@ -9,7 +9,7 @@
   P = projective_space(QQ, 2)
   S = ambient_ring(P)
   C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
-  Ccov = as_covered_scheme(C)
+  Ccov = covered_scheme(C)
 
   KK = VarietyFunctionField(Ccov)
   U2 = patches(Ccov)[2]
@@ -113,7 +113,7 @@ end
   S = ambient_ring(P2)
   s0 = gens(S)[1]
   X = subscheme(P2, ideal(S, s0))
-  Xc = as_covered_scheme(X)
+  Xc = covered_scheme(X)
   KX = function_field(Xc)
   @test is_irreducible(Xc) #fails
 
