@@ -985,3 +985,352 @@ mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac,
   end
 end
 
+########################################################################
+# Sheaves                                                              #
+########################################################################
+@Markdown.doc """
+    AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType}
+
+Abstract type for a sheaf ℱ on a space X.
+
+ * `SpaceType` is a parameter for the type of the space ``X`` on which ``ℱ`` is defined. 
+
+ * `OpenType` is a type (most probably abstract!) for the open sets ``U ⊂ X`` which are admissible as input for ``ℱ(U)``.
+
+ * `OutputType` is a type (most probably abstract!) for the values that ``ℱ`` takes on admissible open sets ``U``.
+
+ * `RestrictionType` is a parameter for the type of the restriction maps ``ℱ(V) → ℱ(U)`` for ``U ⊂ V ⊂ X`` open.
+"""
+abstract type AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
+
+########################################################################
+# A minimal implementation of the sheaf interface on a scheme          #
+########################################################################
+
+@attributes mutable struct SheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType, 
+                                       IsOpenFuncType, ProductionFuncType,
+                                       RestrictionFuncType
+                                      } <: AbsSheaf{
+                                       SpaceType, OpenType, 
+                                       OutputType, RestrictionType
+                                      }
+  X::SpaceType
+
+  # caches
+  obj_cache::IdDict{<:OpenType, <:OutputType} # To cache values that have already been computed
+  res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
+
+  # production functions for new objects
+  is_open_func::IsOpenFuncType # To check whether one set is open in the other
+  production_func::ProductionFuncType # To produce ℱ(U) for U ⊂ X
+  restriction_func::RestrictionFuncType
+
+  function SheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
+      OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
+      is_open_func::Any=is_open_embedding
+    )
+    return new{typeof(X), OpenType, OutputType, RestrictionType, 
+               typeof(is_open_func), typeof(production_func), typeof(restriction_func)
+              }(X, IdDict{OpenType, OutputType}(), 
+                IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
+                is_open_func, production_func, restriction_func
+               )
+  end
+end
+
+########################################################################
+# The structure sheaf of affine and covered schemes                    #
+########################################################################
+@attributes mutable struct RingOfRegularFunctions{SpaceType, OpenType, OutputType,
+                                          RestrictionType, ProductionFuncType,
+                                          RestrictionFuncType,
+                                          SheafType
+                                         } <: AbsSheaf{
+                                          SpaceType, OpenType, 
+                                          OutputType, RestrictionType
+                                         }
+  OO::SheafType
+
+  ### Structure sheaf on affine schemes
+  function RingOfRegularFunctions(X::AbsSpec)
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
+    end
+    function production_func(U::AbsSpec)
+      return OO(U)
+    end
+    function restriction_func(V::AbsSpec, U::AbsSpec)
+      return hom(OO(V), OO(U), gens(OO(U)), check=false) # check=false assures quicker computation
+    end
+
+    R = SheafOnScheme(X, production_func, restriction_func, 
+                    OpenType=AbsSpec, OutputType=Ring, 
+                    RestrictionType=Hecke.Map,
+                    is_open_func=is_open_func
+                   )
+    return new{typeof(X), AbsSpec, Ring, Hecke.Map, 
+               typeof(production_func), typeof(restriction_func), 
+               typeof(R)}(R)
+  end
+
+  ### Structure sheaf on covered schemes
+  function RingOfRegularFunctions(X::AbsCoveredScheme)
+
+    ### Checks for open containment. 
+    #
+    # We allow the following cases:
+    #
+    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
+    #    and U and V contained in the glueing domains of their ambient schemes
+    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
+    #  * U::AbsSpec ⊂ X for U in the basic charts
+    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
+    #  * W::SpecOpen ⊂ X with ambient_scheme(U) in the basic charts of X
+    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+      C = default_covering(X)
+      A = ambient_scheme(U) 
+      A in C || return false
+      B = ambient_scheme(V) 
+      B in C || return false
+      if A === B
+        is_subset(U, V) || return false
+      else
+        G = C[A, B] # Get the glueing
+        f, g = glueing_morphisms(G)
+        is_subset(U, domain(f)) || return false
+        is_subset(V, domain(g)) || return false
+        gU = preimage(g, U)
+        is_subset(gU, V) || return false
+      end
+      return true
+    end
+    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+      return Y === X && ambient_scheme(U) in default_covering(X)
+    end
+    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+      return Y === X && U in default_covering(X)
+    end
+    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+      return X === Y === Z
+    end
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      U in default_covering(X) || return false
+      V in default_covering(X) || return false
+      G = default_covering(X)[U, V]
+      return issubset(U, glueing_domains(G)[1])
+    end
+    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient_scheme(U) === V && return true
+      W = ambient_scheme(U)
+      W in default_covering(X) || return false
+      G = default_covering(X)[W, V]
+      return is_subset(U, glueing_domains(G)[1])
+    end
+#    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+#      ambient_scheme(V) in default_covering(X) || return false
+#      ambient_scheme(U) === ambient_scheme(V) && return issubset(U, V)
+#      W = ambient_scheme(U)
+#      W in default_covering(X) || return false
+#      G = default_covering(X)[W, ambient_scheme(V)]
+#      preV = preimage(glueing_morphisms(G)[1], V)
+#      return is_subset(U, preV)
+#    end
+    function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
+      return Y === X && ambient(W) in default_covering(X)
+    end
+    function is_open_func(W::SpecOpen, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient(W) === V && return true
+      U = ambient(W)
+      U in default_covering(X) || return false
+      G = default_covering(X)[U, V]
+      return is_subset(W, glueing_domains(G)[1])
+    end
+    function is_open_func(W::SpecOpen, V::PrincipalOpenSubset)
+      PW = ambient(W)
+      PV = ambient_scheme(V)
+      PW in default_covering(X) || return false
+      PV in default_covering(X) || return false
+      if PW === PV 
+        return issubset(W, V)
+        #return all(x->(issubset(x, V)), affine_patches(W))
+      else
+        G = default_covering(X)[PW, PV]
+        preV = preimage(glueing_morphisms(G)[1], V)
+        return issubset(W, preV)
+      end
+    end
+    function is_open_func(W::SpecOpen, V::SpecOpen)
+      PW = ambient(W)
+      PV = ambient(V)
+      PW in default_covering(X) || return false
+      PV in default_covering(X) || return false
+      if PW === PV 
+        return issubset(W, V)
+        #return all(x->(issubset(x, V)), affine_patches(W))
+      else
+        G = default_covering(X)[PW, PV]
+        preV = preimage(glueing_morphisms(G)[1], V)
+        return issubset(W, preV)
+      end
+    end
+    function is_open_func(U::AbsSpec, W::SpecOpen)
+      U in default_covering(X) || return false
+      if U === ambient(W) 
+        # in this case W must be equal to U
+        return issubset(W, U)
+        #return one(OO(U)) in complement_ideal(W)
+      else
+        G = default_covering(X)[ambient(W), U]
+        issubset(U, glueing_domains(G)[2]) || return false
+        preU = preimage(glueing_morphisms(G)[1], U)
+        return issubset(preU, W)
+      end
+    end
+    function is_open_func(U::PrincipalOpenSubset, W::SpecOpen)
+      ambient_scheme(U) in default_covering(X) || return false
+      if ambient_scheme(U) === ambient(W) 
+        # in this case W must be equal to U
+        return issubset(W, U)
+        #return one(OO(U)) in complement_ideal(W)
+      else
+        G = default_covering(X)[ambient(W), ambient_scheme(U)]
+        issubset(U, glueing_domains(G)[2]) || return false
+        preU = preimage(glueing_morphisms(G)[1], U)
+        return issubset(preU, W)
+      end
+    end
+
+    ### Production of the rings of regular functions; to be cached
+    function production_func(U::AbsSpec)
+      return OO(U)
+    end
+    function production_func(U::SpecOpen)
+      return OO(U)
+    end
+
+    ### Production of the restriction maps; to be cached
+    function restriction_func(V::AbsSpec, U::AbsSpec)
+      X === U || error("schemes must be the same")
+      return identity_map(OO(X))
+    end
+    function restriction_func(V::AbsSpec, U::PrincipalOpenSubset)
+      if ambient_scheme(U) === V
+        return hom(OO(V), OO(U), gens(OO(U)), check=false)
+      else
+        W = ambient_scheme(U)
+        G = default_covering(X)[V, W]
+        f, g = glueing_morphisms(G)
+        function rho_func(x::RingElem)
+          parent(x) == OO(V) || error("element does not belong to the correct domain")
+          return restrict(pullback(g)(x), U) # should probably be tuned to avoid checks. 
+        end
+        return MapFromFunc(rho_func, OO(V), OO(U))
+      end
+      error("arguments are not valid")
+    end
+    function restriction_func(V::PrincipalOpenSubset, U::AbsSpec)
+      if ambient_scheme(V) === U 
+        function rho_func(a::RingElem)
+          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          # We may assume that all denominators admissible in V are 
+          # already units in OO(U)
+          return OO(U)(lifted_numerator(a))*inv(OO(U)(lifted_denominator(a)))
+        end
+        return MapFromFunc(rho_func, OO(V), OO(U))
+      else
+        G = default_covering(X)[ambient_scheme(V), U]
+        W1, W2 = glueing_domains(G)
+        f, g = glueing_morphisms(G)
+        function rho_func2(a::RingElem)
+          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          return restrict(pullback(g)(OO(W1)(a)), U)
+        end
+        return MapFromFunc(rho_func2, OO(V), OO(U))
+      end
+    end
+    function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+      A = ambient_scheme(V)
+      if A === ambient_scheme(U)
+        return hom(OO(V), OO(U), gens(OO(U)), check=false)
+      else 
+        B = ambient_scheme(U)
+        G = default_covering(X)[A, B]
+        f, g = glueing_morphisms(G)
+        gV = preimage(g, V)
+        gres = restrict(g, gV, V, check=false)
+        h = inclusion_morphism(U, gV)
+        function rho_func(x::RingElem)
+          parent(x) == OO(V) || error("input not valid")
+          return pullback(h)(pullback(gres)(x))
+        end
+        return MapFromFunc(rho_func, OO(V), OO(U))
+      end
+      error("arguments are invalid")
+    end
+    function restriction_func(V::AbsSpec, W::SpecOpen)
+      V in default_covering(X) || return false
+      ambient(W) in default_covering(X) || return false
+      if V === ambient(W) 
+        return MapFromFunc(x->(OO(W)(x)), OO(V), OO(W))
+      else
+        G = default_covering(X)(V, ambient(W))
+        f, g = glueing_morphisms(G)
+        function rho_func(a::RingElem) 
+          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          return restrict(pullback(g)(OO(domain(f))(a)), W)
+        end
+        return MapFromFunc(rho_func, OO(V), OO(W))
+      end
+    end
+    function restriction_func(V::PrincipalOpenSubset, W::SpecOpen)
+      if ambient_scheme(V) === ambient(W) 
+        function rho_func(a::RingElem)
+          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          return OO(W)(a)
+        end
+        return MapFromFunc(rho_func, OO(V), OO(W))
+      else
+        G = default_covering(X)(ambient_scheme(V), ambient(W))
+        f, g = glueing_morphisms(G)
+        VG = intersect(V, domain(f))
+        preV = preimage(g, VG)
+        gres = restriction(g, preV, VG, check=false)
+        inc = inclusion_morphism(W, preV)
+        function rho_func2(a::RingElem) 
+          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          return pullback(inc)(pullback(gres)(OO(preV)(a)))
+        end
+        return MapFromFunc(rho_func2, OO(V), OO(W))
+      end
+    end
+    function restriction_func(V::SpecOpen, W::SpecOpen)
+      if ambient(V) === ambient(W)
+        inc = inclusion_morphism(U, W)
+        return MapFromFunc(pullback(inc), OO(V), OO(W))
+      else
+        G = default_covering(X)[ambient(V), ambient(W)]
+        f, g = glueing_morphisms(G)
+        VG = intersect(V, domain(f))
+        inc0 = inclusion_morphism(VG, V)
+        preV = preimage(g, VG)
+        gres = restrict(g, preV, VG, check=false)
+        inc = inclusion_morphism(W, preV)
+        return MapFromFunc(x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))),
+                           OO(V), OO(W))
+      end
+    end
+
+    R = SheafOnScheme(X, production_func, restriction_func, 
+                    OpenType=AbsSpec, OutputType=Ring, 
+                    RestrictionType=Hecke.Map,
+                    is_open_func=is_open_func
+                   )
+    return new{typeof(X), Union{<:AbsSpec, <:SpecOpen}, Ring, Hecke.Map, 
+               typeof(production_func), typeof(restriction_func), 
+               typeof(R)}(R)
+  end
+end
