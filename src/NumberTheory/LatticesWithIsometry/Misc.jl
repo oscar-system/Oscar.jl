@@ -48,12 +48,35 @@ function _exponent(f::Union{fmpq_mat, fmpz_mat})
   return divmd[n]
 end
 
-function _image(p::fmpz_poly, f::TorQuadModMor)
+function _image(p::Union{fmpz_poly, fmpq_poly}, f::TorQuadModMor)
+  p = change_base_ring(ZZ, p)
   M = f.map_ab.map
   M = p(M)
-  fab = hom(domain(f.map_ab), codomain(f.map_ab), M)
-  pf = hom(domain(f), codomain(f), fab)
+  pf = hom(domain(f), codomain(f), M)
   return pf
+end
+
+function _image(p::Union{fmpz_poly, fmpz_poly}, f::AutomorphismGroupElem{TorQuadMod})
+  D = domain(f)
+  M = matrix(f)
+  return _image(p, hom(D, D, M))
+end
+
+function _restrict(f::TorQuadModMor, i::TorQuadModMor)
+  imgs = TorQuadModElem[]
+  V = domain(i)
+  for g in gens(V)
+    h = f(i(g))
+    hV = preimage(i, h)
+    push!(imgs, hV)
+  end
+  return hom(V, V, imgs)
+end
+
+function _restrict(f::AutomorphismGroupElem{TorQuadMod}, i::TorQuadModMor)
+  D = domain(f)
+  M = matrix(f)
+  return _restrict(hom(D, D, M), i)
 end
 
 ##############################################################################
@@ -92,196 +115,105 @@ function embedding_orthogonal_group(i1, i2)
    return OAtoOD, OBtoOD
  end
 
-function __orbits_and_stabilizers_elementary_abelian_subgroups(G, aut, gens_aut, gens_act, min_order, max_order)
-  Gap = G.X
-  pcgs = GG.Pcgs(Ggap)
-  p = GG.Order(pcgs[1])
-  if p == 2
-    act = GG.OnSubspacesByCanonicalBasisGF2
-  else
-    act = GG.OnSubspacesByCanonicalBasis
+function _as_Fp_vector_space_quotient(HinV, p, f)
+  i = HinV.map_ab
+  H = domain(HinV)
+  Hab = domain(i)
+  Hs, HstoHab = snf(Hab)
+  f = _restrict(f, HinV)
+  V = codmain(HinV)
+  Vab = codomain(i)
+  Vs, VstoVab = snf(Vab)
+
+  function _VtoVs(x::TorQuadModElem)
+    return inv(VstoVab)(data(x))
   end
+
+  function _VstoV(x::GrpAbFinGenElem)
+    return V(VstoVab(x))
+  end
+
+  VtoVs = Hecke.MapFromFunc(_VtoVs, _VstoV, V, Vs)
+
+  n = ngens(Vs)
   F = GF(p)
-  Fgap = GG.GF(p)
-  function matrix_representation(f, pcgs)
-      return  [[GG.ExponentsOfPcElements(pcgs, GG.Image(f,i))[1]*GG.One(Fgap)] for i in pcgs]
-  end
-  
-  gens_mats = GAP.julia_to_gap([matrix_representation(f, pcgs) for f in gens_act], recursive=true)
+  MVs = matrix(compose(inv(VstoVab), compose(f.map_ab, VstoVab)))
+  Vp = VectorSpace(F, n)
 
-  n = length(pcgs)
-  V = VectorSpace(F, n)
-  valmin = valuation(min_order, p)
-  valmax = valuation(max_order, p)
-  valmax = max(valmax, n)
-
-  if minval == 0
-    subs = [(sub(G, elem_type(G)[])[1], aut)]
-    minval = 1
-  else
-    subs = []
+  function _VstoVp(x::GrpAbFinGenElem)
+    v = x.coeff
+    return Vp(vec(collect(v)))
   end
 
-  for k in valmin:valmax
-    it = Hecke.subsets(n, k)
-    b = basis(V)
-    _subs = GAP.julia_to_gap([GG.LinearCombination(b, GAP.julia_to_gap(vec(collect(lift.(b[l].v))), recursive=true)) for l in it], recursive=true)
-    orbs = GG.OrbitsDomain(aut, _subs, gens_aut, gens_mats, act)
+  function _VptoVs(v::ModuleElem{gfp_elem})
+    x = lift.(v.v)
+    return Vs(vec(collect(x)))
+  end
 
-    for orb in orbs
-      orb = orb[1]
-      stab = GG.Stabilizer(aut, orb, gens_aut, gens_mats, act)
-      gene = [GG.PcElementByExponents(pcgs, i) for i in orb]
-      gene = G.(gene)
-      subgrp = sub(G, gene)[1]
-      push!(subs, (subgrp, stab))
+  VstoVp = Hecke.MapFromFunc(_VstoVp, _VptoVs, Vs, Vp)
+  VtoVp = compose(VtoVs, VstoVp)
+  M = reduce(vcat, [(i(HstoHab(a))).coeff for a in gens(Hs)])
+  subgene = [Vp(M*v.v) for v in gens(Vp)]
+  Hp, _ = sub(Vp, subgene)
+  Qp, VptoQp = quo(Vp, Hp)
+  fVp = change_base_ring(F, matrix(MVs))
+  ok, fQp = can_solve_with_solution(transpose(VptoQp.matrix), transpose(Vp.toQp.matrix)*fVp)
+  @assert ok
+
+
+  return Qp, VtoVp, VptoQp, fQp
+end
+
+function _subgroups_representatives(Vinq::TorQuadModMor, G, g, f = one(G), l::Int = 0)
+  V = domain(Vinq)
+  q = codomain(Vinq)
+  p = elementary_divisors(V)[1]
+  @req all(a -> haspreimage(Vtoq.map_ab, data(l*a))[1], gens(q)) "l*q is not contained in V"
+  H0, H0inV = sub(V, [preimage(Vtoq, (l*a)) for a in gens(q)])
+  Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, f)
+
+  gene_GV = [_restrict(g, Vinq) for g in gens(G)]
+  GV = sub(orthogonal_group(V), gene_GV)
+  @assert f in GV
+  GVinG = hom(GV, G, gens(GV), gens(G))
+
+  act_GV_Vp = [change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
+  act_GV_Qp = [solve_left(transpose(VptoQp).matrix, transpose(VptoQp).matrix*g) for g in act_GV_Vp]
+  MGp = matrix_group(act_GV_Qp)
+  @assert fQp in MGp
+  MGptoGV = hom(MGp, GV, gens(GV))
+  MGptoG = compose(MGptoGV, GVtoG)
+
+  res = []
+  if g-ngens(snf(abelian_group(H10))) > dim(Qp)
+    return res
+  end
+  F = base_ring(Qp)
+  k, K = kernel(VptoQp.matrix, side = :left)
+  gene_H0p = [Vp(vec(collect(K[i,:]))) for i in 1:k]
+  orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
+  for (orb, stab) in orb_and_stab
+    i = orb.map
+    _V = codomain(i)
+    for v in gens(ord)
+      vv = _V(transpose(fQp*i(v)))
+      try
+        preimage(i, vv)
+      catch
+        @goto non_fixed
+      end
     end
+    gene_orb_in_Qp = [Qp(vec(collect(i(v).v))) for v in gens(orb)]
+    gene_orb_in_Vp = [preimage(VptoQp, v) for v in gene_orb_in_Qp]
+    gene_submod_in_Vp = vcat(gene_ord_in_Vp, gene_H0p)
+    gene_submod_in_V = [preimage(VtoVp, v) for v in gene_submod_in_Vp]
+    gene_submod_in_q = [image(Vinq, v) for v in gene_submod_in_V]
+    orbq, _ = sub(q, gene_submod_in_q)
+    @assert order(orb) == p^g
+    stabq = image(MGptoG, stab)
+    push!(res, (orbq, stabq))
+    @label non_fixed
   end
-  return subs
+  return res
 end
-
-function __orbits_and_stabilizers_elementary_abelian_subgroups_equivariant(G, aut, gens_aut, gens_act, min_order, max_order, g)
-  @assert g.X in GG.Center(aut.X)
-
-  Gap = G.X
-  pcgs = GG.Pcgs(Ggap)
-  p = GG.Order(pcgs[1])
-  if p == 2
-    act = GG.OnSubspacesByCanonicalBasisGF2
-  else
-    act = GG.OnSubspacesByCanonicalBasis
-  end
-  F = GF(p)
-  Fgap = GG.GF(p)
-  function matrix_representation(f, pcgs)
-      return  [[GG.ExponentsOfPcElements(pcgs, GG.Image(f,i))[1]*GG.One(Fgap)] for i in pcgs]
-  end
-  
-  gens_mats = GAP.julia_to_gap([GAPmatrix_representation(f, pcgs) for f in gens_act], recursive=true)
-
-  n = length(pcgs)
-  V = VectorSpace(F, n)
-  valmin = valuation(min_order, p)
-  valmax = valuation(max_order, p)
-  valmax = max(valmax, n)
-
-  if minval == 0
-    subs = [(sub(G, elem_type(G)[])[1], aut)]
-    minval = 1
-  else
-    subs = []
-  end
-
-  for k in valmin:valmax
-    it = Hecke.subsets(n, k)
-    b = basis(V)
-    _subs = [GG.LinearCombination(b, GAP.julia_to_gap(vec(collect(lift.(b[l].v))), recursive=true)) for l in it]
-    _subs = GAP.julia_to_gap(filter!(i -> act(i, g) == i, _subs), recursive=true)
-    orbs = GG.OrbitsDomain(aut, _subs, gens_aut, gens_mats, act)
-
-    for orb in orbs
-      orb = orb[1]
-      stab = GG.Stabilizer(aut, orb, gens_aut, gens_mats, act)
-      gene = [GG.PcElementByExponents(pcgs, i) for i in orb]
-      gene = G.(gene)
-      subgrp = sub(G, gene)[1]
-      push!(subs, (subgrp, stab))
-    end
-  end
-  return subs
-end
-
-function __subgroup_representatives1(epi, aut, gens_aut, gens_act, max_order)
-  G0 = domain(epi)
-  G1 = codomain(epi)
-  N = GG.InvariantElementaryAbelianSeries(G1.X, gens_act, G1.X, true)
-  N = N[end-1]
-  invs = GG.InvariantSubgroupsElementaryAbelianGroup(N, gens_act)
-  filter!(i -> GG.IsNonTrivial(i), invs)
-  m = minimum([GG.Size(i) for i in invs])
-  for N in invs
-    if GG.Size(N) == m
-      break
-    end
-  end
-  subgrp_reps = __orbits_and_stabilizers_elementary_abelian_subgroups(N, aut, gens_aut, gens_act, 1, max_order)
-  
-  if GG.Size(N) == order(G1)
-    return subgrp_reps
-  end
-
-  epi_mod = GG.NaturalHomomorphismByNormalSubgroupNC(G1.X, N)
-  GmodN = GG.Image(epi_mod)
-  aut_on_GmodN = GAP.julia_to_gap([GG.InducedAutomorphism(epi_mod, i) for i in gens_act], recursive=true)
-  epi_new = GG.CompositionMapping(epi_mod, epi)
-  Alist = __subgroup_representatives1(epi_new, aut, gens_aut, aut_on_GmodN, max_order)
-  for j in 1:length(Alist)
-    A = Alist[j]
-    repr = GG.PreImage(epi_mod, A[1].X)
-    repr = Oscar._oscar_group(repr, A[1])
-    Alist[j] = (repr, A[1])
-  end
-  @assert order(Alist[1][1]) == GG.Size(N)
-  popfirst!(Alist)
-  subgrp_reps = vcat(subgrp_reps, Alist)
-
-  for A in Alist
-    stab = A[2]
-    A = A[1]
-    act = GAP.julia_to_gap([GG.InducedAutomorphism(epi, i) for i in GG.GeneratorsOfGroup(stab)], recursive=true)
-    Blist_A = __orbits_and_stabilizers_elementary_abelian_subgroups(N, stab, GG.GeneratorsOfGroup(stab), act, 1, max_order)
-    if order(Blist_A[end]) == order(N)
-      pop!(Blist_A)
-    end
-    for B in Blist_A
-      C_AB = B[2]
-      B = B[1]
-      epiB = GG.NaturalHomomorphismByNormalSubgroupNC(A.X, B.X)
-      AmodB = GG.Image(epiB)
-      NmodB = GG.Image(epiB, N.X)
-      UmodBList = GG.ComplementClassesRepresentatives(AmodB, NmodB)
-      gens_C_AB = GG.GeneratorsOfGroup(C_AB)
-      act_C_AB = GAP.julia_to_gap([GG.InducedAutomorphism(epi, i) for i in gens_C_AB], recursive=true)
-      act_C_AB = GAP.julia_to_gap([GG.InducedAutomorphism(epiB, i) for i in act_C_AB], recursive=true)
-      complement_reps = GG.ExternalOrbitsStabilisers(C_AB, UmodBList, gens_C_AB, act_C_AB, GAP.evalstr("function(x,g); return Image(g,x);end;"))
-      complement_reps = [(Oscar._oscar_group(GG.PreImage(epiB, GG.Representative(i)), A), GG.StabilizerOfExternalSet(i)) for i in complement_reps]
-      subgrp_reps = vcat(subgrp_reps, complement_reps)
-    end
-  end
-  sort!(subgrp_reps, s -> order(s[1]))
-  return subgrp_reps
-end
-
-function __subgroup_representatives(G, aut, max_order)
-  gens_aut = GG.GeneratorsOfGroup(aut)
-  epi = GG.GroupHomomorphismByImages(G.X, G.X, GG.GeneratorsOfGroup(G.X), GG.GeneratorsOfGroup(G.X))
-  return __subgroup_representatives1(epi, aut, gens_aut, gens_aut, max_order)
-end
-
-function __subgroup_representatives_elementary(G, aut, order)
-  gens_aut = GG.GeneratorsOfGroup(aut)
-  return __orbits_and_stabilizers_elementary_abelian_subgroups(G, aut, gens_aut, gens_aut, order, order)
-end
-
-function __subgroup_representatives_elementary_equivariant(G, aut, order, g)
-  gens_aut = GG.GeneratorsOfGroup(aut)
-  return __orbits_and_stabilizers_elementary_abelian_subgroups_equivariant(G, aut, gens_aut, gens_aut, order, order, g)
-end
-
-function _subgroups_representatives(H, G, order, g = 1)                                             
-  g = G(g)
-  if order(H) == 1
-    return [(H, G.X)]
-  end
-
-  if !is_prime(elementary_divisors(H)[1])
-    subgrp_reps = __subgroup_representatives(H, G.X, order)
-    subgrp_reps = [S for S in subgrp_reps if order(S[1]) == order]
-  elseif order(H) < ZZ(2^8)
-    subgrp_reps = __subgroup_representatives_elementary_equivariant(H, G.X, order, g.X)
-    subgrp_reps = [S for S in subgrp_reps if order(S[1]) == order]
-  else
-    a=1
-  end
- end
 

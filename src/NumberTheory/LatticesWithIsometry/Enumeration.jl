@@ -1,4 +1,4 @@
-export admissible_triples, is_admissble_triple
+export admissible_triples, is_admissible_triple
 
 ##################################################################################
 #
@@ -227,38 +227,37 @@ end
 
 admissible_triples(L::ZLat, p::Integer) = admissible_triples(genus(L), p)
 
+function _get_V(q, fq, mu, p)
+  pq, pqinq = primary_part(q, p)
+  pq, pqinq = sub(q, pqinq.([g*divexact(order(g), p) for g in gens(pq)]))
+  fpq = _image(mu, _restrict(fq, pqinq))
+  ker, kerinpq = kernel(fpq.map_ab)
+  V, Vinq = sub(q, [pqinq(pq(kerinpq(a))) for a in gens(ker)])
+  fV = _restrict(fq, Vinq)
+  return V, Vinq, FV
+end
+
 function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
   @req is_prime(p) "p must be a prime number"
+  
   A, B, C = lattice.([Afa, Bfb, Cfc])
+
   @req is_admissible_triple(A, B, C, p) "(A, B, C) must be p-admissble"
+  
   results = LatticeWithIsometry[]
+
   g = div(valuation(divexact(det(A)*det(B), det(C)), p), 2)
+  
   fA, fB = isometry.([Afa, Bfb])
-  nA = order_of_isometry(Afa)
   qA, fqA = discriminant_group(Afa)
   qB, fqB = discriminant_group(Bfb)
   GA = image_centralizer_in_Oq(Afa)
   GB = image_centralizer_in_Oq(Bfb)
-  VA, VAinqA = sub(qA, [g*divexact(order(g), p) for g in gens(primary_part(qA, p))]) 
-  _VB = intersect(lattice_in_same_ambient_space(B, inv(fB^nA - fB^0)), dual(B))
-  VB, VBinqB = sub(qB, [qB(vec(collect(basis_matrix(_VB)[j,:]))) for j in 1:nrows(basis_matrix(_VB))])
 
-  if min(order(VA), order(VB)) < g
-    return results
-  end
-
-  l = level(genus(C))
-  H10 = rescale(qA, l)
-  @assert is_normal(VA, H10) && issubset(H10, VA)
-  HA, VAtoHA = quo(VA, H10)
-  H20 = rescale(qB, l)
-  @assert is_normal(VB, H20) && issubset(H20, VB)
-  HB, VBtoHB = quo(VB, H20)
-  
   D, qAinD, qBinD = orthogonal_sum(qA, qB)
   OD = orthogonal_group(D)
-  prim_e:wqxt = Tuple{TorQuadMod, AutomorphismGroup}[]
-  OqAinOD, OqBinOD = _embedding_orthogonal_group(qAinD, qBinD)
+  prim_ext = Tuple{TorQuadMod, AutomorphismGroup}[]
+  OqAinOD, OqBinOD = embedding_orthogonal_group(qAinD, qBinD)
 
   if g == 0
     geneA = OqAinOD.(gens(GA))
@@ -268,20 +267,34 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     @goto exit
   end
 
-  if (order(VA) == 1) || (order(VB) == 1)
-    @goto exit
+  VA, VAinqA, fVA = _get_V(qA, fqA, minpoly(Bfb), p)
+  gene_GVA = [_restrict(g, VAinqA) for g in gens(GA)]
+  GVA = sub(orthogonal_group(VA), gene_GVA)
+  @assert fVA in GVA
+  GVAinGA = hom(GVA, GA, gens(GVA), gens(GA))
+  VB, VBinqB, fVB = _get_V(qB, fqB, minpoly(Afa), p)
+  gene_GVB = [_restrict(g, VBinqB) for g in gens(GB)]
+  GVB = sub(orthogonal_group(VB), gene_GVB)
+  @assert fVB in GVB
+  GVBinGB = hom(GVB, GB, gens(GVB), gens(GB))
+  if min(order(VA), order(VB)) < p^g
+    return results
   end
 
-  glue_order = p^g
-  subsA = _subgroups_representatives(HA, GA, glue_order, g = fqA)
-  subsA = [(VAtoHA\s[1], s[2]) for s in subsA]
-  subsB = _subgroups_representatives(HB, GB, glue_order, g = fqB)
-  subsB = [(VBtoHB\s[1], s[2]) for s in subsB]
+  l = level(genus(G))
   
-  for (SA, stabSA) in subsA
-    NSA, SAtoNSA = normal_form(SA)
-    OSA = orthogonal_sum(SA)
-    actSA = hom(stabSA, OSA, [OSA(lift(x)) for x in gens(stabSA)])
+  subsA = _subgroups_representatives(VAinqA, GA, g, fVA, l)
+  subsB = _subgroups_representatives(VBinqB, GB, g, fVB, l)
+
+  R = [(H1, H2) for H1 in subsA for H2 in subsB if is_anti_isometric_with_anti_isometry(H1[1], H2[1])[1]]
+
+  for (H1, H2) in R
+    SA, stabA = H1
+    SB, stabB = H2
+    ok, phi = is_anti_isometric_with_anti_isometry(SA, SB)
+    @assert ok
+    OSA = orthogonal_group(SA)
+    actSA = hom(stabSA, OSA, [OSA(matrix(x)) for x in gens(stabSA)])
     imSA = image(actSA, stabSA)[1]
     kerSA = image(OqAinOD, kernel(actSA))
     fSA = OSA(fqA)
@@ -312,8 +325,9 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
         gene = [qAtoD(SAtoNSA\NSA[i]) + qBtoD(g0g(SBtoNSB\NSB[i])) for i in 1:ngens(NSA)]
         ext = sub(D, gene)[1]
         perp = orthogonal_submodule(D, ext)[1]
-
-
+      end
+    end
+  end
 
 
 

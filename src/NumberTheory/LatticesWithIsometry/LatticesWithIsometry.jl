@@ -208,10 +208,10 @@ end
       return image_in_Oq(L)
   elseif is_definite(L)
     OL = orthogonal_group(L)
-    f = G(f)
-    UL = [OL(s.X) for s in gens(centralizer(OL, f)[1])]
+    f = OL(f)
+    UL = [OL(s) for s in gens(centralizer(OL, f)[1])]
     OqL = orthogonal_group(discriminant_group(L))
-    return sub(OqL, [OqL(g) for f in UL])[1]
+    return sub(OqL, [OqL(g) for g in UL])[1]
   elseif rank(L) == euler_phi(n)
     gene = matrix_group([-f^0, f])
     OqL = orthogonal_group(discriminant_group(L))
