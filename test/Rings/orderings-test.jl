@@ -51,16 +51,23 @@
    @test is_global(a)
    @test !is_local(a)
    @test !is_mixed(a)
+   @test cmp(a, x, one(R)) > 0
+   @test cmp(a, y, one(R)) > 0
+   @test cmp(a, z, one(R)) == 0
 
    a = neglex([y, z])
    @test !is_global(a)
    @test is_local(a)
    @test !is_mixed(a)
+   @test cmp(a, x, one(R)) == 0
+   @test cmp(a, y, one(R)) < 0
+   @test cmp(a, z, one(R)) < 0
 
    a = lex([x, y])*neglex([z])
    @test !is_global(a)
    @test !is_local(a)
    @test is_mixed(a)
+   @test cmp(a, x^5*y^6*z^3, x^5*y^6*z^4) > 0
 
    a = neglex([x, y, z])*degrevlex([x, y, z])
    @test !is_global(a)
@@ -73,6 +80,7 @@
    @test !is_mixed(a)
 
    a = neglex([x, y])*degrevlex([y, z])
+   @test a == neglex([x, y])*lex([z])
    @test !is_global(a)
    @test !is_local(a)
    @test is_mixed(a)

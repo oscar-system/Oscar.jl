@@ -248,10 +248,10 @@ function _matrix(nvars::Int, o::SymbOrdering{:lex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:lex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:lex})
   for i in o.vars
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return 1
     elseif ek < el
@@ -313,9 +313,9 @@ function _matrix(nvars::Int, o::SymbOrdering{:deglex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:deglex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:deglex})
   tdk = sum(exponent(f, k, i) for i in o.vars)
-  tdl = sum(exponent(f, l, i) for i in o.vars)
+  tdl = sum(exponent(g, l, i) for i in o.vars)
   if tdk > tdl
     return 1
   elseif tdk < tdl
@@ -323,7 +323,7 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:deglex})
   end
   for i in o.vars
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return 1
     elseif ek < el
@@ -385,9 +385,9 @@ function _matrix(nvars::Int, o::SymbOrdering{:degrevlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:degrevlex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:degrevlex})
   tdk = sum(exponent(f, k, i) for i in o.vars)
-  tdl = sum(exponent(f, l, i) for i in o.vars)
+  tdl = sum(exponent(g, l, i) for i in o.vars)
   if tdk > tdl
     return 1
   elseif tdk < tdl
@@ -395,7 +395,7 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:degrevlex
   end
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return -1
     elseif ek < el
@@ -456,10 +456,10 @@ function _matrix(nvars::Int, o::SymbOrdering{:revlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:revlex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:revlex})
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return 1
     elseif ek < el
@@ -520,10 +520,10 @@ function _matrix(nvars::Int, o::SymbOrdering{:neglex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:neglex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:neglex})
   for i in o.vars
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return -1
     elseif ek < el
@@ -584,10 +584,10 @@ function _matrix(nvars::Int, o::SymbOrdering{:negrevlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negrevlex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:negrevlex})
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return -1
     elseif ek < el
@@ -649,9 +649,9 @@ function _matrix(nvars::Int, o::SymbOrdering{:negdegrevlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdegrevlex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:negdegrevlex})
   tdk = sum(exponent(f, k, i) for i in o.vars)
-  tdl = sum(exponent(f, l, i) for i in o.vars)
+  tdl = sum(exponent(g, l, i) for i in o.vars)
   if tdk > tdl
     return -1
   elseif tdk < tdl
@@ -659,7 +659,7 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdegrev
   end
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return -1
     elseif ek < el
@@ -721,9 +721,9 @@ function _matrix(nvars::Int, o::SymbOrdering{:negdeglex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdeglex})
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::SymbOrdering{:negdeglex})
   tdk = sum(exponent(f, k, i) for i in o.vars)
-  tdl = sum(exponent(f, l, i) for i in o.vars)
+  tdl = sum(exponent(g, l, i) for i in o.vars)
   if tdk > tdl
     return -1
   elseif tdk < tdl
@@ -731,7 +731,7 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::SymbOrdering{:negdeglex
   end
   for i in o.vars
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return 1
     elseif ek < el
@@ -764,13 +764,13 @@ function monomial_ordering(R::MPolyRing, s::Symbol, w::Vector{Int})
   return MonomialOrdering(R, WSymbOrdering(s, 1:nvars(R), w))
 end
 
-function _cmp_weighted_degree(f::MPolyElem, k::Int, l::Int, vars::Vector{Int}, w::Vector{Int})
+function _cmp_weighted_degree(f::MPolyElem, k::Int, g::MPolyElem, l::Int, vars::Vector{Int}, w::Vector{Int})
   n = length(vars)
   @assert n == length(w)
   t = 0
   for j in 1:n
     v = vars[j]
-    t += w[j]*(exponent(f, k, v) - exponent(f, l, v))
+    t += w[j]*(exponent(f, k, v) - exponent(g, l, v))
   end
   return t > 0 ? 1 : t < 0 ? -1 : 0;
 end
@@ -829,12 +829,12 @@ function _matrix(nvars::Int, o::WSymbOrdering{:wdeglex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:wdeglex})
-  c = _cmp_weighted_degree(f, k, l, o.vars, o.weights)
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::WSymbOrdering{:wdeglex})
+  c = _cmp_weighted_degree(f, k, g, l, o.vars, o.weights)
   c == 0 || return c
   for i in o.vars
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return 1
     elseif ek < el
@@ -898,12 +898,12 @@ function _matrix(nvars::Int, o::WSymbOrdering{:wdegrevlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:wdegrevlex})
-  c = _cmp_weighted_degree(f, k, l, o.vars, o.weights)
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::WSymbOrdering{:wdegrevlex})
+  c = _cmp_weighted_degree(f, k, g, l, o.vars, o.weights)
   c == 0 || return c
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return -1
     elseif ek < el
@@ -967,12 +967,12 @@ function _matrix(nvars::Int, o::WSymbOrdering{:negwdeglex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:negwdeglex})
-  c = _cmp_weighted_degree(f, l, k, o.vars, o.weights)
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::WSymbOrdering{:negwdeglex})
+  c = _cmp_weighted_degree(g, l, f, k, o.vars, o.weights)
   c == 0 || return c
   for i in o.vars
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return 1
     elseif ek < el
@@ -1036,12 +1036,12 @@ function _matrix(nvars::Int, o::WSymbOrdering{:negwdegrevlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::WSymbOrdering{:negwdegrevlex})
-  c = _cmp_weighted_degree(f, l, k, o.vars, o.weights)
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::WSymbOrdering{:negwdegrevlex})
+  c = _cmp_weighted_degree(g, l, f, k, o.vars, o.weights)
   c == 0 || return c
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
-    el = exponent(f, l, i)
+    el = exponent(g, l, i)
     if ek > el
       return -1
     elseif ek < el
@@ -1182,16 +1182,16 @@ function _matrix(nvars::Int, o::MatrixOrdering)
   return m
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::MatrixOrdering)
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::MatrixOrdering)
   M = o.matrix
   r = nrows(M)
   c = ncols(M)
   for i in 1:r
     v = o.vars[1]
-    t = M[i,1]*(exponent(f, k, v) - exponent(f, l, v))
+    t = M[i,1]*(exponent(f, k, v) - exponent(g, l, v))
     for j in 2:c
       v = o.vars[j]
-      t += M[i, j]*(exponent(f, k, v) - exponent(f, l, v))
+      t += M[i, j]*(exponent(f, k, v) - exponent(g, l, v))
     end
     if t > 0
       return 1
@@ -1202,10 +1202,10 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::MatrixOrdering)
   return 0 
 end
 
-function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::ProdOrdering)
-  cmp = _cmp_monomials(f, k, l, o.a)
-  cmp == 0 || return cmp
-  return _cmp_monomials(f, k, l, o.b)
+function _cmp_monomials(f::MPolyElem, k::Int, g::MPolyElem, l::Int, o::ProdOrdering)
+  c = _cmp_monomials(f, k, g, l, o.a)
+  c == 0 || return c
+  return _cmp_monomials(f, k, g, l, o.b)
 end
 
 ###################################
@@ -1388,6 +1388,33 @@ function is_mixed(ord::MonomialOrdering)
   return false
 end
 
+@doc Markdown.doc"""
+    cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
+
+Compare monomials `a` and `b` with the ordering `ord`: Return `-1` for `a < b`
+and `1` for `a > b`. A return of `0` indicates that either `a == b` or `ord` is
+a partial ordering that does not distinguish `a` from `b`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> cmp(lex([x,y]), x, one(R))
+1
+
+julia> cmp(lex([x,y]), z, one(R))
+0
+
+julia> cmp(lex([x,y,z]), z, one(R))
+1
+```
+"""
+function Base.cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
+  @assert base_ring(ord) === parent(a) === parent(b)
+  @assert length(a) == 1
+  @assert length(b) == 1
+  return _cmp_monomials(a, 1, b, 1, ord.o)
+end
 
 # ex: nvars = 7, sigmaC = {    2, 3,       6   }
 #             =>  sigma = { 1,       4, 5,    7}
@@ -1598,7 +1625,7 @@ Return the permutation that puts the terms of `f` in the order `ord`.
 """
 function permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
   p = collect(1:length(f))
-  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, l, ord.o) < 0), rev = true)
+  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord.o) < 0), rev = true)
   return p
 end
 
