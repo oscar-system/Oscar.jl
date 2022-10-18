@@ -12,7 +12,7 @@
     return identity_map(ZZ)
   end
 
-  const_sheaf_ZZ= SheafOnSpec(X, production_func, restriction_func,
+  const_sheaf_ZZ= SheafOnScheme(X, production_func, restriction_func,
                               OpenType=AbsSpec, OutputType=typeof(ZZ), 
                               RestrictionType=typeof(identity_map(ZZ)),
                               is_open_func=is_open_func
@@ -31,8 +31,8 @@ end
 
 @testset "structure sheaf on covered schemes" begin
   P = projective_space(QQ, 1)
-  PC = as_covered_scheme(P)
-  F = SheafOO(PC)
+  PC = covered_scheme(P)
+  F = RingOfRegularFunctions(PC)
   U = patches(default_covering(PC))
   F(U[1])
   W = PrincipalOpenSubset(U[1], gens(OO(U[1]))[1])
