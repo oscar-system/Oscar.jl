@@ -16,13 +16,13 @@ function space(F::AbsSheaf)
 end
 
 @Markdown.doc """
-    (F::AbsSheaf{<:Any, OpenType})(U::T) where {T<:OpenType}
+    (F::AbsSheaf)(U; cached=true) 
 
 For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set 
 ``U ⊂ X`` check whether ``U`` is open in ``X`` and return ``ℱ(U)``.
 """
-function (F::AbsSheaf{<:Any, OpenType, OutputType})(U::T) where {OpenType, OutputType, T<:OpenType}
-  return (underlying_sheaf(F))(U)::OutputType
+function (F::AbsSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) where {OpenType, OutputType, T<:OpenType}
+  return (underlying_sheaf(F))(U; cached=cached)::OutputType
 end
 
 @Markdown.doc """
@@ -76,12 +76,13 @@ is_open_func(F::SheafOnScheme) = F.is_open_func
 production_func(F::SheafOnScheme) = F.production_func
 restriction_func(F::SheafOnScheme) = F.restriction_func
 
-function (F::SheafOnScheme{<:Any, OpenType, OutputType})(U::T) where {OpenType, OutputType, T<:OpenType}
-  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType
+function (F::SheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=true) where {OpenType, OutputType, T<:OpenType}
+  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType #We can always look whether or not the asked for result has been computed before
 
-  is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
+  # Testing openness might be expensive, so it can be skipped
+  check && is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
   G = production_func(F)(U)
-  object_cache(F)[U] = G
+  cached && (object_cache(F)[U] = G)
   return G::OutputType
 end
 
