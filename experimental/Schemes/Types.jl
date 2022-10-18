@@ -1245,11 +1245,11 @@ end
         G = default_covering(X)[ambient_scheme(V), U]
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
-        function rho_func(a::RingElem)
+        function rho_func2(a::RingElem)
           parent(a) === OO(V) || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(W1)(a)), U)
         end
-        return MapFromFunc(rho_func, OO(V), OO(U))
+        return MapFromFunc(rho_func2, OO(V), OO(U))
       end
     end
     function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset)
@@ -1300,11 +1300,11 @@ end
         preV = preimage(g, VG)
         gres = restriction(g, preV, VG, check=false)
         inc = inclusion_morphism(W, preV)
-        function rho_func(a::RingElem) 
+        function rho_func2(a::RingElem) 
           parent(a) === OO(V) || error("element does not belong to the correct ring")
           return pullback(inc)(pullback(gres)(OO(preV)(a)))
         end
-        return MapFromFunc(rho_func, OO(V), OO(W))
+        return MapFromFunc(rho_func2, OO(V), OO(W))
       end
     end
     function restriction_func(V::SpecOpen, W::SpecOpen)
