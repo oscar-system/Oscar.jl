@@ -1042,6 +1042,16 @@ end
 
 strict_modulus(X::Spec) = saturated_ideal(modulus(OO(X)))
 
+@Markdown.doc """
+    simplify(X::AbsSpec{<:Field})
+
+Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I`` 
+(or a localization thereof), use `Singular`'s `elimpart` to try 
+to eliminate variables ``xᵢ`` to arrive at a simpler presentation 
+``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return 
+the triple ``(Y, f, g)`` where ``Y = Spec(R')`` and ``f : Y ↔ X : g``
+are the identifying isomorphisms. 
+"""
 function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
   Y = Spec(L)

@@ -726,6 +726,14 @@ covering_morphism(f::CoveredSchemeMorphism) = f.f
 lifted_numerator(f::MPolyElem) = f
 lifted_numerator(f::MPolyQuoElem) = lift(f)
 
+@Markdown.doc """
+    simplify(C::Covering)
+
+Given a covering ``C`` apply `simplify` to all basic affine patches 
+in ``C`` and return a triple ``(C', f, g)`` consisting of the 
+resulting covering ``C'`` and the identifying isomorphism 
+``f : C' ↔ C``.
+"""
 function simplify(C::Covering)
   n = npatches(C)
   new_patches = [simplify(X) for X in patches(C)]
@@ -751,6 +759,13 @@ end
 
 
 
+@Markdown.doc """
+    simplify!(X::AbsCoveredScheme)
+
+Apply `simplify` to the `default_covering` of `X` and store the 
+resulting `Covering` ``C'`` and its identification with the default 
+covering in `X`; return a tuple ``(X, C')``.
+"""
 function simplify!(X::AbsCoveredScheme)
   C = default_covering(X)
   Csimp, i, j = simplify(C)

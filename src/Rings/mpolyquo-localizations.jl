@@ -1195,8 +1195,9 @@ end
 @Markdown.doc """
     simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
 
-Use `elimpart` from the Singular library `Presolve.lib` to simplify the presentation 
-of `L` by eliminating superfluous variables. 
+Use `elimpart` from the `Singular` library `Presolve.lib` to simplify the presentation 
+of `L` by eliminating superfluous variables; return a triple ``(L', f, g)`` where 
+``L' ≅ L`` and ``f : L ↔ L' : g`` are the identifying isomorphisms.
 """
 function simplify(L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement})
   W = localized_ring(L)
