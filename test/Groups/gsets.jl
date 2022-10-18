@@ -268,3 +268,35 @@ end
   @test ! rep[1]
 
 end
+
+@testset "orbits of matrix groups over finite fields" begin
+
+  @testset for F in [ GF(2), GF(3), GF(2,2) ]
+    for n in 2:4
+      q = order(F)
+      V = VectorSpace(F, n)
+      GL = general_linear_group(n, F)
+      S = sylow_subgroup(GL, 2)[1]
+      for G in [GL, S]
+#       for k in 0:n   # k = 0 is a problem in GAP 4.12.0
+        for k in 1:n
+          res = orbit_representatives_and_stabilizers(G, k)
+          total = ZZ(0)
+          for (U, stab) in res
+            total = total + index(G, stab)
+            @test length(orbit(stab, U)) == 1
+          end
+          num = ZZ(1)
+          for i in 0:(k-1)
+            num = num * (q^n - q^i)
+          end
+          for i in 0:(k-1)
+            num = divexact(num, q^k - q^i)
+          end
+          @test total == num
+        end
+      end
+    end
+  end
+
+end

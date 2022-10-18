@@ -155,5 +155,41 @@ end
   @test issubset(I, two_sided_ideal([e1])*right_ideal([e2]))
   @test issubset(I, two_sided_ideal([e1])*two_sided_ideal([e2]))
 
+  @test isone(I^0)
+  @test I^1 == I
   @test I^4 == (I^2)^2
+end
+
+@testset "PBWAlgebra.ideals.eliminate" begin
+  r, (e, f, h, a) = QQ["e", "f", "h", "a"]
+  rel = [0 e*f-h e*h+2*e e*a; 0 0 f*h-2*f f*a; 0 0 0 h*a; 0 0 0 0]
+  for o in [lex(r),
+            deglex(r),
+            weight_ordering([1,1,1,0], deglex(r))
+           ]
+    R, (e, f, h, a) = pbw_algebra(r, rel, o)
+    I = left_ideal([e^3, f^3, h^3-4*h, 4*e*f+h^2-2*h - a])
+    @test eliminate(I, [e, f, h]) == left_ideal([a^3 - 32*a^2 + 192*a])
+    @test_throws ErrorException eliminate(I, [h])
+  end
+
+  r, (a, b, x, d) = QQ["a", "b", "x", "d"]
+  rel = @pbw_relations(b*a == a*b+3*a,
+                       d*a == a*d+3*x^2,
+                       x*b == b*x-x,
+                       d*b == b*d+d,
+                       d*x == x*d+1)
+
+  for o in [lex(r),     # forces the discovery of the weight [0,0,1,2]
+            deglex(r),  # ditto
+            weight_ordering([0,0,1,2], deglex(r))
+           ]
+    R, (a, b, x, d) = pbw_algebra(r, rel, o)
+    I = left_ideal([a, x])
+    @test eliminate(I, [x, d]) == left_ideal([a])
+  end
+
+  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  @test is_zero(eliminate(left_ideal([x*dx]), [x, dx]))
+  @test is_one(eliminate(left_ideal([x, 1-x]), [x, dx]))
 end
