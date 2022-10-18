@@ -1,7 +1,7 @@
 export ProjectiveScheme, base_ring, fiber_dimension, ambient_ring, gens, getindex, affine_patch_type
 export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
 export projective_space, subscheme
-export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
+export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, covered_scheme, covered_projection_to_base, dehomogenize
 export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
 export fiber_product, inclusion_morphism, identity_map
 
@@ -673,7 +673,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
                                                            )
                                                        )
 
-@attr function as_covered_scheme(P::ProjectiveScheme)
+@attr function covered_scheme(P::ProjectiveScheme)
     C = standard_covering(P) 
     X = CoveredScheme(C)
     return X
@@ -702,7 +702,7 @@ function dehomogenize(
 end
 
 function getindex(X::ProjectiveScheme, U::Spec)
-  Xcov = as_covered_scheme(X)
+  Xcov = covered_scheme(X)
   for C in coverings(Xcov)
     for j in 1:npatches(C)
       if U === C[j] 
@@ -721,7 +721,7 @@ function dehomogenize(
   }
   # look up U in the coverings of X
   cover_of_U, index_of_U = X[U]
-  Xcov = as_covered_scheme(X)
+  Xcov = covered_scheme(X)
   S = ambient_ring(X)
 
   s = Vector{elem_type(OO(U))}()

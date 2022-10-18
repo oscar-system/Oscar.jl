@@ -70,7 +70,7 @@ end
   P3 = projective_space(QQ,3)
   S = ambient_ring(P3)
   F = subscheme(P3,ideal(S,S[1]^4+S[2]^4+S[3]^4+S[4]^4))
-  Fc = as_covered_scheme(F)
+  Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
   oscar.intersect_in_covering(U,V,Fc[1])
@@ -82,7 +82,7 @@ end
   S = ambient_ring(P3)
   @test Oscar.homogeneous_coordinate(P3,1) == S[1]
   F = subscheme(P3, ideal(S, S[1]^4 + S[2]^4 + S[3]^4 + S[4]^4))
-  Fc = as_covered_scheme(F)
+  Fc = covered_scheme(F)
   U = patches(Fc)[1]
   V = patches(Fc)[2]
   oscar.intersect_in_covering(U,V,Fc[1]);
@@ -97,7 +97,7 @@ end
   x = Rx(x)
   P2 = projective_space(Rx, 2)
   affine_cone(P2) 
-  @test_broken as_covered_scheme(P2)
+  @test covered_scheme(P2) isa CoveredScheme
 end
 
 @testset "affine cone" begin
@@ -107,7 +107,7 @@ end
   Rq,j = quo(Rx,ideal(Rx,x))
   P2 = projective_space(Rx, 2)
   affine_cone(P2)
-  @test_broken as_covered_scheme(P2)  # too exotic
+  @test covered_scheme(P2)  isa CoveredScheme
 end
 
 @testset "morphisms of projective schemes I" begin

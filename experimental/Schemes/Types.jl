@@ -770,6 +770,12 @@ mutable struct Covering{BaseRingType}
     end
     return new{base_ring_type(patches[1])}(patches, glueings, affine_refinements)
   end
+
+  ### the empty covering 
+  function Covering(kk::Ring)
+    return new{typeof(kk)}(Vector{AbsSpec}(), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}(),
+                           IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}())
+  end
 end
 
 ########################################################################
@@ -869,6 +875,11 @@ canonically compared).
     X.default_covering = X.coverings[1]
     X.kk = base_ring(patches(coverings[1])[1])
     return X
+  end
+  function CoveredScheme(kk::Ring)
+    res = new{typeof(kk)}()
+    res.kk = kk
+    return res
   end
 end
 
