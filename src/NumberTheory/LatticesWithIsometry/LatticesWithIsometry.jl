@@ -205,23 +205,24 @@ end
   f = isometry(Lf)
   @req is_integral(L) "Underlying lattice must be integral"
   if n in [1,2]
-      return image_in_Oq(L)
+    GL, _ = image_in_Oq(L)
   elseif is_definite(L)
     OL = orthogonal_group(L)
     f = OL(f)
     UL = [OL(s) for s in gens(centralizer(OL, f)[1])]
     OqL = orthogonal_group(discriminant_group(L))
-    return sub(OqL, [OqL(g) for g in UL])[1]
+    GL, _ = sub(OqL, [OqL(g) for g in UL])
   elseif rank(L) == euler_phi(n)
     gene = matrix_group([-f^0, f])
     OqL = orthogonal_group(discriminant_group(L))
-    return sub(OqL, [OqL(g.X) for g in gens(gene)])[1]
+    GL, _ = sub(OqL, [OqL(g.X) for g in gens(gene)])
   else
     qL, fqL = discriminant_group(Lf)
     OqL = orthogonal_group(qL)
     CdL, _ =  centralizer(OqL, fqL)
-    return sub(OqL, [OqL(s.X) for s in CdL])[1]
+    GL, _ = sub(OqL, [OqL(s.X) for s in CdL])
   end
+  return GL
 end
 
 ###############################################################################

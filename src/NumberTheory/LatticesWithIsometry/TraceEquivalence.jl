@@ -50,9 +50,9 @@ function trace_lattice(L::Hecke.AbsLat{T}; order::Integer = 2) where T
     for iz=1:d
       for j=1:n
         for jz=1:d
-	  g = z^(iz-jz)*Gabs[i,j]
-	  push!(coeffs, trace(g))
-	end 
+	        g = z^(iz-jz)*Gabs[i,j]
+	        push!(coeffs, trace(g))
+	      end 
       end
     end
   end

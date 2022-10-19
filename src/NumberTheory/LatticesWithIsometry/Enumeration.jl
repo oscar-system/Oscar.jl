@@ -108,8 +108,10 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
 
   # At this point, if C is unimodular at p, the glueing condition is equivalent to have 
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
+  qA = discriminant_group(A)
+  qB = discriminant_group(B)
   if !divides(det(C), p)[1]
-    return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])
+      return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
   end
 
   l = valuation(level(C), p)
@@ -234,7 +236,7 @@ function _get_V(q, fq, mu, p)
   ker, kerinpq = kernel(fpq.map_ab)
   V, Vinq = sub(q, [pqinq(pq(kerinpq(a))) for a in gens(ker)])
   fV = _restrict(fq, Vinq)
-  return V, Vinq, FV
+  return V, Vinq, fV
 end
 
 function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
@@ -268,15 +270,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   end
 
   VA, VAinqA, fVA = _get_V(qA, fqA, minpoly(Bfb), p)
-  gene_GVA = [_restrict(g, VAinqA) for g in gens(GA)]
-  GVA = sub(orthogonal_group(VA), gene_GVA)
-  @assert fVA in GVA
-  GVAinGA = hom(GVA, GA, gens(GVA), gens(GA))
   VB, VBinqB, fVB = _get_V(qB, fqB, minpoly(Afa), p)
-  gene_GVB = [_restrict(g, VBinqB) for g in gens(GB)]
-  GVB = sub(orthogonal_group(VB), gene_GVB)
-  @assert fVB in GVB
-  GVBinGB = hom(GVB, GB, gens(GVB), gens(GB))
+  
   if min(order(VA), order(VB)) < p^g
     return results
   end

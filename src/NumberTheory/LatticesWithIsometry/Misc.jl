@@ -74,9 +74,7 @@ function _restrict(f::TorQuadModMor, i::TorQuadModMor)
 end
 
 function _restrict(f::AutomorphismGroupElem{TorQuadMod}, i::TorQuadModMor)
-  D = domain(f)
-  M = matrix(f)
-  return _restrict(hom(D, D, M), i)
+  return _restrict(hom(f), i)
 end
 
 ##############################################################################
@@ -88,7 +86,7 @@ end
 function embedding_orthogonal_group(i1, i2)
    D = codomain(i1)
    A = domain(i1)
-   B = codomain(i2)
+   B = domain(i2)
    gene = vcat(i1.(gens(A)), i2.(gens(B)))
    n = ngens(A)
    OD, OA, OB = orthogonal_group.([D, A, B])
@@ -97,17 +95,19 @@ function embedding_orthogonal_group(i1, i2)
    for f in gens(OA)
      imgs = [i1(f(a)) for a in gens(A)]
      imgs = vcat(imgs, gene[n+1:end])
-     _f = hom(lift.(gene), lift.(imgs))
+     _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
+     _f = hom(D.ab_grp, D.ab_grp, _f)
      f = TorQuadModMor(D, D, _f)                                                                    
-     push!(geneOA, f)
+     push!(geneOA, OD(f))
    end
    geneOB = elem_type(OD)[]
    for f in gens(OB)
      imgs = [i2(f(a)) for a in gens(B)]
      imgs = vcat(gene[1:n], imgs)
-     _f = hom(lift.(gene), lift.(imgs))
+     _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
+     _f = hom(D.ab_grp, D.ab_grp, _f)
      f = TorQuadModMor(D, D, _f)
-     push!(geneOB, f)
+     push!(geneOB, OD(f))
    end
 
    OAtoOD = hom(OA, OD, gens(OA), geneOA)
@@ -120,8 +120,7 @@ function _as_Fp_vector_space_quotient(HinV, p, f)
   H = domain(HinV)
   Hab = domain(i)
   Hs, HstoHab = snf(Hab)
-  f = _restrict(f, HinV)
-  V = codmain(HinV)
+  V = codomain(HinV)
   Vab = codomain(i)
   Vs, VstoVab = snf(Vab)
 
@@ -153,61 +152,64 @@ function _as_Fp_vector_space_quotient(HinV, p, f)
   VstoVp = Hecke.MapFromFunc(_VstoVp, _VptoVs, Vs, Vp)
   VtoVp = compose(VtoVs, VstoVp)
   M = reduce(vcat, [(i(HstoHab(a))).coeff for a in gens(Hs)])
-  subgene = [Vp(M*v.v) for v in gens(Vp)]
+  subgene = [Vp(v.v*M) for v in gens(Vp)]
   Hp, _ = sub(Vp, subgene)
   Qp, VptoQp = quo(Vp, Hp)
-  fVp = change_base_ring(F, matrix(MVs))
-  ok, fQp = can_solve_with_solution(transpose(VptoQp.matrix), transpose(Vp.toQp.matrix)*fVp)
+  fVp = change_base_ring(F, MVs)
+  ok, fQp = can_solve_with_solution(VptoQp.matrix, fVp*VptoQp.matrix)
   @assert ok
 
 
   return Qp, VtoVp, VptoQp, fQp
 end
 
-function _subgroups_representatives(Vinq::TorQuadModMor, G, g, f = one(G), l::Int = 0)
+function _subgroups_representatives(Vinq::TorQuadModMor, G::AutomorphismGroup{TorQuadMod}, g::Int, f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = one(G), l::Union{Int, fmpz} = 0)
   V = domain(Vinq)
   q = codomain(Vinq)
   p = elementary_divisors(V)[1]
-  @req all(a -> haspreimage(Vtoq.map_ab, data(l*a))[1], gens(q)) "l*q is not contained in V"
-  H0, H0inV = sub(V, [preimage(Vtoq, (l*a)) for a in gens(q)])
+  @req all(a -> haspreimage(Vinq.map_ab, data(l*a))[1], gens(q)) "lq is not contained in V"
+  H0, H0inV = sub(V, [preimage(Vinq, (l*a)) for a in gens(q)])
   Qp, VtoVp, VptoQp, fQp = _as_Fp_vector_space_quotient(H0inV, p, f)
 
-  gene_GV = [_restrict(g, Vinq) for g in gens(G)]
-  GV = sub(orthogonal_group(V), gene_GV)
-  @assert f in GV
+  if dim(Qp) == 0
+    return Tuple{TorQuadMod, AutomorphismGroup{TorQuadMod}}[(V, G)]
+  end
+
+  gene_GV = TorQuadModMor[_restrict(g, Vinq) for g in gens(G)]
+  OV = orthogonal_group(V)
+  GV = sub(OV, OV.(gene_GV))[1]
+  @assert GV(f) in GV
   GVinG = hom(GV, G, gens(GV), gens(G))
 
-  act_GV_Vp = [change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
-  act_GV_Qp = [solve_left(transpose(VptoQp).matrix, transpose(VptoQp).matrix*g) for g in act_GV_Vp]
+  act_GV_Vp = MatElem{gfp_elem}[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
+  act_GV_Qp = MatElem{gfp_elem}[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV_Vp]
   MGp = matrix_group(act_GV_Qp)
   @assert fQp in MGp
   MGptoGV = hom(MGp, GV, gens(GV))
   MGptoG = compose(MGptoGV, GVtoG)
 
-  res = []
+  res = Tuple{TorQuadMod, AutomorphismGroup{TorQuadMod}}[]
   if g-ngens(snf(abelian_group(H10))) > dim(Qp)
     return res
   end
   F = base_ring(Qp)
   k, K = kernel(VptoQp.matrix, side = :left)
-  gene_H0p = [Vp(vec(collect(K[i,:]))) for i in 1:k]
-  orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
+  gene_H0p = ModuleElem{gfp_elem}[Vp(vec(collect(K[i,:]))) for i in 1:k]
+  orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)::Vector{Tuple{AbstractAlgebra.Generic.Submodule{gfp_elem}}, MatrixGroup{gfp_elem, gfp_mat}}
   for (orb, stab) in orb_and_stab
     i = orb.map
     _V = codomain(i)
     for v in gens(ord)
-      vv = _V(transpose(fQp*i(v)))
-      try
-        preimage(i, vv)
-      catch
+      vv = _V(i(v)*fQp)
+      if !can_solve_with_solution(i.matrix, vv.v, side = :left)[1]
         @goto non_fixed
       end
     end
-    gene_orb_in_Qp = [Qp(vec(collect(i(v).v))) for v in gens(orb)]
-    gene_orb_in_Vp = [preimage(VptoQp, v) for v in gene_orb_in_Qp]
+    gene_orb_in_Qp = AbstractAlgebra.Generic.QuotientModuleElem{gfp_elem}[Qp(vec(collect(i(v).v))) for v in gens(orb)]
+    gene_orb_in_Vp = AbstractAlgebra.Generic.ModuleElem{gfp_elem}[preimage(VptoQp, v) for v in gene_orb_in_Qp]
     gene_submod_in_Vp = vcat(gene_ord_in_Vp, gene_H0p)
-    gene_submod_in_V = [preimage(VtoVp, v) for v in gene_submod_in_Vp]
-    gene_submod_in_q = [image(Vinq, v) for v in gene_submod_in_V]
+    gene_submod_in_V = TorQuadModElem[preimage(VtoVp, v) for v in gene_submod_in_Vp]
+    gene_submod_in_q = TorQuadModElem[image(Vinq, v) for v in gene_submod_in_V]
     orbq, _ = sub(q, gene_submod_in_q)
     @assert order(orb) == p^g
     stabq = image(MGptoG, stab)
