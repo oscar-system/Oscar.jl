@@ -53,7 +53,7 @@ function underlying_scheme(X::SpaceGerm)
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyQuoLocalizedRing})
-    return Spec(quotient_ring(X))
+      return Spec(quotient_ring(OO(X)))
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocalizedRing})
@@ -85,18 +85,49 @@ end
 end
 
 @attr SpaceGerm function ambient_germ(X::AbsSpaceGerm{<:Ring,<:MPolyLocalizedRing})
-    return copy(X)
+    return X
 end
 
 ############################################################################################################
 # allow user to specify point also as ideal
-# currently broken -- suggestions welcome on how to do this Oscar-style
 ############################################################################################################
+
 function _maxideal_to_point(I::MPolyIdeal)
-  G = groebner_assure(I)
-  dim(I)==0 || error("Ideal does not describe finite set of points")
-  vectorspace_dimension(G)==1 || error("Ideal does not describe a single K-point")
-  return [normal_form(v,G) for v in gens(base_ring(I))]
+  R=base_ring(I)
+  o = degrevlex(gens(R))
+  G=groebner_basis(I)
+  LG = leading_ideal(I;ordering=o)
+  dim(LG)==0 || error("Ideal does not describe finite set of points")
+  vd,_= _vdim_hack(LG)
+  vd ==1 || error("Ideal does not describe a single K-point")
+  return [leading_coefficient(normal_form(v,G)) for v in gens(R)]
+end
+
+### _vdim_hack only to be used until vdim of 0-dimensional ideals is implemented properly
+### _vdim_hack assumes for simplicity that 
+###         1. dim(I)=0 has been tested, 
+###         2.I is a monomial ideal
+function _vdim_hack(I::MPolyIdeal)
+  leer=typeof(I[1])[]
+  R = base_ring(I)
+  if one(R) in I 
+    return ZZ(0),leer
+  end
+  G=groebner_basis(I)
+  M = ideal(R,gens(R))
+  result=[R(1)]
+  J = ideal(R,normal_form(gens(M),I))
+  zeroid=ideal(R,[zero(R)])
+  while !issubset(J,zeroid)
+    JN = normal_form(gens(J*M),I)
+    Jtemp = leer
+    if(JN[i]!=R(0))
+      push!(result,JN[i])
+      push!(Jtemp, JN[i])
+    end
+    J=ideal(R,Jtemp)
+  end
+  return length(result),result
 end
 
 ############################################################################################################
@@ -121,7 +152,7 @@ end
 
 function SpaceGerm(X::AbsSpec, I::MPolyQuoIdeal)
   A = base_ring(I)
-  A == OO(X) || error("rings are not compatible")
+  A == OO(X) || error("rings seem incompatible")
   R = base_ring(A)
   I = ideal(R, lift.(gens(I))) + modulus(A)
   a = _maxideal_to_point(I)
@@ -130,8 +161,10 @@ function SpaceGerm(X::AbsSpec, I::MPolyQuoIdeal)
 end
 
 ##### still missing: case of MPolyLocalizedIdeal and quo
-#####                problem: does only make sense for inverting powers of elements
-#####                for complements of ideals: either I is the complement of the inverted set or nonsense
+#####               - for inverted set = powers of elements: point either outside of excluded hypersurface, in 
+#####                 which case this should be referred to the global case, or nonsense
+#####               - for complements of ideals: either I is the unique maximal ideal, 
+#####                 i.e.the complement of the inverted set, or nonsense
 
 function germ_at_point(X::AbsSpec, I::Ideal)
   Y = SpaceGerm(X, I)
@@ -196,7 +229,7 @@ end
 function germ_at_point(A::LocalRing)
   X = SpaceGerm(A)
   restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
-  return Y, restr_map
+  return X, restr_map
 end
 
 ### basic functionality for space germs
@@ -207,19 +240,16 @@ end
 ##############################################################################
 
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
-  ambient_ring(X)==ambient_ring(Y) || error("not subgerms of a common space germ")
-  point(X)==point(Y) || error("not the same point of the germ")
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || error("not subgerms of a common space germ")
+  point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
-  I=intersect(modulus(X),modulus(Y))
-  Z,_ = germ_at_point(quo(localized_ring(OO(X)),I))
+  I = intersect(modulus(quotient_ring(OO(X))),modulus(quotient_ring(OO(Y))))
+  Z,_ = germ_at_point(MPolyQuoLocalizedRing(R, I ,inverted_set(OO(X))))
   return Z
 end
 
 ##############################################################################
 # note: singular_locus, is_smooth and is_regular are inherited from Spec
 ##############################################################################
-
-
-
-
