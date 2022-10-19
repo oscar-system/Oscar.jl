@@ -53,13 +53,13 @@
    @test !is_mixed(a)
    @test cmp(a, x, one(R)) > 0
    @test cmp(a, y, one(R)) > 0
-   @test cmp(a, z, one(R)) == 0
+   @test_throws ErrorException cmp(a, z, one(R))
 
    a = neglex([y, z])
    @test !is_global(a)
    @test is_local(a)
    @test !is_mixed(a)
-   @test cmp(a, x, one(R)) == 0
+   @test_throws ErrorException cmp(a, x, one(R))
    @test cmp(a, y, one(R)) < 0
    @test cmp(a, z, one(R)) < 0
 
@@ -166,6 +166,9 @@ end
    o = wdeglex([x1, x2], [1, 2])*revlex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
 
    M = [x4^3, x3*x4^2, x3^2*x4, x4^2, x3^3, x3*x4, x3^2, x4, x3,
         one(R), x1*x4^2, x1*x3*x4, x1*x3^2, x1*x4, x1*x3, x1, x1^2*x4, x1^2*x3,
@@ -176,6 +179,9 @@ end
    o = negrevlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
      
    M = [one(R), x3, x3^2, x4, x3^3, x3*x4, x3^2*x4, x4^2, x3*x4^2,
         x4^3, x2, x2*x3, x2*x3^2, x2*x4, x2*x3*x4, x2*x4^2, x2^2, x2^2*x3,
@@ -186,6 +192,9 @@ end
    o = neglex([x1, x2])*negwdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
         
    M = [x3^3, x3^2*x4, x3^2, x3*x4^2, x3*x4, x3, x4^3, x4^2, x4,
         one(R), x1*x3^2, x1*x3*x4, x1*x3, x1*x4^2, x1*x4, x1, x1^2*x3, x1^2*x4,
@@ -196,6 +205,9 @@ end
    o = negwdeglex([x1, x2], [1, 2])*lex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
 
    M = [x1^3, x1^2*x2, x1*x2^2, x2^3, x1^2, x1^2*x3, x1^2*x4, x1*x2,
         x1*x2*x3, x1*x2*x4, x2^2, x2^2*x3, x2^2*x4, x1, x1*x3, x1*x4, x1*x3^2,
@@ -206,6 +218,9 @@ end
    o = deglex([x1, x2])*negdeglex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
    
    M = [one(R), x1, x2, x3, x4, x1^2, x1*x2, x2^2, x1*x3, x2*x3,
         x3^2, x1*x4, x2*x4, x3*x4, x4^2, x1^3, x1^2*x2, x1*x2^2, x2^3, x1^2*x3,
@@ -216,6 +231,9 @@ end
    o = negdegrevlex(gens(R))
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
 
    o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
    test_opposite_ordering(o)

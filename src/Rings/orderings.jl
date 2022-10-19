@@ -1392,7 +1392,7 @@ end
     cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 
 Compare monomials `a` and `b` with the ordering `ord`: Return `-1` for `a < b`
-and `1` for `a > b`. A return of `0` indicates that either `a == b` or `ord` is
+and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
 a partial ordering that does not distinguish `a` from `b`.
 
 # Examples
@@ -1402,8 +1402,8 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 julia> cmp(lex([x,y]), x, one(R))
 1
 
-julia> cmp(lex([x,y]), z, one(R))
-0
+julia> try cmp(lex([x,y]), z, one(R)); catch e; e; end
+ErrorException("z and 1 are incomparable with respect to lex([x, y])")
 
 julia> cmp(lex([x,y,z]), z, one(R))
 1
@@ -1411,9 +1411,13 @@ julia> cmp(lex([x,y,z]), z, one(R))
 """
 function Base.cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
   @assert base_ring(ord) === parent(a) === parent(b)
-  @assert length(a) == 1
-  @assert length(b) == 1
-  return _cmp_monomials(a, 1, b, 1, ord.o)
+  @assert is_monomial(a)
+  @assert is_monomial(b)
+  c = _cmp_monomials(a, 1, b, 1, ord.o)
+  if c == 0 && a != b
+    error("$a and $b are incomparable with respect to $ord")
+  end
+  return c
 end
 
 # ex: nvars = 7, sigmaC = {    2, 3,       6   }
