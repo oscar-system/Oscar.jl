@@ -1,5 +1,5 @@
 export is_equidimensional
-export singular_locus
+export singular_locus, singular_locus_reduced
 export reduced_scheme
 export is_smooth
 
@@ -7,25 +7,29 @@ QuoRing = Union{MPolyQuoLocalizedRing,
                 MPolyQuo
                }
 
+NonQuoRing = Union{MPolyRing, MPolyLocalizedRing
+                  }
+
 ### TODO: The following two functions need to be made type-sensitive 
-###       and reduced=true needs to be set for varieties 
+###       and reduced=true needs to be set automatically for varieties 
 ###       as soon as not only schemes, but also varieties as special 
-###       schemes have been introduced
+###       schemes have been introduced in OSCAR
 function singular_locus(X::AbsSpec{<:Ring, <:QuoRing})
-  comp = _singular_locus_with_decomposition(X,reduced=false)
+  comp = _singular_locus_with_decomposition(X,false)
   if length(comp) == 0 
-    return subscheme(X, one(OO(X)))
+    return subscheme(X, ideal(OO(X),one(OO(X))))
   end
   R = base_ring(OO(X))
   I= prod([modulus(quotient_ring(OO(Y))) for Y in comp])
-  return Spec(R, I, inverted_set(OO(X)))
+#  return Spec(R, I, inverted_set(OO(X)))
+  return subscheme(X,I)
 end
 
 function singular_locus_reduced(X::AbsSpec{<:Ring, <:QuoRing})
-  comp =  _singular_locus_with_decomposition(X, reduced=true)
-  I= ideal(ambient_ring(X),one(ambient_ring(X)))
+  comp =  _singular_locus_with_decomposition(X, true)
+  I= ideal(localized_ring(OO(X)),one(localized_ring(OO(X))))
   for Z in comp
-    I = intersect(I, modulus(quotient_ring(Z)))
+    I = intersect(I, modulus(OO(Z)))
   end     
   return subscheme(X,I)
 end
@@ -47,10 +51,11 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:QuoRing}, reduc
 
   if length(P)==1
     d = dim(X)
-    R = base_ring(OO(X))
-    n = ngens(R)
-    M = jacobi_matrix(gens(I))
-    J = ideal(R, minors(M, n-d))
+    R = base_ring(I)
+    n = nvars(R) 
+    M = _jacobi_matrix_modulus(X)
+    minvec = minors(M, n-d)
+    J = ideal(R, minvec)
     one(OO(X)) in OO(X)(J) && return result
     return [subscheme(X, J)]
   else
@@ -70,10 +75,22 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:QuoRing}, reduc
   return result
 end
 
-#####################################################################
-### TODO: create a 'dummy' saturated_ideal for the global case
-###       which is just a NOOP
-#####################################################################
+### only for users' convenience: appropriate return value for NonQuoRings
+
+function singular_locus(X::AbsSpec{<:Ring, <:NonQuoRing})
+  return subscheme(X,ideal(OO(X),one(OO(X))))
+end
+
+function singular_locus_reduced(X::AbsSpec{<:Ring, <:NonQuoRing})
+  return subscheme(X,ideal(OO(X),one(OO(X))))
+end
+
+### to keep number of cases down, create a dummy for 
+### saturated_ideal for the affine case
+function saturated_ideal(I::MPolyIdeal)
+  return(I)
+end
+
 @attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:QuoRing})
   I = modulus(OO(X))
   P = equidimensional_decomposition_radical(saturated_ideal(I))
@@ -88,11 +105,23 @@ end
 end
 
 @attr function is_reduced(X::AbsSpec{<:Ring, <:QuoRing})
-  I = modulus(OO(X))
-  J = saturated_ideal(I)
-  return is_reduced(quo(base_ring(J), J)[1])
+  I = saturated_ideal(modulus(OO(X)))
+  return is_reduced(quo(base_ring(I), I)[1])
 end
 
+### only for users' convenience: appropriate return value for NonQuoRings
+
+@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:NonQuoRing})
+  return true
+end
+
+@attr AbsSpec function reduced_scheme(X::AbsSpec{<:Ring, <:NonQuoRing})
+  return X
+end
+
+@attr Bool function is_reduced(X::AbsSpec{<:Ring, <:NonQuoRing})
+  return true
+end
 
 ########################################################################
 # Additional functionality for fractions                               #
@@ -138,6 +167,22 @@ function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
+function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
+  g = gens(modulus(quotient_ring(OO(X))))
+  L = base_ring(quotient_ring(OO(X)))
+  n = nvars(L)
+  M = matrix(L, n, length(g),[derivative(f,i) for i=1:n for f in g])
+  return M
+end
+
+function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPolyQuo})
+  g = gens(modulus(OO(X)))
+  L = base_ring(OO(X))
+  n = nvars(L)
+  M = matrix(L, n , length(g), [derivative(f,i) for i=1:n for f in g])
+  return M
+end
+  
 ########################################################################
 # Smoothness test based on projective modules.
 #
