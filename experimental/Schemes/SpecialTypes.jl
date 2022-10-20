@@ -1,9 +1,11 @@
 export PrincipalOpenSubset
 export ambient_scheme, complement_equation, inclusion_morphism
 
-export complement_ideal, complement_scheme
+export underlying_morphism, complement_ideal, complement_scheme
 
 export image_ideal
+
+export ideal_type
 
 ########################################################################
 # Methods for PrincipalOpenSubset                                      #
@@ -16,11 +18,11 @@ complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U
 gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
 getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
-function inclusion_morphism(U::PrincipalOpenSubset) 
+function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
   if !isdefined(U, :inc)
     X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
-    U.inc = inc
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check))
+    U.inc = OpenInclusion(inc, ideal(OO(X), complement_equation(U)), check=check)
   end
   return U.inc
 end
@@ -90,6 +92,7 @@ end
 
 ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
 ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
+ideal_type(R::Ring) = ideal_type(typeof(R))
 
 
 ########################################################################
@@ -118,8 +121,14 @@ function compose(G::GT, H::GT) where {GT<:SimpleGlueing}
   Z = patches(H)[2]
   f, f_inv = glueing_morphisms(G)
   g, g_inv = glueing_morphisms(H)
-  U_new = PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(domain(g))))
-  W_new = PrincipalOpenSubset(domain(g_inv), pullback(g_inv)(complement_equation(domain(f_inv))))
+  U_new = PrincipalOpenSubset(ambient_scheme(domain(f)), 
+                              [complement_equation(domain(f)), 
+                               lifted_numerator(pullback(f)(complement_equation(domain(g))))
+                              ])
+  W_new = PrincipalOpenSubset(ambient_scheme(domain(g_inv)), 
+                              [complement_equation(domain(g_inv)), 
+                               lifted_numerator(pullback(g_inv)(complement_equation(domain(f_inv))))
+                              ])
   V_new = PrincipalOpenSubset(ambient_scheme(domain(g)), 
                               [complement_equation(domain(g)), complement_equation(domain(f_inv))]
                              )

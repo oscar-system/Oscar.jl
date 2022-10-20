@@ -180,4 +180,17 @@
   f = hom(Qix, Qi, x -> x, [i, 0])
   @test fh(x) == h(f(x)) 
   f = hom(Qix, Qi, x -> x, [i, 0])
+
+  # Construct stacked domain
+  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  S, (u, v) = PolynomialRing(QQ, ["u", "v"])
+  I = ideal(S, [ u - v^2 ])
+  Q, StoQ = quo(S, I)
+  QtoR = hom(Q, R, [ x^2, x ])
+  T, (a, b, c) = PolynomialRing(Q, [ "a", "b", "c" ])
+  J = ideal(T, [ a*b - c^2 ])
+  A, TtoA = quo(T, J)
+  # The test is whether the following two lines work at all
+  AtoR = @inferred hom(A, R, QtoR, [ x^2, y^2, x*y ])
+  @test isone(AtoR(A(1)))
 end

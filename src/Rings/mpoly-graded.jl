@@ -1650,14 +1650,13 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
   # generator which is collected in `bad` a priori. It is checked 
   # whether they become superfluous and if not, they are added to 
   # the good ones.
-  good = similar(a, 0)
-  bad = similar(a, 0)
+  good = sizehint!(Vector{Vector{Int}}(), length(a))
+  bad = sizehint!(Vector{Vector{Int}}(), length(a))
   for e in a
-    next = e-pivot
-    if all(x -> x >= 0, next) # tuned version of divides(e, pivot)
-      push!(good, next)
+    if _divides(e, pivot)
+      push!(good, e - pivot)
     else
-      push!(bad, next)
+      push!(bad, e)
     end
   end
 
@@ -1667,7 +1666,7 @@ function _divide_by(a::Vector{Vector{Int}}, pivot::Vector{Int})
     # the next line computers   m = [k < 0 ? 0 : k for k in e]
     # but without allocations
     for i in 1:length(e)
-      m[i] = e[i] >= 0 ? e[i] : 0
+      m[i] = max(e[i] - pivot[i], 0)
     end
 
     # check whether the new monomial m is already in the span 
@@ -1768,54 +1767,55 @@ function _hilbert_numerator_from_leading_exponents(
     # short exponent vectors where the k-th bit indicates that the k-th 
     # exponent is non-zero.
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring)
+  t = gens(return_ring)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, return_ring, t)
   ret !== nothing && return ret
 
   if alg == :BayerStillmanA
-    return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring)
+    return _hilbert_numerator_bayer_stillman(a, weight_matrix, return_ring, t)
   elseif alg == :custom
-    return _hilbert_numerator_custom(a, weight_matrix, return_ring)
+    return _hilbert_numerator_custom(a, weight_matrix, return_ring, t)
   elseif alg == :gcd # see Remark 5.3.11
-    return _hilbert_numerator_gcd(a, weight_matrix, return_ring) #typestability OK
+    return _hilbert_numerator_gcd(a, weight_matrix, return_ring, t)
   elseif alg == :generator # just choosing on random generator, cf. Remark 5.3.8
-    return _hilbert_numerator_generator(a, weight_matrix, return_ring) #typestability OK
+    return _hilbert_numerator_generator(a, weight_matrix, return_ring, t)
   elseif alg == :indeterminate # see Remark 5.3.8
-    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring)#typestability OK
+    return _hilbert_numerator_indeterminate(a, weight_matrix, return_ring, t)
   elseif alg == :cocoa # see Remark 5.3.14
-    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring) #typestability OK
+    return _hilbert_numerator_cocoa(a, weight_matrix, return_ring, t)
   end
   error("invalid algorithm")
 end
 
+# compute t ^ (weight_matrix * expvec), where t == gens(S)
+function _expvec_to_poly(S::Ring, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
+  o = one(coefficient_ring(S))  # TODO: cache this ?!
+  return S([o], [weight_matrix * expvec])
+end
+
+# special case for univariate polynomial ring
+function _expvec_to_poly(S::PolyRing, t::Vector, weight_matrix::Matrix{Int}, expvec::Vector{Int})
+  @assert length(t) == 1
+  @assert size(weight_matrix) == (1, length(expvec))
+
+  # compute the dot-product of weight_matrix[1,:] and expvec, but faster than dot
+  # TODO: what about overflows?
+  s = weight_matrix[1,1] * expvec[1]
+  for i in 2:length(expvec)
+    @inbounds s += weight_matrix[1,i] * expvec[i]
+  end
+  return t[1]^s
+end
+
 function _hilbert_numerator_trivial_cases(
     a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
-    S::Ring
+    S::Ring, t::Vector, oneS = one(S)
   )
-  length(a) == 0 && return one(S)
+  length(a) == 0 && return oneS
 
   # See Proposition 5.3.6
   if _are_pairwise_coprime(a)
-    t = gens(S)
-    return prod(1-prod(t[i]^(sum([e[j]*weight_matrix[i, j] for j in 1:length(e)])) for i in 1:length(t)) for e in a)
-
-#=
-    ### The following code should be faster, but the build context is not
-    # yet fully tuned (will be better in the next Nemo release). Try it again, once it's done.
-    # Also if S is univariate then a direct approach may still be faster
-    factors = elem_type(S)[]
-    sizehint!(factors, length(a))
-    o = one(coefficient_ring(S))
-    mo = -o
-    z = [0 for i in 1:nvars(S)]
-    ctx = MPolyBuildCtx(S)
-    for e in a
-      exponents = weight_matrix*e
-      push_term!(ctx, mo, exponents)
-      push_term!(ctx, o, z)
-      push!(factors, finish(ctx))
-    end
-    return prod(factors)
-=#
+    return prod(oneS - _expvec_to_poly(S, t, weight_matrix, e) for e in a)
   end
 
   return nothing
@@ -1823,10 +1823,10 @@ end
 
 
 function _hilbert_numerator_cocoa(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   n = length(a)
@@ -1860,18 +1860,18 @@ function _hilbert_numerator_cocoa(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_cocoa(rhs, weight_matrix, S) + f*_hilbert_numerator_cocoa(lhs, weight_matrix, S)
+  return _hilbert_numerator_cocoa(rhs, weight_matrix, S, t) + f*_hilbert_numerator_cocoa(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_indeterminate(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   e = first(a)
@@ -1888,18 +1888,18 @@ function _hilbert_numerator_indeterminate(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_indeterminate(rhs, weight_matrix, S) + f*_hilbert_numerator_indeterminate(lhs, weight_matrix, S)
+  return _hilbert_numerator_indeterminate(rhs, weight_matrix, S, t) + f*_hilbert_numerator_indeterminate(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_generator(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   b = copy(a)
@@ -1907,22 +1907,22 @@ function _hilbert_numerator_generator(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
   c = _divide_by(b, pivot)
-  p1 = _hilbert_numerator_generator(b, weight_matrix, S)
-  p2 = _hilbert_numerator_generator(c, weight_matrix, S)
+  p1 = _hilbert_numerator_generator(b, weight_matrix, S, t)
+  p2 = _hilbert_numerator_generator(c, weight_matrix, S, t)
 
   return p1 - f * p2
 end
 
 function _hilbert_numerator_gcd(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   n = length(a)
@@ -1953,18 +1953,18 @@ function _hilbert_numerator_gcd(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_gcd(rhs, weight_matrix, S) + f*_hilbert_numerator_gcd(lhs, weight_matrix, S)
+  return _hilbert_numerator_gcd(rhs, weight_matrix, S, t) + f*_hilbert_numerator_gcd(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_custom(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector
   )
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t)
   ret !== nothing && return ret
 
   p = Vector{Int}()
@@ -1993,16 +1993,16 @@ function _hilbert_numerator_custom(
 
   f = one(S)
   for i in 1:nvars(S)
-    z = gens(S)[i]
+    z = t[i]
     f *= z^(sum([pivot[j]*weight_matrix[i, j] for j in 1:length(pivot)]))
   end
 
-  return _hilbert_numerator_custom(rhs, weight_matrix, S) + f*_hilbert_numerator_custom(lhs, weight_matrix, S)
+  return _hilbert_numerator_custom(rhs, weight_matrix, S, t) + f*_hilbert_numerator_custom(lhs, weight_matrix, S, t)
 end
 
 function _hilbert_numerator_bayer_stillman(
-    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int}, 
-    S::Ring
+    a::Vector{Vector{Int}}, weight_matrix::Matrix{Int},
+    S::Ring, t::Vector, oneS = one(S)
   )
   ###########################################################################
   # For this strategy see
@@ -2012,38 +2012,33 @@ function _hilbert_numerator_bayer_stillman(
   #
   # Algorithm 2.6, page 35
   ###########################################################################
-  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S)
+  ret = _hilbert_numerator_trivial_cases(a, weight_matrix, S, t, oneS)
   ret !== nothing && return ret
 
-  t = gens(S)
-
   # make sure we have lexicographically ordered monomials
-  sort!(a)
+  sort!(a, alg=QuickSort)
 
   # initialize the result 
-  h = one(S) - prod(t[i]^sum([a[1][j]*weight_matrix[i, j] for j in 1:length(a[1])]) for i in 1:length(t))
+  h = oneS - _expvec_to_poly(S, t, weight_matrix, a[1])
+  linear_mons = Vector{Int}()
   for i in 2:length(a)
     J = _divide_by(a[1:i-1], a[i])
-    J1 = Vector{Vector{Int}}()
-    linear_mons = Vector{Int}()
-    for m in J
-      if sum(m) > 1
-        push!(J1, m)
-      else
-        for k in 1:length(m)
-          if m[k] > 0 
-            push!(linear_mons, k)
-            break
-          end
-        end
+    empty!(linear_mons)
+    J1 = filter!(J) do m
+      k = findfirst(!iszero, m)
+      k === nothing && return false # filter out zero vector
+      if m[k] == 1 && findnext(!iszero, m, k + 1) === nothing
+        push!(linear_mons, k)
+        return false
       end
+      return true
     end
-    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S)
+    q = _hilbert_numerator_bayer_stillman(J1, weight_matrix, S, t, oneS)
     for k in linear_mons
-      q = q*(one(S) - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
+      q *= (oneS - prod(t[i]^weight_matrix[i, k] for i in 1:length(t)))
     end
 
-    h = h - prod(t[k]^sum([a[i][j]*weight_matrix[k, j] for j in 1:length(a[i])]) for k in 1:length(t))*q
+    h -= q * _expvec_to_poly(S, t, weight_matrix, a[i])
   end
   return h
 end

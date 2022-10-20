@@ -198,7 +198,7 @@ end
 # First consider the case where both coefficient maps are maps in the Map
 # sense
 function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, E, S <: Map, U <: Map}
-  @req codomain(F) === domain(F) "Incompatible (co)domain in composition"
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   f = coefficient_map(F)
   g = coefficient_map(G)
   if typeof(codomain(f)) === typeof(domain(g))
@@ -211,13 +211,13 @@ end
 
 # No coefficient maps in both maps
 function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E}
-  @req codomain(F) === domain(F) "Incompatible (co)domain in composition"
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   return hom(domain(F), codomain(G), G.(_images(F)))
 end
 
 # Julia functions in both maps
 function compose(F::MPolyAnyMap{D, C, <: Function}, G::MPolyAnyMap{C, E, <: Function}) where {D, C, E}
-  @req codomain(F) === domain(F) "Incompatible (co)domain in composition"
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)))
 end
 
@@ -229,7 +229,7 @@ end
 function compose(F::MPolyAnyMap{D, C, <: Map, <: Any}, G::S) where {D, C, S <: Map{C, <: Any}}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   f = coefficient_map(F)
-  if typeof(codomain(F)) === C
+  if typeof(codomain(f)) === C
     newcoeffmap = compose(f, G)
     return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)))
   else

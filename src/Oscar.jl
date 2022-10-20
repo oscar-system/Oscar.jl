@@ -163,6 +163,7 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    __GAP_info_messages_off()
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
@@ -170,7 +171,6 @@ function __init__()
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()
-    __GAP_info_messages_off()
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
