@@ -235,9 +235,21 @@ end
 ### basic functionality for space germs
 
 ##############################################################################
-# note: issubset, isempty, is_canonically_isomorphic, intersect are 
-#       inherited from Spec
+# note: isempty, ==, intersect are inherited from Spec
 ##############################################################################
+
+function issubset(X::AbsSpaceGerm, Y::AbsSpaceGerm)
+  R = ambient_ring(X)
+  R == ambient_ring(Y) || return false
+  point(X) == point(Y) || return false
+  IY=ideal(OO(X),modulus(quotient_ring(OO(Y))))
+  return issubset(IY,ideal(OO(X),zero(OO(X))))
+end
+
+function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
+  Z = intersect(underlying_scheme(X),underlying_scheme(Y))
+  return SpaceGerm(Z)
+end
 
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   R = ambient_ring(X)
@@ -253,3 +265,7 @@ end
 ##############################################################################
 # note: singular_locus, is_smooth and is_regular are inherited from Spec
 ##############################################################################
+
+function singular_locus(X::AbsSpaceGerm)
+  return SpaceGerm(singular_locus(underlying_scheme(X)))
+end
