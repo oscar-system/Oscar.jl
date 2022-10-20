@@ -98,7 +98,7 @@ function _maxideal_to_point(I::MPolyIdeal)
   G=groebner_basis(I)
   LG = leading_ideal(I;ordering=o)
   dim(LG)==0 || error("Ideal does not describe finite set of points")
-  vd,_= _vdim_hack(LG)
+  vd,vbasis = _vdim_hack(LG)
   vd ==1 || error("Ideal does not describe a single K-point")
   return [leading_coefficient(normal_form(v,G)) for v in gens(R)]
 end
@@ -108,24 +108,26 @@ end
 ###         1. dim(I)=0 has been tested, 
 ###         2.I is a monomial ideal
 function _vdim_hack(I::MPolyIdeal)
-  leer=typeof(I[1])[]
+  leer=elem_type(base_ring(I))[]
   R = base_ring(I)
   if one(R) in I 
-    return ZZ(0),leer
+    return 0,leer
   end
   G=groebner_basis(I)
   M = ideal(R,gens(R))
   result=[R(1)]
   J = ideal(R,normal_form(gens(M),I))
-  zeroid=ideal(R,[zero(R)])
-  while !issubset(J,zeroid)
-    JN = normal_form(gens(J*M),I)
+  while dim(J) != length(gens(R))
     Jtemp = leer
-    if(JN[i]!=R(0))
-      push!(result,JN[i])
-      push!(Jtemp, JN[i])
+    JN=gens(J)
+    for i in 1:length(JN)
+      if(JN[i]!=R(0))
+        push!(result,JN[i])
+        push!(Jtemp, JN[i])
+      end
     end
-    J=ideal(R,Jtemp)
+    J = ideal(R,Jtemp)
+    J = ideal(R,normal_form(gens(J*M),I))
   end
   return length(result),result
 end
@@ -235,15 +237,18 @@ end
 ### basic functionality for space germs
 
 ##############################################################################
-# note: isempty, ==, intersect are inherited from Spec
+# note: ==, intersect are inherited from Spec
+#       intersect with explicit fallback to Spec and change of return type
 ##############################################################################
 
 function issubset(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   R = ambient_ring(X)
   R == ambient_ring(Y) || return false
   point(X) == point(Y) || return false
-  IY=ideal(OO(X),modulus(quotient_ring(OO(Y))))
-  return issubset(IY,ideal(OO(X),zero(OO(X))))
+  IY=ideal(localized_ring(OO(X)),modulus(quotient_ring(OO(Y))))
+  gens(IY)
+  gens(modulus(quotient_ring(OO(X))))
+  return issubset(IY,modulus(OO(X)))
 end
 
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
