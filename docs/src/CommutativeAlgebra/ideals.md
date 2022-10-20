@@ -25,15 +25,6 @@ ideal(g::Vector{T}) where {T <: MPolyElem}
 
 ## Gröbner Bases
 
-Algorithmic means to deal with ideals in multivariate polynomial rings are provided by
-the concept of Gröbner bases and the workhorse of this concept, Buchberger's algorithm for computing
-Gröbner bases. For both the concept and the algorithm a convenient way of ordering the monomials
-appearing in multivariate polynomials and, thus, to distinguish leading terms of such
-polynomials is needed.
-
-!!! note
-    The performance of Buchberger's algorithm and the resulting Gröbner basis depend crucially on the choice of monomial ordering.
-
 ### Computing Gröbner Bases
 
 ```@docs
@@ -42,7 +33,7 @@ groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction:
 ```@docs
 std_basis(I::MPolyIdeal, o::MonomialOrdering)
 ```
-See e.g. [GP08](@cite) for the theoretical background on Groebner- and standard bases.
+See e.g. [GP08](@cite) for the theoretical background on Gröbner- and standard bases.
 
 #### Gröbner Bases with transformation matrix
 
@@ -194,7 +185,7 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
+eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyElem
 ```
 
 ## Tests on Ideals
