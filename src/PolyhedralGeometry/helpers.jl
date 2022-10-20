@@ -22,6 +22,8 @@ assure_matrix_polymake(m::AbstractMatrix{nf_scalar}) = Polymake.Matrix{Polymake.
 
 assure_matrix_polymake(m::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}}) = m
 
+assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rational, Polymake.QuadraticExtension, Float64}, U, V, W} = Polymake.Matrix{T}(m)
+
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
     v = Polymake.Vector{scalar_type_to_polymake[typeof(v[i])]}(v)
@@ -40,6 +42,8 @@ _cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{fmpq}, typeof(x
 linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
 
 matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
+
+nrows(x::SubArray{T, 2, V, W}) where {T, U, V, W} = size(x, 1)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
@@ -116,6 +120,8 @@ function Base.convert(::Type{fmpz}, x::Polymake.Rational)
     GC.@preserve x Polymake.new_fmpz_from_rational(x, pointer_from_objref(res))
     return res
 end
+
+(R::FlintRationalField)(x::Polymake.Rational) = convert(fmpq, x)
 
 Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
 Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
