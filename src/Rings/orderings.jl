@@ -1219,10 +1219,10 @@ Return a matrix defining `ord` as a matrix ordering.
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> o = degrevlex(R)
+julia> o1 = degrevlex(R)
 degrevlex([x, y, z])
 
-julia> matrix(o)
+julia> matrix(o1)
 [ 1    1    1]
 [ 0    0   -1]
 [ 0   -1    0]
@@ -1267,7 +1267,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 julia> o1 = degrevlex(R)
 degrevlex([x, y, z])
 
-julia> canonical_matrix(o)
+julia> canonical_matrix(o1)
 [1    1    1]
 [0    0   -1]
 [0   -1    0]
@@ -1364,7 +1364,7 @@ Return `true` if `ord` is mixed, `false` otherwise.
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> o = matrix_ordering(R, [1 -1; 0 -1])
-matrix_ordering(R, [1 -1; 0 -1])
+matrix_ordering([x, y], [1 -1; 0 -1])
 
 julia> is_mixed(o)
 true
