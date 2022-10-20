@@ -63,8 +63,27 @@ function is_dense(U::PrincipalOpenSubset)
   return !is_zero_divisor(complement_equation(U))
 end
 
-function is_zero_divisor(f::Union{<:MPolyElem, <:MPolyLocalizedRingElem})
-  return iszero(f)
+function is_constant(a::MPolyLocalizedRingElem) 
+  reduce_fraction(a)
+  return is_constant(numerator(a)) && is_constant(denominator(a))
+end
+
+function is_zero_divisor(f::MPolyElem)
+  iszero(f) && return true
+  if is_constant(f)
+    c = coefficients(f)[1]
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
+
+function is_zero_divisor(f::MPolyLocalizedRingElem)
+  iszero(f) && return true
+  if is_constant(f)
+    c = coefficients(numerator(f))[1]
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 end
 
 function is_zero_divisor(f::Union{<:MPolyQuoElem, <:MPolyQuoLocalizedRingElem})
