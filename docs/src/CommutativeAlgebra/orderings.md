@@ -57,6 +57,7 @@ Here is an illustrating example:
 S, (w, x) = PolynomialRing(QQ, ["w", "x"])
 o = lex([w, x])
 canonical_matrix(o)
+cmp(o, w^2*x, x^3)
 R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
 o1 = degrevlex([w, x])
 is_global(o1)
@@ -67,6 +68,25 @@ canonical_matrix(o2)
 o3 = o1*o2
 canonical_matrix(o3)
 is_mixed(o3)
+show(collect(terms((1+w+x+y+z)^2, o3)))
+```
+
+## Monomial Comparisons
+
+The `cmp` function should be used for comparing two monomials with an ordering.
+
+```@docs
+cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
+```
+
+Also, the usual iterators for multivariate polynomials have extensions to an
+arbitrary ordering.
+
+```@docs
+terms(f::MPolyElem, ord::MonomialOrdering)
+coefficients(f::MPolyElem, ord::MonomialOrdering)
+exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
+monomials(f::MPolyElem, ord::MonomialOrdering)
 ```
 
 ## Matrix Orderings
