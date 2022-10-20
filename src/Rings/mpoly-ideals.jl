@@ -313,6 +313,8 @@ That is, return the ideal of all polynomials in `I` which only depend on the rem
 Given a vector `l` of indices which specify variables, these variables are eliminated from `I`.
 That is, return the ideal of all polynomials in `I` which only depend on the remaining variables.
 
+!!! note
+    Technically, the return value is an ideal of the original ring, with generators only depending on the remaining variables.
 
 # Examples
 ```jldoctest
@@ -335,6 +337,9 @@ julia> A = [1]
 
 julia> TC = eliminate(I, A)
 ideal(-x*z + y^2, x*y - z, x^2 - y)
+
+julia> base_ring(TC)
+Multivariate Polynomial Ring in t, x, y, z over Rational Field
 ```
 """
 function eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem

@@ -185,7 +185,7 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
+eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyElem
 ```
 
 ## Tests on Ideals
