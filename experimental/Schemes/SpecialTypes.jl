@@ -59,6 +59,17 @@ function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
+function is_dense(U::PrincipalOpenSubset)
+  return !is_zero_divisor(complement_equation(U))
+end
+
+function is_zero_divisor(f::Union{<:MPolyElem, <:MPolyLocalizedRingElem})
+  return iszero(f)
+end
+
+function is_zero_divisor(f::Union{<:MPolyQuoElem, <:MPolyQuoLocalizedRingElem})
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
 
 ########################################################################
 # Methods for OpenInclusion                                            #

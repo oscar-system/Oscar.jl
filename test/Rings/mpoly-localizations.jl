@@ -304,3 +304,21 @@ end
   @test z in LSI
   @test !(z in Oscar.pre_saturated_ideal(LSI)) # caching is not supposed to happen, because of special routing.
 end
+
+@testset "zero divisors" begin
+  R, (x, y) = QQ["x", "y"]
+  @test !is_zero_divisor(x)
+  @test is_zero_divisor(zero(x))
+  I = ideal(R, x*y)
+  A, _ = quo(R, I)
+  @test !is_zero_divisor(A(x+y))
+  @test is_zero_divisor(A(x))
+  L, _ = localization(R, x+y)
+  @test !is_zero_divisor(L(x))
+  @test is_zero_divisor(zero(L))
+  J = ideal(R, (x+y)*x*y)
+  A2, _ = quo(R, J)
+  W, _ = localization(A2, A2(x+y))
+  @test !is_zero_divisor(W(x-y))
+  @test is_zero_divisor(W((x+y)^7*x))
+end
