@@ -326,6 +326,6 @@ end
   Z4x, (x, y) = Z4["x", "y"]
   f = 2*x
   @test is_zero_divisor(Z4(2))
-  @test_broken is_zero_divisor(Z4x(2))
-  @test_broken is_zero_divisor(f)
+  @test is_zero_divisor(Z4x(2))
+  @test is_zero_divisor(f)
 end
