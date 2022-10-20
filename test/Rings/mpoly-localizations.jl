@@ -321,4 +321,11 @@ end
   W, _ = localization(A2, A2(x+y))
   @test !is_zero_divisor(W(x-y))
   @test is_zero_divisor(W((x+y)^7*x))
+
+  Z4, _ = quo(ZZ, 4)
+  Z4x, (x, y) = Z4["x", "y"]
+  f = 2*x
+  @test is_zero_divisor(Z4(2))
+  @test_broken is_zero_divisor(Z4x(2))
+  @test_broken is_zero_divisor(f)
 end

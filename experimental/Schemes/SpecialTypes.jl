@@ -68,14 +68,15 @@ function is_constant(a::MPolyLocalizedRingElem)
   return is_constant(numerator(a)) && is_constant(denominator(a))
 end
 
-function is_zero_divisor(f::MPolyElem)
-  iszero(f) && return true
-  if is_constant(f)
-    c = coefficients(f)[1]
-    return is_zero_divisor(c)
-  end
-  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
-end
+### Already implemented in AA -- but probably buggy?
+#function is_zero_divisor(f::MPolyElem)
+#  iszero(f) && return true
+#  if is_constant(f)
+#    c = coefficients(f)[1]
+#    return is_zero_divisor(c)
+#  end
+#  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+#end
 
 function is_zero_divisor(f::MPolyLocalizedRingElem)
   iszero(f) && return true
@@ -83,10 +84,13 @@ function is_zero_divisor(f::MPolyLocalizedRingElem)
     c = coefficients(numerator(f))[1]
     return is_zero_divisor(c)
   end
-  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+  return is_zero_divisor(numerator(f))
 end
 
-function is_zero_divisor(f::Union{<:MPolyQuoElem, <:MPolyQuoLocalizedRingElem})
+### The following method is only implemented when the coefficient ring is a field.
+# The code should be valid generically, but the Singular backend needed for the 
+# ideal quotient is probably buggy for non-fields.
+function is_zero_divisor(f::Union{<:MPolyQuoElem{<:MPolyElem{<:FieldElem}}, <:MPolyQuoLocalizedRingElem{<:Field}})
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 end
 
