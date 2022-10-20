@@ -241,7 +241,7 @@ end
 #       intersect with explicit fallback to Spec and change of return type
 ##############################################################################
 
-function issubset(X::AbsSpaceGerm, Y::AbsSpaceGerm)
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
   R = ambient_ring(X)
   R == ambient_ring(Y) || return false
   point(X) == point(Y) || return false
