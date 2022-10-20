@@ -33,8 +33,8 @@ end
   U1 = MPolyComplementOfKPointIdeal(R,[1,2,2])
   @test U0 == inverted_set(OO(X0))
   @test U1 == inverted_set(OO(X1))
-  @test_broken X0 == Y0
-  @test_broken  X1 !=Y1
+  @test X0 == Y0
+  @test X1 !=Y1
   @test isempty(Y1)
 end
 
@@ -56,6 +56,7 @@ end
 
 @testset "germ_at_point constructors 1"
   R, (x,y,z) = QQ["x", "y", "z"]
+  X, (u,v,w) = QQ["u", "v", "w"]
   I = ideal(R, [x^2 - y^2 + z^2])
   J = ideal(R, [x-1, y-2])
   X = Spec(R, I*J, units_of(R))
@@ -111,4 +112,26 @@ end
   @test ideal(X2) == ideal(localized_ring(OO(X2)),[x,y])
   @test inverted_set(OO(ambient_germ(X2))) == MPolyComplementOfKPointIdeal(R,[0,0,0])
   @test_broken ambient_germ(X0) == X0
+end
+
+@testset "space germ utilities inherited from Spec"
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I = ideal(R, [x^2 - y^2 + z^2])
+  J = ideal(R, [x-1, y-2])
+  X = Spec(R, I*J, units_of(R))
+  Y = Spec(R, I, units_of(R))
+  Z = Spec(R, J ,units_of(R))
+  SY = Spec(R, ideal(R,[x,y,z]))
+  X0 = SpaceGerm(X,[0,0,0])
+  Y0 = SpaceGerm(Y,[0,0,0])
+  Z0 = SpaceGerm(Z,[0,0,0])
+  SY0 = SpaceGerm(SY,[0,0,0])
+  @test isempty(Z0)
+  @test issubset(Z0,X0)
+  @test issubset(Y0,X0)
+  @test issubset(Z0,Y0)
+  @test !issubset(X0,Y0)
+  @test !issubset(X0,Z0)
+  @test Y0 == intersect(X0,Y0)
+  @test SY0 == singular_locus(Y0)
 end
