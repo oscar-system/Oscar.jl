@@ -52,7 +52,7 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 1. Install `Julia` on your computer. The latest version can be found [here](https://julialang.org/downloads/).
 2. Download this development version of `FTheoryTools.jl`. Those interested in contributing should instead clone this repository:
 ```
-    git clone https://github.com/HereAround/FTheoryTools.jl.git
+    git clone https://github.com/Julia-meets-String-Theory/FTheoryTools.jl.git
 ```
 3. Place your clone/download in a location outside of the `.julia` folder of your home folder.
 4. Finally, register and build `FTheoryTools.jl` as follows:
@@ -70,13 +70,13 @@ For detailed information about the implemented functionality, please take a look
 
 ## Bugs and feature requests
 
-If you want to report a bug or request a feature, please do it by raising a [github issue](https://github.com/HereAround/FTheoryTools.jl/issues).
+If you want to report a bug or request a feature, please do it by raising a [github issue](https://github.com/Julia-meets-String-Theory/FTheoryTools.jl/issues).
 
 
 ## Contributions
 
 Contributions are highly appreciated. Please notice that:
-* Contributions must be done by opening a [pull request](https://github.com/HereAround/FTheoryTools.jl/pulls).
+* Contributions must be done by opening a [pull request](https://github.com/Julia-meets-String-Theory/FTheoryTools.jl/pulls).
 * Pull requests must pass a number of checks that are automatically conducted by our test suite, before they can be merged. A further approval by a code owner is appreciated.
 * Code is expected to be in agreement with the [Oscar style guide](https://oscar-system.github.io/Oscar.jl/stable/DeveloperDocumentation/styleguide/).
 
