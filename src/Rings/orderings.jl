@@ -9,7 +9,7 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        isweighted, is_global, is_local, is_mixed,
        permutation_of_terms, weight_ordering, canonical_matrix,
        MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
-       is_elimination_ordering
+       is_elimination_ordering, induced_ring_ordering
 
 abstract type AbsOrdering end
 
@@ -1391,7 +1391,7 @@ end
 @doc Markdown.doc"""
     cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 
-Compare monomials `a` and `b` with the ordering `ord`: Return `-1` for `a < b`
+Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
 and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
 a partial ordering that does not distinguish `a` from `b`.
 
@@ -1598,9 +1598,23 @@ function Base.:*(M::MonomialOrdering, N::ModuleOrdering)
 end
 
 @doc Markdown.doc"""
-    induced_ring_ordering(M::ModuleOrdering)
+    induced_ring_ordering(ord::ModuleOrdering)
 
-Return the induced ring ordering.
+Return the ring ordering induced by `ord`.  
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+
+julia> o = revlex(gens(F))*degrevlex(R)
+revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+
+julia> induced_ring_ordering(o)
+degrevlex([w, x, y, z])
+```
 """
 function induced_ring_ordering(M::ModuleOrdering)
   R = base_ring(M.M)
