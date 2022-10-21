@@ -698,21 +698,41 @@ function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
   return coordinates(a, [b])[1]
 end
 
+@doc Markdown.doc"""
+    terms(f::MPolyElem, ord::MonomialOrdering)
+
+Return an iterator for the terms of `f` in the order `ord`.
+"""
 function terms(f::MPolyElem, ord::MonomialOrdering)
   perm = permutation_of_terms(f, ord)
   return ( term(f, perm[i]) for i = 1:length(f) )
 end
 
+@doc Markdown.doc"""
+    coefficients(f::MPolyElem, ord::MonomialOrdering)
+
+Return an iterator for the coefficients of `f` in the order `ord`.
+"""
 function coefficients(f::MPolyElem, ord::MonomialOrdering)
   perm = permutation_of_terms(f, ord)
   return ( coeff(f, perm[i]) for i = 1:length(f) )
 end
 
+@doc Markdown.doc"""
+    exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
+
+Return an iterator for the exponent vectors of `f` in the order `ord`.
+"""
 function exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
   perm = permutation_of_terms(f, ord)
   return ( exponent_vector(f, perm[i]) for i = 1:length(f) )
 end
 
+@doc Markdown.doc"""
+    monomials(f::MPolyElem, ord::MonomialOrdering)
+
+Return an iterator for the monomials of `f` in the order `ord`.
+"""
 function monomials(f::MPolyElem, ord::MonomialOrdering)
   perm = permutation_of_terms(f, ord)
   return ( monomial(f, perm[i]) for i = 1:length(f) )
