@@ -989,7 +989,7 @@ end
 # Sheaves                                                              #
 ########################################################################
 @Markdown.doc """
-    AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType}
+    AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType}
 
 Abstract type for a sheaf ℱ on a space X.
 
@@ -1001,16 +1001,16 @@ Abstract type for a sheaf ℱ on a space X.
 
  * `RestrictionType` is a parameter for the type of the restriction maps ``ℱ(V) → ℱ(U)`` for ``U ⊂ V ⊂ X`` open.
 """
-abstract type AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
+abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 
 ########################################################################
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
-@attributes mutable struct SheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType, 
+@attributes mutable struct PreSheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType, 
                                        IsOpenFuncType, ProductionFuncType,
                                        RestrictionFuncType
-                                      } <: AbsSheaf{
+                                      } <: AbsPreSheaf{
                                        SpaceType, OpenType, 
                                        OutputType, RestrictionType
                                       }
@@ -1025,7 +1025,7 @@ abstract type AbsSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
   production_func::ProductionFuncType # To produce ℱ(U) for U ⊂ X
   restriction_func::RestrictionFuncType
 
-  function SheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
+  function PreSheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
       OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
@@ -1041,18 +1041,18 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
-@attributes mutable struct RingOfRegularFunctions{SpaceType, OpenType, OutputType,
+@attributes mutable struct StructureSheafOfRings{SpaceType, OpenType, OutputType,
                                           RestrictionType, ProductionFuncType,
                                           RestrictionFuncType,
-                                          SheafType
-                                         } <: AbsSheaf{
+                                          PreSheafType
+                                         } <: AbsPreSheaf{
                                           SpaceType, OpenType, 
                                           OutputType, RestrictionType
                                          }
-  OO::SheafType
+  OO::PreSheafType
 
   ### Structure sheaf on affine schemes
-  function RingOfRegularFunctions(X::AbsSpec)
+  function StructureSheafOfRings(X::AbsSpec)
     function is_open_func(U::AbsSpec, V::AbsSpec)
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
     end
@@ -1063,7 +1063,7 @@ end
       return hom(OO(V), OO(U), gens(OO(U)), check=false) # check=false assures quicker computation
     end
 
-    R = SheafOnScheme(X, production_func, restriction_func, 
+    R = PreSheafOnScheme(X, production_func, restriction_func, 
                     OpenType=AbsSpec, OutputType=Ring, 
                     RestrictionType=Hecke.Map,
                     is_open_func=is_open_func
@@ -1074,7 +1074,7 @@ end
   end
 
   ### Structure sheaf on covered schemes
-  function RingOfRegularFunctions(X::AbsCoveredScheme)
+  function StructureSheafOfRings(X::AbsCoveredScheme)
 
     ### Checks for open containment. 
     #
@@ -1224,9 +1224,10 @@ end
         W = ambient_scheme(U)
         G = default_covering(X)[V, W]
         f, g = glueing_morphisms(G)
+        pbg = pullback(g)
         function rho_func(x::RingElem)
           parent(x) == OO(V) || error("element does not belong to the correct domain")
-          return restrict(pullback(g)(x), U) # should probably be tuned to avoid checks. 
+          return restrict(pbg(domain(pbg)(x)), U) # should probably be tuned to avoid checks. 
         end
         return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
       end
@@ -1260,12 +1261,10 @@ end
         B = ambient_scheme(U)
         G = default_covering(X)[A, B]
         f, g = glueing_morphisms(G)
-        gV = preimage(g, V)
-        gres = restrict(g, gV, V, check=false)
-        h = inclusion_morphism(U, gV)
         function rho_func(x::RingElem)
           parent(x) == OO(V) || error("input not valid")
-          return pullback(h)(pullback(gres)(x))
+          y = pullback(g)(OO(codomain(g))(x))
+          return restrict(pullback(g)(OO(codomain(g))(x)), U)
         end
         return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
       end
@@ -1309,7 +1308,7 @@ end
     end
     function restriction_func(V::SpecOpen, W::SpecOpen)
       if ambient(V) === ambient(W)
-        inc = inclusion_morphism(U, W)
+        inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OO(V), OO(W))
       else
         G = default_covering(X)[ambient(V), ambient(W)]
@@ -1324,7 +1323,7 @@ end
       end
     end
 
-    R = SheafOnScheme(X, production_func, restriction_func, 
+    R = PreSheafOnScheme(X, production_func, restriction_func, 
                       OpenType=Union{AbsSpec, SpecOpen}, OutputType=Ring, 
                       RestrictionType=Hecke.Map,
                       is_open_func=is_open_func
