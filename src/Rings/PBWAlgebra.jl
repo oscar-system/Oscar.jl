@@ -8,10 +8,11 @@ mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations::Singular.smatrix{Singular.spoly{S}}
   coeff_ring
+  poly_ring
   opposite::PBWAlgRing{T, S}
 
-  function PBWAlgRing{T, S}(sring, relations, coeff_ring) where {T, S}
-    return new{T, S}(sring, relations, coeff_ring)
+  function PBWAlgRing{T, S}(sring, relations, coeff_ring, poly_ring) where {T, S}
+    return new{T, S}(sring, relations, coeff_ring, poly_ring)
   end
 end
 
@@ -62,6 +63,10 @@ symbols(a::PBWAlgRing) = symbols(a.sring)
 coefficient_ring(a::PBWAlgRing) = a.coeff_ring
 
 coefficient_ring(a::PBWAlgElem) = coefficient_ring(parent(a))
+
+base_ring(a::PBWAlgRing) = a.poly_ring
+
+base_ring(a::PBWAlgElem) = base_ring(parent(a))
 
 function Base.deepcopy_internal(a::PBWAlgElem, dict::IdDict)
   return PBWAlgElem(parent(a), deepcopy_internal(a.sdata, dict))
@@ -389,7 +394,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check = true) 
   if check && !iszero(Singular.LibNctools.ndcond(s))
     error("PBW-basis condition not satisfied")
   end
-  R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r))
+  R = PBWAlgRing{T, S}(s, srel, coefficient_ring(r), r)
   return R, [PBWAlgElem(R, x) for x in gs]
 end
 
@@ -483,7 +488,7 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
     for i in 1:n-1, j in i+1:n
       bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)
     end
-    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring)
+    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring, PolynomialRing(a.coeff_ring, revs)[1])
     a.opposite = b
     b.opposite = a
   end
@@ -1089,7 +1094,7 @@ function _left_eliminate_via_given_ordering(I::Singular.sideal{<:Singular.splura
 end
 
 function _left_eliminate(R::PBWAlgRing, I::Singular.sideal, sigma, sigmaC, ordering)
-  r = PolynomialRing(coefficient_ring(R), symbols(R))[1]
+  r = R.poly_ring
   if !isnothing(ordering)
     @assert is_elimination_ordering(ordering, sigmaC)
     @assert is_admissible_ordering(R, ordering)
@@ -1152,8 +1157,8 @@ function eliminate(I::PBWAlgIdeal{D, T, S}, sigmaC::Vector{Int}; ordering = noth
     n = ngens(R)
     sigmaop = reverse!(n + 1 .- sigma)
     sigmaCop = reverse!(n + 1 .- sigmaC)
-    rop = PolynomialRing(coefficient_ring(Rop), symbols(Rop))[1]
-    orderingop = isnothing(ordering) ? ordering : opposite_ordering(rop, ordering)
+    orderingop = isnothing(ordering) ? ordering :
+                                     opposite_ordering(Rop.poly_ring, ordering)
     zop = _left_eliminate(Rop, I.sopdata, sigmaop, sigmaCop, orderingop)
     z = _opmap(R, zop, Rop)
     return PBWAlgIdeal{D, T, S}(R, z, zop)

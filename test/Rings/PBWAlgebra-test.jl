@@ -6,6 +6,8 @@
   @test parent_type(x) == PBWAlgRing{fmpq, Singular.n_Q}
   @test coefficient_ring(R) == QQ
   @test coefficient_ring(x) == QQ
+  @test base_ring(R) == r
+  @test base_ring(x) == r
   @test symbols(R) == [:x, :y, :z]
   @test gens(R) == [x, y, z]
   @test ngens(R) == 3
