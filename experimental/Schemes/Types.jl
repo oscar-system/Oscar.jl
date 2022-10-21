@@ -1068,7 +1068,7 @@ end
                     RestrictionType=Hecke.Map,
                     is_open_func=is_open_func
                    )
-    return new{typeof(X), AbsSpec, Ring, Hecke.Map, 
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map, 
                typeof(production_func), typeof(restriction_func), 
                typeof(R)}(R)
   end
@@ -1228,7 +1228,7 @@ end
           parent(x) == OO(V) || error("element does not belong to the correct domain")
           return restrict(pullback(g)(x), U) # should probably be tuned to avoid checks. 
         end
-        return MapFromFunc(rho_func, OO(V), OO(U))
+        return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
       end
       error("arguments are not valid")
     end
@@ -1240,7 +1240,7 @@ end
           # already units in OO(U)
           return OO(U)(lifted_numerator(a))*inv(OO(U)(lifted_denominator(a)))
         end
-        return MapFromFunc(rho_func, OO(V), OO(U))
+        return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
       else
         G = default_covering(X)[ambient_scheme(V), U]
         W1, W2 = glueing_domains(G)
@@ -1249,7 +1249,7 @@ end
           parent(a) === OO(V) || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(W1)(a)), U)
         end
-        return MapFromFunc(rho_func2, OO(V), OO(U))
+        return hom(OO(V), OO(U), rho_func2.(gens(OO(V))), check=false)
       end
     end
     function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset)
@@ -1267,7 +1267,7 @@ end
           parent(x) == OO(V) || error("input not valid")
           return pullback(h)(pullback(gres)(x))
         end
-        return MapFromFunc(rho_func, OO(V), OO(U))
+        return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
       end
       error("arguments are invalid")
     end
@@ -1277,7 +1277,7 @@ end
       if V === ambient(W) 
         return MapFromFunc(x->(OO(W)(x)), OO(V), OO(W))
       else
-        G = default_covering(X)(V, ambient(W))
+        G = default_covering(X)[V, ambient(W)]
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem) 
           parent(a) === OO(V) || error("element does not belong to the correct ring")
@@ -1325,11 +1325,11 @@ end
     end
 
     R = SheafOnScheme(X, production_func, restriction_func, 
-                    OpenType=AbsSpec, OutputType=Ring, 
-                    RestrictionType=Hecke.Map,
-                    is_open_func=is_open_func
-                   )
-    return new{typeof(X), Union{<:AbsSpec, <:SpecOpen}, Ring, Hecke.Map, 
+                      OpenType=Union{AbsSpec, SpecOpen}, OutputType=Ring, 
+                      RestrictionType=Hecke.Map,
+                      is_open_func=is_open_func
+                     )
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map, 
                typeof(production_func), typeof(restriction_func), 
                typeof(R)}(R)
   end

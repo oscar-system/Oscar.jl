@@ -22,16 +22,11 @@ For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set
 ``U ⊂ X`` check whether ``U`` is open in ``X`` and return ``ℱ(U)``.
 """
 function (F::AbsSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) where {OpenType, OutputType, T<:OpenType}
-  return (underlying_sheaf(F))(U; cached=cached)::OutputType
+  return (underlying_sheaf(F))(U, cached=cached)::OutputType
 end
 
 @Markdown.doc """
-    restriction_map(F::AbsSheaf{<:Any, OpenType, OutputType},
-                    U::Type1, V::Type2
-                   ) where {
-                     OpenType, OutputType, 
-                     Type1<:OpenType, Type2<:OpenType
-                   }
+    restriction_map(F::AbsSheaf, U, V)
 
 For a sheaf ``ℱ`` on a space ``X`` and an (admissible) pair of 
 open sets ``U, V ⊂ X`` check whether ``U ⊂ V ⊂ X`` are open and 
@@ -102,5 +97,16 @@ end
 ########################################################################
 
 underlying_sheaf(S::RingOfRegularFunctions) = S.OO
+
+### Missing methods for compatibility of SimpleGlueings with Glueings
+function restrict(a::RingElem, U::PrincipalOpenSubset)
+  parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
+  return OO(U)(a, check=false)
+end
+
+function restrict(a::RingElem, U::SpecOpen)
+  parent(a) == OO(ambient(U)) || return OO(U)(a)
+  return OO(U)(a, check=false)
+end
 
 
