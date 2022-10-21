@@ -1074,7 +1074,8 @@ function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
 end
 
 # use I's ordering to do the elimination
-function _eliminate_via_given_ordering(I::Singular.sideal{S}, sigmaC::Vector{Int}) where S
+function _left_eliminate_via_given_ordering(I::Singular.sideal{<:Singular.spluralg}, sigmaC)
+  @assert !I.isTwoSided
   J = Singular.std(I)
   @assert J !== I
   for i in 1:ngens(J)
@@ -1087,57 +1088,81 @@ function _eliminate_via_given_ordering(I::Singular.sideal{S}, sigmaC::Vector{Int
   return J
 end
 
-function eliminate(I::PBWAlgIdeal{-1, T, S}, sigmaC::Vector{Int}) where {T, S}
-  iszero(I) && return I
+function _left_eliminate(R::PBWAlgRing, I::Singular.sideal, sigma, sigmaC, ordering)
+  r = PolynomialRing(coefficient_ring(R), symbols(R))[1]
+  if !isnothing(ordering)
+    @assert is_elimination_ordering(ordering, sigmaC)
+    @assert is_admissible_ordering(R, ordering)
+    o = singular(ordering)
+  else
+    # if R's given orderings works, use that
+    oo = monomial_ordering(r, Singular.ordering(base_ring(R.relations)))
+    if is_elimination_ordering(oo, sigmaC)
+      return _left_eliminate_via_given_ordering(I, sigmaC)
+    end
+
+    # if degrevlex(sigmaC)*degrevlex(sigma) works, use that
+    dpdp = MonomialOrdering(r, Orderings.SymbOrdering(:degrevlex, sigmaC)*
+                               Orderings.SymbOrdering(:degrevlex, sigma))
+    # This dpdp is fast when sigma and sigmaC are consecutive variables
+    # _elimination_data sorts sigma and sigmaC, so consecutive test is easy.
+    if length(sigma) == 1 + sigma[end] - sigma[1] &&
+       length(sigmaC) == 1 + sigmaC[end] - sigmaC[1] &&
+       is_admissible_ordering(R, dpdp)
+      o = singular(dpdp)
+    else
+      # dpdp didn't work, so try to prepend a weight vector to the ordering
+      ok, w = _elimination_ordering_weights(R, sigmaC)
+      ok || error("could not find elimination ordering")
+      o = Singular.ordering_a(w)*Singular.ordering(base_ring(R.relations))
+      @assert is_admissible_ordering(R, monomial_ordering(r, o))
+    end
+  end
+
+  sr, _ = Singular.PolynomialRing(base_ring(R.sring), string.(symbols(r)); ordering = o)
+  s, gs, _ = _g_algebra_internal(sr, R.relations)
+  Io = _unsafe_coerse(s, I, false)
+  Io = _left_eliminate_via_given_ordering(Io, sigmaC)
+  z = _unsafe_coerse(R.sring, Io, false)
+  return z
+end
+
+function eliminate(I::PBWAlgIdeal{D, T, S}, sigmaC::Vector{Int}; ordering = nothing) where {D, T, S}
   R = base_ring(I)
   _, sigma, sigmaC = Orderings._elimination_data(ngens(R), sigmaC)
 
-  if is_empty(sigma)
-    # eliminating all variables
-    z = isone(I) ? one(R.sring) : zero(R.sring)
-    return PBWAlgIdeal{-1, T, S}(R, Singular.Ideal(R.sring, z))
+  if iszero(I)
+    return I
   elseif is_empty(sigmaC)
     # eliminating no variables
     return I
+  elseif is_empty(sigma)
+    # eliminating all variables
+    z = isone(I) ? one(R.sring) : zero(R.sring)
+    return PBWAlgIdeal{D, T, S}(R, Singular.Ideal(R.sring, z))
   end
 
   if !is_elimination_subalgebra_admissible(R, sigmaC)
     error("no elimination is possible: subalgebra is not admissible")
   end
 
-  # if R's given orderings works, use that
-  r = PolynomialRing(coefficient_ring(R), symbols(R))[1]
-  o = monomial_ordering(r, Singular.ordering(base_ring(R.relations)))
-  if is_elimination_ordering(o, sigmaC)
-    z = _eliminate_via_given_ordering(I.sdata, sigmaC)
-    return PBWAlgIdeal{-1, T, S}(R, z)
-  end
-
-  # if degrevlex(sigmaC)*degrevlex(sigma) works, use that
-  dpdp = MonomialOrdering(r, Orderings.SymbOrdering(:degrevlex, sigmaC)*
-                             Orderings.SymbOrdering(:degrevlex, sigma))
-  # This dpdp is fast when sigma and sigmaC are consecutive variables
-  # _elimination_data sorts sigma and sigmaC, so consecutive test is easy.
-  if length(sigma) == 1 + sigma[end] - sigma[1] &&
-     length(sigmaC) == 1 + sigmaC[end] - sigmaC[1] &&
-     is_admissible_ordering(R, dpdp)
-    o = singular(dpdp)
+  if D > 0
+    Rop = _opposite(R)
+    _sopdata_assure!(I)
+    n = ngens(R)
+    sigmaop = reverse!(n + 1 .- sigma)
+    sigmaCop = reverse!(n + 1 .- sigmaC)
+    rop = PolynomialRing(coefficient_ring(Rop), symbols(Rop))[1]
+    orderingop = isnothing(ordering) ? ordering : opposite_ordering(rop, ordering)
+    zop = _left_eliminate(Rop, I.sopdata, sigmaop, sigmaCop, orderingop)
+    z = _opmap(R, zop, Rop)
+    return PBWAlgIdeal{D, T, S}(R, z, zop)
   else
-    # dpdp didn't work, so try to prepend a weight vector to the ordering
-    ok, w = _elimination_ordering_weights(base_ring(I), sigmaC)
-    ok || error("could not find elimination ordering")
-    o = Singular.ordering_a(w)*Singular.ordering(base_ring(R.relations))
-    @assert is_admissible_ordering(R, monomial_ordering(r, o))
+    z = _left_eliminate(R, _as_left_ideal(I), sigma, sigmaC, ordering)
+    return PBWAlgIdeal{D, T, S}(R, z)
   end
-
-  sr, _ = Singular.PolynomialRing(base_ring(R.sring), string.(symbols(r)); ordering = o)
-  s, gs, _ = _g_algebra_internal(sr, R.relations)
-  Io = _unsafe_coerse(s, I.sdata, false)
-  Io = _eliminate_via_given_ordering(Io, sigmaC)
-  z = _unsafe_coerse(R.sring, Io, false)
-  return PBWAlgIdeal{-1, T, S}(R, z)
 end
 
-function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem})
-  return eliminate(I, [var_index(i) for i in sigmaC])
+function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem}; ordering = nothing)
+  return eliminate(I, [var_index(i) for i in sigmaC]; ordering = ordering)
 end
