@@ -52,7 +52,7 @@ For a sheaf ``ℱ`` on a space ``X`` return a function `f` on two
 arguments such that `f(U, V)` returns `true` whenever ``U ⊂ V ⊂ X``
 are open inclusions and `false` otherwise.
 
-***Note:*** This function must accept ``X`` as the second argument 
+***Note:*** This function is expected to accept ``X`` as the second argument 
 to check whether ``U ⊂ X`` is open in ``X``!
 """
 function is_open_func(F::AbsPreSheaf)
