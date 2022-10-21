@@ -1671,9 +1671,15 @@ end
 
 ############ opposite ordering ############
 
-# TODO return singular-friendly orderings if that is how they come in
+# TODO return more singular-friendly orderings if that is how they come in
 function _opposite_ordering(nvars::Int, o::SymbOrdering{T}) where T
   return SymbOrdering(T, nvars+1 .- o.vars)
+end
+
+function _opposite_ordering(nvars::Int, o::SymbOrdering{:deglex})
+  n = length(o.vars)
+  return MatrixOrdering(o.vars, fmpz_mat(1, n, ones(Int, n)), false)*
+         SymbOrdering(:revlex, o.vars)
 end
 
 # TODO ditto
