@@ -273,8 +273,8 @@ end
   @test F[0] == zero(F)
 end
 
-@testset "Grassman Plücker Relations" begin
+@testset "Grassmann Plücker Relations" begin
     R, x = PolynomialRing(ResidueRing(ZZ, 7), "x" => (1:2, 1:3), ordering=:degrevlex)
     test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
-    @test grassman_pluecker_ideal(R, 2, 4) == test_ideal
+    @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end
