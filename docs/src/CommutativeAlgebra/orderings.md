@@ -73,7 +73,7 @@ show(collect(terms((1+w+x+y+z)^2, o3)))
 
 ## Monomial Comparisons
 
-The `cmp` function should be used for comparing two monomials with an ordering.
+The `cmp` function should be used for comparing two monomials with regard to a monomial ordering.
 
 ```@docs
 cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
@@ -298,9 +298,9 @@ o = degrevlex([w, x])*degrevlex([y, z])
 Let $R = C[x]=C[x_1, \ldots, x_n]$ be a multivariate polynomial ring with coefficient ring $C$.
 Fix a subset $\sigma\subset \{1,\dots, n\}$ and write $x_\sigma$  for the set of variables $x_i$ with
 $i\in\sigma$. An *elimination ordering for $x\smallsetminus x_\sigma$*  is a monomial ordering
-$>$ on $\text{Mon}_n(x)$ which satisfies the following property: If the leading term of a polynomial
-$f\in R$ with respect to $>$ is contained in $C[x_\sigma]$, then also $f$ is contained in $C[x_\sigma]$.
-Computing a Gröbner basis of $I$ with respect to such an ordering provides one way of finding the
+$>$ on $\text{Mon}_n(x)$ which satisfies the following property: If $a$ is a monomial involving one
+of the variables in $x\smallsetminus x_\sigma$ , and $b$ is a monomial depending only on the variables in 
+$x_\sigma$, then $a > b.$ Computing a Gröbner basis of $I$ with respect to such an ordering provides one way of finding the
 intersection $I\cap C[x_\sigma]$, that is, of  *eliminating the variables in $x\smallsetminus x_\sigma$ from $I$*:
 The Gröbner basis elements which only depend on the variables in $x_\sigma$ form a Gröbner basis for
 $I\cap C[x_\sigma]$ with respect to the restriction of $>$ to the set of monomials in $I\cap C[x_\sigma]$.
@@ -329,3 +329,58 @@ is_mixed(ord::MonomialOrdering)
 ```
 
 
+## Module Orderings
+
+Let $R = C[x]=C[x_1, \ldots, x_n]$ be a multivariate polynomial ring with coefficient ring $C$.
+Referring to the section on free modules for details, we recall that by a free $R$-module we mean a free
+module of type $R^p$ , where we think of $R^p$ as a free module with a given basis, namely the basis
+of standard unit vectors. In what follows, $F$ will denote such free $R$-module, and $\{e_1 ,\dots , e_p\}$
+will denote the given basis.
+
+A *monomial in $F$*, involving the basis element $e_i$, is a monomial in $R$ times $e_i$.  A term in $F$
+is a monomial in $F$ multiplied by a coefficient $c\in C$. Every nonzero element $f\in F$ can 
+be uniquely expressed as the sum of finitely many nonzero terms involving  distinct monomials.
+These terms (monomials)  are called the *terms (monomials} of $f$.*
+
+A *monomial ordering* on $F$ is a total ordering $>$ on the set of monomials in $F$ such that if
+$x^\alpha e_i$ and $x^\beta e_j$ are monomials in $F$, and $x^\gamma$ is a monomial in $R$, then 
+
+$x^\alpha e_i > x^\beta e_j \Longrightarrow x^\gamma x^\alpha e_i > x^\gamma x^\beta e_j.$
+In OSCAR, we require in addition that
+
+$x^\alpha e_i > x^\beta e_i \;\text{ iff }\; x^\alpha e_j > x^\beta e_j \;\text{ for all }\; i,j.$
+
+Then $>$ induces a unique monomial ordering on $R$ in the obvious way, and we say that  $>$ is *global*, *local*, or *mixed*
+if the induced ordering on $R$ is global, local, or mixed. 
+
+One way of getting a monomial ordering on $F$ is to pick a monomial ordering $>$ on $R$, and extend it to $F$.
+For instance, setting
+
+$x^\alpha e_i >  x^\beta e_j \iff x^\alpha > x^\beta \;\text{ or }\; (x^\alpha = x^\beta \;\text{ and }\; i > j)$
+
+gives priority to the monomials in $R$, whereas the ordering defined below gives priority to the components of $F$:
+
+$x^\alpha e_i >  x^\beta e_j \iff i > j \;\text{ or }\; (i = j\;\text{ and } x^\alpha > x^\beta).$
+
+Alternatively, we may wish to use $i < j$ instead of $i > j$ in this definition.
+
+In other words, these orderings are obtained by concatenating a monomial ordering on the monomials of $R$
+with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i < j$ ordering on the
+basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the `*` operator for concatenation. 
+
+##### Examples
+
+```@repl oscar
+R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+F = free_module(R, 3)
+o1 = degrevlex(R)*revlex(gens(F))
+o2 = revlex(gens(F))*degrevlex(R)
+```
+
+The induced ordering on the given polynomial ring is recovered as follows:
+
+```@docs
+induced_ring_ordering(ord::ModuleOrdering)
+```
+
+The comparism function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
