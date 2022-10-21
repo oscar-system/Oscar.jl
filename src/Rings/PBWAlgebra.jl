@@ -1168,6 +1168,17 @@ function eliminate(I::PBWAlgIdeal{D, T, S}, sigmaC::Vector{Int}; ordering = noth
   end
 end
 
+```@doc
+    eliminate(I::PBWAlgIdeal, V::Vector{<:PBWAlgElem}; ordering = nothing)
+
+Given a vector `V` variables, these variables are eliminated from `I`.
+That is, return the ideal of all elements of `I` which only depend on the remaining variables.
+
+!!! note
+    If provided, the `ordering` must be an admissible elimination ordering.
+    If `ordering` is not provided, the function may throw an error if an
+    appropriate ordering could not be found.
+```
 function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem}; ordering = nothing)
   return eliminate(I, [var_index(i) for i in sigmaC]; ordering = ordering)
 end
