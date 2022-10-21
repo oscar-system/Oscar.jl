@@ -16,4 +16,4 @@ makedocs(
             ]
     )
 
-deploydocs(repo = "github.com/HereAround/FTheoryTools.jl.git")
+deploydocs(repo = "github.com/Julia-meets-String-Theory/FTheoryTools.jl.git")
