@@ -59,7 +59,7 @@ function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
-function is_dense(U::PrincipalOpenSubset)
+@attr function is_dense(U::PrincipalOpenSubset)
   return !is_zero_divisor(complement_equation(U))
 end
 
@@ -81,7 +81,7 @@ end
 function is_zero_divisor(f::MPolyLocalizedRingElem)
   iszero(f) && return true
   if is_constant(f)
-    c = coefficients(numerator(f))[1]
+    c = first(coefficients(numerator(f)))
     return is_zero_divisor(c)
   end
   return is_zero_divisor(numerator(f))
@@ -90,7 +90,30 @@ end
 ### The following method is only implemented when the coefficient ring is a field.
 # The code should be valid generically, but the Singular backend needed for the 
 # ideal quotient is probably buggy for non-fields.
-function is_zero_divisor(f::Union{<:MPolyQuoElem{<:MPolyElem{<:FieldElem}}, <:MPolyQuoLocalizedRingElem{<:Field}})
+function is_zero_divisor(f::MPolyQuoElem{<:MPolyElem{<:FieldElem}})
+  iszero(f) && return true
+  b = simplify(f)
+  # The next block is basically useless when the coefficient ring is 
+  # a field, because it is merely another `is_zero`-check. However, 
+  # once more functionality is working, it will actually do stuff and 
+  # the above signature can be widened.
+  if is_constant(lift(b))
+    c = first(coefficients(lift(b)))
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
+
+function is_zero_divisor(f::MPolyQuoLocalizedRingElem{<:Field})
+  iszero(f) && return true
+  # The next block is basically useless when the coefficient ring is 
+  # a field, because it is merely another `is_zero`-check. However, 
+  # once more functionality is working, it will actually do stuff and 
+  # the above signature can be widened.
+  if is_constant(lifted_numerator(f)) && is_constant(lifted_denominator(f))
+    c = first(coefficients(lift(numerator(f))))
+    return is_zero_divisor(c)
+  end
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 end
 
@@ -195,11 +218,6 @@ function Glueing(
     g::AbsSpecMor{<:PrincipalOpenSubset};
     check::Bool=true)
   return SimpleGlueing(X, Y, f, g, check=check)
-end
-
-@attr function is_dense(U::PrincipalOpenSubset)
-  f = complement_equation(U)
-  return is_non_zero_divisor(f, ambient_scheme(U))
 end
 
 ### Conversion of a SimpleGlueing to a sophisticated one
