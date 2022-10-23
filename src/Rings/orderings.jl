@@ -1124,10 +1124,15 @@ end
 @doc Markdown.doc"""
     weight_ordering(W::Vector{Int}, ord::MonomialOrdering) -> MonomialOrdering
 
-Given an integer vector `W` and a monomial ordering on a set of monomials in
-`length(W)` variables, return the monomial ordering on this set of monomials
-obtained by first comparing the `W`-weighted degrees and then using `ord` 
+Given an integer vector `W` and a monomial ordering `ord` on a set of monomials in
+`length(W)` variables, return the monomial ordering `ord_W` on this set of monomials
+which is obtained by first comparing the `W`-weighted degrees and then using `ord` 
 in the case of a tie.
+
+!!! note 
+    The ordering `ord_W` is   
+    - global if all entries of `W` are positive, or if they are all non-negative and `ord` is global,
+    - an elimination ordering for the set of variables which correspond to positive entries of `W`.   
 
 # Examples
 ```jldoctest
@@ -1463,32 +1468,32 @@ lex([w, x, y, z])
 julia> is_elimination_ordering(o1, [w, x])
 true
 
-julia> o2 = degrevlex([w, x])*degrevlex([y, z])
-degrevlex([w, x])*degrevlex([y, z])
+julia> o2 = weight_ordering([1, 1, 0, 0], degrevlex(R))
+matrix_ordering([w, x, y, z], [1 1 0 0])*degrevlex([w, x, y, z])
 
 julia> is_elimination_ordering(o2, [w, x])
 true
 
-julia> o3 = degrevlex([w, x])*negdegrevlex([y, z])
-degrevlex([w, x])*negdegrevlex([y, z])
+julia> o3 = weight_ordering([1, -1, 0, 0], degrevlex(R))
+matrix_ordering([w, x, y, z], [1 -1 0 0])*degrevlex([w, x, y, z])
 
 julia> is_elimination_ordering(o3, [w, x])
-true
-
-julia> o4 = negdegrevlex([w, x])*negdegrevlex([y, z])
-negdegrevlex([w, x])*negdegrevlex([y, z])
-
-julia> is_elimination_ordering(o4, [w, x])
 false
 
-julia> o5 = weight_ordering([1, 1, 0, 0], degrevlex(R))
-matrix_ordering([w, x, y, z], [1 1 0 0])*degrevlex([w, x, y, z])
+julia> o4 = degrevlex([w, x])*degrevlex([y, z])
+degrevlex([w, x])*degrevlex([y, z])
+
+julia> is_elimination_ordering(o4, [w, x])
+true
+
+julia> o5 = degrevlex([w, x])*negdegrevlex([y, z])
+degrevlex([w, x])*negdegrevlex([y, z])
 
 julia> is_elimination_ordering(o5, [w, x])
 true
 
-julia> o6 = weight_ordering([1, -1, 0, 0], degrevlex(R))
-matrix_ordering([w, x, y, z], [1 -1 0 0])*degrevlex([w, x, y, z])
+julia> o6 = negdegrevlex([w, x])*negdegrevlex([y, z])
+negdegrevlex([w, x])*negdegrevlex([y, z])
 
 julia> is_elimination_ordering(o6, [w, x])
 false
