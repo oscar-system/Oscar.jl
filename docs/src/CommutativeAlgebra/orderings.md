@@ -270,18 +270,20 @@ weight_ordering(W::Vector{Int}, ord::MonomialOrdering)
 ## Block Orderings
 
 The concept of block orderings (product orderings) allows one to construct new monomial orderings from already given ones: If $>_1$ and $>_2$ are monomial orderings on $\text{Mon}_s(x_1, \ldots, x_s)$ and $\text{Mon}_{n-s}(x_{s+1}, \ldots, x_n)$, respectively, then the *block ordering*
-$>=(>_1, >_2)$ on $\text{Mon}_n(x)=\text{Mon}_n(x_1, \ldots, x_n)$ is defined by setting
+$> \; = \; (>_1, >_2)$ on $\text{Mon}_n(x)=\text{Mon}_n(x_1, \ldots, x_n)$ is defined by setting
           
 $x^\alpha>x^\beta  \;\Leftrightarrow\;  x_1^{\alpha_1}\cdots x_s^{\alpha_s} >_1 x_1^{\beta_1}\cdots x_s^{\beta_s} \;\text{ or }\;
 \bigl(x_1^{\alpha_1}\cdots x_s^{\alpha_s} = x_1^{\beta_1}\cdots x_s^{\beta_s} \text{ and }  x_{s+1}^{\alpha_{s+1}}\cdots x_n^{\alpha_n} >_2
 x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
-          
-Note that $>=(>_1, >_2)$ is global (local) iff both $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing
-one of $>_1$ and $>_2$ global and the other one local.
 
 !!! note
+    The ordering  $(>_1, >_2)$
+    - is global (local) iff both $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing one of $>_1$ and $>_2$ global and the other one local,
+    - is an elimination ordering for the first block of variables iff $>_1$ is global.
+	
+!!! note
     - The definition of a block ordering above subdivides $x$ into a block of initial variables and its complementary block of variables. 
-       Block orderings for a subdivision of $x$ into any block of variables and its complementary block are defined similarly.
+       Block orderings for a subdivision of $x$ into any block of variables and its complementary block are defined similarly and have similar properties.
     - Inductively, one obtains block orderings composed of more than two individual orderings.
 
 In Oscar, block orderings are obtained by the concatenation of individual  orderings using the `*` operator.
@@ -307,7 +309,7 @@ $I\cap C[x_\sigma]$ with respect to the restriction of $>$ to the set of monomia
 
 !!! note
     The lexicographical ordering is an elimination ordering for each initial set of variables $x_1, \dots, x_k$.
-    If only one subset of variables is considered, suitable block or weight orderings are more effective.
+    If only a fixed subset of variables is considered, suitable weight or block orderings as discussed above are more effective.
     The documentation of the `is_elimination_ordering` function below offers examples and non-examples.
 
 ## Tests on Monomial Orderings
