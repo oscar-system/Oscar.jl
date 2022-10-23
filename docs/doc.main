@@ -123,11 +123,13 @@
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/orderings.md",
+     "CommutativeAlgebra/groebner_bases.md",
      "CommutativeAlgebra/ideals.md",
      "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
      ],

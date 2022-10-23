@@ -49,9 +49,9 @@ elimination orderings.
     For the convenient construction of block orderings on the set of monomials of a given multivariate polynomial ring, we allow to construct orderings on the
     monomials in blocks of variables, viewing these orderings as partial orderings on the monomials in all variables.
 
-Here is an illustrating example:
+Here are some illustrating examples:
 
-##### Example
+##### Examples
 
 ```@repl oscar
 S, (w, x) = PolynomialRing(QQ, ["w", "x"])
