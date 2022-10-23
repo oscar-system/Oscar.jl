@@ -304,3 +304,52 @@ end
   @test z in LSI
   @test !(z in Oscar.pre_saturated_ideal(LSI)) # caching is not supposed to happen, because of special routing.
 end
+
+@testset "zero divisors" begin
+  R, (x, y) = QQ["x", "y"]
+  @test !is_zero_divisor(x)
+  @test !is_zero_divisor(R(5))
+  @test is_zero_divisor(zero(x))
+  I = ideal(R, x*y)
+  A, _ = quo(R, I)
+  @test !is_zero_divisor(A(x+y))
+  @test !is_zero_divisor(A(5))
+  @test is_zero_divisor(A(x))
+  L, _ = localization(R, x+y)
+  @test !is_zero_divisor(L(5))
+  @test !is_zero_divisor(L(x))
+  @test is_zero_divisor(zero(L))
+  J = ideal(R, (x+y)*x*y)
+  A2, _ = quo(R, J)
+  W, _ = localization(A2, A2(x+y))
+  @test !is_zero_divisor(W(x-y))
+  @test is_zero_divisor(W((x+y)^7*x))
+
+  Z4, _ = quo(ZZ, 4)
+  Z4x, (x, y) = Z4["x", "y"]
+  f = 2*x
+  @test is_zero_divisor(Z4(2))
+  @test is_zero_divisor(Z4x(2))
+  @test is_zero_divisor(f)
+  # At the moment, the Singular backend complains when the modulus of the coefficient 
+  # ring is not a prime. So we leave the following tests out for the time being. 
+#  L, _ = localization(Z4x, Z4x(x))
+#  @test !is_zero_divisor(L(5))
+#  @test is_zero_divisor(L(2))
+#  @test !is_zero_divisor(L(x))
+#  @test is_zero_divisor(2*L(x))
+#  @test is_zero_divisor(zero(L))
+#  I = ideal(Z4x, x*y)
+#  A, _ = quo(Z4x, I)
+#  @test !is_zero_divisor(A(x+y))
+#  @test is_zero_divisor(2*A(x+y))
+#  @test !is_zero_divisor(A(5))
+#  @test is_zero_divisor(A(2))
+#  @test is_zero_divisor(A(x))
+#  W, _ = localization(A, A(x-y))
+#  @test !is_zero_divisor(W(x+y))
+#  @test is_zero_divisor(2*W(x+y))
+#  @test !is_zero_divisor(W(5))
+#  @test is_zero_divisor((x-y)*W(2))
+#  @test is_zero_divisor((x-y)*W(x))
+end
