@@ -6,6 +6,8 @@
   @test parent_type(x) == PBWAlgRing{fmpq, Singular.n_Q}
   @test coefficient_ring(R) == QQ
   @test coefficient_ring(x) == QQ
+  @test base_ring(R) == r
+  @test base_ring(x) == r
   @test symbols(R) == [:x, :y, :z]
   @test gens(R) == [x, y, z]
   @test ngens(R) == 3
@@ -162,31 +164,45 @@ end
 
 @testset "PBWAlgebra.ideals.eliminate" begin
   r, (e, f, h, a) = QQ["e", "f", "h", "a"]
-  rel = [0 e*f-h e*h+2*e e*a; 0 0 f*h-2*f f*a; 0 0 0 h*a; 0 0 0 0]
-  for o in [lex(r),
-            deglex(r),
-            weight_ordering([1,1,1,0], deglex(r))
-           ]
+  rel = @pbw_relations(f*e == e*f-h, h*e == e*h+2*e, h*f == f*h-2*f)
+  for o in [lex(r), deglex(r)]
     R, (e, f, h, a) = pbw_algebra(r, rel, o)
-    I = left_ideal([e^3, f^3, h^3-4*h, 4*e*f+h^2-2*h - a])
+    I = left_ideal([e^3, f^3, h^3-4*h, 4*e*f+h^2-2*h-a])
     @test eliminate(I, [e, f, h]) == left_ideal([a^3 - 32*a^2 + 192*a])
+
+    oo = weight_ordering([1,1,1,0], deglex(r))
+    @test eliminate(I, [e, f, h]; ordering = oo) == left_ideal([a^3 - 32*a^2 + 192*a])
+
     @test_throws ErrorException eliminate(I, [h])
   end
 
-  r, (a, b, x, d) = QQ["a", "b", "x", "d"]
-  rel = @pbw_relations(b*a == a*b+3*a,
-                       d*a == a*d+3*x^2,
-                       x*b == b*x-x,
-                       d*b == b*d+d,
-                       d*x == x*d+1)
+  r, (a, h, f, e) = QQ["a", "h", "f", "e"]
+  rel = @pbw_relations(e*f == f*e-h, e*h == h*e+2*e, f*h == h*f-2*f)
+  for o in [revlex(r), deglex(r)]
+    R, (a, h, f, e) = pbw_algebra(r, rel, o)
+    I = right_ideal([e^3, f^3, h^3-4*h, 4*f*e+h^2-2*h-a])
+    @test eliminate(I, [e, f, h]) == right_ideal([a^3 - 32*a^2 + 192*a])
 
-  for o in [lex(r),     # forces the discovery of the weight [0,0,1,2]
-            deglex(r),  # ditto
-            weight_ordering([0,0,1,2], deglex(r))
-           ]
+    oo = weight_ordering([0,1,1,1], deglex(r))
+    @test eliminate(I, [e, f, h]; ordering = oo) == right_ideal([a^3 - 32*a^2 + 192*a])
+
+    @test_throws ErrorException eliminate(I, [h])
+  end
+
+  # forces the discovery of the weight [0,0,1,2]
+  r, (a, b, x, d) = QQ["a", "b", "x", "d"]
+  rel = @pbw_relations(b*a == a*b+3*a, d*a == a*d+3*x^2, x*b == b*x-x,
+                       d*b == b*d+d, d*x == x*d+1)
+  for o in [lex(r), deglex(r)]
     R, (a, b, x, d) = pbw_algebra(r, rel, o)
     I = left_ideal([a, x])
     @test eliminate(I, [x, d]) == left_ideal([a])
+
+    oo = weight_ordering([0,0,1,2], deglex(r))
+    @test eliminate(I, [x, d]; ordering = oo) == left_ideal([a])
+
+    Rop, M = opposite_algebra(R)
+    @test eliminate(M.(I), M.([x, d])) == M.(left_ideal([a]))
   end
 
   R, (x, dx) = weyl_algebra(QQ, ["x"])
