@@ -6,7 +6,7 @@ export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, inradical, is_prime, is_primary
 export ngens, gens
 export minimal_generating_set
-export grassman_pluecker_ideal
+export grassmann_pluecker_ideal
 
 # constructors #######################################################
 
