@@ -1678,8 +1678,9 @@ end
 
 function _opposite_ordering(nvars::Int, o::SymbOrdering{:deglex})
   n = length(o.vars)
-  return MatrixOrdering(o.vars, fmpz_mat(1, n, ones(Int, n)), false)*
-         SymbOrdering(:revlex, o.vars)
+  newvars = reverse(nvars+1 .- o.vars)
+  return MatrixOrdering(newvars, fmpz_mat(1, n, ones(Int, n)), false)*
+         SymbOrdering(:revlex, newvars)
 end
 
 # TODO ditto
