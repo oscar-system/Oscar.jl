@@ -6,7 +6,7 @@
 
 rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
 
-_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
+_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(@view C.RAYS[i, :])
 
 _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.RAYS, 0) : C.RAYS
 
@@ -302,11 +302,11 @@ julia> f = facets(Halfspace, c)
 """
 facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, nfacets(C))
 
-_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-C.FACETS[[i], :], 0)
+_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_types, T<:Union{Polyhedron{U}, AffineHalfspace{U}}} = T(-view(C.FACETS, [i], :), 0)
 
 _facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
 
-_facet_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(T, -C.FACETS[[i], :])
+_facet_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(T, -view(C.FACETS, [i], :))
 
 _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
@@ -336,7 +336,7 @@ julia> lineality_space(UH)
 """
 lineality_space(C::Cone{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(C), _lineality_cone, lineality_dim(C))
 
-_lineality_cone(::Type{RayVector{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(C.LINEALITY_SPACE[i, :])
+_lineality_cone(::Type{RayVector{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view C.LINEALITY_SPACE[i, :])
 
 _generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.LINEALITY_SPACE, 0) : C.LINEALITY_SPACE
 
@@ -360,7 +360,7 @@ x₃ = 0
 """
 linear_span(C::Cone{T}) where T<:scalar_types = SubObjectIterator{LinearHyperplane{T}}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
 
-_linear_span(::Type{LinearHyperplane{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHyperplane{T}(C.LINEAR_SPAN[i, :])
+_linear_span(::Type{LinearHyperplane{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHyperplane{T}(@view C.LINEAR_SPAN[i, :])
 
 _linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
 
@@ -392,7 +392,7 @@ function hilbert_basis(C::Cone{fmpq})
    end
 end
 
-_hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(C.HILBERT_BASIS_GENERATORS[1][i, :])
+_hilbert_generator(::Type{PointVector{fmpz}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(view(C.HILBERT_BASIS_GENERATORS[1], i, :))
 
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(C.HILBERT_BASIS_GENERATORS[1], 0) : C.HILBERT_BASIS_GENERATORS[1]
 
