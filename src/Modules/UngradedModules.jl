@@ -433,6 +433,84 @@ Return `true` if `f` is zero, `false` otherwise.
 """
 iszero(f::AbstractFreeModElem) = iszero(coords(f))
 
+
+###############################################################################
+# FreeModElem term orderings
+###############################################################################
+
+function Orderings.lex(F::ModuleFP)
+   return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :lex))
+end
+
+function Orderings.revlex(F::ModuleFP)
+   return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :revlex))
+end
+
+@doc Markdown.doc"""
+    cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+
+Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
+and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
+a partial ordering that does not distinguish `a` from `b`.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> F = FreeMod(R, 3);
+
+julia> cmp(lex(R)*lex(F), x*F[2], y*F[1])
+1
+
+julia> cmp(lex(F)*lex(R), x*F[2], y*F[1])
+-1
+
+julia> cmp(lex(F)*lex(R), x*F[1], x*F[1])
+0
+```
+"""
+function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+  A = coeffs(a)
+  B = coeffs(b)
+  @assert length(A.pos) == 1
+  @assert length(B.pos) == 1
+  av = A.values[1]
+  bv = B.values[1]
+  @assert is_monomial(av)
+  @assert is_monomial(bv)
+  ap = A.pos[1]
+  bp = B.pos[1]
+  c = Orderings._cmp_vector_monomials(ap, av, 1, bp, bv, 1, ord.o)
+  if c == 0 && (ap != bp || av != bv)
+    error("$a and $b are incomparable with respect to $ord")
+  end
+  return c
+end
+
+@doc Markdown.doc"""
+    permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+
+Return an array of Tuple{Int, Int} that puts the terms of `f` in the order `ord`.
+"""
+function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+  ff = coeffs(f)
+  p = collect((i, j) for i in ff.pos for j in 1:length(f[i]))
+  sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
+                                             l[1], ff[l[1]], l[2], ord.o) > 0))
+  return p
+end
+
+@doc Markdown.doc"""
+    terms(f::FreeModElem, ord::ModuleOrdering)
+
+Return an iterator for the terms of `f` in the order `ord`.
+"""
+function terms(f::FreeModElem, ord::ModuleOrdering)
+  p = Orderings.permutation_of_terms(f, ord)
+  F = parent(f)
+  return (term(f[i], j)*F[i] for (i, j) in p)
+end
+
 ###############################################################################
 # ModuleGens constructors
 ###############################################################################
