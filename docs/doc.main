@@ -166,6 +166,7 @@
         "ToricVarieties/CohomologyClasses.md",
         "ToricVarieties/Subvarieties.md",
         "ToricVarieties/AlgebraicCycles.md",
+        "ToricVarieties/ToricMorphisms.md",
      ],
      "Schemes" => [
         "AlgebraicGeometry/AffineSchemes.md",
