@@ -404,6 +404,16 @@ function restrict(
   a = dot(l, OO(V).(numerator.(g)))
   return a
 end
+
+function restrict(
+    f::SpecOpenRingElem, 
+    V::SpecOpen
+  )
+  V === domain(parent(f)) && return f
+  fres = [restrict(f, V[i]) for i in 1:ngens(V)]
+  return SpecOpenRingElem(OO(V), fres, check=false)
+end
+
 @Markdown.doc """
     generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
 
@@ -909,7 +919,23 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
     Y = subscheme(Y, gens(modulus(quotient_ring(OO(K)))))
   end
   return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
- end
+end
+function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
+  V = codomain(f) 
+  Y = ambient(V)
+  Y === ambient_scheme(W) || error("second argument must be open in the ambient scheme of the domain of the morphism")
+  h = complement_equation(W)
+  pbh = pullback(f)(OO(codomain(f))(h))
+  R = ambient_ring(ambient(domain(f)))
+  U = domain(f)
+  X = ambient(U)
+  I = ideal(R, one(R))
+  for i in 1:npatches(U)
+    I = intersect(I, saturated_ideal(ideal(OO(U[i]), pbh[i])))
+  end
+  return intersect(U, SpecOpen(X, I))
+end
+
 
 function preimage(f::SpecOpenMor, V::SpecOpen)
   U = domain(f)
