@@ -111,7 +111,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   qA = discriminant_group(A)
   qB = discriminant_group(B)
   if !divides(det(C), p)[1]
-      return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
+    return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
   end
 
   l = valuation(level(C), p)
@@ -169,8 +169,8 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
 
   s3 = symbol(local_symbol(C, 2))[end]
   if p == 2
-    s1 = symbol(Ap)[s3[1]+1]
-    s2 = symbol(Bp)[s3[1]+1]
+    s1 = Ap[s3[1]+1]
+    s2 = Bp[s3[1]+1]
     if s1[3] != s2[3]
       return false
     end
@@ -229,25 +229,55 @@ end
 
 admissible_triples(L::ZLat, p::Integer) = admissible_triples(genus(L), p)
 
-function _get_V(q, fq, mu, p)
-  pq, pqinq = primary_part(q, p)
-  pq, pqinq = sub(q, pqinq.([g*divexact(order(g), p) for g in gens(pq)]))
-  fpq = _image(mu, _restrict(fq, pqinq))
-  ker, kerinpq = kernel(fpq.map_ab)
-  V, Vinq = sub(q, [pqinq(pq(kerinpq(a))) for a in gens(ker)])
-  fV = _restrict(fq, Vinq)
-  return V, Vinq, fV
+function _get_V(q, f, fq, mu, p)
+  L = relations(q)
+  f_ambient = inv(basis_matrix(L))*f*basis_matrix(L)
+  @assert f*gram_matrix(L)*transpose(f) == gram_matrix(L)
+  f_mu = mu(f_ambient)
+  if !is_zero(f_mu)
+    @assert det(f_mu) != 0
+    L_sub = intersect(lattice_in_same_ambient_space(L, inv(f_mu)), dual(L))
+    B = basis_matrix(L_sub)
+    V, Vinq = sub(q, q.([vec(collect(B[i,:])) for i in 1:nrows(B)]))
+  else
+    V, Vinq = q, id_hom(q)
+  end
+  pV, pVinV = primary_part(V, p)
+  pV, pVinV = sub(V, pVinV.([divexact(order(g), p)*g for g in gens(pV) if !(order(g)==1)]))
+  pVinq = compose(pVinV, Vinq)
+  fpV = _restrict(fq, pVinq)
+  return pV, pVinq, fpV
+end
+
+function _rho_functor(q::TorQuadMod, p, l::Union{Integer, fmpz})
+  N = relations(q)
+  if l == 0
+    Gl = N
+    Gm = intersect(1//p*N, dual(N))
+    rholN = torsion_quadratic_module(Gl, p*Gm, modulus = QQ(1), modulus_qf = QQ(2))
+    gene = [q(lift(g)) for g in gens(rholN)]
+    return sub(q, gene)[2]
+  end
+  k = l-1
+  m = l+1
+  Gk = intersect(1//p^k*N, dual(N))
+  Gl = intersect(1//p^l*N, dual(N))
+  Gm = intersect(1//p^m*N, dual(N))
+  rholN = torsion_quadratic_module(Gl, Gk+p*Gm, modulus = QQ(1), modulus_qf = QQ(2))
+  gene = [q(lift(g)) for g in gens(rholN)]
+  return sub(q, gene)[2]
 end
 
 function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry, Cfc::LatticeWithIsometry, p::Integer)
-  @req is_prime(p) "p must be a prime number"
-  
+  # requirement for the algorithm of BH22
+  @req is_prime(p) "p must be a prime number"  
   A, B, C = lattice.([Afa, Bfb, Cfc])
-
   @req is_admissible_triple(A, B, C, p) "(A, B, C) must be p-admissble"
-  
-  results = LatticeWithIsometry[]
+  # we need to compare the type of the output with the one of (C, f_c^p)
+  t = type(lattice_with_isometry(C, isometry(Cfc)^p))
 
+  results = LatticeWithIsometry[]
+  # this is the glue valuation: it is well-defined because the triple in input is admissible
   g = div(valuation(divexact(det(A)*det(B), det(C)), p), 2)
   
   fA, fB = isometry.([Afa, Bfb])
@@ -256,75 +286,153 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   GA = image_centralizer_in_Oq(Afa)
   GB = image_centralizer_in_Oq(Bfb)
 
+  # this is where we will perform the glueing
   D, qAinD, qBinD = orthogonal_sum(qA, qB)
   OD = orthogonal_group(D)
   prim_ext = Tuple{TorQuadMod, AutomorphismGroup}[]
   OqAinOD, OqBinOD = embedding_orthogonal_group(qAinD, qBinD)
 
+  # if the glue valuation is zero, then we glue along the trivial group and we don't
+  # have much more to do. Since the triple is p-admissible, A+B = C
   if g == 0
     geneA = OqAinOD.(gens(GA))
     geneB = OqBinOD.(gens(GB))
     gene = vcat(geneA, geneB)
-    push!(prim_ext, (sub(D, elem_type(D)[])[1], sub(OD, gene)[1]))
+    GC2 = sub(OD, gene)[1]
+    C2 = orthogonal_sum(A, B)[1]
+    fC2 = block_diagonal_matrix(fA, fB)
+    C2fC2 = lattice_with_isometry(C2, fC2)
+    if type(C2fC2) == t
+      set_attribute!(C2fC2, :image_centralizer_in_Oq, GC2)
+      push!(results, C2fC2)
+    end
     @goto exit
   end
 
-  VA, VAinqA, fVA = _get_V(qA, fqA, minpoly(Bfb), p)
-  VB, VBinqB, fVB = _get_V(qB, fqB, minpoly(Afa), p)
+  # these are GA/GM-invariant, fA/fB-stable, and should contain the kernels of any glue map
+  VA, VAinqA, fVA = _get_V(qA, fA, fqA, minpoly(Bfb), p)
+  VB, VBinqB, fVB = _get_V(qB, fB, fqB, minpoly(Afa), p)
   
+  # since the glue kernels must have order p^g, in this condition, we have nothing
   if min(order(VA), order(VB)) < p^g
     return results
   end
 
-  l = level(genus(G))
-  
+  # scale of the dual: any glue kernel must contain the multiple of l of the respective
+  # discriminant groups
+  l = level(genus(C))
+
+  # We look for the GA/GB-invariant and fA/fB-stable subgroups of VA/VB which respectively
+  # contained lqA/lqB. This is done by computing orbits and stabilisers of VA/lqA (resp VB/lqB)
+  # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
+  # are fA-stable (resp. fB-stable)
   subsA = _subgroups_representatives(VAinqA, GA, g, fVA, l)
   subsB = _subgroups_representatives(VBinqB, GB, g, fVB, l)
-
-  R = [(H1, H2) for H1 in subsA for H2 in subsB if is_anti_isometric_with_anti_isometry(H1[1], H2[1])[1]]
-
+  # once we have the potential kernels, we create pairs of anti-isometric groups since glue
+  # maps are anti-isometry
+  R = [(H1, H2) for H1 in subsA for H2 in subsB if is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))[1]]
+  # now, for each pair of anti-isometric potential kernels, we need to see whether
+  # it is (fA,fB)-equivariant, up to conjugacy. For each working pair, we compute the
+  # corresponding overlattice and check whether it satisfies the type condition
   for (H1, H2) in R
-    SA, stabA = H1
-    SB, stabB = H2
+    #return H1, H2
+    SAinqA, stabA = H1
+    SA = domain(SAinqA)
+    # SA might not be in normal form
+    SBinqB, stabB = H2
+    SB = domain(SBinqB)
+    # we already know they are but now we get the map
     ok, phi = is_anti_isometric_with_anti_isometry(SA, SB)
     @assert ok
     OSA = orthogonal_group(SA)
-    actSA = hom(stabSA, OSA, [OSA(matrix(x)) for x in gens(stabSA)])
-    imSA = image(actSA, stabSA)[1]
-    kerSA = image(OqAinOD, kernel(actSA))
-    fSA = OSA(fqA)
-    for (SB, stabSB) in subsB
-      bool, phi = is_anti_isometric_with_anti_isometry(SA, SB)
-      bool || continue
-      NSB, NSBtoSB = normal_form(SB)
-      OSB = orthogonal_group(SB)
-      actSB = hom(stabSB, OSB, [OSB(lift(x)) for x in gens(stabSB)])
-      imSB = image(actSB, stabSB)[1]
-      kerSB = image(OqBinOD, kernel(actSB))
-      fSB = OSB(fqB)
-      fSAinOSB = OSB(compose(inv(phi), compose(fSA, phi)))
-      bool, g0 = representative_action(OSB, fSAinOSB, fSB)
-      bool || continue
-      phi = compose(phi, g0)
-      fSAinOSB = OSB(compose(inv(phi), compose(fSA, phi)))
-      @assert fSAinOSB == fSB
-      center = centralizer(OSB, fSB)
-      stabSAphi = [OSB(compose(inv(phi), compose(g, phi))) for g in gens(stabSA)]
-      stabSAphi = sub(center, stabSAphi)[1]
-      stabSB = sub(center, gens(stabSB))[1]
-      reps = double_cosets(center, stabSAphi, stabSB)
-      for g in reps
-        g = representative(g)
-        phig = compose(phi, g)
-        g0g = OSB(compose(g0, g))
-        gene = [qAtoD(SAtoNSA\NSA[i]) + qBtoD(g0g(SBtoNSB\NSB[i])) for i in 1:ngens(NSA)]
-        ext = sub(D, gene)[1]
-        perp = orthogonal_submodule(D, ext)[1]
+    # we compute the image of the stabalizer in OSA
+    actA = hom(stabA, OSA, [OSA(Oscar._restrict(x, SAinqA)) for x in gens(stabA)])
+    imA = image(actA, stabA)[1]
+    # we keep track of the element of the stabilizer acting trivially on SA
+    kerA = [OqAinOD(x) for x in gens(kernel(actA)[1])]
+    fSA = _restrict(fqA, SAinqA)
+    fSA = OSA(fSA)
+    OSB = orthogonal_group(SB)
+    actB = hom(stabB, OSB, [OSB(Oscar._restrict(x, SBinqB)) for x in gens(stabB)])
+    imB = image(actB, stabB)
+    kerB = [OqBinOD(x) for x in gens(kernel(actB)[1])]
+    fSB = _restrict(fqB, SBinqB)
+    fSB = OSB(fSB)
+    # we get all the elements of qB of order exactly p^l, which are not mutiple of an
+    # element of order p^{l+1}. In theory, glue maps are classified by the orbit of phi
+    # under the action of O(SB, rho_l(qB), fB)
+    rBinqB = _rho_functor(qB, p, valuation(l, p))
+    @assert Oscar._is_invariant(stabB, rBinqB) # otherwise there is something wrong!
+    #return rBinqB, SBinqB
+    rBinSB = hom(domain(rBinqB), SB, [SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
+    @assert is_injective(rBinSB) # we indeed have rho_l(qB) which is a subgroup of SB
+    # We compute the generators of O(SB, rho_l(qB))
+    stabrB = [g for g in collect(OSB) if Oscar._is_invariant(g, rBinSB)]
+    OSBrB, _ = sub(OSB, stabrB)
+    @assert fSB in OSBrB # otherwise there is something wrong
+    # phi might not "send" the restriction of fA to this of fB, but at least phi(fA)phi^-1
+    # should be conjugate to fB inside O(SB, rho_l(qB)) for the glueing.
+    # If not, we try the next potential pair.
+    fSAinOSBrB = OSBrB(compose(inv(phi), compose(hom(fSA), phi)))
+    bool, g0 = representative_action(OSBrB, fSAinOSBrB, OSBrB(fSB))
+    bool || continue
+    phi = compose(phi, hom(OSB(g0)))
+    fSAinOSB = OSB(compose(inv(phi), compose(hom(fSA), phi)))
+    # Now the new phi is "sending" the restriction of fA to this of fB.
+    # So we can glue SA and SB.
+    @assert fSAinOSB == fSB
+    # Now it is time to compute generators for O(SB, rho_l(qB), fB), and the induced
+    # image of stabA for taking the double cosets next
+    center, _ = centralizer(OSBrB, OSBrB(fSB))
+    center, _ = sub(OSB, OSB.(gens(center)))
+    stabSAphi = [OSB(compose(inv(phi), compose(hom(actA(g)), phi))) for g in gens(stabA)]
+    stabSAphi, _ = sub(center, stabSAphi)
+    stabSB, _ = sub(center, actB.(gens(stabB)))
+    reps = double_cosets(center, stabSAphi, stabSB)
+    # now we iterate over all double cosets and for each representative, we compute the
+    # corresponding overlattice in the glueing. If it has the wanted type, we compute
+    # the image of the centralizer in OD from the stabA ans stabB.
+    for g in reps
+      g = representative(g)
+      phig = compose(phi, hom(g))
+      # problem of lattices that are not in the same ambient space...
+      # TODO: fix `overlattice` or change something somewhere...
+      S = relations(domain(phig))
+      R = relations(codomain(phig))
+      VS = ambient_space(S)
+      diag, trafo = Hecke._gram_schmidt(gram_matrix(S), identity)
+      V1 = quadratic_space(QQ, diag)
+      S1 = lattice(V1, basis_matrix(S)*inv(trafo))
+      VR = ambient_space(R)
+      b,T = isisometric_with_isometry(VR, V1)
+      @assert b
+      R1 = lattice(V1, T)
+      glue = [lift(qAinD(SAinqA(g))) + lift(qBinD(SBinqB(phig(g)))) for g in gens(domain(phig))]
+      z = zero_matrix(QQ,0,degree(S)+degree(R))
+      glue = reduce(vcat, [matrix(QQ,1,degree(S)+degree(R),g) for g in glue], init=z)
+      glue = vcat(block_diagonal_matrix([basis_matrix(S1), basis_matrix(R1)]), glue)
+      glue = FakeFmpqMat(glue)
+      B = hnf(glue)
+      B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(B))
+      C2 = lattice(, B[end-rank(S)-rank(R)+1:end, :])
+      fC2 = block_diagonal_matrix([fA, fB])
+      return C2, fC2
+      C2fC2 = lattice_with_isometry(C2, fC2)
+      if type(C2fC2) != t
+        continue
       end
+      im2_phi = sub(OSA, [compose(phig, compose(g1, inv(phig))) for g1 in gens(imB)])
+      im3, _ = sub(imA, gens(intersect(imA, im2_phi)[1]))
+      stab = [(x, imB(compose(inv(phig), compose(x, phig)))) for x in gens(im3)]
+      stab = [OqAinOD(x[1])*OqBinOD(x[2]) for x in stab]
+      stab = union(stab, kerA)
+      stab = union(stab, kerB)
+      stab = Oscar._orthogonal_group(discriminant_group(C2), matrix.(stab))
+      set_attribute!(C2fC2, :image_centralizer_in_Oq, stab)
+      push!(results, C2fC2)
     end
   end
 
-
-
   @label exit
+  return results
 end

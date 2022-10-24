@@ -196,15 +196,17 @@ function discriminant_group(Lf::LatticeWithIsometry)
   @req is_integral(L) "Underlying lattice must be integral"
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
-  return q, Oq(gens(matrix_group(f))[1])
+  f_ambient = inv(basis_matrix(L))*f*basis_matrix(L)
+  return q, Oq(gens(matrix_group(f_ambient))[1])
 end
 
 @attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
   f = isometry(Lf)
+  f = inv(basis_matrix(L))*f*basis_matrix(L)
   @req is_integral(L) "Underlying lattice must be integral"
-  if n in [1,2]
+  if n == 1
     GL, _ = image_in_Oq(L)
   elseif is_definite(L)
     OL = orthogonal_group(L)
@@ -339,7 +341,7 @@ end
   for l in divs
     Hl = kernel_lattice(Lf, Oscar._cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-        Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false)
+      Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
