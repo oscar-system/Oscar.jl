@@ -185,12 +185,15 @@ julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
+ 
 julia> f4(I)
-4-element Vector{gfp_mpoly}:
- x + 2*y + 2*z + 100
- y*z + 82*z^2 + 10*y + 40*z
- y^2 + 60*z^2 + 20*y + 81*z
- z^3 + 28*z^2 + 64*y + 13*z
+Gröbner basis with elements
+1 -> x + 2*y + 2*z + 100
+2 -> y*z + 82*z^2 + 10*y + 40*z
+3 -> y^2 + 60*z^2 + 20*y + 81*z
+4 -> z^3 + 28*z^2 + 64*y + 13*z
+with respect to the ordering
+degrevlex([x, y, z])
 
 julia> isdefined(I, :gb)
 true
@@ -221,7 +224,7 @@ function f4(
     I.gb[ord] =
         IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
 
-    return AI.gb[eliminate]
+    return I.gb[ord]
 end
 
 @doc Markdown.doc"""
