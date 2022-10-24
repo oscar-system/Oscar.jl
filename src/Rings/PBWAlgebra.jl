@@ -1168,7 +1168,7 @@ function eliminate(I::PBWAlgIdeal{D, T, S}, sigmaC::Vector{Int}; ordering = noth
   end
 end
 
-```@doc
+@doc Markdown.doc```
     eliminate(I::PBWAlgIdeal, V::Vector{<:PBWAlgElem}; ordering = nothing)
 
 Given a vector `V` variables, these variables are eliminated from `I`.
