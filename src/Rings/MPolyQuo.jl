@@ -347,14 +347,20 @@ ideal(x^2 - y^2)
 ```
 """
 function ideal(A::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
-  @assert length(V) > 0
+  #@assert length(V) > 0
+  if length(V) == 0
+    return MPolyQuoIdeal(A, ideal(A.R, elem_type(A.R)[]))
+  end
   for p in V
     A.R == parent(p) || error("parents must match")
   end
   return MPolyQuoIdeal(A, ideal(A.R, V))
 end
 function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
-  @assert length(V) > 0
+  #@assert length(V) > 0
+  if length(V) == 0
+    return MPolyQuoIdeal(A, ideal(A.R, elem_type(A.R)[]))
+  end
   for p in V
     A == parent(p) || error("parents must match")
   end

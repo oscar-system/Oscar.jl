@@ -665,12 +665,14 @@ end
 
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
-  return f
+  return f # Disable reduction here, because it slows down arithmetic.
+  return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
   is_reduced(f) && return f
+  return f
 end
 
 ### implementation of Oscar's general ring interface
