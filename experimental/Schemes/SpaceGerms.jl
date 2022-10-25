@@ -102,7 +102,7 @@ function _maxideal_to_point(I::MPolyIdeal)
   dim(LG)==0 || error("Ideal does not describe finite set of points")
   vd,vbasis = _vdim_hack(LG)
   vd ==1 || error("Ideal does not describe a single K-point")
-  return [leading_coefficient(normal_form(v,G)) for v in gens(R)]
+  return [leading_coefficient(normal_form(v,I)) for v in gens(R)]
 end
 
 ### _vdim_hack only to be used until vdim of 0-dimensional ideals is implemented properly
