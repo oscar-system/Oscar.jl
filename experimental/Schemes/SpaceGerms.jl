@@ -249,7 +249,7 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGe
   R = ambient_ring(X)
   R === ambient_ring(Y) || return false
   point(X) == point(Y) || return false
-  IY=ideal(localized_ring(OO(X)),modulus(quotient_ring(OO(Y))))
+  IY=ideal(localized_ring(OO(X)), gens(modulus(quotient_ring(OO(Y)))))
   return issubset(IY,modulus(OO(X)))
 end
 
