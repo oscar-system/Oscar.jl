@@ -14,7 +14,7 @@ Pages = ["space_germs.md"]
 
 ## [Generalities on Space germs](@id space_germ_generalities)
 
-The geometric notion of a space germ is a local concept. A space germ (X,x) at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
+The geometric notion of a space germ is a local concept. A space germ $(X,x)$ at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
 
 Depending on the kind of ringed space in question, space germs arise in
 different forms:
