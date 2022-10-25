@@ -1173,6 +1173,8 @@ function show_non_relative_groebner_basis(io::IO, sub::ModuleGens, reduced::Bool
     init = "Reduced " * init
   end
   show_groebner_basis_helper(io, sub, init)
+  print(io, "\n with respect to the ordering\n")
+  print(io, sub.ordering)
 end
 
 function show_relative_groebner_basis(io::IO, sub::ModuleGens, quo::ModuleGens, reduced::Bool = false)
@@ -1185,6 +1187,8 @@ function show_relative_groebner_basis(io::IO, sub::ModuleGens, quo::ModuleGens, 
   show_groebner_basis_helper(io, sub, init)
   print(io, "\n")
   show_groebner_basis_helper(io, quo, "\nwith quotient Gröbner basis defined by the elements")
+  print(io, "\n with respect to the ordering\n")
+  print(io, sub.ordering)
 end
 
 @doc Markdown.doc"""

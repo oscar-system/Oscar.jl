@@ -163,17 +163,17 @@ export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
 
 ##############################################################################
 #
-# workhorse: BiPolyArray
+# workhorse: IdealGens
 # ideals are (mostly) generated on the Nemo side, but structural computations
 # are in Singular. To avoid permanent conversion, the list of generators = sideal
-# is captured in BiPolyArray: for Ocsar this is Vector{MPoly}
+# is captured in IdealGens: for Ocsar this is Vector{MPoly}
 #                                 Singular      sideal
 #
 #TODO/ to think
 #  default in Nemo is     :lex
 #             Singular is :degrevlex -> better for std
 #by default, use different orders???
-#make BiPolyArray use different orders for both? make the type depend on it?
+#make IdealGens use different orders for both? make the type depend on it?
 #
 #for std: abstraction to allow Christian to be used
 #
@@ -187,19 +187,13 @@ mutable struct BiPolyArray{S}
   O::Vector{S}
   Sx # Singular Poly Ring or Algebra, poss. with different ordering
   S::Singular.sideal
-  isGB::Bool #if the Singular side (the sideal) will be a GB
-  ord::Orderings.AbsOrdering #for this ordering
-  keep_ordering::Bool
 
-  function BiPolyArray(O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
-    return BiPolyArray(parent(O[1]), O; keep_ordering = keep_ordering,
-                                        isGB = isGB)
+  function BiPolyArray(O::Vector{T}) where {T <: NCRingElem}
+    return BiPolyArray(parent(O[1]), O)
   end
 
-  function BiPolyArray(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+  function BiPolyArray(Ox::NCRing, O::Vector{T}) where {T <: NCRingElem}
     r = new{T}(Ox, O)
-    r.isGB = isGB
-    r.keep_ordering = keep_ordering
     return r
   end
 
@@ -208,9 +202,107 @@ mutable struct BiPolyArray{S}
     r = new{elem_type(T)}(Ox)
     r.Sx = Sx
     r.S = S
+    return r
+  end
+end
+
+mutable struct IdealGens{S}
+  gens::BiPolyArray{S}
+  isGB::Bool
+  ord::Orderings.MonomialOrdering
+  keep_ordering::Bool
+
+  function IdealGens(O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
+    return IdealGens(parent(O[1]), O; keep_ordering = keep_ordering)
+  end
+
+  function IdealGens(O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+    return IdealGens(parent(O[1]), O, ordering; keep_ordering = keep_ordering, isGB)
+  end
+
+  function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+    r = new{T}()
+    r.gens = BiPolyArray(Ox, O)
+    r.ord = ordering
+    r.isGB = isGB
+    r.keep_ordering = keep_ordering
+    return r
+  end
+
+  function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
+    r = new{T}()
+    if isdefined(r, :isGB) # why can this even happen?
+      r.isGB = false
+    end
+    r.gens = BiPolyArray(Ox, O)
+    r.keep_ordering = keep_ordering
+    return r
+  end
+
+  function IdealGens(Ox::T, S::Singular.sideal) where {T <: NCRing}
+    r = new{elem_type(T)}()
+    r.gens = BiPolyArray(Ox, S)
     r.isGB = S.isGB
+    if T <: Union{MPolyRing, MPolyRingLoc, MPolyQuo}
+      r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+    end
     r.keep_ordering = true
     return r
+  end
+end
+
+function Base.getproperty(idealgens::IdealGens, name::Symbol)
+  if name == :Ox
+    return getfield(idealgens, :gens).Ox
+  elseif name == :O
+    return getfield(idealgens, :gens).O
+  elseif name == :Sx
+    return getfield(idealgens, :gens).Sx
+  elseif name == :S
+    #singular_assure(idealgens)
+    return getfield(idealgens, :gens).S
+  elseif name == :gens
+    return getfield(idealgens, name)
+  elseif name == :isGB
+    return getfield(idealgens, name)
+  elseif name == :ord
+    return getfield(idealgens, name)
+  elseif name == :keep_ordering
+    return getfield(idealgens, name)
+  else
+    error("undefined property: ", string(name))
+  end
+end
+
+function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
+  if name == :Ox || name == :O || name == :Sx || name == :S
+    setfield!(idealgens.gens, name, x)
+  elseif name == :gens || name == :isGB || name == :ord || name == :keep_ordering
+    setfield!(idealgens, name, x)
+  else
+    error("undefined property: ", string(name))
+  end
+end
+
+function show(io::IO, I::IdealGens)
+  if I.isGB
+    if is_global(I.ord)
+      print(io, "Gröbner basis with elements")
+    else
+      print(io, "Standard basis with elements")
+    end
+    for (i,g) in enumerate(gens(I))
+      print(io, "\n", i, " -> ", AbstractAlgebra.expr_to_string(AbstractAlgebra.canonicalize(Expr(:call, :+, map(expressify, terms(g, I.ord))...))))
+    end
+  else
+    print(io, "Ideal generating system with elements")
+    for (i,g) in enumerate(gens(I))
+      print(io, "\n", i, " -> ", g)
+    end
+  end
+  if I.isGB
+    print(io, "\nwith respect to the ordering")
+    print(io, "\n", I.ord)
   end
 end
 
@@ -244,6 +336,44 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
 end
 
 Base.eltype(::BiPolyArray{S}) where S = S
+
+function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
+  return A.gens[Val(:S), i]
+end
+
+function Base.getindex(A::IdealGens, ::Val{:O}, i::Int)
+  return A.gens[Val(:O), i]
+end
+
+function Base.getindex(A::IdealGens, i::Int)
+  oscar_assure(A)
+  return A.gens.O[i]
+end
+
+function Base.length(A::IdealGens)
+  return length(A.gens)
+end
+
+function base_ring(A::IdealGens)
+  return A.gens.Ox
+end
+
+function Base.iterate(A::IdealGens, s::Int = 1)
+  if s > length(A)
+    return nothing
+  end
+  return A[Val(:O), s], s+1
+end
+
+Base.eltype(::IdealGens{S}) where S = S
+
+function gens(I::IdealGens)
+  return collect(I)
+end
+
+function elements(I::IdealGens)
+  return collect(I)
+end
 
 ##############################################################################
 #
@@ -428,30 +558,38 @@ end
 Ideal in a multivariate polynomial ring R with elements of type `S`.
 
 Fields:
-  * `gens::BiPolyArray{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
-  * `gb::BiPolyArray{S}`, a field used for caching of Groebner basis computations;
+  * `gens::IdealGens{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
+  * `gb::IdealGens{S}`, a field used for caching of Groebner basis computations;
   * `dim::Int`, a field used for caching the dimension of the ideal.
 """
 mutable struct MPolyIdeal{S} <: Ideal{S}
-  gens::BiPolyArray{S}
-  gb::Dict{MonomialOrdering, BiPolyArray{S}}
+  gens::IdealGens{S}
+  gb::Dict{MonomialOrdering, IdealGens{S}}
   dim::Int
 
   function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
-    return MPolyIdeal(BiPolyArray(g, keep_ordering = false))
+    return MPolyIdeal(IdealGens(g, keep_ordering = false))
   end
 
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
-    r = MPolyIdeal(BiPolyArray(Ox, s))
-    if s.isGB
+    r = MPolyIdeal(IdealGens(Ox, s))
+    #=if s.isGB
       ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      r.ord = ord
+      r.isGB = true
       r.gb[ord] = r.gens
-    end
+    end=#
     return r
   end
 
-  function MPolyIdeal(B::BiPolyArray{T}) where T
-    r = new{T}(B, Dict(), -1)
+  function MPolyIdeal(B::IdealGens{T}) where T
+    r = new{T}()
+    r.gens = B
+    r.dim = -1
+    r.gb = Dict()
+    if isdefined(B, :isGB) && B.isGB
+      r.gb[B.ord] = B
+    end
     return r
   end
 end
@@ -476,11 +614,18 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
-    I.Sx = singular_poly_ring(I.Ox, keep_ordering=I.keep_ordering)
+    I.Sx = singular_poly_ring(I.Ox)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
   end
+end
+
+function singular_assure(I::IdealGens)
+  if !isdefined(I.gens, :S)
+    I.gens.Sx = singular_poly_ring(I.Ox, keep_ordering=I.keep_ordering)
+    I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+  end
   if I.isGB
-    I.S.isGB = true
+    I.gens.S.isGB = true
   end
 end
 
@@ -488,37 +633,41 @@ function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
    singular_assure(I.gens, ordering)
 end
 
-function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
-    if !isdefined(I, :S) 
-        I.ord = ordering.o
-        I.Sx = singular_poly_ring(I.Ox, ordering)
-        I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-        if I.isGB
-            I.S.isGB = true
-        end
-    else
-        #= singular ideal exists, but the singular ring has the wrong ordering
-         = attached, thus we have to create a new singular ring and map the ideal. =#
-        if !isdefined(I, :ord) || I.ord != ordering.o
-            I.ord = ordering.o
-            SR    = singular_poly_ring(I.Ox, ordering)
-            f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
-            I.S   = Singular.map_ideal(f, I.S)
-            I.Sx  = SR
-        end
-    end
+function singular_assure(I::IdealGens, ordering::MonomialOrdering)
+  if !isdefined(I.gens, :S)
+      I.ord = ordering
+      I.gens.Sx = singular_poly_ring(I.Ox, ordering)
+      I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+      if I.isGB
+          I.gens.S.isGB = true
+      end
+  else
+      #= singular ideal exists, but the singular ring has the wrong ordering
+       = attached, thus we have to create a new singular ring and map the ideal. =#
+      if !isdefined(I, :ord) || I.ord != ordering.o
+          I.ord = ordering
+          SR    = singular_poly_ring(I.Ox, ordering)
+          f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
+          I.gens.S   = Singular.map_ideal(f, I.S)
+          I.gens.Sx  = SR
+      end
+  end
 end 
 
 function oscar_assure(I::MPolyIdeal)
-  if !isdefined(I.gens, :O)
+  if !isdefined(I.gens.gens, :O)
     I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
   end
 end
 
 function oscar_assure(B::BiPolyArray)
-  if !isdefined(B, :O) || !isassigned(B.O, 1)
+  if !isdefined(B, :O) || !isassigned(B.O, 1)
     B.O = [B.Ox(x) for x = gens(B.S)]
   end
+end
+
+function oscar_assure(B::IdealGens)
+  oscar_assure(B.gens)
 end
 
 function Base.copy(f::MPolyElem)

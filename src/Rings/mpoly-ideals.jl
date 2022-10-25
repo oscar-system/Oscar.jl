@@ -54,6 +54,10 @@ function ideal(g::Vector{T}) where {T <: MPolyElem}
   return MPolyIdeal(g)
 end
 
+function ideal(I::IdealGens{T}) where {T <: MPolyElem}
+  return MPolyIdeal(I)
+end
+
 # TODO: Can we make this the default?
 # (Or maybe remove ideal(...) without a ring completely?)
 function ideal(R::MPolyRing, g::Vector)
@@ -344,7 +348,6 @@ Multivariate Polynomial Ring in t, x, y, z over Rational Field
 """
 function eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
   singular_assure(I)
-  B = BiPolyArray(l)
   S = base_ring(I.gens.S)
   s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
@@ -944,8 +947,7 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
-  groebner_assure(I, ordering, false, false)
-  GI = I.gb[ordering]
+  GI = std_basis(I, ordering, false)
   singular_assure(GI)
   Sx = base_ring(GI.S)
   return Singular.iszero(Singular.reduce(Sx(f), GI.S))
@@ -1265,7 +1267,7 @@ function is_monomial(I::MPolyIdeal)
   if _ismonomial(gens(I))
     return true
   end
-  GB = groebner_basis(I, complete_reduction = true)
+  GB = gens(groebner_basis(I, complete_reduction = true))
   if _ismonomial(GB)
     return true
   end
