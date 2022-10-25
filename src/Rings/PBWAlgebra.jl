@@ -1229,7 +1229,7 @@ julia> A, (p, q) = pbw_algebra(R, REL, lex(gens(R)))
 julia> I = left_ideal(A, [p, q])
 left_ideal(p, q)
 
-julia> try eliminate(I, [q]); catch e; e; end
+julia> try eliminate(I, [q]); catch e; e; end   # in fact, no elimination ordering exists
 ErrorException("could not find elimination ordering")
 ```
 """
