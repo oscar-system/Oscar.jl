@@ -116,7 +116,7 @@ for convenience and consistence of functionality:
    ```julia
    point(X:SpaceGerm)
    ```
-   **Provides:** Ideal
+   **Provides:** Vector describing of point coordinates
 
 !!! note
     The returned ideal is a prime ideal in the ring of a representative of the germ. At first use of it or at the latest upon the first call of representative, the respective affine scheme is cached and subsequently used for all further purposes requiring a representative
