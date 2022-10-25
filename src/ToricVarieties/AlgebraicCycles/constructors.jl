@@ -138,7 +138,7 @@ julia> RationalEquivalenceClass(cc)
 A rational equivalence class on a normal toric variety represented by 2V(x3)
 ```
 """
-RationalEquivalenceClass(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(cc))
+RationalEquivalenceClass(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(cc, chow_ring(toric_variety(cc))))
 
 
 @doc Markdown.doc"""
@@ -174,7 +174,7 @@ function RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)
     mons = [[m for m in monomials(p)][1] for p in gens(defining_ideal(sv))]
     expos = [matrix(ZZ, [k for k in exponent_vectors(mons[k])]) for k in 1:length(mons)]
     coeffs = [1 for i in 1:length(mons)]
-    new_mons = MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}[]
+    new_mons = MPolyQuoElem{fmpq_mpoly}[]
     for k in 1:length(mons)
       mon = 1
       for j in 1:ncols(expos[k])

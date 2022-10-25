@@ -246,5 +246,5 @@ julia> cohomology_class(ac)
 A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 ```
 """
-@attr CohomologyClass cohomology_class(ac::RationalEquivalenceClass) = CohomologyClass(toric_variety(ac), polynomial(ac))
+@attr CohomologyClass cohomology_class(ac::RationalEquivalenceClass) = CohomologyClass(toric_variety(ac), polynomial(cohomology_ring(toric_variety(ac)),ac))
 export cohomology_class
