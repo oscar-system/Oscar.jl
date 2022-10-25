@@ -158,7 +158,7 @@ for convenience and consistence of functionality:
  * equality
 
    ```julia
-   is_canonically_isomorphic(X::SpaceGerm, Y::SpaceGerm)
+   X ==Y
    ```
 
    **Provides:** Boolean Value
