@@ -88,6 +88,29 @@ end
 #
 ##############################################################################
 
+function embedding_orthogonal_group(i)
+  ok, j = has_complement(i)
+  @req ok "domain(i) needs to have a complement in codomain(i)"
+  A = domain(i)
+  B = domain(j)
+  D = codomain(i)
+  gene = vcat(i.(gens(A)), j.(gens(B)))
+  n = ngens(A)
+  OD, OA, = orthogonal_group.([D, A])
+
+  geneOA = elem_type(OD)[]
+  for f in gens(OA)
+    imgs = [i(f(a)) for a in gens(A)]
+    imgs = vcat(imgs, gene[n+1:end])
+    _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
+    _f = hom(D.ab_grp, D.ab_grp, _f)
+    f = TorQuadModMor(D, D, _f)
+    push!(geneOA, OD(f))
+  end
+  OAtoOD = hom(OA, OD, gens(OA), geneOA)
+  return OAtoOD
+end
+
 function embedding_orthogonal_group(i1, i2)
    D = codomain(i1)
    A = domain(i1)

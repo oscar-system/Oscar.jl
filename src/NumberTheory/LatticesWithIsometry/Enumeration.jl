@@ -274,7 +274,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   A, B, C = lattice.([Afa, Bfb, Cfc])
   @req is_admissible_triple(A, B, C, p) "(A, B, C) must be p-admissble"
   # we need to compare the type of the output with the one of (C, f_c^p)
-  t = type(lattice_with_isometry(C, isometry(Cfc)^p))
+  t = type(Cfc)
 
   results = LatticeWithIsometry[]
   # this is the glue valuation: it is well-defined because the triple in input is admissible
@@ -289,8 +289,9 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # this is where we will perform the glueing
   D, qAinD, qBinD = orthogonal_sum(qA, qB)
   OD = orthogonal_group(D)
-  prim_ext = Tuple{TorQuadMod, AutomorphismGroup}[]
   OqAinOD, OqBinOD = embedding_orthogonal_group(qAinD, qBinD)
+  OqA = domain(OqAinOD)
+  OqB = domain(OqBinOD)
 
   # if the glue valuation is zero, then we glue along the trivial group and we don't
   # have much more to do. Since the triple is p-admissible, A+B = C
@@ -301,12 +302,12 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     GC2 = sub(OD, gene)[1]
     C2 = orthogonal_sum(A, B)[1]
     fC2 = block_diagonal_matrix(fA, fB)
-    C2fC2 = lattice_with_isometry(C2, fC2)
-    if type(C2fC2) == t
+    if type(lattice_wit_isometry(C2, fC2^p)) == t
+        C2fC2 = lattice_wit_isometry(C2, fC2)
       set_attribute!(C2fC2, :image_centralizer_in_Oq, GC2)
       push!(results, C2fC2)
     end
-    @goto exit
+    return results
   end
 
   # these are GA/GM-invariant, fA/fB-stable, and should contain the kernels of any glue map
@@ -337,6 +338,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   for (H1, H2) in R
     #return H1, H2
     SAinqA, stabA = H1
+    return SAinqA
     SA = domain(SAinqA)
     # SA might not be in normal form
     SBinqB, stabB = H2
@@ -344,7 +346,9 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # we already know they are but now we get the map
     ok, phi = is_anti_isometric_with_anti_isometry(SA, SB)
     @assert ok
-    OSA = orthogonal_group(SA)
+    OSAinOqA = embedding_orthogonal_group(SAinqA)
+    OSAinOD = compose(OSAinOqA, OqAinOD)
+    OSA = domain(OSAinqA)
     # we compute the image of the stabalizer in OSA
     actA = hom(stabA, OSA, [OSA(Oscar._restrict(x, SAinqA)) for x in gens(stabA)])
     imA = image(actA, stabA)[1]
@@ -352,9 +356,11 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     kerA = [OqAinOD(x) for x in gens(kernel(actA)[1])]
     fSA = _restrict(fqA, SAinqA)
     fSA = OSA(fSA)
-    OSB = orthogonal_group(SB)
+    OSBinOqB = embedding_orthogonal_group(SBinqB)
+    OSAinOD = compose(OSBinOqB, OqBinOD)
+    OSB = domain(OSBinOqB)
     actB = hom(stabB, OSB, [OSB(Oscar._restrict(x, SBinqB)) for x in gens(stabB)])
-    imB = image(actB, stabB)
+    imB = image(actB, stabB)[1]
     kerB = [OqBinOD(x) for x in gens(kernel(actB)[1])]
     fSB = _restrict(fqB, SBinqB)
     fSB = OSB(fSB)
@@ -399,32 +405,24 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
       # TODO: fix `overlattice` or change something somewhere...
       S = relations(domain(phig))
       R = relations(codomain(phig))
-      VS = ambient_space(S)
-      diag, trafo = Hecke._gram_schmidt(gram_matrix(S), identity)
-      V1 = quadratic_space(QQ, diag)
-      S1 = lattice(V1, basis_matrix(S)*inv(trafo))
-      VR = ambient_space(R)
-      b,T = isisometric_with_isometry(VR, V1)
-      @assert b
-      R1 = lattice(V1, T)
       glue = [lift(qAinD(SAinqA(g))) + lift(qBinD(SBinqB(phig(g)))) for g in gens(domain(phig))]
       z = zero_matrix(QQ,0,degree(S)+degree(R))
       glue = reduce(vcat, [matrix(QQ,1,degree(S)+degree(R),g) for g in glue], init=z)
-      glue = vcat(block_diagonal_matrix([basis_matrix(S1), basis_matrix(R1)]), glue)
+      glue = vcat(block_diagonal_matrix([basis_matrix(S), basis_matrix(R)]), glue)
       glue = FakeFmpqMat(glue)
       B = hnf(glue)
       B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(B))
-      C2 = lattice(, B[end-rank(S)-rank(R)+1:end, :])
+      C2 = lattice(ambient_space(cover(D)), B[end-rank(S)-rank(R)+1:end, :])
       fC2 = block_diagonal_matrix([fA, fB])
-      return C2, fC2
-      C2fC2 = lattice_with_isometry(C2, fC2)
-      if type(C2fC2) != t
+      fC2 = basis_matrix(C2)*fC2*inv(basis_matrix(C2))
+      if type(lattice_with_isometry(C2, fC2^p)) != t
         continue
       end
-      im2_phi = sub(OSA, [compose(phig, compose(g1, inv(phig))) for g1 in gens(imB)])
+      C2fC2 = lattice_with_isometry(C2, fC2)
+      im2_phi = sub(OSA, OSA.([compose(phig, compose(hom(g1), inv(phig))) for g1 in gens(imB)]))[1]
       im3, _ = sub(imA, gens(intersect(imA, im2_phi)[1]))
-      stab = [(x, imB(compose(inv(phig), compose(x, phig)))) for x in gens(im3)]
-      stab = [OqAinOD(x[1])*OqBinOD(x[2]) for x in stab]
+      stab = [(x, imB(compose(inv(phig), compose(hom(x), phig)))) for x in gens(im3)]
+      stab = [OSAinOD(x[1])*OSBinOD(x[2]) for x in stab]
       stab = union(stab, kerA)
       stab = union(stab, kerB)
       stab = Oscar._orthogonal_group(discriminant_group(C2), matrix.(stab))
@@ -433,6 +431,5 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     end
   end
 
-  @label exit
   return results
 end
