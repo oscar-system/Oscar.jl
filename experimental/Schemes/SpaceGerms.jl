@@ -9,7 +9,7 @@ import AbstractAlgebra: Ring
 @Markdown.doc """
     AbsSpaceGerm{BaseRingType<:Ring,RingType<:Ring}
 
-A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`` of type `RingType` over a ring ``k`` of type `BaseRingType`.
+A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`` of type `RingType` over a coefficient field ``k`` of type `BaseRingType`.
 """
 abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsSpec{BaseRingType, RingType} end
 
@@ -143,12 +143,14 @@ function SpaceGerm(X::AbsSpec, a::Vector)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
   Y = Spec(Localization(OO(X), U)[1])
+  Z = SpaceGerm(Y)
+  set_attribute!(Z,:representative,X)
   return SpaceGerm(Y)
 end
 
 function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
-  R == ambient_ring(X) || error("rings are not compatible")
+  R === ambient_ring(X) || error("rings are not compatible")
   a = _maxideal_to_point(I)
   Y = SpaceGerm(X,a)
   return Y
@@ -156,7 +158,7 @@ end
 
 function SpaceGerm(X::AbsSpec, I::MPolyQuoIdeal)
   A = base_ring(I)
-  A == OO(X) || error("rings seem incompatible")
+  A === OO(X) || error("rings seem incompatible")
   R = base_ring(A)
   I = ideal(R, lift.(gens(I))) + modulus(A)
   a = _maxideal_to_point(I)
@@ -245,7 +247,7 @@ end
 
 function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
   R = ambient_ring(X)
-  R == ambient_ring(Y) || return false
+  R === ambient_ring(Y) || return false
   point(X) == point(Y) || return false
   IY=ideal(localized_ring(OO(X)),modulus(quotient_ring(OO(Y))))
   return issubset(IY,modulus(OO(X)))
@@ -258,7 +260,7 @@ end
 
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   R = ambient_ring(X)
-  R == ambient_ring(Y) || error("not subgerms of a common space germ")
+  R === ambient_ring(Y) || error("not subgerms of a common space germ")
   point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
