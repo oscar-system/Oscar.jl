@@ -94,7 +94,7 @@ In general, space germs in Oscar are created in the following ways:
 
    (point inherited from underlying local ring)
 
-Morphisms of space germs are morphisms of the underlying local rings and hence
+As for all affine schemes, morphisms of space germs are in $1:1$ correspondence with morphisms of the underlying local rings. Hence
 also handled in this way in Oscar.
 
 ## Basic functionality for space germs
