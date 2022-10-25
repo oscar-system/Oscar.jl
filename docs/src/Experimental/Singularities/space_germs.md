@@ -105,7 +105,7 @@ for convenience and consistence of functionality:
 
 ### internal data of a space germ  
 
- * Pass from the germ $(X,x)$ back to some affine scheme $X$ with the appropriate localization at $x$ by
+ * Pass from the germ $(X,x)$ back to some affine scheme $X=Spec R$, where with the appropriate localization at $x$, where $R$ is a quotient of a multivariate polynomial ring, by
    ```julia
    representative(X::SpaceGerm)
    ```
