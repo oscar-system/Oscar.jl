@@ -19,7 +19,10 @@ julia> ngens(chow_ring(p2))
     if !is_simplicial(v) || !is_complete(v)
         throw(ArgumentError("The Chow ring is (currently) only supported for simplicial and complete toric varieties"))
     end
-    return cohomology_ring(v)
+    R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached = false)
+    linear_relations = ideal_of_linear_relations(R, v)
+    stanley_reisner = stanley_reisner_ideal(R, v)
+    return quo(R, linear_relations + stanley_reisner)[1]
 end
 export chow_ring
 
@@ -44,7 +47,7 @@ julia> length(gens_of_rational_equivalence_classes(p2))
 6
 ```
 """
-@attr Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}} function gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
+@attr Vector{MPolyQuoElem{fmpq_mpoly}} function gens_of_rational_equivalence_classes(v::AbstractNormalToricVariety)
     g = gens(chow_ring(v))
     r_list = [rays(c) for c in cones(v)]
     return [prod([g[findfirst(x->x==r, rays(v))] for r in rs]) for rs in r_list]
@@ -67,11 +70,11 @@ julia> length(map_gens_of_chow_ring_to_cox_ring(p2))
 4
 ```
 """
-@attr Dict{MPolyElem_dec{fmpq, fmpq_mpoly}, MPolyElem_dec{fmpq, fmpq_mpoly}} function map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
+@attr Dict{fmpq_mpoly, MPolyElem_dec{fmpq, fmpq_mpoly}} function map_gens_of_chow_ring_to_cox_ring(v::AbstractNormalToricVariety)
     g = gens(chow_ring(v))
     g2 = gens(cox_ring(v))
     r_list = [rays(c) for c in cones(v)]
-    mapping = Dict{MPolyElem_dec{fmpq, fmpq_mpoly}, MPolyElem_dec{fmpq, fmpq_mpoly}}()
+    mapping = Dict{fmpq_mpoly, MPolyElem_dec{fmpq, fmpq_mpoly}}()
     for rs in r_list
       p1 = prod([g[findfirst(x->x==r, rays(v))] for r in rs]).f
       p2 = prod([g2[findfirst(x->x==r, rays(v))] for r in rs])
