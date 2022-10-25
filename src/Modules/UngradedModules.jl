@@ -511,6 +511,64 @@ function terms(f::FreeModElem, ord::ModuleOrdering)
   return (term(f[i], j)*F[i] for (i, j) in p)
 end
 
+struct OscarPair{S, T}
+  first::S
+  second::T
+end
+
+function _push_monomial_expression!(prod::Expr, x::AbstractVector, e::AbstractVector)
+  for i in 1:length(e)
+    ei = e[i]
+    if iszero(ei)
+    elseif isone(ei)
+      push!(prod.args, x[i])
+    else
+      push!(prod.args, Expr(:call, :^, x, ei))
+    end
+  end
+end
+
+function expressify(a::OscarPair{<:MPolyElem, MonomialOrdering}; context = nothing)
+  f = a.first
+  p = Orderings.permutation_of_terms(f, a.second)
+  x = symbols(base_ring(parent(f)))
+  sum = Expr(:call, :+)
+  for (i, j) in p
+    prod = Expr(:call, :*)
+    fi = f[i]
+    c = coeff(fi, j)
+    if !isone(c)
+      push!(prod.args, expressify(c, context = context))
+    end
+    _push_monomial_expression!(prod, x, exponent_vector(fi, j))
+  end
+  return sum
+end
+
+@enable_all_show_via_expressify OscarPair{<:MPolyElem, ModuleOrdering}
+
+function expressify(a::OscarPair{FreeModElem{<:MPolyElem}, ModuleOrdering}; context = nothing)
+  f = a.first
+  p = Orderings.permutation_of_terms(f, a.second)
+  x = symbols(base_ring(parent(f)))
+  e = generator_symbols(parent(f))
+  sum = Expr(:call, :+)
+  for (i, j) in p
+    prod = Expr(:call, :*)
+    fi = f[i]
+    c = coeff(fi, j)
+    if !isone(c)
+      push!(prod.args, expressify(c, context = context))
+    end
+    _push_monomial_expression!(prod, x, exponent_vector(fi, j))
+    push!(prod.args, e[i])
+  end
+  return sum
+end
+
+@enable_all_show_via_expressify OscarPair{FreeModElem{<:MPolyElem}, ModuleOrdering}
+
+
 ###############################################################################
 # ModuleGens constructors
 ###############################################################################
