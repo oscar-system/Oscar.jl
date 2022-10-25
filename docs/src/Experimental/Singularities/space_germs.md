@@ -21,7 +21,7 @@ different forms:
 
   * a space germ in the context of affine schemes is the geometric object arising from a given scheme by localization at a point, leading to the stalk of the structure sheaf at the respective prime ideal.
 
-  * in the context of singularity theory, the (anti-)equivalence of categories between complex space germs and analytic ``{CC}``-algebras allows the direct definition of a space germ from algebraic data
+  * in the context of singularity theory, the (anti-)equivalence of categories between complex space germs and analytic ``{\mathbb CC}``-algebras allows the direct definition of a space germ from algebraic data
 
 Note that analytic algebras as mentioned above, have two computational problems.
 On one hand, exact computations can only be performed over fields in OSCAR
