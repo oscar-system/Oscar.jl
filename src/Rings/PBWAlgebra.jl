@@ -1226,6 +1226,9 @@ julia> REL = strictly_upper_triangular_matrix(L);
 julia> A, (p, q) = pbw_algebra(R, REL, lex(gens(R)))
 (PBW-algebra over Rational Field in p, q with relations q*p = p*q + q^2, PBWAlgElem{fmpq, Singular.n_Q}[p, q])
 
+julia> I = left_ideal(A, [p, q])
+left_ideal(p, q)
+
 julia> try eliminate(I, [q]); catch e; e; end
 ErrorException("could not find elimination ordering")
 ```
