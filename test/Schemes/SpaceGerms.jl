@@ -17,6 +17,23 @@
   @test isempty(Y1)
 end
 
+@testset "Space Germ constructors Spec-Ideal" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  J = ideal(R, [x-y])
+  U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U1 = MPolyComplementOfKPointIdeal(R,[1,2,2])
+  Xg = Spec(R)
+  Xgq = Spec(R,J)
+  Xl1 = Spec(R, U0)
+  Xl2 = Spec(R, U1)
+  Xlq = Spec(R, J ,U0)
+  Yg = SpaceGerm(Xg,ideal(OO(Xg),[x,y,z]))
+  Ygq = SpaceGerm(Xgq, ideal(OO(Xgq),[x,y,z]))
+  Yl1 = SpaceGerm(Xl1, ideal(OO(Xl1),[x,y,z]))
+   @test_throws ErrorException("rings are incompatible") Yl2 = SpaceGerm(Xl2, ideal(OO(Xl1),[x,y,z]))
+  Ylq = SpaceGerm(Xlq, ideal(OO(Xlq),[x,y,z]))
+end
+
 @testset "Space Germ constructors 2" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   S, (u,v,w) = QQ["u", "v", "w"]
@@ -45,7 +62,7 @@ end
   Z = Spec(R, ideal(R,[z-y]))
   X = subscheme(Z, I*J)
   Y = subscheme(Z, I)
-  @test_throws ErrorException("rings seem incompatible") Z0 = SpaceGerm(Z,ideal(Q,[x,y,z]))
+  @test_throws ErrorException("rings are incompatible") Z0 = SpaceGerm(Z,ideal(Q,[x,y,z]))
   X0 = SpaceGerm(X,ideal(OO(X),[x,y,z]))
   @test_throws ErrorException("Ideal does not describe finite set of points") X1 = SpaceGerm(X,ideal(OO(X),[x-1,y-2,z-1]))
   @test_throws ErrorException("Ideal does not describe a single K-point") X1 = SpaceGerm(Z, ideal(OO(Z),[x^2-1,y-2,z-2]))
@@ -86,7 +103,7 @@ end
   X0,phi0 = germ_at_point(R,[0,0,0])
   X1,phi1 = germ_at_point(R,ideal(R,[x,y,z]))
   X2,phi2 = germ_at_point(Q1,[0,0,0])
-  @test_throws ErrorException("rings seem incompatible") germ_at_point(Q2,(ideal(Q,[x,y,z])))
+  @test_throws ErrorException("rings are incompatible") germ_at_point(Q2,(ideal(Q,[x,y,z])))
   @test_throws ErrorException("Ideal does not describe finite set of points") germ_at_point(Q2,(ideal(Q2,[x,y,z])))
   X3,phi3 = germ_at_point(Q3,(ideal(Q3,[x,y,z])))
   X4,phi4 = germ_at_point(OO(X0))

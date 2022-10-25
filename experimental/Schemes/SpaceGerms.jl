@@ -156,21 +156,18 @@ function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   return Y
 end
 
-function SpaceGerm(X::AbsSpec, I::MPolyQuoIdeal)
+to_poly_ideal(I::MPolyQuoIdeal) = ideal(base_ring(base_ring(I)),lift.(gens(I))) + modulus(base_ring(I))
+to_poly_ideal(I::MPolyLocalizedIdeal) = ideal(base_ring(base_ring(I)), gens(saturated_ideal(I)))
+to_poly_ideal(I::MPolyQuoLocalizedIdeal) = ideal(base_ring(base_ring(I)),gens(saturated_ideal(I))) + modulus(quotient_ring(base_ring(I)))
+
+function SpaceGerm(X::AbsSpec, I::Ideal)
   A = base_ring(I)
-  A === OO(X) || error("rings seem incompatible")
-  R = base_ring(A)
-  I = ideal(R, lift.(gens(I))) + modulus(A)
-  a = _maxideal_to_point(I)
+  A === OO(X) || error("rings are incompatible")
+  J = to_poly_ideal(I)
+  a = _maxideal_to_point(J)
   Y = SpaceGerm(X,a)
   return Y
 end
-
-##### still missing: case of MPolyLocalizedIdeal and quo
-#####               - for inverted set = powers of elements: point either outside of excluded hypersurface, in 
-#####                 which case this should be referred to the global case, or nonsense
-#####               - for complements of ideals: either I is the unique maximal ideal, 
-#####                 i.e.the complement of the inverted set, or nonsense
 
 function germ_at_point(X::AbsSpec, I::Ideal)
   Y = SpaceGerm(X, I)
