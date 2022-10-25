@@ -49,7 +49,10 @@ ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbFinGenMap,
 ToricIdentityMorphism(variety::AbstractNormalToricVariety)
 ```
 
+
 ## Attributes of Toric Morhpisms
+
+### General attributes
 
 ```@docs
 domain(tm::ToricMorphism)
@@ -57,7 +60,20 @@ image(tm::ToricMorphism)
 codomain(tm::ToricMorphism)
 grid_morphism(tm::ToricMorphism)
 morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
-morphism_on_cartier_divisor_group(tm::ToricMorphism)
 ```
 
-## Properties of Toric Morhpisms
+### Special attributes of toric varieties
+
+To every toric variety $v$ we can associate a special toric variety, the
+Cox variety. By definition, the Cox variety is such that the mapping matrix of
+the toric morphism from the Cox variety to the variety $v$ is simply
+given by the ray generators of the variety $v$. Put differently,
+if there are exactly $N$ ray generators for the fan of $v$, then the
+Cox variety of $v$ has a fan for which the ray generators are the standard basis
+of $\mathbb{R}^N$ and the maximal cones are one to one to the maximal cones of
+the fan of $v$.
+
+```@docs
+morphism_on_cartier_divisor_group(tm::ToricMorphism)
+morphism_from_cox_variety(variety::AbstractNormalToricVariety)
+```
