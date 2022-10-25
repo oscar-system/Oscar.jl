@@ -511,62 +511,64 @@ function terms(f::FreeModElem, ord::ModuleOrdering)
   return (term(f[i], j)*F[i] for (i, j) in p)
 end
 
+# Several interfaces (expressify, iteration, ...) require a single object. Use
+# OscarPair as an easy way to pass multiple objects without creating an official
+# type for the combinations: polynomial + ordering, old iter + new iter, ...
 struct OscarPair{S, T}
   first::S
   second::T
 end
 
-function _push_monomial_expression!(prod::Expr, x::AbstractVector, e::AbstractVector)
+function _push_monomial_expr!(prod::Expr, x::AbstractVector, e::AbstractVector)
   for i in 1:length(e)
     ei = e[i]
     if iszero(ei)
     elseif isone(ei)
       push!(prod.args, x[i])
     else
-      push!(prod.args, Expr(:call, :^, x, ei))
+      push!(prod.args, Expr(:call, :^, x[i], ei))
     end
   end
 end
 
-function expressify(a::OscarPair{<:MPolyElem, MonomialOrdering}; context = nothing)
+function expressify(a::OscarPair{<:MPolyElem, <:MonomialOrdering}; context = nothing)
   f = a.first
-  p = Orderings.permutation_of_terms(f, a.second)
-  x = symbols(base_ring(parent(f)))
-  sum = Expr(:call, :+)
-  for (i, j) in p
+  x = symbols(parent(f))
+  s = Expr(:call, :+)
+  for j in Orderings.permutation_of_terms(f, a.second)
     prod = Expr(:call, :*)
-    fi = f[i]
-    c = coeff(fi, j)
+    c = coeff(f, j)
     if !isone(c)
       push!(prod.args, expressify(c, context = context))
     end
-    _push_monomial_expression!(prod, x, exponent_vector(fi, j))
+    _push_monomial_expr!(prod, x, exponent_vector(f, j))
+    push!(s.args, prod)
   end
-  return sum
+  return s
 end
 
-@enable_all_show_via_expressify OscarPair{<:MPolyElem, ModuleOrdering}
+@enable_all_show_via_expressify OscarPair{<:MPolyElem, <:MonomialOrdering}
 
-function expressify(a::OscarPair{FreeModElem{<:MPolyElem}, ModuleOrdering}; context = nothing)
+function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
   f = a.first
-  p = Orderings.permutation_of_terms(f, a.second)
   x = symbols(base_ring(parent(f)))
   e = generator_symbols(parent(f))
-  sum = Expr(:call, :+)
-  for (i, j) in p
+  s = Expr(:call, :+)
+  for (i, j) in Orderings.permutation_of_terms(f, a.second)
     prod = Expr(:call, :*)
     fi = f[i]
     c = coeff(fi, j)
     if !isone(c)
       push!(prod.args, expressify(c, context = context))
     end
-    _push_monomial_expression!(prod, x, exponent_vector(fi, j))
+    _push_monomial_expr!(prod, x, exponent_vector(fi, j))
     push!(prod.args, e[i])
+    push!(s.args, prod)
   end
-  return sum
+  return s
 end
 
-@enable_all_show_via_expressify OscarPair{FreeModElem{<:MPolyElem}, ModuleOrdering}
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}
 
 
 ###############################################################################
@@ -1274,32 +1276,10 @@ function show_gb(io::IO, GB::ModuleGens)
 end
 
 function show_groebner_basis_helper(io::IO, sub::ModuleGens, init::String)
-  F = sub.F
-
   print(io, init)
-
-  # TODO Remove this / use Oscar orderings when available
-  singular_assure(sub)
-  vectors = Vector{Vector{elem_type(F)}}(undef, length(sub.O))
-  for i in 1:length(sub.O)
-    monomials = []
-    v = sub.S[i]
-    l = Singular.lead(v)
-    while !iszero(l)
-      push!(monomials, l)
-      v = v - l
-      l = Singular.lead(v)
-    end
-    monomials = Vector{elem_type(F)}(map(x -> F(x), monomials))
-    vectors[i] = monomials
-  end
-
-  for v in vectors
+  for g in oscar_generators(sub)
     print(io, "\n")
-    print(io, v[1])
-    for i in 2:length(v)
-      print(io, " + ", v[i])
-    end
+    print(io, OscarPair(g, sub.ordering))
   end
 end
 
