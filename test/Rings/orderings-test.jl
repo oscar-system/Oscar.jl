@@ -47,15 +47,27 @@
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
    @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
 
-   @test !is_global(lex([x, y]))
-   @test !is_local(lex([x, y]))
-   @test !is_mixed(lex([x, y]))
-   @test !is_global(neglex([y, z]))
-   @test !is_local(neglex([y, z]))
-   @test !is_mixed(neglex([y, z]))
-   @test !is_global(lex([x, y])*neglex([z]))
-   @test !is_local(lex([x, y])*neglex([z]))
-   @test is_mixed(lex([x, y])*neglex([z]))
+   a = lex([x, y])
+   @test is_global(a)
+   @test !is_local(a)
+   @test !is_mixed(a)
+   @test cmp(a, x, one(R)) > 0
+   @test cmp(a, y, one(R)) > 0
+   @test_throws ErrorException cmp(a, z, one(R))
+
+   a = neglex([y, z])
+   @test !is_global(a)
+   @test is_local(a)
+   @test !is_mixed(a)
+   @test_throws ErrorException cmp(a, x, one(R))
+   @test cmp(a, y, one(R)) < 0
+   @test cmp(a, z, one(R)) < 0
+
+   a = lex([x, y])*neglex([z])
+   @test !is_global(a)
+   @test !is_local(a)
+   @test is_mixed(a)
+   @test cmp(a, x^5*y^6*z^3, x^5*y^6*z^4) > 0
 
    a = neglex([x, y, z])*degrevlex([x, y, z])
    @test !is_global(a)
@@ -68,6 +80,7 @@
    @test !is_mixed(a)
 
    a = neglex([x, y])*degrevlex([y, z])
+   @test a == neglex([x, y])*lex([z])
    @test !is_global(a)
    @test !is_local(a)
    @test is_mixed(a)
@@ -89,6 +102,10 @@
    @test wdegrevlex(R, [1,2,3]) == wdegrevlex(gens(R), [1,2,3])
    @test negwdeglex(R, [1,2,3]) == negwdeglex(gens(R), [1,2,3])
    @test negwdegrevlex(R, [1,2,3]) == negwdegrevlex(gens(R), [1,2,3])
+
+   @test support(lex([x])) == [x]
+   @test support(lex([x, y])) == [x,y] || support(lex([x,y])) == [y,x]
+   @test 3 == length(support(deglex([x,y])*wdeglex([y,z], [1,2])))
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
@@ -131,7 +148,7 @@ end
 function test_opposite_ordering(a)
   R = base_ring(a)
   b = opposite_ordering(R, a)
-  M = weight_matrix(a)
+  M = matrix(a)
   N = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
   @test b == matrix_ordering(gens(R), N)
   @test a == opposite_ordering(R, b)
@@ -149,6 +166,9 @@ end
    o = wdeglex([x1, x2], [1, 2])*revlex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
 
    M = [x4^3, x3*x4^2, x3^2*x4, x4^2, x3^3, x3*x4, x3^2, x4, x3,
         one(R), x1*x4^2, x1*x3*x4, x1*x3^2, x1*x4, x1*x3, x1, x1^2*x4, x1^2*x3,
@@ -159,6 +179,9 @@ end
    o = negrevlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
      
    M = [one(R), x3, x3^2, x4, x3^3, x3*x4, x3^2*x4, x4^2, x3*x4^2,
         x4^3, x2, x2*x3, x2*x3^2, x2*x4, x2*x3*x4, x2*x4^2, x2^2, x2^2*x3,
@@ -169,6 +192,9 @@ end
    o = neglex([x1, x2])*negwdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
         
    M = [x3^3, x3^2*x4, x3^2, x3*x4^2, x3*x4, x3, x4^3, x4^2, x4,
         one(R), x1*x3^2, x1*x3*x4, x1*x3, x1*x4^2, x1*x4, x1, x1^2*x3, x1^2*x4,
@@ -179,6 +205,9 @@ end
    o = negwdeglex([x1, x2], [1, 2])*lex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
 
    M = [x1^3, x1^2*x2, x1*x2^2, x2^3, x1^2, x1^2*x3, x1^2*x4, x1*x2,
         x1*x2*x3, x1*x2*x4, x2^2, x2^2*x3, x2^2*x4, x1, x1*x3, x1*x4, x1*x3^2,
@@ -189,6 +218,9 @@ end
    o = deglex([x1, x2])*negdeglex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
    
    M = [one(R), x1, x2, x3, x4, x1^2, x1*x2, x2^2, x1*x3, x2*x3,
         x3^2, x1*x4, x2*x4, x3*x4, x4^2, x1^3, x1^2*x2, x1*x2^2, x2^3, x1^2*x3,
@@ -199,6 +231,9 @@ end
    o = negdegrevlex(gens(R))
    test_opposite_ordering(o)
    @test collect(monomials(f, o)) == M
+   for i in 2:length(M)
+      @test cmp(o, M[i-1], M[i]) > 0
+   end
 
    o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
    test_opposite_ordering(o)
@@ -270,7 +305,7 @@ end
    @test length(string(O6)) > 2
    @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
 
-   O7 = weighted_ordering(gens(R),[-1,2,0,2,0])*degrevlex(gens(R))
+   O7 = weight_ordering([-1,2,0,2,0], degrevlex(gens(R)))
    @test monomial_ordering(R, singular(O7)) == O7
    @test length(string(O7)) > 2
    @test string(singular(O7)) == "ordering_a([-1, 2, 0, 2, 0]) * ordering_dp(5)"
@@ -278,7 +313,7 @@ end
    O8 = lex([gen(K,1), gen(K,3), gen(K,4), gen(K,2)]) * degrevlex(gens(R))
    @test_throws ErrorException singular(O8)
 
-   O9 = matrix_ordering([x, y], [1 2; 1 2]) * lex(gens(R))
+   O9 = matrix_ordering([x, y], [1 2; 1 2]; check = false) * lex(gens(R))
    @test monomial_ordering(R, singular(O9)) == O9
    @test singular(O9) isa Singular.sordering
 end
@@ -292,12 +327,20 @@ end
 
    a = negwdegrevlex([z, x, y], [4, 5, 6])
    test_opposite_ordering(a)
-   @test matrix_ordering([x, y, z], weight_matrix(a)) ==
+   @test matrix_ordering([x, y, z], matrix(a)) ==
          matrix_ordering([x, y, z], [-5 -6 -4; 0 -1 0; -1 0 0; 0 0 -1])
 
-   a = weighted_ordering([y, z, x], [4, 6, 8])
+   a = matrix_ordering([y, z, x], [4 6 8; 1 0 0; 0 1 0])
    test_opposite_ordering(a)
-   @test canonical_weight_matrix(a) == matrix(ZZ, 1, 3, [4, 2, 3])
+   @test canonical_matrix(a) == matrix(ZZ, 3, 3, [4 2 3; 0 1 0; 0 0 1])
    @test simplify(a) isa MonomialOrdering
 end
 
+@testset "Polynomial Ordering elimination" begin
+   R, (x, y, z, w) = QQ["x", "y", "z", "w"]
+   @test is_elimination_ordering(lex(R), [x])
+   @test is_elimination_ordering(lex(R), [x,y])
+   @test is_elimination_ordering(lex(R), [x,y,z])
+   @test !is_elimination_ordering(lex(R), [y,z])
+   @test is_elimination_ordering(deglex([x,y])*deglex([y,z,w]), [x,y])
+end

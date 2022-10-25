@@ -245,6 +245,11 @@ Base.:*(x::MatrixGroupElem{T}, u::Vector{T}) where T <: RingElem = matrix(x)*u
 # (`^` is the natural action in GAP)
 Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
 
+# action of matrix group elements on subspaces of a vector space
+function Base.:^(V::AbstractAlgebra.Generic.Submodule{T}, x::MatrixGroupElem{T}) where T <: RingElem
+  return sub(V.m, [v^x for v in V.gens])[1]
+end
+
 # evaluation of the form x into the vectors v and u
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = (v.v*matrix(x)*transpose(u.v))[1]
 

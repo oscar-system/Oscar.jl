@@ -243,13 +243,11 @@ end
 #       intersect with explicit fallback to Spec and change of return type
 ##############################################################################
 
-function issubset(X::AbsSpaceGerm, Y::AbsSpaceGerm)
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
   R = ambient_ring(X)
   R == ambient_ring(Y) || return false
   point(X) == point(Y) || return false
   IY=ideal(localized_ring(OO(X)),modulus(quotient_ring(OO(Y))))
-  gens(IY)
-  gens(modulus(quotient_ring(OO(X))))
   return issubset(IY,modulus(OO(X)))
 end
 

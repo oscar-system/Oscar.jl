@@ -1,9 +1,11 @@
 export PrincipalOpenSubset
 export ambient_scheme, complement_equation, inclusion_morphism
 
-export complement_ideal, complement_scheme
+export underlying_morphism, complement_ideal, complement_scheme
 
 export image_ideal
+
+export ideal_type
 
 ########################################################################
 # Methods for PrincipalOpenSubset                                      #
@@ -16,11 +18,11 @@ complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U
 gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
 getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
-function inclusion_morphism(U::PrincipalOpenSubset) 
+function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
   if !isdefined(U, :inc)
     X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U))))
-    U.inc = inc
+    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check))
+    U.inc = OpenInclusion(inc, ideal(OO(X), complement_equation(U)), check=check)
   end
   return U.inc
 end
@@ -57,6 +59,63 @@ function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
   return lifted_numerator(a)//lifted_denominator(a)
 end
 
+@attr function is_dense(U::PrincipalOpenSubset)
+  return !is_zero_divisor(complement_equation(U))
+end
+
+function is_constant(a::MPolyLocalizedRingElem) 
+  reduce_fraction(a)
+  return is_constant(numerator(a)) && is_constant(denominator(a))
+end
+
+### Already implemented in AA -- but probably buggy?
+#function is_zero_divisor(f::MPolyElem)
+#  iszero(f) && return true
+#  if is_constant(f)
+#    c = coefficients(f)[1]
+#    return is_zero_divisor(c)
+#  end
+#  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+#end
+
+function is_zero_divisor(f::MPolyLocalizedRingElem)
+  iszero(f) && return true
+  if is_constant(f)
+    c = first(coefficients(numerator(f)))
+    return is_zero_divisor(c)
+  end
+  return is_zero_divisor(numerator(f))
+end
+
+### The following method is only implemented when the coefficient ring is a field.
+# The code should be valid generically, but the Singular backend needed for the 
+# ideal quotient is probably buggy for non-fields.
+function is_zero_divisor(f::MPolyQuoElem{<:MPolyElem{<:FieldElem}})
+  iszero(f) && return true
+  b = simplify(f)
+  # The next block is basically useless when the coefficient ring is 
+  # a field, because it is merely another `is_zero`-check. However, 
+  # once more functionality is working, it will actually do stuff and 
+  # the above signature can be widened.
+  if is_constant(lift(b))
+    c = first(coefficients(lift(b)))
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
+
+function is_zero_divisor(f::MPolyQuoLocalizedRingElem{<:Field})
+  iszero(f) && return true
+  # The next block is basically useless when the coefficient ring is 
+  # a field, because it is merely another `is_zero`-check. However, 
+  # once more functionality is working, it will actually do stuff and 
+  # the above signature can be widened.
+  if is_constant(lifted_numerator(f)) && is_constant(lifted_denominator(f))
+    c = first(coefficients(lift(numerator(f))))
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
 
 ########################################################################
 # Methods for OpenInclusion                                            #
@@ -90,6 +149,7 @@ end
 
 ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
 ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuo{PolyType}} = MPolyQuoIdeal{PolyType}
+ideal_type(R::Ring) = ideal_type(typeof(R))
 
 
 ########################################################################
@@ -118,8 +178,14 @@ function compose(G::GT, H::GT) where {GT<:SimpleGlueing}
   Z = patches(H)[2]
   f, f_inv = glueing_morphisms(G)
   g, g_inv = glueing_morphisms(H)
-  U_new = PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(domain(g))))
-  W_new = PrincipalOpenSubset(domain(g_inv), pullback(g_inv)(complement_equation(domain(f_inv))))
+  U_new = PrincipalOpenSubset(ambient_scheme(domain(f)), 
+                              [complement_equation(domain(f)), 
+                               lifted_numerator(pullback(f)(complement_equation(domain(g))))
+                              ])
+  W_new = PrincipalOpenSubset(ambient_scheme(domain(g_inv)), 
+                              [complement_equation(domain(g_inv)), 
+                               lifted_numerator(pullback(g_inv)(complement_equation(domain(f_inv))))
+                              ])
   V_new = PrincipalOpenSubset(ambient_scheme(domain(g)), 
                               [complement_equation(domain(g)), complement_equation(domain(f_inv))]
                              )
@@ -152,11 +218,6 @@ function Glueing(
     g::AbsSpecMor{<:PrincipalOpenSubset};
     check::Bool=true)
   return SimpleGlueing(X, Y, f, g, check=check)
-end
-
-@attr function is_dense(U::PrincipalOpenSubset)
-  f = complement_equation(U)
-  return is_non_zero_divisor(f, ambient_scheme(U))
 end
 
 ### Conversion of a SimpleGlueing to a sophisticated one

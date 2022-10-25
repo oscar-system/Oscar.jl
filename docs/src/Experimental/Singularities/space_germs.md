@@ -14,14 +14,14 @@ Pages = ["space_germs.md"]
 
 ## [Generalities on Space germs](@id space_germ_generalities)
 
-The geometric notion of a space germ is a local concept. A space germ (X,x) at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
+The geometric notion of a space germ is a local concept. A space germ $(X,x)$ at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
 
 Depending on the kind of ringed space in question, space germs arise in
 different forms:
 
   * a space germ in the context of affine schemes is the geometric object arising from a given scheme by localization at a point, leading to the stalk of the structure sheaf at the respective prime ideal.
 
-  * in the context of singularity theory, the (anti-)equivalence of categories between complex space germs and analytic ``{CC}``-algebras allows the direct definition of a space germ from algebraic data
+  * in the context of singularity theory, the (anti-)equivalence of categories between complex space germs and analytic ``{\mathbb CC}``-algebras allows the direct definition of a space germ from algebraic data
 
 Note that analytic algebras as mentioned above, have two computational problems.
 On one hand, exact computations can only be performed over fields in OSCAR
@@ -56,12 +56,12 @@ In general, space germs in Oscar are created in the following ways:
  * localization of an affine scheme at a point
 
    ```julia
-   SpaceGerm(X::AffineScheme, I::Ideal)
+   SpaceGerm(X::AbsSpec, I::Ideal)
    ```
-   where I is a (maximal) ideal describing the chosen kk-point on the affine kk-scheme X.  
+   where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme X.  
    **Provides:** SpaceGerm.
    ```julia
-   germ_at-point(X::AffineScheme, I::Ideal)
+   germ_at_point(X::AbsSpec, I::Ideal)
    ```
    where I is a (maximal) ideal describing the chosen kk-point on the affine kk-scheme.  
 
@@ -94,7 +94,7 @@ In general, space germs in Oscar are created in the following ways:
 
    (point inherited from underlying local ring)
 
-Morphisms of space germs are morphisms of the underlying local rings and hence
+As for all affine schemes, morphisms of space germs are in $1:1$ correspondence with morphisms of the underlying local rings. Hence
 also handled in this way in Oscar.
 
 ## Basic functionality for space germs

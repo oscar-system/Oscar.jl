@@ -58,6 +58,13 @@ base_ring_type(X::AbsSpec) = base_ring_type(typeof(X))
 base_ring_elem_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = elem_type(BRT)
 base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
 
+poly_type(::Type{SpecType}) where {BRT, RT<:MPolyRing, SpecType<:AbsSpec{BRT, RT}} = elem_type(RT)
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuo{T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
+poly_type(X::AbsSpec) = poly_type(typeof(X))
+
+
 ### generically derived getters
 @Markdown.doc """
     base_ring(X::AbsSpec) 
@@ -756,7 +763,7 @@ domain(f::AbsSpecMor) = domain(underlying_morphism(f))
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 """
-codomain(f::AbsSpecMor) = domain(underlying_morphism(f))
+codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
 
 @Markdown.doc """
     pullback(f::AbsSpecMor)
@@ -1035,7 +1042,17 @@ end
 
 strict_modulus(X::Spec) = saturated_ideal(modulus(OO(X)))
 
-function simplify(X::Spec)
+@Markdown.doc """
+    simplify(X::AbsSpec{<:Field})
+
+Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I`` 
+(or a localization thereof), use `Singular`'s `elimpart` to try 
+to eliminate variables ``xᵢ`` to arrive at a simpler presentation 
+``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return 
+the triple ``(Y, f, g)`` where ``Y = Spec(R')`` and ``f : Y ↔ X : g``
+are the identifying isomorphisms. 
+"""
+function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
   Y = Spec(L)
   YtoX = SpecMor(Y, X, f)

@@ -41,10 +41,14 @@ g_vector(P::Polyhedron)
 h_vector(P::Polyhedron)
 ```
 
-## Symmetries
+## Groups
 ```@docs
 linear_symmetries(P::Polyhedron)
 combinatorial_symmetries(P::Polyhedron)
+automorphism_group(P::Polyhedron)
+automorphism_group_generators(P::Polyhedron)
+automorphism_group(IM::IncidenceMatrix)
+automorphism_group_generators(IM::IncidenceMatrix)
 ```
 
 ## Other
