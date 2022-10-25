@@ -118,12 +118,13 @@ end
 
 
 ##################################################
-# (4) Projective space
+# (4) (Weighted) projective space
 ##################################################
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 P2v2 = projective_space(NormalToricVariety,2)
 P3 = projective_space(NormalToricVariety,3)
+WPS = weighted_projective_space(NormalToricVariety,[2,3,1])
 
 @testset "Projective space P2" begin
     @test is_normal(P2) == true
@@ -144,10 +145,16 @@ P3 = projective_space(NormalToricVariety,3)
     @test length(irrelevant_ideal(P2).gens) == 3
 end
 
-@testset "Test constructor for Hirzebruch surfaces" begin
+@testset "Test weighted projective space" begin
+  @test is_smooth(WPS) == false
+  @test ngens(cox_ring(WPS)) == 3
+end
+
+@testset "Test standard constructor for projective space" begin
   @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1],[1],[1]])
   @test coordinate_names(P2v2) == ["x1","x2","x3"]
 end
+
 
 
 

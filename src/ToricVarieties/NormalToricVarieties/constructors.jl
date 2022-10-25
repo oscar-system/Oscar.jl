@@ -291,6 +291,48 @@ export projective_space
 
 
 @doc Markdown.doc"""
+    weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
+
+Construct the weighted projective space corresponding to the weights `w`.
+
+# Examples
+```jldoctest
+julia> weighted_projective_space(NormalToricVariety, [2,3,1])
+A normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+```
+"""
+function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
+    # build projective space
+    if all(a -> isone(a), w)
+      return projective_space(NormalToricVariety, length(w)-1)
+    end
+
+    # construct the weighted projective space
+    pmntv = Polymake.fulton.weighted_projective_space(w)
+    variety = NormalToricVariety(pmntv)
+
+    # set properties
+    set_attribute!(variety, :has_torusfactor, false)
+    set_attribute!(variety, :is_affine, false)
+    set_attribute!(variety, :is_projective, true)
+    set_attribute!(variety, :is_projective_space, false)
+    set_attribute!(variety, :is_complete, true)
+    set_attribute!(variety, :is_orbifold, true)
+    set_attribute!(variety, :is_simplicial, true)
+
+    # set attributes
+    set_attribute!(variety, :dim, length(w)-1)
+    set_attribute!(variety, :character_lattice, free_abelian_group(length(w)-1))
+    set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
+    set_attribute!(variety, :dim_of_torusfactor, 0)
+
+    # return the variety
+    return variety
+end
+export weighted_projective_space
+
+
+@doc Markdown.doc"""
     hirzebruch_surface(r::Int)
 
 Constructs the r-th Hirzebruch surface.
