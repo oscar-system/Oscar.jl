@@ -126,7 +126,7 @@ for convenience and consistence of functionality:
    ```julia
    ring(X::SpaceGerm)
    ```
-   **Provides:** MPolyQuoLocalizedRing
+   **Provides:** `MPolyQuoLocalizedRing` or `MPolyLocalizedRing`
 
  * Analogously, the modulus of the ring of a given germ $(X,x)$ can be obtained by:
    ```julia
