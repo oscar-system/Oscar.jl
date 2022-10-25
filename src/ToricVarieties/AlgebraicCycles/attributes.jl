@@ -184,12 +184,11 @@ export coefficients
 @doc Markdown.doc"""
     components(ac::RationalEquivalenceClass)
 
-Turn each monomial
-of `representative(ac)` into a closed subvariety and return
-the list formed from these subvarieties. Note that
-each of these subvarieties is irreducible and their
-formal linear sum, with the coefficients computed by#
-the method `coefficients(ac::RationalEquivalenceClass)`,
+Turn each monomial of `representative(ac)` into a
+closed subvariety and return the list formed from these
+subvarieties. Note that each of these subvarieties is
+irreducible and their formal linear sum, with the coefficients
+computed by the method `coefficients(ac::RationalEquivalenceClass)`,
 defines an algebraic cycle, whose rational equivalence
 class is identical to the one given to this method.
 
