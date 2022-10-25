@@ -662,16 +662,31 @@ function _sopdata_assure!(a::PBWAlgIdeal)
   end
 end
 
-function groebner_assure!(a::PBWAlgIdeal)
+
+# for D < 0, a.gb is a left gb of left_ideal(a.sdata)
+# for D = 0, a.gb is a left gb of two_sided_ideal(a.sdata)
+function groebner_assure!(a::PBWAlgIdeal{D}) where D
+  @assert D <= 0
   if !isdefined(a, :gb)
     a.gb = Singular.std(a.sdata)
+    if D == 0
+      a.gb.isTwoSided = false
+    end
   end
 end
 
-function opgroebner_assure!(a::PBWAlgIdeal)
+# for D > 0, a.sopdata are gens of the left ideal opposite(right_ideal(a.sdata))
+#            a.opgb is a left gb of left_ideal(a.sopdata)
+# for D = 0, a.sopdata are gens of the two sided ideal opposite(two_sided_ideal(a.sdata))
+#            a.opgb is a left gb of two_sided_ideal(a.sopdata)
+function opgroebner_assure!(a::PBWAlgIdeal{D}) where D
+  @assert D >= 0
   _sopdata_assure!(a)
   if !isdefined(a, :opgb)
     a.opgb = Singular.std(a.sopdata)
+    if D == 0
+      a.opgb.isTwoSided = false
+    end
   end
 end
 
@@ -929,10 +944,9 @@ function ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D
   R = base_ring(I)
   @assert R === parent(f)
   if D <= 0
-    # Fact: If G = {g1, ..., gN} is a two-sided GB, then the two-sided normal
-    #       form wrt G is the same as the left normal form wrt G.
-    # Since groebner_assure! calls id_TwoStd for D = 0, and Singular.reduce is
-    # a left normal form, this code works for both D < 0 and D = 0.
+    # this code works for both D < 0 and D = 0 since:
+    #  - groebner_assure! gives a left gb for D = 0 as well (id_TwoStd)
+    #  - Singular.reduce is a left normal form
     groebner_assure!(I)
     return Singular.iszero(Singular.reduce(f.sdata, I.gb))
   else
