@@ -200,7 +200,7 @@ function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) wher
 end
 
 @Markdown.doc """
-BiPolyArrayLoc{S}
+IdealGensLoc{S}
 
 The main workhorse for translation of localizations of polynomial algebras at 
 maximal ideals (i.e. instances of `MPolyRingLoc`) to the singular ring with 
@@ -213,14 +213,14 @@ This struct stores the following data:
   * a `Singular.sideal` storing only the numerator fᵢ for each one of the elements hᵢ above (after applying a geometric shift taking the maximal ideal 𝔪 to the ideal of the origin).
 See also the various `*_assure` methods associated with this struct.
 """
-mutable struct BiPolyArrayLoc{S}
+mutable struct IdealGensLoc{S}
   O::Vector{S}
   S::Singular.sideal
   Ox::MPolyRingLoc
   Sx::Singular.PolyRing
   isGB::Bool
 
-  function BiPolyArrayLoc(Ox::MPolyRingLoc{T}, b::Singular.sideal) where {T}
+  function IdealGensLoc(Ox::MPolyRingLoc{T}, b::Singular.sideal) where {T}
     r = new{elem_type(Ox)}()
     r.S     = b
     r.Ox    = Ox
@@ -232,7 +232,7 @@ mutable struct BiPolyArrayLoc{S}
     r.isGB  = false
     return r
   end
-  function BiPolyArrayLoc(a::Vector{T}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
+  function IdealGensLoc(a::Vector{T}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
     r = new{T}()
     r.O     = a
     r.Ox    = parent(a[1])
@@ -248,23 +248,23 @@ MPolyIdealLoc{S} <: Ideal{S}
 An ideal I in an instance of `MPolyRingLoc{S}`.
 
 The data being stored consists of 
-  * an instance of `BiPolyArrayLoc{S}` for the set of generators of I
+  * an instance of `IdealGensLoc{S}` for the set of generators of I
 and some further fields used for caching.
 """
 mutable struct MPolyIdealLoc{S} <: Ideal{S}
-  gens::BiPolyArrayLoc{S}
-  min_gens::BiPolyArrayLoc{S}
-  gb::Dict{MonomialOrdering, BiPolyArrayLoc{S}}
+  gens::IdealGensLoc{S}
+  min_gens::IdealGensLoc{S}
+  gb::Dict{MonomialOrdering, IdealGensLoc{S}}
   dim::Int
 
   function MPolyIdealLoc(Ox::T, s::Singular.sideal) where {T <: MPolyRingLoc}
     r = new{elem_type(T)}()
     r.dim = -1 # not known
-    r.gens = BiPolyArrayLoc(Ox, s)
+    r.gens = IdealGensLoc(Ox, s)
     r.gb = Dict()
     return r
   end
-  function MPolyIdealLoc(B::BiPolyArrayLoc{T}) where T
+  function MPolyIdealLoc(B::IdealGensLoc{T}) where T
     r = new{T}()
     r.dim = -1
     r.gens = B
@@ -274,7 +274,7 @@ mutable struct MPolyIdealLoc{S} <: Ideal{S}
   function MPolyIdealLoc(g::Vector{T}) where {T <: MPolyElemLoc}
     r = new{T}()
     r.dim = -1 # not known
-    r.gens = BiPolyArrayLoc(g)
+    r.gens = IdealGensLoc(g)
     r.gb = Dict()
     return r
   end
@@ -290,21 +290,21 @@ end
 # Basic ideal functions                                                       #
 ###############################################################################
 
-function Base.getindex(A::BiPolyArrayLoc, ::Val{:S}, i::Int)
+function Base.getindex(A::IdealGensLoc, ::Val{:S}, i::Int)
   if !isdefined(A, :S)
     A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
   end
   return A.S[i]
 end
 
-function Base.getindex(A::BiPolyArrayLoc, ::Val{:O}, i::Int)
+function Base.getindex(A::IdealGensLoc, ::Val{:O}, i::Int)
   if !isassigned(A.O, i)
     A.O[i] = A.Ox(A.S[i])
   end
   return A.O[i]
 end
 
-function Base.length(A::BiPolyArrayLoc)
+function Base.length(A::IdealGensLoc)
   if isdefined(A, :S)
     return Singular.ngens(A.S)
   else
@@ -312,14 +312,14 @@ function Base.length(A::BiPolyArrayLoc)
   end
 end
 
-function Base.iterate(A::BiPolyArrayLoc, s::Int = 1)
+function Base.iterate(A::IdealGensLoc, s::Int = 1)
   if s > length(A)
     return nothing
   end
   return A[Val(:O), s], s + 1
 end
 
-Base.eltype(::BiPolyArrayLoc{S}) where S = S
+Base.eltype(::IdealGensLoc{S}) where S = S
 
 ###############################################################################
 # Ideal constructor functions                                                 #
@@ -348,7 +348,7 @@ function singular_assure(I::MPolyIdealLoc)
   singular_assure(I.gens)
 end
 
-function singular_assure(I::BiPolyArrayLoc)
+function singular_assure(I::IdealGensLoc)
   if !isdefined(I, :S)
     R = I.Ox.base_ring
     m = I.Ox.max_ideal
@@ -395,18 +395,18 @@ end
  =     end
  =     R = I.gens.Sx
  =     i = Singular.std(I.gens.S)
- =     I.gb = BiPolyArrayLoc(I.gens.Ox, i)
+ =     I.gb = IdealGensLoc(I.gens.Ox, i)
  =   end
  = end
  =
  = function groebner_basis(I::MPolyIdealLoc; ordering::Symbol = :negdegrevlex)
  =   if ordering != :negdegrevlex
- =     B = BiPolyArrayLoc(I.gens.O, ordering = ordering)
+ =     B = IdealGensLoc(I.gens.O, ordering = ordering)
  =     singular_assure(B)
  =     R = B.Sx
  =     !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
  =     i = Singular.std(B.S)
- =     I.gb = BiPolyArrayLoc(I.gens.Ox, i)
+ =     I.gb = IdealGensLoc(I.gens.Ox, i)
  =   else
  =     groebner_assure(I)
  =   end
@@ -439,10 +439,10 @@ function minimal_generators(I::MPolyIdealLoc)
   if !isdefined(I, :min_gens)
     if isdefined(I, :gb)
       sid = Singular.Ideal(I.gb.Sx, Singular.libSingular.idMinBase(I.gb.S.ptr, I.gb.Sx.ptr))
-      I.min_gens = BiPolyArrayLoc(I.gb.Ox, sid)
+      I.min_gens = IdealGensLoc(I.gb.Ox, sid)
     else
       sid = Singular.Ideal(I.gens.Sx, Singular.libSingular.idMinBase(I.gens.S.ptr, I.gens.Sx.ptr))
-      I.min_gens = BiPolyArrayLoc(I.gens.Ox, sid)
+      I.min_gens = IdealGensLoc(I.gens.Ox, sid)
     end
   end
   return I.min_gens.O
@@ -456,13 +456,13 @@ function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevl
     return I.gb[ordering]
 end
 
-function groebner_basis(B::BiPolyArrayLoc, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function groebner_basis(B::IdealGensLoc, ordering::MonomialOrdering, complete_reduction::Bool = false)
    singular_assure(B)
    R = B.Sx
    !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
    I  = Singular.Ideal(R, gens(B.S)...)
    i  = Singular.std(I)
-   BA = BiPolyArrayLoc(B.Ox, i)
+   BA = IdealGensLoc(B.Ox, i)
    BA.isGB  = true
    if isdefined(BA, :S)
        BA.S.isGB  = true

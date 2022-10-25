@@ -3,8 +3,7 @@ export  f4, groebner_basis, groebner_basis_with_transformation_matrix, leading_i
 # groebner stuff #######################################################
 @doc Markdown.doc"""
     groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
-    groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false,
-                    enforce_global_ordering::Bool = true)
+    groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -25,7 +24,12 @@ ideal(x*y - 3*x, -2*x^2*y + y^3)
 julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
 
 julia> I.gb[degrevlex(gens(R))]
-Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
+Gröbner basis with elements
+1 -> x*y - 3*x
+2 -> y^3 - 6*x^2
+3 -> 2*x^3 - 9*x
+with respect to the ordering
+degrevlex([x, y])
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
@@ -39,45 +43,50 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
     return G
 end
 
-function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
+function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
     return get!(I.gb, ordering) do
-        _compute_groebner_basis(I.gens, ordering, complete_reduction, enforce_global_ordering)
+        _compute_std_basis(I.gens, ordering, complete_reduction)
     end
 end
 
 @doc Markdown.doc"""
-    _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering,
-                            complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
+    _compute_std_basis(B::IdealGens, ordering::MonomialOrdering,
+                            complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
-Given an `BiPolyArray` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
+Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
 this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of the
 ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering`. The Groebner basis is then
 returned in `B.S`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
-Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, #undef, false, #undef, true)
+julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
+Ideal generating system with elements
+1 -> x*y - 3*x
+2 -> -2*x^2*y + y^3
 
-julia> B = Oscar._compute_groebner_basis(A, degrevlex(gens(R)))
-Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), true, #undef, true)
+julia> B = Oscar._compute_std_basis(A, degrevlex(gens(R)))
+Gröbner basis with elements
+1 -> x*y - 3*x
+2 -> y^3 - 6*x^2
+3 -> 2*x^3 - 9*x
+with respect to the ordering
+degrevlex([x, y])
 ```
 """
-function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
+function _compute_std_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
    singular_assure(B, ordering)
    R = B.Sx
-   if enforce_global_ordering
-     !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
-   end
    I  = Singular.Ideal(R, gens(B.S)...)
    i  = Singular.std(I, complete_reduction = complete_reduction)
-   BA = BiPolyArray(B.Ox, i)
+   BA = IdealGens(B.Ox, i)
    BA.isGB  = true
+   BA.ord = ordering
    if isdefined(BA, :S)
        BA.S.isGB  = true
    end
@@ -85,15 +94,48 @@ function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, com
    return BA
 end
 
+# standard basis for non-global orderings #############################
+@doc Markdown.doc"""
+    std_basis(I::MPolyIdeal, ordering::MonomialOrdering)
+
+Compute a standard basis of `I` for the monomial ordering `ordering`.
+
+**Note:** Since there is no general notion of complete reduction for 
+non-global orderings, this option is not available for this command;
+instead, use `groebner_basis` directly. 
+
+# Examples
+```jldoctest
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
+ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
+
+julia> std_basis(I, negdegrevlex(gens(R)))
+Standard basis with elements
+1 -> x
+2 -> y
+with respect to the ordering
+negdegrevlex([x, y])
+```
+"""
+function std_basis(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+  complete_reduction && @assert is_global(ordering)
+  if !haskey(I.gb, ordering)
+    I.gb[ordering] = _compute_std_basis(I.gens, ordering, complete_reduction)
+  end
+  return I.gb[ordering]
+end
+
 @doc Markdown.doc"""
     function groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, enforce_global_ordering::Bool = true)
+      complete_reduction::Bool = false)
 
 Given an ideal `I` and optional parameters monomial ordering `ordering` and `complete_reduction`,
 compute a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of `I`
 w.r.t. the given monomial ordering `ordering` (as default `degree reverse lexicographical`).
-If `enforce_global_ordering = false` it is not checked whether the given ordering is global.
 
 # Examples
 ```jldoctest
@@ -104,15 +146,17 @@ julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
 julia> H = groebner_basis(I, ordering=lex(gens(R)))
-3-element Vector{fmpq_mpoly}:
- y^4 - 3*y^3
- x*y - 3*x
- 6*x^2 - y^3
+Gröbner basis with elements
+1 -> y^4 - 3*y^3
+2 -> x*y - 3*x
+3 -> 6*x^2 - y^3
+with respect to the ordering
+lex([x, y])
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false, enforce_global_ordering::Bool = true)
-    groebner_assure(I, ordering, complete_reduction, enforce_global_ordering)
-    return collect(I.gb[ordering])
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
+    is_global(ordering) || error("Ordering must be global")
+    return std_basis(I, ordering, complete_reduction)
 end
 
 @doc Markdown.doc"""
@@ -141,12 +185,15 @@ julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
+ 
 julia> f4(I)
-4-element Vector{gfp_mpoly}:
- x + 2*y + 2*z + 100
- y*z + 82*z^2 + 10*y + 40*z
- y^2 + 60*z^2 + 20*y + 81*z
- z^3 + 28*z^2 + 64*y + 13*z
+Gröbner basis with elements
+1 -> x + 2*y + 2*z + 100
+2 -> y*z + 82*z^2 + 10*y + 40*z
+3 -> y^2 + 60*z^2 + 20*y + 81*z
+4 -> z^3 + 28*z^2 + 64*y + 13*z
+with respect to the ordering
+degrevlex([x, y, z])
 
 julia> isdefined(I, :gb)
 true
@@ -173,10 +220,11 @@ function f4(
                 info_level = info_level)
 
     vars = gens(base_ring(I))[eliminate+1:end]
-    I.gb[degrevlex(vars)] =
-        BiPolyArray(AI.gb[eliminate], keep_ordering = false, isGB = true)
+    ord = degrevlex(vars)
+    I.gb[ord] =
+        IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
 
-    return AI.gb[eliminate]
+    return I.gb[ord]
 end
 
 @doc Markdown.doc"""
@@ -184,30 +232,35 @@ end
 
 **Note**: Internal function, subject to change, do not use.
 
-Given an `BiPolyArray` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
+Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
 this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of the
-ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering` and the transformation matrix from the ideal to the Groebner basis. Return value is a BiPolyArray together with a map.
+ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering` and the transformation matrix from the ideal to the Groebner basis. Return value is a IdealGens together with a map.
 
 # Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
-Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, #undef, false, #undef, true)
+julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
+Ideal generating system with elements
+1 -> x*y - 3*x
+2 -> -2*x^2*y + y^3
 
 julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(gens(R)))
-(Oscar.BiPolyArray{fmpq_mpoly}(Multivariate Polynomial Ring in x, y over Rational Field, #undef, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+(Ideal generating system with elements
+1 -> x*y - 3*x
+2 -> -6*x^2 + y^3
+3 -> 6*x^3 - 27*x, [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
-function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
    if !isdefined(B, :ordering)
       singular_assure(B, ordering)
    elseif ordering != B.ordering
      R = singular_poly_ring(B.Ox, ordering)
      i = Singular.Ideal(R, [R(x) for x = B])
      i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
-     return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
+     return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
    end
 
    if !isdefined(B, :S)
@@ -215,7 +268,7 @@ function groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrderin
    end
 
    i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
-   return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
+   return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
  end
 
 @doc Markdown.doc"""
@@ -297,6 +350,14 @@ function leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MP
     return ideal(parent(g[1]), [first(monomials(f, ordering)) for f in g])
 end
 
+function leading_ideal(I::IdealGens{T}) where { T <: MPolyElem }
+    return ideal(base_ring(I), [first(monomials(f, I.ord)) for f in I])
+end
+
+function leading_ideal(I::IdealGens{T}, ordering::MonomialOrdering) where {T <: MPolyElem}
+    return ideal(base_ring(I), [first(monomials(f, ordering)) for f in I])
+end
+
 
 @doc Markdown.doc"""
     leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
@@ -320,7 +381,7 @@ ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
-  G = groebner_basis(I, ordering=ordering, enforce_global_ordering=false)
+  G = groebner_basis(I, ordering=ordering)
   return ideal(base_ring(I), [first(monomials(g, ordering)) for g in G])
 end
 
@@ -343,7 +404,7 @@ julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
-julia> groebner_basis(J)
+julia> gens(groebner_basis(J))
 2-element Vector{fmpq_mpoly}:
  b + c - 1
  a*c - 2*a + c
@@ -386,7 +447,7 @@ julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
-julia> groebner_basis(J)
+julia> gens(groebner_basis(J))
 2-element Vector{fmpq_mpoly}:
  b + c - 1
  a*c - 2*a + c
@@ -425,7 +486,7 @@ julia> A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c - 1, 2*a*b + a*c + b - 1)
 
-julia> groebner_basis(J)
+julia> gens(groebner_basis(J))
 2-element Vector{fmpq_mpoly}:
  b + c - 1
  a*c - 2*a + c
@@ -443,38 +504,8 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
     normal_form_internal(I, J)
 end
 
-# standard basis for non-global orderings #############################
-@doc Markdown.doc"""
-    std_basis(I::MPolyIdeal, o::MonomialOrdering)
-
-Compute a standard basis of `I` for the monomial ordering `o`.
-
-**Note:** Since there is no general notion of complete reduction for 
-non-global orderings, this option is not available for this command;
-instead, use `groebner_basis` directly. 
-
-# Examples
-```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-
-julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
-ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
-
-julia> std_basis(I, negdegrevlex(gens(R)))
-2-element Vector{fmpq_mpoly}:
- x
- y
-```
-"""
-function std_basis(I::MPolyIdeal, o::MonomialOrdering)
-  return groebner_basis(I, ordering=o, enforce_global_ordering=false, 
-                        complete_reduction=false)
-end
-
 function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
-  groebner_assure(J, o, false, false)
-  stdJ = J.gb[o]
+  stdJ = std_basis(J, o, false)
   Sx = stdJ.Sx
   Ox = parent(f)
   I = Singular.Ideal(Sx, Sx(f))
