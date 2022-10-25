@@ -208,4 +208,11 @@ end
   R, (x, dx) = weyl_algebra(QQ, ["x"])
   @test is_zero(eliminate(left_ideal([x*dx]), [x, dx]))
   @test is_one(eliminate(left_ideal([x, 1-x]), [x, dx]))
+
+  # two-sided example
+  R, (x, y, z) = QQ["x", "y", "z"];
+  rel = @pbw_relations(y*x == -x*y, z*x == -x*z, z*y == -y*z)
+  A, (x,y,z) = pbw_algebra(R, rel, lex(R))
+  I = two_sided_ideal(A, [x^2+1, y^2+1, z^2+1, y*x+z, z*y+x, z*x-y])
+  @test eliminate(I, [x, y]) == two_sided_ideal([z^2+1])
 end
