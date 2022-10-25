@@ -41,6 +41,7 @@ A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` 
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X)
   end
   
+## the following one is currently unused..
   function SpaceGerm(X::GermAtGeometricPoint)
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X)
   end
@@ -65,6 +66,7 @@ function point(X::SpaceGerm{<:Any, <:Any, <:GermAtClosedPoint})
   return point_coordinates(inverted_set(OO(X)))
 end
 
+## currently unused case
 function point(X::SpaceGerm{<:Any, <:Any, <:GermAtGeometricPoint})
   return prime_ideal(inverted_set(OO(X)))
 end
