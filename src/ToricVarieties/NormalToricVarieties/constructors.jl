@@ -348,7 +348,6 @@ function hirzebruch_surface(r::Int)
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
-    new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
     set_attribute!(variety, :is_affine, false)
@@ -438,7 +437,6 @@ function del_pezzo_surface(b::Int)
         cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,6],[6,3]])
     end
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
-    new_rays = matrix(ZZ, Oscar.rays(variety))
     
     # set properties
     set_attribute!(variety, :is_affine, false)
