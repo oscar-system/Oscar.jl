@@ -16,6 +16,7 @@ complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U
 
 ### assure compatibility with SpecOpen 
 gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
+ngens(U::PrincipalOpenSubset) = 1
 getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
 
 function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 

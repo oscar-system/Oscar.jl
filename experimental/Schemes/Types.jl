@@ -13,6 +13,7 @@ export Covering, CoveringMorphism
 export AbsCoveredScheme, CoveredScheme
 export AbsCoveredSchemeMorphism, CoveredSchemeMorphism
 export VarietyFunctionField, VarietyFunctionFieldElem
+export IdealSheaf
 
 ### Abstract type for arbitrary schemes ###############################
 @Markdown.doc """
@@ -1359,7 +1360,10 @@ coordinate rings of the latter.
   I::PreSheafType # the underlying presheaf of ideals for caching
 
   ### Ideal sheaves on covered schemes
-  function IdealSheaf(X::AbsCoveredScheme, ID::Dict{AbsSpec, Ideal})
+  function IdealSheaf(X::AbsCoveredScheme, ID::IdDict{AbsSpec, Ideal}; 
+      check::Bool=true
+    )
+    OOX = StructureSheafOfRings(X)
 
     ### Checks for open containment. 
     #
@@ -1413,15 +1417,6 @@ coordinate rings of the latter.
       G = default_covering(X)[W, V]
       return is_subset(U, glueing_domains(G)[1])
     end
-#    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-#      ambient_scheme(V) in default_covering(X) || return false
-#      ambient_scheme(U) === ambient_scheme(V) && return issubset(U, V)
-#      W = ambient_scheme(U)
-#      W in default_covering(X) || return false
-#      G = default_covering(X)[W, ambient_scheme(V)]
-#      preV = preimage(glueing_morphisms(G)[1], V)
-#      return is_subset(U, preV)
-#    end
 
     ### Production of the rings of regular functions; to be cached
     function production_func(U::AbsSpec)
@@ -1430,25 +1425,41 @@ coordinate rings of the latter.
     function production_func(U::PrincipalOpenSubset)
       V = ambient_scheme(U)
       IV = ID[V]
-      rho = OOX(U, V)
+      rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
       return IU
     end
 
     ### Production of the restriction maps; to be cached
     function restriction_func(V::AbsSpec, IV::Ideal, U::AbsSpec, IU::Ideal)
-      return OX(V, U) # This does not check containment of the arguments 
-                      # in the ideal. But this is not a parent check and 
-                      # hence expensive, so we might want to not do that.
+      return OOX(V, U) # This does not check containment of the arguments 
+                       # in the ideal. But this is not a parent check and 
+                       # hence expensive, so we might want to not do that.
     end
 
-    I = IdealSheaf(X, production_func, restriction_func, 
+    Ipre = PreSheafOnScheme(X, production_func, restriction_func, 
                       OpenType=AbsSpec, OutputType=Ideal, 
                       RestrictionType=Hecke.Map,
                       is_open_func=is_open_func
                      )
-    return new{typeof(X), AbsSpec, Ideal, Hecke.Map, 
+    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map, 
                typeof(production_func), typeof(restriction_func), 
-               typeof(I)}(I)
+               typeof(Ipre)}(ID, OOX, Ipre)
+    if check
+      C = default_covering(X)
+      for U in basic_patches(default_covering(X))
+        for V in basic_patches(default_covering(X))
+          G = C[U, V]
+          A, B = glueing_domains(G)
+          for i in 1:ngens(A)
+            I(A[i]) == ideal(OOX(A[i]), I(V, A[i]).(gens(I(V)))) || error("ideals do not coincide on overlap")
+          end
+          for i in 1:ngens(B)
+            I(B[i]) == ideal(OOX(B[i]), I(U, B[i]).(gens(I(U)))) || error("ideals do not coincide on overlap")
+          end
+        end
+      end
+    end
+    return I
   end
 end
