@@ -87,7 +87,9 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   haskey(restriction_cache(F), (U, V)) && return (restriction_cache(F)[(U, V)])::RestrictionType
 
   is_open_func(F)(V, U) || error("the second argument is not open in the first")
-  rho = restriction_func(F)(U, V)
+  FV = F(V)
+  FU = F(U)
+  rho = restriction_func(F)(U, FU, V, FV)
   restriction_cache(F)[(U, V)] = rho
   return rho::RestrictionType
 end

@@ -8,7 +8,7 @@
     return ZZ
   end
 
-  function restriction_func(V::AbsSpec, U::AbsSpec)
+  function restriction_func(V::AbsSpec, RV::Any, U::AbsSpec, RU::Any)
     return identity_map(ZZ)
   end
 

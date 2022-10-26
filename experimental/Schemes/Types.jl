@@ -1059,8 +1059,8 @@ end
     function production_func(U::AbsSpec)
       return OO(U)
     end
-    function restriction_func(V::AbsSpec, U::AbsSpec)
-      return hom(OO(V), OO(U), gens(OO(U)), check=false) # check=false assures quicker computation
+    function restriction_func(V::AbsSpec, OV::Ring, U::AbsSpec, OU::Ring)
+      return hom(OV, OU, gens(OU), check=false) # check=false assures quicker computation
     end
 
     R = PreSheafOnScheme(X, production_func, restriction_func, 
@@ -1213,85 +1213,85 @@ end
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, U::AbsSpec)
-      X === U || error("schemes must be the same")
-      return identity_map(OO(X))
+    function restriction_func(V::AbsSpec, OV::Ring, U::AbsSpec, OU::Ring)
+      V === U || error("basic affine patches must be the same")
+      return identity_map(OV)
     end
-    function restriction_func(V::AbsSpec, U::PrincipalOpenSubset)
+    function restriction_func(V::AbsSpec, OV::Ring, U::PrincipalOpenSubset, OU::Ring)
       if ambient_scheme(U) === V
-        return hom(OO(V), OO(U), gens(OO(U)), check=false)
+        return hom(OV, OU, gens(OU), check=false)
       else
         W = ambient_scheme(U)
         G = default_covering(X)[V, W]
         f, g = glueing_morphisms(G)
         pbg = pullback(g)
         function rho_func(x::RingElem)
-          parent(x) == OO(V) || error("element does not belong to the correct domain")
+          parent(x) == OV || error("element does not belong to the correct domain")
           return restrict(pbg(domain(pbg)(x)), U) # should probably be tuned to avoid checks. 
         end
-        return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
+        return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
       error("arguments are not valid")
     end
-    function restriction_func(V::PrincipalOpenSubset, U::AbsSpec)
+    function restriction_func(V::PrincipalOpenSubset, OV::Ring, U::AbsSpec, OU::Ring)
       if ambient_scheme(V) === U 
         function rho_func(a::RingElem)
-          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          parent(a) === OV || error("element does not belong to the correct ring")
           # We may assume that all denominators admissible in V are 
           # already units in OO(U)
-          return OO(U)(lifted_numerator(a))*inv(OO(U)(lifted_denominator(a)))
+          return OU(lifted_numerator(a))*inv(OU(lifted_denominator(a)))
         end
-        return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
+        return hom(OV, OU, rho_func.(gens(OV)), check=false)
       else
         G = default_covering(X)[ambient_scheme(V), U]
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
         function rho_func2(a::RingElem)
-          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          parent(a) === OV || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(W1)(a)), U)
         end
-        return hom(OO(V), OO(U), rho_func2.(gens(OO(V))), check=false)
+        return hom(OV, OU, rho_func2.(gens(OV)), check=false)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+    function restriction_func(V::PrincipalOpenSubset, OV::Ring, U::PrincipalOpenSubset, OU::Ring)
       A = ambient_scheme(V)
       if A === ambient_scheme(U)
-        return hom(OO(V), OO(U), gens(OO(U)), check=false)
+        return hom(OV, OU, gens(OU), check=false)
       else 
         B = ambient_scheme(U)
         G = default_covering(X)[A, B]
         f, g = glueing_morphisms(G)
         function rho_func(x::RingElem)
-          parent(x) == OO(V) || error("input not valid")
+          parent(x) == OV || error("input not valid")
           y = pullback(g)(OO(codomain(g))(x))
           return restrict(pullback(g)(OO(codomain(g))(x)), U)
         end
-        return hom(OO(V), OO(U), rho_func.(gens(OO(V))), check=false)
+        return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
       error("arguments are invalid")
     end
-    function restriction_func(V::AbsSpec, W::SpecOpen)
+    function restriction_func(V::AbsSpec, OV::Ring, W::SpecOpen, OW::Ring)
       V in default_covering(X) || return false
       ambient(W) in default_covering(X) || return false
       if V === ambient(W) 
-        return MapFromFunc(x->(OO(W)(x)), OO(V), OO(W))
+        return MapFromFunc(x->(OW(x)), OV, OW)
       else
         G = default_covering(X)[V, ambient(W)]
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem) 
-          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          parent(a) === OV || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(domain(f))(a)), W)
         end
-        return MapFromFunc(rho_func, OO(V), OO(W))
+        return MapFromFunc(rho_func, OV, OW)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, W::SpecOpen)
+    function restriction_func(V::PrincipalOpenSubset, OV::Ring, W::SpecOpen, OW::Ring)
       if ambient_scheme(V) === ambient(W) 
         function rho_func(a::RingElem)
-          parent(a) === OO(V) || error("element does not belong to the correct ring")
-          return OO(W)(a)
+          parent(a) === OV || error("element does not belong to the correct ring")
+          return OW(a)
         end
-        return MapFromFunc(rho_func, OO(V), OO(W))
+        return MapFromFunc(rho_func, OV, OW)
       else
         G = default_covering(X)(ambient_scheme(V), ambient(W))
         f, g = glueing_morphisms(G)
@@ -1300,16 +1300,16 @@ end
         gres = restriction(g, preV, VG, check=false)
         inc = inclusion_morphism(W, preV)
         function rho_func2(a::RingElem) 
-          parent(a) === OO(V) || error("element does not belong to the correct ring")
+          parent(a) === OV || error("element does not belong to the correct ring")
           return pullback(inc)(pullback(gres)(OO(preV)(a)))
         end
-        return MapFromFunc(rho_func2, OO(V), OO(W))
+        return MapFromFunc(rho_func2, OV, OW)
       end
     end
-    function restriction_func(V::SpecOpen, W::SpecOpen)
+    function restriction_func(V::SpecOpen, OV::Ring, W::SpecOpen, OW::Ring)
       if ambient(V) === ambient(W)
         inc = inclusion_morphism(W, V)
-        return MapFromFunc(pullback(inc), OO(V), OO(W))
+        return MapFromFunc(pullback(inc), OV, OW)
       else
         G = default_covering(X)[ambient(V), ambient(W)]
         f, g = glueing_morphisms(G)
@@ -1319,7 +1319,7 @@ end
         gres = restrict(g, preV, VG, check=false)
         inc = inclusion_morphism(W, preV)
         return MapFromFunc(x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))),
-                           OO(V), OO(W))
+                           OV, OW)
       end
     end
 
@@ -1331,5 +1331,115 @@ end
     return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map, 
                typeof(production_func), typeof(restriction_func), 
                typeof(R)}(R)
+  end
+end
+
+########################################################################
+# Ideal sheaves on covered schemes                                     #
+########################################################################
+@attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
+                                      RestrictionType, ProductionFuncType,
+                                      RestrictionFuncType,
+                                      PreSheafType
+                                     } <: AbsPreSheaf{
+                                                      SpaceType, OpenType, 
+                                                      OutputType, RestrictionType
+                                                     }
+  ID::IdDict{AbsSpec, Ideal} # the ideals on the basic patches of the default covering
+  OOX::StructureSheafOfRings # the structure sheaf on X
+  I::PreSheafType # the underlying presheaf of ideals for caching
+
+  ### Ideal sheaves on covered schemes
+  function IdealSheaf(X::AbsCoveredScheme, ID::Dict{AbsSpec, Ideal})
+
+    ### Checks for open containment. 
+    #
+    # We allow the following cases:
+    #
+    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
+    #    and U and V contained in the glueing domains of their ambient schemes
+    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
+    #  * U::AbsSpec ⊂ X for U in the basic charts
+    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
+    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+      C = default_covering(X)
+      A = ambient_scheme(U) 
+      A in C || return false
+      B = ambient_scheme(V) 
+      B in C || return false
+      if A === B
+        is_subset(U, V) || return false
+      else
+        G = C[A, B] # Get the glueing
+        f, g = glueing_morphisms(G)
+        is_subset(U, domain(f)) || return false
+        is_subset(V, domain(g)) || return false
+        gU = preimage(g, U)
+        is_subset(gU, V) || return false
+      end
+      return true
+    end
+    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+      return Y === X && ambient_scheme(U) in default_covering(X)
+    end
+    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+      return Y === X && U in default_covering(X)
+    end
+    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+      return X === Y === Z
+    end
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      U in default_covering(X) || return false
+      V in default_covering(X) || return false
+      G = default_covering(X)[U, V]
+      return issubset(U, glueing_domains(G)[1])
+    end
+    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient_scheme(U) === V && return true
+      W = ambient_scheme(U)
+      W in default_covering(X) || return false
+      G = default_covering(X)[W, V]
+      return is_subset(U, glueing_domains(G)[1])
+    end
+#    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+#      ambient_scheme(V) in default_covering(X) || return false
+#      ambient_scheme(U) === ambient_scheme(V) && return issubset(U, V)
+#      W = ambient_scheme(U)
+#      W in default_covering(X) || return false
+#      G = default_covering(X)[W, ambient_scheme(V)]
+#      preV = preimage(glueing_morphisms(G)[1], V)
+#      return is_subset(U, preV)
+#    end
+
+    ### Production of the rings of regular functions; to be cached
+    function production_func(U::AbsSpec)
+      return ID[U]
+    end
+    function production_func(U::PrincipalOpenSubset)
+      V = ambient_scheme(U)
+      IV = ID[V]
+      rho = OOX(U, V)
+      IU = ideal(OO(U), rho.(gens(IV)))
+      return IU
+    end
+
+    ### Production of the restriction maps; to be cached
+    function restriction_func(V::AbsSpec, IV::Ideal, U::AbsSpec, IU::Ideal)
+      return OX(V, U) # This does not check containment of the arguments 
+                      # in the ideal. But this is not a parent check and 
+                      # hence expensive, so we might want to not do that.
+    end
+
+    I = IdealSheaf(X, production_func, restriction_func, 
+                      OpenType=AbsSpec, OutputType=Ideal, 
+                      RestrictionType=Hecke.Map,
+                      is_open_func=is_open_func
+                     )
+    return new{typeof(X), AbsSpec, Ideal, Hecke.Map, 
+               typeof(production_func), typeof(restriction_func), 
+               typeof(I)}(I)
   end
 end
