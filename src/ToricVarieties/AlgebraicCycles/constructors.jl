@@ -138,7 +138,7 @@ julia> RationalEquivalenceClass(cc)
 A rational equivalence class on a normal toric variety represented by 2V(x3)
 ```
 """
-RationalEquivalenceClass(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(cc, chow_ring(toric_variety(cc))))
+RationalEquivalenceClass(cc::CohomologyClass) = RationalEquivalenceClass(toric_variety(cc), polynomial(chow_ring(toric_variety(cc)), cc))
 
 
 @doc Markdown.doc"""

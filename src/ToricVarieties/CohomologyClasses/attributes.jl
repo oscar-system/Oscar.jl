@@ -138,11 +138,11 @@ ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 julia> R_quo = quo(R, sr_and_linear_relation_ideal)[1]
 Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(x1*x3, x1*x5, x2*x4, x2*x5, x3*x4, x1 + x2 - x5, x2 + x3 - x4 - x5)
 
-julia> polynomial(cc, R_quo)
+julia> polynomial(R_quo, cc)
 6*x3 + x4 + 7*x5
 ```
 """
-function polynomial(c::CohomologyClass, ring::MPolyQuo)
+function polynomial(ring::MPolyQuo, c::CohomologyClass)
     p = polynomial(c)
     if iszero(p)
         return zero(ring)

@@ -96,7 +96,7 @@ function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
         throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(cc1, ring) + polynomial(cc2, ring)
+    poly = polynomial(ring, cc1) + polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 
@@ -106,7 +106,7 @@ function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
         throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(cc1, ring) - polynomial(cc2, ring)
+    poly = polynomial(ring, cc1) - polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 
@@ -125,7 +125,7 @@ function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
         throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(cc1, ring) * polynomial(cc2, ring)
+    poly = polynomial(ring, cc1) * polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 
