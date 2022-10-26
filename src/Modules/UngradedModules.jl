@@ -1063,12 +1063,12 @@ function set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 end
 
 @doc Markdown.doc"""
-    standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
+    standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a standard basis of `submod` with respect to the given `odering``.
 The return type is `ModuleGens`.
 """
-function standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
+function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
   gb = get!(submod.groebner_basis, ordering) do
     return compute_standard_basis(submod, ordering)
   end::ModuleGens
@@ -1076,14 +1076,14 @@ function standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering 
 end
 
 @doc Markdown.doc"""
-    groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
+    groebner_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a Gröbner of `submod` with respect to the given `ordering`.
 The ordering must be global. The return type is `ModuleGens`.
 """
 function groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
   @assert is_global(ordering)
-  return standard_basis(submod, ordering)
+  return standard_basis(submod, ordering=ordering)
 end
 
 @doc Markdown.doc"""
@@ -1095,16 +1095,16 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   @assert is_global(ordering)
 
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_standard_basis(submod, ordering, true)
+    return compute_standard_basis(submod, ordering=ordering, true)
   end::ModuleGens
   gb.is_reduced && return gb
   return get_attribute!(gb, :reduced_groebner_basis) do
-    return compute_standard_basis(submod, ordering, true)
+    return compute_standard_basis(submod, ordering=ordering, true)
   end::ModuleGens
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
-  gb = standard_basis(submod, ordering)
+  gb = standard_basis(submod, ordering=ordering)
   return SubModuleOfFreeModule(submod.F, leading_monomials(gb))
 end
 
@@ -1718,12 +1718,12 @@ function set_default_ordering!(M::SubQuo, ord::ModuleOrdering)
   set_default_ordering!(M.sum, ord)
 end
 
-function standard_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
-  if !haskey(M.groebner_basis, ord)
+function standard_basis(M::SubQuo; ordering::ModuleOrdering = default_ordering(M))
+  if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)
-      quo_gb = standard_basis(M.quo, ord)
+      quo_gb = standard_basis(M.quo, ordering=ordering)
       sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
-      gb = compute_standard_basis(sub_union_gb_of_quo, ord)
+      gb = compute_standard_basis(sub_union_gb_of_quo, ordering=ordering)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
       for i in 1:length(gb.O)
@@ -1735,19 +1735,19 @@ function standard_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
 
       rel_gb_ModuleGens = ModuleGens(rel_gb_list, M.F)
       rel_gb_ModuleGens.isGB = true
-      rel_gb_ModuleGens.ordering = ord
+      rel_gb_ModuleGens.ordering = ordering
       rel_gb_ModuleGens.quo_GB = quo_gb
-      M.groebner_basis[ord] = rel_gb_ModuleGens
+      M.groebner_basis[ordering] = rel_gb_ModuleGens
     else
-      M.groebner_basis[ord] = standard_basis(M.sub, ord)
+      M.groebner_basis[ordering] = standard_basis(M.sub, ordering=ordering)
     end
   end
-  return M.groebner_basis[ord]
+  return M.groebner_basis[ordering]
 end
 
-function groebner_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
+function groebner_basis(M::SubQuo; ordering::ModuleOrdering = default_ordering(M))
   @assert is_global(ord)
-  return standard_basis(M, ord)
+  return standard_basis(M, ordering=ordering)
 end
 
 function reduced_groebner_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))

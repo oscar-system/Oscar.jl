@@ -50,7 +50,7 @@ function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_red
 end
 
 @doc Markdown.doc"""
-    _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering,
+    _compute_standard_basis(B::IdealGens; ordering::MonomialOrdering,
                             complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
@@ -96,7 +96,7 @@ end
 
 # standard basis for non-global orderings #############################
 @doc Markdown.doc"""
-    standard_basis(I::MPolyIdeal,
+    standard_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false)
 
@@ -114,7 +114,7 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
 ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
 
-julia> standard_basis(I, negdegrevlex(gens(R)))
+julia> standard_basis(I, ordering=negdegrevlex(gens(R)))
 Standard basis with elements
 1 -> x
 2 -> y
@@ -122,7 +122,7 @@ with respect to the ordering
 negdegrevlex([x, y])
 ```
 """
-function standard_basis(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   complete_reduction && @assert is_global(ordering)
   if !haskey(I.gb, ordering)
     I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
@@ -158,7 +158,7 @@ lex([x, y])
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
     is_global(ordering) || error("Ordering must be global")
-    return standard_basis(I, ordering, complete_reduction)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction)
 end
 
 @doc Markdown.doc"""

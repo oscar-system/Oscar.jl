@@ -20,7 +20,7 @@ groebner_basis(I::MPolyIdeal;
 	complete_reduction::Bool = false)
 ```
 ```@docs
-standard_basis(I::MPolyIdeal,
+standard_basis(I::MPolyIdeal;
 	ordering::MonomialOrdering = default_ordering(base_ring(I)),
 	complete_reduction::Bool = false)
 ```

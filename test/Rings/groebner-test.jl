@@ -48,7 +48,7 @@ end
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, [x^2*(x-1)-y^2, y^3*(x+y-6)])
   o = negdegrevlex(gens(R))
-  G = standard_basis(I, o)
+  G = standard_basis(I, ordering=o)
   @test normal_form(x^5-5, I, o) == -5
   u = negdegrevlex([x])*negdegrevlex([y])
   @test ideal_membership(x^4, I, ordering=u)
