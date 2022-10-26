@@ -21,9 +21,9 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
+julia> Oscar.groebner_assure(I, degrevlex(R));
 
-julia> I.gb[degrevlex(gens(R))]
+julia> I.gb[degrevlex(R)]
 Gröbner basis with elements
 1 -> x*y - 3*x
 2 -> y^3 - 6*x^2
@@ -70,7 +70,7 @@ Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -2*x^2*y + y^3
 
-julia> B = Oscar._compute_standard_basis(A, degrevlex(gens(R)))
+julia> B = Oscar._compute_standard_basis(A, degrevlex(R))
 Gröbner basis with elements
 1 -> x*y - 3*x
 2 -> y^3 - 6*x^2
@@ -114,7 +114,7 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
 ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
 
-julia> standard_basis(I, ordering=negdegrevlex(gens(R)))
+julia> standard_basis(I, ordering=negdegrevlex(R))
 Standard basis with elements
 1 -> x
 2 -> y
@@ -147,7 +147,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> H = groebner_basis(I, ordering=lex(gens(R)))
+julia> H = groebner_basis(I, ordering=lex(R))
 Gröbner basis with elements
 1 -> y^4 - 3*y^3
 2 -> x*y - 3*x
@@ -248,7 +248,7 @@ Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -2*x^2*y + y^3
 
-julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(gens(R)))
+julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -6*x^2 + y^3
@@ -343,10 +343,10 @@ w.r.t. the given monomial ordering.
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(gens(R)))
+julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(R))
 ideal(x*y^2, y^5)
 
-julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(gens(R)))
+julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(R))
 ideal(x*y^2, x^3)
 ```
 """
@@ -377,10 +377,10 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
 ideal(x*y^2 - 3*x, x^3 - 14*y^5)
 
-julia> L = leading_ideal(I, ordering=degrevlex(gens(R)))
+julia> L = leading_ideal(I, ordering=degrevlex(R))
 ideal(x*y^2, x^4, y^5)
 
-julia> L = leading_ideal(I, ordering=lex(gens(R)))
+julia> L = leading_ideal(I, ordering=lex(R))
 ideal(y^7, x*y^2, x^3)
 ```
 """
