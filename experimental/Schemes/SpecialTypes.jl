@@ -1,7 +1,7 @@
 export PrincipalOpenSubset
 export ambient_scheme, complement_equation, inclusion_morphism
 
-export underlying_morphism, complement_ideal, complement_scheme
+export complement_ideal, complement_scheme
 
 export image_ideal
 
@@ -118,12 +118,6 @@ function is_zero_divisor(f::MPolyQuoLocalizedRingElem{<:Field})
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 end
 
-########################################################################
-# Methods for OpenInclusion                                            #
-########################################################################
-underlying_morphism(f::OpenInclusion) = f.inc
-complement_ideal(f::OpenInclusion) = f.I
-complement_scheme(f::OpenInclusion) = f.Z
 
 
 ########################################################################
