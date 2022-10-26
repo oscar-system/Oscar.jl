@@ -390,15 +390,16 @@ function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 end
 
 @doc Markdown.doc"""
-    normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
+    normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
 
 **Note**: Internal function, subject to change, do not use.
 
 Compute the normal form of the generators `gens(I)` of the ideal `I` w.r.t. a
-Groebner basis of `J`.
+Groebner basis of `J` and the monomial ordering `o`.
 
-CAVEAT: This computation needs a Groebner basis of `J`. If this Groebner basis
-is not available, one is computed automatically. This may take some time.
+CAVEAT: This computation needs a Groebner basis of `J` and the monomial ordering
+`o`. If this Groebner basis is not available, one is computed automatically.
+This may take some time.
 
 # Examples
 ```jldoctest
@@ -419,7 +420,7 @@ Singular Polynomial Ring (QQ),(a,b,c),(dp(3),C)
 julia> I = Singular.Ideal(SR,[SR(-1+c+b+a^3),SR(-1+b+c*a+2*a^3),SR(5+c*b+c^2*a)])
 Singular ideal over Singular Polynomial Ring (QQ),(a,b,c),(dp(3),C) with generators (a^3 + b + c - 1, 2*a^3 + a*c + b - 1, a*c^2 + b*c + 5)
 
-julia> Oscar.normal_form_internal(I,J)
+julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
 3-element Vector{fmpq_mpoly}:
  a^3
  2*a^3 + 2*a - 2*c
@@ -435,13 +436,13 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
 end
 
 @doc Markdown.doc"""
-    normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
+    normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
 
 Compute the normal form of the polynomial `f` w.r.t. a
-Groebner basis of `J`.
+Groebner basis of `J` and the monomial ordering `o`.
 
-CAVEAT: This computation needs a Groebner basis of `J`. If this Groebner basis
-is not available, one is computed automatically. This may take some time.
+CAVEAT: This computation needs a Groebner basis of `J` and `o`. If this Groebner
+basis is not available, one is computed automatically. This may take some time.
 
 # Examples
 ```jldoctest
@@ -460,21 +461,21 @@ julia> normal_form(-1+c+b+a^3, J)
 a^3
 ```
 """
-function normal_form(f::T, J::MPolyIdeal, o=default_ordering(base_ring(J))::MonomialOrdering) where { T <: MPolyElem }
+function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
     singular_assure(J)
     I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
-    N = normal_form_internal(I, J, o)
+    N = normal_form_internal(I, J, ordering)
     return N[1]
 end
 
 @doc Markdown.doc"""
-    normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
+    normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
 
 Compute the normal form of the elements of the array `A` w.r.t. a
-Groebner basis of `J`.
+Groebner basis of `J` and the monomial ordering `o`.
 
-CAVEAT: This computation needs a Groebner basis of `J`. If this Groebner basis
-is not available, one is computed automatically. This may take some time.
+CAVEAT: This computation needs a Groebner basis of `J` and `o`. If this Groebner
+basis is not available, one is computed automatically. This may take some time.
 
 # Examples
 ```jldoctest
@@ -502,8 +503,8 @@ julia> normal_form(A, J)
  4*a - 2*c^2 - c + 5
 ```
 """
-function normal_form(A::Vector{T}, J::MPolyIdeal, o=default_ordering(base_ring(J))::MonomialOrdering) where { T <: MPolyElem }
+function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
     singular_assure(J)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
-    normal_form_internal(I, J, o)
+    normal_form_internal(I, J, ordering)
 end
