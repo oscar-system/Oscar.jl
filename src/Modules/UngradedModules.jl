@@ -490,7 +490,8 @@ end
 @doc Markdown.doc"""
     permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
 
-Return an array of Tuple{Int, Int} that puts the terms of `f` in the order `ord`.
+Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
+`ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
 """
 function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
   ff = coeffs(f)
