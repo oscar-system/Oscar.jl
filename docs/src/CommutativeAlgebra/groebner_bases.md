@@ -15,17 +15,23 @@ Pages = ["groebner_bases.md"]
 ## Computing Gröbner Bases
 
 ```@docs
-groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
+groebner_basis(I::MPolyIdeal;
+	ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	complete_reduction::Bool = false)
 ```
 ```@docs
-std_basis(I::MPolyIdeal, o::MonomialOrdering)
+standard_basis(I::MPolyIdeal,
+	ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	complete_reduction::Bool = false)
 ```
 See e.g. [GP08](@cite) for the theoretical background on Gröbner- and standard bases.
 
 ### Gröbner Bases with transformation matrix
 
 ```@docs
-groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool=false)
+groebner_basis_with_transformation_matrix(I::MPolyIdeal;
+	ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	complete_reduction::Bool=false)
 ```
 
     fglm

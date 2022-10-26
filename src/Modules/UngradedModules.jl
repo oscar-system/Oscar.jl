@@ -1,6 +1,6 @@
 export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
-      std_basis, groebner_basis, reduced_groebner_basis, leading_module, 
+      standard_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, hom_tensor, hom_product, coordinates, 
       represents_element, free_resolution, free_resolution_via_kernels,
       element_to_homomorphism, homomorphism_to_element, generator_matrix, 
@@ -1063,14 +1063,14 @@ function set_default_ordering!(M::SubModuleOfFreeModule, ord::ModuleOrdering)
 end
 
 @doc Markdown.doc"""
-    std_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
+    standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
 
 Compute a standard basis of `submod` with respect to the given `odering``.
 The return type is `ModuleGens`.
 """
-function std_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
+function standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_std_basis(submod, ordering)
+    return compute_standard_basis(submod, ordering)
   end::ModuleGens
   return gb
 end
@@ -1083,7 +1083,7 @@ The ordering must be global. The return type is `ModuleGens`.
 """
 function groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
   @assert is_global(ordering)
-  return std_basis(submod, ordering)
+  return standard_basis(submod, ordering)
 end
 
 @doc Markdown.doc"""
@@ -1095,32 +1095,32 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   @assert is_global(ordering)
 
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_std_basis(submod, ordering, true)
+    return compute_standard_basis(submod, ordering, true)
   end::ModuleGens
   gb.is_reduced && return gb
   return get_attribute!(gb, :reduced_groebner_basis) do
-    return compute_std_basis(submod, ordering, true)
+    return compute_standard_basis(submod, ordering, true)
   end::ModuleGens
 end
 
 function leading_module(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod))
-  gb = std_basis(submod, ordering)
+  gb = standard_basis(submod, ordering)
   return SubModuleOfFreeModule(submod.F, leading_monomials(gb))
 end
 
 @doc Markdown.doc"""
-    compute_std_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod), reduced::Bool=false)
+    compute_standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod), reduced::Bool=false)
 
 Compute a standard basis of `submod` with respect to the given ordering.
 Allowed orderings are those that are allowed as orderings for Singular polynomial rings.
 In case `reduced` is `true` and the ordering is global, a reduced Gröbner basis is computed.
 """
-function compute_std_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod), reduced::Bool=false)
+function compute_standard_basis(submod::SubModuleOfFreeModule, ordering::ModuleOrdering = default_ordering(submod), reduced::Bool=false)
   if reduced
     @assert is_global(ordering)
   end
   mg = ModuleGens(oscar_generators(submod.gens), submod.F , ordering)
-  gb = std_basis(mg, reduced)
+  gb = standard_basis(mg, reduced)
   oscar_assure(gb)
   gb.isGB = true
   gb.S.isGB = true
@@ -1718,12 +1718,12 @@ function set_default_ordering!(M::SubQuo, ord::ModuleOrdering)
   set_default_ordering!(M.sum, ord)
 end
 
-function std_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
+function standard_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
   if !haskey(M.groebner_basis, ord)
     if isdefined(M, :quo)
-      quo_gb = std_basis(M.quo, ord)
+      quo_gb = standard_basis(M.quo, ord)
       sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
-      gb = compute_std_basis(sub_union_gb_of_quo, ord)
+      gb = compute_standard_basis(sub_union_gb_of_quo, ord)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
       for i in 1:length(gb.O)
@@ -1739,7 +1739,7 @@ function std_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
       rel_gb_ModuleGens.quo_GB = quo_gb
       M.groebner_basis[ord] = rel_gb_ModuleGens
     else
-      M.groebner_basis[ord] = std_basis(M.sub, ord)
+      M.groebner_basis[ord] = standard_basis(M.sub, ord)
     end
   end
   return M.groebner_basis[ord]
@@ -1747,7 +1747,7 @@ end
 
 function groebner_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
   @assert is_global(ord)
-  return std_basis(M, ord)
+  return standard_basis(M, ord)
 end
 
 function reduced_groebner_basis(M::SubQuo, ord::ModuleOrdering = default_ordering(M))
@@ -2436,13 +2436,13 @@ function Vector(v::SubQuoElem)
 end
 
 @doc Markdown.doc"""
-    std_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyElem}
+    standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyElem}
 
 Return a standard basis of `F` as an object of type `ModuleGens`.
 If `reduced` is set to `true` and the ordering of the underlying ring is global, 
 a reduced Gröbner basis is computed.
 """
-function std_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyElem}
+function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyElem}
   singular_assure(F)
   if reduced
     @assert Singular.has_global_ordering(base_ring(F.SF))
@@ -3758,7 +3758,7 @@ Check if `a` is an element of `M`.
 """
 function in(a::FreeModElem, M::SubModuleOfFreeModule)
   F = ambient_free_module(M)
-  return iszero(reduce(a, std_basis(M, default_ordering(F))))
+  return iszero(reduce(a, standard_basis(M, default_ordering(F))))
 end
 
 @doc Markdown.doc"""
@@ -3860,7 +3860,7 @@ end
 function normal_form(M::SubModuleOfFreeModule{T}, N::SubModuleOfFreeModule{T}) where {T <: MPolyElem}
   @assert is_global(default_ordering(N))
   # TODO reduced flag to be implemented in Singular.jl
-  #return SubModuleOfFreeModule(M.F, normal_form(M.gens, std_basis(N), reduced = true))
+  #return SubModuleOfFreeModule(M.F, normal_form(M.gens, standard_basis(N), reduced = true))
   error("Not yet implemented")
 end
 
