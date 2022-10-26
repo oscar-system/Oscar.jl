@@ -127,91 +127,95 @@ function tail(a::PBWAlgElem)
   return PBWAlgElem(parent(a), tail(a.sdata))
 end
 
-struct owrap{S, T}
-  ring::S
-  iter::T
-end
-
-function Base.length(x::owrap)
-   return length(x.iter)
-end
 
 function exponent_vectors(a::PBWAlgElem)
   return exponent_vectors(a.sdata)
 end
 
 function terms(a::PBWAlgElem)
-  return owrap(parent(a), terms(a.sdata))
+  return OscarPair(parent(a), terms(a.sdata))
 end
 
-function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
+function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
+   return length(x.second)
+end
+
+function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms})
-  b = Base.iterate(a.iter)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
+  b = Base.iterate(a.second)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
-  b = Base.iterate(a.iter, state)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
+  b = Base.iterate(a.second, state)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
 function monomials(a::PBWAlgElem)
-  return owrap(parent(a), monomials(a.sdata))
+  return OscarPair(parent(a), monomials(a.sdata))
 end
 
-function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
+function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
+   return length(x.second)
+end
+
+function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials})
-  b = Base.iterate(a.iter)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
+  b = Base.iterate(a.second)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
-  b = Base.iterate(a.iter, state)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
+  b = Base.iterate(a.second, state)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
 function coefficients(a::PBWAlgElem)
-  return owrap(parent(a), coefficients(a.sdata))
+  return OscarPair(parent(a), coefficients(a.sdata))
 end
 
-function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
+function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyCoeffs})
+   return length(x.second)
+end
+
+function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
    return T
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
-  b = Base.iterate(a.iter)
+function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
+  b = Base.iterate(a.second)
   b == nothing && return b
-  return (coefficient_ring(a.ring)(b[1])::T, b[2])
+  return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
-  b = Base.iterate(a.iter, state)
+function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
+  b = Base.iterate(a.second, state)
   b == nothing && return b
-  return (coefficient_ring(a.ring)(b[1])::T, b[2])
+  return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
 function build_ctx(R::PBWAlgRing)
-  return owrap(R, MPolyBuildCtx(R.sring))
+  return OscarPair(R, MPolyBuildCtx(R.sring))
 end
 
-function push_term!(M::owrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
-  c = coefficient_ring(M.ring)(c)::T
-  c = base_ring(M.ring.sring)(c)::S
-  push_term!(M.iter, c, e)
+function push_term!(M::OscarPair{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
+  c = coefficient_ring(M.first)(c)::T
+  c = base_ring(M.first.sring)(c)::S
+  push_term!(M.second, c, e)
 end
 
-function finish(M::owrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}) where {T, S}
-  return PBWAlgElem(M.ring, finish(M.iter))
+function finish(M::OscarPair{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}) where {T, S}
+  return PBWAlgElem(M.first, finish(M.second))
 end
 
 ####
