@@ -426,9 +426,9 @@ julia> Oscar.normal_form_internal(I,J)
  4*a - 2*c^2 - c + 5
 ```
 """
-function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
-  groebner_assure(J)
-  G = collect(values(J.gb))[1]
+function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
+  groebner_assure(J, o)
+  G = J.gb[o]  
   singular_assure(G)
   K = ideal(base_ring(J), reduce(I, G.S))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
