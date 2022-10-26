@@ -1337,6 +1337,15 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
+@Markdown.doc """
+    IdealSheaf <: AbsPreSheaf
+
+A sheaf of ideals on an `AbsCoveredScheme` ``X``.
+
+**note:** The admissible open sets for these sheaves are restricted 
+to instances of `AbsSpec` since we only have types for ideals the 
+coordinate rings of the latter.
+"""
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
                                       RestrictionType, ProductionFuncType,
                                       RestrictionFuncType,
