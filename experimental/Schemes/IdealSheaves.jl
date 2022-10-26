@@ -241,10 +241,6 @@ function extend!(
 end
 
 function Base.show(io::IO, I::IdealSheaf)
-  if has_name(I)
-    print(io, name_of(I))
-    return 
-  end
   print(io, "sheaf of ideals on $(space(I))")
 end
 
