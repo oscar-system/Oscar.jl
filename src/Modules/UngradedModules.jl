@@ -511,44 +511,6 @@ function terms(f::FreeModElem, ord::ModuleOrdering)
   return (term(f[i], j)*F[i] for (i, j) in p)
 end
 
-# Several interfaces (expressify, iteration, ...) require a single object. Use
-# OscarPair as an easy way to pass multiple objects without creating an official
-# type for the combinations: polynomial + ordering, old iter + new iter, ...
-struct OscarPair{S, T}
-  first::S
-  second::T
-end
-
-function _push_monomial_expr!(prod::Expr, x::AbstractVector, e::AbstractVector)
-  for i in 1:length(e)
-    ei = e[i]
-    if iszero(ei)
-    elseif isone(ei)
-      push!(prod.args, x[i])
-    else
-      push!(prod.args, Expr(:call, :^, x[i], ei))
-    end
-  end
-end
-
-function expressify(a::OscarPair{<:MPolyElem, <:MonomialOrdering}; context = nothing)
-  f = a.first
-  x = symbols(parent(f))
-  s = Expr(:call, :+)
-  for j in Orderings.permutation_of_terms(f, a.second)
-    prod = Expr(:call, :*)
-    c = coeff(f, j)
-    if !isone(c)
-      push!(prod.args, expressify(c, context = context))
-    end
-    _push_monomial_expr!(prod, x, exponent_vector(f, j))
-    push!(s.args, prod)
-  end
-  return s
-end
-
-@enable_all_show_via_expressify OscarPair{<:MPolyElem, <:MonomialOrdering}
-
 function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
   f = a.first
   x = symbols(base_ring(parent(f)))
@@ -569,7 +531,6 @@ function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; 
 end
 
 @enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}
-
 
 ###############################################################################
 # ModuleGens constructors
