@@ -1,6 +1,6 @@
 export IdealSheaf
 
-export scheme, covering, getindex, subscheme, covered_patches, extend!, ideal_dict
+export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
 
 export ideal_sheaf_type
 
@@ -49,7 +49,7 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
-# this constructs the empty ideal sheaf
+# this constructs the zero ideal sheaf
 function IdealSheaf(X::CoveredScheme) 
   C = default_covering(X)
   I = IdDict{AbsSpec, Ideal}()
@@ -200,6 +200,8 @@ This proceeds by crawling through the glueing graph and taking
 closures in the patches ``Uⱼ`` of the subschemes 
 ``Zᵢⱼ = V(I) ∩ Uᵢ ∩ Uⱼ`` in the intersection with a patch ``Uᵢ`` 
 on which ``I`` had already been described.
+
+Note that the covering `C` is not modified.  
 """
 function extend!(
     C::Covering, D::IdDict{AbsSpec, Ideal}
