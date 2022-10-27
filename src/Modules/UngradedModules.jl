@@ -1746,7 +1746,7 @@ function standard_basis(M::SubQuo; ordering::ModuleOrdering = default_ordering(M
 end
 
 function groebner_basis(M::SubQuo; ordering::ModuleOrdering = default_ordering(M))
-  @assert is_global(ord)
+  @assert is_global(ordering)
   return standard_basis(M, ordering=ordering)
 end
 
