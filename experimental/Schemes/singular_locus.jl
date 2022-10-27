@@ -100,7 +100,7 @@ end
 
 @attr function reduced_scheme(X::AbsSpec{<:Ring, <:QuoRing})
   I = modulus(OO(X))
-  J = radical(Ocar.pre_saturated_ideal(I))
+  J = radical(pre_saturated_ideal(I))
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
