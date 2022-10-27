@@ -1597,22 +1597,21 @@ function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
-  if !isdefined(I, :saturated_ideal)
+  if isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
     J = pre_saturated_ideal(I)
     pdec = primary_decomposition(J)
-    L = base_ring(I)
-    R = base_ring(L)
+    R = base_ring(base_ring(I))
     result = ideal(R, [one(R)])
     U = inverted_set(base_ring(I))
     for (Q, P) in pdec
-      if issubset(prime_ideal(U), P)
+      if issubset(P,prime_ideal(U))
         result = intersect(result, Q)
       end
     end
     I.saturated_ideal = result
     if with_generator_transition
-      error("computation of the transition matrix for the generators is not supposed to happen because of using local orderings")
+      error("no transition matrix available using local orderings")
       for g in gens(result) 
         g in I || error("generator not found") # assures caching with transitions
       end
