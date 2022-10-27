@@ -1613,9 +1613,6 @@ function saturated_ideal(
     I.saturated_ideal = result
     if with_generator_transition
       error("computation of the transition matrix for the generators is not supposed to happen because of using local orderings")
-      for g in gens(result) 
-        g in I || error("generator not found") # assures caching with transitions
-      end
     end
   end
   return I.saturated_ideal
