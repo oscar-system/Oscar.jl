@@ -30,7 +30,7 @@ end
   Yg = SpaceGerm(Xg,ideal(OO(Xg),[x,y,z]))
   Ygq = SpaceGerm(Xgq, ideal(OO(Xgq),[x,y,z]))
   Yl1 = SpaceGerm(Xl1, ideal(OO(Xl1),[x,y,z]))
-   @test_throws ErrorException("rings are incompatible") Yl2 = SpaceGerm(Xl2, ideal(OO(Xl1),[x,y,z]))
+  @test_throws ErrorException("rings are incompatible") Yl2 = SpaceGerm(Xl2, ideal(OO(Xl1),[x,y,z]))
   Ylq = SpaceGerm(Xlq, ideal(OO(Xlq),[x,y,z]))
 end
 
