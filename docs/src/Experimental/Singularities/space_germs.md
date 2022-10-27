@@ -27,7 +27,7 @@ Note that analytic algebras as mentioned above, have two computational problems.
 On one hand, exact computations can only be performed over fields in OSCAR
 permitting exact computations, in particular not over ``{\mathbb R}`` or 
 ``{\mathbb C}``. This usually does not pose a problem, if the input data is 
-in a exact smaller field. But unfortunately, also analytic algebras themselves 
+in an exact smaller field. But unfortunately, also analytic algebras themselves 
 do not allow exact computations so that applications have to be considered 
 in a localization of an affine algebra. With due care, output may again be 
 interpreted in terms of a multivariate formal power series using the following 
@@ -63,7 +63,7 @@ In general, space germs in Oscar are created in the following ways:
    ```julia
    germ_at_point(X::AbsSpec, I::Ideal)
    ```
-   where I is a (maximal) ideal describing the chosen kk-point on the affine kk-scheme.  
+   where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme.  
 
    **Provides:** SpaceGerm, restriction map.
 
