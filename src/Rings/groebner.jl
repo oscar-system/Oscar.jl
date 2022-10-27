@@ -509,7 +509,7 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 end
 
 function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
-  stdJ = standard_basis(J, o, false)
+  stdJ = standard_basis(J, ordering=o, complete_reduction=false)
   Sx = stdJ.Sx
   Ox = parent(f)
   I = Singular.Ideal(Sx, Sx(f))
