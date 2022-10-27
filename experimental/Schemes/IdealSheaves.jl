@@ -59,8 +59,19 @@ function IdealSheaf(X::CoveredScheme)
   return IdealSheaf(X, I, check=false)
 end
 
-# internal routine to set up an ideal sheaf by automatic extension 
+# set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
+@Markdown.doc """
+    IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
+
+Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
+on one affine open subset ``U`` among the `basic_patches` of the 
+`default_covering` of ``X``. 
+
+**Note:** The set ``U`` has to be dense in its connected component 
+of ``X`` since otherwise, the extension of the ideal sheaf to other 
+charts can not be inferred. 
+"""
 function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
   U in patches(C) || error("the affine open patch does not belong to the covering")
@@ -161,13 +172,12 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
+@Markdown.doc """
+    subscheme(I::IdealSheaf) 
 
-### Given an ideal sheaf I, return the associated 
-# subscheme
-#
-# **Note:** This must be cached!
-#
-# TODO: Also return the associated closed embedding.
+For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
+the subscheme ``Y ⊂ X`` given by the zero locus of ``ℐ``.
+"""
 function subscheme(I::IdealSheaf) 
   X = space(I)
   C = default_covering(X)

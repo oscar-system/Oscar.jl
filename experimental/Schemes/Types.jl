@@ -1001,6 +1001,12 @@ Abstract type for a sheaf ℱ on a space X.
  * `OutputType` is a type (most probably abstract!) for the values that ``ℱ`` takes on admissible open sets ``U``.
 
  * `RestrictionType` is a parameter for the type of the restriction maps ``ℱ(V) → ℱ(U)`` for ``U ⊂ V ⊂ X`` open.
+
+For any instance `F` of `AbsPreSheaf` on a topological space `X` the following methods are implemented:
+
+ * `F(U)` for *admissible* open subsets ``U ⊂ X``: This returns the value ``ℱ(U)`` of the sheaf `F` on `U`. Note that due to technical limitations, not every type of open subset might be admissible.
+
+ * `restriction_map(F, U, V)` for *admissible* open subsets ``V ⊂ U ⊂ X``: This returns the restriction map ``ρ : ℱ(U) → ℱ(V)``. 
 """
 abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 
@@ -1008,6 +1014,11 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 # A minimal implementation of the sheaf interface on a scheme          #
 ########################################################################
 
+@Markdown.doc """
+    PreSheafOnScheme
+
+A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
+"""
 @attributes mutable struct PreSheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType, 
                                        IsOpenFuncType, ProductionFuncType,
                                        RestrictionFuncType
@@ -1042,6 +1053,21 @@ end
 ########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
+@Markdown.doc """
+    StructureSheafOfRings <: AbsPreSheaf
+
+On an `AbsCoveredScheme` ``X`` this returns the sheaf ``𝒪`` of rings of 
+regular functions on ``X``. 
+
+Note that due to technical reasons, the admissible open subsets are restricted 
+to the following: 
+ * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
+ * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`;
+ * `W::SpecOpen` with `ambient(W)` in the `basic_patches` of the `default_covering` of `X`.
+
+One can call the restriction maps of ``𝒪`` across charts, implicitly using the 
+identifications given by the glueings in the `default_covering`.
+"""
 @attributes mutable struct StructureSheafOfRings{SpaceType, OpenType, OutputType,
                                           RestrictionType, ProductionFuncType,
                                           RestrictionFuncType,
@@ -1341,11 +1367,15 @@ end
 @Markdown.doc """
     IdealSheaf <: AbsPreSheaf
 
-A sheaf of ideals on an `AbsCoveredScheme` ``X``.
+A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.
 
-**note:** The admissible open sets for these sheaves are restricted 
-to instances of `AbsSpec` since we only have types for ideals of the 
-coordinate rings of the latter.
+Note that due to technical reasons, the admissible open subsets are restricted 
+to the following: 
+ * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
+ * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
+
+One can call the restriction maps of ``ℐ`` across charts, implicitly using the 
+identifications given by the glueings in the `default_covering`.
 """
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
                                       RestrictionType, ProductionFuncType,
