@@ -1597,7 +1597,7 @@ function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     with_generator_transition::Bool=false
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
-  if isdefined(I, :saturated_ideal)
+  if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
     J = pre_saturated_ideal(I)
     pdec = primary_decomposition(J)
