@@ -3758,7 +3758,7 @@ Check if `a` is an element of `M`.
 """
 function in(a::FreeModElem, M::SubModuleOfFreeModule)
   F = ambient_free_module(M)
-  return iszero(reduce(a, standard_basis(M, default_ordering(F))))
+  return iszero(reduce(a, standard_basis(M, ordering=default_ordering(F))))
 end
 
 @doc Markdown.doc"""
