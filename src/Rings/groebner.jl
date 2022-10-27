@@ -461,7 +461,7 @@ julia> normal_form(-1+c+b+a^3, J)
 a^3
 ```
 """
-function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
+function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyElem }
     singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
     N = normal_form_internal(I, J, ordering)
