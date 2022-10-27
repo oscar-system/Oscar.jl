@@ -1,6 +1,6 @@
 export IdealSheaf
 
-export scheme, covering, getindex, subscheme, covered_patches, extend!, ideal_dict
+export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
 
 export ideal_sheaf_type
 
