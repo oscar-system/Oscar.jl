@@ -415,6 +415,8 @@ include("Rings/PBWAlgebra.jl")
 include("Rings/PBWAlgebraQuo.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
+include("Rings/matroid_strata_grassmannian.jl")
+
 include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
