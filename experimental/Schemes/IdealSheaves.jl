@@ -200,6 +200,8 @@ This proceeds by crawling through the glueing graph and taking
 closures in the patches ``Uⱼ`` of the subschemes 
 ``Zᵢⱼ = V(I) ∩ Uᵢ ∩ Uⱼ`` in the intersection with a patch ``Uᵢ`` 
 on which ``I`` had already been described.
+
+Note that the covering `C` is not modified.  
 """
 function extend!(
     C::Covering, D::IdDict{AbsSpec, Ideal}
