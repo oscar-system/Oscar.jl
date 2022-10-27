@@ -114,3 +114,13 @@ end
   @test Q(x*y) in J2
   @test !(Q(x) in J2)
 end
+
+@testset "prime ideals" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I = ideal(R, [x])
+  A, _ = quo(R, I)
+  J = ideal(A, [A(y)])
+  @test is_prime(J)
+  J2 = ideal(A, [A(z*y)])
+  @test !is_prime(J2)
+end
