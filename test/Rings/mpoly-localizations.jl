@@ -305,7 +305,7 @@ end
   @test !(z in Oscar.pre_saturated_ideal(LSI)) # caching is not supposed to happen, because of special routing.
 end
 
-@testset "saturated_ideals"
+@testset "saturated_ideals" begin
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, [x, y^2+1])
   U = MPolyComplementOfPrimeIdeal(I)
