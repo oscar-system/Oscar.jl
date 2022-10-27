@@ -1095,11 +1095,11 @@ function reduced_groebner_basis(submod::SubModuleOfFreeModule, ordering::ModuleO
   @assert is_global(ordering)
 
   gb = get!(submod.groebner_basis, ordering) do
-    return compute_standard_basis(submod, ordering=ordering, true)
+    return compute_standard_basis(submod, ordering, true)
   end::ModuleGens
   gb.is_reduced && return gb
   return get_attribute!(gb, :reduced_groebner_basis) do
-    return compute_standard_basis(submod, ordering=ordering, true)
+    return compute_standard_basis(submod, ordering, true)
   end::ModuleGens
 end
 
@@ -1723,7 +1723,7 @@ function standard_basis(M::SubQuo; ordering::ModuleOrdering = default_ordering(M
     if isdefined(M, :quo)
       quo_gb = standard_basis(M.quo, ordering=ordering)
       sub_union_gb_of_quo = SubModuleOfFreeModule(M.F, ModuleGens(vcat(M.sub.gens.O, quo_gb.O), M.F))
-      gb = compute_standard_basis(sub_union_gb_of_quo, ordering=ordering)
+      gb = compute_standard_basis(sub_union_gb_of_quo, ordering)
       rel_gb_list = Vector{elem_type(ambient_free_module(M))}()
 
       for i in 1:length(gb.O)
