@@ -1420,11 +1420,28 @@ coordinate rings of the latter.
 
     ### Production of the rings of regular functions; to be cached
     function production_func(U::AbsSpec)
-      return ID[U]
+      haskey(ID, U) && return ID[U]
+      # The ideal sheaf has to be provided on at one dense 
+      # open subset of every connected component. 
+      # Otherwise, the ideal sheaf is given by the unit 
+      # ideals.
+      for G in glueings(default_covering(X))
+        A, B = patches(G)
+        Asub, Bsub = glueing_domains(G)
+        if A === U && haskey(ID, B) && is_dense(Asub)
+          Z = subscheme(B, ID[B])
+          f, _ = glueing_morphisms(G)
+          pZ = preimage(f, Z)
+          ZU = closure(pZ, U)
+          ID[U] = ideal(OO(U), gens(saturated_ideal(modulus(OO(ZU)))))
+          return ID[U]
+        end
+      end
+      return ideal(OO(U), one(OO(U)))
     end
     function production_func(U::PrincipalOpenSubset)
       V = ambient_scheme(U)
-      IV = ID[V]
+      IV = production_func(V)
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
       return IU
@@ -1446,6 +1463,10 @@ coordinate rings of the latter.
                typeof(production_func), typeof(restriction_func), 
                typeof(Ipre)}(ID, OOX, Ipre)
     if check
+      # Check that all ideal sheaves are compatible on the overlaps.
+      # TODO: eventually replace by a check that on every basic 
+      # affine patch, the ideal sheaf can be inferred from what is 
+      # given on one dense open subset. 
       C = default_covering(X)
       for U in basic_patches(default_covering(X))
         for V in basic_patches(default_covering(X))

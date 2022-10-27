@@ -75,6 +75,9 @@ end
   ID = IdDict{AbsSpec, Ideal}()
   ID[X[1][1]] = I(X[1][1])
   J = IdealSheaf(X, extend!(default_covering(X), ID), check=true)
+  ID[X[1][1]] = I(X[1][1])
+  J2 = IdealSheaf(X, ID)
+  @test J == J2
   @test sprint(show, J) isa String
 
   @test issubset(IdealSheaf(X), I) # Whether the zero ideal sheaf is a subset of I
