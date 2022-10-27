@@ -49,7 +49,7 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
-# this constructs the empty ideal sheaf
+# this constructs the zero ideal sheaf
 function IdealSheaf(X::CoveredScheme) 
   C = default_covering(X)
   I = IdDict{AbsSpec, Ideal}()
