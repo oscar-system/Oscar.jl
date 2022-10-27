@@ -63,7 +63,7 @@ In general, space germs in Oscar are created in the following ways:
    ```julia
    germ_at_point(X::AbsSpec, I::Ideal)
    ```
-   where I is a (maximal) ideal describing the chosen kk-point on the affine kk-scheme.  
+   where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme.  
 
    **Provides:** SpaceGerm, restriction map.
 
