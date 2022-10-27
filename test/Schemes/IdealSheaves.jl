@@ -57,7 +57,7 @@ end
   (u,v,w) = gens(S)
   Ihom = ideal(S, u^2 - v*w)
   I = IdealSheaf(IP2, Ihom)
-  @test_broken is_prime(I)
+  @test is_prime(I)
   I2 = IdealSheaf(IP2, gens(Ihom))
   I3 = IdealSheaf(IP2, gens(Ihom)[1])
   @test I == I2 == I3
