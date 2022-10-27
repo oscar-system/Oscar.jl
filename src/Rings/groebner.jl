@@ -430,7 +430,7 @@ julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
   groebner_assure(J, o)
   G = J.gb[o]  
-  singular_assure(G)
+  singular_assure(G, o)
   K = ideal(base_ring(J), reduce(I, G.S))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
@@ -462,7 +462,7 @@ a^3
 ```
 """
 function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
-    singular_assure(J)
+    singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
     N = normal_form_internal(I, J, ordering)
     return N[1]
@@ -504,7 +504,7 @@ julia> normal_form(A, J)
 ```
 """
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
-    singular_assure(J)
+    singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
     normal_form_internal(I, J, ordering)
 end
