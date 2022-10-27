@@ -102,15 +102,14 @@ end
   Q, _ = quo(R, I)
   J = ideal(Q, [x^7, y^2])
   @test !(one(Q) in J)
+end
 
-  # allowing empty set of generators 
+@testset "prime ideals" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  I = ideal(R, x*y)
-  Q, _ = quo(R, I)
-  J = ideal(Q, elem_type(Q)[])
-  @test Q(x*y) in J
-  @test !(Q(x) in J)
-  J2 = ideal(Q, elem_type(R)[])
-  @test Q(x*y) in J2
-  @test !(Q(x) in J2)
+  I = ideal(R, [x])
+  A, _ = quo(R, I)
+  J = ideal(A, [A(y)])
+  @test is_prime(J)
+  J2 = ideal(A, [A(z*y)])
+  @test !is_prime(J2)
 end
