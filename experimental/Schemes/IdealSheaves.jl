@@ -30,16 +30,23 @@ end
 
 function IdealSheaf(
     X::ProjectiveScheme, 
-    C::Covering, 
+    g::MPolyElem_dec
+  )
+  return IdealSheaf(X, [g])
+end
+
+function IdealSheaf(
+    X::ProjectiveScheme, 
     g::Vector{RingElemType}
   ) where {RingElemType<:MPolyElem_dec}
-  X_covered = as_covered_scheme(X)
+  X_covered = covered_scheme(X)
   r = fiber_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  for U in patches(C)
-    I[U] = ideal(OO(U), dehomogenize(X, U).(g))
+  U = basic_patches(default_covering(X_covered))
+  for i in 1:length(U)
+    I[U[i]] = ideal(OO(U[i]), dehomogenize(X, i-1).(g))
   end
-  return IdealSheaf(X_covered, C, I, check=false)
+  return IdealSheaf(X_covered, I, check=false)
 end
 
 # this constructs the empty ideal sheaf
@@ -62,7 +69,7 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   end
   D = IdDict{AbsSpec, Ideal}()
   D[U] = ideal(OO(U), g)
-  D = extend!(C, D, check=false)
+  D = extend!(C, D)
   I = IdealSheaf(X, D, check=false)
   return I
 end
@@ -135,14 +142,13 @@ set of random linear combinations in every affine patch.
 """
 function simplify!(I::IdealSheaf)
   for U in basic_patches(default_covering(space(I)))
-    n = length(I(U)) 
+    n = ngens(I(U)) 
     n == 0 && continue
-    J = ideal(OO(U), I(U))
     R = ambient_ring(U)
     kk = coefficient_ring(R)
     new_gens = elem_type(OO(U))[]
     K = ideal(OO(U), new_gens) 
-    while !issubset(J, K)
+    while !issubset(I(U), K)
       new_gen = dot([rand(kk, 1:100) for i in 1:n], gens(I(U)))
       while new_gen in K
         new_gen = dot([rand(kk, 1:100) for i in 1:n], gens(I(U)))
@@ -196,8 +202,7 @@ closures in the patches ``Uⱼ`` of the subschemes
 on which ``I`` had already been described.
 """
 function extend!(
-    C::Covering, D::IdDict{AbsSpec, Ideal};
-    check::Bool=true
+    C::Covering, D::IdDict{AbsSpec, Ideal}
   )
   gg = glueing_graph(C)
   # push all nodes on which I is known in a heap
@@ -214,21 +219,8 @@ function extend!(
       f, _ = glueing_morphisms(C[V, U])
       pZ = preimage(f, Z)
       ZV = closure(pZ, V)
-      D[V] = ideal(OO(V), defining_ideal(ZV))
+      D[V] = ideal(OO(V), gens(saturated_ideal(modulus(OO(ZV)))))
       V in dirty_patches || push!(dirty_patches, V)
-      if check
-        f, g, incU, incV = intersect(U, V, C)
-        fext = compose(f, incV)
-        gext = compose(g, incU)
-        WU = domain(f)
-        WV = domain(g)
-        for W in affine_patches(WU) 
-          incW = inclusion_map(W, U)
-          I1 = pullback(incW)(D[U]) 
-          I2 = pullback(fext[W])(D[V]) 
-          !(I1 == I2) || error("ideals do not coincide on the intersection")
-        end
-      end
     end
   end
   for U in basic_patches(C) 
@@ -236,7 +228,6 @@ function extend!(
       D[U] = ideal(OO(U), zero(OO(U)))
     end
   end
-  # TODO: Extend trivially to disjoint components?
   return D
 end
 

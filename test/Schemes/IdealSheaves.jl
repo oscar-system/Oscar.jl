@@ -57,6 +57,10 @@ end
   (u,v,w) = gens(S)
   Ihom = ideal(S, u^2 - v*w)
   I = IdealSheaf(IP2, Ihom)
+  @test_broken is_prime(I)
+  I2 = IdealSheaf(IP2, gens(Ihom))
+  I3 = IdealSheaf(IP2, gens(Ihom)[1])
+  @test I == I2 == I3
   U = patches(default_covering(X))
   @test I(U[1]) isa Ideal 
   @test I(U[2]) isa Ideal 
@@ -65,4 +69,13 @@ end
   rho = I(U[1], V)
   @test I(V) == ideal(OO(V), rho.(gens(I(U[1]))))
   Y = subscheme(I)
+  simplify!(I)
+
+  # run the check block in extend!
+  ID = IdDict{AbsSpec, Ideal}()
+  ID[X[1][1]] = I(X[1][1])
+  J = IdealSheaf(X, extend!(default_covering(X), ID), check=true)
+  @test sprint(show, J) isa String
+
+  @test issubset(IdealSheaf(X), I) # Whether the zero ideal sheaf is a subset of I
 end
