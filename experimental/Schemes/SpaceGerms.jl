@@ -251,6 +251,7 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGe
 end
 
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
+  point(X) == point(Y) || error("not the same point of the germ")
   Z = intersect(underlying_scheme(X),underlying_scheme(Y))
   return SpaceGerm(Z)
 end
