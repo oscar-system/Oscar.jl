@@ -1344,7 +1344,7 @@ end
 A sheaf of ideals on an `AbsCoveredScheme` ``X``.
 
 **note:** The admissible open sets for these sheaves are restricted 
-to instances of `AbsSpec` since we only have types for ideals the 
+to instances of `AbsSpec` since we only have types for ideals of the 
 coordinate rings of the latter.
 """
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
