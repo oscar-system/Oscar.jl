@@ -3,18 +3,18 @@ export singular_locus, singular_locus_reduced
 export reduced_scheme
 export is_smooth
 
-QuoRing = Union{MPolyQuoLocalizedRing, 
+MPQuoRing = Union{MPolyQuoLocalizedRing, 
                 MPolyQuo
                }
 
-NonQuoRing = Union{MPolyRing, MPolyLocalizedRing
+MPNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
                   }
 
 ### TODO: The following two functions need to be made type-sensitive 
 ###       and reduced=true needs to be set automatically for varieties 
 ###       as soon as not only schemes, but also varieties as special 
 ###       schemes have been introduced in OSCAR
-function singular_locus(X::AbsSpec{<:Ring, <:QuoRing})
+function singular_locus(X::AbsSpec{<:Ring, <:MPQuoRing})
   comp = _singular_locus_with_decomposition(X,false)
   if length(comp) == 0 
     return subscheme(X, ideal(OO(X),one(OO(X))))
@@ -25,7 +25,7 @@ function singular_locus(X::AbsSpec{<:Ring, <:QuoRing})
   return subscheme(X,I)
 end
 
-function singular_locus_reduced(X::AbsSpec{<:Ring, <:QuoRing})
+function singular_locus_reduced(X::AbsSpec{<:Ring, <:MPQuoRing})
   comp =  _singular_locus_with_decomposition(X, true)
   I= ideal(localized_ring(OO(X)),one(localized_ring(OO(X))))
   for Z in comp
@@ -34,7 +34,7 @@ function singular_locus_reduced(X::AbsSpec{<:Ring, <:QuoRing})
   return subscheme(X,I)
 end
 
-function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:QuoRing}, reduced::Bool=true)
+function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPQuoRing}, reduced::Bool=true)
   I = saturated_ideal(modulus(OO(X)))
   result = typeof(X)[]
 
@@ -75,13 +75,13 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:QuoRing}, reduc
   return result
 end
 
-### only for users' convenience: appropriate return value for NonQuoRings
+### only for users' convenience: appropriate return value for MPNonQuoRings
 
-function singular_locus(X::AbsSpec{<:Ring, <:NonQuoRing})
+function singular_locus(X::AbsSpec{<:Ring, <:MPNonQuoRing})
   return subscheme(X,ideal(OO(X),one(OO(X))))
 end
 
-function singular_locus_reduced(X::AbsSpec{<:Ring, <:NonQuoRing})
+function singular_locus_reduced(X::AbsSpec{<:Ring, <:MPNonQuoRing})
   return subscheme(X,ideal(OO(X),one(OO(X))))
 end
 
@@ -91,35 +91,35 @@ function saturated_ideal(I::MPolyIdeal)
   return(I)
 end
 
-@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:QuoRing})
+@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPQuoRing})
   I = modulus(OO(X))
   P = equidimensional_decomposition_radical(saturated_ideal(I))
   length(P) < 2 && return true
   return false
 end
 
-@attr function reduced_scheme(X::AbsSpec{<:Ring, <:QuoRing})
+@attr function reduced_scheme(X::AbsSpec{<:Ring, <:MPQuoRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
-@attr function is_reduced(X::AbsSpec{<:Ring, <:QuoRing})
+@attr function is_reduced(X::AbsSpec{<:Ring, <:MPQuoRing})
   I = saturated_ideal(modulus(OO(X)))
   return is_reduced(quo(base_ring(I), I)[1])
 end
 
-### only for users' convenience: appropriate return value for NonQuoRings
+### only for users' convenience: appropriate return value for MPNonQuoRings
 
-@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:NonQuoRing})
+@attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPNonQuoRing})
   return true
 end
 
-@attr AbsSpec function reduced_scheme(X::AbsSpec{<:Ring, <:NonQuoRing})
+@attr AbsSpec function reduced_scheme(X::AbsSpec{<:Ring, <:MPNonQuoRing})
   return X
 end
 
-@attr Bool function is_reduced(X::AbsSpec{<:Ring, <:NonQuoRing})
+@attr Bool function is_reduced(X::AbsSpec{<:Ring, <:MPNonQuoRing})
   return true
 end
 
