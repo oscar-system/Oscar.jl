@@ -75,7 +75,7 @@ end
 # For ideals over quotient rings, we would like to delay the expensive
 # construction of the singular quotient ring until the user does an operation
 # that actually requires it.
-mutable struct MPolyQuoIdeal{T} <: Ideal{T}
+@attributes mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   I::MPolyIdeal{T}    # ideal in the non-qring, possibly #undef
   SI::Singular.sideal # ideal in the qring, possibly #undef if I isdefined
   base_ring::MPolyQuo
@@ -306,6 +306,13 @@ function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.SI, b.SI))
 end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
+
+# TODO: replace by a more efficient method!
+@attr function is_prime(I::MPolyQuoIdeal)
+  R = base_ring(base_ring(I))
+  J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
+  return is_prime(J)
+end
 
 @doc Markdown.doc"""
     iszero(a::MPolyQuoIdeal)

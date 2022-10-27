@@ -2,6 +2,7 @@ export AbsPrePreSheaf
 export space, restriction_map
 export PreSheafOnScheme
 export StructureSheafOfRings
+export underlying_presheaf
 
 ########################################################################
 # The AbsPreSheaf interface                                               #
@@ -12,7 +13,7 @@ export StructureSheafOfRings
 For a sheaf ``ℱ`` on a space ``X`` return ``X``.
 """
 function space(F::AbsPreSheaf) 
-  return space(underlying_sheaf(F))
+  return space(underlying_presheaf(F))
 end
 
 @Markdown.doc """
@@ -22,7 +23,7 @@ For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set
 ``U ⊂ X`` check whether ``U`` is open in ``X`` and return ``ℱ(U)``.
 """
 function (F::AbsPreSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) where {OpenType, OutputType, T<:OpenType}
-  return (underlying_sheaf(F))(U, cached=cached)::OutputType
+  return (underlying_presheaf(F))(U, cached=cached)::OutputType
 end
 
 @Markdown.doc """
@@ -35,7 +36,7 @@ return the restriction map ``ℱ(V) → ℱ(U)``.
 function restriction_map(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
     U::Type1, V::Type2
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
-  return restriction_map(underlying_sheaf(F), U, V)::RestrictionType
+  return restriction_map(underlying_presheaf(F), U, V)::RestrictionType
 end
 
 # An alias for shorter notation
@@ -56,7 +57,7 @@ are open inclusions and `false` otherwise.
 to check whether ``U ⊂ X`` is open in ``X``!
 """
 function is_open_func(F::AbsPreSheaf)
-  return is_open_func(underlying_sheaf(F))
+  return is_open_func(underlying_presheaf(F))
 end
 
 ########################################################################
@@ -87,7 +88,9 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   haskey(restriction_cache(F), (U, V)) && return (restriction_cache(F)[(U, V)])::RestrictionType
 
   is_open_func(F)(V, U) || error("the second argument is not open in the first")
-  rho = restriction_func(F)(U, V)
+  FV = F(V)
+  FU = F(U)
+  rho = restriction_func(F)(U, FU, V, FV)
   restriction_cache(F)[(U, V)] = rho
   return rho::RestrictionType
 end
@@ -96,7 +99,7 @@ end
 # The implementation of StructureSheafOfRings                         #
 ########################################################################
 
-underlying_sheaf(S::StructureSheafOfRings) = S.OO
+underlying_presheaf(S::StructureSheafOfRings) = S.OO
 
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(

@@ -101,11 +101,11 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
   end
 end
 
-#function neighbor_patches(C::Covering, U::AbsSpec)
-#  gg = glueing_graph(C)
-#  n = neighbors(gg, C[U])
-#  return [C[i] for i in n]
-#end
+function neighbor_patches(C::Covering, U::AbsSpec)
+  gg = glueing_graph(C)
+  n = neighbors(gg, C[U])
+  return [C[i] for i in n]
+end
 
 #affine_patch_type(C::Covering) = affine_patch_type(typeof(C))
 #glueing_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
