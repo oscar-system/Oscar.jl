@@ -342,17 +342,16 @@ end
   Z4x, (x, y) = Z4["x", "y"]
   f = 2*x
   @test is_zero_divisor(Z4(2))
-  @test_broken is_zero_divisor(Z4x(2))
-  @test_broken is_zero_divisor(f)
+  @test is_zero_divisor(Z4x(2))
+  @test is_zero_divisor(f)
+  L, _ = localization(Z4x, Z4x(x))
+  @test !is_zero_divisor(L(5))
+  @test is_zero_divisor(L(2))
+  @test !is_zero_divisor(L(x))
+  @test is_zero_divisor(2*L(x))
+  @test is_zero_divisor(zero(L))
   # At the moment, the Singular backend complains when the modulus of the coefficient 
-  # ring is not a prime. So we leave the following tests out for the time being. 
-#  L, _ = localization(Z4x, Z4x(x))
-#  @test !is_zero_divisor(L(5))
-#  @test is_zero_divisor(L(2))
-#  @test !is_zero_divisor(L(x))
-#  @test is_zero_divisor(2*L(x))
-#  @test is_zero_divisor(zero(L))
-#  I = ideal(Z4x, x*y)
+  # ring is not a prime. So we leave the following tests out for the time being. #  I = ideal(Z4x, x*y)
 #  A, _ = quo(Z4x, I)
 #  @test !is_zero_divisor(A(x+y))
 #  @test is_zero_divisor(2*A(x+y))
