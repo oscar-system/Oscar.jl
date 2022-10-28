@@ -351,7 +351,8 @@ end
   @test is_zero_divisor(2*L(x))
   @test is_zero_divisor(zero(L))
   # At the moment, the Singular backend complains when the modulus of the coefficient 
-  # ring is not a prime. So we leave the following tests out for the time being. #  I = ideal(Z4x, x*y)
+  # ring is not a prime. So we leave the following tests out for the time being. 
+#  I = ideal(Z4x, x*y)
 #  A, _ = quo(Z4x, I)
 #  @test !is_zero_divisor(A(x+y))
 #  @test is_zero_divisor(2*A(x+y))
