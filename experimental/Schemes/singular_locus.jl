@@ -3,12 +3,12 @@ export singular_locus, singular_locus_reduced
 export reduced_scheme
 export is_smooth
 
-MPAnyQuoRing = Union{MPolyQuoLocalizedRing, 
-                MPolyQuo
-               }
-
-MPAnyNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
-                  }
+#MPAnyQuoRing = Union{MPolyQuoLocalizedRing, 
+#                MPolyQuo
+#               }
+#
+#MPAnyNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
+#                  }
 
 ### TODO: The following two functions need to be made type-sensitive 
 ###       and reduced=true needs to be set automatically for varieties 
