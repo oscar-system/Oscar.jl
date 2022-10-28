@@ -161,7 +161,7 @@ end
 
 @testset "ambient_ring -- case test" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  I = ideal(R, [x+y+z])
+  I = ideal(R, [x^2-y^2+z])
   A, _ = quo(R,I)
   U=MPolyComplementOfKPointIdeal(R,[0,0,0])
   Rl,_ = Localization(R,U)
@@ -179,16 +179,24 @@ end
   @test ambient_ring(Spec(R)) == R
   @test ambient_ring(A) == R
   @test ambient_ring(Spec(A)) == R
+  @test ideal_in_ambient_ring(Spec(R)) == ideal(R,[zero(R)])
+  @test ideal_in_ambient_ring(Spec(A)) == I
   @test ambient_ring(Rl) == R
   @test ambient_ring(Spec(Rl)) == R
   @test ambient_ring(Al) == R
   @test ambient_ring(Spec(Al)) == R
+  @test ideal_in_ambient_ring(Spec(Rl)) == ideal(R,[zero(R)])
+  @test ideal_in_ambient_ring(Spec(Al)) == I
   @test ambient_ring(Rl2) == R
   @test ambient_ring(Spec(Rl2)) == R
   @test ambient_ring(Al2) == R
   @test ambient_ring(Spec(Al2)) == R
+  @test ideal_in_ambient_ring(Spec(Rl2)) == ideal(R,[zero(R)])
+  @test ideal_in_ambient_ring(Spec(Al2)) == I
   @test ambient_ring(Rl3) == R
   @test ambient_ring(Spec(Rl3)) == R
   @test ambient_ring(Al3) == R
   @test ambient_ring(Spec(Al3)) == R
+  @test ideal_in_ambient_ring(Spec(Rl3)) == ideal(R,[zero(R)])
+  @test ideal_in_ambient_ring(Spec(Al3)) == I
 end

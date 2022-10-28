@@ -1,7 +1,7 @@
 import AbstractAlgebra.Ring
 import Base: intersect
 
-export OO, defining_ideal, ambient_ring
+export OO, defining_ideal, ambient_ring, ideal_in_ambient_ring
 export spec_type, ring_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
@@ -207,6 +207,7 @@ ambient_ring(R::MPolyRing) = R
 ambient_ring(R::MPolyQuo) = base_ring(R)
 ambient_ring(R::MPolyLocalizedRing) = base_ring(R)
 ambient_ring(R::MPolyQuoLocalizedRing) = base_ring(R)
+ideal_in_ambient_ring(X::AbsSpec) = saturated_ideal(modulus(OO(X)))
 
 @attr String function name(X::Spec)
   return "unnamed affine variety"
