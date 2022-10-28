@@ -305,6 +305,17 @@ end
   @test !(z in Oscar.pre_saturated_ideal(LSI)) # caching is not supposed to happen, because of special routing.
 end
 
+@testset "saturated_ideals" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, [x, y^2+1])
+  U = MPolyComplementOfPrimeIdeal(I)
+  L = MPolyLocalizedRing(R, U)
+  J = ideal(L,[y*(x^2+(y^2+1)^2)])
+  J_sat = ideal(R,[(x^2+(y^2+1)^2)])
+  @test saturated_ideal(J) == J_sat
+  @test_throws ErrorException("no transition matrix available using local orderings") saturated_ideal(L(J_sat); with_generator_transition=true)
+end
+
 @testset "zero divisors" begin
   R, (x, y) = QQ["x", "y"]
   @test !is_zero_divisor(x)

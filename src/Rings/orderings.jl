@@ -9,7 +9,7 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        isweighted, is_global, is_local, is_mixed,
        permutation_of_terms, weight_ordering, canonical_matrix,
        MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
-       is_elimination_ordering
+       is_elimination_ordering, induced_ring_ordering
 
 abstract type AbsOrdering end
 
@@ -1124,10 +1124,15 @@ end
 @doc Markdown.doc"""
     weight_ordering(W::Vector{Int}, ord::MonomialOrdering) -> MonomialOrdering
 
-Given an integer vector `W` and a monomial ordering on a set of monomials in
-`length(W)` variables, return the monomial ordering on this set of monomials
-obtained by first comparing the `W`-weighted degrees and then using `ord` 
+Given an integer vector `W` and a monomial ordering `ord` on a set of monomials in
+`length(W)` variables, return the monomial ordering `ord_W` on this set of monomials
+which is obtained by first comparing the `W`-weighted degrees and then using `ord` 
 in the case of a tie.
+
+!!! note 
+    The ordering `ord_W` is   
+    - global if all entries of `W` are positive, or if they are all non-negative and `ord` is global,
+    - an elimination ordering for the set of variables which correspond to positive entries of `W`.   
 
 # Examples
 ```jldoctest
@@ -1391,7 +1396,7 @@ end
 @doc Markdown.doc"""
     cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 
-Compare monomials `a` and `b` with the ordering `ord`: Return `-1` for `a < b`
+Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
 and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
 a partial ordering that does not distinguish `a` from `b`.
 
@@ -1463,32 +1468,32 @@ lex([w, x, y, z])
 julia> is_elimination_ordering(o1, [w, x])
 true
 
-julia> o2 = degrevlex([w, x])*degrevlex([y, z])
-degrevlex([w, x])*degrevlex([y, z])
+julia> o2 = weight_ordering([1, 1, 0, 0], degrevlex(R))
+matrix_ordering([w, x, y, z], [1 1 0 0])*degrevlex([w, x, y, z])
 
 julia> is_elimination_ordering(o2, [w, x])
 true
 
-julia> o3 = degrevlex([w, x])*negdegrevlex([y, z])
-degrevlex([w, x])*negdegrevlex([y, z])
+julia> o3 = weight_ordering([1, -1, 0, 0], degrevlex(R))
+matrix_ordering([w, x, y, z], [1 -1 0 0])*degrevlex([w, x, y, z])
 
 julia> is_elimination_ordering(o3, [w, x])
-true
-
-julia> o4 = negdegrevlex([w, x])*negdegrevlex([y, z])
-negdegrevlex([w, x])*negdegrevlex([y, z])
-
-julia> is_elimination_ordering(o4, [w, x])
 false
 
-julia> o5 = weight_ordering([1, 1, 0, 0], degrevlex(R))
-matrix_ordering([w, x, y, z], [1 1 0 0])*degrevlex([w, x, y, z])
+julia> o4 = degrevlex([w, x])*degrevlex([y, z])
+degrevlex([w, x])*degrevlex([y, z])
+
+julia> is_elimination_ordering(o4, [w, x])
+true
+
+julia> o5 = degrevlex([w, x])*negdegrevlex([y, z])
+degrevlex([w, x])*negdegrevlex([y, z])
 
 julia> is_elimination_ordering(o5, [w, x])
 true
 
-julia> o6 = weight_ordering([1, -1, 0, 0], degrevlex(R))
-matrix_ordering([w, x, y, z], [1 -1 0 0])*degrevlex([w, x, y, z])
+julia> o6 = negdegrevlex([w, x])*negdegrevlex([y, z])
+negdegrevlex([w, x])*negdegrevlex([y, z])
 
 julia> is_elimination_ordering(o6, [w, x])
 false
@@ -1546,7 +1551,7 @@ end
 
 mutable struct ModuleOrdering{S}
    M::S
-   o::AbsOrdering # must allow gen*mon or mon*gen product ordering
+   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
 end
 
 base_ring(a::ModuleOrdering) = a.M
@@ -1560,6 +1565,41 @@ Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
 
+#### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
+
+function _cmp_vector_monomials(
+  m::Int, f::MPolyElem, k::Int,
+  n::Int, g::MPolyElem, l::Int,
+  o::ModOrdering)
+
+  if o.ord == :lex
+    return m < n ? 1 : m > n ? -1 : 0
+  elseif o.ord == :revlex
+    return m > n ? 1 : m < n ? -1 : 0
+  else
+    error("oops")
+  end
+end
+
+function _cmp_vector_monomials(
+  m::Int, f::MPolyElem, k::Int,
+  n::Int, g::MPolyElem, l::Int,
+  o::AbsGenOrdering)
+
+  return _cmp_monomials(f, k, g, l, o)
+end
+
+function _cmp_vector_monomials(
+  m::Int, f::MPolyElem, k::Int,
+  n::Int, g::MPolyElem, l::Int,
+  o::ModProdOrdering)
+
+  c = _cmp_vector_monomials(m, f, k, n, g, l, o.a)
+  c == 0 || return c
+  return _cmp_vector_monomials(m, f, k, n, g, l, o.b)
+end
+
+
 function module_ordering(a::AbstractVector{Int}, s::Symbol)
    i = minimum(a)
    I = maximum(a)
@@ -1567,7 +1607,7 @@ function module_ordering(a::AbstractVector{Int}, s::Symbol)
      return ModOrdering(i:I, s)
    end
    return ModOrdering(collect(a), s)
- end
+end
 
 function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
    R = parent(first(a))
@@ -1577,9 +1617,9 @@ function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
      error("only generators allowed")
    end
    return module_ordering(aa, s...)
- end
+end
 
- function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
+function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
    return ModuleOrdering(parent(first(v)), ordering(v, :lex))
 end
 
@@ -1598,16 +1638,43 @@ function Base.:*(M::MonomialOrdering, N::ModuleOrdering)
 end
 
 @doc Markdown.doc"""
-    induced_ring_ordering(M::ModuleOrdering)
+    induced_ring_ordering(ord::ModuleOrdering)
 
-Return the induced ring ordering.
+Return the ring ordering induced by `ord`.  
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+
+julia> o = revlex(gens(F))*degrevlex(R)
+revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+
+julia> induced_ring_ordering(o)
+degrevlex([w, x, y, z])
+```
 """
 function induced_ring_ordering(M::ModuleOrdering)
-  R = base_ring(M.M)
-  if M.o.a isa AbsGenOrdering
-    return MonomialOrdering(R, M.o.a)
+  return MonomialOrdering(base_ring(M.M), induced_ring_ordering(M.o))
+end
+
+function induced_ring_ordering(o::ModOrdering)
+  error("no induced ring ordering exists")
+end
+
+function induced_ring_ordering(o::AbsGenOrdering)
+  return o
+end
+
+function induced_ring_ordering(o::ModProdOrdering)
+  if o.a isa ModOrdering
+    return induced_ring_ordering(o.b)
+  elseif o.b isa ModOrdering
+    return induced_ring_ordering(o.a)
   else
-    return MonomialOrdering(R, M.o.b)
+    return induced_ring_ordering(o.a)*induced_ring_ordering(o.b)
   end
 end
 
@@ -1671,9 +1738,16 @@ end
 
 ############ opposite ordering ############
 
-# TODO return singular-friendly orderings if that is how they come in
+# TODO return more singular-friendly orderings if that is how they come in
 function _opposite_ordering(nvars::Int, o::SymbOrdering{T}) where T
   return SymbOrdering(T, nvars+1 .- o.vars)
+end
+
+function _opposite_ordering(nvars::Int, o::SymbOrdering{:deglex})
+  n = length(o.vars)
+  newvars = reverse(nvars+1 .- o.vars)
+  return MatrixOrdering(newvars, fmpz_mat(1, n, ones(Int, n)), false)*
+         SymbOrdering(:revlex, newvars)
 end
 
 # TODO ditto

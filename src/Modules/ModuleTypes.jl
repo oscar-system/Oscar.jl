@@ -186,7 +186,7 @@ end
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
 used by the end user.
-When computed, a standard basis (computed via `std_basis()`) and generating matrix (that is the rows of the matrix
+When computed, a standard basis (computed via `standard_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
 mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}

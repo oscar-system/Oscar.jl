@@ -22,7 +22,7 @@ function is_binomial(I::MPolyIdeal)
   if _isbinomial(gens(I))
     return true
   end
-  return _isbinomial(groebner_basis(I, complete_reduction = true))
+  return _isbinomial(gens(groebner_basis(I, complete_reduction = true)))
 end
 
 function _isbinomial(v::Vector{<: MPolyElem})
@@ -229,7 +229,7 @@ function is_unital(I::MPolyIdeal)
   if _isbinomial(gI) && _isunital(gI)
     return true
   end
-  gB = groebner_basis(I, complete_reduction = true)
+  gB = gens(groebner_basis(I, complete_reduction = true))
   return _isbinomial(gB) && _isunital(gB)
 end
 
@@ -629,7 +629,7 @@ function __cellular_hull(I::MPolyIdeal)
   if isempty(M)
     return I
   end
-  return ideal(R, groebner_basis(I + ideal(R, M), complete_reduction = true))
+  return ideal(R, gens(groebner_basis(I + ideal(R, M), complete_reduction = true)))
 end
 
 ###################################################################################
