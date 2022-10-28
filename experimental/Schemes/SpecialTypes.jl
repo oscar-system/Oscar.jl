@@ -1,7 +1,7 @@
 export PrincipalOpenSubset
 export ambient_scheme, complement_equation, inclusion_morphism
 
-export complement_ideal, complement_scheme
+export underlying_morphism, complement_ideal, complement_scheme
 
 export image_ideal
 
