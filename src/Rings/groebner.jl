@@ -460,10 +460,10 @@ julia> normal_form(-1+c+b+a^3, J)
 a^3
 ```
 """
-function normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
+function normal_form(f::T, J::MPolyIdeal, o=default_ordering(base_ring(J))::MonomialOrdering) where { T <: MPolyElem }
     singular_assure(J)
     I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
-    N = normal_form_internal(I, J)
+    N = normal_form_internal(I, J, o)
     return N[1]
 end
 
@@ -502,16 +502,8 @@ julia> normal_form(A, J)
  4*a - 2*c^2 - c + 5
 ```
 """
-function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
+function normal_form(A::Vector{T}, J::MPolyIdeal, o=default_ordering(base_ring(J))::MonomialOrdering) where { T <: MPolyElem }
     singular_assure(J)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
-    normal_form_internal(I, J)
-end
-
-function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
-  stdJ = standard_basis(J, ordering=o, complete_reduction=false)
-  Sx = stdJ.Sx
-  Ox = parent(f)
-  I = Singular.Ideal(Sx, Sx(f))
-  return Ox(gens(Singular.reduce(I, stdJ.S))[1])
+    normal_form_internal(I, J, o)
 end
