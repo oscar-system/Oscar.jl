@@ -1572,11 +1572,15 @@ function saturated_ideal(
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
+    L = base_ring(I)
+    R = base_ring(base_ring(I))
+    result=ideal(R,[one(R)])
+    if !all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(I)) 
+      I.saturated_ideal = result
+      return result
+    end
     J = pre_saturated_ideal(I)
     pdec = primary_decomposition(J)
-    L = base_ring(I)
-    R = base_ring(L)
-    result = ideal(R, [one(R)])
     for (Q, P) in pdec
       if all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(P))
         result = intersect(result, Q)
@@ -1585,9 +1589,6 @@ function saturated_ideal(
     I.saturated_ideal = result
     if with_generator_transition
       error("computation of the transition matrix for the generators is not supposed to happen because of using local orderings")
-      for g in gens(result) 
-        g in I || error("generator not found") # assures caching with transitions
-      end
     end
   end
   return I.saturated_ideal
@@ -1599,11 +1600,16 @@ function saturated_ideal(
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
-    J = pre_saturated_ideal(I)
-    pdec = primary_decomposition(J)
-    R = base_ring(base_ring(I))
+    L = base_ring(I)
+    R = base_ring(L)
     result = ideal(R, [one(R)])
     U = inverted_set(base_ring(I))
+    if !issubset(I,L(prime_ideal(U)))
+      I.saturated_ideal = result
+      return result
+    end
+    J = pre_saturated_ideal(I)
+    pdec = primary_decomposition(J)
     for (Q, P) in pdec
       if issubset(P,prime_ideal(U))
         result = intersect(result, Q)
@@ -1711,6 +1717,8 @@ function cache_transitions_for_saturation(I::MPolyLocalizedIdeal)
   return I
 end
 
+# for convenience of scripting users
+saturated_ideal(I::MPolyIdeal) = I
 
 # the following overwrites the membership test 
 # assuming that direct computation of the saturation 

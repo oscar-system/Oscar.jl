@@ -314,6 +314,8 @@ end
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat
   @test_throws ErrorException("no transition matrix available using local orderings") saturated_ideal(L(J_sat); with_generator_transition=true)
+  JJ = ideal(R, [y*(x^2+(y^2+1)^2)])
+  @test saturated_ideal(JJ) == JJ
 end
 
 @testset "zero divisors" begin
@@ -340,8 +342,8 @@ end
   Z4x, (x, y) = Z4["x", "y"]
   f = 2*x
   @test is_zero_divisor(Z4(2))
-  @test is_zero_divisor(Z4x(2))
-  @test is_zero_divisor(f)
+  @test_broken is_zero_divisor(Z4x(2))
+  @test_broken is_zero_divisor(f)
   # At the moment, the Singular backend complains when the modulus of the coefficient 
   # ring is not a prime. So we leave the following tests out for the time being. 
 #  L, _ = localization(Z4x, Z4x(x))
