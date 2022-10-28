@@ -162,10 +162,6 @@ function modulus(L::MPolyQuoLocalizedRing)
   return get_attribute(L, :modulus)::ideal_type(localized_ring_type(L))
 end
 
-### for compatibility -- also provide modulus in the trivial case
-modulus(R::MPolyLocalizedRing)=ideal(R,[zero(R)])
-
-
 @Markdown.doc """
     quotient_ring(L::MPolyQuoLocalizedRing)
 
