@@ -433,6 +433,106 @@ Return `true` if `f` is zero, `false` otherwise.
 """
 iszero(f::AbstractFreeModElem) = iszero(coords(f))
 
+
+###############################################################################
+# FreeModElem term orderings
+###############################################################################
+
+function Orderings.lex(F::ModuleFP)
+   return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :lex))
+end
+
+function Orderings.revlex(F::ModuleFP)
+   return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :revlex))
+end
+
+@doc Markdown.doc"""
+    cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+
+Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
+and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
+a partial ordering that does not distinguish `a` from `b`.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> F = FreeMod(R, 3);
+
+julia> cmp(lex(R)*lex(F), x*F[2], y*F[1])
+1
+
+julia> cmp(lex(F)*lex(R), x*F[2], y*F[1])
+-1
+
+julia> cmp(lex(F)*lex(R), x*F[1], x*F[1])
+0
+```
+"""
+function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+  A = coeffs(a)
+  B = coeffs(b)
+  @assert length(A.pos) == 1
+  @assert length(B.pos) == 1
+  av = A.values[1]
+  bv = B.values[1]
+  @assert is_monomial(av)
+  @assert is_monomial(bv)
+  ap = A.pos[1]
+  bp = B.pos[1]
+  c = Orderings._cmp_vector_monomials(ap, av, 1, bp, bv, 1, ord.o)
+  if c == 0 && (ap != bp || av != bv)
+    error("$a and $b are incomparable with respect to $ord")
+  end
+  return c
+end
+
+@doc Markdown.doc"""
+    permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+
+Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
+`ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
+"""
+function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
+  ff = coeffs(f)
+  p = collect((i, j) for i in ff.pos for j in 1:length(f[i]))
+  sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
+                                             l[1], ff[l[1]], l[2], ord.o) > 0))
+  return p
+end
+
+@doc Markdown.doc"""
+    terms(f::FreeModElem, ord::ModuleOrdering)
+
+Return an iterator for the terms of `f` in the order `ord`.
+"""
+function terms(f::FreeModElem, ord::ModuleOrdering)
+  p = Orderings.permutation_of_terms(f, ord)
+  F = parent(f)
+  return (term(f[i], j)*F[i] for (i, j) in p)
+end
+
+function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
+  f = a.first
+  x = symbols(base_ring(parent(f)))
+  e = generator_symbols(parent(f))
+  s = Expr(:call, :+)
+  for (i, j) in Orderings.permutation_of_terms(f, a.second)
+    prod = Expr(:call, :*)
+    fi = f[i]
+    c = coeff(fi, j)
+    if !isone(c)
+      push!(prod.args, expressify(c, context = context))
+    end
+    _push_monomial_expr!(prod, x, exponent_vector(fi, j))
+    push!(prod.args, e[i])
+    push!(s.args, prod)
+  end
+  return s
+end
+
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}
+
 ###############################################################################
 # ModuleGens constructors
 ###############################################################################
@@ -1138,32 +1238,10 @@ function show_gb(io::IO, GB::ModuleGens)
 end
 
 function show_groebner_basis_helper(io::IO, sub::ModuleGens, init::String)
-  F = sub.F
-
   print(io, init)
-
-  # TODO Remove this / use Oscar orderings when available
-  singular_assure(sub)
-  vectors = Vector{Vector{elem_type(F)}}(undef, length(sub.O))
-  for i in 1:length(sub.O)
-    monomials = []
-    v = sub.S[i]
-    l = Singular.lead(v)
-    while !iszero(l)
-      push!(monomials, l)
-      v = v - l
-      l = Singular.lead(v)
-    end
-    monomials = Vector{elem_type(F)}(map(x -> F(x), monomials))
-    vectors[i] = monomials
-  end
-
-  for v in vectors
+  for g in oscar_generators(sub)
     print(io, "\n")
-    print(io, v[1])
-    for i in 2:length(v)
-      print(io, " + ", v[i])
-    end
+    print(io, OscarPair(g, sub.ordering))
   end
 end
 
