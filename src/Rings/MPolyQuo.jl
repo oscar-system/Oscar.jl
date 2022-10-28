@@ -35,8 +35,6 @@ Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 base_ring(W::MPolyQuo) = W.R
 coefficient_ring(W::MPolyQuo) = coefficient_ring(base_ring(W))
 modulus(W::MPolyQuo) = W.I
-# for convenience of the scripting user make modulus agnostic
-modulus(W::MPolyRing) = ideal(W,[zero(W)])
 
 default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
 
