@@ -1830,7 +1830,7 @@ function Base.in(
   # We have to call for that groebner basis once manually. 
   # Otherwise the ideal membership will complain about the ordering not being global.
   o = negdegrevlex(gens(R))
-  std_basis(Is, o)
+  standard_basis(Is, ordering=o)
   return ideal_membership(shift(numerator(a)), Is, ordering=o)
 end
 
@@ -1992,7 +1992,7 @@ function Base.in(
   o = ordering(inverted_set(parent(a)))
   # We have to call for that groebner basis once manually. 
   # Otherwise the ideal membership will complain about the ordering not being global.
-  std_basis(J, o)
+  standard_basis(J, ordering=o)
   return ideal_membership(p, J, ordering=o)
 end
 

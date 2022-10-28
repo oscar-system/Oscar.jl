@@ -292,7 +292,7 @@ function show(io::IO, I::IdealGens)
       print(io, "Standard basis with elements")
     end
     for (i,g) in enumerate(gens(I))
-      print(io, "\n", i, " -> ", AbstractAlgebra.expr_to_string(AbstractAlgebra.canonicalize(Expr(:call, :+, map(expressify, terms(g, I.ord))...))))
+      print(io, "\n", i, " -> ", OscarPair(g, I.ord))
     end
   else
     print(io, "Ideal generating system with elements")
@@ -928,6 +928,36 @@ end
 function leading_monomial(f::MPolyElem)
   return leading_monomial(f, ordering(parent(f)))
 end
+
+function _push_monomial_expr!(prod::Expr, x::AbstractVector, e::AbstractVector)
+  for i in 1:length(e)
+    ei = e[i]
+    if iszero(ei)
+    elseif isone(ei)
+      push!(prod.args, x[i])
+    else
+      push!(prod.args, Expr(:call, :^, x[i], ei))
+    end
+  end
+end
+
+function expressify(a::OscarPair{<:MPolyElem, <:MonomialOrdering}; context = nothing)
+  f = a.first
+  x = symbols(parent(f))
+  s = Expr(:call, :+)
+  for j in Orderings.permutation_of_terms(f, a.second)
+    prod = Expr(:call, :*)
+    c = coeff(f, j)
+    if !isone(c)
+      push!(prod.args, expressify(c, context = context))
+    end
+    _push_monomial_expr!(prod, x, exponent_vector(f, j))
+    push!(s.args, prod)
+  end
+  return s
+end
+
+@enable_all_show_via_expressify OscarPair{<:MPolyElem, <:MonomialOrdering}
 
 ##############################################################################
 #
