@@ -44,6 +44,7 @@ polynomial ring ``P = 𝕜[x₁,…,xₙ]`` with natural coercion
 ring ``S`` and any homomorphism ``φ : R → S`` there is a morphism 
 ``ψ : P → S`` factoring through ``φ`` and such that ``φ`` 
 is uniquely determined by ``ψ``.
+For simplicity of use, ambient_ring(R) also returns ambient_ring(Spec(R)).
 """
 function ambient_ring(X::AbsSpec)
   return ambient_ring(underlying_scheme(X))::MPolyRing
@@ -202,7 +203,10 @@ ambient_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
 ambient_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
 ambient_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
 ambient_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
-
+ambient_ring(R::MPolyRing) = R
+ambient_ring(R::MPolyQuo) = base_ring(R)
+ambient_ring(R::MPolyLocalizedRing) = base_ring(R)
+ambient_ring(R::MPolyQuoLocalizedRing) = base_ring(R)
 
 @attr String function name(X::Spec)
   return "unnamed affine variety"
