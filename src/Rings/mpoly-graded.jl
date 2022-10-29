@@ -1528,7 +1528,7 @@ end
 
 function hilbert_series(H::HilbertData, i::Int= 1)
   Zt, t = ZZ["t"]
-  den = prod([1-t^H.weights[i] for i = 1:ngens(base_ring(H.I))])
+  den = prod([1-t^w for w in H.weights])
   if i==1   ### the Hilbert series with denominator prod (1-t^H.weights[i])
     return Zt(map(fmpz, H.data[1:end-1])), den
   elseif i==2   ### the reduced Hilbert series
@@ -1544,11 +1544,7 @@ end
 #Decker-Lossen, p23/24
 function hilbert_polynomial(H::HilbertData)
 
-  for i = 1:ngens(base_ring(H.I))
-     if H.weights[i] != 1
-       throw(ArgumentError("All weights must be 1."))
-     end
-  end
+  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
   
   q, dn = hilbert_series(H, 2)
   a = fmpq[]
@@ -1573,18 +1569,16 @@ end
 
 function Oscar.degree(H::HilbertData)
 
-  for i = 1:ngens(base_ring(H.I))
-     if H.weights[i] != 1
-       throw(ArgumentError("All weights must be 1."))
-     end
-  end
+  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
   
   P = hilbert_polynomial(H)
-  if P==zero(parent(P))
+  if iszero(P)
      q, _ = hilbert_series(H, 2)
      return q(1)
   end
-  return leading_coefficient(P)*factorial(degree(P))
+  deg = leading_coefficient(P)*factorial(ZZ(degree(P)))
+  @assert isone(denominator(deg))
+  return numerator(deg)
 end
 
 function (P::FmpqRelSeriesRing)(H::HilbertData)
@@ -1605,9 +1599,9 @@ function hilbert_series_expanded(H::HilbertData, d::Int)
 end
 
 function hilbert_function(H::HilbertData, d::Int)
-   if d<0 return 0 end
-   HS = hilbert_series_expanded(H,d)
-   return coeff(hilbert_series_expanded(H, d), d)
+   d < 0 && QQ(0)
+   HS = hilbert_series_expanded(H, d)
+   return coeff(HS, d)
 end
 
 function Base.show(io::IO, h::HilbertData)
