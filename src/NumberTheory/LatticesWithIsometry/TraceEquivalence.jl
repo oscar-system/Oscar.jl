@@ -73,12 +73,18 @@ polynomial, return the corresponding hermitian lattice over $E/K$ where `E` is t
 `n`th cyclotomic field and `K` is a maximal real subfield of `E`, where the
 multiplication by the `n`th root of unity correspond to the mapping via `f`.
 """
-function inverse_trace_lattice(L::ZLat, f::fmpq_mat; n::Integer = -1, check::Bool = true)
+function inverse_trace_lattice(L::ZLat, f::fmpq_mat; n::Integer = -1, check::Bool = true,
+                                                     ambient_representation::Bool = true)
   if n <= 0
     Oscar._exponent(f)
   end
   
   @req n > 0 "f is not of finite exponent"
+
+  if ambient_representation
+    ok, f = can_solve_with_solution(basis_matrix(L), basis_matrix(L)*f, side =:left)
+    @req ok "Isometry does not restrict to L"
+  end
 
   if check
     @req n >= 3 "No hermitian inverse trace lattice for order less than 3"
@@ -95,7 +101,7 @@ function inverse_trace_lattice(L::ZLat, f::fmpq_mat; n::Integer = -1, check::Boo
   # We choose as basis for the hermitian lattice Lh the identity matrix
   gram = matrix(zeros(E, m,m))
   G = gram_matrix(L)
-  v = zero_matrix(QQ, 1, degree(L))
+  v = zero_matrix(QQ, 1, rank(L))
 
   for i=1:m
     for j=1:m

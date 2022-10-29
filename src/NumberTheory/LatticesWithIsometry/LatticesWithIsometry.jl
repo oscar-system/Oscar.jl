@@ -1,5 +1,5 @@
 export hermitian_structure, isometry, lattice_with_isometry, order_of_isometry,
-       type
+       type, ambient_isometry, image_centralizer_in_Oq, coinvariant_lattice
     
 ###############################################################################
 #
@@ -22,21 +22,29 @@ end
 @doc Markdown.doc"""
     lattice(Lf::LatticeWithIsometry) -> ZLat
 
-Given a lattice with isometry `Lf`, return the underlying lattice `L`.
+Given a lattice with isometry `(L, f)`, return the underlying lattice `L`.
 """
 lattice(Lf::LatticeWithIsometry) = Lf.Lb
 
 @doc Markdown.doc"""
     isometry(Lf::LatticeWithIsometry) -> fmpq_mat
 
-Given a lattice with isometry `Lf`, return the underlying isometry `f`.
+Given a lattice with isometry `(L, f)`, return the underlying isometry `f`.
 """
 isometry(Lf::LatticeWithIsometry) = Lf.f
 
 @doc Markdown.doc"""
+   ambient_isometry(Lf::LatticeWithIsometry) -> fmpq_mat
+
+   Given a lattice with isometry `(L, f)`, return an isometry of underlying isometry
+of the ambient space of `L` inducing `f` on `L`
+"""
+ambient_isometry(Lf::LatticeWithIsometry) = Lf.f_ambient
+
+@doc Markdown.doc"""
     order_of_isometry(Lf::LatticeWithIsometry) -> Integer
 
-Given a lattice with isometry `Lf`, return the order of the underlying
+Given a lattice with isometry `(L, f)`, return the order of the underlying
 isometry `f`.
 """
 order_of_isometry(Lf::LatticeWithIsometry) = Lf.n
@@ -50,7 +58,7 @@ order_of_isometry(Lf::LatticeWithIsometry) = Lf.n
 @doc Markdown.doc"""
     rank(Lf::LatticeWithIsometry) -> Integer
 
-Given a lattice with isometry `Lf`, return the rank of the underlying lattice
+Given a lattice with isometry `(L, f)`, return the rank of the underlying lattice
 `L`.
 """
 rank(Lf::LatticeWithIsometry) = rank(lattice(Lf))
@@ -58,7 +66,7 @@ rank(Lf::LatticeWithIsometry) = rank(lattice(Lf))
 @doc Markdown.doc"""
     charpoly(Lf::LatticeWithIsometry) -> fmpq_poly
 
-Given a lattice with isometry `Lf`, return the characteristic polynomial of the
+Given a lattice with isometry `(L, f)`, return the characteristic polynomial of the
 underlying isometry `f`.
 """
 charpoly(Lf::LatticeWithIsometry) = charpoly(isometry(Lf))
@@ -66,7 +74,7 @@ charpoly(Lf::LatticeWithIsometry) = charpoly(isometry(Lf))
 @doc Markdown.doc"""
     minpoly(Lf::LatticeWithIsometry) -> fmpq_poly
 
-Given a lattice with isometry `Lf`, return the minimal polynomial of the
+Given a lattice with isometry `(L, f)`, return the minimal polynomial of the
 underlying isometry `f`.
 """
 minpoly(Lf::LatticeWithIsometry) = minpoly(isometry(Lf))
@@ -74,13 +82,19 @@ minpoly(Lf::LatticeWithIsometry) = minpoly(isometry(Lf))
 @doc Markdown.doc"""
     genus(Lf::LatticeWithIsometry) -> ZGenus
 
-Given a lattice with isometry `Lf`, return the genus of the underlying 
+Given a lattice with isometry `(L, f)`, return the genus of the underlying 
 lattice `L`.
 
 For now, in order for the genus to exist, the lattice must be integral.
 """
 genus(Lf::LatticeWithIsometry) = begin; L = lattice(Lf); is_integral(L) ? genus(L) : error("Underlying lattice must be integral"); end
 
+@doc Markdown.doc"""
+    ambient_space(Lf::LatticeWithIsometry) -> QuadSpace
+
+Given a lattice with isometry `(L, f)`, return the ambient space of the underlying
+lattice `L`.
+"""
 ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))
 
 ###############################################################################
@@ -90,53 +104,78 @@ ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))
 ###############################################################################
 
 @doc Markdown.doc"""
-    lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = true)
-				                      -> LatticeWithIsometry
+    lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = true,
+                                                            ambient_representation = true)
+				                                                                -> LatticeWithIsometry
 
 Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
 of `L` of finite order `n`, return the corresponding lattice with isometry
 pair $(L, f)$.
+
+If `ambient_representation` is set to true, `f` is consider as an isometry of the
+ambient space of `L` and the induced isometry on `L` is automatically computed.
+Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
+on the complement of the rational span of `L` if it is not of full rank.
 """
-function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = true)
+function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = true,
+                                                                 ambient_representation::Bool = true)
   if rank(L) == 0
     return LatticewithIsometry(L, matrix(QQ,0,0,[]), -1)
   end
 
   if check
     @req det(f) != 0 "f is not invertible"
-    G = gram_matrix(L)
-    @req f*G*transpose(f) == G "f does not define an isometry of L"
     m = Oscar._exponent(f)
-    @req m > 0 "f is not of finite exponent"
-    @req n == m "The order of f is not equal to n"
+    @req m > 0 "f is not finite"
+    @req n == m "The order of f is equal to $m, not $n"
   end
 
-  return LatticeWithIsometry(L, f, n)
+  if ambient_representation
+    f_ambient = f
+    B = basis_matrix(L)
+    ok, f = can_solve_with_solution(B, B*f_ambient, side = :left)
+    @req ok "Isometry does not restrict to f"
+  else
+    V = ambient_space(L)
+    B = basis_matrix(L)
+    B2 = orthogonal_complement(V, B)
+    C = vcat(B, B2)
+    f_ambient = block_diagonal_matrix([f, identity_matrix(QQ, nrows(B2))])
+    f_ambient = inv(C)*f_ambient*C
+  end
+
+  if check
+    @req f*gram_matrix(L)*transpose(f) == gram_matrix(L) "f does not define an isometry of L"
+    @req f_ambient*gram_matrix(ambient_space(L))*transpose(f_ambient) == gram_matrix(ambient_space(L)) "f_ambient is not an isometry of the ambient space of L"
+    @assert basis_matrix(L)*f_ambient == f*basis_matrix(L)
+  end
+
+  return LatticeWithIsometry(L, f, f_ambient, n)
 end
 
 @doc Markdown.doc"""
-    lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true)
-                                                      -> LatticeWithIsometry
+    lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true,
+                                                ambient_representation::Bool, = true)
+                                                                  -> LatticeWithIsometry
 
 Given a $\mathbb Z$-lattice `L` and a matrix `f`, if `f` defines an isometry
 of `L` of finite order, return the corresponding lattice with isometry
 pair $(L, f)$.
-"""
-function lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true)
-  if rank(L) == 0
-    return LatticeWithIsometry(L, matrix(QQ,0,0,[]), -1)
-  end
 
-  if check
-    @req det(f) != 0 "f is not invertibe"
-    G = gram_matrix(L)
-    @req f*G*transpose(f) == G "f does not define an isometry of L"
-    m = Oscar._exponent(f)
-    @req m > 0 "f is not of finite exponent"
+If `ambient_representation` is set to true, `f` is consider as an isometry of the
+ambient space of `L` and the induced isometry on `L` is automatically computed.
+Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
+on the complement of the rational span of `L` if it is not of full rank.
+"""
+function lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true,
+                                                     ambient_representation::Bool = true)
+  if rank(L) == 0
+      return LatticeWithIsometry(L, matrix(QQ,0,0,[]), matrix(QQ, 0, 0, []), -1)
   end
 
   n = Oscar._exponent(f)
-  return lattice_with_isometry(L, f, Int(n), check = false)
+  return lattice_with_isometry(L, f, Int(n), check = check,
+                               ambient_representation = ambient_representation)
 end
 
 @doc Markdown.doc"""
@@ -146,9 +185,9 @@ Given a $\mathbb Z$-lattice `L` return the lattice with isometry pair $(L, f)$,
 where `f` corresponds to the identity mapping of `L`.
 """
 function lattice_with_isometry(L::ZLat)
-  r = rank(L)
-  f = identity_matrix(QQ, r)
-  return lattice_with_isometry(L, f, check = false)
+  d = degree(L)
+  f = identity_matrix(QQ, d)
+  return lattice_with_isometry(L, f, check = false, ambient_representation = true)
 end
 
 ###############################################################################
@@ -174,7 +213,8 @@ If it exists, the hermitian structure is cached.
   
   @req n >= 3 "No hermitian structures for n smaller than 3"
 
-  return inverse_trace_lattice(lattice(Lf), f, n = n, check = true)
+  return inverse_trace_lattice(lattice(Lf), f, n = n, check = true,
+                                                      ambient_representation = false)
 end
 
 ###############################################################################
@@ -192,19 +232,17 @@ of the underlying lattice `L` as well as this image of the underlying isometry
 """
 function discriminant_group(Lf::LatticeWithIsometry)
   L = lattice(Lf)
-  f = isometry(Lf)
+  f = ambient_isometry(Lf)
   @req is_integral(L) "Underlying lattice must be integral"
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
-  f_ambient = inv(basis_matrix(L))*f*basis_matrix(L)
-  return q, Oq(gens(matrix_group(f_ambient))[1])
+  return q, Oq(gens(matrix_group(f))[1])
 end
 
 @attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
   n = order_of_isometry(Lf)
   L = lattice(Lf)
-  f = isometry(Lf)
-  f = inv(basis_matrix(L))*f*basis_matrix(L)
+  f = ambient_isometry(Lf)
   @req is_integral(L) "Underlying lattice must be integral"
   if n == 1
     GL, _ = image_in_Oq(L)
@@ -294,14 +332,14 @@ function kernel_lattice(Lf::LatticeWithIsometry, p::fmpq_poly)
   f = isometry(Lf)
   M = p(f)
   k, K = left_kernel(change_base_ring(ZZ, M))
-  L2 = Zlattice(gram = K*gram_matrix(L)*transpose(K))
+  L2 = lattice_in_same_ambient_space(L, K*basis_matrix(L))
   f2 = solve_left(change_base_ring(QQ, K), K*f)
   @assert f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
   chi = parent(p)(collect(coefficients(minpoly(f2))))
   chif = parent(p)(collect(coefficients(minpoly(Lf))))
   _chi = gcd(p, chif)
   @assert (rank(L2) == 0) || (chi == _chi)
-  return lattice_with_isometry(L2, f2, check = false)
+  return lattice_with_isometry(L2, f2, check = true, ambient_representation = false)
 end
 
 kernel_lattice(Lf::LatticeWithIsometry, p::fmpz_poly) = kernel_lattice(Lf, change_base_ring(QQ, p))
@@ -341,7 +379,7 @@ end
   for l in divs
     Hl = kernel_lattice(Lf, Oscar._cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false)
+      Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))

@@ -231,9 +231,7 @@ admissible_triples(L::ZLat, p::Integer) = admissible_triples(genus(L), p)
 
 function _get_V(q, f, fq, mu, p)
   L = relations(q)
-  f_ambient = inv(basis_matrix(L))*f*basis_matrix(L)
-  @assert f*gram_matrix(L)*transpose(f) == gram_matrix(L)
-  f_mu = mu(f_ambient)
+  f_mu = mu(f)
   if !is_zero(f_mu)
     @assert det(f_mu) != 0
     L_sub = intersect(lattice_in_same_ambient_space(L, inv(f_mu)), dual(L))
@@ -272,6 +270,12 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # requirement for the algorithm of BH22
   @req is_prime(p) "p must be a prime number"  
   A, B, C = lattice.([Afa, Bfb, Cfc])
+  
+  if ambient_space(Afa) === ambient_space(Bfb)
+    @req rank(intersect(A, B)) == 0 "Lattice in same ambient space must have empty intersection to glue"
+    @req rank(A) + rank(B) <= dim(ambient_space(A)) "Lattice cannot glue in their ambient space"
+  end
+
   @req is_admissible_triple(A, B, C, p) "(A, B, C) must be p-admissble"
   # we need to compare the type of the output with the one of (C, f_c^p)
   t = type(Cfc)
@@ -287,7 +291,11 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   GB = image_centralizer_in_Oq(Bfb)
 
   # this is where we will perform the glueing
-  D, qAinD, qBinD = orthogonal_sum(qA, qB)
+  if ambient_space(Afa) === ambient_space(Bfb)
+    D, qAinD, qBinD = inner_orthoognal_sum(qA, qB)
+  else
+    D, qAinD, qBinD = orthogonal_sum(qA, qB)
+  end
   OD = orthogonal_group(D)
   OqAinOD, OqBinOD = embedding_orthogonal_group(qAinD, qBinD)
   OqA = domain(OqAinOD)
@@ -300,10 +308,18 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     geneB = OqBinOD.(gens(GB))
     gene = vcat(geneA, geneB)
     GC2 = sub(OD, gene)[1]
-    C2 = orthogonal_sum(A, B)[1]
-    fC2 = block_diagonal_matrix(fA, fB)
+    if ambient_space(Afa) === ambient_space(Bfb)
+      C2 = A+B
+      fC2 = block_diagonal_matrix([fA, fB])
+      _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
+      fC2 = _B*fC2*inv(_B)
+      @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
+    else
+      C2 = orthogonal_sum(A, B)[1]
+      fC2 = block_diagonal_matrix(fA, fB)
+    end
     if type(lattice_wit_isometry(C2, fC2^p)) == t
-        C2fC2 = lattice_wit_isometry(C2, fC2)
+      C2fC2 = lattice_wit_isometry(C2, fC2, ambient_representation=false)
       set_attribute!(C2fC2, :image_centralizer_in_Oq, GC2)
       push!(results, C2fC2)
     end
@@ -311,8 +327,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   end
 
   # these are GA/GM-invariant, fA/fB-stable, and should contain the kernels of any glue map
-  VA, VAinqA, fVA = _get_V(qA, fA, fqA, minpoly(Bfb), p)
-  VB, VBinqB, fVB = _get_V(qB, fB, fqB, minpoly(Afa), p)
+  VA, VAinqA, fVA = _get_V(qA, ambient_isometry(Afa), fqA, minpoly(Bfb), p)
+  VB, VBinqB, fVB = _get_V(qB, ambient_isometry(Bfb), fqB, minpoly(Afa), p)
   
   # since the glue kernels must have order p^g, in this condition, we have nothing
   if min(order(VA), order(VB)) < p^g
@@ -367,7 +383,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # we get all the elements of qB of order exactly p^l, which are not mutiple of an
     # element of order p^{l+1}. In theory, glue maps are classified by the orbit of phi
     # under the action of O(SB, rho_l(qB), fB)
-    rBinqB = _rho_functor(qB, p, valuation(l, p))
+    rBinqB = _rho_functor(qB, p, valuation(l, p)+1)
     @assert Oscar._is_invariant(stabB, rBinqB) # otherwise there is something wrong!
     #return rBinqB, SBinqB
     rBinSB = hom(domain(rBinqB), SB, [SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
@@ -401,24 +417,32 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     for g in reps
       g = representative(g)
       phig = compose(phi, hom(g))
-      # problem of lattices that are not in the same ambient space...
-      # TODO: fix `overlattice` or change something somewhere...
       S = relations(domain(phig))
       R = relations(codomain(phig))
-      glue = [lift(qAinD(SAinqA(g))) + lift(qBinD(SBinqB(phig(g)))) for g in gens(domain(phig))]
-      z = zero_matrix(QQ,0,degree(S)+degree(R))
-      glue = reduce(vcat, [matrix(QQ,1,degree(S)+degree(R),g) for g in glue], init=z)
-      glue = vcat(block_diagonal_matrix([basis_matrix(S), basis_matrix(R)]), glue)
-      glue = FakeFmpqMat(glue)
-      B = hnf(glue)
-      B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(B))
-      C2 = lattice(ambient_space(cover(D)), B[end-rank(S)-rank(R)+1:end, :])
-      fC2 = block_diagonal_matrix([fA, fB])
-      fC2 = basis_matrix(C2)*fC2*inv(basis_matrix(C2))
-      if type(lattice_with_isometry(C2, fC2^p)) != t
+      if ambient_space(R) === ambient_space(S)
+        C2 = overlattice(phig)
+        fC2 = block_diagonal_matrix([fA, fB])
+        _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
+        fC2 = _B*fC2*inv(_B)
+        @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
+      else
+        glue = [lift(qAinD(SAinqA(g))) + lift(qBinD(SBinqB(phig(g)))) for g in gens(domain(phig))]
+        z = zero_matrix(QQ,0,degree(S)+degree(R))
+        glue = reduce(vcat, [matrix(QQ,1,degree(S)+degree(R),g) for g in glue], init=z)
+        glue = vcat(block_diagonal_matrix([basis_matrix(S), basis_matrix(R)]), glue)
+        glue = FakeFmpqMat(glue)
+        _B = hnf(glue)
+        _B = QQ(1, denominator(glue))*change_base_ring(QQ, numerator(_B))
+        C2 = lattice(ambient_space(cover(D)), _B[end-rank(S)-rank(R)+1:end, :])
+        fC2 = block_diagonal_matrix([fA, fB])
+        __B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C2))
+        fC2 = __B*fC2*inv(__B)
+        @assert fC2*gram_matrix(C2)*transpose(fC2) == gram_matrix(C2)
+      end
+      if type(lattice_with_isometry(C2, fC2^p, ambient_representation=false)) != t
         continue
       end
-      C2fC2 = lattice_with_isometry(C2, fC2)
+      C2fC2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
       im2_phi = sub(OSA, OSA.([compose(phig, compose(hom(g1), inv(phig))) for g1 in gens(imB)]))[1]
       im3, _ = sub(imA, gens(intersect(imA, im2_phi)[1]))
       stab = [(x, imB(compose(inv(phig), compose(hom(x), phig)))) for x in gens(im3)]

@@ -1,5 +1,149 @@
 GG = GAP.Globals
 
+################################################################################
+#
+# Inner orthogonal sum
+#
+################################################################################
+
+function inner_orthogonal_sum(T::TorQuadMod, U::TorQuadMod)
+  @assert modulus_bilinear_form(T) == modulus_bilinear_form(U)
+  @assert modulus_quadratic_form(T) == modulus_quadratic_form(U)
+  @assert ambient_space(cover(T)) === ambient_space(cover(U))
+  cS = cover(T)+cover(U)
+  rS = relations(T)+relations(U)
+  geneT = [lift(a) for a in gens(T)]
+  geneU = [lift(a) for a in gens(U)]
+  S = torsion_quadratic_module(cS, rS, gens = vcat(geneT, geneU), modulus = modulus_bilinear_form(T), modulus_qf = modulus_quadratic_form(T))
+  TinS = hom(T, S, S.(geneT))
+  UinS = hom(U, S, S.(geneU))
+  return S, TinS, UinS
+end
+
+###############################################################################
+#
+# orthogonal group degenerate form
+#
+###############################################################################
+
+function _normalize(T::TorQuadMod)
+  if order(T) == 1
+    return T, id_hom(T)
+  end
+  @assert is_prime(elementary_divisors(T)[end])
+  @assert is_degenerate(T)
+  p = exponent(T)
+  qT = Hecke.gram_matrix_quadratic(T)
+  if p == 2
+    qT = 1//modulus_quadratic_form(T)*qT
+  else
+    qT = 1//modulus_bilinear_form(T)*qT
+  end
+  r = rank(qT)
+  if r != ncols(qT)
+    dT = denominator(qT)
+    _, U = hnf_with_transform(change_base_ring(ZZ, dT*qT))
+  else
+    U = identity_matrix(QQ, r)
+  end
+  nondeg = U[1:r, :]
+  kernel = U[r+1:end, :]
+  qT = nondeg*qT*transpose(nondeg)
+
+  qT1 = inv(qT)
+  prec = 6
+  D, U = Hecke.padic_normal_form(qT1, p, prec=prec, partial=false)
+  R = ResidueRing(ZZ, ZZ(p)^prec)
+  U = map_entries(x -> R(ZZ(x)), U)
+  U = transpose(inv(U))
+  dT = denominator(qT)
+  qTR = map_entries(x -> R(ZZ(x)), dT*qT)
+  D = U*qTR*transpose(U)
+  D = map_entries(x -> R(mod(lift(x), dT)), D)
+  if p != 2
+    m = ZZ(modulus_quadratic_form(T)//modulus_bilinear_form(T))
+    D = R(m)^-1*D
+  end
+
+  D1, U1 = Hecke._normalize(D, ZZ(p), false)
+  U = U1*U
+  nondeg = U*map_entries(x -> R(ZZ(x)), nondeg)
+  U = vcat(nondeg, map_entries(x -> R(ZZ(x)), kernel))
+  @assert nrows(U) == ncols(U)
+
+  n = ncols(U)
+  gene = TorQuadModElem[]
+  for i in 1:n
+    g = sum(lift(U[i,j])*T[j] for j in 1:ncols(U))
+    push!(gene, g)
+  end
+  D, DtoT = sub(T, gene)
+  if !is_degenerate(D)
+    return D, DtoT
+  end
+  gene = gens(D)
+  qb = Hecke.gram_matrix_bilinear(D)
+  n = ngens(D)
+
+  kergens = [gene[i] for i in 1:n if is_zero(qb[i,:])]
+  nondeg = [gene[i] for i in 1:n if !(gene[i] in kergens)]
+  k = length(kergens)
+
+  for i in 1:k
+    if Hecke.quadratic_product(kergens[i]) == 1
+      for j in i+1:k
+        if Hecke.quadratic_product(kergens[j]) == 1
+          kergens[j] += kergens[i]
+        end
+      end
+      kergens = reduce(vcat, [kergens[1:i-1], kergens[i+1:end], [kergens[i]]])
+      break
+    end
+  end
+  gene = vcat(kergens, nondeg)
+  D2, D2inD = sub(D, gene)
+  return D2, compose(D2inD, DtoT)
+end
+
+function orthogonal_group_degenerate(T::TorQuadMod)
+  @req is_degenerate(T) "T must be degenerate"
+  @req is_prime(elementary_divisors(T)[end]) "T must define a F_p-vector space"
+  p = elementary_divisors(T)[end]
+  n = ngens(T)
+  NT, NTtoT = _normalize(T)
+  @assert is_bijective(NTtoT)
+  q = Hecke.gram_matrix_quadratic(NT)
+  k = length([i for i in 1:n if iszero(q[:,i])])
+  r = n-k
+  Idk = identity_matrix(ZZ, k)
+  Idr = identity_matrix(ZZ, r)
+  NR, NRtoNT = sub(NT, [NT[i] for i in k+1:n])
+  @assert !is_degenerate(NR)
+  gensNR = [hom(g) for g in gens(orthogonal_group(NR))]
+  if k > 0
+    gene_im = [block_diagonal_matrix([Idk, g.map_ab.map]) for g in gensNR]
+    gene_im = union(gene_im, [block_diagonal_matrix([lift(matrix(g)), Idr]) for g in gens(general_linear_group(k, GF(p)))])
+  else
+    gene_im = [g.map_ab.ab for g in gensNR]
+  end
+  if k*r > 0
+    bas = fmpz_mat[lift(matrix(GF(p), m)) for m in GAP.Globals.Basis(GAP.Globals.MatrixSpace(GAP.Globals.GF(GAP.julia_to_gap(p)), k, r))]
+    gene2 = []
+    for g in bas
+      s = identity_matrix(ZZ, n)
+      s[1:k, k+1:end] = g
+      push!(gene_im, s)
+    end
+    MG1 = matrix_group([map_entries(GF(p), m) for m in gene_im])
+    MG2 = matrix_group([map_entries(GF(p), m) for m in vcat(gene_im, gene2)])
+    gene3 = lift.(matrix.(representative.(double_cosets(MG2, MG1, MG1))))
+    gene_im = unique(vcat(gene_im, gene3))
+  end
+  geneOT = [hom(NT, NT, g) for g in gene_im]
+  geneOT = [compose(compose(inv(NTtoT), g), NTtoT).map_ab.map for g in geneOT]
+  return _orthogonal_group(T, geneOT, check=false)
+end
+
 ###############################################################################
 #
 #  Cyclotomic polynomials
@@ -202,13 +346,14 @@ function _subgroups_representatives(Vinq::TorQuadModMor, G::AutomorphismGroup{To
 
   if dim(Qp) == 0
     if order(V) == p^g
-        return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[(Vinq, G)]
+      return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[(Vinq, G)]
     end
     return Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[]
   end
 
-  gene_GV = TorQuadModMor[_restrict(g, Vinq) for g in gens(G)]
-  GV = Oscar._orthogonal_group(V, [m.map_ab.map for m in gene_GV])
+  OV = is_degenerate(V) ? orthogonal_group_degenerate(V) : orthogonal_group(V)
+  gene_GV = TorQuadModMor[OV(_restrict(g, Vinq)) for g in gens(G)]
+  GV, _ = sub(OV, gene_GV)
   @assert GV(f) in GV
   GVinG = hom(GV, G, gens(GV), gens(G))
 
