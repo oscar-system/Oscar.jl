@@ -80,13 +80,11 @@ julia> hilbert_series(A)
 (-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
-function hilbert_series(A:: MPolyQuo)
+function hilbert_series(A::MPolyQuo)
    if iszero(A.I)
       R = base_ring(A.I)
-      W = R.d
-      W = [Int(W[i][1]) for i = 1:ngens(R)]   
       Zt, t = ZZ["t"]
-      den = prod([1-t^W[i] for i = 1:ngens(base_ring(A.I))])
+      den = prod([1-t^Int(w) for w in R.d])
       return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
@@ -192,7 +190,7 @@ julia> hilbert_function(A, 5)
 """
 function hilbert_function(A::MPolyQuo, d::Int)
    if iszero(A.I)
-       n = ngens(A)
+       n = QQ(ngens(A))
        return binomial(n-1+d, n-1)
      end
    H = HilbertData(A.I)
@@ -218,7 +216,7 @@ julia> hilbert_polynomial(A)
 """
 function hilbert_polynomial(A::MPolyQuo)::fmpq_poly
    if iszero(A.I)
-       n = ngens(A)
+       n = QQ(ngens(A))
        Qt, t = QQ["t"]
        b = one(parent(t))
        for i=1:(n-1)
@@ -250,7 +248,7 @@ julia> degree(A)
 """
 function degree(A::MPolyQuo)
    if iszero(A.I)
-       return 1
+       return ZZ(1)
      end
    H = HilbertData(A.I)
    return degree(H)

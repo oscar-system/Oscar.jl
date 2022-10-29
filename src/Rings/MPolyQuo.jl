@@ -28,10 +28,10 @@ function show(io::IO, Q::MPolyQuo)
   print(io, "Quotient of $(Q.R) by $(Q.I)")
 end
 
-gens(Q::MPolyQuo) = [Q(x) for x = gens(Q.R)]
-ngens(Q::MPolyQuo) = ngens(Q.R)
-gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
-Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
+gens(Q::MPolyQuo) = [Q(x) for x = gens(Q.R)]::Vector{elem_type(Q)}
+ngens(Q::MPolyQuo) = ngens(Q.R)::Int
+gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))::elem_type(Q)
+Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])::elem_type(Q)
 base_ring(W::MPolyQuo) = W.R
 coefficient_ring(W::MPolyQuo) = coefficient_ring(base_ring(W))
 modulus(W::MPolyQuo) = W.I
