@@ -15,6 +15,24 @@ end
     automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{GrpAbFinGen} 
 
 Return the automorphism group of `G`.
+
+# Examples
+```jldoctest
+julia> A = abelian_group(PcGroup,[2,2])
+<pc group of size 4 with 2 generators>
+
+julia> AutA=automorphism_group(A)
+Aut( <pc group of size 4 with 2 generators> )
+
+julia> elements(AutA)
+6-element Vector{AutomorphismGroupElem{PcGroup}}:
+ [ f1, f2 ] -> [ f2, f1*f2 ]
+ [ f1, f2 ] -> [ f1*f2, f2 ]
+ [ f1, f2 ] -> [ f1, f1*f2 ]
+ [ f1, f2 ] -> [ f1*f2, f1 ]
+ [ f1, f2 ] -> [ f1, f2 ]
+ [ f1, f2 ] -> [ f2, f1 ]
+```
 """
 function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
