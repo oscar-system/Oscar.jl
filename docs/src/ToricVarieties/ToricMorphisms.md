@@ -56,6 +56,8 @@ domain(tm::ToricMorphism)
 image(tm::ToricMorphism)
 codomain(tm::ToricMorphism)
 grid_morphism(tm::ToricMorphism)
+morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
+morphism_on_cartier_divisor_group(tm::ToricMorphism)
 ```
 
 ## Properties of Toric Morhpisms
