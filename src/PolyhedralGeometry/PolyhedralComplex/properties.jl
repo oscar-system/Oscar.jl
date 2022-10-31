@@ -67,7 +67,7 @@ vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) w
 
 vertices_and_rays(PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(Union{PointVector{T}, RayVector{T}}, PC)
 
-_vector_matrix(::Val{_vertex_or_ray_polyhedron}, PC::Polymake.BigObject; homogenized = false) = @view PC.VERTICES[:, (homogenized ? 1 : 2):end]
+_vector_matrix(::Val{_vertex_or_ray_polyhedron}, PC::Polymake.BigObject; homogenized = false) = homogenized ? PC.VERTICES : @view PC.VERTICES[:, 2:end]
 
 vertices(::Type{PointVector}, PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(PointVector{T}, PC)
 
