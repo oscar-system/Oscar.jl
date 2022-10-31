@@ -50,6 +50,7 @@ DirectProduct of 2-element Vector{PermGroup}:
  Sym( [ 1 .. 3 ] )
  Sym( [ 1 .. 2 ] )
 
+
 julia> elements(G)
 12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
  ()
@@ -183,6 +184,7 @@ DirectProduct of 2-element Vector{PermGroup}:
  Sym( [ 1 .. 3 ] )
  Sym( [ 1 .. 2 ] )
 
+
 julia> as_perm_group(G)
 Group([ (1,2,3), (1,2), (4,5) ])
 ```
@@ -225,6 +227,7 @@ julia> G = direct_product(H,K)
 DirectProduct of 2-element Vector{PermGroup}:
  Sym( [ 1 .. 3 ] )
  Sym( [ 1 .. 2 ] )
+ 
 
 julia> emb1 = embedding(G,1)
 Group homomorphism from 
