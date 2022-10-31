@@ -107,7 +107,7 @@ end
 # if the codomain is graded, the images must be homogenous?!
 _isgraded(::NCRing) = false
 _isgraded(R::MPolyRing_dec) = is_graded(R) # filtered not considered graded
-_isgraded(R::MPolyQuo) = _isgraded(R.R)
+_isgraded(R::MPolyQuo) = _isgraded(base_ring(R))
 
 function _check_homo(S::NCRing, images)
   if _isgraded(S)
@@ -123,7 +123,7 @@ end
 
 _nvars(R::MPolyRing) = nvars(R)
 
-_nvars(R::MPolyQuo) = nvars(R.R)
+_nvars(R::MPolyQuo) = nvars(base_ring(R))
 
 function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map})
   if isdefined(f, :temp_ring)
