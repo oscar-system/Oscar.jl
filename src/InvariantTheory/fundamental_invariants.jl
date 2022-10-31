@@ -16,7 +16,7 @@ function _groebner_basis(I::MPolyIdeal, d::Int; ordering::MonomialOrdering = def
   G = Singular.with_degBound(d) do
         return Singular.std(J)
       end
-  BA = BiPolyArray(base_ring(I), G)
+  BA = IdealGens(base_ring(I), G)
   return BA
 end
 
@@ -31,7 +31,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   ordR = degrevlex(gens(R))
 
   S = elem_type(R)[]
-  G = BiPolyArray(R, elem_type(R)[])
+  G = IdealGens(R, elem_type(R)[])
   singular_assure(G, ordR)
   GO = elem_type(R)[]
 
@@ -55,7 +55,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
       I = ideal(R, GO)
 
       if total_degree(S[end]) == d - 2
-        GO = groebner_basis(I, ordering = ordR)
+        GO = gens(groebner_basis(I, ordering = ordR))
         if is_zero(dim(I))
           mons = gens(ideal(R, Singular.kbase(I.gb[ordR].S)))
           dmax = maximum( total_degree(f) for f in mons )

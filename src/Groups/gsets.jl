@@ -19,6 +19,7 @@ export
     transitivity
 
 export GSet, gset, orbits, as_gset, unwrap, permutation, action_homomorphism,
+    orbit_representatives_and_stabilizers,
     representative_action
 
 # G-sets are "sets" (in a very general sense, these do not need to be objects of type `Set`)
@@ -156,6 +157,11 @@ end
 ## action of matrices on vectors of vectors via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_tuples, Omega; closed = closed)
+end
+
+## action of matrices on subspaces via right multiplication
+function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: AbstractAlgebra.Generic.Submodule{E} where E where M
+  return GSetByElements(G, ^, Omega; closed = closed)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -418,8 +424,8 @@ julia> permutation(Omega, x)
 ```
 """
 function permutation(Omega::GSetByElements{T}, g::GAPGroupElem) where T<:GAPGroup
-    omega_list = GAP.julia_to_gap(elements(Omega))
-    gfun = GAP.julia_to_gap(action_function(Omega))
+    omega_list = GAP.Obj(elements(Omega))
+    gfun = GAP.Obj(action_function(Omega))
 
     # The following works only because GAP does not check
     # whether the given group element 'g' is a group element.
@@ -494,13 +500,13 @@ true
 """
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = acting_group(Omega)
-  omega_list = GAP.julia_to_gap(collect(Omega))
+  omega_list = GAP.Obj(collect(Omega))
   gap_gens = map(x -> x.X, gens(G))
-  gfun = GAP.julia_to_gap(action_function(Omega))
+  gfun = GAP.Obj(action_function(Omega))
 
   # The following works only because GAP does not check
   # whether the given generators in GAP and Julia fit together.
-  acthom = GAP.Globals.ActionHomomorphism(G.X, omega_list, GAP.julia_to_gap(gap_gens), GAP.julia_to_gap(gens(G)), gfun)
+  acthom = GAP.Globals.ActionHomomorphism(G.X, omega_list, GAP.Obj(gap_gens), GAP.Obj(gens(G)), gfun)
 
   # The first difficulty on the GAP side is `ImagesRepresentative`
   # (which is the easy direction of the action homomorphism):
@@ -516,7 +522,7 @@ true
   # (Yes, this is also overhead.
   # The alternative would be to create a new type of Oscar homomorphism,
   # which uses `permutation` or something better for mapping elements.)
-  GAP.Globals.SetJuliaData(acthom, GAP.julia_to_gap([Omega, G]))
+  GAP.Globals.SetJuliaData(acthom, GAP.Obj([Omega, G]))
 
   sym = get_attribute!(Omega, :action_range) do
     return symmetric_group(length(Omega))
@@ -917,3 +923,37 @@ false
 ```
 """
 is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(G.X, GapObj(L))
+
+"""
+    orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
+
+Return a vector of pairs `(orb, stab)` where `orb` runs over representatives
+of orbits of `G` on the `k`-dimensional subspaces of `F^n`,
+where `G` is a subgroup of `general_linear_group(F, n)`.
+
+# Examples
+```jldoctest
+julia> G = orthogonal_group(1, 4, GF(3))
+GO+(4,3)
+
+julia> res = orbit_representatives_and_stabilizers(G, 1);
+
+julia> length(res)
+3
+
+julia> print(sort([index(G, stab) for (U, stab) in res]))
+fmpz[12, 12, 16]
+```
+"""
+function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
+  F = G.ring
+  n = G.deg
+  q = GAP.Obj(order(F))
+  V = VectorSpace(F, n)
+  orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAP.Globals.GF(q)^n, k))
+  orbreps = [GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1])) for orb in orbs]
+  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]
+  orbreps = [[[F(x) for x in v] for v in bas] for bas in orbreps]
+  orbreps = [sub(V, [V(v) for v in bas])[1] for bas in orbreps]
+  return [(orbreps[i], stabs[i]) for i in 1:length(stabs)]
+end

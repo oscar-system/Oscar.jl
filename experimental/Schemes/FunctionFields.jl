@@ -1,7 +1,6 @@
-export VarietyFunctionField, function_field, FunctionField
+export function_field, FunctionField
 export representative_patch, variety, representative_field
 
-export VarietyFunctionFieldElem
 export representative
 
 
@@ -51,32 +50,8 @@ end
 end
 
 ########################################################################
-# Rational functions on irreducible varieties                          #
+# Methods for VarietyFunctionField                                     #
 ########################################################################
-
-mutable struct VarietyFunctionField{BaseRingType<:Field, 
-                                    FracFieldType<:AbstractAlgebra.Generic.FracField,
-                                    CoveredSchemeType<:AbsCoveredScheme,
-                                    SpecType<:AbsSpec
-                                   } <: Field
-  kk::BaseRingType
-  X::CoveredSchemeType
-  U::SpecType  # representative patch to represent rational functions
-  KK::FracFieldType
-
-  function VarietyFunctionField(
-      X::AbsCoveredScheme; 
-      check::Bool=true,
-      representative_patch::AbsSpec=default_covering(X)[1]
-    )
-    check && (is_irreducible(X) || error("variety is not irreducible"))
-    representative_patch in default_covering(X) || error("representative patch not found")
-    KK = FractionField(ambient_ring(representative_patch))
-    kk = base_ring(X)
-    return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
-  end
-end
-
 ### essential getters
 representative_patch(KK::VarietyFunctionField) = KK.U
 variety(KK::VarietyFunctionField) = KK.X
@@ -109,35 +84,9 @@ See [`function_field(X::CoveredScheme)`](@ref).
 """
 FunctionField(X::CoveredScheme; kw... ) = function_field(X; kw...)
 
-### elements of such function fields
-mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac, 
-                                        ParentType<:VarietyFunctionField
-                                       }
-  KK::ParentType
-  f::FracType
-
-  function VarietyFunctionFieldElem(
-      KK::VarietyFunctionField,
-      f::AbstractAlgebra.Generic.Frac;
-      check::Bool=true
-    )
-    representative_field(KK) == parent(f) || error("element does not have the correct parent")
-    return new{typeof(f), typeof(KK)}(KK, f)
-  end
-
-  function VarietyFunctionFieldElem(
-      KK::VarietyFunctionField,
-      a::RingElem, b::RingElem;
-      check::Bool=true
-    )
-    R = parent(a) 
-    R == parent(b) || error("parent rings not compatible")
-    R == base_ring(representative_field(KK))
-    f = representative_field(KK)(a, b)
-    return new{typeof(f), typeof(KK)}(KK, f)
-  end
-end
-
+########################################################################
+# Methods for VarietyFunctionFieldElem                                 #
+########################################################################
 ### essential getters 
 numerator(f::VarietyFunctionFieldElem) = numerator(f.f)
 denominator(f::VarietyFunctionFieldElem) = denominator(f.f)

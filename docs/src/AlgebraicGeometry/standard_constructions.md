@@ -15,8 +15,8 @@ Pages = ["standard_constructions.md"]
 This page documents a collection of standard constructions in algebraic geometry
 available in Oscar.
 
-## Grassman Plücker Ideal
+## Grassmann Plücker Ideal
 ```@docs
-grassman_pluecker_ideal
+grassmann_pluecker_ideal
 ```
 

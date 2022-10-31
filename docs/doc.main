@@ -75,6 +75,10 @@
         "Hecke/quad_forms/introduction.md",
         "Hecke/quad_forms/basics.md",
         "Hecke/quad_forms/lattices.md",
+        "Hecke/quad_forms/genusherm.md",
+        "Hecke/quad_forms/integer_lattices.md",
+        "Hecke/quad_forms/Zgenera.md",
+        "Hecke/quad_forms/discriminant_group.md"
      ],
   ],
 
@@ -111,17 +115,21 @@
       "PolyhedralGeometry/fans.md",
       "PolyhedralGeometry/polyhedral_complexes.md",
       "PolyhedralGeometry/linear_programs.md",
+      "PolyhedralGeometry/mixed_integer_linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
   ],
 
   "Commutative Algebra" => [
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
+     "CommutativeAlgebra/orderings.md",
+     "CommutativeAlgebra/groebner_bases.md",
      "CommutativeAlgebra/ideals.md",
      "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
      ],

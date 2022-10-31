@@ -45,6 +45,7 @@ affine_space(::Type{NormalToricVariety}, d::Int)
 del_pezzo_surface(b::Int)
 hirzebruch_surface(r::Int)
 projective_space(::Type{NormalToricVariety}, d::Int)
+weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Further Constructions

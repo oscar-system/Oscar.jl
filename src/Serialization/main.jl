@@ -220,9 +220,9 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
@@ -251,9 +251,9 @@ See [`save`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
@@ -284,12 +284,12 @@ See [`save`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 
-julia> load("fourtitwo.json", String)
+julia> load("/tmp/fourtitwo.json", String)
 ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
 ```
 """

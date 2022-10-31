@@ -23,9 +23,9 @@ on mathematics by mathematicians.
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
 ```
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 
 ```

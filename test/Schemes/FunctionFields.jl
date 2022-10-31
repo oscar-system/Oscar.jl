@@ -9,7 +9,7 @@
   P = projective_space(QQ, 2)
   S = ambient_ring(P)
   C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
-  Ccov = as_covered_scheme(C)
+  Ccov = covered_scheme(C)
 
   KK = VarietyFunctionField(Ccov)
   U2 = patches(Ccov)[2]
@@ -57,7 +57,7 @@ end
   y = gens(base_ring(OO(Y)))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
+  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
   # Extend the glueing to the whole covered scheme
   fill_transitions!(C)
@@ -113,7 +113,7 @@ end
   S = ambient_ring(P2)
   s0 = gens(S)[1]
   X = subscheme(P2, ideal(S, s0))
-  Xc = as_covered_scheme(X)
+  Xc = covered_scheme(X)
   KX = function_field(Xc)
   @test is_irreducible(Xc) #fails
 

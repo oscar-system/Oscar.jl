@@ -13,7 +13,7 @@ Pages = ["intro.md"]
 # Introduction
 
 We start our discussion of PBW-algebras by recalling their definition.
-Let $K$ be a field. Given a set of indeterminates $x=\{x_1, \ldots, x_n\},$ we write
+Let $K$ be a field. Given a set of variables $x=\{x_1, \ldots, x_n\},$ we write
 ${\left\langle {x}\right\rangle}:=\langle x_{1},\ldots, x_{n} \rangle$ for the *free monoid* on $x$.
 That is, the elements of $\langle x \rangle$ are the words in the finite alphabet $x$, multiplication
 means concatination of words, and the identity element is the empty word.
@@ -37,9 +37,12 @@ Working with Gröbner bases requires that we take monomial orderings into accoun
 on Gröbner bases in the commutative algebra chapter for monomial orderings). In our context here, we use the following notation.
 A *standard monomial* in $K \langle x \rangle$ is a word of type $x^\alpha=x_{1}^{\alpha_{1}}\cdots x_{n}^{\alpha_{n}},$
 where $\alpha=(\alpha_1,\dots,\alpha_n)\in\mathbb N^n$. A *standard polynomial* in $K \langle x \rangle$
-is a $K$-linear combination of standard monomials. Each global monomial ordering $>$ on $\N^n$ gives rise to
-a (total) well-ordering $>$ on the set of standard monomials. In particular, it makes sense to speak of the
-*leading monomial* $\text{LM}_>(f)$ of a standard polynomial $0\neq f \in K \langle x \rangle.$
+is a $K$-linear combination of standard monomials. Each global monomial ordering $>$ on $K[x]$ gives rise to
+a (total) well-ordering on the set of standard monomials. Abusing our notation, we denote the induced ordering
+again by $>$, and refer to it as a *global monomial ordering on $A$*. Given $>$, it makes sense to speak of the
+*leading monomial* $\text{LM}_>(f)$ of a standard polynomial $0\neq f \in K \langle x \rangle.$ The notion
+of a global elimination ordering with respect to a subset of $\{ x_{1},\ldots, x_{n} \}$ carries over
+from $K[x]$ to $A$.
 
 **Definition.**  ``\;`` Let $A$ be a $K$-algebra of type
 ```math
@@ -48,7 +51,7 @@ A = K\langle x_1, \dots , x_n \mid x_jx_i = c_{ij}x_ix_j+d_{ij},  \ 1\leq i<j \l
 where the $c_{ij}\in K$ are nonzero scalars, and the $d_{ij}\in K\langle x_1, \dots , x_n\rangle$ are 
 standard polynomials. Then $A$ is called a *PBW-algebra* if the following two conditions hold:
 
-(1) ``\;`` There exists a global monomial ordering $>$ on $\N^n$ such that
+(1) ``\;`` There exists a global monomial ordering $>$ on $A$ such that
 
 $d_{ij}=0\ \text{ or }\ x_ix_j> \text{LM}_>(d_{ij})\ \text{ for all }\ 1\leq i<j \leq n.$
 
@@ -95,10 +98,11 @@ A ^{\text{op}}  = K\langle x_n, \dots , x_1 \mid x_ix_j = c_{ij}x_jx_i+d_{ij}^{\
 ```
 with admissible ordering $>^{\text{op}}$.
 
-Our main focus in what follows is on left ideals, left modules, and left Gröbner bases. Given a PBW-algebra $A$,
-right Gröbner bases in $A$ can be found by computing left Gröbner bases in $A^{\text{op}}$. If $I\subset A$
-is a two-sided ideal, each left Gröbner basis of $I$ is also a right Gröbner basis of $I$. Moreover, there is an
-algorithm which, starting from a left Gröbner basis of $I$, computes a two-sided Gröbner basis of $I$
-(see, for example,  [DL06](@cite)). Here, Gröbner bases are considered with respect to a fixed admissible
-ordering $>$ for $A$ and the opposite ordering $>^{\text{op}}  $ for $A^{\text{op}}$, respectively.
+When implementing functionality for PBW-algebras, taking the opposite algebra into account often allows
+one to focus on left ideals, left modules, and left Gröbner bases: Given a PBW-algebra $A$, right Gröbner
+bases in $A$ are found by computing left Gröbner bases in $A^{\text{op}}$. Here, Gröbner bases are
+considered with respect to an admissible ordering $>$ for $A$ and the opposite ordering $>^{\text{op}}$
+for $A^{\text{op}}$, respectively. Each left Gröbner basis of  a two-sided ideal $I$ is also a right Gröbner
+basis of $I$. Moreover, there is an algorithm which, starting from a left Gröbner basis
+of $I$, computes a two-sided Gröbner basis of $I$ (see, for example,  [DL06](@cite)). 
 
