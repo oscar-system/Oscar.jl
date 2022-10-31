@@ -18,6 +18,29 @@ underlying_morphism(f::AbsSpecMor) = error("`underlying_morphism(f)` not impleme
     domain(f::AbsSpecMor)
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia> f = inclusion_map(Y, X);
+
+julia> domain(f)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+```
 """
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
 
@@ -26,6 +49,29 @@ domain(f::AbsSpecMor) = domain(underlying_morphism(f))
     codomain(f::AbsSpecMor)
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia> f = inclusion_map(Y, X);
+
+julia> codomain(f)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+```
 """
 codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
 
@@ -35,6 +81,33 @@ codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
 
 On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 ``Y = Spec(R)``, this returns the ring homomorphism ``f^* : R → S``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia> pullback(inclusion_map(Y, X))
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+```
 """
 pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
 
@@ -51,7 +124,7 @@ codomain(phi::SpecMor) = phi.codomain
 
 
 ########################################################################
-# (3) Properties for OpenInclusion                                            #
+# (3) Properties for OpenInclusion
 ########################################################################
 
 underlying_morphism(f::OpenInclusion) = f.inc
@@ -108,6 +181,33 @@ end
 # (5) The graph of a morphism
 ##############################################
 
+@Markdown.doc """
+    graph(f::AbsSpecMor)
+
+This method computes the preimage of a morphism.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
+
+julia> f = inclusion_map(Y, X);
+
+julia> graph(f);
+```
+"""
 function graph(f::AbsSpecMor)
   X = standard_spec(domain(f))
   Y = standard_spec(codomain(f))
