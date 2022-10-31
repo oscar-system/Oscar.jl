@@ -23,7 +23,6 @@ function fiber_product(
   Z = domain(g)
   YxZ, pY, pZ = product(Y, Z)
   RX = ambient_ring(X)
-  #I = ideal(OO(YxZ), [pullback(pY)(pullback(f)(x)) - pullback(pZ)(pullback(g)(x)) for x in gens(RX)])
   W = subscheme(YxZ, [pullback(pY)(pullback(f)(x)) - pullback(pZ)(pullback(g)(x)) for x in gens(RX)])
   return W, restrict(pY, W, Y, check=false), restrict(pZ, W, Z, check=false)
 end
@@ -38,7 +37,7 @@ end
     product(X::AbsSpec, Y::AbsSpec)
     
 Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over 
-the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and 
+the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 ``p₂ : X×Y → Y``.
 """
 function product(X::AbsSpec, Y::AbsSpec;
@@ -131,5 +130,19 @@ end
 
 
 ########################################
-# (6) Display (missing?)
+# (5) Display
 ########################################
+
+function Base.show(io::IO, f::AbsSpecMor)
+  println(io, "morphism from\n")
+  println(io, "\t$(domain(f))\n")
+  println(io, "to\n")
+  println(io, "\t$(codomain(f))\n")
+  println(io, "with coordinates\n")
+  x = gens(OO(codomain(f)))
+  print(io,"\t")
+  for i in 1:ngens(OO(codomain(f)))-1
+    print(io, "$(pullback(f)(x[i])), ")
+  end
+  print(io, "$(pullback(f)(last(x)))")
+end

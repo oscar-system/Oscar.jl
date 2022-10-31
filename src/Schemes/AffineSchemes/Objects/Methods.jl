@@ -18,7 +18,7 @@ end
 
 # TODO: Add further cross-type comparison methods as needed.
 
-function ==(X::T, Y::T) where {T<:Spec{MPolyRing}}
+function ==(X::T, Y::T) where {T<:AbsSpec{<:Ring, <:MPolyRing}}
   return OO(X) === OO(Y)
 end
 
