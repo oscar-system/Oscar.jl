@@ -147,13 +147,11 @@
 
   "Algebraic Geometry" => [
      "AlgebraicGeometry/intro.md",
-     "Curves" => [
-#        "Experimental/introduction.md",
-#        "Experimental/plane_curves.md",
-#        "Experimental/divisors.md",
-#        "Experimental/elliptic_curves.md",
-#        "Experimental/non_plane_curves.md",
-         "AlgebraicGeometry/para_rational_curves.md",
+     "Schemes" => [
+        "AlgebraicGeometry/Schemes/GeneralSchemes.md",
+        "AlgebraicGeometry/Schemes/AffineSchemes.md",
+        "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
+        "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
      ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
@@ -168,15 +166,20 @@
         "ToricVarieties/AlgebraicCycles.md",
         "ToricVarieties/ToricMorphisms.md",
      ],
-     "Schemes" => [
-        "AlgebraicGeometry/AffineSchemes.md",
-     ],
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
      ],
+     "Curves" => [
+#        "Experimental/introduction.md",
+#        "Experimental/plane_curves.md",
+#        "Experimental/divisors.md",
+#        "Experimental/elliptic_curves.md",
+#        "Experimental/non_plane_curves.md",
+         "AlgebraicGeometry/Curves/para_rational_curves.md",
+     ],
      "Standard Constructions" => [
-       "AlgebraicGeometry/standard_constructions.md",
+       "AlgebraicGeometry/StandardConstructions/standard_constructions.md",
      ]
   ],
 

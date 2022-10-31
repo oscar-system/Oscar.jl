@@ -1,19 +1,8 @@
-export set_name
+export set_name!
 
 
 ####################################################################################
-# (1) Set name for scheme
-####################################################################################
-
-# Does this work?
-function set_name!(X::AbsSpec, name::String)
-  return set_attribute!(X, :name, name)
-end
-
-
-
-####################################################################################
-# (2) Equality
+# (1) Equality
 ####################################################################################
 
 # TODO: Add further cross-type comparison methods as needed.
@@ -39,7 +28,7 @@ end
 
 
 ########################################################
-# (3) Display
+# (2) Display
 ########################################################
 
 function Base.show(io::IO, X::Spec)
@@ -53,9 +42,33 @@ end
 
 
 ########################################################
-# (4) Check for zero divisors in rings
+# (3) Check for zero divisors in rings
 ########################################################
 
+@Markdown.doc """
+    is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
+
+Checks if a ring element is a non-zero divisor
+in the coordinate ring of an affine scheme.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(OO(X))
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> is_non_zero_divisor(x1, X)
+true
+
+julia> is_non_zero_divisor(zero(OO(X)), X)
+false
+```
+"""
 function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
   return !iszero(OO(X)(f))
 end

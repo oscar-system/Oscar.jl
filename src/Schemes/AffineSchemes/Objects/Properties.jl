@@ -6,6 +6,24 @@ export is_empty, issubset, is_open_embedding, is_closed_embedding
 # (1) Check if a scheme is empty
 ####################################################################################
 
+@Markdown.doc """
+    isempty(X::AbsSpec)
+
+This method returns `true` if the affine scheme ``X`` is empty.
+Otherwise, `false` is returned.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> isempty(X)
+false
+
+julia> isempty(EmptyScheme(QQ))
+true
+```
+"""
 Base.isempty(X::AbsSpec) = iszero(one(OO(X)))
 is_empty(X::EmptyScheme) = true
 
@@ -25,6 +43,30 @@ is_empty(X::EmptyScheme) = true
     issubset(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+
+julia> issubset(X, Y)
+false
+
+julia> issubset(Y, X)
+true
+```
 """
 function issubset(X::AbsSpec, Y::AbsSpec)
   error("method `issubset(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
@@ -242,6 +284,33 @@ end
     is_open_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is openly embedded in ``Y``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+
+julia> is_open_embedding(Y, X)
+false
+
+julia> Z = hypersurface_complement(X, x1)
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+
+julia> is_open_embedding(Z, X)
+true
+```
 """
 function is_open_embedding(X::AbsSpec, Y::AbsSpec)
   return is_open_embedding(standard_spec(X), standard_spec(Y))
@@ -280,6 +349,33 @@ end
     is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is closed embedded in ``Y``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> R = OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{fmpq_mpoly}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X,ideal(R,[x1*x2]))
+Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
+
+julia> is_closed_embedding(Y, X)
+true
+
+julia> Z = hypersurface_complement(X, x1)
+Spec of localization of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field at the powers of fmpq_mpoly[x1]
+
+julia> is_closed_embedding(Z, X)
+false
+```
 """
 function is_closed_embedding(X::AbsSpec, Y::AbsSpec)
   error("`is_closed_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
