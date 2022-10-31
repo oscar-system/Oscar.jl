@@ -666,4 +666,6 @@ end
     @test (image(tm1) == codomain(tm1)) == false
     @test codomain(tm1) == domain(tm2)
     @test matrix(grid_morphism(tm2)) == matrix(ZZ,[[1,0],[0,1]])
+    @test morphism_on_torusinvariant_weil_divisor_group(tm2).map == identity_matrix(ZZ,4)
+    @test morphism_on_cartier_divisor_group(tm2).map == identity_matrix(ZZ,4)
 end
