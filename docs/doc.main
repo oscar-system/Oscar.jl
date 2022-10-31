@@ -179,7 +179,7 @@
      ]
   ],
 
- "Finitely Represented Algebras" => [
+ "Finitely Presented Algebras" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
