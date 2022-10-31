@@ -10,8 +10,7 @@ export restrict, fiber_product, product, simplify
     fiber_product(f::SpecMor{SpecType, SpecType, <:Any}, g::SpecMor{SpecType, SpecType, <:Any}) where {SpecType<:StdSpec}
 
 For morphisms ``f : Y → X`` and ``g : Z → X`` return the fiber
-product ``Y ×ₓ Z`` over ``X`` together with its two canonical
-projections.
+product ``Y×Z`` over ``X`` together with its two canonical projections.
 """
 function fiber_product(
     f::SpecMor{SpecType, SpecType, <:Any},

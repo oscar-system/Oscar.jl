@@ -20,6 +20,9 @@ Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 julia> isempty(X)
 false
 
+julia> is_empty(subscheme(X, one(OO(X))))
+true
+
 julia> isempty(EmptyScheme(QQ))
 true
 ```
