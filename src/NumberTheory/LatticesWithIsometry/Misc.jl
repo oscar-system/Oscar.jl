@@ -119,7 +119,8 @@ function orthogonal_group_degenerate(T::TorQuadMod)
   Idr = identity_matrix(ZZ, r)
   NR, NRtoNT = sub(NT, [NT[i] for i in k+1:n])
   @assert !is_degenerate(NR)
-  gensNR = [hom(g) for g in gens(orthogonal_group(NR))]
+  ONR = orthogonal_group(NR)
+  gensNR = [hom(g) for g in gens(ONR)]
   if k > 0
     gene_im = [block_diagonal_matrix([Idk, g.map_ab.map]) for g in gensNR]
     gene_im = union(gene_im, [block_diagonal_matrix([lift(matrix(g)), Idr]) for g in gens(general_linear_group(k, GF(p)))])
@@ -141,7 +142,9 @@ function orthogonal_group_degenerate(T::TorQuadMod)
   end
   geneOT = [hom(NT, NT, g) for g in gene_im]
   geneOT = [compose(compose(inv(NTtoT), g), NTtoT).map_ab.map for g in geneOT]
-  return _orthogonal_group(T, geneOT, check=false)
+  OT = _orthogonal_group(T, geneOT, check=false)
+  @asert order(OT) == p*k*r*order(ONR)*order(GL(k, p))
+  return OT
 end
 
 ###############################################################################
