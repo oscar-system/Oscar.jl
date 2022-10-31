@@ -44,15 +44,6 @@ affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 ```
 
-### Standard spectrum
-
-```@docs
-standard_spec(X::AbsSpec{<:Any, <:MPolyRing})
-standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
-standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing})
-standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing})
-```
-
 ### Closed subschemes
 
 ```@docs
@@ -89,7 +80,7 @@ over ``\mathbb k``, there is a 'governing' polynomial
 ``\mathbb k``-algebra ``P = \mathbb{k}[x_1,\dots,x_n]``
 in the following sense:
 ```@docs
-    ambient_ring(X::AbsSpec)
+ambient_ring(X::AbsSpec)
 ```
 For instance, this is the case whenever ``R`` is a quotient
 ring of ``P``, a localization of ``P``, or a localization
@@ -105,7 +96,6 @@ defining_ideal(X::AbsSpec{<:Any, <:MPolyRing})
 dim(X::AbsSpec)
 name(X::Spec)
 OO(X::AbsSpec)
-strict_modulus(X::AbsSpec)
 ```
 
 ### Type getters
@@ -130,9 +120,9 @@ issubset(X::AbsSpec, Y::AbsSpec)
 
 Schemes can be compared based on their `ambient_ring`.
 
-Two subschemes `X` and `Y` of the same ambient affine space `A` are considered equal
-if and only if the identity morphism of `A` induces an isomorphism of `X` and `Y`.
-This is implemented by `X==Y`. For `X` and `Y` in different ambient affine spaces,
+Two subschemes ``X`` and ``Y`` of the same ambient affine space ``A`` are considered equal
+if and only if the identity morphism of ``A`` induces an isomorphism of ``X`` and ``Y``.
+This is implemented by `X==Y`. For ``X`` and ``Y`` in different ambient affine spaces,
 `X==Y` is always `false`.
 
 ### Auxilliary methods

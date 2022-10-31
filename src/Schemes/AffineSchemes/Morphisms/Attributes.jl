@@ -184,7 +184,7 @@ end
 @Markdown.doc """
     graph(f::AbsSpecMor)
 
-This method computes the preimage of a morphism.
+Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the two projections to ``X`` and ``Y``.
 
 # Examples
 ```jldoctest

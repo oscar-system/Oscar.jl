@@ -31,9 +31,9 @@ Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
 @doc Markdown.doc"""
     Spec(R::MPolyRing, U::AbsMPolyMultSet)
 
-Given a polynomial ring ``R`, we can localize that polynomial
-ring at a multiplicatively closed subset ``U`` of ``R`. The spectrum
-of the localized ring ``U^{-1} R`` is computed by this method.
+Given a polynomial ring ``R``, we can localize that polynomial
+ring at a multiplicatively closed subset ``U`` of ``R``. The spectrum
+of the localized ring $U^{-1} R$ is computed by this method.
 
 # Examples
 Set ``C`` to be the positive orthant in two dimensions.
@@ -55,9 +55,9 @@ Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(Localization(R, U)[1])
     Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 
 We allow to combine quotients and localizations at the same time.
-That is, consider a polynomial ring ``R`, an ideal ``I`` of R and
-a multiplicatively closed subset ``U`` of ``R`. The spectrum of the
-localized ring ``U^{-1} (R/I)`` is computed by this method.
+That is, consider a polynomial ring ``R``, an ideal ``I`` of ``R`` and
+a multiplicatively closed subset ``U`` of ``R``. The spectrum of the
+localized ring $U^{-1} (R/I)$ is computed by this method.
 
 # Examples
 Set ``C`` to be the positive orthant in two dimensions.
@@ -83,7 +83,7 @@ Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRi
 @doc Markdown.doc"""
     Spec(X::Spec)
 
-For convenience, an affine spectrum can be passed to ``Spec`
+For convenience, an affine spectrum can be passed to `Spec`
 to create a new spectrum. This can be particularly useful
 when in need to copy an affine spectrum.
 
@@ -112,9 +112,9 @@ Base.deepcopy_internal(X::Spec, dict::IdDict) = Spec(deepcopy_internal(OO(X), di
 @doc Markdown.doc"""
     affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 
-The ``n`-dimensional affine space over a ring ``kk`` is created
-by this method. The variable names are chosen as ``x1, x2, \dots``
-by default. This choice can be overwritten with a third optional argument.
+The ``n``-dimensional affine space over a ring ``kk`` is created
+by this method. By default, the variable names are chosen as $x_1$, $x_2$
+and so on. This choice can be overwritten with a third optional argument.
 
 # Examples
 ```jldoctest
@@ -134,9 +134,9 @@ end
 @doc Markdown.doc"""
     affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 
-This method also creates the ``n`-dimensional affine space over
-a ring ``kk`, but allows more flexibility in the choice of variable
-names. The following example demonstrates this.
+Creates the ``n``-dimensional affine space over a ring ``kk``,
+but allows more flexibility in the choice of variable names.
+The following example demonstrates this.
 
 # Examples
 ```jldoctest
@@ -254,9 +254,9 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = Spec(OO(X))
 @doc Markdown.doc"""
     subscheme(X::AbsSpec, f::Vector{<:RingElem})
 
-For an affine spectrum ``X`` and elements ``f1`, ``f2`,
-etc. of the coordinate ring of ``X`, this method computes
-the subscheme ``V(f1, f2, ...)`` of ``X``.
+For an affine spectrum ``X`` and elements ``f_1``, ``f_2``,
+etc. of the coordinate ring of ``X``, this method computes
+the subscheme ``V(f_1, f_2, \dots)`` of ``X``.
 
 # Examples
 ```jldoctest
@@ -327,7 +327,7 @@ end
 
 For a scheme ``X = Spec(R)`` and an element ``f ∈ R``
 this returns the open subscheme ``U = Spec(R[f⁻¹]) = X ∖ V(f)``
-defined by the complement of the vanishing locus of ``f`.
+defined by the complement of the vanishing locus of ``f``.
 
 # Examples
 ```jldoctest
@@ -385,9 +385,9 @@ end
 @Markdown.doc """
     hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
 
-For a scheme ``X = Spec(R)`` and elements ``f1, f2, ... ∈ R``
-this returns the open subscheme ``U = Spec(R[f1⁻¹,f2⁻¹, ...]) = X ∖ V(f1, f2, ...)``
-defined by the complement of the vanishing locus ``V(f1, f2, ...)``.
+For a scheme ``X = Spec(R)`` and elements ``f_1, f_2, ... ∈ R``
+this returns the open subscheme ``U = Spec(R[f_1⁻¹,f_2⁻¹, ...]) = X ∖ V(f_1, f_2, ...)``
+defined by the complement of the vanishing locus ``V(f_1, f_2, ...)``.
 
 # Examples
 ```jldoctest
@@ -628,7 +628,7 @@ end
 @Markdown.doc """
     closure(X::AbsSpec, Y::AbsSpec) 
 
-Returns the closure of ``X`` in ``Y`.
+Returns the closure of ``X`` in ``Y``.
 
 # Examples
 ```jldoctest
