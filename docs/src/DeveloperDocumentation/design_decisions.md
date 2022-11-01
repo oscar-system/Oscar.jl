@@ -1,22 +1,22 @@
 # Design Decisions
-This document covers the ideas and design decisions behind Oscar, as well as
+This document covers the ideas and design decisions behind OSCAR, as well as
 some pitfalls to avoid.
 
 
-## Oscar - what is the idea
-Oscar is the innovative, next generation Computer Algebra System. The ultimate
-goal for Oscar is to compete with (and ideally beat) Magma and Sage in our
-areas of expertise. Oscar should be accessible, even for the youngest student
-who is familiar with these objects. Oscar should follow general mathematical
+## OSCAR - what is the idea
+OSCAR is the innovative, next generation Computer Algebra System. The ultimate
+goal for OSCAR is to compete with (and ideally beat) Magma and Sage in our
+areas of expertise. OSCAR should be accessible, even for the youngest student
+who is familiar with these objects. OSCAR should follow general mathematical
 conventions to support the widest possible range of applications.
 
 The key idea for development of OSCAR is to pick a single textbook for every
 area and follow the conventions in there.  This way we get a consistent
 interface.
 
-## Oscar and Julia
+## OSCAR and Julia
 
-Oscar is written in Julia, but is not Julia, nor can it be. 
+OSCAR is written in Julia, but is not Julia, nor can it be. 
 Some examples to illustrate what that means:
 Julia's matrices are arrays (of arbitrary dimension), parameterized by
 the type of the entries (apart from banded, sparse, ... special matrices).
@@ -50,10 +50,10 @@ If functions are missing in it, then please
 - add them
 - or tell us
 
-## Mathematical Context in Oscar
+## Mathematical Context in OSCAR
 
 When studying mathematics, the exact meaning of a term or object is determined
-by context. In Oscar, this does not work. The meaning has to be part of either
+by context. In OSCAR, this does not work. The meaning has to be part of either
 
  - the object
  - or the question posed about the object
@@ -69,7 +69,7 @@ as an element of the number field, not of the ring of integers, then
 - `is_unit_in_ring_of_integers` would supply the context for the other
   interpretation.
 
-In Oscar, this context is mostly supplied by the type of the object and
+In OSCAR, this context is mostly supplied by the type of the object and
 possibly the parent, e.g. the containing ring/ field/ group.
 
 ## What Do We Have:

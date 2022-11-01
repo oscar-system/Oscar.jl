@@ -15,7 +15,7 @@ Pages = ["grouphom.md"]
 
 # Group homomorphisms
 
-In Oscar, a group homomorphism from `G` to `H` is an object of parametric type `GAPGroupHomomorphism{S,T}`, where `S` and `T` are the types of `G` and `H` respectively.
+In OSCAR, a group homomorphism from `G` to `H` is an object of parametric type `GAPGroupHomomorphism{S,T}`, where `S` and `T` are the types of `G` and `H` respectively.
 
 A homomorphism from `G` to `H` can be defined in two ways.
 
@@ -56,7 +56,7 @@ preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
-Oscar has also the following standard homomorphism.
+OSCAR has also the following standard homomorphism.
 ```@docs
 id_hom
 trivial_morphism
@@ -107,7 +107,7 @@ julia> haspreimage(f,x)
 
 ## Operations on homomorphisms
 
-Oscar supports the following operations on homomorphisms.
+OSCAR supports the following operations on homomorphisms.
 
 * `inv(f)` = the inverse of `f`.
   An exception is thrown if `f` is not bijective.
@@ -136,7 +136,7 @@ true
 
 ## Properties of homomorphisms
 
-Oscar implements the following attributes of homomorphisms,
+OSCAR implements the following attributes of homomorphisms,
 in addition to the usual `domain` and `codomain`.
 
 ```@docs

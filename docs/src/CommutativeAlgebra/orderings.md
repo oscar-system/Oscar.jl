@@ -286,7 +286,7 @@ x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
        Block orderings for a subdivision of $x$ into any block of variables and its complementary block are defined similarly and have similar properties.
     - Inductively, one obtains block orderings composed of more than two individual orderings.
 
-In Oscar, block orderings are obtained by the concatenation of individual  orderings using the `*` operator.
+In OSCAR, block orderings are obtained by the concatenation of individual  orderings using the `*` operator.
 
 ##### Examples
 

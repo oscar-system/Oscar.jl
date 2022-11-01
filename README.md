@@ -20,7 +20,7 @@ julia> Pkg.add("Oscar")
 julia> using Oscar
 ```
 
-However, some of Oscar's components have additional requirements.
+However, some of OSCAR's components have additional requirements.
 For more detailed information, please consult the [installation
 instructions](https://oscar.computeralgebra.de/install/) on our website.
 
@@ -45,7 +45,7 @@ julia> using Oscar
 Version 0.10.0 ...
 ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
-(c) 2019-2022 by The Oscar Development Team
+(c) 2019-2022 by The OSCAR Development Team
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))

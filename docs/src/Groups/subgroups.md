@@ -15,7 +15,7 @@ Pages = ["subgroups.md"]
 
 # [Subgroups](@id subgroups)
 
-The following functions are available in Oscar for subgroup properties:
+The following functions are available in OSCAR for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
@@ -28,7 +28,7 @@ is_characteristic(G::T, H::T) where T <: GAPGroup
 
 ## Standard subgroups
 
-The following functions are available in Oscar to obtain standard subgroups of
+The following functions are available in OSCAR to obtain standard subgroups of
 a group `G`. Every such function returns a tuple `(H,f)`, where `H` is a group
 of the same type of `G` and `f` is the embedding homomorphism of `H` into `G`.
 

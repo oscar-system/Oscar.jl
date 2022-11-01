@@ -51,7 +51,7 @@ For the point of view of schemes, we refer to the page on schemes and the refere
 
 ## Creating Space Germs in OSCAR
 
-In general, space germs in Oscar are created in the following ways:
+In general, space germs in OSCAR are created in the following ways:
 
  * localization of an affine scheme at a point
 
@@ -95,7 +95,7 @@ In general, space germs in Oscar are created in the following ways:
    (point inherited from underlying local ring)
 
 As for all affine schemes, morphisms of space germs are in $1:1$ correspondence with morphisms of the underlying local rings. Hence
-also handled in this way in Oscar.
+also handled in this way in OSCAR.
 
 ## Basic functionality for space germs
 
