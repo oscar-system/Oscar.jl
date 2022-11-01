@@ -30,7 +30,7 @@ on these things online.
 
 ## Overview
 In general you have to do
-the following six steps for submitting changes to the Oscar source:
+the following six steps for submitting changes to the OSCAR source:
 
 1. Fork the main Oscar.jl repository. For this go to the [Oscar.jl GitHub
    page](https://github.com/oscar-system/Oscar.jl) and click on "Fork" at the
@@ -56,8 +56,8 @@ the following six steps for submitting changes to the Oscar source:
    If this succeeds, you can enter `using Oscar` in Julia and it will use your local
    copy.
 5. Once you are done editing, push your branch and open a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request). It is
-   recommended that you open a draft [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to the main Oscar repository
-   as soon as you start working. That way Oscar developers are aware of work
+   recommended that you open a draft [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to the main OSCAR repository
+   as soon as you start working. That way OSCAR developers are aware of work
    being done and can give feedback early in the process.
 6. Once you have finished your work, mark your [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) as ready. It will
    then be reviewed and, probably after feedback and requests for changes,
@@ -70,8 +70,8 @@ Alternatively you can call
 ]dev Oscar
 ```
 in Julia. This will create a directory `~/.julia/dev/Oscar`. This directory is
-a git clone of the central Oscar repository. You can develop your code here,
-however you will still have to fork Oscar, as you have no rights to push to the
+a git clone of the central OSCAR repository. You can develop your code here,
+however you will still have to fork OSCAR, as you have no rights to push to the
 central repository. You can then add your fork as another remote, have a look
 at the section on rebasing below for hints.
 
@@ -124,14 +124,14 @@ Pkg.add("Revise");
 ```
 From then on do
 ```
-using Revise,Oscar
+using Revise, Oscar
 ```
 whenever you are using OSCAR in Julia.
 
-### Ask Oscar Related Questions in the [Oscar Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
+### Ask OSCAR Related Questions in the [OSCAR Slack](https://join.slack.com/t/oscar-system/shared_invite/zt-thtcv97k-2678bKQ~RpR~5gZszDcISw).
 
 ### Use `]up`
-Working with the development version also entails that the packages Oscar
+Working with the development version also entails that the packages `Oscar`
 depends on need to be up to date. Julia can update these packages if you type
 `]up` in the Julia prompt. Many error messages after updating the source can be
 resolved by simply updating.

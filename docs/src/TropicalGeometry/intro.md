@@ -9,7 +9,7 @@ Pages = ["intro.md"]
 
 # Introduction
 
-This page lists the Oscar features for tropical geometry, which are still at the very beginning of their development. For notation we refer to [MS15](@cite) and [Jos21](@cite).
+This page lists the OSCAR features for tropical geometry, which are still at the very beginning of their development. For notation we refer to [MS15](@cite) and [Jos21](@cite).
 
 ## Tropical semirings
 

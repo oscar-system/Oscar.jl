@@ -15,7 +15,7 @@ Pages = ["integer.md"]
 An important design decision in Oscar.jl is to use Julia as the user language
 by default. This means that integers typed at the
 [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
-are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). However, for performance reasons, Oscar has its own integer format.
+are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). However, for performance reasons, OSCAR has its own integer format.
 
 Julia has a number of different integer types, but the two that are most
 relevant here are `Int` and `BigInt`. All the Julia integer types
@@ -33,15 +33,15 @@ integers whose size is usually only limited by available memory. While the
 `BigInt` type avoids overflow problems, it can be relatively slow in the
 `Int` range.
 
-Oscar currently has the integer type `fmpz`, which for performance
+OSCAR currently has the integer type `fmpz`, which for performance
 reasons scales internally from machine integers to GMP multiprecision integers.
 
 ## The ring of integers
 
-Every object in Oscar representing a mathematical element has a parent. This is
+Every object in OSCAR representing a mathematical element has a parent. This is
 an object encoding information about where that element belongs.
 
-The parent of an Oscar integer is the ring of integers `ZZ`.
+The parent of an OSCAR integer is the ring of integers `ZZ`.
 
 ```@repl oscar
 ZZ
@@ -49,7 +49,7 @@ ZZ
 
 ### Integer constructors
 
-Oscar integers are created using `ZZ`:
+OSCAR integers are created using `ZZ`:
 
 ```@repl oscar
 ZZ(2)^100
@@ -72,7 +72,7 @@ one(ZZ)
 ```
 
 Note that `ZZ` is not a Julia type, but the above methods of constructing
-Oscar integers are similar to the way that Julia integer types can be used to
+OSCAR integers are similar to the way that Julia integer types can be used to
 construct Julia integers.
 
 ```@repl oscar
@@ -84,7 +84,7 @@ one(Int)
 
 ### Limitations
 
-Oscar integers have the same limitations as [GMP](https://gmplib.org/)
+OSCAR integers have the same limitations as [GMP](https://gmplib.org/)
 multiprecision integers, namely that they are limited by the available memory
 on the machine and in any case to signed integers whose absolute value does not
 exceed ``2^{37}`` bits.
@@ -95,10 +95,10 @@ exceed ``2^{37}`` bits.
     values is machine dependent, but can be found by typing `typemin(Int)` and
     `typemax(Int)` in Julia.
 
-## Julia integers in Oscar functions
+## Julia integers in OSCAR functions
 
-For convenience, all basic arithmetic and exact division functions in Oscar
-also accept Julia integers. If all of the arguments to an Oscar function are
+For convenience, all basic arithmetic and exact division functions in OSCAR
+also accept Julia integers. If all of the arguments to an OSCAR function are
 julia integers, the resulting integers should be julia integers. However, once
 at least one of the arguments is an `fmpz`, the function will generally behave
 as if all integer arguments were promoted to the type `fmpz`, and the integers
@@ -114,7 +114,7 @@ typeof(jacobi_symbol(ZZ(2), ZZ(3)))
 ```
 
 In the first example, `2` is a Julia integer but is still valid in the
-call to the Oscar function `divexact`. In the last example, the exceptional
+call to the OSCAR function `divexact`. In the last example, the exceptional
 function `jacobi_symbol` returns an `Int` as this will always be able to hold
 the three possible return values of `-1`, `0`, or `1`.
 
@@ -166,14 +166,14 @@ abs(ZZ(-3))
 
 ## Basic arithmetic
 
-Oscar provides the basic arithmetic operations `+`, `-` and `*` and comparison
+OSCAR provides the basic arithmetic operations `+`, `-` and `*` and comparison
 operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
-Julia and Oscar integers. It also provides division and powering as described
+Julia and OSCAR integers. It also provides division and powering as described
 below.
 
-### Division in Oscar
+### Division in OSCAR
 
-Oscar distinguishes a number of different kinds of division:
+OSCAR distinguishes a number of different kinds of division:
 
 * [Exact division](@ref integer_exact_division) (`divexact`)
 * [Euclidean division](@ref integer_euclidean_division) (`div`, `rem`, `divrem` and `mod`)
@@ -220,7 +220,7 @@ ZZ(1)^(-2)
 
 !!! note
     In Julia `2^-2` is called a literal power. The value returned is a
-    floating point value. To get behaviour that agrees with Oscar, one can
+    floating point value. To get behaviour that agrees with OSCAR, one can
     write `2^Int(-2)`.
 
 The following is allowed for convenience.
@@ -231,13 +231,13 @@ ZZ(0)^0
 
 !!! note
     In Julia, `2^64` will return zero, as the Julia integer ``2`` is a machine
-    integer. In Oscar, the expression `ZZ(2)^64` will return the expected
+    integer. In OSCAR, the expression `ZZ(2)^64` will return the expected
     result, just as the Julia equivalent `BigInt(2)^64` does.
 
 
 ## [Euclidean division](@id integer_euclidean_division)
 
-The ring of integers is a Euclidean domain and Oscar provides Euclidean
+The ring of integers is a Euclidean domain and OSCAR provides Euclidean
 division through the functions `divrem`, `div` and `rem`.
 
 Integer Euclidean division of ``a`` by ``b`` computes a quotient and
@@ -297,7 +297,7 @@ mod(ZZ(2), ZZ(0))
 
 * `divides(a::fmpz, b::fmpz) -> (Bool, fmpz)`
 
-In Oscar, we say that ``b`` divides ``a`` if there exists ``c`` in the same
+In OSCAR, we say that ``b`` divides ``a`` if there exists ``c`` in the same
 ring such that ``a = bc``.
 
 The call `divides(a, b)` returns a tuple `(flag, q)` where `flag` is either
@@ -361,7 +361,7 @@ lcm(ZZ(0), ZZ(0))
 
 ### Square roots
 
-Julia and Oscar distinguish two kinds of square root:
+Julia and OSCAR distinguish two kinds of square root:
 
 * Integer square root (`isqrt`)
 * Floating point square root (`sqrt`)
@@ -416,7 +416,7 @@ root(ZZ(12), -2)
 * `Int(n::fmpz) -> Int`
 * `BigInt(n::fmpz) -> BigInt`
 
-Convert the Oscar integer to the respective Julia integer.
+Convert the OSCAR integer to the respective Julia integer.
 
 ```@repl oscar
 n = ZZ(123)
@@ -424,7 +424,7 @@ Int(n)
 BigInt(n)
 ```
 
-In the case of `Int`, if the Oscar integer is too large to fit, an exception
+In the case of `Int`, if the OSCAR integer is too large to fit, an exception
 is raised.
 
 ```@repl oscar
@@ -433,7 +433,7 @@ Int(ZZ(12348732648732648763274868732687324))
 
 * `fits(::Type{Int}, n::fmpz) -> Bool`
 
-Return `true` if the Oscar integer will fit in an `Int`.
+Return `true` if the OSCAR integer will fit in an `Int`.
 
 ```@repl oscar
 fits(Int, ZZ(123))
@@ -483,7 +483,7 @@ One can also determine whether a given prime is in the non-unit part of a
 factorisation and if so return its exponent. If the exponent of a prime that
 is not in a factorisation is requested, an exception is raised.
 
-For convenience, a `Int` can be used instead of an Oscar integer for this
+For convenience, a `Int` can be used instead of an OSCAR integer for this
 functionality.
 
 ```@repl oscar

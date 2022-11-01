@@ -29,7 +29,7 @@ hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
 
 ## [Inner automorphisms](@id inner_automorphisms)
 
-Oscar disposes of the following functions to handle inner automorphisms of a group.
+OSCAR provides the following functions to handle inner automorphisms of a group.
 ```@docs
 inner_automorphism(g::GAPGroupElem)
 is_inner_automorphism(f::GAPGroupHomomorphism)
