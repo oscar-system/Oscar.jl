@@ -69,7 +69,7 @@ of ``a``. Note that the denominator is equal to `one(P)` in case
 Given the above characterization of the `ambient_ring(X)`,
 we shall refer to the ``x_i`` above as the *coordinates* of ``X``.
 Moreover, we will assume that for homomorphisms from ``R``
-there is a a method
+there is a method
 ```
     hom(R::RingType, S::Ring, a::Vector{<:RingElem})
 ```

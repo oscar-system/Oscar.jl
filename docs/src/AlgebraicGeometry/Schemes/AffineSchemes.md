@@ -15,7 +15,7 @@ Pages = ["AffineSchemes.md"]
 
 Let ``\mathbb k`` be a commutative noetherian base ring
 (in practice: an algebraic extension of ``\mathbb Q`` or ``\mathbb F_p``).
-We support functionality for affine schemes ``X = Spec(R)`` over ``\mathbb k``.
+We support functionality for affine schemes ``X = \mathrm{Spec}(R)`` over ``\mathbb k``.
 Currently, we support rings ``R`` of type `MPolyRing`, `MPolyQuo`,
 `MPolyLocalizedRing`, and `MPolyQuoLocalizedRing`
 defined over the integers or algebraic field extensions of ``\mathbb Q``
@@ -25,6 +25,8 @@ defined over the integers or algebraic field extensions of ``\mathbb Q``
 
 ### General constructors
 
+Besides `Spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`, or 
+`MPolyQuoLocalizedRing`, we have the following constructors:
 ```@docs
 Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)
@@ -54,7 +56,7 @@ subscheme(X::AbsSpec, I::Ideal)
 ### Intersections
 
 ```@docs
-Base.intersect(X::AbsSpec{BRT, <:MPolyRing}, Y::AbsSpec{BRT, <:MPolyRing}) where {BRT<:Ring}
+Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
 ```
 
 ### Open subschemes
@@ -101,7 +103,8 @@ OO(X::AbsSpec)
 ### Type getters
 
 We support functions which return the types of
-schemes and associated rings.
+schemes, associated rings, and their elements. See the 
+source code for details.
 
 
 ## Properties
@@ -118,15 +121,15 @@ issubset(X::AbsSpec, Y::AbsSpec)
 
 ### Comparison
 
-Schemes can be compared based on their `ambient_ring`.
-
-Two subschemes ``X`` and ``Y`` of the same ambient affine space ``A`` are considered equal
-if and only if the identity morphism of ``A`` induces an isomorphism of ``X`` and ``Y``.
-This is implemented by `X==Y`. For ``X`` and ``Y`` in different ambient affine spaces,
+Two schemes $X$ and $Y$ can be compared based on their `ambient_ring`s: If 
+`ambient_ring(X) = R = ambient_ring(Y)`, then both $X$ and $Y$ are considered 
+as embedded into $\mathrm{Spec}(R)$. In particular they are considered equal (`==`)
+if and only if the identity morphism of $\mathrm{Spec}(R)$ induces an isomorphism of ``X`` and ``Y``.
+For ``X`` and ``Y`` with different `ambient_ring`s 
 `X==Y` is always `false`.
 
 ### Auxilliary methods
 
 ```@docs
-is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
+is_non_zero_divisor(f::RingElem, X::AbsSpec)
 ```

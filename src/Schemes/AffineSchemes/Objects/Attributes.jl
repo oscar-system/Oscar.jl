@@ -216,6 +216,8 @@ defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = modulus(OO(X))
     strict_modulus(X::AbsSpec)
 
 This method return the strict modulus of an affine scheme ``X``.
+This is the ideal ``I`` in the `ambient_ring` of ``X`` consisting 
+of elements ``f ∈ R`` such that their restriction to ``X`` vanishes.
 
 # Examples
 ```jldoctest

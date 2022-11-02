@@ -46,7 +46,7 @@ end
 ########################################################
 
 @Markdown.doc """
-    is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
+    is_non_zero_divisor(f::RingElem, X::AbsSpec)
 
 Checks if a ring element is a non-zero divisor
 in the coordinate ring of an affine scheme.
@@ -69,6 +69,10 @@ julia> is_non_zero_divisor(zero(OO(X)), X)
 false
 ```
 """
+function is_non_zero_divisor(f::RingElem, X::AbsSpec)
+  error("method not implemented for affine schemes of type $(typeof(X))")
+end
+
 function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
   return !iszero(OO(X)(f))
 end
