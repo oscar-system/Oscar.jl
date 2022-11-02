@@ -48,7 +48,7 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> is_identity_map(inclusion_map(Y, X))
+julia> is_identity_map(inclusion_morphism(Y, X))
 false
 ```
 """

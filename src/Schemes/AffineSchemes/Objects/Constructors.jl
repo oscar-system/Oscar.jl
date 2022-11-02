@@ -386,8 +386,8 @@ end
     hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
 
 For a scheme ``X = Spec(R)`` and elements ``f_1, f_2, ... ∈ R``
-this returns the open subscheme ``U = Spec(R[f_1⁻¹,f_2⁻¹, ...]) = X ∖ V(f_1, f_2, ...)``
-defined by the complement of the vanishing locus ``V(f_1, f_2, ...)``.
+this returns the open subscheme ``U = Spec(R[f_1⁻¹,f_2⁻¹, ...]) = X ∖ V(f_1 f_2 ...)``
+defined by the complement of the vanishing locus ``V(f_1 f_2 ...)``.
 
 # Examples
 ```jldoctest

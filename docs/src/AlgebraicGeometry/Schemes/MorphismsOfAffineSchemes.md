@@ -26,7 +26,7 @@ SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 
 ```@docs
 identity_map(X::AbsSpec{<:Any, <:MPolyRing})
-inclusion_map(X::AbsSpec, Y::AbsSpec)
+inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
 compose(f::AbsSpecMor, g::AbsSpecMor)
 restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
 ```

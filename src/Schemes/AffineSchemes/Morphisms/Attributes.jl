@@ -21,10 +21,10 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 
 # Examples
 ```jldoctest
-julia> X = affine_space(QQ,3)
+julia> Y = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
-julia> R = OO(X)
+julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
@@ -33,10 +33,10 @@ julia> (x1,x2,x3) = gens(R)
  x2
  x3
 
-julia> Y = subscheme(X, x1)
+julia> X = subscheme(Y, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> f = inclusion_map(Y, X);
+julia> f = inclusion_morphism(X, Y);
 
 julia> domain(f)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
@@ -52,10 +52,10 @@ On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 
 # Examples
 ```jldoctest
-julia> X = affine_space(QQ,3)
+julia> Y = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
-julia> R = OO(X)
+julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
@@ -64,10 +64,10 @@ julia> (x1,x2,x3) = gens(R)
  x2
  x3
 
-julia> Y = subscheme(X, x1)
+julia> X = subscheme(Y, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> f = inclusion_map(Y, X);
+julia> f = inclusion_morphism(X, Y);
 
 julia> codomain(f)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
@@ -84,10 +84,10 @@ On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 
 # Examples
 ```jldoctest
-julia> X = affine_space(QQ,3)
+julia> Y = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
-julia> R = OO(X)
+julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
@@ -96,10 +96,10 @@ julia> (x1,x2,x3) = gens(R)
  x2
  x3
 
-julia> Y = subscheme(X, x1)
+julia> X = subscheme(Y, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> pullback(inclusion_map(Y, X))
+julia> pullback(inclusion_morphism(X, Y))
 Map with following data
 Domain:
 =======
@@ -188,10 +188,10 @@ Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the tw
 
 # Examples
 ```jldoctest
-julia> X = affine_space(QQ,3)
+julia> Y = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
-julia> R = OO(X)
+julia> R = OO(Y)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> (x1,x2,x3) = gens(R)
@@ -200,10 +200,10 @@ julia> (x1,x2,x3) = gens(R)
  x2
  x3
 
-julia> Y = subscheme(X, x1)
+julia> X = subscheme(Y, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> f = inclusion_map(Y, X);
+julia> f = inclusion_morphism(X, Y);
 
 julia> graph(f);
 ```
