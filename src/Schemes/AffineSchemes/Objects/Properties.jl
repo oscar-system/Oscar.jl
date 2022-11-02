@@ -38,7 +38,6 @@ is_empty(X::EmptyScheme) = true
 
 
 # (2.0) For empty schemes and whenever issubset cannot be implemented
-# (2.0) For empty schemes and whenever issubset cannot be implemented
 
 # TODO: Does not comply with naming convention. Need is_subset etc.
 
@@ -83,7 +82,6 @@ end
 
 
 # (2.1) MPolyRing in first argument
-# (2.1) MPolyRing in first argument
 
 function issubset(
     X::AbsSpec{BRT, RT},
@@ -123,7 +121,6 @@ function issubset(
 end
 
 
-# (2.2) MPolyQuo in first argument
 # (2.2) MPolyQuo in first argument
 
 function issubset(
@@ -168,7 +165,6 @@ function issubset(
 end
 
 
-# (2.3) MPolyLocalizedRing in first argument
 # (2.3) MPolyLocalizedRing in first argument
 
 function issubset(
@@ -215,7 +211,6 @@ function issubset(
 end
 
 
-# (2.4) MPolyQuoLocalizedRing in first argument
 # (2.4) MPolyQuoLocalizedRing in first argument
 
 function issubset(
