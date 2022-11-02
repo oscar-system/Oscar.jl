@@ -81,5 +81,5 @@ end
   OT = orthogonal_group(T)
   f = matrix(ZZ, 2, 2, [1 1;0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
-  @test_throws ArgumentError OT(fT) # this should not because fT does not preserve the bilinear form
+  @test_throws ErrorException OT(fT) # this should not because fT does not preserve the bilinear form
 end
