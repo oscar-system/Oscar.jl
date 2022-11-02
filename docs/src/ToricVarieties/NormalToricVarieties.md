@@ -33,7 +33,7 @@ AffineNormalToricVariety(v::NormalToricVariety)
 ### Normal Toric Varieties
 
 ```@docs
-NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
+NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = true)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
 ```
