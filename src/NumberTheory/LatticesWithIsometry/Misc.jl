@@ -14,9 +14,15 @@ function inner_orthogonal_sum(T::TorQuadMod, U::TorQuadMod)
   rS = relations(T)+relations(U)
   geneT = [lift(a) for a in gens(T)]
   geneU = [lift(a) for a in gens(U)]
-  S = torsion_quadratic_module(cS, rS, gens = vcat(geneT, geneU), modulus = modulus_bilinear_form(T), modulus_qf = modulus_quadratic_form(T))
+  S = torsion_quadratic_module(cS, rS, gens = unique([g for g in vcat(geneT, geneU) if !is_zero(g)]), modulus = modulus_bilinear_form(T), modulus_qf = modulus_quadratic_form(T))
   TinS = hom(T, S, S.(geneT))
   UinS = hom(U, S, S.(geneU))
+  if order(S) == 1
+    S.gram_matrix_quadratic = matrix(QQ,0,0,[])
+    S.gram_matrix_bilinear = matrix(QQ,0,0,[])
+    set_attribute!(S, :is_degenerate, false)
+    S.ab_grp = abelian_group()
+  end
   return S, TinS, UinS
 end
 
@@ -27,18 +33,21 @@ end
 ###############################################################################
 
 function _normalize(T::TorQuadMod)
+  
   if order(T) == 1
     return T, id_hom(T)
   end
-  @assert is_prime(elementary_divisors(T)[end])
-  @assert is_degenerate(T)
-  p = exponent(T)
+  
+  p = elementary_divisors(T)[end]
+  @assert is_prime(p)
+  
   qT = Hecke.gram_matrix_quadratic(T)
   if p == 2
     qT = 1//modulus_quadratic_form(T)*qT
   else
     qT = 1//modulus_bilinear_form(T)*qT
   end
+  
   r = rank(qT)
   if r != ncols(qT)
     dT = denominator(qT)
@@ -46,6 +55,7 @@ function _normalize(T::TorQuadMod)
   else
     U = identity_matrix(QQ, r)
   end
+  
   nondeg = U[1:r, :]
   kernel = U[r+1:end, :]
   qT = nondeg*qT*transpose(nondeg)
@@ -60,6 +70,7 @@ function _normalize(T::TorQuadMod)
   qTR = map_entries(x -> R(ZZ(x)), dT*qT)
   D = U*qTR*transpose(U)
   D = map_entries(x -> R(mod(lift(x), dT)), D)
+  
   if p != 2
     m = ZZ(modulus_quadratic_form(T)//modulus_bilinear_form(T))
     D = R(m)^-1*D
@@ -69,24 +80,28 @@ function _normalize(T::TorQuadMod)
   U = U1*U
   nondeg = U*map_entries(x -> R(ZZ(x)), nondeg)
   U = vcat(nondeg, map_entries(x -> R(ZZ(x)), kernel))
+  
   @assert nrows(U) == ncols(U)
 
   n = ncols(U)
-  gene = TorQuadModElem[]
+  gene = elem_type(T)[]
+  
   for i in 1:n
     g = sum(lift(U[i,j])*T[j] for j in 1:ncols(U))
     push!(gene, g)
   end
+  
   D, DtoT = sub(T, gene)
   if !is_degenerate(D)
     return D, DtoT
   end
+  
   gene = gens(D)
   qb = Hecke.gram_matrix_bilinear(D)
   n = ngens(D)
 
-  kergens = [gene[i] for i in 1:n if is_zero(qb[i,:])]
-  nondeg = [gene[i] for i in 1:n if !(gene[i] in kergens)]
+  kergens = eltype(gene)[gene[i] for i in 1:n if is_zero(qb[i,:])]
+  nondeg = eltype(gene)[gene[i] for i in 1:n if !(gene[i] in kergens)]
   k = length(kergens)
 
   for i in 1:k
@@ -107,8 +122,8 @@ end
 
 function orthogonal_group_degenerate(T::TorQuadMod)
   @req is_degenerate(T) "T must be degenerate"
-  @req is_prime(elementary_divisors(T)[end]) "T must define a F_p-vector space"
   p = elementary_divisors(T)[end]
+  @req is_prime(p) "T must define a F_p-vector space"
   n = ngens(T)
   NT, NTtoT = _normalize(T)
   @assert is_bijective(NTtoT)
@@ -120,30 +135,30 @@ function orthogonal_group_degenerate(T::TorQuadMod)
   NR, NRtoNT = sub(NT, [NT[i] for i in k+1:n])
   @assert !is_degenerate(NR)
   ONR = orthogonal_group(NR)
-  gensNR = [hom(g) for g in gens(ONR)]
+  gensNR = TorQuadModMor[hom(g) for g in gens(ONR)]
   if k > 0
-    gene_im = [block_diagonal_matrix([Idk, g.map_ab.map]) for g in gensNR]
+    gene_im = fmpz_mat[block_diagonal_matrix([Idk, g.map_ab.map]) for g in gensNR]
     gene_im = union(gene_im, [block_diagonal_matrix([lift(matrix(g)), Idr]) for g in gens(general_linear_group(k, GF(p)))])
   else
-    gene_im = [g.map_ab.ab for g in gensNR]
+    gene_im = fmpz_mat[g.map_ab.ab for g in gensNR]
   end
   if k*r > 0
     bas = fmpz_mat[lift(matrix(GF(p), m)) for m in GAP.Globals.Basis(GAP.Globals.MatrixSpace(GAP.Globals.GF(GAP.julia_to_gap(p)), k, r))]
-    gene2 = []
+    gene2 = fmpz_mat[]
     for g in bas
       s = identity_matrix(ZZ, n)
       s[1:k, k+1:end] = g
-      push!(gene_im, s)
+      push!(gene2, s)
     end
     MG1 = matrix_group([map_entries(GF(p), m) for m in gene_im])
     MG2 = matrix_group([map_entries(GF(p), m) for m in vcat(gene_im, gene2)])
     gene3 = lift.(matrix.(representative.(double_cosets(MG2, MG1, MG1))))
     gene_im = unique(vcat(gene_im, gene3))
   end
-  geneOT = [hom(NT, NT, g) for g in gene_im]
-  geneOT = [compose(compose(inv(NTtoT), g), NTtoT).map_ab.map for g in geneOT]
+  geneOT = TorQuadModMor[hom(NT, NT, g) for g in gene_im]
+  geneOT = fmpz_mat[compose(compose(inv(NTtoT), g), NTtoT).map_ab.map for g in geneOT]
   OT = _orthogonal_group(T, geneOT, check=false)
-  @asert order(OT) == p*k*r*order(ONR)*order(GL(k, p))
+  @assert order(OT) == p^(k*r)*order(ONR)*order(GL(k, GF(p)))
   return OT
 end
 
@@ -235,7 +250,7 @@ end
 #
 ##############################################################################
 
-function embedding_orthogonal_group(i)
+function embedding_orthogonal_group(i::TorQuadModMor)
   ok, j = has_complement(i)
   @req ok "domain(i) needs to have a complement in codomain(i)"
   A = domain(i)
@@ -243,25 +258,31 @@ function embedding_orthogonal_group(i)
   D = codomain(i)
   gene = vcat(i.(gens(A)), j.(gens(B)))
   n = ngens(A)
-  OD, OA, = orthogonal_group.([D, A])
+  OD = orthogonal_group(D)
+  OA = is_degenerate(A) ? orthogonal_group_degenerate(A) : orthogonal_group(A)
 
   geneOA = elem_type(OD)[]
   for f in gens(OA)
     imgs = [i(f(a)) for a in gens(A)]
     imgs = vcat(imgs, gene[n+1:end])
-    _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
-    _f = hom(D.ab_grp, D.ab_grp, _f)
+    if can_solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs]))
+      _f = solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs]))
+      _f = hom(D.ab_grp, D.ab_grp, _f)
+    else
+      _f = solve(reduce(vcat, [data(a).coeff for a in imgs]), reduce(vcat, [data(a).coeff for a in gene]))
+      _f = inv(hom(D.ab_grp, D.ab_grp, _f))
+    end
     f = TorQuadModMor(D, D, _f)
     push!(geneOA, OD(f))
   end
   OAtoOD = hom(OA, OD, gens(OA), geneOA)
-  return OAtoOD
+  return OAtoOD::GAPGroupHomomorphism
 end
 
 function embedding_orthogonal_group(i1, i2)
    D = codomain(i1)
    A = domain(i1)
-   B = domain(i2)
+    B = domain(i2)
    gene = vcat(i1.(gens(A)), i2.(gens(B)))
    n = ngens(A)
    OD, OA, OB = orthogonal_group.([D, A, B])
@@ -287,7 +308,7 @@ function embedding_orthogonal_group(i1, i2)
 
    OAtoOD = hom(OA, OD, gens(OA), geneOA)
    OBtoOD = hom(OB, OD, gens(OB), geneOB)
-   return OAtoOD, OBtoOD
+   return (OAtoOD, OBtoOD)::Tuple{GAPGroupHomomorphism, GAPGroupHomomorphism}
  end
 
 function _as_Fp_vector_space_quotient(HinV, p, f)

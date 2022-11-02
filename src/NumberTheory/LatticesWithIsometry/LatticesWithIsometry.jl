@@ -61,7 +61,7 @@ order_of_isometry(Lf::LatticeWithIsometry) = Lf.n
 Given a lattice with isometry `(L, f)`, return the rank of the underlying lattice
 `L`.
 """
-rank(Lf::LatticeWithIsometry) = rank(lattice(Lf))
+rank(Lf::LatticeWithIsometry) = rank(lattice(Lf))::Integer
 
 @doc Markdown.doc"""
     charpoly(Lf::LatticeWithIsometry) -> fmpq_poly
@@ -69,7 +69,7 @@ rank(Lf::LatticeWithIsometry) = rank(lattice(Lf))
 Given a lattice with isometry `(L, f)`, return the characteristic polynomial of the
 underlying isometry `f`.
 """
-charpoly(Lf::LatticeWithIsometry) = charpoly(isometry(Lf))
+charpoly(Lf::LatticeWithIsometry) = charpoly(isometry(Lf))::fmpq_poly
 
 @doc Markdown.doc"""
     minpoly(Lf::LatticeWithIsometry) -> fmpq_poly
@@ -77,7 +77,7 @@ charpoly(Lf::LatticeWithIsometry) = charpoly(isometry(Lf))
 Given a lattice with isometry `(L, f)`, return the minimal polynomial of the
 underlying isometry `f`.
 """
-minpoly(Lf::LatticeWithIsometry) = minpoly(isometry(Lf))
+minpoly(Lf::LatticeWithIsometry) = minpoly(isometry(Lf))::fmpq_poly
 
 @doc Markdown.doc"""
     genus(Lf::LatticeWithIsometry) -> ZGenus
@@ -87,7 +87,7 @@ lattice `L`.
 
 For now, in order for the genus to exist, the lattice must be integral.
 """
-genus(Lf::LatticeWithIsometry) = begin; L = lattice(Lf); is_integral(L) ? genus(L) : error("Underlying lattice must be integral"); end
+genus(Lf::LatticeWithIsometry) = begin; L = lattice(Lf); is_integral(L) ? genus(L)::ZGenus : error("Underlying lattice must be integral"); end
 
 @doc Markdown.doc"""
     ambient_space(Lf::LatticeWithIsometry) -> QuadSpace
@@ -95,7 +95,7 @@ genus(Lf::LatticeWithIsometry) = begin; L = lattice(Lf); is_integral(L) ? genus(
 Given a lattice with isometry `(L, f)`, return the ambient space of the underlying
 lattice `L`.
 """
-ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))
+ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))::Hecke.QuadSpace{FlintRationalField, fmpq_mat}
 
 ###############################################################################
 #
@@ -150,7 +150,7 @@ function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = t
     @assert basis_matrix(L)*f_ambient == f*basis_matrix(L)
   end
 
-  return LatticeWithIsometry(L, f, f_ambient, n)
+  return LatticeWithIsometry(L, f, f_ambient, n)::LatticeWithIsometry
 end
 
 @doc Markdown.doc"""
@@ -170,12 +170,12 @@ on the complement of the rational span of `L` if it is not of full rank.
 function lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true,
                                                      ambient_representation::Bool = true)
   if rank(L) == 0
-      return LatticeWithIsometry(L, matrix(QQ,0,0,[]), matrix(QQ, 0, 0, []), -1)
+      return LatticeWithIsometry(L, matrix(QQ,0,0,[]), identity_matrix(QQ, degree(L)), -1)
   end
 
   n = Oscar._exponent(f)
   return lattice_with_isometry(L, f, Int(n), check = check,
-                               ambient_representation = ambient_representation)
+                               ambient_representation = ambient_representation)::LatticeWithIsometry
 end
 
 @doc Markdown.doc"""
@@ -187,7 +187,7 @@ where `f` corresponds to the identity mapping of `L`.
 function lattice_with_isometry(L::ZLat)
   d = degree(L)
   f = identity_matrix(QQ, d)
-  return lattice_with_isometry(L, f, check = false, ambient_representation = true)
+  return lattice_with_isometry(L, f, check = false, ambient_representation = true)::LatticeWithIsometry
 end
 
 ###############################################################################
@@ -224,7 +224,7 @@ end
 ###############################################################################
 
 @doc Markdown.doc"""
-    discriminant_group(Lf::LatticeWithIsometry) -> TorQuadMod, TorQuadModMor
+    discriminant_group(Lf::LatticeWithIsometry) -> TorQuadMod, AutomorphismGroupElem
 
 Given an integral lattice with isometry `Lf`, return the discriminant group `q`
 of the underlying lattice `L` as well as this image of the underlying isometry
@@ -236,7 +236,7 @@ function discriminant_group(Lf::LatticeWithIsometry)
   @req is_integral(L) "Underlying lattice must be integral"
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
-  return q, Oq(gens(matrix_group(f))[1])
+  return (q, Oq(gens(matrix_group(f))[1]))::Tuple{TorQuadMod, AutomorphismGroupElem{TorQuadMod}}
 end
 
 @attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
@@ -262,7 +262,7 @@ end
     CdL, _ =  centralizer(OqL, fqL)
     GL, _ = sub(OqL, [OqL(s.X) for s in CdL])
   end
-  return GL
+  return GL::AutomorphismGroup{TorQuadMod}
 end
 
 ###############################################################################
