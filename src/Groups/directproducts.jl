@@ -47,9 +47,6 @@ Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
 DirectProduct of
- 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
 
 
 julia> elements(G)
