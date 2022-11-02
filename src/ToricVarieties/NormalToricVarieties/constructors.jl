@@ -98,7 +98,12 @@ end
     NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
-as vector of vectors.
+as vector of vectors. By default, this method assumes that the input is not
+non-redundant (e.g. that a ray was entered twice by accident). If the user
+is certain that no redundancy exists in the entered information, one can
+pass `non_redundant = true` as third argument. This will bypass these consistency
+checks. In addition, this will ensure that the order of the rays is not
+altered by the constructor.
 
 # Examples
 ```jldoctest
@@ -118,10 +123,13 @@ julia> max_cones = [[1,2],[2,3],[3,4],[4,1]]
 
 julia> NormalToricVariety(ray_generators, max_cones)
 A normal toric variety
+
+julia> NormalToricVariety(ray_generators, max_cones, non_redundant = true)
+A normal toric variety
 ```
 """
-function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
-    fan = PolyhedralFan(transpose(hcat(rays...)), IncidenceMatrix(max_cones))
+function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false)
+    fan = PolyhedralFan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
     return NormalToricVariety(fan)
 end
 
