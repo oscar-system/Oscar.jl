@@ -155,10 +155,11 @@ end
 ########################################################
 
 @doc Markdown.doc"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyRing})
+    standard_spec(X::AbsSpec)
 
-For an affine spectrum whose coordinate ring is a polynomial
-ring, this method computes the standard spectrum.
+For an affine spectrum with coordinate ring of type `MPolyRing`, 
+`MPolyQuo`, or `MPolyLocalizedRing`, this returns the canonical 
+transform to a `Spec` of an `MPolyQuoLocalizedRing`. 
 
 # Examples
 ```jldoctest
@@ -166,29 +167,33 @@ julia> standard_spec(affine_space(QQ,5))
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field by ideal(0) at the multiplicative set powers of fmpq_mpoly[1]
 ```
 """
+function standard_spec(X::AbsSpec)
+  error("not implemented for input of type $(typeof(X))")
+end
+
 standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocalizedRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
-@doc Markdown.doc"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
-
-For an affine spectrum whose coordinate ring is the
-quotient of a polynomial ring, this method computes
-the standard spectrum.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
-
-julia> I = ideal(R, [x]);
-
-julia> X = Spec(R, I)
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
-
-julia> standard_spec(X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[1]
-```
-"""
+#@doc Markdown.doc"""
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
+#
+#For an affine spectrum whose coordinate ring is the
+#quotient of a polynomial ring, this method computes
+#the standard spectrum.
+#
+## Examples
+#```jldoctest
+#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#
+#julia> I = ideal(R, [x]);
+#
+#julia> X = Spec(R, I)
+#Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+#
+#julia> standard_spec(X)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[1]
+#```
+#"""
 function standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
   A = OO(X)
   R = base_ring(A)
@@ -196,53 +201,53 @@ function standard_spec(X::AbsSpec{<:Any, <:MPolyQuo})
 end
 
 
-@doc Markdown.doc"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing})
-
-For an affine spectrum whose coordinate ring is the
-quotient of a polynomial ring, this method computes
-the standard spectrum.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
-
-julia> I = ideal(R, [x]);
-
-julia> U = complement_of_ideal(I);
-
-julia> X = Spec(R, U)
-Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
-
-julia> standard_spec(X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
-```
-"""
+#@doc Markdown.doc"""
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing})
+#
+#For an affine spectrum whose coordinate ring is the
+#quotient of a polynomial ring, this method computes
+#the standard spectrum.
+#
+## Examples
+#```jldoctest
+#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#
+#julia> I = ideal(R, [x]);
+#
+#julia> U = complement_of_ideal(I);
+#
+#julia> X = Spec(R, U)
+#Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the complement of ideal(x)
+#
+#julia> standard_spec(X)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
+#```
+#"""
 standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedRing(ambient_ring(X), ideal(ambient_ring(X), [zero(ambient_ring(X))]), inverted_set(OO(X))))
 
 
-@doc Markdown.doc"""
-    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing})
-
-For an affine spectrum whose coordinate ring is the
-quotient of a polynomial ring, this method computes
-the standard spectrum.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
-
-julia> I = ideal(R, [x]);
-
-julia> U = complement_of_ideal(ideal(R, [y]));
-
-julia> X = Spec(R, I, U)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
-
-julia> standard_spec(X)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
-```
-"""
+#@doc Markdown.doc"""
+#    standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing})
+#
+#For an affine spectrum whose coordinate ring is the
+#quotient of a polynomial ring, this method computes
+#the standard spectrum.
+#
+## Examples
+#```jldoctest
+#julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+#
+#julia> I = ideal(R, [x]);
+#
+#julia> U = complement_of_ideal(ideal(R, [y]));
+#
+#julia> X = Spec(R, I, U)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
+#
+#julia> standard_spec(X)
+#Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set complement of ideal(y)
+#```
+#"""
 standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = Spec(OO(X))
 
 
@@ -385,9 +390,9 @@ end
 @Markdown.doc """
     hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
 
-For a scheme ``X = Spec(R)`` and elements ``f_1, f_2, ... ∈ R``
-this returns the open subscheme ``U = Spec(R[f_1⁻¹,f_2⁻¹, ...]) = X ∖ V(f_1 f_2 ...)``
-defined by the complement of the vanishing locus ``V(f_1 f_2 ...)``.
+For a scheme ``X = Spec(R)`` and elements ``f₁, f₂, ... ∈ R``
+this returns the open subscheme ``U = Spec(R[f₁⁻¹,f₂⁻¹, ...]) = X ∖ V(f₁⋅f₂⋅…)``
+defined by the complement of the vanishing locus of the product ``f₁⋅f₂⋅…``.
 
 # Examples
 ```jldoctest
@@ -461,7 +466,7 @@ Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT<:Ring} = E
 # Spec(X) does not apply for instance to principal open subsets hence a change
 # is necessary
 @Markdown.doc """
-    Base.intersect(X::AbsSpec{BRT, <:MPolyRing}, Y::AbsSpec{BRT, <:MPolyRing}) where {BRT<:Ring}
+    Base.intersect(X::AbsSpec, Y::AbsSpec)
 
 This method computes the intersection to two affine
 schemes that reside in the same ambient affine space.
@@ -490,6 +495,10 @@ julia> intersect(Y1, Y2)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1, x2)
 ```
 """
+function Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
+  error("method not implemted for arguments of type $(typeof(X)) and $(typeof(Y))")
+end
+
 function Base.intersect(
     X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyRing}
@@ -531,7 +540,7 @@ end
 
 
 function Base.intersect(
-    Y::AbsSpec{BRT, <:Any},
+    Y::AbsSpec{BRT, <:Ring},
     X::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)
@@ -570,7 +579,7 @@ end
 
 
 function Base.intersect(
-    Y::AbsSpec{BRT, <:Any},
+    Y::AbsSpec{BRT, <:Ring},
     X::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT<:Ring}
   return intersect(X, Y)
@@ -599,7 +608,7 @@ end
 
 
 function Base.intersect(
-    Y::AbsSpec{BRT, <:Any},
+    Y::AbsSpec{BRT, <:Ring},
     X::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)

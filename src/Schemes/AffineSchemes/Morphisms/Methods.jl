@@ -102,6 +102,9 @@ to eliminate variables ``xᵢ`` to arrive at a simpler presentation
 ``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return 
 the triple ``(Y, f, g)`` where ``Y = Spec(R')`` and ``f : Y ↔ X : g``
 are the identifying isomorphisms. 
+
+***Note:*** The `ambient_ring` of the output `Y` will be different 
+from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
