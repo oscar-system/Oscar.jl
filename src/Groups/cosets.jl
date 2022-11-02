@@ -62,9 +62,6 @@ julia> g = perm(G,[3,4,1,5,2])
 
 julia> H = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
-
-Hg = right_coset(H,g)
-Right coset   Sym( [ 1 .. 3 ] ) * (1,3)(2,4,5)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
@@ -86,10 +83,7 @@ Return the coset `gH`.
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(5)
-Sym( [ 1 .. 5 ] )
-
-julia> g = perm(G,[3,4,1,5,2])
+julia> g = perm([3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)

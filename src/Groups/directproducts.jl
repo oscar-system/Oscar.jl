@@ -46,7 +46,8 @@ julia> K = symmetric_group(2)
 Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
-DirectProduct of 2-element Vector{PermGroup}:
+DirectProduct of
+ 2-element Vector{PermGroup}:
  Sym( [ 1 .. 3 ] )
  Sym( [ 1 .. 2 ] )
 
@@ -180,9 +181,7 @@ julia> K = symmetric_group(2)
 Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
+DirectProduct of
 
 
 julia> as_perm_group(G)
@@ -224,18 +223,14 @@ julia> K = symmetric_group(2)
 Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
+DirectProduct of
  
 
 julia> emb1 = embedding(G,1)
-Group homomorphism from 
+Group homomorphism from
 Sym( [ 1 .. 3 ] )
 to
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
+DirectProduct of
 
 julia> h = perm(H,[2,3,1])
 (1,2,3)
@@ -244,12 +239,10 @@ julia> emb1(h)
 (1,2,3)
 
 julia> emb2 = embedding(G,2)
-Group homomorphism from 
+Group homomorphism from
 Sym( [ 1 .. 2 ] )
 to
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
+DirectProduct of
 
 julia> k = perm(K,[2,1])
 (1,2)
@@ -284,25 +277,17 @@ julia> K = symmetric_group(2)
 Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
+DirectProduct of
 
 julia> proj1 = projection(G,1)
-Group homomorphism from 
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
-
+Group homomorphism from
+DirectProduct of
 to
 Sym( [ 1 .. 3 ] )
 
 julia> proj2 = projection(G,2)
-Group homomorphism from 
-DirectProduct of 2-element Vector{PermGroup}:
- Sym( [ 1 .. 3 ] )
- Sym( [ 1 .. 2 ] )
-
+Group homomorphism from
+DirectProduct of
 to
 Sym( [ 1 .. 2 ] )
 
@@ -590,7 +575,7 @@ Return `H`, where `W` is the wreath product of `G` and `H`.
 
 # Examples
 ```jldoctest
-julia> G =cyclic_group(3)
+julia> G = cyclic_group(3)
 <pc group of size 3 with 1 generators>
 
 julia> H = symmetric_group(2)
