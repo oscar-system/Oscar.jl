@@ -8,7 +8,7 @@ function __init__()
   Hecke.add_verbose_scope(:ModStdQt)
 end
 
-function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector; ErrorTolerant::Bool = false)
+function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)
   n = evaluate(numerator(f), v)
   d = evaluate(denominator(f), v)
   if iszero(d) 
