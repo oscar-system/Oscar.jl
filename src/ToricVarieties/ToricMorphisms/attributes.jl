@@ -134,11 +134,11 @@ Codomain:
 Abelian group with structure: Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_cartier_divisor_group(tm::ToricMorphism)
+@attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
-    source_embedding = map_from_cartier_divisor_group_to_torusinvariant_divisor_group(domain_variety)
+    source_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
     morphism_of_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
     return restrict_codomain(source_embedding * morphism_of_weil_divisors)
 end
-export morphism_on_cartier_divisor_group
+export morphism_on_torusinvariant_cartier_divisor_group
