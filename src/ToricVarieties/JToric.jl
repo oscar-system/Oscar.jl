@@ -91,3 +91,4 @@ include("ToricMorphisms/special_attributes.jl")
 @deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
 @deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
+@deprecate morphism_on_cartier_divisor_group(tm::ToricMorphism) morphism_on_torusinvariant_cartier_divisor_group(tm)

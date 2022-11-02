@@ -74,6 +74,6 @@ of $\mathbb{R}^N$ and the maximal cones are one to one to the maximal cones of
 the fan of $v$.
 
 ```@docs
-morphism_on_cartier_divisor_group(tm::ToricMorphism)
+morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 morphism_from_cox_variety(variety::AbstractNormalToricVariety)
 ```
