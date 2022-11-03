@@ -1,7 +1,7 @@
 export OO, coordinate_ring, base_ring, dim, codim, name
 
 export ambient_affine_space, ambient_coordinate_ring, ambient_coordinates,
-       ambient_closure_ideal
+       ambient_closure_ideal, ambient_embedding
 
 export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 
@@ -127,7 +127,7 @@ function ambient_affine_space(X::AbsSpec)
   error("$X does not have an ambient affine space")
 end
 
-function ambient_affine_space(X::AbsSpec{BRT,MPolyRing}) where BRT
+function ambient_affine_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
@@ -135,7 +135,27 @@ end
   return Spec(ambient_coordinate_ring(X))
 end
 
+@Markdown.doc """
+    ambient_embedding(X::AbsSpec)
 
+Return the embedding of ``X`` in its ambient affine space.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> (x, y) = coordinates(X);
+
+julia> Y = subscheme(X, [x]);
+
+julia> inc = ambient_embedding(Y)
+
+julia> inc == inclusion_morphism(Y, X)
+true
+```
+"""
+ambient_embedding(X::AbsSpec) = inclusion_morphism(X, ambient_affine_space(X), check=false)
 
 @Markdown.doc """
     ambient_coordinate_ring(X::AbsSpec)
