@@ -5,19 +5,49 @@
 @doc Markdown.doc"""
     chow_ring(v::AbstractNormalToricVariety)
 
-Return the Chow ring of the simplicial and complete toric variety `v`.
+Return the Chow ring of the simplicial toric variety `v`.
+
+While [CLS11](@cite) focus on simplicial and complete varieties to
+define the Chow ring, it was described in [Peg14](@cite) that this
+notion can also be extended to non-complete varieties. We explicitly
+support the Chow ring also for non-complete varieties.
+
+This is demonstrated by the following example. Note that the computation
+for the non-complete variety leads to a Chow ring which is identical to
+the Chow ring of a certain matroid. This observation can be anticipated
+by e.g. the results in [FY04](@cite).
 
 # Examples
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
+julia> is_complete(p2)
+true
+
 julia> ngens(chow_ring(p2))
 3
+
+julia> v = NormalToricVariety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]])
+A normal toric variety
+
+julia> is_complete(v)
+false
+
+julia> set_coordinate_names(v, ["x_{1}", "x_{2}", "x_{3}"])
+
+julia> chow_ring(v)
+Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Field by ideal(x_{1} - x_{3}, x_{2} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
+
+julia> M = cycle_matroid(Graphs.complete_graph(3))
+Matroid of rank 2 on 3 elements
+
+julia> chow_ring(M)
+Quotient of Multivariate Polynomial Ring in x_{1}, x_{2}, x_{3} over Rational Field by ideal(x_{1} - x_{2}, x_{1} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
 ```
 """
 @attr MPolyQuo function chow_ring(v::AbstractNormalToricVariety)
-    if !is_simplicial(v) || !is_complete(v)
-        throw(ArgumentError("The Chow ring is (currently) only supported for simplicial and complete toric varieties"))
+    if !is_simplicial(v)
+      throw(ArgumentError("The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"))
     end
     R, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached = false)
     linear_relations = ideal_of_linear_relations(R, v)
