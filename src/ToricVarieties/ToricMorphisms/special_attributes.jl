@@ -15,7 +15,7 @@ A toric morphism
 @attr ToricMorphism function morphism_from_cox_variety(variety::AbstractNormalToricVariety)
     mapping_matrix = matrix(ZZ, rays(fan(variety)))
     max_cones_for_cox_variety = ray_indices(maximal_cones(variety))
-    rays_for_cox_variety = matrix(ZZ,[[if i==j 1 else 0 end for j in 1:nrays(variety)] for i in 1:nrays(variety)])
+    rays_for_cox_variety = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:nrays(variety)] for i in 1:nrays(variety)])
     cox_variety = NormalToricVariety(PolyhedralFan(rays_for_cox_variety, max_cones_for_cox_variety))
     return ToricMorphism(cox_variety, mapping_matrix, variety)
 end

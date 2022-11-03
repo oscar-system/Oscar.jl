@@ -10,10 +10,10 @@ antv2 = NormalToricVariety(Oscar.positive_hull([1 1; -1 1]))
 antv3 = AffineNormalToricVariety(antv2)
 antv4 = AffineNormalToricVariety(Oscar.positive_hull([1 0]))
 antv5 = AffineNormalToricVariety(Oscar.positive_hull([1 0; 0 1]))
-antv6 = NormalToricVariety([[1,0,0], [1,0,1], [1,1,1], [1,1,0]], [[1,2,3,4]])
+antv6 = NormalToricVariety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]])
 
 set_coordinate_names(antv4, ["u"])
-set_coordinate_names_of_torus(antv4, ["u1","u2"])
+set_coordinate_names_of_torus(antv4, ["u1", "u2"])
 
 @testset "Affine toric varieties" begin
     @test is_smooth(antv) == false
@@ -40,7 +40,7 @@ end
 end
 
 @testset "Affine toric varieties with torusfactor" begin
-    @test_throws ArgumentError set_coordinate_names(antv4, ["u1", "u2"])
+    @test_throws ArgumentError set_coordinate_names(antv4, ["u1",  "u2"])
     @test_throws ArgumentError set_coordinate_names_of_torus(antv4, ["u"])
     @test_throws ArgumentError ideal_of_linear_relations(antv4)
     @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(antv4)
@@ -53,7 +53,7 @@ end
     @test ngens(cox_ring(antv4)) == 1
     @test is_finalized(antv4) == true
     @test_throws ErrorException set_coordinate_names(antv4, ["u"])
-    @test_throws ErrorException set_coordinate_names_of_torus(antv4, ["u1", "u2"])
+    @test_throws ErrorException set_coordinate_names_of_torus(antv4, ["u1",  "u2"])
 end
 
 @testset "Affine toric varieties with trivial toric ideal" begin
@@ -72,7 +72,7 @@ end
 # (2) Cyclic quotient singularities
 ##################################################
 
-cyc = CyclicQuotientSingularity(2,1)
+cyc = CyclicQuotientSingularity(2, 1)
 
 @testset "Cyclic quotient singularities" begin
     @test is_affine(cyc) == true
@@ -91,11 +91,11 @@ end
 ##################################################
 
 ntv = NormalToricVariety(Oscar.normal_fan(Oscar.cube(2)))
-set_coordinate_names(ntv, ["x1","x2","y1","y2"])
+set_coordinate_names(ntv, ["x1", "x2", "y1", "y2"])
 ntv2 = NormalToricVariety(Oscar.cube(2))
-ntv3 = NormalToricVarietyFromGLSM(matrix(ZZ, [[1,1,1]]))
+ntv3 = NormalToricVarietyFromGLSM(matrix(ZZ, [[1, 1, 1]]))
 ntv4 = NormalToricVarietiesFromStarTriangulations(convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1]))
-ntv5 = NormalToricVariety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42))))
+ntv5 = NormalToricVariety(polarize(Polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))))
 
 @testset "Normal toric varieties from fans, triangulations and GLSMs" begin
     @test is_complete(ntv) == true
@@ -122,9 +122,9 @@ end
 ##################################################
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
-P2v2 = projective_space(NormalToricVariety,2)
-P3 = projective_space(NormalToricVariety,3)
-WPS = weighted_projective_space(NormalToricVariety,[2,3,1])
+P2v2 = projective_space(NormalToricVariety, 2)
+P3 = projective_space(NormalToricVariety, 3)
+WPS = weighted_projective_space(NormalToricVariety, [2, 3, 1])
 
 @testset "Projective space P2" begin
     @test is_normal(P2) == true
@@ -151,8 +151,8 @@ end
 end
 
 @testset "Test standard constructor for projective space" begin
-  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1],[1],[1]])
-  @test coordinate_names(P2v2) == ["x1","x2","x3"]
+  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1], [1], [1]])
+  @test coordinate_names(P2v2) == ["x1", "x2", "x3"]
 end
 
 
@@ -164,7 +164,7 @@ end
 ##################################################
 
 F0 = hirzebruch_surface(0)
-F5 = NormalToricVariety([[1,0], [0,1], [-1,5], [0,-1]], [[1,2],[2,3],[3,4],[4,1]])
+F5 = NormalToricVariety([[1, 0], [0, 1], [-1, 5], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 1]])
 F5v2 = hirzebruch_surface(5)
 
 @testset "Hirzebruch surface F0" begin
@@ -207,8 +207,8 @@ end
 end
 
 @testset "Test constructor for Hirzebruch surfaces" begin
-  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(F5v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(F5v2))]) == matrix(ZZ, [[0,1],[1,0],[0,1],[1,5]])
-  @test coordinate_names(F5v2) == ["t1","x1","t2","x2"]
+  @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(F5v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(F5v2))]) == matrix(ZZ, [[0, 1], [1, 0], [0, 1], [1, 5]])
+  @test coordinate_names(F5v2) == ["t1", "x1", "t2", "x2"]
 end
 
 
@@ -218,10 +218,10 @@ end
 ##################################################
 
 dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
-dP1 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1]], [[1,2],[2,3],[3,4],[4,1]])
-dP2 = NormalToricVariety([[1,0], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,1]])
-dP3 = NormalToricVariety([[1,0], [1,1], [0,1], [-1,0], [-1,-1], [0,-1]], [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
-set_coordinate_names(dP3,["x1","e1","x2","e3","x3","e2"])
+dP1 = NormalToricVariety([[1, 0], [0, 1], [-1, 0], [-1, -1]], [[1, 2], [2, 3], [3, 4], [4, 1]])
+dP2 = NormalToricVariety([[1, 0], [0, 1], [-1, 0], [-1, -1], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 5], [5, 1]])
+dP3 = NormalToricVariety([[1, 0], [1, 1], [0, 1], [-1, 0], [-1, -1], [0, -1]], [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 1]])
+set_coordinate_names(dP3, ["x1", "e1", "x2", "e3", "x3", "e2"])
 dP3v2 = del_pezzo_surface(3)
 
 @testset "Argument errors for del Pezzo surfaces" begin
@@ -241,8 +241,8 @@ end
 
 @testset "Test constructor for del Pezzo surfaces" begin
   phi = map_from_torusinvariant_weil_divisor_group_to_class_group(dP3v2)
-  @test vcat([phi(x).coeff for x in gens(torusinvariant_weil_divisor_group(dP3v2))]) == matrix(ZZ, [[1,1,1,0],[1,1,0,1],[1,0,1,1],[0,-1,0,0],[0,0,-1,0],[0,0,0,-1]])
-  @test coordinate_names(dP3v2) == ["x1","x2","x3","e1","e2","e3"]
+  @test vcat([phi(x).coeff for x in gens(torusinvariant_weil_divisor_group(dP3v2))]) == matrix(ZZ, [[1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 1, 1], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
+  @test coordinate_names(dP3v2) == ["x1", "x2", "x3", "e1", "e2", "e3"]
 end
 
 
@@ -343,15 +343,15 @@ end
 # (10) Toric divisors
 ##################################################
 
-D=ToricDivisor(F5, [0,0,0,0])
-D2 = DivisorOfCharacter(F5, [1,2])
-D3 = ToricDivisor(dP3, [1,0,0,0,0,0])
+D=ToricDivisor(F5, [0, 0, 0, 0])
+D2 = DivisorOfCharacter(F5, [1, 2])
+D3 = ToricDivisor(dP3, [1, 0, 0, 0, 0, 0])
 D4 = canonical_divisor(dP3)
 D5 = anticanonical_divisor(dP3)
 D6 = trivial_divisor(dP3)
 
 @testset "Argument errors for toric divisors" begin
-    @test_throws ArgumentError ToricDivisor(F5, [0,0,0])
+    @test_throws ArgumentError ToricDivisor(F5, [0, 0, 0])
     @test_throws ArgumentError D+D3
     @test_throws ArgumentError D-D3
 end
@@ -369,7 +369,7 @@ end
     @test is_q_cartier(D) == true
     @test is_prime(D) == false
     @test dim(toric_variety(D)) == 2
-    @test coefficients(D) == [0,0,0,0]
+    @test coefficients(D) == [0, 0, 0, 0]
     @test dim(polyhedron(D)) == 0
     @test ambient_dim(polyhedron(D)) == 2
 end
@@ -398,7 +398,7 @@ end
     @test is_principal(fmpz(2)*D+D2) == true
     @test is_principal(2*D-D2) == true
     @test coefficients(D2+D2) == coefficients(2*D2)
-    @test coefficients(D2-D2) == [0,0,0,0]
+    @test coefficients(D2-D2) == [0, 0, 0, 0]
 end
 
 
@@ -409,9 +409,9 @@ end
 # (11) Toric divisor classes
 ##################################################
 
-DC = ToricDivisorClass(F5, [fmpz(0),fmpz(0)])
-DC2 = ToricDivisorClass(F5, [1,2])
-DC3 = ToricDivisorClass(dP3, [4,3,2,1])
+DC = ToricDivisorClass(F5, [fmpz(0), fmpz(0)])
+DC2 = ToricDivisorClass(F5, [1, 2])
+DC3 = ToricDivisorClass(dP3, [4, 3, 2, 1])
 DC4 = canonical_divisor_class(dP3)
 DC5 = anticanonical_divisor_class(dP3)
 DC6 = trivial_divisor_class(dP3)
@@ -438,9 +438,9 @@ end
 # (12) Toric line bundles
 ##################################################
 
-l = ToricLineBundle(dP3, [1,2,3,4])
+l = ToricLineBundle(dP3, [1, 2, 3, 4])
 l2 = ToricLineBundle(D2)
-l3 = ToricLineBundle(dP1, [fmpz(1),fmpz(2)])
+l3 = ToricLineBundle(dP1, [fmpz(1), fmpz(2)])
 l4 = canonical_bundle(dP3)
 l5 = anticanonical_bundle(dP3)
 l6 = ToricLineBundle(dP3, trivial_divisor(dP3))
@@ -480,10 +480,10 @@ vs = vanishing_sets(dP3)
 R,_ = PolynomialRing(QQ, 3)
 
 @testset "Line bundle cohomologies with cohomCalg" begin
-    @test cohomology(l,0) == 11
-    @test all_cohomologies(l) == [11,0,0]
-    @test cohomology(l2,0) == 1
-    @test all_cohomologies(l2) == [1,0,0]
+    @test cohomology(l, 0) == 11
+    @test all_cohomologies(l) == [11, 0, 0]
+    @test cohomology(l2, 0) == 1
+    @test all_cohomologies(l2) == [1, 0, 0]
 end
 
 @testset "Toric vanishingSets of dP3" begin
@@ -521,8 +521,8 @@ end
 # (14) Topological intersection numbers
 ##################################################
 
-(u1,u2,u3,u4) = gens(cohomology_ring(dP1))
-(x1,e1,x2,e3,x3,e2) = gens(cohomology_ring(dP3))
+(u1, u2, u3, u4) = gens(cohomology_ring(dP1))
+(x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
 c = CohomologyClass(dP3, x1)
 c2 = CohomologyClass(dP3, e1)
 c3 = CohomologyClass(dP1, u1)
@@ -551,12 +551,12 @@ end
 end
 
 @testset "Computing topological intersection numbers" begin
-    @test integrate(CohomologyClass(dP3,e1*e1)) == -1
-    @test integrate(CohomologyClass(dP3,e2*e2)) == -1
-    @test integrate(CohomologyClass(dP3,e3*e3)) == -1
-    @test integrate(CohomologyClass(dP3,x1*x1)) == -1
-    @test integrate(CohomologyClass(dP3,x2*x2)) == -1
-    @test integrate(CohomologyClass(dP3,x3*x3)) == -1
+    @test integrate(CohomologyClass(dP3, e1*e1)) == -1
+    @test integrate(CohomologyClass(dP3, e2*e2)) == -1
+    @test integrate(CohomologyClass(dP3, e3*e3)) == -1
+    @test integrate(CohomologyClass(dP3, x1*x1)) == -1
+    @test integrate(CohomologyClass(dP3, x2*x2)) == -1
+    @test integrate(CohomologyClass(dP3, x3*x3)) == -1
     @test integrate(c) == 0
     @test integrate(c^2+c-3//4*c*c) == -1//4
     @test length(intersection_form(dP3)) == 21
@@ -573,7 +573,7 @@ end
 
 (x1, x2, y1, y2) = gens(cox_ring(ntv));
 sv1 = ClosedSubvarietyOfToricVariety(ntv, [x1])
-sv2 = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2,y2])
+sv2 = ClosedSubvarietyOfToricVariety(ntv, [x1^2+x1*x2+x2^2, y2])
 sv3 = ClosedSubvarietyOfToricVariety(P3, [gens(cox_ring(P3))[1]^2])
 
 @testset "Test error messages for closed subvarieties" begin
@@ -599,11 +599,11 @@ ac2 = RationalEquivalenceClass(DC3)
 ac3 = RationalEquivalenceClass(l4)
 ac4 = RationalEquivalenceClass(c3)
 ac5 = RationalEquivalenceClass(CohomologyClass(dP3, x3))
-ac6 = RationalEquivalenceClass(ToricLineBundle(ntv,[1,1]))
+ac6 = RationalEquivalenceClass(ToricLineBundle(ntv, [1, 1]))
 
 @testset "Error of rational equivalence classes" begin
-  @test_throws ArgumentError RationalEquivalenceClass(antv, [1,2,3])
-  @test_throws ArgumentError RationalEquivalenceClass(toric_variety(ac1),[1,2,3])
+  @test_throws ArgumentError RationalEquivalenceClass(antv, [1, 2, 3])
+  @test_throws ArgumentError RationalEquivalenceClass(toric_variety(ac1), [1, 2, 3])
   @test_throws ArgumentError ac1 + ac3
   @test_throws ArgumentError ac1 - ac3
   @test_throws ArgumentError ac1 * ac3
@@ -646,7 +646,7 @@ end
 # (16) ToricMorphisms
 #########################
 
-source = projective_space(NormalToricVariety,1)
+source = projective_space(NormalToricVariety, 1)
 target = hirzebruch_surface(2)
 tm1 = ToricMorphism(source, matrix(ZZ, [[0, 1]]), target)
 tm2 = ToricIdentityMorphism(target)
@@ -665,9 +665,9 @@ end
 @testset "Attributes of toric morphisms" begin
     @test (image(tm1) == codomain(tm1)) == false
     @test codomain(tm1) == domain(tm2)
-    @test matrix(grid_morphism(tm2)) == matrix(ZZ,[[1,0],[0,1]])
-    @test morphism_on_torusinvariant_weil_divisor_group(tm2).map == identity_matrix(ZZ,4)
-    @test morphism_on_torusinvariant_cartier_divisor_group(tm2).map == identity_matrix(ZZ,4)
+    @test matrix(grid_morphism(tm2)) == matrix(ZZ, [[1, 0], [0, 1]])
+    @test morphism_on_torusinvariant_weil_divisor_group(tm2).map == identity_matrix(ZZ, 4)
+    @test morphism_on_torusinvariant_cartier_divisor_group(tm2).map == identity_matrix(ZZ, 4)
     @test grid_morphism(morphism_from_cox_variety(source)).map == matrix(ZZ, [[1], [-1]])
     @test is_affine(cox_variety(source)) == false
 end

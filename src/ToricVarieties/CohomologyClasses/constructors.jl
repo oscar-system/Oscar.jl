@@ -30,7 +30,7 @@ corresponding to the toric divisor `d`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(P2, [1,2,3])
+julia> d = ToricDivisor(P2, [1, 2, 3])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> CohomologyClass(d)

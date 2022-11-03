@@ -119,7 +119,7 @@ julia> C = Oscar.positive_hull([1 0]);
 
 julia> antv = AffineNormalToricVariety(C);
 
-julia> set_coordinate_names(antv,["u"])
+julia> set_coordinate_names(antv, ["u"])
 
 julia> coordinate_names(antv)
 1-element Vector{String}:
@@ -147,7 +147,7 @@ Allows to set the names of the coordinates of the torus.
 ```jldoctest
 julia> F3 = hirzebruch_surface(3);
 
-julia> set_coordinate_names_of_torus(F3,["u","v"])
+julia> set_coordinate_names_of_torus(F3, ["u", "v"])
 
 julia> coordinate_names_of_torus(F3)
 2-element Vector{String}:
@@ -193,7 +193,7 @@ coefficient_ring(v::AbstractNormalToricVariety) = QQ
     coordinate_names(v::AbstractNormalToricVariety)
 
 This method returns the names of the homogeneous coordinates of 
-the normal toric variety `v`. The default is `x1,...,xn`.
+the normal toric variety `v`. The default is `x1, ..., xn`.
 
 # Examples
 ```jldoctest
@@ -230,7 +230,7 @@ Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R,_ = PolynomialRing(QQ, 3);
+julia> R, _ = PolynomialRing(QQ, 3);
 
 julia> cox_ring(R, p2)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
@@ -294,7 +294,7 @@ Return the Stanley-Reisner ideal of a normal toric variety `v` as an ideal of
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R,_ = PolynomialRing(QQ, 3);
+julia> R, _ = PolynomialRing(QQ, 3);
 
 julia> ngens(stanley_reisner_ideal(R, p2))
 1
@@ -304,7 +304,7 @@ function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     n = nrays(v)
     n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     mnf = _minimal_nonfaces(v)
-    return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
+    return ideal([ R([1], [Vector{Int}(mnf[i, :])]) for i in 1:Polymake.nrows(mnf) ])
 end
 
 
@@ -337,7 +337,7 @@ export stanley_reisner_ideal
     result = Vector{Vector{Int}}()
     onesv = ones(Int, Polymake.ncols(mc))
     for i in 1:Polymake.nrows(mc)
-        push!(result, onesv - Vector{Int}(mc[i,:]))
+        push!(result, onesv - Vector{Int}(mc[i, :]))
     end
     return result
 end
@@ -352,7 +352,7 @@ Return the irrelevant ideal of a normal toric variety `v` as an ideal in `R`.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R,_ = PolynomialRing(QQ, 3);
+julia> R, _ = PolynomialRing(QQ, 3);
 
 julia> length(gens(irrelevant_ideal(R, p2)))
 3
@@ -399,7 +399,7 @@ Return the ideal of linear relations of the simplicial and complete toric variet
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R,_ = PolynomialRing(QQ, 3);
+julia> R, _ = PolynomialRing(QQ, 3);
 
 julia> ngens(ideal_of_linear_relations(R, p2))
 2
@@ -464,7 +464,7 @@ A polyhedral cone in ambient dimension 3
 julia> antv = AffineNormalToricVariety(C)
 A normal, affine toric variety
 
-julia> R,_ = PolynomialRing(QQ, 4);
+julia> R, _ = PolynomialRing(QQ, 4);
 
 julia> toric_ideal(R, antv)
 ideal(-x1*x2 + x3*x4)
@@ -501,7 +501,7 @@ ideal(-x1*x2 + x3*x4)
 @attr MPolyIdeal function toric_ideal(antv::AffineNormalToricVariety)
     cone = Cone(pm_object(antv).WEIGHT_CONE)
     n = length(hilbert_basis(cone))
-    R,_ = PolynomialRing(coefficient_ring(antv), n, cached=false)
+    R, _ = PolynomialRing(coefficient_ring(antv), n, cached=false)
     return toric_ideal(R, antv)
 end
 
@@ -521,7 +521,7 @@ export toric_ideal
 @doc Markdown.doc"""
     coordinate_names_of_torus(v::AbstractNormalToricVariety)
 This method returns the names of the coordinates of the torus of
-the normal toric variety `v`. The default is `x1,...,xn`.
+the normal toric variety `v`. The default is `x1, ..., xn`.
 """
 @attr Vector{String} function coordinate_names_of_torus(v::AbstractNormalToricVariety)
     return ["x$(i)" for i in 1:ambient_dim(v)]
@@ -581,7 +581,7 @@ Computes the rational function corresponding to a character of the normal toric 
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> character_to_rational_function(p2, [-1,2])
+julia> character_to_rational_function(p2, [-1, 2])
 x2^2*x1_
 ```
 """
@@ -601,9 +601,9 @@ Computes the rational function corresponding to a character of the normal toric 
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> R,_ = PolynomialRing(QQ, 4);
+julia> R, _ = PolynomialRing(QQ, 4);
 
-julia> character_to_rational_function(R, p2, [-1,2])
+julia> character_to_rational_function(R, p2, [-1, 2])
 x2^2*x3
 ```
 """
@@ -611,7 +611,7 @@ function character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVari
     if ambient_dim(v) != length(character)
         throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety"))
     end
-    generators = gens(coordinate_ring_of_torus(R,v))
+    generators = gens(coordinate_ring_of_torus(R, v))
     rational_function = one(coefficient_ring(R))
     for i in 1:length(character)
         if character[i] < 0
@@ -717,7 +717,7 @@ julia> torusinvariant_prime_divisors(p2)
     for i in 1:rank(ti_divisors)
         coeffs = zeros(Int, rank(ti_divisors))
         coeffs[i] = 1
-        push!(prime_divisors, ToricDivisor(v,coeffs))
+        push!(prime_divisors, ToricDivisor(v, coeffs))
     end
     return prime_divisors
 end
@@ -803,16 +803,16 @@ GrpAb: Z^3
     
     # compute quantities needed to construct the matrices
     rc = rank(character_lattice(v))
-    number_ray_is_part_of_max_cones = [length(max_cones[:,k].s) for k in 1:number_of_rays]
+    number_ray_is_part_of_max_cones = [length(max_cones[:, k].s) for k in 1:number_of_rays]
     s = sum(number_ray_is_part_of_max_cones)
-    cones_ray_is_part_of = [filter(x -> max_cones[x,r], 1:number_of_cones) for r in 1:number_of_rays]
+    cones_ray_is_part_of = [filter(x -> max_cones[x, r], 1:number_of_cones) for r in 1:number_of_rays]
     
     # compute the matrix for the scalar products
     map_for_scalar_products = zero_matrix(ZZ, number_of_cones * rc, s)
     col = 1
     for i in 1:number_of_rays
         for j in cones_ray_is_part_of[i]
-            map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[:,i]]
+            map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[:, i]]
             col += 1
         end
     end
@@ -832,7 +832,7 @@ GrpAb: Z^3
     # compute the matrix for mapping to torusinvariant Weil divisors
     map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_weil_divisor_group(v)))
     for i in 1:number_of_rays
-        map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:,i]]
+        map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:, i]]
     end
     
     # compute the total map

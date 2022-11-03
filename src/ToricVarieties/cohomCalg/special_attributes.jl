@@ -39,7 +39,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> all_cohomologies(ToricLineBundle(dP3, [1,2,3,4]))
+julia> all_cohomologies(ToricLineBundle(dP3, [1, 2, 3, 4]))
 3-element Vector{fmpz}:
  0
  16
@@ -73,7 +73,7 @@ function all_cohomologies(l::ToricLineBundle)
         #
         # Step 2: We receive the following return value from cohomCalg:
         #
-        # "{True,{{1,0,0},{{0,1*1}}}}"
+        # "{True, {{1,0,0}, {{0, 1*1}}}}"
         #
         # The "True" tells us that the run was successful. Otherwise, we would find "False".
         # 
@@ -82,7 +82,7 @@ function all_cohomologies(l::ToricLineBundle)
         # (b) an inconsistent grading of the Cox ring: This could e.g. lead to infinitely many monoms of a fixed degree.
         # (c) an inconsistent Stanley-Reisner ideal.
         # 
-        # For sake of simplicity, our implementation creates a dictionary that maps "our" variable names to "x1, x2,...".
+        # For sake of simplicity, our implementation creates a dictionary that maps "our" variable names to "x1, x2, ...".
         # The latter are then passed to cohomCalg.
         # 
         # After this boolean, the above return value contains the line bundle cohomologies and some intermediate results.
@@ -110,7 +110,7 @@ function all_cohomologies(l::ToricLineBundle)
         # the answer to (2) involved the evaluation of certain "remnant cohomologies", so that a single rationom may indeed encode
         # a vector space of line bundle cohomologies which is strictly larger than 1.
         # 
-        # Let us now return to the above return value {{0,1*1}}. The fact that this list contains only a single sub-list states that only 
+        # Let us now return to the above return value {{0, 1*1}}. The fact that this list contains only a single sub-list states that only
         # a single partial-denominator was identified. The first value tells to which cohomology group it contributes. Here we find 0,
         # so it contributes to H^0. The second value is, in the following order, the product of the multiplicity (as in response to 
         # (2) above) and the exact form of the partial-denominator. So here the multiplicity is 1 and the partial-denominator is 1.
@@ -143,7 +143,7 @@ function all_cohomologies(l::ToricLineBundle)
         
         # read out the result
         stdout = read(out, String)
-        result = [fmpz(parse(Int,c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
+        result = [fmpz(parse(Int, c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
         
         # consistency check
         if length(result) != dim(v)+1
@@ -173,7 +173,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 julia> dP3 = del_pezzo_surface(3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> cohomology(ToricLineBundle(dP3, [4,1,1,1]), 0)
+julia> cohomology(ToricLineBundle(dP3, [4, 1, 1, 1]), 0)
 12
 ```
 """
