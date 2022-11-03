@@ -107,14 +107,14 @@ altered by the constructor.
 
 # Examples
 ```jldoctest
-julia> ray_generators = [[1,0],[0,1],[-1,5],[0,-1]]
+julia> ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
 4-element Vector{Vector{Int64}}:
  [1, 0]
  [0, 1]
  [-1, 5]
  [0, -1]
 
-julia> max_cones = [[1,2],[2,3],[3,4],[4,1]]
+julia> max_cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
 4-element Vector{Vector{Int64}}:
  [1, 2]
  [2, 3]
@@ -354,7 +354,7 @@ A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional to
 function hirzebruch_surface(r::Int)
     # construct the variety
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
-    cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+    cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
     
     # set properties
@@ -382,7 +382,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :dim, 2)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, 4)
-    set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
+    set_attribute!(variety, :betti_number, [fmpz(1), fmpz(2), fmpz(1)])
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :class_group, free_abelian_group(2))
     
@@ -434,15 +434,15 @@ function del_pezzo_surface(b::Int)
     # construct the "true" toric del Pezzo surfaces
     if b == 1
         fan_rays = [1 0; 0 1; -1 -1; 1 1]
-        cones = IncidenceMatrix([[1,4],[2,4],[1,3],[2,3]])
+        cones = IncidenceMatrix([[1, 4], [2, 4], [1, 3], [2, 3]])
     end
     if b == 2
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1]
-        cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,3]])
+        cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 3]])
     end
     if b == 3
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
-        cones = IncidenceMatrix([[1,4],[2,4],[1,5],[5,3],[2,6],[6,3]])
+        cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
     end
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones; non_redundant = true))
     
@@ -471,7 +471,7 @@ function del_pezzo_surface(b::Int)
     if b == 1
         # set special attributes
         set_attribute!(variety, :euler_characteristic, 4)
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1), fmpz(2), fmpz(1)])
         
         # determine weights of the Cox ring
         weights = matrix(ZZ, [1 1; 1 1; 1 0; 0 -1])
@@ -487,7 +487,7 @@ function del_pezzo_surface(b::Int)
     if b == 2
         # set special attributes
         set_attribute!(variety, :euler_characteristic, 5)
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1), fmpz(3), fmpz(1)])
         
         # determine weights of the Cox ring
         weights = matrix(ZZ, [1 1 1; 1 1 0; 1 0 1; 0 -1 0; 0 0 -1])
@@ -503,7 +503,7 @@ function del_pezzo_surface(b::Int)
     if b == 3
         # set special attributes
         set_attribute!(variety, :euler_characteristic, 6)
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1), fmpz(4), fmpz(1)])
         
         # determine weights of the Cox ring
         weights = matrix(ZZ, [1 1 1 0; 1 1 0 1; 1 0 1 1; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
@@ -541,7 +541,7 @@ Return the blowup of the normal toric variety `v` on its i-th minimal torus orbi
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2,1,"e")
+julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 A normal toric variety
 
 julia> cox_ring(bP2)
@@ -613,7 +613,7 @@ compute the two phases of the famous conifold transition.
 julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
 A polyhedron in ambient dimension 3
 
-julia> (v1,v2) = NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
+julia> (v1, v2) = NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
 2-element Vector{NormalToricVariety}:
  A normal toric variety
  A normal toric variety
@@ -635,7 +635,7 @@ function NormalToricVarietiesFromStarTriangulations(P::Polyhedron)
     rays = trias[1]
     integral_rays = zeros(ZZ, nrows(rays)-1, ncols(rays))
     for i in 2:nrows(rays)
-        integral_rays[i-1, 1:ncols(rays)] = [ZZ(c) for c in rays[i,1:ncols(rays)]]
+        integral_rays[i-1, 1:ncols(rays)] = [ZZ(c) for c in rays[i, 1:ncols(rays)]]
     end
     
     # trias[2] contains the max_cones as list of lists
@@ -679,7 +679,7 @@ star triangulations.
 
 # Examples
 ```jldoctest
-julia> charges = [[1,1,1]]
+julia> charges = [[1, 1, 1]]
 1-element Vector{Vector{Int64}}:
  [1, 1, 1]
 
@@ -708,7 +708,7 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat)
     # construct vertices of polyhedron
     pts = zeros(QQ, nrows(rays), ncols(charges)-nrows(charges))
     for i in 1:nrows(rays)
-        pts[i,:] = [fmpz(c) for c in rays[i,:]]
+        pts[i, :] = [fmpz(c) for c in rays[i, :]]
     end
     zero = [0 for i in 1:ncols(charges)-nrows(charges)]
     pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
@@ -717,7 +717,7 @@ function NormalToricVarietyFromGLSM(charges::fmpz_mat)
     p = convex_hull(pts)
     return NormalToricVarietiesFromStarTriangulations(p)
 end
-NormalToricVarietyFromGLSM(charges::Vector{Vector{T}}) where {T <: IntegerUnion} = NormalToricVarietyFromGLSM(matrix(ZZ,charges))
+NormalToricVarietyFromGLSM(charges::Vector{Vector{T}}) where {T <: IntegerUnion} = NormalToricVarietyFromGLSM(matrix(ZZ, charges))
 export NormalToricVarietyFromGLSM
 
 
@@ -730,16 +730,16 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     
     affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
     
-    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
+    simplicial_cb!(a, b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
     push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
     
     projective = nothing
     if isnothing(affine) || !affine
-        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
+        complete_cb!(a, b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
         projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
     end
     
-    q_gor_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
+    q_gor_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
     gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
     
     push_attribute_if_exists!(properties_string, v, :is_fano, "fano")

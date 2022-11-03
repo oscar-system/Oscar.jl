@@ -23,7 +23,7 @@ julia> ngens(cohomology_ring(p2))
     weights = [1 for i in 1:ngens(R)]
     R = grade(R, weights)[1]
     linear_relations = ideal_of_linear_relations(R, v)
-    stanley_reisner = stanley_reisner_ideal(R,v)
+    stanley_reisner = stanley_reisner_ideal(R, v)
     return quo(R, linear_relations + stanley_reisner)[1]
 end
 export cohomology_ring
@@ -49,7 +49,7 @@ julia> polynomial(volume_form(hirzebruch_surface(5)))
 """
 @attr CohomologyClass function volume_form(v::NormalToricVariety)
     mc = ray_indices(maximal_cones(v))
-    exponents = [fmpz(mc[1,i]) for i in 1:length(mc[1,:])]
+    exponents = [fmpz(mc[1, i]) for i in 1:length(mc[1, :])]
     indets = gens(cohomology_ring(v))
     poly = prod(indets[k]^exponents[k] for k in 1:length(exponents))
     if iszero(poly) || degree(poly)[1] != dim(v)
@@ -69,13 +69,13 @@ export volume_form
     S = grade(S, [1 for i in 1:ngens(S)])[1]
     hc = homogeneous_component(S, [dim(v)])
     monoms = [hc[2](x) for x in gens(hc[1])]
-    combinations = reduce(vcat,[[[fmpz(l) for l in k] for k in exponent_vectors(m)] for m in monoms])
+    combinations = reduce(vcat, [[[fmpz(l) for l in k] for k in exponent_vectors(m)] for m in monoms])
     
     # perform the integrals
     intersection_dict = Dict{fmpz_mat, fmpq}()
     for expos in combinations
         cc = prod(generators[k]^expos[k] for k in 1:length(generators))
-        intersection_dict[matrix(ZZ,[expos])] = integrate(cc)
+        intersection_dict[matrix(ZZ, [expos])] = integrate(cc)
     end
     
     # return the dictionary
@@ -102,7 +102,7 @@ function intersection_form(v::NormalToricVariety)
     intersection_dict = _intersection_form_via_exponents(v)
     monoms_of_prime_divisors = gens(cox_ring(v))
     intersection_dict_for_user = Dict{MPolyElem, fmpq}()
-    for (expos,v) in intersection_dict
+    for (expos, v) in intersection_dict
         monom = prod(monoms_of_prime_divisors[k]^expos[k] for k in 1:length(monoms_of_prime_divisors))
         intersection_dict_for_user[monom] = v
     end

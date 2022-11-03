@@ -12,7 +12,7 @@ Return the normal toric variety of the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = CohomologyClass(d)
@@ -36,7 +36,7 @@ Return the coefficients of the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = CohomologyClass(d)
@@ -63,7 +63,7 @@ Return the exponents of the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = CohomologyClass(d)
@@ -75,7 +75,7 @@ julia> exponents(cc)
 [0   0   0   0   1]
 ```
 """
-exponents(c::CohomologyClass) = matrix(ZZ,[k for k in exponent_vectors(polynomial(c).f)])
+exponents(c::CohomologyClass) = matrix(ZZ, [k for k in exponent_vectors(polynomial(c).f)])
 export exponents
 
 
@@ -90,7 +90,7 @@ toric variety `toric_variety(c)` which corresponds to `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = CohomologyClass(d)
@@ -115,7 +115,7 @@ to the cohomology class `c`.
 julia> dP2 = del_pezzo_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(dP2, [1,2,3,4,5])
+julia> d = ToricDivisor(dP2, [1, 2, 3, 4, 5])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> cc = CohomologyClass(d)
@@ -124,7 +124,7 @@ A cohomology class on a normal toric variety given by 6*x3 + e1 + 7*e2
 julia> R, _ = PolynomialRing(QQ, 5)
 (Multivariate Polynomial Ring in x1, x2, x3, x4, x5 over Rational Field, fmpq_mpoly[x1, x2, x3, x4, x5])
 
-julia> (x1,x2,x3,x4,x5) = gens(R)
+julia> (x1, x2, x3, x4, x5) = gens(R)
 5-element Vector{fmpq_mpoly}:
  x1
  x2
@@ -148,9 +148,9 @@ function polynomial(c::CohomologyClass, ring::MPolyQuo)
         return zero(ring)
     end
     coeffs = [k for k in coefficients(p.f)]
-    expos = matrix(ZZ,[k for k in exponent_vectors(p.f)])
+    expos = matrix(ZZ, [k for k in exponent_vectors(p.f)])
     indets = gens(ring)
-    monoms = [prod(indets[j]^expos[k,j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
+    monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
     return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
 end
 export polynomial

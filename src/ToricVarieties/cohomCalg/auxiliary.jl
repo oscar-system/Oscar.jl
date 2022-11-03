@@ -7,7 +7,7 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     string_list = Vector{String}()
     
     # Define helper function
-    joincomma(list) = join([string(x) for x in list], ",")
+    joincomma(list) = join([string(x) for x in list], ", ")
     
     # Add information about grading of Cox ring to string_list
     divisors = gens(torusinvariant_weil_divisor_group(v))
@@ -20,7 +20,7 @@ function command_string(v::AbstractNormalToricVariety, c::Vector{fmpz})
     current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
     new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
     new_ring, _ = PolynomialRing(coefficient_ring(v), new_coordinate_names, cached=false)
-    generators = [string(g) for g in gens(stanley_reisner_ideal(new_ring,v))]
+    generators = [string(g) for g in gens(stanley_reisner_ideal(new_ring, v))]
     push!(string_list, "srideal [" * joincomma(generators) * "]")
     
     # Add line bundle information to string_list
@@ -57,7 +57,7 @@ function contributing_denominators(variety::AbstractNormalToricVariety)
     stdout = read(out, String)
     start = findfirst("Final list of contributing monomials with factors:", stdout)[1]
     diff = findfirst("Verbose Level 1:", stdout)[1]
-    output_string_reduced = [strip(s) for s in split(SubString(stdout, start, diff),"\n")]
+    output_string_reduced = [strip(s) for s in split(SubString(stdout, start, diff), "\n")]
     output_string_reduced = output_string_reduced[4:length(output_string_reduced)-3]
     
     # ambiguous monomial contributions found during execution?

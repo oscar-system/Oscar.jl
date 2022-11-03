@@ -50,7 +50,7 @@ Construct the toric variety associated to a (Cartier) torus-invariant divisor `d
 julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> l = ToricLineBundle(v, ToricDivisor(v,[1,2,3]))
+julia> l = ToricLineBundle(v, ToricDivisor(v, [1, 2, 3]))
 A toric line bundle on a normal toric variety
 ```
 """
@@ -105,7 +105,7 @@ function Base.show(io::IO, line_bundle::ToricLineBundle)
         td = toric_divisor(line_bundle)
         push_attribute_if_exists!(properties_string, td, :is_principal, "trivial")
         push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
-        ample_cb!(a,b) = push_attribute_if_exists!(a, b, :is_ample, "ample")
+        ample_cb!(a, b) = push_attribute_if_exists!(a, b, :is_ample, "ample")
         push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
     end
 

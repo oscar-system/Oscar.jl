@@ -27,11 +27,11 @@ end
     CyclicQuotientSingularity(n::fmpz, q::fmpz)
 
 Return the cyclic quotient singularity for the parameters $n$ and $q$, with
-$0<q<n$ and $q,n$ coprime.
+$0<q<n$ and $q, n$ coprime.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7,5)
+julia> cqs = CyclicQuotientSingularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> is_affine(cqs)
@@ -45,7 +45,7 @@ function CyclicQuotientSingularity(n::fmpz, q::fmpz)
     n > 0 || error("n (=$(n)) must be positive")
     q > 0 || error("q (=$(q)) must be positive")
     q < n || error("q must be smaller than n (q=$(q) >= n=$(n))")
-    gcd(n,q)==1 || error("n and q must be coprime (gcd=$(gcd(n,q)))")
+    gcd(n, q) == 1 || error("n and q must be coprime (gcd=$(gcd(n, q)))")
     pmntv = Polymake.fulton.CyclicQuotient(N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q))
     return CyclicQuotientSingularity(pmntv, Dict())
 end
@@ -60,13 +60,13 @@ quotient singularity, i.e. the Hirzebruch-Jung continued fraction corresponding
 to $n/q$.
 
 The rational number corresponding to a Hirzebruch-Jung continued fraction
-$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+$[c_1, c_2,\ldots, c_n]$ is $r([c_1, c_2,\ldots, c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots, c_n])}$ where $r([c_n]) = c_n$.  Note that this is
 differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7,5)
+julia> cqs = CyclicQuotientSingularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> cf = continued_fraction_hirzebruch_jung(cqs)
@@ -75,7 +75,7 @@ julia> cf = continued_fraction_hirzebruch_jung(cqs)
  2
  3
 
-julia> ecf = cf[1]-1//(cf[2]-fmpq(1,cf[3]))
+julia> ecf = cf[1]-1//(cf[2]-fmpq(1, cf[3]))
 7//5
 ```
 """
@@ -93,13 +93,13 @@ quotient singularity, i.e. the Hirzebruch-Jung continued fraction corresponding
 to $q/(n-q)$.
 
 The rational number corresponding to a Hirzebruch-Jung continued fraction
-$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+$[c_1, c_2,\ldots, c_n]$ is $r([c_1, c_2,\ldots, c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots, c_n])}$ where $r([c_n]) = c_n$.  Note that this is
 differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7,5)
+julia> cqs = CyclicQuotientSingularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
@@ -107,7 +107,7 @@ julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
  4
  2
 
-julia> edcf = dcf[1] - fmpq(1,dcf[2])
+julia> edcf = dcf[1] - fmpq(1, dcf[2])
 7//2
 ```
 """
@@ -124,13 +124,13 @@ Return the rational number corresponding to a Hirzebruch-Jung continued
 fraction given as a vector of (positive) integers.
 
 The rational number corresponding to a Hirzebruch-Jung continued fraction
-$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+$[c_1, c_2,\ldots, c_n]$ is $r([c_1, c_2,\ldots, c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots, c_n])}$ where $r([c_n]) = c_n$.  Note that this is
 differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
-julia> cqs = CyclicQuotientSingularity(7,5)
+julia> cqs = CyclicQuotientSingularity(7, 5)
 The cyclic quotient singularity Y(7, 5)
 
 julia> v = continued_fraction_hirzebruch_jung(cqs)
@@ -157,8 +157,8 @@ i.e. find the Hirzebruch-Jung continued fraction corresponding to the given
 rational number.
 
 The rational number corresponding to a Hirzebruch-Jung continued fraction
-$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+$[c_1, c_2,\ldots, c_n]$ is $r([c_1, c_2,\ldots, c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots, c_n])}$ where $r([c_n]) = c_n$.  Note that this is
 differs in sign from what is commonly known as continued fraction.
 
 # Examples

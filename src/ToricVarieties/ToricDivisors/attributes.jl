@@ -51,7 +51,7 @@ Identify the coefficients of a toric divisor in the group of torus invariant Wei
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> D = ToricDivisor(F4, [1,2,3,4])
+julia> D = ToricDivisor(F4, [1, 2, 3, 4])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> coefficients(D)
@@ -77,7 +77,7 @@ Return the toric variety of a torus-invariant Weil divisor.
 ```jldoctest
 julia> F4 = hirzebruch_surface(4);
 
-julia> D = ToricDivisor(F4, [1,2,3,4]);
+julia> D = ToricDivisor(F4, [1, 2, 3, 4]);
 
 julia> toric_variety(D)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor

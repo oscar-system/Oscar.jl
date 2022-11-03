@@ -25,7 +25,7 @@ As optional argument, the codomain of the morphism can be specified.
 
 # Examples
 ```jldoctest
-julia> domain = projective_space(NormalToricVariety,1)
+julia> domain = projective_space(NormalToricVariety, 1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = [[0, 1]]
@@ -39,9 +39,9 @@ A toric morphism
 function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Vector{Vector{T}}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
     (length(mapping_matrix) > 0 && length(mapping_matrix[1]) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
     if codomain == nothing
-      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(length(mapping_matrix[1])), matrix(ZZ,mapping_matrix)), codomain)
+      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(length(mapping_matrix[1])), matrix(ZZ, mapping_matrix)), codomain)
     else
-      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ,mapping_matrix)), codomain)
+      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
     end
 end
 export ToricMorphism
@@ -54,7 +54,7 @@ Construct the toric morphism with given domain and associated to the lattice mor
 
 # Examples
 ```jldoctest
-julia> domain = projective_space(NormalToricVariety,1)
+julia> domain = projective_space(NormalToricVariety, 1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> mapping_matrix = [0 1]
@@ -68,9 +68,9 @@ A toric morphism
 function ToricMorphism(domain::AbstractNormalToricVariety, mapping_matrix::Matrix{T}, codomain::T2=nothing) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
     (nrows(mapping_matrix) > 0 && ncols(mapping_matrix) > 0) || throw(ArgumentError("The mapping matrix must not be empty"))
     if codomain == nothing
-      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), matrix(ZZ,mapping_matrix)), codomain)
+      return ToricMorphism(domain, hom(character_lattice(domain), free_abelian_group(ncols(mapping_matrix)), matrix(ZZ, mapping_matrix)), codomain)
     else
-      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ,mapping_matrix)), codomain)
+      return ToricMorphism(domain, hom(character_lattice(domain), character_lattice(codomain), matrix(ZZ, mapping_matrix)), codomain)
     end
 end
 export ToricMorphism
@@ -83,13 +83,13 @@ Construct the toric morphism with given domain and associated to the lattice mor
 
 # Examples
 ```jldoctest
-julia> domain = projective_space(NormalToricVariety,1)
+julia> domain = projective_space(NormalToricVariety, 1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> codomain = hirzebruch_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> mapping_matrix = matrix(ZZ,[0 1])
+julia> mapping_matrix = matrix(ZZ, [0 1])
 [0   1]
 
 julia> ToricMorphism(domain, mapping_matrix, codomain)
@@ -114,13 +114,13 @@ Construct the toric morphism from the `domain` to the `codomain` with map given 
 
 # Examples
 ```jldoctest
-julia> domain = projective_space(NormalToricVariety,1)
+julia> domain = projective_space(NormalToricVariety, 1)
 A normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
 
 julia> codomain = hirzebruch_surface(2)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> mapping_matrix = matrix(ZZ,[[0, 1]])
+julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 [0   1]
 
 julia> grid_morphism = hom(character_lattice(domain), character_lattice(codomain), mapping_matrix)
@@ -158,7 +158,7 @@ function ToricMorphism(domain::AbstractNormalToricVariety, grid_morphism::GrpAbF
         throw(ArgumentError("The number of columns of the mapping matrix must match the rank of the character lattice of the codomain toric variety"))
       end
       codomain_cones = maximal_cones(codomain)
-      image_cones = [positive_hull(matrix(ZZ,rays(c)) * matrix(grid_morphism)) for c in maximal_cones(domain)]
+      image_cones = [positive_hull(matrix(ZZ, rays(c)) * matrix(grid_morphism)) for c in maximal_cones(domain)]
       for c in image_cones
         any([intersect(c, ic) == c for ic in image_cones]) || throw(ArgumentError("Toric morphism not well-defined"))
       end
@@ -185,7 +185,7 @@ A toric morphism
 """
 function ToricIdentityMorphism(variety::AbstractNormalToricVariety)
     r = rank(character_lattice(variety))
-    identity_matrix = matrix(ZZ,[[if i==j 1 else 0 end for j in 1:r] for i in 1:r])
+    identity_matrix = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:r] for i in 1:r])
     grid_morphism = hom(character_lattice(variety), character_lattice(variety), identity_matrix)
     return ToricMorphism(variety, grid_morphism, variety, variety)
 end

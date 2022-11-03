@@ -100,13 +100,13 @@ Abelian group with structure: Z^4
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
     d = domain(tm)
     cod = codomain(tm)
-    cod_rays = matrix(ZZ,rays(cod))
+    cod_rays = matrix(ZZ, rays(cod))
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
     mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(d)), 0))
     for i in 1:nrows(images)
       j = findfirst(x -> x == true, [contains(maximal_cones(cod)[j], [images[i,k] for k in 1:ncols(images)]) for j in 1:n_maximal_cones(cod)])
-      m = vcat([Int(ray_indices(maximal_cones(cod))[j,k]) * cod_rays[k,:] for k in 1:nrays(cod)])
-      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i,:])))
+      m = vcat([Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
+      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), mapping_matrix)
 end
