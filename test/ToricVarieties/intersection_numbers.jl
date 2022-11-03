@@ -5,18 +5,20 @@
     P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
     ntv6 = F5 * P2
     antv = AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1]))
+    antv2 = NormalToricVariety([[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]], [[1, 2, 3, 4]])
+    v = NormalToricVariety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]])
 
     (u1, u2, u3, u4) = gens(cohomology_ring(dP1))
     (x1, e1, x2, e3, x3, e2) = gens(cohomology_ring(dP3))
     c = CohomologyClass(dP3, x1)
     c2 = CohomologyClass(dP3, e1)
     c3 = CohomologyClass(dP1, u1)
-
+    combi_chow = chow_ring(v)
 
     @testset "Should fail" begin
         R,_ = PolynomialRing(QQ, 3)
         @test_throws ArgumentError cohomology_ring(antv)
-        @test_throws ArgumentError chow_ring(antv)
+        @test_throws ArgumentError chow_ring(antv2)
         @test_throws ArgumentError is_trivial(c - c3)
         @test_throws ArgumentError is_trivial(c + c3)
         @test_throws ArgumentError ideal_of_linear_relations(R, dP3)
@@ -26,6 +28,12 @@
         @test ngens(ideal_of_linear_relations(ntv6)) == 4
         @test ngens(chow_ring(ntv6).I) == 7
         @test is_trivial(volume_form(ntv6)) == false
+    end
+
+    @testset "Chow ring for non-complete but simplicial varieties" begin
+        @test is_simplicial(v) == true
+        @test is_complete(v) == false
+        @test length(gens(combi_chow.I)) == 5
     end
 
     @testset "Properties, attributes and arithmetics of cohomology classes" begin

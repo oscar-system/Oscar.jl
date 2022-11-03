@@ -42,7 +42,7 @@
     @testset "Torusfactor" begin
         @test_throws ArgumentError set_coordinate_names(antv4, ["u1",  "u2"])
         @test_throws ArgumentError set_coordinate_names_of_torus(antv4, ["u"])
-        @test_throws ArgumentError ideal_of_linear_relations(antv4)
+        @test_throws ArgumentError ideal_of_linear_relations(antv6)
         @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(antv4)
         @test_throws ArgumentError map_from_torusinvariant_cartier_divisor_group_to_picard_group(antv4)
         @test_throws ArgumentError betti_number(antv4, 0)
