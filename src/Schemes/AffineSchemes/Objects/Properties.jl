@@ -44,6 +44,7 @@ is_empty(X::EmptyScheme) = true
     is_subset(X::AbsSpec, Y::AbsSpec)
 
 Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
+See [`inclusion_morphism`](@ref) for the corresponding morphism.
 
 # Examples
 ```jldoctest
