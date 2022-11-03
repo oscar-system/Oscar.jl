@@ -1,6 +1,7 @@
-export OO, ambient_ring, base_ring, dim, codim, name
+export OO, coordinate_ring, base_ring, dim, codim, name
 
-export defining_ideal, strict_modulus
+export ambient_affine_space, ambient_coordinate_ring, ambient_coordinates,
+       ambient_closure_ideal
 
 export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 
@@ -13,7 +14,7 @@ export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 # Here is the inferface for AbsSpec
 
 @Markdown.doc """
-    OO(X::AbsSpec)
+    coordinate_ring(X::AbsSpec)
 
 On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
 
@@ -22,38 +23,203 @@ On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
 julia> X = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
-julia> OO(X)
+julia> coordinate_ring(X)
 Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 ```
+We allow the shortcut `OO`
+julia> X = affine_space(QQ,3)
+Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+
+julia> OO(X)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 """
-function OO(X::AbsSpec{BRT, RT}) where {BRT, RT} 
+coordinate_ring(X::AbsSpec) = OO(X)
+
+@Markdown.doc """
+    OO(X::AbsSpec)
+
+On an affine scheme ``X = Spec(R)`` this returns the ring ``R``.
+"""
+function OO(X::AbsSpec{BRT, RT}) where {BRT, RT}
   OO(underlying_scheme(X))::RT
 end
 
 
 @Markdown.doc """
-    ambient_ring(X::AbsSpec)
+    ambient_affine_space(X::AbsSpec)
 
-On an affine scheme ``X = Spec(R)`` over ``𝕜`` this returns a 
-polynomial ring ``P = 𝕜[x₁,…,xₙ]`` with natural coercion 
-``P → R`` and the property that for every other (commutative) 
-ring ``S`` and any homomorphism ``φ : R → S`` there is a morphism 
-``ψ : P → S`` factoring through ``φ`` and such that ``φ`` 
-is uniquely determined by ``ψ``.
+Return the ambient affine space of ``X``.
 
 # Examples
 ```jldoctest
-julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+julia> X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> ambient_ring(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
+julia> ambient_affine_space(X) === X
+true
+
+julia> (x, y) = coordinates(X);
+
+julia> Y = subscheme(X, [x])
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia> X === ambient_affine_space(Y)
+true
+
+julia> Z = subscheme(Y, y)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia> ambient_affine_space(Z) === X
+true
+
+julia> V = hypersurface_complement(Y, y)
+
+julia> ambient_affine_space(U) === X
+true
+```
+
+We can create ``X``, ``Y`` and ``Z`` also by first constructing the corresponding
+coordinate rings. The subset relations are inferred from the coordinate rings.
+More precisely, for a polynomial ring ``P`` an ideal ``I < P `` and a multiplicatively closed subset
+``U`` of ``P`` let ``R`` be one of ``P``, ``P/I`` or ``U^{-1}(P/I)``.
+In each case the ambient affine space is given by``Spec(P)``.
+
+# Examples
+```jldoctest
+julia> P, (x, y) = PolynomialRing(QQ, [:x, :y])
+
+julia> X = Spec(P)
+
+julia> I = ideal(P, x)
+ideal(x)
+
+julia> RmodI, quotient_map = quo(P, I);
+
+julia> Y = Spec(RmodI)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+
+julia> ambient_affine_space(Y) == X
+true
+
+julia> J = ideal(RmodI, y);
+
+julia> RmodJ, quotient_map2 = quo(RmodI, J);
+
+julia> Z = Spec(RmodJ)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia> ambient_space(Z) == X
+true
+
+julia> U = powers_of_element(y)
+powers of fmpq_mpoly[y]
+
+julia> URmodI, _ = localization(RmodI, U);
+
+julia> V = Spec(URmodI)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
+
+julia> ambient_affine_space(V) == X
+true
 ```
 """
-function ambient_ring(X::AbsSpec)
-  return ambient_ring(underlying_scheme(X))::MPolyRing
+function ambient_affine_space(X::AbsSpec)
+  error("$X does not have an ambient affine space")
 end
 
+function ambient_affine_space(X::AbsSpec{BRT,MPolyRing}) where BRT
+  return X
+end
+
+@attr function ambient_affine_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
+  return Spec(ambient_coordinate_ring(X))
+end
+
+
+
+@Markdown.doc """
+    ambient_coordinate_ring(X::AbsSpec)
+
+Return the coordinate ring of the ambient affine space of ``X``.
+
+See also [`ambient_affine_space](@ref).
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> (x,y) = coordinates(X);
+
+julia> Y = subscheme(X, [x])
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia> ambient_coordinate_ring(Y)
+Multivariate Polynomial Ring in x, y over Rational Field
+```
+"""
+function ambient_coordinate_ring(X::AbsSpec)
+  return ambient_coordinate_ring(underlying_scheme(X))::MPolyRing
+end
+
+ambient_ring(X::AbsSpec) = ambient_coordinate_ring(X) # backward compatibility
+
+@Markdown.doc """
+    ambient_coordinates(X::AbsSpec)
+
+Return the coordinate functions of the ambient affine space of ``X``.
+
+See also [`ambient_affine_space](@ref).
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> (x,y) = coordinates(X);
+
+julia> Y = subscheme(X, [x])
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia> (x,y) == ambient_coordinates(Y)
+true
+```
+"""
+ambient_coordinates(X::AbsSpec) = gens(ambient_coordinate_ring(X))
+
+@Markdown.doc """
+    coordinates(X::AbsSpec)
+
+Return the coordinate functions of ``X`` as elements of its coordinate ring.
+
+For ``X`` a subscheme of an ambient affine space, the coordinate functions are induced
+by the ambient affine space.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ, [:x,:y])
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> (x, y) = coordinates(X);
+2-element Vector{fmpq_mpoly}:
+ x
+ y
+
+julia> Y = subscheme(X, [x])
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+
+julia> (xY, yY) = coordinates(Y)
+2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ x
+ y
+
+julia> parent(xY) == coordinate_ring(Y)
+true
+```
+"""
+coordinates(X::AbsSpec) = gens(OO(X))
+
+ambient_coordinates(X::AbsSpec) = gens(ambient_coordinate_ring(X))
 
 @Markdown.doc """
     base_ring(X::AbsSpec)
@@ -77,7 +243,9 @@ end
 @Markdown.doc """
     dim(X::AbsSpec)
 
-This method returns the dimension of an affine scheme ``X = Spec(R)``.
+Return the dimension the affine scheme ``X = Spec(R)``.
+
+By definition, this is the Krull dimension of ``R``.
 
 # Examples
 ```jldoctest
@@ -86,6 +254,12 @@ Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
 julia> dim(X)
 3
+
+julia> Y = affine_space(ZZ, 2)
+Spec of Multivariate Polynomial Ring in x1, x2 over Integer Ring
+
+julia> dim(Y) # one dimension comes from ZZ and one from x1
+2
 ```
 """
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
@@ -95,11 +269,11 @@ end
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyLocalizedRing})
   # the following line is supposed to refer the problem to the
   # algebra side of the problem
-  return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))]))
+  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyRing})
-  return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))]))
+  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
 end
 
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuo})
@@ -110,10 +284,7 @@ end
 @Markdown.doc """
     codim(X::Spec)
 
-In Oscar, we can compute for an affine scheme ``X``
-the ring ``R = ambient_ring(X)``. This allows to consider
-an embedding of ``X`` into ``Spec(R)``. This method returns
-the codimension of the image of this embedding in ``Spec(R)``.
+Return the codimension of ``X`` in its ambient affine space.
 
 # Examples
 ```jldoctest
@@ -140,14 +311,15 @@ julia> codim(Y)
 ```
 """
 @attr function codim(X::Spec)
-  return dim(ideal(ambient_ring(X), [zero(ambient_ring(X))])) - dim(X)
+  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
 
 @doc Markdown.doc"""
     name(X::Spec)
 
-Returns the current name of an affine scheme.
+Return the current name of an affine scheme.
+
 This name can be specified via `set_name!`.
 
 # Examples
@@ -174,6 +346,8 @@ function set_name!(X::AbsSpec, name::String)
 end
 
 
+
+
 ########################################################################
 # (2) Further attributes for AbsSpec
 ########################################################################
@@ -181,43 +355,9 @@ end
 # TODO: Needed?
 
 @Markdown.doc """
-    defining_ideal(X::AbsSpec{<:Any, <:MPolyRing})
+    ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
 
-This method return the defining ideal of an affine scheme ``X``.
-
-# Examples
-```jldoctest
-julia> X = affine_space(QQ,3)
-Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
-
-julia> R = OO(X)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
-
-julia> (x1,x2,x3) = gens(R)
-3-element Vector{fmpq_mpoly}:
- x1
- x2
- x3
-
-julia> Y = subscheme(X,ideal(R,[x1*x2]))
-Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
-
-julia> defining_ideal(Y)
-ideal(x1*x2)
-```
-"""
-@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
-defining_ideal(X::AbsSpec{<:Any, <:MPolyQuo}) = modulus(OO(X))
-@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = ideal(OO(X), [zero(OO(X))])
-defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = modulus(OO(X))
-
-
-@Markdown.doc """
-    strict_modulus(X::AbsSpec)
-
-This method return the strict modulus of an affine scheme ``X``.
-This is the ideal ``I`` in the `ambient_ring` of ``X`` consisting 
-of elements ``f ∈ R`` such that their restriction to ``X`` vanishes.
+Return the defining ideal of the closure of ``X`` in its ambient affine space.
 
 # Examples
 ```jldoctest
@@ -236,38 +376,32 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X,ideal(R,[x1*x2]))
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
 
-julia> strict_modulus(Y)
+julia> ambient_closure_ideal(Y)
 ideal(x1*x2)
 ```
 """
-strict_modulus(X::AbsSpec) = saturated_ideal(modulus(OO(X)))
-
-
-
-########################################################################
-# (3) Further attributes for Spec
-########################################################################
-
-strict_modulus(X::Spec) = saturated_ideal(modulus(OO(X)))
-
+@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuo}) = modulus(OO(X))
+@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = ideal(OO(X), [zero(OO(X))])
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = modulus(OO(X))
 
 
 ########################################################################
-# (4) Implementation of the AbsSpec interface for the basic Spec
+# (3) Implementation of the AbsSpec interface for the basic Spec
 ########################################################################
 
 OO(X::Spec) = X.OO
 base_ring(X::Spec) = X.kk
-ambient_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
-ambient_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
-ambient_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
-ambient_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
-ambient_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyRing}) = OO(X)
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuo}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyLocalizedRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{<:Any, <:MPolyQuoLocalizedRing}) = base_ring(OO(X))
+ambient_coordinate_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
 
 
 
 ########################################################################
-# (5) Type getters
+# (4) Type getters
 ########################################################################
 
 # TODO: Needed?

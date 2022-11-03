@@ -372,6 +372,10 @@ function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
   return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
 end
 
+function ideal(A::MPolyQuo{T}, x::T) where T <: MPolyElem
+  return ideal(A,[x])
+end
+
 function ideal(A::MPolyQuo{T}, x::MPolyQuoElem{T}) where T <: MPolyElem
   return ideal(A,[x])
 end

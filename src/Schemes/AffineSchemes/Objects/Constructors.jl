@@ -36,7 +36,6 @@ ring at a multiplicatively closed subset ``U`` of ``R``. The spectrum
 of the localized ring $U^{-1} R$ is computed by this method.
 
 # Examples
-Set ``C`` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
@@ -60,7 +59,6 @@ a multiplicatively closed subset ``U`` of ``R``. The spectrum of the
 localized ring $U^{-1} (R/I)$ is computed by this method.
 
 # Examples
-Set ``C`` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
@@ -79,6 +77,7 @@ Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRi
 ########################################################
 # (2) Copy constructors
 ########################################################
+#TODO: Do we need this? It is quite unusual.
 
 @doc Markdown.doc"""
     Spec(X::Spec)
@@ -223,7 +222,7 @@ end
 #Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(0) at the multiplicative set complement of ideal(x)
 #```
 #"""
-standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedRing(ambient_ring(X), ideal(ambient_ring(X), [zero(ambient_ring(X))]), inverted_set(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = Spec(MPolyQuoLocalizedRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
 
 #@doc Markdown.doc"""
@@ -419,7 +418,7 @@ end
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocalizedRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
-  U = MPolyPowersOfElement(ambient_ring(X), h)
+  U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   W, _ = Localization(OO(X), U)
   return Spec(W)
 end
@@ -427,21 +426,21 @@ end
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyLocalizedRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
-  U = MPolyPowersOfElement(ambient_ring(X), h)
+  U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   W, _ = Localization(OO(X), U)
   return Spec(W)
 end
 
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
-  U = MPolyPowersOfElement(ambient_ring(X), f)
+  U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
   W, _ = Localization(OO(X), U)
   return Spec(W)
 end
 
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
-  U = MPolyPowersOfElement(ambient_ring(X), lift.(f))
+  U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   W, _ = Localization(OO(X), U)
   return Spec(W)
 end
@@ -462,7 +461,7 @@ Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT<:Ring} = E
 # 7.2 Intersection methods not involving empty schemes
 
 ### For Specs of MPolyRings
-# TODO  intersect X,Y for X<Y should return a copy of X with === ambient_rings
+# TODO  intersect X,Y for X<Y should return a copy of X with === ambient_coordinate_rings
 # Spec(X) does not apply for instance to principal open subsets hence a change
 # is necessary
 @Markdown.doc """
@@ -514,7 +513,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT<:Ring}
   R = OO(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(Y)
 end
 
@@ -524,7 +523,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT<:Ring}
   R = OO(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(Y)
 end
 
@@ -534,7 +533,7 @@ function Base.intersect(
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT<:Ring}
   R = OO(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(Y)
 end
 
@@ -552,8 +551,8 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyQuo},
     Y::AbsSpec{BRT, <:MPolyQuo}
   ) where {BRT<:Ring}
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(quo(R, modulus(OO(X)) + modulus(OO(Y)))[1])
 end
 
@@ -562,8 +561,8 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyQuo},
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT<:Ring}
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
 end
 
@@ -572,8 +571,8 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyQuo},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT<:Ring}
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
 end
 
@@ -591,8 +590,8 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyLocalizedRing}
   ) where {BRT<:Ring}
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(Localization(R, inverted_set(OO(X)) * inverted_set(OO(Y)))[1])
 end
 
@@ -601,8 +600,8 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT<:Ring}
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return Spec(R, modulus(quotient_ring(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
 end
 
@@ -620,8 +619,8 @@ function Base.intersect(
     X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing}
   ) where {BRT<:Ring}
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("schemes can not be compared")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
 #  Q, _ = quo(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))))
   return Spec(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))), 
               inverted_set(OO(X)) * inverted_set(OO(Y)))
@@ -674,6 +673,6 @@ function closure(
   W, _ = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)
-  R = ambient_ring(Y)
+  R = ambient_coordinate_ring(Y)
   return Spec(MPolyQuoLocalizedRing(R, Isat, inverted_set(OO(Y))))
 end

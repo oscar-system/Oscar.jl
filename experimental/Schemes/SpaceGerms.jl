@@ -58,7 +58,7 @@ end
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocalizedRing})
-    R = ambient_ring(X)
+    R = ambient_coordinate_ring(X)
     return Spec(R)
 end
 
@@ -138,7 +138,7 @@ end
 ### constructors
 ############################################################################################################
 function SpaceGerm(X::AbsSpec, a::Vector)
-  R = ambient_ring(X)
+  R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
@@ -150,7 +150,7 @@ end
 
 function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
-  R === ambient_ring(X) || error("rings are not compatible")
+  R === ambient_coordinate_ring(X) || error("rings are not compatible")
   a = _maxideal_to_point(I)
   Y = SpaceGerm(X,a)
   return Y
@@ -243,8 +243,8 @@ end
 ##############################################################################
 
 function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || return false
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
   point(X) == point(Y) || return false
   IY=ideal(localized_ring(OO(X)), gens(modulus(quotient_ring(OO(Y)))))
   return issubset(IY,modulus(OO(X)))
@@ -257,8 +257,8 @@ function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
 end
 
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("not subgerms of a common space germ")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("not subgerms of a common space germ")
   point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented

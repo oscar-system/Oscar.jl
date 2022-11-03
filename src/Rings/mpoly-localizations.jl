@@ -922,6 +922,7 @@ inverted_set(W::MPolyLocalizedRing) = W.S
 
 ### additional getter functions
 gens(W::MPolyLocalizedRing) = W.(gens(base_ring(W)))
+ngens(W) = ngens(base_ring(W))
 
 ### required extension of the localization function
 @Markdown.doc """
