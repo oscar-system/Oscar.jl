@@ -415,7 +415,6 @@ include("Rings/PBWAlgebra.jl")
 include("Rings/PBWAlgebraQuo.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
-include("Rings/matroid_strata_grassmannian.jl")
 
 include("GAP/customize.jl")
 include("GAP/gap_to_oscar.jl")
@@ -448,6 +447,9 @@ include("Combinatorics/Graphs.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 
 include("Combinatorics/Matroids/JMatroids.jl")
+
+include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
+
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
