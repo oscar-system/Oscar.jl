@@ -270,8 +270,8 @@ mutable struct ProjectiveSchemeMor{
       f::PullbackType;
       check::Bool=true
     ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     if check
       #TODO: Check map on ideals (not available yet)
@@ -291,8 +291,8 @@ mutable struct ProjectiveSchemeMor{
              PullbackType<:Map,
              BaseMorType<:SchemeMor
             }
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
     OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
@@ -346,7 +346,7 @@ mutable struct Covering{BaseRingType}
     )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
-    kk = coefficient_ring(ambient_ring(patches[1]))
+    kk = coefficient_ring(ambient_coordinate_ring(patches[1]))
     for i in 2:n
       kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
     end
@@ -558,7 +558,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
     )
     check && (is_irreducible(X) || error("variety is not irreducible"))
     representative_patch in default_covering(X) || error("representative patch not found")
-    KK = FractionField(ambient_ring(representative_patch))
+    KK = FractionField(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
     return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
   end

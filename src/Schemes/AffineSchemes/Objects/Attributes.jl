@@ -181,8 +181,6 @@ function ambient_coordinate_ring(X::AbsSpec)
   return ambient_coordinate_ring(underlying_scheme(X))::MPolyRing
 end
 
-ambient_ring(X::AbsSpec) = ambient_coordinate_ring(X) # backward compatibility
-
 @Markdown.doc """
     ambient_coordinates(X::AbsSpec)
 

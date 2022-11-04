@@ -153,8 +153,6 @@ On ``X ⊂ ℙʳ(A)`` this returns ``A[s₀,…,sᵣ]``.
 """
 ambient_coordinate_ring(P::ProjectiveScheme) = P.S
 
-ambient_ring(P::ProjectiveScheme) = ambient_coordinate_ring(P)  # backwards compatibility
-
 @Markdown.doc """
     homogeneous_coordinates(X::ProjectiveScheme)
 
