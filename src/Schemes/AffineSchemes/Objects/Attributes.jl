@@ -1,7 +1,6 @@
 export OO, coordinate_ring, base_ring, dim, codim, name
 
-export ambient_affine_space, ambient_coordinate_ring, ambient_coordinates,
-       ambient_closure_ideal, ambient_embedding
+export ambient_affine_space, ambient_coordinate_ring, ambient_coordinates, ambient_embedding
 
 export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 
@@ -398,7 +397,7 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, ideal(R, [x1*x2]))
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
 
-julia> I = ambient_closure_ideal(Y)
+julia> I = Oscar.ambient_closure_ideal(Y)
 ideal(x1*x2)
 
 julia> base_ring(I) == OO(Y)
