@@ -16,6 +16,10 @@ include("SpecOpen/Objects/Types.jl")
 include("SpecOpen/Rings/Types.jl")
 include("SpecOpen/Morphisms/Types.jl")
 include("Glueing/Types.jl")
+include("Covering/Objects/Types.jl")
+include("Covering/Morphisms/Types.jl")
+include("CoveredSchemes/Objects/Types.jl")
+include("CoveredSchemes/Morphisms/Types.jl")
 
 ########################################################################
 # Affine schemes                                                       #
@@ -61,3 +65,26 @@ include("SpecOpen/Morphisms/Methods.jl")
 include("Glueing/Constructors.jl")
 include("Glueing/Attributes.jl")
 include("Glueing/Methods.jl")
+
+########################################################################
+# Coverings of schemes                                                 #
+########################################################################
+include("Covering/Objects/Constructors.jl")
+include("Covering/Objects/Attributes.jl")
+include("Covering/Objects/Methods.jl")
+
+include("Covering/Morphisms/Constructors.jl")
+include("Covering/Morphisms/Attributes.jl")
+include("Covering/Morphisms/Methods.jl")
+
+########################################################################
+# Covered schemes                                                      #
+########################################################################
+include("CoveredSchemes/Objects/Constructors.jl")
+include("CoveredSchemes/Objects/Properties.jl")
+include("CoveredSchemes/Objects/Attributes.jl")
+include("CoveredSchemes/Objects/Methods.jl")
+
+include("CoveredSchemes/Morphisms/Constructors.jl")
+include("CoveredSchemes/Morphisms/Attributes.jl")
+include("CoveredSchemes/Morphisms/Methods.jl")
