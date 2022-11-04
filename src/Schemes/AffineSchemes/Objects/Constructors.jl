@@ -677,3 +677,4 @@ function closure(
   R = ambient_ring(Y)
   return Spec(MPolyQuoLocalizedRing(R, Isat, inverted_set(OO(Y))))
 end
+

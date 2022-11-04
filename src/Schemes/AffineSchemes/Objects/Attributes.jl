@@ -290,3 +290,4 @@ ring_type(::Type{Spec{BRT, RT}}) where {BRT, RT} = RT
 ring_type(X::Spec) = ring_type(typeof(X))
 base_ring_type(::Type{Spec{BRT, RT}}) where {BRT, RT} = BRT
 base_ring_type(X::Spec) = base_ring_type(typeof(X))
+

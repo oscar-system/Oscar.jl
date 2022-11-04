@@ -1,68 +1,8 @@
-export PrincipalOpenSubset
-export ambient_scheme, complement_equation, inclusion_morphism
-
 export underlying_morphism, complement_ideal, complement_scheme
 
 export image_ideal
 
 export ideal_type
-
-########################################################################
-# Methods for PrincipalOpenSubset                                      #
-########################################################################
-underlying_scheme(U::PrincipalOpenSubset) = U.U
-ambient_scheme(U::PrincipalOpenSubset) = U.X
-complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U)))
-
-### assure compatibility with SpecOpen 
-gens(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
-ngens(U::PrincipalOpenSubset) = 1
-getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of range"))
-
-function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
-  if !isdefined(U, :inc)
-    X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check))
-    U.inc = OpenInclusion(inc, ideal(OO(X), complement_equation(U)), check=check)
-  end
-  return U.inc
-end
-
-PrincipalOpenSubset(X::AbsSpec) = PrincipalOpenSubset(X, one(OO(X)))
-
-function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true) 
-  if ambient_scheme(U) != codomain(f) 
-    Z = preimage(f, ambient_scheme(U), check=check)
-    return PrincipalOpenSubset(Z, OO(Z)(pullback(f)(complement_equation(U)), check=false))
-  end
-  return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
-end
-
-@Markdown.doc """
-    generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
-
-Given a regular function ``a ∈ 𝒪(U)`` on a principal open 
-subset ``U ⊂ X`` of an affine scheme ``X``, return a 
-fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
-the `ambient` scheme ``X`` of ``U``) which represents ``a``
-in the sense that the maximal extension of its restriction 
-to ``U`` returns ``a``.
-"""
-function generic_fraction(a::MPolyLocalizedRingElem, U::PrincipalOpenSubset)
-  X = ambient_scheme(U)
-  parent(a) == OO(U) || error("domains are not compatible")
-  return lifted_numerator(a)//lifted_denominator(a)
-end
-
-function generic_fraction(a::MPolyQuoLocalizedRingElem, U::PrincipalOpenSubset)
-  X = ambient_scheme(U)
-  parent(a) == OO(U) || error("domains are not compatible")
-  return lifted_numerator(a)//lifted_denominator(a)
-end
-
-@attr function is_dense(U::PrincipalOpenSubset)
-  return !is_zero_divisor(complement_equation(U))
-end
 
 function is_constant(a::MPolyLocalizedRingElem) 
   reduce_fraction(a)
