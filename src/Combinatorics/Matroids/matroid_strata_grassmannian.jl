@@ -17,7 +17,7 @@ function bases_matrix_coordinates(Bs::Vector{Vector{Int64}}, B::Vector{Int64})
         
         push!(newCoords, [row_b,col_b])
     end
-    return sort!(newCoords, by = x -> x[2])    
+    return sort!(newCoords, by = x -> (x[2], x[1]))    
 end
 
 
