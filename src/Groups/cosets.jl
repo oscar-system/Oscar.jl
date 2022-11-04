@@ -278,34 +278,18 @@ Return the vector of the left cosets of `H` in `G`.
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
 
 julia> H = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
 
 julia> left_cosets(G,H)
-20-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
+4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
  Left coset   () * Sym( [ 1 .. 3 ] )
- Left coset   (3,5) * Sym( [ 1 .. 3 ] )
- Left coset   (2,5,3) * Sym( [ 1 .. 3 ] )
- Left coset   (1,5,3,2) * Sym( [ 1 .. 3 ] )
  Left coset   (1,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,4)(3,5) * Sym( [ 1 .. 3 ] )
- Left coset   (1,4)(2,5,3) * Sym( [ 1 .. 3 ] )
- Left coset   (1,4,5,3,2) * Sym( [ 1 .. 3 ] )
  Left coset   (1,2,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,2,4)(3,5) * Sym( [ 1 .. 3 ] )
- Left coset   (1,5,3,2,4) * Sym( [ 1 .. 3 ] )
- Left coset   (2,4,5,3) * Sym( [ 1 .. 3 ] )
  Left coset   (1,3,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,5,3,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,2,5,3,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,2)(3,4,5) * Sym( [ 1 .. 3 ] )
- Left coset   (1,5,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,3,5,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,3,2,5,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,3,2)(4,5) * Sym( [ 1 .. 3 ] )
 ```
 """
 function left_cosets(G::GAPGroup, H::GAPGroup)
