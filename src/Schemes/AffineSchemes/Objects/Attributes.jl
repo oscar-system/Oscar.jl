@@ -47,7 +47,9 @@ end
 @Markdown.doc """
     ambient_affine_space(X::AbsSpec)
 
-Return the ambient affine space of ``X``.
+Return the ambient affine space of ``X``. 
+(Note: compare with ''=='', as the same affine space could be represented 
+internally by different objects for technical reasons.)
 
 # Examples
 ```jldoctest
@@ -60,20 +62,24 @@ true
 julia> (x, y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
 julia> X === ambient_affine_space(Y)
+false
+
+julia> X == ambient_affine_space(Y)
 true
 
 julia> Z = subscheme(Y, y)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
 
-julia> ambient_affine_space(Z) === X
+julia> ambient_affine_space(Z) == X
 true
 
 julia> V = hypersurface_complement(Y, y)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
 
-julia> ambient_affine_space(U) === X
+julia> ambient_affine_space(V) == X
 true
 ```
 
@@ -86,8 +92,10 @@ In each case the ambient affine space is given by ``Spec(P)``.
 # Examples
 ```jldoctest
 julia> P, (x, y) = PolynomialRing(QQ, [:x, :y])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> X = Spec(P)
+Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> I = ideal(P, x)
 ideal(x)
@@ -107,7 +115,7 @@ julia> RmodJ, quotient_map2 = quo(RmodI, J);
 julia> Z = Spec(RmodJ)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
 
-julia> ambient_space(Z) == X
+julia> ambient_affine_space(Z) == X
 true
 
 julia> U = powers_of_element(y)
@@ -149,6 +157,17 @@ julia> (x, y) = coordinates(X);
 julia> Y = subscheme(X, [x]);
 
 julia> inc = ambient_embedding(Y)
+morphism from
+
+        Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
+
+to
+
+        Spec of Multivariate Polynomial Ring in x, y over Rational Field
+
+with coordinates
+
+        0, y
 
 julia> inc == inclusion_morphism(Y, X)
 true
@@ -171,7 +190,7 @@ Spec of Multivariate Polynomial Ring in x, y over Rational Field
 julia> (x,y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
 julia> ambient_coordinate_ring(Y)
 Multivariate Polynomial Ring in x, y over Rational Field
@@ -196,10 +215,14 @@ Spec of Multivariate Polynomial Ring in x, y over Rational Field
 julia> (x,y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
-julia> (x,y) == ambient_coordinates(Y)
+julia> coordinates(X) == ambient_coordinates(Y)
 true
+
+julia> [x,y] == ambient_coordinates(Y)
+true
+
 ```
 """
 ambient_coordinates(X::AbsSpec) = gens(ambient_coordinate_ring(X))
@@ -217,13 +240,13 @@ by the ambient affine space.
 julia> X = affine_space(QQ, [:x,:y])
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> (x, y) = coordinates(X);
+julia> (x, y) = coordinates(X)
 2-element Vector{fmpq_mpoly}:
  x
  y
 
 julia> Y = subscheme(X, [x])
-Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
 julia> (xY, yY) = coordinates(Y)
 2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
@@ -275,8 +298,8 @@ julia> dim(X)
 julia> Y = affine_space(ZZ, 2)
 Spec of Multivariate Polynomial Ring in x1, x2 over Integer Ring
 
-julia> dim(Y) # one dimension comes from ZZ and one from x1
-2
+julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
+3
 ```
 """
 @attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
