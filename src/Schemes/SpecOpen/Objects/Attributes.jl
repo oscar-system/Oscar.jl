@@ -1,5 +1,5 @@
 export open_subset_type, ambient_type, poly_type
-export ambient, ambient_ring, npatches, affine_patches, intersections, affine_patch, complement_ideal
+export ambient, ambient_coordinate_ring, npatches, affine_patches, intersections, affine_patch, complement_ideal
 
 ########################################################################
 # (1) Type getters for SpecOpen                                        #
@@ -24,7 +24,7 @@ TODO: Add example!
 """
 function affine_patches(U::SpecOpen)
   if !isdefined(U, :patches)
-    X = ambient(U)
+    X = ambient_scheme(U)
     U.patches = [PrincipalOpenSubset(X, OO(X)(f)) for f in gens(U)]
   end
   return U.patches
@@ -39,7 +39,7 @@ TODO: Add example!
 """
 function intersections(U::SpecOpen)
   if !isdefined(U, :intersections)
-    X = ambient(U)
+    X = ambient_scheme(U)
     V = affine_patches(U)
     for i in 2:length(V)
       for j in 1:i-1
@@ -51,20 +51,20 @@ function intersections(U::SpecOpen)
 end
 
 @Markdown.doc """
-    ambient(U::SpecOpen)
+    ambient_scheme(U::SpecOpen)
 
 Return the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
 TODO: Add example!
 """
-ambient(U::SpecOpen) = U.X
+ambient_scheme(U::SpecOpen) = U.X
 
 @doc Markdown.doc"""
-    ambient_ring(U::SpecOpen)
+    ambient_coordinate_ring(U::SpecOpen)
 
 For the open set `U = X \ V` return the ambient ring of `X`.
 TODO: Add example!
 """
-ambient_ring(U::SpecOpen) = ambient_ring(ambient(U))
+ambient_coordinate_ring(U::SpecOpen) = ambient_coordinate_ring(ambient_scheme(U))
 
 @Markdown.doc """
     npatches(U::SpecOpen)
@@ -79,7 +79,7 @@ npatches(U::SpecOpen) = length(U.gens)
 Return the generators ``[f₁,…,fᵣ]`` stored for the description 
 of the complement of ``U``.
 """
-gens(U::SpecOpen) = U.gens::Vector{elem_type(ambient_ring(ambient(U)))}
+gens(U::SpecOpen) = U.gens::Vector{elem_type(ambient_coordinate_ring(ambient_scheme(U)))}
 ngens(U::SpecOpen) = length(U.gens)
 
 @Markdown.doc """
@@ -112,7 +112,7 @@ end
 #TODO: Add docstring.
 function complement_ideal(U::SpecOpen) 
   if !isdefined(U, :complement_ideal)
-    I = ideal(OO(ambient(U)), gens(U))
+    I = ideal(OO(ambient_scheme(U)), gens(U))
     U.complement_ideal = I
   end
   return U.complement_ideal::Ideal
@@ -121,9 +121,9 @@ end
 # TODO: Add docstring.
 function complement(U::SpecOpen) 
   if !isdefined(U, :complement)
-    #I = radical(saturated_ideal(ideal(localized_ring(OO(ambient(U))), gens(U))))
-    #U.complement = subscheme(ambient(U), I)
-    U.complement = subscheme(ambient(U), gens(U))
+    #I = radical(saturated_ideal(ideal(localized_ring(OO(ambient_scheme(U))), gens(U))))
+    #U.complement = subscheme(ambient_scheme(U), I)
+    U.complement = subscheme(ambient_scheme(U), gens(U))
   end
   return U.complement
 end
@@ -135,6 +135,6 @@ function name(U::SpecOpen)
   if isdefined(U, :name)
     return U.name
   end
-  return "open subset of $(ambient(U))"
+  return "open subset of $(ambient_scheme(U))"
 end
 

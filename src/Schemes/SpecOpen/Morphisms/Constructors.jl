@@ -5,7 +5,7 @@ export inclusion_morphism, identity_map, restrict, maximal_extension
 ### Construct a morphisms by the restriction of coordinate functions 
 # to every affine patch
 function SpecOpenMor(U::SpecOpen, V::SpecOpen, f::Vector{<:RingElem}; check::Bool=true)
-  Y = ambient(V)
+  Y = ambient_scheme(V)
   maps = [SpecMor(W, Y, f) for W in affine_patches(U)]
   return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in affine_patches(U)], check=check) 
 end
@@ -20,18 +20,18 @@ end
 # Constructors for canonical maps                                      #
 ########################################################################
 function inclusion_morphism(U::SpecOpen, V::SpecOpen; check::Bool=true)
-  X = ambient(U)
+  X = ambient_scheme(U)
   if check 
     issubset(U, V) || error("method not implemented")
   end
-  return SpecOpenMor(U, V, gens(ambient_ring(X)), check=false)
+  return SpecOpenMor(U, V, gens(ambient_coordinate_ring(X)), check=false)
 end
 
 inclusion_morphism(X::SpecOpen, Y::AbsSpec; check::Bool=true) = inclusion_morphism(X, SpecOpen(Y), check=check)
 
 function identity_map(U::SpecOpen) 
   phi = SpecOpenMor(U, U, 
-                    [SpecMor(V, ambient(U), gens(OO(V)), check=false) for V in affine_patches(U)], 
+                    [SpecMor(V, ambient_scheme(U), gens(OO(V)), check=false) for V in affine_patches(U)],
                     check=false
                    )
   return phi
@@ -52,7 +52,7 @@ function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
     all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
   end
-  return SpecOpenMor(U, V, [restrict(f, W, ambient(V), check=check) for W in affine_patches(U)])
+  return SpecOpenMor(U, V, [restrict(f, W, ambient_scheme(V), check=check) for W in affine_patches(U)])
 end
 
 function restrict(
@@ -68,7 +68,7 @@ function restrict(
   end
   inc = inclusion_morphism(U, domain(f), check=check)
   help_map = compose(inc, f, check=check)
-  Y = ambient(V)
+  Y = ambient_scheme(V)
   h = [restrict(g, domain(g), Y, check=check) for g in maps_on_patches(help_map)]
   return SpecOpenMor(U, V, h, check=check)
 end
@@ -79,7 +79,7 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
     issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end
   phi = restriction_map(domain(f), W)
-  fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(ambient_ring(Y)))]
+  fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(ambient_coordinate_ring(Y)))]
   return SpecMor(W, Y, fy, check=false)
 end
 
@@ -130,7 +130,7 @@ function maximal_extension(
     Y::AbsSpec, 
     f::Vector{<:RingElem}
   )
-  h = maximal_extension(X, Y, FractionField(ambient_ring(X)).(f))
+  h = maximal_extension(X, Y, FractionField(ambient_coordinate_ring(X)).(f))
   return h
 end
 

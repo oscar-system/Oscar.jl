@@ -38,12 +38,12 @@ we require that `Y` is closed in `X`.
 complement(X::Scheme,Y::Scheme)
 
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyRing})
-  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
+  ambient_coordinate_ring(X) == ambient_coordinate_ring(Z) || error("X and Z do not compare")
   return EmptyScheme(base_ring(X))
 end
 
 function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuo})
-  ambient_ring(X) == ambient_ring(Z) || error("X and Z do not compare")
+  ambient_coordinate_ring(X) == ambient_coordinate_ring(Z) || error("X and Z do not compare")
   return SpecOpen(X, modulus(OO(Z)))
 end
 
@@ -58,14 +58,14 @@ end
 ########################################################################
 # Conversion from AbsSpec                                              #
 ########################################################################
-SpecOpen(X::AbsSpec) = SpecOpen(X, [one(ambient_ring(X))], check=false)
+SpecOpen(X::AbsSpec) = SpecOpen(X, [one(ambient_coordinate_ring(X))], check=false)
 
 
 ########################################################################
 # Additional constructors                                              #
 ########################################################################
 function product(U::SpecOpen, Y::AbsSpec)
-  X = ambient(U)
+  X = ambient_scheme(U)
   P, pX, pY = product(X, Y)
   V = SpecOpen(P, lifted_numerator.(pullback(pX).(gens(U))))
   res_pX = restrict(pX, V, U, check=false)
@@ -74,7 +74,7 @@ function product(U::SpecOpen, Y::AbsSpec)
 end
   
 function subscheme(U::SpecOpen, I::Ideal)
-  Z = subscheme(ambient(U), I) #Takes care of coercion and complains if necessary
+  Z = subscheme(ambient_scheme(U), I) #Takes care of coercion and complains if necessary
   return SpecOpen(Z, [g for g in gens(U) if !iszero(OO(Z)(g))])
 end
 

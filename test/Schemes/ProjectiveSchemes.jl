@@ -257,7 +257,7 @@ end
   @test UYtoX == inclusion_morphism(IP2_UY, IP2_X)
   @test compose(UYtoY, YtoX) == UYtoX
 
-  WW = hypersurface_complement(ambient(W), [x-y])
+  WW = hypersurface_complement(ambient_scheme(W), [x-y])
   phi = MapFromFunc(restriction_map(W, WW), OO(W), OO(WW))
   IP2_WW, map = fiber_product(phi, IP2_W)
   @test base_scheme(IP2_WW) == WW
