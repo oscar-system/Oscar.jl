@@ -81,8 +81,8 @@ true
 We can create ``X``, ``Y`` and ``Z`` also by first constructing the corresponding
 coordinate rings. The subset relations are inferred from the coordinate rings.
 More precisely, for a polynomial ring ``P`` an ideal ``I < P `` and a multiplicatively closed subset
-``U`` of ``P`` let ``R`` be one of ``P``, ``P/I`` or ``U^{-1}(P/I)``.
-In each case the ambient affine space is given by``Spec(P)``.
+``U`` of ``P`` let ``R`` be one of ``P``, ``U^{-1}P``, ``P/I`` or ``U^{-1}(P/I)``.
+In each case the ambient affine space is given by ``Spec(P)``.
 
 # Examples
 ```jldoctest
@@ -306,6 +306,8 @@ end
 
 Return the codimension of ``X`` in its ambient affine space.
 
+Throws and error if ``X`` does not have an ambient affine space.
+
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ,3)
@@ -393,17 +395,23 @@ julia> (x1,x2,x3) = gens(R)
  x2
  x3
 
-julia> Y = subscheme(X,ideal(R,[x1*x2]))
+julia> Y = subscheme(X, ideal(R, [x1*x2]))
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1*x2)
 
-julia> ambient_closure_ideal(Y)
+julia> I = ambient_closure_ideal(Y)
 ideal(x1*x2)
+
+julia> base_ring(I) == OO(Y)
+false
+
+julia> base_ring(I) == R
+true
 ```
 """
 @attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
 ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuo}) = modulus(OO(X))
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = ideal(OO(X), [zero(OO(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = modulus(OO(X))
+@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
+ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = saturated_ideal(modulus(OO(X)))
 
 
 ########################################################################

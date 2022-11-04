@@ -68,7 +68,7 @@ of ``a``. Note that the denominator is equal to `one(P)` in case
 ``R \cong P`` or ``R \cong P/I``.
 
 Recall that the coordinates ``x_i`` of ``X`` are induced by the coordinates of
-the ambient space.
+the ambient affine space.
 Moreover, we will assume that for homomorphisms from ``R``
 there is a method
 ```
