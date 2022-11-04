@@ -80,11 +80,11 @@
 
     
 
-    @testset "interlace_columns" begin
+#    @testset "interlace_columns" begin
 
-        @test
+#        @test
         
-    end
+#    end
 
     S1 = MatrixSpace(R1, 2, 5); X1 = make_coordinate_matrix(2, 5, bmc1, [1,2], R1, x1, xd1)
     S2 = MatrixSpace(R2, 3, 7); X2 = make_coordinate_matrix(3, 7, bmc2, [1,2,4], R2, x2, xd2)
