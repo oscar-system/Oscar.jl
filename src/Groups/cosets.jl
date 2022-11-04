@@ -248,34 +248,18 @@ Return the vector of the right cosets of `H` in `G`.
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+julia> G=symmetric_group(4)
+Sym( [ 1 .. 4 ] )
 
 julia> H = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
 
 julia> right_cosets(G,H)
-20-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
+4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
  Right coset   Sym( [ 1 .. 3 ] ) * ()
- Right coset   Sym( [ 1 .. 3 ] ) * (3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (2,3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,2,3,5)
  Right coset   Sym( [ 1 .. 3 ] ) * (1,4)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4)(3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4)(2,3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,2,3,5,4)
  Right coset   Sym( [ 1 .. 3 ] ) * (1,4,2)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,2)(3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,2,3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (2,3,5,4)
  Right coset   Sym( [ 1 .. 3 ] ) * (1,4,3)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,3,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,3,5,2)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,2)(3,5,4)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,5)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,5,3)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,5,2,3)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,2,3)(4,5)
 ```
 """
 function right_cosets(G::GAPGroup, H::GAPGroup)
