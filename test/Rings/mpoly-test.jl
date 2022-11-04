@@ -258,6 +258,11 @@ end
   @test x in I
 end
 
+@testset "#1668" begin
+  R, (x,) = PolynomialRing(QQ, ["x"])
+  @test is_one(evaluate(x//x, [QQ(1)]))
+end
+
 @testset "Fraction fields over polynomial rings" begin
   R, x = PolynomialRing(QQ, "x")
   F = FractionField(R)

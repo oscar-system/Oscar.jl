@@ -118,12 +118,6 @@ function is_zero_divisor(f::MPolyQuoLocalizedRingElem{<:Field})
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
 end
 
-########################################################################
-# Methods for OpenInclusion                                            #
-########################################################################
-underlying_morphism(f::OpenInclusion) = f.inc
-complement_ideal(f::OpenInclusion) = f.I
-complement_scheme(f::OpenInclusion) = f.Z
 
 
 ########################################################################

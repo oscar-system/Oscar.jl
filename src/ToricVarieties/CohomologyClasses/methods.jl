@@ -67,7 +67,7 @@ function integrate(c::CohomologyClass)::fmpq
     end
     poly = polynomial(c)
     dict = homogeneous_components(poly)
-    elem = parent(poly).R.D([dim(toric_variety(c))])
+    elem = base_ring(parent(poly)).D([dim(toric_variety(c))])
     if !(elem in keys(dict))
         return 0
     end

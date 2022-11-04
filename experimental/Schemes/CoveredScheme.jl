@@ -651,7 +651,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #      V = pop!(V_candidates) 
 #      if issubset(U, V) 
 #        inc1[U] = identity_map(U)
-#        inc2[U] = inclusion_map(U, V)
+#        inc2[U] = inclusion_morphism(U, V)
 #        inc0[U] = f[U]
 #        push!(new_patches, U)
 #        patch_found = true
@@ -663,9 +663,9 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #    # this is the worst case where there is no patch in C2 containing U.
 #    for V in V_candidates
 #      UV = intersect(U, V)
-#      inc1[UV] = inclusion_map(UV, U)
-#      inc2[UV] = inclusion_map(UV, V)
-#      inc0[UV] = inclusion_map(UV, W)
+#      inc1[UV] = inclusion_morphism(UV, U)
+#      inc2[UV] = inclusion_morphism(UV, V)
+#      inc0[UV] = inclusion_morphism(UV, W)
 #      push!(new_patches, UV)
 #    end
 #  end

@@ -79,6 +79,10 @@ include("AlgebraicCycles/properties.jl")
 include("AlgebraicCycles/attributes.jl")
 include("AlgebraicCycles/special_attributes.jl")
 
+include("ToricMorphisms/constructors.jl")
+include("ToricMorphisms/attributes.jl")
+include("ToricMorphisms/special_attributes.jl")
+
 # deprecated functions
 @deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
 @deprecate map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety) map_from_torusinvariant_weil_divisor_group_to_class_group(v)
@@ -87,3 +91,4 @@ include("AlgebraicCycles/special_attributes.jl")
 @deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
 @deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
+@deprecate morphism_on_cartier_divisor_group(tm::ToricMorphism) morphism_on_torusinvariant_cartier_divisor_group(tm)

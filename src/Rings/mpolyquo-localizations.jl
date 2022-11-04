@@ -18,6 +18,8 @@ export is_isomorphism, inverse
 
 export simplify
 
+export mult_set_type
+
 ########################################################################
 # Localizations of polynomial algebras                                 #
 ########################################################################
