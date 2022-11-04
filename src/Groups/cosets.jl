@@ -309,34 +309,18 @@ Return a vector containing a complete set of representatives for right cosets fo
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
 
 julia> H = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
 
 julia> right_transversal(G,H)
-20-element Vector{PermGroupElem}:
+4-element Vector{PermGroupElem}:
  ()
- (3,5)
- (2,3,5)
- (1,2,3,5)
  (1,4)
- (1,4)(3,5)
- (1,4)(2,3,5)
- (1,2,3,5,4)
  (1,4,2)
- (1,4,2)(3,5)
- (1,4,2,3,5)
- (2,3,5,4)
  (1,4,3)
- (1,4,3,5)
- (1,4,3,5,2)
- (1,2)(3,5,4)
- (1,4,5)
- (1,4,5,3)
- (1,4,5,2,3)
- (1,2,3)(4,5)
 ```
 """
 function right_transversal(G::T, H::T) where T<: GAPGroup
@@ -355,34 +339,18 @@ Return a vector containing a complete set of representatives for left cosets for
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
 
 julia> H = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
 
 julia> left_transversal(G,H)
-20-element Vector{PermGroupElem}:
+4-element Vector{PermGroupElem}:
  ()
- (3,5)
- (2,5,3)
- (1,5,3,2)
  (1,4)
- (1,4)(3,5)
- (1,4)(2,5,3)
- (1,4,5,3,2)
  (1,2,4)
- (1,2,4)(3,5)
- (1,5,3,2,4)
- (2,4,5,3)
  (1,3,4)
- (1,5,3,4)
- (1,2,5,3,4)
- (1,2)(3,4,5)
- (1,5,4)
- (1,3,5,4)
- (1,3,2,5,4)
- (1,3,2)(4,5)
 ```
 """
 function left_transversal(G::T, H::T) where T<: GAPGroup
@@ -478,8 +446,8 @@ If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(5)
-Sym( [ 1 .. 5 ] )
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
 
 julia> H = symmetric_group(3)
 Sym( [ 1 .. 3 ] )
@@ -488,20 +456,10 @@ julia> K = symmetric_group(2)
 Sym( [ 1 .. 2 ] )
 
 julia> double_cosets(G,H,K)
-13-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
+3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
  Sym( [ 1 .. 3 ] ) * () * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (4,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (3,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (3,4,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (3,5,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (3,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (2,3,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (2,3,4,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (2,3,5,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (2,3,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (2,4)(3,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (2,4,3,5) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
+ Sym( [ 1 .. 3 ] ) * (1,4) * Sym( [ 1 .. 2 ] )
+ Sym( [ 1 .. 3 ] ) * (1,4,3) * Sym( [ 1 .. 2 ] )
 ```
 """
 function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
