@@ -101,8 +101,8 @@ Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets
   function Glueing(
       X::AbsSpec, Y::AbsSpec, f::SpecOpenMor, g::SpecOpenMor; check::Bool=true
     )
-    ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
-    ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
+    ambient_scheme(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
+    ambient_scheme(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
     if check
       (domain(f) === codomain(g) &&
       domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
@@ -371,7 +371,7 @@ mutable struct Covering{BaseRingType}
     # check the affine refinements
     for U in keys(affine_refinements)
       for (V, a) in affine_refinements[U]
-        ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
+        ambient_scheme(V) == U && error("the ambient scheme of the refinement of X must be X")
         U in patches && error("the ambient scheme of the refinement can not be found in the affine patches")
         if check
           isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("the patch $V does not cover $U")
@@ -672,7 +672,7 @@ Note that due to technical reasons, the admissible open subsets are restricted
 to the following:
  * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`;
- * `W::SpecOpen` with `ambient(W)` in the `basic_patches` of the `default_covering` of `X`.
+ * `W::SpecOpen` with `ambient_scheme(W)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``𝒪`` across charts, implicitly using the
 identifications given by the glueings in the `default_covering`.
@@ -775,18 +775,18 @@ identifications given by the glueings in the `default_covering`.
 #      return is_subset(U, preV)
 #    end
     function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
-      return Y === X && ambient(W) in default_covering(X)
+      return Y === X && ambient_scheme(W) in default_covering(X)
     end
     function is_open_func(W::SpecOpen, V::AbsSpec)
       V in default_covering(X) || return false
-      ambient(W) === V && return true
-      U = ambient(W)
+      ambient_scheme(W) === V && return true
+      U = ambient_scheme(W)
       U in default_covering(X) || return false
       G = default_covering(X)[U, V]
       return is_subset(W, glueing_domains(G)[1])
     end
     function is_open_func(W::SpecOpen, V::PrincipalOpenSubset)
-      PW = ambient(W)
+      PW = ambient_scheme(W)
       PV = ambient_scheme(V)
       PW in default_covering(X) || return false
       PV in default_covering(X) || return false
@@ -800,8 +800,8 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function is_open_func(W::SpecOpen, V::SpecOpen)
-      PW = ambient(W)
-      PV = ambient(V)
+      PW = ambient_scheme(W)
+      PV = ambient_scheme(V)
       PW in default_covering(X) || return false
       PV in default_covering(X) || return false
       if PW === PV
@@ -815,12 +815,12 @@ identifications given by the glueings in the `default_covering`.
     end
     function is_open_func(U::AbsSpec, W::SpecOpen)
       U in default_covering(X) || return false
-      if U === ambient(W)
+      if U === ambient_scheme(W)
         # in this case W must be equal to U
         return issubset(W, U)
         #return one(OO(U)) in complement_ideal(W)
       else
-        G = default_covering(X)[ambient(W), U]
+        G = default_covering(X)[ambient_scheme(W), U]
         issubset(U, glueing_domains(G)[2]) || return false
         preU = preimage(glueing_morphisms(G)[1], U)
         return issubset(preU, W)
@@ -828,12 +828,12 @@ identifications given by the glueings in the `default_covering`.
     end
     function is_open_func(U::PrincipalOpenSubset, W::SpecOpen)
       ambient_scheme(U) in default_covering(X) || return false
-      if ambient_scheme(U) === ambient(W)
+      if ambient_scheme(U) === ambient_scheme(W)
         # in this case W must be equal to U
         return issubset(W, U)
         #return one(OO(U)) in complement_ideal(W)
       else
-        G = default_covering(X)[ambient(W), ambient_scheme(U)]
+        G = default_covering(X)[ambient_scheme(W), ambient_scheme(U)]
         issubset(U, glueing_domains(G)[2]) || return false
         preU = preimage(glueing_morphisms(G)[1], U)
         return issubset(preU, W)
@@ -908,11 +908,11 @@ identifications given by the glueings in the `default_covering`.
     end
     function restriction_func(V::AbsSpec, OV::Ring, W::SpecOpen, OW::Ring)
       V in default_covering(X) || return false
-      ambient(W) in default_covering(X) || return false
-      if V === ambient(W)
+      ambient_scheme(W) in default_covering(X) || return false
+      if V === ambient_scheme(W)
         return MapFromFunc(x->(OW(x)), OV, OW)
       else
-        G = default_covering(X)[V, ambient(W)]
+        G = default_covering(X)[V, ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -922,14 +922,14 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function restriction_func(V::PrincipalOpenSubset, OV::Ring, W::SpecOpen, OW::Ring)
-      if ambient_scheme(V) === ambient(W)
+      if ambient_scheme(V) === ambient_scheme(W)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return OW(a)
         end
         return MapFromFunc(rho_func, OV, OW)
       else
-        G = default_covering(X)(ambient_scheme(V), ambient(W))
+        G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
         preV = preimage(g, VG)
@@ -943,11 +943,11 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function restriction_func(V::SpecOpen, OV::Ring, W::SpecOpen, OW::Ring)
-      if ambient(V) === ambient(W)
+      if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OV, OW)
       else
-        G = default_covering(X)[ambient(V), ambient(W)]
+        G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
         inc0 = inclusion_morphism(VG, V)

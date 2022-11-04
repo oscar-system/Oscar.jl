@@ -39,13 +39,13 @@ affine_refinements(C::Covering) = C.affine_refinements
 
 #function add_affine_refinement!(
 #    C::Covering, U::SpecOpen; 
-#    a::Vector{RingElemType}=as_vector(coordinates(one(OO(ambient(U))), 
-#                                                  ideal(OO(ambient(U)), 
-#                                                        OO(ambient(U)).(gens(U)))), 
+#    a::Vector{RingElemType}=as_vector(coordinates(one(OO(ambient_scheme(U))),
+#                                                  ideal(OO(ambient_scheme(U)),
+#                                                        OO(ambient_scheme(U)).(gens(U)))),
 #                                      length(gens(U))),
 #    check::Bool=true
 #  ) where {RingElemType<:RingElem}
-#  X = ambient(U)
+#  X = ambient_scheme(U)
 #  @show typeof(OO(X))
 #  X in patches(C) || error("ambient scheme not found in the basic patches of the covering")
 #  if check

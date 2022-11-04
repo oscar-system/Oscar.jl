@@ -3,7 +3,7 @@
   A3 = Spec(R)
   deepcopy(A3)
   set_name!(A3, "𝔸³")
-  @test iszero(ambient_closure_ideal(A3))
+  @test iszero(Oscar.ambient_closure_ideal(A3))
   f = x*y-z^2
   I = ideal(R, f)
   J = ideal(R, [f, x])
