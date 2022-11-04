@@ -80,12 +80,15 @@ over the same `base_ring`, with underlying ring homomorphism
   end
 end
 
-
-
 ########################################################################
-# Special type for open inclusions of affine schemes                   #
+# A special type for open inclusions                                   #
 ########################################################################
+@Markdown.doc """
+    OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor
 
+An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another 
+one ``X``. 
+"""
 @attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType}<:AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal
@@ -102,3 +105,5 @@ end
     return new{typeof(U), typeof(X), pullback_type(f)}(f, I, Z)
   end
 end
+
+

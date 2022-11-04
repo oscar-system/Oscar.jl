@@ -95,3 +95,4 @@ function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocalized
   Q = quotient(zero_ideal, J)
   return zero_ideal == Q
 end
+
