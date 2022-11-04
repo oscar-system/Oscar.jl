@@ -102,7 +102,13 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> inclusion_morphism(Y, X);
+julia> f = inclusion_morphism(Y, X);
+
+julia> I = kernel(pullback(f))  # this is a way to obtain the ideal ``I ⊆  O(X)`` cutting out ``Y`` from ``X``.
+ideal(x1)
+
+julia> base_ring(I) == OO(X)
+true
 ```
 """
 inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
