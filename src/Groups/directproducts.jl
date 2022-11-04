@@ -492,7 +492,7 @@ typing
 
 # Examples
 ```jldoctest
-julia> G =cyclic_group(3)
+julia> G = cyclic_group(3)
 <pc group of size 3 with 1 generators>
 
 julia> H = symmetric_group(2)
@@ -550,7 +550,7 @@ Return `G`, where `W` is the wreath product of `G` and `H`.
 
 # Examples
 ```jldoctest
-julia> G =cyclic_group(3)
+julia> G = cyclic_group(3)
 <pc group of size 3 with 1 generators>
 
 julia> H = symmetric_group(2)

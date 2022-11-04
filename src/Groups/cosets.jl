@@ -54,7 +54,7 @@ Return the coset `Hg`.
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(5)
+julia> G = symmetric_group(5)
 Sym( [ 1 .. 5 ] )
 
 julia> g = perm(G,[3,4,1,5,2])
@@ -248,7 +248,7 @@ Return the vector of the right cosets of `H` in `G`.
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(4)
+julia> G = symmetric_group(4)
 Sym( [ 1 .. 4 ] )
 
 julia> H = symmetric_group(3)
@@ -325,7 +325,7 @@ Return a vector containing a complete set of representatives for right cosets fo
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(5)
+julia> G = symmetric_group(5)
 Sym( [ 1 .. 5 ] )
 
 julia> H = symmetric_group(3)
@@ -371,7 +371,7 @@ Return a vector containing a complete set of representatives for left cosets for
 
 # Examples
 ```jldoctest
-julia> G=symmetric_group(5)
+julia> G = symmetric_group(5)
 Sym( [ 1 .. 5 ] )
 
 julia> H = symmetric_group(3)
