@@ -79,3 +79,4 @@ end
 ###########################################
 
 StdSpec = AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+
