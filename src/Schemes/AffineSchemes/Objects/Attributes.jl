@@ -156,18 +156,7 @@ julia> (x, y) = coordinates(X);
 
 julia> Y = subscheme(X, [x]);
 
-julia> inc = ambient_embedding(Y)
-morphism from
-
-        Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
-
-to
-
-        Spec of Multivariate Polynomial Ring in x, y over Rational Field
-
-with coordinates
-
-        0, y
+julia> inc = ambient_embedding(Y);
 
 julia> inc == inclusion_morphism(Y, X)
 true
