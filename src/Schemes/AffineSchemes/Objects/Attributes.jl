@@ -169,7 +169,7 @@ ambient_embedding(X::AbsSpec) = inclusion_morphism(X, ambient_affine_space(X), c
 
 Return the coordinate ring of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space](@ref).
+See also [`ambient_affine_space`](@ref).
 
 # Examples
 ```jldoctest
@@ -194,7 +194,7 @@ end
 
 Return the coordinate functions of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space](@ref).
+See also [`ambient_affine_space`](@ref).
 
 # Examples
 ```jldoctest
