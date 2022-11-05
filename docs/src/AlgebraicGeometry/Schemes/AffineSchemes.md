@@ -69,7 +69,7 @@ closure(X::AbsSpec, Y::AbsSpec)
 
 ## Attributes
 
-### Ambient affine space
+### Ambient affine space(@id ambient_affine_space)
 
 Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
