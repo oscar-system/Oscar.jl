@@ -15,6 +15,7 @@ include("PrincipalOpenSubset/Objects/Types.jl")
 include("SpecOpen/Objects/Types.jl")
 include("SpecOpen/Rings/Types.jl")
 include("SpecOpen/Morphisms/Types.jl")
+include("Glueing/Types.jl")
 
 ########################################################################
 # Affine schemes                                                       #
@@ -54,3 +55,9 @@ include("SpecOpen/Morphisms/Constructors.jl")
 include("SpecOpen/Morphisms/Attributes.jl")
 include("SpecOpen/Morphisms/Methods.jl")
 
+########################################################################
+# Glueings of affine schemes                                           #
+########################################################################
+include("Glueing/Constructors.jl")
+include("Glueing/Attributes.jl")
+include("Glueing/Methods.jl")
