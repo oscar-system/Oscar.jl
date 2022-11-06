@@ -32,7 +32,7 @@ Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
-See [inclusion_morphism](@ref) for a way to obtain the ideal ``I`` from ``X = Spec(R, I)``. 
+See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = Spec(R, I)``. 
 ### Affine n-space
 
 ```@docs
@@ -69,7 +69,7 @@ closure(X::AbsSpec, Y::AbsSpec)
 
 ## Attributes
 
-### Ambient affine space(@id ambient_affine_space)
+### Ambient affine space
 
 Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
