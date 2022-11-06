@@ -48,24 +48,22 @@ end
     ambient_affine_space(X::AbsSpec)
 
 Return the ambient affine space of ``X``. 
-(Note: compare with ''=='', as the same affine space could be represented 
-internally by different objects for technical reasons.)
+
+Use [`ambient_embedding(::AbsSpec)`](@ref) to obtain the embedding of ``X`` in
+its ambient affine space.
 
 # Examples
 ```jldoctest
 julia> X = affine_space(QQ, [:x,:y])
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> ambient_affine_space(X) === X
+julia> ambient_affine_space(X) == X
 true
 
 julia> (x, y) = coordinates(X);
 
 julia> Y = subscheme(X, [x])
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
-
-julia> X === ambient_affine_space(Y)
-false
 
 julia> X == ambient_affine_space(Y)
 true
@@ -85,12 +83,12 @@ true
 
 We can create ``X``, ``Y`` and ``Z`` also by first constructing the corresponding
 coordinate rings. The subset relations are inferred from the coordinate rings.
-More precisely, for a polynomial ring ``P`` an ideal ``I < P `` and a multiplicatively closed subset
+More precisely, for a polynomial ring ``P`` an ideal ``I ⊆ P `` and a multiplicatively closed subset
 ``U`` of ``P`` let ``R`` be one of ``P``, ``U^{-1}P``, ``P/I`` or ``U^{-1}(P/I)``.
-In each case the ambient affine space is given by ``Spec(P)``.
+In each case the ambient affine space is given by `Spec(P)`.
 
 # Examples
-```jldoctest
+```jldoctest ambient_via_spec
 julia> P, (x, y) = PolynomialRing(QQ, [:x, :y])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
@@ -129,6 +127,21 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Ra
 julia> ambient_affine_space(V) == X
 true
 ```
+
+Note: compare with `==`, as the same affine space could be represented
+internally by different objects for technical reasons.
+# Examples
+```jldoctest ambient_via_spec
+julia> AX = ambient_affine_space(X);
+
+julia> AY = ambient_affine_space(Y);
+
+julia> AX == AY
+true
+
+julia> AX === AY
+false
+```
 """
 function ambient_affine_space(X::AbsSpec)
   error("$X does not have an ambient affine space")
@@ -162,14 +175,16 @@ julia> inc == inclusion_morphism(Y, X)
 true
 ```
 """
-ambient_embedding(X::AbsSpec) = inclusion_morphism(X, ambient_affine_space(X), check=false)
+function ambient_embedding(X::AbsSpec)
+  return inclusion_morphism(X, ambient_affine_space(X), check=false)
+end
 
 @Markdown.doc """
     ambient_coordinate_ring(X::AbsSpec)
 
 Return the coordinate ring of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space`](@ref).
+See also [`ambient_affine_space(::AbsSpec)`](@ref).
 
 # Examples
 ```jldoctest
@@ -194,7 +209,7 @@ end
 
 Return the coordinate functions of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space`](@ref).
+See also [`ambient_affine_space(::AbsSpec)`](@ref).
 
 # Examples
 ```jldoctest
@@ -311,7 +326,7 @@ end
 
 
 @Markdown.doc """
-    codim(X::Spec)
+    codim(X::AbsSpec)
 
 Return the codimension of ``X`` in its ambient affine space.
 
@@ -341,13 +356,13 @@ julia> codim(Y)
 1
 ```
 """
-@attr function codim(X::Spec)
+@attr function codim(X::AbsSpec)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
 
 @doc Markdown.doc"""
-    name(X::Spec)
+    name(X::AbsSpec)
 
 Return the current name of an affine scheme.
 
@@ -367,7 +382,7 @@ julia> name(X)
 "affine 3-dimensional space"
 ```
 """
-@attr String function name(X::Spec)
+@attr String function name(X::AbsSpec)
   return "unnamed affine variety"
 end
 

@@ -100,6 +100,7 @@ Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by 
 ```
 """
 Spec(X::Spec) = Spec(OO(X))
+
 Base.deepcopy_internal(X::Spec, dict::IdDict) = Spec(deepcopy_internal(OO(X), dict))
 
 
@@ -317,7 +318,9 @@ Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Fie
 """
 function subscheme(X::AbsSpec, I::Ideal)
   base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
-  return Spec(quo(OO(X), I)[1])
+  Y =  Spec(quo(OO(X), I)[1])
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 
@@ -360,7 +363,9 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyLocalizedRing}}
@@ -368,21 +373,27 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   h = numerator(f)
   U = MPolyPowersOfElement(h)
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 
@@ -420,7 +431,9 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyLocalizedRing}}
@@ -428,21 +441,27 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuo}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   W, _ = Localization(OO(X), U)
-  return Spec(W)
+  Y = Spec(W)
+  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  return Y
 end
 
 
