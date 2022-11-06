@@ -1,4 +1,6 @@
-export  f4, standard_basis, groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal, syzygy_generators
+export  reduce, reduce_with_quotients, reduce_with_quotients_and_units, f4,
+		standard_basis, groebner_basis, groebner_basis_with_transformation_matrix,
+		leading_ideal, syzygy_generators
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -433,6 +435,31 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
   singular_assure(G, o)
   K = ideal(base_ring(J), reduce(I, G.S))
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
+end
+
+function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	@assert base_ring(J) == base_ring(I)
+	singular_assure(I, ordering)
+	singular_assure(J, ordering)
+	res = reduce(I.gens.S, J.gens.S)
+	return [J.gens.Ox(x) for x = gens(res)]
+end
+
+function reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	return _reduce_with_quotients_and_units(I, J, ordering)
+end
+
+function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	return q, r
+end
+
+function _reduce_with_quotients_and_units(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	@assert base_ring(J) == base_ring(I)
+	singular_assure(I, ordering)
+	singular_assure(J, ordering)
+	res = Singular.division(I.gens.S, J.gens.S)
+	return matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])], matrix(base_ring(I), res[3])
 end
 
 @doc Markdown.doc"""
