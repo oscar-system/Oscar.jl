@@ -18,7 +18,7 @@ Let ``\mathbb k`` be a commutative noetherian base ring
 We support functionality for affine schemes ``X = \mathrm{Spec}(R)`` over ``\mathbb k``.
 Currently, we support rings ``R`` of type `MPolyRing`, `MPolyQuo`,
 `MPolyLocalizedRing`, and `MPolyQuoLocalizedRing`
-defined over the integers or algebraic field extensions of ``\mathbb Q``
+defined over the integers, a finite field or algebraic field extensions of ``\mathbb Q``
 
 
 ## Constructors
@@ -32,7 +32,7 @@ Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
-See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = Spec(R, I)``. 
+See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
 ### Affine n-space
 
 ```@docs
@@ -73,14 +73,15 @@ closure(X::AbsSpec, Y::AbsSpec)
 
 Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
-affine space ``X \subseteq \mathbb{A}_B`` called the
+affine space ``\mathbb{A}_B``.
+More precisely, `ambient_affine_space(X)` is defined for `X = Spec(R)` if `R`
+is constructed from a polynomial ring.
+In particular ``\mathrm{Spec}(\mathbb{Z})`` or ``\mathrm{Spec}(\mathbb{k})`` for ``\mathbb k``
+a field do not have an ambient affine space.
+
 ```@docs
 ambient_affine_space(X::AbsSpec)
 ```
-More precisely, `ambient_affine_space(X)` is defined for `X = Spec(R)` if `R`
-is constructed from a polynomial ring.
-In particular ``Spec(ZZ)`` or ``Spec(k)`` for ``\mathbb k``
-a field do not have an ambient affine space.
 
 ### Other attributes
 
@@ -89,7 +90,7 @@ base_ring(X::AbsSpec)
 codim(X::AbsSpec)
 ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
 dim(X::AbsSpec)
-name(X::Spec)
+name(X::AbsSpec)
 OO(X::AbsSpec)
 ```
 
@@ -114,8 +115,8 @@ issubset(X::AbsSpec, Y::AbsSpec)
 
 ### Comparison
 
-Two schemes $X$ and $Y$ can be compared if their ambient affine spaces are equal.
-In particular $X$ and $Y$ are considered equal (`==`)
+Two schemes ``X`` and ``Y`` can be compared if their ambient affine spaces are equal.
+In particular ``X`` and ``Y`` are considered equal (`==`)
 if and only if the identity morphism of their ambient affine space induces an
 isomorphism of ``X`` and ``Y``.
 For ``X`` and ``Y`` with different ambient affine space `X==Y` is always `false`.
