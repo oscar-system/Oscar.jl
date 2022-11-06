@@ -32,7 +32,7 @@ Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
-See [`inclusion_morphism(::AbsSpec, ::AbsSpec; check::Bool)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
+See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
 
 ### Affine n-space
 
@@ -90,6 +90,7 @@ ambient_affine_space(X::AbsSpec)
 base_ring(X::AbsSpec)
 codim(X::AbsSpec)
 ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
+ambient_embedding(X::AbsSpec)
 dim(X::AbsSpec)
 name(X::AbsSpec)
 OO(X::AbsSpec)
