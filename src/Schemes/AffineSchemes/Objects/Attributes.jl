@@ -175,7 +175,9 @@ julia> inc == inclusion_morphism(Y, X)
 true
 ```
 """
-ambient_embedding(X::AbsSpec) = inclusion_morphism(X, ambient_affine_space(X), check=false)
+function ambient_embedding(X::AbsSpec)
+  return inclusion_morphism(X, ambient_affine_space(X), check=false)
+end
 
 @Markdown.doc """
     ambient_coordinate_ring(X::AbsSpec)

@@ -32,7 +32,7 @@ Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
-See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
+See [`inclusion_morphism(::AbsSpec, ::AbsSpec; check::Bool)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
 ### Affine n-space
 
 ```@docs
