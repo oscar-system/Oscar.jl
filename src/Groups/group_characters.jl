@@ -1566,8 +1566,10 @@ For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
 """
 function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
-    return GAP.Globals.Symmetrizations(
-        GAP.GapObj([chi.values for chi in characters]), n)
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.Symmetrizations(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
 @doc Markdown.doc"""
@@ -1579,8 +1581,10 @@ see [`symmetrizations`](@ref).
 """
 function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
-    return GAP.Globals.SymmetricParts(characters[1].table.GAPTable,
-        GAP.GapObj([chi.values for chi in characters]), n)
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.SymmetricParts(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
 @doc Markdown.doc"""
@@ -1592,8 +1596,10 @@ see [`symmetrizations`](@ref).
 """
 function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     length(characters) == 0 && return eltype(typeof(characters))[]
-    return GAP.Globals.AntiSymmetricParts(characters[1].table.GAPTable,
-        GAP.GapObj([chi.values for chi in characters]), n)
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.AntiSymmetricParts(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
 @doc Markdown.doc"""
@@ -1642,8 +1648,10 @@ characters with Frobenius-Schur indicator +1, see [`indicator`](@ref).
 function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int)
     (2 <= n && n <= 6) || error("the second ergument must be in 2:6")
     length(characters) == 0 && return eltype(typeof(characters))[]
-    return GAP.Globals.OrthogonalComponents(characters[1].table.GAPTable,
-        GAP.GapObj([chi.values for chi in characters]), n)
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.OrthogonalComponents(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
 @doc Markdown.doc"""
@@ -1658,8 +1666,10 @@ characters with Frobenius-Schur indicator -1, see [`indicator`](@ref).
 function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
     (2 <= n && n <= 6) || error("the second ergument must be in 2:6")
     length(characters) == 0 && return eltype(typeof(characters))[]
-    return GAP.Globals.SymplecticComponents(characters[1].table.GAPTable,
-        GAP.GapObj([chi.values for chi in characters]), n)
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.SymplecticComponents(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
