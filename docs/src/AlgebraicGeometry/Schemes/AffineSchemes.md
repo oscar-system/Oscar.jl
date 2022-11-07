@@ -89,7 +89,6 @@ ambient_affine_space(X::AbsSpec)
 ```@docs
 base_ring(X::AbsSpec)
 codim(X::AbsSpec)
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
 ambient_embedding(X::AbsSpec)
 dim(X::AbsSpec)
 name(X::AbsSpec)
