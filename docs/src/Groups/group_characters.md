@@ -173,6 +173,18 @@ scalar_product
 induced_class_function
 ```
 
+## Symmetrizations of group characters
+
+```@docs
+symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
+symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
+anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
+exterior_power(chi::GAPGroupClassFunction, n::Int)
+symmetric_power(chi::GAPGroupClassFunction, n::Int)
+orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int)
+symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
+```
+
 ## Operations for character tables
 
 ```@docs

@@ -16,6 +16,7 @@
 
 export
     all_character_table_names,
+    anti_symmetric_parts,
     atlas_irrationality,
     character_field,
     character_parameters,
@@ -26,6 +27,7 @@ export
     class_positions_of_kernel,
     class_positions_of_pcore,
     decomposition_matrix,
+    exterior_power,
     identifier,
     indicator,
     induced_class_function,
@@ -37,9 +39,14 @@ export
     natural_character,
     orders_centralizers,
     orders_class_representatives,
+    orthogonal_components,
     possible_class_fusions,
     scalar_product,
     schur_index,
+    symmetric_parts,
+    symmetric_power,
+    symmetrizations,
+    symplectic_components,
     trivial_character
 
 
@@ -1530,6 +1537,139 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
 
     # For the moment, we do not have more character theoretic criteria.
     error("cannot determine the Schur index with the currently used criteria")
+end
+
+@doc Markdown.doc"""
+    symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
+
+Return the vector of symmetrizations of `characters` with the ordinary
+irreducible characters of the symmetric group of degree `n`.
+
+The symmetrization $\chi^{[\lambda]}$ of the character $\chi$
+with the character $\lambda$ of the symmetric group $S_n$ of degree `n`
+is defined by
+
+```math
+\chi^{[\lambda]}(g) =
+(\sum_{\rho\in S_n} \lambda(\rho) \prod_{k=1}^n \chi(g^k)^{a_k(\rho)} ) / n!,
+```
+
+where $a_k(\rho)$ is the number of cycles of length $k$ in $\rho$.
+
+Note that the returned list may contain zero class functions,
+and duplicates are not deleted.
+
+For special kinds of symmetrizations, see [`symmetric_parts`](@ref),
+[`anti_symmetric_parts`](@ref), [`orthogonal_components`](@ref),
+[`symplectic_components`](@ref), [`exterior_power`](@ref),
+[`symmetric_power`](@ref).
+"""
+function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
+    length(characters) == 0 && return eltype(typeof(characters))[]
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.Symmetrizations(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
+end
+
+@doc Markdown.doc"""
+    symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
+
+Return the vector of symmetrizations of `characters`
+with the trivial character of the symmetric group of degree `n`,
+see [`symmetrizations`](@ref).
+"""
+function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
+    length(characters) == 0 && return eltype(typeof(characters))[]
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.SymmetricParts(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
+end
+
+@doc Markdown.doc"""
+    anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
+
+Return the vector of symmetrizations of `characters`
+with the sign character of the symmetric group of degree `n`,
+see [`symmetrizations`](@ref).
+"""
+function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
+    length(characters) == 0 && return eltype(typeof(characters))[]
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.AntiSymmetricParts(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
+end
+
+@doc Markdown.doc"""
+    exterior_power(chi::GAPGroupClassFunction, n::Int)
+
+Return the class function of the `n`-th exterior power of the module that is
+afforded by `chi`.
+
+This exterior power is the symmetrization of `chi` with the sign character
+of the symmetric group of degree `n`,
+see also [`symmetrizations`](@ref) and [`anti_symmetric_parts`](@ref).
+"""
+function exterior_power(chi::GAPGroupClassFunction, n::Int)
+#T when GAP's `ExteriorPower` method becomes available then use it
+    tbl = chi.table
+    return group_class_function(tbl,
+      GAP.Globals.AntiSymmetricParts(tbl.GAPTable, GAP.Obj([chi.values]), n)[1])
+end
+
+@doc Markdown.doc"""
+    symmetric_power(chi::GAPGroupClassFunction, n::Int)
+
+Return the class function of the `n`-th symmetric power of the module that is
+afforded by `chi`.
+
+This symmetric power is the symmetrization of `chi` with the trivial character
+of the symmetric group of degree `n`,
+see also [`symmetrizations`](@ref) and [`symmetric_parts`](@ref).
+"""
+function symmetric_power(chi::GAPGroupClassFunction, n::Int)
+#T when GAP's `SymmetricPower` method becomes available then use it
+    tbl = chi.table
+    return group_class_function(tbl,
+      GAP.Globals.SymmetricParts(tbl.GAPTable, GAP.Obj([chi.values]), n)[1])
+end
+
+@doc Markdown.doc"""
+    orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int)
+
+Return the vector of the so-called Murnaghan components of the $m$-th
+tensor powers of the entries of `characters`, for $m$ up to `n`,
+where `n` must be at least 2 and at most 6
+and where we assume that the entries of `characters` are irreducible
+characters with Frobenius-Schur indicator +1, see [`indicator`](@ref).
+"""
+function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int)
+    (2 <= n && n <= 6) || error("the second ergument must be in 2:6")
+    length(characters) == 0 && return eltype(typeof(characters))[]
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.OrthogonalComponents(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
+end
+
+@doc Markdown.doc"""
+    symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
+
+Return the vector of the Murnaghan components of the $m$-th tensor powers
+of the entries of `characters`, for $m$ up to `n`,
+where `n` must be at least 2 and at most 6
+and where we assume that the entries of `characters` are irreducible
+characters with Frobenius-Schur indicator -1, see [`indicator`](@ref).
+"""
+function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
+    (2 <= n && n <= 6) || error("the second ergument must be in 2:6")
+    length(characters) == 0 && return eltype(typeof(characters))[]
+    tbl = characters[1].table
+    return [group_class_function(tbl, chi)
+            for chi in GAP.Globals.SymplecticComponents(tbl.GAPTable,
+                         GAP.GapObj([chi.values for chi in characters]), n)]
 end
 
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
