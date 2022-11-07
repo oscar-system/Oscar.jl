@@ -3,7 +3,6 @@ export EmptyScheme
 export ClosedEmbedding
 export AbsProjectiveScheme, ProjectiveScheme
 export ProjectiveSchemeMor
-export CoveringMorphism
 export VarietyFunctionField, VarietyFunctionFieldElem
 export IdealSheaf
 
@@ -157,8 +156,8 @@ mutable struct ProjectiveSchemeMor{
       f::PullbackType;
       check::Bool=true
     ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     if check
       #TODO: Check map on ideals (not available yet)
@@ -178,8 +177,8 @@ mutable struct ProjectiveSchemeMor{
              PullbackType<:Map,
              BaseMorType<:SchemeMor
             }
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
     OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
@@ -213,7 +212,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
     )
     check && (is_irreducible(X) || error("variety is not irreducible"))
     representative_patch in default_covering(X) || error("representative patch not found")
-    KK = FractionField(ambient_ring(representative_patch))
+    KK = FractionField(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
     return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
   end
@@ -327,7 +326,7 @@ Note that due to technical reasons, the admissible open subsets are restricted
 to the following:
  * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`;
- * `W::SpecOpen` with `ambient(W)` in the `basic_patches` of the `default_covering` of `X`.
+ * `W::SpecOpen` with `ambient_scheme(W)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``𝒪`` across charts, implicitly using the
 identifications given by the glueings in the `default_covering`.
@@ -430,18 +429,18 @@ identifications given by the glueings in the `default_covering`.
 #      return is_subset(U, preV)
 #    end
     function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
-      return Y === X && ambient(W) in default_covering(X)
+      return Y === X && ambient_scheme(W) in default_covering(X)
     end
     function is_open_func(W::SpecOpen, V::AbsSpec)
       V in default_covering(X) || return false
-      ambient(W) === V && return true
-      U = ambient(W)
+      ambient_scheme(W) === V && return true
+      U = ambient_scheme(W)
       U in default_covering(X) || return false
       G = default_covering(X)[U, V]
       return is_subset(W, glueing_domains(G)[1])
     end
     function is_open_func(W::SpecOpen, V::PrincipalOpenSubset)
-      PW = ambient(W)
+      PW = ambient_scheme(W)
       PV = ambient_scheme(V)
       PW in default_covering(X) || return false
       PV in default_covering(X) || return false
@@ -455,8 +454,8 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function is_open_func(W::SpecOpen, V::SpecOpen)
-      PW = ambient(W)
-      PV = ambient(V)
+      PW = ambient_scheme(W)
+      PV = ambient_scheme(V)
       PW in default_covering(X) || return false
       PV in default_covering(X) || return false
       if PW === PV
@@ -470,12 +469,12 @@ identifications given by the glueings in the `default_covering`.
     end
     function is_open_func(U::AbsSpec, W::SpecOpen)
       U in default_covering(X) || return false
-      if U === ambient(W)
+      if U === ambient_scheme(W)
         # in this case W must be equal to U
         return issubset(W, U)
         #return one(OO(U)) in complement_ideal(W)
       else
-        G = default_covering(X)[ambient(W), U]
+        G = default_covering(X)[ambient_scheme(W), U]
         issubset(U, glueing_domains(G)[2]) || return false
         preU = preimage(glueing_morphisms(G)[1], U)
         return issubset(preU, W)
@@ -483,12 +482,12 @@ identifications given by the glueings in the `default_covering`.
     end
     function is_open_func(U::PrincipalOpenSubset, W::SpecOpen)
       ambient_scheme(U) in default_covering(X) || return false
-      if ambient_scheme(U) === ambient(W)
+      if ambient_scheme(U) === ambient_scheme(W)
         # in this case W must be equal to U
         return issubset(W, U)
         #return one(OO(U)) in complement_ideal(W)
       else
-        G = default_covering(X)[ambient(W), ambient_scheme(U)]
+        G = default_covering(X)[ambient_scheme(W), ambient_scheme(U)]
         issubset(U, glueing_domains(G)[2]) || return false
         preU = preimage(glueing_morphisms(G)[1], U)
         return issubset(preU, W)
@@ -563,11 +562,11 @@ identifications given by the glueings in the `default_covering`.
     end
     function restriction_func(V::AbsSpec, OV::Ring, W::SpecOpen, OW::Ring)
       V in default_covering(X) || return false
-      ambient(W) in default_covering(X) || return false
-      if V === ambient(W)
+      ambient_scheme(W) in default_covering(X) || return false
+      if V === ambient_scheme(W)
         return MapFromFunc(x->(OW(x)), OV, OW)
       else
-        G = default_covering(X)[V, ambient(W)]
+        G = default_covering(X)[V, ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -577,14 +576,14 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function restriction_func(V::PrincipalOpenSubset, OV::Ring, W::SpecOpen, OW::Ring)
-      if ambient_scheme(V) === ambient(W)
+      if ambient_scheme(V) === ambient_scheme(W)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return OW(a)
         end
         return MapFromFunc(rho_func, OV, OW)
       else
-        G = default_covering(X)(ambient_scheme(V), ambient(W))
+        G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
         preV = preimage(g, VG)
@@ -598,11 +597,11 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function restriction_func(V::SpecOpen, OV::Ring, W::SpecOpen, OW::Ring)
-      if ambient(V) === ambient(W)
+      if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OV, OW)
       else
-        G = default_covering(X)[ambient(V), ambient(W)]
+        G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
         inc0 = inclusion_morphism(VG, V)

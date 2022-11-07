@@ -41,7 +41,7 @@ mutable struct Covering{BaseRingType}
     )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
-    kk = coefficient_ring(ambient_ring(patches[1]))
+    kk = coefficient_ring(ambient_coordinate_ring(patches[1]))
     for i in 2:n
       kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
     end

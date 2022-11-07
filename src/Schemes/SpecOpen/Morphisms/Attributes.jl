@@ -28,7 +28,7 @@ function pullback(f::SpecOpenMor)
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
     W = [SpecOpen(V[i], ideal(OO(V[i]), pullback(f[i]).(gens(U))), check=false) for i in 1:ngens(V)]
     pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=false)) for j in 1:ngens(U)] for i in 1:ngens(V)]
-    lift_maps = [restriction_map(W[i], V[i], one(ambient_ring(V[i])), check=false) for i in 1:ngens(V)]
+    lift_maps = [restriction_map(W[i], V[i], one(ambient_coordinate_ring(V[i])), check=false) for i in 1:ngens(V)]
     function mymap(a::SpecOpenRingElem)
       b = [lift_maps[i](
               SpecOpenRingElem(

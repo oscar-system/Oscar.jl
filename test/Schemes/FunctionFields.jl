@@ -7,7 +7,7 @@
   @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
-  S = ambient_ring(P)
+  S = ambient_coordinate_ring(P)
   C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
   Ccov = covered_scheme(C)
 
@@ -68,7 +68,7 @@ end
 
   U = representative_patch(KK)
   V = C[5]
-  R = ambient_ring(V)
+  R = ambient_coordinate_ring(V)
   x = gens(R)
   f = x[1]^2 - 2*x[2]^5*x[3]^3
   g = 4*x[3]^2 - 5*x[2]
@@ -110,7 +110,7 @@ end
   @test K(h) == (f+2*g-5)//g
 
   P2 = projective_space(QQ,2)
-  S = ambient_ring(P2)
+  S = ambient_coordinate_ring(P2)
   s0 = gens(S)[1]
   X = subscheme(P2, ideal(S, s0))
   Xc = covered_scheme(X)

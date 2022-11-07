@@ -8,7 +8,7 @@ export scheme, restrictions, affine_patches
 ########################################################################
 # Type getters                                                         #
 ########################################################################
-SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient(U), U)
+SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient_scheme(U), U)
 
 spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
 spec_open_ring_type(X::AbsSpec) = spec_open_ring_type(typeof(X))
@@ -26,7 +26,7 @@ The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
-gens(R::SpecOpenRing) = R.(gens(ambient_ring(scheme(R))))
+gens(R::SpecOpenRing) = R.(gens(ambient_coordinate_ring(scheme(R))))
 
 @Markdown.doc """
     domain(R::SpecOpenRing)

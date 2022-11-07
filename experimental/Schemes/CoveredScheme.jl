@@ -12,13 +12,13 @@ export refinements
 
 #function add_affine_refinement!(
 #    C::Covering, U::SpecOpen; 
-#    a::Vector{RingElemType}=as_vector(coordinates(one(OO(ambient(U))), 
-#                                                  ideal(OO(ambient(U)), 
-#                                                        OO(ambient(U)).(gens(U)))), 
+#    a::Vector{RingElemType}=as_vector(coordinates(one(OO(ambient_scheme(U))),
+#                                                  ideal(OO(ambient_scheme(U)),
+#                                                        OO(ambient_scheme(U)).(gens(U)))),
 #                                      length(gens(U))),
 #    check::Bool=true
 #  ) where {RingElemType<:RingElem}
-#  X = ambient(U)
+#  X = ambient_scheme(U)
 #  @show typeof(OO(X))
 #  X in patches(C) || error("ambient scheme not found in the basic patches of the covering")
 #  if check
@@ -46,11 +46,11 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
 #      iso = identity_map(X)
 #      return iso, iso, iso, iso
 #    end
-#    f = one(ambient_ring(X)) # For the case where U is already a basic patch
+#    f = one(ambient_coordinate_ring(X)) # For the case where U is already a basic patch
 #    if j != 0 # In this case, U appears in some refinement
 #      f = gens(affine_refinements(C)[X][j][1])[k]
 #    end
-#    g = one(ambient_ring(X))
+#    g = one(ambient_coordinate_ring(X))
 #    if m != 0
 #      g = gens(affine_refinements(C)[X][m][1])[n]
 #    end
@@ -105,7 +105,7 @@ affine_refinements(C::Covering) = C.affine_refinements
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
   CX = affine_cone(X)
   kk = base_ring(X)
-  S = ambient_ring(X)
+  S = ambient_coordinate_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
@@ -148,9 +148,9 @@ end
 @attr function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}
   CX = affine_cone(X)
   Y = base_scheme(X)
-  R = ambient_ring(Y)
+  R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
-  S = ambient_ring(X)
+  S = ambient_coordinate_ring(X)
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()

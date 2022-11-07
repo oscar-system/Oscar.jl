@@ -2,7 +2,7 @@
   R, (x,y) = PolynomialRing(QQ, ["x", "y"])
   X = subscheme(Spec(R), [x^2+y^2])
   P = projective_space(X, 3)
-  S = ambient_ring(P)
+  S = ambient_coordinate_ring(P)
   (u, v) = gens(S)[1], gens(S)[2]
   h = u^3 
   h = u^3 + u^2
@@ -17,7 +17,7 @@ end
 @testset "Covered schemes 2" begin
   P = projective_space(QQ, ["x", "y", "z", "w"])
   Pc = covered_scheme(P)
-  S = ambient_ring(P)
+  S = ambient_coordinate_ring(P)
   (x,y,z,w) = gens(S)
   X = subscheme(P, [x*w - y*z])
   @test dim(Pc)==3
@@ -26,7 +26,7 @@ end
   @test dim(covered_scheme(Y)) == 2
   C = standard_covering(X)
   D, i, j = simplify(C) 
-  @test all( x->(ngens(ambient_ring(x)) == 2), collect(D))
+  @test all( x->(ngens(ambient_coordinate_ring(x)) == 2), collect(D))
   @test_broken transition_graph(Pc[1])
   @test_broken transition_graph(C)
 end
@@ -41,7 +41,7 @@ end
 
 @testset "covered schemes 3" begin
   IP2 = projective_space(QQ, 2, var_name="u")
-  S = ambient_ring(IP2)
+  S = ambient_coordinate_ring(IP2)
   u0, u1, u2 = gens(S)
   C = subscheme(IP2, u0^2 - u1*u2)
 
@@ -69,7 +69,7 @@ end
   end
 
   U = C1[2]
-  x = gens(ambient_ring(U))[1]
+  x = gens(ambient_coordinate_ring(U))[1]
   W = SpecOpen(U, [x, x-1])
   W1, W2 = affine_patches(W)
   #add_affine_refinement!(C1, W)

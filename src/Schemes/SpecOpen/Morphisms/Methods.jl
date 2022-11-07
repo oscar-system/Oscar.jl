@@ -18,10 +18,10 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
     issubset(Cf, V) || error("maps are not compatible")
   end
   W = codomain(g)
-  X = ambient(U)
-  Y = ambient(V)
-  Z = ambient(W)
-  pb_coords = [pullback(f)(pullback(g)(OO(W)(x))) for x in gens(ambient_ring(Z))]
+  X = ambient_scheme(U)
+  Y = ambient_scheme(V)
+  Z = ambient_scheme(W)
+  pb_coords = [pullback(f)(pullback(g)(OO(W)(x))) for x in gens(ambient_coordinate_ring(Z))]
   maps_on_patches = [SpecMor(A, Z, [restrict(h, A) for h in pb_coords]) for A in affine_patches(U)]
   return SpecOpenMor(U, W, maps_on_patches)
 end
@@ -31,10 +31,10 @@ end
 ########################################################################
 function pullback(f::SpecOpenMor, a::RingElem)
   U = domain(f)
-  X = ambient(U)
+  X = ambient_scheme(U)
   V = codomain(f)
-  Y = ambient(V)
-  R = ambient_ring(Y)
+  Y = ambient_scheme(V)
+  R = ambient_coordinate_ring(Y)
   parent(a) == R || error("element does not belong to the correct ring")
   pb_a = [pullback(f[i])(a) for i in 1:npatches(U)]
   return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
@@ -46,7 +46,7 @@ end
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
   (domain(f) == domain(g)) || return false
   (codomain(f) == codomain(g)) || return false
-  Y = ambient(codomain(f))
+  Y = ambient_scheme(codomain(f))
   m = length(affine_patches(domain(f)))
   n = length(affine_patches(domain(g)))
   for i in 1:m
@@ -63,9 +63,9 @@ end
 ########################################################################
 function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   U = domain(f) 
-  X = ambient(U)
+  X = ambient_scheme(U)
   if check
-    is_closed_embedding(Z, ambient(codomain(f))) || error("second argument must be closed in the codomain")
+    is_closed_embedding(Z, ambient_scheme(codomain(f))) || error("second argument must be closed in the codomain")
   end
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
@@ -77,13 +77,13 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
 end
 function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
   V = codomain(f) 
-  Y = ambient(V)
+  Y = ambient_scheme(V)
   Y === ambient_scheme(W) || error("second argument must be open in the ambient scheme of the domain of the morphism")
   h = complement_equation(W)
   pbh = pullback(f)(OO(codomain(f))(h))
-  R = ambient_ring(ambient(domain(f)))
+  R = ambient_coordinate_ring(ambient_scheme(domain(f)))
   U = domain(f)
-  X = ambient(U)
+  X = ambient_scheme(U)
   I = ideal(R, one(R))
   for i in 1:npatches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), pbh[i])))
@@ -94,8 +94,8 @@ end
 
 function preimage(f::SpecOpenMor, V::SpecOpen)
   U = domain(f)
-  X = ambient(U)
-  R = ambient_ring(X)
+  X = ambient_scheme(U)
+  R = ambient_coordinate_ring(X)
   I = ideal(R, one(R))
   for i in 1:npatches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
@@ -112,8 +112,8 @@ end
 
 function find_non_zero_divisor(U::SpecOpen)
   n = length(gens(U))
-  X = ambient(U)
-  R = ambient_ring(X)
+  X = ambient_scheme(U)
+  R = ambient_coordinate_ring(X)
   n == 0 && return zero(R)
   kk = base_ring(X)
   coeff = elem_type(kk)[rand(kk, 0:100) for i in 1:n]
@@ -139,12 +139,12 @@ is chosen at random.
 """
 function generic_fractions(f::SpecOpenMor)
   U = domain(f)
-  X = ambient(U)
+  X = ambient_scheme(U)
   V = codomain(f)
-  Y = ambient(V)
+  Y = ambient_scheme(V)
   d = find_non_zero_divisor(U)
   W = hypersurface_complement(X, d)
-  result = fraction.([restrict(pullback(f)(OO(V)(y)), W) for y in gens(ambient_ring(Y))])
+  result = fraction.([restrict(pullback(f)(OO(V)(y)), W) for y in gens(ambient_coordinate_ring(Y))])
   return result
 end
 

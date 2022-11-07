@@ -40,23 +40,24 @@ where ``g_1,\dots,g_r`` is the set of `gens(I)`. When ``f`` does
 not belong to ``I``, it must error. Note that the ring returned by
 `quo` must again be admissible for the `AbsSpec` interface.
 
-With a view towards the use of the `ambient_ring(X)` for computations,
+With a view towards the use of the `ambient_coordinate_ring(X)` for computations,
 it is customary to also implement
 ```
     saturated_ideal(I::IdealType)::MPolyIdeal
 ```
-returning an ideal ``J`` in the `ambient_ring(X)` with the property
+returning an ideal ``J`` in the `ambient_coordinate_ring(X)` with the property
 that ``a \in I`` for some element ``a \in R`` if and only if
 `lifted_numerator(a)` is in ``J``.
 
 
-## Interplay between ambient ring and coordinate ring
+## Interplay between ambient coordinate ring and coordinate ring
 
-In practice, all computations in `OO(X)` will be deferred to computations in
-`ambient_ring(X)` in one way or the other; that is another
-reason to include this getter in our abstract interface for
-affine schemes. In order to make the `ambient_ring(X)` accessible
-for this purpose, we need the following methods to be implemented
+Let ``X`` be an affine variety.
+In practice, all computations in the coordinate ring `R = OO(X)` will be deferred to
+computations in `P = ambient_coordinate_ring(X)` in one way or the other;
+this is another reason to include the ambient affine space in our abstract
+interface for affine schemes. In order to make the `ambient_coordinate_ring(X)`
+accessible for this purpose, we need the following methods to be implemented
 for elements ``a\in R`` of type `RingElemType`:
 ```
    lifted_numerator(a::RingElemType)
@@ -66,8 +67,8 @@ These must return representatives of the numerator and the denominator
 of ``a``. Note that the denominator is equal to `one(P)` in case
 ``R \cong P`` or ``R \cong P/I``.
 
-Given the above characterization of the `ambient_ring(X)`,
-we shall refer to the ``x_i`` above as the *coordinates* of ``X``.
+Recall that the coordinates ``x_i`` of ``X`` are induced by the coordinates of
+the ambient affine space.
 Moreover, we will assume that for homomorphisms from ``R``
 there is a method
 ```
@@ -76,6 +77,14 @@ there is a method
 where `RingType` is the type of ``R`` and `a` the images
 of the coordinates ``x_i`` in ``S``. This will be important
 when we come to morphisms of affine schemes below.
+
+Algebraically speaking, embedding the affine scheme ``X = Spec(R)`` over ``𝕜``
+into an affine space with coordinate ring ``P = 𝕜[x₁,…,xₙ]`` corresponds to
+a morphism of rings ``P → R`` with the property that for every other (commutative)
+ring ``S`` and any homomorphism ``φ : R → S`` there is a morphism
+``ψ : P → S`` factoring through ``φ`` and such that ``φ``
+is uniquely determined by ``ψ``.
+Note that the morphism ``P → R`` is induced by natural coercions.
 
 
 ## Existing types of affine schemes and how to derive new types

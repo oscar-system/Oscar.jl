@@ -5,6 +5,14 @@ export underlying_scheme, ambient_scheme, complement_equation, is_dense, inclusi
 ########################################################################
 
 underlying_scheme(U::PrincipalOpenSubset) = U.U
+
+@doc Markdown.doc"""
+    ambient_scheme(U::PrincipalOpenSubset) -> Spec
+
+For ``U = D(f) ⊆ X`` a principal open subset of ``X`` this returns ``X``. 
+
+This is not to be confused with the ambient affine space ``X ⊆ 𝔸 ⁿ``.
+"""
 ambient_scheme(U::PrincipalOpenSubset) = U.X
 complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U)))
 
