@@ -54,7 +54,7 @@ algorithms: lifting the roots of the defining polynomial in the
 given field modulo suitable prime ideal powers and
 recovering the true roots from this information.
 
-The main information is included in the number field chaper, see for example
+The main information is included in the number field chapter, see for example
 
   - [`automorphism_list(::Hecke.NumFieldMor)`](@ref)
   - [`automorphism_group(::NumField)`](@ref)
@@ -62,7 +62,7 @@ The main information is included in the number field chaper, see for example
 
 ## Subfields
 
-The main information is included in the number field chaper, see
+The main information is included in the number field chapter, see
 
   - [`subfields(K::SimpleNumField; degree::Int = -1)`](@ref)
   - [`Hecke.principal_subfields(K::SimpleNumField)`](@ref)
@@ -171,7 +171,7 @@ x1^2
 
 ```
 Next, we need a bound for the evaluation as a complex number, and compute the precision
-neccessary:
+necessary:
 
 ```jldoctest galois1
 julia> B = Oscar.GaloisGrp.upper_bound(C, s[1]^2)
@@ -181,7 +181,7 @@ julia> pr = Oscar.GaloisGrp.bound_to_precision(C, B)
 7
 
 ```
-Finally, we evalute the polynomial at the roots and verify that the exact value is `3`:
+Finally, we evaluate the polynomial at the roots and verify that the exact value is `3`:
 ```jldoctest galois1
 julia> evaluate(s[1]^2, roots(C, 7))
 3*11^0 + O(11^7)

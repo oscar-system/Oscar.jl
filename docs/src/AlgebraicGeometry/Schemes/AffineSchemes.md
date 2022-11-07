@@ -128,7 +128,7 @@ if and only if the identity morphism of $\mathrm{Spec}(R)$ induces an isomorphis
 For ``X`` and ``Y`` with different `ambient_ring`s 
 `X==Y` is always `false`.
 
-### Auxilliary methods
+### Auxiliary methods
 
 ```@docs
 is_non_zero_divisor(f::RingElem, X::AbsSpec)

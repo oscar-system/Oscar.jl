@@ -39,7 +39,7 @@ our context due to two independent problems:
 
 At least two reasons:
   - the type depends on data that is not a bit-type
-  - even if it could, it is not desireable. Typical example: computations in
+  - even if it could, it is not desirable. Typical example: computations in
     ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
     define a type `T` depending on ``n``. We actually did this, and tried to use
     this. It did not work well, for various reasons. E.g.:

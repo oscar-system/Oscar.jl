@@ -68,7 +68,7 @@ Oscar.parent_type(::Type{TropicalSemiringElem{T}}) where {T} = TropicalSemiring{
 The tropical semiring with min (default) or max.
 
 !!! warning
-    There is no substraction in the tropical semiring. Any substraction of two tropical numbers will yield an error.
+    There is no subtraction in the tropical semiring. Any subtraction of two tropical numbers will yield an error.
 
 # Examples (basic arithmetic)
 ```jldoctest
@@ -372,7 +372,7 @@ end
 ################################################################################
 
 function Base.:(-)(x::TropicalSemiringElem, y::TropicalSemiringElem...)
-  error("Tropical subtraction not defined (use tropical division for classical substraction)")
+  error("Tropical subtraction not defined (use tropical division for classical subtraction)")
 end
 
 ################################################################################

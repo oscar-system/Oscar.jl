@@ -4,7 +4,7 @@
 ###
 
 @doc Markdown.doc"""
-    valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
+    valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
 
 Return the valued weighted degree of a polynomial `f` with respect to valuation
 `val` and weight vector `w`. In other words, returns the tropicalized
@@ -36,7 +36,7 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 
 ```
 """
-function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], return_vector::Bool=false)
+function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
   # compute the weighted degrees shifted by the coefficient valuations
   vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(coefficients(f),exponent_vectors(f))]
 
@@ -44,16 +44,16 @@ function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vecto
   # (note: max tropical semiring is reversely ordered, so min in the semiring is max in the conventional sense)
   vwd = min(vwds...)
 
-  if isempty(pertubation)
-    # if no pertubation is specified, compute the maximum and return vector if required
+  if isempty(perturbation)
+    # if no perturbation is specified, compute the maximum and return vector if required
     if return_vector
       return vwd,vwds
     end
     return vwd
   else
-    # if pertubation is specified, then compute the pertubed degrees
-    vwdsPerp = [TropicalSemiring(val)(dot(pertubation,alpha)) for alpha in exponent_vectors(f)]
-    # compute the mininum amongst all pertubations with maximal original degree
+    # if perturbation is specified, then compute the pertubed degrees
+    vwdsPerp = [TropicalSemiring(val)(dot(perturbation,alpha)) for alpha in exponent_vectors(f)]
+    # compute the minimum amongst all perturbations with maximal original degree
     vwdPerp = min([vwdsPerp[i] for i in 1:length(vwds) if vwds[i]==vwd]...)
 
     if return_vector
@@ -77,7 +77,7 @@ export valued_weighted_degree
 
 
 @doc Markdown.doc"""
-    initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; pertubation::Vector=[])
+    initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
 
 Return the initial form of `f` with respect to valuation `val` and weight `w`.
 If convention==min (default), it is computed in the min convention. If
@@ -133,15 +133,15 @@ julia> initial(f,val_t,w)       # polynomial over QQ
 1
 ```
 """
-function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[])
+function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
   # compute the maximal weighted degrees
   # todo (optional):
   # currently, we iterate over the entire polynomial to compute the (terms with) maximal valuated weighted degrees
   # often this is not necessary as the polynomial is already sorted w.r.t. it
-  if isempty(pertubation)
+  if isempty(perturbation)
     vwd,vwds = valued_weighted_degree(f, val, w, return_vector=true)
   else
-    vwd,vwdPerp,vwds,vwdsPerp = valued_weighted_degree(f, val, w, pertubation=pertubation, return_vector=true)
+    vwd,vwdPerp,vwds,vwdsPerp = valued_weighted_degree(f, val, w, perturbation=perturbation, return_vector=true)
   end
 
   # initial(f) is the sum over all pi(c_alpha*t^-val(c_alpha))x^alpha
@@ -157,7 +157,7 @@ function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation:
   pi = val.residue_map
 
   initialf = MPolyBuildCtx(kx)
-  if isempty(pertubation)
+  if isempty(perturbation)
     for (vwdi,cf,expv) in zip(vwds,coefficients(f),exponent_vectors(f))
       if vwdi == vwd
         vcf = Int(val(cf),preserve_ordering=true)
@@ -181,8 +181,8 @@ function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; pertubation:
 
   return finish(initialf)
 end
-function initial(G::Vector, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[])
-  return [initial(g,val,w,pertubation=pertubation) for g in G]
+function initial(G::Vector, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
+  return [initial(g,val,w,perturbation=perturbation) for g in G]
 end
 export initial
 

@@ -642,7 +642,7 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::T
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
   end
-  #TODO: truncate precision where neccessary, working with an insane
+  #TODO: truncate precision where necessary, working with an insane
   #      series precision is costly
   while precision(C)[2] < pr[2]
     Hecke.MPolyFact.lift(C)
@@ -743,7 +743,7 @@ probable_orbit(G::Oscar.PermGroup, f::MPolyElem) = orbit(G, f)
 
 """
 `slprogram`s can be compiled into "normal" Julia functions, but there is
-some overhead in the compilation itself. By default, aparently nothing is
+some overhead in the compilation itself. By default, apparently nothing is
 compiled, so we allow to force this there.
 
 `isPoly` allows the use of inplace operations, as `SLPoly`s result
@@ -830,7 +830,7 @@ function to_elementary_symmetric(f)
 end
 
 function ^(f::SLPoly, p::Oscar.PermGroupElem)
-  #TODO: replace by makeing the permutation of the input an internal
+  #TODO: replace by making the permutation of the input an internal
   #      operation.
 
   g = gens(parent(f))
@@ -1079,7 +1079,7 @@ end
 @doc Markdown.doc"""
     resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup)
 
-Find a `G`-relative `H`-invariant `I` and form the correspondig resolvent polynomial
+Find a `G`-relative `H`-invariant `I` and form the corresponding resolvent polynomial
 ``\prod (x-I^t)``
 where the product runs over all coset-representatives of `G/U`.
 """
@@ -1348,7 +1348,7 @@ function index2sum(G::PermGroup, H::PermGroup, V::PermGroup)
 end
 
 """
-Maos elements of the base ring into the complation (the splitting field).
+Maps elements of the base ring into the completion (the splitting field).
 FOr computations over QQ this does not matter as QQ just coerces into
 any q/p-adic field.
 
@@ -1489,7 +1489,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       _F, mF = ResidueField(parent(R[1]))
       mfF = find_morphism(f, _F)
       #we should have
-      # - d == r (in the approriate setting)
+      # - d == r (in the appropriate setting)
       # - order(Set(map(mF, d))) == order(Set(map(mf, r))) == degree(s)
       # - Set(map(mfF, map(mf, r))) == Set(map(mF, d))
       # - d is partitioned
@@ -1562,7 +1562,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #This is used in both directions
     # - in an intersection to limit the starting group (upper bound)
     #   (true case)
-    # - in the filter to avoid unneccessary tests
+    # - in the filter to avoid unnecessary tests
     #   (false case)
     # disc(k) is up to an unknown Tschirnhaus transformation exactly the
     # D(y_1, .. y_k) invar in Geisser/Eichenlaub (case 2)
@@ -1579,7 +1579,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     can_use_wr = length(b) > 2
     #for length(b) == 2, the bottom field is quadratic and thus always S2
     #the wreath product would not be transitive here
-    #TODO: the new stuff above shoudl guarantee that the induced action
+    #TODO: the new stuff above should guarantee that the induced action
     #  on a block system can never be too large:
     #    (sym(l) wr gal(k) is constructed above
     #    does this part still make sense????
@@ -1802,9 +1802,9 @@ function an_sn_by_shape(ct::Set{CycleType}, n::Int)
     n != 6 && return true
     #from Elsenhans (ask Max???) need the 5-cycle and 
     #    [1,1,1,3] or [1,2,3] ie. not [3,3]
-    # Elsenhans also tries to seperate Sn/An but there I am not certain
+    # Elsenhans also tries to separate Sn/An but there I am not certain
     # I think if there is a type proving odd, then we have Sn, hower
-    # not finding one does not prove anyhting
+    # not finding one does not prove anything
     if any(x->(3=>2) in x, ct)
       return true
     end
@@ -1839,7 +1839,7 @@ Computes the Galois group of the splitting field of the defining polynomial of `
 Currently the polynomial needs to be monic.
 
 The group is returned as an explicit permutation group permuting the roots as contained
-in the contex object (the 2nd return value). The roots live in a suitable unramifed
+in the context object (the 2nd return value). The roots live in a suitable unramifed
 extension of the p-adics.
 
 # Example
@@ -2527,7 +2527,7 @@ function galois_group(f::PolyElem{<:FieldElem}; prime=0, pStart::Int = 2*degree(
   G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
 
   CC = GaloisCtx(g, p)
-  rr = roots(CC, 5, raw = true) #raw is neccessary for non-monic case
+  rr = roots(CC, 5, raw = true) #raw is necessary for non-monic case
                                 #the scaling factor is the lead coeff
                                 #thus not the same for all factors...
   @assert length(Set(rr)) == length(rr)

@@ -70,7 +70,7 @@
         @test_throws ErrorException matroid_from_nonbases([[1,2]], [1,2,1])
     end
 
-    @testset "constructors (circuts, hyperplanes)" begin
+    @testset "constructors (circuits, hyperplanes)" begin
         mc1 = matroid_from_circuits([[3,4],[1,2,3],[1,2,4]],4)
         @test length(bases(mc1)) == 5
 

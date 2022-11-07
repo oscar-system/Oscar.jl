@@ -201,7 +201,7 @@ function evaluate!(res::Vector{S}, p::AbstractAtlasSL, xs::Vector{S}) where S
 
     if p isa AtlasSLProgram
         n = lastindex(res)
-        # first copy the ouputs at the end of res before moving them
+        # first copy the outputs at the end of res before moving them
         # at the beginning of the array, to avoid overwriting values
         # which are still needed
         # TODO: this algo can be slightly optimized

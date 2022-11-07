@@ -31,7 +31,7 @@ the internal data structures used by the polynomial ring. As such, this
 modification of `v` has to be considered illegal. Upon creation of the array
 called `v`, we have full rights over the object and can mutate at will.
 However, after passing it to the function `PolynomialRing`, we have given up
-*owernership* of the array and are no longer free to modify it.
+*ownership* of the array and are no longer free to modify it.
 
 General Oscar Principle (GOP):
 
@@ -161,7 +161,7 @@ julia> a
  3
 ```
 
-The preceeding behaviour of the function `modular_proj` is an artifact of
+The preceding behaviour of the function `modular_proj` is an artifact of
 internal efficiency and may be desirable in certain circumstances. In other
 circumstances, the following `deepcopy`s may be necessary for your code to
 function correctly.

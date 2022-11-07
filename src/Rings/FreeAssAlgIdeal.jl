@@ -7,7 +7,7 @@
 # Currently ideal membership relies entirely on Singular, where a degree bound
 # is imposed and a inconclusive answer may be returned. We can later add the
 # Groebner machinery operating purely on the Oscar types, and hence not
-# necessarly be confined to a degree bound.
+# necessarily be confined to a degree bound.
 
 @Markdown.doc """
     mutable struct FreeAssAlgIdeal{T} <: FreeAssAlgIdeal{T}

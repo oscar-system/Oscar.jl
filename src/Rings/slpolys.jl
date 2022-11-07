@@ -326,7 +326,7 @@ end
 
 ## comparison
 
-# TODO: two SLPolys migth be considered equal if they "canonical" form
+# TODO: two SLPolys might be considered equal if they "canonical" form
 # would be equal (e.g. their conversions to MPoly)
 function Base.:(==)(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)

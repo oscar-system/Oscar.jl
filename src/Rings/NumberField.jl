@@ -1019,7 +1019,7 @@ function Hecke._compose(f::MapDataFromNfNSGen, g#= map Hecke.data =#, K, L, M)
                              Hecke._compose(f.base_field_map_data, g, base_field(K), L, M))
 end
 
-# Image of genertors
+# Image of generators
 
 function image_generators(f::Hecke.NumFieldMor{<:NfNSGen})
   return f.image_data.images

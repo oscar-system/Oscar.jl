@@ -267,13 +267,13 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  Ni = neighbors(G, i)
 #  while length(Ni) > 0
 #    push!(p, Ni[1])
-#    Ni = neigbors(G, Ni[1])
+#    Ni = neighbors(G, Ni[1])
 #  end
 #  q = [j] 
 #  Nj = neighbors(G, j)
 #  while length(Nj) > 0
 #    push!(p, Nj[1])
-#    Nj = neigbors(G, Nj[1])
+#    Nj = neighbors(G, Nj[1])
 #  end
 #  last(p) == last(q) || error("no common root found")
 #  return last(p), p, q

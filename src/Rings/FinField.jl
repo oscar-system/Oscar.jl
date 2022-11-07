@@ -16,7 +16,7 @@ end
 # store the dlog data on the field to re-use (DONE)
 # do more intelligent (sub-exponential) algorithms
 # (maybe not all, but at least some?)
-# see Hecke/src/Misc/UnitsModM: fro BS-GS, cache the BS Array
+# see Hecke/src/Misc/UnitsModM: for BS-GS, cache the BS Array
 # sort the types...
 # move to Hecke/Nemo/AA?
 ###############################################################

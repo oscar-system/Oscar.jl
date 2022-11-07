@@ -17,7 +17,7 @@ abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 A covered scheme ``X`` given by means of at least one covering
 of type `CoveringType`.
 
-A scheme may posess several coverings which are partially ordered
+A scheme may possess several coverings which are partially ordered
 by refinement. Such refinements are special instances of `CoveringMorphism`
 
     ρ : C1 → C2

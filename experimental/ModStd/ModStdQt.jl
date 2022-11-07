@@ -40,12 +40,12 @@ end
 =#
 
 """
-same as crt_env in Hecke, but a differnt point of view:
+same as crt_env in Hecke, but a different point of view:
 crt_env deals with the chinese remainder theorem in euclidean rings,
 while this is for interpolation of polynomials, hence
 has a different interface:
  - creation via the evaluation points rather than the linear polynomials
- - use via the values, not (contant) polynomials
+ - use via the values, not (constant) polynomials
 """
 mutable struct InterpolateCtx{T}
   C::Hecke.crt_env{T}
@@ -526,7 +526,7 @@ The return value is an array
   - two polynomials over a finite extension of Q(A) given as a residue field,
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
       extension, the lst entry is the multiplicity.
-      In this case, there are degree(h(t)) many abs. irreducible facors, but they
+      In this case, there are degree(h(t)) many abs. irreducible factors, but they
       are all conjugate to th e1st tuple entry. The 2nd entry is the product of all the
       other conjugates,
 
@@ -602,10 +602,10 @@ end
 #=TODO
  - if after a specialisation the degree of the field is wrong (too high) 
    or the multiplicity is wrong (not squarefree)
-   disgard the evaluation
- - for every disgarded evaluation: choose a different z as to not
+   discard the evaluation
+ - for every discarded evaluation: choose a different z as to not
    loose the geometric progression of the p-powers
- - if after a specialisation the field degree is wrong (too low), disgard everything 
+ - if after a specialisation the field degree is wrong (too low), discard everything 
    so far...change shift?
  - deal with coefficients that are non-primitive
  - write up and publish...

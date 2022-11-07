@@ -17,7 +17,7 @@ We consider projective curves in projective spaces of arbitrary dimension.
 
 ## Constructors
 
-We define a projective curve by an ideal of homogenous polynomials.
+We define a projective curve by an ideal of homogeneous polynomials.
 
 ```@docs
 ProjCurve

@@ -14,7 +14,7 @@ Pages = ["para_rational_curves.md"]
 
 !!! note
     In this section, $C$ will denote a complex projective plane curve, defined by an absolutely irreducible,
-    homogeneous polynomial in three variables, with coeffients in $\mathbb Q$. Moreover, we will write $n = \deg C$.
+    homogeneous polynomial in three variables, with coefficients in $\mathbb Q$. Moreover, we will write $n = \deg C$.
 
 Recall that the curve $C$ is *rational* if it is birationally equivalent to the projective line $\mathbb P^1(\mathbb C)$.
 In other words, there exists a *rational parametrization* of $C$, that is, a birational map $\mathbb P^1(\mathbb C)\dashrightarrow C$.

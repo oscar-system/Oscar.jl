@@ -385,4 +385,4 @@ The induced ordering on the given polynomial ring is recovered as follows:
 induced_ring_ordering(ord::ModuleOrdering)
 ```
 
-The comparism function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
+The comparison function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
