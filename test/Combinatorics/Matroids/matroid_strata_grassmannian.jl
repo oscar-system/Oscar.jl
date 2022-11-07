@@ -7,13 +7,13 @@
     mb5 = matroid_from_hyperplanes([[1,2,7,10],[3,4,7,10],[5,6,7,10],[8,7,9,10]], 10)
 
     
-    bmc1 = bases_matrix_coordinates(bases(mb1), [1,2]);
-    bmc2 = bases_matrix_coordinates(bases(mb2), [1,2,4]);
-    bmc3a = bases_matrix_coordinates(bases(mb3), [1,2,3]);
-    bmc3b = bases_matrix_coordinates(bases(mb3), [1,2,4]);
-    bmc4a = bases_matrix_coordinates(bases(mb4), [1,2,3,4,6]);
-    bmc4b = bases_matrix_coordinates(bases(mb4), [1,2,3,6,7]);
-    bmc5 = bases_matrix_coordinates(bases(mb5), [5,8]);
+    bmc1 = Oscar.bases_matrix_coordinates(bases(mb1), [1,2]);
+    bmc2 = Oscar.bases_matrix_coordinates(bases(mb2), [1,2,4]);
+    bmc3a = Oscar.bases_matrix_coordinates(bases(mb3), [1,2,3]);
+    bmc3b = Oscar.bases_matrix_coordinates(bases(mb3), [1,2,4]);
+    bmc4a = Oscar.bases_matrix_coordinates(bases(mb4), [1,2,3,4,6]);
+    bmc4b = Oscar.bases_matrix_coordinates(bases(mb4), [1,2,3,6,7]);
+    bmc5 = Oscar.bases_matrix_coordinates(bases(mb5), [5,8]);
     
     @testset "bases_matrix_coordinates" begin
 	
@@ -34,14 +34,13 @@
     QT2 = FractionField(T2)
     K, a = NumberField(t1^2 + 1, "a")
     
-    R1, x1, xd1 = make_polynomial_ring(bases(mb1), [1,2], ZZ)
-    R2, x2, xd2 = make_polynomial_ring(bases(mb2), [1,2,4], GF(2))
-    R3a, x3a, xd3a = make_polynomial_ring(bases(mb3), [1,2,3], QQ)
-    R3b, x3b, xd3b = make_polynomial_ring(bases(mb3), [1,2,4], QT1)
-    R4a, x4a, xd4a = make_polynomial_ring(bases(mb4), [1,2,3,4,6], QT2)
-    R4b, x4b, xd4b = make_polynomial_ring(bases(mb4), [1,2,3,6,7], K)
-
-    R5, x5, xd5 = make_polynomial_ring(bases(mb5), [5,8], ZZ)
+    R1, x1, xd1 = Oscar.make_polynomial_ring(bases(mb1), [1,2], ZZ)
+    R2, x2, xd2 = Oscar.make_polynomial_ring(bases(mb2), [1,2,4], GF(2))
+    R3a, x3a, xd3a = Oscar.make_polynomial_ring(bases(mb3), [1,2,3], QQ)
+    R3b, x3b, xd3b = Oscar.make_polynomial_ring(bases(mb3), [1,2,4], QT1)
+    R4a, x4a, xd4a = Oscar.make_polynomial_ring(bases(mb4), [1,2,3,4,6], QT2)
+    R4b, x4b, xd4b = Oscar.make_polynomial_ring(bases(mb4), [1,2,3,6,7], K)
+    R5, x5, xd5 = Oscar.make_polynomial_ring(bases(mb5), [5,8], ZZ)
     
 
     @testset "make_polynomial_ring" begin
@@ -57,13 +56,13 @@
         
     end
 
-    S1 = MatrixSpace(R1, 2, 3); M1 = make_coordinate_matrix_no_identity(2, 5, bmc1, R1, x1, xd1)
-    S2 = MatrixSpace(R2, 3, 4); M2 = make_coordinate_matrix_no_identity(3, 7, bmc2, R2, x2, xd2)
-    S3a = MatrixSpace(R3a, 3, 5); M3a = make_coordinate_matrix_no_identity(3, 8, bmc3a, R3a, x3a, xd3a)
-    S3b = MatrixSpace(R3b, 3, 5); M3b = make_coordinate_matrix_no_identity(3, 8, bmc3b, R3b, x3b, xd3b)
-    S4a = MatrixSpace(R4a, 5, 2); M4a = make_coordinate_matrix_no_identity(5, 7, bmc4a, R4a, x4a, xd4a)
-    S4b = MatrixSpace(R4b, 5, 2); M4b = make_coordinate_matrix_no_identity(5, 7, bmc4b, R4b, x4b, xd4b)
-    S5 = MatrixSpace(R5, 2, 8); M5 = make_coordinate_matrix_no_identity(2, 10, bmc5, R5, x5, xd5)
+    S1 = MatrixSpace(R1, 2, 3); M1 = Oscar.make_coordinate_matrix_no_identity(2, 5, bmc1, R1, x1, xd1)
+    S2 = MatrixSpace(R2, 3, 4); M2 = Oscar.make_coordinate_matrix_no_identity(3, 7, bmc2, R2, x2, xd2)
+    S3a = MatrixSpace(R3a, 3, 5); M3a = Oscar.make_coordinate_matrix_no_identity(3, 8, bmc3a, R3a, x3a, xd3a)
+    S3b = MatrixSpace(R3b, 3, 5); M3b = Oscar.make_coordinate_matrix_no_identity(3, 8, bmc3b, R3b, x3b, xd3b)
+    S4a = MatrixSpace(R4a, 5, 2); M4a = Oscar.make_coordinate_matrix_no_identity(5, 7, bmc4a, R4a, x4a, xd4a)
+    S4b = MatrixSpace(R4b, 5, 2); M4b = Oscar.make_coordinate_matrix_no_identity(5, 7, bmc4b, R4b, x4b, xd4b)
+    S5 = MatrixSpace(R5, 2, 8); M5 = Oscar.make_coordinate_matrix_no_identity(2, 10, bmc5, R5, x5, xd5)
     
     @testset "make_coordinate_matrix_no_identity" begin
         @test M1 == S1([x1[1] x1[3] x1[5];
@@ -100,13 +99,13 @@
         
     end
 
-    S1 = MatrixSpace(R1, 2, 5); X1 = make_coordinate_matrix(2, 5, bmc1, [1,2], R1, x1, xd1)
-    S2 = MatrixSpace(R2, 3, 7); X2 = make_coordinate_matrix(3, 7, bmc2, [1,2,4], R2, x2, xd2)
-    S3a = MatrixSpace(R3a, 3, 8); X3a = make_coordinate_matrix(3, 8, bmc3a, [1,2,3], R3a, x3a, xd3a)
-    S3b = MatrixSpace(R3b, 3, 8); X3b = make_coordinate_matrix(3, 8, bmc3b, [1,2,4], R3b, x3b, xd3b)
-    S4a = MatrixSpace(R4a, 5, 7); X4a = make_coordinate_matrix(5, 7, bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
-    S4b = MatrixSpace(R4b, 5, 7); X4b = make_coordinate_matrix(5, 7, bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
-    S5 = MatrixSpace(R5, 2, 10); X5 = make_coordinate_matrix(2, 10, bmc5, [5,8], R5, x5, xd5)
+    S1 = MatrixSpace(R1, 2, 5); X1 = Oscar.make_coordinate_matrix(2, 5, bmc1, [1,2], R1, x1, xd1)
+    S2 = MatrixSpace(R2, 3, 7); X2 = Oscar.make_coordinate_matrix(3, 7, bmc2, [1,2,4], R2, x2, xd2)
+    S3a = MatrixSpace(R3a, 3, 8); X3a = Oscar.make_coordinate_matrix(3, 8, bmc3a, [1,2,3], R3a, x3a, xd3a)
+    S3b = MatrixSpace(R3b, 3, 8); X3b = Oscar.make_coordinate_matrix(3, 8, bmc3b, [1,2,4], R3b, x3b, xd3b)
+    S4a = MatrixSpace(R4a, 5, 7); X4a = Oscar.make_coordinate_matrix(5, 7, bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
+    S4b = MatrixSpace(R4b, 5, 7); X4b = Oscar.make_coordinate_matrix(5, 7, bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
+    S5 = MatrixSpace(R5, 2, 10); X5 = Oscar.make_coordinate_matrix(2, 10, bmc5, [5,8], R5, x5, xd5)
     
     
     
@@ -143,13 +142,13 @@
                          x5[2] x5[4] x5[6] x5[8] R5(0) R5(0) R5(0) R5(1) x5[10] R5(0)])
     end
 
-    D1 = bases_determinants(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
-    D2 = bases_determinants(3, 7, bases(mb2), bmc2, [1,2,4], R2, x2, xd2)
-    D3a = bases_determinants(3, 8, bases(mb3), bmc3a, [1,2,3], R3a, x3a, xd3a)
-    D3b = bases_determinants(3, 8, bases(mb3), bmc3b, [1,2,4], R3b, x3b, xd3b)
-    D4a = bases_determinants(5, 7, bases(mb4), bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
-    D4b = bases_determinants(5, 7, bases(mb4), bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
-    D5 = bases_determinants(2, 10, bases(mb5), bmc5, [5,8], R5, x5, xd5)
+    D1 = Oscar.bases_determinants(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
+    D2 = Oscar.bases_determinants(3, 7, bases(mb2), bmc2, [1,2,4], R2, x2, xd2)
+    D3a = Oscar.bases_determinants(3, 8, bases(mb3), bmc3a, [1,2,3], R3a, x3a, xd3a)
+    D3b = Oscar.bases_determinants(3, 8, bases(mb3), bmc3b, [1,2,4], R3b, x3b, xd3b)
+    D4a = Oscar.bases_determinants(5, 7, bases(mb4), bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
+    D4b = Oscar.bases_determinants(5, 7, bases(mb4), bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
+    D5 = Oscar.bases_determinants(2, 10, bases(mb5), bmc5, [5,8], R5, x5, xd5)
 
 
     @testset "bases_determinants" begin
@@ -171,13 +170,13 @@
     end
 
 
-    SG1 = localizing_semigroup(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
-    SG2 = localizing_semigroup(3, 7, bases(mb2), bmc2, [1,2,4], R2, x2, xd2)
-    SG3a = localizing_semigroup(3, 8, bases(mb3), bmc3a, [1,2,3], R3a, x3a, xd3a)
-    SG3b = localizing_semigroup(3, 8, bases(mb3), bmc3b, [1,2,4], R3b, x3b, xd3b)
-    SG4a = localizing_semigroup(5, 7, bases(mb4), bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
-    SG4b = localizing_semigroup(5, 7, bases(mb4), bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
-    SG5 = localizing_semigroup(2, 10, bases(mb5), bmc5, [5,8], R5, x5, xd5)
+    SG1 = Oscar.localizing_semigroup(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
+    SG2 = Oscar.localizing_semigroup(3, 7, bases(mb2), bmc2, [1,2,4], R2, x2, xd2)
+    SG3a = Oscar.localizing_semigroup(3, 8, bases(mb3), bmc3a, [1,2,3], R3a, x3a, xd3a)
+    SG3b = Oscar.localizing_semigroup(3, 8, bases(mb3), bmc3b, [1,2,4], R3b, x3b, xd3b)
+    SG4a = Oscar.localizing_semigroup(5, 7, bases(mb4), bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
+    SG4b = Oscar.localizing_semigroup(5, 7, bases(mb4), bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
+    SG5 = Oscar.localizing_semigroup(2, 10, bases(mb5), bmc5, [5,8], R5, x5, xd5)
     
     
     @testset "localizing_semigroup" begin
@@ -192,13 +191,13 @@
         
     end
 
-    MS1 = matroid_stratum_matrix_coordinates_given_ring(2,5,mb1,ZZ,[1,2],R1,x1,xd1)
-    MS2 = matroid_stratum_matrix_coordinates_given_ring(3,7,mb2,GF(2),[1,2,4],R2,x2,xd2)
-    MS3a = matroid_stratum_matrix_coordinates_given_ring(3,8,mb3,QQ,[1,2,3],R3a,x3a,xd3a)
-    MS3b = matroid_stratum_matrix_coordinates_given_ring(3,8,mb3,QT1,[1,2,4],R3b,x3b,xd3b)
-    MS4a = matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,QT2,[1,2,3,4,6],R4a,x4a,xd4a)
-    MS4b = matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,K,[1,2,3,6,7],R4b,x4b,xd4b)
-    MS5 = matroid_stratum_matrix_coordinates_given_ring(2,10,mb5,ZZ,[5,8],R5,x5,xd5)
+    MS1 = Oscar.matroid_stratum_matrix_coordinates_given_ring(2,5,mb1,ZZ,[1,2],R1,x1,xd1)
+    MS2 = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,7,mb2,GF(2),[1,2,4],R2,x2,xd2)
+    MS3a = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,8,mb3,QQ,[1,2,3],R3a,x3a,xd3a)
+    MS3b = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,8,mb3,QT1,[1,2,4],R3b,x3b,xd3b)
+    MS4a = Oscar.matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,QT2,[1,2,3,4,6],R4a,x4a,xd4a)
+    MS4b = Oscar.matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,K,[1,2,3,6,7],R4b,x4b,xd4b)
+    MS5 = Oscar.matroid_stratum_matrix_coordinates_given_ring(2,10,mb5,ZZ,[5,8],R5,x5,xd5)
 
 
     
