@@ -1,11 +1,29 @@
+#######################################
+# 1: Weierstrass sections
+#######################################
+
 @doc Markdown.doc"""
     poly_f(w::GlobalWeierstrassModel)
 
-Return the polynomial $f$ used for the
+Return the polynomial ``f`` used for the
 construction of the global Weierstrass model.
 
 ```jldoctest
-julia> w = GenericGlobalWeierstrassModelOverProjectiveSpace(3)
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GenericGlobalWeierstrassModel(base)
 A global Weierstrass model
 
 julia> poly_f(w);
@@ -14,43 +32,133 @@ julia> poly_f(w);
 @attr MPolyElem{fmpq} poly_f(w::GlobalWeierstrassModel) = w.poly_f
 export poly_f
 
+
 @doc Markdown.doc"""
     poly_g(w::GlobalWeierstrassModel)
 
-Return the polynomial $g$ used for the
+Return the polynomial ``g`` used for the
 construction of the global Weierstrass model.
 
 ```jldoctest
-julia> w = GenericGlobalWeierstrassModelOverProjectiveSpace(3)
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GenericGlobalWeierstrassModel(base)
 A global Weierstrass model
 
-julia> poly_f(w);
+julia> poly_g(w);
 ```
 """
 @attr MPolyElem{fmpq} poly_g(w::GlobalWeierstrassModel) = w.poly_g
 export poly_g
 
 
+#######################################
+# 2: Weierstrass polynomial
+#######################################
+
+@doc Markdown.doc"""
+    pw(w::GlobalWeierstrassModel)
+
+Return the Weierstrass polynomial of the global Weierstrass model.
+
+```jldoctest
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GenericGlobalWeierstrassModel(base)
+A global Weierstrass model
+
+julia> pw(w);
+```
+"""
+@attr MPolyElem{fmpq} pw(w::GlobalWeierstrassModel) = w.pw
+export pw
+
+
+#######################################
+# 3: Toric spaces
+#######################################
+
 @doc Markdown.doc"""
     toric_base_space(w::GlobalWeierstrassModel)
 
-If the global Weierstrass model in question was constructed
-over a toric base space, this method returns this toric space.
-Otherwise an error is raised.
+Return the toric base space of the global Weierstrass model.
 
 ```jldoctest
-julia> w = GenericGlobalWeierstrassModelOverProjectiveSpace(3)
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GenericGlobalWeierstrassModel(base)
 A global Weierstrass model
 
-julia> toric_base_space(w)
-A normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
+julia> is_smooth(toric_base_space(w))
+true
 ```
 """
-function toric_base_space(w::GlobalWeierstrassModel)::Oscar.AbstractNormalToricVariety
-    if has_attribute(w, :toric_base_space)
-       return get_attribute(w, :toric_base_space)
-    else
-        throw(ArgumentError("The Weierstrass model in question was not defined over a toric base space"))
-    end
-end
+@attr Oscar.AbstractNormalToricVariety toric_base_space(w::GlobalWeierstrassModel) = w.toric_base_space
+export toric_base_space
+
+
+@doc Markdown.doc"""
+    toric_ambient_space(w::GlobalWeierstrassModel)
+
+Return the toric base space of the global Weierstrass model.
+
+```jldoctest
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GenericGlobalWeierstrassModel(base)
+A global Weierstrass model
+
+julia> is_smooth(toric_ambient_space(w))
+false
+```
+"""
+@attr Oscar.AbstractNormalToricVariety toric_ambient_space(w::GlobalWeierstrassModel) = w.toric_ambient_space
 export toric_base_space
