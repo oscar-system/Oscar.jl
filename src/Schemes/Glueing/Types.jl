@@ -45,8 +45,8 @@ Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets
   function Glueing(
       X::AbsSpec, Y::AbsSpec, f::SpecOpenMor, g::SpecOpenMor; check::Bool=true
     )
-    ambient(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
-    ambient(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
+    ambient_scheme(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
+    ambient_scheme(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
     if check
       (domain(f) === codomain(g) &&
       domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
