@@ -449,6 +449,8 @@ include("Rings/slpolys.jl")
 
 include("ToricVarieties/JToric.jl")
 
+include("Schemes/main.jl")
+
 include("TropicalGeometry/main.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
