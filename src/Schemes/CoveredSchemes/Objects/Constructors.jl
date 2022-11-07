@@ -5,6 +5,14 @@ export empty_covered_scheme
 ########################################################################
 
 ### The standard constructor
+@Markdown.doc """
+    CoveredScheme(C::Covering)
+
+For a `Covering` `C` this returns a `CoveredScheme` ``X`` with `C` as 
+its `default_covering`.
+
+TODO: Add an example.
+"""
 function CoveredScheme(C::Covering)
   refinements = Dict{Tuple{Covering, Covering}, CoveringMorphism}()
   X = CoveredScheme([C], refinements)

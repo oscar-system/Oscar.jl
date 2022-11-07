@@ -1,4 +1,4 @@
-export base_ring_type, coverings, default_covering, patches, glueings, name_of
+export base_ring_type, coverings, default_covering, patches, glueings, name_of, affine_charts
 
 ########################################################################
 # Attributes of AbsCoveredScheme                                       #
@@ -18,16 +18,21 @@ base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
 @Markdown.doc """
     coverings(X::AbsCoveredScheme)
 
-Returns the available coverings for ``X``.
+On a `CoveredScheme` ``X`` this returns a list of the internally stored 
+`Covering`s of ``X``.
+
+TODO: Add an example.
 """
 function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
   return coverings(underlying_scheme(X))
 end
 
 @Markdown.doc """
-    default_covering(X::AbsCoveredScheme)::Covering
+    default_covering(X::AbsCoveredScheme)
 
 Returns the default covering for ``X``.
+
+TODO: Add an example.
 """
 function default_covering(X::AbsCoveredScheme)
   return default_covering(underlying_scheme(X))::Covering
@@ -39,6 +44,15 @@ end
 Returns the affine patches in the `default_covering` of ``X``.
 """
 patches(X::AbsCoveredScheme) = patches(default_covering(X))
+
+@Markdown.doc """
+    affine_charts(X::AbsCoveredScheme)
+
+Returns the affine charts in the `default_covering` of ``X``.
+
+TODO: Add an example.
+"""
+affine_charts(X::AbsCoveredScheme) = basic_patches(default_covering(X))
 
 
 ########################################################################
@@ -53,6 +67,7 @@ default_covering(X::CoveredScheme) = X.default_covering
 patches(X::CoveredScheme) = patches(default_covering(X))
 glueings(X::CoveredScheme) = glueings(default_covering(X))
 base_ring(X::CoveredScheme) = X.kk
+
 
 ########################################################################
 # Names of CoveredSchemes                                              #

@@ -6,10 +6,10 @@ export Covering
 @Markdown.doc """
     Covering
 
-A covering of a scheme ``X`` by affine patches ``Uᵢ`` which are glued
+A covering of a scheme ``X`` by affine charts ``Uᵢ`` which are glued
 along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
 
-**Note:** The distinction between the different affine patches of the scheme
+**Note:** The distinction between the different affine charts of the scheme
 is made from their hashes. Thus, an affine scheme must not appear more than once
 in any covering!
 """

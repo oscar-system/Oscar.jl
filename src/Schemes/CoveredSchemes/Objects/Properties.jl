@@ -10,4 +10,12 @@ export is_empty
   return all(x->isempty(x), all_patches(default_covering(X)))
 end
 
+@attr function is_smooth(X::AbsCoveredScheme)
+  if !isdefined(X, :coverings) 
+    return true
+  end
+  # TODO: This can be optimized! We only need to check the rank of 
+  # the jacobian matrices where we haven't checked in another chart before. 
+  return all(x->is_smooth(x), affine_charts(X))
+end
 
