@@ -134,7 +134,7 @@ end
 ################################################################################################################################
 # basic tree with unlimited children per node, inpush updated paths to all leaves
 # ids are updated during puhses, nodes are stored by id in a Dict
-# acces via node-id. 
+# access via node-id. 
 # update leafs in the end #TODO improve this feature inpush
 ################################################################################################################################
 mutable struct Node

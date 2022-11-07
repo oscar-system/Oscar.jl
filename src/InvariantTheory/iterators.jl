@@ -176,7 +176,7 @@ julia> collect(B)
 ```
 """
 function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
-  @assert d >= 0 "Degree must be non-negativ"
+  @assert d >= 0 "Degree must be non-negative"
 
   if algo == :default
     if is_modular(R)
@@ -214,7 +214,7 @@ end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
   @assert !is_modular(R)
-  @assert d >= 0 "Degree must be non-negativ"
+  @assert d >= 0 "Degree must be non-negative"
 
   monomials = all_monomials(polynomial_ring(R), d)
 
@@ -227,7 +227,7 @@ end
 
 # Sadly, we can't really do much iteratively here.
 function iterate_basis_linear_algebra(IR::InvRing, d::Int)
-  @assert d >= 0 "Degree must be non-negativ"
+  @assert d >= 0 "Degree must be non-negative"
 
   R = polynomial_ring(IR)
 

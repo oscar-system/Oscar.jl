@@ -1444,7 +1444,7 @@ return the largest ideal of `R` whose extension to `Rloc` is `I`. This is the pr
 under the localization map.
 
 !!! note
-    The function does not neccessarily return a minimal set of generators for the resulting ideal.
+    The function does not necessarily return a minimal set of generators for the resulting ideal.
 # Examples
 ```jldoctest
 julia> R, (x,) = PolynomialRing(QQ, ["x"])

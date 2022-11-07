@@ -213,7 +213,7 @@ function augmented_quadratic_relations(ring::MPolyRing, proper_flats::Vector{Vec
 end
 
 """
-A helper function to select indicies of a vector that do `include` elements of a given set and `exclude` anothers
+A helper function to select indices of a vector that do `include` elements of a given set and `exclude` another
 """
 function _select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
     all = union(set...)

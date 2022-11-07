@@ -11,7 +11,7 @@ const BlockSystem_t = Vector{Vector{Int}}
 #      make sure this works also for Gal(K[t]) and Q(t)
 #      possible function bound(::GaloisCtx, ::CoeffRingElem)?
 #                                           ::FieldElem)?
-#      hove down to Hecke?
+#      move down to Hecke?
 mutable struct SubfieldLattice{T}
   K::T
   P::POSet{BlockSystem_t}
@@ -393,7 +393,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
             #deg subfield should be r, so
             #if precision is too low, then this poly will be too
             #large (T too large), hence an exclusion
-            #I think thay if the degree is correct, the subfield is correct
+            #I think that if the degree is correct, the subfield is correct
             #thus one should be able to get the 1st block as well
             #However, instead of blocks, T is as good an indicator for 
             #subfields

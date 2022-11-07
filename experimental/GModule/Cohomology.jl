@@ -8,7 +8,7 @@ import Base: parent
 
 ######################################################################
 #
-# to allow additive motation for multiplicative objetcs,
+# to allow additive notation for multiplicative objects,
 # eg 
 # M = MultGrp(K::AnticNumberField) will result in 
 # M(a) + M(b) = M(ab)

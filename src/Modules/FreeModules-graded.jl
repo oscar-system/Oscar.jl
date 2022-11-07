@@ -1338,7 +1338,7 @@ end
 function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec, MPolyIdeal{<:MPolyElem_dec}}}
 
   #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
+  #      apparently it is possible to get the number of points faster than the points
   W = base_ring(F)
   D = grading_group(W)
   #have gens for W that can be combined

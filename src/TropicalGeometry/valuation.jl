@@ -434,7 +434,7 @@ function tighten_simulation(f::MPolyElem,val::TropicalSemiringMap)
     return f
   end
 
-  # subsitute first variable by uniformizer_ring so that all monomials have distinct x-monomials
+  # substitute first variable by uniformizer_ring so that all monomials have distinct x-monomials
   # and compute the gcd of its coefficients
   f = evaluate(f,[1],[p]) # todo: sanity check that f is not 0
   cGcd = val.valued_field(gcd([c for c in coefficients(f)]))

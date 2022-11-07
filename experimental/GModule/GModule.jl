@@ -413,7 +413,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinF
   # inductively:
   #    rho(g)^(s^i) = B^-(s^i-1) B^-(s^(i-1)) ... B^-1 rho(g) B B^s ...
   # From s^n = 1, we obtain N(B) = prod_i=0^n-1 B^(s^i) = lambda I
-  # (since rho is irreducible and thus the matrix unque up to scalar)
+  # (since rho is irreducible and thus the matrix unique up to scalar)
   # IF B is, as above A^(1-s), then N(B) = 1, so there should be
   # alpha s.th. N(alpha) = lambda
   # thus N(alpha^-1 B) = I
@@ -1219,7 +1219,7 @@ end
   For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
 
-Note: the reps are NOT neccessarily over the smallest field.
+Note: the reps are NOT necessarily over the smallest field.
 
 Note: the field is NOT extended - but it throws an error if it was too small.
 
@@ -1367,7 +1367,7 @@ function Nemo._hnf(x::fmpz_mat)
       return matrix(Hecke.hnf(s))
     end
   end
-  return Nemo.__hnf(x) # ist die original Nemo flint hnf
+  return Nemo.__hnf(x) # use original Nemo flint hnf
 end
 
 function Nemo._hnf_with_transform(x::fmpz_mat)
@@ -1379,7 +1379,7 @@ function Nemo._hnf_with_transform(x::fmpz_mat)
       return m[:, 1:ncols(x)], m[:, ncols(x)+1:end]
     end
   end
-  return Nemo.__hnf_with_transform(x) # ist die original Nemo flint hnf
+  return Nemo.__hnf_with_transform(x) # use original Nemo flint hnf
 end
 
 
@@ -1431,7 +1431,7 @@ Find all possible extensions of Q by an irreducible F_p module
 that admit an epimorphism from G.
 Implements the SQ-Algorithm by Brueckner, Chap 1.3
 
-If neccessary, the prime(s) p that can be used are computed as well.
+If necessary, the prime(s) p that can be used are computed as well.
 """
 function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
   Q = codomain(mQ)
@@ -1533,7 +1533,7 @@ end
 """
 function lift(C::GModule, mp::Map)
   #m: G->group(C)
-  #compute all(?) of H^2 that will descibe groups s.th. m can be lifted to
+  #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
 
   G = domain(mp)
   N = group(C)

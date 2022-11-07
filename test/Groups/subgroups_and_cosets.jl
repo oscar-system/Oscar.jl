@@ -159,7 +159,7 @@ end
   
    @test length(right_transversal(G, H)) == index(G, H)
 
-   @testset "set comparation for cosets in PermGroup" begin
+   @testset "set comparison for cosets in PermGroup" begin
       G=symmetric_group(5)
       x = G(cperm([1,2,3]))
       y = G(cperm([1,4,5]))

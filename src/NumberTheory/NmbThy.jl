@@ -168,7 +168,7 @@ function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   irr = irreducibles(S)
   b = transpose(matrix(ZZ, [fmpz[valuation(a, y) for y = S]]))
   A = transpose(matrix(ZZ, [fmpz[valuation(x, y) for y = S] for x = irr]))
-  #solving Ax = b for x >=0  and A >=0 implies that colums of A with
+  #solving Ax = b for x >=0  and A >=0 implies that columns of A with
   #entries > those in b can never be part of a solution
   #thus we prune them
   #of course, this could/ should be done in solve_non_negative...

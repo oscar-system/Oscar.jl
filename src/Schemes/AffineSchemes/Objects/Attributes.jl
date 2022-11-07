@@ -10,7 +10,7 @@ export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 # (1) Attributes of AbsSpec
 ########################################################################
 
-# Here is the inferface for AbsSpec
+# Here is the interface for AbsSpec
 
 @Markdown.doc """
     OO(X::AbsSpec)
