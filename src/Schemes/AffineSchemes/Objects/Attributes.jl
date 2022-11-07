@@ -263,8 +263,6 @@ true
 """
 coordinates(X::AbsSpec) = gens(OO(X))
 
-ambient_coordinates(X::AbsSpec) = gens(ambient_coordinate_ring(X))
-
 @Markdown.doc """
     base_ring(X::AbsSpec)
 
