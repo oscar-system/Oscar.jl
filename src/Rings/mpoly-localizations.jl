@@ -1605,7 +1605,7 @@ function saturated_ideal(
     R = base_ring(L)
     result = ideal(R, [one(R)])
     U = inverted_set(base_ring(I))
-    if !issubset(I,L(prime_ideal(U)))
+    if !issubset(I, L(prime_ideal(U)))
       I.saturated_ideal = result
       return result
     end
