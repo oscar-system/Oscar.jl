@@ -1575,7 +1575,7 @@ function saturated_ideal(
     is_saturated(I) && return pre_saturated_ideal(I)
     L = base_ring(I)
     R = base_ring(base_ring(I))
-    result=ideal(R,[one(R)])
+    result = ideal(R, [one(R)])
     J = pre_saturated_ideal(I)
     if !all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(J)) 
       I.saturated_ideal = result
