@@ -676,8 +676,7 @@ identity_map(P::ProjectiveScheme) = ProjectiveSchemeMor(P, P,
 @Markdown.doc """
     covered_scheme(P::ProjectiveScheme)
     
-For a `ProjectiveScheme` `P`, this returns a `CoveredScheme` ``X`` isomorphic 
-to `P` with the standard affine charts given by dehomogenization. 
+Return a `CoveredScheme` ``X`` isomorphic to `P` with standard affine charts given by dehomogenization. 
 
 Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to 
 obtain the dehomogenization map from the `ambient_coordinate_ring` of `P` 
