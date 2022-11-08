@@ -218,7 +218,7 @@ function Base.:-(tm1::ToricMorphism, tm2::ToricMorphism)
 end
 
 
-function Base.:*(c::T, tm::ToricMorphism) where {T <: IntegerUnion, T2 <: Union{AbstractNormalToricVariety, Nothing}}
+function Base.:*(c::T, tm::ToricMorphism) where T <: IntegerUnion
   new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
   return ToricMorphism(domain(tm), new_grid_morphism, codomain(tm))
 end
