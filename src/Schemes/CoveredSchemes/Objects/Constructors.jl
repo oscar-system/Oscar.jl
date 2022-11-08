@@ -8,8 +8,7 @@ export empty_covered_scheme
 @Markdown.doc """
     CoveredScheme(C::Covering)
 
-For a `Covering` `C` this returns a `CoveredScheme` ``X`` with `C` as 
-its `default_covering`.
+Return a `CoveredScheme` ``X`` with `C` as its `default_covering`.
 
 TODO: Add an example.
 """

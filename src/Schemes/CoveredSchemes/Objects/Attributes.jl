@@ -29,7 +29,7 @@ end
 @Markdown.doc """
     default_covering(X::AbsCoveredScheme)
 
-Returns the default covering for ``X``.
+Return the default covering for ``X``.
 
 TODO: Add an example.
 """
@@ -40,14 +40,14 @@ end
 @Markdown.doc """
     patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
-Returns the affine patches in the `default_covering` of ``X``.
+Return the affine patches in the `default_covering` of ``X``.
 """
 patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
 @Markdown.doc """
     affine_charts(X::AbsCoveredScheme)
 
-Returns the affine charts in the `default_covering` of ``X``.
+Return the affine charts in the `default_covering` of ``X``.
 
 TODO: Add an example.
 """
