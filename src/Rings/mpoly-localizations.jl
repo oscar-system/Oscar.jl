@@ -1718,7 +1718,8 @@ function cache_transitions_for_saturation(I::MPolyLocalizedIdeal)
   return I
 end
 
-# for convenience of scripting users
+# for convenience of scripting user allow I::MPolyIdeal as input to
+# saturated_ideal and return the ideal itself 
 saturated_ideal(I::MPolyIdeal) = I
 
 # the following overwrites the membership test 

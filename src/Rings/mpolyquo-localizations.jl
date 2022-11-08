@@ -1406,7 +1406,9 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
 end
 
-# for convenience of the scripting user
+# for convenience of the scripting user allow I::MPolyQuoIdeal as 
+# input to saturated_ideal and return the preimage of I in 
+# under the canonical quotient map 
 saturated_ideal(I::MPolyQuoIdeal) = pre_image_ideal(I)
 
 ### Conversion of ideals in the original ring to localized ideals
