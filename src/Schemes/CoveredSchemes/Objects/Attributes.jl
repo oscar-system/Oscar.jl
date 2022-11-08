@@ -18,8 +18,7 @@ base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
 @Markdown.doc """
     coverings(X::AbsCoveredScheme)
 
-On a `CoveredScheme` ``X`` this returns a list of the internally stored 
-`Covering`s of ``X``.
+Return the list of internally stored `Covering`s of ``X``.
 
 TODO: Add an example.
 """
