@@ -128,7 +128,7 @@ function GenericGlobalTateModel(base::Oscar.AbstractNormalToricVariety)
     x = gens(S2)[length(gens(S2))-2]
     y = gens(S2)[length(gens(S2))-1]
     z = gens(S2)[length(gens(S2))]
-    pt = x^3 - y^2 + x*y*z*a1 + x^2*z^2*a2 + y*z^3*a3 + x*z^4*a4 + z^6*a6
+    pt = x^3 - y^2 - x*y*z*a1 + x^2*z^2*a2 - y*z^3*a3 + x*z^4*a4 + z^6*a6
 
     # TODO: Compute the toric hypersurface
     # TODO: Once new Oscar release is available
@@ -247,7 +247,7 @@ function SpecificGlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, b
     y = gens(S2)[length(gens(S2))-1]
     z = gens(S2)[length(gens(S2))]
     ring_map = hom(S1, S2, [gens(S2)[i] for i in 1:length(gens(S1))])
-    pt = x^3 - y^2 + x*y*z*ring_map(ais[1]) + x^2*z^2*ring_map(ais[2]) + y*z^3*ring_map(ais[3]) + x*z^4*ring_map(ais[4]) + z^6*ring_map(ais[5])
+    pt = x^3 - y^2 - x*y*z*ring_map(ais[1]) + x^2*z^2*ring_map(ais[2]) - y*z^3*ring_map(ais[3]) + x*z^4*ring_map(ais[4]) + z^6*ring_map(ais[5])
 
     # TODO: Compute the toric hypersurface
     # TODO: Once new Oscar release is available

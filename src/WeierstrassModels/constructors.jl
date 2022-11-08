@@ -44,7 +44,7 @@ toric base space in a manifest way. But even this criterion usually
 allows for many ambient spaces to be used.
 
 To circumvent this obstacle, this method operates in the opposite direction, i.e.
-"bottom-up". That is, it begins by extracting the rays and maximal cones of chose
+"bottom-up". That is, it begins by extracting the rays and maximal cones of the chosen
 toric base space. Subsequently, those rays and cones are extended
 to form one of the many toric ambient spaces. The following example
 demonstrates that the so-obtained ambient space of a (singular) global Weierstrass
