@@ -3,7 +3,7 @@
 #######################################
 
 @doc Markdown.doc"""
-    poly_f(w::GlobalWeierstrassModel)
+    weierstrass_section_f(w::GlobalWeierstrassModel)
 
 Return the polynomial ``f`` used for the
 construction of the global Weierstrass model.
@@ -26,15 +26,15 @@ A normal toric variety
 julia> w = GenericGlobalWeierstrassModel(base)
 A global Weierstrass model
 
-julia> poly_f(w);
+julia> weierstrass_section_f(w);
 ```
 """
-@attr MPolyElem{fmpq} poly_f(w::GlobalWeierstrassModel) = w.poly_f
-export poly_f
+@attr MPolyElem{fmpq} weierstrass_section_f(w::GlobalWeierstrassModel) = w.poly_f
+export weierstrass_section_f
 
 
 @doc Markdown.doc"""
-    poly_g(w::GlobalWeierstrassModel)
+    weierstrass_section_g(w::GlobalWeierstrassModel)
 
 Return the polynomial ``g`` used for the
 construction of the global Weierstrass model.
@@ -57,11 +57,11 @@ A normal toric variety
 julia> w = GenericGlobalWeierstrassModel(base)
 A global Weierstrass model
 
-julia> poly_g(w);
+julia> weierstrass_section_g(w);
 ```
 """
-@attr MPolyElem{fmpq} poly_g(w::GlobalWeierstrassModel) = w.poly_g
-export poly_g
+@attr MPolyElem{fmpq} weierstrass_section_g(w::GlobalWeierstrassModel) = w.poly_g
+export weierstrass_section_g
 
 
 #######################################
@@ -69,7 +69,7 @@ export poly_g
 #######################################
 
 @doc Markdown.doc"""
-    pw(w::GlobalWeierstrassModel)
+    weierstrass_polynomial(w::GlobalWeierstrassModel)
 
 Return the Weierstrass polynomial of the global Weierstrass model.
 
@@ -91,11 +91,11 @@ A normal toric variety
 julia> w = GenericGlobalWeierstrassModel(base)
 A global Weierstrass model
 
-julia> pw(w);
+julia> weierstrass_polynomial(w);
 ```
 """
-@attr MPolyElem{fmpq} pw(w::GlobalWeierstrassModel) = w.pw
-export pw
+@attr MPolyElem{fmpq} weierstrass_polynomial(w::GlobalWeierstrassModel) = w.pw
+export weierstrass_polynomial
 
 
 #######################################

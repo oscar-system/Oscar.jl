@@ -39,12 +39,12 @@ SpecificGlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, base::Osca
 ## Attributes
 
 ```@docs
-a1(t::GlobalTateModel)
-a2(t::GlobalTateModel)
-a3(t::GlobalTateModel)
-a4(t::GlobalTateModel)
-a6(t::GlobalTateModel)
-pt(t::GlobalTateModel)
+tate_section_a1(t::GlobalTateModel)
+tate_section_a2(t::GlobalTateModel)
+tate_section_a3(t::GlobalTateModel)
+tate_section_a4(t::GlobalTateModel)
+tate_section_a6(t::GlobalTateModel)
+tate_polynomial(t::GlobalTateModel)
 toric_base_space(t::GlobalTateModel)
 toric_ambient_space(t::GlobalTateModel)
 ```

@@ -34,9 +34,9 @@ SpecificGlobalWeierstrassModel(f::MPolyElem_dec{fmpq, fmpq_mpoly}, g::MPolyElem_
 ## Attributes
 
 ```@docs
-poly_f(w::GlobalWeierstrassModel)
-poly_g(w::GlobalWeierstrassModel)
-pw(w::GlobalWeierstrassModel)
+weierstrass_section_f(w::GlobalWeierstrassModel)
+weierstrass_section_g(w::GlobalWeierstrassModel)
+weierstrass_polynomial(w::GlobalWeierstrassModel)
 toric_base_space(w::GlobalWeierstrassModel)
 toric_ambient_space(w::GlobalWeierstrassModel)
 ```

@@ -21,9 +21,9 @@ Base.show(w)
 #############################################################
 
 @testset "Attributes of global Weierstrass models" begin
-    @test parent(poly_f(w)) == cox_ring(toric_ambient_space(w))
-    @test parent(poly_g(w)) == cox_ring(toric_ambient_space(w))
-    @test parent(pw(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_section_f(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_section_g(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_polynomial(w)) == cox_ring(toric_ambient_space(w))
     @test dim(toric_base_space(w)) == 3
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false
@@ -39,12 +39,12 @@ end
 #############################################################
 
 @testset "Attributes of global Tate models" begin
-    @test parent(a1(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a2(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a3(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a4(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a6(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(pt(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a1(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a2(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a3(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a4(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a6(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_polynomial(t)) == cox_ring(toric_ambient_space(t))
     @test dim(toric_base_space(t)) == 3
     @test dim(toric_ambient_space(t)) == 5
     @test is_smooth(toric_ambient_space(t)) == false
