@@ -123,6 +123,14 @@ multiplicative set ``S ⊂ P`` of type `MultSetType`.
   end
 end
 
+### for convenience of later use
+MPAnyQuoRing = Union{MPolyQuoLocalizedRing, 
+                MPolyQuo
+               }
+
+MPAnyNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
+                  }
+
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
@@ -165,7 +173,7 @@ function modulus(L::MPolyQuoLocalizedRing)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
-modulus(R::MPolyLocalizedRing)=ideal(R,[zero(R)])
+modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
 
 
 @Markdown.doc """
