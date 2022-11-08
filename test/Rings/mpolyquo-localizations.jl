@@ -1,4 +1,4 @@
-#@testset "mpolyquo-localizations.jl" begin
+@testset "mpolyquo-localizations.jl" begin
   R, v = QQ["x", "y", "u", "v"]
   x = v[1]
   y = v[2] 
@@ -107,4 +107,4 @@
   @test W(a[2]*lifted_numerator(g[1]), d) == g[1]
   @test (one(localized_ring(W)) in ideal(W, g))
   @test one(W) == dot(write_as_linear_combination(one(W), g), g) 
-#end
+end

@@ -1576,11 +1576,11 @@ function saturated_ideal(
     L = base_ring(I)
     R = base_ring(base_ring(I))
     result=ideal(R,[one(R)])
-    if !all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(I)) 
+    J = pre_saturated_ideal(I)
+    if !all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(J)) 
       I.saturated_ideal = result
       return result
     end
-    J = pre_saturated_ideal(I)
     pdec = primary_decomposition(J)
     for (Q, P) in pdec
       if all(x->iszero(evaluate(x, point_coordinates(inverted_set(L)))), gens(P))
