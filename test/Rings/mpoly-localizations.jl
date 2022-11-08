@@ -314,6 +314,8 @@ end
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat
   @test_throws ErrorException("no transition matrix available using local orderings") saturated_ideal(L(J_sat); with_generator_transition=true)
+  JJ = ideal(R,[y*(x^2+(y^2+1)^2)])
+  @test saturated_ideal(JJ) == JJ
 end
 
 @testset "zero divisors" begin
