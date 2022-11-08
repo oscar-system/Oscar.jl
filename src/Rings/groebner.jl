@@ -437,6 +437,33 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
   return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
+@doc Markdown.doc"""
+    reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+
+Return a `Vector` whose elements are the underlying elements of `I`
+reduced by the underlying generators of `J` w.r.t. the monomial
+ordering `ordering`. `J` need not be a Groebner basis. The returned
+`Vector` will have the same number of elements as `I`, even if they
+are zero.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(GF(11), ["x", "y", "z"]);
+
+julia> I = ideal(R, [x^2, x*y - y^2]);
+
+julia> J = ideal(R, [y^3])
+ideal(y^3)
+
+julia> reduce(J.gens, I.gens)
+1-element Vector{gfp_mpoly}:
+ y^3
+
+julia> reduce(J.gens, groebner_basis(I))
+1-element Vector{gfp_mpoly}:
+ 0
+```
+"""
 function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	@assert base_ring(J) == base_ring(I)
 	singular_assure(I, ordering)
@@ -445,13 +472,78 @@ function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default
 	return [J.gens.Ox(x) for x = gens(res)]
 end
 
+@doc Markdown.doc"""
+    reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
+`Vector` `res` whose elements are the underlying elements of `I`
+reduced by the underlying generators of `J` w.r.t. the monomial
+ordering `ordering` and a diagonal matrix `units` such that `M *
+gens(J) + res == units * gens(I)`. If `ordering` is global then
+`units` will always be the identity matrix, see also
+`reduce_with_quotients`. `J` need not be a Groebner basis. `res` will
+have the same number of elements as `I`, even if they are zero.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(GF(11), ["x", "y"]);
+
+julia> I = ideal(R, [x]);
+
+julia> R, (x, y) = PolynomialRing(GF(11), ["x", "y"]);
+
+julia> I = ideal(R, [x]);
+
+julia> J = ideal(R, [x+1]);
+
+julia> M, res, units = reduce_with_quotients_and_units(I.gens, J.gens, ordering = neglex(R))
+([x], gfp_mpoly[0], [x+1])
+
+julia> M * gens(J) + res == units * gens(I)
+true
+```
+"""
 function reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	return _reduce_with_quotients_and_units(I, J, ordering)
 end
 
+
+@doc Markdown.doc"""
+    reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
+`Vector` `res` whose elements are the underlying elements of `I`
+reduced by the underlying generators of `J` w.r.t. the monomial
+ordering `ordering` such that `M * gens(J) + res == gens(I)` if `ordering` is global. If `ordering` is local then this equality holds after `gens(I)` has been multiplied with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to obtain this matrix. `J` need
+not be a Groebner basis. `res` will have the same number of elements
+as `I`, even if they are zero.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(GF(11), ["x", "y", "z"]);
+
+julia> J = ideal(R, [x^2, x*y - y^2]);
+
+julia> I = ideal(R, [x*y, y^3]);
+
+julia> gb = groebner_basis(J)
+Gröbner basis with elements
+1 -> x*y + 10*y^2
+2 -> x^2
+3 -> y^3
+with respect to the ordering
+degrevlex([x, y, z])
+
+julia> M, res = reduce_with_quotients(I.gens, gb)
+([1 0 0; 0 0 1], gfp_mpoly[y^2, 0])
+
+julia> M * gens(gb) + res == gens(I)
+true
+```
+"""
 function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
-	return q, r
+    q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+    return q, r
 end
 
 function _reduce_with_quotients_and_units(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
