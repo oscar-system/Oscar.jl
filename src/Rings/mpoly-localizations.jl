@@ -1601,8 +1601,8 @@ function saturated_ideal(
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfPrimeIdeal}}
   if !isdefined(I, :saturated_ideal)
     is_saturated(I) && return pre_saturated_ideal(I)
-    L=base_ring(I)
-    R=base_ring(L)
+    L = base_ring(I)
+    R = base_ring(L)
     result = ideal(R, [one(R)])
     U = inverted_set(base_ring(I))
     if !issubset(I,L(prime_ideal(U)))
