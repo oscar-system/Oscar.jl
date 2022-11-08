@@ -59,7 +59,7 @@ function secondary_invariants_modular(RG::InvRing)
     # We need to reverse the columns of this matrix, see below.
     Bd = iterate_basis_linear_algebra(RG, d)
     ncB1 = length(Bd.monomials_collected) + 1
-    mons_to_cols = Dict{Vector{Int}, Int}(first(exponent_vectors(Bd.monomials_collected[i].f)) => ncB1 - i for i = 1:length(Bd.monomials_collected))
+    mons_to_cols = Dict{Vector{Int}, Int}(first(AbstractAlgebra.exponent_vectors(Bd.monomials_collected[i].f)) => ncB1 - i for i = 1:length(Bd.monomials_collected))
     B = BasisOfPolynomials(R, Md, mons_to_cols)
 
     # Do a slight detour and first try to build invariants as products of ones
@@ -136,7 +136,7 @@ function secondary_invariants_modular(RG::InvRing)
         end
         f += N[j, c]*Bd.monomials_collected[j].f
       end
-      f = inv(leading_coefficient(f))*f
+      f = inv(AbstractAlgebra.leading_coefficient(f))*f
       push!(s_invars, f)
       add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
       push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
@@ -217,7 +217,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
         # DK15 propose to check containment via linear algebra; this approach
         # from Kin07 using d-truncated Groebner bases appears to be faster.
-        _, r = divrem(fg, gb)
+        _, r = divrem(fg, gb) # TODO clarify if the ordering matter for this divrem
         if !is_zero(r)
           # fg is a product of monic polynomials, so monic itself
           exp = copy(s_invars_cache.sec_in_irred[j])
@@ -253,9 +253,9 @@ function secondary_invariants_nonmodular(RG::InvRing)
       if iszero(f)
         continue
       end
-      _, r = divrem(f, gb)
+      _, r = divrem(f, gb)  # TODO clarify if the ordering matter for this divrem
       if !is_zero(r)
-        f = inv(leading_coefficient(f))*f
+        f = inv(AbstractAlgebra.leading_coefficient(f))*f
         add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
         push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
         push!(is_invars, length(s_invars_cache.invars))

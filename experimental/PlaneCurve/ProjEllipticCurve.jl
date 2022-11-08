@@ -512,7 +512,7 @@ end
 function contract(i::Int, F::Oscar.MPolyElem{S}) where {S <: FieldElem}
    R = parent(F)
    P = MPolyBuildCtx(R)
-   L = exponent_vectors(F)
+   L = AbstractAlgebra.exponent_vectors(F)
    e = zeros(Int64, nvars(R)-1)
    insert!(e, i, -1)
    A = [v + e for v in L]
@@ -626,7 +626,7 @@ function toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) w
       G = [ff[2]]
       G = push!(G, -ff[1]*ff[3])
    end
-   u = leading_coefficient(G[2])
+   u = AbstractAlgebra.leading_coefficient(G[2])
    a1 = evaluate(contract(1, G[1]), [R(0), X[2], X[3]])
    a3 = u*evaluate(G[1], [R(0), X[2], X[3]])
    a2 = evaluate(contract(1, contract(1, G[2])), [R(0), X[2], X[3]])

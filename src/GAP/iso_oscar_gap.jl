@@ -319,7 +319,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapO
 
    f = function(x::MPolyElem{T})
       extrep = []
-      for (c, l) in zip(coefficients(x), exponent_vectors(x))
+      for (c, l) in zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.exponent_vectors(x))
         v = []
         for i in 1:n
           if l[i] != 0

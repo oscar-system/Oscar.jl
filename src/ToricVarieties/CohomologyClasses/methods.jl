@@ -75,8 +75,8 @@ function integrate(c::CohomologyClass)::fmpq
     if iszero(top_form)
         return 0
     end
-    n = leading_coefficient(top_form.f)
-    m = leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
+    n = AbstractAlgebra.leading_coefficient(top_form.f)
+    m = AbstractAlgebra.leading_coefficient(polynomial(volume_form(toric_variety(c))).f)
     return fmpq(n//m)
 end
 export integrate

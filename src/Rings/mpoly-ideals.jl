@@ -587,7 +587,7 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   @assert nvars(Qxa) == nvars(Qx) + 1
   p = I[1]
   minpoly = zero(Hecke.Globals.Qx)
-  for (c, e) in zip(coefficients(p), exponent_vectors(p))
+  for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
     setcoeff!(minpoly, e[nvars(Qxa)], QQ(c))
   end
   R, a = number_field(minpoly)
@@ -601,7 +601,7 @@ function _map_last_var(Qx::MPolyRing, I::Singular.sideal, start, a)
   for i in start:ngens(I)
     p = I[i]
     g = MPolyBuildCtx(Qx)
-    for (c, e) in zip(coefficients(p), exponent_vectors(p))
+    for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
       ca = QQ(c)*a^pop!(e)
       push_term!(g, ca, e)
     end
@@ -1208,11 +1208,11 @@ function isone(I::MPolyIdeal)
   if iszero(I)
       return false
   end
-  if any(x -> (is_constant(x) && is_unit(first(coefficients(x)))), gens(I))
+  if any(x -> (is_constant(x) && is_unit(first(AbstractAlgebra.coefficients(x)))), gens(I))
     return true
   end
   gb = groebner_basis(I, complete_reduction = true)
-  return is_constant(gb[1]) && is_unit(first(coefficients(gb[1])))
+  return is_constant(gb[1]) && is_unit(first(AbstractAlgebra.coefficients(gb[1])))
 end
 
 ################################################################################
@@ -1376,10 +1376,10 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     converted_generators = elem_type(ring)[]
     coeff_ring = base_ring(ring)
     for g in gens(pluecker_ideal)
-        converted_coeffs = [coeff_ring(numerator(c)) for c in coefficients(g)]
+        converted_coeffs = [coeff_ring(numerator(c)) for c in AbstractAlgebra.coefficients(g)]
         polynomial = MPolyBuildCtx(ring)
 
-        for (i, exponent) in enumerate(exponent_vectors(g))
+        for (i, exponent) in enumerate(AbstractAlgebra.exponent_vectors(g))
             c = converted_coeffs[i]
             push_term!(polynomial, c, exponent)
         end

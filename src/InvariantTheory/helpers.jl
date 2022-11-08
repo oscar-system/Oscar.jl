@@ -172,7 +172,7 @@ function add_to_basis!(B::BasisOfPolynomials, f::MPolyElem)
 
   c = ncols(B.M)
   srow = sparse_row(coefficient_ring(B.R))
-  for (a, e) in zip(coefficients(f), exponent_vectors(f))
+  for (a, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     if !haskey(B.monomial_to_column, e)
       c += 1
       B.monomial_to_column[e] = c
@@ -192,7 +192,7 @@ function enumerate_monomials(polys::Vector{PolyElemT}) where {PolyElemT <: MPoly
   enum_mons = Dict{Vector{Int}, Int}()
   c = 0
   for f in polys
-    for e in exponent_vectors(f)
+    for e in AbstractAlgebra.exponent_vectors(f)
       if !haskey(enum_mons, e)
         c += 1
         enum_mons[e] = c
@@ -208,7 +208,7 @@ function polys_to_smat(polys::Vector{PolyElemT}, monomial_to_column::Dict{Vector
   M = sparse_matrix(K)
   for f in polys
     srow = sparse_row(K)
-    for (a, e) in zip(coefficients(f), exponent_vectors(f))
+    for (a, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
       col = get(monomial_to_column, e) do
         error("Monomial not found in the given dictionary")
       end

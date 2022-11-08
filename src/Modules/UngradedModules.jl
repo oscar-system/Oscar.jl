@@ -502,12 +502,12 @@ function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::Module
 end
 
 @doc Markdown.doc"""
-    terms(f::FreeModElem, ord::ModuleOrdering)
+    terms(f::FreeModElem; ordering::ModuleOrdering = default_ordering(submod))
 
 Return an iterator for the terms of `f` in the order `ord`.
 """
-function terms(f::FreeModElem, ord::ModuleOrdering)
-  p = Orderings.permutation_of_terms(f, ord)
+function terms(f::FreeModElem; ordering::ModuleOrdering = default_ordering(submod))
+  p = Orderings.permutation_of_terms(f, ordering)
   F = parent(f)
   return (term(f[i], j)*F[i] for (i, j) in p)
 end

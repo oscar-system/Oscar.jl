@@ -169,7 +169,7 @@ end
 
 function exponent(a::MPolySparse{T}, i::Int, j::Int) where T <: RingElement
     k = searchsortedfirst(a.exps[i], j; by=first)
-    if 1 <= k <= length(a.exps[i])
+    if 1 <= k <= length(a.exps[i]) && a.exps[i][k][1] == j
         return a.exps[i][k][2]
     else
         return 0
@@ -183,7 +183,7 @@ end
 function coeff(a::MPolySparse{T}, e::Vector{Tuple{Int,Int}}) where T <: RingElement
     monomial_lt = (x, y) -> monomial_isless(x, y, parent(a))
     k = searchsortedfirst(a.exps, e; lt = monomial_lt)
-    if 1 <= k <= length(a)
+    if 1 <= k <= length(a) && a.exps[k] == e
         return a.coeffs[k]
     else
         return parent(a)()
@@ -347,7 +347,7 @@ function degree(f::MPolySparse{T}, i::Int) where {T <: RingElement}
     biggest = -1
     for j = 1:length(f)
         k = searchsortedfirst(f.exps[j], i; by=first)
-        if 1 <= k <= length(f.exps[j]) && k == f.exps[j][k][1]
+        if 1 <= k <= length(f.exps[j]) && f.exps[j][k][1] == i
             d = f.exps[j][k][2]
         else
             d = 0
@@ -744,7 +744,7 @@ function (a::MPolySparse{T})(vals::Union{NCRingElem, RingElement}...) where T <:
             c = c*zero(parent(vals[j]))
         end
     end
-    cvzip = zip(coefficients(a), exponent_vectors(a))
+    cvzip = zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     for (c, v) in cvzip
         t = c
         for j = 1:length(vals)
@@ -792,7 +792,7 @@ function map_coefficients(f, p::MPolySparse; cached = true, parent::MPolyRingSpa
 end
 
 function _map(g, p::MPolySparse, Rx)
-    cvzip = zip(coefficients(p), exponent_vectors(p))
+    cvzip = zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
     M = MPolyBuildCtx(Rx)
     for (c, v) in cvzip
         push_term!(M, g(c), v)

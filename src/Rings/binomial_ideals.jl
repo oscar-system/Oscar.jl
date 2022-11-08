@@ -188,7 +188,7 @@ function _isunital(gens::Vector{<: MPolyElem})
     if length(gens[i]) <= 1
       continue
     end
-    c = collect(coefficients(gens[i]))::Vector{elem_type(R)}
+    c = collect(AbstractAlgebra.coefficients(gens[i]))::Vector{elem_type(R)}
     if !iszero(c[1] + c[2])  
       return false
     end
@@ -471,7 +471,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   images = QQAbElem{nf_elem}[]
   for t in gb
     #TODO: Once tail will be available, use it.
-    lm = leading_monomial(t)
+    lm = AbstractAlgebra.leading_monomial(t)
     tl = t - lm
     u = exponent_vector(lm, 1)
     v = exponent_vector(tl, 1)
@@ -479,7 +479,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
     uv = matrix(FlintZZ, 1, nvars(R), Int[u[j]-v[j] for j  =1:length(u)]) #this is the vector of u-v
     #TODO: It can be done better by saving the hnf...
     if !can_solve(vs, uv, side = :left)[1]
-      push!(images, -QQAbcl(leading_coefficient(tl)))
+      push!(images, -QQAbcl(AbstractAlgebra.leading_coefficient(tl)))
       vs = vcat(vs, uv)#we have to save u-v as generator for the lattice
     end
   end

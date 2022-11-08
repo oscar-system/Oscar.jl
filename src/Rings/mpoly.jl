@@ -411,7 +411,7 @@ for T in [:MPolyRing, :(AbstractAlgebra.Generic.MPolyRing)]
   Sx = parent(f)
   @assert ngens(Sx) == ngens(Ox)
   g = MPolyBuildCtx(Ox)
-  for (c, e) = Base.Iterators.zip(Singular.coefficients(f), Singular.exponent_vectors(f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, O(c), e)
   end
   return finish(g)
@@ -482,11 +482,11 @@ function (K::FqNmodFiniteField)(a::Singular.n_algExt)
   SF = parent(Singular.modulus(SK))
   SFa = SF(a)
   numSa = Singular.n_transExt_to_spoly(numerator(SFa))
-  denSa = first(coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
   @assert isone(denSa)
   res = zero(K)
   Ka = gen(K)
-  for (c, e) in zip(coefficients(numSa), exponent_vectors(numSa))
+  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
     res += K(Int(c))*Ka^e[1]
   end
   return res
@@ -850,96 +850,100 @@ function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
 end
 
 @doc Markdown.doc"""
-    coefficients(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
-Return an iterator for the coefficients of `f` with respect to the order `ord`.
+Return an iterator for the coefficients of `f` with respect to the order `ordering`.
 """
-function coefficients(f::MPolyElem, ord::MonomialOrdering)
-  perm = permutation_of_terms(f, ord)
+function coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  perm = permutation_of_terms(f, ordering)
   return (AbstractAlgebra.coeff(f, perm[i]) for i in 1:length(f) )
 end
 
 @doc Markdown.doc"""
-    coefficients_and_exponents(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator whose elements are tuples of coefficients of `f` and exponent
-vectors (as `Vector{Int}`) with respect to the order `ord`.
+vectors (as `Vector{Int}`) with respect to the order `ordering`.
 """
-function coefficients_and_exponents(f::MPolyElem, ord::MonomialOrdering)
-  perm = permutation_of_terms(f, ord)
+function coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  perm = permutation_of_terms(f, ordering)
   return ((AbstractAlgebra.coeff(f, perm[i]),
            AbstractAlgebra.exponent_vector(f, perm[i])) for i in 1:length(f) )
 end
 
 @doc Markdown.doc"""
-    exponents(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return an iterator for the exponent vectors (as `Vector{Int}`) of `f` with
-respect to the order `ord`.
+respect to the order `ordering`.
 """
-function exponents(f::MPolyElem, ord::MonomialOrdering)
-  perm = permutation_of_terms(f, ord)
+function exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  perm = permutation_of_terms(f, ordering)
   return (AbstractAlgebra.exponent_vector(f, perm[i]) for i in 1:length(f))
 end
 
 @doc Markdown.doc"""
-    monomials(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
-Return an iterator for the monomials of `f` with respect to the order `ord`.
+Return an iterator for the monomials of `f` with respect to the order `ordering`.
 """
-function monomials(f::MPolyElem, ord::MonomialOrdering)
-  perm = permutation_of_terms(f, ord)
+function monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  perm = permutation_of_terms(f, ordering)
   return (AbstractAlgebra.monomial(f, perm[i]) for i in 1:length(f))
 end
 
 @doc Markdown.doc"""
-    terms(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
-Return an iterator for the terms of `f` with respect to the order `ord`.
+Return an iterator for the terms of `f` with respect to the order `ordering`.
 """
-function terms(f::MPolyElem, ord::MonomialOrdering)
-  perm = permutation_of_terms(f, ord)
+function terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  perm = permutation_of_terms(f, ordering)
   return (AbstractAlgebra.term(f, perm[i]) for i in 1:length(f))
 end
 
 @doc Markdown.doc"""
-    leading_coefficient(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
-Return the leading coefficient of `f` with respect to the order `ord`.
+Return the leading coefficient of `f` with respect to the order `ordering`.
 """
-function leading_coefficient(f::MPolyElem, ord::MonomialOrdering)
-  i = permutation_of_terms(f, ord)[1]
+function leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
+  i = permutation_of_terms(f, ordering)[1]
   return AbstractAlgebra.coeff(f, i)
 end
 
 @doc Markdown.doc"""
-    leading_exponent(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the leading exponent vector (as `Vector{Int}`) of `f` with
-respect to the order `ord`.
+respect to the order `ordering`.
 """
-function leading_exponent(f::MPolyElem, ord::MonomialOrdering)
-  i = permutation_of_terms(f, ord)[1]
+function leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
+  i = permutation_of_terms(f, ordering)[1]
   return AbstractAlgebra.exponent_vector(f, i)
 end
 
 @doc Markdown.doc"""
-    leading_monomial(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
-Return the leading monomial of `f` with respect to the order `ord`.
+Return the leading monomial of `f` with respect to the order `ordering`.
 """
-function leading_monomial(f::MPolyElem, ord::MonomialOrdering)
-  i = permutation_of_terms(f, ord)[1]
+function leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
+  i = permutation_of_terms(f, ordering)[1]
   return AbstractAlgebra.monomial(f, i)
 end
 
 @doc Markdown.doc"""
-    leading_term(f::MPolyElem; ord::MonomialOrdering = default_ordering(parent(f)))
+    leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
-Return the leading term of `f` with respect to the order `ord`.
+Return the leading term of `f` with respect to the order `ordering`.
 """
-function leading_term(f::MPolyElem, ord::MonomialOrdering)
-  i = permutation_of_terms(f, ord)[1]
+function leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
+  i = permutation_of_terms(f, ordering)[1]
   return AbstractAlgebra.term(f, i)
 end
 

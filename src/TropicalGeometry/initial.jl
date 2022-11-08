@@ -38,7 +38,7 @@ julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
 """
 function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
   # compute the weighted degrees shifted by the coefficient valuations
-  vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(coefficients(f),exponent_vectors(f))]
+  vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))]
 
   # compute the minimal degree
   # (note: max tropical semiring is reversely ordered, so min in the semiring is max in the conventional sense)
@@ -52,7 +52,7 @@ function valued_weighted_degree(f::MPolyElem, val::TropicalSemiringMap, w::Vecto
     return vwd
   else
     # if perturbation is specified, then compute the pertubed degrees
-    vwdsPerp = [TropicalSemiring(val)(dot(perturbation,alpha)) for alpha in exponent_vectors(f)]
+    vwdsPerp = [TropicalSemiring(val)(dot(perturbation,alpha)) for alpha in AbstractAlgebra.exponent_vectors(f)]
     # compute the minimum amongst all perturbations with maximal original degree
     vwdPerp = min([vwdsPerp[i] for i in 1:length(vwds) if vwds[i]==vwd]...)
 
@@ -158,7 +158,7 @@ function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation
 
   initialf = MPolyBuildCtx(kx)
   if isempty(perturbation)
-    for (vwdi,cf,expv) in zip(vwds,coefficients(f),exponent_vectors(f))
+    for (vwdi,cf,expv) in zip(vwds,AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))
       if vwdi == vwd
         vcf = Int(val(cf),preserve_ordering=true)
         c = t^-vcf*cf   # make coefficient valuation 0
@@ -168,7 +168,7 @@ function initial(f::MPolyElem, val::TropicalSemiringMap, w::Vector; perturbation
       end
     end
   else
-    for (vwdi,vwdiPerp,cf,expv) in zip(vwds,vwdsPerp,coefficients(f),exponent_vectors(f))
+    for (vwdi,vwdiPerp,cf,expv) in zip(vwds,vwdsPerp,AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))
       if vwdi == vwd && vwdiPerp == vwdPerp
         vcf = Int(val(cf),preserve_ordering=true)
         c = t^-vcf*cf

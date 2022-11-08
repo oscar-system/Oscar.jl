@@ -351,15 +351,15 @@ ideal(x*y^2, x^3)
 ```
 """
 function leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
-    return ideal(parent(g[1]), [first(monomials(f, ordering)) for f in g])
+    return ideal(parent(g[1]), [leading_monomial(f; ordering = ordering) for f in g])
 end
 
 function leading_ideal(I::IdealGens{T}) where { T <: MPolyElem }
-    return ideal(base_ring(I), [first(monomials(f, I.ord)) for f in I])
+    return ideal(base_ring(I), [leading_monomial(f; ordering = I.ord) for f in I])
 end
 
 function leading_ideal(I::IdealGens{T}, ordering::MonomialOrdering) where {T <: MPolyElem}
-    return ideal(base_ring(I), [first(monomials(f, ordering)) for f in I])
+    return ideal(base_ring(I), [leading_monomial(f; ordering = ordering) for f in I])
 end
 
 
@@ -386,7 +386,7 @@ ideal(y^7, x*y^2, x^3)
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
   G = groebner_basis(I, ordering=ordering)
-  return ideal(base_ring(I), [first(monomials(g, ordering)) for g in G])
+  return ideal(base_ring(I), [leading_monomial(g; ordering = ordering) for g in G])
 end
 
 @doc Markdown.doc"""

@@ -54,7 +54,7 @@ Rtx,tx = PolynomialRing(ZZ,vcat([:t],symbols(parent(G[1]))))
 vvG = [p-tx[1]]
 for f in G
   fRtx = MPolyBuildCtx(Rtx)
-  for (cK,expvKx) = zip(coefficients(f),exponent_vectors(f))
+  for (cK,expvKx) = zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     cR = numerator(cK)
     expvRtx = vcat([0],expvKx)
     push_term!(fRtx,cR,expvRtx)
@@ -82,7 +82,7 @@ GB = []
 for i = 2:3
   vvg = evaluate(vvGB[i],[1],[ZZ(p)])
   g = MPolyBuildCtx(Kx)
-  for (c, expvRtx) = Base.Iterators.zip(coefficients(vvg), exponent_vectors(vvg))
+  for (c, expvRtx) = Base.Iterators.zip(AbstractAlgebra.coefficients(vvg), AbstractAlgebra.exponent_vectors(vvg))
     expvKx = expvRtx
     popfirst!(expvKx)
     push_term!(g,K(c),expvKx)
