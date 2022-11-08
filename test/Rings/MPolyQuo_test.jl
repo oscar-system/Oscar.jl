@@ -124,3 +124,30 @@ end
   J2 = ideal(A, [A(z*y)])
   @test !is_prime(J2)
 end
+
+@testset "modulus - MPAnyQuoRing MPAnyNonQuoRing" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I = ideal(R, [x+y+z])
+  A, _ = quo(R,I)
+  @test modulus(R) == ideal(R,[zero(R)])
+  @test modulus(A) == I
+  U=MPolyComplementOfKPointIdeal(R,[0,0,0])
+  Rl,_ = Localization(R,U)
+  Il = Rl(I)
+  Al, _ = quo(Rl, Il)
+  @test modulus(Rl) == ideal(Rl,[zero(Rl)])
+  @test modulus(Al) == Il
+  U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y^2+1,z]))
+  Rl2,_ = Localization(R,U2)
+  Il2 = Rl2(I)
+  Al2,_ = quo(Rl2,Il2)
+  @test modulus(Rl2) == ideal(Rl2,[zero(Rl2)])
+  @test modulus(Al2) == Il2
+  U3=MPolyPowersOfElement(x+y)
+  Rl3,_ = Localization(R,U3)
+  Il3 = Rl3(I)
+  Al3,_ = quo(Rl3,Il3)
+  @test modulus(Rl3) == ideal(Rl3,[zero(Rl3)])
+  @test modulus(Al3) == Il3
+end
+
