@@ -1,4 +1,4 @@
-export base_ring_type, coverings, default_covering, patches, glueings, name_of, affine_charts
+export base_ring_type, coverings, default_covering, patches, glueings,  affine_charts
 
 ########################################################################
 # Attributes of AbsCoveredScheme                                       #
