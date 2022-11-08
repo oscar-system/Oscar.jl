@@ -1,4 +1,4 @@
-export base_ring_type, coverings, default_covering, patches, glueings,  affine_charts
+export base_ring_type, coverings, default_covering, patches, glueings,  affine_charts, name
 
 ########################################################################
 # Attributes of AbsCoveredScheme                                       #
@@ -72,7 +72,7 @@ base_ring(X::CoveredScheme) = X.kk
 # Names of CoveredSchemes                                              #
 ########################################################################
 set_name!(X::AbsCoveredScheme, name::String) = set_attribute!(X, :name, name)
-name_of(X::AbsCoveredScheme) = get_attribute(X, :name)::String
+name(X::AbsCoveredScheme) = get_attribute(X, :name)::String
 has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 
 ########################################################################

@@ -33,7 +33,7 @@ Base.in(U::AbsSpec, X::CoveredScheme) = any(C->(U in C), coverings(X))
 ########################################################################
 function Base.show(io::IO, X::AbsCoveredScheme)
   if has_name(X)
-    print(io, name_of(X))
+    print(io, name(X))
     return
   end
   print(io, "covered scheme with $(npatches(default_covering(X))) affine patches in its default covering")
