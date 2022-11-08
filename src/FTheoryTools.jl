@@ -31,4 +31,8 @@ const version = IS_DEV ? VersionNumber("$(VERSION_NUMBER)-dev") : VERSION_NUMBER
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
 
+# include files
+include("TateModels/constructors.jl")
+include("TateModels/attributes.jl")
+
 end

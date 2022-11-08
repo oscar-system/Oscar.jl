@@ -71,6 +71,9 @@ For detailed information about the implemented functionality, please take a look
 ## Bugs and feature requests
 
 If you want to report a bug or request a feature, please do it by raising a [github issue](https://github.com/Julia-meets-String-Theory/FTheoryTools.jl/issues).
+```@docs
+FTheoryTools.version
+```
 
 
 ## Contributions

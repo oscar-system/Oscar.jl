@@ -13,6 +13,7 @@ makedocs(
     pages = ["index.md",
             "FTheoryTools/Introduction.md",
             "Tools" => ["FTheoryTools/Weierstrass.md"],
+            "Tools" => ["FTheoryTools/Tate.md"],
             ]
     )
 

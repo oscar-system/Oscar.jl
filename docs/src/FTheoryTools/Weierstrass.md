@@ -12,7 +12,7 @@ Pages = ["Weierstrass.md"]
 
 We support the following constructors:
 ```@docs
-GlobalWeierstrassModel(polys::Vector{MPolyElem{fmpq}})
+GlobalWeierstrassModel(polys::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
 GenericGlobalWeierstrassModelOverToricSpace(v::Oscar.AbstractNormalToricVariety)
 GenericGlobalWeierstrassModelOverProjectiveSpace(n::Int)
 ```
