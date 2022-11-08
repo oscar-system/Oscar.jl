@@ -1701,7 +1701,7 @@ Note that the last two variants are only provided to allow a coherent usage.
 
 # Examples
 ``` jldoctest
-ulia> R, (x, y) = QQ["x", "y"]
+julia> R, (x, y) = QQ["x", "y"]
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> I = ideal(R, [x, y^2+1])
