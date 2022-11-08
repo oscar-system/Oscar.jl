@@ -643,7 +643,7 @@ end
 
 function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
   QQAb = base_ring(f)
-  c = reduce(lcm, map(conductor, coefficients(f)), init = Int(1))
+  c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(f)), init = Int(1))
   k, z = cyclotomic_field(QQAb, c)
   f = map_coefficients(x->k(x.data), f)
   lf = factor(f).fac
@@ -657,7 +657,7 @@ function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
   rts = QQAbElem{T}[]
 
   for g = keys(lf)
-    c = reduce(lcm, map(conductor, coefficients(g)), init = Int(1))
+    c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(g)), init = Int(1))
     #so THIS factor lives in cyclo(c)
     k, z = cyclotomic_field(QQAb, c)
     d = numerator(norm(k(discriminant(g))))

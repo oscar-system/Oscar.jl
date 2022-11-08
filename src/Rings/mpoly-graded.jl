@@ -745,13 +745,13 @@ end
 
 length(a::MPolyElem_dec) = length(a.f)
 total_degree(a::MPolyElem_dec) = total_degree(a.f)
-monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
-coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
-term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
-exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
-exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = exponent_vector(a.f, i, T)
-exponent(a::MPolyElem_dec, i::Int, j::Int) = exponent(a.f, i, j)
-exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i, j, T)
+AbstractAlgebra.monomial(a::MPolyElem_dec, i::Int) = parent(a)(AbstractAlgebra.monomial(a.f, i))
+AbstractAlgebra.coeff(a::MPolyElem_dec, i::Int) = AbstractAlgebra.coeff(a.f, i)
+AbstractAlgebra.term(a::MPolyElem_dec, i::Int) = parent(a)(AbstractAlgebra.term(a.f, i))
+AbstractAlgebra.exponent_vector(a::MPolyElem_dec, i::Int) = AbstractAlgebra.exponent_vector(a.f, i)
+AbstractAlgebra.exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = AbstractAlgebra.exponent_vector(a.f, i, T)
+AbstractAlgebra.exponent(a::MPolyElem_dec, i::Int, j::Int) = AbstractAlgebra.exponent(a.f, i, j)
+AbstractAlgebra.exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = AbstractAlgebra.exponent(a.f, i, j, T)
 
 function has_weighted_ordering(R::MPolyRing_dec)
   grading_to_ordering = false

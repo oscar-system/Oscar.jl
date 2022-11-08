@@ -20,32 +20,32 @@
  
    @test isa(revlex([x, y])*neglex([z]), MonomialOrdering)
 
-   @test collect(monomials(g, :lex)) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
-   @test collect(monomials(g, :revlex)) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # rp
-   @test collect(monomials(g, :deglex)) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
-   @test collect(monomials(g, :degrevlex)) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
-   @test collect(monomials(g, :neglex)) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
-   @test collect(monomials(g, :negrevlex)) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
-   @test collect(monomials(g, :negdeglex)) == [1, x, y, z, x^2, x*y, x*z, y^2, y*z, z^2] # Ds
-   @test collect(monomials(g, :negdegrevlex)) == [1, x, y, z, x^2, x*y, y^2, x*z, y*z, z^2] # ds
+   @test collect(monomials(g, lex(R))) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
+   @test collect(monomials(g, revlex(R))) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # rp
+   @test collect(monomials(g, deglex(R))) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
+   @test collect(monomials(g, degrevlex(R))) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
+   @test collect(monomials(g, neglex(R))) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
+   @test collect(monomials(g, negrevlex(R))) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
+   @test collect(monomials(g, negdeglex(R))) == [1, x, y, z, x^2, x*y, x*z, y^2, y*z, z^2] # Ds
+   @test collect(monomials(g, negdegrevlex(R))) == [1, x, y, z, x^2, x*y, y^2, x*z, y*z, z^2] # ds
 
-   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :revlex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :deglex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :degrevlex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :neglex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :negrevlex)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negdeglex)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negdegrevlex)) == [ x*y, z^3 ]
+   @test collect(monomials(f, lex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f, revlex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f, deglex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f, degrevlex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f, neglex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f, negrevlex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f, negdeglex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f, negdegrevlex(R))) == [ x*y, z^3 ]
  
    w = [ 1, 2, 1 ]
-   @test collect(monomials(f, :wdeglex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :wdegrevlex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negwdeglex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negwdegrevlex, w)) == [ x*y, z^3 ]
+   @test collect(monomials(f, wdeglex(R, w))) == [ x*y, z^3 ]
+   @test collect(monomials(f, wdegrevlex(R, w))) == [ x*y, z^3 ]
+   @test collect(monomials(f, negwdeglex(R, w))) == [ x*y, z^3 ]
+   @test collect(monomials(f, negwdegrevlex(R, w))) == [ x*y, z^3 ]
  
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
-   @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
+   @test collect(monomials(f, matrix_ordering(R, M))) == collect(monomials(f, deglex(R)))
 
    a = lex([x, y])
    @test is_global(a)
@@ -112,17 +112,17 @@ end
    R, (x, y, z) = PolynomialRing(QQ, 3)
    f = x*y + 5*z^3
  
-   @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
-   @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
-   @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
+   @test collect(terms(f, deglex(R))) == [ 5z^3, x*y ]
+   @test collect(exponents(f, deglex(R))) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
+   @test collect(coefficients(f, deglex(R))) == [ QQ(5), QQ(1) ]
 
    Fp = GF(7)
    R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
    f = x*y + 5*z^3
-   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
-   @test Oscar.leading_monomial(f, :lex) == x*y
-   @test Oscar.leading_coefficient(f, :lex) == Fp(1)
-   @test Oscar.leading_term(f, :lex) == x*y
+   @test collect(monomials(f, lex(R))) == [ x*y, z^3 ]
+   @test leading_monomial(f, lex(R)) == x*y
+   @test leading_coefficient(f, lex(R)) == Fp(1)
+   @test leading_term(f, lex(R)) == x*y
 end
  
 @testset "Polynomial Orderings comparison" begin

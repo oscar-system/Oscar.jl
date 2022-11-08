@@ -147,8 +147,11 @@ import Nemo:
     unit,
     ZZ
 
-exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer, :genus_symbol, :data,
-    :narrow_class_group, :perm, :SymmetricGroup]
+exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer,
+    :genus_symbol, :data, :narrow_class_group, :perm, :SymmetricGroup,
+    :coefficients, :leading_coefficient,
+    :monomials, :leading_monomial,
+    :terms, :leading_term]
 
 for i in names(Hecke)
   i in exclude && continue

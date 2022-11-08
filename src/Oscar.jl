@@ -361,6 +361,7 @@ function weights end
 function is_effective end
 
 include("printing.jl")
+include("fallbacks.jl")
 
 include("GAP/wrappers.jl")
 
