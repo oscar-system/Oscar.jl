@@ -109,6 +109,16 @@
    @test 3 == length(support(deglex([x,y])*wdeglex([y,z], [1,2])))
 end
 
+@testset "Polynomial Orderings printing" begin
+   R, (x, y, z) = PolynomialRing(QQ, 3)
+   f = x*y + 5*z^3 + 2
+   @test length(string(coefficients(f))) > 2
+   @test length(string(coefficients_and_exponents(f))) > 2
+   @test length(string(exponents(f))) > 2
+   @test length(string(monomials(f))) > 2
+   @test length(string(terms(f))) > 2
+end
+
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
    R, (x, y, z) = PolynomialRing(QQ, 3)
    f = x*y + 5*z^3
@@ -116,6 +126,9 @@ end
    @test collect(terms(f; ordering = deglex(R))) == [ 5z^3, x*y ]
    @test collect(exponents(f; ordering = deglex(R))) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
    @test collect(coefficients(f; ordering = deglex(R))) == [ QQ(5), QQ(1) ]
+
+   @test collect(coefficients_and_exponents(f)) ==
+                    map(tuple, collect(coefficients(f)), collect(exponents(f)))
 
    Fp = GF(7)
    R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
