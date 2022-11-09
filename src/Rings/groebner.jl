@@ -438,13 +438,25 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
 end
 
 @doc Markdown.doc"""
-    reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Vector` whose elements are the underlying elements of `I`
 reduced by the underlying generators of `J` w.r.t. the monomial
 ordering `ordering`. `J` need not be a Groebner basis. The returned
 `Vector` will have the same number of elements as `I`, even if they
 are zero.
+
+	reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Vector` whose elements are the elements of `F`
+reduced by the elements of `G` w.r.t. the monomial
+ordering `ordering`. `G` need not be a Groebner basis.
+
+	reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+
+Return an element which is `f` reduced by the underlying generators
+of `F` w.r.t. the monomial ordering `ordering`. `F` need not be a
+Groebner basis. The returned
 
 # Examples
 ```jldoctest
@@ -462,6 +474,16 @@ julia> reduce(J.gens, I.gens)
 julia> reduce(J.gens, groebner_basis(I))
 1-element Vector{gfp_mpoly}:
  0
+
+julia> reduce(y^3, [x^2, x*y-y^3])
+x*y
+
+julia> reduce(y^3, [x^2, x*y-y^3], ordering=lex(R))
+y^3
+
+julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
+1-element Vector{fmpq_mpoly}:
+ y^3
 ```
 """
 function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
@@ -470,6 +492,23 @@ function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default
 	singular_assure(J, ordering)
 	res = reduce(I.gens.S, J.gens.S)
 	return [J.gens.Ox(x) for x = gens(res)]
+end
+
+function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+	@assert parent(f) == parent(F[1])
+	R = parent(f)
+	I = IdealGens(R, [f], ordering)
+	J = IdealGens(R, F, ordering)
+	redv = reduce(I, J, ordering=ordering)
+	return redv[1]
+end
+
+function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(F[1]) == parent(G[1])
+	R = parent(F[1])
+	I = IdealGens(R, F, ordering)
+	J = IdealGens(R, G, ordering)
+	return reduce(I, J, ordering=ordering)
 end
 
 @doc Markdown.doc"""
