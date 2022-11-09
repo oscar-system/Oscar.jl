@@ -131,6 +131,10 @@ MPAnyQuoRing = Union{MPolyQuoLocalizedRing,
 MPAnyNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
                   }
 
+MPolyAnyRing = Union{MPolyRing, MPolyQuo,
+                MPolyLocalizedRing,MPolyQuoLocalizedRing
+               }
+
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
@@ -182,6 +186,10 @@ modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
 """
 quotient_ring(L::MPolyQuoLocalizedRing) = L.Q
+## 3 more signatures for compatibility to make quotient_ring agnostic
+quotient_ring(L::MPolyQuo) = L
+quotient_ring(L::MPolyRing) = L
+quotient_ring(L::MPolyLocalizedRing) = base_ring(L)
 
 @Markdown.doc """
     localized_ring(L::MPolyQuoLocalizedRing)
@@ -189,6 +197,10 @@ quotient_ring(L::MPolyQuoLocalizedRing) = L.Q
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
 """
 localized_ring(L::MPolyQuoLocalizedRing) = L.W
+## 3 more signatures for compatibility to make localized_ring agnostic
+localized_ring(L::MPolyLocalizedRing) = L
+localized_ring(L::MPolyQuo) = base_ring(L)
+localized_ring(L::MPolyRing) = L
 
 @Markdown.doc """
     gens(L::MPolyQuoLocalizedRing)
