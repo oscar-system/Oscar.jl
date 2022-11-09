@@ -7,6 +7,12 @@
     I = ideal(R, [x])
     gb = f4(I)
     @test normal_form(y, I) == y
+    G = groebner_basis(I)
+    J = ideal(R, y)
+    @test reduce(J.gens, G) == [y]
+    J = ideal(R, x*y^2)
+    matrix, res = reduce_with_quotients(J.gens, G)
+    @test matrix * gens(G) + res == gens(J)
     I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_groebner_basis(I.gens, ordering=lex(R)) == false
