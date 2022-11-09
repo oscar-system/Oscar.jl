@@ -50,6 +50,9 @@ end
   o = negdegrevlex(gens(R))
   G = standard_basis(I, ordering=o)
   @test normal_form(x^5-5, I, ordering=o) == -5
+  J = ideal(R, [x^5-5])
+  matr, res, units = reduce_with_quotients_and_units(J.gens, G)
+  @test matr * gens(G) + res == units * gens(J)
   u = negdegrevlex([x])*negdegrevlex([y])
   @test ideal_membership(x^4, I, ordering=u)
 end
