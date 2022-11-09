@@ -12,10 +12,10 @@ makedocs(
     doctest = false,
     pages = ["index.md",
             "FTheoryTools/Introduction.md",
-            "Tools" => ["FTheoryTools/Weierstrass.md"],
-            "Tools" => ["FTheoryTools/WeierstrassGeneralBase.md"],
-            "Tools" => ["FTheoryTools/Tate.md"],
-            "Tools" => ["FTheoryTools/TateGeneralBase.md"],
+            "Weierstrass models" => ["FTheoryTools/Weierstrass.md",
+                                     "FTheoryTools/WeierstrassGeneralBase.md"],
+            "Tate models" => ["FTheoryTools/Tate.md",
+                              "FTheoryTools/TateGeneralBase.md"],
             ]
     )
 
