@@ -1,6 +1,6 @@
 export  reduce, reduce_with_quotients, reduce_with_quotients_and_units, f4,
 		standard_basis, groebner_basis, groebner_basis_with_transformation_matrix,
-		leading_ideal, syzygy_generators
+		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -626,4 +626,33 @@ function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=def
     singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
     normal_form_internal(I, J, ordering)
+end
+
+
+function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
+	if F.isGB && F.ord == ordering
+		return true
+	else
+		# Try to reduce all possible s-polynomials, i.e. Buchberger's criterion
+		R = base_ring(F)
+		for i in 1:length(F)
+			lt_i = leading_term(F[i], ordering)
+			for j in i+1:length(F)
+				lt_j = leading_term(F[j], ordering)
+				lcm_ij  = lcm(lt_i, lt_j)
+				sp_ij = div(lcm_ij, lt_i) * F[i] - div(lcm_ij, lt_j) * F[j]
+				if reduce(IdealGens([sp_ij], ordering), F, ordering=ordering) != [R(0)]
+					return false
+				end
+			end
+		end
+		F.isGB = true
+		F.ord = ordering
+		return true
+	end
+end
+
+function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(F)))
+    is_global(ordering) || error("Ordering must be global")
+	return is_standard_basis(F, ordering=ordering)
 end
