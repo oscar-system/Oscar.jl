@@ -70,7 +70,31 @@ export weierstrass_polynomial
 
 
 #######################################
-# 3: Auxiliary toric spaces
+# 3: Discriminant
+#######################################
+
+@doc Markdown.doc"""
+    discriminant(w::WeierstrassModelOverGeneralBaseSpace)
+
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
+
+```jldoctest
+julia> using Oscar
+
+julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
+
+julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
+A global Weierstrass model over a general base space
+
+julia> discriminant(w);
+```
+"""
+@attr MPolyElem{fmpq} Oscar.:discriminant(w::WeierstrassModelOverGeneralBaseSpace) = 4 * weierstrass_section_f(w)^3 + 27 * weierstrass_section_g(w)^2
+export discriminant
+
+
+#######################################
+# 4: Auxiliary toric spaces
 #######################################
 
 @doc Markdown.doc"""

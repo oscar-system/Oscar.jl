@@ -42,6 +42,7 @@ GlobalWeierstrassModel(f::fmpq_mpoly, g::fmpq_mpoly, auxiliary_base_ring::MPolyR
 weierstrass_section_f(w::WeierstrassModelOverGeneralBaseSpace)
 weierstrass_section_g(w::WeierstrassModelOverGeneralBaseSpace)
 weierstrass_polynomial(w::WeierstrassModelOverGeneralBaseSpace)
+Oscar.:discriminant(w::WeierstrassModelOverGeneralBaseSpace)
 auxiliary_base_space(w::WeierstrassModelOverGeneralBaseSpace)
 auxiliary_ambient_space(w::WeierstrassModelOverGeneralBaseSpace)
 ```

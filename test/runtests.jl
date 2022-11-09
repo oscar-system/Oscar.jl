@@ -47,6 +47,7 @@ w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
     @test parent(weierstrass_section_f(w2)) == cox_ring(auxiliary_ambient_space(w2))
     @test parent(weierstrass_section_g(w2)) == cox_ring(auxiliary_ambient_space(w2))
     @test parent(weierstrass_polynomial(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test parent(discriminant(w2)) == cox_ring(auxiliary_ambient_space(w2))
     @test dim(auxiliary_base_space(w2)) == 2
     @test dim(auxiliary_ambient_space(w2)) == 4
     @test is_smooth(auxiliary_ambient_space(w2)) == false
