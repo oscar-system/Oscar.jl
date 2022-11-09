@@ -58,7 +58,7 @@ julia> a6 = a65 * w^5;
 julia> ais = [a1, a2, a3, a4, a6];
 
 julia> t = GlobalTateModel(ais, auxiliary_base_ring)
-A global Tate model over a general base space
+A global Tate model over a not fully specified base
 
 julia> tate_polynomial(t)
 a10*x*y*z + a21*w*x^2*z^2 + a32*w^2*y*z^3 + a43*w^3*x*z^4 + a65*w^5*z^6 + x^3 - y^2
@@ -141,5 +141,5 @@ export GlobalTateModel
 #######################################
 
 function Base.show(io::IO, cy::TateModelOverGeneralBaseSpace)
-    join(io, "A global Tate model over a general base space")
+    join(io, "A global Tate model over a not fully specified base")
 end

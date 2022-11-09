@@ -24,7 +24,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
 ```
@@ -55,7 +55,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
 ```
@@ -89,7 +89,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w);
 ```
@@ -123,7 +123,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> discriminant(w);
 ```
@@ -157,7 +157,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_base_space(w))
 true
@@ -188,7 +188,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
 false

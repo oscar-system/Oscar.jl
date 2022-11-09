@@ -40,7 +40,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w)
 f*x*z^4 + g*z^6 + x^3 - y^2
@@ -120,5 +120,5 @@ export GlobalWeierstrassModel
 #######################################
 
 function Base.show(io::IO, w::WeierstrassModelOverGeneralBaseSpace)
-    join(io, "A global Weierstrass model over a general base space")
+    join(io, "A global Weierstrass model over a not fully specified base")
 end

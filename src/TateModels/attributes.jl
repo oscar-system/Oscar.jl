@@ -23,7 +23,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> tate_section_a1(t);
 ```
@@ -53,7 +53,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> tate_section_a2(t);
 ```
@@ -83,7 +83,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> tate_section_a3(t);
 ```
@@ -113,7 +113,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> tate_section_a4(t);
 ```
@@ -143,7 +143,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> tate_section_a6(t);
 ```
@@ -177,7 +177,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> tate_polynomial(t);
 ```
@@ -211,7 +211,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> toric_base_space(t)
 A normal, 3-dimensional toric variety without torusfactor
@@ -242,7 +242,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> toric_ambient_space(t)
 A normal toric variety

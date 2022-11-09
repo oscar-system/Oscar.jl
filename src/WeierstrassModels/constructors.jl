@@ -67,7 +67,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> w = GenericGlobalWeierstrassModel(base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
 false
@@ -144,7 +144,7 @@ This method constructs a global Weierstrass model over the 3-dimensional project
 julia> using Oscar
 
 julia> GenericGlobalWeierstrassModelOverProjectiveSpace()
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 ```
 """
 GenericGlobalWeierstrassModelOverProjectiveSpace() = GenericGlobalWeierstrassModel(projective_space(NormalToricVariety,3))
@@ -179,7 +179,7 @@ julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bu
 julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
 
 julia> w = SpecificGlobalWeierstrassModel(f, g, base)
-A global Weierstrass model
+A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
 false
@@ -255,5 +255,5 @@ export SpecificGlobalWeierstrassModel
 #######################################
 
 function Base.show(io::IO, cy::GlobalWeierstrassModel)
-    join(io, "A global Weierstrass model")
+    join(io, "A global Weierstrass model over a concrete base")
 end

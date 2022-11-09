@@ -71,7 +71,7 @@ julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
 julia> t = GenericGlobalTateModel(base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> is_smooth(toric_ambient_space(t))
 false
@@ -151,7 +151,7 @@ This method constructs a global Tate model over the 3-dimensional projective spa
 julia> using Oscar
 
 julia> GenericGlobalTateModelOverProjectiveSpace()
-A global Tate model
+A global Tate model over a concrete base
 ```
 """
 GenericGlobalTateModelOverProjectiveSpace() = GenericGlobalTateModel(projective_space(NormalToricVariety,3))
@@ -191,7 +191,7 @@ julia> a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_b
 julia> a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
 
 julia> t = SpecificGlobalTateModel([a1, a2, a3, a4, a6], base)
-A global Tate model
+A global Tate model over a concrete base
 
 julia> is_smooth(toric_ambient_space(t))
 false
@@ -265,5 +265,5 @@ export SpecificGlobalTateModel
 #######################################
 
 function Base.show(io::IO, cy::GlobalTateModel)
-    join(io, "A global Tate model")
+    join(io, "A global Tate model over a concrete base")
 end

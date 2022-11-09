@@ -13,7 +13,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_f(w)
 f
@@ -34,7 +34,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> weierstrass_section_g(w)
 g
@@ -59,7 +59,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w)
 f*x*z^4 + g*z^6 + x^3 - y^2
@@ -84,7 +84,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> discriminant(w);
 ```
@@ -108,7 +108,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> auxiliary_base_space(w)
 A normal, affine, 2-dimensional toric variety
@@ -129,7 +129,7 @@ julia> using Oscar
 julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
 
 julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
-A global Weierstrass model over a general base space
+A global Weierstrass model over a not fully specified base
 
 julia> auxiliary_ambient_space(w)
 A normal toric variety
