@@ -217,7 +217,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
         # DK15 propose to check containment via linear algebra; this approach
         # from Kin07 using d-truncated Groebner bases appears to be faster.
-        _, r = divrem(fg, gb) # TODO clarify if the ordering matter for this divrem
+        _, r = divrem(fg, gb) # degrevlex from assert ordering(R) == :degrevlex
         if !is_zero(r)
           # fg is a product of monic polynomials, so monic itself
           exp = copy(s_invars_cache.sec_in_irred[j])
@@ -253,7 +253,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
       if iszero(f)
         continue
       end
-      _, r = divrem(f, gb)  # TODO clarify if the ordering matter for this divrem
+      _, r = divrem(f, gb)  # degrevlex from assert ordering(R) == :degrevlex
       if !is_zero(r)
         f = inv(AbstractAlgebra.leading_coefficient(f))*f
         add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
