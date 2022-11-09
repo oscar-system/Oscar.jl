@@ -524,7 +524,7 @@ end
 
 # expressify wrt ordering
 function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
-  perm = Orderings.permutation_of_terms(f, a.second)
+  perm = Orderings.permutation_of_terms(a.first, a.second)
   return expressify(OscarPair(a.first, perm); context = context)
 end
 @enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}

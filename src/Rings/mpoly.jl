@@ -882,7 +882,7 @@ end
 
 # expressify wrt to an ordering
 function expressify(a::OscarPair{<:MPolyElem, <:MonomialOrdering}; context = nothing)
-  perm = permutation_of_terms(f, a.second)
+  perm = permutation_of_terms(a.first, a.second)
   return expressify(OscarPair(a.first, perm); context = context)
 end
 @enable_all_show_via_expressify OscarPair{<:MPolyElem, <:MonomialOrdering}
