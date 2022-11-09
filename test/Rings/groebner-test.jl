@@ -13,6 +13,11 @@
     J = ideal(R, x*y^2)
     matrix, res = reduce_with_quotients(J.gens, G)
     @test matrix * gens(G) + res == gens(J)
+    quots, res, units = reduce_with_quotients_and_units(J.gens, G)
+    @test matrix * gens(G) + res == units * gens(J)
+    @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
+    @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
+    @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
     I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_groebner_basis(I.gens, ordering=lex(R)) == false
