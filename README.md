@@ -57,6 +57,7 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 4. Finally, register and build `FTheoryTools.jl` as follows:
 ```julia
     using Pkg
+    Pkg.add("Oscar")
     Pkg.develop(path="path/to/your/FTheoryTools.jl")
     Pkg.build("FTheoryTools")
 ```
@@ -64,7 +65,7 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 
 ## Documentation
 
-For detailed information about the implemented functionality, please take a look at the most recent [documentation](https://herearound.github.io/FTheoryTools.jl/dev/).
+For detailed information about the implemented functionality, please take a look at the most recent [documentation](https://julia-meets-string-theory.github.io/FTheoryTools.jl/dev/).
 
 
 ## Bugs and feature requests
