@@ -24,6 +24,7 @@ Base.show(w)
     @test parent(weierstrass_section_f(w)) == cox_ring(toric_ambient_space(w))
     @test parent(weierstrass_section_g(w)) == cox_ring(toric_ambient_space(w))
     @test parent(weierstrass_polynomial(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(discriminant(w)) == cox_ring(toric_ambient_space(w))
     @test dim(toric_base_space(w)) == 3
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false

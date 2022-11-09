@@ -37,6 +37,7 @@ SpecificGlobalWeierstrassModel(f::MPolyElem_dec{fmpq, fmpq_mpoly}, g::MPolyElem_
 weierstrass_section_f(w::GlobalWeierstrassModel)
 weierstrass_section_g(w::GlobalWeierstrassModel)
 weierstrass_polynomial(w::GlobalWeierstrassModel)
+Oscar.:discriminant(w::GlobalWeierstrassModel)
 toric_base_space(w::GlobalWeierstrassModel)
 toric_ambient_space(w::GlobalWeierstrassModel)
 ```

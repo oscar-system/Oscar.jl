@@ -99,7 +99,41 @@ export weierstrass_polynomial
 
 
 #######################################
-# 3: Toric spaces
+# 3: Discriminant
+#######################################
+
+@doc Markdown.doc"""
+    discriminant(w::GlobalWeierstrassModel)
+
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
+
+```jldoctest
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GenericGlobalWeierstrassModel(base)
+A global Weierstrass model
+
+julia> discriminant(w);
+```
+"""
+@attr MPolyElem{fmpq} Oscar.:discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
+export discriminant
+
+
+#######################################
+# 4: Toric spaces
 #######################################
 
 @doc Markdown.doc"""
