@@ -7,6 +7,12 @@
     I = ideal(R, [x])
     gb = f4(I)
     @test normal_form(y, I) == y
+    I = ideal(R,[y^2 - x, x^3 - 2*y^2])
+    @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
+    @test is_groebner_basis(I.gens, ordering=lex(R)) == false
+    @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
+    @test is_standard_basis(I.gens, ordering=degrevlex(R)) == true
+    @test is_standard_basis(I.gens, ordering=neglex(R)) == false
 end
 
 @testset "groebner leading ideal" begin
