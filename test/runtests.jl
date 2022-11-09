@@ -14,7 +14,7 @@ base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 
 
 #############################################################
-# 2: Test global Weierstrass models
+# 2: Global Weierstrass models
 #############################################################
 
 w = GenericGlobalWeierstrassModel(base)
@@ -35,7 +35,29 @@ end
 
 
 #############################################################
-# 3: Test global Tate models
+# 3: Global Weierstrass models over generic base space
+#############################################################
+
+auxiliary_base_ring, (f, g) = QQ["f", "g"]
+auxiliary_ring2, (x, y) = QQ["x", "y"]
+w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
+
+@testset "Attributes of global Weierstrass models over generic base spaces" begin
+    @test parent(weierstrass_section_f(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test parent(weierstrass_section_g(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test parent(weierstrass_polynomial(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test dim(auxiliary_base_space(w2)) == 2
+    @test dim(auxiliary_ambient_space(w2)) == 4
+    @test is_smooth(auxiliary_ambient_space(w2)) == false
+end
+
+@testset "Error messages in global Weierstrass models over generic base space" begin
+    @test_throws ArgumentError GlobalWeierstrassModel(f, x^2, auxiliary_base_ring)
+end
+
+
+#############################################################
+# 4: Global Tate models
 #############################################################
 
 t = GenericGlobalTateModel(base)
@@ -59,7 +81,7 @@ end
 
 
 #############################################################
-# 4: Test global Tate models over generic base space
+# 5: Global Tate models over generic base space
 #############################################################
 
 auxiliary_base_ring, (a10,a21,a32,a43,a65,w) = QQ["a10", "a21", "a32", "a43", "a65", "w"]
