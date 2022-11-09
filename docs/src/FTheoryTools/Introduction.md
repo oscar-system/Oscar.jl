@@ -97,3 +97,5 @@ If you are interested in contributing, please feel free to reach out to us for m
 ## Funding
 
 The work of Martin Bies is supported by SFB-TRR 195 `Symbolic Tools in Mathematics and their Application of the German Research Foundation (DFG)`.
+
+The work of Andrew Turner is supported by DOE (HEP) Award DE-SC001352.
