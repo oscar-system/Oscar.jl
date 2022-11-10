@@ -682,7 +682,13 @@ Use `dehomogenize(P, U)` with `U` one of the `affine_charts` of ``X`` to
 obtain the dehomogenization map from the `ambient_coordinate_ring` of `P` 
 to the `coordinate_ring` of `U`.
 
-TODO: Add an example.
+# Example
+```jldoctest
+julia> P = projective_space(QQ, 2);
+
+julia> Pcov = covered_scheme(P)
+covered scheme with 3 affine patches in its default covering
+```
 """
 @attr function covered_scheme(P::ProjectiveScheme)
     C = standard_covering(P) 

@@ -20,7 +20,16 @@ base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
 
 Return the list of internally stored `Covering`s of ``X``.
 
-TODO: Add an example.
+# Example
+```jldoctest
+julia> P = projective_space(QQ, 2);
+
+julia> Pcov = covered_scheme(P);
+
+julia> coverings(Pcov)
+1-element Vector{Covering{FlintRationalField}}:
+ Covering with 3 patches
+```
 """
 function coverings(X::AbsCoveredScheme) ::Vector{<:Covering}
   return coverings(underlying_scheme(X))

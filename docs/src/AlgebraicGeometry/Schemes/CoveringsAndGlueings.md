@@ -36,9 +36,10 @@ Pages = ["CoveredSchemes.md"]
 
 # Glueings
 
-## Interface 
 Glueings are used to identify open subsets $U \subset X$ and $V \subset Y$ 
 of affine schemes along an isomorphism $f \colon U \leftrightarrow V \colon g$. 
+
+## Types 
 The abstract type of any such glueing is 
 ```@docs
     AbsGlueing
