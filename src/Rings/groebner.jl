@@ -523,6 +523,27 @@ gens(J) + res == units * gens(I)`. If `ordering` is global then
 `reduce_with_quotients`. `J` need not be a Groebner basis. `res` will
 have the same number of elements as `I`, even if they are zero.
 
+	reduce_with_quotients_and_units(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
+`Vector` `res` whose elements are the underlying elements of `F`
+reduced by the underlying generators of `G` w.r.t. the monomial
+ordering `ordering` and a diagonal matrix `units` such that `M *
+G + res == units * F`. If `ordering` is global then
+`units` will always be the identity matrix, see also
+`reduce_with_quotients`. `G` need not be a Groebner basis. `res` will
+have the same number of elements as `F`, even if they are zero.
+
+	reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, an
+`MPolyElem` `res` which represents `f`
+reduced by the underlying generators of `F` w.r.t. the monomial
+ordering `ordering` and a diagonal matrix `units` such that `M *
+F + res == units * f`. If `ordering` is global then
+`units` will always be the identity matrix, see also
+`reduce_with_quotients`. `G` need not be a Groebner basis.
+
 # Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(GF(11), ["x", "y"]);
@@ -539,6 +560,23 @@ julia> M, res, units = reduce_with_quotients_and_units(I.gens, J.gens, ordering 
 ([x], gfp_mpoly[0], [x+1])
 
 julia> M * gens(J) + res == units * gens(I)
+true
+
+julia> f = x^3*y^2-y^4-10
+x^3*y^2 + 10*y^4 + 1
+
+julia> F = [x^2*y-y^3, x^3-y^4]
+2-element Vector{gfp_mpoly}:
+ x^2*y + 10*y^3
+ x^3 + 10*y^4
+
+julia> reduce_with_quotients_and_units(f,F)
+([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
+
+julia> M, res, units = reduce_with_quotients_and_units(f,F, ordering=lex(R))
+([0 y^2], y^6 + 10*y^4 + 1, [1])
+
+julia> M * F + [res] == units * [f]
 true
 ```
 """
