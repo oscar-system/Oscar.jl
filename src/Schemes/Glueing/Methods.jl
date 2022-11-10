@@ -13,7 +13,7 @@ end
 # Composition of Glueings                                              #
 ########################################################################
 @Markdown.doc """
-compose(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
+    compose(G::AbsGlueing, H::AbsGlueing)
 
 Given glueings `X ↩ U ≅ V ↪  Y` and `Y ↩ V' ≅ W ↪ Z`, return the glueing
 `X ↩  V ∩ V' ↪ Z`. 
@@ -21,6 +21,10 @@ Given glueings `X ↩ U ≅ V ↪  Y` and `Y ↩ V' ≅ W ↪ Z`, return the glu
 **WARNING:** In general such a glueing will not provide a separated scheme. 
 Use `maximal_extension` to extend the glueing.
 """
+function compose(G::AbsGlueing, H::AbsGlueing) 
+  error("method `compose` not implemented for glueings of type $(typeof(G)) and $(typeof(H))")
+end
+
 function compose(G::Glueing, H::Glueing) 
   # make sure that Y is the second patch of the first glueing and 
   # the first patch of the second
@@ -46,7 +50,7 @@ function compose(G::Glueing, H::Glueing)
 end
 
 @Markdown.doc """
-maximal_extension(G::Glueing)
+    maximal_extension(G::Glueing)
 
 Given a glueing `X ↩ U ≅ V ↪ Y`, try to find the maximal extension to an open 
 subset `U' ⊃ U` in `X` and `V' ⊃ V` in `Y` so that the resulting scheme is separated.
