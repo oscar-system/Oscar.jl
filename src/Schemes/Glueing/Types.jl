@@ -3,6 +3,13 @@ export AbsGlueing, Glueing, SimpleGlueing
 ########################################################################
 # Abstract glueings for affine schemes                                 #
 ########################################################################
+@Markdown.doc """
+    AbsGlueing
+
+A glueing of two affine schemes ``X`` and ``Y`` (the `patches`) along 
+open subsets ``U`` in ``X`` and ``V`` in ``Y`` (the `glueing_domains`)
+along mutual isomorphisms ``f : U ↔ V : g`` (the `glueing_morphisms`).
+"""
 abstract type AbsGlueing{LeftSpecType<:AbsSpec,
                          RightSpecType<:AbsSpec,
                          LeftOpenType<:Scheme,
@@ -15,10 +22,10 @@ abstract type AbsGlueing{LeftSpecType<:AbsSpec,
 # Concrete type for general glueings                                   #
 ########################################################################
 @Markdown.doc """
-    Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
+    Glueing
 
-Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets
-``U ⊂ X`` and ``V ⊂ Y via some isomorphism ``φ : U → V``.
+Concrete instance of an `AbsGlueing` for glueings of affine schemes 
+``X ↩ U ≅ V ↪ Y`` along open subsets ``U`` and ``V`` of type `SpecOpen`.
 """
 @attributes mutable struct Glueing{
                                    LeftSpecType<:AbsSpec,
@@ -71,6 +78,13 @@ end
 # simplification of underlying algorithms in the background.
 # Hence, the special type.
 ########################################################################
+@Markdown.doc """
+    SimpleGlueing
+
+Concrete instance of an `AbsGlueing` for glueings of affine schemes 
+``X ↩ U ≅ V ↪ Y`` along open subsets ``U`` and ``V`` of type 
+`PrincipalOpenSubset`.
+"""
 @attributes mutable struct SimpleGlueing{LST<:AbsSpec,
                                          RST<:AbsSpec,
                                          LOT<:PrincipalOpenSubset,

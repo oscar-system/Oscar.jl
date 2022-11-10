@@ -87,7 +87,7 @@ end
   @test domain(Ccov[C3, C1]) === C3
   @test glueings(Ccov) === glueings(C1)
   set_name!(Ccov, "C")
-  @test name_of(Ccov) == "C"
+  @test name(Ccov) == "C"
 
   @test CoveredScheme(C1[1]) isa AbsCoveredScheme
   @test is_empty(empty_covered_scheme(QQ))
