@@ -4,6 +4,8 @@ export representative, point
 
 export ambient_germ
 
+export KPoint_coordinates
+
 import AbstractAlgebra: Ring
 
 @Markdown.doc """
@@ -94,6 +96,29 @@ end
 # allow user to specify point also as ideal
 ############################################################################################################
 
+@doc Markdown.doc"""
+    KPoint_coordinates(I::MPolyIdeal)
+
+Returns the $k$-coordinates of the point corresponding to a maximal ideal 
+$I \in k[x_1,\dots,x_n]$, which describes a $k$-point. If $I$ is not maximal
+or does not describe a point with coordinates in the field $k$, an error 
+exception results.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = QQ["x","y"]
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal(R, [x-1,y-3])
+ideal(x - 1, y - 3)
+
+julia> KPoint_coordinates(I)
+2-element Vector{fmpq}:
+ 1
+ 3
+
+```
+"""
 function KPoint_coordinates(I::MPolyIdeal)
   R=base_ring(I)
   o = degrevlex(gens(R))
