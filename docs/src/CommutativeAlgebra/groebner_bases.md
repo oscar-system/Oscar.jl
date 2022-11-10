@@ -122,10 +122,6 @@ reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering
 ```
 
 ```@julia
-reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-```
-
-```@julia
 reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 ```
 
