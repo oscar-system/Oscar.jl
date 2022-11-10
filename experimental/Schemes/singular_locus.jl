@@ -21,11 +21,11 @@ export is_smooth
 ###       for covered schemes (the workhorse is already there...).
  
 @doc Markdown.doc"""
-    singular_locus(X::AbsSpec{<:Field, <:MPolyAnyRing})
+    singular_locus(X::AbsSpec{<:Field, <:MPolyAnyRing}) -> AbsSpec
 
-Returns the singular locus of $X$ as a subscheme of $X$, where $X$ is a
-scheme over a field $k$. For computing the singular locus of the 
-reduced scheme induced by $X$, please use 'singular_locus_reduced'.
+Return the singular locus of `X`.
+
+For computing the singular locus of the reduced scheme induced by $X$, please use `singular_locus_reduced`.
 
 Currently this command is available for affine schemes and space germs.
 TODO: Covered schemes, projective schemes
