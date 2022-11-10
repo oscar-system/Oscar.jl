@@ -570,10 +570,10 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
-julia> reduce_with_quotients_and_units(f,F)
+julia> reduce_with_quotients_and_units(f, F)
 ([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
 
-julia> M, res, units = reduce_with_quotients_and_units(f,F, ordering=lex(R))
+julia> M, res, units = reduce_with_quotients_and_units(f, F, ordering=lex(R))
 ([0 y^2], y^6 + 10*y^4 + 1, [1])
 
 julia> M * F + [res] == units * [f]
@@ -664,13 +664,13 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
-julia> reduce_with_quotients_and_units(f,F)
-([x*y 10*x+1], x^4 + 10*x^3 + 1)
+julia> reduce_with_quotients_and_units(f, F)
+([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
 
-julia> M, res, units = reduce_with_quotients_and_units(f,F, ordering=lex(R))
-([0 y^2], y^6 + 10*y^4 + 1)
+julia> M, res, units = reduce_with_quotients_and_units(f, F, ordering=lex(R))
+([0 y^2], y^6 + 10*y^4 + 1, [1])
 
-julia> M * F + [res] == [f]
+julia> M * F + [res] == units * [f]
 true
 ```
 """
