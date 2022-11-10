@@ -60,8 +60,8 @@ end
 
    # FIXME: the following two tests are fishy. The first couple calls
    # really should result in errors ?!?
-   @test [transitivity(G,1:i) for i in 1:5]==[1,2,3,4,0]
-   @test [transitivity(L[5],1:i) for i in 1:5]==[1,2,1,1,0]
+   @test [transitivity(G,1:i) for i in 1:5]==[0,0,0,4,0]
+   @test [transitivity(L[5],1:i) for i in 1:5]==[0,0,0,1,0]
 
    @test is_transitive(G)
    H = sub(G,[G([2,3,1,4])])[1]
