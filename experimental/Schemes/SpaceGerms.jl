@@ -4,7 +4,7 @@ export representative, point
 
 export ambient_germ
 
-export KPoint_coordinates
+export rational_point_coordinates
 
 import AbstractAlgebra: Ring
 
@@ -97,7 +97,7 @@ end
 ############################################################################################################
 
 @doc Markdown.doc"""
-    KPoint_coordinates(I::MPolyIdeal)
+    rational_point_coordinates(I::MPolyIdeal)
 
 Returns the $k$-coordinates of the point corresponding to a maximal ideal 
 $I \in k[x_1,\dots,x_n]$, which describes a $k$-point. If $I$ is not maximal
@@ -112,14 +112,14 @@ julia> R, (x, y) = QQ["x","y"]
 julia> I = ideal(R, [x-1,y-3])
 ideal(x - 1, y - 3)
 
-julia> KPoint_coordinates(I)
+julia> rational_point_coordinates(I)
 2-element Vector{fmpq}:
  1
  3
 
 ```
 """
-function KPoint_coordinates(I::MPolyIdeal)
+function rational_point_coordinates(I::MPolyIdeal)
   R=base_ring(I)
   o = degrevlex(gens(R))
   G=groebner_basis(I)
@@ -176,7 +176,7 @@ end
 function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
   R === ambient_coordinate_ring(X) || error("rings are not compatible")
-  a = KPoint_coordinates(I)
+  a = rational_point_coordinates(I)
   Y = SpaceGerm(X,a)
   return Y
 end
@@ -189,7 +189,7 @@ function SpaceGerm(X::AbsSpec, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
   J = to_poly_ideal(I)
-  a = KPoint_coordinates(J)
+  a = rational_point_coordinates(J)
   Y = SpaceGerm(X,a)
   return Y
 end
