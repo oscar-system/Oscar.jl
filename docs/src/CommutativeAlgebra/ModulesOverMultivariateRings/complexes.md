@@ -52,7 +52,7 @@ map(C, 5)
 
 ## Operations on Chain Complexes
 
-```@docs
+```@julia
 shift(C::ChainComplex{T}, d::Int) where T
 ```
 
