@@ -113,7 +113,7 @@ Return the cyclic group of order `n`, as an instance of type `T`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(5)
-<pc group of size 5 with 1 generators>
+<pc group of size 5 with 1 generator>
 
 julia> G = cyclic_group(PermGroup, 5)
 Group([ (1,2,3,4,5) ])

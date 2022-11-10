@@ -161,7 +161,7 @@ end
   @test ! is_primitive(G8)
   @test ! is_primitive(G8, 1:degree(G8))
   @test is_primitive(S4)
-  @test is_primitive(S4, 1:3)
+  @test ! is_primitive(S4, 1:3)
 
   # is_regular
   @test is_regular(G8)
@@ -192,7 +192,8 @@ end
   # transitivity
   @test transitivity(G8) == 1
   @test transitivity(S4) == 4
-  @test transitivity(S4, 1:3) == 3
+  @test transitivity(S4, 1:3) == 0
+  @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
 
 end

@@ -7,7 +7,7 @@ Pages = ["faq.md"]
 
 ## General questions
 
-**Q: How do I install Oscar?**
+**Q: How do I install OSCAR?**
 
 You can find our installation instructions [here](https://oscar.computeralgebra.de/install/).
 
@@ -15,7 +15,7 @@ You can find our installation instructions [here](https://oscar.computeralgebra.
 
 **Q: Why do some of your types have funny names like `fmpz` or `fmpq_mat`?**
 
-This has historical reasons. We plan to rename these types before Oscar 1.0
+This has historical reasons. We plan to rename these types before OSCAR 1.0
 (the old names will still work indefinitely, though)
 
 ---
@@ -25,7 +25,7 @@ This has historical reasons. We plan to rename these types before Oscar 1.0
 Unfortunately, Julia's matrices and linear algebra cannot be made to work in
 our context due to two independent problems:
   - in empty matrices (0 rows or columns) all that is known is the *type* of
-    the matrix entries, however for the complex types used in Oscar, this
+    the matrix entries, however for the complex types used in OSCAR, this
     information is not sufficient to create elements, hence `zero(T)` or
     friends cannot work.
   - many functions (e.g. `det`) assume that all types used embed into the
@@ -55,13 +55,13 @@ needing it, but then e.g. addition of matrices would have to be implemented
 specifically for this case, negating the advantages of generic
 implementations.
 
-In Oscar, the role of the type is split between the actual Julia type and the `parent`.
+In OSCAR, the role of the type is split between the actual Julia type and the `parent`.
 
 ---
 
 **Q: What is a `parent`?**
 
-Almost all element-like objects in Oscar have a parent, i.e., they belong to some
+Almost all element-like objects in OSCAR have a parent, i.e., they belong to some
 larger structure. For example algebraic numbers belong to a number field,
 modular integers belong to a ring ``Z/nZ``, permutations are elements of permutation
 groups and so on. The data common to all such elements is out-sourced to
@@ -70,7 +70,7 @@ used to define the field (plus other information).
 
 Given that a type alone is not large enough to contain the data, the parent is 
 used. Roughly, outside a function signature, a parent replaces the role of the 
-type. For example, for a ring element `elm` in Oscar `zero(parent(elm))` works,
+type. For example, for a ring element `elm` in OSCAR `zero(parent(elm))` works,
 even if `zero(typeof(elm))` may not.
 
 ---
@@ -83,7 +83,7 @@ TODO
 
 ## Windows specific
 
-**Q: How can I install Oscar on Windows?**
+**Q: How can I install OSCAR on Windows?**
 
 Please follow [the install instructions on our website](https://oscar.computeralgebra.de/install/).
 
@@ -104,11 +104,11 @@ Type `\\wsl$` into the Explorer address bar, then press the Enter key.
 
 ## Linux specific
 
-**Q: Why can't I install Oscar using the Julia version installed by my package manager?**
+**Q: Why can't I install OSCAR using the Julia version installed by my package manager?**
 
 Some Linux distributions unfortunately ship crippled versions of Julia by
-default, which prevent Oscar from working. For example the Debian and Ubuntu
-Julia packages are missing some files required by Oscar. In this case, this
+default, which prevent OSCAR from working. For example the Debian and Ubuntu
+Julia packages are missing some files required by OSCAR. In this case, this
 can be resolved by also installing the `libjulia-dev` package.
 
 For this reason, we recommend always using the official Julia binaries
@@ -116,9 +116,9 @@ available form the Julia website.
 
 ---
 
-**Q: What to do if I get an error similar to ```libstdc++.so.6: version `GLIBCXX_3.4.26'```**
+**Q: What to do if I get an error similar to ```libstdc++.so.6: version `GLIBCXX_3.4.26'```?**
 
-Sometimes installing or updating Oscar gives the error ```libstdc++.so.6: version `GLIBCXX_3.4.26'```
+Sometimes installing or updating OSCAR gives the error ```libstdc++.so.6: version `GLIBCXX_3.4.26'```
 or a similar one.
 
 This typically happens when manually installing Julia using the official Julia binaries
@@ -135,9 +135,9 @@ the system copy is used. This can be achieved by executing the following Julia c
 If for some reason you need to restore the C++ library bundled with Julia, you can
 simply rename it back.
 
-**Q:  Oscar fails to precompile when using it with GNU parallel**
+**Q: Why does OSCAR fail to precompile when using it with GNU parallel?**
 
-You get errors like the following when trying to run some script using Oscar
+You get errors like the following when trying to run some script using OSCAR
 with GNU parallel:
 ```
   ERROR: LoadError: InitError: ArgumentError: '.../deps/<something>_jll' exists. `force=true` is required to remove '...' before copying.
@@ -148,5 +148,5 @@ versions before 1.8 that ignored the parent argument for the `tempname`
 function when the `TMPDIR` environment variable is set and GNU parallel by
 default sets `TMPDIR` to `/tmp`.
 
-Either upgrade to julia 1.8 or later, or add `ENV["TMPDIR"]=nothing;` to the
+Either upgrade to Julia 1.8 or later, or add `ENV["TMPDIR"]=nothing;` to the
 beginning of your julia code (before importing / using Oscar).

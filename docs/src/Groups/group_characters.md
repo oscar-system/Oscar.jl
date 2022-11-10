@@ -77,18 +77,18 @@ Thus it makes sense to deal also with character tables *without* an
 explicit labeling of the columns of the table by conjugacy classes of a group.
 For example, the character tables shown in
 Atlas of Finite Groups [CCNPW85](@cite) and from the
-Atlas of Brauer Characters [JLPW95](@cite) are available in Oscar.
+Atlas of Brauer Characters [JLPW95](@cite) are available in OSCAR.
 Such character tables can be fetched with `character_table`
 from the database, via their names.
 
-In Oscar, a character table `t` is identified with the array of absolutely
+In OSCAR, a character table `t` is identified with the array of absolutely
 irreducible characters of ``G``, in the sense that `t[i]` yields the
 `i`-th irreducible character of ``G``,
 and `t[i, j]` is the value of this character on the `j`-th conjugacy class
 of ``G`` (or the `j`-th conjugacy class of ``p``-regular elements
 in the case of Brauer tables).
 
-Ordinary and ``p``-modular Brauer tables in Oscar are distinguished by
+Ordinary and ``p``-modular Brauer tables in OSCAR are distinguished by
 the field `characteristic`; its value is `0` for ordinary tables and
 ``p`` otherwise.
 

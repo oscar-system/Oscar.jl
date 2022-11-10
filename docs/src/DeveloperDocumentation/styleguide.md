@@ -9,9 +9,9 @@ deviate from them in some cases; in that case just do so.
 ## Naming conventions
 
 The usual [Julia naming conventions](https://docs.julialang.org/en/v1/manual/style-guide/#Use-naming-conventions-consistent-with-Julia-base/)
-apply to Oscar, too (that said, for various reasons our code still violates
+apply to OSCAR, too (that said, for various reasons our code still violates
 quite some of them; but in general we strive to reduce these).
-Here is a summary of the naming convention followed in Oscar:
+Here is a summary of the naming convention followed in OSCAR:
 
 - Use `CamelCase` for types and `snake_case` for *everything* else. (Internal
   functions do not have to follow these rules.) Types (and their constructor)
@@ -39,7 +39,7 @@ Here is a summary of the naming convention followed in Oscar:
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
-- If already existing types in Oscar are almost what you need, consider
+- If already existing types in OSCAR are almost what you need, consider
   improving them instead of writing your own. While it might be tempting to
   create a new polynomial ring type for the new application because some
   feature is missing, it causes a lot of work and compatibility issues: Will
