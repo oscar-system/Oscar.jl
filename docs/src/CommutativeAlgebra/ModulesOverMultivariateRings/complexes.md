@@ -52,8 +52,8 @@ map(C, 5)
 
 ## Operations on Chain Complexes
 
-```@julia
-shift(C::ChainComplex{T}, n::Int) where T
+```@docs
+shift(C::ChainComplex{T}, d::Int) where T
 ```
 
 Return the complex obtained from `C` by shifting the homological degrees `d` steps.
