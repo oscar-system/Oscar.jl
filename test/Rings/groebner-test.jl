@@ -18,7 +18,23 @@
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
-    I = ideal(R,[y^2 - x, x^3 - 2*y^2])
+    f = x*y^3-y^4
+	F = [x*y^2-x,x^3-2*x*y^2]
+	q, r = reduce_with_quotients(f, F)
+	@test q * F + [r] == [f]
+	q, r = reduce_with_quotients([f], F)
+	@test q * F + r == [f]
+	q, r, u = reduce_with_quotients_and_units(f, F)
+	@test q * F + [r] == u * [f]
+	q, r, u = reduce_with_quotients_and_units([f], F)
+	@test q * F + r == u * [f]
+	f = x
+	F = [1-x]
+	q, r = reduce_with_quotients(f, F, ordering=neglex(R))
+	@test q * F + [r] != [f]
+	q, r, u = reduce_with_quotients_and_units(f, F, ordering=neglex(R))
+	@test q * F + [r] == u * [f]
+	I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_groebner_basis(I.gens, ordering=lex(R)) == false
     @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
