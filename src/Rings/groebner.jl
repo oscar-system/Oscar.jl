@@ -446,17 +446,17 @@ ordering `ordering`. `J` need not be a Groebner basis. The returned
 `Vector` will have the same number of elements as `I`, even if they
 are zero.
 
-	reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Vector` whose elements are the elements of `F`
-reduced by the elements of `G` w.r.t. the monomial
-ordering `ordering`. `G` need not be a Groebner basis.
-
 	reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
 
 Return an element which is `f` reduced by the underlying generators
 of `F` w.r.t. the monomial ordering `ordering`. `F` need not be a
 Groebner basis. The returned
+
+	reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Vector` whose elements are the elements of `F`
+reduced by the elements of `G` w.r.t. the monomial
+ordering `ordering`. `G` need not be a Groebner basis.
 
 # Examples
 ```jldoctest
@@ -482,7 +482,7 @@ julia> reduce(y^3, [x^2, x*y-y^3], ordering=lex(R))
 y^3
 
 julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
-1-element Vector{fmpq_mpoly}:
+1-element Vector{gfp_mpoly}:
  y^3
 ```
 """
