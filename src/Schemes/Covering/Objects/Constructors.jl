@@ -45,7 +45,9 @@ empty_covering(kk::Ring) = Covering(kk)
 @Markdown.doc """
     disjoint_union(C1::Covering, C2::Covering)
 
-Return the `Covering` consisting 
+Return the `Covering` corresponding to the disjoint union of `C1` and `C2`. 
+
+The charts and glueings of the disjoint union are given by the disjoint union of the charts and glueings of the covers `C1` and `C2`.
 
 # Examples
 ```jldoctest
