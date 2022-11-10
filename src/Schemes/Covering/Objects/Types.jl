@@ -43,7 +43,7 @@ mutable struct Covering{BaseRingType}
     n > 0 || error("can not glue the empty scheme")
     kk = coefficient_ring(ambient_coordinate_ring(patches[1]))
     for i in 2:n
-      kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
+      kk == coefficient_ring(ambient_coordinate_ring(patches[i])) || error("schemes are not defined over the same base ring")
     end
     # Check that no patch appears twice
     for i in 1:n-1

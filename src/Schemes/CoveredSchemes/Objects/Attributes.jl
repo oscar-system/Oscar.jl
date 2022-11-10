@@ -31,7 +31,23 @@ end
 
 Return the default covering for ``X``.
 
-TODO: Add an example.
+# Examples
+```jldoctest
+julia> P = projective_space(QQ, 2);
+
+julia> S = ambient_coordinate_ring(P);
+
+julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
+
+julia> X = subscheme(P, I);
+
+julia> Xcov = covered_scheme(X)
+covered scheme with 3 affine patches in its default covering
+
+julia> default_covering(Xcov)
+Covering with 3 patches
+
+```
 """
 function default_covering(X::AbsCoveredScheme)
   return default_covering(underlying_scheme(X))::Covering
@@ -49,7 +65,26 @@ patches(X::AbsCoveredScheme) = patches(default_covering(X))
 
 Return the affine charts in the `default_covering` of ``X``.
 
-TODO: Add an example.
+# Examples
+```jldoctest
+julia> P = projective_space(QQ, 2);
+
+julia> S = ambient_coordinate_ring(P);
+
+julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
+
+julia> X = subscheme(P, I);
+
+julia> Xcov = covered_scheme(X)
+covered scheme with 3 affine patches in its default covering
+
+julia> affine_charts(Xcov)
+3-element Vector{AbsSpec}:
+ Spec of Quotient of Multivariate Polynomial Ring in (s1//s0), (s2//s0) over Rational Field by ideal((s1//s0) - (s2//s0)^2, 0)
+ Spec of Quotient of Multivariate Polynomial Ring in (s0//s1), (s2//s1) over Rational Field by ideal((s0//s1) - (s2//s1)^2, 0)
+ Spec of Quotient of Multivariate Polynomial Ring in (s0//s2), (s1//s2) over Rational Field by ideal((s0//s2)*(s1//s2) - 1, 0)
+
+```
 """
 affine_charts(X::AbsCoveredScheme) = basic_patches(default_covering(X))
 
