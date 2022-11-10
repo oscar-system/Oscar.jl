@@ -28,16 +28,14 @@ Please mention this number in any bug report.
 const version = IS_DEV ? VersionNumber("$(VERSION_NUMBER)-dev") : VERSION_NUMBER
 
 # include files
+include("auxiliary.jl")
+
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
-
-include("WeierstrassModelsOverGeneralBaseSpace/constructors.jl")
-include("WeierstrassModelsOverGeneralBaseSpace/attributes.jl")
+include("WeierstrassModels/properties.jl")
 
 include("TateModels/constructors.jl")
 include("TateModels/attributes.jl")
-
-include("TateModelsOverGeneralBaseSpace/constructors.jl")
-include("TateModelsOverGeneralBaseSpace/attributes.jl")
+include("TateModels/properties.jl")
 
 end

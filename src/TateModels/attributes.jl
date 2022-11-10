@@ -1,6 +1,6 @@
-#######################################
+#####################################################
 # 1: The Tate sections
-#######################################
+#####################################################
 
 @doc Markdown.doc"""
     tate_section_a1(t::GlobalTateModel)
@@ -22,7 +22,7 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> tate_section_a1(t);
@@ -52,7 +52,7 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> tate_section_a2(t);
@@ -82,7 +82,7 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> tate_section_a3(t);
@@ -112,7 +112,7 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> tate_section_a4(t);
@@ -142,7 +142,7 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> tate_section_a6(t);
@@ -152,9 +152,9 @@ julia> tate_section_a6(t);
 export tate_section_a6
 
 
-#######################################
+#####################################################
 # 2: The Tate polynomial
-#######################################
+#####################################################
 
 @doc Markdown.doc"""
     tate_polynomial(t::GlobalTateModel)
@@ -176,7 +176,7 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> tate_polynomial(t);
@@ -186,9 +186,9 @@ julia> tate_polynomial(t);
 export tate_polynomial
 
 
-#######################################
-# 3: Toric spaces
-#######################################
+#####################################################
+# 3: Toric spaces for Tate models over concrete bases
+#####################################################
 
 @doc Markdown.doc"""
     toric_base_space(t::GlobalTateModel)
@@ -210,14 +210,14 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> toric_base_space(t)
 A normal, 3-dimensional toric variety without torusfactor
 ```
 """
-@attr Oscar.AbstractNormalToricVariety toric_base_space(t::GlobalTateModel) = t.base
+@attr Oscar.AbstractNormalToricVariety toric_base_space(t::GlobalTateModel) = t.toric_base_space
 export toric_base_space
 
 
@@ -241,11 +241,11 @@ A normal toric variety
 julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
 A normal toric variety
 
-julia> t = GenericGlobalTateModel(base)
+julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> toric_ambient_space(t)
-A normal toric variety
+A normal, simplicial toric variety
 
 julia> is_smooth(toric_ambient_space(t))
 false
@@ -253,3 +253,38 @@ false
 """
 @attr Oscar.AbstractNormalToricVariety toric_ambient_space(t::GlobalTateModel) = t.toric_ambient_space
 export toric_ambient_space
+
+
+#####################################################
+# 4: The CY hypersurface
+#####################################################
+
+@doc Markdown.doc"""
+    cy_hypersurface(t::GlobalTateModel)
+
+Return the toric ambient space of the global Tate model.
+
+```jldoctest
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> t = GlobalTateModel(base)
+A global Tate model over a concrete base
+
+julia> cy_hypersurface(t)
+A closed subvariety of a normal toric variety
+```
+"""
+@attr Oscar.ClosedSubvarietyOfToricVariety cy_hypersurface(t::GlobalTateModel) = t.Y4
+export cy_hypersurface
