@@ -94,7 +94,7 @@ end
 # allow user to specify point also as ideal
 ############################################################################################################
 
-function _maxideal_to_point(I::MPolyIdeal)
+function KPoint_coordinates(I::MPolyIdeal)
   R=base_ring(I)
   o = degrevlex(gens(R))
   G=groebner_basis(I)
@@ -151,7 +151,7 @@ end
 function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
   R === ambient_coordinate_ring(X) || error("rings are not compatible")
-  a = _maxideal_to_point(I)
+  a = KPoint_coordinates(I)
   Y = SpaceGerm(X,a)
   return Y
 end
@@ -164,7 +164,7 @@ function SpaceGerm(X::AbsSpec, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
   J = to_poly_ideal(I)
-  a = _maxideal_to_point(J)
+  a = KPoint_coordinates(J)
   Y = SpaceGerm(X,a)
   return Y
 end
