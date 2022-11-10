@@ -6,4 +6,4 @@ Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 
 [compat]
 Documenter = "^0.27"
-Oscar = "^0.10.2"
+Oscar = "^0.11.0"
