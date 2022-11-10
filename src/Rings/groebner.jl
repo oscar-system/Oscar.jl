@@ -523,6 +523,16 @@ gens(J) + res == units * gens(I)`. If `ordering` is global then
 `reduce_with_quotients`. `J` need not be a Groebner basis. `res` will
 have the same number of elements as `I`, even if they are zero.
 
+	reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, an
+`MPolyElem` `res` which represents `f`
+reduced by the underlying generators of `F` w.r.t. the monomial
+ordering `ordering` and a diagonal matrix `units` such that `M *
+F + [res] == units * [f]`. If `ordering` is global then
+`units` will always be the identity matrix, see also
+`reduce_with_quotients`. `G` need not be a Groebner basis.
+
 	reduce_with_quotients_and_units(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
@@ -533,16 +543,6 @@ G + res == units * F`. If `ordering` is global then
 `units` will always be the identity matrix, see also
 `reduce_with_quotients`. `G` need not be a Groebner basis. `res` will
 have the same number of elements as `F`, even if they are zero.
-
-	reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, an
-`MPolyElem` `res` which represents `f`
-reduced by the underlying generators of `F` w.r.t. the monomial
-ordering `ordering` and a diagonal matrix `units` such that `M *
-F + res == units * f`. If `ordering` is global then
-`units` will always be the identity matrix, see also
-`reduce_with_quotients`. `G` need not be a Groebner basis.
 
 # Examples
 ```jldoctest
@@ -580,6 +580,23 @@ julia> M * F + [res] == units * [f]
 true
 ```
 """
+function reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(f) == parent(F[1])
+	R = parent(f)
+	I = IdealGens(R, [f], ordering)
+	J = IdealGens(R, F, ordering)
+	q, r, u = _reduce_with_quotients_and_units(I, J, ordering)
+	return q, r[1], u
+end
+
+function reduce_with_quotients_and_units(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(F[1]) == parent(G[1])
+	R = parent(F[1])
+	I = IdealGens(R, F, ordering)
+	J = IdealGens(R, G, ordering)
+	return _reduce_with_quotients_and_units(I, J, ordering)
+end
+
 function reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	return _reduce_with_quotients_and_units(I, J, ordering)
 end
@@ -591,9 +608,31 @@ end
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 `Vector` `res` whose elements are the underlying elements of `I`
 reduced by the underlying generators of `J` w.r.t. the monomial
-ordering `ordering` such that `M * gens(J) + res == gens(I)` if `ordering` is global. If `ordering` is local then this equality holds after `gens(I)` has been multiplied with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to obtain this matrix. `J` need
-not be a Groebner basis. `res` will have the same number of elements
-as `I`, even if they are zero.
+ordering `ordering` such that `M * gens(J) + res == gens(I)` if `ordering` is global.
+If `ordering` is local then this equality holds after `gens(I)` has been multiplied
+with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
+obtain this matrix. `J` need not be a Groebner basis. `res` will have the same number
+of elements as `I`, even if they are zero.
+
+	reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and an
+`MPolyElem` `res` which represents `f`
+reduced by the underlying generators of `F` w.r.t. the monomial
+ordering `ordering` such that `M * F + [res] == [f]` if `ordering` is global.
+If `ordering` is local then this equality holds after `f` has been multiplied
+with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
+obtain this matrix. `F` need not be a Groebner basis.
+
+	reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and an
+`Vector` `res` which represents `F`
+reduced by the underlying generators of `G` w.r.t. the monomial
+ordering `ordering` such that `M * G + res == F` if `ordering` is global.
+If `ordering` is local then this equality holds after `F` has been multiplied
+with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
+obtain this matrix. `G` need not be a Groebner basis.
 
 # Examples
 ```jldoctest
@@ -616,8 +655,43 @@ julia> M, res = reduce_with_quotients(I.gens, gb)
 
 julia> M * gens(gb) + res == gens(I)
 true
+
+julia> f = x^3*y^2-y^4-10
+x^3*y^2 + 10*y^4 + 1
+
+julia> F = [x^2*y-y^3, x^3-y^4]
+2-element Vector{gfp_mpoly}:
+ x^2*y + 10*y^3
+ x^3 + 10*y^4
+
+julia> reduce_with_quotients_and_units(f,F)
+([x*y 10*x+1], x^4 + 10*x^3 + 1)
+
+julia> M, res, units = reduce_with_quotients_and_units(f,F, ordering=lex(R))
+([0 y^2], y^6 + 10*y^4 + 1)
+
+julia> M * F + [res] == [f]
+true
 ```
 """
+function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(f) == parent(F[1])
+	R = parent(f)
+	I = IdealGens(R, [f], ordering)
+	J = IdealGens(R, F, ordering)
+	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	return q, r[1]
+end
+
+function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(F[1]) == parent(G[1])
+	R = parent(F[1])
+	I = IdealGens(R, F, ordering)
+	J = IdealGens(R, G, ordering)
+	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	return q, r
+end
+
 function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
     q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
     return q, r
