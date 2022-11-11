@@ -186,10 +186,18 @@ modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
 """
 quotient_ring(L::MPolyQuoLocalizedRing) = L.Q
+
 ## 3 more signatures for compatibility to make quotient_ring agnostic
 quotient_ring(L::MPolyQuo) = L
-quotient_ring(L::MPolyRing) = L
-quotient_ring(L::MPolyLocalizedRing) = base_ring(L)
+
+@attr MPolyQuo function quotient_ring(L::MPolyRing)
+   return quo(L,ideal(L,[zero(L)]))[1]
+end
+
+@attr MPolyQuo function quotient_ring(L::MPolyLocalizedRing)
+   P = base_ring(L)
+   return quo(P,ideal(P,[zero(P)]))[1]
+end
 
 @Markdown.doc """
     localized_ring(L::MPolyQuoLocalizedRing)
@@ -197,10 +205,18 @@ quotient_ring(L::MPolyLocalizedRing) = base_ring(L)
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
 """
 localized_ring(L::MPolyQuoLocalizedRing) = L.W
+
 ## 3 more signatures for compatibility to make localized_ring agnostic
 localized_ring(L::MPolyLocalizedRing) = L
-localized_ring(L::MPolyQuo) = base_ring(L)
-localized_ring(L::MPolyRing) = L
+
+@attr MPolyLocalizedRing localized_ring(L::MPolyQuo)
+   P = base_ring(L)
+   return localization(P, units_of(P)))[1]
+end
+
+@attr MPolyLocalizedRing localized_ring(L::MPolyRing)
+   return localization(L, units_of(L))[1]
+end
 
 @Markdown.doc """
     gens(L::MPolyQuoLocalizedRing)
