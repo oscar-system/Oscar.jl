@@ -59,7 +59,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; order::Integer = 2) where T
   gram = matrix(QQ, d*n, d*n, coeffs)
   @assert f*gram*transpose(f) == gram
   LL = Zlattice(gram = 1//m*gram)
-  return lattice_with_isometry(LL, f, m, check = false)
+  return lattice_with_isometry(LL, f, ambient_representation=false, check = false)
 end
 
 @doc Markdown.doc"""

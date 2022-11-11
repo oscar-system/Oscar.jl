@@ -7,6 +7,12 @@ export admissible_triples, is_admissible_triple
 #
 ##################################################################################
 
+##################################################################################
+#
+# Admissible triples
+#
+##################################################################################
+
 # The tuples in output are pairs of positive integers!
 function _tuples_divisors(d::T) where T <: Union{Integer, fmpz}
   div = divisors(d)
@@ -228,6 +234,12 @@ function admissible_triples(G::ZGenus, p::Int64)
 end
 
 admissible_triples(L::T, p::Integer) where T <: Union{ZLat, LatticeWithIsometry} = admissible_triples(genus(L), p)
+
+##################################################################################
+#
+# Primitive extensions
+#
+##################################################################################
 
 function _get_V(L, q, f, fq, mu, p)
   f_mu = mu(f)
@@ -482,3 +494,293 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
 
   return results
 end
+
+##################################################################################
+#
+# Representatives of lattices with isometry
+#
+##################################################################################
+
+function _ideals_of_norm(E, d)
+  @assert E isa Hecke.NfRel
+  K = base_field(E)
+  OK = maximal_order(K)
+  OE = maximal_order(E)
+  DE = different(OE)
+  ids = []
+  primes = [] 
+  for p in prime_divisors(d)
+    v = valuation(d, p)
+    for (P, _) in prime_decomposition(OK, p)
+      if !is_coprime(DE, ideal(OE, P))
+        P = prime_decomposition(OE, P)[1][1]
+      else
+        P = ideal(OE, P)
+      end
+      nv = valuation(absolute_norm(P), p)
+      push!(primes, [P^e for e in 1:divrem(v, nv)[1]])
+    end
+  end
+  for I in Hecke.cartesian_product_iterator(primes)
+    I = prod(I)
+    if absolute_norm(I) == d
+      push!(ids, I)
+    end
+  end
+  return ids
+end
+
+function _possible_signatures(s1, s2, E)
+  @assert E isa Hecke.NfRel
+  ok, q = Hecke.is_cyclotomic_type(E)
+  @assert ok
+  @assert iseven(s2)
+  @assert divides(2*(s1+s2), euler_phi(q))[1]
+  l = divexact(s2, 2)
+  K = base_field(E)
+  inf = real_places(K)
+  s = length(inf)
+  signs = Dict{typeof(inf[1]), Int}[]
+  parts = Vector{Int}[]
+  perm = AllPerms(s)
+  for v in AllParts(l)
+    if length(v) > s
+      continue
+    end
+    while length(v) != s
+      push!(v, 0)
+    end
+    for vv in perm
+      v2 = v[vv.d]
+      v2 in parts ? continue : push!(parts, v2)
+    end
+  end
+  for v in parts
+    push!(signs, Dict(a => b for (a,b) in zip(inf, v)))
+  end
+  return signs
+end
+
+function representatives(Lf::LatticeWithIsometry, m::Int = 1)
+  @req m >= 1 "m must be a positive integer"
+  @req Oscar._is_cyclotomic_polynomial(minpoly(Lf)) "Minimal polyomial must be irreducible and cyclotomic"
+  L = lattice(Lf)
+  rk = rank(L)
+  d = det(L)
+  n = order_of_isometry(Lf)
+  t = type(Lf)
+  s1, _, s2 = signature_tuple(L)
+  reps = LatticeWithIsometry[]
+  if n*m < 3
+    gene = genera((s1, s2), ZZ(d), max_scale=scale(L), even=iseven(L))
+    f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
+    for G in gene
+      repre = representatives(G)
+      append!(reps, [lattice_with_isometry(LL, f, check=false) for LL in repre])
+    end
+    return reps
+  end
+  ok, rk = divides(rk, euler_phi(n*m))
+  if !ok
+    return reps
+  end
+  
+  gene = []
+  E, b = cyclotomic_field_as_cm_extension(n*m, cached=false)
+  Eabs, EabstoE = absolute_simple_field(E)
+  DE = EabstoE(different(maximal_order(Eabs)))
+  K = base_field(E)
+  OE = maximal_order(E)
+  OK = maximal_order(K)
+  msE = E(scale(L)*n*m)*inv(DE)
+  ndE = ZZ(d*(absolute_norm(n*m*inv(DE))^rk))
+  detE = _ideals_of_norm(E, ndE)
+  signatures = _possible_signatures(s1, s2, E)
+  for d in detE, sign in signatures
+    append!(gene, genera_hermitian(E, rk, sign, d))
+  end
+  gene = unique(gene)
+  for g in gene
+    for H in representatives(g)
+      M = trace_lattice(H)
+      @assert det(lattice(M)) == det
+      @assert Oscar._is_cyclotomic_polynomial(minpoly(M))
+      @assert order_of_isometry(M) == n*m
+      iseven(lattice(M)) == iseven(L) ? push!(reps, M) : continue
+      @assert type(lattice_with_isometry(lattice(M), ambient_isometry(M)^m)) == t
+    end
+  end
+  return reps
+end
+
+function representatives(t::Dict, m::Integer = 1; check::Bool = true)
+  @req m >= 1 "m must be a positive integer"
+  ke = collect(keys(t))
+  n = max(ke)
+  if check
+    @req Set(divisors(n)) == Set(ke) "t does not define a type for lattices with isometry"
+    for i in ke
+      @req t[i][2] isa ZGenus "t does not define a type for lattices with isometry"
+      @req typeof(t[i][1]) <: Union{ZGenus, GenusHerm} "t does not define a type for lattices with isometry"
+    end
+    @req all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, [i for i in ke if i != n]) "Minimal polynomial should be irreducible and cyclotomic"
+    @req rank(t[n][2]) == rank(t[n][1])*euler_phi(n) "Top-degree types do not agree"
+  end
+  G = t[n]
+  s1, s2 = signature_tuple(G)
+  rk = s1+s2
+  d = det(G)
+  reps = LatticeWithIsometry[]
+  if n*m < 3
+    gene = genera((s1, s2), ZZ(d), max_scale=scale(G), even=iseven(G))
+    f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
+    for g in gene
+      repre = representatives(g)
+      append!(reps, [lattice_with_isometry(LL, f, check=false) for LL in repre])
+    end
+    return reps
+  end
+  ok, rk = divides(rk, euler_phi(n*m))
+  if !ok
+    return reps
+  end
+  
+  gene = []
+  E, b = cyclotomic_field_as_cm_extension(n*m, cached=false)
+  Eabs, EabstoE = absolute_simple_field(E)
+  DE = EabstoE(different(maximal_order(Eabs)))
+  K = base_field(E)
+  OE = maximal_order(E)
+  OK = maximal_order(K)
+  msE = E(scale(L)*n*m)*inv(DE)
+  ndE = ZZ(d*(absolute_norm(n*m*inv(DE))^rk))
+  detE = _ideals_of_norm(E, ndE)
+  signatures = _possible_signatures(s1, s2, E)
+  for d in detE, sign in signatures
+    append!(gene, genera_hermitian(E, rk, sign, d))
+  end
+  gene = unique(gene)
+  for g in gene
+    for H in representatives(g)
+      M = trace_lattice(H)
+      @assert det(lattice(M)) == det
+      iseven(lattice(M)) == iseven(G) ? push!(reps, M) : continue
+      @assert type(lattice_with_isometry(lattice(M), ambient_isometry(M)^m)) == t
+    end
+  end
+  return reps
+end
+
+function split(Lf::LatticeWithIsometry, p::Int)
+  @req is_prime(p) "p must be a prime number"
+  @req Oscar._is_cyclotomic_polynomial(minpoly(Lf)) "Minimal polynomial must be irreducible and cyclotomic"
+  ok, q, d = is_prime_power_with_data(order_of_isometry(Lf))
+  @req ok "Order of isometry must be a prime power"
+  @req p != q "Prime numbers must be distinct"
+  reps = LatticeWithIsometry[]
+  atp = admissible_triples(Lf, p)
+  for (A, B) in atp
+    LA = lattice_with_isometry(representative(A))
+    RA = representatives(LA, p*q^d)
+    LB = lattice_with_isometry(representative(B))
+    RB = representatives(LB, q^d)
+    for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB])
+      E = primitive_extensions(L1, L2, Lf, p)
+      @assert all(LL -> type(lattice_with_isometry(lattice(LL), ambient_isometry(LL)^p) == type(Lf)), E)
+      append!(reps, E)
+    end
+  end
+  return reps
+end
+
+function first_p(Lf::LatticeWithIsometry, p::Int, b::Int = 0)
+  @req is_prime(p) "p must be a prime number"
+  @req b in [0, 1] "b must be an integer equal to 0 or 1"
+  ok, q, e = is_prime_power_with_data(order_of_isometry(Lf))
+  @req ok "Order of isometry must be a prime power"
+  @req p != q "Prime numbers must be distinct"
+  reps = LatticeWithIsometry[]
+  if e == 0
+    return split(Lf, p)
+  end
+  x = gen(Hecke.Globals.Qx)
+  A0 = kernel_lattice(Lf, q^e)
+  B0 = kernel_lattice(Lf, x^(q^e-1)-1)
+  A = split(A0, p)
+  B = first_p(B0, p)
+  for (L1, L2) in Hecke.cartesian_product_iterator([A, B])
+    b == 1 && !divides(order_of_isometry(L1), p)[1] && !divides(order_of_isometry(L2), p)[1] && continue
+    E = primitive_extensions(L1, L2, Lf, q)
+    @assert all(LL -> type(lattice_with_isometry(lattice(LL), ambient_isometry(LL)^p)) == type(Lf), E)
+    @assert b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
+    append!(reps, E)
+  end
+  return reps
+end
+
+function pure_up(Lf::LatticeWithIsometry, p::Int)
+  @req is_prime(p) "p must be a prime number"
+  @req order_of_isometry(Lf) > 0 "Isometry must be of finite order"
+  n = order_of_isometry(Lf)
+  pd = prime_divisors(n)
+  @req length(pd) <= 2 && p in pd "Order must be divisible by p and have at most 2 prime factors"
+  if length(pd) == 2
+    q = pd[1] == p ? pd[2] : pd[1]
+    d = valuation(n, p)
+    e = valuation(n, q)
+  else
+    q = 1
+    d = valuation(n, p)
+    e = 0
+  end
+  phi = minpoly(Lf)
+  x = gen(parent(phi))
+  chi = prod([cyclotomic(x, p^d*q^i) for i=0:e])
+  @req divides(chi, phi)[1] "Minimal polynomial is not of the correct form"
+  reps = LatticeWithIsometry[]
+  if e == 0
+    return representatives(Lf, p)
+  end
+  A0 = kernel_lattice(Lf, p^d*q^e)
+  bool, r = divides(phi, cyclotomic(x, p^d*q^e))
+  @assert bool
+  B0 = kernel_lattice(Lf, r)
+  A = representatives(A0 ,p)
+  B = pure_up(B0, p)
+  for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
+    E = extensions(LA, LB, Lf, q)
+    @assert all(LL -> type(lattice_with_isometry(lattice(LL), ambient_isometry(LL)^p)) == type(Lf), E)
+    append!(reps, E)
+  end
+  return reps
+end
+
+function next_p(Lf::LatticeWithIsometry, p)
+  n = order_of_isometry(Lf)
+  @req n > 0 "Isometry must be of finite order"
+  pd = prime_divisors(n)
+  @req length(pd) <= 2 "Order must have at most 2 prime divisors"
+  if !(p in pd)
+    return first_p(Lf, p, 1)
+  end
+  d = valuation(n, p)
+  if n != p^d
+    _, q, e = is_prime_power_with_data(divexact(n, p^d))
+  else
+    q = 1
+    e = 0
+  end
+  x = gen(parent(minpoly(Lf)))
+  B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
+  A0 = kernel_lattice(Lf, prod([cyclotomic(x, p^d*q^i) for i in 0:e]))
+  A = pure_up(A0, p)
+  B = next_p(B0, p)
+  for (LA, LB) in Hecke.cartesian_product_iterator([A, B])
+    E = extensions(LA, LB, Lf, p)
+    @assert all(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
+    @assert all(LL -> type(lattice_with_isometry(lattice(LL), ambient_isometry(LL)^p)) == type(Lf), E)
+    append!(reps, E)
+  end
+  return reps
+end
+
