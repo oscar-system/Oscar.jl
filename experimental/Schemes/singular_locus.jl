@@ -82,7 +82,7 @@ end
 @doc Markdown.doc"""
     singular_locus_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing}) -> AbsSpec
 
-Return the singular locus of the reduced scheme 'X_{red}' induced by `X`.
+Return the singular locus of the reduced scheme ``X_{red}`` induced by `X`.
 
 For computing the singular locus of `X` itself, please use 
 ['singular_locus](@ref)'.
