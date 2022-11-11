@@ -209,12 +209,12 @@ localized_ring(L::MPolyQuoLocalizedRing) = L.W
 ## 3 more signatures for compatibility to make localized_ring agnostic
 localized_ring(L::MPolyLocalizedRing) = L
 
-@attr MPolyLocalizedRing localized_ring(L::MPolyQuo)
+@attr MPolyLocalizedRing function localized_ring(L::MPolyQuo)
    P = base_ring(L)
-   return localization(P, units_of(P)))[1]
+   return localization(P, units_of(P))[1]
 end
 
-@attr MPolyLocalizedRing localized_ring(L::MPolyRing)
+@attr MPolyLocalizedRing function localized_ring(L::MPolyRing)
    return localization(L, units_of(L))[1]
 end
 
