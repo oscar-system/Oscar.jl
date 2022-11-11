@@ -80,6 +80,7 @@ GlobalWeierstrassModel(f::fmpq_mpoly, g::fmpq_mpoly, auxiliary_base_ring::MPolyR
 weierstrass_section_f(w::GlobalWeierstrassModel)
 weierstrass_section_g(w::GlobalWeierstrassModel)
 weierstrass_polynomial(w::GlobalWeierstrassModel)
+cy_hypersurface(w::GlobalWeierstrassModel)
 Oscar.:discriminant(w::GlobalWeierstrassModel)
 ```
 In case the Weierstrass model is constructed over a not fully specified base,

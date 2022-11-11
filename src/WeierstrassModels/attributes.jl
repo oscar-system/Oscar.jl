@@ -132,8 +132,44 @@ julia> discriminant(w);
 export discriminant
 
 
+#####################################################
+# 4: The CY hypersurface
+#####################################################
+
+@doc Markdown.doc"""
+    cy_hypersurface(w::GlobalWeierstrassModel)
+
+Return the Calabi-Yau hypersurface in the toric ambient space
+which defines the global Weierstrass model.
+
+```jldoctest
+julia> using Oscar
+
+julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
+A normal toric variety
+
+julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
+A normal toric variety
+
+julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
+A normal toric variety
+
+julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+A normal toric variety
+
+julia> w = GlobalWeierstrassModel(base)
+A global Weierstrass model over a concrete base
+
+julia> cy_hypersurface(w)
+A closed subvariety of a normal toric variety
+```
+"""
+@attr Oscar.ClosedSubvarietyOfToricVariety cy_hypersurface(w::GlobalWeierstrassModel) = w.Y4
+export cy_hypersurface
+
+
 #######################################
-# 4: Toric spaces
+# 5: Toric spaces
 #######################################
 
 @doc Markdown.doc"""

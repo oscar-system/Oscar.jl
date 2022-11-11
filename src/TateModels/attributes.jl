@@ -262,7 +262,8 @@ export toric_ambient_space
 @doc Markdown.doc"""
     cy_hypersurface(t::GlobalTateModel)
 
-Return the toric ambient space of the global Tate model.
+Return the Calabi-Yau hypersurface in the toric ambient space
+which defines the global Tate model.
 
 ```jldoctest
 julia> using Oscar

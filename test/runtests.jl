@@ -28,6 +28,7 @@ Base.show(w)
     @test dim(toric_base_space(w)) == 3
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false
+    @test toric_variety(cy_hypersurface(w)) == toric_ambient_space(w)
 end
 
 @testset "Error messages in global Weierstrass models" begin
@@ -51,6 +52,7 @@ w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
     @test dim(toric_base_space(w2)) == 2
     @test dim(toric_ambient_space(w2)) == 4
     @test is_smooth(toric_ambient_space(w2)) == false
+    @test toric_variety(cy_hypersurface(w2)) == toric_ambient_space(w2)
 end
 
 @testset "Error messages in global Weierstrass models over generic base space" begin
