@@ -513,7 +513,7 @@ function AbstractAlgebra.expressify(a::MPolyElem{<:TropicalSemiringElem}, x = sy
   end
   sum = Expr(:call, :+)
   n = nvars(parent(a))
-  for (c, v) in zip(coefficients(a), exponent_vectors(a))
+  for (c, v) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     prod = Expr(:call, :*)
     if !isone(c)
       push!(prod.args, expressify(c, context = context))

@@ -79,15 +79,36 @@ The `cmp` function should be used for comparing two monomials with regard to a m
 cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 ```
 
-Also, the usual iterators for multivariate polynomials have extensions to an
-arbitrary ordering.
+The terms of a multivariate polynomials may be queried in an arbitrary ordering.
 
 ```@docs
-terms(f::MPolyElem, ord::MonomialOrdering)
-coefficients(f::MPolyElem, ord::MonomialOrdering)
-exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
-monomials(f::MPolyElem, ord::MonomialOrdering)
+coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 ```
+
+!!! note
+    As the above functions take an arbitrary ordering, they are much slower than
+    the versions from AbstractAlgebra, which use the natural ordering in the
+    parent polynomial ring: `default_ordering(parent(f))` is not necessarily
+    this natural ordering. If this ordering of the parent is desired, or if the
+    ordering is not important, it is recommended to use the following.
+    - `AbstractAlgebra.coefficients(f)`
+    - `zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))`
+    - `AbstractAlgebra.exponent_vectors(f)`
+    - `AbstractAlgebra.monomials(f)`
+    - `AbstractAlgebra.terms(f)`
+    - `AbstractAlgebra.leading_coefficient(f)`
+    - `AbstractAlgebra.leading_exponent_vector(f)`
+    - `AbstractAlgebra.leading_monomial(f)`
+    - `AbstractAlgebra.leading_term(f)`
+
 
 ## Matrix Orderings
 

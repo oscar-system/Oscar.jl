@@ -12,7 +12,7 @@ end
 function (R::GFPMPolyRing)(f::fmpq_mpoly)
   g  = MPolyBuildCtx(R)
   S = base_ring(R)
-  for (c, v) in zip(coefficients(f), exponent_vectors(f))
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, S(c), v)
   end
   return finish(g)
@@ -223,7 +223,7 @@ end
 
 function Oscar.lift(R::Nemo.Ring, f::Union{gfp_mpoly, nmod_mpoly})
   g = MPolyBuildCtx(R)
-  for (c, v) in zip(coefficients(f), exponent_vectors(f))
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, lift(c), v)
   end
   return finish(g)
@@ -231,7 +231,7 @@ end
 
 function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=1)
   g = MPolyBuildCtx(parent)
-  for (c, v) in zip(coefficients(f), exponent_vectors(f))
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
     if !fl
       return false, finish(g)

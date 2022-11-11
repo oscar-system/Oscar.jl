@@ -501,23 +501,13 @@ function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::Module
   return p
 end
 
-@doc Markdown.doc"""
-    terms(f::FreeModElem, ord::ModuleOrdering)
-
-Return an iterator for the terms of `f` in the order `ord`.
-"""
-function terms(f::FreeModElem, ord::ModuleOrdering)
-  p = Orderings.permutation_of_terms(f, ord)
-  F = parent(f)
-  return (term(f[i], j)*F[i] for (i, j) in p)
-end
-
-function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
+# expressify wrt arbitrary permutation
+function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, Vector{Tuple{Int, Int}}}; context = nothing)
   f = a.first
   x = symbols(base_ring(parent(f)))
   e = generator_symbols(parent(f))
   s = Expr(:call, :+)
-  for (i, j) in Orderings.permutation_of_terms(f, a.second)
+  for (i, j) in a.second
     prod = Expr(:call, :*)
     fi = f[i]
     c = coeff(fi, j)
@@ -530,8 +520,34 @@ function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; 
   end
   return s
 end
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:Vector{Tuple{Int, Int}}}
 
+# expressify wrt ordering
+function expressify(a::OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}; context = nothing)
+  perm = Orderings.permutation_of_terms(a.first, a.second)
+  return expressify(OscarPair(a.first, perm); context = context)
+end
 @enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyElem}, <:ModuleOrdering}
+
+@doc Markdown.doc"""
+    terms(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
+
+Return an iterator for the terms of `f` with respect to the order `ordering`.
+"""
+function terms(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
+  return GeneralPermutedIterator{:terms}(f, permutation_of_terms(f, ordering))
+end
+
+function Base.iterate(a::GeneralPermutedIterator{:terms, <:FreeModElem{<:MPolyElem}}, state = 0)
+  state += 1
+  state <= length(a.perm) || return nothing
+  (i, j) = a.perm[state]
+  return term(a.elem[i], j)*parent(a.elem)[i], state
+end
+
+function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: FreeModElem{<:MPolyElem}
+  return T
+end
 
 ###############################################################################
 # ModuleGens constructors

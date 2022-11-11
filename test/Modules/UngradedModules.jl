@@ -57,11 +57,13 @@ end
 	F = FreeMod(R,2)
   a = (1 + 2*w + 3*x + 4*y + 5*z)*(F[1] + F[2])
 
-  @test collect(terms(a, lex(R)*lex(F))) ==
+  @test length(string(terms(a))) > 2
+
+  @test collect(terms(a; ordering = lex(R)*lex(F))) ==
     [2*w*F[1], 2*w*F[2], 3*x*F[1], 3*x*F[2], 4*y*F[1], 4*y*F[2],
      5*z*F[1], 5*z*F[2], F[1], F[2]]
 
-  @test collect(terms(a, lex([w,x])*revlex(F)*lex([y,z]))) ==
+  @test collect(terms(a; ordering = lex([w,x])*revlex(F)*lex([y,z]))) ==
     [2*w*F[2], 2*w*F[1], 3*x*F[2], 3*x*F[1],
      4*y*F[2], 5*z*F[2], F[2], 4*y*F[1], 5*z*F[1], F[1]]
 

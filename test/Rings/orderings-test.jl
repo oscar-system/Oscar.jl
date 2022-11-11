@@ -20,32 +20,33 @@
  
    @test isa(revlex([x, y])*neglex([z]), MonomialOrdering)
 
-   @test collect(monomials(g, :lex)) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
-   @test collect(monomials(g, :revlex)) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # rp
-   @test collect(monomials(g, :deglex)) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
-   @test collect(monomials(g, :degrevlex)) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
-   @test collect(monomials(g, :neglex)) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
-   @test collect(monomials(g, :negrevlex)) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
-   @test collect(monomials(g, :negdeglex)) == [1, x, y, z, x^2, x*y, x*z, y^2, y*z, z^2] # Ds
-   @test collect(monomials(g, :negdegrevlex)) == [1, x, y, z, x^2, x*y, y^2, x*z, y*z, z^2] # ds
+   @test collect(monomials(g; ordering = lex(R))) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
+   @test collect(monomials(g; ordering = revlex(R))) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # rp
+   @test collect(monomials(g; ordering = deglex(R))) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
+   @test collect(monomials(g; ordering = degrevlex(R))) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
+   @test collect(monomials(g; ordering = neglex(R))) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
+   @test collect(monomials(g; ordering = negrevlex(R))) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
+   @test collect(monomials(g; ordering = negdeglex(R))) == [1, x, y, z, x^2, x*y, x*z, y^2, y*z, z^2] # Ds
+   @test collect(monomials(g; ordering = negdegrevlex(R))) == [1, x, y, z, x^2, x*y, y^2, x*z, y*z, z^2] # ds
 
-   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :revlex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :deglex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :degrevlex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :neglex)) == [ z^3, x*y ]
-   @test collect(monomials(f, :negrevlex)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negdeglex)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negdegrevlex)) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = revlex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f; ordering = deglex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f; ordering = degrevlex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f; ordering = neglex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f; ordering = negrevlex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = negdeglex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = negdegrevlex(R))) == [ x*y, z^3 ]
  
    w = [ 1, 2, 1 ]
-   @test collect(monomials(f, :wdeglex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :wdegrevlex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negwdeglex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negwdegrevlex, w)) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = wdeglex(R, w))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = wdegrevlex(R, w))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = negwdeglex(R, w))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = negwdegrevlex(R, w))) == [ x*y, z^3 ]
  
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
-   @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
+   @test collect(monomials(f; ordering = matrix_ordering(R, M))) ==
+                                  collect(monomials(f; ordering = deglex(R)))
 
    a = lex([x, y])
    @test is_global(a)
@@ -108,21 +109,34 @@
    @test 3 == length(support(deglex([x,y])*wdeglex([y,z], [1,2])))
 end
 
+@testset "Polynomial Orderings printing" begin
+   R, (x, y, z) = PolynomialRing(QQ, 3)
+   f = x*y + 5*z^3 + 2
+   @test length(string(coefficients(f))) > 2
+   @test length(string(coefficients_and_exponents(f))) > 2
+   @test length(string(exponents(f))) > 2
+   @test length(string(monomials(f))) > 2
+   @test length(string(terms(f))) > 2
+end
+
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
    R, (x, y, z) = PolynomialRing(QQ, 3)
    f = x*y + 5*z^3
  
-   @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
-   @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
-   @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
+   @test collect(terms(f; ordering = deglex(R))) == [ 5z^3, x*y ]
+   @test collect(exponents(f; ordering = deglex(R))) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
+   @test collect(coefficients(f; ordering = deglex(R))) == [ QQ(5), QQ(1) ]
+
+   @test collect(coefficients_and_exponents(f)) ==
+                    map(tuple, collect(coefficients(f)), collect(exponents(f)))
 
    Fp = GF(7)
    R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
    f = x*y + 5*z^3
-   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
-   @test Oscar.leading_monomial(f, :lex) == x*y
-   @test Oscar.leading_coefficient(f, :lex) == Fp(1)
-   @test Oscar.leading_term(f, :lex) == x*y
+   @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
+   @test leading_monomial(f; ordering = lex(R)) == x*y
+   @test leading_coefficient(f; ordering = lex(R)) == Fp(1)
+   @test leading_term(f; ordering = lex(R)) == x*y
 end
  
 @testset "Polynomial Orderings comparison" begin
@@ -165,7 +179,7 @@ end
    f = sum(M)
    o = wdeglex([x1, x2], [1, 2])*revlex([x3, x4])
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == M
+   @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
       @test cmp(o, M[i-1], M[i]) > 0
    end
@@ -178,7 +192,7 @@ end
    f = sum(M)
    o = negrevlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == M
+   @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
       @test cmp(o, M[i-1], M[i]) > 0
    end
@@ -191,7 +205,7 @@ end
    f = sum(M)
    o = neglex([x1, x2])*negwdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == M
+   @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
       @test cmp(o, M[i-1], M[i]) > 0
    end
@@ -204,7 +218,7 @@ end
    f = sum(M)
    o = negwdeglex([x1, x2], [1, 2])*lex([x3, x4])
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == M
+   @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
       @test cmp(o, M[i-1], M[i]) > 0
    end
@@ -217,7 +231,7 @@ end
    f = sum(M)
    o = deglex([x1, x2])*negdeglex([x3, x4])
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == M
+   @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
       @test cmp(o, M[i-1], M[i]) > 0
    end
@@ -230,14 +244,14 @@ end
    f = sum(M)
    o = negdegrevlex(gens(R))
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == M
+   @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
       @test cmp(o, M[i-1], M[i]) > 0
    end
 
    o = matrix_ordering(gens(R), matrix(ZZ, [ 1 1 1 1; 0 0 0 -1; 0 0 -1 0; 0 -1 0 0 ]))
    test_opposite_ordering(o)
-   @test collect(monomials(f, o)) == collect(monomials(f, degrevlex(gens(R))))
+   @test collect(monomials(f; ordering = o)) == collect(monomials(f; ordering = degrevlex(gens(R))))
 
    for a in (matrix_ordering([x1, x2], [1 2; 3 4]),
              negwdegrevlex([x1, x2], [1, 2]),
@@ -247,7 +261,7 @@ end
              revlex([x1, x2]),
              lex([x1, x2]))
       test_opposite_ordering(a*lex([x3, x4]))
-      @test collect(monomials(x3 + x4, a*lex([x3, x4]))) == [x3, x4]
+      @test collect(monomials(x3 + x4; ordering = a*lex([x3, x4]))) == [x3, x4]
    end
 end
 

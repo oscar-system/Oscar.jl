@@ -332,7 +332,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
       if frst
         lst = []
         for _g = gJ
-          g = inv(leading_coefficient(_g))*_g
+          g = inv(AbstractAlgebra.leading_coefficient(_g))*_g
           f = []
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             push!(f, (e, Vals(Vector{T}[[c]])))
@@ -343,7 +343,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
       else
         for ig = 1:length(gJ)
           g = gJ[ig]
-          g *= inv(leading_coefficient(g))
+          g *= inv(AbstractAlgebra.leading_coefficient(g))
           jg = 1
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
@@ -584,7 +584,7 @@ function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
     end
     bb = finish(b)
     b = zero(RX)
-    for (c, ex) = zip(coefficients(k), exponent_vectors(k))
+    for (c, ex) = zip(AbstactAlgebra.coefficients(k), AbstractAlgebra.exponent_vectors(k))
       b += c*R(K(monomial(Qt, ex[ngens(Qtx)+1:end])))*monomial(RX, ex[1:ngens(Qtx)])
     end
     kk = b
@@ -732,7 +732,7 @@ function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
       for i=1:length(pres)
         push!(co, lift(pres[d], pres[i], coeff(fac, d), coeff(fac, i), fpt))
       end
-      return pres[d], co, collect(exponent_vectors(fac))
+      return pres[d], co, collect(AbstractAlgebra.exponent_vectors(fac))
     end
 
     @vprint :ModStdQt 1 "failed, more points\n"
