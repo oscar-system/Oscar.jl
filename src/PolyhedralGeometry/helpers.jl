@@ -43,7 +43,7 @@ linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatr
 
 matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
 
-nrows(x::SubArray{T, U, V, W}) where {T, U, V, W} = size(x, 1)
+nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
