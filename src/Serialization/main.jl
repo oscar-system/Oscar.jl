@@ -1,26 +1,31 @@
 using JSON
-using UUIDs
 
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
-    objmap::IdDict{Any, UUID}
+    objmap::IdDict{Any, Int}
     depth::Int
+    num_backrefs::Int
 
     # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
     # io::IO
 end
 
 function SerializerState()
-    return SerializerState(IdDict{Any, UUID}(), 0)
+    return SerializerState(IdDict{Any, Int}(), 0, 0)
+end
+
+function get_backref_id(s::SerializerState)
+    s.num_backrefs += 1
+    return s.num_backrefs
 end
 
 struct DeserializerState
-    objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+    objs::Dict{Int, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
 end
 
 function DeserializerState()
-    return DeserializerState(Dict{UUID, Any}())
+    return DeserializerState(Dict{Int, Any}())
 end
 
 
@@ -91,7 +96,7 @@ end
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
     if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
-        # if obj is already serialzed, just output
+        # if obj is already serialized, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
         if ref !== nothing
@@ -102,7 +107,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
               )
         end
         # otherwise,
-        ref = s.objmap[obj] = uuid4()
+        ref = s.objmap[obj] = get_backref_id(s)
     else
         ref = nothing
     end
@@ -128,7 +133,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     # File version to be dealt with on first breaking change
     # A file without version number is treated as the "first" version
     if dict[:type] == string(backref_sym)
-        backref = s.objs[UUID(dict[:id])]
+        backref = s.objs[parse(Int, dict[:id])]
         backref isa T || throw(ErrorException("Backref of incorrect type encountered: $backref !isa $T"))
         return backref
     end
@@ -153,7 +158,7 @@ function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;
     end
     
     if haskey(dict, :id)
-        s.objs[UUID(dict[:id])] = result
+        s.objs[parse(Int, dict[:id])] = result
     end
     return result
 end
@@ -173,7 +178,7 @@ function load_unknown_type(s::DeserializerState,
     end
 
     if dict[:type] == string(backref_sym)
-        return s.objs[UUID(dict[:id])]
+        return s.objs[parse(Int, dict[:id])]
     end
 
     T = decodeType(dict[:type])
