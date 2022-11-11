@@ -68,7 +68,7 @@ end
 
 Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open 
 subset ``U ⊂ X`` of an affine scheme ``X``, return a 
-fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
+fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_coordinate_ring` of
 the `ambient` scheme ``X`` of ``U``) which represents ``a``
 in the sense that the maximal extension of its restriction
 to ``U`` returns ``a``.
@@ -80,7 +80,7 @@ not know about its scheme, so it has to be passed as an extra argument.
 """
 function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
   U === domain(a) || error("domains are not compatible")
-  X = ambient(U)
+  X = ambient_scheme(U)
   d = find_non_zero_divisor(U)
   W = hypersurface_complement(X, d)
   b = restrict(a, W)
@@ -186,7 +186,7 @@ function restriction_map(
     h::MPolyElem; 
     check::Bool=true
   )
-  Y = ambient(U)
+  Y = ambient_scheme(U)
 
   # handle the shortcut 
   if any(x->(x===X), affine_patches(U))
@@ -285,9 +285,9 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
     check::Bool=true
   )
-  Y = ambient(U)
-  R = ambient_ring(Y)
-  R == ambient_ring(X) || error("`ambient_ring`s of the schemes not compatible")
+  Y = ambient_scheme(U)
+  R = ambient_coordinate_ring(Y)
+  R == ambient_coordinate_ring(X) || error("`ambient_coordinate_ring`s of the schemes not compatible")
   if check
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
@@ -309,9 +309,9 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuo}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
-  Y = ambient(U)
-  R = ambient_ring(Y)
-  R == ambient_ring(X) || error("rings not compatible")
+  Y = ambient_scheme(U)
+  R = ambient_coordinate_ring(Y)
+  R == ambient_coordinate_ring(X) || error("rings not compatible")
   if check
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
@@ -324,9 +324,9 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
     X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
-  Y = ambient(U)
-  R = ambient_ring(Y)
-  R == ambient_ring(X) || error("rings not compatible")
+  Y = ambient_scheme(U)
+  R = ambient_coordinate_ring(Y)
+  R == ambient_coordinate_ring(X) || error("rings not compatible")
   if check
     issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
     issubset(X, U) || error("$X is not a subset of $U")
@@ -357,7 +357,7 @@ function pull_from_denominator(f::MPolyLocalizedRingElem, d::MPolyElem)
 end
 
 function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
-  Y = ambient(U)
+  Y = ambient_scheme(U)
   if check
     all(V->issubset(V, X), affine_patches(U)) || error("$U is not a subset of $X")
   end
@@ -379,7 +379,7 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
     return Hecke.MapFromFunc(mymap, OO(U), OO(V))
   end
 
-  if ambient(U) === ambient(V)
+  if ambient_scheme(U) === ambient_scheme(V)
     g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), gens(V))]
     function mysecondmap(f::SpecOpenRingElem)
       return SpecOpenRingElem(OO(V), [h(f) for h in g], check=false)
@@ -399,15 +399,15 @@ end
 ########################################################################
 function is_identity_map(f::Hecke.Map{DomType, CodType}) where {DomType<:SpecOpenRing, CodType<:SpecOpenRing}
   domain(f) === codomain(f) || return false
-  R = ambient_ring(scheme(domain(f)))
+  R = ambient_coordinate_ring(scheme(domain(f)))
   return all(x->(domain(f)(x) == f(domain(f)(x))), gens(R))
 end
 
 function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=true)
   X = scheme(S)
   Y = scheme(T)
-  R = ambient_ring(X)
-  R == ambient_ring(Y) || error("rings can not be canonically compared")
+  R = ambient_coordinate_ring(X)
+  R == ambient_coordinate_ring(Y) || error("rings can not be canonically compared")
   if check
     (domain(S) == domain(T)) || error("open domains are not isomorphic")
   end

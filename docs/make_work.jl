@@ -88,7 +88,7 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
            pages    = doc)
   end
 
-  # remove the copied documentation agains
+  # remove the copied documentation again
   for (pkg, pkgdir) in other_packages
       dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
       rm(dstbase, recursive=true, force=true)

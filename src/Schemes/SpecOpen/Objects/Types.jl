@@ -31,7 +31,7 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
       check::Bool=true
     ) where {SpecType<:AbsSpec, RET<:RingElem}
     for a in f
-      parent(a) == ambient_ring(X) || error("element does not belong to the correct ring")
+      parent(a) == ambient_coordinate_ring(X) || error("element does not belong to the correct ring")
       if check
         !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
       end

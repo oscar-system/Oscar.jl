@@ -18,7 +18,7 @@ Let ``\mathbb k`` be a commutative noetherian base ring
 We support functionality for affine schemes ``X = \mathrm{Spec}(R)`` over ``\mathbb k``.
 Currently, we support rings ``R`` of type `MPolyRing`, `MPolyQuo`,
 `MPolyLocalizedRing`, and `MPolyQuoLocalizedRing`
-defined over the integers or algebraic field extensions of ``\mathbb Q``
+defined over the integers, a finite field or algebraic field extensions of ``\mathbb Q``
 
 
 ## Constructors
@@ -32,12 +32,7 @@ Spec(R::MPolyRing, I::MPolyIdeal)
 Spec(R::MPolyRing, U::AbsMPolyMultSet)
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
-
-### Copy constructors
-
-```@docs
-Spec(X::Spec)
-```
+See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
 
 ### Affine n-space
 
@@ -75,28 +70,28 @@ closure(X::AbsSpec, Y::AbsSpec)
 
 ## Attributes
 
-### Ambient ring
+### Ambient affine space
 
-For most affine schemes ``X = \mathrm{Spec}(R)``
-over ``\mathbb k``, there is a 'governing' polynomial
-``\mathbb k``-algebra ``P = \mathbb{k}[x_1,\dots,x_n]``
-in the following sense:
+Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
+over a ring ``B``, come with an embedding into an
+affine space ``\mathbb{A}_B``.
+More precisely, `ambient_affine_space(X)` is defined for `X = Spec(R)` if `R`
+is constructed from a polynomial ring.
+In particular ``\mathrm{Spec}(\mathbb{Z})`` or ``\mathrm{Spec}(\mathbb{k})`` for ``\mathbb k``
+a field do not have an ambient affine space.
+
 ```@docs
-ambient_ring(X::AbsSpec)
+ambient_affine_space(X::AbsSpec)
 ```
-For instance, this is the case whenever ``R`` is a quotient
-ring of ``P``, a localization of ``P``, or a localization
-of a quotient ring of ``P``; but also for
-power series rings in multiple variables.
 
 ### Other attributes
 
 ```@docs
 base_ring(X::AbsSpec)
 codim(X::AbsSpec)
-defining_ideal(X::AbsSpec{<:Any, <:MPolyRing})
+ambient_embedding(X::AbsSpec)
 dim(X::AbsSpec)
-name(X::Spec)
+name(X::AbsSpec)
 OO(X::AbsSpec)
 ```
 
@@ -121,14 +116,13 @@ issubset(X::AbsSpec, Y::AbsSpec)
 
 ### Comparison
 
-Two schemes $X$ and $Y$ can be compared based on their `ambient_ring`s: If 
-`ambient_ring(X) = R = ambient_ring(Y)`, then both $X$ and $Y$ are considered 
-as embedded into $\mathrm{Spec}(R)$. In particular they are considered equal (`==`)
-if and only if the identity morphism of $\mathrm{Spec}(R)$ induces an isomorphism of ``X`` and ``Y``.
-For ``X`` and ``Y`` with different `ambient_ring`s 
-`X==Y` is always `false`.
+Two schemes ``X`` and ``Y`` can be compared if their ambient affine spaces are equal.
+In particular ``X`` and ``Y`` are considered equal (`==`)
+if and only if the identity morphism of their ambient affine space induces an
+isomorphism of ``X`` and ``Y``.
+For ``X`` and ``Y`` with different ambient affine space `X==Y` is always `false`.
 
-### Auxilliary methods
+### Auxiliary methods
 
 ```@docs
 is_non_zero_divisor(f::RingElem, X::AbsSpec)

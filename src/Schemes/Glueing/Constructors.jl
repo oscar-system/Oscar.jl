@@ -1,6 +1,64 @@
 export compose, maximal_extension, restrict
 
 ########################################################################
+# Dummy constructor for documentation only                             #
+########################################################################
+@Markdown.doc """
+    Glueing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+
+Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms 
+``f`` and ``g`` of open subsets ``U`` of ``X`` and ``V`` of ``Y``.
+
+# Examples
+```jldoctest
+julia> P1, (x,y) = QQ["x", "y"]; P2, (u,v) = QQ["u", "v"];
+
+julia> U1 = Spec(P1); U2 = Spec(P2);
+
+julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
+
+julia> V2 = PrincipalOpenSubset(U2, u);
+
+julia> f = SpecMor(V1, V2, [1//x, y//x]); # The glueing isomorphism
+
+julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
+
+julia> G = Glueing(U1, U2, f, g) # Construct the glueing
+Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map morphism from
+
+	Spec of localization of Multivariate Polynomial Ring in x, y over Rational Field at the powers of fmpq_mpoly[x]
+
+to
+
+	Spec of localization of Multivariate Polynomial Ring in u, v over Rational Field at the powers of fmpq_mpoly[u]
+
+with coordinates
+
+	1//x, y//x
+
+julia> typeof(G)<:SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
+true
+
+julia> # Alternative using SpecOpens as glueing domains:
+
+julia> W1 = SpecOpen(U1, [x]); W2 = SpecOpen(U2, [u]);
+
+julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
+
+julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
+
+julia> H = Glueing(U1, U2, h1, h2)
+Glueing of Spec of Multivariate Polynomial Ring in x, y over Rational Field and Spec of Multivariate Polynomial Ring in u, v over Rational Field along the map Morphism from complement of zero locus of fmpq_mpoly[x] in Spec of Multivariate Polynomial Ring in x, y over Rational Field to complement of zero locus of fmpq_mpoly[u] in Spec of Multivariate Polynomial Ring in u, v over Rational Field
+
+julia> typeof(H)<:Glueing
+true
+```
+"""
+function Glueing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+  error("constructor for `Glueing` not implemented for morphisms of type $(typeof(f)) and $(typeof(g))")
+end
+
+########################################################################
 # Conversion from SimpleGlueings to Glueings                           #
 ########################################################################
 function Glueing(G::SimpleGlueing)
@@ -19,6 +77,7 @@ end
 ########################################################################
 # Simplified constructor for common special case                       #
 ########################################################################
+
 function Glueing(
     X::AbsSpec, Y::AbsSpec, 
     f::AbsSpecMor{<:PrincipalOpenSubset}, 
@@ -34,8 +93,8 @@ function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
   if check
-    is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
-    is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
+    is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
+    is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
   Ures = intersect(X, U)
   Vres = intersect(Y, V)

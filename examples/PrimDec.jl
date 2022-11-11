@@ -135,7 +135,7 @@ function decomp_internal(I::Singular.sideal, primary::Array{Singular.sideal}, co
     #Add h (obtained from the reduction step) to the ideal and 
     I_split = addGenerator(I, hdash)
 
-    #if h wass in I before, we are done
+    #if h was in I before, we are done
     if Singular.reduce(hdash, Singular.std(copy_I)) == parent(hdash)(0)
         return primary
     end

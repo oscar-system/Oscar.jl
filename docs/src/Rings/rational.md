@@ -14,7 +14,7 @@ Pages = ["rational.md"]
 
 Fractions are created in Julia with the double slash operator `//`. If a
 fraction is created from Julia integers, a Julia fraction results, and if either
-the numerator or denominator is an Oscar integer of type `fmpz`, an Oscar
+the numerator or denominator is an OSCAR integer of type `fmpz`, an OSCAR
 fraction of type `fmpq` results.
 
 Julia has its own parameterised type `Rational{T}` for its own fractions, where
@@ -25,7 +25,7 @@ the numerator and denominator.
 
 ## The field of rationals
 
-The parent of an Oscar rational number is the field of rationals. It can be
+The parent of an OSCAR rational number is the field of rationals. It can be
 constructed from the ring of integers `ZZ` using the `FractionField`
 constructor.
 
@@ -38,16 +38,16 @@ QQ
 
 ### Integer constructors
 
-Oscar rationals can be created using `QQ`. Two arguments can be passed to
+OSCAR rationals can be created using `QQ`. Two arguments can be passed to
 specify numerator and denominator. If a single argument is passed, the
 denominator is set to `1`.
 
 For convenience, `QQ` also accepts Julia integers and rationals, but will
-always construct an Oscar rational.
+always construct an OSCAR rational.
 
 Naturally, Julia's double slash operator can also be used to construct
 fractions. However, unlike `QQ`, the double slash operator only constructs an
-Oscar rational if either the numerator or denominator is an Oscar integer.
+OSCAR rational if either the numerator or denominator is an OSCAR integer.
 
 An exception is raised if a fraction is constructed with denominator zero.
 
@@ -156,9 +156,9 @@ ceil(fmpz, QQ(5))
 
 ## Basic arithmetic
 
-Oscar provides the basic arithmetic operations `+`, `-` and `*` and comparison
+OSCAR provides the basic arithmetic operations `+`, `-` and `*` and comparison
 operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
-Julia and Oscar rationals and integers.
+Julia and OSCAR rationals and integers.
 
 ### [Exact Division]
 
@@ -196,7 +196,7 @@ QQ(0)^0
 
 !!! note
     In Julia, the rational number ``0//1`` when raised to a negative power
-    returns ``1//0`` to indicate that the value is undefined. Oscar raises
+    returns ``1//0`` to indicate that the value is undefined. OSCAR raises
     an exception.
 
 ```@repl oscar

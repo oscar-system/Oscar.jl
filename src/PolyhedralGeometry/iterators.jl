@@ -266,7 +266,7 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{fmpz}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
@@ -287,7 +287,7 @@ matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{fmpq}}) =
 matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{fmpz},PointVector{fmpz}}}) =
     matrix(R, matrix_for_polymake(iter))
 matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector{fmpq}, PointVector{fmpq}}}) =
-    matrix(R, Matrix{fmpq}(matrix_for_polymake(iter)))
+    matrix(R, matrix_for_polymake(iter))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
@@ -311,7 +311,7 @@ end
 
 Polymake.convert_to_pm_type(::Type{SubObjectIterator{RayVector{T}}}) where T = Polymake.Matrix{T}
 Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where T = Polymake.Matrix{T}
-Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) = matrix_for_polymake(iter; homogenized=true)
+Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) = assure_matrix_polymake(matrix_for_polymake(iter; homogenized=true))
 
 function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number = 1)
     if v != 1

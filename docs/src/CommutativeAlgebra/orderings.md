@@ -286,7 +286,7 @@ x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
        Block orderings for a subdivision of $x$ into any block of variables and its complementary block are defined similarly and have similar properties.
     - Inductively, one obtains block orderings composed of more than two individual orderings.
 
-In Oscar, block orderings are obtained by the concatenation of individual  orderings using the `*` operator.
+In OSCAR, block orderings are obtained by the concatenation of individual  orderings using the `*` operator.
 
 ##### Examples
 
@@ -385,4 +385,4 @@ The induced ordering on the given polynomial ring is recovered as follows:
 induced_ring_ordering(ord::ModuleOrdering)
 ```
 
-The comparism function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.
+The comparison function `cmp` as well as the tests `is_global`, `is_local`, and `is_mixed` are also available for module orderings.

@@ -92,7 +92,7 @@ serializing objects of the polyhedral geometry section.
 The file `main.jl` contains the core of the serialization process, namely:
 - reading and writing files;
 - the `SerializerState` and `DeserializerState` objects;
-- writing and reading vesions; and
+- writing and reading versions; and
 - generic functions for attempting to serialize objects that do not have their
   own dedicated serialization methods.
 
@@ -131,7 +131,7 @@ implementing this feature.
   whether this needs a separate implementation.
 - Versioning and upgrading: Work on OSCAR will change what its objects look
   like. Nevertheless, we still want to be able load data written by older
-  versions of OSCAR. For this we inted to develop an upgrade mechanism.
+  versions of OSCAR. For this we intend to develop an upgrade mechanism.
 
 Another important point is the wider mathematical context of the data and code.
 For data associated to a publication, this context is provided by the paper.

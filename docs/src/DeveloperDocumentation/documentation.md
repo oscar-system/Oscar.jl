@@ -18,7 +18,7 @@ functionname(x...,b...; c = ...)
 ```
 If the signature is too long, use linebreaks to fit 80 characters.
 
-Please also do provide an example within the docstring if possible, preferrably
+Please also do provide an example within the docstring if possible, preferably
 as a `jldoctest`, i.e.
 ````julia
 Markdown.@doc doc"""

@@ -42,7 +42,7 @@
   X = CoveredScheme(C)
 
   U = C[1]
-  x = gens(ambient_ring(U))
+  x = gens(ambient_coordinate_ring(U))
   I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
   J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
 
@@ -53,7 +53,7 @@ end
 @testset "ideal sheaves II" begin
   IP2 = projective_space(QQ, 2)
   X = covered_scheme(IP2)
-  S = ambient_ring(IP2)
+  S = ambient_coordinate_ring(IP2)
   (u,v,w) = gens(S)
   Ihom = ideal(S, u^2 - v*w)
   I = IdealSheaf(IP2, Ihom)

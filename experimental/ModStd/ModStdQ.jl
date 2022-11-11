@@ -29,7 +29,7 @@ end
 #  use walk, tracing, ...
 
 #= TODO: Currently we had to "disable" modular GB stuff due to introducing dictionaries of GBs for ideals.
- =     Next step is to reenable modular Singular.std and modular f4 again. =#
+ =     Next step is to re-enable modular Singular.std and modular f4 again. =#
 function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return collect(I.gb)

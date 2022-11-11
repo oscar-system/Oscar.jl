@@ -147,7 +147,7 @@ function preimage(
   check && (issubset(Z, Y) || (Z = intersect(Y, Z)))
   IZ = modulus(quotient_ring(OO(Z)))
   a = denominators(inverted_set(OO(Z)))
-  R = ambient_ring(X)
+  R = ambient_coordinate_ring(X)
   f = pullback(phi)
   new_units = [lifted_numerator(f(d)) for d in a]
   new_gens = lifted_numerator.(f.(gens(IZ)))
@@ -155,7 +155,7 @@ function preimage(
 end
 
 function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
-  OO(Z) == ambient_ring(codomain(f)) || error("schemes can not be compared")
+  OO(Z) == ambient_coordinate_ring(codomain(f)) || error("schemes can not be compared")
   return subscheme(domain(f), ideal(OO(domain(f)), [zero(OO(domain(f)))]))
 end
 

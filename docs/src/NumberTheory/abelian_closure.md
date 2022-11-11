@@ -13,11 +13,11 @@ Pages = ["abelian_closure.md"]
 # Abelian closure of the rationals
 
 The abelian closure $\mathbf{Q}^\text{ab}$ is the maximal abelian extension of $\mathbf{Q}$
-inside a fixed algebraic closure and can explicitely described as
+inside a fixed algebraic closure and can explicitly described as
 ```math
 \mathbf{Q}^{\mathrm{ab}} = \mathbf{Q}(\zeta_n \mid n \in \mathbf{N}),
 ```
-the union of all cyclotomic extensions. Here for $n \in \mathbf{N}$ we denote by $\zeta_n$ a primitve $n$-th root of unity.
+the union of all cyclotomic extensions. Here for $n \in \mathbf{N}$ we denote by $\zeta_n$ a primitive $n$-th root of unity.
 
 ## Creation of the abelian closure and elements
 

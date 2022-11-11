@@ -77,7 +77,7 @@ function _groebner_data(F::AffAlgHom, ord::Symbol)
   m = ngens(s)
   return get_attribute!(F, ord) do
     (S, I, W, _) = _ring_helper(s, zero(s), _images(F))
-    # Build auxilliary objects
+    # Build auxiliary objects
     (T, inc, J) = _containment_helper(S, n, m, I, W, ord)
     D = normal_form([gen(T, i) for i in 1:m], J)
     A = [zero(r) for i in 1:m]

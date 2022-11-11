@@ -3,9 +3,6 @@ export EmptyScheme
 export ClosedEmbedding
 export AbsProjectiveScheme, ProjectiveScheme
 export ProjectiveSchemeMor
-export Covering, CoveringMorphism
-export AbsCoveredScheme, CoveredScheme
-export AbsCoveredSchemeMorphism, CoveredSchemeMorphism
 export VarietyFunctionField, VarietyFunctionFieldElem
 export IdealSheaf
 
@@ -159,8 +156,8 @@ mutable struct ProjectiveSchemeMor{
       f::PullbackType;
       check::Bool=true
     ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     if check
       #TODO: Check map on ideals (not available yet)
@@ -180,8 +177,8 @@ mutable struct ProjectiveSchemeMor{
              PullbackType<:Map,
              BaseMorType<:SchemeMor
             }
-    T = ambient_ring(P)
-    S = ambient_ring(Q)
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
     pbh = pullback(h)
     OO(domain(h)) == coefficient_ring(T) || error("base scheme map not compatible")
@@ -191,238 +188,6 @@ mutable struct ProjectiveSchemeMor{
       coefficient_map(f) == pbh || error("maps not compatible")
     end
     return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, h)
-  end
-end
-
-########################################################################
-# Coverings for covered schemes                                        #
-########################################################################
-@Markdown.doc """
-    Covering
-
-A covering of a scheme ``X`` by affine patches ``Uᵢ`` which are glued
-along isomorphisms ``gᵢⱼ : Uᵢ⊃ Vᵢⱼ →  Vⱼᵢ ⊂ Uⱼ``.
-
-**Note:** The distinction between the different affine patches of the scheme
-is made from their hashes. Thus, an affine scheme must not appear more than once
-in any covering!
-"""
-mutable struct Covering{BaseRingType}
-  patches::Vector{<:AbsSpec} # the basic affine patches of X
-  glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
-  affine_refinements::IdDict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements
-      # of the basic affine patches.
-      # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen,
-      # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty
-      # intersection in the basic affine patch X and hence satisfies
-      # some equality 1 ≡ a₁⋅f₁ + a₂⋅f₂ + … + aᵣ⋅fᵣ on X.
-      # Since the coefficients aᵢ of this equality are crucial for computations,
-      # we store them in an extra tuple.
-
-  # fields for caching
-  glueing_graph::Graph{Undirected}
-  transition_graph::Graph{Undirected}
-  edge_dict::Dict{Tuple{Int, Int}, Int}
-
-  function Covering(
-      patches::Vector{<:AbsSpec},
-      glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
-      check::Bool=true,
-      affine_refinements::IdDict{
-          <:AbsSpec,
-          <:Vector{<:Tuple{<:SpecOpen, <:Vector{<:RingElem}}}
-         }=IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
-    )
-    n = length(patches)
-    n > 0 || error("can not glue the empty scheme")
-    kk = coefficient_ring(ambient_ring(patches[1]))
-    for i in 2:n
-      kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
-    end
-    # Check that no patch appears twice
-    for i in 1:n-1
-      for j in i+1:n
-        patches[i] === patches[j] && error("affine schemes must not appear twice among the patches")
-      end
-    end
-    for (X, Y) in keys(glueings)
-      X in patches || error("glueings are not compatible with the patches")
-      Y in patches || error("glueings are not compatible with the patches")
-      if haskey(glueings, (Y, X))
-        if check
-          inverse(glueings[(X, Y)]) == glueings[(Y, X)] || error("glueings are not inverse of each other")
-        end
-      else
-        glueings[(Y, X)] = inverse(glueings[(X, Y)])
-      end
-    end
-
-    # check the affine refinements
-    for U in keys(affine_refinements)
-      for (V, a) in affine_refinements[U]
-        ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
-        U in patches && error("the ambient scheme of the refinement can not be found in the affine patches")
-        if check
-          isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) || error("the patch $V does not cover $U")
-        end
-      end
-    end
-    return new{base_ring_type(patches[1])}(patches, glueings, affine_refinements)
-  end
-
-  ### the empty covering
-  function Covering(kk::Ring)
-    return new{typeof(kk)}(Vector{AbsSpec}(), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}(),
-                           IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}())
-  end
-end
-
-########################################################################
-# Morphisms of coverings                                               #
-########################################################################
-@Markdown.doc """
-    CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorType<:SpecMor}
-
-A morphism ``f : C → D`` of two coverings. For every patch ``U`` of ``C`` this
-provides a map `f[U']` of type `SpecMorType` from ``U' ⊂ U`` to
-some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``.
-
-**Note:** For two affine patches ``U₁, U₂ ⊂ U`` the codomains of `f[U₁]` and `f[U₂]`
-do not need to coincide! However, given the glueings in `C` and `D`, all affine maps
-have to coincide on their overlaps.
-"""
-mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, BaseMorType}
-  domain::DomainType
-  codomain::CodomainType
-  morphisms::IdDict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this
-                                         # returns the morphism φ : X → Y to the corresponding
-                                         # patch Y of the codomain covering.
-
-  function CoveringMorphism(
-      dom::DomainType,
-      cod::CodomainType,
-      mor::IdDict{<:AbsSpec, <:AbsSpecMor};
-      check::Bool=true
-    ) where {
-             DomainType<:Covering,
-             CodomainType<:Covering
-            }
-    # TODO: check domain/codomain compatibility
-    # TODO: if check is true, check that all morphisms glue and that the domain patches
-    # cover the basic patches of `dom`.
-    for U in keys(mor)
-      U in dom || error("patch $U of the map not found in domain")
-      codomain(mor[U]) in cod || error("codomain patch not found")
-    end
-    # check that the whole domain is covered
-    for U in basic_patches(dom)
-      if !haskey(mor, U)
-        !haskey(affine_refinements(dom), U) || error("patch $U of the domain not covered")
-        found = false
-        for (V, a) in affine_refinements(dom)[U]
-          all(x->(haskey(mor, x)), affine_patches(V)) && (found = true)
-        end
-        !found && error("patch $U of the domain not covered")
-      end
-    end
-    return new{DomainType, CodomainType, Nothing}(dom, cod, mor)
-  end
-end
-
-########################################################################
-# Abstract type for covered schemes                                    #
-########################################################################
-abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
-
-########################################################################
-# A minimal implementation of AbsCoveredScheme                         #
-########################################################################
-@Markdown.doc """
-    mutable struct CoveredScheme{
-      CoveringType<:Covering,
-      CoveringMorphismType<:CoveringMorphism
-    }
-
-A covered scheme ``X`` given by means of at least one covering
-of type `CoveringType`.
-
-A scheme may posess several coverings which are partially ordered
-by refinement. Such refinements are special instances of `CoveringMorphism`
-
-    ρ : C1 → C2
-
-where for each patch ``U`` in `C1` the inclusion map ``ρ[U] : U → V``
-into the corresponding patch ``V`` of `C2` is an open embedding for which
-both ``𝒪(U)`` and ``𝒪(V)`` have the same `base_ring` (so that they can be
-canonically compared).
-"""
-@attributes mutable struct CoveredScheme{BaseRingType} <: AbsCoveredScheme{BaseRingType}
-  coverings::Vector{<:Covering}
-  refinements::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
-  refinement_graph::Graph{Directed}
-  kk::BaseRingType
-
-  default_covering::Covering
-
-  function CoveredScheme(coverings::Vector{<:Covering},
-      refinements::Dict{Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
-    )
-    # TODO: Check whether the refinements form a connected graph.
-    BaseRingType = base_ring_type(coverings[1])
-    all(x->(base_ring_type(x) == BaseRingType), coverings) || error("coverings are not compatible")
-    X = new{BaseRingType}(coverings, refinements)
-    X.default_covering = X.coverings[1]
-    X.kk = base_ring(patches(coverings[1])[1])
-    return X
-  end
-  function CoveredScheme(kk::Ring)
-    res = new{typeof(kk)}()
-    res.kk = kk
-    return res
-  end
-end
-
-########################################################################
-# Morphisms of covered schemes                                         #
-########################################################################
-abstract type AbsCoveredSchemeMorphism{
-    DomainType<:CoveredScheme,
-    CodomainType<:CoveredScheme,
-    BaseMorphismType,
-    CoveredSchemeMorphismType
-   } <: SchemeMor{DomainType, CodomainType, CoveredSchemeMorphismType, BaseMorphismType}
-end
-
-########################################################################
-# Concrete minimal type for morphisms of covered schemes               #
-########################################################################
-@attributes mutable struct CoveredSchemeMorphism{
-    DomainType<:AbsCoveredScheme,
-    CodomainType<:AbsCoveredScheme,
-    BaseMorphismType
-   } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 CoveredSchemeMorphism,
-                                 BaseMorphismType
-                                }
-  X::DomainType
-  Y::CodomainType
-  f::CoveringMorphism
-
-  function CoveredSchemeMorphism(
-      X::DomainType,
-      Y::CodomainType,
-      f::CoveringMorphism{<:Any, <:Any, BaseMorType};
-      check::Bool=true
-    ) where {
-             DomainType<:CoveredScheme,
-             CodomainType<:CoveredScheme,
-             BaseMorType
-            }
-    domain(f) in coverings(X) || error("covering not found in domain")
-    codomain(f) in coverings(Y) || error("covering not found in codomain")
-    return new{DomainType, CodomainType, BaseMorType}(X, Y, f)
   end
 end
 
@@ -447,7 +212,7 @@ mutable struct VarietyFunctionField{BaseRingType<:Field,
     )
     check && (is_irreducible(X) || error("variety is not irreducible"))
     representative_patch in default_covering(X) || error("representative patch not found")
-    KK = FractionField(ambient_ring(representative_patch))
+    KK = FractionField(ambient_coordinate_ring(representative_patch))
     kk = base_ring(X)
     return new{typeof(kk), typeof(KK), typeof(X), typeof(representative_patch)}(kk, X, representative_patch, KK)
   end
@@ -561,7 +326,7 @@ Note that due to technical reasons, the admissible open subsets are restricted
 to the following:
  * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`;
- * `W::SpecOpen` with `ambient(W)` in the `basic_patches` of the `default_covering` of `X`.
+ * `W::SpecOpen` with `ambient_scheme(W)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``𝒪`` across charts, implicitly using the
 identifications given by the glueings in the `default_covering`.
@@ -664,18 +429,18 @@ identifications given by the glueings in the `default_covering`.
 #      return is_subset(U, preV)
 #    end
     function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
-      return Y === X && ambient(W) in default_covering(X)
+      return Y === X && ambient_scheme(W) in default_covering(X)
     end
     function is_open_func(W::SpecOpen, V::AbsSpec)
       V in default_covering(X) || return false
-      ambient(W) === V && return true
-      U = ambient(W)
+      ambient_scheme(W) === V && return true
+      U = ambient_scheme(W)
       U in default_covering(X) || return false
       G = default_covering(X)[U, V]
       return is_subset(W, glueing_domains(G)[1])
     end
     function is_open_func(W::SpecOpen, V::PrincipalOpenSubset)
-      PW = ambient(W)
+      PW = ambient_scheme(W)
       PV = ambient_scheme(V)
       PW in default_covering(X) || return false
       PV in default_covering(X) || return false
@@ -689,8 +454,8 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function is_open_func(W::SpecOpen, V::SpecOpen)
-      PW = ambient(W)
-      PV = ambient(V)
+      PW = ambient_scheme(W)
+      PV = ambient_scheme(V)
       PW in default_covering(X) || return false
       PV in default_covering(X) || return false
       if PW === PV
@@ -704,12 +469,12 @@ identifications given by the glueings in the `default_covering`.
     end
     function is_open_func(U::AbsSpec, W::SpecOpen)
       U in default_covering(X) || return false
-      if U === ambient(W)
+      if U === ambient_scheme(W)
         # in this case W must be equal to U
         return issubset(W, U)
         #return one(OO(U)) in complement_ideal(W)
       else
-        G = default_covering(X)[ambient(W), U]
+        G = default_covering(X)[ambient_scheme(W), U]
         issubset(U, glueing_domains(G)[2]) || return false
         preU = preimage(glueing_morphisms(G)[1], U)
         return issubset(preU, W)
@@ -717,12 +482,12 @@ identifications given by the glueings in the `default_covering`.
     end
     function is_open_func(U::PrincipalOpenSubset, W::SpecOpen)
       ambient_scheme(U) in default_covering(X) || return false
-      if ambient_scheme(U) === ambient(W)
+      if ambient_scheme(U) === ambient_scheme(W)
         # in this case W must be equal to U
         return issubset(W, U)
         #return one(OO(U)) in complement_ideal(W)
       else
-        G = default_covering(X)[ambient(W), ambient_scheme(U)]
+        G = default_covering(X)[ambient_scheme(W), ambient_scheme(U)]
         issubset(U, glueing_domains(G)[2]) || return false
         preU = preimage(glueing_morphisms(G)[1], U)
         return issubset(preU, W)
@@ -797,11 +562,11 @@ identifications given by the glueings in the `default_covering`.
     end
     function restriction_func(V::AbsSpec, OV::Ring, W::SpecOpen, OW::Ring)
       V in default_covering(X) || return false
-      ambient(W) in default_covering(X) || return false
-      if V === ambient(W)
+      ambient_scheme(W) in default_covering(X) || return false
+      if V === ambient_scheme(W)
         return MapFromFunc(x->(OW(x)), OV, OW)
       else
-        G = default_covering(X)[V, ambient(W)]
+        G = default_covering(X)[V, ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -811,14 +576,14 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function restriction_func(V::PrincipalOpenSubset, OV::Ring, W::SpecOpen, OW::Ring)
-      if ambient_scheme(V) === ambient(W)
+      if ambient_scheme(V) === ambient_scheme(W)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return OW(a)
         end
         return MapFromFunc(rho_func, OV, OW)
       else
-        G = default_covering(X)(ambient_scheme(V), ambient(W))
+        G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
         preV = preimage(g, VG)
@@ -832,11 +597,11 @@ identifications given by the glueings in the `default_covering`.
       end
     end
     function restriction_func(V::SpecOpen, OV::Ring, W::SpecOpen, OW::Ring)
-      if ambient(V) === ambient(W)
+      if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OV, OW)
       else
-        G = default_covering(X)[ambient(V), ambient(W)]
+        G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
         f, g = glueing_morphisms(G)
         VG = intersect(V, domain(f))
         inc0 = inclusion_morphism(VG, V)

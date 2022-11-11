@@ -4,6 +4,8 @@ export representative, point
 
 export ambient_germ
 
+export rational_point_coordinates
+
 import AbstractAlgebra: Ring
 
 @Markdown.doc """
@@ -58,7 +60,7 @@ end
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocalizedRing})
-    R = ambient_ring(X)
+    R = ambient_coordinate_ring(X)
     return Spec(R)
 end
 
@@ -94,7 +96,30 @@ end
 # allow user to specify point also as ideal
 ############################################################################################################
 
-function _maxideal_to_point(I::MPolyIdeal)
+@doc Markdown.doc"""
+    rational_point_coordinates(I::MPolyIdeal)
+
+Returns the $k$-coordinates of the point corresponding to a maximal ideal 
+$I \in k[x_1,\dots,x_n]$, which describes a $k$-point. If $I$ is not maximal
+or does not describe a point with coordinates in the field $k$, an error 
+exception results.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = QQ["x","y"]
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal(R, [x-1,y-3])
+ideal(x - 1, y - 3)
+
+julia> rational_point_coordinates(I)
+2-element Vector{fmpq}:
+ 1
+ 3
+
+```
+"""
+function rational_point_coordinates(I::MPolyIdeal)
   R=base_ring(I)
   o = degrevlex(gens(R))
   G=groebner_basis(I)
@@ -138,7 +163,7 @@ end
 ### constructors
 ############################################################################################################
 function SpaceGerm(X::AbsSpec, a::Vector)
-  R = ambient_ring(X)
+  R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
@@ -150,8 +175,8 @@ end
 
 function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   R = base_ring(I)
-  R === ambient_ring(X) || error("rings are not compatible")
-  a = _maxideal_to_point(I)
+  R === ambient_coordinate_ring(X) || error("rings are not compatible")
+  a = rational_point_coordinates(I)
   Y = SpaceGerm(X,a)
   return Y
 end
@@ -164,7 +189,7 @@ function SpaceGerm(X::AbsSpec, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
   J = to_poly_ideal(I)
-  a = _maxideal_to_point(J)
+  a = rational_point_coordinates(J)
   Y = SpaceGerm(X,a)
   return Y
 end
@@ -243,8 +268,8 @@ end
 ##############################################################################
 
 function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || return false
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
   point(X) == point(Y) || return false
   IY=ideal(localized_ring(OO(X)), gens(modulus(quotient_ring(OO(Y)))))
   return issubset(IY,modulus(OO(X)))
@@ -257,8 +282,8 @@ function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
 end
 
 function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
-  R = ambient_ring(X)
-  R === ambient_ring(Y) || error("not subgerms of a common space germ")
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("not subgerms of a common space germ")
   point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented

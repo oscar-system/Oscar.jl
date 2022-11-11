@@ -85,12 +85,6 @@ function singular_locus_reduced(X::AbsSpec{<:Ring, <:MPAnyNonQuoRing})
   return subscheme(X,ideal(OO(X),one(OO(X))))
 end
 
-### to keep number of cases down, create a dummy for 
-### saturated_ideal for the affine case
-function saturated_ideal(I::MPolyIdeal)
-  return(I)
-end
-
 @attr Bool function is_equidimensional(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   I = modulus(OO(X))
   P = equidimensional_decomposition_radical(saturated_ideal(I))

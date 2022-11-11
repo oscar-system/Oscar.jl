@@ -16,7 +16,7 @@ in every chart.
 """
 function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
-  S === ambient_ring(X) || error("ideal does not live in the ambient ring of the scheme")
+  S === ambient_coordinate_ring(X) || error("ideal does not live in the ambient coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
@@ -155,7 +155,7 @@ function simplify!(I::IdealSheaf)
   for U in basic_patches(default_covering(space(I)))
     n = ngens(I(U)) 
     n == 0 && continue
-    R = ambient_ring(U)
+    R = ambient_coordinate_ring(U)
     kk = coefficient_ring(R)
     new_gens = elem_type(OO(U))[]
     K = ideal(OO(U), new_gens) 

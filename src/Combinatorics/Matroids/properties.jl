@@ -195,9 +195,9 @@ Return the list of cyclic flats of the matroid `M`.
 These are the flats that are the union of cycles.
 See Section 2.1 in [Oxl11](@cite).
 
-By default all cylic flats are returned.
+By default all cyclic flats are returned.
 One may specify a rank `r` as the second parameter.
-In this case only the cylic flats of this rank are returned.
+In this case only the cyclic flats of this rank are returned.
 
 # Examples
 ```jldoctest
@@ -544,7 +544,7 @@ false
 ```
 """
 function is_regular(M::Matroid)
-    #if statment to avoid bug in polymake (TODO remove when fixed)
+    #if statement to avoid bug in polymake (TODO remove when fixed)
     if rank(M)==length(M)
         return true
     end
@@ -584,7 +584,7 @@ false
 ```
 """
 function is_ternary(M::Matroid)
-    #if statment to avoid bug in polymake (TODO remove when fixed)
+    #if statement to avoid bug in polymake (TODO remove when fixed)
     if rank(M)==length(M)
         return true
     end
@@ -847,7 +847,7 @@ end
     girth(M::Matroid, set::Vector)
 
 Return the girth of `set` in the matroid `M`.
-This is the size of the smalles circuit contained in `set` and infintie otherwise.
+This is the size of the smallest circuit contained in `set` and infintie otherwise.
 See Section 8.6 in [Oxl11](@cite).
 
 # Examples
@@ -862,7 +862,7 @@ girth(M::Matroid, set::GroundsetType=M.groundset) = minimum([inf; [issubset(C,se
 @doc Markdown.doc"""
     tutte_connectivity(M::Matroid)
 
-The Tutte connectivity of `M` is the least integer k such that `M` has a k separation. It can be infinte if no k separation exists.
+The Tutte connectivity of `M` is the least integer k such that `M` has a k separation. It can be infinite if no k separation exists.
 See Section 8.6 in [Oxl11](@cite).
 
 # Examples
@@ -1002,9 +1002,9 @@ Matroid of rank 3 on 7 elements
 """
 function revlex_basis_encoding(M::Matroid)
     rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
-    indicies = findall(x->x=='*', rvlx)
+    indices = findall(x->x=='*', rvlx)
     v = zeros(Int,length(rvlx))
-    [v[i]=1 for i in indicies]
+    [v[i]=1 for i in indices]
     n = M.pm_matroid.N_ELEMENTS;
     A = revlex_bases_matrix(rank(M),n)
     P = Polymake.group.PermutationAction(GENERATORS=[[[1,0];Vector(2:n-1)],[[n-1];Vector(0:n-2)]])

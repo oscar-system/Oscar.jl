@@ -293,7 +293,7 @@ function _cellular_decomposition_macaulay(I::MPolyIdeal)
   todo = Tuple{Vector{elem_type(R)}, Vector{elem_type(R)}, typeof(I)}[(elem_type(R)[], gens(R), I)]
   #every element in the todo list has three dedicated data:
   #1: contains a list of variables w.r.t. which it is already saturated
-  #2: conatains variables to be considered for cell variables
+  #2: contains variables to be considered for cell variables
   #3: is the ideal to decompose
 
   while !isempty(todo)
@@ -703,7 +703,7 @@ function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQQAb::MPolyRing 
     end
   end
 
-  #now check if there are superflous elements in Ass
+  #now check if there are superfluous elements in Ass
   res = typeof(associated_primes)() 
   for i = 1:length(associated_primes)
     found = false

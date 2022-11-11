@@ -21,7 +21,7 @@ function fiber_product(
   X == codomain(g) || error("maps need to have the same codomain")
   Z = domain(g)
   YxZ, pY, pZ = product(Y, Z)
-  RX = ambient_ring(X)
+  RX = ambient_coordinate_ring(X)
   W = subscheme(YxZ, [pullback(pY)(pullback(f)(x)) - pullback(pZ)(pullback(g)(x)) for x in gens(RX)])
   return W, restrict(pY, W, Y, check=false), restrict(pZ, W, Z, check=false)
 end
@@ -103,7 +103,7 @@ to eliminate variables ``xᵢ`` to arrive at a simpler presentation
 the triple ``(Y, f, g)`` where ``Y = Spec(R')`` and ``f : Y ↔ X : g``
 are the identifying isomorphisms. 
 
-***Note:*** The `ambient_ring` of the output `Y` will be different 
+***Note:*** The `ambient_coordinate_ring` of the output `Y` will be different
 from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsSpec{<:Field})
@@ -125,7 +125,7 @@ function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:AbsSpecMor}
   X = domain(f)
   X == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  OO(X).(pullback(f).(gens(ambient_ring(codomain(f))))) == OO(X).(pullback(f).(gens(ambient_ring(codomain(g))))) || return false
+  OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(f))))) == OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(g))))) || return false
   return true
 end
 
@@ -141,9 +141,9 @@ function Base.show(io::IO, f::AbsSpecMor)
   println(io, "to\n")
   println(io, "\t$(codomain(f))\n")
   println(io, "with coordinates\n")
-  x = gens(OO(codomain(f)))
+  x = coordinates(codomain(f))
   print(io,"\t")
-  for i in 1:ngens(OO(codomain(f)))-1
+  for i in 1:length(x)-1
     print(io, "$(pullback(f)(x[i])), ")
   end
   print(io, "$(pullback(f)(last(x)))")

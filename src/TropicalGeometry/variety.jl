@@ -244,7 +244,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
         print("computing groebner_basis for ",point_to_traverse,direction_to_traverse,"... ")
         G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
         println("done")
-        C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,pertubation=direction_to_traverse)
+        C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,perturbation=direction_to_traverse)
         w_neighbour = anchor_point(C_neighbour)
 
         # if neighbour is already in done list, skip

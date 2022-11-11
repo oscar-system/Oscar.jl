@@ -9,7 +9,7 @@ export issubset
 
 @attributes mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   I::MPolyIdeal{S}
-  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_poly_ring()
+  SQR::Singular.PolyRing  # expensive qring R/I, set and retrieved by singular_poly_ring()
 
   function MPolyQuo(R, I)
     @assert base_ring(I) === R
@@ -370,6 +370,10 @@ function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
     A == parent(p) || error("parents must match")
   end
   return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
+end
+
+function ideal(A::MPolyQuo{T}, x::T) where T <: MPolyElem
+  return ideal(A,[x])
 end
 
 function ideal(A::MPolyQuo{T}, x::MPolyQuoElem{T}) where T <: MPolyElem
@@ -823,7 +827,7 @@ end
 
 """
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
-Only the row indeces (generators) in `V` and the column indeces in `U` are converted.
+Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
 function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
   S = sparse_matrix(R)
@@ -1132,7 +1136,7 @@ end
 
 function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
+  #      apparently it is possible to get the number of points faster than the points
   D = parent(d)
   @assert D == grading_group(W)
   R = base_ring(W)

@@ -141,7 +141,7 @@ julia> basis_of_global_sections_via_rational_functions(l)
         end
     end
     characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
-    return MPolyQuoElem{fmpq_mpoly}[character_to_rational_function(toric_variety(l), vec([fmpz(c) for c in characters[i,:]])) for i in 1:nrows(characters)]
+    return MPolyQuoElem{fmpq_mpoly}[character_to_rational_function(toric_variety(l), vec([fmpz(c) for c in characters[i, :]])) for i in 1:nrows(characters)]
 end
 export basis_of_global_sections_via_rational_functions
 

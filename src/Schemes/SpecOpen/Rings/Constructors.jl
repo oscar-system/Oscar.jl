@@ -6,7 +6,7 @@ export maximal_extension
 
 function OO(U::SpecOpen) 
   if !isdefined(U, :ring_of_functions) 
-    U.ring_of_functions = SpecOpenRing(ambient(U), U)
+    U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U)
   end
   return U.ring_of_functions::SpecOpenRing
   #return U.ring_of_functions::SpecOpenRing{affine_patch_type(U), typeof(U)}
@@ -102,7 +102,7 @@ function maximal_extension(
   ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
-  W = ambient_ring(X)
+  W = ambient_coordinate_ring(X)
   I = quotient(ideal(W, b) + modulus(OO(X)), ideal(W, a))
   U = SpecOpen(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
@@ -116,7 +116,7 @@ function maximal_extension(
   ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
-  W = ambient_ring(X)
+  W = ambient_coordinate_ring(X)
   I = quotient(ideal(W, b), ideal(W, a))
   U = SpecOpen(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
@@ -146,7 +146,7 @@ function maximal_extension(
   for a in f
     R == base_ring(parent(a)) || error("fractions do not belong to the same ring")
   end
-  R == ambient_ring(X) || error("fractions do not belong to the base ring of the scheme")
+  R == ambient_coordinate_ring(X) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
   W = OO(X)
@@ -172,8 +172,8 @@ function maximal_extension(
   for a in f
     R == base_ring(parent(a)) || error("fractions do not belong to the same ring")
   end
-  R == ambient_ring(X) || error("fractions do not belong to the base ring of the scheme")
-  W = ambient_ring(X)
+  R == ambient_coordinate_ring(X) || error("fractions do not belong to the base ring of the scheme")
+  W = ambient_coordinate_ring(X)
   I = ideal(W, one(W))
   for p in f
     I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
@@ -196,8 +196,8 @@ function maximal_extension(
   for a in f
     R == base_ring(parent(a)) || error("fractions do not belong to the same ring")
   end
-  R == ambient_ring(X) || error("fractions do not belong to the base ring of the scheme")
-  W = ambient_ring(X)
+  R == ambient_coordinate_ring(X) || error("fractions do not belong to the base ring of the scheme")
+  W = ambient_coordinate_ring(X)
   I = ideal(W, one(W))
   for p in f
     I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
@@ -215,7 +215,7 @@ end
 ########################################################################
 function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
   all(x->(parent(x)==OO(U)), g) || error("elements do not belong to the correct ring")
-  X = ambient(U)
+  X = ambient_scheme(U)
   Z = subscheme(X, vcat([[lifted_numerator(f[i]) for i in 1:ngens(U)] for f in g]...))
   return SpecOpen(Z, gens(U))
 end

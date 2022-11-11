@@ -22,7 +22,7 @@ Pages = ["MorphismsOfAffineSchemes.md"]
 SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 ```
 
-### Special constructors
+### Special constructors 
 
 ```@docs
 identity_map(X::AbsSpec{<:Any, <:MPolyRing})

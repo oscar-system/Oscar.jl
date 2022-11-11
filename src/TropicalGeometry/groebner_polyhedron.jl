@@ -30,15 +30,15 @@ groebner_polyhedron(I,val_t,w)
 function groebner_polyhedron(I,val::TropicalSemiringMap{K,p} where {K,p},w::Vector{Int})
   GB,LI = groebner_basis(I,val,w,complete_reduction=true,return_lead=true)
 
-  return groebner_polyhedron(GB,val,w,pertubation=pertubation,skip_reduction=skip_reduction)
+  return groebner_polyhedron(GB,val,w,perturbation=perturbation,skip_reduction=skip_reduction)
 end
 
-function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::TropicalSemiringMap, w::Vector; pertubation::Vector=[], skip_reduction::Bool=false)
+function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], skip_reduction::Bool=false)
   if !skip_reduction
-    GB = interreduce_tropically(GB,val,w,pertubation=pertubation)
+    GB = interreduce_tropically(GB,val,w,perturbation=perturbation)
   end
 
-  return groebner_polyhedron(GB,initial(GB,val,w,pertubation=pertubation),val)
+  return groebner_polyhedron(GB,initial(GB,val,w,perturbation=perturbation),val)
 end
 
 function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem}, val::TropicalSemiringMap) # GB entries can be MPolyElem and fmpq_mpoly

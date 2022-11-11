@@ -179,7 +179,7 @@ character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, char
 ```
 
 
-## Auxillary Methods
+## Auxiliary Methods
 
 ```@docs
 binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})

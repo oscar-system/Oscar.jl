@@ -15,7 +15,7 @@ Pages = ["quotients.md"]
 
 # [Quotients](@id quotient)
 
-Quotient groups in Oscar can be defined using the instruction `quo` in two ways.
+Quotient groups in OSCAR can be defined using the instruction `quo` in two ways.
 
 * Quotients by normal subgroups.
 ```@docs

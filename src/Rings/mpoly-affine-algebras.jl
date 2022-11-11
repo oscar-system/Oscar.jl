@@ -848,7 +848,7 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, M
    n = length(W)
    m = ngens(R)
 
-   # Build auxilliary objects
+   # Build auxiliary objects
    (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
    TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    

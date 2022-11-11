@@ -1352,7 +1352,7 @@ x^2
 """
 function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
+  #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
   if !(coefficient_ring(W) isa AbstractAlgebra.Field)
@@ -1744,7 +1744,7 @@ end
 #      spent in `_divide_by`, so it does not seem overly important 
 #      at this point, but might become relevant in the future. 
 #      A particular modification of the singular version of bitmasking 
-#      is to compute means for the exponents occuring for each variable 
+#      is to compute means for the exponents occurring for each variable 
 #      and set the bits depending on whether a given exponent is greater 
 #      or less than that mean value. 
 
@@ -2044,7 +2044,7 @@ end
 
 ###old: special and to be applied with care
 ### needed for: AffinePlaneCurve.jl
-### TODO: make adjustments there and omitt fuction below
+### TODO: make adjustments there and omit function below
 function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
   d = total_degree(f)
   B = MPolyBuildCtx(S)
@@ -2291,7 +2291,7 @@ function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::M
 end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
-### TODO: make adjustments there and omitt fuction below
+### TODO: make adjustments there and omit function below
 function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
   B = MPolyBuildCtx(R)
   for (c,e) = zip(coefficients(F), exponent_vectors(F))

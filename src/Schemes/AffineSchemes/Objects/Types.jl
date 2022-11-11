@@ -75,7 +75,7 @@ end
 
 
 ###########################################
-# (3) Auxilliary types
+# (3) Auxiliary types
 ###########################################
 
 StdSpec = AbsSpec{<:Ring, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}

@@ -124,7 +124,7 @@ end
 
 
 ################################################################################
-# convert array of lenght 2 to ProjSpcElem with 1 for last coordinate.
+# convert array of length 2 to ProjSpcElem with 1 for last coordinate.
 # Helping function
 
 function Array_to_ProjSpcElem(PP::Oscar.Geometry.ProjSpc{S}, p::Vector{S}) where S <: FieldElem

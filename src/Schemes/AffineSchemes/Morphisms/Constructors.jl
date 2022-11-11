@@ -11,7 +11,7 @@ export SpecMor, identity_map, inclusion_morphism, restrict, compose
 
 This method constructs a morphism from the scheme ``X``
 to the scheme ``Y``. For this one has to specify the images
-of the coordinates (the generators of `ambient_ring(Y)`)
+of the coordinates (the generators of `ambient_coordinate_ring(Y)`)
 under the pullback map ``𝒪(Y) → 𝒪(X)`` as third argument.
 
 Note that expensive checks can be turned off by setting `check=false`.
@@ -74,9 +74,9 @@ julia> identity_map(X);
 ```
 """
 identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X))))
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X)), check=false))
-identity_map(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X)), check=false))
-identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_ring(X))))
+identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false))
+identity_map(X::AbsSpec{<:Any, <:MPolyLocalizedRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false))
+identity_map(X::AbsSpec{<:Any, <:MPolyQuo}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X))))
 
 
 @Markdown.doc """
@@ -102,10 +102,16 @@ julia> (x1,x2,x3) = gens(R)
 julia> Y = subscheme(X, x1)
 Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field by ideal(x1)
 
-julia> inclusion_morphism(Y, X);
+julia> f = inclusion_morphism(Y, X);
+
+julia> I = kernel(pullback(f))  # this is a way to obtain the ideal ``I ⊆  O(X)`` cutting out ``Y`` from ``X``.
+ideal(x1)
+
+julia> base_ring(I) == OO(X)
+true
 ```
 """
-inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_ring(Y)), check=check)
+inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
 
 
 @Markdown.doc """

@@ -31,9 +31,9 @@ end
 # (2) Display
 ########################################################
 
-function Base.show(io::IO, X::Spec)
-  if isdefined(X, :name)
-    print(io, name_of(X))
+function Base.show(io::IO, X::AbsSpec)
+  if has_attribute(X, :name)
+    print(io, name(X))
     return
   end
   print(io, "Spec of $(OO(X))")
@@ -56,7 +56,7 @@ in the coordinate ring of an affine scheme.
 julia> X = affine_space(QQ,3)
 Spec of Multivariate Polynomial Ring in x1, x2, x3 over Rational Field
 
-julia> (x1,x2,x3) = gens(OO(X))
+julia> (x1, x2, x3) = gens(OO(X))
 3-element Vector{fmpq_mpoly}:
  x1
  x2
@@ -78,7 +78,7 @@ function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
 end
 
 function is_non_zero_divisor(f::MPolyQuoElem, X::AbsSpec{<:Ring, <:MPolyQuo})
-  R = ambient_ring(X)
+  R = ambient_coordinate_ring(X)
   I = modulus(OO(X))
   J = ideal(R, lift(f))
   return I == quotient(I, J)

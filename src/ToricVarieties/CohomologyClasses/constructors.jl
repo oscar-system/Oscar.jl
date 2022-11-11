@@ -30,7 +30,7 @@ corresponding to the toric divisor `d`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> d = ToricDivisor(P2, [1,2,3])
+julia> d = ToricDivisor(P2, [1, 2, 3])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> CohomologyClass(d)
@@ -96,7 +96,7 @@ function Base.:+(cc1::CohomologyClass, cc2::CohomologyClass)
         throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(cc1, ring) + polynomial(cc2, ring)
+    poly = polynomial(ring, cc1) + polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 
@@ -106,7 +106,7 @@ function Base.:-(cc1::CohomologyClass, cc2::CohomologyClass)
         throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(cc1, ring) - polynomial(cc2, ring)
+    poly = polynomial(ring, cc1) - polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 
@@ -125,7 +125,7 @@ function Base.:*(cc1::CohomologyClass, cc2::CohomologyClass)
         throw(ArgumentError("The cohomology classes must be defined on the same toric variety, i.e. the same OSCAR variable"))
     end
     ring = cohomology_ring(toric_variety(cc1))
-    poly = polynomial(cc1, ring) * polynomial(cc2, ring)
+    poly = polynomial(ring, cc1) * polynomial(ring, cc2)
     return CohomologyClass(toric_variety(cc1), poly)
 end
 

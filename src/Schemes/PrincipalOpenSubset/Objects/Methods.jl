@@ -22,8 +22,8 @@ end
 
 Given a regular function ``a ∈ 𝒪(U)`` on a principal open 
 subset ``U ⊂ X`` of an affine scheme ``X``, return a 
-fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_ring` of 
-the `ambient` scheme ``X`` of ``U``) which represents ``a``
+fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_coordinate_ring` 
+of ``U``) which represents ``a``
 in the sense that the maximal extension of its restriction 
 to ``U`` returns ``a``.
 """

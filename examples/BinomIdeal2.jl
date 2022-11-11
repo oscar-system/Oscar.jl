@@ -475,7 +475,7 @@ function cellularDecompMacaulay(I::Singular.sideal)
         ToDo=[([R(1)],Singular.gens(R),I)]
         #every element in the todo list has three dedicated data:
         #1: contains a list of variables w.r.t. which it is already saturated
-        #2: conatains variables to be considered for cell variables
+        #2: contains variables to be considered for cell variables
         #3: is the ideal to decompose
 
         compo=0
@@ -837,7 +837,7 @@ end
 
 function cellularHull(I::Singular.sideal)
         #input: cellular binomial ideal
-        #ouput: hull(I), the intersection of all minimal primary components of I
+        #output: hull(I), the intersection of all minimal primary components of I
         #by theorems we know that Hull(I)=M_emb(I)+I
 
         cell=isCellular(I)
@@ -904,7 +904,7 @@ function cellularAssociatedPrimes(I::Singular.sideal)
                 end
         end
 
-        #now check if there are superflous elements in Ass
+        #now check if there are superfluous elements in Ass
         for i=size(Ass,1):-1:1
                 j=i-1
                 flag = false

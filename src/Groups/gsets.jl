@@ -405,7 +405,7 @@ end
 """
     permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<:GAPGroup
 
-Return the element of the permutation group that desribes the action
+Return the element of the permutation group that describes the action
 of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
 
 # Example

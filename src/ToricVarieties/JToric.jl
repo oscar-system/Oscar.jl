@@ -35,7 +35,7 @@ function push_attribute_if_exists!(result::Vector{String},
 end
 
 include("NormalToricVarieties/constructors.jl")
-include("NormalToricVarieties/auxilliary.jl")
+include("NormalToricVarieties/auxiliary.jl")
 include("NormalToricVarieties/properties.jl")
 include("NormalToricVarieties/attributes.jl")
 include("NormalToricVarieties/methods.jl")
@@ -67,7 +67,7 @@ include("cohomCalg/VanishingSets/constructors.jl")
 include("cohomCalg/VanishingSets/attributes.jl")
 include("cohomCalg/VanishingSets/methods.jl")
 
-include("cohomCalg/auxilliary.jl")
+include("cohomCalg/auxiliary.jl")
 include("cohomCalg/special_attributes.jl")
 
 include("Subvarieties/constructors.jl")
