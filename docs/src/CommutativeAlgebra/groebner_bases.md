@@ -73,7 +73,7 @@ f = 3*z^3+2*x*y+1
 ## Division With Remainder
 
 Buchberger's algorithm for computing Gröbner bases makes use of reduction steps which rely on multivariate division with remainder.
-For the computation of standard bases, a variant of of the division algorithm due to Mora comes into play. In that context, with notation
+For the computation of standard bases, a variant of the division algorithm due to Mora comes into play. In that context, with notation
 as above, we use the following terminology.
 
 First suppose that $>$ is global and let polynomials $g\in K[x]$ and $f_1, \dots, f_r\in K[x]\setminus \{0\}$ be given.
