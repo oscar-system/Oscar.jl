@@ -27,7 +27,7 @@ Next note that the set
 
 $U_>:= \{u\in K[x]\setminus \{0\} \mid {\text{LM}}_>(u)=1 \}$
 
-is a multiplicatively closed subset of $ K[x]$. Consider the localization
+is a multiplicatively closed subset of $K[x]$. Consider the localization
 
 $K[x]_>:= K[x][U^{-1}] = \left\{ \frac{f}{u} \:\bigg|\: f \in K[x], \, u\in U_>\right\}.$
 
@@ -49,7 +49,7 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
 !!! note
     The OSCAR functions discussed in this section depend on a monomial ordering which may be entered as a keyword argument.
     For a polynomial ring $R$, the respective default ordering is `degrevlex` except if $R$ is $\mathbb Z$-graded with
-	positive weights. Then the corresponding `wdegrevlex`ordering is used. For a free $R$-module $F$, the default
+	positive weights. Then the corresponding `wdegrevlex` ordering is used. For a free $R$-module $F$, the default
 	ordering is `default_ordering (R)*lex(gens(F))`.
 
 Here are some illustrating OSCAR examples:
@@ -145,12 +145,12 @@ We call a standard basis $\{f_1,\dots, f_r\}\subset K[x]_>$ *minimal*  if  $\tex
 for $i\neq j$. We call it *reduced* if  it is minimal and no term of $f_i$ is divisible by $\text{LM}_>(f_j)$, for $i\neq j$.
 
 !!! note
-    The above definitions deviatate from the usual textbook definitions as we do not ask that the leading coefficients of the standard basis elements are 1.
+    The above definitions deviate from the usual textbook definitions as we do not ask that the leading coefficients of the standard basis elements are 1.
 
 !!! note
     The standard bases returned by OSCAR are always minimal in the sense above.
 
-If $>$ is global, that is, $K[x] = K[x]_>$, then we use the word *Gröbner basis* instead of standard basis.
+If $>$ is global, that is, $K[x] = K[x]_>$, then we use the expression *Gröbner basis* instead of standard basis.
 Note that reduced Gröbner bases can always be computed, but reduced standard bases may not be computatable (in finitely many steps).
 
 !!! note
