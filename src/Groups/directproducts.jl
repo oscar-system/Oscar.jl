@@ -47,6 +47,8 @@ Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 
 
 julia> elements(G)
@@ -179,6 +181,8 @@ Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 
 
 julia> as_perm_group(G)
@@ -221,6 +225,8 @@ Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
  
 
 julia> emb1 = embedding(G,1)
@@ -228,6 +234,8 @@ Group homomorphism from
 Sym( [ 1 .. 3 ] )
 to
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 
 julia> h = perm(H,[2,3,1])
 (1,2,3)
@@ -240,6 +248,8 @@ Group homomorphism from
 Sym( [ 1 .. 2 ] )
 to
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 
 julia> k = perm(K,[2,1])
 (1,2)
@@ -275,16 +285,22 @@ Sym( [ 1 .. 2 ] )
 
 julia> G = direct_product(H,K)
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 
 julia> proj1 = projection(G,1)
 Group homomorphism from
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 to
 Sym( [ 1 .. 3 ] )
 
 julia> proj2 = projection(G,2)
 Group homomorphism from
 DirectProduct of
+Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 2 ] )
 to
 Sym( [ 1 .. 2 ] )
 
@@ -327,7 +343,7 @@ end
 function Base.show(io::IO, G::DirectProductGroup)
    if G.isfull
       print(io, "DirectProduct of ")
-      display(G.L)
+      for x in G.L print(io, "\n",x) end
    else
       print(io, String(GAP.Globals.StringViewObj(G.X)))
    end
