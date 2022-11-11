@@ -75,6 +75,7 @@ comm(x::GAPGroupElem, y::GAPGroupElem)
 ```@docs
 Base.isfinite(G::GAPGroup)
 is_abelian(G::GAPGroup)
+is_elementary_abelian
 is_pgroup
 is_pgroup_with_prime
 is_nilpotent
