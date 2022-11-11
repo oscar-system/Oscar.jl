@@ -25,12 +25,12 @@ export is_smooth
 
 Return the singular locus of `X`.
 
-For computing the singular locus of the reduced scheme induced by $X$, please use `singular_locus_reduced`.
+For computing the singular locus of the reduced scheme induced by `X`, please use [`singular_locus_reduced`](@ref).
 
 Currently this command is available for affine schemes and space germs.
 TODO: Covered schemes, projective schemes
 
-Over non-perfect fields, this command returns the non-smooth locus and $X$
+Over non-perfect fields, this command returns the non-smooth locus and `X`
 may still be regular at some points of the returned subscheme.
 
 # Examples
@@ -80,17 +80,17 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
 end
 
 @doc Markdown.doc"""
-    singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+    singular_locus_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing}) -> AbsSpec
 
-Returns the singular locus of the reduced scheme $X_{red}$, which is
-induced by $X$, as a subscheme of $X$, where $X$ is a scheme over a field $k$.
-For computing the singular locus $X$ itself, please use 
-'singular_locus'.
+Return the singular locus of the reduced scheme 'X_{red}' induced by `X`.
+
+For computing the singular locus of `X` itself, please use 
+['singular_locus](@ref)'.
 
 Currently this command is available for affine schemes and space germs.
+TODO: Covered schemes, projective schemes
 
-Over non-perfect fields, this command returns the non-smooth locus and 
-$X_{red}$ may still be regular at some points of the returned subscheme.
+Over non-perfect fields, this command returns the non-smooth locus and `X_{red}` may still be regular at some points of the returned subscheme.
 
 # Examples
 ``` jldoctest
@@ -177,16 +177,14 @@ end
 # MOVE TO: Attributes
 ##########################################################################
 @doc Markdown.doc"""
-   is_equidimensional(X::AbsSpec)
+   is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
 
-Returns the boolean value whether a scheme X over a field k is 
-equidimensional.
+Return whether a scheme `X` is equidimensional.
 
 Currently this command is available for affine schemes and space germs.
 TODO: projective schemes, covered schemes
 
 This command relies on [`equidimensional_decomposition_radical`](@ref).
-(HOW DO I SET A CROSS REFERENCE PROPERLY?)
 
 # Examples
 ```jldoctest
@@ -229,15 +227,14 @@ end
 # MOVE TO Methods
 #######################################################################
 @Markdown.doc """
-   reduced_scheme(X::AbsSpec)
+   reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Returns the induced reduced scheme of a given scheme X over a field k.
+Return the induced reduced scheme of a `X`.
 
 Currently, this command is available for affine schemes and space germs.
 TODO: projective schemes, covered schemes
  
 This command relies on [`radical`](@ref).
-(HOW DO I SET A CROSS REFERENCE PROPERLY?)
 
 # Examples
 ```jldoctest
@@ -284,10 +281,9 @@ end
 # MOVE TO Attributes
 #######################################################################
 @doc Markdown.doc"""
-   is_reduced(X::AbsSpec)
+   is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Returns the boolean value whether a scheme X over a field k is 
-reduced.
+Return the boolean value whether a scheme `X` is reduced.
 
 Currently, this command is available for affine schemes and space germs.
 TODO: projective schemes, covered schemes
@@ -307,8 +303,10 @@ end
 ########################################################################
 
 ########################################################################
-# These (derivative, jacobi_matrix) should go to mpoly-localizations.jl 
-# and mpolyquo-localizations.jl
+# The following functions (derivative, jacobi_matrix) should go to 
+# mpoly-localizations.jl and mpolyquo-localizations.jl
+# QUESTION:
+# documentation for all MPolyAnyRingElem should be happen in to mpoly.jl 
 ########################################################################
 function derivative(f::MPolyLocalizedRingElem, i::Int)
   num = derivative(numerator(f), i)*denominator(f) - derivative(denominator(f), i)*numerator(f)
@@ -352,7 +350,7 @@ end
 
 ############################################################################
 # jacobi_matrix_modulus should go whereever singular_locus goes, as it is
-# a less expensive internal helper than computing the full jacobian matrix
+# an internal helper (less expensive than jacobi_matrix)
 ############################################################################
 
 ## compute some representative of the jacobian matrix of a set of generators 
@@ -376,13 +374,13 @@ end
 @doc Markdown.doc"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Returns true if a scheme $X$ over a field $k$ is smooth, false otherwise.
+Return whether a scheme `X` is smooth.
 
 Currently this command is available for affine schemes and space germs.
 TODO: Covered schemes, projective schemes
 
-Note that smoothness and regularity do not coincide over non-perfect fields;
-this method tests smoothness, not regularity.
+Note that smoothness and regularity do not coincide over non-perfect fields.
+TODO: is_regular using Hironaka's criterion
 
 # Examples
 ```jldoctest
