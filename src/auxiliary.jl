@@ -48,16 +48,7 @@ function _weierstrass_polynomial(base::Oscar.AbstractNormalToricVariety, toric_a
     return _weierstrass_polynomial(base, toric_ambient_space, f, g)
 end
 
-function _weierstrass_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety, f::MPolyElem_dec{fmpq, fmpq_mpoly}, g::MPolyElem_dec{fmpq, fmpq_mpoly})
-    S = cox_ring(toric_ambient_space)
-    x = gens(S)[length(gens(S))-2]
-    y = gens(S)[length(gens(S))-1]
-    z = gens(S)[length(gens(S))]
-    ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:length(gens(S))-3])
-    return [ring_map(f), ring_map(g), x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6]
-end
-
-function _weierstrass_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety, f::fmpq_mpoly, g::fmpq_mpoly)
+function _weierstrass_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety, f::MPolyElem{fmpq}, g::MPolyElem{fmpq})
     S = cox_ring(toric_ambient_space)
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
@@ -80,17 +71,7 @@ function _tate_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_
     return _tate_polynomial(base, toric_ambient_space, [a1, a2, a3, a4, a6])
 end
 
-function _tate_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety, ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}})
-    S = cox_ring(toric_ambient_space)
-    x = gens(S)[length(gens(S))-2]
-    y = gens(S)[length(gens(S))-1]
-    z = gens(S)[length(gens(S))]
-    ring_map = hom(parent(ais[1]), S, [gens(S)[i] for i in 1:length(gens(S))-3])
-    (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
-    return [a1, a2, a3, a4, a6, x^3 - y^2 - x*y*z*a1 + x^2*z^2*a2 - y*z^3*a3 + x*z^4*a4 + z^6*a6]
-end
-
-function _tate_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety, ais::Vector{fmpq_mpoly})
+function _tate_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety, ais::Vector{<:MPolyElem{fmpq}})
     S = cox_ring(toric_ambient_space)
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
