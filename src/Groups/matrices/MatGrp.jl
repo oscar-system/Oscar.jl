@@ -594,8 +594,23 @@ end
     GL = general_linear_group
 
 Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = general_linear_group(2,F)
+GL(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 1]
+ [6 1; 6 0]
+
+```
 """
-function general_linear_group(n::Int, F::Ring)
+function general_linear_group(n::Int, F::FqNmodFiniteField)
    G = MatrixGroup(n,F)
    G.descr = :GL
    return G
@@ -611,8 +626,22 @@ end
     SL = special_linear_group
 
 Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = special_linear_group(2,F)
+SL(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [6 1; 6 0]
+
+```
 """
-function special_linear_group(n::Int, F::Ring)
+function special_linear_group(n::Int, F::FqNmodFiniteField)
    G = MatrixGroup(n,F)
    G.descr = :SL
    return G
