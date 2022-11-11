@@ -72,9 +72,11 @@ Base.show(t)
     @test parent(tate_section_a4(t)) == cox_ring(toric_ambient_space(t))
     @test parent(tate_section_a6(t)) == cox_ring(toric_ambient_space(t))
     @test parent(tate_polynomial(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(discriminant(t)) == cox_ring(toric_ambient_space(t))
     @test dim(toric_base_space(t)) == 3
     @test dim(toric_ambient_space(t)) == 5
     @test base_fully_specified(t) == true
+    @test base_fully_specified(t) == base_fully_specified(global_weierstrass_model(t))
     @test is_smooth(toric_ambient_space(t)) == false
     @test toric_variety(cy_hypersurface(t)) == toric_ambient_space(t)
 end
@@ -104,9 +106,11 @@ t2 = GlobalTateModel(ais, auxiliary_base_ring)
     @test parent(tate_section_a4(t2)) == cox_ring(toric_ambient_space(t2))
     @test parent(tate_section_a6(t2)) == cox_ring(toric_ambient_space(t2))
     @test parent(tate_polynomial(t2)) == cox_ring(toric_ambient_space(t2))
+    @test parent(discriminant(t2)) == cox_ring(toric_ambient_space(t2))
     @test dim(toric_base_space(t2)) == 6
     @test dim(toric_ambient_space(t2)) == 8
     @test base_fully_specified(t2) == false
+    @test base_fully_specified(t2) == base_fully_specified(global_weierstrass_model(t2))
     @test is_smooth(toric_ambient_space(t2)) == false
     @test toric_variety(cy_hypersurface(t2)) == toric_ambient_space(t2)
 end

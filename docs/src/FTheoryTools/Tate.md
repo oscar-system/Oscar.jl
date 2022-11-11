@@ -83,6 +83,8 @@ tate_section_a4(t::GlobalTateModel)
 tate_section_a6(t::GlobalTateModel)
 tate_polynomial(t::GlobalTateModel)
 cy_hypersurface(t::GlobalTateModel)
+global_weierstrass_model(t::GlobalTateModel)
+discriminant(t::GlobalTateModel)
 ```
 In case the Tate model is constructed over a not fully specified base, it is
 nonetheless possible to construct an auxiliary base space as well as an
