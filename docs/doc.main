@@ -124,6 +124,7 @@
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/orderings.md",
      "CommutativeAlgebra/groebner_bases.md",
+     "CommutativeAlgebra/groebner_bases_integers.md",
      "CommutativeAlgebra/ideals.md",
      "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
