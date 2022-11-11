@@ -21,14 +21,15 @@ export is_smooth
 ###       for covered schemes (the workhorse is already there...).
  
 @doc Markdown.doc"""
-    singular_locus(X::AbsSpec{<:Field, <:MPolyAnyRing}) -> AbsSpec
+    singular_locus(X::Scheme) -> Scheme
 
 Return the singular locus of `X`.
 
 For computing the singular locus of the reduced scheme induced by `X`,
 please use [`singular_locus_reduced`](@ref).
 
-Currently this command is available for affine schemes and space germs.
+Currently this command is available for affine schemes and for space germs
+(in both settings requiring that these are defined over a field).
 TODO: Covered schemes, projective schemes
 
 Over non-perfect fields, this command returns the non-smooth locus and `X`
@@ -83,14 +84,15 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
 end
 
 @doc Markdown.doc"""
-    singular_locus_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing}) -> AbsSpec
+    singular_locus_reduced(X::Scheme) -> Scheme
 
 Return the singular locus of the reduced scheme ``X_{red}`` induced by `X`.
 
 For computing the singular locus of `X` itself, please use 
 ['singular_locus](@ref)'.
 
-Currently this command is available for affine schemes and space germs.
+Currently this command is available for affine schemes and for space germs
+(in both settings requiring that these are defined over a field).
 TODO: Covered schemes, projective schemes
 
 Over non-perfect fields, this command returns the non-smooth locus and
