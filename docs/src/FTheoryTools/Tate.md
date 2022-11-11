@@ -42,7 +42,7 @@ GlobalTateModelOverProjectiveSpace()
 ## ... over not fully specified bases
 
 This method constructs a global Tate model over a base space that is not
-fully specified. Rather, it assums that a base space exists such that
+fully specified. Rather, it assumes that a base space exists such that
 the Tate sections ``a_i`` are well-defined so that the Tate model in
 question is well-defined.
 
@@ -85,7 +85,7 @@ tate_polynomial(t::GlobalTateModel)
 cy_hypersurface(t::GlobalTateModel)
 ```
 In case the Tate model is constructed over a not fully specified base, it is
-nontheless possibly to construct an auxiliary base space as well as an
+nonetheless possible to construct an auxiliary base space as well as an
 auxiliary ambient space. The (auxiliary) base and ambient space can
 be accessed with the following functions:
 ```@docs

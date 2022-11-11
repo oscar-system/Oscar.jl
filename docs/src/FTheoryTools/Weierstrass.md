@@ -23,7 +23,7 @@ Then form a ``\mathbb{P}^{2,3,1}``-bundle over ``B3`` such that
 In this 5-fold ambient space, a global Weierstrass model is the hypersurface defined
 by the vanishing of the Weierstrass polynomial ``P_W = x^3 - y^2 + f x z^4 + g z^6``.
 
-To construct a Weierstrass model as hypersurface in an ambient space,
+To construct a Weierstrass model as a hypersurface in an ambient space,
 we first need to construct the ambient space in question. For a toric base,
 one way to achieve this is to first focus on the Cox ring of the toric
 ambient space. This ring must be graded such that the Weierstrass polynomial
@@ -50,7 +50,7 @@ GlobalWeierstrassModel(f::MPolyElem_dec{fmpq, fmpq_mpoly}, g::MPolyElem_dec{fmpq
 ## ... over not fully specified bases
 
 A global Weierstrass model can also be constructed over a base space that
-is not fully specified. Rather, it assums that a base space exists such that
+is not fully specified. Rather, it assumes that a base space exists such that
 the Weierstrass sections ``f`` and ``g`` are well-defined, so that the
 Weierstrass model in question is well-defined.
 
