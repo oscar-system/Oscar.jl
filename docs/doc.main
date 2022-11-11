@@ -152,6 +152,8 @@
         "AlgebraicGeometry/Schemes/AffineSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
         "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
+        "AlgebraicGeometry/Schemes/CoveredSchemes.md",
+        "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
      ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",

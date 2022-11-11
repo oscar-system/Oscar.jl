@@ -3,29 +3,24 @@ export AbsCoveredScheme, CoveredScheme
 ########################################################################
 # Abstract type for covered schemes                                    #
 ########################################################################
+@Markdown.doc """
+    AbsCoveredScheme{BaseRingType}
+
+An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
+`BaseRingType`, given by means of affine charts and their glueings.
+"""
 abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 
 ########################################################################
 # A minimal implementation of AbsCoveredScheme                         #
 ########################################################################
 @Markdown.doc """
-    mutable struct CoveredScheme{
-      CoveringType<:Covering,
-      CoveringMorphismType<:CoveringMorphism
-    }
+    CoveredScheme{BaseRingType}
 
-A covered scheme ``X`` given by means of at least one covering
-of type `CoveringType`.
+A covered scheme ``X`` given by means of at least one `Covering`.
 
 A scheme may possess several coverings which are partially ordered
-by refinement. Such refinements are special instances of `CoveringMorphism`
-
-    ρ : C1 → C2
-
-where for each patch ``U`` in `C1` the inclusion map ``ρ[U] : U → V``
-into the corresponding patch ``V`` of `C2` is an open embedding for which
-both ``𝒪(U)`` and ``𝒪(V)`` have the same `base_ring` (so that they can be
-canonically compared).
+by refinement. Use `default_covering(X)` to obtain one covering of ``X``.
 """
 @attributes mutable struct CoveredScheme{BaseRingType} <: AbsCoveredScheme{BaseRingType}
   coverings::Vector{<:Covering}
