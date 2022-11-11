@@ -58,6 +58,7 @@ derived_series
 sylow_system
 hall_subgroup_reps
 hall_system
+complement_class_reps
 complement_system
 ```
 
