@@ -4,6 +4,8 @@
    "FtheoryTools" => [
       "FTheoryTools/Introduction.md"
       "FTheoryTools/Weierstrass.md"
+      "FTheoryTools/WeierstrassGeneralBase.md"
       "FTheoryTools/Tate.md"
+      "FTheoryTools/TateGeneralBase.md"
    ],
 ]

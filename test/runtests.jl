@@ -4,26 +4,26 @@ using Oscar
 
 
 #############################################################
-# 1: Compute fibrations
+# 1: Compute base space for explicit fibrations
 #############################################################
 
 test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
 test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
 test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
 base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-t = GenericGlobalTateModel(base)
-Base.show(t)
+
+
+#############################################################
+# 2: Global Weierstrass models
+#############################################################
+
 w = GenericGlobalWeierstrassModel(base)
 Base.show(w)
 
-#############################################################
-# 1: Test global Weierstrass models
-#############################################################
-
 @testset "Attributes of global Weierstrass models" begin
-    @test parent(poly_f(w)) == cox_ring(toric_ambient_space(w))
-    @test parent(poly_g(w)) == cox_ring(toric_ambient_space(w))
-    @test parent(pw(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_section_f(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_section_g(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_polynomial(w)) == cox_ring(toric_ambient_space(w))
     @test dim(toric_base_space(w)) == 3
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false
@@ -35,21 +35,76 @@ end
 
 
 #############################################################
-# 2: Test global Tate models
+# 3: Global Weierstrass models over generic base space
 #############################################################
 
+auxiliary_base_ring, (f, g) = QQ["f", "g"]
+auxiliary_ring2, (x, y) = QQ["x", "y"]
+w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
+
+@testset "Attributes of global Weierstrass models over generic base spaces" begin
+    @test parent(weierstrass_section_f(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test parent(weierstrass_section_g(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test parent(weierstrass_polynomial(w2)) == cox_ring(auxiliary_ambient_space(w2))
+    @test dim(auxiliary_base_space(w2)) == 2
+    @test dim(auxiliary_ambient_space(w2)) == 4
+    @test is_smooth(auxiliary_ambient_space(w2)) == false
+end
+
+@testset "Error messages in global Weierstrass models over generic base space" begin
+    @test_throws ArgumentError GlobalWeierstrassModel(f, x^2, auxiliary_base_ring)
+end
+
+
+#############################################################
+# 4: Global Tate models
+#############################################################
+
+t = GenericGlobalTateModel(base)
+Base.show(t)
+
 @testset "Attributes of global Tate models" begin
-    @test parent(a1(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a2(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a3(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a4(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(a6(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(pt(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a1(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a2(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a3(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a4(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a6(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_polynomial(t)) == cox_ring(toric_ambient_space(t))
     @test dim(toric_base_space(t)) == 3
     @test dim(toric_ambient_space(t)) == 5
     @test is_smooth(toric_ambient_space(t)) == false
 end
 
-@testset "Error messages in global Weierstrass models" begin
+@testset "Error messages in global Tate models" begin
     @test_throws ArgumentError GenericGlobalTateModel(hirzebruch_surface(1))
+end
+
+
+#############################################################
+# 5: Global Tate models over generic base space
+#############################################################
+
+auxiliary_base_ring, (a10,a21,a32,a43,a65,w) = QQ["a10", "a21", "a32", "a43", "a65", "w"]
+a1 = a10
+a2 = a21 * w
+a3 = a32 * w^2
+a4 = a43 * w^3
+a6 = a65 * w^5
+ais = [a1, a2, a3, a4, a6]
+t2 = GlobalTateModel(ais, auxiliary_base_ring)
+
+@testset "Attributes of global Tate models over generic base spaces" begin
+    @test parent(tate_section_a1(t2)) == cox_ring(auxiliary_ambient_space(t2))
+    @test parent(tate_section_a2(t2)) == cox_ring(auxiliary_ambient_space(t2))
+    @test parent(tate_section_a3(t2)) == cox_ring(auxiliary_ambient_space(t2))
+    @test parent(tate_section_a4(t2)) == cox_ring(auxiliary_ambient_space(t2))
+    @test parent(tate_section_a6(t2)) == cox_ring(auxiliary_ambient_space(t2))
+    @test parent(tate_polynomial(t2)) == cox_ring(auxiliary_ambient_space(t2))
+    @test dim(auxiliary_base_space(t2)) == 6
+    @test dim(auxiliary_ambient_space(t2)) == 8
+    @test is_smooth(auxiliary_ambient_space(t2)) == false
+end
+
+@testset "Error messages in global Tate models over generic base space" begin
+    @test_throws ArgumentError GlobalTateModel([a1], auxiliary_base_ring)
 end

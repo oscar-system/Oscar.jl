@@ -3,7 +3,7 @@
 #######################################
 
 @doc Markdown.doc"""
-    a1(t::GlobalTateModel)
+    tate_section_a1(t::GlobalTateModel)
 
 Return the Tate section ``a_1``.
 
@@ -25,15 +25,15 @@ A normal toric variety
 julia> t = GenericGlobalTateModel(base)
 A global Tate model
 
-julia> a1(t);
+julia> tate_section_a1(t);
 ```
 """
-@attr MPolyElem{fmpq} a1(t::GlobalTateModel) = t.a1
-export a1
+@attr MPolyElem{fmpq} tate_section_a1(t::GlobalTateModel) = t.a1
+export tate_section_a1
 
 
 @doc Markdown.doc"""
-    a2(t::GlobalTateModel)
+    tate_section_a2(t::GlobalTateModel)
 
 Return the Tate section ``a_2``.
 
@@ -55,15 +55,15 @@ A normal toric variety
 julia> t = GenericGlobalTateModel(base)
 A global Tate model
 
-julia> a2(t);
+julia> tate_section_a2(t);
 ```
 """
-@attr MPolyElem{fmpq} a2(t::GlobalTateModel) = t.a2
-export a2
+@attr MPolyElem{fmpq} tate_section_a2(t::GlobalTateModel) = t.a2
+export tate_section_a2
 
 
 @doc Markdown.doc"""
-    a3(t::GlobalTateModel)
+    tate_section_a3(t::GlobalTateModel)
 
 Return the Tate section ``a_3``.
 
@@ -85,15 +85,15 @@ A normal toric variety
 julia> t = GenericGlobalTateModel(base)
 A global Tate model
 
-julia> a3(t);
+julia> tate_section_a3(t);
 ```
 """
-@attr MPolyElem{fmpq} a3(t::GlobalTateModel) = t.a3
-export a3
+@attr MPolyElem{fmpq} tate_section_a3(t::GlobalTateModel) = t.a3
+export tate_section_a3
 
 
 @doc Markdown.doc"""
-    a4(t::GlobalTateModel)
+    tate_section_a4(t::GlobalTateModel)
 
 Return the Tate section ``a_4``.
 
@@ -115,15 +115,15 @@ A normal toric variety
 julia> t = GenericGlobalTateModel(base)
 A global Tate model
 
-julia> a4(t);
+julia> tate_section_a4(t);
 ```
 """
-@attr MPolyElem{fmpq} a4(t::GlobalTateModel) = t.a4
-export a4
+@attr MPolyElem{fmpq} tate_section_a4(t::GlobalTateModel) = t.a4
+export tate_section_a4
 
 
 @doc Markdown.doc"""
-    a6(t::GlobalTateModel)
+    tate_section_a6(t::GlobalTateModel)
 
 Return the Tate section ``a_6``.
 
@@ -145,11 +145,11 @@ A normal toric variety
 julia> t = GenericGlobalTateModel(base)
 A global Tate model
 
-julia> a6(t);
+julia> tate_section_a6(t);
 ```
 """
-@attr MPolyElem{fmpq} a6(t::GlobalTateModel) = t.a6
-export a6
+@attr MPolyElem{fmpq} tate_section_a6(t::GlobalTateModel) = t.a6
+export tate_section_a6
 
 
 #######################################
@@ -157,7 +157,7 @@ export a6
 #######################################
 
 @doc Markdown.doc"""
-    pt(t::GlobalTateModel)
+    tate_polynomial(t::GlobalTateModel)
 
 Return the Tate polynomial of the global Tate model.
 
@@ -179,11 +179,11 @@ A normal toric variety
 julia> t = GenericGlobalTateModel(base)
 A global Tate model
 
-julia> pt(t);
+julia> tate_polynomial(t);
 ```
 """
-@attr MPolyElem{fmpq} pt(t::GlobalTateModel) = t.pt
-export pt
+@attr MPolyElem{fmpq} tate_polynomial(t::GlobalTateModel) = t.pt
+export tate_polynomial
 
 
 #######################################
