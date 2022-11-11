@@ -25,13 +25,16 @@ export is_smooth
 
 Return the singular locus of `X`.
 
-For computing the singular locus of the reduced scheme induced by `X`, please use [`singular_locus_reduced`](@ref).
+For computing the singular locus of the reduced scheme induced by `X`,
+please use [`singular_locus_reduced`](@ref).
 
 Currently this command is available for affine schemes and space germs.
 TODO: Covered schemes, projective schemes
 
 Over non-perfect fields, this command returns the non-smooth locus and `X`
 may still be regular at some points of the returned subscheme.
+
+See also [`is_smooth`](@ref).
 
 # Examples
 ``` jldoctest
@@ -90,7 +93,10 @@ For computing the singular locus of `X` itself, please use
 Currently this command is available for affine schemes and space germs.
 TODO: Covered schemes, projective schemes
 
-Over non-perfect fields, this command returns the non-smooth locus and `X_{red}` may still be regular at some points of the returned subscheme.
+Over non-perfect fields, this command returns the non-smooth locus and
+`X_{red}` may still be regular at some points of the returned subscheme.
+
+See also [`is_smooth`](@ref).
 
 # Examples
 ``` jldoctest
@@ -382,6 +388,7 @@ TODO: Covered schemes, projective schemes
 Note that smoothness and regularity do not coincide over non-perfect fields.
 TODO: is_regular using Hironaka's criterion
 
+See also [`singular_locus`](@ref), [`singular_locus_reduced`](@ref).
 # Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
