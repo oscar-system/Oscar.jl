@@ -88,6 +88,7 @@ julia> S, _ = grade(R, [1, 2, 3])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
+
 ```
 
 ```jldoctest

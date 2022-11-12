@@ -41,16 +41,25 @@ If `I` is an ideal of a multivariate polynomial ring  `R`, then
 
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> I = ideal(R, [x, y])^2
+ideal(x^2, x*y, y^2)
 
 julia> base_ring(I)
+Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> gens(I)
+3-element Vector{fmpq_mpoly}:
+ x^2
+ x*y
+ y^2
 
 julia> ngens(I)
+3
 
 julia> gen(I, 2)
+x*y
 
 ```
 

@@ -89,14 +89,22 @@ julia> REL = strictly_upper_triangular_matrix(L);
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 
 julia> coefficient_ring(A)
+Rational Field
 
 julia> gens(A)
+3-element Vector{PBWAlgElem{fmpq, Singular.n_Q}}:
+ x
+ y
+ z
 
 julia> gen(A, 2)
+y
 
-julia> A[3] 
+julia> A[3]
+z 
 
 julia> ngens(A)
+3
 
 ```
 
@@ -121,6 +129,7 @@ julia> REL = strictly_upper_triangular_matrix(L);
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 
 julia> f = 3*x^2+z*y
+3*x^2 + y*z + 1
 
 ```
 
@@ -144,10 +153,13 @@ julia> REL = strictly_upper_triangular_matrix(L);
 julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
 
 julia> f = 3*x^2+z*y
+3*x^2 + y*z + 1
 
 julia> g = A(QQ.([3, 1, 1]), [[2, 0, 0], [0, 1, 1], [0, 0, 0]])
+3*x^2 + y*z + 1
 
 julia> f == g
+true
 
 ```
 
@@ -167,6 +179,7 @@ julia> B =  build_ctx(A);
 julia> for i = 1:5 push_term!(B, QQ(i), [i+1, i, i-1]) end
 
 julia> finish(B)
+5*x^6*y^5*z^4 + 4*x^5*y^4*z^3 + 3*x^4*y^3*z^2 + 2*x^3*y^2*z + x^2*y
 
 ```
 

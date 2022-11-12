@@ -56,16 +56,33 @@ Objects of type `SubdivisionsOfPoints` can be saved to a file and loaded from a
 file in the following way:
 ```jldoctest
 julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
+6×3 Matrix{Int64}:
+ 4  0  0
+ 0  4  0
+ 0  0  4
+ 2  1  1
+ 1  2  1
+ 1  1  2
 
 julia> moaeincidence = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
+7×6 IncidenceMatrix
+[4, 5, 6]
+[1, 2, 4]
+[2, 4, 5]
+[2, 3, 5]
+[3, 5, 6]
+[1, 3, 6]
+[1, 4, 6]
 
 julia> MOAE = SubdivisionOfPoints(moaepts, moaeincidence)
+A subdivision of points in ambient dimension 3
 
 julia> save("moae.sop", MOAE);
 
 julia> SOP = load("moae.sop");
 
 julia> is_regular(SOP)
+false
 
 ```
 The file is in JSON format and contains all previously gathered data belonging

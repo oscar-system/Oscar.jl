@@ -61,18 +61,29 @@ If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an 
 
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
 
 julia> base_ring(A)
+Multivariate Polynomial Ring in x, y, z over Rational Field
 
 julia> modulus(A)
+ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(A)
+3-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ x
+ y
+ z
 
 julia> ngens(A)
+3
 
 julia> gen(A, 2)
+y
 
 ```
 
@@ -106,14 +117,20 @@ or by directly coercing elements of $R$ into $A$.
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
+(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2), Map from
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2) defined by a julia-function with inverse)
 
 julia> f = p(x^3*y^2-y^3*x^2+x*y)
+x^3*y^2 - x^2*y^3 + x*y
 
 julia> typeof(f)
+MPolyQuoElem{fmpq_mpoly}
 
 julia> g = A(x^3*y^2-y^3*x^2+x*y)
+x^3*y^2 - x^2*y^3 + x*y
 
 julia> f == g
+true
 
 ```
 
@@ -188,14 +205,21 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
 julia> a = ideal(A, [x-y, z^4])
+ideal(x - y, z^4)
 
 julia> base_ring(a)
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
 
 julia> gens(a)
+2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ x - y
+ z^4
 
 julia> ngens(a)
+2
 
 julia> gen(a, 2)
+z^4
 
 ```
 
@@ -305,8 +329,22 @@ julia> C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"]);
 julia> V1 = [s^3, s^2*t, s*t^2, t^3];
 
 julia> para = hom(D1, C1, V1)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1]
+Codomain:
+=========
+Multivariate Polynomial Ring in s, t over Rational Field graded by
+  s -> [1]
+  t -> [1]
 
 julia> twistedCubic = kernel(para)
+ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> C2, p2 = quo(D1, twistedCubic);
 
@@ -315,8 +353,23 @@ julia> D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"]);
 julia> V2 = [p2(w-y), p2(x), p2(z)];
 
 julia> proj = hom(D2, C2, V2)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in a, b, c over Rational Field graded by
+  a -> [1]
+  b -> [1]
+  c -> [1]
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1] by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> nodalCubic = kernel(proj)
+ideal(-a^2*c + b^3 - 2*b^2*c + b*c^2)
 
 ```
 
@@ -328,10 +381,19 @@ julia> C3, x = PolynomialRing(QQ, "x" => 1:3);
 julia> V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]];
 
 julia> F3 = hom(D3, C3, V3)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in y[1], y[2], y[3] over Rational Field
+Codomain:
+=========
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field
 
 julia> sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
+ideal(x[1]^3 + x[2]^3 + x[3]^3 - 1)
 
 julia> steinerRomanSurface = preimage(F3, sphere)
+ideal(y[1]^6*y[2]^6 + 2*y[1]^6*y[2]^3*y[3]^3 + y[1]^6*y[3]^6 + 2*y[1]^3*y[2]^6*y[3]^3 + 2*y[1]^3*y[2]^3*y[3]^6 - y[1]^3*y[2]^3*y[3]^3 + y[2]^6*y[3]^6)
 
 ```
 
@@ -357,14 +419,23 @@ julia> C, p = quo(S, ideal(S, [c-b^3]));
 julia> V = [p(2*a + b^6), p(7*b - a^2), p(c^2)];
 
 julia> F = hom(D, C, V)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in a, b, c over Rational Field by ideal(-b^3 + c)
 
 julia> is_surjective(F)
+true
 
 julia> D1, _ = quo(D, kernel(F));
 
 julia> F1 = hom(D1, C, V);
 
 julia> is_bijective(F1)
+true
 
 ```
 
@@ -376,10 +447,18 @@ julia> C, (s, t) = PolynomialRing(QQ, ["s", "t"]);
 julia> V = [s*t, t, s^2];
 
 julia> paraWhitneyUmbrella = hom(R, C, V)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Multivariate Polynomial Ring in s, t over Rational Field
 
 julia> D, _ = quo(R, kernel(paraWhitneyUmbrella));
 
 julia> isfinite(hom(D, C, V))
+true
 
 ```
 
@@ -393,14 +472,24 @@ inverse(F::AffAlgHom)
 julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3])
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
 
 julia> C, (t,) = PolynomialRing(QQ, ["t"]);
 
 julia> para = hom(D, C, [t, t^2, t^3]);
 
 julia> is_bijective(para)
+true
 
 julia> inverse(para)
+Map with following data
+Domain:
+=======
+Multivariate Polynomial Ring in t over Rational Field
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z)
 
 ```
 
@@ -434,10 +523,27 @@ julia> A, _ = quo(R, ideal(R, [x*y, x*z]));
 julia> L = noether_normalization(A);
 
 julia> L[1]
+2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ -x + y
+ 2*x - 3*y + z
 
 julia> L[2]
+Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 + x*y, x^2 + 3*x*y + x*z)
 
 julia> L[3]
+Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 + x*y, x^2 + 3*x*y + x*z)
+Codomain:
+=========
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
 
 ```
 ## Normalization

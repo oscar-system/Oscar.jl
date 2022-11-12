@@ -53,20 +53,31 @@ Addition and multiplication by an integer of a point on an elliptic curve can be
 
 ```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
+Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
 
 julia> PP = Oscar.proj_space(E)
+Projective space of dim 2 over Rational Field
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP, [QQ(2), QQ(2), QQ(1)])
+(2 : 2 : 1)
 
 julia> Q = Oscar.Point_EllCurve(E, P)
+(2 : 2 : 1)
 
 julia> Q+Q
+(9//4 : -21//8 : 1)
 
 julia> 3*Q
+(338 : 6214 : 1)
 
 ```
 
@@ -112,24 +123,38 @@ Projective elliptic curves over a ring are for example used in the Elliptic Curv
 
 ```jldoctest
 julia> n = 4453
+4453
 
 julia> A = ResidueRing(ZZ, ZZ(n))
+Integers modulo 4453
 
 julia> S, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453, AbstractAlgebra.Generic.MPoly{fmpz_mod}[x, y, z])
 
 julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
 
 julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
+Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = proj_space(A, 2)
+(Projective space of dim 2 over Integers modulo 4453
+, MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
+(1 : 3 : 1)
 
 julia> P = Oscar.Point_EllCurve(E, Q)
+(1 : 3 : 1)
 
 julia> P2 = Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P)
+(4332 : 3230 : 1)
 
 julia> Oscar.sum_Point_EllCurveZnZ(P, P2)
+ERROR: 61 is not invertible in the base ring, cannot perform the sum
 
 ```
 

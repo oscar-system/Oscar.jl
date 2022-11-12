@@ -48,6 +48,7 @@ The parent of an OSCAR integer is the ring of integers `ZZ`.
 
 ```jldoctest
 julia> ZZ
+Integer Ring
 
 ```
 
@@ -57,14 +58,17 @@ OSCAR integers are created using `ZZ`:
 
 ```jldoctest
 julia> ZZ(2)^100
+1267650600228229401496703205376
 
 julia> ZZ(618970019642690137449562111)
+618970019642690137449562111
 
 ```
 One can also construct the integer ``0`` with the empty constructor:
 
 ```jldoctest
 julia> ZZ()
+0
 
 ```
 
@@ -75,8 +79,10 @@ The following special constructors are also provided:
 
 ```jldoctest
 julia> zero(ZZ)
+0
 
 julia> one(ZZ)
+1
 
 ```
 
@@ -86,12 +92,16 @@ construct Julia integers.
 
 ```jldoctest
 julia> Int(123)
+123
 
 julia> BigInt(123456343567843598776327698374259876295438725)
+123456343567843598776327698374259876295438725
 
 julia> zero(BigInt)
+0
 
 julia> one(Int)
+1
 
 ```
 
@@ -119,16 +129,22 @@ in the return generally should also be of type `fmpz`. For example:
 
 ```jldoctest
 julia> divexact(ZZ(234), 2)
+117
 
 julia> typeof(gcd(4, 6))
+Int64
 
 julia> typeof(gcdx(4, 6))
+Tuple{Int64, Int64, Int64}
 
 julia> typeof(gcd(4, ZZ(6)))
+fmpz
 
 julia> typeof(gcdx(4, ZZ(6)))
+Tuple{fmpz, fmpz, fmpz}
 
 julia> typeof(jacobi_symbol(ZZ(2), ZZ(3)))
+Int64
 
 ```
 
@@ -156,12 +172,16 @@ Negative numbers, ``0`` and ``1`` are not considered prime by `is_prime` and
 
 ```jldoctest
 julia> isone(ZZ(1))
+true
 
 julia> is_unit(ZZ(-1))
+true
 
 julia> is_square(ZZ(16))
+true
 
 julia> is_probable_prime(ZZ(23))
+true
 
 ```
 
@@ -173,10 +193,13 @@ Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
 ```jldoctest
 julia> sign(ZZ(23))
+1
 
 julia> sign(ZZ(0))
+0
 
 julia> sign(ZZ(-1))
+-1
 
 ```
 
@@ -188,6 +211,7 @@ otherwise
 
 ```jldoctest
 julia> abs(ZZ(-3))
+3
 
 ```
 
@@ -225,12 +249,16 @@ the division is not exact, or if division by zero is attempted.
 
 ```jldoctest
 julia> divexact(ZZ(6), ZZ(3))
+2
 
 julia> divexact(ZZ(6), ZZ(0))
+ERROR: DivideError: integer division error
 
 julia> divexact(ZZ(6), ZZ(5))
+ERROR: ArgumentError: Not an exact division
 
 julia> divexact(ZZ(6), 2)
+3
 
 ```
 
@@ -242,8 +270,10 @@ Return the result of powering ``a`` by ``b``.
 
 ```jldoctest
 julia> ZZ(37)^37
+10555134955777783414078330085995832946127396083370199442517
 
 julia> ZZ(1)^(-2)
+1
 
 ```
 
@@ -260,6 +290,7 @@ The following is allowed for convenience.
 
 ```jldoctest
 julia> ZZ(0)^0
+1
 
 ```
 
@@ -294,12 +325,16 @@ All three functions raise an exception if the modulus ``b`` is zero.
 
 ```jldoctest
 julia> divrem(ZZ(5), ZZ(3))
+(1, 2)
 
 julia> div(ZZ(7), ZZ(2))
+3
 
 julia> rem(ZZ(4), ZZ(3))
+1
 
 julia> div(ZZ(2), ZZ(0))
+ERROR: DivideError: integer division error
 
 ```
 
@@ -328,8 +363,10 @@ the remainder given by `mod`.
 
 ```jldoctest
 julia> mod(ZZ(4), ZZ(3))
+1
 
-julia> mod(ZZ(2), ZZ(0)) 
+julia> mod(ZZ(2), ZZ(0))
+ERROR: DivideError: integer division error
 
 ```
 
@@ -347,8 +384,10 @@ value is not defined.
  
 ```jldoctest
 julia> divides(ZZ(6), ZZ(3))
+(true, 2)
 
 julia> divides(ZZ(5), ZZ(2))
+(false, 0)
 
 ```
 
@@ -356,6 +395,7 @@ Note that for convenience we define:
 
 ```jldoctest
 julia> divides(ZZ(0), ZZ(0))
+(true, 0)
 
 ```
 
@@ -372,8 +412,10 @@ zero if both inputs are zero.
 
 ```jldoctest
 julia> gcd(ZZ(34), ZZ(17))
+17
 
 julia> gcd(ZZ(3), ZZ(0))
+3
 
 ```
 
@@ -399,8 +441,10 @@ which case we define the least common multiple to be zero.
 
 ```jldoctest
 julia> lcm(ZZ(6), ZZ(21))
+42
 
 julia> lcm(ZZ(0), ZZ(0))
+0
 
 ```
 
@@ -423,12 +467,17 @@ input is passed.
 
 ```jldoctest
 julia> isqrt(ZZ(16))
+4
 
 julia> isqrt(ZZ(0))
+0
 
 julia> isqrt(ZZ(5))
+2
 
 julia> isqrt(ZZ(-3))
+ERROR: DomainError with -3:
+Argument must be non-negative
 
 ```
 
@@ -439,8 +488,10 @@ Return the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
 
 ```jldoctest
 julia> isqrtrem(ZZ(16))
+(4, 0)
 
 julia> isqrtrem(ZZ(5))
+(2, 1)
 
 ```
 
@@ -457,16 +508,24 @@ raised if ``n \leq 0`` or if ``n`` is even and ``a < 0``.
 
 ```jldoctest
 julia> root(ZZ(16), 4)
+2
 
 julia> root(ZZ(5), 2)
+2
 
 julia> root(ZZ(-5), 3)
+-1
 
 julia> root(ZZ(0), 4)
+0
 
 julia> root(ZZ(-5), 2)
+ERROR: DomainError with (-5, 2):
+Argument `x` must be positive if exponent `n` is even
 
 julia> root(ZZ(12), -2)
+ERROR: DomainError with -2:
+Exponent must be positive
 
 ```
 
@@ -479,10 +538,13 @@ Convert the OSCAR integer to the respective Julia integer.
 
 ```jldoctest
 julia> n = ZZ(123)
+123
 
 julia> Int(n)
+123
 
 julia> BigInt(n)
+123
 
 ```
 
@@ -491,6 +553,7 @@ is raised.
 
 ```jldoctest
 julia> Int(ZZ(12348732648732648763274868732687324))
+ERROR: InexactError: convert(Int64, 12348732648732648763274868732687324)
 
 ```
 
@@ -500,8 +563,10 @@ Return `true` if the OSCAR integer will fit in an `Int`.
 
 ```jldoctest
 julia> fits(Int, ZZ(123))
+true
 
 julia> fits(Int, ZZ(12348732648732648763274868732687324))
+false
 
 ```
 
@@ -514,8 +579,10 @@ factorisation struct which can be manipulated using the functions below.
 
 ```jldoctest
 julia> factor(ZZ(-6000361807272228723606))
+-1 * 2 * 229^3 * 43669^3 * 3
 
 julia> factor(ZZ(0))
+ERROR: ArgumentError: Argument is not non-zero
 
 ```
 
@@ -523,8 +590,10 @@ julia> factor(ZZ(0))
 
 ```jldoctest
 julia> F = factor(ZZ(-12))
+-1 * 2^2 * 3
 
 julia> unit(F)
+-1
 
 ```
 
@@ -534,8 +603,12 @@ Once created, a factorisation is iterable:
 
 ```jldoctest
 julia> F = factor(ZZ(-60))
+-1 * 5 * 2^2 * 3
 
 julia> for (p, e) in F; println("$p^$e"); end
+5^1
+2^2
+3^1
 
 ```
 
@@ -545,8 +618,13 @@ array using `collect`:
 
 ```jldoctest
 julia> F = factor(ZZ(-60))
+-1 * 5 * 2^2 * 3
 
 julia> collect(F)
+3-element Vector{Pair{fmpz, Int64}}:
+ 5 => 1
+ 2 => 2
+ 3 => 1
 
 ```
 
@@ -561,16 +639,22 @@ functionality.
 
 ```jldoctest
 julia> F = factor(ZZ(-60))
+-1 * 5 * 2^2 * 3
 
 julia> 5 in F
+true
 
 julia> ZZ(3) in F
+true
 
 julia> 7 in F
+false
 
 julia> F[3]
+1
 
 julia> F[ZZ(7)]
+ERROR: 7 is not a factor of -1 * 5 * 2^2 * 3
 
 ```
 
@@ -597,8 +681,10 @@ Return ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 
 ```jldoctest
 julia> factorial(ZZ(30))
+265252859812191058636308480000000
 
 julia> rising_factorial(ZZ(-30), 3)
+-24360
 
 ```
 
@@ -613,6 +699,7 @@ equal to ``n``. An exception is raised if ``n < 0``. We define
 
 ```jldoctest
 julia> primorial(ZZ(100))
+2305567963945518424753102147331756070
 
 ```
 
@@ -626,6 +713,7 @@ partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
 
 ```jldoctest
 julia> bell(ZZ(20))
+51724158235372
 
 ```
 
@@ -642,6 +730,7 @@ Return the binomial coefficient ``\frac{n (n-1) \cdots (n-k+1)}{k!}`` for
 
 ```jldoctest
 julia> binomial(ZZ(72), ZZ(15))
+1155454041309504
 
 ```
 
@@ -656,6 +745,7 @@ of distinct ways to write ``n`` as a sum of positive integers. Note that
 
 ```jldoctest
 julia> number_of_partitions(ZZ(10^6))
+1471684986358223398631004760609895943484030484439142125334612747351666117418918618276330148873983597555842015374130600288095929387347128232270327849578001932784396072064228659048713020170971840761025676479860846908142829356706929785991290519899445490672219997823452874982974022288229850136767566294781887494687879003824699988197729200632068668735996662273816798266213482417208446631027428001918132198177180646511234542595026728424452592296781193448139994664730105742564359154794989181485285351370551399476719981691459022015599101959601417474075715430750022184895815209339012481734469448319323280150665384042994054179587751761294916248142479998802936507195257074485047571662771763903391442495113823298195263008336489826045837712202455304996382144601028531832004519046591968302787537418118486000612016852593542741980215046267245473237321845833427512524227465399130174076941280847400831542217999286071108336303316298289102444649696805395416791875480010852636774022023128467646919775022348562520747741843343657801534130704761975530375169707999287040285677841619347472368171772154046664303121315630003467104673818
 
 ```
 
@@ -671,8 +761,10 @@ relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 
 ```jldoctest
 julia> fibonacci(ZZ(100))
+354224848179261915075
 
 julia> fibonacci(-2)
+-1
 
 ```
 
@@ -696,6 +788,7 @@ unity. An exception is raised if ``n \leq 0``.
 
 ```jldoctest
 julia> moebius_mu(30)
+-1
 
 ```
 
@@ -718,6 +811,7 @@ a square modulo ``p`` or not. An exception is raised if ``n`` is even or if
 
 ```jldoctest
 julia> jacobi_symbol(3, 37)
+1
 
 ```
 
@@ -735,6 +829,7 @@ If ``m \leq 0`` or ``n < 0`` we raise an exception.
 
 ```jldoctest
 julia> divisor_sigma(60, 5)
+806220408
 
 ```
 
@@ -749,6 +844,7 @@ integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
 
 ```jldoctest
 julia> euler_phi(200)
+80
 
 ```
 

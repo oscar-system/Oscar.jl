@@ -70,8 +70,10 @@ its unique minimal $H$-representation:
 
 ```jldoctest
 julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
+A polyhedron in ambient dimension 2
 
 julia> halfspace_matrix_pair(facets(T))
+(A = [-1 0; 0 -1; 1 1], b = Polymake.RationalAllocated[0, 0, 1])
 
 ```
 

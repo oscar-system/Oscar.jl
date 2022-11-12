@@ -36,9 +36,8 @@ by their names once OSCAR is loaded.
 
 The current versions of these packages can be inspected with the `Oscar.versioninfo` command:
 
-```jldoctest
-julia> Oscar.versioninfo()
-
+```@repl oscar
+Oscar.versioninfo()
 ```
 
 ## Binary packages for non-julia libraries
@@ -65,9 +64,8 @@ The binary packages can be found under the [JuliaBinaryWrappers organization](ht
 The `Oscar.versioninfo` function can also include the versions of all binary packages that are
 maintained by the OSCAR developers:
 
-```jldoctest
-julia> Oscar.versioninfo(jll=true)
-
+```@repl oscar
+Oscar.versioninfo(jll=true)
 ```
 
 For a full list of all dependencies of the current project please use

@@ -40,8 +40,39 @@ The following shows all the data currently known for a `Polyhedron`.
 
 ```jldoctest
 julia> C = cube(3)
+A polyhedron in ambient dimension 3
 
 julia> C.pm_polytope
+type: Polytope<Rational>
+description: cube of dimension 3
+
+AFFINE_HULL
+
+
+BOUNDED
+	true
+
+CONE_AMBIENT_DIM
+	4
+
+CONE_DIM
+	4
+
+FACETS
+  1   1   0   0
+  1  -1   0   0
+  1   0   1   0
+  1   0  -1   0
+  1   0   0   1
+  1   0   0  -1
+
+VERTICES_IN_FACETS
+	{0 2 4 6}
+	{1 3 5 7}
+	{0 1 4 5}
+	{2 3 6 7}
+	{0 1 2 3}
+	{4 5 6 7}
 
 ```
 
@@ -60,12 +91,17 @@ In spite of being given no coordinates, `polymake` can check for us that this is
 julia> Q = Polymake.polytope.Polytope(VERTICES_IN_FACETS=[[0,2],[1,3],[0,1],[2,3]]);
 
 julia> Q.SIMPLE
+true
 
 ```
 
 However, without coordinates, some operations such as computing the volume cannot work:
 ```jldoctest
 julia> Q.VOLUME
+ERROR: UndefVarError: Q not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 ```
 

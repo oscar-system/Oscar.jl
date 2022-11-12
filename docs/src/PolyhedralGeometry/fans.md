@@ -47,14 +47,23 @@ Objects of type `PolyhedralFan` can be saved to a file and loaded from a file
 in the following way:
 ```jldoctest
 julia> square = cube(2)
+A polyhedron in ambient dimension 2
 
 julia> fan = normal_fan(square)
+A polyhedral fan in ambient dimension 2
 
 julia> save("F.fan", fan)
+610
 
 julia> f = load("F.fan")
+A polyhedral fan in ambient dimension 2
 
 julia> collect(rays(f))
+4-element Vector{RayVector{fmpq}}:
+ [1, 0]
+ [-1, 0]
+ [0, 1]
+ [0, -1]
 
 ```
 The file is in JSON format and contains all previously gathered data belonging

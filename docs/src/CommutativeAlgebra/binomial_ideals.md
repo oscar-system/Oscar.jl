@@ -61,14 +61,19 @@ is_binomial(I::MPolyIdeal)
 ```
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> f = 2*x+y
+2*x + y
 
 julia> is_binomial(f)
+true
 
 julia> J = ideal(R, [x^2-y^3, z^2])
+ideal(x^2 - y^3, z^2)
 
 julia> is_binomial(J)
+true
 
 ```
 

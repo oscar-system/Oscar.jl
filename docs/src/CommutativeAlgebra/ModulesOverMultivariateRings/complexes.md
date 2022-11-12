@@ -56,10 +56,28 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = chain_complex([a, b]; start =3);
 
 julia> range(C)
+5:-1:4
 
 julia> C[5]
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 1 generator
+1 -> x^4*e[1]
 
 julia> map(C, 5)
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 1 generator
+1 -> x^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 1 generator
+1 -> x^3*e[1]
 
 ```
 
@@ -89,10 +107,19 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = chain_complex([a, b]; start = 3);
 
 julia> range(C)
+5:-1:4
 
 julia> D = shift(C, 3);
+ERROR: UndefVarError: shift not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 julia> range(D)
+ERROR: UndefVarError: D not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 ```
 

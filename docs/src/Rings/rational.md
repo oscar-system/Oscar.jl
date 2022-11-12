@@ -36,8 +36,10 @@ For convenience, `QQ` is already defined to be the field of rational numbers.
 
 ```jldoctest
 julia> S = FractionField(ZZ)
+Rational Field
 
 julia> QQ
+Rational Field
 
 ```
 
@@ -58,22 +60,29 @@ An exception is raised if a fraction is constructed with denominator zero.
 
 ```jldoctest
 julia> QQ(1, 2)
+1//2
 
 julia> QQ(5)
+5
 
 julia> ZZ(3)//5
+3//5
 
 julia> 1//ZZ(7)
+1//7
 
 julia> QQ(2//3)
+2//3
 
 julia> ZZ(3)//0
+ERROR: DivideError: integer division error
 
 ```
 One can also construct the rational number ``0`` with the empty constructor:
 
 ```jldoctest
 julia> QQ()
+0
 
 ```
 
@@ -84,8 +93,10 @@ The following special constructors are also provided:
 
 ```jldoctest
 julia> zero(QQ)
+0
 
 julia> one(QQ)
+1
 
 ```
 
@@ -99,10 +110,13 @@ The `is_unit` function will return `true` iff ``n \neq 0``.
 
 ```jldoctest
 julia> iszero(QQ())
+true
 
 julia> isone(one(QQ))
+true
 
 julia> is_unit(QQ(-2, 3))
+true
 
 ```
 
@@ -119,10 +133,13 @@ Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
 ```jldoctest
 julia> sign(QQ(2, 3))
+1
 
 julia> sign(QQ())
+0
 
 julia> sign(QQ(-1))
+-1
 
 ```
 
@@ -134,6 +151,7 @@ otherwise.
 
 ```jldoctest
 julia> abs(QQ(-3, 2))
+3//2
 
 ```
 
@@ -144,6 +162,7 @@ $n$.
 
 ```jldoctest
 julia> height(QQ(324987329, -8372492324))
+8372492324
 
 ```
 
@@ -157,12 +176,16 @@ Return the least integer $m$ (as a rational number) such that $m \geq n$.
 
 ```jldoctest
 julia> floor(QQ(-2, 3))
+-1
 
 julia> ceil(QQ(7, 2))
+4
 
 julia> typeof(ans)
+fmpq
 
 julia> ceil(QQ(5))
+5
 
 ```
 * `floor(fmpz, n::fmpq) -> fmpz`
@@ -175,12 +198,16 @@ Return the least integer $m$ such that $m \geq n$.
 
 ```jldoctest
 julia> floor(fmpz, QQ(-2, 3))
+-1
 
 julia> ceil(fmpz, QQ(7, 2))
+4
 
 julia> typeof(ans)
+fmpz
 
 julia> ceil(fmpz, QQ(5))
+5
 
 ```
 
@@ -201,14 +228,19 @@ division by zero is attempted.
 
 ```jldoctest
 julia> divexact(QQ(2, 3), QQ(3, 5))
+10//9
 
 julia> divexact(QQ(1, 3), ZZ(0))
+ERROR: DivideError: integer division error
 
 julia> divexact(QQ(3, 4), ZZ(5))
+3//20
 
 julia> divexact(ZZ(6), QQ(2, 3))
+9
 
 julia> divexact(QQ(1, 3), 5)
+1//15
 
 ```
 
@@ -220,8 +252,10 @@ Return the result of powering ``a`` by ``b``.
 
 ```jldoctest
 julia> QQ(5, 7)^32
+23283064365386962890625//1104427674243920646305299201
 
 julia> QQ(1, 2)^(-2)
+4
 
 ```
 
@@ -229,6 +263,7 @@ The following is allowed for convenience.
 
 ```jldoctest
 julia> QQ(0)^0
+1
 
 ```
 
@@ -239,6 +274,7 @@ julia> QQ(0)^0
 
 ```jldoctest
 julia> QQ(0)^-2
+ERROR: DivideError: integer division error
 
 ```
 
@@ -257,12 +293,16 @@ Compute an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th p
 
 ```jldoctest
 julia> is_power(QQ(8), 3)
+(true, 2)
 
 julia> is_power(QQ(8), 2)
+(false, 8)
 
 julia> is_power(QQ(9//16))
+(2, 3//4)
 
 julia> root(QQ(25//9), 2)
+5//3
 
 ```
 

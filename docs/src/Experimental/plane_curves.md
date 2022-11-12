@@ -83,8 +83,11 @@ the projective plane as follows, where `K` is the base ring:
 #### Example
 ```jldoctest
 julia> K = QQ
+Rational Field
 
 julia> PP = proj_space(K, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 ```
 
@@ -93,6 +96,10 @@ Then, one can define a projective point as follows:
 #### Example
 ```jldoctest
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(2), QQ(-5)])
+ERROR: UndefVarError: PP not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 
 ```
 
