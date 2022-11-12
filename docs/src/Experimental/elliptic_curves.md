@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -48,18 +51,27 @@ Addition and multiplication by an integer of a point on an elliptic curve can be
 
 #### Example
 
-```@repl oscar
-S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-T, _ = grade(S)
-E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
-PP = Oscar.proj_space(E)
-P = Oscar.Geometry.ProjSpcElem(PP, [QQ(2), QQ(2), QQ(1)])
-Q = Oscar.Point_EllCurve(E, P)
-Q+Q
-3*Q
-``` 
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> T, _ = grade(S)
+
+julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
+
+julia> PP = Oscar.proj_space(E)
+
+julia> P = Oscar.Geometry.ProjSpcElem(PP, [QQ(2), QQ(2), QQ(1)])
+
+julia> Q = Oscar.Point_EllCurve(E, P)
+
+julia> Q+Q
+
+julia> 3*Q
+
+```
 
 ### Weierstrass form
+
 ```@docs
 weierstrass_form(E::ProjEllipticCurve{S}) where {S <: FieldElem}
 toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
@@ -98,17 +110,27 @@ rand_pair_EllCurve_Point(R::Oscar.MPolyRing_dec{S}, PP::Oscar.Geometry.ProjSpc{S
 
 Projective elliptic curves over a ring are for example used in the Elliptic Curve Method. We give here an example (see Example 7.1 of [Was08](@cite)) on how to use the previous functions to apply it. 
 
-```@repl oscar
-n = 4453
-A = ResidueRing(ZZ, ZZ(n))
-S, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
-T, _ = grade(S)
-E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
-PP = proj_space(A, 2)
-Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
-P = Oscar.Point_EllCurve(E, Q)
-P2 = Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P)
-Oscar.sum_Point_EllCurveZnZ(P, P2)
+```jldoctest
+julia> n = 4453
+
+julia> A = ResidueRing(ZZ, ZZ(n))
+
+julia> S, (x,y,z) = PolynomialRing(A, ["x", "y", "z"])
+
+julia> T, _ = grade(S)
+
+julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
+
+julia> PP = proj_space(A, 2)
+
+julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
+
+julia> P = Oscar.Point_EllCurve(E, Q)
+
+julia> P2 = Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P)
+
+julia> Oscar.sum_Point_EllCurveZnZ(P, P2)
+
 ```
 
 The last sum is not defined, and the error which is shown when we ask for the sum gives us a factor of `4453`. The Elliptic Curve Method is implemented and can be called using:

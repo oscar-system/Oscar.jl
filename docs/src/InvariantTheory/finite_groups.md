@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -81,17 +84,27 @@ Moreover, `is_modular(IR)` returns `true` in the modular case, and
 
 ###### Examples
 
-```@repl oscar
-K, a = CyclotomicField(3, "a")
-M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-G = MatrixGroup(3, K, [ M1, M2 ])
-IR = invariant_ring(G)
-group(IR)
-coefficient_ring(IR)
-R = polynomial_ring(IR)
-x = gens(R)
-is_modular(IR)
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+
+julia> IR = invariant_ring(G)
+
+julia> group(IR)
+
+julia> coefficient_ring(IR)
+
+julia> R = polynomial_ring(IR)
+
+julia> x = gens(R)
+
+julia> is_modular(IR)
+
 ```
 
 ## The Reynolds Operator

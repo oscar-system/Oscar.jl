@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -21,8 +24,11 @@ element of a corresponding strong Gröbner basis.
 
 The textbook [AL94](@cite) provides details on theory and algorithms as well as references.
 
-```@repl oscar
-R, (x,y) = PolynomialRing(ZZ, ["x","y"])
-I = ideal(R, [2x,3x,4y])
-H = groebner_basis(I)
+```jldoctest
+julia> R, (x,y) = PolynomialRing(ZZ, ["x","y"])
+
+julia> I = ideal(R, [2x,3x,4y])
+
+julia> H = groebner_basis(I)
+
 ```

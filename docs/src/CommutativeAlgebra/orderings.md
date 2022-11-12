@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -53,22 +56,37 @@ Here are some illustrating examples:
 
 ##### Examples
 
-```@repl oscar
-S, (w, x) = PolynomialRing(QQ, ["w", "x"])
-o = lex([w, x])
-canonical_matrix(o)
-cmp(o, w^2*x, x^3)
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-o1 = degrevlex([w, x])
-is_global(o1)
-canonical_matrix(o1)
-o2 = neglex([y, z])
-is_local(o2)
-canonical_matrix(o2)
-o3 = o1*o2
-canonical_matrix(o3)
-is_mixed(o3)
-show(collect(terms((1+w+x+y+z)^2, o3)))
+```jldoctest
+julia> S, (w, x) = PolynomialRing(QQ, ["w", "x"])
+
+julia> o = lex([w, x])
+
+julia> canonical_matrix(o)
+
+julia> cmp(o, w^2*x, x^3)
+
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+
+julia> o1 = degrevlex([w, x])
+
+julia> is_global(o1)
+
+julia> canonical_matrix(o1)
+
+julia> o2 = neglex([y, z])
+
+julia> is_local(o2)
+
+julia> canonical_matrix(o2)
+
+julia> o3 = o1*o2
+
+julia> canonical_matrix(o3)
+
+julia> is_mixed(o3)
+
+julia> show(collect(terms((1+w+x+y+z)^2, o3)))
+
 ```
 
 ## Monomial Comparisons
@@ -311,9 +329,11 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 
 ##### Examples
 
-```@repl oscar
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-o = degrevlex([w, x])*degrevlex([y, z])
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+
+julia> o = degrevlex([w, x])*degrevlex([y, z])
+
 ```
 
 ## Elimination Orderings
@@ -393,11 +413,15 @@ basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the
 
 ##### Examples
 
-```@repl oscar
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
-F = free_module(R, 3)
-o1 = degrevlex(R)*revlex(gens(F))
-o2 = revlex(gens(F))*degrevlex(R)
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> F = free_module(R, 3)
+
+julia> o1 = degrevlex(R)*revlex(gens(F))
+
+julia> o2 = revlex(gens(F))*degrevlex(R)
+
 ```
 
 The induced ordering on the given polynomial ring is recovered as follows:

@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -15,11 +18,15 @@ Pages = ["serialization.md"]
 
 Objects of type `Polyhedron` can be saved to a file and loaded from a file in the
 following way:
-```@repl oscar
-square = cube(2)
-save("square.poly", square)
-s = load("square.poly")
-s == square
+```jldoctest
+julia> square = cube(2)
+
+julia> save("square.poly", square)
+
+julia> s = load("square.poly")
+
+julia> s == square
+
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by

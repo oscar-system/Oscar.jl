@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -40,13 +43,19 @@ If `I` is an ideal of a PBW-algebra  `A`, then
 
 ###### Examples
 
-```@repl oscar
-D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
-I = left_ideal(D, [x, dx])
-base_ring(I)
-gens(I)
-ngens(I)
-gen(I, 2)
+```jldoctest
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+
+julia> I = left_ideal(D, [x, dx])
+
+julia> base_ring(I)
+
+julia> gens(I)
+
+julia> ngens(I)
+
+julia> gen(I, 2)
+
 ```
 
 ## Operations on Ideals

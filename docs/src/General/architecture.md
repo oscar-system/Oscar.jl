@@ -1,13 +1,16 @@
-```@contents
-Pages = ["architecture.md"]
-```
-
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
 using Oscar
+```
+
+```@contents
+Pages = ["architecture.md"]
 ```
 
 # Architecture
@@ -33,8 +36,9 @@ by their names once OSCAR is loaded.
 
 The current versions of these packages can be inspected with the `Oscar.versioninfo` command:
 
-```@repl oscar
-Oscar.versioninfo()
+```jldoctest
+julia> Oscar.versioninfo()
+
 ```
 
 ## Binary packages for non-julia libraries
@@ -61,8 +65,9 @@ The binary packages can be found under the [JuliaBinaryWrappers organization](ht
 The `Oscar.versioninfo` function can also include the versions of all binary packages that are
 maintained by the OSCAR developers:
 
-```@repl oscar
-Oscar.versioninfo(jll=true)
+```jldoctest
+julia> Oscar.versioninfo(jll=true)
+
 ```
 
 For a full list of all dependencies of the current project please use

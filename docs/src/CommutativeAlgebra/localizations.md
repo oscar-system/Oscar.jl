@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar 
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -80,17 +83,27 @@ Containment in multiplicatively closed subsets can be checked via the `in` funct
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-S = complement_of_ideal(R, [0, 0 ,0])
-y in S
-P = ideal(R, [x])
-T = complement_of_ideal(P)
-y in T
-f = x
-U = powers_of_element(f)
-x^3 in U
-(1+y)*x^2 in product(S, U)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> S = complement_of_ideal(R, [0, 0 ,0])
+
+julia> y in S
+
+julia> P = ideal(R, [x])
+
+julia> T = complement_of_ideal(P)
+
+julia> y in T
+
+julia> f = x
+
+julia> U = powers_of_element(f)
+
+julia> x^3 in U
+
+julia> (1+y)*x^2 in product(S, U)
+
 ```
 
 
@@ -110,13 +123,19 @@ If `Rloc` is the localization of a multivariate polynomial ring `R`  at a multip
 
 ###### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-P = ideal(R, [x])
-U = complement_of_ideal(P)
-Rloc, _ = Localization(U);
-R === base_ring(Rloc)
-U === inverted_set(Rloc)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> P = ideal(R, [x])
+
+julia> U = complement_of_ideal(P)
+
+julia> Rloc, _ = Localization(U);
+
+julia> R === base_ring(Rloc)
+
+julia> U === inverted_set(Rloc)
+
 ```
 
 ### Elements of Localized Rings
@@ -134,16 +153,25 @@ under the localization map or by directly coercing (pairs of) elements of $R$ in
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-P = ideal(R, [x])
-U = complement_of_ideal(P)
-Rloc, iota = Localization(U);
-f = iota(x)
-f == Rloc(x)
-g = Rloc(y, z)
-f+g
-f*g
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> P = ideal(R, [x])
+
+julia> U = complement_of_ideal(P)
+
+julia> Rloc, iota = Localization(U);
+
+julia> f = iota(x)
+
+julia> f == Rloc(x)
+
+julia> g = Rloc(y, z)
+
+julia> f+g
+
+julia> f*g
+
 ```
 
 #### Data Associated to Elements of Localized Rings
@@ -155,16 +183,25 @@ Given an element `f` of a localized multivariate ring polynomial `Rloc`,
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-P = ideal(R, [x])
-U = complement_of_ideal(P)
-Rloc, iota = Localization(U);
-f = iota(x)//iota(y)
-parent(f)
-g = iota(y)//iota(z)
-numerator(f*g)
-denominator(f*g)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> P = ideal(R, [x])
+
+julia> U = complement_of_ideal(P)
+
+julia> Rloc, iota = Localization(U);
+
+julia> f = iota(x)//iota(y)
+
+julia> parent(f)
+
+julia> g = iota(y)//iota(z)
+
+julia> numerator(f*g)
+
+julia> denominator(f*g)
+
 ```
 
 ### Homomorphisms from Localized Rings

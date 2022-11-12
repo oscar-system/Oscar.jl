@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -79,20 +82,33 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 1)
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(F, A, B)
-base_ring(M)
-F === ambient_free_module(M)
-gens(M)
-ngens(M)
-gen(M, 2)
-ambient_representatives_generators(M)
-relations(M)
-ambient_module(M)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> F = free_module(R, 1)
+
+julia> A = R[x; y]
+
+julia> B = R[x^2; y^3; z^4]
+
+julia> M = SubQuo(F, A, B)
+
+julia> base_ring(M)
+
+julia> F === ambient_free_module(M)
+
+julia> gens(M)
+
+julia> ngens(M)
+
+julia> gen(M, 2)
+
+julia> ambient_representatives_generators(M)
+
+julia> relations(M)
+
+julia> ambient_module(M)
+
 ```
 
 ## Elements of Subqotients
@@ -117,16 +133,25 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 1)
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(F, A, B)
-m = M(sparse_row(R, [(1,z),(2,one(R))]))
-n = M([z, one(R)])
-o = z*M[1] + M[2]
-m == n == o
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> F = free_module(R, 1)
+
+julia> A = R[x; y]
+
+julia> B = R[x^2; y^3; z^4]
+
+julia> M = SubQuo(F, A, B)
+
+julia> m = M(sparse_row(R, [(1,z),(2,one(R))]))
+
+julia> n = M([z, one(R)])
+
+julia> o = z*M[1] + M[2]
+
+julia> m == n == o
+
 ```
 
 Given an element `m`  of a subquotient `M`  over a multivariate polynomial ring $R$ with element type `T`,
@@ -146,24 +171,41 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 1)
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(F, A, B)
-m = z*M[1] + M[2]
-parent(m)
-coefficients(m)
-fm = ambient_representative(m)
-typeof(m)
-typeof(fm)
-parent(fm) === ambient_free_module(M)
-F = ambient_free_module(M)
-f = x*F[1]
-M(f)
-typeof(f)
-typeof(M(f))
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> F = free_module(R, 1)
+
+julia> A = R[x; y]
+
+julia> B = R[x^2; y^3; z^4]
+
+julia> M = SubQuo(F, A, B)
+
+julia> m = z*M[1] + M[2]
+
+julia> parent(m)
+
+julia> coefficients(m)
+
+julia> fm = ambient_representative(m)
+
+julia> typeof(m)
+
+julia> typeof(fm)
+
+julia> parent(fm) === ambient_free_module(M)
+
+julia> F = ambient_free_module(M)
+
+julia> f = x*F[1]
+
+julia> M(f)
+
+julia> typeof(f)
+
+julia> typeof(M(f))
+
 ```
 
 The zero element of a subquotient is obtained as follows:

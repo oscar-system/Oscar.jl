@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -36,13 +39,19 @@ If `I` is an ideal of a multivariate polynomial ring  `R`, then
 
 ###### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x, y])^2
-base_ring(I)
-gens(I)
-ngens(I)
-gen(I, 2)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+
+julia> I = ideal(R, [x, y])^2
+
+julia> base_ring(I)
+
+julia> gens(I)
+
+julia> ngens(I)
+
+julia> gen(I, 2)
+
 ```
 
 ### Dimension

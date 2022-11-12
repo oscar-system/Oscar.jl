@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -52,11 +55,15 @@ If `F` is a free `R`-module, then
 
 ###### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 3)
-basis(F)
-rank(F)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+
+julia> F = free_module(R, 3)
+
+julia> basis(F)
+
+julia> rank(F)
+
 ```
 
 ## Elements of Free Modules
@@ -81,13 +88,19 @@ Alternatively, directly write the element as a linear combination of basis vecto
  
 ##### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 3)
-f = F(sparse_row(R, [(1,x),(3,y)]))
-g = F( [x, zero(R), y])
-h = x*F[1] + y*F[3]
-f == g == h
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+
+julia> F = free_module(R, 3)
+
+julia> f = F(sparse_row(R, [(1,x),(3,y)]))
+
+julia> g = F( [x, zero(R), y])
+
+julia> h = x*F[1] + y*F[3]
+
+julia> f == g == h
+
 ```
 
 Given an element `f`  of a free module `F` over a multivariate polynomial ring with element type `T`,
@@ -96,12 +109,17 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 
 ##### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 3)
-f = x*F[1] + y*F[3]
-parent(f)
-coefficients(f)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+
+julia> F = free_module(R, 3)
+
+julia> f = x*F[1] + y*F[3]
+
+julia> parent(f)
+
+julia> coefficients(f)
+
 ```
 
 The zero element of a free module is obtained as follows:

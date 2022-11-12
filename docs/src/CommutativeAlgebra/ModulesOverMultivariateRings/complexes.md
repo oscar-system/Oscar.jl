@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -37,17 +40,27 @@ Given a chain complex `C`,
 
 ##### Examples
 
-```@repl oscar
-R, (x,) = PolynomialRing(QQ, ["x"]);
-F = free_module(R, 1);
-A, _ = quo(F, [x^4*F[1]]);
-B, _ = quo(F, [x^3*F[1]]);
-a = hom(A, B, [x^2*B[1]]);
-b = hom(B, B, [x^2*B[1]]);
-C = chain_complex([a, b]; start =3);
-range(C)
-C[5]
-map(C, 5)
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+
+julia> F = free_module(R, 1);
+
+julia> A, _ = quo(F, [x^4*F[1]]);
+
+julia> B, _ = quo(F, [x^3*F[1]]);
+
+julia> a = hom(A, B, [x^2*B[1]]);
+
+julia> b = hom(B, B, [x^2*B[1]]);
+
+julia> C = chain_complex([a, b]; start =3);
+
+julia> range(C)
+
+julia> C[5]
+
+julia> map(C, 5)
+
 ```
 
 ## Operations on Chain Complexes
@@ -60,17 +73,27 @@ Return the complex obtained from `C` by shifting the homological degrees `d` ste
 
 ##### Examples
 
-```@repl oscar
-R, (x,) = PolynomialRing(QQ, ["x"]);
-F = free_module(R, 1);
-A, _ = quo(F, [x^4*F[1]]);
-B, _ = quo(F, [x^3*F[1]]);
-a = hom(A, B, [x^2*B[1]]);
-b = hom(B, B, [x^2*B[1]]);
-C = chain_complex([a, b]; start = 3);
-range(C)
-D = shift(C, 3);
-range(D)
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+
+julia> F = free_module(R, 1);
+
+julia> A, _ = quo(F, [x^4*F[1]]);
+
+julia> B, _ = quo(F, [x^3*F[1]]);
+
+julia> a = hom(A, B, [x^2*B[1]]);
+
+julia> b = hom(B, B, [x^2*B[1]]);
+
+julia> C = chain_complex([a, b]; start = 3);
+
+julia> range(C)
+
+julia> D = shift(C, 3);
+
+julia> range(D)
+
 ```
 
 ```@docs

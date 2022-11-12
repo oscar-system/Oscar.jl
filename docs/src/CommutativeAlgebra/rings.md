@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -42,36 +45,54 @@ order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner base
 
 ###### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
-typeof(R)
-typeof(x)
-S, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
-R === S
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+
+julia> typeof(R)
+
+julia> typeof(x)
+
+julia> S, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+
+julia> R === S
+
 ```
 
-```@repl oscar
-R1, x = PolynomialRing(QQ, ["x"])
-typeof(x)
-R2, (x,) = PolynomialRing(QQ, ["x"])
-typeof(x)
-R3, x = PolynomialRing(QQ, "x")
-typeof(x)
+```jldoctest
+julia> R1, x = PolynomialRing(QQ, ["x"])
+
+julia> typeof(x)
+
+julia> R2, (x,) = PolynomialRing(QQ, ["x"])
+
+julia> typeof(x)
+
+julia> R3, x = PolynomialRing(QQ, "x")
+
+julia> typeof(x)
+
 ```
 
-```@repl oscar
-V = ["x[1]", "x[2]"]
-T, x = PolynomialRing(GF(3), V)
-x
+```jldoctest
+julia> V = ["x[1]", "x[2]"]
+
+julia> T, x = PolynomialRing(GF(3), V)
+
+julia> x
+
 ```
 
 The constructor illustrated below allows for the convenient handling of variables with multi-indices:
 
-```@repl oscar
-R, x, y, z = PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1))
-x
-y
-z
+```jldoctest
+julia> R, x, y, z = PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1))
+
+julia> x
+
+julia> y
+
+julia> z
+
 ```
 
 ## Coefficient Rings 
@@ -80,47 +101,63 @@ Gröbner and standard bases are implemented for multivariate polynomial rings ov
 
 ###### The field of rational numbers $\mathbb{Q}$
 
-```@repl oscar
-QQ
+```jldoctest
+julia> QQ
+
 ```
 ###### Finite fields $\mathbb{F_p}$, $p$ a prime
 
-```@repl oscar
-GF(3)
-GF(ZZ(2)^127 - 1)
+```jldoctest
+julia> GF(3)
+
+julia> GF(ZZ(2)^127 - 1)
+
 ```
 
 ###### Finite fields $\mathbb{F}_{p^n}$ with $p^n$ elements, $p$ a prime
 
-```@repl oscar
-FiniteField(2, 70, "a")
+```jldoctest
+julia> FiniteField(2, 70, "a")
+
 ```
 
 ###### Simple algebraic extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
   
-```@repl oscar
-T, t = PolynomialRing(QQ, "t")
-K, a = NumberField(t^2 + 1, "a")
-F = GF(3)
-T, t = PolynomialRing(F, "t")
-K, a = FiniteField(t^2 + 1, "a")
+```jldoctest
+julia> T, t = PolynomialRing(QQ, "t")
+
+julia> K, a = NumberField(t^2 + 1, "a")
+
+julia> F = GF(3)
+
+julia> T, t = PolynomialRing(F, "t")
+
+julia> K, a = FiniteField(t^2 + 1, "a")
+
 ```
 
 ###### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
 
-```@repl oscar
-T, t = PolynomialRing(QQ, "t")
-QT = FractionField(T)
-parent(t)
-parent(1//t)
-T, (s, t) = PolynomialRing(GF(3), ["s", "t"]);
-QT = FractionField(T)
+```jldoctest
+julia> T, t = PolynomialRing(QQ, "t")
+
+julia> QT = FractionField(T)
+
+julia> parent(t)
+
+julia> parent(1//t)
+
+julia> T, (s, t) = PolynomialRing(GF(3), ["s", "t"]);
+
+julia> QT = FractionField(T)
+
 ```
 
 ###### The ring of integers $\mathbb{Z}$
 
-```@repl oscar
-ZZ
+```jldoctest
+julia> ZZ
+
 ```
 
 ## Gradings
@@ -226,13 +263,19 @@ Given  a multivariate polynomial ring `R` with coefficient ring `C`,
 
 ###### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-coefficient_ring(R)
-gens(R)
-gen(R, 2)
-R[3] 
-ngens(R)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> coefficient_ring(R)
+
+julia> gens(R)
+
+julia> gen(R, 2)
+
+julia> R[3] 
+
+julia> ngens(R)
+
 ```
 
 In the graded case, we additionally have:
@@ -255,14 +298,21 @@ basic arithmetic as shown below:
 
 ###### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-f = 3*x^2+y*z
-typeof(f)
-S, (x, y, z) = grade(R)
-g = 3*x^2+y*z
-typeof(g)
-g == S(f)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> f = 3*x^2+y*z
+
+julia> typeof(f)
+
+julia> S, (x, y, z) = grade(R)
+
+julia> g = 3*x^2+y*z
+
+julia> typeof(g)
+
+julia> g == S(f)
+
 ```
 
 Alternatively, there is the following constructor:
@@ -276,20 +326,28 @@ with exponent vectors given by the elements of `e`.
 
 ###### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-f = 3*x^2+y*z
-g = R(QQ.([3, 1]), [[2, 0, 0], [0, 1, 1]])
-f == g
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+julia> f = 3*x^2+y*z
+
+julia> g = R(QQ.([3, 1]), [[2, 0, 0], [0, 1, 1]])
+
+julia> f == g
+
 ```
 
 An often more effective way to create polynomials is to use the `MPoly` build context as indicated below:
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-B = MPolyBuildCtx(R)
-for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
-finish(B)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+
+julia> B = MPolyBuildCtx(R)
+
+julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
+
+julia> finish(B)
+
 ```
 
 
@@ -312,17 +370,27 @@ Given an element `f` of a multivariate polynomial ring `R` or a graded version o
 
 ###### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
-c = map(GF(5), [1, 2, 3])
-e = [[3, 2], [1, 0], [0, 1]]
-f = R(c, e)
-parent(f)
-total_degree(f)
-coeff(f, 2)
-exponent_vector(f, 2)
-monomial(f, 2)
-term(f, 2)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
+
+julia> c = map(GF(5), [1, 2, 3])
+
+julia> e = [[3, 2], [1, 0], [0, 1]]
+
+julia> f = R(c, e)
+
+julia> parent(f)
+
+julia> total_degree(f)
+
+julia> coeff(f, 2)
+
+julia> exponent_vector(f, 2)
+
+julia> monomial(f, 2)
+
+julia> term(f, 2)
+
 ```
 
 Further functionality is available in the graded case:

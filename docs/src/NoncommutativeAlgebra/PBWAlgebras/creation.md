@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -76,16 +79,25 @@ Given a PBW-algebra `A` over a field `K`,
 
 ###### Examples
 
-```@repl oscar
-R, (x,y,z) = QQ["x", "y", "z"];
-L = [x*y, x*z, y*z + 1];
-REL = strictly_upper_triangular_matrix(L);
-A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
-coefficient_ring(A)
-gens(A)
-gen(A, 2)
-A[3] 
-ngens(A)
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> L = [x*y, x*z, y*z + 1];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
+
+julia> coefficient_ring(A)
+
+julia> gens(A)
+
+julia> gen(A, 2)
+
+julia> A[3] 
+
+julia> ngens(A)
+
 ```
 
 ## Elements of PBW-Algebras
@@ -99,12 +111,17 @@ from the generators of `A` using basic arithmetic as shown below:
 
 ###### Examples
 
-```@repl oscar
-R, (x,y,z) = QQ["x", "y", "z"];
-L = [x*y, x*z, y*z + 1];
-REL = strictly_upper_triangular_matrix(L);
-A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
-f = 3*x^2+z*y
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> L = [x*y, x*z, y*z + 1];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
+
+julia> f = 3*x^2+z*y
+
 ```
 
 Alternatively, there is the following constructor:
@@ -117,26 +134,40 @@ the elements of `cs` as coefficients, and the elements of `es` as exponents.
 
 ###### Examples
 
-```@repl oscar
-R, (x,y,z) = QQ["x", "y", "z"];
-L = [x*y, x*z, y*z + 1];
-REL = strictly_upper_triangular_matrix(L);
-A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
-f = 3*x^2+z*y
-g = A(QQ.([3, 1, 1]), [[2, 0, 0], [0, 1, 1], [0, 0, 0]])
-f == g
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> L = [x*y, x*z, y*z + 1];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
+
+julia> f = 3*x^2+z*y
+
+julia> g = A(QQ.([3, 1, 1]), [[2, 0, 0], [0, 1, 1], [0, 0, 0]])
+
+julia> f == g
+
 ```
 
 An often more effective way to create elements is to use the corresponding build context as indicated below:
 
-```@repl oscar
-R, (x,y,z) = QQ["x", "y", "z"];
-L = [x*y, x*z, y*z + 1];
-REL = strictly_upper_triangular_matrix(L);
-A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
-B =  build_ctx(A);
-for i = 1:5 push_term!(B, QQ(i), [i+1, i, i-1]) end
-finish(B)
+```jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"];
+
+julia> L = [x*y, x*z, y*z + 1];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)));
+
+julia> B =  build_ctx(A);
+
+julia> for i = 1:5 push_term!(B, QQ(i), [i+1, i, i-1]) end
+
+julia> finish(B)
+
 ```
 
 ### Special Elements

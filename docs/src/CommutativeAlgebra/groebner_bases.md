@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -64,7 +67,7 @@ Here are some illustrating OSCAR examples:
 
 ##### Examples
 
-```@jldoctest
+```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
@@ -87,7 +90,7 @@ julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
 ```
 
-```@jldoctest
+```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 

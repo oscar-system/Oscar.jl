@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -51,13 +54,19 @@ closure of the set of all weight vectors realizing that subdivision.
 
 Objects of type `SubdivisionsOfPoints` can be saved to a file and loaded from a
 file in the following way:
-```@repl oscar
-moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
-moaeincidence = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
-MOAE = SubdivisionOfPoints(moaepts, moaeincidence)
-save("moae.sop", MOAE);
-SOP = load("moae.sop");
-is_regular(SOP)
+```jldoctest
+julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
+
+julia> moaeincidence = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
+
+julia> MOAE = SubdivisionOfPoints(moaepts, moaeincidence)
+
+julia> save("moae.sop", MOAE);
+
+julia> SOP = load("moae.sop");
+
+julia> is_regular(SOP)
+
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
