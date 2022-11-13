@@ -576,7 +576,7 @@ julia> W = wreath_product(G,H)
 <group of size 18 with 2 generators>
 
 julia> normal_subgroup(W)
-<pc group of size 3 with 1 generators>
+<pc group of size 3 with 1 generator>
 ```
 """
 normal_subgroup(W::WreathProductGroup) = W.G
