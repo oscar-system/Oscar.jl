@@ -150,7 +150,7 @@ function isfinite(F::AffAlgHom)
   # variables x_i.
   s = codomain(F)
   m = ngens(s)
-  L = leading_monomial.(G)
+  L = map(AbstractAlgebra.leading_monomial, G)
 
   # Check if for all i, powers of x_i occur as leading monomials
   N = Vector{Int}()

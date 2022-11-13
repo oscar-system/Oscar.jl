@@ -498,7 +498,7 @@ function Base.in(
   if iszero(f)
     return false
   end
-  return isone(leading_monomial(f, ordering(S)))
+  return isone(leading_monomial(f; ordering = ordering(S)))
 end
 
 ### printing

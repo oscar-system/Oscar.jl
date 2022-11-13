@@ -205,12 +205,12 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = divexact(h, leading_coefficient(h))
+        f = divexact(h, AbstractAlgebra.leading_coefficient(h))
         push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [AbstractAlgebra.leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
   end
   if iszero(evaluate(F, [1, 0, 0])) && iszero(evaluate(H, [1, 0, 0]))
      push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))
@@ -280,12 +280,12 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//leading_coefficient(h)
+        f = h//AbstractAlgebra.leading_coefficient(h)
         push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [AbstractAlgebra.leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
   end
   if iszero(evaluate(D.eq, [1,0,0])) && iszero(evaluate(FX, [1,0,0])) && iszero(evaluate(FY, [1,0,0])) && iszero(evaluate(FZ, [1,0,0]))
      push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))

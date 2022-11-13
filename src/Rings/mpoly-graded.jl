@@ -745,13 +745,13 @@ end
 
 length(a::MPolyElem_dec) = length(a.f)
 total_degree(a::MPolyElem_dec) = total_degree(a.f)
-monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
-coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
-term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
-exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
-exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = exponent_vector(a.f, i, T)
-exponent(a::MPolyElem_dec, i::Int, j::Int) = exponent(a.f, i, j)
-exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i, j, T)
+AbstractAlgebra.monomial(a::MPolyElem_dec, i::Int) = parent(a)(AbstractAlgebra.monomial(a.f, i))
+AbstractAlgebra.coeff(a::MPolyElem_dec, i::Int) = AbstractAlgebra.coeff(a.f, i)
+AbstractAlgebra.term(a::MPolyElem_dec, i::Int) = parent(a)(AbstractAlgebra.term(a.f, i))
+AbstractAlgebra.exponent_vector(a::MPolyElem_dec, i::Int) = AbstractAlgebra.exponent_vector(a.f, i)
+AbstractAlgebra.exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = AbstractAlgebra.exponent_vector(a.f, i, T)
+AbstractAlgebra.exponent(a::MPolyElem_dec, i::Int, j::Int) = AbstractAlgebra.exponent(a.f, i, j)
+AbstractAlgebra.exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = AbstractAlgebra.exponent(a.f, i, j, T)
 
 function has_weighted_ordering(R::MPolyRing_dec)
   grading_to_ordering = false
@@ -1083,7 +1083,7 @@ function homogeneous_components(a::MPolyElem_dec{T, S}) where {T, S}
   dmat = vcat([d[i].coeff for i in 1:length(d)])
   tmat = zero_matrix(ZZ, 1, nvars(R))
   res_mat = zero_matrix(ZZ, 1, ncols(dmat))
-  for (c, e) = Base.Iterators.zip(coefficients(a.f), exponent_vectors(a.f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(a.f), AbstractAlgebra.exponent_vectors(a.f))
     # this is non-allocating
     for i in 1:length(e)
       tmat[1, i] = e[i]
@@ -1411,7 +1411,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
   for i = e
     pos = Vector{Int}()
     val = Vector{elem_type(K)}()
-    for (c, m) = Base.Iterators.zip(coefficients(i), monomials(i))
+    for (c, m) = Base.Iterators.zip(AbstractAlgebra.coefficients(i), AbstractAlgebra.monomials(i))
       if haskey(mon, m)
         push!(pos, mon[m])
         push!(val, c)
@@ -1440,7 +1440,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
   function g(x::T)
     @assert parent(x) == R
     v = zero(F)
-    for (c, m) = Base.Iterators.zip(coefficients(x), monomials(x))
+    for (c, m) = Base.Iterators.zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.monomials(x))
       if !haskey(mon, m)
         error("not in image")
       end
@@ -2048,7 +2048,7 @@ end
 function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
   d = total_degree(f)
   B = MPolyBuildCtx(S)
-  for (c,e) = zip(coefficients(f), exponent_vectors(f))
+  for (c,e) = zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     insert!(e, pos, d-sum(e))
     push_term!(B, c, e)
   end
@@ -2059,7 +2059,7 @@ function _homogenization(f::MPolyElem, S::MPolyRing_dec, start_pos::Int = 1)
    len_gg  = ngens(S.D)
       #= get exponent vectors and enlarge them for S =#
    exps = Vector{Int}[]
-   for e in exponent_vectors(f)
+   for e in AbstractAlgebra.exponent_vectors(f)
        for j in 1:len_gg
            insert!(e, start_pos+j-1, 0)
        end
@@ -2083,7 +2083,7 @@ function _homogenization(f::MPolyElem, S::MPolyRing_dec, start_pos::Int = 1)
        #= finally generate homogeneous version of f in S, called F =#
    F  = MPolyBuildCtx(S)
 
-   for (i, (c, e)) = enumerate(zip(coefficients(f), exps))
+   for (i, (c, e)) = enumerate(zip(AbstractAlgebra.coefficients(f), exps))
        for j in 1:len_gg
            e[start_pos+j-1] = tdeg[j]-degs[i][j]
        end
@@ -2294,7 +2294,7 @@ end
 ### TODO: make adjustments there and omit function below
 function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
   B = MPolyBuildCtx(R)
-  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+  for (c,e) = zip(AbstractAlgebra.coefficients(F), AbstractAlgebra.exponent_vectors(F))
     deleteat!(e, pos)
     push_term!(B, c, e)
   end
@@ -2305,7 +2305,7 @@ end
 
 function _dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int, m::Int)
   B = MPolyBuildCtx(R)
-  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+  for (c,e) = zip(AbstractAlgebra.coefficients(F), AbstractAlgebra.exponent_vectors(F))
     deleteat!(e, pos:pos+m-1)
     push_term!(B, c, e)
   end

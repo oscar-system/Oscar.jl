@@ -13,7 +13,7 @@ end
 #function is_zero_divisor(f::MPolyElem)
 #  iszero(f) && return true
 #  if is_constant(f)
-#    c = coefficients(f)[1]
+#    c = AbstractAlgebra.coefficients(f)[1]
 #    return is_zero_divisor(c)
 #  end
 #  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
@@ -22,7 +22,7 @@ end
 function is_zero_divisor(f::MPolyLocalizedRingElem)
   iszero(f) && return true
   if is_constant(f)
-    c = first(coefficients(numerator(f)))
+    c = first(AbstractAlgebra.coefficients(numerator(f)))
     return is_zero_divisor(c)
   end
   return is_zero_divisor(numerator(f))
@@ -39,7 +39,7 @@ function is_zero_divisor(f::MPolyQuoElem{<:MPolyElem{<:FieldElem}})
   # once more functionality is working, it will actually do stuff and 
   # the above signature can be widened.
   if is_constant(lift(b))
-    c = first(coefficients(lift(b)))
+    c = first(AbstractAlgebra.coefficients(lift(b)))
     return is_zero_divisor(c)
   end
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))

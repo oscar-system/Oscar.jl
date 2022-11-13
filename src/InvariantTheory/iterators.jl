@@ -266,7 +266,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
     for j = 1:length(mons)
       f = mons[j]
       g = phi(f) - f
-      for (c, m) in zip(coefficients(g), monomials(g))
+      for (c, m) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.monomials(g))
         k = offset + mons_to_rows[m]
         push!(M.rows[k].pos, j)
         push!(M.rows[k].values, c)

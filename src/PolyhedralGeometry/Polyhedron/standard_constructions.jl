@@ -221,7 +221,7 @@ julia> vertices(NP)
 ```
 """
 function newton_polytope(f)
-    exponents = reduce(hcat, Oscar.exponent_vectors(f))'
+    exponents = reduce(hcat, Oscar.AbstractAlgebra.exponent_vectors(f))'
     convex_hull(exponents)
 end
 

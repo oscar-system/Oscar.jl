@@ -4,6 +4,7 @@ export
     acting_group,
     comm,
     comm!,
+    complement_class_reps, has_complement_class_reps, set_complement_class_reps,
     complement_system, has_complement_system, set_complement_system,
     conjugacy_class,
     conjugacy_classes_maximal_subgroups,
@@ -1159,9 +1160,39 @@ an exception is thrown if `G` is not solvable.
 end
 
 @doc Markdown.doc"""
+    complement_class_reps(G::T, N::T) where T <: GAPGroup
+
+Return a vector of representatives of the conjugacy classes of complements
+of the normal subgroup `N` in `G`.
+This function may throws an error exception if both `N` and `G/N` are
+nonsolvable.
+
+A complement is a subgroup of `G` which intersects trivially with `N` and
+together with `N` generates `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> complement_class_reps(G, derived_subgroup(G)[1])
+1-element Vector{PermGroup}:
+ Group([ (2,3) ])
+
+julia> G = dihedral_group(8)
+<pc group of size 8 with 3 generators>
+
+julia> complement_class_reps(G, center(G)[1])
+PcGroup[]
+```
+"""
+function complement_class_reps(G::T, N::T) where T <: GAPGroup
+   return _as_subgroups(G, GAP.Globals.ComplementClassesRepresentatives(G.X, N.X))
+end
+
+@doc Markdown.doc"""
     complement_system(G::Group)
 
-Return a vector of $p'$-Hall subgroups of the finite group `G`,
+Return a vector of Hall $p'$-subgroups of the finite group `G`,
 where $p$ runs over the prime factors of the order of `G`.
 
 Complement systems exist only for solvable groups,
@@ -1556,6 +1587,33 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
   genimgs_inv[x] = res
   e == -1 && return res
   return res^-e
+end
+
+
+@doc Markdown.doc"""
+    length(g::FPGroupElem)
+
+Return the length of `g` as a word in terms of the generators of its group
+if `g` is an element of a free group, otherwise a exception is thrown.
+
+# Examples
+```jldoctest
+julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+
+julia> length(F1*F2^-2)
+3
+
+julia> length(one(F))
+0
+
+julia> length(one(quo(F, [F1])[1]))
+ERROR: ArgumentError: the element does not lie in a free group
+```
+"""
+function length(g::FPGroupElem)
+  gX = g.X
+  GAP.Globals.IsAssocWord(gX) || throw(ArgumentError("the element does not lie in a free group"))
+  return length(gX)
 end
 
 

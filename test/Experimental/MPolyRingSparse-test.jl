@@ -315,15 +315,19 @@ end
          f = rand(S, 0:4, 0:5, -10:10)
          g = rand(S, 0:4, 0:5, -10:10)
 
-         @test leading_coefficient(f*g) ==
-	       leading_coefficient(f)*leading_coefficient(g)
+         if !is_zero(f) && !is_zero(g)
+            @test leading_coefficient(f*g) ==
+	                      leading_coefficient(f)*leading_coefficient(g)
+         end
          @test leading_coefficient(one(S)) == one(base_ring(S))
 
          for v in varlist
             @test leading_coefficient(v) == one(base_ring(S))
          end
 
-         @test parent(leading_coefficient(f)) == base_ring(f)
+         if !is_zero(f)
+            @test parent(leading_coefficient(f)) == base_ring(f)
+         end
       end
    end
 
@@ -357,7 +361,7 @@ end
       end
    end
 
-   R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"])
+   R, (x, y) = PolynomialRingSparse(ZZ, ["x", "y"]; ordering = :lex)
 
    @test constant_coefficient(R()) == 0
    @test constant_coefficient(2x + 1) == 1

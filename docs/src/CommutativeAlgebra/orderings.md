@@ -12,8 +12,8 @@ Pages = ["orderings.md"]
 
 # Monomial Orderings
 
-Given a coefficient ring $C$ as in the previous section, we write $C[x]=C[x_1, \ldots, x_n]$
-for the polynomial ring over $C$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials
+Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
+be the polynomial ring over $C$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials
 in $x=\{x_1, \ldots, x_n\}$ are written using multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$,
 set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ and
 
@@ -37,17 +37,17 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 	   (global, local, mixed) monomial ordering on $\N^n$.
 
 !!! note
-    The lexicograpical monomial ordering `lex` specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
-    The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering `deglex` and the degree reverse lexicographical
-	ordering`degrevlex`. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
+    The lexicograpical monomial ordering specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
+    The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering  and the degree reverse lexicographical
+	ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 In this section, we show how to create monomial orderings in OSCAR. After recalling that all monomial orderings can be realized as matrix orderings,
 we present a list of orderings which are predefined in OSCAR. Then we discuss weight and block orderings (product orderings). Finally, we address
 elimination orderings.
 
 !!! note
-    For the convenient construction of block orderings on the set of monomials of a given multivariate polynomial ring, we allow to construct orderings on the
-    monomials in blocks of variables, viewing these orderings as partial orderings on the monomials in all variables.
+    For the convenient construction of block orderings on the set of monomials in the variables of a given multivariate polynomial ring,
+    we allow to construct orderings on the monomials in blocks of variables, viewing these orderings as partial orderings on the monomials in all variables.
 
 Here are some illustrating examples:
 
@@ -79,15 +79,36 @@ The `cmp` function should be used for comparing two monomials with regard to a m
 cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 ```
 
-Also, the usual iterators for multivariate polynomials have extensions to an
-arbitrary ordering.
+The terms of a multivariate polynomials may be queried in an arbitrary ordering.
 
 ```@docs
-terms(f::MPolyElem, ord::MonomialOrdering)
-coefficients(f::MPolyElem, ord::MonomialOrdering)
-exponent_vectors(f::MPolyElem, ord::MonomialOrdering)
-monomials(f::MPolyElem, ord::MonomialOrdering)
+coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 ```
+
+!!! note
+    As the above functions take an arbitrary ordering, they are much slower than
+    the versions from AbstractAlgebra, which use the natural ordering in the
+    parent polynomial ring: `default_ordering(parent(f))` is not necessarily
+    this natural ordering. If this ordering of the parent is desired, or if the
+    ordering is not important, it is recommended to use the following.
+    - `AbstractAlgebra.coefficients(f)`
+    - `zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))`
+    - `AbstractAlgebra.exponent_vectors(f)`
+    - `AbstractAlgebra.monomials(f)`
+    - `AbstractAlgebra.terms(f)`
+    - `AbstractAlgebra.leading_coefficient(f)`
+    - `AbstractAlgebra.leading_exponent_vector(f)`
+    - `AbstractAlgebra.leading_monomial(f)`
+    - `AbstractAlgebra.leading_term(f)`
+
 
 ## Matrix Orderings
 
@@ -297,7 +318,7 @@ o = degrevlex([w, x])*degrevlex([y, z])
 
 ## Elimination Orderings
 
-Let $R = C[x]=C[x_1, \ldots, x_n]$ be a multivariate polynomial ring with coefficient ring $C$.
+Let $C[x]=C[x_1, \ldots, x_n]$ be a multivariate polynomial ring with coefficient ring $C$.
 Fix a subset $\sigma\subset \{1,\dots, n\}$ and write $x_\sigma$  for the set of variables $x_i$ with
 $i\in\sigma$. An *elimination ordering for $x\smallsetminus x_\sigma$*  is a monomial ordering
 $>$ on $\text{Mon}_n(x)$ which satisfies the following property: If $a$ is a monomial involving one

@@ -172,7 +172,7 @@ function RationalEquivalenceClass(sv::ClosedSubvarietyOfToricVariety)
     v = toric_variety(sv)
     indets = gens(chow_ring(v))
     mons = [[m for m in monomials(p)][1] for p in gens(defining_ideal(sv))]
-    expos = [matrix(ZZ, [k for k in exponent_vectors(mons[k])]) for k in 1:length(mons)]
+    expos = [matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(mons[k])]) for k in 1:length(mons)]
     coeffs = [1 for i in 1:length(mons)]
     new_mons = MPolyQuoElem{fmpq_mpoly}[]
     for k in 1:length(mons)
@@ -272,8 +272,8 @@ function Base.show(io::IO, ac::RationalEquivalenceClass)
     else
       # otherwise, extract properties to represent the rational equivalence class
       r = representative(ac)
-      coeffs = [c for c in coefficients(r)]
-      expos = [matrix(ZZ, [k for k in exponent_vectors(m)]) for m in monomials(r)]
+      coeffs = [c for c in AbstractAlgebra.coefficients(r)]
+      expos = [matrix(ZZ, [k for k in exponent_vectors(m)]) for m in AbstractAlgebra.monomials(r)]
       indets = gens(chow_ring(toric_variety(ac)))
 
       # form string to be printed

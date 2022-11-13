@@ -116,8 +116,8 @@ function homogenize(I::MPolyIdeal)
   Gh = Vector{elem_type(Kx)}(undef,length(G))
   for (i,g) in enumerate(G)
     gh = MPolyBuildCtx(Kxh)
-    d = max([sum(expv) for expv in exponent_vectors(g)]...) # degree of g
-    for (c,alpha) in zip(coefficients(g),exponent_vectors(g))
+    d = max([sum(expv) for expv in AbstractAlgebra.exponent_vectors(g)]...) # degree of g ?? TODO isn't this just total_degree(g) ??
+    for (c,alpha) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
       pushfirst!(alpha,d-sum(alpha)) # homogenize exponent vector
       push_term!(gh,c,alpha)
     end

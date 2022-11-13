@@ -42,11 +42,11 @@ function tropical_polynomial(f::MPolyElem, M::Union{typeof(min),typeof(max)}=min
   tropf = inf(T)
 
   if base_ring(parent(f)) isa NonArchLocalField
-    for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+    for (c,alpha) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
       tropf = tropf + T(s*valuation(c))*monomial(Tx,alpha)
     end
   else
-    for alpha in exponent_vectors(f)
+    for alpha in AbstractAlgebra.exponent_vectors(f)
       tropf = tropf + T(0)*monomial(Tx,alpha)
     end
   end
@@ -82,7 +82,7 @@ function tropical_polynomial(f::MPolyElem, val::TropicalSemiringMap)
   Tx,x = PolynomialRing(T,[repr(x) for x in gens(parent(f))])
   tropf = inf(T)
 
-  for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+  for (c,alpha) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     tropf = tropf + val(c)*monomial(Tx,alpha)
   end
 

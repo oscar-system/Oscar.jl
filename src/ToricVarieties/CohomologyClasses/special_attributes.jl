@@ -69,7 +69,7 @@ export volume_form
     S = grade(S, [1 for i in 1:ngens(S)])[1]
     hc = homogeneous_component(S, [dim(v)])
     monoms = [hc[2](x) for x in gens(hc[1])]
-    combinations = reduce(vcat, [[[fmpz(l) for l in k] for k in exponent_vectors(m)] for m in monoms])
+    combinations = reduce(vcat, [[[fmpz(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for m in monoms])
     
     # perform the integrals
     intersection_dict = Dict{fmpz_mat, fmpq}()

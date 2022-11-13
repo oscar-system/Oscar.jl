@@ -29,7 +29,7 @@ function homogeneity_space(I; compute_groebner_basis::Bool=false)
   A = zeros(Int,0,n)
   b = zeros(Int,0)
   for g in GB
-    leadexpv, tailexpvs = Iterators.peel(exponent_vectors(g))
+    leadexpv, tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(g))
     for tailexpv in tailexpvs
       A = vcat(A,transpose(tailexpv-leadexpv)) # todo: is there a better way of doing this line?
       push!(b,0)

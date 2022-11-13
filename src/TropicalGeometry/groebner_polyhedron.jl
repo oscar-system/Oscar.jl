@@ -51,15 +51,15 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
     ###
     # Step 0: collect the coefficients and exponent vectors of f
     ###
-    coefficients_f = collect(coefficients(f))
-    exponent_vectors_f = collect(exponent_vectors(f))
+    coefficients_f = collect(AbstractAlgebra.coefficients(f))
+    exponent_vectors_f = collect(AbstractAlgebra.exponent_vectors(f))
 
     ###
     # Step 1: construct weight equations enforcing that valued weighted degrees
     # of inf are the same
     ###
-    inf_leadexpv,inf_tailexpvs = Iterators.peel(exponent_vectors(inf))
-    i = findfirst(isequal(inf_leadexpv),exponent_vectors_f)
+    inf_leadexpv,inf_tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(inf))
+    i = findfirst(isequal(inf_leadexpv), exponent_vectors_f)
     if i===nothing
       println(GB)
       println(inGB)
@@ -83,7 +83,7 @@ function groebner_polyhedron(GB::Vector{<:MPolyElem}, inGB::Vector{<:MPolyElem},
     # Step 2: construct weight inequalities enforcing that valued weighted
     # degree of inf is greater equal f
     ###
-    for (f_coeff,f_expv) in zip(coefficients(f),exponent_vectors(f))
+    for (f_coeff,f_expv) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
       f_val = Int(val(f_coeff); preserve_ordering=true)
       ineq_lhs = vcat(ineq_lhs,transpose(f_expv-inf_leadexpv)) # todo: is there a better way of doing this line?
       push!(ineq_rhs,f_val-inf_leadval)
