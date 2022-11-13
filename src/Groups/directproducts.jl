@@ -514,10 +514,10 @@ Sym( [ 1 .. 2 ] )
 julia> W = wreath_product(G,H)
 <group of size 18 with 2 generators>
 
-julia> a = gens(W)[1]
+julia> a = gen(W,1)
 WreathProductElement(f1,<identity> of ...,())
 
-julia> b = gens(W)[2]
+julia> b = gen(W,2)
 WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
 
 julia> a*b
