@@ -17,9 +17,9 @@ $\mathbb Z$-lattice.
 """
 function trace_lattice(L::Hecke.AbsLat{T}; order::Integer = 2) where T
   @req order > 0 "The order must be positive"
+  @req degree(L) == rank(L) "Lattice must be of full rank"
   n = degree(L)
   E = base_field(L)
-  G = gram_matrix(rational_span(L))
 
   if E == QQ || E == ZZ
     if order == 1
@@ -33,33 +33,27 @@ function trace_lattice(L::Hecke.AbsLat{T}; order::Integer = 2) where T
   end
   
   bool, m = Hecke.is_cyclotomic_type(E)
-
   @req bool "Base field must be cyclotomic"
 
-  Eabs, EabstoE = Hecke.absolute_simple_field(E)
-  EtoEabs = pseudo_inv(EabstoE)
-  d = degree(Eabs)
-  Gabs = map_entries(EtoEabs, G)
-  z = gen(Eabs)
-  chi = minpoly(z)
+  G = gram_matrix(ambient_space(L))
+  d = absolute_degree(E)
+  coeffs = []
+  b = gen(E)
+  for i in 1:n, iz in 0:d-1, j in 1:n, jz in 0:d-1
+    g = b^(iz-jz)*G[i,j]
+    push!(coeffs, trace(g, QQ))
+  end
+  V = quadratic_space(QQ, matrix(QQ,n*d, n*d, coeffs))
+  gene = generators(L)
+  gene = [transpose(matrix(reduce(vcat, absolute_coordinates.(v)))) for v in gene]
+  BM = reduce(vcat, gene)
+  LL = lattice(V, BM)
+  LL = rescale(LL, 1//m)
+  chi = absolute_minpoly(b)
   Mchi = companion_matrix(chi)
   f = block_diagonal_matrix([Mchi for i=1:n])
-
-  coeffs = fmpq[]
-  for i=1:n
-    for iz=1:d
-      for j=1:n
-        for jz=1:d
-	        g = z^(iz-jz)*Gabs[i,j]
-	        push!(coeffs, trace(g))
-	      end 
-      end
-    end
-  end
-  gram = matrix(QQ, d*n, d*n, coeffs)
-  @assert f*gram*transpose(f) == gram
-  LL = Zlattice(gram = 1//m*gram)
-  return lattice_with_isometry(LL, f, ambient_representation=false, check = false)
+  return LL, f
+  return lattice_with_isometry(LL, f, ambient_representation=true, check = true)
 end
 
 @doc Markdown.doc"""
@@ -76,7 +70,7 @@ multiplication by the `n`th root of unity correspond to the mapping via `f`.
 function inverse_trace_lattice(L::ZLat, f::fmpq_mat; n::Integer = -1, check::Bool = true,
                                                      ambient_representation::Bool = true)
   if n <= 0
-    Oscar._exponent(f)
+    n = multiplicative_order(f)
   end
   
   @req n > 0 "f is not of finite exponent"
@@ -89,13 +83,13 @@ function inverse_trace_lattice(L::ZLat, f::fmpq_mat; n::Integer = -1, check::Boo
   if check
     @req n >= 3 "No hermitian inverse trace lattice for order less than 3"
     G = gram_matrix(L)
-    @req Oscar._is_cyclotomic_polynomial(minpoly(f)) "The minimal polynomial of f must be irreducible and cyclotomic"
+    @req is_cyclotomic_polynomial(minpoly(f)) "The minimal polynomial of f must be irreducible and cyclotomic"
     @req f*G*transpose(f) == G "f does not define an isometry of L"
-    @req Oscar._exponent(f) == n "The order of f should be equal to n"
+    @req multiplicative_order(f) == n "The order of f should be equal to n"
     @req divides(rank(L), euler_phi(n))[1] "The totient of n must divides the rank of L"
   end
 
-  E,b = cyclotomic_field_as_cm_extension(n, cached = false)
+  E,b = cyclotomic_field_as_cm_extension(n)
 
   m = divexact(rank(L), euler_phi(n))
   # We choose as basis for the hermitian lattice Lh the identity matrix

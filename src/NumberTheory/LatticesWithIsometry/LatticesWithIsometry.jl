@@ -125,7 +125,7 @@ function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = t
 
   if check
     @req det(f) != 0 "f is not invertible"
-    m = Oscar._exponent(f)
+    m = multiplicative_order(f)
     @req m > 0 "f is not finite"
     @req n == m "The order of f is equal to $m, not $n"
   end
@@ -170,10 +170,10 @@ on the complement of the rational span of `L` if it is not of full rank.
 function lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true,
                                                      ambient_representation::Bool = true)
   if rank(L) == 0
-      return LatticeWithIsometry(L, matrix(QQ,0,0,[]), identity_matrix(QQ, degree(L)), -1)
+    return LatticeWithIsometry(L, matrix(QQ,0,0,[]), identity_matrix(QQ, degree(L)), -1)
   end
 
-  n = Oscar._exponent(f)
+  n = multiplicative_order(f)
   return lattice_with_isometry(L, f, Int(n), check = check,
                                ambient_representation = ambient_representation)::LatticeWithIsometry
 end
@@ -296,7 +296,7 @@ function signatures(Lf::LatticeWithIsometry)
   @req rank(Lf) != 0 "Signatures non available for the empty lattice"
   L = lattice(Lf)
   f = isometry(Lf)
-  @req Oscar._is_cyclotomic_polynomial(minpoly(f)) "Minimal polynomial must be irreducible and cyclotomic"
+  @req is_cyclotomic_polynomial(minpoly(f)) "Minimal polynomial must be irreducible and cyclotomic"
   n = order_of_isometry(Lf)
   @req divides(rank(L), euler_phi(n))[1] "The totient of the order of the underlying isometry must divide the rank of the underlying lattice"
   C = CalciumField()
@@ -346,7 +346,7 @@ kernel_lattice(Lf::LatticeWithIsometry, p::fmpz_poly) = kernel_lattice(Lf, chang
 
 function kernel_lattice(Lf::LatticeWithIsometry, l::Integer)
   @req divides(order_of_isometry(Lf), l)[1] "l must divide the order of the underlying isometry"
-  p = Oscar._cyclotomic_polynomial(l)
+  p = cyclotomic_polynomial(l)
   return kernel_lattice(Lf, p)
 end
 
@@ -377,7 +377,7 @@ end
   x = gen(Qx)
   t = Dict{Integer, Tuple}()
   for l in divs
-    Hl = kernel_lattice(Lf, Oscar._cyclotomic_polynomial(l))
+    Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
       Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)
     end
