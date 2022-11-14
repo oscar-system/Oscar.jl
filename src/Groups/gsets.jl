@@ -408,7 +408,7 @@ end
 Return the element of the permutation group that describes the action
 of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
 
-# Example
+# Examples
 
 ```jldoctest
 julia> G = symmetric_group(4);
