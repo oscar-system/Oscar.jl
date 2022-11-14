@@ -58,10 +58,14 @@ end
    H4 = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]  # Klein subgroup
    L = [G,H1,H2,H3,H4]
 
-   # FIXME: the following two tests are fishy. The first couple calls
-   # really should result in errors ?!?
-   @test [transitivity(G,1:i) for i in 1:5]==[0,0,0,4,0]
-   @test [transitivity(L[5],1:i) for i in 1:5]==[0,0,0,1,0]
+   @test transitivity(G) == 4
+   @test transitivity(G, 1:4) == 4
+   @test_throws ArgumentError transitivity(G, 1:3)
+   @test transitivity(G, 1:5) == 0
+   @test transitivity(H4) == 1
+   @test transitivity(H4, 1:4) == 1
+   @test_throws ArgumentError transitivity(H4, 1:3)
+   @test transitivity(H4, 1:5) == 0
 
    @test is_transitive(G)
    H = sub(G,[G([2,3,1,4])])[1]
