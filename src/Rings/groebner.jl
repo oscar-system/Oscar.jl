@@ -450,7 +450,7 @@ are zero.
 
 Return an element which is `f` reduced by the underlying generators
 of `F` w.r.t. the monomial ordering `ordering`. `F` need not be a
-Groebner basis. The returned
+Groebner basis. 
 
 	reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 
@@ -512,7 +512,7 @@ function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default
 end
 
 @doc Markdown.doc"""
-    reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+        reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
 `Vector` `res` whose elements are the underlying elements of `I`
@@ -603,7 +603,7 @@ end
 
 
 @doc Markdown.doc"""
-    reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+        reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 `Vector` `res` whose elements are the underlying elements of `I`
