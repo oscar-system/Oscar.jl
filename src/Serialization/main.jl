@@ -240,11 +240,13 @@ function save(filename::String, obj::Any)
 end
 
 """
-    load(io::IO)
-    load(filename::String)
+    load(io::IO; parent::Any = nothing)
+    load(filename::String; parent::Any = nothing)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
+An optional parameter `parent` can be passed, this will 
+load the file as an element of the parent.
 
 See [`save`](@ref).
 
@@ -255,6 +257,21 @@ julia> save("/tmp/fourtitwo.json", 42);
 
 julia> load("/tmp/fourtitwo.json")
 42
+
+julia> R, x = QQ["x"]
+(Univariate Polynomial Ring in x over Rational Field, x)
+
+julia> p = x^2 - x + 1
+x^2 - x + 1
+
+julia> save("/tmp/p.json", p)
+1204
+
+julia> p_loaded = load("/tmp/p.json", parent=R)
+x^2 - x + 1
+
+julia> p_loaded == p
+true
 ```
 """
 function load(io::IO; parent::Any = nothing)
