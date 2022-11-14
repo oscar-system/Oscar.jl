@@ -123,8 +123,8 @@ function AbstractAlgebra.leading_monomial(a::PBWAlgElem)
   return PBWAlgElem(parent(a), AbstractAlgebra.leading_monomial(a.sdata))
 end
 
-function tail(a::PBWAlgElem)
-  return PBWAlgElem(parent(a), tail(a.sdata))
+function AbstractAlgebra.tail(a::PBWAlgElem)
+  return PBWAlgElem(parent(a), AbstractAlgebra.tail(a.sdata))
 end
 
 
@@ -346,7 +346,7 @@ function _g_algebra_internal(sr::Singular.PolyRing, rel)
     AbstractAlgebra.leading_monomial(t) == gen(sr, i)*gen(sr, j) ||
                               error("incorrect leading monomial in relations")
     C[i,j] = sr(AbstractAlgebra.leading_coefficient(t))
-    D[i,j] = tail(t)
+    D[i,j] = AbstractAlgebra.tail(t)
     srel[i,j] = t
   end
   s, gs = Singular.GAlgebra(sr, C, D)
@@ -1038,7 +1038,7 @@ function is_elimination_subalgebra_admissible(R::PBWAlgRing, sigmaC::Vector{Int}
   varmap, sigma, sigmaC = Orderings._elimination_data(n, sigmaC)
   for i in sigma, j in sigma
     i < j || continue
-    if _depends_on_vars(tail(R.relations[i,j]), sigmaC)
+    if _depends_on_vars(AbstractAlgebra.tail(R.relations[i,j]), sigmaC)
       return false
     end
   end
@@ -1063,7 +1063,7 @@ function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
     push!(A, r)
     push!(b, -1)
   end
-  for i in 1:n-1, j in i+1:n, e in AbstractAlgebra.exponent_vectors(tail(R.relations[i,j]))
+  for i in 1:n-1, j in i+1:n, e in AbstractAlgebra.exponent_vectors(AbstractAlgebra.tail(R.relations[i,j]))
     e[i] -= 1
     e[j] -= 1
     push!(A, e)
