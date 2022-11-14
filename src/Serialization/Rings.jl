@@ -239,6 +239,14 @@ function load_internal(s::DeserializerState,
     return matrix(entries_ring, mat)
 end
 
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{<: MatElem},
+                                   dict::Dict,
+                                   parent_ring::MatSpace)
+    mat = load_type_dispatch(s, Matrix, dict[:matrix])
+    return matrix(base_ring(parent_ring), mat)
+end
+
 ################################################################################
 # Power Series
 @registerSerializationType(SeriesRing)
