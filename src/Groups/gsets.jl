@@ -838,8 +838,9 @@ function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
   # If the result is `0` then it may be that `G` does not act on `L`,
   # and in this case we want to throw an exception.
   if res == 0 && length(L) > 0
-    orbs = GAP.Globals.Orbits(G.X, gL)
-    if sum([length(x) for x in orbs]) != length(L)
+    lens = GAP.Globals.OrbitLengths(G.X, gL)
+#TODO: Compute the orbit lengths more efficiently than GAP does.
+    if sum(lens) != length(L)
       throw(ArgumentError("the group does not act"))
     end
   end
