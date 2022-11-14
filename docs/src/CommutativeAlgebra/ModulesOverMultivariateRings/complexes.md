@@ -109,17 +109,11 @@ julia> C = chain_complex([a, b]; start = 3);
 julia> range(C)
 5:-1:4
 
-julia> D = shift(C, 3);
-ERROR: UndefVarError: shift not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+julia> D = Hecke.shift(C, 3);
+
 
 julia> range(D)
-ERROR: UndefVarError: D not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+2:-1:1
 
 ```
 

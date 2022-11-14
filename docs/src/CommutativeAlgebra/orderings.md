@@ -105,9 +105,6 @@ julia> canonical_matrix(o3)
 julia> is_mixed(o3)
 true
 
-julia> show(collect(terms((1+w+x+y+z)^2, o3)))
-ERROR: MethodError: no method matching terms(::fmpq_mpoly, ::MonomialOrdering{FmpqMPolyRing})
-
 ```
 
 ## Monomial Comparisons

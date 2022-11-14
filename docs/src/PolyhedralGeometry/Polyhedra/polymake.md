@@ -87,7 +87,7 @@ VERTICES_IN_FACETS
 The next example shows a purely combinatorial construction of a polytope (here: a square).
 In spite of being given no coordinates, `polymake` can check for us that this is a simple polytope; i.e., each vertex is contained in dimension many facets.
 
-```jldoctest
+```jldoctest polymake
 julia> Q = Polymake.polytope.Polytope(VERTICES_IN_FACETS=[[0,2],[1,3],[0,1],[2,3]]);
 
 julia> Q.SIMPLE
@@ -96,12 +96,8 @@ true
 ```
 
 However, without coordinates, some operations such as computing the volume cannot work:
-```jldoctest
+```jldoctest polymake
 julia> Q.VOLUME
-ERROR: UndefVarError: Q not defined
-Stacktrace:
- [1] top-level scope
-   @ none:1
+polymake:  WARNING: available properties insufficient to compute 'VOLUME'
 
 ```
-

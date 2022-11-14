@@ -85,24 +85,35 @@ fmpq_poly
 ```
 
 ```jldoctest
-julia> V = ["x[1]", "x[2]"]
-
-julia> T, x = PolynomialRing(GF(3), V)
+julia> T, x = PolynomialRing(GF(3), ["x[1]", "x[2]"]);
 
 julia> x
+2-element Vector{gfp_mpoly}:
+ x[1]
+ x[2]
 
 ```
 
 The constructor illustrated below allows for the convenient handling of variables with multi-indices:
 
 ```jldoctest
-julia> R, x, y, z = PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1))
+julia> R, x, y, z = PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1));
 
 julia> x
+3×4 Matrix{fmpq_mpoly}:
+ x[1, 1]  x[1, 2]  x[1, 3]  x[1, 4]
+ x[2, 1]  x[2, 2]  x[2, 3]  x[2, 4]
+ x[3, 1]  x[3, 2]  x[3, 3]  x[3, 4]
 
 julia> y
+2-element Vector{fmpq_mpoly}:
+ y[1]
+ y[2]
 
 julia> z
+1×1×1 Array{fmpq_mpoly, 3}:
+[:, :, 1] =
+ z[1, 1, 1]
 
 ```
 
