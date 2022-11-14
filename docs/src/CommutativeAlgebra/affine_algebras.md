@@ -515,7 +515,7 @@ noether_normalization(A::MPolyQuo)
 
 ###### Examples
 
-```jldoctest
+```jldoctest; setup = :(Singular.call_interpreter("""system("random", 47);"""))
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> A, _ = quo(R, ideal(R, [x*y, x*z]));
@@ -524,8 +524,8 @@ julia> L = noether_normalization(A);
 
 julia> L[1]
 2-element Vector{MPolyQuoElem{fmpq_mpoly}}:
- -x + y
- 2*x - 3*y + z
+ -2*x + y
+ -5*y + z
 
 julia> L[2]
 Map with following data
@@ -534,13 +534,13 @@ Domain:
 Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
 Codomain:
 =========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 + x*y, x^2 + 3*x*y + x*z)
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
 
 julia> L[3]
 Map with following data
 Domain:
 =======
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 + x*y, x^2 + 3*x*y + x*z)
+Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(2*x^2 + x*y, 10*x^2 + 5*x*y + x*z)
 Codomain:
 =========
 Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x*y, x*z)
