@@ -234,6 +234,14 @@ julia> rays(PO)
 2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
+
+julia> matrix(QQ, rays(PO))
+[1   0]
+[0   1]
+
+julia> matrix(ZZ, rays(PO))
+[1   0]
+[0   1]
 ```
 """
 rays(P::Polyhedron) = rays(RayVector, P)
@@ -473,6 +481,14 @@ julia> lattice_points(S)
  [1, 0]
  [1, 1]
  [2, 0]
+
+julia> matrix(ZZ, lattice_points(S))
+[0   0]
+[0   1]
+[0   2]
+[1   0]
+[1   1]
+[2   0]
 ```
 """
 function lattice_points(P::Polyhedron{fmpq})
@@ -500,6 +516,9 @@ A polyhedron in ambient dimension 3
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{fmpz}}:
  [0, 0, 0]
+
+julia> matrix(ZZ, interior_lattice_points(c))
+[0   0   0]
 ```
 """
 function interior_lattice_points(P::Polyhedron{fmpq})
@@ -532,6 +551,14 @@ julia> boundary_lattice_points(c)
  [0, 0, 1]
  [0, 1, 0]
  [1, 0, 0]
+
+julia> matrix(ZZ, boundary_lattice_points(c))
+[-1    0    0]
+[ 0   -1    0]
+[ 0    0   -1]
+[ 0    0    1]
+[ 0    1    0]
+[ 1    0    0]
 ```
 """
 function boundary_lattice_points(P::Polyhedron{fmpq})
@@ -993,6 +1020,12 @@ julia> vertices(square)
  [1, -1]
  [-1, 1]
  [1, 1]
+
+julia> matrix(QQ, vertices(square))
+[-1   -1]
+[ 1   -1]
+[-1    1]
+[ 1    1]
 ```
 """
 relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))

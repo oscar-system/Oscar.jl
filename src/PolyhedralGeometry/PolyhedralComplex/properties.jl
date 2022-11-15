@@ -40,6 +40,28 @@ Return an iterator over the vertices of `PC` in the format defined by `as`.
 Optional arguments for `as` include
 * `PointVector`.
 
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> V = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, V)
+A polyhedral complex in ambient dimension 2
+
+julia> vertices(PC)
+4-element SubObjectIterator{PointVector{fmpq}}:
+ [0, 0]
+ [1, 0]
+ [1, 1]
+ [0, 1]
+
+julia> matrix(QQ, vertices(PC))
+[0   0]
+[1   0]
+[1   1]
+[0   1]
+```
 """
 vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(pm_object(PC), _vertex_polyhedron, length(_vertex_indices(pm_object(PC))))
 
@@ -90,8 +112,6 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
 A polyhedral complex in ambient dimension 2
-
-julia> rays(PC);
 
 julia> rays(PC)
 1-element SubObjectIterator{RayVector{fmpq}}:
