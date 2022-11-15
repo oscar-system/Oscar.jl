@@ -3279,7 +3279,7 @@ function presentation(SQ::SubQuo)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
-  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, start=-2)
+  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -3)
 end
 
 @doc Markdown.doc"""
@@ -3290,7 +3290,7 @@ Return a free presentation of $F$.
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "0")
-  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, start=-2)
+  return Hecke.ChainComplex(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -3)
 end
 
 @doc Markdown.doc"""
@@ -4905,11 +4905,11 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
   end
   p1 = presentation(M)
   p2 = presentation(N)
-  
-  f0 = map(p1, 0)
-  f1 = map(p1, 1)
-  g0 = map(p2, 0)
-  g1 = map(p2, 1)
+
+  f0 = map(p1, -1)
+  f1 = map(p1, 0)
+  g0 = map(p2, -1)
+  g1 = map(p2, 0)
 
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(f0), domain(g0))
@@ -5859,7 +5859,8 @@ Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
-  chain_range = range(C)
+  hom_chain = Map[]
+  chain_range = Hecke.map_range(C)
   hom_modules = [hom(domain(map(C,first(chain_range))),P)]
   append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
 
@@ -5871,9 +5872,9 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  direction = Hecke.is_chain_complex(C) ? :right : :left
-  start = Hecke.is_chain_complex(C) ? last(range(C))-1 : first(range(C)) - 1
-  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), start=start, direction=direction)
+  typ = Hecke.is_chain_complex(C) ? :cochain : :chain
+  seed = C.seed
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
 end
 
 @doc Markdown.doc"""
@@ -5882,6 +5883,8 @@ Apply $\text{Hom}(-,P)$ to `C`. If `C` is a chain complex, return a chain comple
 and accordingly if `C` is a cochain complex, return a cochain complex.
 """
 function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+  #up to seed/ typ identical to the one above. Should be
+  #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   chain_range = range(C)
