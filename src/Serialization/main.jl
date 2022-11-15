@@ -245,8 +245,10 @@ end
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
-An optional parameter `parent` can be passed, this will 
-load the file as an element of the parent.
+An optional parameter `parent` can be passed. This will
+load the file as an element of the parent, or for container types
+such as Vector and Tuple it will load the entries as elements of the
+passed `parent`.
 
 See [`save`](@ref).
 
@@ -270,7 +272,7 @@ julia> save("/tmp/p.json", p)
 julia> p_loaded = load("/tmp/p.json", parent=R)
 x^2 - x + 1
 
-julia> p_loaded == p
+julia> parent(p_loaded) === R
 true
 ```
 """
