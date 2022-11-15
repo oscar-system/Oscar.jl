@@ -1,6 +1,26 @@
 using JSON
 using UUIDs
 
+OscarBasicType = Union{
+    fmpz,
+    fmpq,
+    Bool,
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    Int128,
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+    UInt128,
+    BigInt,
+    Float16,
+    Float32,
+    Float64
+}
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
@@ -108,7 +128,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     end
 
     result = Dict{Symbol, Any}(:type => encodeType(T))
-    if ref !== nothing
+    if ref !== nothing && !(T <: OscarBasicType)
         result[:id] = string(ref)
     end
     if !Base.issingletontype(T)
