@@ -297,7 +297,7 @@ function matroid_realization_space_given_ring(d::Int64, n::Int64, M::Matroid,
 
     Igens = [det(X[:, nb]) for nb in NBs ]; 
     if length(Igens) == 0
-        return (SinvR, iota(ideal(R, [])))
+        return (X, SinvR, iota(ideal(R, [])))
     else
         Ipre = ideal(SinvR, Igens)
         return (X, SinvR, Ipre)

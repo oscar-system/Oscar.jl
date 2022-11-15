@@ -354,7 +354,8 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
    
     
     @testset "matroid_realization_space_given_ring" begin
-        @test length(gens(MS1[3])) == 1 
+        @test
+        length(gens(MS1[3])) == 1 
         @test length(unique!(gens(MS2[3]))) == 5   
         @test length(unique!(gens(MS3a[3]))) == 7
         @test length(unique!(gens(MS3b[3]))) == 6
