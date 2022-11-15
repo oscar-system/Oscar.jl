@@ -3,7 +3,6 @@
     P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
     P2v2 = projective_space(NormalToricVariety, 2)
     P3 = projective_space(NormalToricVariety, 3)
-    WPS = weighted_projective_space(NormalToricVariety, [2, 3, 1])
 
     @testset "P2" begin
         @test is_normal(P2) == true
@@ -26,13 +25,21 @@
     end
 
     @testset "Weighted projective space" begin
-      @test is_smooth(WPS) == false
-      @test ngens(cox_ring(WPS)) == 3
+        WPS = weighted_projective_space(NormalToricVariety, [2, 3, 1])
+        @test is_smooth(WPS) == false
+        @test ngens(cox_ring(WPS)) == 3
+        for d in ([1,2,3],[3,1,2],[3,45,68,7,15],[3,1,2,6,5,1,1,8])
+            wps = weighted_projective_space(NormalToricVariety, d)
+            rm = matrix(ZZ, rays(wps))
+            @test wps isa NormalToricVariety
+            @test dim(wps) == length(d) - 1
+            @test iszero(matrix(ZZ, [d]) * rm)
+        end
     end
 
     @testset "Standard constructors" begin
-      @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1], [1], [1]])
-      @test coordinate_names(P2v2) == ["x1", "x2", "x3"]
+        @test vcat([map_from_torusinvariant_weil_divisor_group_to_class_group(P2v2)(x).coeff for x in gens(torusinvariant_weil_divisor_group(P2v2))]) == matrix(ZZ, [[1], [1], [1]])
+        @test coordinate_names(P2v2) == ["x1", "x2", "x3"]
     end
 
     @testset "Blowup" begin
