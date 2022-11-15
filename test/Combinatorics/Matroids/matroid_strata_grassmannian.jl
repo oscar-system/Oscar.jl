@@ -93,11 +93,6 @@
 
 
 
-#    @testset "interlace_columns" begin
-
-#        @test
-        
-#    end
 
     S1 = MatrixSpace(R1, 2, 5); X1 = Oscar.make_coordinate_matrix(2, 5, bmc1, [1,2], R1, x1, xd1)
     S2 = MatrixSpace(R2, 3, 7); X2 = Oscar.make_coordinate_matrix(3, 7, bmc2, [1,2,4], R2, x2, xd2)
@@ -199,26 +194,175 @@
     MS4b = Oscar.matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,K,[1,2,3,6,7],R4b,x4b,xd4b)
     MS5 = Oscar.matroid_stratum_matrix_coordinates_given_ring(2,10,mb5,ZZ,[5,8],R5,x5,xd5)
 
-
     
     @testset "matroid_stratum_matrix_coordinates_given_ring" begin
-        @test MS1[2] == ideal(R1, [])
-
-        @test MS2[2] == ideal(R2, [xd2[[2, 3]]*xd2[[3, 4]] + xd2[[3, 3]]*xd2[[2, 4]], xd2[[1, 2]]*xd2[[3, 4]] + xd2[[3, 2]]*xd2[[1, 4]], xd2[[1, 1]]*xd2[[2, 4]] + xd2[[2, 1]]*xd2[[1, 4]], xd2[[1, 1]]*xd2[[3, 2]]*xd2[[2, 4]] + xd2[[2, 1]]*xd2[[1, 2]]*xd2[[3, 4]], xd2[[1, 1]]*xd2[[3, 2]]*xd2[[2, 3]] + xd2[[2, 1]]*xd2[[1, 2]]*xd2[[3, 3]]])
-
-        @test MS3a[2] == ideal(R3a, [-xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[3, 4]]*xd3a[[2, 5]], -xd3a[[1, 3]]*xd3a[[2, 5]] + xd3a[[2, 3]]*xd3a[[1, 5]], -xd3a[[1, 1]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[1, 5]], -xd3a[[1, 1]]*xd3a[[2, 4]] + xd3a[[2, 1]]*xd3a[[1, 4]], -xd3a[[2, 1]]*xd3a[[3, 2]] + xd3a[[3, 1]]*xd3a[[2, 2]], -xd3a[[1, 1]]*xd3a[[2, 3]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[1, 3]]*xd3a[[2, 5]], -xd3a[[2, 2]]*xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[2, 2]]*xd3a[[3, 4]]*xd3a[[1, 5]] + xd3a[[3, 2]]*xd3a[[1, 4]]*xd3a[[2, 5]], -xd3a[[1, 1]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[2, 1]]*xd3a[[3, 4]]*xd3a[[1, 5]] + xd3a[[3, 1]]*xd3a[[1, 4]]*xd3a[[2, 5]], -xd3a[[2, 2]]*xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[1, 5]], -xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[3, 5]] + xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[1, 5]], -xd3a[[1, 1]]*xd3a[[2, 3]]*xd3a[[3, 4]] + xd3a[[3, 1]]*xd3a[[1, 3]]*xd3a[[2, 4]], xd3a[[2, 2]]*xd3a[[1, 3]]*xd3a[[3, 4]] - xd3a[[3, 2]]*xd3a[[1, 3]]*xd3a[[2, 4]] + xd3a[[3, 2]]*xd3a[[2, 3]]*xd3a[[1, 4]], -xd3a[[1, 1]]*xd3a[[2, 3]]*xd3a[[3, 4]] + xd3a[[2, 1]]*xd3a[[1, 3]]*xd3a[[3, 4]] + xd3a[[3, 1]]*xd3a[[2, 3]]*xd3a[[1, 4]], -xd3a[[2, 2]]*xd3a[[1, 4]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[2, 2]]*xd3a[[2, 4]]*xd3a[[1, 5]]*xd3a[[3, 5]] + xd3a[[3, 2]]*xd3a[[1, 4]]*xd3a[[2, 5]]^2, -xd3a[[1, 1]]*xd3a[[2, 4]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[2, 1]]*xd3a[[2, 4]]*xd3a[[1, 5]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[1, 4]]*xd3a[[2, 5]]^2, xd3a[[2, 2]]^2*xd3a[[3, 5]]^2 - xd3a[[2, 2]]*xd3a[[3, 2]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[3, 2]]^2*xd3a[[2, 5]]^2, xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[3, 5]]^2 - xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[3, 2]]*xd3a[[2, 5]]^2, -xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 5]]^2 + xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[1, 5]]*xd3a[[3, 5]], xd3a[[2, 1]]^2*xd3a[[3, 5]]^2 - xd3a[[2, 1]]*xd3a[[3, 1]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[3, 1]]^2*xd3a[[2, 5]]^2, -xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[2, 5]]*xd3a[[3, 5]] + xd3a[[1, 1]]*xd3a[[3, 1]]*xd3a[[2, 5]]^2 + xd3a[[2, 1]]^2*xd3a[[1, 5]]*xd3a[[3, 5]], -xd3a[[2, 2]]*xd3a[[2, 3]]*xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[3, 2]]*xd3a[[1, 3]]*xd3a[[2, 4]]*xd3a[[2, 5]], xd3a[[2, 2]]^2*xd3a[[3, 4]]*xd3a[[3, 5]] - xd3a[[2, 2]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[3, 2]]^2*xd3a[[2, 4]]*xd3a[[2, 5]], xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[3, 4]]*xd3a[[3, 5]] - xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[2, 5]], xd3a[[2, 1]]^2*xd3a[[3, 4]]*xd3a[[3, 5]] - xd3a[[2, 1]]*xd3a[[3, 1]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[3, 1]]^2*xd3a[[2, 4]]*xd3a[[2, 5]], xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[3, 4]]*xd3a[[3, 5]] - xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[3, 2]]*xd3a[[1, 4]]*xd3a[[2, 5]], xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[3, 4]]*xd3a[[3, 5]] - xd3a[[1, 1]]*xd3a[[3, 1]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[3, 1]]^2*xd3a[[1, 4]]*xd3a[[2, 5]], -xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[2, 3]]*xd3a[[3, 5]] + xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 3]]*xd3a[[2, 5]] + xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[1, 3]]*xd3a[[3, 5]], -xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[2, 3]]*xd3a[[3, 5]] + xd3a[[1, 1]]*xd3a[[3, 1]]*xd3a[[2, 3]]*xd3a[[2, 5]] + xd3a[[2, 1]]^2*xd3a[[1, 3]]*xd3a[[3, 5]], -xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[2, 3]]*xd3a[[3, 5]] + xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[1, 3]]*xd3a[[2, 5]], xd3a[[1, 4]]^2*xd3a[[3, 5]]^2 - xd3a[[1, 4]]*xd3a[[3, 4]]*xd3a[[1, 5]]*xd3a[[3, 5]] + xd3a[[3, 4]]^2*xd3a[[1, 5]]^2, xd3a[[1, 4]]^2*xd3a[[2, 5]]*xd3a[[3, 5]] - xd3a[[1, 4]]*xd3a[[2, 4]]*xd3a[[1, 5]]*xd3a[[3, 5]] + xd3a[[2, 4]]*xd3a[[3, 4]]*xd3a[[1, 5]]^2, xd3a[[1, 4]]^2*xd3a[[2, 5]]^2 - xd3a[[1, 4]]*xd3a[[2, 4]]*xd3a[[1, 5]]*xd3a[[2, 5]] + xd3a[[2, 4]]^2*xd3a[[1, 5]]^2, xd3a[[1, 1]]*xd3a[[1, 4]]*xd3a[[2, 5]]^2 - xd3a[[1, 1]]*xd3a[[2, 4]]*xd3a[[1, 5]]*xd3a[[2, 5]] + xd3a[[2, 1]]*xd3a[[2, 4]]*xd3a[[1, 5]]^2, xd3a[[1, 1]]^2*xd3a[[2, 5]]^2 - xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[1, 5]]*xd3a[[2, 5]] + xd3a[[2, 1]]^2*xd3a[[1, 5]]^2, -xd3a[[1, 1]]*xd3a[[1, 4]]*xd3a[[3, 4]]*xd3a[[3, 5]] + xd3a[[1, 1]]*xd3a[[3, 4]]^2*xd3a[[1, 5]] + xd3a[[3, 1]]*xd3a[[1, 4]]^2*xd3a[[3, 5]], -xd3a[[1, 3]]*xd3a[[1, 4]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[1, 3]]*xd3a[[2, 4]]*xd3a[[3, 4]]*xd3a[[1, 5]] + xd3a[[2, 3]]*xd3a[[1, 4]]^2*xd3a[[3, 5]], -xd3a[[1, 1]]*xd3a[[1, 4]]*xd3a[[2, 4]]*xd3a[[3, 5]] + xd3a[[1, 1]]*xd3a[[2, 4]]*xd3a[[3, 4]]*xd3a[[1, 5]] + xd3a[[3, 1]]*xd3a[[1, 4]]^2*xd3a[[2, 5]], -xd3a[[1, 3]]*xd3a[[1, 4]]*xd3a[[2, 4]]*xd3a[[2, 5]] + xd3a[[1, 3]]*xd3a[[2, 4]]^2*xd3a[[1, 5]] + xd3a[[2, 3]]*xd3a[[1, 4]]^2*xd3a[[2, 5]], -xd3a[[1, 1]]*xd3a[[1, 3]]*xd3a[[2, 4]]*xd3a[[2, 5]] + xd3a[[1, 1]]*xd3a[[2, 3]]*xd3a[[1, 4]]*xd3a[[2, 5]] + xd3a[[2, 1]]*xd3a[[1, 3]]*xd3a[[2, 4]]*xd3a[[1, 5]], xd3a[[1, 1]]^2*xd3a[[2, 3]]*xd3a[[2, 5]] - xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[1, 3]]*xd3a[[2, 5]] + xd3a[[2, 1]]^2*xd3a[[1, 3]]*xd3a[[1, 5]], -xd3a[[2, 2]]*xd3a[[2, 3]]*xd3a[[1, 4]]*xd3a[[3, 4]] + xd3a[[3, 2]]*xd3a[[1, 3]]*xd3a[[2, 4]]^2, xd3a[[2, 2]]^2*xd3a[[3, 4]]^2 - xd3a[[2, 2]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[3, 4]] + xd3a[[3, 2]]^2*xd3a[[2, 4]]^2, xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[3, 4]]^2 - xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[3, 4]] + xd3a[[3, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]]^2, xd3a[[2, 1]]^2*xd3a[[3, 4]]^2 - xd3a[[2, 1]]*xd3a[[3, 1]]*xd3a[[2, 4]]*xd3a[[3, 4]] + xd3a[[3, 1]]^2*xd3a[[2, 4]]^2, xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[3, 4]]^2 - xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[3, 4]] + xd3a[[3, 1]]*xd3a[[3, 2]]*xd3a[[1, 4]]*xd3a[[2, 4]], xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[3, 4]]^2 - xd3a[[1, 1]]*xd3a[[3, 1]]*xd3a[[2, 4]]*xd3a[[3, 4]] + xd3a[[3, 1]]^2*xd3a[[1, 4]]*xd3a[[2, 4]], -xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[2, 3]]*xd3a[[3, 4]] + xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 3]]*xd3a[[2, 4]] + xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[1, 3]]*xd3a[[3, 4]], -xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[2, 3]]*xd3a[[3, 4]] + xd3a[[1, 1]]*xd3a[[3, 1]]*xd3a[[2, 3]]*xd3a[[2, 4]] + xd3a[[2, 1]]^2*xd3a[[1, 3]]*xd3a[[3, 4]], -xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 3]]*xd3a[[2, 4]] - xd3a[[2, 1]]*xd3a[[2, 2]]*xd3a[[1, 3]]*xd3a[[3, 4]] + xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[1, 3]]*xd3a[[2, 4]], xd3a[[1, 3]]^2*xd3a[[2, 4]]^2 - xd3a[[1, 3]]*xd3a[[2, 3]]*xd3a[[1, 4]]*xd3a[[2, 4]] + xd3a[[2, 3]]^2*xd3a[[1, 4]]^2, xd3a[[1, 1]]^2*xd3a[[3, 4]]^2 - xd3a[[1, 1]]*xd3a[[3, 1]]*xd3a[[1, 4]]*xd3a[[3, 4]] + xd3a[[3, 1]]^2*xd3a[[1, 4]]^2, -xd3a[[1, 1]]*xd3a[[1, 3]]*xd3a[[2, 3]]*xd3a[[2, 4]] + xd3a[[1, 1]]*xd3a[[2, 3]]^2*xd3a[[1, 4]] + xd3a[[2, 1]]*xd3a[[1, 3]]^2*xd3a[[2, 4]], xd3a[[1, 1]]^2*xd3a[[2, 3]]^2 - xd3a[[1, 1]]*xd3a[[2, 1]]*xd3a[[1, 3]]*xd3a[[2, 3]] + xd3a[[2, 1]]^2*xd3a[[1, 3]]^2])
-
-
-        @test MS3b[2] == ideal(R3b, [-xd3b[[2, 4]]*xd3b[[3, 5]] + xd3b[[3, 4]]*xd3b[[2, 5]], -xd3b[[1, 1]]*xd3b[[2, 4]] + xd3b[[2, 1]]*xd3b[[1, 4]], -xd3b[[1, 1]]*xd3b[[3, 2]] + xd3b[[3, 1]]*xd3b[[1, 2]], xd3b[[1, 1]]*xd3b[[2, 3]]*xd3b[[3, 5]] - xd3b[[2, 1]]*xd3b[[1, 3]]*xd3b[[3, 5]] + xd3b[[3, 1]]*xd3b[[1, 3]]*xd3b[[2, 5]], xd3b[[1, 1]]*xd3b[[2, 3]]*xd3b[[3, 4]] - xd3b[[2, 1]]*xd3b[[1, 3]]*xd3b[[3, 4]] + xd3b[[3, 1]]*xd3b[[1, 3]]*xd3b[[2, 4]], -xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[3, 4]] - xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 4]] + xd3b[[3, 2]]*xd3b[[2, 3]]*xd3b[[1, 4]], -xd3b[[2, 1]]*xd3b[[1, 3]]*xd3b[[3, 4]] + xd3b[[3, 1]]*xd3b[[2, 3]]*xd3b[[1, 4]], xd3b[[2, 1]]^2*xd3b[[3, 5]]^2 - xd3b[[2, 1]]*xd3b[[3, 1]]*xd3b[[2, 5]]*xd3b[[3, 5]] + xd3b[[3, 1]]^2*xd3b[[2, 5]]^2, xd3b[[2, 1]]^2*xd3b[[3, 4]]*xd3b[[3, 5]] - xd3b[[2, 1]]*xd3b[[3, 1]]*xd3b[[2, 4]]*xd3b[[3, 5]] + xd3b[[3, 1]]^2*xd3b[[2, 4]]*xd3b[[2, 5]], -xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[2, 4]]*xd3b[[3, 5]] + xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[1, 4]]*xd3b[[3, 5]] + xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[1, 4]]*xd3b[[2, 5]], xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[3, 4]]*xd3b[[3, 5]] - xd3b[[2, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 5]] + xd3b[[3, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[2, 5]], xd3b[[1, 1]]*xd3b[[2, 1]]*xd3b[[3, 4]]*xd3b[[3, 5]] - xd3b[[2, 1]]*xd3b[[3, 1]]*xd3b[[1, 4]]*xd3b[[3, 5]] + xd3b[[3, 1]]^2*xd3b[[1, 4]]*xd3b[[2, 5]], xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[2, 3]]*xd3b[[2, 5]] - xd3b[[2, 1]]^2*xd3b[[1, 3]]*xd3b[[3, 5]], xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[3, 5]] + xd3b[[2, 1]]*xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 5]] - xd3b[[3, 1]]*xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[2, 5]], xd3b[[1, 1]]*xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[3, 5]] + xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 5]] - xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[3, 5]], xd3b[[2, 1]]^2*xd3b[[3, 4]]^2 - xd3b[[2, 1]]*xd3b[[3, 1]]*xd3b[[2, 4]]*xd3b[[3, 4]] + xd3b[[3, 1]]^2*xd3b[[2, 4]]^2, -xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[2, 4]]*xd3b[[3, 4]] + xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[1, 4]]*xd3b[[3, 4]] + xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[1, 4]]*xd3b[[2, 4]], xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[3, 4]]^2 - xd3b[[2, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 4]] + xd3b[[3, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[2, 4]], xd3b[[1, 1]]*xd3b[[2, 1]]*xd3b[[3, 4]]^2 - xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[2, 4]]*xd3b[[3, 4]] + xd3b[[3, 1]]^2*xd3b[[1, 4]]*xd3b[[2, 4]], xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[2, 3]]*xd3b[[2, 4]] - xd3b[[2, 1]]^2*xd3b[[1, 3]]*xd3b[[3, 4]], -xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[2, 3]]*xd3b[[2, 4]] + xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[3, 4]] + xd3b[[2, 1]]*xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 4]], xd3b[[1, 1]]*xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[3, 4]] + xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 4]] - xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[3, 4]], xd3b[[1, 3]]^2*xd3b[[2, 4]]^2 - xd3b[[1, 3]]*xd3b[[2, 3]]*xd3b[[1, 4]]*xd3b[[2, 4]] + xd3b[[2, 3]]^2*xd3b[[1, 4]]^2, xd3b[[1, 2]]^2*xd3b[[3, 4]]^2 - xd3b[[1, 2]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 4]] + xd3b[[3, 2]]^2*xd3b[[1, 4]]^2, xd3b[[1, 1]]*xd3b[[1, 2]]*xd3b[[3, 4]]^2 - xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 4]] + xd3b[[3, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]]^2, xd3b[[1, 1]]^2*xd3b[[3, 4]]^2 - xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[1, 4]]*xd3b[[3, 4]] + xd3b[[3, 1]]^2*xd3b[[1, 4]]^2, -xd3b[[1, 1]]*xd3b[[1, 3]]*xd3b[[2, 3]]*xd3b[[2, 4]] + xd3b[[1, 1]]*xd3b[[2, 3]]^2*xd3b[[1, 4]] + xd3b[[2, 1]]*xd3b[[1, 3]]^2*xd3b[[2, 4]], xd3b[[1, 1]]^2*xd3b[[2, 3]]^2 - xd3b[[1, 1]]*xd3b[[2, 1]]*xd3b[[1, 3]]*xd3b[[2, 3]] + xd3b[[2, 1]]^2*xd3b[[1, 3]]^2, xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[3, 2]]*xd3b[[2, 5]]^2 + xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[3, 5]]^2 - xd3b[[2, 1]]*xd3b[[3, 1]]*xd3b[[1, 2]]*xd3b[[2, 5]]*xd3b[[3, 5]], -xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[2, 3]]*xd3b[[2, 4]]*xd3b[[3, 5]] + xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[2, 3]]*xd3b[[3, 4]]*xd3b[[2, 5]] + xd3b[[1, 2]]*xd3b[[2, 3]]^2*xd3b[[1, 4]]*xd3b[[3, 5]] + xd3b[[3, 2]]*xd3b[[1, 3]]^2*xd3b[[2, 4]]*xd3b[[2, 5]], xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[3, 2]]*xd3b[[2, 4]]*xd3b[[2, 5]] + xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[3, 4]]*xd3b[[3, 5]] - xd3b[[2, 1]]^2*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 5]], xd3b[[1, 1]]*xd3b[[3, 2]]^2*xd3b[[1, 4]]*xd3b[[2, 5]] + xd3b[[2, 1]]*xd3b[[1, 2]]^2*xd3b[[3, 4]]*xd3b[[3, 5]] - xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 5]], xd3b[[1, 1]]^2*xd3b[[3, 2]]*xd3b[[2, 3]]*xd3b[[2, 5]] - xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[3, 5]], xd3b[[1, 2]]*xd3b[[2, 3]]^2*xd3b[[1, 4]]*xd3b[[3, 4]] + xd3b[[3, 2]]*xd3b[[1, 3]]^2*xd3b[[2, 4]]^2, xd3b[[1, 1]]*xd3b[[3, 1]]*xd3b[[3, 2]]*xd3b[[2, 4]]^2 + xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[3, 4]]^2 - xd3b[[2, 1]]^2*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 4]], xd3b[[1, 1]]*xd3b[[3, 2]]^2*xd3b[[1, 4]]*xd3b[[2, 4]] + xd3b[[2, 1]]*xd3b[[1, 2]]^2*xd3b[[3, 4]]^2 - xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 4]], xd3b[[1, 1]]^2*xd3b[[3, 2]]*xd3b[[2, 3]]*xd3b[[2, 4]] - xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[1, 3]]*xd3b[[3, 4]], xd3b[[1, 2]]^2*xd3b[[2, 3]]^2*xd3b[[3, 5]]^2 + xd3b[[1, 2]]*xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 3]]*xd3b[[2, 5]]*xd3b[[3, 5]] + xd3b[[3, 2]]^2*xd3b[[1, 3]]^2*xd3b[[2, 5]]^2, xd3b[[1, 1]]^2*xd3b[[3, 2]]^2*xd3b[[2, 5]]^2 + xd3b[[2, 1]]^2*xd3b[[1, 2]]^2*xd3b[[3, 5]]^2 - xd3b[[2, 1]]*xd3b[[3, 1]]*xd3b[[1, 2]]^2*xd3b[[2, 5]]*xd3b[[3, 5]], xd3b[[1, 1]]^2*xd3b[[3, 2]]^2*xd3b[[2, 4]]*xd3b[[2, 5]] + xd3b[[2, 1]]^2*xd3b[[1, 2]]^2*xd3b[[3, 4]]*xd3b[[3, 5]] - xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 5]], xd3b[[1, 1]]^2*xd3b[[3, 2]]^2*xd3b[[2, 4]]^2 + xd3b[[2, 1]]^2*xd3b[[1, 2]]^2*xd3b[[3, 4]]^2 - xd3b[[2, 1]]^2*xd3b[[1, 2]]*xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[3, 4]]])
-
-
-        @test MS4a[2] == ideal(R4a, [])
-
-        @test MS4b[2] == ideal(R4b, [-xd4b[[4, 1]]*xd4b[[5, 2]] + xd4b[[5, 1]]*xd4b[[4, 2]]])
-
-        @test MS5[2] == ideal(R5, [-xd5[[1, 3]]*xd5[[2, 4]] + xd5[[2, 3]]*xd5[[1, 4]], -xd5[[1, 1]]*xd5[[2, 2]] + xd5[[2, 1]]*xd5[[1, 2]]])
-                
+        @test length(gens(MS1[3])) == 1 
+        @test length(gens(MS2[3])) == 5   
+        @test length(gens(MS3a[3])) == 7
+        @test length(gens(MS3b[3])) == 6
+        @test length(gens(MS4a[3])) == 1
+        @test length(gens(MS4b[3])) == 1
+        @test length(gens(MS5[3])) == 3
     end
+
+
+    rbc1 = Oscar.realization_bases_coordinates(bases(mb1), [1,2,3])
+    rbc2 = Oscar.realization_bases_coordinates(bases(mb2), [1,2,4,7])
+    rbc3a = Oscar.realization_bases_coordinates(bases(mb3), [1,2,3,8])
+    rbc3b = Oscar.realization_bases_coordinates(bases(mb3), [2,4,5,6])
+    rbc4a = Oscar.realization_bases_coordinates(bases(mb4), [2,3,4,5,6,7])
+    rbc4b = Oscar.realization_bases_coordinates(bases(mb4), [1,3,4,5,6,7])
+
+    
+    @testset "realization_bases_coordinates" begin
+        @test rbc1 == [[1,1],[2,1],[1,2],[2,2]]
+        @test rbc2 == [[1,1],[2,1],[1,2],[3,2],[2,3],[3,3]]
+        @test rbc3a == [[1,1],[2,1],[3,1],[2,2],[3,2],[1,3],[2,3],[1,4],[2,4],[3,4]]
+        @test rbc3b == [[2,1],[3,1],[1,2],[3,2],[1,3],[2,3],[3,3],[1,4],[2,4]]
+        @test rbc4a == [[1,1],[2,1],[3,1],[4,1]]
+        @test rbc4b == [[1,1],[2,1],[3,1],[4,1]]
+    end
+
+
+    R1, x1, xd1 = Oscar.realization_polynomial_ring(bases(mb1), [1,2,3], ZZ)
+    R2, x2, xd2 = Oscar.realization_polynomial_ring(bases(mb2), [1,2,4,7], GF(2))
+    R3a, x3a, xd3a = Oscar.realization_polynomial_ring(bases(mb3), [1,2,3,8], QQ)
+    R3b, x3b, xd3b = Oscar.realization_polynomial_ring(bases(mb3), [2,4,5,6], QT1)
+    R4a, x4a, xd4a = Oscar.realization_polynomial_ring(bases(mb4), [2,3,4,5,6,7], QT2)
+    R4b, x4b, xd4b = Oscar.realization_polynomial_ring(bases(mb4), [1,3,4,5,6,7], K)
+
+    @testset "realization_polynomial_ring" begin        
+        @test length(x1) == 2 
+        @test length(x2) == 3
+        @test length(x3a) == 6
+        @test length(x3b) == 5
+        @test length(x4a) == 3
+        @test length(x4b) == 3
+    end
+
+    S1 = MatrixSpace(R1, 2,2);  X1 = Oscar.matrix_realization_small(2,5,rbc1,R1,x1,xd1) 
+    S2 = MatrixSpace(R2, 3,3);  X2 = Oscar.matrix_realization_small(3,7,rbc2,R2,x2,xd2) 
+    S3a = MatrixSpace(R3a, 3,4);  X3a = Oscar.matrix_realization_small(3,8,rbc3a,R3a,x3a,xd3a)
+    S3b = MatrixSpace(R3b, 3,4);  X3b = Oscar.matrix_realization_small(3,8,rbc3b,R3b,x3b,xd3b)
+    S4a = MatrixSpace(R4a, 5,1);  X4a = Oscar.matrix_realization_small(5,7,rbc4a,R4a,x4a,xd4a)
+    
+    @testset "matrix_realization_small" begin    
+        @test X1 == S1([x1[1] x1[2]; R1(1) R1(1)])
+        @test X2 == S2([x2[1] x2[2] R2(0);
+                        R2(1) R2(0) x2[3];
+                        R2(0) R2(1) R2(1)])
+        @test X3a == S3a([x3a[1] R3a(0) x3a[4] x3a[5];
+                          x3a[2] x3a[3] R3a(1) x3a[6];
+                          R3a(1) R3a(1) R3a(0) R3a(1)])
+        @test X3b == S3b([R3b(0) x3b[2] x3b[3] x3b[5];
+                          x3b[1] R3b(0) x3b[4] R3b(1);
+                          R3b(1) R3b(1) R3b(1) R3b(0)])
+        @test X4a == S4a([x4a[1]; x4a[2]; x4a[3]; R4a(1); R4a(0)])
+    end
+
+
+@testset "projective_identity" begin
+    @test projective_identity(3) == [1 0 0 1; 0 1 0 1; 0 0 1 1]
+    @test projective_identity(1) == [1]
+end
+
+S1 = MatrixSpace(R1, 2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
+S2 = MatrixSpace(R2, 3,7);  X2 = Oscar.realization_coordinate_matrix(3, 7, rbc2, [1,2,4,7], R2, x2, xd2)
+S3a = MatrixSpace(R3a,3,8); X3a = Oscar.realization_coordinate_matrix(3, 8, rbc3a, [1,2,3,8], R3a, x3a, xd3a)
+S3b = MatrixSpace(R3b,3,8); X3b = Oscar.realization_coordinate_matrix(3, 8, rbc3b, [2,4,5,6], R3b, x3b, xd3b)
+S4a = MatrixSpace(R4a,5,7); X4a = Oscar.realization_coordinate_matrix(5, 7, rbc4a, [2,3,4,5,6,7], R4a, x4a, xd4a)
+S4b = MatrixSpace(R4b,5,7); X4b = Oscar.realization_coordinate_matrix(5, 7, rbc4b, [1,3,4,5,6,7], R4b, x4b, xd4b)
+
+
+@testset "realization_coordinate_matrix" begin
+    @test X1 == S1([R1(1) R1(0) R1(1) x1[1] x1[2];
+                    R1(0) R1(1) R1(1) R1(1) R1(1)])
+
+    @test X2 == S2([R2(1) R2(0) x2[1] R2(0) x2[2] R2(0) R2(1);
+                    R2(0) R2(1) R2(1) R2(0) R2(0) x2[3] R2(1);
+                    R2(0) R2(0) R2(0) R2(1) R2(1) R2(1) R2(1)])
+
+    @test X3a == S3a([R3a(1) R3a(0) R3a(0) x3a[1] R3a(0) x3a[4] x3a[5] R3a(1); 
+                      R3a(0) R3a(1) R3a(0) x3a[2] x3a[3] R3a(1) x3a[6] R3a(1);
+                      R3a(0) R3a(0) R3a(1) R3a(1) R3a(1) R3a(0) R3a(1) R3a(1)])
+
+    @test X3b == S3b([R3b(0) R3b(1) x3b[2] R3b(0) R3b(0) R3b(1) x3b[3] x3b[5]; 
+                      x3b[1] R3b(0) R3b(0) R3b(1) R3b(0) R3b(1) x3b[4] R3b(1);
+                      R3b(1) R3b(0) R3b(1) R3b(0) R3b(1) R3b(1) R3b(1) R3b(0)])
+
+    @test X4a == S4a([x4a[1] R4a(1) R4a(0) R4a(0) R4a(0) R4a(0) R4a(1);
+                      x4a[2] R4a(0) R4a(1) R4a(0) R4a(0) R4a(0) R4a(1);
+                      x4a[3] R4a(0) R4a(0) R4a(1) R4a(0) R4a(0) R4a(1);
+                      R4a(1) R4a(0) R4a(0) R4a(0) R4a(1) R4a(0) R4a(1);
+                      R4a(0) R4a(0) R4a(0) R4a(0) R4a(0) R4a(1) R4a(1)])
+
+    @test X4b == S4b([R4b(1) x4b[1] R4b(0) R4b(0) R4b(0) R4b(0) R4b(1);
+                      R4b(0) x4b[2] R4b(1) R4b(0) R4b(0) R4b(0) R4b(1);
+                      R4b(0) x4b[3] R4b(0) R4b(1) R4b(0) R4b(0) R4b(1);
+                      R4b(0) R4b(1) R4b(0) R4b(0) R4b(1) R4b(0) R4b(1);
+                      R4b(0) R4b(0) R4b(0) R4b(0) R4b(0) R4b(1) R4b(1)])
+end
+
+
+
+rbd1 = Oscar.realization_bases_determinants(X1, bases(mb1)) 
+rbd2 = Oscar.realization_bases_determinants(X2, bases(mb2))
+rbd3a = Oscar.realization_bases_determinants(X3a, bases(mb3))
+rbd3b = Oscar.realization_bases_determinants(X3b, bases(mb3))
+rbd4a = Oscar.realization_bases_determinants(X4a, bases(mb4))
+rbd4b = Oscar.realization_bases_determinants(X4b, bases(mb4))
+
+
+
+@testset "realization_bases_determinants" begin
+    @test rbd1 == [R1(1), R1(-1), -x1[1], -x1[2], -x1[1]+1, -x1[2]+1, x1[1] - x1[2]]
+    @test rbd2 == [1, x2[1]*x2[3] + x2[1] + 1, x2[3], x2[2]*x2[3] + x2[2] + x2[3], x2[1] + x2[2] + 1, x2[2], x2[1], x2[2]*x2[3], x2[1]*x2[3]]
+    @test rbd3a == [1, -x3a[2], -x3a[3], -1, -x3a[6], x3a[2] - x3a[6], x3a[2] - 1, x3a[3] - x3a[6], x3a[3] - 1, x3a[1], x3a[4], x3a[5], -x3a[1], -x3a[1] + x3a[5], -x3a[4], -x3a[5] + 1, x3a[1]*x3a[3], x3a[1] - x3a[2]*x3a[4], x3a[1] - x3a[2], -x3a[3]*x3a[4], -x3a[3]*x3a[5], x3a[4]*x3a[6] - x3a[5], x3a[5] - x3a[6], -x3a[1] + x3a[2]*x3a[4] - x3a[3]*x3a[4], x3a[1]*x3a[3] - x3a[1]*x3a[6] + x3a[2]*x3a[5] - x3a[3]*x3a[5], x3a[1]*x3a[3] - x3a[1] + x3a[2] - x3a[3], x3a[1] - x3a[2]*x3a[4] + x3a[4]*x3a[6] - x3a[5], x3a[1] - x3a[2]*x3a[4] + x3a[4] - 1, x3a[1]*x3a[6] - x3a[1] - x3a[2]*x3a[5] + x3a[2] + x3a[5] - x3a[6], -x3a[3]*x3a[4] + x3a[4] - 1, -x3a[3]*x3a[5] + x3a[3] + x3a[5] - x3a[6], x3a[4]*x3a[6] - x3a[4] - x3a[5] + 1]
+    @test rbd3b == [-x3b[1], 1, -x3b[1] + x3b[4], x3b[2], -x3b[1]*x3b[2], -x3b[1]*x3b[2] + x3b[1] + x3b[2], -x3b[1]*x3b[2] + x3b[1]*x3b[3] + x3b[2]*x3b[4], x3b[1]*x3b[5] + x3b[2], -1, -x3b[3], -x3b[5], x3b[1], x3b[1]*x3b[3], x3b[1]*x3b[5], x3b[1]*x3b[3] - x3b[1] - x3b[3] + x3b[4], x3b[1]*x3b[5] - x3b[5] + 1, -x3b[4], -x3b[4] + 1, x3b[2] - 1, -x3b[2], -x3b[2]*x3b[4], -x3b[2]*x3b[4] + x3b[2] - x3b[3] + x3b[4], -x3b[2] + x3b[3] - x3b[4]*x3b[5], x3b[3], x3b[5], x3b[3] - 1, -x3b[5] + 1, x3b[3] - x3b[4]*x3b[5], x3b[3] - x3b[4]*x3b[5] + x3b[5] - 1]
+
+    @test rbd4a == [2, x4a[3], 2*x4a[3] + 1, 2*x4a[2], x4a[2] + 2, 2*x4a[2] + x4a[3], x4a[1], 2*x4a[1] + 1, x4a[1] + 2*x4a[3], 2*x4a[1] + x4a[2], 1]
+
+    @test rbd4b == [1, -x4b[3], x4b[3] - 1, x4b[2], -x4b[2] + 1, x4b[2] - x4b[3], -1, x4b[1], -x4b[1] + 1, x4b[1] - x4b[3], -x4b[1] + x4b[2]]
+    
+end
+
+SG1 = realization_localizing_semigroup(rbd1)
+SG2 = realization_localizing_semigroup(rbd2)
+SG3a = realization_localizing_semigroup(rbd3a)
+SG3b = realization_localizing_semigroup(rbd3b)
+SG4a = realization_localizing_semigroup(rbd4a)
+SG4b = realization_localizing_semigroup(rbd4b)
+
+
+@testset "realization_localizing_semigroup" begin
+    @test all(a in SG1 for a in rbd1)
+    @test all(a in SG2 for a in rbd2)
+    @test all(a in SG3a for a in rbd3a)
+    @test all(a in SG3b for a in rbd3b)
+    @test all(a in SG4a for a in rbd4a)
+    @test all(a in SG4b for a in rbd4b)
+end
+
+
+MS1 = Oscar.matroid_realization_space_given_ring(2,5,mb1,ZZ,[1,2,3],R1,x1,xd1)
+MS2 = Oscar.matroid_realization_space_given_ring(3,7,mb2,GF(2),[1,2,4,7],R2,x2,xd2)
+MS3a = Oscar.matroid_realization_space_given_ring(3,8,mb3,QQ,[1,2,3,8],R3a,x3a,xd3a)
+MS3b = Oscar.matroid_realization_space_given_ring(3,8,mb3,QT1,[2,4,5,6],R3b,x3b,xd3b)
+MS4a = Oscar.matroid_realization_space_given_ring(5,7,mb4,QT2,[2,3,4,5,6,7],R4a,x4a,xd4a)
+MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4b,xd4b)
+   
+    
+    @testset "matroid_realization_space_given_ring" begin
+        @test length(gens(MS1[3])) == 1 
+        @test length(unique!(gens(MS2[3]))) == 5   
+        @test length(unique!(gens(MS3a[3]))) == 7
+        @test length(unique!(gens(MS3b[3]))) == 6
+        @test length(gens(MS4a[3])) == 1
+        @test length(gens(MS4b[3])) == 1
+    end
+
+
+
 
     
 end
