@@ -23,3 +23,7 @@ function leading_term(a...)
   return AbstractAlgebra.leading_term(a...)
 end
 
+function tail(a...)
+  return AbstractAlgebra.tail(a...)
+end
+
