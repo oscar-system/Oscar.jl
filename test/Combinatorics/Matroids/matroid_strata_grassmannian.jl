@@ -258,6 +258,7 @@
                           x3b[1] R3b(0) x3b[4] R3b(1);
                           R3b(1) R3b(1) R3b(1) R3b(0)])
         @test X4a == S4a([x4a[1]; x4a[2]; x4a[3]; R4a(1); R4a(0)])
+        
     end
 
 
@@ -266,8 +267,8 @@
     @test Oscar.projective_identity(1) == [1]
 end
 
-S1 = MatrixSpace(R1, 2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
-S2 = MatrixSpace(R2, 3,7);  X2 = Oscar.realization_coordinate_matrix(3, 7, rbc2, [1,2,4,7], R2, x2, xd2)
+S1 = MatrixSpace(R1,2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
+S2 = MatrixSpace(R2,3,7);  X2 = Oscar.realization_coordinate_matrix(3, 7, rbc2, [1,2,4,7], R2, x2, xd2)
 S3a = MatrixSpace(R3a,3,8); X3a = Oscar.realization_coordinate_matrix(3, 8, rbc3a, [1,2,3,8], R3a, x3a, xd3a)
 S3b = MatrixSpace(R3b,3,8); X3b = Oscar.realization_coordinate_matrix(3, 8, rbc3b, [2,4,5,6], R3b, x3b, xd3b)
 S4a = MatrixSpace(R4a,5,7); X4a = Oscar.realization_coordinate_matrix(5, 7, rbc4a, [2,3,4,5,6,7], R4a, x4a, xd4a)
@@ -326,12 +327,12 @@ rbd4b = Oscar.realization_bases_determinants(X4b, bases(mb4))
     
 end
 
-SG1 = realization_localizing_semigroup(rbd1)
-SG2 = realization_localizing_semigroup(rbd2)
-SG3a = realization_localizing_semigroup(rbd3a)
-SG3b = realization_localizing_semigroup(rbd3b)
-SG4a = realization_localizing_semigroup(rbd4a)
-SG4b = realization_localizing_semigroup(rbd4b)
+SG1 = Oscar.realization_localizing_semigroup(rbd1)
+SG2 = Oscar.realization_localizing_semigroup(rbd2)
+SG3a = Oscar.realization_localizing_semigroup(rbd3a)
+SG3b = Oscar.realization_localizing_semigroup(rbd3b)
+SG4a = Oscar.realization_localizing_semigroup(rbd4a)
+SG4b = Oscar.realization_localizing_semigroup(rbd4b)
 
 
 @testset "realization_localizing_semigroup" begin
