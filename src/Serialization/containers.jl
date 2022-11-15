@@ -9,6 +9,13 @@ function save_internal(s::SerializerState, vec::Vector)
     )
 end
 
+function save_internal(s::SerializerState, vec::Vector{T}) where T <: OscarBasicType
+    return Dict(
+        :vector => [save_type_dispatch(s, x) for x in vec],
+        :entry_type => encodeType(T)
+    )
+end
+
 # deserialize with specific content type
 function load_internal(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
     if isconcretetype(T)
@@ -29,6 +36,11 @@ end
 
 # deserialize without specific content type
 function load_internal(s::DeserializerState, ::Type{Vector}, dict::Dict)
+    if haskey(dict, :entry_type)
+        T = decodeType(dict[:entry_type])
+        
+        return [load_type_dispatch(s, T, x) for x in dict[:vector]]
+    end
     return [load_unknown_type(s, x) for x in dict[:vector]]
 end
 

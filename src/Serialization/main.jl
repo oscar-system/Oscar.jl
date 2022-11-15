@@ -1,26 +1,6 @@
 using JSON
 using UUIDs
 
-OscarBasicType = Union{
-    fmpz,
-    fmpq,
-    Bool,
-    Int8,
-    Int16,
-    Int32,
-    Int64,
-    Int128,
-    UInt8,
-    UInt16,
-    UInt32,
-    UInt64,
-    UInt128,
-    BigInt,
-    Float16,
-    Float32,
-    Float64
-}
-
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
@@ -110,7 +90,11 @@ end
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if !isprimitivetype(T) && !Base.issingletontype(T) && T !== Symbol
+    if T <: OscarBasicType && s.depth != 0
+        return save_internal(s, obj)
+    end
+        
+    if !isprimitivetype(T) && !Base.issingletontype(T)
         # if obj is already serialzed, just output
         # a backref
         ref = get(s.objmap, obj, nothing)
@@ -128,7 +112,7 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     end
 
     result = Dict{Symbol, Any}(:type => encodeType(T))
-    if ref !== nothing && !(T <: OscarBasicType)
+    if ref !== nothing
         result[:id] = string(ref)
     end
     if !Base.issingletontype(T)
@@ -141,6 +125,14 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
         result[:_ns] = versionInfo
     end
     return result
+end
+
+function load_type_dispatch(s::DeserializerState,
+                            ::Type{T}, str::String; parent=nothing) where T <: OscarBasicType
+    if parent !== nothing
+        load_internal_with_parent(s, T, str, parent)
+    end
+    return load_internal(s, T, str)
 end
 
 function load_type_dispatch(s::DeserializerState, ::Type{T}, dict::Dict;

@@ -285,7 +285,7 @@ function load_internal(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.RationalFunctionField},
                        dict::Dict)
     R = load_unknown_type(s, dict[:base_ring])
-    symbols = load_unknown_type(s, dict[:symbols])
+    symbols = load_type_dispatch(s, Symbol, dict[:symbols])
 
     return RationalFunctionField(R, symbols, cached=false)[1]
 end
@@ -341,7 +341,7 @@ function save_internal(s::SerializerState, RR::Nemo.RealField)
 end
 
 function load_internal(s::DeserializerState, ::Type{Nemo.RealField}, dict::Dict)
-    prec = load_unknown_type(s, dict[:precision])
+    prec = load_type_dispatch(s, Int64, dict[:precision])
     return Nemo.RealField(prec)
 end
 
@@ -397,7 +397,7 @@ function save_internal(s::SerializerState, CC::AcbField)
 end
 
 function load_internal(s::DeserializerState, ::Type{AcbField}, dict::Dict)
-    prec = load_unknown_type(s, dict[:precision])
+    prec = load_type_dispatch(s, Int64, dict[:precision])
     return ComplexField(prec)
 end
 

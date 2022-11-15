@@ -1,3 +1,11 @@
+OscarBasicType = Union{
+    fmpz,
+    fmpq,
+    Bool,
+    Number,
+    Symbol
+}
+
 ################################################################################
 # Bool
 @registerSerializationType(Bool)
@@ -42,16 +50,23 @@ end
 @registerSerializationType(fmpq)
 
 function save_internal(s::SerializerState, q::fmpq)
-    return Dict(
-        :num => save_type_dispatch(s, numerator(q)),
-        :den => save_type_dispatch(s, denominator(q))
-    )
+    return string(q)
 end
 
-function load_internal(s::DeserializerState, ::Type{fmpq}, q::Dict)
-    return fmpq(load_type_dispatch(s, fmpz, q[:num]),
-                load_type_dispatch(s, fmpz, q[:den]))
+function load_internal(s::DeserializerState, ::Type{fmpq}, q::String)
+    fraction_parts = collect(map(String, split(q, "//")))
+    fraction_parts = [fmpz(s) for s in fraction_parts]
+
+    return fmpq(fraction_parts...)
 end
+
+function load_internal_with_parent(s::DeserializerState,
+                                   ::Type{fmpq},
+                                   str::String,
+                                   parent::FlintRationalField)
+    return parent(load_internal(s, fmpq, str))
+end
+
 
 ################################################################################
 # Number
