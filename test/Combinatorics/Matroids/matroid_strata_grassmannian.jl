@@ -262,8 +262,8 @@
 
 
 @testset "projective_identity" begin
-    @test projective_identity(3) == [1 0 0 1; 0 1 0 1; 0 0 1 1]
-    @test projective_identity(1) == [1]
+    @test Oscar.projective_identity(3) == [1 0 0 1; 0 1 0 1; 0 0 1 1]
+    @test Oscar.projective_identity(1) == [1]
 end
 
 S1 = MatrixSpace(R1, 2,5);  X1 = Oscar.realization_coordinate_matrix(2, 5, rbc1, [1,2,3], R1, x1, xd1)
