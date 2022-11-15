@@ -116,6 +116,9 @@ A polyhedral complex in ambient dimension 2
 julia> rays(PC)
 1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
+
+julia> matrix(QQ, rays(PC))
+[1   0]
 ```
 """
 rays(PC::PolyhedralComplex) = rays(RayVector,PC)
@@ -123,6 +126,8 @@ rays(PC::PolyhedralComplex) = rays(RayVector,PC)
 _ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
 
 _ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
+
+_matrix_for_polymake(::Val{_ray_polyhedral_complex}) = _vector_matrix
 
 _vector_matrix(::Val{_ray_polyhedral_complex}, PC::Polymake.BigObject; homogenized = false) = @view PC.VERTICES[_ray_indices_polyhedral_complex(PC), (homogenized ? 1 : 2):end]
 
