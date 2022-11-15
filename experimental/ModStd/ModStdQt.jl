@@ -348,12 +348,12 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
               @assert lst[ig][jg][1] == e
-              @show ig, jg
-              for y = 1:length(lst)
-                @show y, [x[1] for x = lst[y]]
-              end
-              @show gJ[ig]
-              @show gJ
+#              @show ig, jg
+#              for y = 1:length(lst)
+#                @show y, [x[1] for x = lst[y]]
+#              end
+#              @show gJ[ig]
+#              @show gJ
               if do_z
                 lst[ig][jg][2][idx-1, length(P.pt_z)] = T(0)
               else
@@ -450,6 +450,52 @@ function ref_ff!(M::MatElem)
   return rk
 end
 
+function gcd_with_cofactors(a::fmpq_mpoly, b::fmpq_mpoly)                       
+   z = parent(a)()                                                              
+   abar = parent(a)()                                                           
+   bbar = parent(a)()                                                           
+   r = ccall((:fmpq_mpoly_gcd_cofactors, Nemo.libflint), Cint,                  
+             (Ref{fmpq_mpoly}, Ref{fmpq_mpoly}, Ref{fmpq_mpoly},                
+              Ref{fmpq_mpoly}, Ref{fmpq_mpoly}, Ref{FmpqMPolyRing}),            
+             z, abar, bbar, a, b, a.parent)                                     
+   r == 0 && error("Unable to compute gcd")                                     
+   return z, abar, bbar                                                         
+end         
+
+function gcd_with_cofactors(a::gfp_mpoly, b::gfp_mpoly)                       
+   z = parent(a)()                                                              
+   abar = parent(a)()                                                           
+   bbar = parent(a)()                                                           
+   r = ccall((:nmod_mpoly_gcd_cofactors, Nemo.libflint), Cint,                  
+             (Ref{gfp_mpoly}, Ref{gfp_mpoly}, Ref{gfp_mpoly},                
+              Ref{gfp_mpoly}, Ref{gfp_mpoly}, Ref{GFPMPolyRing}),            
+             z, abar, bbar, a, b, a.parent)                                     
+   r == 0 && error("Unable to compute gcd")                                     
+   return z, abar, bbar                                                         
+end         
+
+function Hecke.content(M::MatrixElem{<:MPolyElem})
+  m = []
+  for idx = eachindex(M)
+    l = length(M[idx]) # should be 0 iff entry is zero
+    if l != 0
+      push!(m, (idx, l))
+    end
+  end
+  if length(m) == 0
+    return zero(base_ring(M))
+  end
+  sort!(m, lt = (a,b) -> isless(a[2], b[2]))
+  g = zero(base_ring(M))
+  for (idx, _) = m
+    g = gcd(g, M[idx])
+    if isone(g)
+      return g
+    end
+  end
+  return g
+end
+
 """
 A generic fraction free row echelon form for matrices over multivariate
   polynomial ring. Removes the row-contents, but dose not clean-up upwards.
@@ -499,12 +545,8 @@ function ref_ff_rc!(M::MatElem{<:MPolyElem})
       if iszero(M[k, j])
         continue
       end
-      g = gcd(M[k, j], M[i, j])
-      if isone(g)
-        M[k, :] = M[i, j]*M[k, :] - M[k, j] * M[i, :]
-      else
-        M[k, :] = divexact(M[i, j], g)*M[k, :] - divexact(M[k, j], g) * M[i, :]
-      end
+#      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
+      M[k, :] = b*M[k, :] - a * M[i, :]
       M[k, :] = divexact(M[k, :], content(M[k, :]))
     end
     j += 1
