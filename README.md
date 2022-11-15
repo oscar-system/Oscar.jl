@@ -26,7 +26,7 @@ instructions](https://oscar.computeralgebra.de/install/) on our website.
 
 ## Contributing to OSCAR
 
-Please read the [introduction for new developers](https://oscar-system.github.io/Oscar.jl/dev/DeveloperDocumentation/new_developers/)
+Please read the [introduction for new developers](https://docs.oscar-system.org/dev/DeveloperDocumentation/new_developers/)
 in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ## Examples of usage
@@ -157,16 +157,13 @@ Forschungsgemeinschaft DFG within the
 [Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://oscar-system.github.io/Oscar.jl/dev/
+[docs-dev-url]: https://docs.oscar-system.org/dev/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
+[docs-stable-url]: https://docs.oscar-system.org/stable/
 
 [ga-img]: https://github.com/oscar-system/Oscar.jl/workflows/Run%20tests/badge.svg
 [ga-url]: https://github.com/oscar-system/Oscar.jl/actions?query=workflow%3A%22Run+tests%22
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg?branch=master
 [codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
-
-[coveralls-img]: https://coveralls.io/repos/github/oscar-system/Oscar.jl/badge.svg?branch=master
-[coveralls-url]: https://coveralls.io/github/oscar-system/Oscar.jl?branch=master
