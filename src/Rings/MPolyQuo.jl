@@ -1,6 +1,7 @@
 export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!, default_ordering
 export issubset
+export is_prime, pre_image_ideal
 ##############################################################################
 #
 # quotient rings
@@ -307,10 +308,16 @@ end
 
 # TODO: replace by a more efficient method!
 @attr function is_prime(I::MPolyQuoIdeal)
+  return is_prime(pre_image_ideal(I))
+end
+
+# TODO: Clean this up eventually!
+@attr function pre_image_ideal(I::MPolyQuoIdeal)
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
-  return is_prime(J)
+  return J
 end
+
 
 @doc Markdown.doc"""
     iszero(a::MPolyQuoIdeal)
