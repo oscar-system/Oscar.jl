@@ -2276,7 +2276,7 @@ julia> galois_quotient(C, 6)
  Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
 
 julia> galois_group(ans[1])
-(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Group([ (1,2,3)(4,5,6), (1,4)(2,6)(3,5) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true
@@ -2376,7 +2376,7 @@ functions and the coefficients of the polynomial.
 julia> Qx, x = QQ["x"];
 
 julia> i = galois_ideal(galois_group(x^4-2)[2])
-ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, -x1*x2 - x1*x3 - x2*x4 - x3*x4)
+ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x4 + x2*x3, x1^2*x4^2 + x2^2*x3^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
 
 julia> k, _ = number_field(i);
 
