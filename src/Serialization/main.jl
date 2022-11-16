@@ -267,7 +267,7 @@ julia> p = x^2 - x + 1
 x^2 - x + 1
 
 julia> save("/tmp/p.json", p)
-1204
+1209
 
 julia> p_loaded = load("/tmp/p.json", parent=R)
 x^2 - x + 1
