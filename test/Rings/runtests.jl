@@ -26,6 +26,7 @@ include("MPolyAnyMap/MPolyQuo.jl")
 include("MPolyAnyMap/AffineAlgebras.jl")
 
 include("PBWAlgebra-test.jl")
+include("FreeAssAlg-test.jl")
 include("FreeAssAlgIdeal-test.jl")
 
 include("binomial-ideals-test.jl")
