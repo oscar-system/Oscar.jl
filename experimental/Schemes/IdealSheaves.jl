@@ -4,6 +4,8 @@ export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
 
 export ideal_sheaf_type
 
+export order_on_divisor
+
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
@@ -333,5 +335,75 @@ end
 
 function is_prime(I::IdealSheaf) 
   return all(U->is_prime(I(U)), basic_patches(default_covering(space(I))))
+end
+
+function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+  whole_ring = ideal(base_ring(I), [one(base_ring(I))])
+  P(whole_ring) && return (0, whole_ring)
+  P(I) && return (1, I)
+  I_powers = [(1,I)]
+
+  while !P(last(I_powers)[2])
+    push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
+  end
+  upper = pop!(I_powers)
+  lower = pop!(I_powers)
+  while upper[1]!=lower[1]+1
+    middle = pop!(I_powers)
+    middle = (lower[1]+middle[1], lower[2]*middle[2])
+    if P(middle[2])
+      upper = middle
+    else
+      lower = middle
+    end
+  end
+  return upper
+end
+
+@Markdown.doc """
+    order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true)
+
+Computes the order of a rational function `f` on a prime divisor 
+given by the ideal sheaf `I`.
+"""
+function order_on_divisor(
+    f::VarietyFunctionFieldElem, 
+    I::IdealSheaf;
+    check::Bool=true
+  )
+  if check
+    is_prime(I) || error("ideal sheaf must be a sheaf of prime ideals")
+  end
+  X = space(I)::AbsCoveredScheme
+  X == variety(parent(f)) || error("schemes not compatible")
+  
+  order_dict = Dict{AbsSpec, Int}()
+  for U in affine_charts(X)
+    # TODO: This shouldn't be necessary. Fix products of multiplicative sets.
+    if one(OO(U)) in I(U)
+      continue
+    end
+    L, map = Localization(OO(U), 
+                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
+                         )
+    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                        <:MPolyComplementOfPrimeIdeal},
+                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+                                           <:MPolyComplementOfPrimeIdeal}
+                    } || error("localization was not successful")
+
+    floc = f[U]
+    a = numerator(floc)
+    b = denominator(floc)
+    # TODO: cache groebner bases in a reasonable way.
+    P = L(prime_ideal(inverted_set(L)))
+    if one(L) in P 
+      continue # the multiplicity is -∞ in this case and does not count
+    end
+    upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
+    lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
+    order_dict[U] = upper-lower
+  end
+  return minimum(values(order_dict))
 end
 

@@ -152,6 +152,17 @@ function ^(a::VarietyFunctionFieldElem, i::fmpz)
   return parent(a)(representative(a)^i, check=false)
 end
 
+# Multiplication with elements of the coefficient ring.
+# Eventually this needs to be restricted further in case 
+# of ambiguities.
+function *(a::RingElem, b::T) where {T<:VarietyFunctionFieldElem}
+  parent(a) === coefficient_ring(parent(b)) || error("the arguments do not have the same parent ring")
+  return (parent(b))(a * representative(b), check=false)
+end
+function *(b::T, a::RingElem) where {T<:VarietyFunctionFieldElem}
+  return a*b
+end
+
 # try to avoid a groebner basis computation
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))

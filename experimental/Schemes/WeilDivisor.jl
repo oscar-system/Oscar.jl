@@ -292,7 +292,7 @@ function find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   C = default_covering(X)
   U = first(patches(C))
   for V in patches(C)
-    if !(one(OO(V)) in P[V])
+    if !(one(OO(V)) in P(V))
       U = V
       break
     end
@@ -300,11 +300,11 @@ function find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   # Now U it is.
 
   # Assemble the local representatives
-  R = ambient_ring(U)
+  R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
   common_denominator = gcd([denominator(g) for g in loc_rep])
   numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
-  RP, _ = Localization(R, complement_of_ideal(saturated_ideal(P[U])))
+  RP, _ = Localization(R, complement_of_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
   denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
