@@ -20,7 +20,8 @@ rays(::Type{RayVector}, C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C
 Return the rays of `C`.
 
 # Examples
-Here a cone is constructed from three rays. Calling `rays` reveals that one of these was redundant:
+Here a cone is constructed from three rays. Calling `rays` reveals that one of
+these was redundant:
 ```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
@@ -30,6 +31,27 @@ julia> rays(PO)
 2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
+```
+
+The rays can also be converted to a matrix using the `matrix(ring, ...)` function.
+If `ring=ZZ` the primitive generators of the rays are returned.
+```jldoctest
+julia> R = [1 0; 2 3];
+
+julia> P = positive_hull(R);
+
+julia> rays(P)
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 0]
+ [1, 3//2]
+
+julia> matrix(QQ, rays(P))
+[1      0]
+[1   3//2]
+
+julia> matrix(ZZ, rays(P))
+[1   0]
+[2   3]
 ```
 """
 rays(C::Cone{T}) where T<:scalar_types = rays(RayVector{T}, C)
