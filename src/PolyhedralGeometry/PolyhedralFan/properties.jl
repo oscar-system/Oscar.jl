@@ -26,6 +26,22 @@ julia> rays(NF)
  [0, 0, 1]
  [0, 0, -1]
 ```
+
+As for the `Cone`, the rays may be converted to a matrix using the
+`matrix(ring, ...)` function.
+```jldoctest
+julia> C = cube(3);
+
+julia> NF = normal_fan(C);
+
+julia> matrix(QQ, rays(NF))
+[ 1    0    0]
+[-1    0    0]
+[ 0    1    0]
+[ 0   -1    0]
+[ 0    0    1]
+[ 0    0   -1]
+```
 """
 rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
 
