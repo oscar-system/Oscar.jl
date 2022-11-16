@@ -1,11 +1,3 @@
-OscarBasicType = Union{
-    fmpz,
-    fmpq,
-    Bool,
-    Number,
-    Symbol
-}
-
 ################################################################################
 # Bool
 @registerSerializationType(Bool)

@@ -1,6 +1,14 @@
 using JSON
 using UUIDs
 
+OscarBasicType = Union{
+    fmpz,
+    fmpq,
+    Bool,
+    Number,
+    Symbol
+}
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
