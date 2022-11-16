@@ -138,7 +138,7 @@ Here, Euclidean division with remainder is extended to the multivariate case, al
 global monomial ordering $>$ to distinguish leading terms of the polynomials (elements of free modules) involved. At each step
 of the division process, the idea is to remove the leading term of the intermediate dividend using the leading term of some divisor
 by which it is divisible. Termination is guaranteed since $>$ is a well-ordering. In the more general case of standard bases we also
-allow local and mixed orderings. Here, a variant of the division algorithm due to Mora is used to guaranty termination.
+allow local and mixed orderings. Here, a variant of the division algorithm due to Mora is used to guarantee termination.
 
 We introduce the relevant notation.
 
@@ -225,7 +225,7 @@ for $i\neq j$.
 If $>$ is global, that is, $K[x] = K[x]_>$, then we use the word *Gröbner basis* instead of standard basis. We call a
 Gröbner basis $G = \{g_1,\dots, g_r\}$ *reduced* if  it is minimal and no term of $g_i$ is divisible by $\text{LM}_>(g_j)$, for $i\neq j$. Using power
 series expansions, we may also define reduced standard bases. However, while reduced Gröbner bases can always be computed, reduced
-standard bases may not be computatable (in finitely many steps).
+standard bases may not be computable (in finitely many steps).
 
 !!! note
     Given a monomial ordering $>$ on a free $K[x]$-module $F = K[x]^p$ with basis $e_1, \dots, e_p$,
