@@ -118,7 +118,6 @@ function is_irreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   d = matrix(FlintZZ, 2*length(S)+2, 1, [0 for i = 1:2*length(S) + 2])
   d[end-1, 1] = 1
   d[end, 1] = 1
-  global last_irr = a
   pt = solve_mixed(A, sol, C, d)
   return nrows(pt) == 0
 end
@@ -153,6 +152,37 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   res = [O(evaluate(ms(s(map(fmpz, Array(v)))))) for v in hb]
   return res
 end
+
+#= From Lars:
+using BenchmarkTools
+
+function test(A,b, pref)
+   Polymake.prefer(pref) do
+      solve_non_negative(matrix(A), matrix(b))
+   end
+end
+
+@benchmark test(A,b, "projection") seconds=30
+@benchmark test(A,b, "libnormaliz") seconds=30
+@benchmark test(A,b, "cdd") seconds=30
+@benchmark test(A,b, "lrs") seconds=30
+@benchmark test(A,b, "ppl") seconds=30
+@benchmark test(A,b, "bbox") seconds=30
+@benchmark test(A,b, "to") seconds=30
+
+@benchmark test(AA,b, "projection") seconds=30
+@benchmark test(AA,b, "libnormaliz") seconds=30
+@benchmark test(AA,b, "cdd") seconds=30
+@benchmark test(AA,b, "lrs") seconds=30
+@benchmark test(AA,b, "ppl") seconds=30
+@benchmark test(AA,b, "bbox") seconds=30
+@benchmark test(AA,b, "to") seconds=30
+
+Polymake.prefer("to") do
+   solve_non_negative(matrix(A), matrix(b))
+end
+
+=#
 
 @doc Markdown.doc"""
     factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem}) -> Vector{Fac{OrdElem}}
