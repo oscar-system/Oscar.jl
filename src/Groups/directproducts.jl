@@ -339,7 +339,7 @@ end
 
 function Base.show(io::IO, G::DirectProductGroup)
    if G.isfull
-      print(io, "DirectProduct of ")
+      print(io, "DirectProduct of")
       for x in G.L print(io, "\n ", x) end
    else
       print(io, String(GAPWrap.StringViewObj(G.X)))

@@ -627,6 +627,7 @@ end
 
 Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
 
+#Examples
 ```jldoctest
 julia> F = GF(7,1)
 Finite field of degree 1 over F_7
@@ -658,6 +659,21 @@ end
 
 Return the symplectic group of dimension `n` either over the field `F` or the
 field `GF(q)`. The dimension `n` must be even.
+
+#Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = symplectic_group(2,F)
+Sp(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [6 1; 6 0]
+
+```
 """
 function symplectic_group(n::Int, F::Ring)
    iseven(n) || throw(ArgumentError("The dimension must be even"))
