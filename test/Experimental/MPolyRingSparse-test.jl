@@ -373,9 +373,10 @@ end
    @test trailing_coefficient(R(2)) == 2
    @test trailing_coefficient(R()) == 0
 
-   @test tail(2x^2 + 2x*y + 3) == 2x*y + 3
+   @test tail(2*x^2 + 3*y^3 + 4; ordering = lex(R)) == 3*y^3 + 4
+   @test tail(2*x^2 + 3*y^3 + 4; ordering = deglex(R)) == 2*x^2 + 4
    @test tail(R(1)) == 0
-   @test tail(R()) == 0
+   @test_throws ArgumentError tail(R(0))
 end
 
 @testset "MPolySparse.total_degree" begin
