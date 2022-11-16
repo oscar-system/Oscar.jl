@@ -202,6 +202,7 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
                                   denominator(h_generic)
                                   )
 end
+
 @Markdown.doc """
     function move_representative(
         a::MPolyElem, b::MPolyElem,

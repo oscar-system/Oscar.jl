@@ -42,7 +42,7 @@
   X = CoveredScheme(C)
 
   U = C[1]
-  x = gens(ambient_ring(U))
+  x = gens(ambient_coordinate_ring(U))
   I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
   J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
   D = WeilDivisor(I)
@@ -52,7 +52,7 @@
   KK = VarietyFunctionField(X)
   U = representative_patch(KK)
   V = C[3]
-  R = ambient_ring(V)
+  R = ambient_coordinate_ring(V)
   x = gens(R)
   f = x[1]^2 - 2*x[2]^5*x[3]^3
   g = 4*x[3]^2 - 5*x[2]
@@ -77,20 +77,20 @@ end
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
   f = s^2 + t^2-1
-  I = IdealSheaf(Xc, [f])
+  I = IdealSheaf(Xc, X, [f])
   F = KK(f^70)
   @test order_on_divisor(F, I) == 70
 end
 
 @testset "linear systems" begin
   P2 = projective_space(QQ, 2)
-  S = ambient_ring(P2)
-  X = as_covered_scheme(P2)
+  S = ambient_coordinate_ring(P2)
+  X = covered_scheme(P2)
   I = IdealSheaf(P2, [S[1]])
   D = WeilDivisor(I)
 
   KK = function_field(X)
-  R = ambient_ring(representative_patch(KK))
+  R = ambient_coordinate_ring(representative_patch(KK))
   x = gens(R)
   @test in_linear_system(KK(x[1]), D)
   @test !in_linear_system(KK(x[1]^2), D)

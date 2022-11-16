@@ -74,6 +74,11 @@ function Glueing(G::SimpleGlueing)
   return Glueing(X, Y, fo, go, check=false)
 end
 
+### For compatibility, return the glueing itself whenever it is of the right type
+function Glueing(G::Glueing)
+  return G
+end
+
 ########################################################################
 # Simplified constructor for common special case                       #
 ########################################################################
