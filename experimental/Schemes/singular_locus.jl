@@ -9,7 +9,7 @@ export is_smooth
 #######################################################################
 
 #######################################################################
-# MOVE TO Methods
+# MOVE TO Attributes
 #######################################################################
 
 ### TODO: The following two functions (singular_locus, 
@@ -180,7 +180,7 @@ end
 ##########################################################################
 
 ##########################################################################
-# MOVE TO: Attributes
+# MOVE TO: Properties
 ##########################################################################
 @doc Markdown.doc"""
    is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
@@ -230,7 +230,7 @@ end
 end
 
 #######################################################################
-# MOVE TO Methods
+# MOVE TO Attributes
 #######################################################################
 @Markdown.doc """
    reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
@@ -284,7 +284,7 @@ end
 end
 
 #######################################################################
-# MOVE TO Attributes
+# MOVE TO Properties
 #######################################################################
 @doc Markdown.doc"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
@@ -357,6 +357,7 @@ end
 ############################################################################
 # jacobi_matrix_modulus should go whereever singular_locus goes, as it is
 # an internal helper (less expensive than jacobi_matrix)
+# MOVE TO: whereever singular_locus goes
 ############################################################################
 
 ## compute some representative of the jacobian matrix of a set of generators 
@@ -376,7 +377,9 @@ end
 # The routine checks whether the module for the cotangent sheaf Ω¹(X)
 # is locally free over 𝒪(X) and returns `true` if this is the case. 
 ########################################################################
-
+########################################################################
+## MOVE TO: Properties
+########################################################################
 @doc Markdown.doc"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
