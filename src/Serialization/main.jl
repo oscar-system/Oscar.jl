@@ -64,7 +64,7 @@ macro registerSerializationType(ex::Any, str::Union{String,Nothing} = nothing)
 end
 
 function encodeType(::Type{T}) where T
-    error("unspported type '$T' for encoding")
+    error("unsupported type '$T' for encoding")
 end
 
 function decodeType(input::String)
@@ -80,7 +80,7 @@ function decodeType(input::String)
         @warn "Serialization: Generic Decoding of type $input"
         eval(Meta.parse(input))
 
-        error("unspported type '$input' for decoding")
+        error("unsupported type '$input' for decoding")
     end
 end
 
@@ -220,9 +220,9 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
@@ -251,9 +251,9 @@ See [`save`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 ```
 """
@@ -284,12 +284,12 @@ See [`save`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.json", 42);
 
-julia> load("fourtitwo.json")
+julia> load("/tmp/fourtitwo.json")
 42
 
-julia> load("fourtitwo.json", String)
+julia> load("/tmp/fourtitwo.json", String)
 ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
 ```
 """

@@ -116,8 +116,8 @@ function homogenize(I::MPolyIdeal)
   Gh = Vector{elem_type(Kx)}(undef,length(G))
   for (i,g) in enumerate(G)
     gh = MPolyBuildCtx(Kxh)
-    d = max([sum(expv) for expv in exponent_vectors(g)]...) # degree of g
-    for (c,alpha) in zip(coefficients(g),exponent_vectors(g))
+    d = max([sum(expv) for expv in AbstractAlgebra.exponent_vectors(g)]...) # degree of g ?? TODO isn't this just total_degree(g) ??
+    for (c,alpha) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
       pushfirst!(alpha,d-sum(alpha)) # homogenize exponent vector
       push_term!(gh,c,alpha)
     end
@@ -244,7 +244,7 @@ function tropical_variety(I::MPolyIdeal, val::TropicalSemiringMap, convention::U
         print("computing groebner_basis for ",point_to_traverse,direction_to_traverse,"... ")
         G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
         println("done")
-        C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,pertubation=direction_to_traverse)
+        C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,perturbation=direction_to_traverse)
         w_neighbour = anchor_point(C_neighbour)
 
         # if neighbour is already in done list, skip

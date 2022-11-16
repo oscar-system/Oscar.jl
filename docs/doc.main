@@ -124,6 +124,7 @@
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/orderings.md",
      "CommutativeAlgebra/groebner_bases.md",
+     "CommutativeAlgebra/groebner_bases_integers.md",
      "CommutativeAlgebra/ideals.md",
      "Modules Over Multivariate Rings" => [
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
@@ -147,13 +148,13 @@
 
   "Algebraic Geometry" => [
      "AlgebraicGeometry/intro.md",
-     "Curves" => [
-#        "Experimental/introduction.md",
-#        "Experimental/plane_curves.md",
-#        "Experimental/divisors.md",
-#        "Experimental/elliptic_curves.md",
-#        "Experimental/non_plane_curves.md",
-         "AlgebraicGeometry/para_rational_curves.md",
+     "Schemes" => [
+        "AlgebraicGeometry/Schemes/GeneralSchemes.md",
+        "AlgebraicGeometry/Schemes/AffineSchemes.md",
+        "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
+        "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
+        "AlgebraicGeometry/Schemes/CoveredSchemes.md",
+        "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
      ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
@@ -166,20 +167,26 @@
         "ToricVarieties/CohomologyClasses.md",
         "ToricVarieties/Subvarieties.md",
         "ToricVarieties/AlgebraicCycles.md",
-     ],
-     "Schemes" => [
-        "AlgebraicGeometry/AffineSchemes.md",
+        "ToricVarieties/ToricMorphisms.md",
      ],
      "Tropical Geometry" => [
         "TropicalGeometry/intro.md",
         "TropicalGeometry/curve.md",
      ],
+     "Curves" => [
+#        "Experimental/introduction.md",
+#        "Experimental/plane_curves.md",
+#        "Experimental/divisors.md",
+#        "Experimental/elliptic_curves.md",
+#        "Experimental/non_plane_curves.md",
+         "AlgebraicGeometry/Curves/para_rational_curves.md",
+     ],
      "Standard Constructions" => [
-       "AlgebraicGeometry/standard_constructions.md",
+       "AlgebraicGeometry/StandardConstructions/standard_constructions.md",
      ]
   ],
 
- "Finitely Represented Algebras" => [
+ "Finitely Presented Algebras" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",

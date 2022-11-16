@@ -36,7 +36,7 @@ julia> anticanonical_bundle(v)
 A toric line bundle on a normal toric variety
 ```
 """
-@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(ToricLineBundle(v,d) for d in torusinvariant_prime_divisors(v))
+@attr ToricLineBundle anticanonical_bundle(v::AbstractNormalToricVariety) = prod(ToricLineBundle(v, d) for d in torusinvariant_prime_divisors(v))
 export anticanonical_bundle
 
 

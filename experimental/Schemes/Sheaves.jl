@@ -114,7 +114,7 @@ function restrict(
     a::Union{MPolyElem, MPolyQuoElem, 
              MPolyLocalizedRingElem, MPolyQuoLocalizedRingElem}, 
     U::SpecOpen)
-  parent(a) == OO(ambient(U)) || return OO(U)(a)
+  parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
   return OO(U)(a, check=false)
 end
 

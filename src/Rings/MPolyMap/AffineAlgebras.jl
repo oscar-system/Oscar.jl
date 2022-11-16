@@ -77,7 +77,7 @@ function _groebner_data(F::AffAlgHom, ord::Symbol)
   m = ngens(s)
   return get_attribute!(F, ord) do
     (S, I, W, _) = _ring_helper(s, zero(s), _images(F))
-    # Build auxilliary objects
+    # Build auxiliary objects
     (T, inc, J) = _containment_helper(S, n, m, I, W, ord)
     D = normal_form([gen(T, i) for i in 1:m], J)
     A = [zero(r) for i in 1:m]
@@ -150,7 +150,7 @@ function isfinite(F::AffAlgHom)
   # variables x_i.
   s = codomain(F)
   m = ngens(s)
-  L = leading_monomial.(G)
+  L = map(AbstractAlgebra.leading_monomial, G)
 
   # Check if for all i, powers of x_i occur as leading monomials
   N = Vector{Int}()

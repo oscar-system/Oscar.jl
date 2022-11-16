@@ -18,6 +18,8 @@ export is_isomorphism, inverse
 
 export simplify
 
+export mult_set_type
+
 ########################################################################
 # Localizations of polynomial algebras                                 #
 ########################################################################
@@ -121,6 +123,14 @@ multiplicative set ``S ⊂ P`` of type `MultSetType`.
   end
 end
 
+### for convenience of later use
+MPAnyQuoRing = Union{MPolyQuoLocalizedRing, 
+                MPolyQuo
+               }
+
+MPAnyNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
+                  }
+
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
@@ -163,7 +173,7 @@ function modulus(L::MPolyQuoLocalizedRing)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
-modulus(R::MPolyLocalizedRing)=ideal(R,[zero(R)])
+modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
 
 
 @Markdown.doc """
@@ -1396,6 +1406,10 @@ function saturated_ideal(I::MPolyQuoLocalizedIdeal)
   return saturated_ideal(pre_image_ideal(I))
 end
 
+# for convenience of the scripting user allow I::MPolyQuoIdeal as 
+# input to saturated_ideal and return the preimage of I in 
+# under the canonical quotient map 
+saturated_ideal(I::MPolyQuoIdeal) = pre_image_ideal(I)
 
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}

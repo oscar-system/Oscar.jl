@@ -24,17 +24,17 @@ function _remove_denominators(
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
   den = one(R2)
   cont = zero(R2)
-  for (c1, e1) in zip(coefficients(f), exponent_vectors(f))
+  for (c1, e1) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     cont = gcd(cont, numerator(c1))
     den = lcm(den, denominator(c1))
   end
   num = MPolyBuildCtx(S)  # PolyElem should satisfy the exponent vector interface
-  for (c1, e1) in zip(coefficients(f), exponent_vectors(f))
+  for (c1, e1) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     cf = divexact(den, denominator(c1))
     if !iszero(cont)
       cf *= divexact(numerator(c1), cont)
     end
-    for (c2, e2) in zip(coefficients(cf), exponent_vectors(cf))
+    for (c2, e2) in zip(AbstractAlgebra.coefficients(cf), AbstractAlgebra.exponent_vectors(cf))
       push_term!(num, c2, vcat(e1, e2))
     end
   end
@@ -51,7 +51,7 @@ function _restore_numerators(
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
   n = nvars(R)
   d = Dict{Vector{Int}, typeof(MPolyBuildCtx(R2))}()
-  for (c, e) in zip(coefficients(g), exponent_vectors(g))
+  for (c, e) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
     e1 = e[1:n]
     e2 = e[n+1:end]
     if !haskey(d, e1)
@@ -148,7 +148,7 @@ end
 
 ##############################################################################
 #
-# 2. implementations for Q[z][y][x] ect
+# 2. implementations for Q[z][y][x] etc
 #
 ##############################################################################
 
@@ -191,13 +191,13 @@ end
 
 function _denest_recursive(r::MPolyBuildCtx, f::MPolyElem{T},
                            e0::Vector{Int}) where T <: Union{PolyElem, MPolyElem}
-  for (c1, e1) in zip(coefficients(f), exponent_vectors(f))
+  for (c1, e1) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     _denest_recursive(r, c1, vcat(e0, e1))
   end
 end
 
 function _denest_recursive(r::MPolyBuildCtx, f::MPolyElem, e0::Vector{Int})
-  for (c1, e1) in zip(coefficients(f), exponent_vectors(f))
+  for (c1, e1) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(r, c1, vcat(e0, e1))
   end
 end
@@ -272,8 +272,8 @@ Return an element of iterated polynomial ring `R` from its denested
 counterpart. The return satisfies `f == renest(R, denest(denest(R), f))`.
 """
 function renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)
-  gcoeffs = collect(coefficients(g))
-  gexps = collect(exponent_vectors(g))
+  gcoeffs = collect(AbstractAlgebra.coefficients(g))
+  gexps = collect(AbstractAlgebra.exponent_vectors(g))
   return _renest_recursive(R, 1, collect(1:length(gcoeffs)), gcoeffs, gexps)
 end
 

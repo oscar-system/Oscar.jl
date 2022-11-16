@@ -7,7 +7,8 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
        isweighted, is_global, is_local, is_mixed,
-       permutation_of_terms, weight_ordering, canonical_matrix,
+       permutation_of_terms, index_of_leading_term,
+       weight_ordering, canonical_matrix,
        MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
        is_elimination_ordering, induced_ring_ordering
 
@@ -1551,7 +1552,7 @@ end
 
 mutable struct ModuleOrdering{S}
    M::S
-   o::AbsOrdering # must allow gen*mon or mon*gen product ordering
+   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
 end
 
 base_ring(a::ModuleOrdering) = a.M
@@ -1565,6 +1566,41 @@ Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
 
+#### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
+
+function _cmp_vector_monomials(
+  m::Int, f::MPolyElem, k::Int,
+  n::Int, g::MPolyElem, l::Int,
+  o::ModOrdering)
+
+  if o.ord == :lex
+    return m < n ? 1 : m > n ? -1 : 0
+  elseif o.ord == :revlex
+    return m > n ? 1 : m < n ? -1 : 0
+  else
+    error("oops")
+  end
+end
+
+function _cmp_vector_monomials(
+  m::Int, f::MPolyElem, k::Int,
+  n::Int, g::MPolyElem, l::Int,
+  o::AbsGenOrdering)
+
+  return _cmp_monomials(f, k, g, l, o)
+end
+
+function _cmp_vector_monomials(
+  m::Int, f::MPolyElem, k::Int,
+  n::Int, g::MPolyElem, l::Int,
+  o::ModProdOrdering)
+
+  c = _cmp_vector_monomials(m, f, k, n, g, l, o.a)
+  c == 0 || return c
+  return _cmp_vector_monomials(m, f, k, n, g, l, o.b)
+end
+
+
 function module_ordering(a::AbstractVector{Int}, s::Symbol)
    i = minimum(a)
    I = maximum(a)
@@ -1572,7 +1608,7 @@ function module_ordering(a::AbstractVector{Int}, s::Symbol)
      return ModOrdering(i:I, s)
    end
    return ModOrdering(collect(a), s)
- end
+end
 
 function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
    R = parent(first(a))
@@ -1582,9 +1618,9 @@ function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
      error("only generators allowed")
    end
    return module_ordering(aa, s...)
- end
+end
 
- function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
+function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
    return ModuleOrdering(parent(first(v)), ordering(v, :lex))
 end
 
@@ -1622,11 +1658,24 @@ degrevlex([w, x, y, z])
 ```
 """
 function induced_ring_ordering(M::ModuleOrdering)
-  R = base_ring(M.M)
-  if M.o.a isa AbsGenOrdering
-    return MonomialOrdering(R, M.o.a)
+  return MonomialOrdering(base_ring(M.M), induced_ring_ordering(M.o))
+end
+
+function induced_ring_ordering(o::ModOrdering)
+  error("no induced ring ordering exists")
+end
+
+function induced_ring_ordering(o::AbsGenOrdering)
+  return o
+end
+
+function induced_ring_ordering(o::ModProdOrdering)
+  if o.a isa ModOrdering
+    return induced_ring_ordering(o.b)
+  elseif o.b isa ModOrdering
+    return induced_ring_ordering(o.a)
   else
-    return MonomialOrdering(R, M.o.b)
+    return induced_ring_ordering(o.a)*induced_ring_ordering(o.b)
   end
 end
 
@@ -1650,6 +1699,23 @@ function permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
   p = collect(1:length(f))
   sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord.o) < 0), rev = true)
   return p
+end
+
+@doc Markdown.doc"""
+    index_of_leading_term(f::MPolyElem, ord::MonomialOrdering)
+
+Return the index of the leading term of `f` with repsect to the order `ord`.
+"""
+function index_of_leading_term(f::MPolyElem, ord::MonomialOrdering)
+  n = length(f)
+  n > 0 || throw(ArgumentError("zero polynomial does not have a leading term"))
+  res = 1
+  for i in 2:n
+    if Orderings._cmp_monomials(f, res, f, i, ord.o) < 0
+      res = i
+    end
+  end
+  return res
 end
 
 ############ printing ############

@@ -76,7 +76,7 @@ An abstract min tropical curve
 ```
 """
 function TropicalCurve(PC::PolyhedralComplex, M::Union{typeof(min),typeof(max)}=min)
-   @assert dim(PC)==1 "The polyhedral complex is not of dimenion 1."
+   @assert dim(PC)==1 "The polyhedral complex is not of dimension 1."
    return TropicalCurve{M, true}(PC)
 end
 

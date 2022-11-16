@@ -15,7 +15,7 @@ returns true if f is homogeneous (w.r.t. total degree),
 returns false otherwise
 =======#
 function _is_homogeneous(f::MPolyElem)
-  leadexpv,tailexpvs = Iterators.peel(exponent_vectors(f))
+  leadexpv,tailexpvs = Iterators.peel(AbstractAlgebra.exponent_vectors(f))
   d = sum(leadexpv)
   for tailexpv in tailexpvs
     if d!=sum(tailexpv)

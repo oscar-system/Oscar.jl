@@ -94,11 +94,11 @@ parent(f::VarietyFunctionFieldElem) = f.KK
 representative(f::VarietyFunctionFieldElem) = f.f
 
 ### constructors
-one(KK::VarietyFunctionField) = VarietyFunctionFieldElem(KK, one(ambient_ring(representative_patch(KK))),
-                                                         one(ambient_ring(representative_patch(KK)))
+one(KK::VarietyFunctionField) = VarietyFunctionFieldElem(KK, one(ambient_coordinate_ring(representative_patch(KK))),
+                                                         one(ambient_coordinate_ring(representative_patch(KK)))
                                                         )
-zero(KK::VarietyFunctionField) = VarietyFunctionFieldElem(KK, zero(ambient_ring(representative_patch(KK))),
-                                                          one(ambient_ring(representative_patch(KK)))
+zero(KK::VarietyFunctionField) = VarietyFunctionFieldElem(KK, zero(ambient_coordinate_ring(representative_patch(KK))),
+                                                          one(ambient_coordinate_ring(representative_patch(KK)))
                                                          )
 
 ### arithmetic 
@@ -180,16 +180,16 @@ end
 function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true)
   R = parent(a)
   R == parent(b) || error("rings are not compatible")
-  R == ambient_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
+  R == ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
   
   # otherwise check whether we can find the ring of h among the affine patches
-  R in [ambient_ring(V) for V in patches(default_covering(variety(KK)))] || error("ring does not belong to any of the affine charts")
+  R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] || error("ring does not belong to any of the affine charts")
   # allocate a variable for the patch in which a and be are living
   V = representative_patch(KK)
   X = variety(KK)
   C = default_covering(X)
   for i in 1:npatches(C)
-    if ambient_ring(C[i]) == R 
+    if ambient_coordinate_ring(C[i]) == R
       V = C[i]
       break
     end
@@ -209,9 +209,9 @@ end
         C::Covering
       )
 
-Given a fraction ``a/b ∈ Quot(P)`` with ``P = 𝕜[x]`` the `ambient_ring` 
+Given a fraction ``a/b ∈ Quot(P)`` with ``P = 𝕜[x]`` the `ambient_coordinate_ring`
 of an affine patch ``V`` in a covering `C`, move that fraction to 
-one in ``Quot(P')`` where ``P'`` is the ambient ring of another patch ``U``.
+one in ``Quot(P')`` where ``P'`` is the ambient coordinate ring of another patch ``U``.
 
 **Note:** This is only guaranteed to work for irreducible schemes! 
 """
@@ -239,14 +239,14 @@ function Base.show(io::IO, f::VarietyFunctionFieldElem)
   print(io, representative(f))
 end
 
-### given the fraction field of the `ambient_ring` in one 
+### given the fraction field of the `ambient_coordinate_ring` in one
 # affine chart, return a representative of `f` in that field
 function (K::AbstractAlgebra.Generic.FracField)(f::VarietyFunctionFieldElem)
   R = base_ring(K)
   V = representative_patch(parent(f))
   C = default_covering(variety(parent(f)))
   for U in patches(C)
-    if ambient_ring(U) == R 
+    if ambient_coordinate_ring(U) == R
       V = U
       break
     end

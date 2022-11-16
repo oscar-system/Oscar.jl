@@ -14,6 +14,7 @@ export
     is_abelian, has_is_abelian, set_is_abelian,
     is_cyclic, has_is_cyclic, set_is_cyclic,
     is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group,
+    is_elementary_abelian, has_is_elementary_abelian, set_is_elementary_abelian,
     is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group,
     is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group,
     is_natural_alternating_group, has_is_natural_alternating_group, set_is_natural_alternating_group,
@@ -113,7 +114,7 @@ Return the cyclic group of order `n`, as an instance of type `T`.
 # Examples
 ```jldoctest
 julia> G = cyclic_group(5)
-<pc group of size 5 with 1 generators>
+<pc group of size 5 with 1 generator>
 
 julia> G = cyclic_group(PermGroup, 5)
 Group([ (1,2,3,4,5) ])
@@ -179,6 +180,28 @@ Return `true` if `G` is abelian (commutative),
 that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 """
 @gapattribute is_abelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
+
+@doc Markdown.doc"""
+    is_elementary_abelian(G::Group)
+
+Return `true` if `G` is a abelian (see [`is_abelian`](@ref))
+and if there is a prime `p` such that the order of each element in `G`
+divides `p`.
+
+# Examples
+```jldoctest
+julia> g = alternating_group(5);
+
+julia> is_elementary_abelian(sylow_subgroup(g, 2)[1])
+true
+
+julia> g = alternating_group(6);
+
+julia> is_elementary_abelian(sylow_subgroup(g, 2)[1])
+false
+```
+"""
+@gapattribute is_elementary_abelian(G::GAPGroup) = GAP.Globals.IsElementaryAbelian(G.X)::Bool
 
 function mathieu_group(n::Int)
   9 <= n <= 12 || 21 <= n <= 24 || throw(ArgumentError("n must be a 9-12 or 21-24"))

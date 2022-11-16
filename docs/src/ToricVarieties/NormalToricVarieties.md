@@ -33,7 +33,7 @@ AffineNormalToricVariety(v::NormalToricVariety)
 ### Normal Toric Varieties
 
 ```@docs
-NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}})
+NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = true)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
 ```
@@ -45,6 +45,7 @@ affine_space(::Type{NormalToricVariety}, d::Int)
 del_pezzo_surface(b::Int)
 hirzebruch_surface(r::Int)
 projective_space(::Type{NormalToricVariety}, d::Int)
+weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) where {T <: IntegerUnion}
 ```
 
 ### Further Constructions
@@ -178,7 +179,7 @@ character_to_rational_function(R::MPolyRing, v::AbstractNormalToricVariety, char
 ```
 
 
-## Auxillary Methods
+## Auxiliary Methods
 
 ```@docs
 binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})

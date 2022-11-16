@@ -8,14 +8,12 @@ export issubset
 ##############################################################################
 
 @attributes mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
-  R::MPolyRing
   I::MPolyIdeal{S}
-  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_poly_ring()
+  SQR::Singular.PolyRing  # expensive qring R/I, set and retrieved by singular_poly_ring()
 
   function MPolyQuo(R, I)
     @assert base_ring(I) === R
     r = new{elem_type(R)}()
-    r.R = R
     r.I = I
     return r
   end
@@ -25,16 +23,16 @@ function show(io::IO, Q::MPolyQuo)
   Hecke.@show_name(io, Q)
   Hecke.@show_special(io, Q)
   io = IOContext(io, :compact => true)
-  print(io, "Quotient of $(Q.R) by $(Q.I)")
+  print(io, "Quotient of $(base_ring(Q)) by $(modulus(Q))")
 end
 
-gens(Q::MPolyQuo) = [Q(x) for x = gens(Q.R)]
-ngens(Q::MPolyQuo) = ngens(Q.R)
-gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
-Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
-base_ring(W::MPolyQuo) = W.R
-coefficient_ring(W::MPolyQuo) = coefficient_ring(base_ring(W))
-modulus(W::MPolyQuo) = W.I
+gens(Q::MPolyQuo) = [Q(x) for x = gens(base_ring(Q))]
+ngens(Q::MPolyQuo) = ngens(base_ring(Q))
+gen(Q::MPolyQuo, i::Int) = Q(gen(base_ring(Q), i))
+Base.getindex(Q::MPolyQuo, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
+base_ring(Q::MPolyQuo) = base_ring(Q.I)
+coefficient_ring(Q::MPolyQuo) = coefficient_ring(base_ring(Q))
+modulus(Q::MPolyQuo) = Q.I
 
 default_ordering(Q::MPolyQuo) = default_ordering(base_ring(Q))
 
@@ -51,7 +49,7 @@ mutable struct MPolyQuoElem{S} <: RingElem
   P::MPolyQuo{S}
 
   function MPolyQuoElem(f::S, P::MPolyQuo{S}) where {S}
-    @assert parent(f) === P.R
+    @assert parent(f) === base_ring(P)
     return new{S}(f, P)
   end
 end
@@ -91,7 +89,7 @@ end
   end
 
   function MPolyQuoIdeal(Ox::MPolyQuo{T}, i::MPolyIdeal{T}) where T <: MPolyElem
-    Ox.R === base_ring(i) || error("base rings must match")
+    base_ring(Ox) === base_ring(i) || error("base rings must match")
     r = new{T}()
     r.base_ring = Ox
     r.I = i
@@ -132,7 +130,7 @@ end
 # TODO rename oscar_assure to oscar_assure!
 function oscar_assure(a::MPolyQuoIdeal)
   isdefined(a, :I) && return
-  r = base_ring(a).R
+  r = base_ring(base_ring(a))
   a.I = ideal(r, r.(gens(a.SI)))
 end
 
@@ -356,22 +354,26 @@ ideal(x^2 - y^2)
 function ideal(A::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
   #@assert length(V) > 0
   if length(V) == 0
-    return MPolyQuoIdeal(A, ideal(A.R, elem_type(A.R)[]))
+    return MPolyQuoIdeal(A, ideal(base_ring(A), elem_type(base_ring(A))[]))
   end
   for p in V
-    A.R == parent(p) || error("parents must match")
+    base_ring(A) == parent(p) || error("parents must match")
   end
-  return MPolyQuoIdeal(A, ideal(A.R, V))
+  return MPolyQuoIdeal(A, ideal(base_ring(A), V))
 end
 function ideal(A::MPolyQuo{T}, V::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
   #@assert length(V) > 0
   if length(V) == 0
-    return MPolyQuoIdeal(A, ideal(A.R, elem_type(A.R)[]))
+    return MPolyQuoIdeal(A, ideal(base_ring(A), elem_type(base_ring(A))[]))
   end
   for p in V
     A == parent(p) || error("parents must match")
   end
-  return MPolyQuoIdeal(A, ideal(A.R, map(p->p.f, V)))
+  return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
+end
+
+function ideal(A::MPolyQuo{T}, x::T) where T <: MPolyElem
+  return ideal(A,[x])
 end
 
 function ideal(A::MPolyQuo{T}, x::MPolyQuoElem{T}) where T <: MPolyElem
@@ -713,7 +715,7 @@ MPolyQuo{MPolyElem_dec{fmpq, fmpq_mpoly}}
 function quo(R::MPolyRing, I::MPolyIdeal) 
   q = MPolyQuo(R, I)
   function im(a::MPolyElem)
-    parent(a) !== q.R && error("Element not in the domain of the map")
+    parent(a) !== R && error("Element not in the domain of the map")
     return MPolyQuoElem(a, q)
   end
   function pr(a::MPolyQuoElem)
@@ -731,7 +733,7 @@ end
 
 lift(a::MPolyQuoElem) = a.f
 
-(Q::MPolyQuo)() = MPolyQuoElem(Q.R(), Q)
+(Q::MPolyQuo)() = MPolyQuoElem(base_ring(Q)(), Q)
 
 function (Q::MPolyQuo)(a::MPolyQuoElem)
    parent(a) !== Q && error("Parent mismatch")
@@ -744,12 +746,12 @@ function (Q::MPolyQuo{S})(a::S) where {S <: MPolyElem}
 end
 
 function (Q::MPolyQuo)(a::MPolyElem)
-  return Q(Q.R(a))
+  return Q(base_ring(Q)(a))
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
    @assert singular_poly_ring(Q) == parent(a)
-   return MPolyQuoElem(Q.R(a), Q)
+   return MPolyQuoElem(base_ring(Q)(a), Q)
 end
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
@@ -758,7 +760,7 @@ function (S::Singular.PolyRing)(a::MPolyQuoElem)
    return S(a.f)
 end
 
-(Q::MPolyQuo)(a) = MPolyQuoElem(Q.R(a), Q)
+(Q::MPolyQuo)(a) = MPolyQuoElem(base_ring(Q)(a), Q)
 
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
@@ -825,7 +827,7 @@ end
 
 """
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
-Only the row indeces (generators) in `V` and the column indeces in `U` are converted.
+Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
 function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
   S = sparse_matrix(R)
@@ -893,13 +895,13 @@ function _kbase(Q::MPolyQuo)
   if iszero(s)
     error("ideal was no zero-dimensional")
   end
-  return [Q.R(x) for x = gens(s)]
+  return [base_ring(Q)(x) for x = gens(s)]
 end
 
 #TODO: the reverse map...
 # problem: the "canonical" reps are not the monomials.
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
-  R = Q.R
+  R = base_ring(Q)
   @assert K == base_ring(R)
   l = _kbase(Q)
   V = free_module(K, length(l))
@@ -937,10 +939,10 @@ end
 ################################################################################
 
 function grading(R::MPolyQuo)
-  if R.R isa MPolyRing_dec
-    return grading(R.R)
+  if base_ring(R) isa MPolyRing_dec
+    return grading(base_ring(R))
   else
-    error("Underlying polynomialring must be graded")
+    error("Underlying polynomial ring must be graded")
   end
 end
 
@@ -1007,8 +1009,8 @@ function degree(::Type{Vector{Int}}, a::MPolyQuoElem{<:MPolyElem_dec})
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-is_filtered(q::MPolyQuo) = is_filtered(q.R)
-is_graded(q::MPolyQuo) = is_graded(q.R)
+is_filtered(q::MPolyQuo) = is_filtered(base_ring(q))
+is_graded(q::MPolyQuo) = is_graded(base_ring(q))
 
 @doc Markdown.doc"""
     homogeneous_component(f::MPolyQuoElem{<:MPolyElem_dec}, g::GrpAbFinGenElem)
@@ -1124,7 +1126,7 @@ GrpAb: Z
 ```
 """
 function grading_group(A::MPolyQuo{<:MPolyElem_dec})
-  return grading_group(A.R)
+  return grading_group(base_ring(A))
 end
 
 function hash(w::MPolyQuoElem, u::UInt)
@@ -1134,7 +1136,7 @@ end
 
 function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
+  #      apparently it is possible to get the number of points faster than the points
   D = parent(d)
   @assert D == grading_group(W)
   R = base_ring(W)
@@ -1189,19 +1191,19 @@ end
 ##################################
 
 function is_standard_graded(A::MPolyQuo)
-  return is_standard_graded(A.R)
+  return is_standard_graded(base_ring(A))
 end
 
 function is_z_graded(A::MPolyQuo)
-  return is_z_graded(A.R)
+  return is_z_graded(base_ring(A))
 end
 
 function is_zm_graded(A::MPolyQuo)
-  return is_zm_graded(A.R)
+  return is_zm_graded(base_ring(A))
 end
 
 function is_positively_graded(A::MPolyQuo)
-  return is_positively_graded(A.R)
+  return is_positively_graded(base_ring(A))
 end
 
 ##################################

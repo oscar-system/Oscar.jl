@@ -176,7 +176,7 @@ julia> collect(B)
 ```
 """
 function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
-  @assert d >= 0 "Degree must be non-negativ"
+  @assert d >= 0 "Degree must be non-negative"
 
   if algo == :default
     if is_modular(R)
@@ -214,7 +214,7 @@ end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
   @assert !is_modular(R)
-  @assert d >= 0 "Degree must be non-negativ"
+  @assert d >= 0 "Degree must be non-negative"
 
   monomials = all_monomials(polynomial_ring(R), d)
 
@@ -227,7 +227,7 @@ end
 
 # Sadly, we can't really do much iteratively here.
 function iterate_basis_linear_algebra(IR::InvRing, d::Int)
-  @assert d >= 0 "Degree must be non-negativ"
+  @assert d >= 0 "Degree must be non-negative"
 
   R = polynomial_ring(IR)
 
@@ -266,7 +266,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
     for j = 1:length(mons)
       f = mons[j]
       g = phi(f) - f
-      for (c, m) in zip(coefficients(g), monomials(g))
+      for (c, m) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.monomials(g))
         k = offset + mons_to_rows[m]
         push!(M.rows[k].pos, j)
         push!(M.rows[k].values, c)

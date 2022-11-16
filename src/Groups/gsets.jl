@@ -405,7 +405,7 @@ end
 """
     permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<:GAPGroup
 
-Return the element of the permutation group that desribes the action
+Return the element of the permutation group that describes the action
 of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
 
 # Example
@@ -449,12 +449,30 @@ function __init_JuliaData()
     if ! hasproperty(GAP.Globals, :JuliaData)
       GAP.evalstr("""
 DeclareAttribute( "JuliaData", IsObject );
+
 InstallOtherMethod( ImagesRepresentative,
 [ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
 function( hom, elm )
 local data;
 data:= JuliaData( hom );
 return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
+end );
+
+InstallMethod( RestrictedMapping,
+CollFamSourceEqFamElms,
+[ IsActionHomomorphism and HasJuliaData, IsGroup ],
+function( hom, H )
+local data, OscarG, xset, Omega, Hgens, Hacts, OscarH, res;
+data:= JuliaData( hom ); # the Oscar G-set and the acting Oscar group G
+OscarG:= data[2]; # the acting Oscar group G
+xset:= UnderlyingExternalSet( hom );
+Omega:= HomeEnumerator( xset ); # the set of Oscar objects
+Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
+Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
+OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
+res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
+SetJuliaData( res, [ data[1], OscarH ] );
+return res;
 end );
 """)
     end
@@ -676,7 +694,7 @@ julia> collect(blocks(g))
 function blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert is_transitive(G, L) "The group action is not transitive"
    bl = Vector{Vector{Int}}(GAP.Globals.Blocks(G.X, GapObj(L))::GapObj)
-   return gset(G, bl; closed = true)
+   return gset(G, on_sets, bl; closed = true)
 end
 
 """

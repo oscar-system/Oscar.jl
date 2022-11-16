@@ -26,10 +26,26 @@ julia> rays(NF)
  [0, 0, 1]
  [0, 0, -1]
 ```
+
+As for the `Cone`, the rays may be converted to a matrix using the
+`matrix(ring, ...)` function.
+```jldoctest
+julia> C = cube(3);
+
+julia> NF = normal_fan(C);
+
+julia> matrix(QQ, rays(NF))
+[ 1    0    0]
+[-1    0    0]
+[ 0    1    0]
+[ 0   -1    0]
+[ 0    0    1]
+[ 0    0   -1]
+```
 """
 rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
 
-_ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PF.RAYS[i, :])
+_ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.RAYS, i, :))
 
 _vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(PF.RAYS, 0) : PF.RAYS
 
@@ -287,7 +303,7 @@ julia> lineality_space(PF)
 """
 lineality_space(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
 
-_lineality_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PF.LINEALITY_SPACE[i, :])
+_lineality_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(view(PF.LINEALITY_SPACE, i, :))
 
 _generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = homogenized ? homogenize(PF.LINEALITY_SPACE, 0) : PF.LINEALITY_SPACE
 

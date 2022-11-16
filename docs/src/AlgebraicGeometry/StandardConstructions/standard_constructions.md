@@ -13,7 +13,7 @@ Pages = ["standard_constructions.md"]
 # Standard Constructions in Algebraic Geometry
 
 This page documents a collection of standard constructions in algebraic geometry
-available in Oscar.
+available in OSCAR.
 
 ## Grassmann Plücker Ideal
 ```@docs

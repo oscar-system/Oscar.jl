@@ -52,6 +52,25 @@ end
 	@test is_bijective(phi)
 end
 
+@testset "Modules: orderings" begin
+	R, (w,x,y,z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+	F = FreeMod(R,2)
+  a = (1 + 2*w + 3*x + 4*y + 5*z)*(F[1] + F[2])
+
+  @test length(string(terms(a))) > 2
+
+  @test collect(terms(a; ordering = lex(R)*lex(F))) ==
+    [2*w*F[1], 2*w*F[2], 3*x*F[1], 3*x*F[2], 4*y*F[1], 4*y*F[2],
+     5*z*F[1], 5*z*F[2], F[1], F[2]]
+
+  @test collect(terms(a; ordering = lex([w,x])*revlex(F)*lex([y,z]))) ==
+    [2*w*F[2], 2*w*F[1], 3*x*F[2], 3*x*F[1],
+     4*y*F[2], 5*z*F[2], F[2], 4*y*F[1], 5*z*F[1], F[1]]
+
+  @test_throws ErrorException induced_ring_ordering(revlex(F))
+  @test induced_ring_ordering(lex([w,x])*revlex(F)*lex([y,z])) == lex([w,x,y,z])
+end
+
 @testset "Intersection of modules" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
@@ -853,7 +872,7 @@ end
 	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:cache_morphism)
 	@test is_welldefined(H)
 
-    ## test additon/subtraction of morphisms
+    ## test addition/subtraction of morphisms
     H_1 = H+H-H
     for v in gens(N)
         @test H_1(v) == H(v)

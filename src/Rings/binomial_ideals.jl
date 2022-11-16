@@ -188,7 +188,7 @@ function _isunital(gens::Vector{<: MPolyElem})
     if length(gens[i]) <= 1
       continue
     end
-    c = collect(coefficients(gens[i]))::Vector{elem_type(R)}
+    c = collect(AbstractAlgebra.coefficients(gens[i]))::Vector{elem_type(R)}
     if !iszero(c[1] + c[2])  
       return false
     end
@@ -293,7 +293,7 @@ function _cellular_decomposition_macaulay(I::MPolyIdeal)
   todo = Tuple{Vector{elem_type(R)}, Vector{elem_type(R)}, typeof(I)}[(elem_type(R)[], gens(R), I)]
   #every element in the todo list has three dedicated data:
   #1: contains a list of variables w.r.t. which it is already saturated
-  #2: conatains variables to be considered for cell variables
+  #2: contains variables to be considered for cell variables
   #3: is the ideal to decompose
 
   while !isempty(todo)
@@ -471,7 +471,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   images = QQAbElem{nf_elem}[]
   for t in gb
     #TODO: Once tail will be available, use it.
-    lm = leading_monomial(t)
+    lm = AbstractAlgebra.leading_monomial(t)
     tl = t - lm
     u = exponent_vector(lm, 1)
     v = exponent_vector(tl, 1)
@@ -479,7 +479,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
     uv = matrix(FlintZZ, 1, nvars(R), Int[u[j]-v[j] for j  =1:length(u)]) #this is the vector of u-v
     #TODO: It can be done better by saving the hnf...
     if !can_solve(vs, uv, side = :left)[1]
-      push!(images, -QQAbcl(leading_coefficient(tl)))
+      push!(images, -QQAbcl(AbstractAlgebra.leading_coefficient(tl)))
       vs = vcat(vs, uv)#we have to save u-v as generator for the lattice
     end
   end
@@ -703,7 +703,7 @@ function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQQAb::MPolyRing 
     end
   end
 
-  #now check if there are superflous elements in Ass
+  #now check if there are superfluous elements in Ass
   res = typeof(associated_primes)() 
   for i = 1:length(associated_primes)
     found = false

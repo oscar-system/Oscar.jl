@@ -23,8 +23,8 @@ Using `Polymake.jl` one can apply all functionality of `polymake` to the
 `polymake` object hidden behind this pointer.
 
 Sometimes it can be necessary to directly invoke some `polymake` functions on
-an Oscar `Polyhedron` object (e.g. because some functionality has not yet been
-made available via Oscar's interface). In that case, the following two
+an OSCAR `Polyhedron` object (e.g. because some functionality has not yet been
+made available via OSCAR's interface). In that case, the following two
 functions allow extracting the underlying `Polymake.jl` object from a
 `Polyhedron`, respectively wrapping a `Polymake.jl` object representing a
 polyhedron into a high-level `Polyhedron` object.
@@ -44,9 +44,9 @@ C.pm_polytope
 
 
 !!! warning
-    There are several design differences between `polymake` and `Oscar`.
-    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
-	 Indices in `polymake` are zero-based, whereas in `Oscar` they are one-based.
+    There are several design differences between `polymake` and `OSCAR`.
+    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `OSCAR` use affine coordinates.
+	 Indices in `polymake` are zero-based, whereas in `OSCAR` they are one-based.
 
 The next example shows a purely combinatorial construction of a polytope (here: a square).
 In spite of being given no coordinates, `polymake` can check for us that this is a simple polytope; i.e., each vertex is contained in dimension many facets.

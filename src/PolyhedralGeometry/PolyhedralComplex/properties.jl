@@ -40,6 +40,28 @@ Return an iterator over the vertices of `PC` in the format defined by `as`.
 Optional arguments for `as` include
 * `PointVector`.
 
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> V = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, V)
+A polyhedral complex in ambient dimension 2
+
+julia> vertices(PC)
+4-element SubObjectIterator{PointVector{fmpq}}:
+ [0, 0]
+ [1, 0]
+ [1, 1]
+ [0, 1]
+
+julia> matrix(QQ, vertices(PC))
+[0   0]
+[1   0]
+[1   1]
+[0   1]
+```
 """
 vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(pm_object(PC), _vertex_polyhedron, length(_vertex_indices(pm_object(PC))))
 
@@ -57,9 +79,9 @@ end
 function _vertex_or_ray_polyhedron(::Type{Union{PointVector{T}, RayVector{T}}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     A = P.VERTICES
     if iszero(A[_all_vertex_indices(P)[i],1])
-        return RayVector{T}(P.VERTICES[_all_vertex_indices(P)[i], 2:end])
+        return RayVector{T}(@view P.VERTICES[_all_vertex_indices(P)[i], 2:end])
     else
-        return PointVector{T}(P.VERTICES[_all_vertex_indices(P)[i], 2:end])
+        return PointVector{T}(@view P.VERTICES[_all_vertex_indices(P)[i], 2:end])
     end
 end
 
@@ -67,7 +89,7 @@ vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) w
 
 vertices_and_rays(PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(Union{PointVector{T}, RayVector{T}}, PC)
 
-_vector_matrix(::Val{_vertex_or_ray_polyhedron}, PC::Polymake.BigObject; homogenized = false) = PC.VERTICES[:, (homogenized ? 1 : 2):end]
+_vector_matrix(::Val{_vertex_or_ray_polyhedron}, PC::Polymake.BigObject; homogenized = false) = homogenized ? PC.VERTICES : @view PC.VERTICES[:, 2:end]
 
 vertices(::Type{PointVector}, PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(PointVector{T}, PC)
 
@@ -91,20 +113,23 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR, [2])
 A polyhedral complex in ambient dimension 2
 
-julia> rays(PC);
-
 julia> rays(PC)
 1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
+
+julia> matrix(QQ, rays(PC))
+[1   0]
 ```
 """
 rays(PC::PolyhedralComplex) = rays(RayVector,PC)
 
 _ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
 
-_ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
+_ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
 
-_vector_matrix(::Val{_ray_polyhedral_complex}, PC::Polymake.BigObject; homogenized = false) = PC.VERTICES[_ray_indices_polyhedral_complex(PC), (homogenized ? 1 : 2):end]
+_matrix_for_polymake(::Val{_ray_polyhedral_complex}) = _vector_matrix
+
+_vector_matrix(::Val{_ray_polyhedral_complex}, PC::Polymake.BigObject; homogenized = false) = @view PC.VERTICES[_ray_indices_polyhedral_complex(PC), (homogenized ? 1 : 2):end]
 
 _maximal_polyhedron(::Type{Polyhedron{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Polyhedron{T}(Polymake.fan.polytope(PC, i-1))
 

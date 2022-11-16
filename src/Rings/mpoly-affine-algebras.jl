@@ -80,13 +80,11 @@ julia> hilbert_series(A)
 (-t^6 + 1, -t^6 + t^5 + t^4 - t^2 - t + 1)
 ```
 """
-function hilbert_series(A:: MPolyQuo)
+function hilbert_series(A::MPolyQuo)
    if iszero(A.I)
       R = base_ring(A.I)
-      W = R.d
-      W = [Int(W[i][1]) for i = 1:ngens(R)]   
       Zt, t = ZZ["t"]
-      den = prod([1-t^W[i] for i = 1:ngens(base_ring(A.I))])
+      den = prod([1-t^Int(w) for w in R.d])
       return (one(parent(t)), den)
    end
    H = HilbertData(A.I)
@@ -192,7 +190,7 @@ julia> hilbert_function(A, 5)
 """
 function hilbert_function(A::MPolyQuo, d::Int)
    if iszero(A.I)
-       n = ngens(A)
+       n = QQ(ngens(A))
        return binomial(n-1+d, n-1)
      end
    H = HilbertData(A.I)
@@ -218,7 +216,7 @@ julia> hilbert_polynomial(A)
 """
 function hilbert_polynomial(A::MPolyQuo)::fmpq_poly
    if iszero(A.I)
-       n = ngens(A)
+       n = QQ(ngens(A))
        Qt, t = QQ["t"]
        b = one(parent(t))
        for i=1:(n-1)
@@ -250,7 +248,7 @@ julia> degree(A)
 """
 function degree(A::MPolyQuo)
    if iszero(A.I)
-       return 1
+       return ZZ(1)
      end
    H = HilbertData(A.I)
    return degree(H)
@@ -300,7 +298,7 @@ end
 function _numerator_monomial_multi_hilbert_series(I::MPolyIdeal, S, m; alg=:BayerStillmanA)
   x = gens(base_ring(I))
   W = [degree(Vector{Int}, x[i])[j] for j in 1:m, i in 1:length(x)]
-  return _hilbert_numerator_from_leading_exponents([leading_exponent_vector(f) for f in gens(I)], W, S, :BayerStillmanA)
+  return _hilbert_numerator_from_leading_exponents([AbstractAlgebra.leading_exponent_vector(f) for f in gens(I)], W, S, :BayerStillmanA)
 end
 
 
@@ -383,7 +381,7 @@ with structure of Abelian group with structure: Z
 ```
 """
 function multi_hilbert_series(A::MPolyQuo; alg=:BayerStillmanA)
-   R = A.R
+   R = base_ring(A)
    I = A.I
    if !(coefficient_ring(R) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
@@ -439,7 +437,7 @@ end
 ### TODO: original version of multi_hilbert_series based on moving things to the positive orthant
 
 #function multi_hilbert_series(A::MPolyQuo)
-#   R = A.R
+#   R = base_ring(A)
 #   I = A.I
 #   if !(coefficient_ring(R) isa AbstractAlgebra.Field)
 #       throw(ArgumentError("The coefficient ring must be a field."))
@@ -662,7 +660,7 @@ julia> multi_hilbert_function(A, 7*g)
 ```
 """
 function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
-    R = A.R
+    R = base_ring(A)
     if !(coefficient_ring(R) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of must be a field."))
     end
@@ -686,15 +684,13 @@ function multi_hilbert_function(A::MPolyQuo, g::GrpAbFinGenElem)
 end
 
 function multi_hilbert_function(A::MPolyQuo, g::Vector{<:IntegerUnion})
-  R = A.R
-  @assert is_zm_graded(R)
-  return multi_hilbert_function(A, grading_group(R)(g))
+  @assert is_zm_graded(A)
+  return multi_hilbert_function(A, grading_group(A)(g))
 end
 
 function multi_hilbert_function(A::MPolyQuo, g::IntegerUnion)
-  R = A.R
-  @assert is_z_graded(R)
-  return multi_hilbert_function(A, grading_group(R)([g]))
+  @assert is_z_graded(A)
+  return multi_hilbert_function(A, grading_group(A)([g]))
 end
 
 ##############################################################################
@@ -755,7 +751,7 @@ function is_normal(A::MPolyQuo)
   if !(coefficient_ring(A) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring of the base ring must be a field."))
   end
-  if A.R isa MPolyRing_dec
+  if base_ring(A) isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
@@ -800,18 +796,19 @@ end
 
 # helper function to obtain information about qring status and 
 # convert elements, if needed
-function _ring_helper(r, f, V)
-   if isdefined(r, :I)
-      R = r.R
-      I = r.I
-      W = [v.f for v in V]
-      F = f.f
-   else
-      R = r
-      I = ideal(R, [R(0)])
-      W = [v for v in V]
-      F = f
-   end
+function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyQuoElem
+   R = base_ring(r)
+   I = modulus(r)
+   W = [lift(v) for v in V]
+   F = lift(f)
+   return (R, I, W, F)
+end
+
+function _ring_helper(r, f::T, V::Vector{T}) where T <: MPolyElem
+   R = r
+   I = ideal(R, [R(0)])
+   W = [v for v in V]
+   F = f
    return (R, I, W, F)
 end
 
@@ -851,7 +848,7 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, M
    n = length(W)
    m = ngens(R)
 
-   # Build auxilliary objects
+   # Build auxiliary objects
    (T, phi, J) = _containment_helper(R, n, m, I, W, :degrevlex)
    TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    
@@ -980,7 +977,7 @@ function minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem,
   if p isa MPolyRing
       p isa MPolyRing_dec && is_positively_graded(p) || throw(ArgumentError("The base ring must be positively graded"))
   else
-      p.R isa MPolyRing_dec && is_graded(p.R) || throw(ArgumentError("The base ring must be graded"))
+      base_ring(p) isa MPolyRing_dec && is_graded(p) || throw(ArgumentError("The base ring must be graded"))
   end
   all(is_homogeneous, V) || throw(ArgumentError("The input data is not homogeneous"))
   # iterate over the generators, starting with those in lowest degree, then work up
@@ -1010,7 +1007,7 @@ function _conv_normalize_alg(alg::Symbol)
   end
 end
 
-function _conv_normalize_data(A, l, br)
+function _conv_normalize_data(A::MPolyQuo, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
@@ -1018,7 +1015,7 @@ function _conv_normalize_data(A, l, br)
       newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
       newgens = newOR.(gens(l[1][i][2][:normap]))
       _hom = hom(A, newA, newA.(newgens))
-      idgens = A.R.(gens(l[2][i]))
+      idgens = base_ring(A).(gens(l[2][i]))
       (newA, _hom, (A(idgens[end]), ideal(A, idgens)))
     end
     for i in 1:length(l[1])]
@@ -1095,11 +1092,11 @@ function normalization(A::MPolyQuo; alg=:equidimDec)
   if !(coefficient_ring(A) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
   end
-  if A.R isa MPolyRing_dec
+  if base_ring(A) isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
-  br = base_ring(A.R)
+  br = base_ring(base_ring(A))
   singular_assure(I)
   l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg))
   return _conv_normalize_data(A, l, br)
@@ -1162,11 +1159,11 @@ function normalization_with_delta(A::MPolyQuo; alg=:equidimDec)
   if !(coefficient_ring(A) isa AbstractAlgebra.Field)
        throw(ArgumentError("The coefficient ring must be a field."))
   end
-  if A.R isa MPolyRing_dec
+  if base_ring(A) isa MPolyRing_dec
     throw(ArgumentError("Not implemented for quotients of decorated rings."))
   end
   I = A.I
-  br = base_ring(A.R)
+  br = base_ring(base_ring(A))
   singular_assure(I)
   l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg), "withDelta")
   return (_conv_normalize_data(A, l, br), l[3][1]::Vector{Int}, l[3][2]::Int)
@@ -1196,7 +1193,7 @@ function noether_normalization(A::MPolyQuo)
  if !(coefficient_ring(A) isa AbstractAlgebra.Field)
      throw(ArgumentError("The coefficient ring must be a field."))
  end
- if A.R isa MPolyRing_dec && !(is_standard_graded(A.R))
+ if base_ring(A) isa MPolyRing_dec && !(is_standard_graded(A))
    throw(ArgumentError("If the base ring is decorated, it must be standard graded."))
  end
  I = A.I

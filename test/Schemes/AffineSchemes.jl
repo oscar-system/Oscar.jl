@@ -3,7 +3,7 @@
   A3 = Spec(R)
   deepcopy(A3)
   set_name!(A3, "𝔸³")
-  @test iszero(defining_ideal(A3))
+  @test iszero(Oscar.ambient_closure_ideal(A3))
   f = x*y-z^2
   I = ideal(R, f)
   J = ideal(R, [f, x])
@@ -38,7 +38,7 @@
   @test !issubset(line, X)
   @test issubset(Xsub, line)
   U1 = hypersurface_complement(A3, [x])
-  @test ambient_ring(U) === R
+  @test ambient_coordinate_ring(U) === R
   set_name!(U, "U")
   UX = intersect(X, U)
   set_name!(UX, "U ∩ X")
@@ -81,7 +81,6 @@
   @test dim(U) == 3
   @test dim(X) == 2
   @test codim(A3) == 0
-  @test_broken codim(V) == 0
   @test codim(X) == 1
 end
 
@@ -117,8 +116,8 @@ end
   @test_broken issubset(intersect(A3,V),intersect(V,A3))
   @test issubset(intersect(U,A3),V)
   @test_broken issubset(intersect(A3,V),A3)
-  @test ambient_ring(V)===R
-  @test ambient_ring(U) === R
+  @test ambient_coordinate_ring(V)===R
+  @test ambient_coordinate_ring(U) === R
   @test ring_type(V) == typeof(OO(V))
   @test base_ring_type(typeof(V)) == typeof(QQ)
   @test base_ring_elem_type(V) == fmpq
@@ -153,7 +152,7 @@ end
   Phi1 = SpecMor(X, B, phi1)
   Phi2 = SpecMor(Y, B, phi2)
   Z = fiber_product(Phi1, Phi2)[1]
-  A = ambient_ring(Z)
+  A = ambient_coordinate_ring(Z)
   a = gens(A)
   fib = subscheme(Spec(A), ideal(A, [a[2]-a[4]]))
   @test fib==Z

@@ -182,7 +182,7 @@ end
 (g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
 
 # cperm stands for "cycle permutation", but we can change name if we want
-# takes as input a list of vectors (not necessarly disjoint)
+# takes as input a list of vectors (not necessarily disjoint)
 @doc Markdown.doc"""
     cperm(L::AbstractVector{<:T}...) where T <: IntegerUnion
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
@@ -292,7 +292,7 @@ function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
 end
 
 # cperm stays for "cycle permutation", but we can change name if we want
-# takes as input a list of vectors (not necessarly disjoint)
+# takes as input a list of vectors (not necessarily disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
 function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0

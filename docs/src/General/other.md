@@ -8,12 +8,12 @@
 ## Notes for GAP users
 
 - TODO
-- TODO: also talk about how to use it from Oscar?
+- TODO: also talk about how to use it from OSCAR?
 
 ## Notes for Singular users
 
 - TODO
-- TODO: also talk about how to use it from Oscar?
+- TODO: also talk about how to use it from OSCAR?
 
 ## Notes for Polymake users
 
@@ -28,7 +28,7 @@
 - Polyhedra and polyhedral complexes in OSCAR are represented inhomogeneously,
   i.e. without the leading `1` for vertices or `0` for rays. Hence constructors
   take points, rays, and lineality generators separately.
-- TODO: also talk about how to use it from Oscar?
+- TODO: also talk about how to use it from OSCAR?
 
 ## Notes for Magma users
 

@@ -614,7 +614,7 @@ end
 # Generators for the kernel of
 # O(L/2^2L) ---> O(L/2 L)
 # in the case of 3 consecutive jordan blocks
-# with wierd python indexing
+# with weird python indexing
 function _ker_gens(G::Union{fmpz_mod_mat, nmod_mat}, i1, i2, parity)
   n = nrows(G)
   R = base_ring(G)

@@ -83,7 +83,7 @@ function saturations(L::PartialCharacter{QQAbElem{T}}) where T
 	#computes all saturations of the partial character L
   res = PartialCharacter{QQAbElem{T}}[]
 
-  #first handle case wher the domain of the partial character is the zero lattice
+  #first handle case where the domain of the partial character is the zero lattice
   #in this case return L
   if iszero(L.A)
 		push!(res, L)

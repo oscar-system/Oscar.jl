@@ -122,6 +122,8 @@
   @test pi == g^acthom
   @test haspreimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
+  rest = restrict_homomorphism(acthom, derived_subgroup(G)[1])
+  @test ! is_bijective(rest)
 
   # is_conjugate
   G = symmetric_group(6)
@@ -157,11 +159,15 @@ end
   @test elements(bl) == [[1, 8], [2, 3], [4, 5], [6, 7]]
   @test elements(bl) == elements(blocks(G8, 1:degree(G8)))
 
+  # block homomorphism
+  blhom = action_homomorphism(bl)
+  @test ! is_bijective(blhom)
+
   # is_primitive
   @test ! is_primitive(G8)
   @test ! is_primitive(G8, 1:degree(G8))
   @test is_primitive(S4)
-  @test is_primitive(S4, 1:3)
+  @test ! is_primitive(S4, 1:3)
 
   # is_regular
   @test is_regular(G8)
@@ -192,7 +198,8 @@ end
   # transitivity
   @test transitivity(G8) == 1
   @test transitivity(S4) == 4
-  @test transitivity(S4, 1:3) == 3
+  @test transitivity(S4, 1:3) == 0
+  @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
 
 end

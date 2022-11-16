@@ -28,7 +28,7 @@ is_natural_alternating_group(G::GAPGroup)
 is_isomorphic_with_alternating_group(G::GAPGroup)
 ```
 
-In Oscar, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
+In OSCAR, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
 
 ```@docs
 degree(x::PermGroup)
@@ -36,7 +36,7 @@ degree(x::PermGroup)
 
 ## Permutations
 
-Permutations in Oscar are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions `perm`, `cperm`, or `@perm`.
+Permutations in OSCAR are displayed as products of disjoint cycles, as in GAP. An explicit permutation can be built using the functions `perm`, `cperm`, or `@perm`.
 
 ```@docs
 perm

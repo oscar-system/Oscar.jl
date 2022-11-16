@@ -93,125 +93,129 @@ end
 
 @enable_all_show_via_expressify PBWAlgRing
 
-####
+#### AA prefix here because these all use the ordering in the parent
 
 function length(a::PBWAlgElem)
   return length(a.sdata)
 end
 
-function leading_exponent_vector(a::PBWAlgElem)
-  return leading_exponent_vector(a.sdata)
+function AbstractAlgebra.leading_exponent_vector(a::PBWAlgElem)
+  return AbstractAlgebra.leading_exponent_vector(a.sdata)
 end
 
-function leading_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(leading_coefficient(a.sdata))
+function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T})::T where T
+  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))
 end
 
-function trailing_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(trailing_coefficient(a.sdata))
+function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T})::T where T
+  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))
 end
 
 function constant_coefficient(a::PBWAlgElem{T})::T where T
   return coefficient_ring(a)(constant_coefficient(a.sdata))
 end
 
-function leading_term(a::PBWAlgElem)
-  return PBWAlgElem(parent(a), leading_term(a.sdata))
+function AbstractAlgebra.leading_term(a::PBWAlgElem)
+  return PBWAlgElem(parent(a), AbstractAlgebra.leading_term(a.sdata))
 end
 
-function leading_monomial(a::PBWAlgElem)
-  return PBWAlgElem(parent(a), leading_monomial(a.sdata))
+function AbstractAlgebra.leading_monomial(a::PBWAlgElem)
+  return PBWAlgElem(parent(a), AbstractAlgebra.leading_monomial(a.sdata))
 end
 
 function tail(a::PBWAlgElem)
   return PBWAlgElem(parent(a), tail(a.sdata))
 end
 
-struct owrap{S, T}
-  ring::S
-  iter::T
-end
 
-function Base.length(x::owrap)
-   return length(x.iter)
-end
-
-function exponent_vectors(a::PBWAlgElem)
-  return exponent_vectors(a.sdata)
+function AbstractAlgebra.exponent_vectors(a::PBWAlgElem)
+  return AbstractAlgebra.exponent_vectors(a.sdata)
 end
 
 function terms(a::PBWAlgElem)
-  return owrap(parent(a), terms(a.sdata))
+  return OscarPair(parent(a), terms(a.sdata))
 end
 
-function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
+function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
+   return length(x.second)
+end
+
+function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms})
-  b = Base.iterate(a.iter)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
+  b = Base.iterate(a.second)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
-  b = Base.iterate(a.iter, state)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
+  b = Base.iterate(a.second, state)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function monomials(a::PBWAlgElem)
-  return owrap(parent(a), monomials(a.sdata))
+function AbstractAlgebra.monomials(a::PBWAlgElem)
+  return OscarPair(parent(a), AbstractAlgebra.monomials(a.sdata))
 end
 
-function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
+function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
+   return length(x.second)
+end
+
+function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials})
-  b = Base.iterate(a.iter)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
+  b = Base.iterate(a.second)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
-  b = Base.iterate(a.iter, state)
+function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials}, state)
+  b = Base.iterate(a.second, state)
   b == nothing && return b
-  return (PBWAlgElem(a.ring, b[1]), b[2])
+  return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function coefficients(a::PBWAlgElem)
-  return owrap(parent(a), coefficients(a.sdata))
+function AbstractAlgebra.coefficients(a::PBWAlgElem)
+  return OscarPair(parent(a), AbstractAlgebra.coefficients(a.sdata))
 end
 
-function Base.eltype(x::owrap{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
+function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyCoeffs})
+   return length(x.second)
+end
+
+function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
    return T
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
-  b = Base.iterate(a.iter)
+function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
+  b = Base.iterate(a.second)
   b == nothing && return b
-  return (coefficient_ring(a.ring)(b[1])::T, b[2])
+  return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
-function Base.iterate(a::owrap{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
-  b = Base.iterate(a.iter, state)
+function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
+  b = Base.iterate(a.second, state)
   b == nothing && return b
-  return (coefficient_ring(a.ring)(b[1])::T, b[2])
+  return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
 function build_ctx(R::PBWAlgRing)
-  return owrap(R, MPolyBuildCtx(R.sring))
+  return OscarPair(R, MPolyBuildCtx(R.sring))
 end
 
-function push_term!(M::owrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
-  c = coefficient_ring(M.ring)(c)::T
-  c = base_ring(M.ring.sring)(c)::S
-  push_term!(M.iter, c, e)
+function push_term!(M::OscarPair{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
+  c = coefficient_ring(M.first)(c)::T
+  c = base_ring(M.first.sring)(c)::S
+  push_term!(M.second, c, e)
 end
 
-function finish(M::owrap{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}) where {T, S}
-  return PBWAlgElem(M.ring, finish(M.iter))
+function finish(M::OscarPair{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}) where {T, S}
+  return PBWAlgElem(M.first, finish(M.second))
 end
 
 ####
@@ -308,7 +312,7 @@ end
 
 function _unsafe_coerce(R::Union{MPolyRing, Singular.PluralRing}, a::Union{MPolyElem, Singular.spluralg}, rev::Bool)
   z = MPolyBuildCtx(R)
-  for (c, e) in zip(coefficients(a), exponent_vectors(a))
+  for (c, e) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     push_term!(z, base_ring(R)(c), rev ? reverse(e) : e)
   end
   return finish(z)
@@ -325,7 +329,7 @@ function is_admissible_ordering(R::PBWAlgRing, o::MonomialOrdering)
   @assert n == length(gs)
   for i in 1:n-1, j in i+1:n
     t = _unsafe_coerce(r, R.relations[i,j], false)
-    if leading_monomial(t, o) != gs[i]*gs[j]
+    if leading_monomial(t; ordering = o) != gs[i]*gs[j]
       return false
     end
   end
@@ -339,8 +343,9 @@ function _g_algebra_internal(sr::Singular.PolyRing, rel)
   D = Singular.zero_matrix(sr, n, n)
   for i in 1:n-1, j in i+1:n
     t = _unsafe_coerce(sr, rel[i,j], false)
-    leading_monomial(t) == gen(sr, i)*gen(sr, j) || error("incorrect leading monomial in relations")
-    C[i,j] = sr(leading_coefficient(t))
+    AbstractAlgebra.leading_monomial(t) == gen(sr, i)*gen(sr, j) ||
+                              error("incorrect leading monomial in relations")
+    C[i,j] = sr(AbstractAlgebra.leading_coefficient(t))
     D[i,j] = tail(t)
     srel[i,j] = t
   end
@@ -367,19 +372,19 @@ A = K\langle x_1, \dots , x_n \mid x_jx_i = c_{ij} \cdot x_ix_j+d_{ij},  \ 1\leq
     - The standard monomials in ``K\langle x_1, \dots , x_n\rangle`` represent a `K`-basis for `A`.
     See the definition of PBW-algebras in the OSCAR documentation for details.
 
-!!! warning
+!!! note
     The `K`-basis condition above is checked by default. This check may be
     skipped by passing `check = false`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ["x", "y", "z"];
 
 julia> L = [x*y, x*z, y*z + 1];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
-julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
+julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 ```
 """
@@ -587,13 +592,13 @@ Given a vector `g` of elements of `A`, return the left ideal of `A` generated by
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ["x", "y", "z"];
 
 julia> L = [x*y, x*z, y*z + 1];
 
 julia> REL = strictly_upper_triangular_matrix(L);
 
-julia> A, (x,y,z) = pbw_algebra(R, REL, deglex(gens(R)))
+julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
 (PBW-algebra over Rational Field in x, y, z with relations y*x = x*y, z*x = x*z, z*y = y*z + 1, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z])
 
 julia> I = left_ideal(A, [x^2*y^2, x*z+y*z])
@@ -713,7 +718,7 @@ end
 
 function _one_check(I::Singular.sideal)
   for g in gens(I)
-    if is_constant(g) && is_unit(leading_coefficient(g))
+    if is_constant(g) && is_unit(AbstractAlgebra.leading_coefficient(g))
       return true
     end
   end
@@ -1020,7 +1025,7 @@ end
 #### elimination
 
 function _depends_on_vars(p::Union{Singular.spoly, Singular.spluralg}, sigmaC::Vector{Int})
-  for e in exponent_vectors(p)
+  for e in AbstractAlgebra.exponent_vectors(p)
     for k in sigmaC
       e[k] == 0 || return true
     end
@@ -1058,7 +1063,7 @@ function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
     push!(A, r)
     push!(b, -1)
   end
-  for i in 1:n-1, j in i+1:n, e in exponent_vectors(tail(R.relations[i,j]))
+  for i in 1:n-1, j in i+1:n, e in AbstractAlgebra.exponent_vectors(tail(R.relations[i,j]))
     e[i] -= 1
     e[j] -= 1
     push!(A, e)
@@ -1185,13 +1190,67 @@ end
 @doc Markdown.doc"""
     eliminate(I::PBWAlgIdeal, V::Vector{<:PBWAlgElem}; ordering = nothing)
 
-Given a vector `V` variables, these variables are eliminated from `I`.
-That is, return the ideal of all elements of `I` which only depend on the remaining variables.
+Given a vector `V` of variables, these variables are eliminated from `I`.
+That is, return the ideal generated by all polynomials in `I` which only involve the remaining variables.
+
+    eliminate(I::PBWAlgIdeal, V::Vector{Int}; ordering = nothing)
+
+Given a vector `V` of indices which specify variables, these variables are eliminated from `I`.
+That is, return the ideal generated by all polynomials in `I` which only involve the remaining variables.
+
 
 !!! note
-    If provided, the `ordering` must be an admissible elimination ordering.
-    If `ordering` is not provided, the function may throw an error if an
-    appropriate ordering could not be found.
+    The return value is an ideal of the original algebra.
+
+!!! note
+    If provided, the `ordering` must be an admissible elimination ordering (this is checked by the function).   
+    If not provided, finding an admissible elimination ordering may involve solving a particular
+    linear programming problem. Here, the function is implemented so that
+    it searches for solutions in a certain range only. If no solution is found
+    in that range, the function will throw an error.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z, a) = QQ["x", "y", "z", "a"];
+
+julia> L = [x*y-z, x*z+2*x, x*a, y*z-2*y, y*a, z*a];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (x, y, z, a) = pbw_algebra(R, REL, deglex(gens(R)))
+(PBW-algebra over Rational Field in x, y, z, a with relations y*x = x*y - z, z*x = x*z + 2*x, a*x = x*a, z*y = y*z - 2*y, a*y = y*a, a*z = z*a, PBWAlgElem{fmpq, Singular.n_Q}[x, y, z, a])
+
+julia> f = 4*x*y+z^2-2*z-a;
+
+julia> I = left_ideal(A, [x^2, y^2, z^2-1, f])
+left_ideal(x^2, y^2, z^2 - 1, 4*x*y + z^2 - 2*z - a)
+
+julia> eliminate(I, [x, y, z])
+left_ideal(a - 3)
+
+julia> eliminate(I, [1, 2 ,3])
+left_ideal(a - 3)
+
+julia> try eliminate(I, [z, a]); catch e; e; end
+ErrorException("no elimination is possible: subalgebra is not admissible")
+```
+
+```jldoctest
+julia> R, (p, q) = QQ["p", "q"];
+
+julia> L = [p*q+q^2];
+
+julia> REL = strictly_upper_triangular_matrix(L);
+
+julia> A, (p, q) = pbw_algebra(R, REL, lex(gens(R)))
+(PBW-algebra over Rational Field in p, q with relations q*p = p*q + q^2, PBWAlgElem{fmpq, Singular.n_Q}[p, q])
+
+julia> I = left_ideal(A, [p, q])
+left_ideal(p, q)
+
+julia> try eliminate(I, [q]); catch e; e; end   # in fact, no elimination ordering exists
+ErrorException("could not find elimination ordering")
+```
 """
 function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem}; ordering = nothing)
   return eliminate(I, [var_index(i) for i in sigmaC]; ordering = ordering)

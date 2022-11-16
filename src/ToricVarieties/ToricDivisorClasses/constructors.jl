@@ -50,7 +50,7 @@ Construct the toric divisor class associated to the element ... of the class gro
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> td = ToricDivisor(P2, [1,2,3])
+julia> td = ToricDivisor(P2, [1, 2, 3])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> tdc = ToricDivisorClass(td)

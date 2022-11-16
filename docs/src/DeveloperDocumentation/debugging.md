@@ -1,12 +1,12 @@
-# Debugging Oscar Code
+# Debugging OSCAR Code
 
-## Pitfalls: Mutable objects in Oscar code
+## Pitfalls: Mutable objects in OSCAR code
 
 Suppose you are having the following difficulties. Your code is exhibiting
 inexplicable behaviour and values that should not be changing are changing in
 seemingly random locations. To get to the bottom of these kind of issues
 it is necessary to be familiar with mutable objects in Julia and some of the
-relevant conventions in place in Oscar. This section discusses these
+relevant conventions in place in OSCAR. This section discusses these
 informal rules as well as some of the exceptions to these rules.
 
 In Julia, objects that can change after construction are declared with the
@@ -31,9 +31,9 @@ the internal data structures used by the polynomial ring. As such, this
 modification of `v` has to be considered illegal. Upon creation of the array
 called `v`, we have full rights over the object and can mutate at will.
 However, after passing it to the function `PolynomialRing`, we have given up
-*owernership* of the array and are no longer free to modify it.
+*ownership* of the array and are no longer free to modify it.
 
-General Oscar Principle (GOP):
+General OSCAR Principle (GOP):
 
 *Code should be expected to behave as if all objects are immutable.*
 
@@ -52,7 +52,7 @@ Ramifications:
    and modify an existing object. The fact that a given function may modify a
    preexisting object is usually communicated via coding conventions on the
    name - either a `!` or a `_unsafe` in the name of the function.
-   See [Unsafe arithmetic with Oscar objects](@ref)
+   See [Unsafe arithmetic with OSCAR objects](@ref)
 
 ### Ownership of function arguments
 
@@ -93,7 +93,7 @@ julia> evaluate(x)  # x is now unchanged
 It is of course not true that all Julia functions take ownership of their
 arguments, but the GOP derives from the fact that this decision is an
 implementation detail with performance consequences. The behaviour of a
-function may be inconsistent across different types and versions of Oscar.
+function may be inconsistent across different types and versions of OSCAR.
 In the following two snippets, the GOP says both modifications of `a` are
 illegal since they have since been passed to a function. If `K = QQ`, the two
 mutations turn out to be legal currently, while they are illegal if
@@ -121,7 +121,7 @@ a[2] = zero(K)          # legal?
 ### Ownership of function return values
 
 The nuances of who is allowed to modify an object returned by a function is
-best left to the next section [Unsafe arithmetic with Oscar objects](@ref).
+best left to the next section [Unsafe arithmetic with OSCAR objects](@ref).
 The GOP says of course you should not do it, but there are cases where it can
 be more efficient. However, there is another completely different issue of
 return values that can arise in certain interfaces.
@@ -161,7 +161,7 @@ julia> a
  3
 ```
 
-The preceeding behaviour of the function `modular_proj` is an artifact of
+The preceding behaviour of the function `modular_proj` is an artifact of
 internal efficiency and may be desirable in certain circumstances. In other
 circumstances, the following `deepcopy`s may be necessary for your code to
 function correctly.
@@ -174,12 +174,12 @@ julia> (a, b)
 (fq_nmod[2, 0], fq_nmod[1, 3])
 ```
 
-## Unsafe arithmetic with Oscar objects
+## Unsafe arithmetic with OSCAR objects
 
 Particularly with integers (`BigInt` and `fmpz`) - but also to a lesser extent
 with polynomials - the cost of basic arithmetic operations can easily be
 dominated by the cost of allocating space for the answer. For this reason,
-Oscar offers an interface for in-place arithmetic operations.
+OSCAR offers an interface for in-place arithmetic operations.
 
 Instead of writing `x = a + b` to compute a sum, one writes `x = add!(x, a, b)`
 with the idea that the object to which `x` is pointing is modified instead of

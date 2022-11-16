@@ -123,9 +123,9 @@ julia> vertices(PointVector, P)
 """
 vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
-_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(P.VERTICES[_vertex_indices(P)[i], 2:end])
+_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(@view P.VERTICES[_vertex_indices(P)[i], 2:end])
 
-_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.VERTICES[_vertex_indices(P), (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_vertex_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
@@ -210,9 +210,9 @@ julia> rays(RayVector, PO)
 """
 rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
-_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(P.VERTICES[_ray_indices(P)[i], 2:end])
+_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(@view P.VERTICES[_ray_indices(P)[i], 2:end])
 
-_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
+_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = @view P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
@@ -234,6 +234,14 @@ julia> rays(PO)
 2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
+
+julia> matrix(QQ, rays(PO))
+[1   0]
+[0   1]
+
+julia> matrix(ZZ, rays(PO))
+[1   0]
+[0   1]
 ```
 """
 rays(P::Polyhedron) = rays(RayVector, P)
@@ -293,7 +301,7 @@ x₃ ≦ 1
 facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
 
 function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S<:scalar_types, T<:Union{Polyhedron{S}, AffineHalfspace{S}, Pair{R, S}}}
-    h = decompose_hdata(P.FACETS[[_facet_index(P, i)], :])
+    h = decompose_hdata(view(P.FACETS, [_facet_index(P, i)], :))
     return T(h[1], h[2][])
 end
 
@@ -344,9 +352,12 @@ function _facet_at_infinity(P::Polymake.BigObject)
     fai = Polymake.get_attachment(P, "_facet_at_infinity")
     m = size(P.FACETS,1)
     if isnothing(fai)
-        F = [P.FACETS[i, :] for i in 1:m]
-        i = findfirst(_is_facet_at_infinity, F)
-        fai = Int64(isnothing(i) ? m + 1 : i)
+        i = 1
+        while i <= m
+            _is_facet_at_infinity(view(P.FACETS, i, :)) && break
+            i += 1
+        end
+        fai = i
         Polymake.attach(P, "_facet_at_infinity", fai)
     end
     return fai::Int64
@@ -354,7 +365,7 @@ end
 
 _is_facet_at_infinity(v::AbstractVector) = v[1] >= 0 && iszero(v[2:end])
 
-_remove_facet_at_infinity(P::Polymake.BigObject) = vcat(P.FACETS[1:(_facet_at_infinity(P) - 1), :], P.FACETS[(_facet_at_infinity(P) + 1):end, :])
+_remove_facet_at_infinity(P::Polymake.BigObject) = view(P.FACETS, [collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))], :)
 
 ###############################################################################
 ###############################################################################
@@ -470,6 +481,14 @@ julia> lattice_points(S)
  [1, 0]
  [1, 1]
  [2, 0]
+
+julia> matrix(ZZ, lattice_points(S))
+[0   0]
+[0   1]
+[0   2]
+[1   0]
+[1   1]
+[2   0]
 ```
 """
 function lattice_points(P::Polyhedron{fmpq})
@@ -477,9 +496,9 @@ function lattice_points(P::Polyhedron{fmpq})
     return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
 
-_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
+_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(@view P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
 
-_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = @view P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
@@ -497,6 +516,9 @@ A polyhedron in ambient dimension 3
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{fmpz}}:
  [0, 0, 0]
+
+julia> matrix(ZZ, interior_lattice_points(c))
+[0   0   0]
 ```
 """
 function interior_lattice_points(P::Polyhedron{fmpq})
@@ -504,9 +526,9 @@ function interior_lattice_points(P::Polyhedron{fmpq})
     return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
 
-_interior_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(P.INTERIOR_LATTICE_POINTS[i, 2:end])
+_interior_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(@view P.INTERIOR_LATTICE_POINTS[i, 2:end])
 
-_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.INTERIOR_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized=false) = homogenized ? P.INTERIOR_LATTICE_POINTS : @view P.INTERIOR_LATTICE_POINTS[:, 2:end]
 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
@@ -529,6 +551,14 @@ julia> boundary_lattice_points(c)
  [0, 0, 1]
  [0, 1, 0]
  [1, 0, 0]
+
+julia> matrix(ZZ, boundary_lattice_points(c))
+[-1    0    0]
+[ 0   -1    0]
+[ 0    0   -1]
+[ 0    0    1]
+[ 0    1    0]
+[ 1    0    0]
 ```
 """
 function boundary_lattice_points(P::Polyhedron{fmpq})
@@ -536,9 +566,9 @@ function boundary_lattice_points(P::Polyhedron{fmpq})
     return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
 
-_boundary_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(P.BOUNDARY_LATTICE_POINTS[i, 2:end])
+_boundary_lattice_point(::Type{PointVector{fmpz}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{fmpz}(@view P.BOUNDARY_LATTICE_POINTS[i, 2:end])
 
-_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.BOUNDARY_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject; homogenized=false) = homogenized ? P.BOUNDARY_LATTICE_POINTS : @view P.BOUNDARY_LATTICE_POINTS[:, 2:end]
 
 _matrix_for_polymake(::Val{_boundary_lattice_point}) = _point_matrix
 
@@ -602,9 +632,9 @@ julia> lineality_space(UH)
 """
 lineality_space(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(P), _lineality_polyhedron, lineality_dim(P))
 
-_lineality_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(P.LINEALITY_SPACE[i, 2:end])
+_lineality_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(@view P.LINEALITY_SPACE[i, 2:end])
 
-_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.LINEALITY_SPACE[:, (homogenized ? 1 : 2):end]
+_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogenized=false) = homogenized ? P.LINEALITY_SPACE : @view P.LINEALITY_SPACE[:, 2:end]
 
 _matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
 
@@ -628,7 +658,7 @@ x₄ = 5
 affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
 function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T
-    h = decompose_hdata(-P.AFFINE_HULL[[i], :])
+    h = decompose_hdata(-view(P.AFFINE_HULL, [i], :))
     return AffineHyperplane{T}(h[1], h[2][])
 end
 
@@ -990,6 +1020,12 @@ julia> vertices(square)
  [1, -1]
  [-1, 1]
  [1, 1]
+
+julia> matrix(QQ, vertices(square))
+[-1   -1]
+[ 1   -1]
+[-1    1]
+[ 1    1]
 ```
 """
 relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
@@ -1146,7 +1182,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
             print_constraints(H; io = io)
         else
             A, b = halfspace_matrix_pair(H)
-            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io)
+            print_constraints(view(A, 1:floor(Int, d/2), :), b[1:floor(Int, d/2)]; io = io)
             println(io, "⋮")
             print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io)
         end

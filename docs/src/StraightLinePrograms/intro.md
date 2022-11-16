@@ -16,7 +16,7 @@ Pages = ["intro.md"]
 This is the documentation of the straight-line programs (SLP) implementation by
 [Rafael Fourquet](https://github.com/rfourquet). Originally this was supposed
 to become a separate Julia module, however it has now been incorporated into
-the Oscar core.
+the OSCAR core.
 
 The main SLP type is `SLProgram`, to which other types can "compile" (or
 "transpile"). The easiest way to create an `SLProgram` is to combine

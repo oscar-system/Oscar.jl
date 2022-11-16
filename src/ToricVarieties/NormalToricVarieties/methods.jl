@@ -14,13 +14,13 @@ toric variety `v` is both complete and simplicial.
 
 # Examples
 ```jldoctest
-julia> P3 = projective_space(NormalToricVariety,3)
+julia> P3 = projective_space(NormalToricVariety, 3)
 A normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
 
 julia> betti_number(P3,0)
 1
 
-julia> betti_number(P3,1)
+julia> betti_number(P3, 1)
 0
 ```
 """
@@ -36,14 +36,14 @@ function betti_number(v::AbstractNormalToricVariety, i::Int)
     end
     
     # extract vector of currently-known Betti numbers (or create it if necessary)
-    betti_numbers = get_attribute!(() -> fill(fmpz(-1),d+1), v, :betti_number)::Vector{fmpz}
+    betti_numbers = get_attribute!(() -> fill(fmpz(-1), d+1), v, :betti_number)::Vector{fmpz}
     
     # compute the Betti number if needed
     k = i >> 1 # i is even, so divide by two and use that as index
     if betti_numbers[k+1] == -1
         f_vector::Vector{Int} = pm_object(v).F_VECTOR
         pushfirst!(f_vector, 1)
-        betti_numbers[k+1] = fmpz(sum((-1)^(i-k) * binomial(i,k) * f_vector[d - i + 1] for i=k:d))
+        betti_numbers[k+1] = fmpz(sum((-1)^(i-k) * binomial(i, k) * f_vector[d - i + 1] for i=k:d))
     end
     
     # return result

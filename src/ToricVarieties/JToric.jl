@@ -35,7 +35,7 @@ function push_attribute_if_exists!(result::Vector{String},
 end
 
 include("NormalToricVarieties/constructors.jl")
-include("NormalToricVarieties/auxilliary.jl")
+include("NormalToricVarieties/auxiliary.jl")
 include("NormalToricVarieties/properties.jl")
 include("NormalToricVarieties/attributes.jl")
 include("NormalToricVarieties/methods.jl")
@@ -67,7 +67,7 @@ include("cohomCalg/VanishingSets/constructors.jl")
 include("cohomCalg/VanishingSets/attributes.jl")
 include("cohomCalg/VanishingSets/methods.jl")
 
-include("cohomCalg/auxilliary.jl")
+include("cohomCalg/auxiliary.jl")
 include("cohomCalg/special_attributes.jl")
 
 include("Subvarieties/constructors.jl")
@@ -79,6 +79,10 @@ include("AlgebraicCycles/properties.jl")
 include("AlgebraicCycles/attributes.jl")
 include("AlgebraicCycles/special_attributes.jl")
 
+include("ToricMorphisms/constructors.jl")
+include("ToricMorphisms/attributes.jl")
+include("ToricMorphisms/special_attributes.jl")
+
 # deprecated functions
 @deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
 @deprecate map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety) map_from_torusinvariant_weil_divisor_group_to_class_group(v)
@@ -87,3 +91,4 @@ include("AlgebraicCycles/special_attributes.jl")
 @deprecate cartier_divisor_group(v::AbstractNormalToricVariety) torusinvariant_cartier_divisor_group(v)
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
 @deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
+@deprecate morphism_on_cartier_divisor_group(tm::ToricMorphism) morphism_on_torusinvariant_cartier_divisor_group(tm)

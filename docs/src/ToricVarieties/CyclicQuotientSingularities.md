@@ -37,7 +37,7 @@ dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 ```
 
 
-## Auxillary Methods
+## Auxiliary Methods
 
 ```@docs
 continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})

@@ -4,7 +4,7 @@
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
   RG0 = invariant_ring(M1, M2)
 
-  # Explicitely call the other constructors
+  # Explicitly call the other constructors
   invariant_ring([ M1, M2 ])
   invariant_ring(K, [ M1, M2 ])
   invariant_ring(matrix_group([ M1, M2 ]))

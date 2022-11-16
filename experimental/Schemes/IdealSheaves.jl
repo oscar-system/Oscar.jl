@@ -1,6 +1,6 @@
 export IdealSheaf
 
-export scheme, covering, getindex, subscheme, covered_patches, extend!, ideal_dict
+export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
 
 export ideal_sheaf_type
 
@@ -16,7 +16,7 @@ in every chart.
 """
 function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal) 
   S = base_ring(I)
-  S === ambient_ring(X) || error("ideal does not live in the ambient ring of the scheme")
+  S === ambient_coordinate_ring(X) || error("ideal does not live in the ambient coordinate ring of the scheme")
   g = gens(I)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
@@ -49,7 +49,7 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
-# this constructs the empty ideal sheaf
+# this constructs the zero ideal sheaf
 function IdealSheaf(X::CoveredScheme) 
   C = default_covering(X)
   I = IdDict{AbsSpec, Ideal}()
@@ -59,8 +59,19 @@ function IdealSheaf(X::CoveredScheme)
   return IdealSheaf(X, I, check=false)
 end
 
-# internal routine to set up an ideal sheaf by automatic extension 
+# set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
+@Markdown.doc """
+    IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector)
+
+Set up an ideal sheaf on ``X`` by specifying a set of generators ``g`` 
+on one affine open subset ``U`` among the `basic_patches` of the 
+`default_covering` of ``X``. 
+
+**Note:** The set ``U`` has to be dense in its connected component 
+of ``X`` since otherwise, the extension of the ideal sheaf to other 
+charts can not be inferred. 
+"""
 function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
   U in patches(C) || error("the affine open patch does not belong to the covering")
@@ -144,7 +155,7 @@ function simplify!(I::IdealSheaf)
   for U in basic_patches(default_covering(space(I)))
     n = ngens(I(U)) 
     n == 0 && continue
-    R = ambient_ring(U)
+    R = ambient_coordinate_ring(U)
     kk = coefficient_ring(R)
     new_gens = elem_type(OO(U))[]
     K = ideal(OO(U), new_gens) 
@@ -161,13 +172,12 @@ function simplify!(I::IdealSheaf)
   return I
 end
 
+@Markdown.doc """
+    subscheme(I::IdealSheaf) 
 
-### Given an ideal sheaf I, return the associated 
-# subscheme
-#
-# **Note:** This must be cached!
-#
-# TODO: Also return the associated closed embedding.
+For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` this returns 
+the subscheme ``Y ⊂ X`` given by the zero locus of ``ℐ``.
+"""
 function subscheme(I::IdealSheaf) 
   X = space(I)
   C = default_covering(X)
@@ -200,6 +210,8 @@ This proceeds by crawling through the glueing graph and taking
 closures in the patches ``Uⱼ`` of the subschemes 
 ``Zᵢⱼ = V(I) ∩ Uᵢ ∩ Uⱼ`` in the intersection with a patch ``Uᵢ`` 
 on which ``I`` had already been described.
+
+Note that the covering `C` is not modified.  
 """
 function extend!(
     C::Covering, D::IdDict{AbsSpec, Ideal}

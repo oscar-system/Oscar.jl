@@ -89,7 +89,7 @@ _images(f::MPolyAnyMap) = f.img_gens
 #
 ################################################################################
 
-# # Since we want to allow specifiying images in a "subring", we need to coerce
+# # Since we want to allow specifying images in a "subring", we need to coerce
 # if necessary. For example, hom(Qx, Qx, [1, 1]), should work, although
 # 1 is not an element of the codomain.
 function _coerce(S, img_gens)
@@ -104,15 +104,15 @@ end
 
 # The following is used when the domain is graded
 
-# if the codomain is graded, the images must be homogenous?!
+# if the codomain is graded, the images must be homogeneous?!
 _isgraded(::NCRing) = false
 _isgraded(R::MPolyRing_dec) = is_graded(R) # filtered not considered graded
-_isgraded(R::MPolyQuo) = _isgraded(R.R)
+_isgraded(R::MPolyQuo) = _isgraded(base_ring(R))
 
 function _check_homo(S::NCRing, images)
   if _isgraded(S)
     for i in images
-      @req is_homogeneous(i) "Images must be homogenous"
+      @req is_homogeneous(i) "Images must be homogeneous"
     end
   end
 end
@@ -123,7 +123,7 @@ end
 
 _nvars(R::MPolyRing) = nvars(R)
 
-_nvars(R::MPolyQuo) = nvars(R.R)
+_nvars(R::MPolyQuo) = nvars(base_ring(R))
 
 function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map})
   if isdefined(f, :temp_ring)

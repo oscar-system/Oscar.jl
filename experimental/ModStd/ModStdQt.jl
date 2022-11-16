@@ -8,7 +8,7 @@ function __init__()
   Hecke.add_verbose_scope(:ModStdQt)
 end
 
-function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector; ErrorTolerant::Bool = false)
+function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)
   n = evaluate(numerator(f), v)
   d = evaluate(denominator(f), v)
   if iszero(d) 
@@ -40,12 +40,12 @@ end
 =#
 
 """
-same as crt_env in Hecke, but a differnt point of view:
+same as crt_env in Hecke, but a different point of view:
 crt_env deals with the chinese remainder theorem in euclidean rings,
 while this is for interpolation of polynomials, hence
 has a different interface:
  - creation via the evaluation points rather than the linear polynomials
- - use via the values, not (contant) polynomials
+ - use via the values, not (constant) polynomials
 """
 mutable struct InterpolateCtx{T}
   C::Hecke.crt_env{T}
@@ -332,7 +332,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
       if frst
         lst = []
         for _g = gJ
-          g = inv(leading_coefficient(_g))*_g
+          g = inv(AbstractAlgebra.leading_coefficient(_g))*_g
           f = []
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             push!(f, (e, Vals(Vector{T}[[c]])))
@@ -343,7 +343,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
       else
         for ig = 1:length(gJ)
           g = gJ[ig]
-          g *= inv(leading_coefficient(g))
+          g *= inv(AbstractAlgebra.leading_coefficient(g))
           jg = 1
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
@@ -526,7 +526,7 @@ The return value is an array
   - two polynomials over a finite extension of Q(A) given as a residue field,
       Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
       extension, the lst entry is the multiplicity.
-      In this case, there are degree(h(t)) many abs. irreducible facors, but they
+      In this case, there are degree(h(t)) many abs. irreducible factors, but they
       are all conjugate to th e1st tuple entry. The 2nd entry is the product of all the
       other conjugates,
 
@@ -584,7 +584,7 @@ function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
     end
     bb = finish(b)
     b = zero(RX)
-    for (c, ex) = zip(coefficients(k), exponent_vectors(k))
+    for (c, ex) = zip(AbstactAlgebra.coefficients(k), AbstractAlgebra.exponent_vectors(k))
       b += c*R(K(monomial(Qt, ex[ngens(Qtx)+1:end])))*monomial(RX, ex[1:ngens(Qtx)])
     end
     kk = b
@@ -602,10 +602,10 @@ end
 #=TODO
  - if after a specialisation the degree of the field is wrong (too high) 
    or the multiplicity is wrong (not squarefree)
-   disgard the evaluation
- - for every disgarded evaluation: choose a different z as to not
+   discard the evaluation
+ - for every discarded evaluation: choose a different z as to not
    loose the geometric progression of the p-powers
- - if after a specialisation the field degree is wrong (too low), disgard everything 
+ - if after a specialisation the field degree is wrong (too low), discard everything 
    so far...change shift?
  - deal with coefficients that are non-primitive
  - write up and publish...
@@ -732,7 +732,7 @@ function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
       for i=1:length(pres)
         push!(co, lift(pres[d], pres[i], coeff(fac, d), coeff(fac, i), fpt))
       end
-      return pres[d], co, collect(exponent_vectors(fac))
+      return pres[d], co, collect(AbstractAlgebra.exponent_vectors(fac))
     end
 
     @vprint :ModStdQt 1 "failed, more points\n"

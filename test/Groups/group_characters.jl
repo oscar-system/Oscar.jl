@@ -861,3 +861,22 @@ end
     @test length(class_parameters(t)) == length(t)
   end
 end
+
+@testset "symmetrizations" begin
+    t = character_table("S5");
+    irr = [chi for chi in t];
+    @test [chi[1] for chi in symmetrizations(irr, 2)] == [0, 1, 0, 1, 15, 21, 6, 10, 6, 10, 10, 15, 10, 15]
+    @test [chi[1] for chi in symmetric_parts(irr, 2)] == [1, 1, 21, 10, 10, 15, 15]
+    @test [chi[1] for chi in anti_symmetric_parts(irr, 2)] == [0, 0, 15, 6, 6, 10, 10]
+    @test [chi[1] for chi in orthogonal_components(irr, 2)] == [15, 20, 6, 9, 6, 9, 10, 14, 10, 14]
+    @test [chi[1] for chi in symplectic_components(irr, 2)] == [14, 21, 5, 10, 5, 10, 9, 15, 9, 15]
+    @test [exterior_power(chi, 3)[1] for chi in t] == [0, 0, 20, 4, 4, 10, 10]
+    @test [symmetric_power(chi, 3)[1] for chi in t] == [1, 1, 56, 20, 20, 35, 35]
+
+    empty = Oscar.GAPGroupClassFunction[]
+    @test symmetrizations(empty, 2) == empty
+    @test symmetric_parts(empty, 2) == empty
+    @test anti_symmetric_parts(empty, 2) == empty
+    @test orthogonal_components(empty, 2) == empty
+    @test symplectic_components(empty, 2) == empty
+end

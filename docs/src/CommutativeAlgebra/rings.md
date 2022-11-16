@@ -76,7 +76,7 @@ z
 
 ## Coefficient Rings 
 
-Gröbner bases are implemented for multivariate polynomial rings over the fields and rings from this list:
+Gröbner and standard bases are implemented for multivariate polynomial rings over the fields and rings below:
 
 ###### The field of rational numbers $\mathbb{Q}$
 

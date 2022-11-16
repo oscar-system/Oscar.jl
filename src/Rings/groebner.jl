@@ -1,4 +1,4 @@
-export  f4, groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal, syzygy_generators
+export  f4, standard_basis, groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal, syzygy_generators
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -21,9 +21,9 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> Oscar.groebner_assure(I, degrevlex(gens(R)));
+julia> Oscar.groebner_assure(I, degrevlex(R));
 
-julia> I.gb[degrevlex(gens(R))]
+julia> I.gb[degrevlex(R)]
 Gröbner basis with elements
 1 -> x*y - 3*x
 2 -> y^3 - 6*x^2
@@ -45,12 +45,12 @@ end
 
 function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
     return get!(I.gb, ordering) do
-        _compute_std_basis(I.gens, ordering, complete_reduction)
+        _compute_standard_basis(I.gens, ordering, complete_reduction)
     end
 end
 
 @doc Markdown.doc"""
-    _compute_std_basis(B::IdealGens, ordering::MonomialOrdering,
+    _compute_standard_basis(B::IdealGens; ordering::MonomialOrdering,
                             complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
@@ -70,7 +70,7 @@ Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -2*x^2*y + y^3
 
-julia> B = Oscar._compute_std_basis(A, degrevlex(gens(R)))
+julia> B = Oscar._compute_standard_basis(A, degrevlex(R))
 Gröbner basis with elements
 1 -> x*y - 3*x
 2 -> y^3 - 6*x^2
@@ -79,7 +79,7 @@ with respect to the ordering
 degrevlex([x, y])
 ```
 """
-function _compute_std_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
    singular_assure(B, ordering)
    R = B.Sx
    I  = Singular.Ideal(R, gens(B.S)...)
@@ -96,7 +96,9 @@ end
 
 # standard basis for non-global orderings #############################
 @doc Markdown.doc"""
-    std_basis(I::MPolyIdeal, ordering::MonomialOrdering)
+    standard_basis(I::MPolyIdeal;
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
+      complete_reduction::Bool = false)
 
 Compute a standard basis of `I` for the monomial ordering `ordering`.
 
@@ -112,7 +114,7 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
 julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
 ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
 
-julia> std_basis(I, negdegrevlex(gens(R)))
+julia> standard_basis(I, ordering=negdegrevlex(R))
 Standard basis with elements
 1 -> x
 2 -> y
@@ -120,16 +122,16 @@ with respect to the ordering
 negdegrevlex([x, y])
 ```
 """
-function std_basis(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   complete_reduction && @assert is_global(ordering)
   if !haskey(I.gb, ordering)
-    I.gb[ordering] = _compute_std_basis(I.gens, ordering, complete_reduction)
+    I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
   end
   return I.gb[ordering]
 end
 
 @doc Markdown.doc"""
-    function groebner_basis(I::MPolyIdeal;
+    groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false)
 
@@ -145,7 +147,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> H = groebner_basis(I, ordering=lex(gens(R)))
+julia> H = groebner_basis(I, ordering=lex(R))
 Gröbner basis with elements
 1 -> y^4 - 3*y^3
 2 -> x*y - 3*x
@@ -156,7 +158,7 @@ lex([x, y])
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
     is_global(ordering) || error("Ordering must be global")
-    return std_basis(I, ordering, complete_reduction)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction)
 end
 
 @doc Markdown.doc"""
@@ -246,7 +248,7 @@ Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -2*x^2*y + y^3
 
-julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(gens(R)))
+julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -6*x^2 + y^3
@@ -272,7 +274,9 @@ function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering,
  end
 
 @doc Markdown.doc"""
-    groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
+    groebner_basis_with_transformation_matrix(I::MPolyIdeal;
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
+      complete_reduction::Bool=false)
 
 Return a pair `G, m` where `G` is a Groebner basis of the ideal `I` with respect to the
 monomial ordering `ordering` (as default degree reverse lexicographical), and `m` is a transformation matrix from
@@ -339,23 +343,23 @@ w.r.t. the given monomial ordering.
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(gens(R)))
+julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=degrevlex(R))
 ideal(x*y^2, y^5)
 
-julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(gens(R)))
+julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(R))
 ideal(x*y^2, x^3)
 ```
 """
 function leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
-    return ideal(parent(g[1]), [first(monomials(f, ordering)) for f in g])
+    return ideal(parent(g[1]), [leading_monomial(f; ordering = ordering) for f in g])
 end
 
 function leading_ideal(I::IdealGens{T}) where { T <: MPolyElem }
-    return ideal(base_ring(I), [first(monomials(f, I.ord)) for f in I])
+    return ideal(base_ring(I), [leading_monomial(f; ordering = I.ord) for f in I])
 end
 
 function leading_ideal(I::IdealGens{T}, ordering::MonomialOrdering) where {T <: MPolyElem}
-    return ideal(base_ring(I), [first(monomials(f, ordering)) for f in I])
+    return ideal(base_ring(I), [leading_monomial(f; ordering = ordering) for f in I])
 end
 
 
@@ -373,16 +377,16 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
 ideal(x*y^2 - 3*x, x^3 - 14*y^5)
 
-julia> L = leading_ideal(I, ordering=degrevlex(gens(R)))
+julia> L = leading_ideal(I, ordering=degrevlex(R))
 ideal(x*y^2, x^4, y^5)
 
-julia> L = leading_ideal(I, ordering=lex(gens(R)))
+julia> L = leading_ideal(I, ordering=lex(R))
 ideal(y^7, x*y^2, x^3)
 ```
 """
 function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
   G = groebner_basis(I, ordering=ordering)
-  return ideal(base_ring(I), [first(monomials(g, ordering)) for g in G])
+  return ideal(base_ring(I), [leading_monomial(g; ordering = ordering) for g in G])
 end
 
 @doc Markdown.doc"""
@@ -505,7 +509,7 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 end
 
 function normal_form(f::MPolyElem, J::MPolyIdeal, o::MonomialOrdering)
-  stdJ = std_basis(J, o, false)
+  stdJ = standard_basis(J, ordering=o, complete_reduction=false)
   Sx = stdJ.Sx
   Ox = parent(f)
   I = Singular.Ideal(Sx, Sx(f))

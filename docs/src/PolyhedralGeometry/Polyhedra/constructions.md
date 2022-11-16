@@ -18,7 +18,7 @@ Pages = ["constructions.md"]
 The standard way to define a polyhedron is by either giving a
 $V$-representation or an $H$-representation.  But polyhedra may also be
 constructed through other means: by name, via operations on other polyhedra, or
-from other objects in Oscar.
+from other objects in OSCAR.
 
 ## $H$- and $V$-representations
 

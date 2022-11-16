@@ -745,13 +745,13 @@ end
 
 length(a::MPolyElem_dec) = length(a.f)
 total_degree(a::MPolyElem_dec) = total_degree(a.f)
-monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
-coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
-term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
-exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
-exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = exponent_vector(a.f, i, T)
-exponent(a::MPolyElem_dec, i::Int, j::Int) = exponent(a.f, i, j)
-exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = exponent(a.f, i, j, T)
+AbstractAlgebra.monomial(a::MPolyElem_dec, i::Int) = parent(a)(AbstractAlgebra.monomial(a.f, i))
+AbstractAlgebra.coeff(a::MPolyElem_dec, i::Int) = AbstractAlgebra.coeff(a.f, i)
+AbstractAlgebra.term(a::MPolyElem_dec, i::Int) = parent(a)(AbstractAlgebra.term(a.f, i))
+AbstractAlgebra.exponent_vector(a::MPolyElem_dec, i::Int) = AbstractAlgebra.exponent_vector(a.f, i)
+AbstractAlgebra.exponent_vector(a::MPolyElem_dec, i::Int, ::Type{T}) where T = AbstractAlgebra.exponent_vector(a.f, i, T)
+AbstractAlgebra.exponent(a::MPolyElem_dec, i::Int, j::Int) = AbstractAlgebra.exponent(a.f, i, j)
+AbstractAlgebra.exponent(a::MPolyElem_dec, i::Int, j::Int, ::Type{T}) where T = AbstractAlgebra.exponent(a.f, i, j, T)
 
 function has_weighted_ordering(R::MPolyRing_dec)
   grading_to_ordering = false
@@ -1083,7 +1083,7 @@ function homogeneous_components(a::MPolyElem_dec{T, S}) where {T, S}
   dmat = vcat([d[i].coeff for i in 1:length(d)])
   tmat = zero_matrix(ZZ, 1, nvars(R))
   res_mat = zero_matrix(ZZ, 1, ncols(dmat))
-  for (c, e) = Base.Iterators.zip(coefficients(a.f), exponent_vectors(a.f))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(a.f), AbstractAlgebra.exponent_vectors(a.f))
     # this is non-allocating
     for i in 1:length(e)
       tmat[1, i] = e[i]
@@ -1352,7 +1352,7 @@ x^2
 """
 function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
+  #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
   #      would be a module over the deg-0-sub ring.
   if !(coefficient_ring(W) isa AbstractAlgebra.Field)
@@ -1411,7 +1411,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
   for i = e
     pos = Vector{Int}()
     val = Vector{elem_type(K)}()
-    for (c, m) = Base.Iterators.zip(coefficients(i), monomials(i))
+    for (c, m) = Base.Iterators.zip(AbstractAlgebra.coefficients(i), AbstractAlgebra.monomials(i))
       if haskey(mon, m)
         push!(pos, mon[m])
         push!(val, c)
@@ -1440,7 +1440,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
   function g(x::T)
     @assert parent(x) == R
     v = zero(F)
-    for (c, m) = Base.Iterators.zip(coefficients(x), monomials(x))
+    for (c, m) = Base.Iterators.zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.monomials(x))
       if !haskey(mon, m)
         error("not in image")
       end
@@ -1528,7 +1528,7 @@ end
 
 function hilbert_series(H::HilbertData, i::Int= 1)
   Zt, t = ZZ["t"]
-  den = prod([1-t^H.weights[i] for i = 1:ngens(base_ring(H.I))])
+  den = prod([1-t^w for w in H.weights])
   if i==1   ### the Hilbert series with denominator prod (1-t^H.weights[i])
     return Zt(map(fmpz, H.data[1:end-1])), den
   elseif i==2   ### the reduced Hilbert series
@@ -1544,11 +1544,7 @@ end
 #Decker-Lossen, p23/24
 function hilbert_polynomial(H::HilbertData)
 
-  for i = 1:ngens(base_ring(H.I))
-     if H.weights[i] != 1
-       throw(ArgumentError("All weights must be 1."))
-     end
-  end
+  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
   
   q, dn = hilbert_series(H, 2)
   a = fmpq[]
@@ -1573,18 +1569,16 @@ end
 
 function Oscar.degree(H::HilbertData)
 
-  for i = 1:ngens(base_ring(H.I))
-     if H.weights[i] != 1
-       throw(ArgumentError("All weights must be 1."))
-     end
-  end
+  all(isone, H.weights) || throw(ArgumentError("All weights must be 1"))
   
   P = hilbert_polynomial(H)
-  if P==zero(parent(P))
+  if iszero(P)
      q, _ = hilbert_series(H, 2)
      return q(1)
   end
-  return leading_coefficient(P)*factorial(degree(P))
+  deg = leading_coefficient(P)*factorial(ZZ(degree(P)))
+  @assert isone(denominator(deg))
+  return numerator(deg)
 end
 
 function (P::FmpqRelSeriesRing)(H::HilbertData)
@@ -1605,9 +1599,9 @@ function hilbert_series_expanded(H::HilbertData, d::Int)
 end
 
 function hilbert_function(H::HilbertData, d::Int)
-   if d<0 return 0 end
-   HS = hilbert_series_expanded(H,d)
-   return coeff(hilbert_series_expanded(H, d), d)
+   d < 0 && QQ(0)
+   HS = hilbert_series_expanded(H, d)
+   return coeff(HS, d)
 end
 
 function Base.show(io::IO, h::HilbertData)
@@ -1750,7 +1744,7 @@ end
 #      spent in `_divide_by`, so it does not seem overly important 
 #      at this point, but might become relevant in the future. 
 #      A particular modification of the singular version of bitmasking 
-#      is to compute means for the exponents occuring for each variable 
+#      is to compute means for the exponents occurring for each variable 
 #      and set the bits depending on whether a given exponent is greater 
 #      or less than that mean value. 
 
@@ -2050,11 +2044,11 @@ end
 
 ###old: special and to be applied with care
 ### needed for: AffinePlaneCurve.jl
-### TODO: make adjustments there and omitt fuction below
+### TODO: make adjustments there and omit function below
 function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
   d = total_degree(f)
   B = MPolyBuildCtx(S)
-  for (c,e) = zip(coefficients(f), exponent_vectors(f))
+  for (c,e) = zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     insert!(e, pos, d-sum(e))
     push_term!(B, c, e)
   end
@@ -2065,7 +2059,7 @@ function _homogenization(f::MPolyElem, S::MPolyRing_dec, start_pos::Int = 1)
    len_gg  = ngens(S.D)
       #= get exponent vectors and enlarge them for S =#
    exps = Vector{Int}[]
-   for e in exponent_vectors(f)
+   for e in AbstractAlgebra.exponent_vectors(f)
        for j in 1:len_gg
            insert!(e, start_pos+j-1, 0)
        end
@@ -2089,7 +2083,7 @@ function _homogenization(f::MPolyElem, S::MPolyRing_dec, start_pos::Int = 1)
        #= finally generate homogeneous version of f in S, called F =#
    F  = MPolyBuildCtx(S)
 
-   for (i, (c, e)) = enumerate(zip(coefficients(f), exps))
+   for (i, (c, e)) = enumerate(zip(AbstractAlgebra.coefficients(f), exps))
        for j in 1:len_gg
            e[start_pos+j-1] = tdeg[j]-degs[i][j]
        end
@@ -2297,10 +2291,10 @@ function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::M
 end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
-### TODO: make adjustments there and omitt fuction below
+### TODO: make adjustments there and omit function below
 function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
   B = MPolyBuildCtx(R)
-  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+  for (c,e) = zip(AbstractAlgebra.coefficients(F), AbstractAlgebra.exponent_vectors(F))
     deleteat!(e, pos)
     push_term!(B, c, e)
   end
@@ -2311,7 +2305,7 @@ end
 
 function _dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int, m::Int)
   B = MPolyBuildCtx(R)
-  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+  for (c,e) = zip(AbstractAlgebra.coefficients(F), AbstractAlgebra.exponent_vectors(F))
     deleteat!(e, pos:pos+m-1)
     push_term!(B, c, e)
   end

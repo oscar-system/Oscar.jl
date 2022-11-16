@@ -50,7 +50,7 @@ toric_variety(c::CohomologyClass)
 coefficients(c::CohomologyClass)
 exponents(c::CohomologyClass)
 polynomial(c::CohomologyClass)
-polynomial(c::CohomologyClass, ring::MPolyQuo)
+polynomial(ring::MPolyQuo, c::CohomologyClass)
 ```
 
 

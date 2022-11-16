@@ -201,7 +201,7 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
     return I+J
   end
   
-  #finds the last occurence of a variable
+  #finds the last occurrence of a variable
   #RAUL: This is the idiot proof version, not taking into account that we have a GB wrt lex
   function indexOfVarN(I::Singular.sideal, n::Int64)
      m = 1

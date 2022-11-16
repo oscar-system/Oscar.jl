@@ -74,4 +74,12 @@ end
   G = orthogonal_group(D)
   g = one(G)
   @test @inferred g ==G(matrix(g))
+
+  L = root_lattice(:A, 2)
+  q = discriminant_group(L)
+  T = orthogonal_sum(q, q)[1]
+  OT = orthogonal_group(T)
+  f = matrix(ZZ, 2, 2, [1 1;0 1])
+  fT = hom(T, T, f) # this works, we see it as a map of abelian group
+  @test_throws ErrorException OT(fT) # this should not because fT does not preserve the bilinear form
 end

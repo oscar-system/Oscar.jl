@@ -15,7 +15,7 @@ into a comprehensive tool for computational algebra.
 
   `https://oscar.computeralgebra.de`
 
-Oscar is licensed under the GPL v3+ (see LICENSE.md).
+OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
@@ -153,7 +153,7 @@ function __init__()
     print("... \n ... which comes with absolutely no warranty whatsoever")
     println()
     println("Type: '?Oscar' for more information")
-    println("(c) 2019-2022 by The Oscar Development Team")
+    println("(c) 2019-2022 by The OSCAR Development Team")
   end
 
   append!(_gap_group_types,
@@ -356,11 +356,8 @@ function test_module(x::AbstractString, new::Bool = true)
    end
 end
 
-function weights end
-
-function is_effective end
-
 include("printing.jl")
+include("fallbacks.jl")
 
 include("GAP/wrappers.jl")
 
@@ -447,6 +444,8 @@ include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
 include("ToricVarieties/JToric.jl")
+
+include("Schemes/main.jl")
 
 include("TropicalGeometry/main.jl")
 
