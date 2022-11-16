@@ -1,6 +1,8 @@
 export is_empty, issubset, is_open_embedding, is_closed_embedding
 
+export is_equidimensional
 
+export is_smooth
 
 ####################################################################################
 # (1) Check if a scheme is empty
@@ -483,3 +485,153 @@ function is_closed_embedding(
   all(x->(isunit(OO(X)(x))), denominators(inverted_set(OO(Y)))) || return false
   return issubset(modulus(OO(Y)), localized_ring(OO(Y))(modulus(OO(X))))
 end
+
+#############################################################################
+# (5) Check, if a Spec is equidimensional
+#############################################################################
+
+@doc Markdown.doc"""
+   is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
+
+Return whether a scheme `X` is equidimensional.
+
+Currently this command is available for affine schemes and space germs.
+TODO: projective schemes, covered schemes
+
+This command relies on [`equidimensional_decomposition_radical`](@ref).
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal(R,[(x-y)])
+ideal(x - y)
+
+julia> J = ideal(R,[x-1,y-2])
+ideal(x - 1, y - 2)
+
+julia> X = Spec(R,I)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y)
+
+julia> Y = Spec(R,I*J)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
+
+julia> is_equidimensional(X)
+true
+
+julia> is_equidimensional(Y)
+false
+'''
+"""
+@attr Bool function is_equidimensional(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+  I = modulus(OO(X))
+# equidimensional decomposition only available for schemes over a field
+  P = equidimensional_decomposition_radical(saturated_ideal(I))
+  length(P) < 2 && return true
+  return false
+end
+
+# make is_equidimensional agnostic to quotient
+@attr Bool function is_equidimensional(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  return true
+end
+
+##############################################################################
+# (6) Check, if scheme is reduced
+##############################################################################
+
+@doc Markdown.doc"""
+   is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
+
+Return the boolean value whether a scheme `X` is reduced.
+
+Currently, this command is available for affine schemes and space germs.
+TODO: projective schemes, covered schemes
+"""
+@attr function is_reduced(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+  I = saturated_ideal(modulus(OO(X)))
+  return is_reduced(quo(base_ring(I), I)[1])
+end
+
+## make is_reduced agnostic to quotient ring
+@attr Bool function is_reduced(X::AbsSpec{<:Ring, <:MPAnyNonQuoRing})
+  return true
+end
+
+########################################################################
+# (7) Smoothness test based on projective modules.
+# The routine checks whether the module for the cotangent sheaf Ω¹(X)
+# is locally free over 𝒪(X) and returns `true` if this is the case. 
+########################################################################
+
+@doc Markdown.doc"""
+    is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
+
+Return whether a scheme `X` is smooth.
+
+Currently this command is available for affine schemes and space germs.
+TODO: Covered schemes, projective schemes
+
+Note that smoothness and regularity do not coincide over non-perfect fields.
+TODO: is_regular using Hironaka's criterion
+
+See also [`singular_locus`](@ref), [`singular_locus_reduced`](@ref).
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal(R,[x-y^2])
+ideal(x - y^2)
+
+julia> J = ideal(R,[x^2-y^2])
+ideal(x^2 - y^2)
+
+julia> X = Spec(R, I)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y^2)
+
+julia> is_smooth(X)
+true
+
+julia> Y = Spec(R, J)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^2)
+
+julia> is_smooth(Y)
+false
+
+julia> U=MPolyComplementOfKPointIdeal(R,[1,1])
+complement of maximal ideal corresponding to point with coordinates fmpq[1, 1]
+
+julia> Z = Spec(R, J, U)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[1, 1]
+
+julia> is_smooth(Z)
+true
+
+```
+"""
+@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+  R = base_ring(OO(X))
+  L = localized_ring(OO(X))
+  I = modulus(OO(X))
+  f = gens(Oscar.pre_saturated_ideal(I))
+  Df = jacobi_matrix(f)
+  A = map_entries(x->OO(X)(x), Df)
+  success, _, _ = Oscar._is_projective_without_denominators(A)
+  return success
+end
+
+@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuo})
+  R = base_ring(OO(X))
+  I = modulus(OO(X))
+  f = gens(I)
+  Df = jacobi_matrix(f)
+  A = map_entries(x->OO(X)(x), Df)
+  success, _, _ = Oscar._is_projective_without_denominators(A)
+  return success
+end
+
+## make is_smooth agnostic to quotient ring
+is_smooth(X::AbsSpec{<:Field, <:MPolyRing}) = true
+is_smooth(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) = true

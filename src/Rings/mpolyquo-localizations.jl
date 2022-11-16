@@ -1502,3 +1502,27 @@ end
 function quotient(I::IdealType, J::IdealType) where {IdealType<:MPolyQuoLocalizedIdeal}
   return base_ring(I)(quotient(pre_image_ideal(I), pre_image_ideal(J)))
 end
+
+##############################################################################
+# Further functionality for elements of localized quotients of rings
+##############################################################################
+
+function derivative(f::MPolyQuoLocalizedRingElem, i::Int)
+  num = derivative(lifted_numerator(f), i)*lifted_denominator(f) - derivative(lifted_denominator(f), i)*lifted_numerator(f)
+  den = lifted_denominator(f)^2
+  g = gcd(num, den)
+  return parent(f)(divexact(num, g), divexact(den, g), check=false)
+end
+
+function jacobi_matrix(f::MPolyQuoLocalizedRingElem)
+  L = parent(f)
+  n = nvars(base_ring(L))
+  return matrix(L, n, 1, [derivative(f, i) for i=1:n])
+end
+
+function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
+  L = parent(g[1])
+  n = nvars(base_ring(L))
+  @assert all(x->parent(x) == L, g)
+  return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
+end
