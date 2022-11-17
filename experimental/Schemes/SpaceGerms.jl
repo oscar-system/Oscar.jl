@@ -56,7 +56,7 @@ function underlying_scheme(X::SpaceGerm)
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyQuoLocalizedRing})
-      return Spec(quotient_ring(OO(X)))
+      return Spec(underlying_quotient(OO(X)))
 end
 
 @attr Spec function representative(X::SpaceGerm{<:Ring, <:MPolyLocalizedRing})
@@ -183,7 +183,7 @@ end
 
 to_poly_ideal(I::MPolyQuoIdeal) = ideal(base_ring(base_ring(I)),lift.(gens(I))) + modulus(base_ring(I))
 to_poly_ideal(I::MPolyLocalizedIdeal) = ideal(base_ring(base_ring(I)), gens(saturated_ideal(I)))
-to_poly_ideal(I::MPolyQuoLocalizedIdeal) = ideal(base_ring(base_ring(I)),gens(saturated_ideal(I))) + modulus(quotient_ring(base_ring(I)))
+to_poly_ideal(I::MPolyQuoLocalizedIdeal) = ideal(base_ring(base_ring(I)),gens(saturated_ideal(I))) + modulus(underlying_quotient(base_ring(I)))
 
 function SpaceGerm(X::AbsSpec, I::Ideal)
   A = base_ring(I)
@@ -271,7 +271,7 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGe
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   point(X) == point(Y) || return false
-  IY=ideal(localized_ring(OO(X)), gens(modulus(quotient_ring(OO(Y)))))
+  IY=ideal(localized_ring(OO(X)), gens(modulus(underlying_quotient(OO(Y)))))
   return issubset(IY,modulus(OO(X)))
 end
 
@@ -287,7 +287,7 @@ function Base.union(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   # comparison of points implicitly also checks that localization was performed at points
   # otherwise 'point' is not implemented
-  I = intersect(modulus(quotient_ring(OO(X))),modulus(quotient_ring(OO(Y))))
+  I = intersect(modulus(underlying_quotient(OO(X))),modulus(underlying_quotient(OO(Y))))
   Z,_ = germ_at_point(MPolyQuoLocalizedRing(R, I ,inverted_set(OO(X))))
   return Z
 end

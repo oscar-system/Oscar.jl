@@ -73,7 +73,7 @@
   @test base_ring(W) == R
   @test inverted_set(W) == U
   L, _ = quo(W, ideal(W, f))
-  @test issubset(modulus(quotient_ring(L)), saturated_ideal(modulus(L)))
+  @test issubset(modulus(underlying_quotient(L)), saturated_ideal(modulus(L)))
   @test gens(L) == L.(gens(R))
   @test x//(y*(x-1)) in L
 
