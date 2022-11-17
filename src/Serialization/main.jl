@@ -247,7 +247,7 @@ Load the object stored in the given io stream
 respectively in the file `filename`.
 An optional parameter `parent` can be passed. This will
 load the file as an element of the parent, or for container types
-such as Vector and Tuple it will load the entries as elements of the
+such as `Vector` and `Tuple` it will load the entries as elements of the
 passed `parent`.
 
 See [`save`](@ref).
@@ -274,9 +274,20 @@ x^2 - x + 1
 
 julia> parent(p_loaded) === R
 true
+
+julia> save("/tmp/p_v.json", [p, p])
+722
+
+julia> loaded_p_v = load("/tmp/p_v.json", parent=R)
+2-element Vector{fmpq_poly}:
+ x^2 - x + 1
+ x^2 - x + 1
+
+julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
+true
 ```
 """
-function load(io::IO; parent::Any = nothing)
+function load(io::IO; parent::Any = nothing, T::Type)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
