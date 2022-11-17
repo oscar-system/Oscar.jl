@@ -336,7 +336,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) whe
     end
     H = hnf(lattice_gens)
     lattice_gens = transpose(H[1:length(w)-1, :])
-    tr = adjoint(lattice_gens)
+    tr,_ = pseudo_inv(lattice_gens)
     ray_gens = ray_gens * transpose(tr)
     mc = IncidenceMatrix(subsets(Vector{Int}(1:length(w)), length(w)-1))
     variety = NormalToricVariety(PolyhedralFan(ray_gens, mc; non_redundant=true ))
