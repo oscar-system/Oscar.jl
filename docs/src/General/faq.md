@@ -82,6 +82,13 @@ TODO
 
 ---
 
+**Q: Why does my program not terminate?**
+
+Many of the algorithms implemented in OSCAR have a very high complexity. Even
+if not calling one of these algorithms directly, you may be using it in the
+background. Please read our page on [Complex Algorithms in OSCAR].
+
+---
 ## Windows specific
 
 **Q: How can I install OSCAR on Windows?**

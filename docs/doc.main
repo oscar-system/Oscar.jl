@@ -6,6 +6,7 @@
      "General/other.md",
      "General/faq.md",
      "General/serialization.md",
+     "General/complex.md",
   ],
 
   "Groups" => [
