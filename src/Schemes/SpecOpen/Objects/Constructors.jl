@@ -52,7 +52,7 @@ function complement(X::AbsSpec,
     check::Bool=true
   )
   check && (is_closed_embedding(Z, X) || error("not a closed embedding"))
-  return SpecOpen(Y, modulus(quotient_ring(OO(Z))))
+  return SpecOpen(Y, modulus(underlying_quotient(OO(Z))))
 end
 
 ########################################################################

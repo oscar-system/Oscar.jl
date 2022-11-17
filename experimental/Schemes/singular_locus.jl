@@ -20,7 +20,7 @@ function singular_locus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
     return subscheme(X, ideal(OO(X),one(OO(X))))
   end
   R = base_ring(OO(X))
-  I= prod([modulus(quotient_ring(OO(Y))) for Y in comp])
+  I= prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
 #  return Spec(R, I, inverted_set(OO(X)))
   return subscheme(X,I)
 end
@@ -162,8 +162,8 @@ function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
 end
 
 function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing})
-  g = gens(modulus(quotient_ring(OO(X))))
-  L = base_ring(quotient_ring(OO(X)))
+  g = gens(modulus(underlying_quotient(OO(X))))
+  L = base_ring(underlying_quotient(OO(X)))
   n = nvars(L)
   M = matrix(L, n, length(g),[derivative(f,i) for i=1:n for f in g])
   return M

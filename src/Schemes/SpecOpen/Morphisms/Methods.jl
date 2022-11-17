@@ -71,7 +71,7 @@ function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
   pbZ = [preimage(f[i], Z) for i in 1:n]
   Y = X 
   for K in pbZ
-    Y = subscheme(Y, gens(modulus(quotient_ring(OO(K)))))
+    Y = subscheme(Y, gens(modulus(underlying_quotient(OO(K)))))
   end
   return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))])
 end
