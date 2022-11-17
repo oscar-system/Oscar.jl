@@ -787,9 +787,9 @@ function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_orde
 		# Try to reduce all possible s-polynomials, i.e. Buchberger's criterion
 		R = base_ring(F)
 		for i in 1:length(F)
-			lt_i = leading_term(F[i], ordering)
+			lt_i = leading_term(F[i], ordering=ordering)
 			for j in i+1:length(F)
-				lt_j = leading_term(F[j], ordering)
+				lt_j = leading_term(F[j], ordering=ordering)
 				lcm_ij  = lcm(lt_i, lt_j)
 				sp_ij = div(lcm_ij, lt_i) * F[i] - div(lcm_ij, lt_j) * F[j]
 				if reduce(IdealGens([sp_ij], ordering), F, ordering=ordering) != [R(0)]
