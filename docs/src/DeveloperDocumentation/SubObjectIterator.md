@@ -65,7 +65,7 @@ certain requirements for the `SubObjectIterator` to work. The arguments are:
 Let us look at an example how we can utilize this interface. The following is
 the implementation to access the rays of a `Cone`:
 
-```julia-repl
+```julia
 rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, nrays(C))
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
