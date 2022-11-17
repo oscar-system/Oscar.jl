@@ -287,7 +287,7 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; parent::Any = nothing, T::Type = nothing)
+function load(io::IO; parent::Any = nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
