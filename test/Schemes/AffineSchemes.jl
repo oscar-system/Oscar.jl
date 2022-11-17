@@ -157,3 +157,17 @@ end
   fib = subscheme(Spec(A), ideal(A, [a[2]-a[4]]))
   @test fib==Z
 end
+
+@testset "ClosedEmbedding" begin
+  R, (x, y) = QQ["x", "y"]
+  X = Spec(R)
+  h = x^2 + y^2 -1
+  I = ideal(R, [h])
+  Y, inc = sub(X, I)
+  @test inc isa ClosedEmbedding
+  @test Y == subscheme(X, I)
+  @test pullback(inc)(x) == OO(Y)(x)
+  @test pullback(inc)(y) == OO(Y)(y)
+  @test image_ideal(inc) == modulus(OO(Y))
+  @test complement(inc) == SpecOpen(X, [h])
+end

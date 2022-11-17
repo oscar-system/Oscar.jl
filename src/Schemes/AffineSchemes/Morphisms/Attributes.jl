@@ -258,3 +258,4 @@ function morphism_type(::Type{SpecType1}, ::Type{SpecType2}) where {SpecType1<:A
 end
 
 morphism_type(X::AbsSpec, Y::AbsSpec) = morphism_type(typeof(X), typeof(Y))
+
