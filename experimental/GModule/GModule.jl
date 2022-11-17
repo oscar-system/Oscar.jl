@@ -436,7 +436,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinF
   D = norm(B, s, os)
   lambda = D[1,1]
   @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
-  alpha = _norm_equation(K, preimage(mkK, lambda))
+  alpha = norm_equation(K, preimage(mkK, lambda))
   B *= inv(alpha)
   @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
@@ -666,30 +666,6 @@ function hilbert90_generic(X::Dict, mA)
 end
 
 """
-Hunt for b s.th. N(b) == a
-"""
-#TODO conflicts with the "same" algo in Hecke - where it does not
-#     work due to a missing function or so.
-function _norm_equation(K::FinField, a::FinFieldElem)
-  # a in K, k = fix(K, <s>)
-  # we want irr. poly over k of degree(K:k) with constant term \pm a
-  # then a root in K has the norm...
-  k = parent(a)
-  fkK = embed(k, K)
-  os = divexact(degree(K), degree(k))
-  if isodd(os)
-    a = -a
-  end
-  kt, t = PolynomialRing(k, cached = false)
-  while true
-    f = t^os + a + sum(t^rand(1:os-1)*rand(k) for i=1:rand(1:os-1))
-    is_irreducible(f) || continue
-    r = roots(map_coefficients(fkK, f))[1]
-    return r
-  end
-end
-
-"""
 Norm of A wrt. s. s acts on the entries of A, this computes
   A * A^s * A^s^2 ... A^s^(os-1)
 os is meant to be the order of s
@@ -711,7 +687,7 @@ for ord(s) = os = n+1. Then this will find B s.th.
   A = B^(1-s)
 """
 function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
-  #apart form rand, this would also work over a number field
+  #apart from rand, this would also work over a number field
   cnt = 1
   while true
     B = rand(parent(A))
