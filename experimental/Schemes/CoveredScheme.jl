@@ -1,4 +1,5 @@
 export morphism_type, morphisms
+export refinements
 
 ########################################################################
 # Methods for Covering                                                 #
