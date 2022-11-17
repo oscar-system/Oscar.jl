@@ -100,7 +100,7 @@ glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
     BaseSchemeType<:CoveredScheme, 
     CoveringType<:Covering,
     SpecType<:Spec,
-    BRT, BRET} <: Scheme{BRT, BRET}
+    BRT, BRET} <: Scheme{BRT}
   Y::BaseSchemeType # the base scheme
   BC::CoveringType # the reference covering of the base scheme
   patches::Dict{SpecType, ProjectiveScheme} # the projective spaces over the affine patches in the base covering
@@ -151,146 +151,218 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
 
-function blow_up(W::Spec, I::MPolyQuoLocalizedIdeal;
-    var_names::Vector{Symbol}=Symbol.(["s$(i-1)" for i in 1:ngens(I)]),
-    verbose::Bool=false,
-    check::Bool=true,
-    is_regular_sequence::Bool=false
-  )
-  base_ring(I) == OO(W) || error("ideal does not belong to the correct ring")
-  r = ngens(I)-1
-  PW = projective_space(W, var_names)
-  PWC = affine_cone(PW)
-  prW = projection_to_base(PW)
-  WA1, pW, pA = product(W, affine_space(base_ring(base_ring(OO(W))), 1, variable_name="t"))
-  t = pullback(pA)(OO(codomain(pA))(base_ring(OO(codomain(pA)))[1]))
-  imgs = vcat((x->t*x).(pullback(pW).(gens(I))), pullback(pW).(gens(base_ring(OO(W)))))
-  inner_phi = hom(base_ring(OO(PWC)), OO(WA1), imgs)
-  phi = MPolyQuoLocalizedRingHom(OO(PWC), OO(WA1), inner_phi)
-  K = kernel(phi)
-  J = ideal(homog_poly_ring(PW), poly_to_homog(PW).(lifted_numerator.([f for f in gens(K) if !iszero(f)])))
-  return subscheme(PW, J)
+function blow_up(W::AbsSpec, I::Ideal)
+  error("method `blow_up` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
+  base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
+  if one(OO(W)) in I 
+    # construct a relative ℙ⁰ over W with its identifying projection.
+  end
+  # compute the blowup with the universal proj-construction.
 end
 
-# blow up X in the center described by g using these explicit generators.
-function blow_up(
-    W::Spec, 
-    I::Vector{RingElemType}; 
-    var_names::Vector{Symbol}=Vector{Symbol}(), 
-    verbose::Bool=false,
-    check::Bool=true,
-    is_regular_sequence::Bool=false
-  ) where {RingElemType<:MPolyElem}
+########################################################################
+# Blowups of affine schemes                                            #
+########################################################################
 
-  # some internal function
-  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
-    ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), v))
-    n = length(gens(R))
-    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
-    return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
+function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal)
+  base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
+  if one(OO(W)) in I 
+    # construct a relative ℙ⁰ over W with its identifying projection.
   end
-
-  A = OO(W)
-  R = base_ring(A)
-  #TODO: Check if for all i \in I parent(i) == R
-
-  m = length(I)
-  Pw = (length(var_names) > 0 ? projective_space(W, var_names) : projective_space(W,m-1))
-  S = homog_poly_ring(Pw)
-
-  CP = affine_cone(Pw)
-  Polyring = base_ring(OO(CP))
-  if !is_regular_sequence
-    At, embeddingAt, T =  _add_variables(R,[:t])
-    t = T[1]
-
-    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
-    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
-
-    Imod = modulus(A)
-    IW = ideal(At, [embeddingAt(f) for f in gens(Imod)])
-    @show "start groebner basis computation."
-    IWpre = preimage(Phi, IW)
-    @show "done. Proceed to process"
-    #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
-    SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
-    @show 0
-
-    projective_version = subscheme(Pw, SIWpre)
-    @show 1
-    covered_version = as_covered_scheme(projective_version)
-    @show 2
-    projection_map = get_attribute(projective_version, :covered_projection_to_base)
-    @show 3
-    E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
-    for i in 1:length(I)
-      @show i
-      U = default_covering(covered_version)[i]
-      E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
-    end
-    @show 4
-    exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
-    @show "processing done."
-    return projective_version, covered_version, projection_map, exc_div
+  r = ngens(I) - 1
+  g = gens(I)
+  IPW = projective_space(W, r)
+  S = ambient_coordinate_ring(IPW)
+  t = gens(S)
+  if is_regular_sequence(gens(I))
+    # construct the blowup manually
+    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r, j in i+1:r+1])
+    return subscheme(IPW, J)
   else
-    M = MatrixSpace(S, 2, ngens(S))
-    A = zero(M)
-    for i in 1:ngens(S)
-      A[1, i] = S[i]
-      A[2, i] = I[i]
-    end
-    IW = ideal(S, minors(A, 2))
-    projective_version = subscheme(Pw, IW)
-    covered_ambient = as_covered_scheme(Pw)
-    ambient_projection_map = get_attribute(Pw, :covered_projection_to_base)
-    C = default_covering(covered_ambient)
-    SpecType = affine_patch_type(covered_ambient)
-    PolyType = poly_type(SpecType)
-    Idict = Dict{SpecType, ideal_type(ring_type(SpecType))}()
-    @show I
-    for i in 1:npatches(C)
-      @show i
-      v = gens(OO(C[i]))
-      phi = pullback(ambient_projection_map[C[i]])
-      loc_eqns = vcat([v[j]*phi(I[i])-phi(I[j]) for j in 1:i-1], [v[j]*phi(I[i])-phi(I[j+1]) for j in i:length(I)-1])
-      @show loc_eqns
-      Idict[C[i]] = ideal(OO(C[i]), loc_eqns)
-      @show "ideal saved"
-    end
-    @show "computing ideal sheaf"
-    Itrans = IdealSheaf(covered_ambient, C, Idict, check=false)
-    @show "computation done; getting subscheme"
-    covered_version = subscheme(Itrans)
-    @show "computation done"
-    set_attribute!(projective_version, :as_covered_scheme, covered_version)
-    @show "computing a default covering"
-    set_attribute!(projective_version, :standard_covering, default_covering(covered_version))
-    @show "done"
-
-    proj_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
-    @show "doing some other stuff"
-    for i in 1:length(I)
-      @show i
-      Z = patches(default_covering(covered_version))[i]
-      U = patches(default_covering(covered_ambient))[i]
-      proj_dict[Z] = restrict(ambient_projection_map[U], Z, codomain(ambient_projection_map[U]), check=false)
-    end
-
-    projection_map = CoveringMorphism(default_covering(covered_version), Covering(W), proj_dict)
-    set_attribute!(projective_version, :covered_projection_to_base, projection_map)
-    @show 3
-    E_dict = Dict{affine_patch_type(covered_version), ideal_type(ring_type(affine_patch_type(covered_version)))}()
-    for i in 1:length(I)
-      @show i
-      U = default_covering(covered_version)[i]
-      E_dict[U] = ideal(OO(U), pullback(projection_map[U])(I[i]))
-    end
-    @show 4
-    exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
-    @show "processing done."
-    return projective_version, covered_version, projection_map, exc_div
+    # construct the blowup by elimination.
+    CIPW = affine_cone(IPW)
+    R = base_ring(I)
+    x = gens(R)
+    kk = coefficient_ring(R)
+    A, x_ext = PolynomialRing(kk, vcat(symbols(R), [:t]))
+    t = last(x_ext) 
+    phi = hom(OO(CIPW), A, vcat(x_ext[1:end-1], [g[i]*t for i in 1:r+1]))
+    J = kernel(phi)
+    pb = poly_to_homog(IPW) 
+    Jh = ideal(S, pb.(gens(J)))
+    return subscheme(IPW, Jh)
   end
 end
+
+function blow_up(W::AbsSpec{<:Field, <:MPolyQuo}, I::MPolyQuoIdeal)
+  # We first blow up the smooth ambient space
+  A = ambient_space(W)::AbsSpec{<:Field, <:MPolyRing}
+  J = ideal(OO(A), lift.(gens(I)))
+  P = blow_up(A, J)
+
+  # ...and then compute the strict transform of W in there
+  S = ambient_coordinate_ring(P)
+  CP = affine_cone(P)
+  p = projection_to_base(P)
+  IW = ideal(OO(CP), pullback(p).(gens(modulus(OO(W)))))
+  IE = ideal(OO(CP), pullback(p).(gens(J)))
+  IWstrict = saturation(IW, IE)
+  IWh = ideal(S, poly_to_homog(P).(gens(IWstrict)))
+  return subscheme(P, IWh)
+end
+
+
+function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
+  length(g) == 0 && return true
+  R == parent(g[1])
+  all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
+  isunit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
+  is_zero_divisor(g[1]) && return false
+  A, p = quo(R, ideal(R, g))
+  return is_regular_sequence(p.(g[2:end]), A)
+end
+
+
+#function blow_up(W::Spec, I::MPolyQuoLocalizedIdeal;
+#    var_names::Vector{Symbol}=Symbol.(["s$(i-1)" for i in 1:ngens(I)]),
+#    verbose::Bool=false,
+#    check::Bool=true,
+#    is_regular_sequence::Bool=false
+#  )
+#  base_ring(I) == OO(W) || error("ideal does not belong to the correct ring")
+#  r = ngens(I)-1
+#  PW = projective_space(W, var_names)
+#  PWC = affine_cone(PW)
+#  prW = projection_to_base(PW)
+#  WA1, pW, pA = product(W, affine_space(base_ring(base_ring(OO(W))), 1, variable_name="t"))
+#  t = pullback(pA)(OO(codomain(pA))(base_ring(OO(codomain(pA)))[1]))
+#  imgs = vcat((x->t*x).(pullback(pW).(gens(I))), pullback(pW).(gens(base_ring(OO(W)))))
+#  inner_phi = hom(base_ring(OO(PWC)), OO(WA1), imgs)
+#  phi = MPolyQuoLocalizedRingHom(OO(PWC), OO(WA1), inner_phi)
+#  K = kernel(phi)
+#  J = ideal(homog_poly_ring(PW), poly_to_homog(PW).(lifted_numerator.([f for f in gens(K) if !iszero(f)])))
+#  return subscheme(PW, J)
+#end
+
+## blow up X in the center described by g using these explicit generators.
+#function blow_up(
+#    W::Spec, 
+#    I::Vector{RingElemType}; 
+#    var_names::Vector{Symbol}=Vector{Symbol}(), 
+#    verbose::Bool=false,
+#    check::Bool=true,
+#    is_regular_sequence::Bool=false
+#  ) where {RingElemType<:MPolyElem}
+#
+#  # some internal function
+#  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
+#    ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), v))
+#    n = length(gens(R))
+#    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
+#    return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
+#  end
+#
+#  A = OO(W)
+#  R = base_ring(A)
+#  #TODO: Check if for all i \in I parent(i) == R
+#
+#  m = length(I)
+#  Pw = (length(var_names) > 0 ? projective_space(W, var_names) : projective_space(W,m-1))
+#  S = homog_poly_ring(Pw)
+#
+#  CP = affine_cone(Pw)
+#  Polyring = base_ring(OO(CP))
+#  if !is_regular_sequence
+#    At, embeddingAt, T =  _add_variables(R,[:t])
+#    t = T[1]
+#
+#    #	@show vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1])
+#    Phi = AlgebraHomomorphism(Polyring, At, vcat([t*embeddingAt(f) for f in I], gens(At)[1:end-1]))
+#
+#    Imod = modulus(A)
+#    IW = ideal(At, [embeddingAt(f) for f in gens(Imod)])
+#    @show "start groebner basis computation."
+#    IWpre = preimage(Phi, IW)
+#    @show "done. Proceed to process"
+#    #SIWpre = ideal(S,[frac_to_homog(Pw,g) for g in gens(IWpre)])
+#    SIWpre = ideal(S, poly_to_homog(Pw).(gens(IWpre)))
+#    @show 0
+#
+#    projective_version = subscheme(Pw, SIWpre)
+#    @show 1
+#    covered_version = as_covered_scheme(projective_version)
+#    @show 2
+#    projection_map = get_attribute(projective_version, :covered_projection_to_base)
+#    @show 3
+#    E_dict = Dict{affine_patch_type(covered_version), Vector{RingElemType}}()
+#    for i in 1:length(I)
+#      @show i
+#      U = default_covering(covered_version)[i]
+#      E_dict[U] = [lifted_numerator(pullback(projection_map[U])(I[i]))]
+#    end
+#    @show 4
+#    exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
+#    @show "processing done."
+#    return projective_version, covered_version, projection_map, exc_div
+#  else
+#    M = MatrixSpace(S, 2, ngens(S))
+#    A = zero(M)
+#    for i in 1:ngens(S)
+#      A[1, i] = S[i]
+#      A[2, i] = I[i]
+#    end
+#    IW = ideal(S, minors(A, 2))
+#    projective_version = subscheme(Pw, IW)
+#    covered_ambient = as_covered_scheme(Pw)
+#    ambient_projection_map = get_attribute(Pw, :covered_projection_to_base)
+#    C = default_covering(covered_ambient)
+#    SpecType = affine_patch_type(covered_ambient)
+#    PolyType = poly_type(SpecType)
+#    Idict = Dict{SpecType, ideal_type(ring_type(SpecType))}()
+#    @show I
+#    for i in 1:npatches(C)
+#      @show i
+#      v = gens(OO(C[i]))
+#      phi = pullback(ambient_projection_map[C[i]])
+#      loc_eqns = vcat([v[j]*phi(I[i])-phi(I[j]) for j in 1:i-1], [v[j]*phi(I[i])-phi(I[j+1]) for j in i:length(I)-1])
+#      @show loc_eqns
+#      Idict[C[i]] = ideal(OO(C[i]), loc_eqns)
+#      @show "ideal saved"
+#    end
+#    @show "computing ideal sheaf"
+#    Itrans = IdealSheaf(covered_ambient, C, Idict, check=false)
+#    @show "computation done; getting subscheme"
+#    covered_version = subscheme(Itrans)
+#    @show "computation done"
+#    set_attribute!(projective_version, :as_covered_scheme, covered_version)
+#    @show "computing a default covering"
+#    set_attribute!(projective_version, :standard_covering, default_covering(covered_version))
+#    @show "done"
+#
+#    proj_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+#    @show "doing some other stuff"
+#    for i in 1:length(I)
+#      @show i
+#      Z = patches(default_covering(covered_version))[i]
+#      U = patches(default_covering(covered_ambient))[i]
+#      proj_dict[Z] = restrict(ambient_projection_map[U], Z, codomain(ambient_projection_map[U]), check=false)
+#    end
+#
+#    projection_map = CoveringMorphism(default_covering(covered_version), Covering(W), proj_dict)
+#    set_attribute!(projective_version, :covered_projection_to_base, projection_map)
+#    @show 3
+#    E_dict = Dict{affine_patch_type(covered_version), ideal_type(ring_type(affine_patch_type(covered_version)))}()
+#    for i in 1:length(I)
+#      @show i
+#      U = default_covering(covered_version)[i]
+#      E_dict[U] = ideal(OO(U), pullback(projection_map[U])(I[i]))
+#    end
+#    @show 4
+#    exc_div = IdealSheaf(covered_version, default_covering(covered_version), E_dict, check=false)
+#    @show "processing done."
+#    return projective_version, covered_version, projection_map, exc_div
+#  end
+#end
 
 function blow_up(
     I::IdealSheaf;

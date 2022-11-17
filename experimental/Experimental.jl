@@ -18,5 +18,6 @@ include("Schemes/SpaceGerms.jl")
 include("Schemes/singular_locus.jl")
 include("Schemes/Sheaves.jl")
 include("Schemes/IdealSheaves.jl")
+include("Schemes/CoveredProjectiveSchemes.jl")
 
 include("Matrix/matrix.jl")
