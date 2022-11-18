@@ -272,6 +272,17 @@ function issubset(
   return issubset(J, modulus(OO(X)))
 end
 
+function issubset(
+    X::AbsSpec{BRT, <:MPolyQuoLocalizedRing},
+    Y::AbsSpec{BRT, <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}) where {BRT}
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  UX = inverted_set(OO(X))
+  UY = inverted_set(OO(Y))
+  issubset(UY,UX) || return false # element of KPointIdeal inverted in UY ?
+  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  return issubset(J, modulus(OO(X)))
+end
 
 
 ####################################################################################
@@ -615,7 +626,7 @@ true
   R = base_ring(OO(X))
   L = localized_ring(OO(X))
   I = modulus(OO(X))
-  f = gens(Oscar.pre_saturated_ideal(I))
+  f = gens(saturated_ideal(I))
   Df = jacobi_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A)
