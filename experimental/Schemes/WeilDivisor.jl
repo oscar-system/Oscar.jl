@@ -101,7 +101,7 @@ function WeilDivisor(I::IdealSheaf, R::Ring)
 end
 
 @Markdown.doc """
-    WeilDivisor(I::IdealSheaf, R::Ring)
+    WeilDivisor(I::IdealSheaf)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
