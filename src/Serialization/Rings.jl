@@ -226,18 +226,19 @@ end
 @registerSerializationType(nmod_mat)
 
 function save_internal(s::SerializerState, m::MatrixElem)
-    m_parent = save_type_dispatch(s, parent(m))
+    m_base_ring = save_type_dispatch(s, base_ring(parent(m)))
     return Dict(
         :matrix => save_type_dispatch(s, Array(m)),
-        :parent => parent_m
+        :base_ring => m_base_ring
     )
 end
 
 function load_internal(s::DeserializerState,
                        ::Type{<: MatElem},
                        dict::Dict)
+    entries_ring = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix])
-    entries_ring = parent(mat[1])
+
     return matrix(entries_ring, mat)
 end
 
@@ -245,7 +246,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MatElem},
                                    dict::Dict,
                                    parent_ring::T) where T <: MatSpace
-    _ = load_type_dispatch(s, dict[:parent])
+    _ = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix], parent=base_ring(parent_ring))
     return matrix(base_ring(parent_ring), mat)
 end

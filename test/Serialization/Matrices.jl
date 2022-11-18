@@ -40,7 +40,7 @@ end
                     @test test_equality(m, loaded)
                 end
 
-                test_save_load_roundtrip(path, m; parent = parent(m)) do loaded
+                test_save_load_roundtrip(path, m; parent=parent(m)) do loaded
                     @test loaded == m
                 end
             end
