@@ -58,9 +58,9 @@ end
 @Markdown.doc """
     poly_to_homog(X::ProjectiveScheme)
 
-Return a map that converts an element of the `base_ring` of the
-ring of functions `OO` of the `affine_cone` of `X` into 
-an element of the `ambient_coordinate_ring` of `X`.
+Return a map that converts an element of the `ambient_coordinate_ring` 
+of the `affine_cone` `CX` of `X` to an element of the 
+`ambient_coordinate_ring` of `X`.
 """
 function poly_to_homog(P::AbsProjectiveScheme)
   return poly_to_homog(underlying_scheme(P))
@@ -275,11 +275,10 @@ end
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105
 Generic.ordering(S::MPolyRing_dec) = :degrevlex
 
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{MPolyRing, MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}, CRET, RT, RET}
   if !isdefined(X, :C)
-    A = base_ring(X)
-    Y = Spec(A)
-    X.Y = Y
+    Y = base_scheme(X)
+    A = OO(Y)
     kk = base_ring(A)
     F = affine_space(kk, symbols(ambient_coordinate_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
@@ -293,8 +292,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     # use the map to convert ideals:
     #I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, pre_image_ideal(I))
-    set_attribute!(X, :affine_cone, CX)
+    CX = subscheme(C, I)
+    set_attribute!(X, :affine_cone, CX) # TODO: Why this doubling?
     X.C = get_attribute(X, :affine_cone)
     pr_base_res = restrict(pr_base, CX, Y, check=false)
     pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
@@ -306,7 +305,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
                           [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
                        )
                   )
-    pth = hom(base_ring(OO(CX)), S, vcat(gens(S), S.(gens(A))))
+    pth = hom(ambient_coordinate_ring(CX), S, vcat(gens(S), S.(gens(A))))
     set_attribute!(X, :poly_to_homog, pth)
     set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_denominator(OO(CX)(f))))))
     X.projection_to_base = pr_base_res
