@@ -25,13 +25,16 @@ some ring ``R`` of ideal sheaves on ``X``.
   function WeilDivisor(
       X::AbsCoveredScheme,
       R::CoefficientRingType, 
-      coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType}
+      coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
+      check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
     # TODO: Do we want to require that the different effective divisors 
     # have the same underlying covering? Probably not.
-    for D in keys(coefficients)
-      space(D) === X || error("component of divisor does not lay in the given scheme")
-      parent(coefficients[D]) === R || error("coefficients do not lay in the given ring")
+    if check
+      for D in keys(coefficients)
+        space(D) === X || error("component of divisor does not lay in the given scheme")
+        parent(coefficients[D]) === R || error("coefficients do not lay in the given ring")
+      end
     end
     return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
   end
@@ -141,40 +144,46 @@ function +(D::T, E::T) where {T<:WeilDivisor}
   X === scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
   R === coefficient_ring(E) || error("coefficient rings do not coincide")
-  C = copy(D)
-  for I in components(E)
-    if haskey(coefficient_dict(C), I)
-      c = C[I] + E[I]
+  dict = IdDict{IdealSheaf, elem_type(R)}()
+  for I in keys(coefficient_dict(D))
+    dict[I] = D[I]
+  end
+  for I in keys(coefficient_dict(E))
+    if haskey(dict, I)
+      c = D[I] + E[I]
       if iszero(c) 
-        delete!(coefficient_dict(C), I)
+        delete!(dict, I)
       else 
-        C[I] = c
+        dict[I] = c
       end
     else
-      coefficient_dict(C)[I] = E[I]
+      dict[I] = E[I]
     end
   end
-  return C
+  return WeilDivisor(X, R, dict, check=false)
 end
 
 function -(D::T) where {T<:WeilDivisor}
-  E = copy(D)
-  for I in components(E)
-    E[I] = -E[I]
+  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
+  for I in keys(coefficient_dict(D))
+    dict[I] = -D[I]
   end
-  return E
+  return WeilDivisor(scheme(D), coefficient_ring(D), dict, check=false)
 end
 
 -(D::T, E::T) where {T<:WeilDivisor} = D + (-E)
 
 function *(a::RingElem, E::WeilDivisor)
-  c = coefficient_ring(E)()
-  D = copy(E)
-  parent(a) === coefficient_ring(E) ? (c = a)::elem_type(coefficient_ring(E)) : c = coefficient_ring(E)(a)
-  for I in components(D)
-    D[I] = c*D[I]
+  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(E))}()
+  for I in keys(coefficient_dict(E))
+    c = a*E[I]
+    if iszero(c)
+      delete!(dict, I)
+    else
+      dict[I] = c
+    end
   end
-  return D
+  return WeilDivisor(scheme(E), coefficient_ring(E), dict, check=false)
 end
 
 *(a::Int, E::WeilDivisor) = coefficient_ring(E)(a)*E
@@ -185,7 +194,14 @@ end
 function ==(D::WeilDivisor, E::WeilDivisor) 
   keys(coefficient_dict(D)) == keys(coefficient_dict(E)) || return false
   for I in keys(coefficient_dict(D))
-    D[I] == E[I] || return false
+    if haskey(coefficient_dict(E), I)
+      D[I] == E[I] || return false
+    else
+      iszero(D[I]) || return false
+    end
+  end
+  for I in keys(coefficient_dict(E))
+    !(I in keys(coefficient_dict(D))) && !(iszero(E[I])) && return false
   end
   return true
 end
