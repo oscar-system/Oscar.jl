@@ -590,10 +590,12 @@ end
 
 """
     general_linear_group(n::Int, q::Int)
-    general_linear_group(n::Int, F::FqNmodFiniteField)
+    general_linear_group(n::Int, F::Ring)
     GL = general_linear_group
 
 Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+
+Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
 
 # Examples
 ```jldoctest
@@ -610,7 +612,7 @@ julia> gens(H)
 
 ```
 """
-function general_linear_group(n::Int, F::FqNmodFiniteField)
+function general_linear_group(n::Int, F::Ring)
    G = MatrixGroup(n,F)
    G.descr = :GL
    return G
@@ -622,10 +624,12 @@ end
 
 """
     special_linear_group(n::Int, q::Int)
-    special_linear_group(n::Int, F::FqNmodFiniteField)
+    special_linear_group(n::Int, F::Ring)
     SL = special_linear_group
 
 Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+
+Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
 
 #Examples
 ```jldoctest
@@ -642,7 +646,7 @@ julia> gens(H)
 
 ```
 """
-function special_linear_group(n::Int, F::FqNmodFiniteField)
+function special_linear_group(n::Int, F::Ring)
    G = MatrixGroup(n,F)
    G.descr = :SL
    return G
@@ -654,11 +658,13 @@ end
 
 """
     symplectic_group(n::Int, q::Int)
-    symplectic_group(n::Int, F::FqNmodFiniteField)
+    symplectic_group(n::Int, F::Ring)
     Sp = symplectic_group
 
 Return the symplectic group of dimension `n` either over the field `F` or the
 field `GF(q)`. The dimension `n` must be even.
+
+Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
 
 #Examples
 ```jldoctest
@@ -694,6 +700,23 @@ end
 Return the orthogonal group of dimension `n` either over the field `F` or the
 field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
+
+Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+
+#Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = symplectic_group(2,F)
+Sp(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+   [3 0; 0 5]
+   [6 1; 6 0]
+
+```
 """
 function orthogonal_group(e::Int, n::Int, F::Ring)
    if e==1
@@ -729,6 +752,24 @@ orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
 Return the special orthogonal group of dimension `n` either over the field `F`
 or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+
+Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+
+#Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = special_orthogonal_group(1,2,F)
+SO+(2,7)
+
+julia> gens(H)
+3-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [5 0; 0 3]
+ [1 0; 0 1]
+
+```
 """
 function special_orthogonal_group(e::Int, n::Int, F::Ring)
    iseven(order(F)) && return GO(e,n,F)
@@ -764,6 +805,22 @@ special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
 Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
+
+Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+
+#Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = omega_group(1,2,F)
+Omega+(2,7)
+
+julia> gens(H)
+1-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [2 0; 0 4]
+
+```
 """
 function omega_group(e::Int, n::Int, F::Ring)
    n==1 && return SO(e,n,F)
@@ -797,6 +854,18 @@ omega_group(n::Int, F::Ring) = omega_group(0,n,F)
     GU = unitary_group
 
 Return the unitary group of dimension `n` over the field `GF(q^2)`.
+
+#Examples
+```jldoctest
+julia> H = unitary_group(2,3)
+GU(2,3)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [o 0; 0 2*o]
+ [2 2*o+2; 2*o+2 0]
+
+```
 """
 function unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
@@ -811,6 +880,19 @@ end
     SU = special_unitary_group
 
 Return the special unitary group of dimension `n` over the field `GF(q^2)`.
+
+#Examples
+```jldoctest
+julia> H = special_unitary_group(2,3)
+SU(2,3)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [1 2*o+2; 0 1]
+ [0 2*o+2; 2*o+2 0]
+
+```
+
 """
 function special_unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
