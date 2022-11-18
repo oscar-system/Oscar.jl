@@ -955,6 +955,7 @@ julia> collect(ans)
  (2, [1, 0])
  (4, [1, 1])
  (1, [2, 0])
+```
 """
 function coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:coefficients_and_exponents}(f, permutation_of_terms(f, ordering))
