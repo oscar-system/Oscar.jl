@@ -22,6 +22,7 @@
   @test is_smooth(X2)
   X3 = Spec(R, ideal(R,[x,y,z]), units_of(R))
   is_smooth(X3)
+  @test singular_locus(Spec(R)) == Spec(R,ideal(R,[one(R)]))
 end
 
 @testset "singular_locus_reduced" begin
@@ -47,6 +48,7 @@ end
   X2 = Spec(R, I2 , units_of(R))
   Y = Spec(R, I*J, units_of(R))
   @test is_equidimensional(X)
+  @test is_equidimensional(X)   ## if caching works, this tests a different line of code
   @test is_equidimensional(X2)
   @test !is_equidimensional(Y)
   @test is_reduced(X)
@@ -66,6 +68,8 @@ end
   @test is_equidimensional(Spec(R,U))
   @test is_reduced(Spec(R))
   @test is_reduced(Spec(R,U))
+  Z = Spec(R)
+  @test reduced_scheme(Z) == Z
 end
 
 
