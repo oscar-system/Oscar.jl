@@ -198,7 +198,7 @@ end
   # transitivity
   @test transitivity(G8) == 1
   @test transitivity(S4) == 4
-  @test transitivity(S4, 1:3) == 0
+  @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
 
