@@ -27,7 +27,7 @@ function test_save_load_roundtrip(func, path, original::T; parent=nothing) where
   io = IOBuffer()
   save(io, original)
   seekstart(io)
-  loaded = load(io, T; parent=parent)
+  loaded = load(io, T=T, parent=parent)
   if T <: Vector
     @test loaded isa Vector
   else
