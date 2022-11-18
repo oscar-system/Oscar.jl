@@ -1,6 +1,6 @@
 export OO, coordinate_ring, base_ring, dim, codim, name
 
-export ambient_affine_space, ambient_coordinate_ring, ambient_coordinates, ambient_embedding
+export ambient_space, ambient_coordinate_ring, ambient_coordinates, ambient_embedding
 
 export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 
@@ -48,7 +48,7 @@ end
 
 
 @Markdown.doc """
-    ambient_affine_space(X::AbsSpec)
+    ambient_space(X::AbsSpec)
 
 Return the ambient affine space of ``X``. 
 
@@ -60,7 +60,7 @@ its ambient affine space.
 julia> X = affine_space(QQ, [:x,:y])
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> ambient_affine_space(X) == X
+julia> ambient_space(X) == X
 true
 
 julia> (x, y) = coordinates(X);
@@ -68,19 +68,19 @@ julia> (x, y) = coordinates(X);
 julia> Y = subscheme(X, [x])
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
-julia> X == ambient_affine_space(Y)
+julia> X == ambient_space(Y)
 true
 
 julia> Z = subscheme(Y, y)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
 
-julia> ambient_affine_space(Z) == X
+julia> ambient_space(Z) == X
 true
 
 julia> V = hypersurface_complement(Y, y)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
 
-julia> ambient_affine_space(V) == X
+julia> ambient_space(V) == X
 true
 ```
 
@@ -106,7 +106,7 @@ julia> RmodI, quotient_map = quo(P, I);
 julia> Y = Spec(RmodI)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
-julia> ambient_affine_space(Y) == X
+julia> ambient_space(Y) == X
 true
 
 julia> J = ideal(RmodI, y);
@@ -116,7 +116,7 @@ julia> RmodJ, quotient_map2 = quo(RmodI, J);
 julia> Z = Spec(RmodJ)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
 
-julia> ambient_affine_space(Z) == X
+julia> ambient_space(Z) == X
 true
 
 julia> U = powers_of_element(y)
@@ -127,7 +127,7 @@ julia> URmodI, _ = localization(RmodI, U);
 julia> V = Spec(URmodI)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
 
-julia> ambient_affine_space(V) == X
+julia> ambient_space(V) == X
 true
 ```
 
@@ -135,9 +135,9 @@ Note: compare with `==`, as the same affine space could be represented
 internally by different objects for technical reasons.
 # Examples
 ```jldoctest ambient_via_spec
-julia> AX = ambient_affine_space(X);
+julia> AX = ambient_space(X);
 
-julia> AY = ambient_affine_space(Y);
+julia> AY = ambient_space(Y);
 
 julia> AX == AY
 true
@@ -146,15 +146,15 @@ julia> AX === AY
 false
 ```
 """
-function ambient_affine_space(X::AbsSpec)
+function ambient_space(X::AbsSpec)
   error("$X does not have an ambient affine space")
 end
 
-function ambient_affine_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
+function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_affine_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
+@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
   return Spec(ambient_coordinate_ring(X))
 end
 
@@ -179,7 +179,7 @@ true
 ```
 """
 function ambient_embedding(X::AbsSpec)
-  return inclusion_morphism(X, ambient_affine_space(X), check=false)
+  return inclusion_morphism(X, ambient_space(X), check=false)
 end
 
 @Markdown.doc """
@@ -187,7 +187,7 @@ end
 
 Return the coordinate ring of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space(::AbsSpec)`](@ref).
+See also [`ambient_space(::AbsSpec)`](@ref).
 
 # Examples
 ```jldoctest
@@ -212,7 +212,7 @@ end
 
 Return the coordinate functions of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space(::AbsSpec)`](@ref).
+See also [`ambient_space(::AbsSpec)`](@ref).
 
 # Examples
 ```jldoctest

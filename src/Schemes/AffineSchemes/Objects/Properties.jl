@@ -268,7 +268,7 @@ function issubset(
       is_unit(OO(X)(a)) || return false
     end
   end
-  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  J = localized_ring(OO(X))(modulus(underlying_quotient(OO(Y))))
   return issubset(J, modulus(OO(X)))
 end
 
@@ -338,7 +338,7 @@ function is_open_embedding(
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
-  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  J = localized_ring(OO(X))(modulus(underlying_quotient(OO(Y))))
   return modulus(OO(X)) == J 
 end
 
@@ -472,7 +472,7 @@ function is_closed_embedding(
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
-  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  J = localized_ring(OO(X))(modulus(underlying_quotient(OO(Y))))
   return issubset(J, modulus(OO(X)))
 end
 

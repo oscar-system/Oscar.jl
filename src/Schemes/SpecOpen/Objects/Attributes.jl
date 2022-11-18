@@ -67,18 +67,18 @@ TODO: Add example!
 ambient_coordinate_ring(U::SpecOpen) = ambient_coordinate_ring(ambient_scheme(U))
 
 @doc Markdown.doc"""
-    ambient_affine_space(U::SpecOpen) -> Spec
+    ambient_space(U::SpecOpen) -> Spec
 
 For ``U ⊆ X \subseteq 𝔸 ⁿ`` return the affine space``𝔸 ⁿ``.
 """
-ambient_affine_space(U::SpecOpen) = ambient_affine_space(ambient_scheme(U))
+ambient_space(U::SpecOpen) = ambient_space(ambient_scheme(U))
 
 @doc Markdown.doc"""
     ambient_coordinates(U::SpecOpen)
 
 Return the coordinates of the ambient affine space of ``U``.
 """
-ambient_coordinates(U::SpecOpen) = coordinates(ambient_affine_space(U))
+ambient_coordinates(U::SpecOpen) = coordinates(ambient_space(U))
 
 @Markdown.doc """
     npatches(U::SpecOpen)
