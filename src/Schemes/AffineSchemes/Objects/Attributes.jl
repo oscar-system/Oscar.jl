@@ -403,7 +403,7 @@ end
 @Markdown.doc """
    reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
-Return the induced reduced scheme of a `X`.
+Return the induced reduced scheme of `X`.
 
 Currently, this command is available for affine schemes and space germs.
 TODO: projective schemes, covered schemes
