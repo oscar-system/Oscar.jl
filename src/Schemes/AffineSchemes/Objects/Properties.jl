@@ -500,6 +500,7 @@ end
 #############################################################################
 # (5) Check, if a Spec is equidimensional
 #############################################################################
+# TODO: projective schemes, covered schemes
 
 @doc Markdown.doc"""
    is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
@@ -507,7 +508,6 @@ end
 Return whether a scheme `X` is equidimensional.
 
 Currently this command is available for affine schemes and space germs.
-TODO: projective schemes, covered schemes
 
 This command relies on [`equidimensional_decomposition_radical`](@ref).
 
@@ -551,6 +551,7 @@ end
 ##############################################################################
 # (6) Check, if scheme is reduced
 ##############################################################################
+# TODO: projective schemes, covered schemes
 
 @doc Markdown.doc"""
    is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
@@ -558,15 +559,14 @@ end
 Return the boolean value whether a scheme `X` is reduced.
 
 Currently, this command is available for affine schemes and space germs.
-TODO: projective schemes, covered schemes
 """
-@attr function is_reduced(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+@attr function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
   return is_reduced(quo(base_ring(I), I)[1])
 end
 
 ## make is_reduced agnostic to quotient ring
-@attr Bool function is_reduced(X::AbsSpec{<:Ring, <:MPAnyNonQuoRing})
+@attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   return true
 end
 
@@ -575,6 +575,8 @@ end
 # The routine checks whether the module for the cotangent sheaf Ω¹(X)
 # is locally free over 𝒪(X) and returns `true` if this is the case. 
 ########################################################################
+# TODO: Covered schemes, projective schemes
+# TODO: is_regular using Hironaka's criterion
 
 @doc Markdown.doc"""
     is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
@@ -582,12 +584,17 @@ end
 Return whether a scheme `X` is smooth.
 
 Currently this command is available for affine schemes and space germs.
-TODO: Covered schemes, projective schemes
 
-Note that smoothness and regularity do not coincide over non-perfect fields.
-TODO: is_regular using Hironaka's criterion
+Note that smoothness and regularity do not coincide over non-perfect fields. 
+Smoothness implies regularity, but regular non-smooth schemes exist.
 
 See also [`singular_locus`](@ref), [`singular_locus_reduced`](@ref).
+
+# Algorithm
+
+This method checks whether the module for the cotangent sheaf Ω¹(X)
+is locally free over 𝒪(X).
+
 # Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])

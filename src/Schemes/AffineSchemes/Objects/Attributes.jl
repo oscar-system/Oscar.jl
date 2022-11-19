@@ -400,13 +400,14 @@ end
 # (3) Attributes of AbsSpec
 #     reduced scheme and singular locus
 #############################################################################
+# TODO: projective schemes, covered schemes
+
 @Markdown.doc """
    reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Return the induced reduced scheme of `X`.
 
 Currently, this command is available for affine schemes and space germs.
-TODO: projective schemes, covered schemes
  
 This command relies on [`radical`](@ref).
 
@@ -435,6 +436,7 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Ra
 
 ```
 """
+
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
@@ -447,8 +449,12 @@ end
 end
 
 ## to make reduced_scheme agnostic for quotient ring
-@attr AbsSpec function reduced_scheme(X::AbsSpec{<:Ring, <:MPAnyNonQuoRing})
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   return X
+end
+
+function reduced_scheme(X::AbsSpec)
+  error("method 'reduced_scheme(X)' currently only implemented for affine Schemes and Space Germs over a field")
 end
 
 ### TODO: The following two functions (singular_locus, 
@@ -468,7 +474,6 @@ For computing the singular locus of the reduced scheme induced by `X`,
 please use [`singular_locus_reduced`](@ref).
 
 Currently this command is available for affine schemes and for space germs.
-TODO: Covered schemes, projective schemes
 
 Over non-perfect fields, this command returns the non-smooth locus and `X`
 may still be regular at some points of the returned subscheme.
@@ -508,18 +513,23 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over
 """
 function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   comp = _singular_locus_with_decomposition(X,false)
-  if length(comp) == 0 
+  if length(comp) == 0
+    set_attribute!(X, :is_smooth, true)
     return subscheme(X, ideal(OO(X),one(OO(X))))
   end
   R = base_ring(OO(X))
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
+  set_attribute!(X, :is_smooth, false)
   return subscheme(X,I)
 end
 
 # make singular_locus agnostic to quotient
 function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  set_attribute!(X, :is_smooth,true)
   return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
+
+# TODO: Covered schemes, projective schemes
 
 @doc Markdown.doc"""
     singular_locus_reduced(X::Scheme{<:Field}) -> Scheme
@@ -530,7 +540,6 @@ For computing the singular locus of `X` itself, please use
 ['singular_locus](@ref)'.
 
 Currently this command is available for affine schemes and for space germs.
-TODO: Covered schemes, projective schemes
 
 Over non-perfect fields, this command returns the non-smooth locus and
 `X_{red}` may still be regular at some points of the returned subscheme.
@@ -556,11 +565,11 @@ Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field 
 
 ```
 """
-function singular_locus_reduced(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   comp =  _singular_locus_with_decomposition(X, true)
-  I= ideal(localized_ring(OO(X)),one(localized_ring(OO(X))))
+  I= ideal(base_ring(OO(X)),one(base_ring(OO(X))))
   for Z in comp
-    I = intersect(I, modulus(OO(Z)))
+    I = intersect(I, modulus(underlying_quotient(OO(Z))))
   end     
   return subscheme(X,I)
 end
@@ -571,12 +580,13 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
 end
 
 # internal workhorse, not user-facing
-function _singular_locus_with_decomposition(X::AbsSpec{<:Ring, <:MPAnyQuoRing}, reduced::Bool=true)
+function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
   I = saturated_ideal(modulus(OO(X)))
   result = typeof(X)[]
 
 # equidimensional decompositon to allow Jacobi criterion on each component
   P = []
+
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 
     push!(P, I)
   else 

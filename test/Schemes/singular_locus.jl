@@ -54,7 +54,7 @@ end
   @test is_reduced(X)
   @test !is_reduced(X2)
   @test reduced_scheme(X2) == X
-  U=complement_of_ideal(R,[0,0,0])
+  U = complement_of_ideal(R,[0,0,0])
   X1 = Spec(R, I ,U)
   X12 = Spec(R, I2, U)
   Y1 = Spec(R, I*J, U)
@@ -72,6 +72,28 @@ end
   @test reduced_scheme(Z) == Z
 end
 
-
+@testset "derivative in localized ring" begin
+  R, (x,y) = QQ["x","y"]
+  U = complement_of_ideal(R,[0,0])
+  X = Spec(R, U)
+  L = OO(X)
+  I = ideal(L, [1//(1+x), (1-y)^2//((y-1)*(1-x))])
+  @test denominator(derivative(gens(I)[1],1)) == (x^2 + 2*x + 1)
+  @test numerator(derivative(gens(I)[1],1)) == -1
+  @test denominator(derivative(gens(I)[2],1)) == (x^2 - 2*x + 1)
+  @test numerator(derivative(gens(I)[2],1)) == y-1
+  @test denominator(derivative(gens(I)[2],2)) == (x - 1)
+  @test numerator(derivative(gens(I)[2],2)) == -1
+  J=ideal(R, [x^2+y^2])
+  X2 = Spec(R, J ,U)
+  L2 = OO(X2)
+  I2 = ideal(L2, [1//(1+x), (1-y)^2//((y-1)*(1-x))])
+  @test denominator(derivative(gens(I)[1],1)) == (x^2 + 2*x + 1)
+  @test numerator(derivative(gens(I)[1],1)) == -1
+  @test denominator(derivative(gens(I)[2],1)) == (x^2 - 2*x + 1)
+  @test numerator(derivative(gens(I)[2],1)) == y-1
+  @test denominator(derivative(gens(I)[2],2)) == (x - 1)
+  @test numerator(derivative(gens(I)[2],2)) == -1
+end
 
 
