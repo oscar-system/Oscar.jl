@@ -450,30 +450,6 @@ function ref_ff!(M::MatElem)
   return rk
 end
 
-function gcd_with_cofactors(a::fmpq_mpoly, b::fmpq_mpoly)                       
-   z = parent(a)()                                                              
-   abar = parent(a)()                                                           
-   bbar = parent(a)()                                                           
-   r = ccall((:fmpq_mpoly_gcd_cofactors, Nemo.libflint), Cint,                  
-             (Ref{fmpq_mpoly}, Ref{fmpq_mpoly}, Ref{fmpq_mpoly},                
-              Ref{fmpq_mpoly}, Ref{fmpq_mpoly}, Ref{FmpqMPolyRing}),            
-             z, abar, bbar, a, b, a.parent)                                     
-   r == 0 && error("Unable to compute gcd")                                     
-   return z, abar, bbar                                                         
-end         
-
-function gcd_with_cofactors(a::gfp_mpoly, b::gfp_mpoly)                       
-   z = parent(a)()                                                              
-   abar = parent(a)()                                                           
-   bbar = parent(a)()                                                           
-   r = ccall((:nmod_mpoly_gcd_cofactors, Nemo.libflint), Cint,                  
-             (Ref{gfp_mpoly}, Ref{gfp_mpoly}, Ref{gfp_mpoly},                
-              Ref{gfp_mpoly}, Ref{gfp_mpoly}, Ref{GFPMPolyRing}),            
-             z, abar, bbar, a, b, a.parent)                                     
-   r == 0 && error("Unable to compute gcd")                                     
-   return z, abar, bbar                                                         
-end         
-
 function Hecke.content(M::MatrixElem{<:MPolyElem})
   m = []
   for idx = eachindex(M)
