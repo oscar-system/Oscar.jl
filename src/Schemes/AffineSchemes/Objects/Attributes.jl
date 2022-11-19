@@ -623,8 +623,8 @@ end
 ## forgetting about the denominators (contribution killed by modulus anyway)
 
 function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
-  g = gens(modulus(quotient_ring(OO(X))))
-  L = base_ring(quotient_ring(OO(X)))
+  g = gens(modulus(underlying_quotient(OO(X))))
+  L = base_ring(underlying_quotient(OO(X)))
   n = nvars(L)
   M = matrix(L, n, length(g),[derivative(f,i) for i=1:n for f in g])
   return M
