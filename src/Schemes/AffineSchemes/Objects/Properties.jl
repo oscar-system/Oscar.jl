@@ -280,7 +280,7 @@ function issubset(
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   issubset(UY,UX) || return false # element of KPointIdeal inverted in UY ?
-  J = localized_ring(OO(X))(modulus(quotient_ring(OO(Y))))
+  J = localized_ring(OO(X))(modulus(underlying_quotient(OO(Y))))
   return issubset(J, modulus(OO(X)))
 end
 
