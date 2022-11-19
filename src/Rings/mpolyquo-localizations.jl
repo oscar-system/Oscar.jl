@@ -190,7 +190,7 @@ underlying_quotient(L::MPolyQuoLocalizedRing) = L.Q
 ## 3 more signatures for compatibility to make quotient_ring agnostic
 underlying_quotient(L::MPolyQuo) = L
 
-@attr MPolyQuo function quotient_ring(L::MPolyRing)
+@attr MPolyQuo function underlying_quotient(L::MPolyRing)
    return quo(L,ideal(L,[zero(L)]))[1]
 end
 
