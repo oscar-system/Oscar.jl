@@ -611,7 +611,7 @@ Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by 
 julia> is_smooth(Y)
 false
 
-julia> U=MPolyComplementOfKPointIdeal(R,[1,1])
+julia> U = MPolyComplementOfKPointIdeal(R,[1,1])
 complement of maximal ideal corresponding to point with coordinates fmpq[1, 1]
 
 julia> Z = Spec(R, J, U)
