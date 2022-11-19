@@ -512,7 +512,7 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
     return subscheme(X, ideal(OO(X),one(OO(X))))
   end
   R = base_ring(OO(X))
-  I= prod([modulus(quotient_ring(OO(Y))) for Y in comp])
+  I= prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
   return subscheme(X,I)
 end
 
