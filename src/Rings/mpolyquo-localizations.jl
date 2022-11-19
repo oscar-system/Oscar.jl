@@ -188,7 +188,7 @@ For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I
 underlying_quotient(L::MPolyQuoLocalizedRing) = L.Q
 
 ## 3 more signatures for compatibility to make quotient_ring agnostic
-quotient_ring(L::MPolyQuo) = L
+underlying_quotient(L::MPolyQuo) = L
 
 @attr MPolyQuo function quotient_ring(L::MPolyRing)
    return quo(L,ideal(L,[zero(L)]))[1]
