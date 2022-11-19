@@ -194,7 +194,7 @@ underlying_quotient(L::MPolyQuo) = L
    return quo(L,ideal(L,[zero(L)]))[1]
 end
 
-@attr MPolyQuo function quotient_ring(L::MPolyLocalizedRing)
+@attr MPolyQuo function underlying_quotient(L::MPolyLocalizedRing)
    P = base_ring(L)
    return quo(P,ideal(P,[zero(P)]))[1]
 end
