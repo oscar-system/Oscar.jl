@@ -556,7 +556,6 @@ Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field 
 
 ```
 """
-
 function singular_locus_reduced(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   comp =  _singular_locus_with_decomposition(X, true)
   I= ideal(localized_ring(OO(X)),one(localized_ring(OO(X))))
