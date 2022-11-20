@@ -3172,28 +3172,28 @@ end
 ####################
 
 @doc Markdown.doc"""
-    chain_complex(V::ModuleFPHom...; start::Int = 0)
+    chain_complex(V::ModuleFPHom...; seed::Int = 0)
 
 Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the chain complex defined by these homomorphisms.
 
-    chain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
+    chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
 
 Given a vector `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the chain complex defined by these homomorphisms.
 
 !!! note
-    The integer `start` indicates the lowest homological degree of a module in the complex.
+    The integer `seed` indicates the lowest homological degree of a module in the complex.
 
 !!! note
     The function checks whether successive homomorphisms indeed compose to zero.
 """
-function chain_complex(V::ModuleFPHom...; start::Int = 0)
-  return ChainComplex(ModuleFP, collect(V); direction = :left, start = start)
+function chain_complex(V::ModuleFPHom...; seed::Int = 0)
+  return ChainComplex(ModuleFP, collect(V); typ = :chain, seed = seed)
 end
 
-function chain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
-  return ChainComplex(ModuleFP, V; direction = :left, start = start)
+function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
+  return ChainComplex(ModuleFP, V; typ = :chain, seed = seed)
 end
 
 ####################
@@ -3203,28 +3203,28 @@ end
 ####################
 
 @doc Markdown.doc"""
-    cochain_complex(V::ModuleFPHom...; start::Int = 0)
+    cochain_complex(V::ModuleFPHom...; seed::Int = 0)
 
 Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the cochain complex defined by these homomorphisms.
 
-    cochain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
+    cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
 
 Given a vector `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the cochain complex defined by these homomorphisms.
 
 !!! note
-    The integer `start` indicates the lowest homological degree of a module of the complex.
+    The integer `seed` indicates the lowest homological degree of a module of the complex.
 
 !!! note
     The function checks whether successive homomorphisms indeed compose to zero.
 """
-function cochain_complex(V::ModuleFPHom...; start::Int = 0)
-  return ChainComplex(ModuleFP, collect(V); direction = :right, start = start)
+function cochain_complex(V::ModuleFPHom...; seed::Int = 0)
+  return ChainComplex(ModuleFP, collect(V); typ = :cochain, seed = seed)
 end
 
-function cochain_complex(V::Vector{<:ModuleFPHom}; start::Int = 0)
-  return ChainComplex(ModuleFP, V; direction = :right, start = start)
+function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
+  return ChainComplex(ModuleFP, V; typ = :cochain, seed = seed)
 end
 
 ####################
@@ -5967,7 +5967,7 @@ by Submodule with 2 generators
 ```
 """
 function homology(C::Hecke.ChainComplex{<:ModuleFP})
-  return [homology(C,i) for i in Hecke.map_range(C)]
+  return [homology(C,i) for i in Hecke.range(C)]
 end
 
 @doc Markdown.doc"""
@@ -6023,9 +6023,11 @@ function homology(C::Hecke.ChainComplex{<:ModuleFP}, i::Int)
     f = map(C,last(map_range))
     return cokernel(f)    
   elseif i in chain_range
-    next_index = Hecke.is_chain_complex(C) ? i : i-1
-    i = Hecke.is_chain_complex(C) ? i+1 : i
-    return quo(kernel(map(C,next_index))[1], image(map(C,i))[1], :module)
+    if Hecke.is_chain_complex(C)
+      return quo(kernel(map(C,i))[1], image(map(C,i+1))[1], :module)
+    else
+      return quo(kernel(map(C,i))[1], image(map(C,i-1))[1], :module)
+    end
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
   end
@@ -6086,7 +6088,8 @@ represented as subquotient with no relations.
 """
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M; length=i+2)
-  lifted_resolution = hom(free_res.C[first(range(free_res.C)):-1:1], N) #TODO only three homs are necessary
+  
+  lifted_resolution = hom(free_res.C[first(Hecke.map_range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
