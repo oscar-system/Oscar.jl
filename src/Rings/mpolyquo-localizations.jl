@@ -131,6 +131,10 @@ MPAnyQuoRing = Union{MPolyQuoLocalizedRing,
 MPAnyNonQuoRing = Union{MPolyRing, MPolyLocalizedRing
                   }
 
+MPolyAnyRing = Union{MPolyRing, MPolyQuo,
+                MPolyLocalizedRing,MPolyQuoLocalizedRing
+               }
+
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
@@ -183,12 +187,36 @@ For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I
 """
 underlying_quotient(L::MPolyQuoLocalizedRing) = L.Q
 
+## 3 more signatures for compatibility to make quotient_ring agnostic
+underlying_quotient(L::MPolyQuo) = L
+
+@attr MPolyQuo function underlying_quotient(L::MPolyRing)
+   return quo(L,ideal(L,[zero(L)]))[1]
+end
+
+@attr MPolyQuo function underlying_quotient(L::MPolyLocalizedRing)
+   P = base_ring(L)
+   return quo(P,ideal(P,[zero(P)]))[1]
+end
+
 @Markdown.doc """
     localized_ring(L::MPolyQuoLocalizedRing)
 
 For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
 """
 localized_ring(L::MPolyQuoLocalizedRing) = L.W
+
+## 3 more signatures for compatibility to make localized_ring agnostic
+localized_ring(L::MPolyLocalizedRing) = L
+
+@attr MPolyLocalizedRing function localized_ring(L::MPolyQuo)
+   P = base_ring(L)
+   return localization(P, units_of(P))[1]
+end
+
+@attr MPolyLocalizedRing function localized_ring(L::MPolyRing)
+   return localization(L, units_of(L))[1]
+end
 
 @Markdown.doc """
     gens(L::MPolyQuoLocalizedRing)
@@ -1468,4 +1496,28 @@ end
 
 function quotient(I::IdealType, J::IdealType) where {IdealType<:MPolyQuoLocalizedIdeal}
   return base_ring(I)(quotient(pre_image_ideal(I), pre_image_ideal(J)))
+end
+
+##############################################################################
+# Further functionality for elements of localized quotients of rings
+##############################################################################
+
+function derivative(f::MPolyQuoLocalizedRingElem, i::Int)
+  num = derivative(lifted_numerator(f), i)*lifted_denominator(f) - derivative(lifted_denominator(f), i)*lifted_numerator(f)
+  den = lifted_denominator(f)^2
+  g = gcd(num, den)
+  return parent(f)(divexact(num, g), divexact(den, g), check=false)
+end
+
+function jacobi_matrix(f::MPolyQuoLocalizedRingElem)
+  L = parent(f)
+  n = nvars(base_ring(L))
+  return matrix(L, n, 1, [derivative(f, i) for i=1:n])
+end
+
+function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
+  L = parent(g[1])
+  n = nvars(base_ring(L))
+  @assert all(x->parent(x) == L, g)
+  return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
