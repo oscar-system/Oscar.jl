@@ -90,6 +90,19 @@ This software is work in progress of
 If you are interested in contributing, please feel free to reach out to us for more details.
 
 
+## Citation
+
+If `FTheoryTools` has been used in your research, please use the bibtex below or download it [here](./bibtex.bib):
+```bibtex
+@Misc{FTheoryTools,
+  author       = "Bies, Martin and Andrew, P. Turner",
+  howpublished = {\url{https://github.com/Julia-meets-String-Theory/FTheoryTools.jl}},
+  title        = {FTheoryTools -- Julia tools for F-Theory compactifications},
+  year         = "2022"
+}
+```
+
+
 ## Funding
 
 The work of Martin Bies is supported by SFB-TRR 195 ``Symbolic Tools in Mathematics and their Application of the German Research Foundation (DFG)``.
