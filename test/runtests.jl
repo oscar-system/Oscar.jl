@@ -31,10 +31,6 @@ Base.show(w)
     @test toric_variety(cy_hypersurface(w)) == toric_ambient_space(w)
 end
 
-@testset "Error messages in global Weierstrass models" begin
-    @test_throws ArgumentError GlobalWeierstrassModel(hirzebruch_surface(1))
-end
-
 
 #############################################################
 # 3: Global Weierstrass models over generic base space
@@ -81,10 +77,6 @@ Base.show(t)
     @test base_fully_specified(t) == base_fully_specified(global_weierstrass_model(t))
     @test is_smooth(toric_ambient_space(t)) == false
     @test toric_variety(cy_hypersurface(t)) == toric_ambient_space(t)
-end
-
-@testset "Error messages in global Tate models" begin
-    @test_throws ArgumentError GlobalTateModel(hirzebruch_surface(1))
 end
 
 

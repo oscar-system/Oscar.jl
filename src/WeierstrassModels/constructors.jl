@@ -56,9 +56,6 @@ false
 ```
 """
 function GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)
-    if dim(base) != 3
-        throw(ArgumentError("We currently focus on global Weierstrass models over 3-dimensional toric base spaces"))
-    end
     toric_ambient_space = _ambient_space_from_base(base)
     (f, g, pw) = _weierstrass_polynomial(base, toric_ambient_space)
     Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space, [pw])
@@ -121,9 +118,6 @@ false
 ```
 """
 function GlobalWeierstrassModel(poly_f::MPolyElem_dec{fmpq, fmpq_mpoly}, poly_g::MPolyElem_dec{fmpq, fmpq_mpoly}, base::Oscar.AbstractNormalToricVariety)
-    if dim(base) != 3
-        throw(ArgumentError("We currently focus on global Weierstrass models over 3-dimensional toric base spaces"))
-    end
     if (parent(poly_f) != cox_ring(base)) || (parent(poly_g) != cox_ring(base))
         throw(ArgumentError("All Weierstrass sections must reside in the Cox ring of the base toric variety"))
     end

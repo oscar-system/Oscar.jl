@@ -61,9 +61,6 @@ false
 ```
 """
 function GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
-    if dim(base) != 3
-        throw(ArgumentError("We currently focus on global Tate models over 3-dimensional toric base spaces"))
-    end
     toric_ambient_space = _ambient_space_from_base(base)
     (a1, a2, a3, a4, a6, pt) = _tate_polynomial(base, toric_ambient_space)
     Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space, [pt])
@@ -131,9 +128,6 @@ false
 ```
 """
 function GlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, base::Oscar.AbstractNormalToricVariety)
-    if dim(base) != 3
-        throw(ArgumentError("We currently focus on global Tate models over 3-dimensional toric base spaces"))
-    end
     if length(ais) != 5
         throw(ArgumentError("We require exactly 5 Tate section"))
     end

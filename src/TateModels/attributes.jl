@@ -214,7 +214,7 @@ julia> t = GlobalTateModel(base)
 A global Tate model over a concrete base
 
 julia> toric_base_space(t)
-A normal, 3-dimensional toric variety without torusfactor
+A normal toric variety without torusfactor
 ```
 """
 @attr Oscar.AbstractNormalToricVariety toric_base_space(t::GlobalTateModel) = t.toric_base_space
