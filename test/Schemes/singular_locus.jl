@@ -88,12 +88,12 @@ end
   X2 = Spec(R, J ,U)
   L2 = OO(X2)
   I2 = ideal(L2, [1//(1+x), (1-y)^2//((y-1)*(1-x))])
-  @test denominator(derivative(gens(I)[1],1)) == (x^2 + 2*x + 1)
-  @test numerator(derivative(gens(I)[1],1)) == -1
-  @test denominator(derivative(gens(I)[2],1)) == (x^2 - 2*x + 1)
-  @test numerator(derivative(gens(I)[2],1)) == y-1
-  @test denominator(derivative(gens(I)[2],2)) == (x - 1)
-  @test numerator(derivative(gens(I)[2],2)) == -1
+  @test denominator(derivative(gens(I2)[1],1)) == (x^2 + 2*x + 1)
+  @test numerator(derivative(gens(I2)[1],1)) == -1
+  @test denominator(derivative(gens(I2)[2],1)) == (x^2 - 2*x + 1)
+  @test numerator(derivative(gens(I2)[2],1)) == y-1
+  @test denominator(derivative(gens(I2)[2],2)) == (x - 1)
+  @test numerator(derivative(gens(I2)[2],2)) == -1
 end
 
 
