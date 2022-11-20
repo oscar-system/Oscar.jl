@@ -2440,3 +2440,89 @@ function AbstractAlgebra.promote_rule(::Type{MPolyElem_dec{S, T}}, ::Type{U}) wh
     return Union{}
   end
 end
+
+#create homogenous polynomials in graded rings
+function rand(S::MPolyRing_dec, term_range, exp_bound, v...)
+  f = S.R(0)
+  d = rand(exp_bound)
+  for i=1:rand(term_range)
+    td = 0
+    t = S.R(1)
+    for j=1:ngens(S.R)-1
+      t *= gen(S.R, j)^rand(0:d-(is_zero(t) ? 0 : total_degree(t)))
+    end
+    t *= gen(S.R, ngens(S.R))^(d-(is_zero(t) ? 0 : total_degree(t)))
+    f += rand(base_ring(S), v...)*t
+  end
+  return S(f)
+end
+
+function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
+  @assert dim(I) == 1
+  rp = []
+  S = base_ring(I)
+  R = S.R
+  RS, _ = PolynomialRing(base_ring(R), ngens(S)-1, cached = false)
+  all_S = []
+  Q = base_ring(R)
+  for i=1:ngens(S)
+    val = [RS(0) for l = gens(S)]
+    k = 1
+    for j=1:ngens(S)
+      if i == j
+        val[j] = RS(1)
+      else
+        val[j] = gen(RS, k)
+        k += 1
+      end
+    end
+    J = ideal(RS, [evaluate(f, val) for f = gens(I)])
+    r = rational_points(J)
+    for s = r
+      k = 1
+      so = []
+      for j=1:ngens(S)
+        if i == j
+          push!(so, Q(1))
+        else
+          push!(so, Q(s[k]))
+          k += 1
+        end
+      end
+      push!(all_S, so)
+    end
+  end
+  #projective comparison!!!!
+  return all_S
+end
+
+function rational_points(I::MPolyIdeal{<:MPolyElem})
+  @show gb = groebner_basis(I, ordering = lex(base_ring(I)))
+  if 1 in gb
+    return []
+  end
+  @assert length(gb) == ngens(base_ring(I))
+  R = base_ring(I)
+  Qx, _ = PolynomialRing(base_ring(R), cached = false)
+  rts = [elem_type(Qx)[Qx(0) for i = gens(R)]]
+  all_rts = []
+  i = ngens(R)
+  for f = gb
+    sts = []
+    for r = rts
+      r[i] = gen(Qx)
+      g = evaluate(f, r)
+      rt = roots(g)
+      for x = rt
+        r[i] = Qx(x)
+        push!(sts, copy(r))
+      end
+    end
+    rts = sts
+    i -= 1
+  end
+  return [[constant_coefficient(x) for x = r] for r = rts]
+  @show rts
+end
+
+
