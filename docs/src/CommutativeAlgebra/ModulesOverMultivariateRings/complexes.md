@@ -56,7 +56,7 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = chain_complex([a, b]; seed = 3);
 
 julia> range(C)
-5:-1:4
+5:-1:3
 
 julia> C[5]
 Subquotient of Submodule with 1 generator
@@ -106,13 +106,13 @@ julia> b = hom(B, B, [x^2*B[1]]);
 julia> C = chain_complex([a, b]; seed = 3);
 
 julia> range(C)
-5:-1:4
+5:-1:3
 
 julia> D = Hecke.shift(C, 3);
 
 
 julia> range(D)
-2:-1:1
+8:-1:6
 ```
 
 ```@docs
