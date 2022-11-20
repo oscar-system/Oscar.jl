@@ -24,11 +24,11 @@ complexes, mainly focusing on chain complexes. Cochain complexes can be handled 
 ## Constructors
 
 ```@docs
-chain_complex(V::ModuleFPHom...; start::Int = 0)
+chain_complex(V::ModuleFPHom...; seed::Int = 0)
 ```
 
 ```@docs
-cochain_complex(V::ModuleFPHom...; start::Int = 0)
+cochain_complex(V::ModuleFPHom...; ssed::Int = 0)
 ```
 
 ## Data Associated to Chain Complexes
@@ -53,10 +53,10 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = chain_complex([a, b]; start =3);
+julia> C = chain_complex([a, b]; seed = 3);
 
 julia> range(C)
-5:-1:4
+5:-1:3
 
 julia> C[5]
 Subquotient of Submodule with 1 generator
@@ -78,7 +78,6 @@ Subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 1 generator
 1 -> x^3*e[1]
-
 ```
 
 ## Operations on Chain Complexes
@@ -104,17 +103,16 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = chain_complex([a, b]; start = 3);
+julia> C = chain_complex([a, b]; seed = 3);
 
 julia> range(C)
-5:-1:4
+5:-1:3
 
 julia> D = Hecke.shift(C, 3);
 
 
 julia> range(D)
-2:-1:1
-
+8:-1:6
 ```
 
 ```@docs

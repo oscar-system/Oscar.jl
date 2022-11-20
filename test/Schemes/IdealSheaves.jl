@@ -62,9 +62,9 @@ end
   I3 = IdealSheaf(IP2, gens(Ihom)[1])
   @test I == I2 == I3
   U = patches(default_covering(X))
-  @test I(U[1]) isa Ideal 
-  @test I(U[2]) isa Ideal 
-  @test I(U[3]) isa Ideal 
+  @test I(U[1]) isa Oscar.Ideal 
+  @test I(U[2]) isa Oscar.Ideal 
+  @test I(U[3]) isa Oscar.Ideal 
   V = PrincipalOpenSubset(U[1], gens(OO(U[1]))[1])
   rho = I(U[1], V)
   @test I(V) == ideal(OO(V), rho.(gens(I(U[1]))))
@@ -72,7 +72,7 @@ end
   simplify!(I)
 
   # run the check block in extend!
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsSpec, Oscar.Ideal}()
   ID[X[1][1]] = I(X[1][1])
   J = IdealSheaf(X, extend!(default_covering(X), ID), check=true)
   ID[X[1][1]] = I(X[1][1])
