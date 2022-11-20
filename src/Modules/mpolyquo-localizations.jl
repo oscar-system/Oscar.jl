@@ -19,7 +19,7 @@ end
 # F is the free module of rank n over the base ring R 
 # and I is the modulus.
 function modulus_matrix(L::MPolyQuoLocalizedRing, n::Int)
-  I = modulus(quotient_ring(L))
+  I = modulus(underlying_quotient(L))
   m = length(gens(I))
   R = base_ring(L)
   B = zero(MatrixSpace(R, 0, n))

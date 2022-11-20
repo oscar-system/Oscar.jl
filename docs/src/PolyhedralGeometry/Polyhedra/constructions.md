@@ -1,7 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 DocTestSetup = quote
-   using Oscar
+  using Oscar
 end
 ```
 
@@ -68,9 +68,13 @@ convex_hull(::Type{T}, ::AnyVecOrMat; non_redundant::Bool=false) where T<:scalar
 This is a standard triangle, defined via a (redundant) $V$-representation  and
 its unique minimal $H$-representation:
 
-```@repl oscar
-T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
-halfspace_matrix_pair(facets(T))
+```jldoctest
+julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
+A polyhedron in ambient dimension 2
+
+julia> halfspace_matrix_pair(facets(T))
+(A = [-1 0; 0 -1; 1 1], b = Polymake.RationalAllocated[0, 0, 1])
+
 ```
 
 The complete $V$-representation can be retrieved using [`vertices`](@ref

@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -81,17 +84,50 @@ Moreover, `is_modular(IR)` returns `true` in the modular case, and
 
 ###### Examples
 
-```@repl oscar
-K, a = CyclotomicField(3, "a")
-M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-G = MatrixGroup(3, K, [ M1, M2 ])
-IR = invariant_ring(G)
-group(IR)
-coefficient_ring(IR)
-R = polynomial_ring(IR)
-x = gens(R)
-is_modular(IR)
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> group(IR)
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> coefficient_ring(IR)
+Cyclotomic field of order 3
+
+julia> R = polynomial_ring(IR)
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+  x[1] -> [1]
+  x[2] -> [1]
+  x[3] -> [1]
+
+julia> x = gens(R)
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]
+ x[2]
+ x[3]
+
+julia> is_modular(IR)
+false
+
 ```
 
 ## The Reynolds Operator

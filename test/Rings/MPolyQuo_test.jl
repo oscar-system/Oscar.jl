@@ -151,3 +151,11 @@ end
   @test modulus(Al3) == Il3
 end
 
+@testset "saturated ideal compatibility" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I = ideal(R, [x+y+z])
+  A, _ = quo(R,I)
+  J = ideal(A, [x, y])
+  @test z in saturated_ideal(J)
+end
+

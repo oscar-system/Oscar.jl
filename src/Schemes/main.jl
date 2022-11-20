@@ -15,6 +15,7 @@ include("PrincipalOpenSubset/Objects/Types.jl")
 include("SpecOpen/Objects/Types.jl")
 include("SpecOpen/Rings/Types.jl")
 include("SpecOpen/Morphisms/Types.jl")
+include("ClosedEmbedding/Types.jl") # Needs SpecOpen for their complements
 include("Glueing/Types.jl")
 include("Covering/Objects/Types.jl")
 include("Covering/Morphisms/Types.jl")
@@ -58,6 +59,12 @@ include("SpecOpen/Rings/Methods.jl")
 include("SpecOpen/Morphisms/Constructors.jl")
 include("SpecOpen/Morphisms/Attributes.jl")
 include("SpecOpen/Morphisms/Methods.jl")
+
+########################################################################
+# ClosedEmbeddings of affine schemes                                   #
+########################################################################
+
+include("ClosedEmbedding/Attributes.jl")
 
 ########################################################################
 # Glueings of affine schemes                                           #
