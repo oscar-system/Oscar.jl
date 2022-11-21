@@ -43,8 +43,10 @@
 
   U = C[1]
   x = gens(ambient_coordinate_ring(U))
-  I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
-  J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
+# I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
+# J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
+  I = IdealSheaf(X, U, OO(U).([x[1]-1]))
+  J = IdealSheaf(X, U, OO(U).([x[2]-5]))
   D = WeilDivisor(I)
   E = WeilDivisor(J)
   @test D + 2*E == D + E + E
@@ -101,7 +103,7 @@ end
   L = LinearSystem(KK.([1, x[1], x[2], x[1]^2, x[1]*x[2], x[2]^2]), 2*D)
   H = S[1]+S[2]+S[3]
   P = IdealSheaf(P2, [H])
-  @test ngens(find_subsystem(L, P, 1)[1]) == 3
-  @test ngens(find_subsystem(L, P, 2)[1]) == 1
-  @test ngens(find_subsystem(L, P, 3)[1]) == 0
+  @test ngens(subsystem(L, P, 1)[1]) == 3
+  @test ngens(subsystem(L, P, 2)[1]) == 1
+  @test ngens(subsystem(L, P, 3)[1]) == 0
 end

@@ -4,14 +4,14 @@ export scheme, components, coefficient_dict, coefficient_ring
 export in_linear_system
 
 export LinearSystem 
-export divisor, find_subsystem
+export divisor, subsystem
 
 @Markdown.doc """
     WeilDivisor
 
-A Weil divisor on a covered scheme ``X``; 
-stored as a formal linear combination over 
-some ring ``R`` of ideal sheaves on ``X``.
+A Weil divisor on an integral separated `AbsCoveredScheme` ``X``; 
+stored as a formal linear combination over some ring ``R`` of 
+(prime) ideal sheaves on ``X``.
 """
 @attributes mutable struct WeilDivisor{
     CoveredSchemeType<:AbsCoveredScheme, 
@@ -30,10 +30,16 @@ some ring ``R`` of ideal sheaves on ``X``.
     ) where {CoefficientRingType, CoefficientRingElemType}
     # TODO: Do we want to require that the different effective divisors 
     # have the same underlying covering? Probably not.
+    for D in keys(coefficients)
+      space(D) === X || error("component of divisor does not lie in the given scheme")
+      parent(coefficients[D]) === R || error("coefficients do not lie in the given ring")
+    end
     if check
+      # is_integral(X) || error("scheme must be integral") # activate once the test is implemented!
+      #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
       for D in keys(coefficients)
-        space(D) === X || error("component of divisor does not lay in the given scheme")
-        parent(coefficients[D]) === R || error("coefficients do not lay in the given ring")
+        isprime(D) || error("components of a divisor must be sheaves of prime ideals")
+        dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
     return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
@@ -69,7 +75,7 @@ coefficient_dict(D::WeilDivisor) = D.coefficients
 coefficient_ring(D::WeilDivisor) = D.R
 
 set_name!(X::WeilDivisor, name::String) = set_attribute!(X, :name, name)
-name_of(X::WeilDivisor) = get_attribute(X, :name)::String
+name(X::WeilDivisor) = get_attribute(X, :name)::String
 has_name(X::WeilDivisor) = has_attribute(X, :name)
 
 function setindex!(D::WeilDivisor, c::RingElem, I::IdealSheaf)
@@ -123,7 +129,7 @@ end
 
 function Base.show(io::IO, D::WeilDivisor)
   if has_name(D)
-    print(io, name_of(D))
+    print(io, name(D))
     return
   end
   if length(components(D)) == 0
@@ -291,7 +297,7 @@ Return the variety on which `L` is defined.
 variety(L::LinearSystem) = scheme(weil_divisor(L))
 
 @Markdown.doc """
-    find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
+    subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
 and an integer `n`, this returns a pair ``(K, A)`` consisting 
@@ -299,7 +305,7 @@ of the subsystem of elements in ``|D + P|`` and the representing
 matrix ``A`` for its inclusion into ``L`` on the given set 
 of generators.
 """
-function find_subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
+function subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
   # find one chart in which P is supported
   # TODO: There might be preferred choices for charts with 
   # the least complexity.
