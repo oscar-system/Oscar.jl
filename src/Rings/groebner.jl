@@ -322,6 +322,28 @@ function f4(
     return I.gb[ord]
 end
 
+function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering;
+                                probabilistic_hilbert::Bool = false,
+                                complete_reduction::Bool = false)
+  
+  complete_reduction && @assert is_global(ordering)
+  if isempty(I.gb) 
+      if probabilistic_hilbert && iszero(characteristic(base_ring(I)))
+          # TODO: convert to finite char basering
+          G = f4(I)
+      else
+          G = groebner_assure(I)
+      end
+  else
+      G = groebner_assure(I)
+  end
+        
+  # TODO: here we assume I to be homogeneous
+  h = Singular.hilbert_series(G.S, ones(Int32, ngens(base_ring(I))))
+  # TODO: insert call to singular std with hilbert here
+  return I.gb[target_ordering]
+end
+
 @doc Markdown.doc"""
     _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
