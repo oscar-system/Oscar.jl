@@ -25,6 +25,15 @@ function pullback(f::SpecOpenMor)
   if !isdefined(f, :pullback)
     U = codomain(f)
     V = domain(f)
+    # First check whether we are in an easy case where we only have a restriction
+    if ambient_coordinate_ring(domain(f)) === ambient_coordinate_ring(codomain(f)) && gens(V) == gens(U)
+      function my_restr(a::SpecOpenRingElem)
+        return SpecOpenRingElem(OO(V), [OO(V[i])(a[i]) for i in 1:ngens(V)])
+      end
+      f.pullback = Hecke.MapFromFunc(my_restr, OO(U), OO(V))
+      return f.pullback::Hecke.Map{typeof(OO(codomain(f))), typeof(OO(domain(f)))}
+    end
+
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
     W = [SpecOpen(V[i], ideal(OO(V[i]), pullback(f[i]).(gens(U))), check=false) for i in 1:ngens(V)]
     pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=false)) for j in 1:ngens(U)] for i in 1:ngens(V)]
