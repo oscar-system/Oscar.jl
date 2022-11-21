@@ -2442,9 +2442,17 @@ function AbstractAlgebra.promote_rule(::Type{MPolyElem_dec{S, T}}, ::Type{U}) wh
 end
 
 #create homogenous polynomials in graded rings
-function rand(S::MPolyRing_dec, term_range, exp_bound, v...)
+#TODO: make this work for non-standard gradings
+@doc Markdown.doc"""
+    rand(S::MPolyRing_dec, term_range, deg_range, v...)
+
+Create a random homogenous polynomial with a random number of
+terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
+and random coefficients via `v...`.
+"""
+function rand(S::MPolyRing_dec, term_range, deg_range, v...)
   f = S.R(0)
-  d = rand(exp_bound)
+  d = rand(deg_range)
   for i=1:rand(term_range)
     td = 0
     t = S.R(1)
@@ -2457,8 +2465,13 @@ function rand(S::MPolyRing_dec, term_range, exp_bound, v...)
   return S(f)
 end
 
+"""
+Hopefully computes all projective rational points in this 1 (0) dim
+ideal by finding the affine rational points in the affine patches.
+"""
 function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
   @assert dim(I) == 1
+  #TODO: make this work for non-standard gradings
   rp = []
   S = base_ring(I)
   R = S.R
@@ -2492,15 +2505,21 @@ function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
       push!(all_S, so)
     end
   end
+  P = proj_space(Q, ngens(RS))[1]
   #projective comparison!!!!
-  return all_S
+  return collect(Set(P(x) for x = all_S))
 end
 
+"""
+Dumb algorithm for rational points via lex Groebner Basis.
+Be invited to do s.th. vastly better here....
+"""
 function rational_points(I::MPolyIdeal{<:MPolyElem})
-  @show gb = groebner_basis(I, ordering = lex(base_ring(I)))
+  gb = groebner_basis(I, ordering = lex(base_ring(I)))
   if 1 in gb
     return []
   end
+  @assert dim(I) == 0
   @assert length(gb) == ngens(base_ring(I))
   R = base_ring(I)
   Qx, _ = PolynomialRing(base_ring(R), cached = false)
@@ -2521,8 +2540,9 @@ function rational_points(I::MPolyIdeal{<:MPolyElem})
     rts = sts
     i -= 1
   end
+  #for technical reasons (evaluation) the points are actually at this
+  #point constant polynomials, hence:
   return [[constant_coefficient(x) for x = r] for r = rts]
-  @show rts
 end
 
 
