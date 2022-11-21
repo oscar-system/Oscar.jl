@@ -119,13 +119,33 @@ optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
 
 Objects of type `LinearProgram` can be saved to a file and loaded from a file
 in the following way:
-```@repl oscar
-C = cube(3)
-LP=LinearProgram(C, [1,2,-3], convention=:min)
-save("lp.poly", LP)
-LP0 = load("lp.poly")
-solve_lp(LP0)
-solve_lp(LP)
+```jldoctest
+julia> C = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> LP=LinearProgram(C, [1,2,-3], convention=:min)
+The linear program
+   min{c⋅x + k | x ∈ P}
+where P is a Polyhedron{fmpq} and
+   c=Polymake.Rational[1 2 -3]
+   k=0
+
+julia> save("lp.poly", LP)
+1185
+
+julia> LP0 = load("lp.poly")
+The linear program
+   min{c⋅x + k | x ∈ P}
+where P is a Polyhedron{fmpq} and
+   c=Polymake.Rational[1 2 -3]
+   k=0
+
+julia> solve_lp(LP0)
+(-6, fmpq[-1, -1, 1])
+
+julia> solve_lp(LP)
+(-6, fmpq[-1, -1, 1])
+
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by

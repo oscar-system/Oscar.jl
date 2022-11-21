@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -56,12 +59,22 @@ Papers offering details on theory and algorithms as well as examples include:
 is_binomial(f::MPolyElem)
 is_binomial(I::MPolyIdeal)
 ```
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-f = 2*x+y
-is_binomial(f)
-J = ideal(R, [x^2-y^3, z^2])
-is_binomial(J)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> f = 2*x+y
+2*x + y
+
+julia> is_binomial(f)
+true
+
+julia> J = ideal(R, [x^2-y^3, z^2])
+ideal(x^2 - y^3, z^2)
+
+julia> is_binomial(J)
+true
+
 ```
 
 ### Cellularity Test

@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -43,22 +46,30 @@ an object encoding information about where that element belongs.
 
 The parent of an OSCAR integer is the ring of integers `ZZ`.
 
-```@repl oscar
-ZZ
+```jldoctest
+julia> ZZ
+Integer Ring
+
 ```
 
 ### Integer constructors
 
 OSCAR integers are created using `ZZ`:
 
-```@repl oscar
-ZZ(2)^100
-ZZ(618970019642690137449562111)
+```jldoctest
+julia> ZZ(2)^100
+1267650600228229401496703205376
+
+julia> ZZ(618970019642690137449562111)
+618970019642690137449562111
+
 ```
 One can also construct the integer ``0`` with the empty constructor:
 
-```@repl oscar
-ZZ()
+```jldoctest
+julia> ZZ()
+0
+
 ```
 
 The following special constructors are also provided:
@@ -66,20 +77,32 @@ The following special constructors are also provided:
 * `zero(ZZ)`
 * `one(ZZ)`
 
-```@repl oscar
-zero(ZZ)
-one(ZZ)
+```jldoctest
+julia> zero(ZZ)
+0
+
+julia> one(ZZ)
+1
+
 ```
 
 Note that `ZZ` is not a Julia type, but the above methods of constructing
 OSCAR integers are similar to the way that Julia integer types can be used to
 construct Julia integers.
 
-```@repl oscar
-Int(123)
-BigInt(123456343567843598776327698374259876295438725)
-zero(BigInt)
-one(Int)
+```jldoctest
+julia> Int(123)
+123
+
+julia> BigInt(123456343567843598776327698374259876295438725)
+123456343567843598776327698374259876295438725
+
+julia> zero(BigInt)
+0
+
+julia> one(Int)
+1
+
 ```
 
 ### Limitations
@@ -104,13 +127,25 @@ at least one of the arguments is an `fmpz`, the function will generally behave
 as if all integer arguments were promoted to the type `fmpz`, and the integers
 in the return generally should also be of type `fmpz`. For example:
 
-```@repl oscar
-divexact(ZZ(234), 2)
-typeof(gcd(4, 6))
-typeof(gcdx(4, 6))
-typeof(gcd(4, ZZ(6)))
-typeof(gcdx(4, ZZ(6)))
-typeof(jacobi_symbol(ZZ(2), ZZ(3)))
+```jldoctest
+julia> divexact(ZZ(234), 2)
+117
+
+julia> typeof(gcd(4, 6))
+Int64
+
+julia> typeof(gcdx(4, 6))
+Tuple{Int64, Int64, Int64}
+
+julia> typeof(gcd(4, ZZ(6)))
+fmpz
+
+julia> typeof(gcdx(4, ZZ(6)))
+Tuple{fmpz, fmpz, fmpz}
+
+julia> typeof(jacobi_symbol(ZZ(2), ZZ(3)))
+Int64
+
 ```
 
 In the first example, `2` is a Julia integer but is still valid in the
@@ -135,11 +170,19 @@ declare a composite number to be prime with very low probability.
 Negative numbers, ``0`` and ``1`` are not considered prime by `is_prime` and
 `is_probable_prime`.
 
-```@repl oscar
-isone(ZZ(1))
-is_unit(ZZ(-1))
-is_square(ZZ(16))
-is_probable_prime(ZZ(23))
+```jldoctest
+julia> isone(ZZ(1))
+true
+
+julia> is_unit(ZZ(-1))
+true
+
+julia> is_square(ZZ(16))
+true
+
+julia> is_probable_prime(ZZ(23))
+true
+
 ```
 
 ## Properties
@@ -148,10 +191,16 @@ is_probable_prime(ZZ(23))
 
 Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
-```@repl oscar
-sign(ZZ(23))
-sign(ZZ(0))
-sign(ZZ(-1))
+```jldoctest
+julia> sign(ZZ(23))
+1
+
+julia> sign(ZZ(0))
+0
+
+julia> sign(ZZ(-1))
+-1
+
 ```
 
 * `abs(n::fmpz) -> fmpz`
@@ -160,8 +209,10 @@ Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
 otherwise
 
 
-```@repl oscar
-abs(ZZ(-3))
+```jldoctest
+julia> abs(ZZ(-3))
+3
+
 ```
 
 ## Basic arithmetic
@@ -196,11 +247,19 @@ Return the quotient of ``a`` by ``b``. The result of the exact division of two
 integers will always be another integer. Exact division raises an exception if
 the division is not exact, or if division by zero is attempted.
 
-```@repl oscar
-divexact(ZZ(6), ZZ(3))
-divexact(ZZ(6), ZZ(0))
-divexact(ZZ(6), ZZ(5))
-divexact(ZZ(6), 2)
+```jldoctest
+julia> divexact(ZZ(6), ZZ(3))
+2
+
+julia> divexact(ZZ(6), ZZ(0))
+ERROR: DivideError: integer division error
+
+julia> divexact(ZZ(6), ZZ(5))
+ERROR: ArgumentError: Not an exact division
+
+julia> divexact(ZZ(6), 2)
+3
+
 ```
 
 ### Powering
@@ -209,9 +268,13 @@ divexact(ZZ(6), 2)
 
 Return the result of powering ``a`` by ``b``.
 
-```@repl oscar
-ZZ(37)^37
-ZZ(1)^(-2)
+```jldoctest
+julia> ZZ(37)^37
+10555134955777783414078330085995832946127396083370199442517
+
+julia> ZZ(1)^(-2)
+1
+
 ```
 
 !!! note
@@ -225,8 +288,10 @@ ZZ(1)^(-2)
 
 The following is allowed for convenience.
 
-```@repl oscar
-ZZ(0)^0
+```jldoctest
+julia> ZZ(0)^0
+1
+
 ```
 
 !!! note
@@ -258,11 +323,19 @@ the sign of ``r`` is the same as the sign of ``a``.
 
 All three functions raise an exception if the modulus ``b`` is zero.
 
-```@repl oscar
-divrem(ZZ(5), ZZ(3))
-div(ZZ(7), ZZ(2))
-rem(ZZ(4), ZZ(3))
-div(ZZ(2), ZZ(0))
+```jldoctest
+julia> divrem(ZZ(5), ZZ(3))
+(1, 2)
+
+julia> div(ZZ(7), ZZ(2))
+3
+
+julia> rem(ZZ(4), ZZ(3))
+1
+
+julia> div(ZZ(2), ZZ(0))
+ERROR: DivideError: integer division error
+
 ```
 
 !!! note
@@ -288,9 +361,13 @@ mod       |            | same as divisor  | towards ``-\infty``
 There is no function implemented to compute the quotient corresponding to
 the remainder given by `mod`.
 
-```@repl oscar
-mod(ZZ(4), ZZ(3))
-mod(ZZ(2), ZZ(0)) 
+```jldoctest
+julia> mod(ZZ(4), ZZ(3))
+1
+
+julia> mod(ZZ(2), ZZ(0))
+ERROR: DivideError: integer division error
+
 ```
 
 ## [Divisibility testing](@id integer_divisibility_testing)
@@ -305,15 +382,21 @@ The call `divides(a, b)` returns a tuple `(flag, q)` where `flag` is either
 `false` if `b` does not divide `a` in which case `q` will be an integer whose
 value is not defined.
  
-```@repl oscar
-divides(ZZ(6), ZZ(3))
-divides(ZZ(5), ZZ(2))
+```jldoctest
+julia> divides(ZZ(6), ZZ(3))
+(true, 2)
+
+julia> divides(ZZ(5), ZZ(2))
+(false, 0)
+
 ```
 
 Note that for convenience we define:
 
-```@repl oscar
-divides(ZZ(0), ZZ(0))
+```jldoctest
+julia> divides(ZZ(0), ZZ(0))
+(true, 0)
+
 ```
 
 ## Greatest common divisor
@@ -327,9 +410,13 @@ largest integer dividing the two inputs, unless both inputs are zero in which
 case it returns zero. The result will always be non-negative and will only be
 zero if both inputs are zero.
 
-```@repl oscar
-gcd(ZZ(34), ZZ(17))
-gcd(ZZ(3), ZZ(0))
+```jldoctest
+julia> gcd(ZZ(34), ZZ(17))
+17
+
+julia> gcd(ZZ(3), ZZ(0))
+3
+
 ```
 
 ### Extended GCD
@@ -352,9 +439,13 @@ Return the least common multiple of ``a`` and ``b``. This is the least
 positive multiple of ``a`` and ``b``, unless ``a = 0`` or ``b = 0``
 which case we define the least common multiple to be zero.
 
-```@repl oscar
-lcm(ZZ(6), ZZ(21))
-lcm(ZZ(0), ZZ(0))
+```jldoctest
+julia> lcm(ZZ(6), ZZ(21))
+42
+
+julia> lcm(ZZ(0), ZZ(0))
+0
+
 ```
 
 ## Roots
@@ -374,11 +465,20 @@ Return the floor of the square root of its argument, i.e. the largest integer
 whose square does not exceed its input. An exception is raised if a negative
 input is passed.
 
-```@repl oscar
-isqrt(ZZ(16))
-isqrt(ZZ(0))
-isqrt(ZZ(5))
-isqrt(ZZ(-3))
+```jldoctest
+julia> isqrt(ZZ(16))
+4
+
+julia> isqrt(ZZ(0))
+0
+
+julia> isqrt(ZZ(5))
+2
+
+julia> isqrt(ZZ(-3))
+ERROR: DomainError with -3:
+Argument must be non-negative
+
 ```
 
 * `isqrtrem(n::fmpz) -> (fmpz, fmpz)`
@@ -386,9 +486,13 @@ isqrt(ZZ(-3))
 Return the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
 ``n = s^2 + r``.
 
-```@repl oscar
-isqrtrem(ZZ(16))
-isqrtrem(ZZ(5))
+```jldoctest
+julia> isqrtrem(ZZ(16))
+(4, 0)
+
+julia> isqrtrem(ZZ(5))
+(2, 1)
+
 ```
 
 ### General roots
@@ -402,13 +506,27 @@ root of ``a``.
 When ``n`` is even, the non-negative root is always returned. An exception is
 raised if ``n \leq 0`` or if ``n`` is even and ``a < 0``.
 
-```@repl oscar
-root(ZZ(16), 4)
-root(ZZ(5), 2)
-root(ZZ(-5), 3)
-root(ZZ(0), 4)
-root(ZZ(-5), 2)
-root(ZZ(12), -2)
+```jldoctest
+julia> root(ZZ(16), 4)
+2
+
+julia> root(ZZ(5), 2)
+2
+
+julia> root(ZZ(-5), 3)
+-1
+
+julia> root(ZZ(0), 4)
+0
+
+julia> root(ZZ(-5), 2)
+ERROR: DomainError with (-5, 2):
+Argument `x` must be positive if exponent `n` is even
+
+julia> root(ZZ(12), -2)
+ERROR: DomainError with -2:
+Exponent must be positive
+
 ```
 
 ## Conversions
@@ -418,26 +536,38 @@ root(ZZ(12), -2)
 
 Convert the OSCAR integer to the respective Julia integer.
 
-```@repl oscar
-n = ZZ(123)
-Int(n)
-BigInt(n)
+```jldoctest
+julia> n = ZZ(123)
+123
+
+julia> Int(n)
+123
+
+julia> BigInt(n)
+123
+
 ```
 
 In the case of `Int`, if the OSCAR integer is too large to fit, an exception
 is raised.
 
-```@repl oscar
-Int(ZZ(12348732648732648763274868732687324))
+```jldoctest
+julia> Int(ZZ(12348732648732648763274868732687324))
+ERROR: InexactError: convert(Int64, 12348732648732648763274868732687324)
+
 ```
 
 * `fits(::Type{Int}, n::fmpz) -> Bool`
 
 Return `true` if the OSCAR integer will fit in an `Int`.
 
-```@repl oscar
-fits(Int, ZZ(123))
-fits(Int, ZZ(12348732648732648763274868732687324))
+```jldoctest
+julia> fits(Int, ZZ(123))
+true
+
+julia> fits(Int, ZZ(12348732648732648763274868732687324))
+false
+
 ```
 
 ## Factorisation
@@ -447,34 +577,55 @@ fits(Int, ZZ(12348732648732648763274868732687324))
 Return a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
 
-```@repl oscar
-factor(ZZ(-6000361807272228723606))
-factor(ZZ(0))
+```jldoctest
+julia> factor(ZZ(-6000361807272228723606))
+-1 * 2 * 229^3 * 43669^3 * 3
+
+julia> factor(ZZ(0))
+ERROR: ArgumentError: Argument is not non-zero
+
 ```
 
 * `unit(F::Fac) -> fmpz`
 
-```@repl oscar
-F = factor(ZZ(-12))
-unit(F)
+```jldoctest
+julia> F = factor(ZZ(-12))
+-1 * 2^2 * 3
+
+julia> unit(F)
+-1
+
 ```
 
 ### Factorisation are iterable
 
 Once created, a factorisation is iterable:
 
-```@repl oscar
-F = factor(ZZ(-60))
-for (p, e) in F; println("$p^$e"); end
+```jldoctest
+julia> F = factor(ZZ(-60))
+-1 * 5 * 2^2 * 3
+
+julia> for (p, e) in F; println("$p^$e"); end
+5^1
+2^2
+3^1
+
 ```
 
 The pairs `(p, e)` in a factorisation represent the prime power factors
 ``p^e`` of the non-unit part of the factorisation. They can be placed in an
 array using `collect`:
 
-```@repl oscar
-F = factor(ZZ(-60))
-collect(F)
+```jldoctest
+julia> F = factor(ZZ(-60))
+-1 * 5 * 2^2 * 3
+
+julia> collect(F)
+3-element Vector{Pair{fmpz, Int64}}:
+ 5 => 1
+ 2 => 2
+ 3 => 1
+
 ```
 
 ### Accessing exponents in a factorisation
@@ -486,13 +637,25 @@ is not in a factorisation is requested, an exception is raised.
 For convenience, a `Int` can be used instead of an OSCAR integer for this
 functionality.
 
-```@repl oscar
-F = factor(ZZ(-60))
-5 in F
-ZZ(3) in F
-7 in F
-F[3]
-F[ZZ(7)]
+```jldoctest
+julia> F = factor(ZZ(-60))
+-1 * 5 * 2^2 * 3
+
+julia> 5 in F
+true
+
+julia> ZZ(3) in F
+true
+
+julia> 7 in F
+false
+
+julia> F[3]
+1
+
+julia> F[ZZ(7)]
+ERROR: 7 is not a factor of -1 * 5 * 2^2 * 3
+
 ```
 
 ## Combinatorial functions
@@ -516,9 +679,13 @@ Return the factorial of ``n``, i.e. ``n!``. An exception is raised if
 Return ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
 
-```@repl oscar
-factorial(ZZ(30))
-rising_factorial(ZZ(-30), 3)
+```jldoctest
+julia> factorial(ZZ(30))
+265252859812191058636308480000000
+
+julia> rising_factorial(ZZ(-30), 3)
+-24360
+
 ```
 
 ### Primorial
@@ -530,8 +697,10 @@ Return the primorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
 
-```@repl oscar
-primorial(ZZ(100))
+```jldoctest
+julia> primorial(ZZ(100))
+2305567963945518424753102147331756070
+
 ```
 
 ### Bell numbers
@@ -542,8 +711,10 @@ primorial(ZZ(100))
 Return the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
 
-```@repl oscar
-bell(ZZ(20))
+```jldoctest
+julia> bell(ZZ(20))
+51724158235372
+
 ```
 
 ### Binomial coefficients
@@ -557,8 +728,10 @@ Return the binomial coefficient ``\frac{n (n-1) \cdots (n-k+1)}{k!}`` for
     Julia already defines the `binomial` function for `Int`, which throws an
     error on overflow.
 
-```@repl oscar
-binomial(ZZ(72), ZZ(15))
+```jldoctest
+julia> binomial(ZZ(72), ZZ(15))
+1155454041309504
+
 ```
 
 ### Integer partitions
@@ -570,8 +743,10 @@ Return the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
 ``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 
-```@repl oscar
-number_of_partitions(ZZ(10^6))
+```jldoctest
+julia> number_of_partitions(ZZ(10^6))
+1471684986358223398631004760609895943484030484439142125334612747351666117418918618276330148873983597555842015374130600288095929387347128232270327849578001932784396072064228659048713020170971840761025676479860846908142829356706929785991290519899445490672219997823452874982974022288229850136767566294781887494687879003824699988197729200632068668735996662273816798266213482417208446631027428001918132198177180646511234542595026728424452592296781193448139994664730105742564359154794989181485285351370551399476719981691459022015599101959601417474075715430750022184895815209339012481734469448319323280150665384042994054179587751761294916248142479998802936507195257074485047571662771763903391442495113823298195263008336489826045837712202455304996382144601028531832004519046591968302787537418118486000612016852593542741980215046267245473237321845833427512524227465399130174076941280847400831542217999286071108336303316298289102444649696805395416791875480010852636774022023128467646919775022348562520747741843343657801534130704761975530375169707999287040285677841619347472368171772154046664303121315630003467104673818
+
 ```
 
 ### Fibonacci sequence
@@ -584,9 +759,13 @@ relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 ``n \geq 3``. We define ``F(0) = 0`` and for ``n > 0`` we have
 ``F(-n) = (-1)^{n+1}F(n)``.
 
-```@repl oscar
-fibonacci(ZZ(100))
-fibonacci(-2)
+```jldoctest
+julia> fibonacci(ZZ(100))
+354224848179261915075
+
+julia> fibonacci(-2)
+-1
+
 ```
 
 ## Number theoretic functionality
@@ -607,8 +786,10 @@ Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
 ``\mu(n)`` can be defined to be the sum of the primitive ``n``-th roots of
 unity. An exception is raised if ``n \leq 0``.
 
-```@repl oscar
-moebius_mu(30)
+```jldoctest
+julia> moebius_mu(30)
+-1
+
 ```
 
 ### Jacobi symbols
@@ -628,8 +809,10 @@ divides ``m`` and otherwise ``+1`` or ``-1`` depending on whether ``m`` is
 a square modulo ``p`` or not. An exception is raised if ``n`` is even or if
 ``n \leq 0``.
 
-```@repl oscar
-jacobi_symbol(3, 37)
+```jldoctest
+julia> jacobi_symbol(3, 37)
+1
+
 ```
 
 ### Sigma function
@@ -644,8 +827,10 @@ Return the sum of the ``n``-th powers of the divisors of ``m``
 ```
 If ``m \leq 0`` or ``n < 0`` we raise an exception.
 
-```@repl oscar
-divisor_sigma(60, 5)
+```jldoctest
+julia> divisor_sigma(60, 5)
+806220408
+
 ```
 
 ### Euler totient function
@@ -657,7 +842,9 @@ Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
 ``\varphi(1) = 1``. We raise an exception if ``n \leq 0``.
 
-```@repl oscar
-euler_phi(200)
+```jldoctest
+julia> euler_phi(200)
+80
+
 ```
 

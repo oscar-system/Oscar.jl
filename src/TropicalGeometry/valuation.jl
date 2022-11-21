@@ -9,7 +9,6 @@ export TropicalSemiringMap,
        tighten_simulation
 
 @doc Markdown.doc"""
-
     TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
 
 Constructs a map `val` from `K` to the min tropical semiring `T` (default)
@@ -29,7 +28,9 @@ Currently, the only supported valuations are:
 - the $p$-adic valuations on $\mathbb{Q}$
 - the trivial valuation on any field
 
-# Example ($p$-adic valuation on $\mathbb{Q}$)
+# Examples
+
+$p$-adic valuation on $\mathbb{Q}$:
 ```jldoctest
 julia> val_2 = TropicalSemiringMap(QQ,2); # = TropicalSemiringMap(QQ,2,min)
 
@@ -45,7 +46,7 @@ julia> val_2(1//4)
 (2)
 ```
 
-# Example ($t$-adic valuation on $\mathbb{Q}(t)$)
+$t$-adic valuation on $\mathbb{Q}(t)$:
 ```jldoctest
 julia> Kt,t = RationalFunctionField(QQ,"t");
 
@@ -57,7 +58,7 @@ julia> val_t(1//t^2)
 (-2)
 ```
 
-# Example (trivial valuation on $\mathbb{Q}$)
+Trivial valuation on $\mathbb{Q}$:
 ```jldoctest
 julia> val = TropicalSemiringMap(QQ);
 

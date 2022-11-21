@@ -857,6 +857,8 @@ function sparse_matrix(R::MPolyRing, M::Singular.Module)
   for g = 1:Singular.ngens(M)
     push!(S, sparse_row(R, M[g]))
   end
+  S.r = ngens(M)
+  S.c = rank(M)
   return S
 end
 

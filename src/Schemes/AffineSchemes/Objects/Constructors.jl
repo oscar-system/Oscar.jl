@@ -319,7 +319,7 @@ Spec of Quotient of Multivariate Polynomial Ring in x1, x2, x3 over Rational Fie
 function subscheme(X::AbsSpec, I::Ideal)
   base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
   Y =  Spec(quo(OO(X), I)[1])
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -364,7 +364,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(h)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -374,7 +374,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(h)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -383,7 +383,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(f)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -392,7 +392,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(lift(f))
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -432,7 +432,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -442,7 +442,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -451,7 +451,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -460,7 +460,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   W, _ = Localization(OO(X), U)
   Y = Spec(W)
-  set_attribute!(Y, :ambient_affine_space, ambient_affine_space(X))
+  set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
@@ -621,7 +621,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(R, modulus(quotient_ring(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
+  return Spec(R, modulus(underlying_quotient(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
 end
 
 
@@ -640,8 +640,8 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-#  Q, _ = quo(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))))
-  return Spec(R, modulus(quotient_ring(OO(X))) + modulus(quotient_ring(OO(Y))), 
+#  Q, _ = quo(R, modulus(underlying_quotient(OO(X))) + modulus(underlying_quotient(OO(Y))))
+  return Spec(R, modulus(underlying_quotient(OO(X))) + modulus(underlying_quotient(OO(Y))), 
               inverted_set(OO(X)) * inverted_set(OO(Y)))
 end
 

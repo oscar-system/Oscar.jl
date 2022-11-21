@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -79,20 +82,67 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 1)
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(F, A, B)
-base_ring(M)
-F === ambient_free_module(M)
-gens(M)
-ngens(M)
-gen(M, 2)
-ambient_representatives_generators(M)
-relations(M)
-ambient_module(M)
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> base_ring(M)
+Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> F === ambient_free_module(M)
+true
+
+julia> gens(M)
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*e[1]
+ y*e[1]
+
+julia> ngens(M)
+2
+
+julia> gen(M, 2)
+y*e[1]
+
+julia> ambient_representatives_generators(M)
+2-element Vector{FreeModElem{fmpq_mpoly}}:
+ x*e[1]
+ y*e[1]
+
+julia> relations(M)
+3-element Vector{FreeModElem{fmpq_mpoly}}:
+ x^2*e[1]
+ y^3*e[1]
+ z^4*e[1]
+
+julia> ambient_module(M)
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
 ```
 
 ## Elements of Subqotients
@@ -117,16 +167,43 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 1)
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(F, A, B)
-m = M(sparse_row(R, [(1,z),(2,one(R))]))
-n = M([z, one(R)])
-o = z*M[1] + M[2]
-m == n == o
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> m = M(sparse_row(R, [(1,z),(2,one(R))]))
+(x*z + y)*e[1]
+
+julia> n = M([z, one(R)])
+(x*z + y)*e[1]
+
+julia> o = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia> m == n == o
+true
+
 ```
 
 Given an element `m`  of a subquotient `M`  over a multivariate polynomial ring $R$ with element type `T`,
@@ -146,24 +223,73 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 
 ##### Examples
 
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-F = free_module(R, 1)
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(F, A, B)
-m = z*M[1] + M[2]
-parent(m)
-coefficients(m)
-fm = ambient_representative(m)
-typeof(m)
-typeof(fm)
-parent(fm) === ambient_free_module(M)
-F = ambient_free_module(M)
-f = x*F[1]
-M(f)
-typeof(f)
-typeof(M(f))
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> m = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia> parent(m)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> coefficients(m)
+Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
+
+julia> fm = ambient_representative(m)
+(x*z + y)*e[1]
+
+julia> typeof(m)
+SubQuoElem{fmpq_mpoly}
+
+julia> typeof(fm)
+FreeModElem{fmpq_mpoly}
+
+julia> parent(fm) === ambient_free_module(M)
+true
+
+julia> F = ambient_free_module(M)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> f = x*F[1]
+x*e[1]
+
+julia> M(f)
+x*e[1]
+
+julia> typeof(f)
+FreeModElem{fmpq_mpoly}
+
+julia> typeof(M(f))
+SubQuoElem{fmpq_mpoly}
+
 ```
 
 The zero element of a subquotient is obtained as follows:

@@ -7,6 +7,39 @@
     I = ideal(R, [x])
     gb = f4(I)
     @test normal_form(y, I) == y
+    G = groebner_basis(I)
+    J = ideal(R, y)
+    @test reduce(J.gens, G) == [y]
+    J = ideal(R, x*y^2)
+    matrix, res = reduce_with_quotients(J.gens, G)
+    @test matrix * gens(G) + res == gens(J)
+    quots, res, units = reduce_with_quotients_and_units(J.gens, G)
+    @test matrix * gens(G) + res == units * gens(J)
+    @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
+    @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
+    @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
+    f = x*y^3-y^4
+	F = [x*y^2-x,x^3-2*x*y^2]
+	q, r = reduce_with_quotients(f, F)
+	@test q * F + [r] == [f]
+	q, r = reduce_with_quotients([f], F)
+	@test q * F + r == [f]
+	q, r, u = reduce_with_quotients_and_units(f, F)
+	@test q * F + [r] == u * [f]
+	q, r, u = reduce_with_quotients_and_units([f], F)
+	@test q * F + r == u * [f]
+	f = x
+	F = [1-x]
+	q, r = reduce_with_quotients(f, F, ordering=neglex(R))
+	@test q * F + [r] != [f]
+	q, r, u = reduce_with_quotients_and_units(f, F, ordering=neglex(R))
+	@test q * F + [r] == u * [f]
+	I = ideal(R,[y^2 - x, x^3 - 2*y^2])
+    @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
+    @test is_groebner_basis(I.gens, ordering=lex(R)) == false
+    @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
+    @test is_standard_basis(I.gens, ordering=degrevlex(R)) == true
+    @test is_standard_basis(I.gens, ordering=neglex(R)) == false
 end
 
 @testset "groebner leading ideal" begin
@@ -49,7 +82,10 @@ end
   I = ideal(R, [x^2*(x-1)-y^2, y^3*(x+y-6)])
   o = negdegrevlex(gens(R))
   G = standard_basis(I, ordering=o)
-  @test normal_form(x^5-5, I, o) == -5
+  @test normal_form(x^5-5, I, ordering=o) == -5
+  J = ideal(R, [x^5-5])
+  matr, res, units = reduce_with_quotients_and_units(J.gens, G)
+  @test matr * gens(G) + res == units * gens(J)
   u = negdegrevlex([x])*negdegrevlex([y])
   @test ideal_membership(x^4, I, ordering=u)
 end

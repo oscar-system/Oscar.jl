@@ -49,7 +49,7 @@ of a given polytope $P$.  The result is given as permutations of the vertices
 (or rather vertex indices) of $P$. This group contains the `linear_symmetries`
 as a subgroup.
 
-# Example
+# Examples
 The quadrangle one obtains from moving one vertex of the square out along the
 diagonal has eight combinatorial symmetries, but only two linear symmetries.
 ```jldoctest

@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -52,11 +55,22 @@ If `F` is a free `R`-module, then
 
 ###### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 3)
-basis(F)
-rank(F)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> basis(F)
+3-element Vector{FreeModElem{fmpq_mpoly}}:
+ e[1]
+ e[2]
+ e[3]
+
+julia> rank(F)
+3
+
 ```
 
 ## Elements of Free Modules
@@ -81,13 +95,25 @@ Alternatively, directly write the element as a linear combination of basis vecto
  
 ##### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 3)
-f = F(sparse_row(R, [(1,x),(3,y)]))
-g = F( [x, zero(R), y])
-h = x*F[1] + y*F[3]
-f == g == h
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> f = F(sparse_row(R, [(1,x),(3,y)]))
+x*e[1] + y*e[3]
+
+julia> g = F( [x, zero(R), y])
+x*e[1] + y*e[3]
+
+julia> h = x*F[1] + y*F[3]
+x*e[1] + y*e[3]
+
+julia> f == g == h
+true
+
 ```
 
 Given an element `f`  of a free module `F` over a multivariate polynomial ring with element type `T`,
@@ -96,12 +122,22 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 
 ##### Examples
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-F = free_module(R, 3)
-f = x*F[1] + y*F[3]
-parent(f)
-coefficients(f)
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> f = x*F[1] + y*F[3]
+x*e[1] + y*e[3]
+
+julia> parent(f)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> coefficients(f)
+Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
+
 ```
 
 The zero element of a free module is obtained as follows:
