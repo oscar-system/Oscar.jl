@@ -22,7 +22,7 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   Y = ambient_scheme(V)
   Z = ambient_scheme(W)
   pb_coords = [pullback(f)(pullback(g)(OO(W)(x))) for x in gens(ambient_coordinate_ring(Z))]
-  maps_on_patches = [SpecMor(A, Z, [restrict(h, A) for h in pb_coords]) for A in affine_patches(U)]
+  maps_on_patches = [SpecMor(A, Z, [restrict(h, A) for h in pb_coords], check=check) for A in affine_patches(U)]
   return SpecOpenMor(U, W, maps_on_patches)
 end
 
