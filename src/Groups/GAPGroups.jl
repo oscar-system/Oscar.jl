@@ -114,9 +114,14 @@ check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
 # (This cannot be defined here because `MatrixGroup` is not yet defined.)
 
 
-function elements(G::T) where T <: GAPGroup
+# TODO: ideally the `elements` method below would be turned into a method for
+# `collect`, as it is much faster than plain `collect`. Unfortunately, though,
+# for some groups (e.g. permutation groups) the order of elements computed
+# by this function may differ from that computed by an iterator over G. So
+# this is not an option right now.
+function elements(G::GAPGroup)
   els = GAP.Globals.Elements(G.X)::GapObj
-  return [group_element(G, x) for x in els]
+  return [group_element(G, x::GapObj) for x in els]
 end
 
 function parent(x::GAPGroupElem)
