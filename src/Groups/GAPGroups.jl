@@ -113,12 +113,8 @@ check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
 
 
 function elements(G::T) where T <: GAPGroup
-  els = Vector{GapObj}(GAP.Globals.Elements(G.X)::GapObj)
-  elems = Vector{elem_type(G)}(undef, length(els))
-  for i in 1:length(els)
-    elems[i] = group_element(G, els[i])
-  end
-  return elems
+  els = GAP.Globals.Elements(G.X)::GapObj
+  return [group_element(G, x) for x in els]
 end
 
 function parent(x::GAPGroupElem)
