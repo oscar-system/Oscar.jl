@@ -2259,7 +2259,7 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   return res
 end
 
-"""
+@doc Markdown.doc"""
     galois_quotient(C::GaloisCtx, d::Int)
 
 Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
