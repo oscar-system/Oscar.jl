@@ -318,11 +318,16 @@ function recognise(C::GaloisCtx, S::SubField, I::SLPoly)
 end
 
 function recognise(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly})
-  B = dual_basis_bound(S) * length(S.conj) *
-            maximum(I->Oscar.GaloisGrp.upper_bound(C, I, S.ts), J)
+  if isdefined(S, :ts)
+    B = dual_basis_bound(S) * length(S.conj) *
+              maximum(I->Oscar.GaloisGrp.upper_bound(C, I, S.ts), J)
+  else
+    B = dual_basis_bound(S) * length(S.conj) *
+              maximum(I->Oscar.GaloisGrp.upper_bound(C, I), J)
+  end            
   pr = Oscar.GaloisGrp.bound_to_precision(C, B)
   r = roots(C, pr)
-  if S.ts != gen(parent(S.ts))
+  if isdefined(S, :ts) && S.ts != gen(parent(S.ts))
     r = map(S.ts, r)
   end
   b = basis_abs(S)
@@ -598,6 +603,39 @@ function basis_abs(S::SubField)
   d = basis_abs(S.coeff_field)
   b = S.basis .* inv(S.exact_den)
   return [i*j for j = d for i = b]
+end
+
+function factor_degree(G::PermGroup)
+  @assert is_transitive(G)
+  n = degree(G)
+  S = [stabilizer(G, i)[1] for i=1:n]
+  deg = Int[]
+  U = G
+  for i=1:n
+    V = intersect(U, S[i])[1]
+    push!(deg, index(U, V))
+    U = V
+  end
+  return deg
+end
+
+function galois_factor(C::GaloisCtx)
+  G = C.G
+  ld = factor_degree(G)
+  n = degree(G)
+  _, x = slpoly_ring(ZZ, n)
+  Gi = [stabilizer(G, 1)[1]]
+  J = [1]
+  I = [x[1]]
+  for i = 2:n
+    if ld[i] > 1
+      push!(J, i)
+      push!(I, x[i])
+      push!(Gi, stabilizer(G, J, on_tuples)[1])
+    end
+  end
+  z = _fixed_field(C, Gi, invar = I)
+  return recognise(C, z, x)
 end
 
 end # SolveRadical
