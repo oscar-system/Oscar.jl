@@ -43,6 +43,7 @@ export
     is_quasisimple, has_is_quasisimple, set_is_quasisimple,
     is_simple, has_is_simple, set_is_simple,
     is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple,
+    letters,
     low_index_subgroup_reps,
     map_word,
     maximal_subgroup_reps,
@@ -70,6 +71,7 @@ export
     short_right_transversal,
     socle, has_socle, set_socle,
     subgroup_reps,
+    syllables,
     sylow_subgroup,
     sylow_system, has_sylow_system, set_sylow_system
 
@@ -1583,6 +1585,83 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
   genimgs_inv[x] = res
   e == -1 && return res
   return res^-e
+end
+
+
+@doc Markdown.doc"""
+    syllables(g::FPGroupElem)
+
+Return the syllables of `g` as a list of pairs `gen => exp` where
+`gen` is the index of a generator and `exp` is an exponent.
+
+# Examples
+```jldoctest
+julia> F = free_group(2);  F1, F2 = gens(F);
+
+julia> syllables(F1^5*F2^-3)
+2-element Vector{Pair{Int64, Int64}}:
+ 1 => 5
+ 2 => -3
+
+julia> syllables(one(F))
+Pair{Int64, Int64}[]
+
+julia> G, epi = quo(F, [F1^10, F2^10]);
+
+julia> syllables(epi(F1^5*F2^-3))
+2-element Vector{Pair{Int64, Int64}}:
+ 1 => 5
+ 2 => -3
+```
+"""
+function syllables(g::FPGroupElem)
+  l = GAPWrap.ExtRepOfObj(g.X)
+  return Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+end
+
+
+@doc Markdown.doc"""
+    letters(g::FPGroupElem)
+
+Return the letters of `g` as a list of integers, each entry corresponding to
+a group generator. Inverses of the generators are represented by negative
+numbers.
+
+# Examples
+```jldoctest
+julia> F = free_group(2);  F1, F2 = gens(F);
+
+julia> letters(F1^5*F2^-3)
+8-element Vector{Int64}:
+  1
+  1
+  1
+  1
+  1
+ -2
+ -2
+ -2
+
+julia> letters(one(F))
+Int64[]
+
+julia> G, epi = quo(F, [F1^10, F2^10]);
+
+julia> letters(epi(F1^5*F2^-3))
+8-element Vector{Int64}:
+  1
+  1
+  1
+  1
+  1
+ -2
+ -2
+ -2
+```
+"""
+function letters(g::FPGroupElem)
+  w = GAPWrap.UnderlyingElement(g.X)::GapObj
+  return Vector{Int}(GAP.Globals.LetterRepAssocWord(w)::GapObj)
 end
 
 
