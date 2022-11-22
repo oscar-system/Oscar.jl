@@ -83,18 +83,17 @@ degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-   singular_assure(B, ordering)
-   R = B.Sx
-   I  = Singular.Ideal(R, gens(B.S)...)
-   i  = Singular.std(I, complete_reduction = complete_reduction)
-   BA = IdealGens(B.Ox, i)
-   BA.isGB  = true
-   BA.ord = ordering
-   if isdefined(BA, :S)
-       BA.S.isGB  = true
-   end
-
-   return BA
+	singular_assure(B, ordering)
+	R = B.Sx
+	I  = Singular.Ideal(R, gens(B.S)...)
+	i  = Singular.std(I, complete_reduction = complete_reduction)
+	BA = IdealGens(B.Ox, i, complete_reduction)
+	BA.isGB = true
+	BA.ord = ordering
+	if isdefined(BA, :S)
+	   BA.S.isGB  = true
+	end
+	return BA
 end
 
 # standard basis for non-global orderings #############################
@@ -122,12 +121,22 @@ with respect to the ordering
 negdegrevlex([x, y])
 ```
 """
-function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
-  complete_reduction && @assert is_global(ordering)
-  if !haskey(I.gb, ordering)
-    I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
-  end
-  return I.gb[ordering]
+function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	complete_reduction::Bool = false, algorithm::Symbol = :direct)
+	complete_reduction && @assert is_global(ordering)
+	if algorithm == :direct
+		if !haskey(I.gb, ordering)
+			I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
+		end
+		if !I.gb[ordering].isReduced
+			I.gb[ordering] = _compute_standard_basis(I.gb[ordering].gens, ordering, complete_reduction)
+		end
+	elseif algorithm == :fglm
+		_compute_groebner_basis_using_fglm(I, ordering, default_ordering(base_ring(I)))
+	elseif algorithm == :f4
+		_compute_groebner_basis_using_f4(I, complete_reduction=complete_reduction)
+	end
+	return I.gb[ordering]
 end
 
 @doc Markdown.doc"""
@@ -187,9 +196,10 @@ with respect to the ordering
 wdegrevlex([x, y], [1, 3])
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
+	algorithm::Symbol = :direct)
     is_global(ordering) || error("Ordering must be global")
-    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
 
 @doc Markdown.doc"""
@@ -231,7 +241,7 @@ julia> isdefined(I, :gb)
 true
 ```
 """
-function f4(
+function _compute_groebner_basis_using_f4(
         I::MPolyIdeal;
         initial_hts::Int=17,
         nr_thrds::Int=1,
@@ -255,6 +265,7 @@ function f4(
     ord = degrevlex(vars)
     I.gb[ord] =
         IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
+	I.gb[ord].isReduced = complete_reduction
 
     return I.gb[ord]
 end
@@ -945,3 +956,33 @@ function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_or
     is_global(ordering) || error("Ordering must be global")
 	return is_standard_basis(F, ordering=ordering)
 end
+
+@doc Markdown.doc"""
+
+
+Converts a Groebner basis `G` w.r.t. a given monomial ordering `<_1` for some ideal `I`
+to a Groebner basis `H` w.r.t. another monomial ordering `<_2` for `I`.
+"""
+function fglm(G::IdealGens; ordering::MonomialOrdering)
+	@assert G.isGB == true 
+	@assert G.isReduced == true
+	singular_assure(G)
+	SR_destination, = Singular.PolynomialRing(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
+
+	ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
+	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
+end
+
+function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
+	destination_ordering::MonomialOrdering, start_ordering::MonomialOrdering = default_ordering(base_ring(I)))
+	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
+	@assert is_global(start_ordering) && is_global(destination_ordering)
+	if start_ordering == degrevlex(base_ring(I)) && typeof(coefficient_ring(base_ring(I))) == Nemo.GaloisField
+		standard_basis(I, ordering=start_ordering, complete_reduction=true, algorithm=:f4)
+	else
+		standard_basis(I, ordering=start_ordering, complete_reduction=true)
+	end
+	@assert dim(I) == 0
+	I.gb[destination_ordering] = fglm(I.gb[start_ordering], ordering=destination_ordering)
+end
+
