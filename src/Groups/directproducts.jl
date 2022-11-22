@@ -342,7 +342,7 @@ function Base.show(io::IO, G::DirectProductGroup)
       print(io, "DirectProduct of ")
       for x in G.L print(io, "\n ", x) end
    else
-      print(io, String(GAP.Globals.StringViewObj(G.X)))
+      print(io, String(GAPWrap.StringViewObj(G.X)))
    end
 end
 
@@ -472,10 +472,10 @@ end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
    if x.isfull
-      print(io, "SemidirectProduct( ", String(GAP.Globals.StringViewObj(x.N.X)),
+      print(io, "SemidirectProduct( ", String(GAPWrap.StringViewObj(x.N.X)),
                 " , ", String(GAP.Globals.StringView(x.H.X))," )")
    else
-      print(io, String(GAP.Globals.StringViewObj(x.X)))
+      print(io, String(GAPWrap.StringViewObj(x.X)))
    end
 end
 

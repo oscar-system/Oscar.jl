@@ -29,33 +29,52 @@ GAP.@wrap GF(x::Any)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
+GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap IntFFE(x::Any)::GapInt
 GAP.@wrap IsAbelian(x::Any)::Bool
+GAP.@wrap IsAlgebraicElementCollCollColl(x::Any)::Bool
 GAP.@wrap IsAlgebraicExtension(x::Any)::Bool
 GAP.@wrap IsAlmostSimpleGroup(x::Any)::Bool
 GAP.@wrap IsAlternatingForm(x::Any)::Bool
 GAP.@wrap IsAlternatingGroup(x::Any)::Bool
+GAP.@wrap IsAssocWord(x::Any)::Bool
 GAP.@wrap IsBiCoset(x::Any)::Bool
 GAP.@wrap IsBijective(x::Any)::Bool
+GAP.@wrap IsChar(x::Any)::Bool
 GAP.@wrap IsCharacteristicSubgroup(x::Any, y::Any)::Bool
 GAP.@wrap IsCheapConwayPolynomial(x::Any, y::Any)::Bool
+GAP.@wrap IsCheapConwayPolynomial(x::Any)::Bool
 GAP.@wrap IsClassFunction(x::Any)::Bool
 GAP.@wrap IsConjugate(x::Any, y::Any, z::Any)::Bool
 GAP.@wrap IsCyc(x::Any)::Bool
 GAP.@wrap IsCyclic(x::Any)::Bool
 GAP.@wrap IsCyclotomic(x::Any)::Bool
 GAP.@wrap IsCyclotomicCollColl(x::Any)::Bool
+GAP.@wrap IsCyclotomicCollCollColl(x::Any)::Bool
+GAP.@wrap IsCyclotomicCollection(x::Any)::Bool
+GAP.@wrap IsCyclotomicField(x::Any)::Bool
 GAP.@wrap IsDihedralGroup(x::Any)::Bool
 GAP.@wrap IsDoneIterator(x::Any)::Bool
+GAP.@wrap IsDuplicateTable(x::Any)::Bool
+GAP.@wrap IsElementaryAbelian(x::Any)::Bool
 GAP.@wrap IsEmpty(x::Any)::Bool
 GAP.@wrap IsFFE(x::Any)::Bool
+GAP.@wrap IsFFECollCollColl(x::Any)::Bool
+GAP.@wrap IsField(x::Any)::Bool
 GAP.@wrap IsFinite(x::Any)::Bool
+GAP.@wrap IsFinitelyGeneratedGroup(x::Any)::Bool
+GAP.@wrap IsFreeGroup(x::Any)::Bool
 GAP.@wrap IsGroupOfAutomorphisms(x::Any)::Bool
+GAP.@wrap IsHandledByNiceMonomorphism(x::Any)::Bool
 GAP.@wrap IsHermitianForm(x::Any)::Bool
 GAP.@wrap IsInjective(x::Any)::Bool
 GAP.@wrap IsInnerAutomorphism(x::Any)::Bool
 GAP.@wrap IsInt(x::Any)::Bool
+GAP.@wrap IsIntegers(x::Any)::Bool
+GAP.@wrap IsIrreducibleCharacter(x::Any)::Bool
+GAP.@wrap IsLetterAssocWordRep(x::Any)::Bool
+GAP.@wrap IsLetterWordsFamily(x::Any)::Bool
 GAP.@wrap IsList(x::Any)::Bool
 GAP.@wrap IsMatrix(x::GapObj)::Bool
 GAP.@wrap IsMatrixGroup(x::GapObj)::Bool
@@ -70,25 +89,38 @@ GAP.@wrap IsPcGroup(x::Any)::Bool
 GAP.@wrap IsPerfectGroup(x::Any)::Bool
 GAP.@wrap IsPermGroup(x::Any)::Bool
 GAP.@wrap IsPGroup(x::Any)::Bool
+GAP.@wrap IsPolynomial(x::Any)::Bool
+GAP.@wrap IsPrimeField(x::Any)::Bool
 GAP.@wrap IsPrimitive(x::Any, y::Any)::Bool
 GAP.@wrap IsPrimitive(x::Any)::Bool
+GAP.@wrap IsQuasisimpleGroup(x::Any)::Bool
 GAP.@wrap IsQuaternionGroup(x::Any)::Bool
+GAP.@wrap IsRationals(x::Any)::Bool
 GAP.@wrap IsRegular(x::Any, y::Any)::Bool
 GAP.@wrap IsRegular(x::Any)::Bool
 GAP.@wrap IsSemiRegular(x::Any, y::Any)::Bool
 GAP.@wrap IsSemiRegular(x::Any)::Bool
+GAP.@wrap IsSet(x::Any)::Bool
 GAP.@wrap IsSimpleGroup(x::Any)::Bool
 GAP.@wrap IsSingularForm(x::Any)::Bool
 GAP.@wrap IsSolvableGroup(x::Any)::Bool
+GAP.@wrap IsSporadicSimpleGroup(x::Any)::Bool
 GAP.@wrap IsSubgroupFpGroup(x::Any)::Bool
 GAP.@wrap IsSubset(x::Any, y::Any)::Bool
 GAP.@wrap IsSupersolvableGroup(x::Any)::Bool
 GAP.@wrap IsSurjective(x::Any)::Bool
+GAP.@wrap IsSyllableAssocWordRep(x::Any)::Bool
+GAP.@wrap IsSyllableWordsFamily(x::Any)::Bool
 GAP.@wrap IsSymmetricForm(x::Any)::Bool
 GAP.@wrap IsSymmetricGroup(x::Any)::Bool
 GAP.@wrap IsTransitive(x::Any, y::Any)::Bool
 GAP.@wrap IsTransitive(x::Any)::Bool
+GAP.@wrap IsTrivial(x::Any)::Bool
+GAP.@wrap IsUnivariatePolynomialRing(x::Any)::Bool
+GAP.@wrap IsWholeFamily(x::Any)::Bool
 GAP.@wrap IsZero(x::Any)::Bool
+GAP.@wrap IsZmodnZObj(x::Any)::Bool
+GAP.@wrap IsZmodnZObjNonprimeCollection(x::Any)::Bool
 GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NrCols(x::GapObj)::Int
@@ -97,11 +129,13 @@ GAP.@wrap NrRows(x::GapObj)::Int
 GAP.@wrap NumberColumns(x::GapObj)::Int
 GAP.@wrap NumberRows(x::GapObj)::Int
 GAP.@wrap NumeratorRat(x::Any)::GapInt
-GAP.@wrap One(x::Any)::Any
+GAP.@wrap One(x::Any)::GAP.Obj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap Size(x::Any)::GapInt
+GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
-GAP.@wrap Zero(x::Any)::Any
+GAP.@wrap Z(x::Any)::GAP.Obj
+GAP.@wrap Zero(x::Any)::GAP.Obj
 
 # for Int arguments we can sometimes provide better alternatives
 Conductor(x::Int) = 1
