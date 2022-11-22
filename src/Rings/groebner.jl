@@ -1,4 +1,4 @@
-export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4,
+export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm
 		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
 		groebner_basis_with_transformation_matrix,
 		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
