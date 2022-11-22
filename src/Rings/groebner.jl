@@ -134,7 +134,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering, default_ordering(base_ring(I)))
 	elseif algorithm == :f4
-		_compute_groebner_basis_using_f4(I, complete_reduction=complete_reduction)
+		f4(I, complete_reduction=complete_reduction)
 	end
 	return I.gb[ordering]
 end
@@ -203,7 +203,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc Markdown.doc"""
-    f4(I::MPolyIdeal, <keyword arguments>)
+	f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -241,7 +241,7 @@ julia> isdefined(I, :gb)
 true
 ```
 """
-function _compute_groebner_basis_using_f4(
+function f4(
         I::MPolyIdeal;
         initial_hts::Int=17,
         nr_thrds::Int=1,

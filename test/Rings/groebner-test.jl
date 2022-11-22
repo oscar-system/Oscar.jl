@@ -6,7 +6,7 @@
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
     R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
     I = ideal(R, [x])
-    gb = f4(I)
+    gb = Oscar._compute_groebner_basis_using_f4(I)
     @test normal_form(y, I) == y
     G = groebner_basis(I)
     J = ideal(R, y)
@@ -110,7 +110,7 @@ end
             x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
             2*x1*x2+2*x2*x3+2*x3*x4-x2,
             x2^2+2*x1*x3+2*x2*x4-x3])
-    H = f4(I);
+    H = Oscar._compute_groebner_basis_using_f4(I);
     G = gfp_mpoly[x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
                   x3^2 + 2*x2*x4 + 76695850*x3*x4 + 115043772*x4^2 + 115043768*x2 + 191739613*x3 + 230087535*x4
                   x2*x3 + 268435457*x2*x4 + 230087533*x3*x4 + 76695842*x4^2 + 210913575*x2 + 38347923*x3 + 153391692*x4
@@ -121,7 +121,7 @@ end
     @test elements(H) == G
     @test isdefined(I, :gb)
     @test I.gb[degrevlex(gens(base_ring(I)))].O == G
-    H = f4(I, eliminate=2);
+    H = Oscar._compute_groebner_basis_using_f4(I, eliminate=2);
     G = gfp_mpoly[x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                   x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                   x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
