@@ -115,3 +115,27 @@ end
   @test glueings(D) == glueings(Ccov)
   @test base_ring(D) == base_ring(Ccov)
 end
+
+@testset "is_integral" begin
+  P = projective_space(QQ, 2)
+
+  S = ambient_coordinate_ring(P)
+  u, v, w = gens(S)
+  I = ideal(S, [u*(v^2 + w^2 + u^2)])
+
+  X = subscheme(P, I)
+  Xcov = covered_scheme(X)
+  @test !is_integral(Xcov)
+  U = Xcov[1][1]
+  @test is_integral(U)
+  @test is_integral(hypersurface_complement(U, OO(U)[2]))
+
+  Y = subscheme(P, ideal(S, v^2 + w^2 + u^2))
+  Ycov = covered_scheme(Y)
+  @test is_integral(Ycov)
+
+  R = S.R 
+  A = Spec(R)
+  @test is_integral(A)
+  @test is_integral(hypersurface_complement(A, R[1]))
+end
