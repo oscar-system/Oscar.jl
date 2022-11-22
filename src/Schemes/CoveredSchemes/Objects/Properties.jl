@@ -20,8 +20,6 @@ end
 end
 
 @attr function is_integral(X::AbsCoveredScheme)
-  return all(U->(is_integral(U)), affine_charts(X))
-  # is_connected is not implemented yet for graphs, so we skip it for the time being
   return is_connected(X) && all(U->(is_integral(U)), affine_charts(X))
 end
 
@@ -29,3 +27,6 @@ end
   return is_connected(glueing_graph(default_covering(X)))
 end
 
+function is_connected(g::Graph{Undirected})
+  return Polymake.call_function(:graph, :is_connected, g.pm_graph)
+end
