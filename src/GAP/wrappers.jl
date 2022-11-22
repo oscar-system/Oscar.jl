@@ -23,6 +23,7 @@ GAP.@wrap DegreeFFE(x::Any)::Int
 GAP.@wrap DenominatorCyc(x::Any)::GapInt
 GAP.@wrap DenominatorRat(x::Any)::GapInt
 GAP.@wrap E(x::Any)::GapInt
+GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
@@ -99,6 +100,7 @@ GAP.@wrap NumeratorRat(x::Any)::GapInt
 GAP.@wrap One(x::Any)::Any
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap Size(x::Any)::GapInt
+GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
 GAP.@wrap Zero(x::Any)::Any
 
 # for Int arguments we can sometimes provide better alternatives
