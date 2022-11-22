@@ -14,7 +14,7 @@ function intersect(
   )
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  X == Y && return SpecOpen(Y, gens(U), check=check)
+  X === Y && return SpecOpen(Y, gens(U), check=check)
   if check && !issubset(Y, X)
     Y = intersect(Y, X)
   end

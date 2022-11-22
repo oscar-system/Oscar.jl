@@ -22,8 +22,8 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   Y = ambient_scheme(V)
   Z = ambient_scheme(W)
   pb_coords = [pullback(f)(pullback(g)(OO(W)(x))) for x in gens(ambient_coordinate_ring(Z))]
-  maps_on_patches = [SpecMor(A, Z, [restrict(h, A) for h in pb_coords], check=check) for A in affine_patches(U)]
-  return SpecOpenMor(U, W, maps_on_patches)
+  maps_on_patches = [SpecMor(A, Z, [restrict(h, A, check=check) for h in pb_coords], check=check) for A in affine_patches(U)]
+  return SpecOpenMor(U, W, maps_on_patches, check=check)
 end
 
 ########################################################################
@@ -35,7 +35,7 @@ function pullback(f::SpecOpenMor, a::RingElem)
   V = codomain(f)
   Y = ambient_scheme(V)
   R = ambient_coordinate_ring(Y)
-  parent(a) == R || error("element does not belong to the correct ring")
+  parent(a) === R || error("element does not belong to the correct ring")
   pb_a = [pullback(f[i])(a) for i in 1:npatches(U)]
   return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
 end

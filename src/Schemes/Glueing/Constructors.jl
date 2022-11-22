@@ -101,8 +101,8 @@ function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
     is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  Ures = intersect(X, U)
-  Vres = intersect(Y, V)
+  Ures = intersect(X, U, check=false)
+  Vres = intersect(Y, V, check=false)
   return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
@@ -117,7 +117,7 @@ function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
   f_res = restrict(f, UX, VY, check=check)
   g_res = restrict(g, VY, UX, check=check)
-  return SimpleGlueing(X, Y, f_res, g_res)
+  return SimpleGlueing(X, Y, f_res, g_res, check=check)
 end
 
 ########################################################################

@@ -47,6 +47,15 @@ function pullback(f::SpecOpenMor)
              ) for i in 1:ngens(V)
           ]
       return SpecOpenRingElem(OO(V), b, check=false)
+
+      # shortcut for regular elements on the ambient variety
+      # Does not work because of parent check done by the Hecke.Map
+      # function mymap(a::RingElem)
+      #   parent(a) === OO(ambient(U)) || return mymap(OO(ambient(U))(a))
+      #   return SpecOpenRingElem(OO(V), 
+      #                           [f[i](a) for i in 1:ngens(V)], 
+      #                           check=false)
+      # end
     end
     f.pullback = Hecke.MapFromFunc(mymap, OO(U), OO(V))
   end
