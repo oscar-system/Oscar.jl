@@ -89,7 +89,7 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
 
   R = G.ring
   iso = G.ring_iso
-  GAP.Globals.IsSubset(codomain(iso), GAP.Globals.FieldOfMatrixGroup(obj)) || error("matrix entries are not in the requested ring ($(codomain(iso)))")
+  GAPWrap.IsSubset(codomain(iso), GAP.Globals.FieldOfMatrixGroup(obj)) || error("matrix entries are not in the requested ring ($(codomain(iso)))")
 
   M = MatrixGroup(d, R)
   M.X = obj
@@ -557,7 +557,7 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
     - If the flag is not known to be true then the Oscar code from
     `isomorphic_group_over_finite_field` shall be preferred.
   =#
-  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAP.Globals.IsHandledByNiceMonomorphism(G.X)
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAPWrap.IsHandledByNiceMonomorphism(G.X)
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
