@@ -1128,3 +1128,6 @@ end
 
 ################################################################################
 
+function is_integral_domain(R::MPolyRing) 
+  return true
+end
