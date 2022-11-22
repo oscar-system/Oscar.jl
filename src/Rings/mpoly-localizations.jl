@@ -23,8 +23,6 @@ import AbstractAlgebra: Ring, RingElem
 
 export complement_of_ideal, powers_of_element
 
-export is_integral_domain
-
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #
 ########################################################################
@@ -2386,6 +2384,6 @@ function jacobi_matrix(g::Vector{<:MPolyLocalizedRingElem})
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-function is_integral_domain(R::MPolyLocalizedRing)
+function _is_integral_domain(R::MPolyLocalizedRing)
   return true
 end

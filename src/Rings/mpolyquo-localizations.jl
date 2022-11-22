@@ -1526,7 +1526,7 @@ end
   return is_prime(saturated_ideal(I))
 end
 
-@attr function is_integral_domain(W::MPolyQuoLocalizedRing)
+@attr function _is_integral_domain(W::MPolyQuoLocalizedRing)
   return is_prime(modulus(W))
 end
 
@@ -1535,7 +1535,7 @@ end
 
 Return whether or not `R` is an integral domain.
 """
-function is_integral_domain(R::Ring)
+function _is_integral_domain(R::Ring)
   is_domain_type(typeof(R)) && return true
   error("method not implemented for rings of type $(typeof(R))")
 end

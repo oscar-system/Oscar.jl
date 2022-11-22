@@ -1293,7 +1293,7 @@ function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where 
   end
 end
 
-@attr function is_integral_domain(A::MPolyQuo)
+@attr function _is_integral_domain(A::MPolyQuo)
   return is_prime(modulus(A))
 end
 
