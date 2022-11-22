@@ -108,3 +108,15 @@
   @test (one(localized_ring(W)) in ideal(W, g))
   @test one(W) == dot(write_as_linear_combination(one(W), g), g) 
 end
+
+@testset "prime ideals in quotient rings" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal(R, [x^2-y^2])
+  U = powers_of_element(y)
+  A, = quo(R, I)
+  L, = localization(A, U)
+  J = ideal(R, [y*(x-1), y*(y+1)])
+  @test !is_prime(J)
+  @test is_prime(L(J))
+end
+

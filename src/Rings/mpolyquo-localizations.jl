@@ -1521,3 +1521,7 @@ function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
   @assert all(x->parent(x) == L, g)
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
+
+@attr function is_prime(I::MPolyQuoLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
