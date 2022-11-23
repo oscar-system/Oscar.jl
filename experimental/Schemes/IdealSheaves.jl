@@ -377,12 +377,28 @@ function order_on_divisor(
   X = space(I)::AbsCoveredScheme
   X == variety(parent(f)) || error("schemes not compatible")
   
-  order_dict = Dict{AbsSpec, Int}()
+  #order_dict = Dict{AbsSpec, Int}()
+
+  # Since X is integral and I is a sheaf of prime ideals, 
+  # it suffices to find one chart in which I is non-trivial.
   for U in affine_charts(X)
     # TODO: This shouldn't be necessary. Fix products of multiplicative sets.
     if one(OO(U)) in I(U)
       continue
     end
+    R = ambient_coordinate_ring(U)
+    J = saturated_ideal(I(U))
+    floc = f[U]
+    aR = ideal(R, numerator(floc))
+    bR = ideal(R, denominator(floc))
+
+
+    # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
+    num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, aR), J)))[1]-1
+    den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, bR), J)))[1]-1
+    return num_mult - den_mult
+
+    # Deprecated code computing symbolic powers explicitly:
     L, map = Localization(OO(U), 
                           MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
                          )
