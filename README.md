@@ -145,7 +145,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       }
 
     @Book{OSCAR-book,
-      editor = {Eder, Christian and Decker, Wolfram and Fieker, Claus and Horn, Max and Joswig, Michael},
+      editor = {Decker, Wolfram and Eder, Christian and Fieker, Claus and Horn, Max and Joswig, Michael},
       title = {The OSCAR book},
       year = {2024},
     }

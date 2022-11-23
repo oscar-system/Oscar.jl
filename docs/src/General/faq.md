@@ -41,35 +41,36 @@ At least two reasons:
   - the type depends on data that is not a bit-type
   - even if it could, it is not desirable. Typical example: computations in
     ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
-    define a type `T` depending on ``n``. We actually did this, and tried to use
-    this. It did not work well, for various reasons. E.g.:
+    define a type `T` depending on ``n``. We actually did this, and tried to
+    use this. It did not work well, for various reasons. E.g.:
 
-    A generic algorithmic pattern for problems over the integers is to
-    solve them by solving them modulo ``n`` for many ``n``, e.g. chosen as prime numbers, and
-    then to combine them. If the type depends on ``n``, then for every prime the
-    code gets compiled, thus negating any advantages from the use of modular
-    techniqes.
+    A generic algorithmic pattern for problems over the integers is to solve
+    them by solving them modulo ``n`` for many ``n``, e.g. chosen as prime
+    numbers, and then to combine them. If the type depends on ``n``, then for
+    every prime the code gets compiled, thus negating any advantages from the
+    use of modular techniqes.
 
 Of course, one could make the ``n`` an additional parameter to all functions
 needing it, but then e.g. addition of matrices would have to be implemented
 specifically for this case, negating the advantages of generic
 implementations.
 
-In OSCAR, the role of the type is split between the actual Julia type and the `parent`.
+In OSCAR, the role of the type is split between the actual Julia type and the
+`parent`.
 
 ---
 
 **Q: What is a `parent`?**
 
-Almost all element-like objects in OSCAR have a parent, i.e., they belong to some
-larger structure. For example algebraic numbers belong to a number field,
-modular integers belong to a ring ``Z/nZ``, permutations are elements of permutation
-groups and so on. The data common to all such elements is out-sourced to
-the parent. For a number field for example, the parent contains the polynomial
-used to define the field (plus other information).
+Almost all element-like objects in OSCAR have a parent, i.e., they belong to
+some larger structure. For example algebraic numbers belong to a number field,
+modular integers belong to a ring ``Z/nZ``, permutations are elements of
+permutation groups and so on. The data common to all such elements is
+out-sourced to the parent. For a number field for example, the parent contains
+the polynomial used to define the field (plus other information).
 
-Given that a type alone is not large enough to contain the data, the parent is 
-used. Roughly, outside a function signature, a parent replaces the role of the 
+Given that a type alone is not large enough to contain the data, the parent is
+used. Roughly, outside a function signature, a parent replaces the role of the
 type. For example, for a ring element `elm` in OSCAR `zero(parent(elm))` works,
 even if `zero(typeof(elm))` may not.
 
@@ -81,6 +82,13 @@ TODO
 
 ---
 
+**Q: Why does my program not terminate?**
+
+Many of the algorithms implemented in OSCAR have a very high complexity. Even
+if not calling one of these algorithms directly, you may be using it in the
+background. Please read our page on [Complex Algorithms in OSCAR].
+
+---
 ## Windows specific
 
 **Q: How can I install OSCAR on Windows?**
@@ -108,8 +116,8 @@ Type `\\wsl$` into the Explorer address bar, then press the Enter key.
 
 Some Linux distributions unfortunately ship crippled versions of Julia by
 default, which prevent OSCAR from working. For example the Debian and Ubuntu
-Julia packages are missing some files required by OSCAR. In this case, this
-can be resolved by also installing the `libjulia-dev` package.
+Julia packages are missing some files required by OSCAR. In this case, this can
+be resolved by also installing the `libjulia-dev` package.
 
 For this reason, we recommend always using the official Julia binaries
 available form the Julia website.
@@ -118,22 +126,24 @@ available form the Julia website.
 
 **Q: What to do if I get an error similar to ```libstdc++.so.6: version `GLIBCXX_3.4.26'```?**
 
-Sometimes installing or updating OSCAR gives the error ```libstdc++.so.6: version `GLIBCXX_3.4.26'```
-or a similar one.
+Sometimes installing or updating OSCAR gives the error ```libstdc++.so.6:
+version `GLIBCXX_3.4.26'``` or a similar one.
 
-This typically happens when manually installing Julia using the official Julia binaries
-from their website. These bundle their own copy of the C++ standard library, which can lead
-to trouble if its version differs from the system's C++ library.
+This typically happens when manually installing Julia using the official Julia
+binaries from their website. These bundle their own copy of the C++ standard
+library, which can lead to trouble if its version differs from the system's C++
+library.
 
-As a workaround, you can rename the copy of the C++ library bundled with Julia, so that
-the system copy is used. This can be achieved by executing the following Julia code:
+As a workaround, you can rename the copy of the C++ library bundled with Julia,
+so that the system copy is used. This can be achieved by executing the
+following Julia code:
 ```julia
   path = Libdl.dlpath("libstdc++")
   mv(path,"$path.bak")
 ```
 
-If for some reason you need to restore the C++ library bundled with Julia, you can
-simply rename it back.
+If for some reason you need to restore the C++ library bundled with Julia, you
+can simply rename it back.
 
 **Q: Why does OSCAR fail to precompile when using it with GNU parallel?**
 
