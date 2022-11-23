@@ -1,4 +1,4 @@
-export  reduce, reduce_with_quotients, reduce_with_quotients_and_units, f4,
+export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4,
 		standard_basis, groebner_basis, groebner_basis_with_transformation_matrix,
 		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
 
@@ -563,12 +563,12 @@ function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default
 end
 
 @doc Markdown.doc"""
-	reduce_with_quotients_and_units(g::T, F::Vector{T}; 
+	reduce_with_quotients_and_unit(g::T, F::Vector{T};
           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 
 Return the unit, the quotients and the remainder in a weak standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 
-	reduce_with_quotients(G::Vector{T}, F::Vector{T}; 
+	reduce_with_quotients(G::Vector{T}, F::Vector{T};
           ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 
 Return a `Vector` which contains, for each element `g` of `G`, a unit, quotients, and a remainder as above.
@@ -584,7 +584,7 @@ julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
 
 julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 
-julia> Q, h, u = reduce_with_quotients_and_units(g, [f1,f2, f3], ordering = negdegrevlex(R))
+julia> Q, h, u = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
 ([x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0, [y+1])
 
 julia> u*g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
@@ -592,7 +592,7 @@ true
 
 julia> G = [g, x*y^3-3*x^2*y^2*z^2];
 
-julia> Q,  H,  U = reduce_with_quotients_and_units(G, [f1, f2, f3], ordering = lex(R));
+julia> Q,  H,  U = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = lex(R));
 
 julia> U
 [1   0]
@@ -607,25 +607,25 @@ julia> U*G == Q*[f1, f2, f3]+H
 true
 ```
 """
-function reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 	@assert parent(f) == parent(F[1])
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
 	J = IdealGens(R, F, ordering)
-	q, r, u = _reduce_with_quotients_and_units(I, J, ordering)
+	q, r, u = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r[1], u
 end
 
-function reduce_with_quotients_and_units(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 	@assert parent(F[1]) == parent(G[1])
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
 	J = IdealGens(R, G, ordering)
-	return _reduce_with_quotients_and_units(I, J, ordering)
+	return _reduce_with_quotients_and_unit(I, J, ordering)
 end
 
 @doc Markdown.doc"""
-        reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; 
+        reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; 
           ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
@@ -649,7 +649,7 @@ julia> I = ideal(R, [x]);
 
 julia> J = ideal(R, [x+1]);
 
-julia> M, res, units = reduce_with_quotients_and_units(I.gens, J.gens, ordering = neglex(R))
+julia> M, res, units = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
 ([x], gfp_mpoly[0], [x+1])
 
 julia> M * gens(J) + res == units * gens(I)
@@ -663,18 +663,18 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
-julia> reduce_with_quotients_and_units(f, F)
+julia> reduce_with_quotients_and_unit(f, F)
 ([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
 
-julia> M, res, units = reduce_with_quotients_and_units(f, F, ordering=lex(R))
+julia> M, res, units = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
 ([0 y^2], y^6 + 10*y^4 + 1, [1])
 
 julia> M * F + [res] == units * [f]
 true
 ```
 """
-function reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-	return _reduce_with_quotients_and_units(I, J, ordering)
+function reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	return _reduce_with_quotients_and_unit(I, J, ordering)
 end
 
 
@@ -686,7 +686,7 @@ Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 reduced by the underlying generators of `J` w.r.t. the monomial
 ordering `ordering` such that `M * gens(J) + res == gens(I)` if `ordering` is global.
 If `ordering` is local then this equality holds after `gens(I)` has been multiplied
-with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
+with an unkown diagonal matrix of units, see reduce_with_quotients_and_unit` to
 obtain this matrix. `J` need not be a Groebner basis. `res` will have the same number
 of elements as `I`, even if they are zero.
 
@@ -720,10 +720,10 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
-julia> reduce_with_quotients_and_units(f, F)
+julia> reduce_with_quotients_and_unit(f, F)
 ([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
 
-julia> M, res, units = reduce_with_quotients_and_units(f, F, ordering=lex(R))
+julia> M, res, units = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
 ([0 y^2], y^6 + 10*y^4 + 1, [1])
 
 julia> M * F + [res] == units * [f]
@@ -731,7 +731,7 @@ true
 ```
 """
 function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-    q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+    q, r, _ = _reduce_with_quotients_and_unit(I, J, ordering)
     return q, r
 end
 
@@ -792,7 +792,7 @@ function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = 
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
 	J = IdealGens(R, F, ordering)
-	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	q, r, _ = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r[1]
 end
 
@@ -801,11 +801,11 @@ function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrd
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
 	J = IdealGens(R, G, ordering)
-	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	q, r, _ = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r
 end
 
-function _reduce_with_quotients_and_units(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
+function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	@assert base_ring(J) == base_ring(I)
 	singular_assure(I, ordering)
 	singular_assure(J, ordering)

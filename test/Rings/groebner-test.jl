@@ -13,7 +13,7 @@
     J = ideal(R, x*y^2)
     matrix, res = reduce_with_quotients(J.gens, G)
     @test matrix * gens(G) + res == gens(J)
-    quots, res, units = reduce_with_quotients_and_units(J.gens, G)
+    quots, res, units = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
@@ -24,15 +24,15 @@
 	@test q * F + [r] == [f]
 	q, r = reduce_with_quotients([f], F)
 	@test q * F + r == [f]
-	q, r, u = reduce_with_quotients_and_units(f, F)
+	q, r, u = reduce_with_quotients_and_unit(f, F)
 	@test q * F + [r] == u * [f]
-	q, r, u = reduce_with_quotients_and_units([f], F)
+	q, r, u = reduce_with_quotients_and_unit([f], F)
 	@test q * F + r == u * [f]
 	f = x
 	F = [1-x]
 	q, r = reduce_with_quotients(f, F, ordering=neglex(R))
 	@test q * F + [r] != [f]
-	q, r, u = reduce_with_quotients_and_units(f, F, ordering=neglex(R))
+	q, r, u = reduce_with_quotients_and_unit(f, F, ordering=neglex(R))
 	@test q * F + [r] == u * [f]
 	I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
@@ -84,7 +84,7 @@ end
   G = standard_basis(I, ordering=o)
   @test normal_form(x^5-5, I, ordering=o) == -5
   J = ideal(R, [x^5-5])
-  matr, res, units = reduce_with_quotients_and_units(J.gens, G)
+  matr, res, units = reduce_with_quotients_and_unit(J.gens, G)
   @test matr * gens(G) + res == units * gens(J)
   u = negdegrevlex([x])*negdegrevlex([y])
   @test ideal_membership(x^4, I, ordering=u)
