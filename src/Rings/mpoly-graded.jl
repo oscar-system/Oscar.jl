@@ -2440,3 +2440,90 @@ function AbstractAlgebra.promote_rule(::Type{MPolyElem_dec{S, T}}, ::Type{U}) wh
     return Union{}
   end
 end
+
+################################################################################
+#
+#  Random homogenous polynomials
+#
+################################################################################
+
+#create homogenous polynomials in graded rings
+#TODO: make this work for non-standard gradings
+@doc Markdown.doc"""
+    rand(S::MPolyRing_dec, term_range, deg_range, v...)
+
+Create a random homogenous polynomial with a random number of
+terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
+and random coefficients via `v...`.
+"""
+function rand(S::MPolyRing_dec, term_range, deg_range, v...)
+  f = zero(S.R)
+  d = rand(deg_range)
+  for i=1:rand(term_range)
+    t = S.R(rand(base_ring(S), v...))
+    if iszero(t)
+      continue
+    end
+    for j=1:ngens(S.R)-1
+      t *= gen(S.R, j)^rand(0:(d-total_degree(t)))
+    end
+    #the last exponent is deterministic...
+    t *= gen(S.R, ngens(S.R))^(d-total_degree(t))
+    f += t
+  end
+  return S(f)
+end
+
+################################################################################
+#
+#  Rational solutions of one-dimensional ideals
+#
+################################################################################
+
+"""
+    rational_solutions(I::MPolyIdeal{<:MPolyElem_dec}) -> Vector{Vector}
+
+Given a one-dimensional homogenous ideal, return all projective rational
+elements of the vanishing set.
+"""
+function rational_solutions(I::MPolyIdeal{<:MPolyElem_dec})
+  @req dim(I) == 1 "Dimension must be 1"
+  #TODO: make this work for non-standard gradings
+  S = base_ring(I)
+  R = S.R
+  RS, _ = PolynomialRing(base_ring(R), ngens(S) - 1, cached = false)
+  Q = base_ring(R)
+  all_S = Vector{elem_type(Q)}[]
+  for i=1:ngens(S)
+    val = [zero(RS) for l = gens(S)]
+    k = 1
+    for j in 1:ngens(S)
+      if i == j
+        val[j] = RS(1)
+      else
+        val[j] = gen(RS, k)
+        k += 1
+      end
+    end
+    #J should be an affine patch where the j-th var is set to 1
+    J = ideal(RS, [evaluate(f, val) for f = gens(I)])
+    r = rational_solutions(J)
+    for s = r
+      k = 1
+      so = elem_type(Q)[]
+      for j in 1:ngens(S)
+        if i == j
+          push!(so, one(Q))
+        else
+          push!(so, Q(s[k]))
+          k += 1
+        end
+      end
+      push!(all_S, so)
+    end
+  end
+  P = proj_space(Q, ngens(RS))[1]
+  #projective comparison!!!!
+  return [p.v for p in Set(P(x) for x = all_S)]
+end
+

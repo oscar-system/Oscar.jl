@@ -283,3 +283,12 @@ end
     test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
     @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end
+
+@testset "Rational solutions" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal([x - 1, y - 1])
+  J = ideal([x - 2, y - 3])
+  pts = rational_solutions(I * J)
+  @test length(pts) == 2
+  @test issetequal(pts, Vector{fmpq}[[1, 1], [2, 3]])
+end
