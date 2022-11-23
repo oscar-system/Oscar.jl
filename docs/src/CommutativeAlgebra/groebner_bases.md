@@ -15,11 +15,7 @@ Pages = ["groebner_bases.md"]
 
 # Gröbner/Standard Bases Over Fields
 
-Standard bases are sets of generators for ideals of multivariate polynomial rings (submodules of free modules
-over such rings) which behave well under division with remainder. Each such basis is defined with respect to
-a monomial ordering. If this ordering is global (that is, it is a well-ordering), we use the name Gröbner basis
-instead of standard basis. In this section, we fix our notation in this context and introduce corresponding
-OSCAR functionality.
+We fix our notation in the context of standard (Gröbner) bases and present relevant OSCAR functions.
 
 Let $K[x] = K[x_1, \dots, x_n]$ be a polynomial ring over a field $K$, and let $>$ be a monomial ordering on $\text{Mon}_n(x)$.
 
@@ -58,10 +54,10 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
 	Given an element $f = K[x]^p\setminus \{0\}$ with leading term $\text{LT}(f) = x^\alpha e_i$, we write $\text{LE}_>(f) = (\alpha, i)$.
 
 !!! note
-    The OSCAR functions discussed in this section depend on a monomial ordering which may be entered as a keyword argument.
-    For a polynomial ring $R$, the respective default ordering is `degrevlex` except if $R$ is $\mathbb Z$-graded with
-	positive weights. Then the corresponding `wdegrevlex` ordering is used. For a free $R$-module $F$, the default
-	ordering is `default_ordering(R)*lex(gens(F))`.
+    The OSCAR functions discussed in this section depend on a monomial `ordering` which is entered as a keyword argument.
+    Given a polynomial ring $R$, the `default_ordering` for this is `degrevlex` except if $R$ is $\mathbb Z$-graded with
+	positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
+	`default_ordering` is `default_ordering(R)*lex(gens(F))`.
 
 Here are some illustrating OSCAR examples:
 
@@ -88,7 +84,6 @@ julia> S, _ = grade(R, [1, 2, 3])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
-
 ```
 
 ```jldoctest
@@ -101,7 +96,7 @@ julia> f = 3*z^3+2*x*y+1
 julia> terms(f)
 terms iterator of 3*z^3 + 2*x*y + 1
 
-julia> collect(terms(f))
+julia> collect(ans)
 3-element Vector{fmpq_mpoly}:
  3*z^3
  2*x*y
@@ -110,12 +105,23 @@ julia> collect(terms(f))
 julia> monomials(f, ordering = lex(R))
 monomials iterator of 2*x*y + 3*z^3 + 1
 
-julia> exponents(f, ordering = neglex(R))
-exponents iterator of 1 + 3*z^3 + 2*x*y
-
 julia> coefficients(f)
 coefficients iterator of 3*z^3 + 2*x*y + 1
 
+julia> exponents(f, ordering = neglex(R))
+exponents iterator of 1 + 3*z^3 + 2*x*y
+
+julia> coefficients_and_exponents(f)
+coefficients and exponents iterator of 3*z^3 + 2*x*y + 1
+
+julia> collect(ans)
+3-element Vector{Tuple{fmpq, Vector{Int64}}}:
+ (3, [0, 0, 3])
+ (2, [1, 1, 0])
+ (1, [0, 0, 0])
+```
+ 
+```jldoctest
 julia> leading_term(f)
 3*z^3
 
@@ -137,14 +143,14 @@ julia> tail(f)
 
 ## Division With Remainder
 
-Buchberger's algorithm for computing Gröbner bases makes use of reduction steps which rely on multivariate division with remainder.
-Here, Euclidean division with remainder is extended to the multivariate case, allowing more than one divisor, and using a fixed
-global monomial ordering $>$ to distinguish leading terms of the polynomials (elements of free modules) involved. At each step
-of the division process, the idea is to remove the leading term of the intermediate dividend using the leading term of some divisor
-by which it is divisible. Termination is guaranteed since $>$ is a well-ordering. In the more general case of standard bases we also
-allow local and mixed orderings. Here, a variant of the division algorithm due to Mora is used to guarantee termination.
+The computation of Gröbner (standard) bases relies on multivariate division with remainder which is interesting
+in its own right. If a monomial ordering $>$ is given, the basic idea is to mimic Euclidean division with remainder,
+allowing more than one divisor: At each step of the resulting process, this amounts to removing the leading term of the
+intermediate dividend, using the leading term of *some* divisor by which it is divisible. In its basic form, the process
+works well if $>$ is global, but may not terminate, however, for local and mixed orderings. In the latter case, Mora's division
+algorithm, which relies on a restricted selection strategy for the divisors to be used, comes to our rescue.
 
-We introduce the relevant notation.
+We dicuss this in more detail:
 
 First suppose that $>$ is global and let polynomials $g\in K[x]$ and $f_1, \dots, f_r\in K[x]\setminus \{0\}$ be given.
 In this situation, multivariate division with remainder allows us to compute expressions
@@ -157,14 +163,14 @@ such that:
 - If $h$ is nonzero, then $\text{LM}_>(h)$ is not divisible by any $\text{LM}_>(f_i)$.
 
 Each such expression is called a *standard representation* for $g$ with *quotients* $q_i$ and *remainder* $h$
-(in terms of the $f_i$, with respect to $>$). If, at each stage of the division process, we allow to remove some
-term of the current dividend instead of just focusing on the leading term, then the algorithm will return a standard
+(on division by the $f_i$, with respect to $>$). If, at each step of the division process, we allow to remove some
+term of the current dividend instead of just focusing on its leading term, then the algorithm will return a standard
 expression in which the remainder is *fully reduced*. That is, $h$ satisfies the stronger condition below:
 
 - If $h$ is nonzero, then no term of $h$ is divisible by any $\text{LM}_>(f_i)$.
 
 Without restrictions on  $>$, let elements $g\in K[x]_>$ and $f_1, \dots, f_r\in K[x]\setminus \{0\}$ be given.
-In this more general situation, Mora division with remainder allows us to compute expressions
+In this situation, Mora division with remainder allows us to compute expressions
 
 $ug = q_1f_1+\dots q_rf_r + h, \; h\in K[x]_>, \;\text{ all }\; q_i \in K[x]_>$
 
@@ -174,7 +180,7 @@ such that:
 - ``\text{LM}_>(g) \ge \text{LM}_>(q_if_i)`` whenever both sides are nonzero.
 - If $h$ is nonzero, then $\text{LM}_>(h)$ is not divisible by any $\text{LM}_>(f_i)$.
 
-Each such expression is called a *weak standard representation* for $g$ with *quotients* $q_i$ and *remainder* $h$ (in terms of the $f_i$, with respect to $>$).
+Each such expression is called a *weak standard representation* for $g$ with *quotients* $q_i$ and *remainder* $h$ (on division by the $f_i$, with respect to $>$).
 If $g\in K[x]$, we speak of a *polynomial weak standard representation* if $u$ and the $q_i$ are elements of $K[x].$ Using power series expansions, it makes
 still sense to speak of fully reduced remainders. However, even if we start from polynomial data, such remainders may not be computable (in finitely many steps).
 
@@ -183,25 +189,21 @@ still sense to speak of fully reduced remainders. However, even if we start from
     the above notation and the division algorithms extend naturally to $K[x]^p$ and $K[x]_>^p$, respectively.
 	
 The OSCAR functions discussed below compute standard representations and polynomial weak standard representations, respectively.
+In the global case, they always return fully reduced remainders.
 
-```@julia
-reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+```@docs
+reduce(g::T, F::Vector{T}; 
+	ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
 ```
 
-```@julia
-reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+```@docs
+reduce_with_quotients(g::T, F::Vector{T}; 
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 ```
-
-```@julia
-reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-```
-
-```@julia
-reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-```
-
-```@julia
-reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+		  
+```@docs
+reduce_with_quotients_and_units(g::T, F::Vector{T}; 
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 ```
 
 ## Gröbner and Standard Bases
@@ -211,38 +213,44 @@ Then the *leading ideal* of $G$ is the ideal of $K[x]$ defined by
 
 $\text{L}_>(G)=\langle \text{LT}_>(g) \mid g\in G\setminus\{0\}\rangle\subset K[x].$
 
-A *standard basis* of an ideal $I\subset K[x]_>$ is a finite subset $G$ of $I$ such that $\text{L}_>(G) = \text{L}_>(I)$.
-A finite subset of $K[x]_>$ is a *standard basis* if it is a standard basis for the ideal it generates.
-
-We call a standard basis $G = \{g_1,\dots, g_r\}\subset K[x]_>\setminus \{0\}$ *minimal*  if  $\text{LM}_>(g_i)\neq \text{LM}_>(g_j)$
-for $i\neq j$.
-
-!!! note
-    The definition above deviates from the definition in most textbooks as we do not ask that the leading coefficients of the standard basis elements are 1.
+A finite subset $G$ of an ideal $I\subset K[x]_>$ is called a *standard basis* of $I$ (with respect to $>$)
+if $\text{L}_>(G) = \text{L}_>(I)$.  A finite subset of $K[x]_>$ is a *standard basis*
+if it is a standard basis of the ideal it generates. A standard basis with respect to a global monomial
+ordering is also called a *Gröbner basis*.
 
 !!! note
-    Every nonzero ideal of $K[x]_>$ has a (minimal) standard basis with respect to $>$. Such bases can be computed using Buchberger's algorithm.
+    Every standard basis of $I$ generates $I$.
+
+!!! note
+    Gröbner bases (standard bases) can be computed using Buchberger's algorithm (Buchberger's as algorithm enhanced by Mora).
+
+We call a standard basis $G = \{g_1,\dots, g_r\}\subset K[x]_>\setminus \{0\}$ *minimal*  if $\text{LM}_>(g_i)\neq \text{LM}_>(g_j)$ for $i\neq j$.
+
+!!! note
+    The definition of minimal above deviates from the definition in most textbooks as we do not ask that the leading coefficients of the standard basis elements are 1.
 
 !!! note
     The standard bases returned by OSCAR are always minimal in the sense above.
 
-If $>$ is global, that is, $K[x] = K[x]_>$, then we use the word *Gröbner basis* instead of standard basis. We call a
-Gröbner basis $G = \{g_1,\dots, g_r\}$ *reduced* if  it is minimal and no term of $g_i$ is divisible by $\text{LM}_>(g_j)$, for $i\neq j$. Using power
-series expansions, we may also define reduced standard bases. However, while reduced Gröbner bases can always be computed, reduced
-standard bases may not be computable (in finitely many steps).
+We call a standard basis $G = \{g_1,\dots, g_r\}$ with respect to a global monomial ordering *reduced* if it is minimal and no term of $g_i$ i
+s divisible by $\text{LM}_>(g_j)$, for $i\neq j$. Using power series expansions, we may extend this notion to local and mixed orderings.
+However, while reduced standard bases can be computed in the global case, they may not be computable (in finitely many steps) in the other cases.
 
 !!! note
     Given a monomial ordering $>$ on a free $K[x]$-module $F = K[x]^p$ with basis $e_1, \dots, e_p$,
-    the above notation and Buchberger's algorithm extend naturally to submodules of $K[x]_>^p$.
-   
+    the above notation and results extend naturally to submodules of $K[x]_>^p$.
+
+Here are the relevant OSCAR functions for computing Gröbner and standard bases. The elements of a
+computed basis can be retrieved by using the `elements` function or and its alias `gens`.
+
 ```@docs
 groebner_basis(I::MPolyIdeal;
-	ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	ord::MonomialOrdering = default_ordering(base_ring(I)),
 	complete_reduction::Bool = false)
 ```
 ```@docs
 standard_basis(I::MPolyIdeal;
-	ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	ord::MonomialOrdering = default_ordering(base_ring(I)),
 	complete_reduction::Bool = false)
 ```
 	
@@ -271,21 +279,30 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 
 ## Leading Ideals
 
+
 ```@docs
-leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
 leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
 ```
 
 ## Normal Forms
 
+Given a polynomial $g\in K[x]$, an ideal $I\subset K[x]$, and a global monomial ordering
+$>$ on the monomials in $x$, the fully reduced remainder $h$ in a standard expression on division
+by the elements of a Gröbner basis of $I$ with respect to $>$ is uniquely determined by
+$g$, $I$, and $>$ (and does not depend on the choice of Gröbner basis). We refer to such
+a remainder as the *normal form*  of $g$ mod $I$, with respect to $>$.
+
 ```@docs
-normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
-normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
+    normal_form(g::T, I::MPolyIdeal; 
+      ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
 ```
 
 ## Syzygies
 
+We refer to the section on modules for more on syzygies.
+
 ```@docs
-syzygy_generators(a::Vector{<:MPolyElem})
+syzygy_generators(G::Vector{<:MPolyElem})
 ```
 
