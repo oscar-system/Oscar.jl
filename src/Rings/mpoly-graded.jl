@@ -2454,13 +2454,16 @@ function rand(S::MPolyRing_dec, term_range, deg_range, v...)
   f = S.R(0)
   d = rand(deg_range)
   for i=1:rand(term_range)
-    td = 0
-    t = S.R(1)
-    for j=1:ngens(S.R)-1
-      t *= gen(S.R, j)^rand(0:d-(is_zero(t) ? 0 : total_degree(t)))
+    t = S.R(rand(base_ring(S), v...))
+    if iszero(t)
+      continue
     end
-    t *= gen(S.R, ngens(S.R))^(d-(is_zero(t) ? 0 : total_degree(t)))
-    f += rand(base_ring(S), v...)*t
+    for j=1:ngens(S.R)-1
+      t *= gen(S.R, j)^rand(0:(d-total_degree(t)))
+    end
+    #the last exponent is deterministic...
+    t *= gen(S.R, ngens(S.R))^(d-total_degree(T))
+    f += t
   end
   return S(f)
 end
@@ -2472,12 +2475,11 @@ ideal by finding the affine rational points in the affine patches.
 function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
   @assert dim(I) == 1
   #TODO: make this work for non-standard gradings
-  rp = []
   S = base_ring(I)
   R = S.R
   RS, _ = PolynomialRing(base_ring(R), ngens(S)-1, cached = false)
-  all_S = []
   Q = base_ring(R)
+  all_S = Vector{elem_type(Q)}[]
   for i=1:ngens(S)
     val = [RS(0) for l = gens(S)]
     k = 1
@@ -2489,11 +2491,12 @@ function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
         k += 1
       end
     end
+    #J should be an affine patch where the j-th var is set to 1
     J = ideal(RS, [evaluate(f, val) for f = gens(I)])
     r = rational_points(J)
     for s = r
       k = 1
-      so = []
+      so = elem_type(Q)[]
       for j=1:ngens(S)
         if i == j
           push!(so, Q(1))
@@ -2516,18 +2519,18 @@ Be invited to do s.th. vastly better here....
 """
 function rational_points(I::MPolyIdeal{<:MPolyElem})
   gb = groebner_basis(I, ordering = lex(base_ring(I)))
+  R = base_ring(I)
   if 1 in gb
-    return []
+    return elem_type(base_ring(R))[]
   end
   @assert dim(I) == 0
   @assert length(gb) == ngens(base_ring(I))
   R = base_ring(I)
   Qx, _ = PolynomialRing(base_ring(R), cached = false)
   rts = [elem_type(Qx)[Qx(0) for i = gens(R)]]
-  all_rts = []
   i = ngens(R)
   for f = gb
-    sts = []
+    sts = Vector{elem_type(Qx)}[]
     for r = rts
       r[i] = gen(Qx)
       g = evaluate(f, r)

@@ -248,6 +248,12 @@ begin
   @assert parent(t) == R
 end
 
+@testset "Alheydis" begin
+  Q, x = proj_space(QQ, 2)
+  i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
+  @test length(Oscar.rational_points_naive(i)) == 1
+end
+
 @testset "Hilbert series" begin
   n = 5
 
