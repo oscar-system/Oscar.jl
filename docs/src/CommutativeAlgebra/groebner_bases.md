@@ -191,7 +191,7 @@ In the global case, they always return fully reduced remainders.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 ```
 
 ```@docs
@@ -220,7 +220,7 @@ ordering is also called a *Gröbner basis*.
     Every standard basis of $I$ generates $I$.
 
 !!! note
-    Gröbner bases (standard bases) can be computed using Buchberger's algorithm (Buchberger's as algorithm enhanced by Mora).
+    Gröbner bases (standard bases) can be computed using Buchberger's algorithm as enhanced by Mora.
 
 We call a standard basis $G = \{g_1,\dots, g_r\}\subset K[x]_>\setminus \{0\}$ *minimal*  if $\text{LM}_>(g_i)\neq \text{LM}_>(g_j)$ for $i\neq j$.
 
