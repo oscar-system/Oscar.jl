@@ -137,7 +137,7 @@ end
 function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
   res = Vector{T}(undef, length(subs))
   for i = 1:length(res)
-    res[i] = _as_subgroup_bare(G, subs[i])
+    res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
   end
   return res
 end
@@ -334,7 +334,7 @@ function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   elems_in_gap = GapObj([x.X for x in elements])
   Q=FPGroup((G.X)/elems_in_gap)
   function proj(x::FPGroupElem)
-     return group_element(Q,GAP.Globals.MappedWord(x.X,GAP.Globals.GeneratorsOfGroup(G.X), GAP.Globals.GeneratorsOfGroup(Q.X)))
+     return group_element(Q,GAP.Globals.MappedWord(x.X,GAPWrap.GeneratorsOfGroup(G.X), GAPWrap.GeneratorsOfGroup(Q.X)))
   end
   return Q, hom(G,Q,proj)
 end
@@ -459,7 +459,7 @@ PermGroup
 """
 function maximal_abelian_quotient(G::GAPGroup)
   map = GAP.Globals.MaximalAbelianQuotient(G.X)::GapObj
-  F = GAP.Globals.Range(map)::GapObj
+  F = GAPWrap.Range(map)::GapObj
   S1 = _get_type(F)
   F = S1(F)
   return F, GAPGroupHomomorphism(G, F, map)
@@ -518,7 +518,7 @@ julia> map_word(w, gens(G))
 """
 function epimorphism_from_free_group(G::GAPGroup)
   mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
-  fG = FPGroup(GAP.Globals.Source(mfG))
+  fG = FPGroup(GAPWrap.Source(mfG))
   return Oscar.GAPGroupHomomorphism(fG, G, mfG)
 end
 

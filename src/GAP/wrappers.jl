@@ -12,6 +12,8 @@ module GAPWrap
 
 using GAP
 
+GAP.@wrap AsList(x::GapObj)::GapObj
+GAP.@wrap AsSet(x::GapObj)::GapObj
 GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
 GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
@@ -23,9 +25,17 @@ GAP.@wrap DegreeFFE(x::Any)::Int
 GAP.@wrap DenominatorCyc(x::Any)::GapInt
 GAP.@wrap DenominatorRat(x::Any)::GapInt
 GAP.@wrap E(x::Any)::GapInt
+GAP.@wrap Elements(x::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
+GAP.@wrap FreeAbelianGroup(x::Int)::GapObj
+GAP.@wrap FreeGeneratorsOfFpGroup(x::GapObj)::GapObj
+GAP.@wrap FreeGroupOfFpGroup(x::GapObj)::GapObj
+GAP.@wrap GeneratorsOfGroup(x::GapObj)::GapObj
 GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
+GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
+GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
+GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
@@ -41,6 +51,7 @@ GAP.@wrap IsAlternatingGroup(x::Any)::Bool
 GAP.@wrap IsAssocWord(x::Any)::Bool
 GAP.@wrap IsBiCoset(x::Any)::Bool
 GAP.@wrap IsBijective(x::Any)::Bool
+GAP.@wrap IsBool(x::Any)::Bool
 GAP.@wrap IsChar(x::Any)::Bool
 GAP.@wrap IsCharacteristicSubgroup(x::Any, y::Any)::Bool
 GAP.@wrap IsCheapConwayPolynomial(x::Any, y::Any)::Bool
@@ -121,6 +132,7 @@ GAP.@wrap IsWholeFamily(x::Any)::Bool
 GAP.@wrap IsZero(x::Any)::Bool
 GAP.@wrap IsZmodnZObj(x::Any)::Bool
 GAP.@wrap IsZmodnZObjNonprimeCollection(x::Any)::Bool
+GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NrCols(x::GapObj)::Int
@@ -131,7 +143,11 @@ GAP.@wrap NumberRows(x::GapObj)::Int
 GAP.@wrap NumeratorRat(x::Any)::GapInt
 GAP.@wrap One(x::Any)::GAP.Obj
 GAP.@wrap Order(x::Any)::GapInt
+GAP.@wrap PrimePGroup(x::GapObj)::GapInt
+GAP.@wrap Range(x::GapObj)::GapObj
+GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Size(x::Any)::GapInt
+GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
 GAP.@wrap Z(x::Any)::GAP.Obj
