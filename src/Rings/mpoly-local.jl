@@ -62,7 +62,7 @@ struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
       # this code seems to assume m.gens is of the form [xi - ai]_i
       m = p.max_ideal
       # This should be easier, somehow ...
-      pt = leading_coefficient.([gen(R, i)-m.gens.O[i] for i in 1:nvars(R)])
+      pt = constant_coefficient.([gen(R, i)-m.gens.O[i] for i in 1:nvars(R)])
       if evaluate(denominator(f), pt) == base_ring(R)(0)
         error("Element does not belong to the localization.")
       end

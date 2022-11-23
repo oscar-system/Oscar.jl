@@ -55,7 +55,7 @@ mutable struct SesquilinearForm{T<:RingElem}
 
    function SesquilinearForm{T}(f::MPolyElem{T},sym) where T
       @assert sym==:quadratic "Only quadratic forms are described by polynomials"
-      @assert Set([total_degree(x) for x in monomials(f)])==Set(2) "The polynomials is not homogeneous of degree 2"
+      @assert Set([total_degree(x) for x in AbstractAlgebra.monomials(f)])==Set(2) "The polynomials is not homogeneous of degree 2"
       r = new{T}()
       r.pol = f
       r.descr = :quadratic
@@ -251,8 +251,8 @@ function gram_matrix(f::SesquilinearForm)
    @assert f.descr==:quadratic && isdefined(f,:pol) "Cannot determine Gram matrix"
    d = nvars(parent(f.pol))
    B = zero_matrix( base_ring(f.pol), d, d )
-   V = collect(exponent_vectors(f.pol))
-   C = collect(coefficients(f.pol))
+   V = collect(AbstractAlgebra.exponent_vectors(f.pol))
+   C = collect(AbstractAlgebra.coefficients(f.pol))
    for i in 1:length(V)
       x = y = 0
       for j in 1:d

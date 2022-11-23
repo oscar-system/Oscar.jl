@@ -330,7 +330,7 @@ function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   # If `G.X` is a subgroup of a f.p. group then already constructing the
   # quotient group in GAP runs into an error.
   # Thus we check here whether `G.X` knows to be a full free or f.p. group.
-  @assert GAP.Globals.HasIsWholeFamily(G.X) && GAP.Globals.IsWholeFamily(G.X)
+  @assert GAP.Globals.HasIsWholeFamily(G.X) && GAPWrap.IsWholeFamily(G.X)
   elems_in_gap = GapObj([x.X for x in elements])
   Q=FPGroup((G.X)/elems_in_gap)
   function proj(x::FPGroupElem)

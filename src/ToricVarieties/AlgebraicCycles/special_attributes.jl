@@ -78,7 +78,7 @@ julia> length(map_gens_of_chow_ring_to_cox_ring(p2))
     for rs in r_list
       p1 = prod([g[findfirst(x->x==r, rays(v))] for r in rs]).f
       p2 = prod([g2[findfirst(x->x==r, rays(v))] for r in rs])
-      coeff = [c for c in coefficients(p1)][1]
+      coeff = [c for c in AbstractAlgebra.coefficients(p1)][1]
       if coeff != 1
         p1 = 1//coeff * p1
         p2 = 1//coeff * p2

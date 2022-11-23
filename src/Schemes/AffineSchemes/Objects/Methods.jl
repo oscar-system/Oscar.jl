@@ -96,3 +96,12 @@ function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocalized
   return zero_ideal == Q
 end
 
+########################################################################
+# High level constructors of subschemes                                #
+########################################################################
+
+function sub(X::AbsSpec, I::Ideal)
+  inc = ClosedEmbedding(X, I) # Will complain if input is not compatible
+  return domain(inc), inc
+end
+

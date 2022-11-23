@@ -195,7 +195,7 @@ end
 ####################################### helpprocs, mainly for mapping forwards and backwards between different orderings #######################
 
 #this is used to compute the mapping back to K[x] and intersecting the primary ideals and primes 
-function map_back_and_intersect(S::Singular.PolyRing, T::Singular.PolyRing, lengthu::Int64, lengthx_minus_u::Int64, qprimary::Vector{W}, primary::Vector{Singular.sideal }, switch_morphism_inverse, check::Singular.sideal) where { U <: Singular.FieldElem, V <: Singular.spoly, W <: Singular.sideal}
+function map_back_and_intersect(S::Singular.PolyRing, T::Singular.PolyRing, lengthu::Int64, lengthx_minus_u::Int64, qprimary::Vector{W}, primary::Vector{Singular.sideal}, switch_morphism_inverse, check::Singular.sideal) where { W <: Singular.sideal}
     S = qprimary[1].base_ring
     for j in 1:length(qprimary)
         qprimary_gens = Singular.gens(qprimary[j])

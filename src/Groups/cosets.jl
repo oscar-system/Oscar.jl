@@ -51,6 +51,18 @@ end
     *(H::Group, g::GAPGroupElem)
 
 Return the coset `Hg`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> g = perm(G,[3,4,1,5,2])
+(1,3)(2,4,5)
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
@@ -68,6 +80,18 @@ Return the coset `gH`.
 !!! note
     Since GAP supports right cosets only, the underlying GAP object of
     `left_coset(H,g)` is the right coset `H^(g^-1) * g`.
+
+# Examples
+```jldoctest
+julia> g = perm([3,4,1,5,2])
+(1,3)(2,4,5)
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> gH = left_coset(H,g)
+Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
+```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
@@ -78,8 +102,8 @@ function left_coset(H::GAPGroup, g::GAPGroupElem)
 end
 
 function show(io::IO, x::GroupCoset)
-   a = String(GAP.Globals.StringViewObj(x.H.X))
-   b = String(GAP.Globals.StringViewObj(x.repr.X))
+   a = String(GAPWrap.StringViewObj(x.H.X))
+   b = String(GAPWrap.StringViewObj(x.repr.X))
    if x.side == :right
       print(io, "Right coset   $a * $b")
    else
@@ -134,6 +158,24 @@ end
     acting_domain(C::GroupCoset)
 
 If `C` = `Hx` or `xH`, return `H`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> g = perm(G,[3,4,1,5,2])
+(1,3)(2,4,5)
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> gH = left_coset(H,g)
+Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
+
+julia> acting_domain(gH)
+Sym( [ 1 .. 3 ] )
+```
 """
 acting_domain(C::GroupCoset) = C.H
 
@@ -141,6 +183,24 @@ acting_domain(C::GroupCoset) = C.H
     representative(C::GroupCoset)
 
 If `C` = `Hx` or `xH`, return `x`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> g = perm(G,[3,4,1,5,2])
+(1,3)(2,4,5)
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> gH = left_coset(H,g)
+Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
+
+julia> representative(gH)
+(1,3)(2,4,5)
+```
 """
 representative(C::GroupCoset) = C.repr
 
@@ -149,7 +209,35 @@ representative(C::GroupCoset) = C.repr
 """
     is_bicoset(C::GroupCoset)
 
-Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
+Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.  This 
+is the case if and only if the coset representative normalizes the acting domain subgroup.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> H = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> g = perm(G,[3,4,1,5,2])
+(1,3)(2,4,5)
+
+julia> gH = left_coset(H,g)
+Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 4 ] )
+
+julia> is_bicoset(gH)
+false
+
+julia> f = perm(G,[2,1,4,3,5])
+(1,2)(3,4)
+
+julia> fH = left_coset(H,f)
+Left coset   (1,2)(3,4) * Sym( [ 1 .. 4 ] )
+
+julia> is_bicoset(fH)
+true
+```
 """
 is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
@@ -157,6 +245,22 @@ is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
     right_cosets(G::Group, H::Group)
 
 Return the vector of the right cosets of `H` in `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> right_cosets(G,H)
+4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
+ Right coset   Sym( [ 1 .. 3 ] ) * ()
+ Right coset   Sym( [ 1 .. 3 ] ) * (1,4)
+ Right coset   Sym( [ 1 .. 3 ] ) * (1,4,2)
+ Right coset   Sym( [ 1 .. 3 ] ) * (1,4,3)
+```
 """
 function right_cosets(G::GAPGroup, H::GAPGroup)
   L = GAP.Globals.RightCosets(G.X, H.X)
@@ -171,10 +275,24 @@ end
     left_cosets(G::Group, H::Group)
 
 Return the vector of the left cosets of `H` in `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> left_cosets(G,H)
+4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
+ Left coset   () * Sym( [ 1 .. 3 ] )
+ Left coset   (1,4) * Sym( [ 1 .. 3 ] )
+ Left coset   (1,2,4) * Sym( [ 1 .. 3 ] )
+ Left coset   (1,3,4) * Sym( [ 1 .. 3 ] )
+```
 """
 function left_cosets(G::GAPGroup, H::GAPGroup)
-  #L1 = GAP.Globals.RightCosets(G.X, H.X)
-  #L = [GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Representative(L1[i])), GAP.Globals.Representative(L1[i])) for i in 1:length(L1)]
   T = left_transversal(G,H)
   L = [left_coset(H,t) for t in T]
   l = Vector{GroupCoset{typeof(G), elem_type(G)}}(undef, length(L))
@@ -188,6 +306,22 @@ end
     right_transversal(G::T, H::T) where T<: Group
 
 Return a vector containing a complete set of representatives for right cosets for `H`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> right_transversal(G,H)
+4-element Vector{PermGroupElem}:
+ ()
+ (1,4)
+ (1,4,2)
+ (1,4,3)
+```
 """
 function right_transversal(G::T, H::T) where T<: GAPGroup
    L = GAP.Globals.RightTransversal(G.X,H.X)
@@ -202,6 +336,22 @@ end
     left_transversal(G::T, H::T) where T<: Group
 
 Return a vector containing a complete set of representatives for left cosets for `H`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> left_transversal(G,H)
+4-element Vector{PermGroupElem}:
+ ()
+ (1,4)
+ (1,2,4)
+ (1,3,4)
+```
 """
 function left_transversal(G::T, H::T) where T<: GAPGroup
    return [x^-1 for x in right_transversal(G,H)]
@@ -244,11 +394,11 @@ function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
 end
 
 function Base.show(io::IO, x::GroupDoubleCoset)
-  print(io, String(GAP.Globals.StringViewObj(x.H.X)),
+  print(io, String(GAPWrap.StringViewObj(x.H.X)),
             " * ",
-            String(GAP.Globals.StringViewObj(x.repr.X)),
+            String(GAPWrap.StringViewObj(x.repr.X)),
             " * ",
-            String(GAP.Globals.StringViewObj(x.K.X)))
+            String(GAPWrap.StringViewObj(x.K.X)))
 end
 
 
@@ -257,10 +407,26 @@ end
     *(H::Group, x::GAPGroupElem, K::Group)
 
 returns the double coset `HxK`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Sym( [ 1 .. 5 ] )
+
+julia> g = perm(G,[3,4,5,1,2])
+(1,3,5,2,4)
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> K = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> double_coset(H,g,K)
+Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
+```
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
-   # TODO: enforce that G, H have same type
-   # TODO: enforce that G, H have common overgroup
    if !GAPWrap.IsSubset(parent(g).X,G.X)
       throw(ArgumentError("G is not a subgroup of parent(g)"))
    end
@@ -277,6 +443,24 @@ Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 Return the vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> K = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> double_cosets(G,H,K)
+3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
+ Sym( [ 1 .. 3 ] ) * () * Sym( [ 1 .. 2 ] )
+ Sym( [ 1 .. 3 ] ) * (1,4) * Sym( [ 1 .. 2 ] )
+ Sym( [ 1 .. 3 ] ) * (1,4,3) * Sym( [ 1 .. 2 ] )
+```
 """
 function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
    if !check

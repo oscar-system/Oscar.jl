@@ -103,8 +103,8 @@ function polynomial(ring::MPolyQuo, ac::RationalEquivalenceClass)
     if iszero(p)
         return zero(ring)
     end
-    coeffs = [k for k in coefficients(p.f)]
-    expos = matrix(ZZ, [k for k in exponent_vectors(p.f)])
+    coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
+    expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
     indets = gens(ring)
     monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
     return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))
@@ -176,7 +176,7 @@ julia> coefficients(ac*ac)
     if is_trivial(ac)
         return fmpq[]
     end
-    return [coefficient_ring(toric_variety(ac))(k) for k in coefficients(polynomial(ac).f)]
+    return [coefficient_ring(toric_variety(ac))(k) for k in AbstractAlgebra.coefficients(polynomial(ac).f)]
 end
 export coefficients
 
@@ -214,7 +214,7 @@ julia> length(components(ac*ac))
     variety = toric_variety(ac)
     gs = gens(cox_ring(toric_variety(ac)))
     mons = [m for m in monomials(representative(ac))]
-    expos = [[e for e in exponent_vectors(m)][1] for m in mons]
+    expos = [[e for e in AbstractAlgebra.exponent_vectors(m)][1] for m in mons]
     return [ClosedSubvarietyOfToricVariety(variety, [gs[k] for k in findall(!iszero, exps)]) for exps in expos]
 end
 export components

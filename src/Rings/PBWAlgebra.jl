@@ -93,43 +93,43 @@ end
 
 @enable_all_show_via_expressify PBWAlgRing
 
-####
+#### AA prefix here because these all use the ordering in the parent
 
 function length(a::PBWAlgElem)
   return length(a.sdata)
 end
 
-function leading_exponent_vector(a::PBWAlgElem)
-  return leading_exponent_vector(a.sdata)
+function AbstractAlgebra.leading_exponent_vector(a::PBWAlgElem)
+  return AbstractAlgebra.leading_exponent_vector(a.sdata)
 end
 
-function leading_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(leading_coefficient(a.sdata))
+function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T})::T where T
+  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))
 end
 
-function trailing_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(trailing_coefficient(a.sdata))
+function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T})::T where T
+  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))
 end
 
 function constant_coefficient(a::PBWAlgElem{T})::T where T
   return coefficient_ring(a)(constant_coefficient(a.sdata))
 end
 
-function leading_term(a::PBWAlgElem)
-  return PBWAlgElem(parent(a), leading_term(a.sdata))
+function AbstractAlgebra.leading_term(a::PBWAlgElem)
+  return PBWAlgElem(parent(a), AbstractAlgebra.leading_term(a.sdata))
 end
 
-function leading_monomial(a::PBWAlgElem)
-  return PBWAlgElem(parent(a), leading_monomial(a.sdata))
+function AbstractAlgebra.leading_monomial(a::PBWAlgElem)
+  return PBWAlgElem(parent(a), AbstractAlgebra.leading_monomial(a.sdata))
 end
 
-function tail(a::PBWAlgElem)
-  return PBWAlgElem(parent(a), tail(a.sdata))
+function AbstractAlgebra.tail(a::PBWAlgElem)
+  return PBWAlgElem(parent(a), AbstractAlgebra.tail(a.sdata))
 end
 
 
-function exponent_vectors(a::PBWAlgElem)
-  return exponent_vectors(a.sdata)
+function AbstractAlgebra.exponent_vectors(a::PBWAlgElem)
+  return AbstractAlgebra.exponent_vectors(a.sdata)
 end
 
 function terms(a::PBWAlgElem)
@@ -156,8 +156,8 @@ function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms}, state)
   return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function monomials(a::PBWAlgElem)
-  return OscarPair(parent(a), monomials(a.sdata))
+function AbstractAlgebra.monomials(a::PBWAlgElem)
+  return OscarPair(parent(a), AbstractAlgebra.monomials(a.sdata))
 end
 
 function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
@@ -180,8 +180,8 @@ function Base.iterate(a::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials}, sta
   return (PBWAlgElem(a.first, b[1]), b[2])
 end
 
-function coefficients(a::PBWAlgElem)
-  return OscarPair(parent(a), coefficients(a.sdata))
+function AbstractAlgebra.coefficients(a::PBWAlgElem)
+  return OscarPair(parent(a), AbstractAlgebra.coefficients(a.sdata))
 end
 
 function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyCoeffs})
@@ -312,7 +312,7 @@ end
 
 function _unsafe_coerce(R::Union{MPolyRing, Singular.PluralRing}, a::Union{MPolyElem, Singular.spluralg}, rev::Bool)
   z = MPolyBuildCtx(R)
-  for (c, e) in zip(coefficients(a), exponent_vectors(a))
+  for (c, e) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     push_term!(z, base_ring(R)(c), rev ? reverse(e) : e)
   end
   return finish(z)
@@ -329,7 +329,7 @@ function is_admissible_ordering(R::PBWAlgRing, o::MonomialOrdering)
   @assert n == length(gs)
   for i in 1:n-1, j in i+1:n
     t = _unsafe_coerce(r, R.relations[i,j], false)
-    if leading_monomial(t, o) != gs[i]*gs[j]
+    if leading_monomial(t; ordering = o) != gs[i]*gs[j]
       return false
     end
   end
@@ -343,9 +343,10 @@ function _g_algebra_internal(sr::Singular.PolyRing, rel)
   D = Singular.zero_matrix(sr, n, n)
   for i in 1:n-1, j in i+1:n
     t = _unsafe_coerce(sr, rel[i,j], false)
-    leading_monomial(t) == gen(sr, i)*gen(sr, j) || error("incorrect leading monomial in relations")
-    C[i,j] = sr(leading_coefficient(t))
-    D[i,j] = tail(t)
+    AbstractAlgebra.leading_monomial(t) == gen(sr, i)*gen(sr, j) ||
+                              error("incorrect leading monomial in relations")
+    C[i,j] = sr(AbstractAlgebra.leading_coefficient(t))
+    D[i,j] = AbstractAlgebra.tail(t)
     srel[i,j] = t
   end
   s, gs = Singular.GAlgebra(sr, C, D)
@@ -717,7 +718,7 @@ end
 
 function _one_check(I::Singular.sideal)
   for g in gens(I)
-    if is_constant(g) && is_unit(leading_coefficient(g))
+    if is_constant(g) && is_unit(AbstractAlgebra.leading_coefficient(g))
       return true
     end
   end
@@ -1024,7 +1025,7 @@ end
 #### elimination
 
 function _depends_on_vars(p::Union{Singular.spoly, Singular.spluralg}, sigmaC::Vector{Int})
-  for e in exponent_vectors(p)
+  for e in AbstractAlgebra.exponent_vectors(p)
     for k in sigmaC
       e[k] == 0 || return true
     end
@@ -1037,7 +1038,7 @@ function is_elimination_subalgebra_admissible(R::PBWAlgRing, sigmaC::Vector{Int}
   varmap, sigma, sigmaC = Orderings._elimination_data(n, sigmaC)
   for i in sigma, j in sigma
     i < j || continue
-    if _depends_on_vars(tail(R.relations[i,j]), sigmaC)
+    if _depends_on_vars(AbstractAlgebra.tail(R.relations[i,j]), sigmaC)
       return false
     end
   end
@@ -1062,7 +1063,7 @@ function _elimination_ordering_weights(R::PBWAlgRing, sigmaC::Vector{Int})
     push!(A, r)
     push!(b, -1)
   end
-  for i in 1:n-1, j in i+1:n, e in exponent_vectors(tail(R.relations[i,j]))
+  for i in 1:n-1, j in i+1:n, e in AbstractAlgebra.exponent_vectors(AbstractAlgebra.tail(R.relations[i,j]))
     e[i] -= 1
     e[j] -= 1
     push!(A, e)

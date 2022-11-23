@@ -209,7 +209,7 @@ Oscar.dim(::PlaneCurve) = 1 # since C is a plane curve, the dimension is always 
 # hash function
 
 function Base.hash(C::PlaneCurve, h::UInt)
-  F = 1//leading_coefficient(C.eq)*C.eq
+  F = 1//AbstractAlgebra.leading_coefficient(C.eq)*C.eq
   return hash(F, h)
 end
 
@@ -220,7 +220,7 @@ end
 function ==(C::PlaneCurve{S}, D::PlaneCurve{S}) where S <: FieldElem
   F = defining_equation(C)
   G = defining_equation(D)
-  return degree(C) == degree(D) && F*(leading_coefficient(G)//leading_coefficient(F)) == G
+  return degree(C) == degree(D) && F*(AbstractAlgebra.leading_coefficient(G)//AbstractAlgebra.leading_coefficient(F)) == G
 end
 
 ################################################################################

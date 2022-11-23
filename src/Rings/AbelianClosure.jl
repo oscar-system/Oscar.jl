@@ -241,7 +241,7 @@ end
 (z::QQAbFieldGen)(n::Int) = root_of_unity(z.K, n)
 (z::QQAbFieldGen)(n::Int, r::Int) = z(n)^r
 
-one(K::QQAbField) = _QQAb(1)
+one(K::QQAbField) = K(1)
 
 one(a::QQAbElem) = one(parent(a))
 
@@ -253,7 +253,7 @@ function iszero(a::QQAbElem)
   return iszero(data(a))
 end
 
-zero(K::QQAbField) = _QQAb(0)
+zero(K::QQAbField) = K(0)
 
 zero(a::QQAbElem) = zero(parent(a))
 
@@ -366,7 +366,7 @@ function coerce_down(K::AnticNumberField, n::Int, a::QQAbElem)
   throw(Hecke.NotImplemented())
 end
 
-function make_compatible(a::QQAbElem, b::QQAbElem)
+function make_compatible(a::QQAbElem{T}, b::QQAbElem{T}) where {T}
   if a.c == b.c
     return a,b
   end
@@ -643,7 +643,7 @@ end
 
 function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
   QQAb = base_ring(f)
-  c = reduce(lcm, map(conductor, coefficients(f)), init = Int(1))
+  c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(f)), init = Int(1))
   k, z = cyclotomic_field(QQAb, c)
   f = map_coefficients(x->k(x.data), f)
   lf = factor(f).fac
@@ -657,7 +657,7 @@ function Oscar.roots(f::PolyElem{QQAbElem{T}}) where T
   rts = QQAbElem{T}[]
 
   for g = keys(lf)
-    c = reduce(lcm, map(conductor, coefficients(g)), init = Int(1))
+    c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(g)), init = Int(1))
     #so THIS factor lives in cyclo(c)
     k, z = cyclotomic_field(QQAb, c)
     d = numerator(norm(k(discriminant(g))))

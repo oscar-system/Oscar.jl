@@ -27,7 +27,6 @@ export
     wreath_product,
     write_as_full
 
-
 """
     direct_product(L::AbstractVector{<:GAPGroup}; morphisms)
     direct_product(L::GAPGroup...)
@@ -37,6 +36,35 @@ Return the direct product of the groups in the collection `L`.
 The parameter `morphisms` is `false` by default. If it is set `true`, then
 the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
+
+# Examples
+```jldoctest
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> K = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> G = direct_product(H,K)
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+
+julia> elements(G)
+12-element Vector{Oscar.BasicGAPGroupElem{DirectProductGroup}}:
+ ()
+ (4,5)
+ (2,3)
+ (2,3)(4,5)
+ (1,2)
+ (1,2)(4,5)
+ (1,2,3)
+ (1,2,3)(4,5)
+ (1,3,2)
+ (1,3,2)(4,5)
+ (1,3)
+ (1,3)(4,5)
+```
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
    X = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
@@ -141,6 +169,23 @@ end
     as_perm_group(G::DirectProductGroup)
 
 If `G` is direct product of permutations groups, return `G` as permutation group.
+
+# Examples
+```jldoctest
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> K = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> G = direct_product(H,K)
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+
+julia> as_perm_group(G)
+Group([ (1,2,3), (1,2), (4,5) ])
+```
 """
 function as_perm_group(G::DirectProductGroup)
    if [typeof(H)==PermGroup for H in G.L]==[true for i in 1:length(G.L)]
@@ -167,6 +212,51 @@ end
     embedding(G::DirectProductGroup, j::Int)
 
 Return the embedding of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
+
+# Examples
+```jldoctest
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> K = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> G = direct_product(H,K)
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+
+julia> emb1 = embedding(G,1)
+Group homomorphism from
+Sym( [ 1 .. 3 ] )
+to
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+
+julia> h = perm(H,[2,3,1])
+(1,2,3)
+
+julia> emb1(h)
+(1,2,3)
+
+julia> emb2 = embedding(G,2)
+Group homomorphism from
+Sym( [ 1 .. 2 ] )
+to
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+
+julia> k = perm(K,[2,1])
+(1,2)
+
+julia> emb2(k)
+(4,5)
+
+julia> emb1(h)*emb2(k)
+(1,2,3)(4,5)
+```
 """
 function embedding(G::DirectProductGroup, j::Int)
    j in 1:length(G.L) || throw(ArgumentError("index not valid"))
@@ -181,6 +271,45 @@ end
     projection(G::DirectProductGroup, j::Int)
 
 Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#factors of `G`.
+
+# Examples
+```jldoctest
+julia> H = symmetric_group(3)
+Sym( [ 1 .. 3 ] )
+
+julia> K = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> G = direct_product(H,K)
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+
+julia> proj1 = projection(G,1)
+Group homomorphism from
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+to
+Sym( [ 1 .. 3 ] )
+
+julia> proj2 = projection(G,2)
+Group homomorphism from
+DirectProduct of
+ Sym( [ 1 .. 3 ] )
+ Sym( [ 1 .. 2 ] )
+to
+Sym( [ 1 .. 2 ] )
+
+julia> g = perm([2,3,1,5,4])
+(1,2,3)(4,5)
+
+julia> proj1(g)
+(1,2,3)
+
+julia> proj2(g)
+(1,2)
+```
 """
 function projection(G::DirectProductGroup, j::Int)
    f=GAP.Globals.Projection(G.Xfull,j)
@@ -211,9 +340,9 @@ end
 function Base.show(io::IO, G::DirectProductGroup)
    if G.isfull
       print(io, "DirectProduct of ")
-      display(G.L)
+      for x in G.L print(io, "\n ", x) end
    else
-      print(io, String(GAP.Globals.StringViewObj(G.X)))
+      print(io, String(GAPWrap.StringViewObj(G.X)))
    end
 end
 
@@ -343,10 +472,10 @@ end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
    if x.isfull
-      print(io, "SemidirectProduct( ", String(GAP.Globals.StringViewObj(x.N.X)),
+      print(io, "SemidirectProduct( ", String(GAPWrap.StringViewObj(x.N.X)),
                 " , ", String(GAP.Globals.StringView(x.H.X))," )")
    else
-      print(io, String(GAP.Globals.StringViewObj(x.X)))
+      print(io, String(GAPWrap.StringViewObj(x.X)))
    end
 end
 
@@ -372,6 +501,27 @@ If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of
 typing
 ```
     W(g_1,...,g_n, h).
+```
+
+# Examples
+```jldoctest
+julia> G = cyclic_group(3)
+<pc group of size 3 with 1 generator>
+
+julia> H = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> W = wreath_product(G,H)
+<group of size 18 with 2 generators>
+
+julia> a = gen(W,1)
+WreathProductElement(f1,<identity> of ...,())
+
+julia> b = gen(W,2)
+WreathProductElement(<identity> of ...,<identity> of ...,(1,2))
+
+julia> a*b
+WreathProductElement(f1,<identity> of ...,(1,2))
 ```
 """
 function wreath_product(G::T, H::PermGroup) where T<: GAPGroup
@@ -410,6 +560,21 @@ end
     normal_subgroup(W::WreathProductGroup)
 
 Return `G`, where `W` is the wreath product of `G` and `H`.
+
+# Examples
+```jldoctest
+julia> G = cyclic_group(3)
+<pc group of size 3 with 1 generator>
+
+julia> H = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> W = wreath_product(G,H)
+<group of size 18 with 2 generators>
+
+julia> normal_subgroup(W)
+<pc group of size 3 with 1 generator>
+```
 """
 normal_subgroup(W::WreathProductGroup) = W.G
 
@@ -417,6 +582,21 @@ normal_subgroup(W::WreathProductGroup) = W.G
     acting_subgroup(W::WreathProductGroup)
 
 Return `H`, where `W` is the wreath product of `G` and `H`.
+
+# Examples
+```jldoctest
+julia> G = cyclic_group(3)
+<pc group of size 3 with 1 generator>
+
+julia> H = symmetric_group(2)
+Sym( [ 1 .. 2 ] )
+
+julia> W = wreath_product(G,H)
+<group of size 18 with 2 generators>
+
+julia> acting_subgroup(W)
+Sym( [ 1 .. 2 ] )
+```
 """
 acting_subgroup(W::WreathProductGroup) = W.H
 

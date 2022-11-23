@@ -75,13 +75,13 @@ closure(X::AbsSpec, Y::AbsSpec)
 Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
 affine space ``\mathbb{A}_B``.
-More precisely, `ambient_affine_space(X)` is defined for `X = Spec(R)` if `R`
+More precisely, `ambient_space(X)` is defined for `X = Spec(R)` if `R`
 is constructed from a polynomial ring.
 In particular ``\mathrm{Spec}(\mathbb{Z})`` or ``\mathrm{Spec}(\mathbb{k})`` for ``\mathbb k``
 a field do not have an ambient affine space.
 
 ```@docs
-ambient_affine_space(X::AbsSpec)
+ambient_space(X::AbsSpec)
 ```
 
 ### Other attributes

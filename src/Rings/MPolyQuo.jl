@@ -1,6 +1,7 @@
 export singular_poly_ring, singular_coeff_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!, default_ordering
 export issubset
+export saturated_ideal
 ##############################################################################
 #
 # quotient rings
@@ -307,10 +308,21 @@ end
 
 # TODO: replace by a more efficient method!
 @attr function is_prime(I::MPolyQuoIdeal)
+  return is_prime(saturated_ideal(I))
+end
+
+# The following is to streamline the programmer's 
+# interface for the use of the four standard rings 
+# for the schemes `MPolyRing`, `MPolyQuo`, `MPolyLocalizedRing`, 
+# and `MPolyQuoLocalizedRing` together with their ideals. 
+# We return the preimage of the given ideal under the 
+# canonical map from the underlying free polynomial ring.
+@attr function saturated_ideal(I::MPolyQuoIdeal)
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
-  return is_prime(J)
+  return J
 end
+
 
 @doc Markdown.doc"""
     iszero(a::MPolyQuoIdeal)
@@ -846,6 +858,8 @@ function sparse_matrix(R::MPolyRing, M::Singular.Module)
   for g = 1:Singular.ngens(M)
     push!(S, sparse_row(R, M[g]))
   end
+  S.r = ngens(M)
+  S.c = rank(M)
   return S
 end
 

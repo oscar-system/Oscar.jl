@@ -408,7 +408,7 @@ end
 Return the element of the permutation group that describes the action
 of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
 
-# Example
+# Examples
 
 ```jldoctest
 julia> G = symmetric_group(4);
@@ -449,12 +449,30 @@ function __init_JuliaData()
     if ! hasproperty(GAP.Globals, :JuliaData)
       GAP.evalstr("""
 DeclareAttribute( "JuliaData", IsObject );
+
 InstallOtherMethod( ImagesRepresentative,
 [ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
 function( hom, elm )
 local data;
 data:= JuliaData( hom );
 return Julia.Oscar.permutation(data[1], Julia.Oscar.group_element(data[2], elm)).X;
+end );
+
+InstallMethod( RestrictedMapping,
+CollFamSourceEqFamElms,
+[ IsActionHomomorphism and HasJuliaData, IsGroup ],
+function( hom, H )
+local data, OscarG, xset, Omega, Hgens, Hacts, OscarH, res;
+data:= JuliaData( hom ); # the Oscar G-set and the acting Oscar group G
+OscarG:= data[2]; # the acting Oscar group G
+xset:= UnderlyingExternalSet( hom );
+Omega:= HomeEnumerator( xset ); # the set of Oscar objects
+Hgens:= GeneratorsOfGroup( H ); # GAP generators of H
+Hacts:= List( Hgens, x -> Julia.Oscar.group_element( OscarG, x ) ); # corresponding Oscar generators of H
+OscarH:= Julia.Oscar._as_subgroup_bare( OscarG, H );
+res:= ActionHomomorphism( H, Omega, Hgens, Hacts, FunctionAction( xset ) );
+SetJuliaData( res, [ data[1], OscarH ] );
+return res;
 end );
 """)
     end
@@ -676,7 +694,7 @@ julia> collect(blocks(g))
 function blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert is_transitive(G, L) "The group action is not transitive"
    bl = Vector{Vector{Int}}(GAP.Globals.Blocks(G.X, GapObj(L))::GapObj)
-   return gset(G, bl; closed = true)
+   return gset(G, on_sets, bl; closed = true)
 end
 
 """
@@ -809,8 +827,12 @@ end
 """
     transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return the maximum `k` such that the action of `G` on `L` is
-`k`-transitive. The output is `0` if `G` is not transitive on `L`.
+Return the maximum `k` such that `G` acts `k`-transitively on `L`,
+that is, every `k`-tuple of points in `L` can be mapped simultaneously
+to every other `k`-tuple by an element of `G`.
+
+The output is `0` if `G` acts intransitively on `L`,
+and an exception is thrown if `G` does not act on `L`.
 
 # Examples
 ```jldoctest
@@ -820,14 +842,34 @@ julia> transitivity(mathieu_group(24))
 julia> transitivity(symmetric_group(6))
 6
 
+julia> transitivity(symmetric_group(6), 1:7)
+0
+
+julia> transitivity(symmetric_group(6), 1:5)
+ERROR: ArgumentError: the group does not act
 ```
 """
-transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Transitivity(G.X, GapObj(L))::Int
+function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+  gL = GapObj(L)
+  res = GAP.Globals.Transitivity(G.X, gL)::Int
+  res === GAP.Globals.fail && throw(ArgumentError("the group does not act"))
+  # If the result is `0` then it may be that `G` does not act on `L`,
+  # and in this case we want to throw an exception.
+  if res == 0 && length(L) > 0
+    lens = GAP.Globals.OrbitLengths(G.X, gL)
+#TODO: Compute the orbit lengths more efficiently than GAP does.
+    if sum(lens) != length(L)
+      throw(ArgumentError("the group does not act"))
+    end
+  end
+  return res
+end
 
 """
     is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return whether the action of `G` on `L` is transitive.
+Return whether `G` acts transitively on `L`, that is,
+`L` is an orbit of `G`.
 
 # Examples
 ```jldoctest

@@ -1,13 +1,16 @@
 export OO, coordinate_ring, base_ring, dim, codim, name
 
-export ambient_affine_space, ambient_coordinate_ring, ambient_coordinates, ambient_embedding
+export ambient_space, ambient_coordinate_ring, ambient_coordinates, ambient_embedding
 
 export ring_type, base_ring_type, base_ring_elem_type, poly_type, ring_type
 
+export singular_locus, singular_locus_reduced
 
+export reduced_scheme
 
 ########################################################################
 # (1) Attributes of AbsSpec
+#     coordinate ring and ambient space related methods
 ########################################################################
 
 # Here is the interface for AbsSpec
@@ -45,7 +48,7 @@ end
 
 
 @Markdown.doc """
-    ambient_affine_space(X::AbsSpec)
+    ambient_space(X::AbsSpec)
 
 Return the ambient affine space of ``X``. 
 
@@ -57,7 +60,7 @@ its ambient affine space.
 julia> X = affine_space(QQ, [:x,:y])
 Spec of Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> ambient_affine_space(X) == X
+julia> ambient_space(X) == X
 true
 
 julia> (x, y) = coordinates(X);
@@ -65,19 +68,19 @@ julia> (x, y) = coordinates(X);
 julia> Y = subscheme(X, [x])
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
-julia> X == ambient_affine_space(Y)
+julia> X == ambient_space(Y)
 true
 
 julia> Z = subscheme(Y, y)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
 
-julia> ambient_affine_space(Z) == X
+julia> ambient_space(Z) == X
 true
 
 julia> V = hypersurface_complement(Y, y)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
 
-julia> ambient_affine_space(V) == X
+julia> ambient_space(V) == X
 true
 ```
 
@@ -103,7 +106,7 @@ julia> RmodI, quotient_map = quo(P, I);
 julia> Y = Spec(RmodI)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x)
 
-julia> ambient_affine_space(Y) == X
+julia> ambient_space(Y) == X
 true
 
 julia> J = ideal(RmodI, y);
@@ -113,7 +116,7 @@ julia> RmodJ, quotient_map2 = quo(RmodI, J);
 julia> Z = Spec(RmodJ)
 Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x, y)
 
-julia> ambient_affine_space(Z) == X
+julia> ambient_space(Z) == X
 true
 
 julia> U = powers_of_element(y)
@@ -124,7 +127,7 @@ julia> URmodI, _ = localization(RmodI, U);
 julia> V = Spec(URmodI)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x) at the multiplicative set powers of fmpq_mpoly[y]
 
-julia> ambient_affine_space(V) == X
+julia> ambient_space(V) == X
 true
 ```
 
@@ -132,9 +135,9 @@ Note: compare with `==`, as the same affine space could be represented
 internally by different objects for technical reasons.
 # Examples
 ```jldoctest ambient_via_spec
-julia> AX = ambient_affine_space(X);
+julia> AX = ambient_space(X);
 
-julia> AY = ambient_affine_space(Y);
+julia> AY = ambient_space(Y);
 
 julia> AX == AY
 true
@@ -143,15 +146,15 @@ julia> AX === AY
 false
 ```
 """
-function ambient_affine_space(X::AbsSpec)
+function ambient_space(X::AbsSpec)
   error("$X does not have an ambient affine space")
 end
 
-function ambient_affine_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
+function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_affine_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
+@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuo,MPolyLocalizedRing,MPolyQuoLocalizedRing}}
   return Spec(ambient_coordinate_ring(X))
 end
 
@@ -176,7 +179,7 @@ true
 ```
 """
 function ambient_embedding(X::AbsSpec)
-  return inclusion_morphism(X, ambient_affine_space(X), check=false)
+  return inclusion_morphism(X, ambient_space(X), check=false)
 end
 
 @Markdown.doc """
@@ -184,7 +187,7 @@ end
 
 Return the coordinate ring of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space(::AbsSpec)`](@ref).
+See also [`ambient_space(::AbsSpec)`](@ref).
 
 # Examples
 ```jldoctest
@@ -209,7 +212,7 @@ end
 
 Return the coordinate functions of the ambient affine space of ``X``.
 
-See also [`ambient_affine_space(::AbsSpec)`](@ref).
+See also [`ambient_space(::AbsSpec)`](@ref).
 
 # Examples
 ```jldoctest
@@ -281,6 +284,10 @@ function base_ring(X::AbsSpec{BRT, RT}) where {BRT, RT}
   return base_ring(underlying_scheme(X))::BRT
 end
 
+##############################################################################
+# (2) Attributes of AbsSpec
+#     dimension, codimension, name
+##############################################################################
 
 @Markdown.doc """
     dim(X::AbsSpec)
@@ -389,14 +396,255 @@ function set_name!(X::AbsSpec, name::String)
   return set_attribute!(X, :name, name)
 end
 
+#############################################################################
+# (3) Attributes of AbsSpec
+#     reduced scheme and singular locus
+#############################################################################
+# TODO: projective schemes, covered schemes
 
+@Markdown.doc """
+   reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
+Return the induced reduced scheme of `X`.
+
+Currently, this command is available for affine schemes and space germs.
+ 
+This command relies on [`radical`](@ref).
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> J = ideal(R,[(x-y)^2])
+ideal(x^2 - 2*x*y + y^2)
+
+julia> X = Spec(R,J)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2)
+
+julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+
+julia> Y = Spec(R,J,U)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - 2*x*y + y^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+
+julia> reduced_scheme(X)
+Spec of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y)
+
+julia> reduced_scheme(Y)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x - y) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0]
+
+```
+"""
+
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+  I = modulus(OO(X))
+  J = radical(pre_saturated_ideal(I))
+  return Spec(base_ring(J), J, inverted_set(OO(X)))
+end
+
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
+  J = radical(modulus(OO(X)))
+  return Spec(base_ring(J), J)
+end
+
+## to make reduced_scheme agnostic for quotient ring
+@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  return X
+end
+
+function reduced_scheme(X::AbsSpec)
+  error("method 'reduced_scheme(X)' currently only implemented for affine Schemes and Space Germs over a field")
+end
+
+### TODO: The following two functions (singular_locus, 
+###       singular_locus_reduced) need to be made type-sensitive 
+###       and reduced=true needs to be set automatically for varieties 
+###       as soon as not only schemes, but also varieties as separte
+###       type have been introduced in OSCAR
+### TODO: Make singular locus also available for projective schemes and
+###       for covered schemes (using the workhorse here...).
+ 
+@doc Markdown.doc"""
+    singular_locus(X::Scheme{<:Field}) -> Scheme
+
+Return the singular locus of `X`.
+
+For computing the singular locus of the reduced scheme induced by `X`,
+please use [`singular_locus_reduced`](@ref).
+
+Currently this command is available for affine schemes and for space germs.
+
+Over non-perfect fields, this command returns the non-smooth locus and `X`
+may still be regular at some points of the returned subscheme.
+
+See also [`is_smooth`](@ref).
+
+# Examples
+``` jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"]
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> I = ideal(R, [x^2 - y^2 + z^2])
+ideal(x^2 - y^2 + z^2)
+
+julia> A3 = Spec(R)
+Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> X = Spec(R,I)
+Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
+
+julia> singular_locus(A3)
+Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1)
+
+julia> singular_locus(X)
+Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, 2*x, -2*y, 2*z)
+
+julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
+complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia> Y = Spec(R,I,U)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+julia> singular_locus(Y)
+Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, x^2 - y^2 + z^2, 2*x, -2*y, 2*z, x^2 - y^2 + z^2, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+```
+"""
+function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+  comp = _singular_locus_with_decomposition(X,false)
+  if length(comp) == 0
+    set_attribute!(X, :is_smooth, true)
+    return subscheme(X, ideal(OO(X),one(OO(X))))
+  end
+  R = base_ring(OO(X))
+  I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
+  set_attribute!(X, :is_smooth, false)
+  return subscheme(X,I)
+end
+
+# make singular_locus agnostic to quotient
+function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  set_attribute!(X, :is_smooth,true)
+  return subscheme(X,ideal(OO(X),[one(OO(X))]))
+end
+
+# TODO: Covered schemes, projective schemes
+
+@doc Markdown.doc"""
+    singular_locus_reduced(X::Scheme{<:Field}) -> Scheme
+
+Return the singular locus of the reduced scheme ``X_{red}`` induced by `X`.
+
+For computing the singular locus of `X` itself, please use 
+['singular_locus](@ref)'.
+
+Currently this command is available for affine schemes and for space germs.
+
+Over non-perfect fields, this command returns the non-smooth locus and
+`X_{red}` may still be regular at some points of the returned subscheme.
+
+See also [`is_smooth`](@ref).
+
+# Examples
+``` jldoctest
+julia> R, (x,y,z) = QQ["x", "y", "z"]
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])
+ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+
+julia> X = Spec(R,I)
+Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+
+julia> singular_locus_reduced(X)
+Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
+
+julia> singular_locus(X)
+Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, 4*x^3 - 4*x*y^2 + 4*x*z^2, -4*x^2*y + 4*y^3 - 4*y*z^2, 4*x^2*z - 4*y^2*z + 4*z^3)
+
+```
+"""
+function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+  comp =  _singular_locus_with_decomposition(X, true)
+  I= ideal(base_ring(OO(X)),one(base_ring(OO(X))))
+  for Z in comp
+    I = intersect(I, modulus(underlying_quotient(OO(Z))))
+  end     
+  return subscheme(X,I)
+end
+
+# make singular_locus_reduced agnostic to quotient
+function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  return subscheme(X,ideal(OO(X),[one(OO(X))]))
+end
+
+# internal workhorse, not user-facing
+function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
+  I = saturated_ideal(modulus(OO(X)))
+  result = typeof(X)[]
+
+# equidimensional decompositon to allow Jacobi criterion on each component
+  P = []
+
+  if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 
+    push!(P, I)
+  else 
+    if reduced
+      P = equidimensional_decomposition_radical(I)
+    else
+      P = equidimensional_decomposition_weak(I)
+    end
+  end
+
+# if irreducible, just do Jacobi criterion
+  if length(P)==1 && !reduced
+    d = dim(X)
+    R = base_ring(I)
+    n = nvars(R) 
+    M = _jacobi_matrix_modulus(X)
+    minvec = minors(M, n-d)
+    J = ideal(R, minvec)
+    JX = ideal(OO(X),minvec)
+    one(OO(X)) in JX && return result
+    return [subscheme(X, J)]
+  else
+# if reducible, determine pairwise intersection loci
+    components = [subscheme(X, J) for J in P]
+    for i in 1:length(components)
+      for j in (i+1):length(components)
+        W = intersect(components[i],components[j])
+        if !isempty(W) 
+          push!(result, W)
+        end
+      end
+    end
+# and singular loci of components
+    for Y in components
+      result = vcat(result, singular_locus(Y))
+    end
+  end
+  return result
+end
+
+## cheaper version of jacobi_matrix specifically for Jacobi matrix of modulus
+## compute *some* representative of the jacobian matrix of gens(modulus),
+## forgetting about the denominators (contribution killed by modulus anyway)
+
+function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+  g = gens(modulus(underlying_quotient(OO(X))))
+  L = base_ring(underlying_quotient(OO(X)))
+  n = nvars(L)
+  M = matrix(L, n, length(g),[derivative(f,i) for i=1:n for f in g])
+  return M
+end
 
 ########################################################################
-# (2) Further attributes for AbsSpec
+# (X) Attributes for AbsSpec   to be deleted
+#     
 ########################################################################
 
-# TODO: Needed?
+# TODO: ambient_closure_ideal should be deleted
 
 @Markdown.doc """
     ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
@@ -437,7 +685,7 @@ ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocalizedRing}) = saturated_id
 
 
 ########################################################################
-# (3) Implementation of the AbsSpec interface for the basic Spec
+# (4) Implementation of the AbsSpec interface for the basic Spec
 ########################################################################
 
 OO(X::Spec) = X.OO
@@ -451,7 +699,7 @@ ambient_coordinate_ring(X::Spec{T, T}) where {T<:Field} = base_ring(X)
 
 
 ########################################################################
-# (4) Type getters
+# (5) Type getters
 ########################################################################
 
 # TODO: Needed?

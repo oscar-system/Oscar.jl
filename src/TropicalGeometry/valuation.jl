@@ -9,7 +9,6 @@ export TropicalSemiringMap,
        tighten_simulation
 
 @doc Markdown.doc"""
-
     TropicalSemiringMap(K,p,M::Union{typeof(min),typeof(max)}=min)
 
 Constructs a map `val` from `K` to the min tropical semiring `T` (default)
@@ -29,7 +28,9 @@ Currently, the only supported valuations are:
 - the $p$-adic valuations on $\mathbb{Q}$
 - the trivial valuation on any field
 
-# Example ($p$-adic valuation on $\mathbb{Q}$)
+# Examples
+
+$p$-adic valuation on $\mathbb{Q}$:
 ```jldoctest
 julia> val_2 = TropicalSemiringMap(QQ,2); # = TropicalSemiringMap(QQ,2,min)
 
@@ -45,7 +46,7 @@ julia> val_2(1//4)
 (2)
 ```
 
-# Example ($t$-adic valuation on $\mathbb{Q}(t)$)
+$t$-adic valuation on $\mathbb{Q}(t)$:
 ```jldoctest
 julia> Kt,t = RationalFunctionField(QQ,"t");
 
@@ -57,7 +58,7 @@ julia> val_t(1//t^2)
 (-2)
 ```
 
-# Example (trivial valuation on $\mathbb{Q}$)
+Trivial valuation on $\mathbb{Q}$:
 ```jldoctest
 julia> val = TropicalSemiringMap(QQ);
 
@@ -278,7 +279,7 @@ function simulate_valuation(G::Vector{<:MPolyElem}, val::TropicalSemiringMap)
   vvG = [val.uniformizer_ring-tx[1]]
   for f in G
     fRtx = MPolyBuildCtx(Rtx)
-    for (cK,expvKx) = zip(coefficients(f),exponent_vectors(f))
+    for (cK,expvKx) = zip(AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))
       @assert isone(denominator(cK)) "change_base_ring: coefficient denominators need to be 1"
       cR = R(numerator(cK))       # coefficient in R
       expvRtx = vcat([0],expvKx)  # exponent vector in R[t,x1,...,xn]
@@ -363,7 +364,7 @@ function desimulate_valuation(vvg::MPolyElem, val::TropicalSemiringMap)
   end
 
   g = MPolyBuildCtx(Kx)
-  for (c, expvRtx) = Base.Iterators.zip(coefficients(vvg), exponent_vectors(vvg))
+  for (c, expvRtx) = Base.Iterators.zip(AbstractAlgebra.coefficients(vvg), AbstractAlgebra.exponent_vectors(vvg))
     expvKx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
     popfirst!(expvKx)      # exponent vector in K[x1,...,xn]
     push_term!(g,K(c),expvKx)
@@ -437,7 +438,7 @@ function tighten_simulation(f::MPolyElem,val::TropicalSemiringMap)
   # substitute first variable by uniformizer_ring so that all monomials have distinct x-monomials
   # and compute the gcd of its coefficients
   f = evaluate(f,[1],[p]) # todo: sanity check that f is not 0
-  cGcd = val.valued_field(gcd([c for c in coefficients(f)]))
+  cGcd = val.valued_field(gcd([c for c in AbstractAlgebra.coefficients(f)]))
 
   # next divide f by the gcd of its coefficients
   # and replace uniformizer_ring by first variable
@@ -445,7 +446,7 @@ function tighten_simulation(f::MPolyElem,val::TropicalSemiringMap)
   R = val.valued_ring
   p = val.uniformizer_field
   f_tightened = MPolyBuildCtx(Rtx)
-  for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+  for (c,alpha) in zip(AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))
     c = K(c)//cGcd # casting c into K for the t-adic valuation case where typeof(c)=fmpq_poly
     v = Int(val(c); preserve_ordering=true)
     alpha[1] += v

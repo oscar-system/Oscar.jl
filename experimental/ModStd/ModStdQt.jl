@@ -332,7 +332,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
       if frst
         lst = []
         for _g = gJ
-          g = inv(leading_coefficient(_g))*_g
+          g = inv(AbstractAlgebra.leading_coefficient(_g))*_g
           f = []
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             push!(f, (e, Vals(Vector{T}[[c]])))
@@ -343,17 +343,17 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
       else
         for ig = 1:length(gJ)
           g = gJ[ig]
-          g *= inv(leading_coefficient(g))
+          g *= inv(AbstractAlgebra.leading_coefficient(g))
           jg = 1
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
               @assert lst[ig][jg][1] == e
-              @show ig, jg
-              for y = 1:length(lst)
-                @show y, [x[1] for x = lst[y]]
-              end
-              @show gJ[ig]
-              @show gJ
+#              @show ig, jg
+#              for y = 1:length(lst)
+#                @show y, [x[1] for x = lst[y]]
+#              end
+#              @show gJ[ig]
+#              @show gJ
               if do_z
                 lst[ig][jg][2][idx-1, length(P.pt_z)] = T(0)
               else
@@ -450,6 +450,28 @@ function ref_ff!(M::MatElem)
   return rk
 end
 
+function Hecke.content(M::MatrixElem{<:MPolyElem})
+  m = []
+  for idx = eachindex(M)
+    l = length(M[idx]) # should be 0 iff entry is zero
+    if l != 0
+      push!(m, (idx, l))
+    end
+  end
+  if length(m) == 0
+    return zero(base_ring(M))
+  end
+  sort!(m, lt = (a,b) -> isless(a[2], b[2]))
+  g = zero(base_ring(M))
+  for (idx, _) = m
+    g = gcd(g, M[idx])
+    if isone(g)
+      return g
+    end
+  end
+  return g
+end
+
 """
 A generic fraction free row echelon form for matrices over multivariate
   polynomial ring. Removes the row-contents, but dose not clean-up upwards.
@@ -499,12 +521,8 @@ function ref_ff_rc!(M::MatElem{<:MPolyElem})
       if iszero(M[k, j])
         continue
       end
-      g = gcd(M[k, j], M[i, j])
-      if isone(g)
-        M[k, :] = M[i, j]*M[k, :] - M[k, j] * M[i, :]
-      else
-        M[k, :] = divexact(M[i, j], g)*M[k, :] - divexact(M[k, j], g) * M[i, :]
-      end
+#      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
+      M[k, :] = b*M[k, :] - a * M[i, :]
       M[k, :] = divexact(M[k, :], content(M[k, :]))
     end
     j += 1
@@ -584,7 +602,7 @@ function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
     end
     bb = finish(b)
     b = zero(RX)
-    for (c, ex) = zip(coefficients(k), exponent_vectors(k))
+    for (c, ex) = zip(AbstactAlgebra.coefficients(k), AbstractAlgebra.exponent_vectors(k))
       b += c*R(K(monomial(Qt, ex[ngens(Qtx)+1:end])))*monomial(RX, ex[1:ngens(Qtx)])
     end
     kk = b
@@ -732,7 +750,7 @@ function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
       for i=1:length(pres)
         push!(co, lift(pres[d], pres[i], coeff(fac, d), coeff(fac, i), fpt))
       end
-      return pres[d], co, collect(exponent_vectors(fac))
+      return pres[d], co, collect(AbstractAlgebra.exponent_vectors(fac))
     end
 
     @vprint :ModStdQt 1 "failed, more points\n"

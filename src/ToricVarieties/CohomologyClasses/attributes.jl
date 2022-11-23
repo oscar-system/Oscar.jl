@@ -49,7 +49,7 @@ julia> coefficients(cc)
  7
 ```
 """
-coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in coefficients(polynomial(c).f)]
+coefficients(c::CohomologyClass) = [coefficient_ring(toric_variety(c))(k) for k in AbstractAlgebra.coefficients(polynomial(c).f)]
 export coefficients
 
 
@@ -75,7 +75,7 @@ julia> exponents(cc)
 [0   0   0   0   1]
 ```
 """
-exponents(c::CohomologyClass) = matrix(ZZ, [k for k in exponent_vectors(polynomial(c).f)])
+exponents(c::CohomologyClass) = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(polynomial(c).f)])
 export exponents
 
 
@@ -147,8 +147,8 @@ function polynomial(ring::MPolyQuo, c::CohomologyClass)
     if iszero(p)
         return zero(ring)
     end
-    coeffs = [k for k in coefficients(p.f)]
-    expos = matrix(ZZ, [k for k in exponent_vectors(p.f)])
+    coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
+    expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
     indets = gens(ring)
     monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
     return sum(coeffs[k]*monoms[k] for k in 1:length(monoms))

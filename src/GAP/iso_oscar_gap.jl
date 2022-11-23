@@ -40,7 +40,7 @@ function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.NmodRing, Nemo.Fmp
    f(x) = GAP.Obj(lift(x))*e
 
    finv = function(x::GAP.Obj)
-     @assert GAPWrap.IsFFE(x) || GAP.Globals.IsZmodnZObj(x)
+     @assert GAPWrap.IsFFE(x) || GAPWrap.IsZmodnZObj(x)
      y = GAP.Globals.Int(x)
      return y isa Int ? RO(y) : RO(fmpz(y))
    end
@@ -78,7 +78,7 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqFiniteField, FqDefaul
    d = degree(FO)
 
    # Compute the canonical basis of `FG`.
-   if ! GAP.Globals.IsPrimeField(GAP.Globals.LeftActingDomain(FG))
+   if ! GAPWrap.IsPrimeField(GAP.Globals.LeftActingDomain(FG))
      # The GAP field is not an extension of the prime field.
      # What is a reasonable way to compute (on the GAP side) a polynomial
      # w.r.t. the prime field, and to decompose field elements w.r.t.
@@ -167,7 +167,7 @@ end
 function _iso_oscar_gap(FO::FinField)
    p = GAP.Obj(characteristic(FO))::GAP.Obj
    d = degree(FO)
-   if GAP.Globals.IsCheapConwayPolynomial(p, d)
+   if GAPWrap.IsCheapConwayPolynomial(p, d)
      FG = GAPWrap.GF(p, d)
    else
      # Calling `GAPWrap.GF(p, d)` would throw a GAP error.
@@ -286,7 +286,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::PolyRing{T}, RG::GAP.GapOb
    end
 
    finv = function(x)
-      GAP.Globals.IsPolynomial(x)::Bool || error("$x is not a GAP polynomial")
+      GAPWrap.IsPolynomial(x) || error("$x is not a GAP polynomial")
       cfs = Vector{GAP.Obj}(GAP.Globals.CoefficientsOfUnivariatePolynomial(x)::GapObj)
       return RO([preimage(coeffs_iso, c) for c in cfs])
    end
@@ -319,7 +319,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapO
 
    f = function(x::MPolyElem{T})
       extrep = []
-      for (c, l) in zip(coefficients(x), exponent_vectors(x))
+      for (c, l) in zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.exponent_vectors(x))
         v = []
         for i in 1:n
           if l[i] != 0
@@ -333,7 +333,7 @@ function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapO
    end
 
    finv = function(x)
-      GAP.Globals.IsPolynomial(x)::Bool || error("$x is not a GAP polynomial")
+      GAPWrap.IsPolynomial(x) || error("$x is not a GAP polynomial")
       extrep = Vector{GAP.Obj}(GAP.Globals.ExtRepPolynomialRatFun(x)::GapObj)
       M = Generic.MPolyBuildCtx(RO)
       for i in 1:2:length(extrep)

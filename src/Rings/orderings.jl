@@ -7,7 +7,8 @@ export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
        isweighted, is_global, is_local, is_mixed,
-       permutation_of_terms, weight_ordering, canonical_matrix,
+       permutation_of_terms, index_of_leading_term,
+       weight_ordering, canonical_matrix,
        MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
        is_elimination_ordering, induced_ring_ordering
 
@@ -1698,6 +1699,24 @@ function permutation_of_terms(f::MPolyElem, ord::MonomialOrdering)
   p = collect(1:length(f))
   sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord.o) < 0), rev = true)
   return p
+end
+
+@doc Markdown.doc"""
+    index_of_leading_term(f::MPolyElem, ord::MonomialOrdering)
+
+Return the index of the leading term of `f` with repsect to the order `ord`. The
+returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
+"""
+function index_of_leading_term(f::MPolyElem, ord::MonomialOrdering)
+  n = length(f)
+  n > 0 || throw(ArgumentError("zero polynomial does not have a leading term"))
+  res = 1
+  for i in 2:n
+    if Orderings._cmp_monomials(f, res, f, i, ord.o) < 0
+      res = i
+    end
+  end
+  return res
 end
 
 ############ printing ############

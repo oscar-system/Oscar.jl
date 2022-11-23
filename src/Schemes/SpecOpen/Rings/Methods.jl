@@ -245,7 +245,7 @@ function restriction_map(
     m = 0
     # one extra round to catch the degenerate case where no powers are needed
     cleaned = zero(dirty)
-    for (b, m) in zip(coefficients(dirty), monomials(dirty))
+    for (b, m) in zip(AbstractAlgebra.coefficients(dirty), AbstractAlgebra.monomials(dirty))
       for i in 1:r
         if exponent(m, 1, i) == k[i]
           c[i] = c[i] + b*evaluate(m, [(j == i ? one(W) : W(d[j])) for j in 1:r])
@@ -261,7 +261,7 @@ function restriction_map(
       c = (x->poh*x).(c)
       dirty = dirty*ta
       cleaned = zero(dirty)
-      for (b, m) in zip(coefficients(dirty), monomials(dirty))
+      for (b, m) in zip(AbstractAlgebra.coefficients(dirty), AbstractAlgebra.monomials(dirty))
         for i in 1:r
           if exponent(m, 1, i) == k[i]
             c[i] = c[i] + b*evaluate(m, [(j == i ? one(W) : W(d[j])) for j in 1:r])

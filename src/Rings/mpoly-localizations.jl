@@ -498,7 +498,7 @@ function Base.in(
   if iszero(f)
     return false
   end
-  return isone(leading_monomial(f, ordering(S)))
+  return isone(leading_monomial(f; ordering = ordering(S)))
 end
 
 ### printing
@@ -2303,7 +2303,7 @@ function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
   return true, W(x[1])
 end
 
-# This had to be moved after behind the definition of the elements.
+# This had to be moved after the definition of the elements.
 function Localization(R::MPolyRing, f::MPolyElem)
   U = MPolyPowersOfElement(R, [f])
   L = MPolyLocalizedRing(R, U)
@@ -2321,3 +2321,26 @@ function Localization(R::MPolyRing, f::MPolyElem)
   return L, MapFromFunc(func, func_inv, R, L)
 end
 
+#############################################################################
+# Further functionality for elements of localized rings
+#############################################################################
+
+function derivative(f::MPolyLocalizedRingElem, i::Int)
+  num = derivative(numerator(f), i)*denominator(f) - derivative(denominator(f), i)*numerator(f)
+  den = denominator(f)^2
+  g = gcd(num, den)
+  return parent(f)(divexact(num, g), divexact(den, g), check=false)
+end
+
+function jacobi_matrix(f::MPolyLocalizedRingElem)
+  L = parent(f)
+  n = nvars(base_ring(L))
+  return matrix(L, n, 1, [derivative(f, i) for i=1:n])
+end
+
+function jacobi_matrix(g::Vector{<:MPolyLocalizedRingElem})
+  R = parent(g[1])
+  n = nvars(base_ring(R))
+  @assert all(x->parent(x) == R, g)
+  return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
+end
