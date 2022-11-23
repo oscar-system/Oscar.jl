@@ -131,7 +131,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 		if !haskey(I.gb, ordering)
 			I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
 		elseif complete_reduction == true
-			I.gb[ordering] = _compute_standard_basis(I.gb[ordering].gens, ordering, complete_reduction)
+			I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
 		end
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering, default_ordering(base_ring(I)))
