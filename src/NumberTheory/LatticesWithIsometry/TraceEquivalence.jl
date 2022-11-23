@@ -22,6 +22,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
   @req maximal_order(E) == equation_order(E) "Equation order and maximal order must coincide"
   @req order > 0 "The order must be positive"
   @req degree(L) == rank(L) "Lattice must be of full rank"
+  @req parent(beta) === E "beta must be an element of the base algebra of L"
   n = degree(L)
   s = involution(E)
   if s(beta)*beta != 1
@@ -42,7 +43,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
   bool, m = Hecke.is_cyclotomic_type(E)
   @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "beta must be a $m-primitive root of 1"
 
-  Lres, f = restrict_scalars_with_map(L)
+  Lres, f = restrict_scalars_with_map(L, QQ, alpha)
   iso = zero_matrix(QQ, 0, degree(Lres))
   v = vec(zeros(QQ, 1, degree(Lres)))
 
@@ -112,7 +113,7 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
   diag = [mb for i in 1:m]
   mb = block_diagonal_matrix(diag)
   bca = Hecke._basis_of_commutator_algebra(f, mb)
-  @assert length(bca) == euler_phi(n)
+  @assert !is_empty(bca)
   l = inv(bca[1])
   B = matrix(absolute_basis(E))
   gene = Vector{elem_type(E)}[]
