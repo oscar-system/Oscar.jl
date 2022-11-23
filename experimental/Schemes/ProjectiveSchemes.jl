@@ -485,7 +485,12 @@ end
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 pullback(phi::ProjectiveSchemeMor) = phi.pullback
-base_ring_morphism(phi::ProjectiveSchemeMor) = coefficient_map(pullback(phi))
+function base_ring_morphism(phi::ProjectiveSchemeMor) 
+  if isdefined(phi, :base_ring_morphism)
+    return phi.base_ring_morphism
+  end
+  return identity_map(base_ring(domain(phi)))
+end
 
 ### additional constructors
 function ProjectiveSchemeMor(
@@ -507,9 +512,25 @@ function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocal
   return phi.map_on_base_schemes::SchemeMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}})
+function map_on_affine_cones(
+    phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}};
+    check::Bool=true
+  )
   if !isdefined(phi, :map_on_affine_cones)
-    Y = base_scheme(domain(phi))
+    # The diagram is 
+    #   P  →  Q
+    #   ↓     ↓
+    #   X  →  Y
+    # corresponding to a map of rings 
+    #
+    #   T  ←  S
+    #   ↑     ↑
+    #   B  ←  A
+    #
+    #
+    X = base_scheme(domain(phi))
+    B = OO(X)
+    Y = base_scheme(codomain(phi))
     A = OO(Y)
     S = ambient_coordinate_ring(codomain(phi))
     T = ambient_coordinate_ring(domain(phi))
@@ -517,9 +538,9 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union
     Q = codomain(phi)
     pb_P = pullback(projection_to_base(P))
     pb_Q = pullback(projection_to_base(Q))
-    imgs_base = pb_P.(gens(A))
+    imgs_base = pb_P.(base_ring_morphism(phi).(gens(A)))
     imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
+    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base), check=check)
   end
   return phi.map_on_affine_cones::AbsSpecMor
 end

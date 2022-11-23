@@ -427,12 +427,32 @@ function blow_up(
     # express the generators of I(U) in terms of the generators of I(V)
     # on the overlap U ∩ V. 
     G isa SimpleGlueing || error("method not implemented for this type of glueing")
-    A = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))]
-    B = [coordinates(OX(U, VU)(g), I(VU)) for g in gens(I(U))]
+
+    # The problem is that on a SpecOpen U ∩ V
+    # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
+    # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
+    # for the generators fᵢ of I(U) and gⱼ of I(V): Even though 
+    # we can do this locally on the patches of a SpecOpen, the result 
+    # is not guaranteed to glue to global functions on the overlap.
+    # Abstractly, we know that the intersection of affine charts 
+    # in a separated scheme must be affine, but we do not have a 
+    # model of this overlap as an affine scheme and hence no computational
+    # backup. 
+
+    # fᵢ the generators of I(U)
+    # gⱼ the generators of I(V)
+    # aᵢⱼ the coefficients for fᵢ = ∑ⱼ aᵢⱼ⋅gⱼ in VU
+    # bⱼᵢ the coefficients for gⱼ = ∑ᵢ bⱼᵢ⋅fᵢ in UV
+    # sᵢ the variables for the homogeneous ring over U
+    # tⱼ the variables for the homogenesous ring over V
+    A = [coordinates(OX(U, VU)(f), I(VU)) for f in gens(I(U))] # A[i][j] = aᵢⱼ
+    B = [coordinates(OX(V, UV)(g), I(UV)) for g in gens(I(V))] # B[j][i] = bⱼᵢ
     SQVU = ambient_coordinate_ring(QVU)
     SPUV = ambient_coordinate_ring(PUV)
-    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([A[i][j]*SPUV[j] for j in 1:ngens(SPUV)]) for i in 1:length(A)]))
-    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([B[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(B)]))
+    # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
+    # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
+    fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))
+    gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)]))
 
     # TODO: Something's still wrong here with the fup and gup.
     projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup)
