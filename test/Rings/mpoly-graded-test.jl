@@ -248,10 +248,10 @@ begin
   @assert parent(t) == R
 end
 
-@testset "Alheydis" begin
+@testset "Rational solutions" begin
   Q, x = proj_space(QQ, 2)
   i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
-  @test length(Oscar.rational_points_naive(i)) == 1
+  @test length(rational_solutions(i)) == 1
 end
 
 @testset "Hilbert series" begin
@@ -295,3 +295,15 @@ end
   bayer = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :BayerStillmanA)
   @test custom == gcd == generator == cocoa == indeterminate
 end
+
+@testset "Rand" begin
+  for K in [ZZ, GF(3), QQ]
+    R, = K["x", "y", "z"]
+    S, = grade(R)
+    for i in 1:100
+      f = rand(R, 5:10, 1:10, 1:100)
+      @test parent(f) === R
+    end
+  end
+end
+

@@ -2441,6 +2441,12 @@ function AbstractAlgebra.promote_rule(::Type{MPolyElem_dec{S, T}}, ::Type{U}) wh
   end
 end
 
+################################################################################
+#
+#  Random homogenous polynomials
+#
+################################################################################
+
 #create homogenous polynomials in graded rings
 #TODO: make this work for non-standard gradings
 @doc Markdown.doc"""
@@ -2451,7 +2457,7 @@ terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
 and random coefficients via `v...`.
 """
 function rand(S::MPolyRing_dec, term_range, deg_range, v...)
-  f = S.R(0)
+  f = zero(S.R)
   d = rand(deg_range)
   for i=1:rand(term_range)
     t = S.R(rand(base_ring(S), v...))
@@ -2462,28 +2468,36 @@ function rand(S::MPolyRing_dec, term_range, deg_range, v...)
       t *= gen(S.R, j)^rand(0:(d-total_degree(t)))
     end
     #the last exponent is deterministic...
-    t *= gen(S.R, ngens(S.R))^(d-total_degree(T))
+    t *= gen(S.R, ngens(S.R))^(d-total_degree(t))
     f += t
   end
   return S(f)
 end
 
+################################################################################
+#
+#  Rational solutions of one-dimensional ideals
+#
+################################################################################
+
 """
-Hopefully computes all projective rational points in this 1 (0) dim
-ideal by finding the affine rational points in the affine patches.
+    rational_solutions(I::MPolyIdeal{<:MPolyElem_dec}) -> Vector{Vector}
+
+Given a one-dimensional homogenous ideal, return all projective rational
+elements of the vanishing set.
 """
-function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
-  @assert dim(I) == 1
+function rational_solutions(I::MPolyIdeal{<:MPolyElem_dec})
+  @req dim(I) == 1 "Dimension must be 1"
   #TODO: make this work for non-standard gradings
   S = base_ring(I)
   R = S.R
-  RS, _ = PolynomialRing(base_ring(R), ngens(S)-1, cached = false)
+  RS, _ = PolynomialRing(base_ring(R), ngens(S) - 1, cached = false)
   Q = base_ring(R)
   all_S = Vector{elem_type(Q)}[]
   for i=1:ngens(S)
-    val = [RS(0) for l = gens(S)]
+    val = [zero(RS) for l = gens(S)]
     k = 1
-    for j=1:ngens(S)
+    for j in 1:ngens(S)
       if i == j
         val[j] = RS(1)
       else
@@ -2493,13 +2507,13 @@ function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
     end
     #J should be an affine patch where the j-th var is set to 1
     J = ideal(RS, [evaluate(f, val) for f = gens(I)])
-    r = rational_points(J)
+    r = rational_solutions(J)
     for s = r
       k = 1
       so = elem_type(Q)[]
-      for j=1:ngens(S)
+      for j in 1:ngens(S)
         if i == j
-          push!(so, Q(1))
+          push!(so, one(Q))
         else
           push!(so, Q(s[k]))
           k += 1
@@ -2510,42 +2524,6 @@ function rational_points_naive(I::MPolyIdeal{<:MPolyElem_dec})
   end
   P = proj_space(Q, ngens(RS))[1]
   #projective comparison!!!!
-  return collect(Set(P(x) for x = all_S))
+  return [p.v for p in Set(P(x) for x = all_S)]
 end
-
-"""
-Dumb algorithm for rational points via lex Groebner Basis.
-Be invited to do s.th. vastly better here....
-"""
-function rational_points(I::MPolyIdeal{<:MPolyElem})
-  gb = groebner_basis(I, ordering = lex(base_ring(I)))
-  R = base_ring(I)
-  if 1 in gb
-    return elem_type(base_ring(R))[]
-  end
-  @assert dim(I) == 0
-  @assert length(gb) == ngens(base_ring(I))
-  R = base_ring(I)
-  Qx, _ = PolynomialRing(base_ring(R), cached = false)
-  rts = [elem_type(Qx)[Qx(0) for i = gens(R)]]
-  i = ngens(R)
-  for f = gb
-    sts = Vector{elem_type(Qx)}[]
-    for r = rts
-      r[i] = gen(Qx)
-      g = evaluate(f, r)
-      rt = roots(g)
-      for x = rt
-        r[i] = Qx(x)
-        push!(sts, copy(r))
-      end
-    end
-    rts = sts
-    i -= 1
-  end
-  #for technical reasons (evaluation) the points are actually at this
-  #point constant polynomials, hence:
-  return [[constant_coefficient(x) for x = r] for r = rts]
-end
-
 
