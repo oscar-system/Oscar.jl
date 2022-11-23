@@ -585,7 +585,7 @@ julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
 julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 
 julia> u, Q, h = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
-([x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0, [y+1])
+([y+1], [x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0)
 
 julia> u*g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
 true
@@ -650,7 +650,7 @@ julia> I = ideal(R, [x]);
 julia> J = ideal(R, [x+1]);
 
 julia> unit, M, res = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
-([x], gfp_mpoly[0], [x+1])
+([x+1], [x], gfp_mpoly[0])
 
 julia> M * gens(J) + res == unit * gens(I)
 true
