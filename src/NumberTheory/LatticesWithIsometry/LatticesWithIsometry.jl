@@ -1,5 +1,6 @@
 export hermitian_structure, isometry, lattice_with_isometry, order_of_isometry,
-       type, ambient_isometry, image_centralizer_in_Oq, coinvariant_lattice
+       type, ambient_isometry, image_centralizer_in_Oq, coinvariant_lattice,
+       is_of_type, is_of_same_type, is_of_pure_type, is_pure
     
 ###############################################################################
 #
@@ -104,7 +105,7 @@ ambient_space(Lf::LatticeWithIsometry) = ambient_space(lattice(Lf))::Hecke.QuadS
 ###############################################################################
 
 @doc Markdown.doc"""
-    lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = true,
+    lattice_with_isometry(L::ZLat, f::fmpq_mat, n::IntExt; check::Bool = true,
                                                             ambient_representation = true)
 				                                                                -> LatticeWithIsometry
 
@@ -117,7 +118,7 @@ ambient space of `L` and the induced isometry on `L` is automatically computed.
 Otherwise, an isometry of the ambient space of `L` is constructed, setting the identity
 on the complement of the rational span of `L` if it is not of full rank.
 """
-function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::Integer; check::Bool = true,
+function lattice_with_isometry(L::ZLat, f::fmpq_mat, n::IntExt; check::Bool = true,
                                                                  ambient_representation::Bool = true)
   if rank(L) == 0
     return LatticewithIsometry(L, matrix(QQ,0,0,[]), -1)
@@ -174,7 +175,7 @@ function lattice_with_isometry(L::ZLat, f::fmpq_mat; check::Bool = true,
   end
 
   n = multiplicative_order(f)
-  return lattice_with_isometry(L, f, Int(n), check = check,
+  return lattice_with_isometry(L, f, n, check = check,
                                ambient_representation = ambient_representation)::LatticeWithIsometry
 end
 
@@ -213,8 +214,8 @@ If it exists, the hermitian structure is cached.
   
   @req n >= 3 "No hermitian structures for n smaller than 3"
 
-  return inverse_trace_lattice(lattice(Lf), f, n = n, check = true,
-                                                      ambient_representation = false)
+  return Oscar._hermitian_structure(lattice(Lf), f, n = n, check = true,
+                                                     ambient_representation = false)
 end
 
 ###############################################################################
@@ -319,6 +320,8 @@ end
 #
 ###############################################################################
 
+divides(k::PosInf, n::Int) = true
+
 @doc Markdown.doc"""
     kernel_lattice(Lf::LatticeWithIsometry, p::fmpq_poly) -> LatticeWithIsometry
 
@@ -331,7 +334,8 @@ function kernel_lattice(Lf::LatticeWithIsometry, p::fmpq_poly)
   L = lattice(Lf)
   f = isometry(Lf)
   M = p(f)
-  k, K = left_kernel(change_base_ring(ZZ, M))
+  d = denominator(M)
+  k, K = left_kernel(change_base_ring(ZZ, d*M))
   L2 = lattice_in_same_ambient_space(L, K*basis_matrix(L))
   f2 = solve_left(change_base_ring(QQ, K), K*f)
   @assert f2*gram_matrix(L2)*transpose(f2) == gram_matrix(L2)
@@ -372,6 +376,7 @@ end
   L = lattice(Lf)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
+  @req is_finite(n) "Isometry must be of finite order"
   divs = divisors(n)
   Qx = Hecke.Globals.Qx
   x = gen(Qx)
@@ -379,11 +384,61 @@ end
   for l in divs
     Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = inverse_trace_lattice(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)
+      Hl = Oscar._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
   end
   return t
+end
+
+function _is_type(t::Dict)
+  ke = collect(keys(t))
+  n = maximum(ke)
+  Set(divisors(n)) == Set(ke) || return false
+
+  for i in ke
+   t[i][2] isa ZGenus || return false
+   typeof(t[i][1]) <: Union{ZGenus, Hecke.GenusHerm} || return false
+  end
+  rank(t[n][2]) == rank(t[n][1])*euler_phi(n) || return false
+  return true
+end
+
+function is_of_type(L::LatticeWithIsometry, t)
+  @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
+  @req _is_type(t) "t does not define a type for lattices with isometry"
+  divs = sort(collect(keys(t)))
+  x = gen(Hecke.Globals.Qx)
+  for l in divs
+    Hl = kernel_lattice(L, cyclotomic_polynomial(l))
+    if !(order_of_isometry(Hl) in [-1, 1, 2])
+      t[l][1] isa Hecke.GenusHerm || return false
+      Hl = Oscar._hermitian_structure(lattice(Hl), isometry(Hl), n=order_of_isometry(Hl), check=false, ambient_representation=false, E = base_field(t[l][1]))
+    end
+    genus(Hl) == t[l][1] || return false
+    Al = kernel_lattice(L, x^l-1)
+    genus(Al) == t[l][2] || return false
+  end
+  return true
+end
+
+function is_of_same_type(L::LatticeWithIsometry, M::LatticeWithIsometry)
+  @req is_finite(order_of_isometry(L)*order_of_isometry(M)) "Type is defined only for finite order isometries"
+  order_of_isometry(L) != order_of_isometry(M) && return false
+  genus(L) != genus(M) && return false
+  return is_of_type(L, type(M))
+end
+
+function is_of_pure_type(L::LatticeWithIsometry)
+  @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
+  return is_cyclotomic_polynomial(minpoly(L))
+end
+
+function is_pure(t::Dict)
+  @req _is_type(t) "t does not define a type for lattices with isometry"
+  ke = collect(keys(t))
+  n = maximum(ke)
+  return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, [i for i in ke if i != n])
 end
 
