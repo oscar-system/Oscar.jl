@@ -145,7 +145,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [y-x^2, z-x^3]);
 
-julia> groebner_basis(I)
+julia> G = groebner_basis(I)
 Gröbner basis with elements
 1 -> y^2 - x*z
 2 -> x*y - z

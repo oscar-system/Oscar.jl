@@ -119,9 +119,7 @@ julia> collect(ans)
  (3, [0, 0, 3])
  (2, [1, 1, 0])
  (1, [0, 0, 0])
-```
- 
-```jldoctest
+
 julia> leading_term(f)
 3*z^3
 
