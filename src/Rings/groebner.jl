@@ -584,7 +584,7 @@ julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
 
 julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 
-julia> Q, h, u = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
+julia> u, Q, h = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
 ([x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0, [y+1])
 
 julia> u*g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
@@ -592,7 +592,7 @@ true
 
 julia> G = [g, x*y^3-3*x^2*y^2*z^2];
 
-julia> Q,  H,  U = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = lex(R));
+julia> U, Q,  H = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = lex(R));
 
 julia> U
 [1   0]
@@ -612,8 +612,8 @@ function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOr
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
 	J = IdealGens(R, F, ordering)
-	q, r, u = _reduce_with_quotients_and_unit(I, J, ordering)
-	return q, r[1], u
+	u, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
+	return u, q, r[1]
 end
 
 function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
@@ -649,10 +649,10 @@ julia> I = ideal(R, [x]);
 
 julia> J = ideal(R, [x+1]);
 
-julia> M, res, units = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
+julia> unit, M, res = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
 ([x], gfp_mpoly[0], [x+1])
 
-julia> M * gens(J) + res == units * gens(I)
+julia> M * gens(J) + res == unit * gens(I)
 true
 
 julia> f = x^3*y^2-y^4-10
@@ -664,12 +664,12 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^3 + 10*y^4
 
 julia> reduce_with_quotients_and_unit(f, F)
-([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
+([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
-julia> M, res, units = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
-([0 y^2], y^6 + 10*y^4 + 1, [1])
+julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
+([1], [0 y^2], y^6 + 10*y^4 + 1)
 
-julia> M * F + [res] == units * [f]
+julia> M * F + [res] == unit * [f]
 true
 ```
 """
@@ -721,17 +721,17 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^3 + 10*y^4
 
 julia> reduce_with_quotients_and_unit(f, F)
-([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
+([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
-julia> M, res, units = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
-([0 y^2], y^6 + 10*y^4 + 1, [1])
+julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
+([1], [0 y^2], y^6 + 10*y^4 + 1)
 
-julia> M * F + [res] == units * [f]
+julia> M * F + [res] == unit * [f]
 true
 ```
 """
 function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-    q, r, _ = _reduce_with_quotients_and_unit(I, J, ordering)
+    _, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
     return q, r
 end
 
@@ -792,7 +792,7 @@ function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = 
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
 	J = IdealGens(R, F, ordering)
-	q, r, _ = _reduce_with_quotients_and_unit(I, J, ordering)
+	_, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r[1]
 end
 
@@ -801,7 +801,7 @@ function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrd
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
 	J = IdealGens(R, G, ordering)
-	q, r, _ = _reduce_with_quotients_and_unit(I, J, ordering)
+	_, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r
 end
 
@@ -810,7 +810,7 @@ function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::M
 	singular_assure(I, ordering)
 	singular_assure(J, ordering)
 	res = Singular.division(I.gens.S, J.gens.S)
-	return matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])], matrix(base_ring(I), res[3])
+	return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
 @doc Markdown.doc"""
