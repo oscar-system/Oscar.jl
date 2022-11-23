@@ -362,7 +362,7 @@ end
 
 # leading ideal #######################################################
 @doc Markdown.doc"""
-    leading_ideal(G::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) where { T <: MPolyElem }
 
 Return the leading ideal of `G` with respect to `ordering`.
 
@@ -378,8 +378,8 @@ julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(R))
 ideal(x*y^2, x^3)
 ```
 """
-function leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
-    return ideal(parent(g[1]), [leading_monomial(f; ordering = ordering) for f in g])
+function leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) where { T <: MPolyElem }
+    return ideal(parent(G[1]), [leading_monomial(f; ordering = ordering) for f in G])
 end
 
 function leading_ideal(I::IdealGens{T}) where { T <: MPolyElem }
@@ -392,7 +392,7 @@ end
 
 
 @doc Markdown.doc"""
-    leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
+    leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 
 Return the leading ideal of `I` with respect to `ordering`.
 
@@ -411,7 +411,7 @@ julia> L = leading_ideal(I, ordering=lex(R))
 ideal(y^7, x*y^2, x^3)
 ```
 """
-function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
+function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   G = groebner_basis(I, ordering=ordering)
   return ideal(base_ring(I), [leading_monomial(g; ordering = ordering) for g in G])
 end
