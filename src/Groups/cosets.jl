@@ -358,13 +358,13 @@ function left_transversal(G::T, H::T) where T<: GAPGroup
 end
 
 Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
-Base.iterate(G::GroupCoset) = iterate(G, GAP.Globals.Iterator(G.X))
+Base.iterate(G::GroupCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupCoset, state)
   if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAPWrap.NextIterator(state)
+  i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
 
@@ -526,13 +526,13 @@ right_acting_group(C::GroupDoubleCoset) = C.K
 
 Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
 
-Base.iterate(G::GroupDoubleCoset) = iterate(G, GAP.Globals.Iterator(G.X))
+Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupDoubleCoset, state)
   if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAPWrap.NextIterator(state)
+  i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
 

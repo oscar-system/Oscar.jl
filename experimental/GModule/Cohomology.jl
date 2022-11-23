@@ -129,8 +129,8 @@ parent of the generators.
 function fp_group(g::Vector{<:Oscar.GAPGroupElem})
   G = parent(g[1])
   @assert all(x->parent(x) == G, g)
-  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
-  F = FPGroup(GAP.Globals.Range(X))
+  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
+  F = FPGroup(GAPWrap.Range(X))
   return F, GAPGroupHomomorphism(F, G, GAP.Globals.InverseGeneralMapping(X))
 end
 
@@ -154,7 +154,7 @@ function Oscar.relations(F::FPGroup)
 end
 
 function Oscar.relations(G::Oscar.GAPGroup)
-   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
+   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
@@ -479,7 +479,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   #be adjusted to those words. I do not know if a RWS (Confluent) can
   #just be changed...
   k = C.monhom #[2] #hopefully the monhom entry in 4.12 it will be the name
-  M = GAP.Globals.Range(k)
+  M = GAPWrap.Range(k)
   g = [GAP.Globals.PreImageElm(k, x) for x = GAP.Globals.GeneratorsOfMonoid(M)]
   g = map(GAPWrap.UnderlyingElement, g)
   g = map(GAP.Globals.LetterRepAssocWord, g)
@@ -495,7 +495,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
 
   #now to express the new gens as words in the old ones:
   
-  Fp = FPGroup(GAP.Globals.Range(C.fphom))
+  Fp = FPGroup(GAPWrap.Range(C.fphom))
   return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
 
