@@ -124,11 +124,13 @@ negdegrevlex([x, y])
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
 	complete_reduction::Bool = false, algorithm::Symbol = :direct)
 	complete_reduction && @assert is_global(ordering)
+	if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
+		return I.gb[ordering]
+	end
 	if algorithm == :direct
 		if !haskey(I.gb, ordering)
 			I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
-		end
-		if !I.gb[ordering].isReduced
+		elseif complete_reduction == true
 			I.gb[ordering] = _compute_standard_basis(I.gb[ordering].gens, ordering, complete_reduction)
 		end
 	elseif algorithm == :fglm
