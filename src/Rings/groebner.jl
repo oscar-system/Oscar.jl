@@ -323,25 +323,57 @@ function f4(
 end
 
 function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering;
-                                probabilistic_hilbert::Bool = false,
                                 complete_reduction::Bool = false)
   
+  # TODO: better way to check homogeneity?
+  _is_homogeneous = p -> all(mon -> total_degree(mon) == total_degree(p),
+                             monomials(p))
+  @assert all(p -> _is_homogeneous(p), gens(I)) "Ideal must be given by homogeneous generators"
   complete_reduction && @assert is_global(ordering)
-  if isempty(I.gb) 
-      if probabilistic_hilbert && iszero(characteristic(base_ring(I)))
-          # TODO: convert to finite char basering
-          G = f4(I)
-      else
-          G = groebner_assure(I)
+  if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
+    # TODO: how to choose the characteristic?
+    base_field = GF(65521)
+    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+    I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
+    build_ctx = MPolyBuildCtx(ModP)
+    for (i, f) in enumerate(gens(I))
+      f_coeffs_mod_p = Vector{elem_type(base_field)}(undef,
+                                                     length(coefficients(f)))
+      g = f
+      bad_denominator = true
+      while bad_denominator
+        for (j, c) in enumerate(coefficients(g))
+          bad_denominator = false
+          try
+            num = base_field(numerator(c))
+            if iszero(num)
+              f_coeffs_mod_p[j] = num
+              continue
+            end
+            f_coeffs_mod_p[j] =
+              num * inv(base_field(denominator(c)))
+          catch DomainError
+            g *= denominator(c)
+            bad_denominator = true
+            break
+          end
+        end
       end
+      for (j, c) in enumerate(f_coeffs_mod_p)
+        push_term!(build_ctx, c, collect(exponents(f))[j])
+      end
+      I_mod_p_gens[i] = finish(build_ctx)
+    end
+    G = f4(ideal(ModP, I_mod_p_gens))
   else
-      G = groebner_assure(I)
+    G = groebner_assure(I)
   end
-        
-  # TODO: here we assume I to be homogeneous
+
+  singular_assure(G)
   h = Singular.hilbert_series(G.S, ones(Int32, ngens(base_ring(I))))
   # TODO: insert call to singular std with hilbert here
-  return I.gb[target_ordering]
+  # return I.gb[target_ordering]
+  return h
 end
 
 @doc Markdown.doc"""
