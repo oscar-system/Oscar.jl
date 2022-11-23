@@ -930,7 +930,41 @@ function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=def
     normal_form_internal(I, J, ordering)
 end
 
+@doc Markdown.doc"""
+    normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
 
+Compute the normal form of the elements of the array `A` w.r.t. a
+Groebner basis of `J` and the monomial ordering `o`.
+
+CAVEAT: This computation needs a Groebner basis of `J` and `o`. If this Groebner
+basis is not available, one is computed automatically. This may take some time.
+
+# Examples
+```jldoctest
+julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
+(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+
+julia> A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
+3-element Vector{fmpq_mpoly}:
+ a^3 + b + c - 1
+ 2*a^3 + a*c + b - 1
+ a*c^2 + b*c + 5
+
+julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
+ideal(b + c - 1, 2*a*b + a*c + b - 1)
+
+julia> gens(groebner_basis(J))
+2-element Vector{fmpq_mpoly}:
+ b + c - 1
+ a*c - 2*a + c
+
+julia> normal_form(A, J)
+3-element Vector{fmpq_mpoly}:
+ a^3
+ 2*a^3 + 2*a - 2*c
+ 4*a - 2*c^2 - c + 5
+```
+"""
 function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
 	if F.isGB && F.ord == ordering
 		return true
@@ -960,10 +994,46 @@ function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_or
 end
 
 @doc Markdown.doc"""
+    normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
 
+Converts a Groebner basis `G` w.r.t. a given global monomial ordering for `<G>`
+to a Groebner basis `H` w.r.t. another monomial ordering `ordering` for `<G>`.
 
-Converts a Groebner basis `G` w.r.t. a given monomial ordering `<_1` for some ideal `I`
-to a Groebner basis `H` w.r.t. another monomial ordering `<_2` for `I`.
+	**NOTE**: `fglm` assumes that `G` is a reduced Gröbner basis (i.e. w.r.t. a global monomial ordering) and that `ordering` is a global monomial ordering.
+
+# Examples
+```jldoctest
+julia> R, (x1, x2, x3, x4) = PolynomialRing(GF(101), ["x1", "x2", "x3", "x4"])
+(Multivariate Polynomial Ring in x1, x2, x3, x4 over Galois field with characteristic 101, gfp_mpoly[x1, x2, x3, x4])
+
+julia> J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
+       x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
+       2*x1*x2+2*x2*x3+2*x3*x4-x2,
+       x2^2+2*x1*x3+2*x2*x4-x3
+       ])
+ideal(x1 + 2*x2 + 2*x3 + 2*x4 + 100, x1^2 + 100*x1 + 2*x2^2 + 2*x3^2 + 2*x4^2, 2*x1*x2 + 2*x2*x3 + 100*x2 + 2*x3*x4, 2*x1*x3 + x2^2 + 2*x2*x4 + 100*x3)
+
+julia> groebner_basis(J, ordering=degrevlex(R), complete_reduction=true)
+Gröbner basis with elements
+1 -> x1 + 2*x2 + 2*x3 + 2*x4 + 100
+2 -> x3^2 + 2*x2*x4 + 19*x3*x4 + 76*x4^2 + 72*x2 + 86*x3 + 42*x4
+3 -> x2*x3 + 99*x2*x4 + 40*x3*x4 + 11*x4^2 + 65*x2 + 58*x3 + 30*x4
+4 -> x2^2 + 2*x2*x4 + 30*x3*x4 + 45*x4^2 + 43*x2 + 72*x3 + 86*x4
+5 -> x3*x4^2 + 46*x4^3 + 28*x2*x4 + 16*x3*x4 + 7*x4^2 + 58*x2 + 63*x3 + 15*x4
+6 -> x2*x4^2 + 67*x4^3 + 56*x2*x4 + 58*x3*x4 + 45*x4^2 + 14*x2 + 86*x3
+7 -> x4^4 + 65*x4^3 + 26*x2*x4 + 47*x3*x4 + 71*x4^2 + 37*x2 + 79*x3 + 100*x4
+with respect to the ordering
+degrevlex([x1, x2, x3, x4])
+
+julia> fglm(J.gb[degrevlex(R)], ordering=lex(R))
+Gröbner basis with elements
+1 -> x4^8 + 36*x4^7 + 95*x4^6 + 39*x4^5 + 74*x4^4 + 7*x4^3 + 45*x4^2 + 98*x4
+2 -> x3 + 53*x4^7 + 93*x4^6 + 74*x4^5 + 26*x4^4 + 56*x4^3 + 15*x4^2 + 88*x4
+3 -> x2 + 25*x4^7 + 57*x4^6 + 13*x4^5 + 16*x4^4 + 78*x4^3 + 31*x4^2 + 16*x4
+4 -> x1 + 46*x4^7 + 3*x4^6 + 28*x4^5 + 17*x4^4 + 35*x4^3 + 9*x4^2 + 97*x4 + 100
+with respect to the ordering
+lex([x1, x2, x3, x4])
+```
 """
 function fglm(G::IdealGens; ordering::MonomialOrdering)
 	@assert G.isGB == true 
