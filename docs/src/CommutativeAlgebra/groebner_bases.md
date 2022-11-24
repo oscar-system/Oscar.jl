@@ -259,6 +259,11 @@ groebner_basis_with_transformation_matrix(I::MPolyIdeal;
 	ordering::MonomialOrdering = default_ordering(base_ring(I)),
 	complete_reduction::Bool=false)
 ```
+```@docs
+standard_basis_with_transformation_matrix(I::MPolyIdeal;
+	ordering::MonomialOrdering = default_ordering(base_ring(I)),
+	complete_reduction::Bool=false)
+```
 
     fglm
 
