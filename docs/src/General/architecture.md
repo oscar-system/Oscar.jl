@@ -1,13 +1,16 @@
-```@contents
-Pages = ["architecture.md"]
-```
-
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
 using Oscar
+```
+
+```@contents
+Pages = ["architecture.md"]
 ```
 
 # Architecture

@@ -408,7 +408,7 @@ end
 Return the element of the permutation group that describes the action
 of `g` on `Omega`, where `g` is an element of `acting_group(Omega)`.
 
-# Example
+# Examples
 
 ```jldoctest
 julia> G = symmetric_group(4);
@@ -827,8 +827,12 @@ end
 """
     transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return the maximum `k` such that the action of `G` on `L` is
-`k`-transitive. The output is `0` if `G` is not transitive on `L`.
+Return the maximum `k` such that `G` acts `k`-transitively on `L`,
+that is, every `k`-tuple of points in `L` can be mapped simultaneously
+to every other `k`-tuple by an element of `G`.
+
+The output is `0` if `G` acts intransitively on `L`,
+and an exception is thrown if `G` does not act on `L`.
 
 # Examples
 ```jldoctest
@@ -838,14 +842,34 @@ julia> transitivity(mathieu_group(24))
 julia> transitivity(symmetric_group(6))
 6
 
+julia> transitivity(symmetric_group(6), 1:7)
+0
+
+julia> transitivity(symmetric_group(6), 1:5)
+ERROR: ArgumentError: the group does not act
 ```
 """
-transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Transitivity(G.X, GapObj(L))::Int
+function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+  gL = GapObj(L)
+  res = GAP.Globals.Transitivity(G.X, gL)::Int
+  res === GAP.Globals.fail && throw(ArgumentError("the group does not act"))
+  # If the result is `0` then it may be that `G` does not act on `L`,
+  # and in this case we want to throw an exception.
+  if res == 0 && length(L) > 0
+    lens = GAP.Globals.OrbitLengths(G.X, gL)
+#TODO: Compute the orbit lengths more efficiently than GAP does.
+    if sum(lens) != length(L)
+      throw(ArgumentError("the group does not act"))
+    end
+  end
+  return res
+end
 
 """
     is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return whether the action of `G` on `L` is transitive.
+Return whether `G` acts transitively on `L`, that is,
+`L` is an orbit of `G`.
 
 # Examples
 ```jldoctest

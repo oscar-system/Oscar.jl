@@ -2,6 +2,7 @@ module GrpCoh
 
 using Oscar
 import Oscar:action
+import Oscar:GAPWrap
 import AbstractAlgebra: Group, Module
 import Base: parent
 
@@ -128,8 +129,8 @@ parent of the generators.
 function fp_group(g::Vector{<:Oscar.GAPGroupElem})
   G = parent(g[1])
   @assert all(x->parent(x) == G, g)
-  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
-  F = FPGroup(GAP.Globals.Range(X))
+  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
+  F = FPGroup(GAPWrap.Range(X))
   return F, GAPGroupHomomorphism(F, G, GAP.Globals.InverseGeneralMapping(X))
 end
 
@@ -139,8 +140,8 @@ of integers. A positive integers indicates the corresponding generator,
 a negative one the inverse.
 """
 function word(y::FPGroupElem)
-  z = GAP.Globals.UnderlyingElement(y.X)
-  return map(Int, GAP.Globals.LetterRepAssocWord(z))
+  # TODO: get rid of this
+  return letters(y)
 end
 
 """
@@ -153,7 +154,7 @@ function Oscar.relations(F::FPGroup)
 end
 
 function Oscar.relations(G::Oscar.GAPGroup)
-   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
+   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
@@ -478,9 +479,9 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   #be adjusted to those words. I do not know if a RWS (Confluent) can
   #just be changed...
   k = C.monhom #[2] #hopefully the monhom entry in 4.12 it will be the name
-  M = GAP.Globals.Range(k)
+  M = GAPWrap.Range(k)
   g = [GAP.Globals.PreImageElm(k, x) for x = GAP.Globals.GeneratorsOfMonoid(M)]
-  g = map(GAP.Globals.UnderlyingElement, g)
+  g = map(GAPWrap.UnderlyingElement, g)
   g = map(GAP.Globals.LetterRepAssocWord, g)
   @assert all(x->length(x) == 1, g)
   g = map(x->Int(x[1]), g)
@@ -494,7 +495,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
 
   #now to express the new gens as words in the old ones:
   
-  Fp = FPGroup(GAP.Globals.Range(C.fphom))
+  Fp = FPGroup(GAPWrap.Range(C.fphom))
   return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
 
@@ -1067,7 +1068,6 @@ Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(doma
 Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -mat(a))
 
 #XXX for Hecke
-Base.zero(G::GrpAbFinGen) = G[0]
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
 
 function Oscar.mat(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
@@ -1167,7 +1167,7 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
   end
 
   gap_to_julia = function(a::GAP.GapObj)
-    e = GAP.Globals.ExtRepOfObj(a)
+    e = GAPWrap.ExtRepOfObj(a)
     z = zeros(fmpz, ngens(M))
     for i=1:2:length(e)
       if !iszero(e[i+1])
@@ -1245,7 +1245,7 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
 
 
   gap_to_julia = function(a::GAP.GapObj)
-    e = GAP.Globals.ExtRepOfObj(a)
+    e = GAPWrap.ExtRepOfObj(a)
     z = zeros(fmpz, ngens(M)*degree(k))
     for i=1:2:length(e)
       if !iszero(e[i+1])
@@ -1277,7 +1277,7 @@ end
 
 
 function underlying_word(g::FPGroupElem)
-  return FPGroupElem(free_group(parent(g)), GAP.Globals.UnderlyingElement(g.X))
+  return FPGroupElem(free_group(parent(g)), GAPWrap.UnderlyingElement(g.X))
 end
 
 """
@@ -1369,7 +1369,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   FN = GAP.Globals.FamilyObj(N[1].X)
 
   for i=1:ngens(fM)
-    lp = deepcopy(GAP.Globals.ExtRepOfObj(Mp[i]^Mo[i]))
+    lp = deepcopy(GAPWrap.ExtRepOfObj(Mp[i]^Mo[i]))
     for k=1:2:length(lp)
       lp[k] += ngens(G)
     end
@@ -1378,7 +1378,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
     for j=i+1:ngens(fM)
       p = Mp[j]^Mp[i]
       @assert p == Mp[j]
-      lp = deepcopy(GAP.Globals.ExtRepOfObj(p))
+      lp = deepcopy(GAPWrap.ExtRepOfObj(p))
       for k=1:2:length(lp)
         lp[k] += ngens(G)
       end
@@ -1387,7 +1387,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   end
 
   fMtoN = function(x)
-    lp = deepcopy(GAP.Globals.ExtRepOfObj(x.X))
+    lp = deepcopy(GAPWrap.ExtRepOfObj(x.X))
     for k=1:2:length(lp)
       @assert lp[k] > 0
       lp[k] += ngens(G)
@@ -1396,7 +1396,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   end
 
   word = function(y)
-    z = GAP.Globals.UnderlyingElement(y)
+    z = GAPWrap.UnderlyingElement(y)
     return map(Int, GAP.Globals.LetterRepAssocWord(z))
   end
 
@@ -1435,13 +1435,13 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   #  thus (F, 0)^(G, 0) = (w, t-s)
   for i=1:ngens(G)
     p = Gp[i]^Go[i]
-    pp = GAP.Globals.ObjByExtRep(FN, GAP.Globals.ExtRepOfObj(p))
+    pp = GAP.Globals.ObjByExtRep(FN, GAPWrap.ExtRepOfObj(p))
     m = fMtoN(preimage(mfM, word_to_elem([i for k=1:Go[i]])-word_to_elem(word(p))))
     GAP.Globals.SetPower(CN, i, pp*m)
     for j=i+1:ngens(G)
       p = Gp[j]^Gp[i]
       m = fMtoN(preimage(mfM, word_to_elem([-i, j, i])-word_to_elem(word(p))))
-      pp = GAP.Globals.ObjByExtRep(FN, GAP.Globals.ExtRepOfObj(p))
+      pp = GAP.Globals.ObjByExtRep(FN, GAPWrap.ExtRepOfObj(p))
       GAP.Globals.SetConjugate(CN, j, i, pp*m)
     end
     for j=1:ngens(fM)
@@ -1473,7 +1473,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(preimage(mffM, preimage(mfM, m)).X))
+    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(preimage(mffM, preimage(mfM, m)).X))
     for i=1:2:length(wm)
       push!(wg, wm[i]+ngens(G))
       push!(wg, wm[i+1])

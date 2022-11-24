@@ -641,5 +641,46 @@ end
 
 Hecke.lines(P::Hecke.Polygon) = P.lines
 slope(l::Hecke.Line) = l.slope
+export slope
+
+function valuation_of_roots(f::fmpz_poly, p::fmpz)
+  @assert is_prime(p)
+  x = gen(parent(f))
+  N = Hecke.newton_polygon(f, x, p)
+  return [(slope(l), length(l)) for l = Hecke.lines(N)]
+end
+
+function valuation_of_roots(f::fmpz_poly, p::Integer)
+  return valuation_of_roots(f, fmpz(p))
+end
+
+function valuation_of_roots(f::fmpq_poly, p)
+  return valuation_of_roots(numerator(f), p)
+end
+
+function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
+  dev = collect(coefficients(f))
+  d = degree(base_ring(f))
+  a = Tuple{Int, Int}[]
+  #careful: valuation is q-valued, normalised for val(p) == 1
+  #         lines have Int corredinated, so we scale by the degree of the field
+  # => the slopes are also multiplied by this!!!
+  for i = 0:length(dev) -1
+    if !iszero(dev[i+1])
+      push!(a, (i, Int(numerator(d*valuation(dev[i+1])))))
+    end
+  end
+  P = Hecke.lower_convex_hull(a)
+  p = prime(base_ring(f))
+  return NewtonPolygon(P, f, gen(parent(f)), p, [parent(f)(x) for x = dev])
+end
+
+function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
+  d = degree(base_ring(f))
+  return [(fmpq(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
+end
+
+
+
 
 

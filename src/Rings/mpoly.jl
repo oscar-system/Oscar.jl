@@ -4,7 +4,8 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coor
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
        leading_coefficient, leading_exponent, leading_monomial, leading_term,
-       tail
+       tail,
+       rational_solutions
 
 ##############################################################################
 #
@@ -955,6 +956,7 @@ julia> collect(ans)
  (2, [1, 0])
  (4, [1, 1])
  (1, [2, 0])
+```
 """
 function coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:coefficients_and_exponents}(f, permutation_of_terms(f, ordering))
@@ -1127,3 +1129,45 @@ end
 
 ################################################################################
 
+################################################################################
+#
+#  Rational solutions of zero-dimensional ideals
+#
+################################################################################
+
+"""
+    rational_solutions(I::MPolyIdeal) -> Vector{Vector}
+
+Given a zero-dimensional ideal, return all rational elements of the vanishing
+set.
+"""
+function rational_solutions(I::MPolyIdeal{<:MPolyElem})
+  gb = groebner_basis(I, ordering = lex(base_ring(I)))
+  R = base_ring(I)
+  if 1 in gb
+    return elem_type(base_ring(R))[]
+  end
+  @req dim(I) == 0 "Dimension must be zero"
+  @assert length(gb) == ngens(base_ring(I))
+  R = base_ring(I)
+  Qx, _ = PolynomialRing(base_ring(R), cached = false)
+  rts = [elem_type(Qx)[zero(Qx) for i = gens(R)]]
+  i = ngens(R)
+  for f in gb
+    sts = Vector{elem_type(Qx)}[]
+    for r in rts
+      r[i] = gen(Qx)
+      g = evaluate(f, r)
+      rt = roots(g)
+      for x in rt
+        r[i] = Qx(x)
+        push!(sts, copy(r))
+      end
+    end
+    rts = sts
+    i -= 1
+  end
+  #for technical reasons (evaluation) the points are actually at this
+  #point constant polynomials, hence:
+  return [[constant_coefficient(x) for x in r] for r in rts]
+end

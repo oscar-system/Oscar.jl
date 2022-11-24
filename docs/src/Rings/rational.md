@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -31,9 +34,13 @@ constructor.
 
 For convenience, `QQ` is already defined to be the field of rational numbers.
 
-```@repl oscar
-S = FractionField(ZZ)
-QQ
+```jldoctest
+julia> S = FractionField(ZZ)
+Rational Field
+
+julia> QQ
+Rational Field
+
 ```
 
 ### Integer constructors
@@ -51,18 +58,32 @@ OSCAR rational if either the numerator or denominator is an OSCAR integer.
 
 An exception is raised if a fraction is constructed with denominator zero.
 
-```@repl oscar
-QQ(1, 2)
-QQ(5)
-ZZ(3)//5
-1//ZZ(7)
-QQ(2//3)
-ZZ(3)//0
+```jldoctest
+julia> QQ(1, 2)
+1//2
+
+julia> QQ(5)
+5
+
+julia> ZZ(3)//5
+3//5
+
+julia> 1//ZZ(7)
+1//7
+
+julia> QQ(2//3)
+2//3
+
+julia> ZZ(3)//0
+ERROR: DivideError: integer division error
+
 ```
 One can also construct the rational number ``0`` with the empty constructor:
 
-```@repl oscar
-QQ()
+```jldoctest
+julia> QQ()
+0
+
 ```
 
 The following special constructors are also provided:
@@ -70,9 +91,13 @@ The following special constructors are also provided:
 * `zero(QQ)`
 * `one(QQ)`
 
-```@repl oscar
-zero(QQ)
-one(QQ)
+```jldoctest
+julia> zero(QQ)
+0
+
+julia> one(QQ)
+1
+
 ```
 
 ## Predicates
@@ -83,10 +108,16 @@ one(QQ)
 
 The `is_unit` function will return `true` iff ``n \neq 0``.
 
-```@repl oscar
-iszero(QQ())
-isone(one(QQ))
-is_unit(QQ(-2, 3))
+```jldoctest
+julia> iszero(QQ())
+true
+
+julia> isone(one(QQ))
+true
+
+julia> is_unit(QQ(-2, 3))
+true
+
 ```
 
 ## Properties
@@ -100,10 +131,16 @@ Return the numerator and denominator respectively, of $n$.
 
 Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
-```@repl oscar
-sign(QQ(2, 3))
-sign(QQ())
-sign(QQ(-1))
+```jldoctest
+julia> sign(QQ(2, 3))
+1
+
+julia> sign(QQ())
+0
+
+julia> sign(QQ(-1))
+-1
+
 ```
 
 * `abs(n::fmpq) -> fmpq`
@@ -112,8 +149,10 @@ Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
 otherwise.
 
 
-```@repl oscar
-abs(QQ(-3, 2))
+```jldoctest
+julia> abs(QQ(-3, 2))
+3//2
+
 ```
 
 * `height(n::fmpq) -> fmpz`
@@ -121,8 +160,10 @@ abs(QQ(-3, 2))
 Return the maximum of the absolute values of the numerator and denominator of
 $n$.
 
-```@repl oscar
-height(QQ(324987329, -8372492324))
+```jldoctest
+julia> height(QQ(324987329, -8372492324))
+8372492324
+
 ```
 
 * `floor(n::fmpq) -> fmpq`
@@ -133,11 +174,19 @@ Return the greatest integer $m$ (as a rational number) such that $m \leq n$.
 
 Return the least integer $m$ (as a rational number) such that $m \geq n$.
 
-```@repl oscar
-floor(QQ(-2, 3))
-ceil(QQ(7, 2))
-typeof(ans)
-ceil(QQ(5))
+```jldoctest
+julia> floor(QQ(-2, 3))
+-1
+
+julia> ceil(QQ(7, 2))
+4
+
+julia> typeof(ans)
+fmpq
+
+julia> ceil(QQ(5))
+5
+
 ```
 * `floor(fmpz, n::fmpq) -> fmpz`
 
@@ -147,11 +196,19 @@ Return the greatest integer $m$ such that $m \leq n$.
 
 Return the least integer $m$ such that $m \geq n$.
 
-```@repl oscar
-floor(fmpz, QQ(-2, 3))
-ceil(fmpz, QQ(7, 2))
-typeof(ans)
-ceil(fmpz, QQ(5))
+```jldoctest
+julia> floor(fmpz, QQ(-2, 3))
+-1
+
+julia> ceil(fmpz, QQ(7, 2))
+4
+
+julia> typeof(ans)
+fmpz
+
+julia> ceil(fmpz, QQ(5))
+5
+
 ```
 
 ## Basic arithmetic
@@ -169,12 +226,22 @@ Julia and OSCAR rationals and integers.
 Return the quotient of ``a`` by ``b``. Exact division raises an exception if
 division by zero is attempted.
 
-```@repl oscar
-divexact(QQ(2, 3), QQ(3, 5))
-divexact(QQ(1, 3), ZZ(0))
-divexact(QQ(3, 4), ZZ(5))
-divexact(ZZ(6), QQ(2, 3))
-divexact(QQ(1, 3), 5)
+```jldoctest
+julia> divexact(QQ(2, 3), QQ(3, 5))
+10//9
+
+julia> divexact(QQ(1, 3), ZZ(0))
+ERROR: DivideError: integer division error
+
+julia> divexact(QQ(3, 4), ZZ(5))
+3//20
+
+julia> divexact(ZZ(6), QQ(2, 3))
+9
+
+julia> divexact(QQ(1, 3), 5)
+1//15
+
 ```
 
 ### Powering
@@ -183,15 +250,21 @@ divexact(QQ(1, 3), 5)
 
 Return the result of powering ``a`` by ``b``.
 
-```@repl oscar
-QQ(5, 7)^32
-QQ(1, 2)^(-2)
+```jldoctest
+julia> QQ(5, 7)^32
+23283064365386962890625//1104427674243920646305299201
+
+julia> QQ(1, 2)^(-2)
+4
+
 ```
 
 The following is allowed for convenience.
 
-```@repl oscar
-QQ(0)^0
+```jldoctest
+julia> QQ(0)^0
+1
+
 ```
 
 !!! note
@@ -199,8 +272,10 @@ QQ(0)^0
     returns ``1//0`` to indicate that the value is undefined. OSCAR raises
     an exception.
 
-```@repl oscar
-QQ(0)^-2
+```jldoctest
+julia> QQ(0)^-2
+ERROR: DivideError: integer division error
+
 ```
 
 * `is_power(a::fmpq, b::Int) -> Bool, fmpq`
@@ -216,10 +291,18 @@ Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and th
 
 Compute an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
 
-```@repl oscar
-is_power(QQ(8), 3)
-is_power(QQ(8), 2)
-is_power(QQ(9//16))
-root(QQ(25//9), 2)
+```jldoctest
+julia> is_power(QQ(8), 3)
+(true, 2)
+
+julia> is_power(QQ(8), 2)
+(false, 8)
+
+julia> is_power(QQ(9//16))
+(2, 3//4)
+
+julia> root(QQ(25//9), 2)
+5//3
+
 ```
 

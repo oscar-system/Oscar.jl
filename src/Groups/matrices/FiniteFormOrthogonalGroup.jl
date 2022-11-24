@@ -110,10 +110,6 @@ function _normal(G::Union{fmpz_mod_mat, nmod_mat}, p)
   end
 end
 
-function lift(x::gfp_fmpz_mat)
-  return map_entries(lift , x)
-end
-
 #     Return generators of the orthogonal group modulo `p` for odd `p`.
 #
 #     `G` is the gram matrix of the bilinear form.

@@ -102,7 +102,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
     img_el = img(el)
     return img_el.X
   end
-  mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun))
+  mp = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun))
   return GAPGroupHomomorphism(G, H, mp)
 end
 
@@ -122,9 +122,9 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known
   end
 
   if is_known_to_be_bijective
-    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), GAP.Obj(gap_pre_fun))
+    mp = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), GAP.Obj(gap_pre_fun))
   else
-    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), false, GAP.Obj(gap_pre_fun))
+    mp = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), false, GAP.Obj(gap_pre_fun))
   end
 
   return GAPGroupHomomorphism(G, H, mp)
@@ -575,18 +575,18 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      end
      # the isomorphic gap group
      G = abelian_group(T, exponents)
-     # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
+     # `GAPWrap.GeneratorsOfGroup(G.X)` consists of independent elements
      # of the orders in `exponents`.
      # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
      # that may differ from these generators,
      # and that belong to the exponent vectors returned by
      # `GAPWrap.IndependentGeneratorExponents(G.X, g)`.
-     # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
+     # `GAPWrap.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
      # we let `hom` compute elements in `A2` that correspond to
      # `GAP.Globals.IndependentGenerators(G.X)`.
-     Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
+     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(G.X)::GapObj)
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
+     Aindep = abelian_group(fmpz[GAPWrap.Order(g) for g in gensindep])
 
      imgs = [Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])

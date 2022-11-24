@@ -641,7 +641,7 @@ Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
 function Base.show(io::IO, FR::FreeResolution)
     C   = FR.C
     rk  = Dict{Int, String}()
-    rng = range(C)
+    rng = Hecke.map_range(C)
     len = 0
 
     println(io, "")
