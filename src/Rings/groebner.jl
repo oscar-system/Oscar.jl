@@ -1,4 +1,4 @@
-export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm
+export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
 		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
 		groebner_basis_with_transformation_matrix,
 		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
@@ -1038,9 +1038,9 @@ lex([x1, x2, x3, x4])
 ```
 """
 function fglm(G::IdealGens; ordering::MonomialOrdering)
-	@assert G.isGB == true 
-	@assert G.isReduced == true
+	(G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
 	singular_assure(G)
+	Singular.dimension(G.S) == 0 || error("Dimesion of corresponding ideal must be zero.")
 	SR_destination, = Singular.PolynomialRing(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
 	ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
@@ -1050,13 +1050,13 @@ end
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	destination_ordering::MonomialOrdering, start_ordering::MonomialOrdering = default_ordering(base_ring(I)))
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
-	@assert is_global(start_ordering) && is_global(destination_ordering)
+	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination ordering must be global.")
 	if start_ordering == degrevlex(base_ring(I)) && typeof(coefficient_ring(base_ring(I))) == Nemo.GaloisField
 		standard_basis(I, ordering=start_ordering, complete_reduction=true, algorithm=:f4)
 	else
 		standard_basis(I, ordering=start_ordering, complete_reduction=true)
 	end
-	@assert dim(I) == 0
+	dim(I) == 0 || error("Dimesion of ideal must be zero.")
 	I.gb[destination_ordering] = fglm(I.gb[start_ordering], ordering=destination_ordering)
 end
 
