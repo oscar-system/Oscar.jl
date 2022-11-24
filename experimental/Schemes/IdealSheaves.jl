@@ -9,6 +9,9 @@ export order_on_divisor
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 
+# an alias for the user's convenience
+scheme(I::IdealSheaf) = space(I)
+
 @Markdown.doc """
     IdealSheaf(X::ProjectiveScheme, g::Vector{<:RingElem})
 

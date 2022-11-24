@@ -304,6 +304,8 @@ ngens(L::LinearSystem) = length(L.f)
 Return the variety on which `L` is defined.
 """
 variety(L::LinearSystem) = scheme(weil_divisor(L))
+# an alias for the user's convenience 
+scheme(L::LinearSystem) = variety(L)
 
 @Markdown.doc """
     subsystem(L::LinearSystem, P::IdealSheaf, n::Int)

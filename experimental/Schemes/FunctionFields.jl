@@ -55,6 +55,8 @@ end
 ### essential getters
 representative_patch(KK::VarietyFunctionField) = KK.U
 variety(KK::VarietyFunctionField) = KK.X
+# provide one alias for the user's convenience
+scheme(KK::VarietyFunctionField) = variety(KK)
 coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
 
