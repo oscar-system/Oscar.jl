@@ -100,6 +100,11 @@ function WeilDivisor(X::AbsCoveredScheme, R::Ring)
 end
 
 # provide non-camelcase methods
+@Markdown.doc """
+    weil_divisor(X::AbsCoveredScheme, R::Ring)
+
+See the documentation for `WeilDivisor`.
+"""
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
 @Markdown.doc """

@@ -62,14 +62,12 @@ representative_field(KK::VarietyFunctionField) = KK.KK
 
 ### user facing constructors 
 @doc Markdown.doc"""
-    function_field(X::CoveredScheme;
-               check::Bool=true,
-               representative_patch::AbsSpec=default_covering(X)[1])
+    function_field(X::CoveredScheme)
 
 Return the function field of the irreducible variety `X`.
 
 Internally, a rational function is represented by an element in the field of
-fractions of the coordinate ring of the representative patch.
+fractions of the `ambient_coordinate_ring` of the `representative_patch`.
 """
 function_field(X::CoveredScheme; 
                check::Bool=true, 

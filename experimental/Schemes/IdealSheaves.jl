@@ -71,7 +71,12 @@ function IdealSheaf(X::CoveredScheme)
   return IdealSheaf(X, I, check=false)
 end
 
-ideal_sheaf(X::CoveredScheme) = IdealSheaf(X)
+@Markdown.doc """
+    ideal_sheaf(X::AbsCoveredScheme)
+
+See the documentation for `IdealSheaf`.
+"""
+ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
