@@ -1,4 +1,4 @@
-export IdealSheaf
+export IdealSheaf, ideal_sheaf
 
 export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
 
@@ -30,12 +30,16 @@ function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal)
   return IdealSheaf(X_covered, I, check=true)
 end
 
+ideal_sheaf(X::ProjectiveScheme, I::MPolyIdeal) = IdealSheaf(X, I)
+
 function IdealSheaf(
     X::ProjectiveScheme, 
     g::MPolyElem_dec
   )
   return IdealSheaf(X, [g])
 end
+
+ideal_sheaf(X::ProjectiveScheme, g::MPolyElem_dec) = IdealSheaf(X, g)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
@@ -51,6 +55,9 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
+ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec} = IdealSheaf(X, g)
+
+
 # this constructs the zero ideal sheaf
 function IdealSheaf(X::CoveredScheme) 
   C = default_covering(X)
@@ -60,6 +67,8 @@ function IdealSheaf(X::CoveredScheme)
   end
   return IdealSheaf(X, I, check=false)
 end
+
+ideal_sheaf(X::CoveredScheme) = IdealSheaf(X)
 
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
@@ -86,6 +95,8 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   I = IdealSheaf(X, D, check=false)
   return I
 end
+
+ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
 # pullback of an ideal sheaf for internal use between coverings of the same scheme
 #function (F::CoveringMorphism)(I::IdealSheaf)
