@@ -1,7 +1,7 @@
 export saturation, saturation_with_index, quotient, eliminate
 export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
           equidimensional_decomposition_radical, equidimensional_hull,
-          equidimensional_hull_radical
+          equidimensional_hull_radical, vdim
 export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, inradical, is_prime, is_primary
 export ngens, gens
@@ -1137,6 +1137,20 @@ function dim(I::MPolyIdeal)
   singular_assure(G)
   I.dim = Singular.dimension(G.S)
   return I.dim
+end
+
+@doc Markdown.doc"""
+    vdim(I::MPolyIdeal)
+
+Given a zero-dimensional ideal $I$ this function computes the
+dimension of the vector space `base_ring(I)/I`, where `base_ring(I)` must be
+a polynomial ring over a field, and $I$ must be a Groebner basis.
+The return is $-1$ if `I` is not zero-dimensional.
+"""
+function vdim(I::MPolyIdeal)
+  G = groebner_assure(I)
+  singular_assure(G)
+  return Singular.vdim(G.S)
 end
 
 #######################################################
