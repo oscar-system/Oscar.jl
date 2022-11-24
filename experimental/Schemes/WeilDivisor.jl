@@ -35,7 +35,7 @@ stored as a formal linear combination over some ring ``R`` of
       parent(coefficients[D]) === R || error("coefficients do not lie in the given ring")
     end
     if check
-      # is_integral(X) || error("scheme must be integral") # activate once the test is implemented!
+      is_integral(X) || error("scheme must be integral") # activate once the test is implemented!
       #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
       for D in keys(coefficients)
         isprime(D) || error("components of a divisor must be sheaves of prime ideals")
