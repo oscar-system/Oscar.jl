@@ -349,3 +349,21 @@ end
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
 
+function is_regular(f::VarietyFunctionFieldElem, U::AbsSpec)
+  p = numerator(f[U])
+  q = denominator(f[U])
+  return _is_regular_fraction(OO(U), p, q)
+end
+
+function is_regular(f::VarietyFunctionFieldElem, U::PrincipalOpenSubset)
+  Y = ambient_scheme(U)
+  ff = f[Y]
+  p = numerator(ff)
+  q = denominator(ff)
+  return _is_regular_fraction(OO(U), p, q)
+end
+
+function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
+  return all(U->is_regular(f, U), affine_patches(W))
+end
+

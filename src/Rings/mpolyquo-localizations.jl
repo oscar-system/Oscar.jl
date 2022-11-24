@@ -606,6 +606,22 @@ function convert(
   return L(lift(coefficient), upper)
 end
 
+function _is_regular_fraction(R::RingType, p::MPolyElem, q::MPolyElem) where {RingType<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}}
+  return divides(R(p), R(q))[1]
+end
+
+### Extensions for coherence
+#function _is_regular_fraction(R::MPolyLocalizedRing, p::MPolyElem, q::MPolyElem)
+#  return divides(R(p), R(q))[1]
+#end
+#
+#function _is_regular_fraction(R::MPolyRing, p::MPolyElem, q::MPolyElem)
+#  return divides(p, q)[1]
+#end
+#
+#function _is_regular_fraction(R::MPolyQuo, p::MPolyElem, q::MPolyElem)
+#  return divides(R(p), R(q))[1]
+#end
 
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}

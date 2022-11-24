@@ -255,7 +255,13 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bo
     order_on_divisor(f, I, check=check) >= -D[I] || return false
   end
   for U in patches(C)
-    # we have to check that f[U] has no poles outside D[U]
+    # we have to check that f[U] has no poles outside the support of D[U]
+    g = numerator(f[U])
+    h = denominator(f[U])
+    J = prod([J(U) for J in components(D)])
+    incH = ClosedEmbedding(U, J)
+    W = complement(incH) # This is a SpecOpen
+    is_regular(f, W) || return false
   end
   return true
 end
