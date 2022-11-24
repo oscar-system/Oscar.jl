@@ -1139,20 +1139,6 @@ function dim(I::MPolyIdeal)
   return I.dim
 end
 
-@doc Markdown.doc"""
-    vdim(I::MPolyIdeal)
-
-Given a zero-dimensional ideal $I$ this function computes the
-dimension of the vector space `base_ring(I)/I`, where `base_ring(I)` must be
-a polynomial ring over a field, and $I$ must be a Groebner basis.
-The return is $-1$ if `I` is not zero-dimensional.
-"""
-function vdim(I::MPolyIdeal)
-  G = groebner_assure(I)
-  singular_assure(G)
-  return Singular.vdim(G.S)
-end
-
 #######################################################
 #######################################################
 @doc Markdown.doc"""

@@ -76,3 +76,12 @@ end
   L = noether_normalization(A)
   @test length(L) == 3 # just a smoke test
 end
+
+@testset "mpoly_affinite_algebra.vdim"
+  r, (x, y) = PolynomialRing(QQ, [:x, :y])
+  @test vdim(quo(r, ideal(r, [x^2+y^2]))[1]) == -1
+  @test vdim(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
+
+  r, (x, y) = PolynomialRing(ZZ, [:x, :y])
+  @test_throws ErrorException vdim(quo(r, ideal(r, [x, y]))[1])
+end
