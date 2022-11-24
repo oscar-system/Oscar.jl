@@ -360,6 +360,7 @@ function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType
   return upper
 end
 
+using Infiltrator
 @Markdown.doc """
     order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true)
 
@@ -381,45 +382,53 @@ function order_on_divisor(
 
   # Since X is integral and I is a sheaf of prime ideals, 
   # it suffices to find one chart in which I is non-trivial.
-  for U in affine_charts(X)
-    # TODO: This shouldn't be necessary. Fix products of multiplicative sets.
-    if one(OO(U)) in I(U)
-      continue
+
+  # We look for the chart with the least complexity
+  V = first(affine_charts(X))
+  #complexity = Vector{Tuple{AbsSpec, Int}}()
+  complexity = inf
+  for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
+    one(base_ring(I(U))) in I(U) && continue
+    tmp = sum([total_degree(lifted_numerator(g)) for g in gens(I(U)) if !iszero(g)]) # /ngens(Oscar.pre_image_ideal(I(U)))
+    if tmp < complexity 
+      complexity = tmp
+      V = U
     end
-    R = ambient_coordinate_ring(U)
-    J = saturated_ideal(I(U))
-    floc = f[U]
-    aR = ideal(R, numerator(floc))
-    bR = ideal(R, denominator(floc))
-
-
-    # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
-    num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, aR), J)))[1]-1
-    den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, bR), J)))[1]-1
-    return num_mult - den_mult
-
-    # Deprecated code computing symbolic powers explicitly:
-    L, map = Localization(OO(U), 
-                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
-                         )
-    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                        <:MPolyComplementOfPrimeIdeal},
-                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                           <:MPolyComplementOfPrimeIdeal}
-                    } || error("localization was not successful")
-
-    floc = f[U]
-    a = numerator(floc)
-    b = denominator(floc)
-    # TODO: cache groebner bases in a reasonable way.
-    P = L(prime_ideal(inverted_set(L)))
-    if one(L) in P 
-      continue # the multiplicity is -∞ in this case and does not count
-    end
-    upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
-    lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
-    order_dict[U] = upper-lower
   end
-  return minimum(values(order_dict))
+  if complexity == inf
+    error("divisor is empty")
+  end
+  R = ambient_coordinate_ring(V)
+  J = saturated_ideal(I(V))
+  floc = f[V]
+  aR = ideal(R, numerator(floc))
+  bR = ideal(R, denominator(floc))
+
+
+  # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, aR), J)))[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, bR), J)))[1]-1
+  return num_mult - den_mult
+#    # Deprecated code computing symbolic powers explicitly:
+#    L, map = Localization(OO(U), 
+#                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
+#                         )
+#    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#                                        <:MPolyComplementOfPrimeIdeal},
+#                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#                                           <:MPolyComplementOfPrimeIdeal}
+#                    } || error("localization was not successful")
+# 
+#    floc = f[U]
+#    a = numerator(floc)
+#    b = denominator(floc)
+#    # TODO: cache groebner bases in a reasonable way.
+#    P = L(prime_ideal(inverted_set(L)))
+#    if one(L) in P 
+#      continue # the multiplicity is -∞ in this case and does not count
+#    end
+#    upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
+#    lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
+#    order_dict[U] = upper-lower
 end
 
