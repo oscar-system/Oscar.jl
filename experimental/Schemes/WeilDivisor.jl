@@ -247,7 +247,7 @@ end
 #end
 
 @Markdown.doc """
-    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
+    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
 
 Returns `true` if the rational function `f` is in the linear system ``|D|``
 and `false` otherwise.
