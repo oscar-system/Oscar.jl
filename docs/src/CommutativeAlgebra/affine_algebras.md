@@ -21,7 +21,7 @@ modulo an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or 
 functionality for handling such algebras in OSCAR.
 
 !!! note
-    As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
+    Most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
 
 !!! note
     In OSCAR, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.

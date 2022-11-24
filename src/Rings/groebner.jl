@@ -195,13 +195,13 @@ end
 @doc Markdown.doc"""
     f4(I::MPolyIdeal, <keyword arguments>)
 
-Compute a Groebner basis of the given ideal `I` w.r.t. to the degree reverse lexicographical monomial ordering using Faugère's F4 algorithm.
+Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
 
-**Note**: At the moment only ground fields of characteristic `p`, `p` prime, `p < 2^{31}` are supported.
+!!! note
+    At current state only prime fields of characteristic `0 < p < 2^{31}` are supported.
 
-# Arguments
-- `Ì::MPolyIdeal`: input ideal.
+# Possible keyword arguments
 - `initial_hts::Int=17`: initial hash table size `log_2`.
 - `nr_thrds::Int=1`: number of threads for parallel linear algebra.
 - `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
@@ -218,7 +218,6 @@ julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"], ordering=:degrevlex)
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
- 
 julia> f4(I)
 Gröbner basis with elements
 1 -> x + 2*y + 2*z + 100
@@ -551,7 +550,7 @@ end
 
 @doc Markdown.doc"""
 	reduce(g::T, F::Vector{T}; 
-          ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+          ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
 
 If `ordering` is global, return the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
 Otherwise, return the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.

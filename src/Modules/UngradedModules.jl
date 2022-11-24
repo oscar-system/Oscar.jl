@@ -3214,7 +3214,7 @@ Given a vector `V` of module homorphisms between successive modules over a multi
 return the cochain complex defined by these homomorphisms.
 
 !!! note
-    The integer `seed` indicates the lowest homological degree of a module of the complex.
+    The integer `seed` indicates the lowest cohomological degree of a module of the complex.
 
 !!! note
     The function checks whether successive homomorphisms indeed compose to zero.
@@ -5685,7 +5685,7 @@ end
 # Tor
 #############################
 @doc Markdown.doc"""
-    tensor_product(M::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+    tensor_product(M::ModuleFP, C::ChainComplex{ModuleFP})
 
 Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 """
@@ -5707,7 +5707,7 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
 end
 
 @doc Markdown.doc"""
-    tensor_product(C::Hecke.ChainComplex{ModuleFP}, M::ModuleFP)
+    tensor_product(C::ChainComplex{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
@@ -5865,6 +5865,31 @@ end
     hom(C::ChainComplex{ModuleFP}, M::ModuleFP)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
+
+# Examples
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+
+julia> F = free_module(R, 1);
+
+julia> A, _ = quo(F, [x^4*F[1]]);
+
+julia> B, _ = quo(F, [x^3*F[1]]);
+
+julia> a = hom(A, B, [x^2*B[1]]);
+
+julia> b = hom(B, B, [x^2*B[1]]);
+
+julia> C = chain_complex([a, b]; seed = 3);
+
+julia> range(C)
+5:-1:3
+
+julia> D = hom(C, A);
+
+julia> range(D)
+3:5
+```
 """
 function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #hom_chain = Hecke.map_type(C)[]
@@ -5888,9 +5913,34 @@ function hom(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
 end
 
 @doc Markdown.doc"""
-    hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
-Apply $\text{Hom}(-,P)$ to `C`. If `C` is a chain complex, return a chain complex
-and accordingly if `C` is a cochain complex, return a cochain complex.
+    hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
+Apply $\text{Hom}(-,$ `M`$)$ to `C`. If `C` is a chain complex, return a chain complex.
+If `C` is a cochain complex, return a cochain complex.
+
+# Examples
+```jldoctest
+julia> R, (x,) = PolynomialRing(QQ, ["x"]);
+
+julia> F = free_module(R, 1);
+
+julia> A, _ = quo(F, [x^4*F[1]]);
+
+julia> B, _ = quo(F, [x^3*F[1]]);
+
+julia> a = hom(A, B, [x^2*B[1]]);
+
+julia> b = hom(B, B, [x^2*B[1]]);
+
+julia> C = chain_complex([a, b]; seed = 3);
+
+julia> range(C)
+5:-1:3
+
+julia> D = hom_without_reversing_direction(C, A);
+
+julia> range(D)
+-3:-1:-5
+```
 """
 function hom_without_reversing_direction(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   #up to seed/ typ identical to the one above. Should be
