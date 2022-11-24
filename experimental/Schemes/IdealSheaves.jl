@@ -374,7 +374,6 @@ function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType
   return upper
 end
 
-using Infiltrator
 @Markdown.doc """
     order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true)
 
