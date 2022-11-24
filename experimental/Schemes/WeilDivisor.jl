@@ -46,6 +46,11 @@ stored as a formal linear combination over some ring ``R`` of
   end
 end
 
+@attr function dim(I::IdealSheaf)
+  dims = [dim(I(U)) for U in affine_charts(scheme(I))]
+  return maximum(dims)
+end
+
 ### type getters 
 scheme_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = S
 scheme_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = S

@@ -274,7 +274,7 @@ end
 
 function is_subset(I::IdealSheaf, J::IdealSheaf)
   X = space(I)
-  X == space(J) || return false
+  X === space(J) || return false
   for U in basic_patches(default_covering(X))
     is_subset(I(U), J(U)) || return false
   end
@@ -401,6 +401,7 @@ function order_on_divisor(
   #complexity = Vector{Tuple{AbsSpec, Int}}()
   complexity = inf
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
+    U in default_covering(X) || continue
     one(base_ring(I(U))) in I(U) && continue
     tmp = sum([total_degree(lifted_numerator(g)) for g in gens(I(U)) if !iszero(g)]) # /ngens(Oscar.pre_image_ideal(I(U)))
     if tmp < complexity 

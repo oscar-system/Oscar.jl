@@ -192,8 +192,8 @@ end
 
 function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true)
   R = parent(a)
-  R == parent(b) || error("rings are not compatible")
-  R == ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
+  R === parent(b) || error("rings are not compatible")
+  R === ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
   
   # otherwise check whether we can find the ring of h among the affine patches
   R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] || error("ring does not belong to any of the affine charts")
@@ -202,7 +202,7 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
   X = variety(KK)
   C = default_covering(X)
   for i in 1:npatches(C)
-    if ambient_coordinate_ring(C[i]) == R
+    if ambient_coordinate_ring(C[i]) === R
       V = C[i]
       break
     end

@@ -127,3 +127,24 @@ end
   @test ngens(subsystem(L, P, 2)[1]) == 1
   @test ngens(subsystem(L, P, 3)[1]) == 0
 end
+
+@testset "WeilDivisor" begin
+  P2 = projective_space(QQ, 2)
+  S = ambient_coordinate_ring(P2)
+  (x, y, z) = gens(S)
+  I = ideal(S, x^3 + y^3 + z^3)
+  C = subscheme(P2, I)
+  X = covered_scheme(C)
+  H = ideal(S, [x, y+z])
+  J = ideal_sheaf(C, H)
+
+  coeff_dict = IdDict{IdealSheaf, fmpz}()
+  coeff_dict[J] = ZZ(3)
+  D = WeilDivisor(X, ZZ, coeff_dict)
+  @test D == 3*weil_divisor(J)
+  KK = function_field(X)
+  U = X[1][2]
+  u, v = gens(OO(U))
+  f = KK(u, v) 
+  @test !in_linear_system(f, D)
+end
