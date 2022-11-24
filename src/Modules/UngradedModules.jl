@@ -3313,15 +3313,7 @@ julia> B = R[x^2; y^3; z^4];
 julia> M = SubQuo(A, B);
 
 julia> P = presentation(M)
-br^5 ----> br^2 ----> C_-1 ----> 0
-where:
-	C_-1 = Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+C_1 ----> C_0 ----> C_-1 ----> C_-2
 ```
 """
 function presentation(M::ModuleFP)
@@ -5934,19 +5926,6 @@ julia> b = hom(B, B, [x^2*B[1]]);
 
 julia> C = ChainComplex(ModuleFP, [a, b])
 C_2 ----> C_1 ----> C_0
-where:
-	C_2 = Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
-	C_1 = Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^3*e[1]
-	C_0 = Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^3*e[1]
 
 julia> H = homology(C)
 3-element Vector{SubQuo{fmpq_mpoly}}:
@@ -5991,19 +5970,6 @@ julia> b = hom(B, B, [x^2*B[1]]);
 
 julia> C = ChainComplex(ModuleFP, [a, b])
 C_2 ----> C_1 ----> C_0
-where:
-	C_2 = Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
-	C_1 = Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^3*e[1]
-	C_0 = Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^3*e[1]
 
 julia> H = homology(C, 1)
 Subquotient of Submodule with 1 generator
