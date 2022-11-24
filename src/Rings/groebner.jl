@@ -1,5 +1,6 @@
-export  reduce, reduce_with_quotients, reduce_with_quotients_and_units, f4,
-		standard_basis, groebner_basis, groebner_basis_with_transformation_matrix,
+export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4,
+		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
+		groebner_basis_with_transformation_matrix,
 		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
 
 # groebner stuff #######################################################
@@ -102,21 +103,18 @@ end
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false)
 
-Compute a standard basis of `I` for the monomial ordering `ordering`.
+Return a standard basis of `I` with respect to `ordering`. 
 
-**Note:** Since there is no general notion of complete reduction for 
-non-global orderings, this option is not available for this command;
-instead, use `groebner_basis` directly. 
+!!! note
+    The returned standard basis is reduced if `ordering` is `global` and `complete_reduction = true`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ, ["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R,(x,y) = PolynomialRing(QQ, ["x","y"]);
 
-julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y])
-ideal(x^2 + x, x^2 + x*y - y^2 - 2*y)
+julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
-julia> standard_basis(I, ordering=negdegrevlex(R))
+julia> standard_basis(I, ordering = negdegrevlex(R))
 Standard basis with elements
 1 -> x
 2 -> y
@@ -137,25 +135,56 @@ end
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool = false)
 
-Given an ideal `I` and optional parameters monomial ordering `ordering` and `complete_reduction`,
-compute a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of `I`
-w.r.t. the given monomial ordering `ordering` (as default `degree reverse lexicographical`).
+If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
+
+!!! note
+    The returned Gröbner basis is reduced if `complete_reduction = true`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
-ideal(x*y - 3*x, -2*x^2*y + y^3)
+julia> I = ideal(R, [y-x^2, z-x^3]);
 
-julia> H = groebner_basis(I, ordering=lex(R))
+julia> G = groebner_basis(I)
 Gröbner basis with elements
-1 -> y^4 - 3*y^3
-2 -> x*y - 3*x
-3 -> 6*x^2 - y^3
+1 -> y^2 - x*z
+2 -> x*y - z
+3 -> x^2 - y
 with respect to the ordering
-lex([x, y])
+degrevlex([x, y, z])
+
+julia> elements(G)
+3-element Vector{fmpq_mpoly}:
+ -x*z + y^2
+ x*y - z
+ x^2 - y
+
+julia> elements(G) == gens(G)
+true
+
+julia> groebner_basis(I, ordering = lex(R))
+Gröbner basis with elements
+1 -> y^3 - z^2
+2 -> x*z - y^2
+3 -> x*y - z
+4 -> x^2 - y
+with respect to the ordering
+lex([x, y, z])
+```
+```jldoctest
+julia> R, (x, y) = GradedPolynomialRing(QQ, ["x", "y"], [1, 3]);
+
+julia> I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
+
+julia> groebner_basis(I)
+Gröbner basis with elements
+1 -> 3*x^4 - x*y
+2 -> 2*x^3*y^2 - 3*y^3
+3 -> x*y^3
+4 -> y^4
+with respect to the ordering
+wdegrevlex([x, y], [1, 3])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false)
@@ -232,13 +261,14 @@ function f4(
 end
 
 @doc Markdown.doc"""
-    groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
 Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
-this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of the
-ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering` and the transformation matrix from the ideal to the Groebner basis. Return value is a IdealGens together with a map.
+this function computes a standard basis (if `ordering` is a global monomial ordering and `complete_reduction = true`
+the reduced Groebner basis) of the ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering`
+and the transformation matrix from the ideal to the standard basis. Return value is a IdealGens together with a map.
 
 # Examples
 ```jldoctest
@@ -250,14 +280,14 @@ Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -2*x^2*y + y^3
 
-julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(R))
+julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -6*x^2 + y^3
 3 -> 6*x^3 - 27*x, [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
-function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
    if !isdefined(B, :ordering)
       singular_assure(B, ordering)
    elseif ordering != B.ordering
@@ -276,41 +306,79 @@ function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering,
  end
 
 @doc Markdown.doc"""
+    standard_basis_with_transformation_matrix(I::MPolyIdeal;
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
+      complete_reduction::Bool=false)
+
+Return a pair `G`, `T`, say, where `G` is a standard basis of `I` with respect to `ordering`, and `T` 
+is a transformation matrix from `gens(I)` to `G`. That is, `gens(I)*T == G`.
+
+!!! note
+    The returned Gröbner basis is reduced if `ordering` is a global monomial odering and `complete_reduction = true`.
+
+# Examples
+```jldoctest
+julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
+
+julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
+
+julia> G, T = standard_basis_with_transformation_matrix(I, ordering=neglex(R))
+(Standard basis with elements
+1 -> 1 - x*y^2
+with respect to the ordering
+neglex([x, y]), [-1; 0])
+
+julia> gens(I)*T == gens(G)
+true
+```
+"""
+function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+	complete_reduction && @assert is_global(ordering)
+	G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
+	G.isGB = true
+	I.gb[ordering]  = G
+	return G, m
+ end
+
+@doc Markdown.doc"""
     groebner_basis_with_transformation_matrix(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
       complete_reduction::Bool=false)
 
-Return a pair `G, m` where `G` is a Groebner basis of the ideal `I` with respect to the
-monomial ordering `ordering` (as default degree reverse lexicographical), and `m` is a transformation matrix from
-gens(I)` to `G`. If complete_reduction`is set to `true` (as default 'false') then `G` will be the reduced Groebner basis.
+Return a pair `G`, `T`, say, where `G` is a Gröbner basis of `I` with respect to `ordering`, and `T` 
+is a transformation matrix from `gens(I)` to `G`. That is, `gens(I)*T == G`.
+
+!!! note
+    The returned Gröbner basis is reduced if `complete_reduction = true`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = PolynomialRing(QQ,["x","y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
 
-julia> I = ideal([x*y^2-1,x^3+y^2+x*y])
-ideal(x*y^2 - 1, x^3 + x*y + y^2)
+julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
-julia> G,m = groebner_basis_with_transformation_matrix(I)
-(fmpq_mpoly[x*y^2 - 1, x^3 + x*y + y^2, x^2 + y^4 + y], [1 0 -x^2-y; 0 1 y^2])
+julia> G, T = groebner_basis_with_transformation_matrix(I)
+(Gröbner basis with elements
+1 -> x*y^2 - 1
+2 -> x^3 + x*y + y^2
+3 -> y^4 + x^2 + y
+with respect to the ordering
+degrevlex([x, y]), [1 0 -x^2-y; 0 1 y^2])
 
-julia> gens(I)*m == G
+julia> gens(I)*T == gens(G)
 true
-
 ```
 """
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
-   G, m = groebner_basis_with_transform(I.gens, ordering, complete_reduction)
-   I.gb[ordering]  = G
-   return collect(G), m
+    is_global(ordering) || error("Ordering must be global")
+	return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
  end
 
 # syzygies #######################################################
 @doc Markdown.doc"""
-    syzygy_generators(a::Vector{<:MPolyElem})
+    syzygy_generators(G::Vector{<:MPolyElem})
 
-Return generators for the syzygies on the given polynomials.
+Return generators for the syzygies on the polynomials given as elements of `G`.
 
 # Examples
 ```jldoctest
@@ -335,10 +403,9 @@ end
 
 # leading ideal #######################################################
 @doc Markdown.doc"""
-    leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) where { T <: MPolyElem }
 
-Return the ideal generated by the leading monomials of the given polynomials
-w.r.t. the given monomial ordering.
+Return the leading ideal of `G` with respect to `ordering`.
 
 # Examples
 ```jldoctest
@@ -352,8 +419,8 @@ julia> L = leading_ideal([x*y^2-3*x, x^3-14*y^5], ordering=lex(R))
 ideal(x*y^2, x^3)
 ```
 """
-function leading_ideal(g::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
-    return ideal(parent(g[1]), [leading_monomial(f; ordering = ordering) for f in g])
+function leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1]))) where { T <: MPolyElem }
+    return ideal(parent(G[1]), [leading_monomial(f; ordering = ordering) for f in G])
 end
 
 function leading_ideal(I::IdealGens{T}) where { T <: MPolyElem }
@@ -366,10 +433,9 @@ end
 
 
 @doc Markdown.doc"""
-    leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
+    leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 
-Given a multivariate polynomial ideal `Ì` this function returns the
-leading ideal for `I`. This is done w.r.t. the given monomial ordering.
+Return the leading ideal of `I` with respect to `ordering`.
 
 # Examples
 ```jldoctest
@@ -386,7 +452,7 @@ julia> L = leading_ideal(I, ordering=lex(R))
 ideal(y^7, x*y^2, x^3)
 ```
 """
-function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
+function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
   G = groebner_basis(I, ordering=ordering)
   return ideal(base_ring(I), [leading_monomial(g; ordering = ordering) for g in G])
 end
@@ -438,25 +504,14 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrde
 end
 
 @doc Markdown.doc"""
-	reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	reduce(I::IdealGens, J::IdealGens; 
+          ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Vector` whose elements are the underlying elements of `I`
 reduced by the underlying generators of `J` w.r.t. the monomial
 ordering `ordering`. `J` need not be a Groebner basis. The returned
 `Vector` will have the same number of elements as `I`, even if they
 are zero.
-
-	reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
-
-Return an element which is `f` reduced by the underlying generators
-of `F` w.r.t. the monomial ordering `ordering`. `F` need not be a
-Groebner basis. 
-
-	reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Vector` whose elements are the elements of `F`
-reduced by the elements of `G` w.r.t. the monomial
-ordering `ordering`. `G` need not be a Groebner basis.
 
 # Examples
 ```jldoctest
@@ -494,6 +549,43 @@ function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default
 	return [J.gens.Ox(x) for x = gens(res)]
 end
 
+@doc Markdown.doc"""
+	reduce(g::T, F::Vector{T}; 
+          ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
+
+If `ordering` is global, return the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
+Otherwise, return the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
+
+	reduce(G::Vector{T}, F::Vector{T};
+          ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Vector` which contains, for each element `g` of `G`, a remainder as above.
+
+!!! note
+    In the global case, the returned remainders are fully reduced.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> reduce(y^3, [x^2, x*y-y^3])
+x*y
+
+julia> reduce(y^3, [x^2, x*y-y^3], ordering = lex(R))
+y^3
+```
+
+```jldoctest
+julia> R, (z, y, x) = PolynomialRing(QQ, ["z", "y", "x"]);
+
+julia> f1 = y-x^2; f2 = z-x^3;
+
+julia> g = x^3*y-3*y^2*z^2+x*y*z;
+
+julia> reduce(g, [f1, f2], ordering = lex(R))
+-3*x^10 + x^6 + x^5
+```
+"""
 function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f))) where {T <: MPolyElem}
 	@assert parent(f) == parent(F[1])
 	R = parent(f)
@@ -512,7 +604,70 @@ function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default
 end
 
 @doc Markdown.doc"""
-        reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	reduce_with_quotients_and_unit(g::T, F::Vector{T};
+          ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return the unit, the quotients and the remainder in a weak standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
+
+	reduce_with_quotients(G::Vector{T}, F::Vector{T};
+          ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Vector` which contains, for each element `g` of `G`, a unit, quotients, and a remainder as above.
+
+!!! note
+    In the global case, a standard representation with a fully reduced remainder is computed.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> f1 = x^2+x^2*y; f2 = y^3+x*y*z; f3 = x^3*y^2+z^4;
+
+julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
+
+julia> u, Q, h = reduce_with_quotients_and_unit(g, [f1,f2, f3], ordering = negdegrevlex(R))
+([y+1], [x^3-x*y^2*z^2+x*y+y^2*z^2 0 y*z^2+z^2], 0)
+
+julia> u*g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
+true
+
+julia> G = [g, x*y^3-3*x^2*y^2*z^2];
+
+julia> U, Q,  H = reduce_with_quotients_and_unit(G, [f1, f2, f3], ordering = lex(R));
+
+julia> U
+[1   0]
+[0   1]
+
+julia> H
+2-element Vector{fmpq_mpoly}:
+ -z^9 + z^7 + z^6 + z^4
+ -3*z^7 + z^6
+
+julia> U*G == Q*[f1, f2, f3]+H
+true
+```
+"""
+function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(f) == parent(F[1])
+	R = parent(f)
+	I = IdealGens(R, [f], ordering)
+	J = IdealGens(R, F, ordering)
+	u, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
+	return u, q, r[1]
+end
+
+function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	@assert parent(F[1]) == parent(G[1])
+	R = parent(F[1])
+	I = IdealGens(R, F, ordering)
+	J = IdealGens(R, G, ordering)
+	return _reduce_with_quotients_and_unit(I, J, ordering)
+end
+
+@doc Markdown.doc"""
+        reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; 
+          ordering::MonomialOrdering = default_ordering(base_ring(J)))
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
 `Vector` `res` whose elements are the underlying elements of `I`
@@ -522,27 +677,6 @@ gens(J) + res == units * gens(I)`. If `ordering` is global then
 `units` will always be the identity matrix, see also
 `reduce_with_quotients`. `J` need not be a Groebner basis. `res` will
 have the same number of elements as `I`, even if they are zero.
-
-	reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, an
-`MPolyElem` `res` which represents `f`
-reduced by the underlying generators of `F` w.r.t. the monomial
-ordering `ordering` and a diagonal matrix `units` such that `M *
-F + [res] == units * [f]`. If `ordering` is global then
-`units` will always be the identity matrix, see also
-`reduce_with_quotients`. `G` need not be a Groebner basis.
-
-	reduce_with_quotients_and_units(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
-`Vector` `res` whose elements are the underlying elements of `F`
-reduced by the underlying generators of `G` w.r.t. the monomial
-ordering `ordering` and a diagonal matrix `units` such that `M *
-G + res == units * F`. If `ordering` is global then
-`units` will always be the identity matrix, see also
-`reduce_with_quotients`. `G` need not be a Groebner basis. `res` will
-have the same number of elements as `F`, even if they are zero.
 
 # Examples
 ```jldoctest
@@ -556,10 +690,10 @@ julia> I = ideal(R, [x]);
 
 julia> J = ideal(R, [x+1]);
 
-julia> M, res, units = reduce_with_quotients_and_units(I.gens, J.gens, ordering = neglex(R))
-([x], gfp_mpoly[0], [x+1])
+julia> unit, M, res = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
+([x+1], [x], gfp_mpoly[0])
 
-julia> M * gens(J) + res == units * gens(I)
+julia> M * gens(J) + res == unit * gens(I)
 true
 
 julia> f = x^3*y^2-y^4-10
@@ -570,35 +704,18 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
-julia> reduce_with_quotients_and_units(f, F)
-([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
+julia> reduce_with_quotients_and_unit(f, F)
+([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
-julia> M, res, units = reduce_with_quotients_and_units(f, F, ordering=lex(R))
-([0 y^2], y^6 + 10*y^4 + 1, [1])
+julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
+([1], [0 y^2], y^6 + 10*y^4 + 1)
 
-julia> M * F + [res] == units * [f]
+julia> M * F + [res] == unit * [f]
 true
 ```
 """
-function reduce_with_quotients_and_units(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-	@assert parent(f) == parent(F[1])
-	R = parent(f)
-	I = IdealGens(R, [f], ordering)
-	J = IdealGens(R, F, ordering)
-	q, r, u = _reduce_with_quotients_and_units(I, J, ordering)
-	return q, r[1], u
-end
-
-function reduce_with_quotients_and_units(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-	@assert parent(F[1]) == parent(G[1])
-	R = parent(F[1])
-	I = IdealGens(R, F, ordering)
-	J = IdealGens(R, G, ordering)
-	return _reduce_with_quotients_and_units(I, J, ordering)
-end
-
-function reduce_with_quotients_and_units(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-	return _reduce_with_quotients_and_units(I, J, ordering)
+function reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+	return _reduce_with_quotients_and_unit(I, J, ordering)
 end
 
 
@@ -610,29 +727,9 @@ Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 reduced by the underlying generators of `J` w.r.t. the monomial
 ordering `ordering` such that `M * gens(J) + res == gens(I)` if `ordering` is global.
 If `ordering` is local then this equality holds after `gens(I)` has been multiplied
-with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
+with an unkown diagonal matrix of units, see reduce_with_quotients_and_unit` to
 obtain this matrix. `J` need not be a Groebner basis. `res` will have the same number
 of elements as `I`, even if they are zero.
-
-	reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and an
-`MPolyElem` `res` which represents `f`
-reduced by the underlying generators of `F` w.r.t. the monomial
-ordering `ordering` such that `M * F + [res] == [f]` if `ordering` is global.
-If `ordering` is local then this equality holds after `f` has been multiplied
-with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
-obtain this matrix. `F` need not be a Groebner basis.
-
-	reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
-
-Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and an
-`Vector` `res` which represents `F`
-reduced by the underlying generators of `G` w.r.t. the monomial
-ordering `ordering` such that `M * G + res == F` if `ordering` is global.
-If `ordering` is local then this equality holds after `F` has been multiplied
-with an unkown diagonal matrix of units, see reduce_with_quotients_and_units` to
-obtain this matrix. `G` need not be a Groebner basis.
 
 # Examples
 ```jldoctest
@@ -664,13 +761,70 @@ julia> F = [x^2*y-y^3, x^3-y^4]
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
-julia> reduce_with_quotients_and_units(f, F)
-([x*y 10*x+1], x^4 + 10*x^3 + 1, [1])
+julia> reduce_with_quotients_and_unit(f, F)
+([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
-julia> M, res, units = reduce_with_quotients_and_units(f, F, ordering=lex(R))
-([0 y^2], y^6 + 10*y^4 + 1, [1])
+julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
+([1], [0 y^2], y^6 + 10*y^4 + 1)
 
-julia> M * F + [res] == units * [f]
+julia> M * F + [res] == unit * [f]
+true
+```
+"""
+function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
+    _, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
+    return q, r
+end
+
+@doc Markdown.doc"""
+	reduce_with_quotients(g::T, F::Vector{T}; 
+          ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+If `ordering` is global, return the quotients and the remainder in a standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
+Otherwise, return the quotients and the remainder in a *weak* standard representation for `g` on division by the polynomials in `F` with respect to `ordering`.
+
+	reduce_with_quotients(G::Vector{T}, F::Vector{T}; 
+          ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+
+Return a `Vector` which contains, for each element `g` of `G`, quotients and a remainder as above.
+
+!!! note
+    In the global case, the returned remainders are fully reduced.
+
+# Examples
+
+```jldoctest
+julia> R, (z, y, x) = PolynomialRing(QQ, ["z", "y", "x"]);
+
+julia> f1 = y-x^2; f2 = z-x^3;
+
+julia> g = x^3*y-3*y^2*z^2+x*y*z;
+
+julia> Q, h = reduce_with_quotients(g, [f1, f2], ordering = lex(R));
+
+julia> Q
+[-3*y*x^6 - 3*x^8 + x^4 + x^3   -3*z*y^2 - 3*y^2*x^3 + y*x]
+
+julia> h
+-3*x^10 + x^6 + x^5
+
+julia> g == Q[1]*f1+Q[2]*f2+h
+true
+
+julia> G = [g, x*y^3-3*x^2*y^2*z^2];
+
+julia> Q, H = reduce_with_quotients(G, [f1, f2], ordering = lex(R));
+
+julia> Q
+[          -3*y*x^6 - 3*x^8 + x^4 + x^3   -3*z*y^2 - 3*y^2*x^3 + y*x]
+[y^2*x - 3*y*x^8 + y*x^3 - 3*x^10 + x^5     -3*z*y^2*x^2 - 3*y^2*x^5]
+
+julia> H
+2-element Vector{fmpq_mpoly}:
+ -3*x^10 + x^6 + x^5
+ -3*x^12 + x^7
+
+julia> G == Q*[f1, f2]+H
 true
 ```
 """
@@ -679,7 +833,7 @@ function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = 
 	R = parent(f)
 	I = IdealGens(R, [f], ordering)
 	J = IdealGens(R, F, ordering)
-	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	_, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r[1]
 end
 
@@ -688,31 +842,28 @@ function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrd
 	R = parent(F[1])
 	I = IdealGens(R, F, ordering)
 	J = IdealGens(R, G, ordering)
-	q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
+	_, q, r = _reduce_with_quotients_and_unit(I, J, ordering)
 	return q, r
 end
 
-function reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)))
-    q, r, _ = _reduce_with_quotients_and_units(I, J, ordering)
-    return q, r
-end
-
-function _reduce_with_quotients_and_units(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
+function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::MonomialOrdering = default_ordering(base_ring(J)))
 	@assert base_ring(J) == base_ring(I)
 	singular_assure(I, ordering)
 	singular_assure(J, ordering)
 	res = Singular.division(I.gens.S, J.gens.S)
-	return matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])], matrix(base_ring(I), res[3])
+	return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
 @doc Markdown.doc"""
-    normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
+    normal_form(g::T, I::MPolyIdeal; 
+      ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
 
-Compute the normal form of the polynomial `f` w.r.t. a
-Groebner basis of `J` and the monomial ordering `o`.
+Compute the normal form of `g` mod `I` with respect to `ordering`.
 
-CAVEAT: This computation needs a Groebner basis of `J` and `o`. If this Groebner
-basis is not available, one is computed automatically. This may take some time.
+    normal_form(G::Vector{T}, I::MPolyIdeal; 
+      ordering::MonomialOrdering=default_ordering(base_ring(I))) where { T <: MPolyElem }
+
+Return a `Vector` which contains for each element `g` of `G` a normal form as above.
 
 # Examples
 ```jldoctest
@@ -729,26 +880,7 @@ julia> gens(groebner_basis(J))
 
 julia> normal_form(-1+c+b+a^3, J)
 a^3
-```
-"""
-function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyElem }
-    singular_assure(J, ordering)
-    I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
-    N = normal_form_internal(I, J, ordering)
-    return N[1]
-end
 
-@doc Markdown.doc"""
-    normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
-
-Compute the normal form of the elements of the array `A` w.r.t. a
-Groebner basis of `J` and the monomial ordering `o`.
-
-CAVEAT: This computation needs a Groebner basis of `J` and `o`. If this Groebner
-basis is not available, one is computed automatically. This may take some time.
-
-# Examples
-```jldoctest
 julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
 (Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
 
@@ -773,6 +905,13 @@ julia> normal_form(A, J)
  4*a - 2*c^2 - c + 5
 ```
 """
+function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyElem }
+    singular_assure(J, ordering)
+    I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
+    N = normal_form_internal(I, J, ordering)
+    return N[1]
+end
+
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
     singular_assure(J, ordering)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
