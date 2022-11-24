@@ -142,6 +142,9 @@ end
   coeff_dict[J] = ZZ(3)
   D = WeilDivisor(X, ZZ, coeff_dict)
   @test D == 3*weil_divisor(J)
+  @test sprint(show, D-D) isa String
+  @test (ZZ(2)*D == D + J + J + J)
+  @test !(D-D == 4*D)
   KK = function_field(X)
   U = X[1][2]
   u, v = gens(OO(U))
