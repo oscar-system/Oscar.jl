@@ -323,7 +323,10 @@ julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
 julia> G, T = standard_basis_with_transformation_matrix(I, ordering=neglex(R))
-(fmpq_mpoly[-x*y^2 + 1], [-1; 0])
+(Standard basis with elements
+1 -> 1 - x*y^2
+with respect to the ordering
+neglex([x, y]), [-1; 0])
 
 julia> gens(I)*T == gens(G)
 true
@@ -355,7 +358,12 @@ julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
 julia> G, T = groebner_basis_with_transformation_matrix(I)
-(fmpq_mpoly[x*y^2 - 1, x^3 + x*y + y^2, x^2 + y^4 + y], [1 0 -x^2-y; 0 1 y^2])
+(Gröbner basis with elements
+1 -> x*y^2 - 1
+2 -> x^3 + x*y + y^2
+3 -> y^4 + x^2 + y
+with respect to the ordering
+degrevlex([x, y]), [1 0 -x^2-y; 0 1 y^2])
 
 julia> gens(I)*T == gens(G)
 true
