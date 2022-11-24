@@ -362,7 +362,7 @@ true
 ```
 """
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
-	@assert is_global(ordering)
+    is_global(ordering) || error("Ordering must be global")
 	return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
  end
 
