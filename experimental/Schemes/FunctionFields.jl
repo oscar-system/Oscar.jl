@@ -347,6 +347,19 @@ end
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
 
+@Markdown.doc """
+    is_regular(f::VarietyFunctionFieldElem, U::Scheme)
+
+Return whether ``f ∈ K(X)`` restricts to a regular function 
+on an open subset ``U ⊂ X``.
+
+**Note:** ``U`` must either be an `affine_chart` of ``X`` or 
+its `ambient_scheme` must be an `affine_chart`.
+"""
+function is_regular(f::VarietyFunctionFieldElem, U::Scheme)
+  error("method not implemented")
+end
+
 function is_regular(f::VarietyFunctionFieldElem, U::AbsSpec)
   p = numerator(f[U])
   q = denominator(f[U])
