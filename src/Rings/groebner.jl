@@ -1,5 +1,6 @@
 export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4,
-		standard_basis, groebner_basis, groebner_basis_with_transformation_matrix,
+		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
+		groebner_basis_with_transformation_matrix,
 		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
 
 # groebner stuff #######################################################
@@ -260,13 +261,14 @@ function f4(
 end
 
 @doc Markdown.doc"""
-    groebner_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
 Given an `IdealGens` `B` and optional parameters `ordering` for a monomial ordering and `complete_reduction`
-this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of the
-ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering` and the transformation matrix from the ideal to the Groebner basis. Return value is a IdealGens together with a map.
+this function computes a standard basis (if `ordering` is a global monomial ordering and `complete_reduction = true`
+the reduced Groebner basis) of the ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ordering`
+and the transformation matrix from the ideal to the standard basis. Return value is a IdealGens together with a map.
 
 # Examples
 ```jldoctest
@@ -278,14 +280,14 @@ Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -2*x^2*y + y^3
 
-julia> B,m = Oscar.groebner_basis_with_transform(A, degrevlex(R))
+julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with elements
 1 -> x*y - 3*x
 2 -> -6*x^2 + y^3
 3 -> 6*x^3 - 27*x, [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
-function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
    if !isdefined(B, :ordering)
       singular_assure(B, ordering)
    elseif ordering != B.ordering
@@ -301,6 +303,37 @@ function groebner_basis_with_transform(B::IdealGens, ordering::MonomialOrdering,
 
    i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
    return IdealGens(B.Ox, i), map_entries(x->B.Ox(x), m)
+ end
+
+@doc Markdown.doc"""
+    standard_basis_with_transformation_matrix(I::MPolyIdeal;
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
+      complete_reduction::Bool=false)
+
+Return a pair `G`, `T`, say, where `G` is a standard basis of `I` with respect to `ordering`, and `T` 
+is a transformation matrix from `gens(I)` to `G`. That is, `gens(I)*T == G`.
+
+!!! note
+    The returned Gröbner basis is reduced if `ordering` is a global monomial odering and `complete_reduction = true`.
+
+# Examples
+```jldoctest
+julia> R,(x,y) = PolynomialRing(QQ,["x","y"]);
+
+julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
+
+julia> G, T = standard_basis_with_transformation_matrix(I, ordering=neglex(R))
+(fmpq_mpoly[-x*y^2 + 1], [-1; 0])
+
+julia> gens(I)*T == gens(G)
+true
+```
+"""
+function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+	complete_reduction && @assert is_global(ordering)
+	G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
+	I.gb[ordering]  = G
+	return G, m
  end
 
 @doc Markdown.doc"""
@@ -323,14 +356,13 @@ julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 julia> G, T = groebner_basis_with_transformation_matrix(I)
 (fmpq_mpoly[x*y^2 - 1, x^3 + x*y + y^2, x^2 + y^4 + y], [1 0 -x^2-y; 0 1 y^2])
 
-julia> gens(I)*T == G
+julia> gens(I)*T == gens(G)
 true
 ```
 """
 function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
-   G, m = groebner_basis_with_transform(I.gens, ordering, complete_reduction)
-   I.gb[ordering]  = G
-   return collect(G), m
+	@assert is_global(ordering)
+	return standard_basis_with_transformation_matrix(I, ordering=ordering, complete_reduction=complete_reduction)
  end
 
 # syzygies #######################################################
