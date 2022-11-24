@@ -332,6 +332,7 @@ true
 function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
 	complete_reduction && @assert is_global(ordering)
 	G, m = _compute_standard_basis_with_transform(I.gens, ordering, complete_reduction)
+	G.isGB = true
 	I.gb[ordering]  = G
 	return G, m
  end
