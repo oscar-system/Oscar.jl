@@ -71,11 +71,21 @@ end
    @test_throws ErrorException groebner_basis(I, ordering = negdeglex([x, y, z]))
    @test gens(standard_basis(I, ordering=negdeglex([x, y, z]))) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
 
-   @test groebner_basis_with_transformation_matrix(I, ordering=lex([x])*lex([y,z])) == groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z])) == groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([x])*lex([y,z]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z]))
+   H ,V = groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
+   @test gens(G) == gens(H) && U == V
    @test_throws ErrorException groebner_basis_with_transformation_matrix(I, ordering = negdeglex([x, y, z]))
    G, M = standard_basis_with_transformation_matrix(I, ordering = negdeglex([x, y, z]))
    @test gens(I) * M == gens(G)
