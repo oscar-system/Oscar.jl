@@ -4,7 +4,7 @@ export CoveringMorphism
 # Morphisms of coverings                                               #
 ########################################################################
 @Markdown.doc """
-    CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorType<:SpecMor}
+    CoveringMorphism
 
 A morphism ``f : C → D`` of two coverings. For every patch ``U`` of ``C`` this
 provides a map `f[U']` of type `SpecMorType` from ``U' ⊂ U`` to

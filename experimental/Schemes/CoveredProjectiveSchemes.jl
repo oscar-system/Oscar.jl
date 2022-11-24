@@ -151,11 +151,6 @@ with `base_scheme` ``W``.
 """
 function blow_up(W::AbsSpec, I::Ideal)
   error("method `blow_up` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
-  base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
-  if one(OO(W)) in I 
-    # construct a relative ℙ⁰ over W with its identifying projection.
-  end
-  # compute the blowup with the universal proj-construction.
 end
 
 ########################################################################
@@ -165,7 +160,8 @@ end
 function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal)
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
   if one(OO(W)) in I 
-    # construct a relative ℙ⁰ over W with its identifying projection.
+    error("blowing up along the unit ideal; this case should be caught earlier")
+    # construct a relative ℙ⁰ over W with its identifying projection?
   end
   r = ngens(I) - 1
   g = gens(I)
@@ -519,7 +515,6 @@ function blow_up(
 #  return projective_version, covered_version, projection_map, exc_div
 end
 
-using Infiltrator
 @attr function covered_scheme(P::CoveredProjectiveScheme)
   X = base_scheme(P)
   C = default_covering(X)
@@ -572,10 +567,6 @@ using Infiltrator
           BW = affine_charts(Oscar.covered_scheme(VD))[j]
           hU = dehomogenize(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
           hV = dehomogenize(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
-          @show hU
-          @show homogenize(UD, AW)(hU)
-          @show hV
-          @show homogenize(VD, BW)(hV)
 
           # We need to construct the glueing 
           #
@@ -625,20 +616,31 @@ using Infiltrator
   end
   result_covering = Covering(result_patches, result_glueings, check=false)
   result = CoveredScheme(result_covering)
+
   projection_dict = IdDict{AbsSpec, AbsSpecMor}()
-  #covered_map = CoveringMorphism(result_covering, C, projection_dict) 
-  #projection_map = CoveredSchemeMorphism(covered_scheme, X, covered_map)
-  #set_attribute!(P, :covered_projection_to_base, projection_map)
+  for U in affine_charts(X)
+    PP = P[U]
+    p = covered_projection_to_base(PP)
+    cov_mor = covering_morphism(p)
+    cov_mor_dict = morphisms(cov_mor)
+    for V in keys(cov_mor_dict)
+      projection_dict[V] = cov_mor_dict[V]
+    end
+  end
+
+  # TODO: Remove the internal checks in the constructors below
+  covering_map = CoveringMorphism(result_covering, C, projection_dict) 
+  set_attribute!(P, :covering_projection_to_base, covering_map)
   return result
 end
 
-function covered_projection_to_base(P::CoveredProjectiveScheme) 
-  if !has_attribute(P, :covered_projection_to_base)
-    as_covered_scheme(P)
+@attr function covered_projection_to_base(P::CoveredProjectiveScheme) 
+  if !has_attribute(P, :covering_projection_to_base)
+    covered_scheme(P)
   end
-  return get_attribute(P, :covered_projection_to_base)
+  covering_pr = get_attribute(P, :covering_projection_to_base)::CoveringMorphism
+  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr)
 end
-
 
 
 function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyElem}

@@ -716,11 +716,12 @@ covered scheme with 3 affine patches in its default covering
     return X
 end
 
-function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyQuo, <:MPolyRing}})
-  if !has_attribute(X, :covered_projection_to_base) 
+@attr function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyQuo, <:MPolyRing}})
+  if !has_attribute(X, :covering_projection_to_base) 
     C = standard_covering(X)
   end
-  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
+  covering_projection = get_attribute(X, :covering_projection_to_base)::CoveringMorphism
+  projection = CoveredSchemeMorphism(covered_scheme(X), CoveredScheme(codomain(covering_projection)), covering_projection)
 end
 
 function dehomogenize(
@@ -791,8 +792,6 @@ function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
   x = gens(R)
   s = x[1:n-1]
   x = x[n:end]
-  @show s
-  @show x
   B = base_ring(P)
   y = gens(B)
   t = gens(S)

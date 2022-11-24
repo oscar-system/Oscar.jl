@@ -194,7 +194,7 @@ end
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :covered_projection_to_base, covered_projection)
+  set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
 
