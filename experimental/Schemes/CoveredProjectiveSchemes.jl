@@ -2,7 +2,7 @@ export ProjectiveGlueing
 export glueing_type, underlying_glueing
 
 export CoveredProjectiveScheme
-export base_scheme, base_covering, projective_patches, as_covered_scheme
+export base_scheme, base_covering, projective_patches, covered_scheme
 
 export blow_up, empty_covered_projective_scheme
 
@@ -99,14 +99,14 @@ glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
 @attributes mutable struct CoveredProjectiveScheme{BRT} <: Scheme{BRT}
   Y::AbsCoveredScheme # the base scheme
   BC::Covering # the reference covering of the base scheme
-  patches::Dict{AbsSpec, AbsProjectiveScheme} # the projective spaces over the affine patches in the base covering
-  glueings::Dict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing} # the transitions sitting over the affine patches in the glueing domains of the base scheme
+  patches::IdDict{AbsSpec, AbsProjectiveScheme} # the projective spaces over the affine patches in the base covering
+  glueings::IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing} # the transitions sitting over the affine patches in the glueing domains of the base scheme
 
   function CoveredProjectiveScheme(
       Y::AbsCoveredScheme,
       C::Covering,
-      projective_patches::Dict{AbsSpec, AbsProjectiveScheme},
-      projective_glueings::Dict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing};
+      projective_patches::IdDict{AbsSpec, AbsProjectiveScheme},
+      projective_glueings::IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing};
       check::Bool=true
     )
     C in coverings(Y) || error("covering not listed")
@@ -395,18 +395,17 @@ end
 #  end
 #end
 
-using Infiltrator
 function blow_up(
     I::IdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
   )
   X = space(I)
-  local_blowups = Dict{AbsSpec, AbsProjectiveScheme}()
+  local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
   for U in affine_charts(X)
     local_blowups[U] = blow_up(U, I(U))
   end
-  projective_glueings = Dict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
+  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
 
   # prepare for the projective glueings
   C = default_covering(X)
@@ -454,9 +453,9 @@ function blow_up(
     fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)]))
     gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)]))
 
-    # TODO: Something's still wrong here with the fup and gup.
     projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup)
   end
+  return CoveredProjectiveScheme(X, default_covering(X), local_blowups, projective_glueings)
 
 
 #    # set up the maps on the patches of the overlap in U
@@ -520,30 +519,117 @@ function blow_up(
 #  return projective_version, covered_version, projection_map, exc_div
 end
 
-function as_covered_scheme(P::CoveredProjectiveScheme)
-  if !has_attribute(P, :as_covered_scheme) 
-    X = base_scheme(P)
-    C = base_covering(P)
-    SpecType = affine_patch_type(X)
-    new_patches = Vector{SpecType}()
-    new_glueings = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
-    projection_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}() 
-    for U in patches(C)
-      PU = as_covered_scheme(P[U])
-      new_patches = vcat(new_patches, patches(coverings(PU)[1]))
-      merge!(new_glueings, glueings(PU))
-      PU_projection = get_attribute(P[U], :covered_projection_to_base)
-      merge!(projection_dict, morphisms(PU_projection))
-    end
-    #TODO: extend the remaining glueings
-    new_covering = Covering(new_patches, new_glueings, check=false)
-    covered_scheme = CoveredScheme(new_covering)
-    covered_map = CoveringMorphism(new_covering, C, projection_dict) 
-    projection_map = CoveredSchemeMorphism(covered_scheme, X, covered_map)
-    set_attribute!(P, :as_covered_scheme, covered_scheme)
-    set_attribute!(P, :covered_projection_to_base, projection_map)
+using Infiltrator
+@attr function covered_scheme(P::CoveredProjectiveScheme)
+  X = base_scheme(P)
+  C = default_covering(X)
+  new_patches = Vector{AbsSpec}()
+  new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  projection_dict = IdDict{AbsSpec, AbsSpecMor}()
+  parts = IdDict{AbsSpec, AbsCoveredScheme}() 
+  for U in affine_charts(X)
+    parts[U] = Oscar.covered_scheme(P[U])
   end
-  return get_attribute(P, :as_covered_scheme)
+  # We first assemble a Covering where the preimage of every base 
+  # patch appears as one connected component
+  result_patches = vcat([affine_charts(parts[U]) for U in affine_charts(X)]...)
+  result_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  for U in affine_charts(X)
+    GG = glueings(parts[U])
+    for (A, B) in keys(GG)
+      result_glueings[(A, B)] = GG[(A, B)]
+    end
+  end
+  result_covering = Covering(result_patches, result_glueings, check=false)
+
+  # Now we need to add glueings
+  for U in affine_charts(X)
+    for V in affine_charts(X)
+      U === V && continue
+      for UW in affine_charts(parts[U])
+        for VW in affine_charts(parts[V])
+          # Now we have the following diagram 
+          #
+          #               fup, gup
+          # P[U] ⊃ UW ⇢  UD ↔ VD ⇠ VW ⊂ P[V]
+          #         ↓    ↓    ↓    ↓
+          #         U ⊃  A  ↔  B ⊂ V
+          #                f,g
+          #
+          # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}. 
+          (A, B) = glueing_domains(C[U, V])
+          (f, g) = glueing_morphisms(C[U, V])
+          (UD, VD) = glueing_domains(P[U, V])
+          (fup, gup) = glueing_morphisms(P[U, V])
+          (incU, incV) = inclusion_maps(P[U, V])
+          S = ambient_coordinate_ring(P[U])
+          T = ambient_coordinate_ring(P[V])
+          i = P[U][UW][2]
+          j = P[V][VW][2]
+          s_i = gens(S)[i]
+          t_j = gens(T)[j]
+          AW = affine_charts(Oscar.covered_scheme(UD))[i]
+          BW = affine_charts(Oscar.covered_scheme(VD))[j]
+          hU = dehomogenize(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
+          hV = dehomogenize(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
+          @show hU
+          @show homogenize(UD, AW)(hU)
+          @show hV
+          @show homogenize(VD, BW)(hV)
+
+          # We need to construct the glueing 
+          #
+          #          f', g'
+          #   UW ↩ AAW ↔ BBW ↪ VW
+          #   
+          # as follows. 
+          # From the base glueing we already have that UW differs 
+          # from AAW by the pullback of the equation `complement_equation(A)`.
+          # But then, also `hU` cuts out another locus which needs to be 
+          # removed before glueing. 
+          #
+          # The same applies to the other side. Finally, we need to track the 
+          # coordinates through the homogenization-glueing-pullback-dehomogenization 
+          # machinery to provide the glueing morphisms. 
+
+          ptbUD = covered_projection_to_base(UD)
+          ptbVD = covered_projection_to_base(VD)
+          hhU = lifted_numerator(pullback(ptbUD[AW])(complement_equation(A)))
+          hhU = hhU * lifted_numerator(hU)
+          AAW = PrincipalOpenSubset(UW, OO(UW)(hhU))
+          hhV = lifted_numerator(pullback(ptbVD[BW])(complement_equation(B)))
+          hhV = hhV * lifted_numerator(hV)
+          BBW = PrincipalOpenSubset(VW, OO(VW)(hhV))
+
+          x = gens(ambient_coordinate_ring(AAW))
+          y = gens(ambient_coordinate_ring(BBW))
+          
+          xh = homogenize(UD, AW).(OO(AW).(x))
+          yh = homogenize(VD, BW).(OO(BW).(y))
+
+          xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
+          yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
+
+          phi = dehomogenize(VD, BW)
+          psi = dehomogenize(UD, AW) 
+          yimgs = [OO(AAW)(psi(pp))*inv(OO(AAW)(psi(qq))) for (pp, qq) in yhh]
+          ximgs = [OO(BBW)(phi(pp))*inv(OO(BBW)(phi(qq))) for (pp, qq) in xhh]
+          ff = SpecMor(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs))
+          gg = SpecMor(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs))
+
+          GGG = SimpleGlueing(UW, VW, ff, gg)
+          result_glueings[(UW, VW)] = GGG
+        end
+      end
+    end
+  end
+  result_covering = Covering(result_patches, result_glueings, check=false)
+  result = CoveredScheme(result_covering)
+  projection_dict = IdDict{AbsSpec, AbsSpecMor}()
+  #covered_map = CoveringMorphism(result_covering, C, projection_dict) 
+  #projection_map = CoveredSchemeMorphism(covered_scheme, X, covered_map)
+  #set_attribute!(P, :covered_projection_to_base, projection_map)
+  return result
 end
 
 function covered_projection_to_base(P::CoveredProjectiveScheme) 

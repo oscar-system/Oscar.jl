@@ -32,7 +32,7 @@ mutable struct Covering{BaseRingType}
 
   function Covering(
       patches::Vector{<:AbsSpec},
-      glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
+      glueings::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
       check::Bool=true,
       affine_refinements::IdDict{
           <:AbsSpec,

@@ -727,7 +727,7 @@ function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     i::Int
   ) where {
-    CRT<:Union{MPolyQuoLocalizedRing,MPolyRing, MPolyQuo}
+    CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = ambient_coordinate_ring(X)
@@ -738,7 +738,112 @@ function dehomogenize(
   return hom(S, OO(U), pullback(p[U]), s)
 end
 
-function getindex(X::ProjectiveScheme, U::Spec)
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
+    U::AbsSpec
+  ) where {
+    CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
+  }
+  return dehomogenize(X, X[U][2]-1)
+end
+
+using Infiltrator
+@doc Markdown.doc"""
+    homogenize(P::AbsProjectiveScheme, U::AbsSpec)
+
+Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 
+``P``, return a method ``h`` for the homogenization of elements 
+``a ∈ 𝒪(U)``. 
+
+That means ``h(a)`` returns a pair ``(p, q)`` representing a fraction 
+``p/q ∈ S`` of the `ambient_coordinate_ring` of ``P`` such 
+that ``a`` is the dehomogenization of ``p/q``.
+
+**Note:** For the time being, this only works for affine 
+charts which are of the standard form ``sᵢ ≠ 0`` for ``sᵢ∈ S``
+one of the homogeneous coordinates of ``P``.
+
+**Note:** Since this map returns representatives only, it 
+is not a mathematical morphism and, hence, in particular 
+not an instance of `Hecke.Map`.
+
+**Note:** Since `FractionField` relies on some implementation 
+of division for the elements, we can not return the fraction 
+directly. 
+"""
+function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
+  # TODO: Ideally, one needs to provide this function 
+  # only once for every pair (P, U), so we should think of 
+  # some internal way for caching. The @attr macro is not 
+  # suitable for this, because it is not sensitive for 
+  # which U is put in. 
+
+  # Find the chart where a belongs to
+  X = covered_scheme(P)
+  i = findfirst(V->(U===V), affine_charts(X))
+  i == nothing && error("the given affine scheme is not one of the standard affine charts")
+  
+  # Determine those variables which come from the homogeneous 
+  # coordinates
+  S = ambient_coordinate_ring(P)
+  n = ngens(S)
+  R = ambient_coordinate_ring(U)
+  x = gens(R)
+  s = x[1:n-1]
+  x = x[n:end]
+  @show s
+  @show x
+  B = base_ring(P)
+  y = gens(B)
+  t = gens(S)
+
+  w = vcat([1 for j in 1:n-1], [0 for j in n:ngens(R)])
+  v = gens(S)
+  # prepare a vector of elements on which to evaluate the lifts
+  popat!(v, i)
+  v = vcat(v, S.(gens(B)))
+  function my_dehom(a::RingElem)
+    parent(a) === OO(U) || error("element does not belong to the correct ring")
+    p = lifted_numerator(a)
+    q = lifted_denominator(a)
+    deg_p = total_degree(p, w)
+    deg_q = total_degree(q, w)
+    deg_a = deg_p - deg_q
+    ss = S[i] # the homogenization variable
+    
+    # preliminary lifts, not yet homogenized!
+    pp = evaluate(p, v) 
+    qq = evaluate(q, v)
+
+    # homogenize numerator and denominator
+    pp = sum([c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(pp), monomials(pp))])
+    qq = sum([c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(qq), monomials(qq))])
+
+    if deg_a > 0
+      return (pp, qq*ss^deg_a)
+    elseif deg_a <0
+      return (pp * ss^(-deg_a), qq)
+    end
+    return (pp, qq)
+  end
+  return my_dehom
+end
+
+@doc Markdown.doc"""
+    total_degree(f::MPolyElem, w::Vector{Int})
+
+Given a multivariate polynomial `f` and a weight vector `w` 
+return the total degree of `f` with respect to the weights `w`.
+"""
+function total_degree(f::MPolyElem, w::Vector{Int})
+  x = gens(parent(f))
+  n = length(x)
+  n == length(w) || error("weight vector does not have the correct length")
+  vals = [sum([degree(m, j)*w[j] for j in 1:n]) for m in monomials(f)]
+  return maximum(vals)
+end
+
+function getindex(X::ProjectiveScheme, U::AbsSpec)
   Xcov = covered_scheme(X)
   for C in coverings(Xcov)
     for j in 1:npatches(C)
