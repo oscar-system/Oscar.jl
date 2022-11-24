@@ -76,6 +76,9 @@ end
    @test groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
    @test groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z])) == groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
+   @test_throws ErrorException groebner_basis_with_transformation_matrix(I, ordering = negdeglex([x, y, z]))
+   G, M = standard_basis_with_transformation_matrix(I, ordering = negdeglex([x, y, z]))
+   @test gens(I) * M == gens(G)
 end
 
 @testset "non-global orderings" begin
