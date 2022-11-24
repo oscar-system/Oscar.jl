@@ -44,7 +44,7 @@ placed (but certainly not everywhere).
 Textbooks covering space germs in the sense of analytic algebras and
 singularity theory are:
 - [GLS07](@cite)
-- [dJP00](@cite)
+- [JP00](@cite)
 
 For the point of view of schemes, we refer to the page on schemes and the references given there; an example of a standard textbook is
 - [Har77](@cite).

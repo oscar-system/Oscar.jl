@@ -1,7 +1,7 @@
 @testset "Examples.ModStdNF" begin
   Qx, x = PolynomialRing(QQ, ["x"])
   I = ideal(Qx, [zero(Qx)])
-  G, m = Oscar.groebner_basis_with_transform(I)
+  G, m = Oscar._compute_standard_basis_with_transform(I)
   @test length(G) == 0
   @test size(m) == (1, 0)
 
