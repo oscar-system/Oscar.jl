@@ -252,7 +252,7 @@ end
 #end
 
 @Markdown.doc """
-    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
+    in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Bool
 
 Returns `true` if the rational function `f` is in the linear system ``|D|``
 and `false` otherwise.
@@ -324,7 +324,7 @@ variety(L::LinearSystem) = scheme(weil_divisor(L))
 scheme(L::LinearSystem) = variety(L)
 
 @Markdown.doc """
-    subsystem(L::LinearSystem, P::IdealSheaf, n::Int)
+    subsystem(L::LinearSystem, P::IdealSheaf, n::Int) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
 and an integer `n`, this returns a pair ``(K, A)`` consisting 

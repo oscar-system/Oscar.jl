@@ -380,10 +380,9 @@ function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType
 end
 
 @Markdown.doc """
-    order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true)
+    order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true) -> Int
 
-Computes the order of a rational function `f` on a prime divisor 
-given by the ideal sheaf `I`.
+Return the order of the rational function `f` on the prime divisor given by the ideal sheaf `I`.
 """
 function order_on_divisor(
     f::VarietyFunctionFieldElem, 
