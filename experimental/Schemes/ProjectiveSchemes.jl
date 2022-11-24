@@ -748,7 +748,6 @@ function dehomogenize(
   return dehomogenize(X, X[U][2]-1)
 end
 
-using Infiltrator
 @doc Markdown.doc"""
     homogenize(P::AbsProjectiveScheme, U::AbsSpec)
 
