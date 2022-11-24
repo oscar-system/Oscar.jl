@@ -70,6 +70,26 @@
   K = FractionField(R)
   @test K(h) == (f+2*g-5)//g
 
+  # create an elliptically fibered K3
+  Ut = Ct[3]
+  x, y, t = coordinates(Ut)
+  ft = y^2 - (x^3 + 21*x + (28*t^7+18))
+  I = IdealSheaf(X, Ut, [ft])
+  adeK3 = subscheme(I)
+
+  x,y,t = coordinates(adeK3[1][6])
+  # ideal defining a section of the fibration
+  P = [(5*t^8 + 20*t^7 + 2*t^6 + 23*t^5 + 20*t^3 + 11*t^2 + 3*t + 13) - x*(t^4 + 9*t^3 + 5*t^2 + 22*t + 16),
+  (26*t^12 + 11*t^11 + 15*t^10 + 8*t^9 + 20*t^8 + 25*t^7 + 16*t^6 + 3*t^5 + 10*t^4 + 15*t^3 + 4*t^2 + 28*t + 28) - y*(t^6 + 28*t^5 + 27*t^4 + 23*t^3 + 8*t^2 + 13*t + 23)]
+  # the following computation dies ... but it should not.
+  D = IdealSheaf(adeK3, adeK3[1][6], P)
+  Dscheme = subscheme(D)
+
+  # an interesting rational function
+  K = function_field(adeK3)
+  x,y,t= ambient_coordinates(adeK3[1][6])
+  phi = K(-8*t^8 + 4*t^7 + 6*t^5 + 4*x*t^3 + 3*t^4 - 13*x*t^2 - 7*y*t^2 - 12*t^3 - 12*x*t + 12*y*t - 14*t^2 - 14*x - y - 10*t + 10)//K(6*t^8 - 5*t^7 + 14*t^6 - 7*x*t^4 - 13*t^5 - 5*x*t^3 - 6*x*t^2 - 5*t^3 - 9*x*t - 10*t^2 + 4*x - 8*t + 4)
+  @test Oscar.order_on_divisor(phi, D) == -1
 end
 
 @testset "orders on divisors" begin
