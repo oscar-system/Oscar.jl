@@ -3,8 +3,8 @@
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
-       leading_coefficient, leading_exponent, leading_monomial, leading_term,
-       tail,
+       leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
+       leading_monomial, leading_term, tail,
        rational_solutions
 
 ##############################################################################
@@ -993,7 +993,7 @@ function Base.iterate(a::GeneralPermutedIterator{:exponents, <:MPolyElem}, state
   return exponent_vector(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyElem})
+function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyElem})
   return Vector{Int}
 end
 
@@ -1051,8 +1051,17 @@ Return the leading exponent vector (as `Vector{Int}`) of `f` with
 respect to the order `ordering`.
 """
 function leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-  iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
   return AbstractAlgebra.exponent_vector(f, index_of_leading_term(f, ordering))
+end
+
+@doc Markdown.doc"""
+    leading_coefficient_and_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+
+Return the leading coefficient of `f` with respect to the order `ordering`.
+"""
+function leading_coefficient_and_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  i = index_of_leading_term(f, ordering)
+  return (coeff(f, i), AbstractAlgebra.exponent_vector(f, i))
 end
 
 @doc Markdown.doc"""
@@ -1073,22 +1082,26 @@ function leading_term(f::MPolyElem; ordering::MonomialOrdering = default_orderin
   return term(f, index_of_leading_term(f, ordering))
 end
 
+function _delete_index(f::MPolyElem, i::Int)
+  z = MPolyBuildCtx(parent(f))
+  for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    i -= 1
+    if i != 0
+       push_term!(z, c, e)
+    end
+  end
+  return finish(z)
+end
+
 @doc Markdown.doc"""
     tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the tail of `f` with respect to the order `ordering`.
 """
 function tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-   # f - leading_term(f) is too easy and might have problems with inexact
-   i = index_of_leading_term(f, ordering)
-   z = MPolyBuildCtx(parent(f))
-   for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-      i -= 1
-      if i != 0
-         push_term!(z, c, e)
-      end
-   end
-   return finish(z)
+  # f - leading_term(f) is too easy and might have problems with inexact
+  i = index_of_leading_term(f, ordering)
+  return _delete_index(f, i)
 end
 
 ##############################################################################

@@ -424,6 +424,7 @@ include("Groups/action.jl")  # needs some PolynomialRings functionality
 
 include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")
+include("Modules/FreeModElem-orderings.jl")
 #include("Modules/FreeModules-graded.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")

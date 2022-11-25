@@ -130,6 +130,9 @@ end
    @test collect(coefficients_and_exponents(f)) ==
                     map(tuple, collect(coefficients(f)), collect(exponents(f)))
 
+   @test leading_coefficient_and_exponent(f) ==
+                   (leading_coefficient(f), leading_exponent(f))
+
    Fp = GF(7)
    R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
    f = x*y + 5*z^3
