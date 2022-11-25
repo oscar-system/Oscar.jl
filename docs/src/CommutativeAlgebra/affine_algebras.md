@@ -99,6 +99,10 @@ grading_group(q::MPolyQuo{<:MPolyElem_dec})
 dim(A::MPolyQuo)
 ```
 
+```@docs
+vdim(A::MPolyQuo)
+```
+
 ## Elements of Affine Algebras
 
 ### Types

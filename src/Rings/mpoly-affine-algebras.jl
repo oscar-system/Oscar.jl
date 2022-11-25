@@ -42,6 +42,27 @@ end
 If, say, $A = R/I$, where $R$ is a multivariate polynomial ring over a field
 $K$, and $I$ is an ideal of $R$, return the dimension of $A$ as a $K$-vector
 space if $I$ is zero-dimensional (otherwise, return $-1$).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
+
+julia> vdim(A)
+6
+
+julia> I = modulus(A)
+ideal(x^3 + y^3 + z^3 - 1, x^2 + y^2 + z^2 - 1, x + y + z - 1)
+
+julia> groebner_basis(I, ordering = lex(base_ring(I)))
+Gröbner basis with elements
+1 -> z^3 - z^2
+2 -> y^2 + y*z - y + z^2 - z
+3 -> x + y + z - 1
+with respect to the ordering
+lex([x, y, z])
+```
 """
 function vdim(A::MPolyQuo)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
