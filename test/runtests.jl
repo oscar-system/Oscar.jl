@@ -1,5 +1,15 @@
 using Oscar
 using Test
+using Documenter
+
+if v"1.6.0" <= VERSION < v"1.7.0"
+  @info "Running doctests (version 1.6)"
+  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar, Oscar.Graphs); recursive = true)
+  doctest(Oscar)
+else
+  @info "Not running doctests (version must be 1.6)"
+end
+
 
 import Oscar.Nemo.AbstractAlgebra
 include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))

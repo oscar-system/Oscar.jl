@@ -60,17 +60,6 @@ jobs:
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
-      - name: "Run doctests"
-        if: ${{ matrix.julia-version == '1.6' }}
-        run: |
-          julia --project=docs --color=yes --code-coverage -e '
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()
-            using Documenter
-            using Oscar
-            DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar, Oscar.Graphs); recursive = true)
-            doctest(Oscar)'
       - name: "Process code coverage"
         uses: julia-actions/julia-processcoverage@v1
         with:
