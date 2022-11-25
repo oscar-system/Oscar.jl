@@ -380,4 +380,8 @@ end
   @test y-1 == c2[1]*gens(J)[1] + c2[2]*gens(J)[2]
   c3 = coordinates(x-y, J)
   @test x-y == c3[1]*gens(J)[1] + c3[2]*gens(J)[2]
+  JJ = L(I)
+  @test x-1 in saturated_ideal(JJ, strategy=:single_saturation)
+  c2 = coordinates(y-1, JJ)
+  @test y-1 == c2[1]*gens(JJ)[1] + c2[2]*gens(JJ)[2]
 end
