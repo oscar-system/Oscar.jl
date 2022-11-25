@@ -35,6 +35,24 @@ function dim(A::MPolyQuo)
   return dim(I)
 end
 
+
+@doc Markdown.doc"""
+    vdim(A::MPolyQuo)
+
+If, say, $A = R/I$, where $R$ is a multivariate polynomial ring over a field
+$K$, and $I$ is an ideal of $R$, return the dimension of $A$ as a $K$-vector
+space if $I$ is zero-dimensional (otherwise, return $-1$).
+"""
+function vdim(A::MPolyQuo)
+  if !isa(coefficient_ring(A), AbstractAlgebra.Field)
+    error("vdim requires a coefficient ring that is a field")
+  end
+  I = A.I
+  G = groebner_assure(I)
+  singular_assure(G)
+  return Singular.vdim(G.S)
+end
+
 ##############################################################################
 #
 # Data associated to affine algebras
