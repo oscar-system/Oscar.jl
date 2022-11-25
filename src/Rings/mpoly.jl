@@ -1171,3 +1171,8 @@ function rational_solutions(I::MPolyIdeal{<:MPolyElem})
   #point constant polynomials, hence:
   return [[constant_coefficient(x) for x in r] for r in rts]
 end
+
+
+function _is_integral_domain(R::MPolyRing) 
+  return true
+end

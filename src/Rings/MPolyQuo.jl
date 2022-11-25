@@ -323,7 +323,6 @@ end
   return J
 end
 
-
 @doc Markdown.doc"""
     iszero(a::MPolyQuoIdeal)
 
@@ -1293,3 +1292,8 @@ function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where 
     return Union{}
   end
 end
+
+@attr function _is_integral_domain(A::MPolyQuo)
+  return is_prime(modulus(A))
+end
+

@@ -1,11 +1,8 @@
-
 export EmptyScheme
 export AbsProjectiveScheme, ProjectiveScheme
 export ProjectiveSchemeMor
 export VarietyFunctionField, VarietyFunctionFieldElem
 export IdealSheaf
-
-
 
 
 ########################################################################

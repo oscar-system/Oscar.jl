@@ -65,8 +65,8 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocalizedR
   # Now [y z]⋅B = v⋅c ⇔ [y z]⋅D ⋅Aext = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D ⋅ Aext = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D to be the solution x of x ⋅ Aext = b. 
   # Then for the first m components x' of x we have x' ⋅ A ≡ b mod I
-  x = S(one(R), v*u[1,1])*S(y*D)
-  xpart = MatrixSpace(S, 1, nrows(A))
+  x = S(one(R), v*u[1,1])*map_entries(S, y*D)
+  xpart = zero(MatrixSpace(S, 1, nrows(A)))
   for i in 1:nrows(A)
     xpart[1, i] = x[1, i]
   end

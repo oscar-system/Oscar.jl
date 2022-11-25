@@ -55,19 +55,19 @@ end
 ### essential getters
 representative_patch(KK::VarietyFunctionField) = KK.U
 variety(KK::VarietyFunctionField) = KK.X
+# provide one alias for the user's convenience
+scheme(KK::VarietyFunctionField) = variety(KK)
 coefficient_ring(KK::VarietyFunctionField) = KK.kk
 representative_field(KK::VarietyFunctionField) = KK.KK
 
 ### user facing constructors 
 @doc Markdown.doc"""
-    function_field(X::CoveredScheme;
-               check::Bool=true,
-               representative_patch::AbsSpec=default_covering(X)[1])
+    function_field(X::CoveredScheme)
 
 Return the function field of the irreducible variety `X`.
 
 Internally, a rational function is represented by an element in the field of
-fractions of the coordinate ring of the representative patch.
+fractions of the `ambient_coordinate_ring` of the `representative_patch`.
 """
 function_field(X::CoveredScheme; 
                check::Bool=true, 
@@ -152,6 +152,17 @@ function ^(a::VarietyFunctionFieldElem, i::fmpz)
   return parent(a)(representative(a)^i, check=false)
 end
 
+# Multiplication with elements of the coefficient ring.
+# Eventually this needs to be restricted further in case 
+# of ambiguities.
+function *(a::RingElem, b::T) where {T<:VarietyFunctionFieldElem}
+  parent(a) === coefficient_ring(parent(b)) || error("the arguments do not have the same parent ring")
+  return (parent(b))(a * representative(b), check=false)
+end
+function *(b::T, a::RingElem) where {T<:VarietyFunctionFieldElem}
+  return a*b
+end
+
 # try to avoid a groebner basis computation
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))
@@ -179,8 +190,8 @@ end
 
 function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true)
   R = parent(a)
-  R == parent(b) || error("rings are not compatible")
-  R == ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
+  R === parent(b) || error("rings are not compatible")
+  R === ambient_coordinate_ring(representative_patch(KK)) && return VarietyFunctionFieldElem(KK, a, b)
   
   # otherwise check whether we can find the ring of h among the affine patches
   R in [ambient_coordinate_ring(V) for V in patches(default_covering(variety(KK)))] || error("ring does not belong to any of the affine charts")
@@ -189,7 +200,7 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
   X = variety(KK)
   C = default_covering(X)
   for i in 1:npatches(C)
-    if ambient_coordinate_ring(C[i]) == R
+    if ambient_coordinate_ring(C[i]) === R
       V = C[i]
       break
     end
@@ -202,6 +213,7 @@ function (KK::VarietyFunctionField)(a::MPolyElem, b::MPolyElem; check::Bool=true
                                   denominator(h_generic)
                                   )
 end
+
 @Markdown.doc """
     function move_representative(
         a::MPolyElem, b::MPolyElem,
@@ -334,4 +346,35 @@ function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:V
 end 
 
 characteristic(KK::VarietyFunctionField) = characteristic(base_ring(variety(KK)))
+
+@Markdown.doc """
+    is_regular(f::VarietyFunctionFieldElem, U::Scheme)
+
+Return whether ``f ∈ K(X)`` restricts to a regular function 
+on an open subset ``U ⊂ X``.
+
+**Note:** ``U`` must either be an `affine_chart` of ``X`` or 
+its `ambient_scheme` must be an `affine_chart`.
+"""
+function is_regular(f::VarietyFunctionFieldElem, U::Scheme)
+  error("method not implemented")
+end
+
+function is_regular(f::VarietyFunctionFieldElem, U::AbsSpec)
+  p = numerator(f[U])
+  q = denominator(f[U])
+  return _is_regular_fraction(OO(U), p, q)
+end
+
+function is_regular(f::VarietyFunctionFieldElem, U::PrincipalOpenSubset)
+  Y = ambient_scheme(U)
+  ff = f[Y]
+  p = numerator(ff)
+  q = denominator(ff)
+  return _is_regular_fraction(OO(U), p, q)
+end
+
+function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
+  return all(U->is_regular(f, U), affine_patches(W))
+end
 

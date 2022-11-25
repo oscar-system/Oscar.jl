@@ -20,9 +20,12 @@ mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
 
   function SpecOpenRing(
       X::SpecType,
-      U::OpenType
+      U::OpenType;
+      check::Bool=true
     ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
-    issubset(U, X) || error("open set does not lay in the scheme")
+    if check
+      issubset(U, X) || error("open set does not lay in the scheme")
+    end
     return new{SpecType, OpenType}(X, U)
   end
 end
