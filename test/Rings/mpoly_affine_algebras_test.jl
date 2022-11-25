@@ -77,7 +77,7 @@ end
   @test length(L) == 3 # just a smoke test
 end
 
-@testset "mpoly_affinite_algebra.vdim"
+@testset "mpoly_affinite_algebra.vdim" begin
   r, (x, y) = PolynomialRing(QQ, [:x, :y])
   @test vdim(quo(r, ideal(r, [x^2+y^2]))[1]) == -1
   @test vdim(quo(r, ideal(r, [x^2+y^2, x^2-y^2]))[1]) == 4
