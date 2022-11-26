@@ -2,16 +2,6 @@ using Oscar
 using Test
 using Documenter
 
-# We want to avoid running the doctests twice so we skip them when
-# "oscar_run_doctests" is set by OscarDevTools.jl
-if v"1.6.0" <= VERSION < v"1.7.0" && !haskey(ENV,"oscar_run_doctests")
-  @info "Running doctests (Julia version is 1.6)"
-  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar, Oscar.Graphs); recursive = true)
-  doctest(Oscar)
-else
-  @info "Not running doctests (Julia version must be 1.6)"
-end
-
 
 import Oscar.Nemo.AbstractAlgebra
 include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
@@ -57,3 +47,15 @@ include("TropicalGeometry/runtests.jl")
 include("Serialization/runtests.jl")
 
 include("StraightLinePrograms/runtests.jl")
+
+# Doctests
+
+# We want to avoid running the doctests twice so we skip them when
+# "oscar_run_doctests" is set by OscarDevTools.jl
+if v"1.6.0" <= VERSION < v"1.7.0" && !haskey(ENV,"oscar_run_doctests")
+  @info "Running doctests (Julia version is 1.6)"
+  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar, Oscar.Graphs); recursive = true)
+  doctest(Oscar)
+else
+  @info "Not running doctests (Julia version must be 1.6)"
+end
