@@ -159,10 +159,10 @@ end
 
 function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal)
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
-  if one(OO(W)) in I 
-    error("blowing up along the unit ideal; this case should be caught earlier")
-    # construct a relative ℙ⁰ over W with its identifying projection?
-  end
+#  if one(OO(W)) in I 
+#    error("blowing up along the unit ideal; this case should be caught earlier")
+#    # construct a relative ℙ⁰ over W with its identifying projection?
+#  end
   r = ngens(I) - 1
   g = gens(I)
   IPW = projective_space(W, r)

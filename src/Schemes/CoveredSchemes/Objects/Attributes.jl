@@ -146,3 +146,14 @@ function dim(X::AbsCoveredScheme)
   return get_attribute(X, :dim)::Int
 end
 
+function singular_locus_reduced(X::AbsCoveredScheme)
+
+  D = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(X)
+    _, inc_sing = singular_locus_reduced(U)
+    D[U] = image_ideal(inc_sing)
+  end
+  Ising = IdealSheaf(X, D)
+  Xsing = subscheme(Ising)
+  return Xsing
+end
