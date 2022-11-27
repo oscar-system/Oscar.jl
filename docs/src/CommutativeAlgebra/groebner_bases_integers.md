@@ -13,7 +13,7 @@ using Oscar
 Pages = ["groebner_bases_integers.md"]
 ```
 
-# Gröbner and Standard Bases Over $\mathbb Z$
+# Gröbner/Standard Bases Over $\mathbb Z$
 
 Over the integers the coefficients of the polynomials 
 are not invertible, thus their handling when computing

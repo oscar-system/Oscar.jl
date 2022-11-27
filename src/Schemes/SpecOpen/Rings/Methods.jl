@@ -16,33 +16,36 @@ end
 ########################################################################
 function restrict(
     f::SpecOpenRingElem, 
-    V::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing}
+    V::AbsSpec{<:Ring, <:MPolyQuoLocalizedRing};
+    check::Bool=true
   )
-  isempty(V) && return zero(OO(V))
+  check && isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V === affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
-  issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
+  check && (issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function"))
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
-  l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
+  #l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
+  l = coordinates(one(OO(V)), ideal(OO(V), lifted_denominator.(g)))
   a = dot(l, OO(V).(lifted_numerator.(g)))
   return a
 end
 
 function restrict(
     f::SpecOpenRingElem, 
-    V::AbsSpec{<:Ring, <:MPolyLocalizedRing}
+    V::AbsSpec{<:Ring, <:MPolyLocalizedRing};
+    check::Bool=true
   )
-  isempty(V) && return zero(OO(V))
+  check && isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V === affine_patches(domain(f))[i]
       return restrictions(f)[i]
     end
   end
-  issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
+  check && (issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function"))
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   J = ideal(OO(V), denominator.(g))
@@ -53,7 +56,8 @@ end
 
 function restrict(
     f::SpecOpenRingElem, 
-    V::SpecOpen
+    V::SpecOpen; 
+    check::Bool=true # Only for compatibility of the call signature
   )
   V === domain(parent(f)) && return f
   fres = [restrict(f, V[i]) for i in 1:ngens(V)]

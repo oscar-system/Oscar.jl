@@ -24,6 +24,10 @@ function SpecOpen(X::AbsSpec, I::MPolyIdeal; check::Bool=true)
   return SpecOpen(X, [g for g in gens(I) if !iszero(OO(X)(g))], check=check)
 end
 
+function SpecOpen(X::AbsSpec, I::MPolyQuoIdeal; check::Bool=true)
+  return SpecOpen(X, [lift(g) for g in gens(I) if !iszero(OO(X)(g))], check=check)
+end
+
 ########################################################################
 # Constructors from closed subvarieties                                #
 ########################################################################
