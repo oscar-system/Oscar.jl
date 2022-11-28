@@ -4,6 +4,23 @@ using Oscar
 
 
 #############################################################
+# 0: Set up parameters for tests
+#############################################################
+
+# test base
+base = TestBase()
+
+# sections, used to test error messages
+sec_f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)])
+sec_g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
+sec_a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(projective_space(NormalToricVariety,3)))])
+sec_a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)])
+sec_a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)])
+sec_a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
+sec_a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
+
+
+#############################################################
 # 1: Global Weierstrass models over concrete base space
 #############################################################
 
@@ -19,6 +36,10 @@ Base.show(w)
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false
     @test toric_variety(cy_hypersurface(w)) == toric_ambient_space(w)
+end
+
+@testset "Error messages in global Weierstrass models over concrete base space" begin
+    @test_throws ArgumentError GlobalWeierstrassModel(sec_f, sec_g, base)
 end
 
 
@@ -69,6 +90,11 @@ Base.show(t)
     @test toric_variety(cy_hypersurface(t)) == toric_ambient_space(t)
 end
 
+@testset "Error messages in global Tate models over concrete base space" begin
+    @test_throws ArgumentError GlobalTateModel([sec_a2, sec_a3, sec_a4, sec_a6], base)
+    @test_throws ArgumentError GlobalTateModel([sec_a1, sec_a2, sec_a3, sec_a4, sec_a6], base)
+end
+
 
 #############################################################
 # 4: Global Tate models over generic base space
@@ -101,4 +127,5 @@ end
 
 @testset "Error messages in global Tate models over generic base space" begin
     @test_throws ArgumentError GlobalTateModel([a1], auxiliary_base_ring)
+    @test_throws ArgumentError GlobalTateModel([a1, a2, a3, a4, sec_a6], auxiliary_base_ring)
 end

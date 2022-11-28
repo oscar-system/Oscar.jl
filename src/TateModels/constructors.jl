@@ -32,7 +32,7 @@ export GlobalTateModel
 ################################################
 
 @doc Markdown.doc"""
-    GenericGlobalTateModel(base::Oscar.AbstractNormalToricVariety)
+    GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
@@ -78,7 +78,7 @@ export GlobalTateModelOverProjectiveSpace
 
 
 @doc Markdown.doc"""
-    SpecificGlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, base::Oscar.AbstractNormalToricVariety)
+    GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
 
 This method operates analogously to `GenericGlobalTateModel(base::Oscar.AbstractNormalToricVariety)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -107,7 +107,7 @@ julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-function GlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, base::Oscar.AbstractNormalToricVariety)
+function GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
     if length(ais) != 5
         throw(ArgumentError("We require exactly 5 Tate section"))
     end
@@ -129,7 +129,7 @@ export GlobalTateModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalTateModel(ais::Vector{fmpq_mpoly}, auxiliary_base_ring::MPolyRing)
+    GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing) where {T<:MPolyElem{fmpq}}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -168,7 +168,7 @@ julia> dim(toric_ambient_space(t))
 8
 ```
 """
-function GlobalTateModel(ais::Vector{fmpq_mpoly}, auxiliary_base_ring::MPolyRing)
+function GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing) where {T<:MPolyElem{fmpq}}
     if length(ais) != 5
         throw(ArgumentError("We expect exactly 5 Tate sections"))
     end

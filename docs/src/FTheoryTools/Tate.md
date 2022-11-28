@@ -35,7 +35,7 @@ the ambient space constructed by our methods need not be smooth.
 We support the following constructors:
 ```@docs
 GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
-GlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, base::Oscar.AbstractNormalToricVariety)
+GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
 GlobalTateModelOverProjectiveSpace()
 ```
 
@@ -68,7 +68,7 @@ ring of an auxiliary toric base space, namely an affine space with those coordin
 
 Such geometries can be constructed with the following constructor:
 ```@docs
-GlobalTateModel(ais::Vector{fmpq_mpoly}, auxiliary_base_ring::MPolyRing)
+GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing) where {T<:MPolyElem{fmpq}}
 ```
 
 
