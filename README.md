@@ -94,7 +94,7 @@ If you are interested in contributing, please feel free to reach out to us for m
 
 ## Citation
 
-If `FTheoryTools` has been used in your research, please use the bibtex below or download it [here](./bibtex.bib):
+If `FTheoryTools` has been used in your research, please use the bibtex below or download it [here](https://github.com/Julia-meets-String-Theory/FTheoryTools.jl/blob/master/bibtex.bib):
 ```bibtex
 @Misc{FTheoryTools,
   author       = "Bies, Martin and Andrew, P. Turner",
