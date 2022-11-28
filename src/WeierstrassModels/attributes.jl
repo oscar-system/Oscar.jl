@@ -63,53 +63,7 @@ export weierstrass_polynomial
 
 
 #######################################
-# 3: Discriminant
-#######################################
-
-@doc Markdown.doc"""
-    discriminant(w::GlobalWeierstrassModel)
-
-Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
-
-```jldoctest
-julia> using Oscar
-
-julia> w = GlobalWeierstrassModel(TestBase())
-A global Weierstrass model over a concrete base
-
-julia> discriminant(w);
-```
-"""
-@attr MPolyElem{fmpq} Oscar.:discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
-export discriminant
-
-
-#####################################################
-# 4: The CY hypersurface
-#####################################################
-
-@doc Markdown.doc"""
-    cy_hypersurface(w::GlobalWeierstrassModel)
-
-Return the Calabi-Yau hypersurface in the toric ambient space
-which defines the global Weierstrass model.
-
-```jldoctest
-julia> using Oscar
-
-julia> w = GlobalWeierstrassModel(TestBase())
-A global Weierstrass model over a concrete base
-
-julia> cy_hypersurface(w)
-A closed subvariety of a normal toric variety
-```
-"""
-@attr Oscar.ClosedSubvarietyOfToricVariety cy_hypersurface(w::GlobalWeierstrassModel) = w.Y4
-export cy_hypersurface
-
-
-#######################################
-# 5: Toric spaces
+# 3: Toric spaces
 #######################################
 
 @doc Markdown.doc"""
@@ -148,3 +102,57 @@ false
 """
 @attr Oscar.AbstractNormalToricVariety toric_ambient_space(w::GlobalWeierstrassModel) = w.toric_ambient_space
 export toric_base_space
+
+
+#####################################################
+# 4: The CY hypersurface
+#####################################################
+
+@doc Markdown.doc"""
+    cy_hypersurface(w::GlobalWeierstrassModel)
+
+Return the Calabi-Yau hypersurface in the toric ambient space
+which defines the global Weierstrass model.
+
+```jldoctest
+julia> using Oscar
+
+julia> w = GlobalWeierstrassModel(TestBase())
+A global Weierstrass model over a concrete base
+
+julia> cy_hypersurface(w)
+A closed subvariety of a normal toric variety
+```
+"""
+@attr Oscar.ClosedSubvarietyOfToricVariety cy_hypersurface(w::GlobalWeierstrassModel) = w.Y4
+export cy_hypersurface
+
+
+#####################################################
+# 5: Turn global Weierstrass model into Tate model
+#####################################################
+
+# TODO: To come
+# TODO: To come
+
+
+#######################################
+# 6: Discriminant
+#######################################
+
+@doc Markdown.doc"""
+    discriminant(w::GlobalWeierstrassModel)
+
+Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
+
+```jldoctest
+julia> using Oscar
+
+julia> w = GlobalWeierstrassModel(TestBase())
+A global Weierstrass model over a concrete base
+
+julia> discriminant(w);
+```
+"""
+@attr MPolyElem{fmpq} Oscar.:discriminant(w::GlobalWeierstrassModel) = 4 * w.poly_f^3 + 27 * w.poly_g^2
+export discriminant
