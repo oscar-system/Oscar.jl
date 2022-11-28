@@ -332,7 +332,7 @@ function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering
   complete_reduction && @assert is_global(ordering)
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     # TODO: can do this with hecke?
-    while bad_prime
+    while true
       p = 0
       while true
         p = rand(2^15:2^16)
