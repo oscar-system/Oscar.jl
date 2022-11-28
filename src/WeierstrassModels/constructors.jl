@@ -134,9 +134,11 @@ julia> weierstrass_polynomial(w)
 f*x*z^4 + g*z^6 + x^3 - y^2
 
 julia> toric_base_space(w)
+[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 A normal, affine, 2-dimensional toric variety
 
 julia> toric_ambient_space(w)
+[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 A normal, simplicial toric variety
 
 julia> dim(toric_ambient_space(w))

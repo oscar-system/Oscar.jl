@@ -81,7 +81,10 @@ julia> is_smooth(toric_base_space(w))
 true
 ```
 """
-@attr Oscar.AbstractNormalToricVariety toric_base_space(w::GlobalWeierstrassModel) = w.toric_base_space
+@attr Oscar.AbstractNormalToricVariety function toric_base_space(w::GlobalWeierstrassModel)
+    base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
+    return w.toric_base_space
+end
 export toric_base_space
 
 
@@ -100,7 +103,10 @@ julia> is_smooth(toric_ambient_space(w))
 false
 ```
 """
-@attr Oscar.AbstractNormalToricVariety toric_ambient_space(w::GlobalWeierstrassModel) = w.toric_ambient_space
+@attr Oscar.AbstractNormalToricVariety function toric_ambient_space(w::GlobalWeierstrassModel)
+    base_fully_specified(w) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
+    return w.toric_ambient_space
+end
 export toric_base_space
 
 
@@ -124,7 +130,10 @@ julia> cy_hypersurface(w)
 A closed subvariety of a normal toric variety
 ```
 """
-@attr Oscar.ClosedSubvarietyOfToricVariety cy_hypersurface(w::GlobalWeierstrassModel) = w.Y4
+@attr Oscar.ClosedSubvarietyOfToricVariety function cy_hypersurface(w::GlobalWeierstrassModel)
+    base_fully_specified(w) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
+    return w.Y4
+end
 export cy_hypersurface
 
 

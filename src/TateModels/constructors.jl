@@ -159,9 +159,11 @@ julia> tate_polynomial(t)
 -a10*x*y*z + a21*w*x^2*z^2 - a32*w^2*y*z^3 + a43*w^3*x*z^4 + a65*w^5*z^6 + x^3 - y^2
 
 julia> toric_base_space(t)
+[ Info: Base space was not fully specified. Returning AUXILIARY base space.
 A normal, affine, 6-dimensional toric variety
 
 julia> toric_ambient_space(t)
+[ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 A normal, simplicial toric variety
 
 julia> dim(toric_ambient_space(t))

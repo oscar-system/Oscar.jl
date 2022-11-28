@@ -133,7 +133,10 @@ julia> toric_base_space(t)
 A normal toric variety without torusfactor
 ```
 """
-@attr Oscar.AbstractNormalToricVariety toric_base_space(t::GlobalTateModel) = t.toric_base_space
+@attr Oscar.AbstractNormalToricVariety function toric_base_space(t::GlobalTateModel)
+    base_fully_specified(t) || @info("Base space was not fully specified. Returning AUXILIARY base space.")
+    return t.toric_base_space
+end
 export toric_base_space
 
 
@@ -155,7 +158,10 @@ julia> is_smooth(toric_ambient_space(t))
 false
 ```
 """
-@attr Oscar.AbstractNormalToricVariety toric_ambient_space(t::GlobalTateModel) = t.toric_ambient_space
+@attr Oscar.AbstractNormalToricVariety function toric_ambient_space(t::GlobalTateModel)
+    base_fully_specified(t) || @info("Base space was not fully specified. Returning AUXILIARY ambient space.")
+    return t.toric_ambient_space
+end
 export toric_ambient_space
 
 
@@ -179,7 +185,10 @@ julia> cy_hypersurface(t)
 A closed subvariety of a normal toric variety
 ```
 """
-@attr Oscar.ClosedSubvarietyOfToricVariety cy_hypersurface(t::GlobalTateModel) = t.Y4
+@attr Oscar.ClosedSubvarietyOfToricVariety function cy_hypersurface(t::GlobalTateModel)
+    base_fully_specified(t) || @info("Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.")
+    return t.Y4
+end
 export cy_hypersurface
 
 
