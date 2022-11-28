@@ -60,6 +60,7 @@ image(tm::ToricMorphism)
 codomain(tm::ToricMorphism)
 grid_morphism(tm::ToricMorphism)
 morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
+morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 ```
 
 ### Special attributes of toric varieties
@@ -74,6 +75,6 @@ of $\mathbb{R}^N$ and the maximal cones are one to one to the maximal cones of
 the fan of $v$.
 
 ```@docs
-morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 morphism_from_cox_variety(variety::AbstractNormalToricVariety)
+cox_variety(variety::AbstractNormalToricVariety)
 ```
