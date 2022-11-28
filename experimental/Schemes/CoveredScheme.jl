@@ -154,6 +154,17 @@ end
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()
+
+  # The case of ℙ⁰-bundles appears frequently in blowups when the 
+  # ideal sheaf is trivial on some affine open part. 
+  if r == 0
+    result = Covering(Y)
+    pU[Y] = identity_map(Y)
+    covered_projection = CoveringMorphism(result, result, pU)
+    set_attribute!(X, :covering_projection_to_base, covered_projection)
+    return result
+  end
+
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
