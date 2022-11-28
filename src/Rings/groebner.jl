@@ -332,7 +332,15 @@ function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering
   complete_reduction && @assert is_global(ordering)
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     # TODO: how to choose the characteristic?
-    base_field = GF(65521)
+    p = 0
+    while true
+      p = rand(2^15:2^16)
+      if isprime(p)
+        break
+      end
+    end
+        
+    base_field = GF(p)
     ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
     I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
     build_ctx = MPolyBuildCtx(ModP)
