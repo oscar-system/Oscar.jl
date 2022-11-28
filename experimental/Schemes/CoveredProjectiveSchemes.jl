@@ -1378,3 +1378,10 @@ end
 #end
 #
 #
+
+########################################################################
+# Printing                                                             #
+########################################################################
+function Base.show(io::IO, X::CoveredProjectiveScheme)
+  print(io, "relative projective scheme over $(base_scheme(X))")
+end
