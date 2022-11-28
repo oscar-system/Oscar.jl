@@ -79,6 +79,9 @@ end
 
     a = @inferred root_of_unity(K, 4)
     @test isone(a^4) && !isone(a) && !isone(a^2)
+
+    # reset variable for any subsequent (doc-)tests
+    set_variable!(K, "ζ")
   end
 
   @testset "Coercion" begin
