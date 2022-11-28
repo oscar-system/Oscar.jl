@@ -137,8 +137,22 @@ Abelian group with structure: Z^4
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
-    source_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
-    morphism_of_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
-    return restrict_codomain(source_embedding * morphism_of_weil_divisors)
+
+    # compute some required mappings
+    domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
+    morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
+
+    # compute post inverse to CDivT(codomain_variety) -> DivT(domain_variety)
+    divT = torusinvariant_weil_divisor_group(codomain_variety)
+    f = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(codomain_variety)
+    if typeof(f) == AbstractAlgebra.Generic.IdentityMap{GrpAbFinGen}
+      mapping_matrix = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:rank(divT)] for i in 1:rank(divT)])
+    else
+      mapping_matrix = vcat([preimage(f, g).coeff for g in gens(divT)])
+    end
+    codomain_post_inverse = hom(torusinvariant_cartier_divisor_group(codomain_variety), torusinvariant_weil_divisor_group(codomain_variety), mapping_matrix)
+
+    # compose to construct the desired morphism
+    return domain_embedding * morphism_on_weil_divisors * codomain_post_inverse
 end
 export morphism_on_torusinvariant_cartier_divisor_group
