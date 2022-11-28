@@ -18,6 +18,7 @@ end
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
 const IS_DEV = isdir(@__DIR__, "..", ".git")
+const ftheorytoolsdir = Base.pkgdir(FTheoryTools)
 
 """
     version

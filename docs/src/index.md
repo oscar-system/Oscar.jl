@@ -2,7 +2,8 @@
 
 ## Goal
 
-The package FTheoryTools.jl aims to automate a number of recuring and (at least in part) tedious computations in F-theory model building. Specifically we focus on the following setups:
+The package FTheoryTools.jl aims to automate a number of recuring and (at least in part) tedious computations in F-theory model building
+as described in large detail in [Wei18](@cite). Specifically, we focus on the following setups:
 * 4d F-theory compactifications,
 * defined by a global and singular Weierstrass model as codimension 1 locus of a toric ambient space $Y$,
 * which can be crepantly resolved.
