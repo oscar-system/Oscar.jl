@@ -69,6 +69,15 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
 For detailed information about the implemented functionality, please take a look at the most recent [documentation](https://julia-meets-string-theory.github.io/FTheoryTools.jl/dev/).
 
 
+## Tests
+
+We aim for a high test coverage. This should be conducted with good and demanding examples, which at the same time do not exceed certain
+computational times. To this end, we use a particular toric 3-fold, which we have identified to serve this purpose.
+```@docs
+TestBase()
+```
+
+
 ## Bugs and feature requests
 
 If you want to report a bug or request a feature, please do it by raising a [github issue](https://github.com/Julia-meets-String-Theory/FTheoryTools.jl/issues).

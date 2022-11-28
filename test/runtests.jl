@@ -4,20 +4,10 @@ using Oscar
 
 
 #############################################################
-# 1: Compute base space for explicit fibrations
+# 1: Global Weierstrass models over concrete base space
 #############################################################
 
-test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-
-
-#############################################################
-# 2: Global Weierstrass models
-#############################################################
-
-w = GlobalWeierstrassModel(base)
+w = GlobalWeierstrassModel(TestBase())
 Base.show(w)
 
 @testset "Attributes of global Weierstrass models" begin
@@ -33,7 +23,7 @@ end
 
 
 #############################################################
-# 3: Global Weierstrass models over generic base space
+# 2: Global Weierstrass models over generic base space
 #############################################################
 
 auxiliary_base_ring, (f, g) = QQ["f", "g"]
@@ -57,10 +47,10 @@ end
 
 
 #############################################################
-# 4: Global Tate models over concrete base space
+# 3: Global Tate models over concrete base space
 #############################################################
 
-t = GlobalTateModel(base)
+t = GlobalTateModel(TestBase())
 Base.show(t)
 
 @testset "Attributes of global Tate models" begin
@@ -81,7 +71,7 @@ end
 
 
 #############################################################
-# 5: Global Tate models over generic base space
+# 4: Global Tate models over generic base space
 #############################################################
 
 auxiliary_base_ring, (a10,a21,a32,a43,a65,w) = QQ["a10", "a21", "a32", "a43", "a65", "w"]

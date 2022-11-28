@@ -36,19 +36,7 @@ random coefficients.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))
@@ -94,16 +82,7 @@ The only difference is that the Weierstrass sections ``f`` and ``g`` can be spec
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
+julia> base = TestBase()
 A normal toric variety
 
 julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)]);

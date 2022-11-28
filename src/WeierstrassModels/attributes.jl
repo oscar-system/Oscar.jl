@@ -11,19 +11,7 @@ construction of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> weierstrass_section_f(w);
@@ -42,19 +30,7 @@ construction of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> weierstrass_section_g(w);
@@ -76,19 +52,7 @@ Return the Weierstrass polynomial of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> weierstrass_polynomial(w);
@@ -110,19 +74,7 @@ Return the discriminant ``\Delta = 4 f^3 + 27 g^2``.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> discriminant(w);
@@ -145,19 +97,7 @@ which defines the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> cy_hypersurface(w)
@@ -180,19 +120,7 @@ Return the toric base space of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_base_space(w))
@@ -211,19 +139,7 @@ Return the toric base space of the global Weierstrass model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> w = GlobalWeierstrassModel(base)
+julia> w = GlobalWeierstrassModel(TestBase())
 A global Weierstrass model over a concrete base
 
 julia> is_smooth(toric_ambient_space(w))

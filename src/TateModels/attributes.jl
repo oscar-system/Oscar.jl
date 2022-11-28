@@ -10,19 +10,7 @@ Return the Tate section ``a_1``.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> tate_section_a1(t);
@@ -40,19 +28,7 @@ Return the Tate section ``a_2``.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> tate_section_a2(t);
@@ -70,19 +46,7 @@ Return the Tate section ``a_3``.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> tate_section_a3(t);
@@ -100,19 +64,7 @@ Return the Tate section ``a_4``.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> tate_section_a4(t);
@@ -130,19 +82,7 @@ Return the Tate section ``a_6``.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> tate_section_a6(t);
@@ -164,19 +104,7 @@ Return the Tate polynomial of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> tate_polynomial(t);
@@ -198,19 +126,7 @@ Return the toric base space of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> toric_base_space(t)
@@ -229,19 +145,7 @@ Return the toric ambient space of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> toric_ambient_space(t)
@@ -268,19 +172,7 @@ which defines the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> cy_hypersurface(t)
@@ -303,19 +195,7 @@ Return the global Weierstrass model which is equivalent to the given Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> global_weierstrass_model(t)
@@ -353,19 +233,7 @@ Return the discriminant of the global Tate model.
 ```jldoctest
 julia> using Oscar
 
-julia> test_space = hirzebruch_surface(2) * projective_space(NormalToricVariety,1)
-A normal toric variety
-
-julia> test_space1 = blowup_on_ith_minimal_torus_orbit(test_space,1,"e1")
-A normal toric variety
-
-julia> test_space2 = blowup_on_ith_minimal_torus_orbit(test_space1,1,"e2")
-A normal toric variety
-
-julia> base = blowup_on_ith_minimal_torus_orbit(test_space2,1,"e3")
-A normal toric variety
-
-julia> t = GlobalTateModel(base)
+julia> t = GlobalTateModel(TestBase())
 A global Tate model over a concrete base
 
 julia> discriminant(t);
