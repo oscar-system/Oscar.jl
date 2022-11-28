@@ -42,18 +42,23 @@ end
 # 2: Construct the Weierstrass polynomial
 ################################################################
 
-function _weierstrass_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety)
+function _weierstrass_sections(base::Oscar.AbstractNormalToricVariety)
     f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
     g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
-    return _weierstrass_polynomial(cox_ring(toric_ambient_space), f, g)
+    return [f, g]
 end
 
-function _weierstrass_polynomial(S::MPolyRing_dec{fmpq, FmpqMPolyRing}, f::MPolyElem{fmpq}, g::MPolyElem{fmpq})
+function _weierstrass_polynomial(base::Oscar.AbstractNormalToricVariety, S::MPolyRing_dec{fmpq, FmpqMPolyRing})
+    (f, g) = _weierstrass_sections(base)
+    return _weierstrass_polynomial(S, f, g)
+end
+
+function _weierstrass_polynomial(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, S::MPolyRing_dec{fmpq, FmpqMPolyRing})
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
     z = gens(S)[length(gens(S))]
     ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:length(gens(S))-3])
-    return [f, g, x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6]
+    return x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
 end
 
 
@@ -61,22 +66,27 @@ end
 # 3: Construct the Tate polynomial
 ################################################################
 
-function _tate_polynomial(base::Oscar.AbstractNormalToricVariety, toric_ambient_space::Oscar.AbstractNormalToricVariety)
+function _tate_sections(base::Oscar.AbstractNormalToricVariety)
     a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base))])
     a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)])
     a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)])
     a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
     a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
-    return _tate_polynomial(cox_ring(toric_ambient_space), [a1, a2, a3, a4, a6])
+    return [a1, a2, a3, a4, a6]
 end
 
-function _tate_polynomial(S::MPolyRing_dec{fmpq, FmpqMPolyRing}, ais::Vector{<:MPolyElem{fmpq}})
+function _tate_polynomial(base::Oscar.AbstractNormalToricVariety, S::MPolyRing_dec{fmpq, FmpqMPolyRing})
+    (a1, a2, a3, a4, a6) = _tate_sections(base)
+    return _tate_polynomial(S, [a1, a2, a3, a4, a6])
+end
+
+function _tate_polynomial(ais::Vector{<:MPolyElem{fmpq}}, S::MPolyRing_dec{fmpq, FmpqMPolyRing})
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
     z = gens(S)[length(gens(S))]
     ring_map = hom(parent(ais[1]), S, [gens(S)[i] for i in 1:length(gens(S))-3])
     (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
-    return [ais[1], ais[2], ais[3], ais[4], ais[5], x^3 - y^2 - x*y*z*a1 + x^2*z^2*a2 - y*z^3*a3 + x*z^4*a4 + z^6*a6]
+    return x^3 - y^2 - x*y*z*a1 + x^2*z^2*a2 - y*z^3*a3 + x*z^4*a4 + z^6*a6
 end
 
 

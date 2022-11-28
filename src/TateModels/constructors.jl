@@ -50,7 +50,8 @@ false
 """
 function GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
     toric_ambient_space = _ambient_space_from_base(base)
-    (a1, a2, a3, a4, a6, pt) = _tate_polynomial(base, toric_ambient_space)
+    (a1, a2, a3, a4, a6) = _tate_sections(base)
+    pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(toric_ambient_space))
     Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space, [pt])
     model = GlobalTateModel(a1, a2, a3, a4, a6, pt, base, toric_ambient_space, Y4)
     set_attribute!(model, :base_fully_specified, true)
@@ -114,9 +115,9 @@ function GlobalTateModel(ais::Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}, base::Osc
         throw(ArgumentError("All Tate sections must reside in the Cox ring of the base toric variety"))
     end
     toric_ambient_space = _ambient_space_from_base(base)
-    (a1, a2, a3, a4, a6, pt) = _tate_polynomial(cox_ring(toric_ambient_space), ais)
+    pt = _tate_polynomial(ais, cox_ring(toric_ambient_space))
     Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space, [pt])
-    model = GlobalTateModel(a1, a2, a3, a4, a6, pt, base, toric_ambient_space, Y4)
+    model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, toric_ambient_space, Y4)
     set_attribute!(model, :base_fully_specified, true)
     return model
 end
@@ -174,14 +175,21 @@ function GlobalTateModel(ais::Vector{fmpq_mpoly}, auxiliary_base_ring::MPolyRing
     if any(k -> parent(k) != auxiliary_base_ring, ais)
         throw(ArgumentError("All Tate sections must reside in the provided auxiliary base ring"))
     end
+
+    # construct auxiliary base space
     auxiliary_base_space = affine_space(NormalToricVariety, length(gens(auxiliary_base_ring)))
     set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
-    auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
-    (a1, a2, a3, a4, a6, pt) = _tate_polynomial(cox_ring(auxiliary_ambient_space), ais)
-    Y4 = Oscar.ClosedSubvarietyOfToricVariety(auxiliary_ambient_space, [pt])
+
+    # convert Tate sections into polynomials of the auxiliary base
     S = cox_ring(auxiliary_base_space)
     ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:length(gens(S))])
-    model = GlobalTateModel(ring_map(ais[1]), ring_map(ais[2]), ring_map(ais[3]), ring_map(ais[4]), ring_map(ais[5]), pt, auxiliary_base_space, auxiliary_ambient_space, Y4)
+    (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
+
+    # construct model
+    auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
+    pt = _tate_polynomial([a1, a2, a3, a4, a6], cox_ring(auxiliary_ambient_space))
+    Y4 = Oscar.ClosedSubvarietyOfToricVariety(auxiliary_ambient_space, [pt])
+    model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space, Y4)
     set_attribute!(model, :base_fully_specified, false)
     return model
 end
