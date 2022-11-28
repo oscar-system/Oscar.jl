@@ -14,21 +14,26 @@ some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``
 do not need to coincide! However, given the glueings in `C` and `D`, all affine maps
 have to coincide on their overlaps.
 """
-mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, BaseMorType}
+mutable struct CoveringMorphism{DomainType<:Covering, 
+                                CodomainType<:Covering, 
+                                MorphismType<:AbsSpecMor, 
+                                BaseMorType
+                               }
   domain::DomainType
   codomain::CodomainType
-  morphisms::IdDict{<:AbsSpec, <:AbsSpecMor} # on a patch X of the domain covering, this
+  morphisms::IdDict{<:AbsSpec, <:MorphismType} # on a patch X of the domain covering, this
                                          # returns the morphism φ : X → Y to the corresponding
                                          # patch Y of the codomain covering.
 
   function CoveringMorphism(
       dom::DomainType,
       cod::CodomainType,
-      mor::IdDict{<:AbsSpec, <:AbsSpecMor};
+      mor::IdDict{<:AbsSpec, <:MorphismType};
       check::Bool=true
     ) where {
              DomainType<:Covering,
-             CodomainType<:Covering
+             CodomainType<:Covering,
+             MorphismType<:AbsSpecMor
             }
     # TODO: check domain/codomain compatibility
     # TODO: if check is true, check that all morphisms glue and that the domain patches
@@ -48,7 +53,7 @@ mutable struct CoveringMorphism{DomainType<:Covering, CodomainType<:Covering, Ba
         !found && error("patch $U of the domain not covered")
       end
     end
-    return new{DomainType, CodomainType, Nothing}(dom, cod, mor)
+    return new{DomainType, CodomainType, MorphismType, Nothing}(dom, cod, mor)
   end
 end
 

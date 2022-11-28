@@ -376,3 +376,37 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  end
 #  return result
 #end
+
+########################################################################
+# Closed embeddings                                                    #
+########################################################################
+@attributes mutable struct CoveredClosedEmbedding{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 CoveredSchemeMorphism,
+                                 BaseMorphismType
+                                }
+  f::CoveredSchemeMorphism
+  I::IdealSheaf
+
+  function CoveredClosedEmbedding(
+      X::DomainType,
+      Y::CodomainType,
+      f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
+      check::Bool=true
+    ) where {
+             DomainType<:CoveredScheme,
+             CodomainType<:CoveredScheme,
+             MorphismType<:ClosedEmbedding,
+             BaseMorType
+            }
+    ff = CoveredSchemeMorphism(X, Y, f, check=check)
+    #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
+    I = IdealSheaf(Y, f)
+    return new{DomainType, CodomainType, BaseMorType}(ff, I)
+  end
+end
