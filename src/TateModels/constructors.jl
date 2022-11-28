@@ -129,7 +129,7 @@ export GlobalTateModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing) where {T<:MPolyElem{fmpq}}
+    GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
 
 This method constructs a global Tate model over a base space that is not
 fully specified. The following example exemplifies this approach.
@@ -138,7 +138,7 @@ fully specified. The following example exemplifies this approach.
 ```jldoctest
 julia> using Oscar
 
-julia> auxiliary_base_ring, (a10,a21,a32,a43,a65,w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
 
 julia> a1 = a10;
 
@@ -152,7 +152,7 @@ julia> a6 = a65 * w^5;
 
 julia> ais = [a1, a2, a3, a4, a6];
 
-julia> t = GlobalTateModel(ais, auxiliary_base_ring)
+julia> t = GlobalTateModel(ais, auxiliary_base_ring, 3)
 A global Tate model over a not fully specified base
 
 julia> tate_polynomial(t)
@@ -160,29 +160,32 @@ julia> tate_polynomial(t)
 
 julia> toric_base_space(t)
 [ Info: Base space was not fully specified. Returning AUXILIARY base space.
-A normal, affine, 6-dimensional toric variety
+A normal toric variety
 
 julia> toric_ambient_space(t)
 [ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 A normal, simplicial toric variety
 
 julia> dim(toric_ambient_space(t))
-8
+5
 ```
 """
-function GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing) where {T<:MPolyElem{fmpq}}
+function GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
     if length(ais) != 5
         throw(ArgumentError("We expect exactly 5 Tate sections"))
     end
     if any(k -> parent(k) != auxiliary_base_ring, ais)
         throw(ArgumentError("All Tate sections must reside in the provided auxiliary base ring"))
     end
-
-    # construct auxiliary base space
-    auxiliary_base_space = affine_space(NormalToricVariety, length(gens(auxiliary_base_ring)))
-    set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
+    if d <= 0
+        throw(ArgumentError("The dimension of the base space must be positive"))
+    end
+    if length([string(k) for k in gens(auxiliary_base_ring)]) < d
+        throw(ArgumentError("We expect at least as many base variables as the desired base dimension"))
+    end
 
     # convert Tate sections into polynomials of the auxiliary base
+    auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
     S = cox_ring(auxiliary_base_space)
     ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:length(gens(S))])
     (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]

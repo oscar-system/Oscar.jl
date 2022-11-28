@@ -74,7 +74,7 @@ export GlobalWeierstrassModelOverProjectiveSpace
 
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModel(f::MPolyElem_dec{fmpq, fmpq_mpoly}, g::MPolyElem_dec{fmpq, fmpq_mpoly}, base::Oscar.AbstractNormalToricVariety)
+    GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
 
 This method operates analogously to `GenericGlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
@@ -97,7 +97,7 @@ julia> is_smooth(toric_ambient_space(w))
 false
 ```
 """
-function GlobalWeierstrassModel(f::MPolyElem_dec{fmpq, fmpq_mpoly}, g::MPolyElem_dec{fmpq, fmpq_mpoly}, base::Oscar.AbstractNormalToricVariety)
+function GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
     if (parent(f) != cox_ring(base)) || (parent(g) != cox_ring(base))
         throw(ArgumentError("All Weierstrass sections must reside in the Cox ring of the base toric variety"))
     end
@@ -116,7 +116,7 @@ export GlobalWeierstrassModel
 ################################################
 
 @doc Markdown.doc"""
-    GlobalWeierstrassModel(f::fmpq_mpoly, g::fmpq_mpoly, auxiliary_base_ring::MPolyRing)
+    GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
 
 This method constructs a global Weierstrass model over a base space that is not
 fully specified. The following example illustrates this approach.
@@ -125,9 +125,9 @@ fully specified. The following example illustrates this approach.
 ```jldoctest
 julia> using Oscar
 
-julia> auxiliary_base_ring, (f, g) = QQ["f", "g"];
+julia> auxiliary_base_ring, (f, g, x) = QQ["f", "g", "x"];
 
-julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
+julia> w = GlobalWeierstrassModel(f, g, auxiliary_base_ring, 3)
 A global Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w)
@@ -135,26 +135,29 @@ f*x*z^4 + g*z^6 + x^3 - y^2
 
 julia> toric_base_space(w)
 [ Info: Base space was not fully specified. Returning AUXILIARY base space.
-A normal, affine, 2-dimensional toric variety
+A normal toric variety
 
 julia> toric_ambient_space(w)
 [ Info: Base space was not fully specified. Returning AUXILIARY ambient space.
 A normal, simplicial toric variety
 
 julia> dim(toric_ambient_space(w))
-4
+5
 ```
 """
-function GlobalWeierstrassModel(poly_f::fmpq_mpoly, poly_g::fmpq_mpoly, auxiliary_base_ring::MPolyRing)
+function GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}, auxiliary_base_ring::MPolyRing, d::Int)
     if (parent(poly_f) != auxiliary_base_ring) || (parent(poly_g) != auxiliary_base_ring)
         throw(ArgumentError("All Weierstrass sections must reside in the provided auxiliary base ring"))
     end
+    if d <= 0
+        throw(ArgumentError("The dimension of the base space must be positive"))
+    end
+    if length([string(k) for k in gens(auxiliary_base_ring)]) < d
+        throw(ArgumentError("We expect at least as many base variables as the desired base dimension"))
+    end
 
-    # construct auxiliary base
-    auxiliary_base_space = affine_space(NormalToricVariety, length(gens(auxiliary_base_ring)))
-    set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
-
-    # convert input polynomials into polynomials in the cox ring of the auxiliary base
+    # convert Tate sections into polynomials of the auxiliary base
+    auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
     S = cox_ring(auxiliary_base_space)
     ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:length(gens(S))])
     f = ring_map(poly_f)

@@ -1,5 +1,17 @@
 ################################################################
-# 1: Construct ambient space from given base
+# 1: Construct auxiliary base space
+################################################################
+
+function _auxiliary_base_space(variable_names::Vector{String}, d::Int)
+    ray_gens = [[if i==j 1 else 0 end for j in 1:length(variable_names)] for i in 1:length(variable_names)]
+    max_cones = Oscar.Hecke.subsets(length(variable_names), d)
+    auxiliary_base_space = NormalToricVariety(ray_gens, max_cones)
+    set_coordinate_names(auxiliary_base_space, variable_names)
+    return auxiliary_base_space
+end
+
+################################################################
+# 2: Construct ambient space from given base
 ################################################################
 
 function _ambient_space_from_base(base::Oscar.AbstractNormalToricVariety)
@@ -39,7 +51,7 @@ end
 
 
 ################################################################
-# 2: Construct the Weierstrass polynomial
+# 3: Construct the Weierstrass polynomial
 ################################################################
 
 function _weierstrass_sections(base::Oscar.AbstractNormalToricVariety)
@@ -63,7 +75,7 @@ end
 
 
 ################################################################
-# 3: Construct the Tate polynomial
+# 4: Construct the Tate polynomial
 ################################################################
 
 function _tate_sections(base::Oscar.AbstractNormalToricVariety)
@@ -91,7 +103,7 @@ end
 
 
 ################################################################
-# 4: A base space for efficient testing
+# 5: A base space for efficient testing
 ################################################################
 
 @doc Markdown.doc"""

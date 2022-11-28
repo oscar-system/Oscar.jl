@@ -68,7 +68,7 @@ ring of an auxiliary toric base space, namely an affine space with those coordin
 
 Such geometries can be constructed with the following constructor:
 ```@docs
-GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing) where {T<:MPolyElem{fmpq}}
+GlobalTateModel(ais::Vector{T}, auxiliary_base_ring::MPolyRing, d::Int) where {T<:MPolyElem{fmpq}}
 ```
 
 
@@ -103,4 +103,19 @@ which returns `true` in case the Tate model is defined over a concrete base and
 
 ```@docs
 base_fully_specified(t::GlobalTateModel)
+```
+
+## Singular loci
+
+For applications in F-theory, singular elliptic fibrations are key
+(cf. [Wei18](@cite) and references therein). The general approach is
+to not work with the singular space directly. Rather, one resolves
+the singularities in order to obtain a smooth space instead.
+Subsequently, one performs computations on this smooth space.
+
+In this sense, knowledge of the singular loci is a first step to
+a successful analysis of such a geometry. For this, we provide
+the following functionality.
+```@docs
+singular_loci(t::GlobalTateModel)
 ```
