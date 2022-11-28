@@ -85,20 +85,25 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   return I
 end
 
+@Markdown.doc """
+    IdealSheaf(Y::AbsCoveredScheme, 
+        phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+    )
+
+Internal method to create an ideal sheaf from a `CoveringMorphism` 
+of `ClosedEmbedding`s; return the ideal sheaf describing the images 
+of the local morphisms.
+"""
 function IdealSheaf(Y::AbsCoveredScheme, 
     phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
   )
-  X = domain(phi)
-  Y = codomain(phi)
-  phi_cov = covering_morphism(phi)
-  maps = morphisms(phi_cov)
+  maps = morphisms(phi)
   V = [codomain(ff) for ff in values(maps)]
   dict = IdDict{AbsSpec, Ideal}()
   for U in affine_charts(Y)
     if U in V
-      # TODO: Find 'the' morphism with codomain V.
-      #inc = findfirst(x->(codomain(x)==V), maps)
-      dict[U] = image_ideal(inc)
+      i = findall(x->(codomain(x) == U), maps)
+      dict[U] = image_ideal(maps[first(i)])
     else
       dict[U] = ideal(OO(U), one(OO(U)))
     end

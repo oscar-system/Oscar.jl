@@ -28,7 +28,7 @@ mutable struct CoveringMorphism{DomainType<:Covering,
   function CoveringMorphism(
       dom::DomainType,
       cod::CodomainType,
-      mor::IdDict{<:AbsSpec, <:MorphismType};
+      mor::IdDict{<:AbsSpec, MorphismType};
       check::Bool=true
     ) where {
              DomainType<:Covering,

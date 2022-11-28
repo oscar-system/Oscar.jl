@@ -525,6 +525,7 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   end
   R = base_ring(OO(X))
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
+  I = radical(I)
   set_attribute!(X, :is_smooth, false)
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
@@ -579,7 +580,9 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   I= ideal(ambient_coordinate_ring(X),one(ambient_coordinate_ring(X)))
   for Z in comp
     I = intersect(I, modulus(underlying_quotient(OO(Z))))
-  end     
+    # TODO: Already compute intermediate radicals?
+  end
+  I = radical(I)
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
   return subscheme(X,I)

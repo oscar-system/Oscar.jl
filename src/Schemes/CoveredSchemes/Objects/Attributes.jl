@@ -150,10 +150,10 @@ function singular_locus_reduced(X::AbsCoveredScheme)
 
   D = IdDict{AbsSpec, Ideal}()
   for U in affine_charts(X)
-    _, inc_sing = singular_locus_reduced(U)
+    _, inc_sing = singular_locus(U)
     D[U] = image_ideal(inc_sing)
   end
   Ising = IdealSheaf(X, D)
-  Xsing = subscheme(Ising)
-  return Xsing
+  inc = CoveredClosedEmbedding(X, Ising)
+  return domain(inc), inc
 end
