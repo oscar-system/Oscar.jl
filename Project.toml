@@ -1,7 +1,7 @@
 name = "FTheoryTools"
 uuid = "5ebb4081-3ebc-4667-8a5c-f5b3f044e3f8"
 authors = ["Martin Bies <MBies87@googlemail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
