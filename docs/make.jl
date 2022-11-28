@@ -11,9 +11,8 @@ makedocs(
     clean = true,
     doctest = false,
     pages = ["index.md",
-            "FTheoryTools/Introduction.md",
-            "Weierstrass models" => ["FTheoryTools/Weierstrass.md"],
-            "Tate models" => ["FTheoryTools/Tate.md"],
+             "weierstrass.md",
+             "tate.md",
             ]
     )
 

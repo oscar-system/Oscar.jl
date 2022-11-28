@@ -1,9 +1,5 @@
 [
    "index.md",
-
-   "FtheoryTools" => [
-      "FTheoryTools/Introduction.md"
-      "FTheoryTools/Weierstrass.md"
-      "FTheoryTools/Tate.md"
-   ],
+   "weierstrass.md",
+   "tate.md",
 ]

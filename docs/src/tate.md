@@ -35,8 +35,8 @@ the ambient space constructed by our methods need not be smooth.
 We support the following constructors:
 ```@docs
 GlobalTateModel(base::Oscar.AbstractNormalToricVariety)
-GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
 GlobalTateModelOverProjectiveSpace()
+GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
 ```
 
 ## ... over not fully specified bases
