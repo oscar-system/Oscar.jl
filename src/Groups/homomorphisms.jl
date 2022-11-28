@@ -17,9 +17,6 @@ export
     is_invertible,
     is_isomorphic,
     is_isomorphic_with_map,
-    isomorphic_fp_group,
-    isomorphic_pc_group,
-    isomorphic_perm_group,
     isomorphism,
     is_surjective,
     kernel,
@@ -695,38 +692,6 @@ end
 function (::Type{T})(G::GrpGen) where T <: GAPGroup
    return codomain(isomorphism(T, G))
 end
-
-################################################################################
-#
-# provide and deprecate the old syntax
-#
-function _isomorphic_perm_group(G::GAPGroup)
-   f = isomorphism(PermGroup, G)
-   return codomain(f), f
-end
-
-@deprecate isomorphic_perm_group(G::GAPGroup) _isomorphic_perm_group(G)
-
-function _isomorphic_pc_group(G::GAPGroup)
-   f = isomorphism(PcGroup, G)
-   return codomain(f), f
-end
-
-@deprecate isomorphic_pc_group(G::GAPGroup) _isomorphic_pc_group(G)
-
-function _isomorphic_fp_group(G::GAPGroup)
-   f = isomorphism(FPGroup, G)
-   return codomain(f), f
-end
-
-@deprecate isomorphic_fp_group(G::GAPGroup) _isomorphic_fp_group(G)
-
-function _isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
-  fmap = isomorphism(T, G)
-  return codomain(fmap), fmap
-end
-
-@deprecate isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup _isomorphic_group(T, G)
 
 
 """

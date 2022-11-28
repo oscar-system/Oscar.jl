@@ -1517,7 +1517,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         # the re-ordering is easy: W^s for s = vcat(bs)
         bs = map(x->findall(isequal(x), d), r)
         @assert all(x->length(x) == length(bs[1]), bs)
-        W = isomorphic_perm_group(wreath_product(symmetric_group(length(bs[2])), g))[1]
+        W = PermGroup(wreath_product(symmetric_group(length(bs[2])), g))
         #should have the block system as above..
         W = W^symmetric_group(degree(W))(vcat(bs...))
         G = intersect(G, W)[1]
@@ -2401,7 +2401,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   if C.start[1] == 1 # start with intersection of wreath products
     _, g = slpoly_ring(ZZ, n)
     for bs = C.start[2]
-      W = isomorphic_perm_group(wreath_product(symmetric_group(length(bs[1])), symmetric_group(length(bs))))[1]
+      W = PermGroup(wreath_product(symmetric_group(length(bs[1])), symmetric_group(length(bs))))
       W = W^symmetric_group(n)(vcat(bs...))
       G = intersect(G, W)[1]
       #each subfield causes, possibly, several invariants...
