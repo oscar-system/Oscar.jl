@@ -331,48 +331,26 @@ function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering
   @assert all(p -> _is_homogeneous(p), gens(I)) "Ideal must be given by homogeneous generators"
   complete_reduction && @assert is_global(ordering)
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
-    # TODO: how to choose the characteristic?
-    p = 0
-    while true
-      p = rand(2^15:2^16)
-      if isprime(p)
-        break
-      end
-    end
-        
-    base_field = GF(p)
-    ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
-    I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
-    build_ctx = MPolyBuildCtx(ModP)
-    for (i, f) in enumerate(gens(I))
-      f_coeffs_mod_p = Vector{elem_type(base_field)}(undef,
-                                                     length(coefficients(f)))
-      g = f
-      bad_denominator = true
-      while bad_denominator
-        for (j, c) in enumerate(coefficients(g))
-          bad_denominator = false
-          try
-            num = base_field(numerator(c))
-            if iszero(num)
-              f_coeffs_mod_p[j] = num
-              continue
-            end
-            f_coeffs_mod_p[j] =
-              num * inv(base_field(denominator(c)))
-          catch DomainError
-            g *= denominator(c)
-            bad_denominator = true
-            break
-          end
+    # TODO: can do this with hecke?
+    while bad_prime
+      p = 0
+      while true
+        p = rand(2^15:2^16)
+        if isprime(p)
+          break
         end
       end
-      for (j, c) in enumerate(f_coeffs_mod_p)
-        push_term!(build_ctx, c, collect(exponents(f))[j])
+        
+      base_field = GF(p)
+      ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+      I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
+      try
+        I_mod_p_gens = [ModP(f) for f in gens(I)]
+        G = f4(ideal(ModP, I_mod_p_gens))
+        break
+      catch
+        continue
       end
-      I_mod_p_gens[i] = finish(build_ctx)
-    end
-    G = f4(ideal(ModP, I_mod_p_gens))
   else
     G = groebner_assure(I)
   end
