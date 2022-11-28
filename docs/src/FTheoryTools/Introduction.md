@@ -99,6 +99,7 @@ Contributions are highly appreciated. Please notice that:
 This software is work in progress of
 * [Martin Bies](https://martinbies.github.io/),
 * [Andrew Turner](https://apturner.net/).
+
 We appreciate insightful discussions with [Mirjam Cvetič](https://live-sas-physics.pantheon.sas.upenn.edu/people/standing-faculty/mirjam-cvetic).
 
 If you are interested in contributing, please feel free to reach out to us for more details.
