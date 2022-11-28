@@ -101,7 +101,7 @@ function GlobalWeierstrassModel(poly_f::MPolyElem_dec{fmpq, fmpq_mpoly}, poly_g:
         throw(ArgumentError("All Weierstrass sections must reside in the Cox ring of the base toric variety"))
     end
     toric_ambient_space = _ambient_space_from_base(base)
-    (f, g, pw) = _weierstrass_polynomial(base, toric_ambient_space, poly_f, poly_g)
+    (f, g, pw) = _weierstrass_polynomial(cox_ring(toric_ambient_space), poly_f, poly_g)
     Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space, [pw])
     model = GlobalWeierstrassModel(f, g, pw, base, toric_ambient_space, Y4)
     set_attribute!(model, :base_fully_specified, true)
@@ -149,9 +149,11 @@ function GlobalWeierstrassModel(poly_f::fmpq_mpoly, poly_g::fmpq_mpoly, auxiliar
     auxiliary_base_space = affine_space(NormalToricVariety, length(gens(auxiliary_base_ring)))
     set_coordinate_names(auxiliary_base_space, [string(k) for k in gens(auxiliary_base_ring)])
     auxiliary_ambient_space = _ambient_space_from_base(auxiliary_base_space)
-    (f, g, pw) = _weierstrass_polynomial(auxiliary_base_space, auxiliary_ambient_space, poly_f, poly_g)
+    (f, g, pw) = _weierstrass_polynomial(cox_ring(auxiliary_ambient_space), poly_f, poly_g)
     Y4 = ClosedSubvarietyOfToricVariety(auxiliary_ambient_space, [pw])
-    model = GlobalWeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space, Y4)
+    S = cox_ring(auxiliary_base_space)
+    ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:length(gens(S))])
+    model = GlobalWeierstrassModel(ring_map(poly_f), ring_map(poly_g), pw, auxiliary_base_space, auxiliary_ambient_space, Y4)
     set_attribute!(model, :base_fully_specified, false)
     return model
 end

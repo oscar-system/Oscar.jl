@@ -212,7 +212,8 @@ A global Weierstrass model over a concrete base
     x = gens(S)[length(gens(S))-2]
     y = gens(S)[length(gens(S))-1]
     z = gens(S)[length(gens(S))]
-    pw = x^3 - y^2 + f*x*z^4 + g*z^6
+    ring_map = hom(parent(f), S, [gens(S)[i] for i in 1:length(gens(parent(f)))])
+    pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
     Y4 = Oscar.ClosedSubvarietyOfToricVariety(toric_ambient_space(t), [pw])
     model = GlobalWeierstrassModel(f, g, pw, toric_base_space(t), toric_ambient_space(t), Y4)
     set_attribute!(model, :base_fully_specified, base_fully_specified(t))

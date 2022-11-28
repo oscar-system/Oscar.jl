@@ -11,10 +11,10 @@ w = GlobalWeierstrassModel(TestBase())
 Base.show(w)
 
 @testset "Attributes of global Weierstrass models" begin
-    @test parent(weierstrass_section_f(w)) == cox_ring(toric_ambient_space(w))
-    @test parent(weierstrass_section_g(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(weierstrass_section_f(w)) == cox_ring(toric_base_space(w))
+    @test parent(weierstrass_section_g(w)) == cox_ring(toric_base_space(w))
     @test parent(weierstrass_polynomial(w)) == cox_ring(toric_ambient_space(w))
-    @test parent(discriminant(w)) == cox_ring(toric_ambient_space(w))
+    @test parent(discriminant(w)) == cox_ring(toric_base_space(w))
     @test dim(toric_base_space(w)) == 3
     @test dim(toric_ambient_space(w)) == 5
     @test is_smooth(toric_ambient_space(w)) == false
@@ -31,10 +31,10 @@ auxiliary_ring2, (x, y) = QQ["x", "y"]
 w2 = GlobalWeierstrassModel(f, g, auxiliary_base_ring)
 
 @testset "Attributes of global Weierstrass models over generic base spaces" begin
-    @test parent(weierstrass_section_f(w2)) == cox_ring(toric_ambient_space(w2))
-    @test parent(weierstrass_section_g(w2)) == cox_ring(toric_ambient_space(w2))
+    @test parent(weierstrass_section_f(w2)) == cox_ring(toric_base_space(w2))
+    @test parent(weierstrass_section_g(w2)) == cox_ring(toric_base_space(w2))
     @test parent(weierstrass_polynomial(w2)) == cox_ring(toric_ambient_space(w2))
-    @test parent(discriminant(w2)) == cox_ring(toric_ambient_space(w2))
+    @test parent(discriminant(w2)) == cox_ring(toric_base_space(w2))
     @test dim(toric_base_space(w2)) == 2
     @test dim(toric_ambient_space(w2)) == 4
     @test is_smooth(toric_ambient_space(w2)) == false
@@ -54,13 +54,13 @@ t = GlobalTateModel(TestBase())
 Base.show(t)
 
 @testset "Attributes of global Tate models" begin
-    @test parent(tate_section_a1(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(tate_section_a2(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(tate_section_a3(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(tate_section_a4(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(tate_section_a6(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(tate_section_a1(t)) == cox_ring(toric_base_space(t))
+    @test parent(tate_section_a2(t)) == cox_ring(toric_base_space(t))
+    @test parent(tate_section_a3(t)) == cox_ring(toric_base_space(t))
+    @test parent(tate_section_a4(t)) == cox_ring(toric_base_space(t))
+    @test parent(tate_section_a6(t)) == cox_ring(toric_base_space(t))
     @test parent(tate_polynomial(t)) == cox_ring(toric_ambient_space(t))
-    @test parent(discriminant(t)) == cox_ring(toric_ambient_space(t))
+    @test parent(discriminant(t)) == cox_ring(toric_base_space(t))
     @test dim(toric_base_space(t)) == 3
     @test dim(toric_ambient_space(t)) == 5
     @test base_fully_specified(t) == true
@@ -84,13 +84,13 @@ ais = [a1, a2, a3, a4, a6]
 t2 = GlobalTateModel(ais, auxiliary_base_ring)
 
 @testset "Attributes of global Tate models over generic base spaces" begin
-    @test parent(tate_section_a1(t2)) == cox_ring(toric_ambient_space(t2))
-    @test parent(tate_section_a2(t2)) == cox_ring(toric_ambient_space(t2))
-    @test parent(tate_section_a3(t2)) == cox_ring(toric_ambient_space(t2))
-    @test parent(tate_section_a4(t2)) == cox_ring(toric_ambient_space(t2))
-    @test parent(tate_section_a6(t2)) == cox_ring(toric_ambient_space(t2))
+    @test parent(tate_section_a1(t2)) == cox_ring(toric_base_space(t2))
+    @test parent(tate_section_a2(t2)) == cox_ring(toric_base_space(t2))
+    @test parent(tate_section_a3(t2)) == cox_ring(toric_base_space(t2))
+    @test parent(tate_section_a4(t2)) == cox_ring(toric_base_space(t2))
+    @test parent(tate_section_a6(t2)) == cox_ring(toric_base_space(t2))
     @test parent(tate_polynomial(t2)) == cox_ring(toric_ambient_space(t2))
-    @test parent(discriminant(t2)) == cox_ring(toric_ambient_space(t2))
+    @test parent(discriminant(t2)) == cox_ring(toric_base_space(t2))
     @test dim(toric_base_space(t2)) == 6
     @test dim(toric_ambient_space(t2)) == 8
     @test base_fully_specified(t2) == false
