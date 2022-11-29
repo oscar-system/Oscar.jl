@@ -126,6 +126,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent_ring::MPolyRing)
     # load parent in case serialized parent needs to be checked against given parent
+    # also to ensure neccessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = coefficient_ring(parent_ring)
@@ -176,6 +177,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring::PolyRing)
     # cache parent inside serializer state in case parent needs
     # to be checked against the passed parent
+    # also to ensure the neccessary backrefs are loaded 
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = coefficient_ring(parent_ring)
@@ -246,6 +248,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MatElem},
                                    dict::Dict,
                                    parent_ring::T) where T <: MatSpace
+    # to ensure neccessary backrefs are loaded
     _ = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix], parent=base_ring(parent_ring))
     return matrix(base_ring(parent_ring), mat)
@@ -336,6 +339,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring::SeriesRing)
     # cache parent inside serializer state in case the coefficient ring
     # needs to be checked against the coefficient ring of the passed parent
+    # to ensure neccessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = base_ring(parent_ring)
@@ -368,6 +372,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent_ring::SeriesRing)
     # cache parent inside serializer state in case parent needs
     # to be checked against the passed parent
+    # to ensure neccessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = base_ring(parent_ring)
@@ -471,8 +476,9 @@ function load_internal_with_parent(s::DeserializerState,
                                        Generic.LaurentSeriesElem, fmpz_laurent_series}},
                                    dict::Dict,
                                    parent_ring)
-        # cache parent inside serializer state in case parent needs
+    # cache parent inside serializer state in case parent needs
     # to be checked against the passed parent
+    # to ensure neccessary backrefs are loaded
     _ = load_unknown_type(s, dict[:parent])
 
     coeff_ring = base_ring(parent_ring)

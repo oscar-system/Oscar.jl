@@ -306,6 +306,7 @@ end
 function load_internal(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.Rat},
                        dict::Dict)
+    # this line is need to ensure the right backrefs are loaded
     _ = load_unknown_type(s, dict[:frac_elem_parent])
     R = load_type_dispatch(s, AbstractAlgebra.Generic.RationalFunctionField, dict[:parent])
     # There is no official way to get the underlying polynomial ring of a rational function field.
@@ -321,6 +322,7 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: AbstractAlgebra.Generic.Rat},
                                    dict::Dict,
                                    parent:: AbstractAlgebra.Generic.RationalFunctionField)
+    # this line is need to ensure the neccessary backrefs are loaded
     _ = load_unknown_type(s, dict[:frac_elem_parent])
     forced_parent = base_ring(AbstractAlgebra.Generic.fraction_field(parent))
     num = load_unknown_type(s, dict[:num]; parent=forced_parent)
