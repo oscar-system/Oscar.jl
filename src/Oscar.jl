@@ -410,6 +410,7 @@ include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
 include("Rings/PBWAlgebra.jl")
+include("Rings/PBWAlgebraQuo.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
 include("GAP/customize.jl")
