@@ -245,12 +245,13 @@ end
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
-The optional parameter `parent` can be passed. This will
-load the file as an element of the parent, or for container types
-such as `Vector` and `Tuple` it will load the entries as elements of the
-passed `parent`.
-The optional parameter T can be passed. This will attempt to load the file as
-the passed type, and otherwise throw an error.
+
+If `parent` is specified, then the root object of the loaded data
+either will have this as its parent, or it is a container such as
+`Vector` and `Tuple`, then the parent of the entries will be set to `parent`.
+
+If a type `T` is given then attempt to load the root object of the data
+being loaded with this type; if this fails, an error is thrown.
 
 See [`save`](@ref).
 
