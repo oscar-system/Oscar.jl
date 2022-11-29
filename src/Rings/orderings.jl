@@ -6,7 +6,7 @@ import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion, base_ring,
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
        neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
        negwdeglex, negwdegrevlex, matrix_ordering, monomial_ordering,
-       isweighted, is_global, is_local, is_mixed,
+       isweighted, is_global, is_local, is_mixed, is_total,
        permutation_of_terms, index_of_leading_term,
        weight_ordering, canonical_matrix,
        MonomialOrdering, ModuleOrdering, singular, opposite_ordering,
@@ -1392,6 +1392,16 @@ function is_mixed(ord::MonomialOrdering)
     end
   end
   return false
+end
+
+@doc Markdown.doc"""
+    is_total(ord::MonomialOrdering)
+
+Return `true` if `ord` is total ordering, `false` otherwise.
+"""
+function is_total(ord::MonomialOrdering)
+  m = canonical_matrix(ord)
+  return nrows(m) >= ncols(m)
 end
 
 @doc Markdown.doc"""
