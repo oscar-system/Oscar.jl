@@ -54,9 +54,9 @@ Concrete instance of an `AbsGlueing` for glueings of affine schemes
     )
     ambient_scheme(domain(f)) === X || error("the domain of the glueing morphism is not an open subset of the first argument")
     ambient_scheme(codomain(f)) === Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
+    (domain(f) === codomain(g) &&
+     domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
     if check
-      (domain(f) === codomain(g) &&
-      domain(g) ===  codomain(f)) || error("maps can not be isomorphisms")
       compose(f, g) == identity_map(domain(f)) || error("glueing maps are not inverse of each other")
       compose(g, f) == identity_map(domain(g)) || error("glueing maps are not inverse of each other")
     end

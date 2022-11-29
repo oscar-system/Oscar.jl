@@ -50,6 +50,7 @@ restrict(f::SchemeMor, U::Scheme, V::Scheme; check::Bool)
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   if check
     issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
+    issubset(V, codomain(f)) || error("$V is not contained in the codomain of $f")
     all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
   end
   return SpecOpenMor(U, V, [restrict(f, W, ambient_scheme(V), check=check) for W in affine_patches(U)])

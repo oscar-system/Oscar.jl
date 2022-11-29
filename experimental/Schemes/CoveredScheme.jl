@@ -183,8 +183,9 @@ end
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      f = SpecMor(Ui, Uj,
                       vcat([x[k]//x[j-1] for k in 1:i-1],
                            [1//x[j-1]],
                            [x[k-1]//x[j-1] for k in i+1:j-1],
@@ -192,8 +193,7 @@ end
                            x[r+1:end]),
                       check=false
                      )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
+      g = SpecMor(Uj, Ui,
                       vcat([y[k]//y[i] for k in 1:i-1],
                            [y[k+1]//y[i] for k in i:j-2],
                            [1//y[i]],
@@ -201,7 +201,7 @@ end
                            y[r+1:end]),
                       check=false
                      )
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)

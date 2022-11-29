@@ -576,6 +576,7 @@ function convert(
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
+  one(R) in I && return zero(L)
   d = prod(denominators(inverted_set(W)))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
@@ -948,7 +949,8 @@ function compose(
 #  end
   ### The fallback version. Careful: This might not carry over maps on the coefficient rings!
   R = base_ring(domain(f))
-  return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)]))
+  res_map = hom(R, codomain(g), [g(f(x)) for x in gens(R)])
+  return MPolyQuoLocalizedRingHom(domain(f), codomain(g), res_map, check=false)
 end
 
 (f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
