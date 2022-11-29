@@ -52,7 +52,7 @@ A polyhedron in ambient dimension 2
 julia> fan = normal_fan(square)
 A polyhedral fan in ambient dimension 2
 
-julia> save("F.fan", fan);
+julia> save("F.fan", fan)
 
 julia> f = load("F.fan")
 A polyhedral fan in ambient dimension 2

@@ -231,6 +231,7 @@ function save(io::IO, obj::Any)
     jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)
     write(io, jsonstr)
+    return nothing
 end
 
 function save(filename::String, obj::Any)

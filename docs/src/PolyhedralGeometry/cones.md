@@ -48,7 +48,7 @@ following way:
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
-julia> save("C.cone", C);
+julia> save("C.cone", C)
 
 julia> CC = load("C.cone")
 A polyhedral cone in ambient dimension 2
