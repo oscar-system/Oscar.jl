@@ -240,8 +240,8 @@ function save(filename::String, obj::Any)
 end
 
 """
-    load(io::IO; parent::Any = nothing, T::Type = nothing)
-    load(filename::String; parent::Any = nothing, T::Type =  nothing)
+    load(io::IO; parent::Any = nothing, type::Any = nothing)
+    load(filename::String; parent::Any = nothing, type::Any = nothing)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
@@ -263,7 +263,7 @@ julia> save("/tmp/fourtitwo.json", 42);
 julia> load("/tmp/fourtitwo.json")
 42
 
-julia> load("/tmp/fourtitwo.json"; T=Int64)
+julia> load("/tmp/fourtitwo.json"; type=Int64)
 42
 
 julia> R, x = QQ["x"]
@@ -293,20 +293,20 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; parent::Any = nothing, T::Any = nothing)
+function load(io::IO; parent::Any = nothing, type::Any = nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
-    if T !== nothing
-        return load_type_dispatch(state, T, jsondict; parent=parent)
+    if type !== nothing
+        return load_type_dispatch(state, type, jsondict; parent=parent)
     end
     return load_unknown_type(state, jsondict; parent=parent, check_namespace=true)
 end
 
-function load(filename::String; parent::Any = nothing, T::Any =  nothing)
+function load(filename::String; parent::Any = nothing, type::Any =  nothing)
     open(filename) do file
-        return load(file; parent=parent, T=T)
+        return load(file; parent=parent, type=type)
     end
 end
 
