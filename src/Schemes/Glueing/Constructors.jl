@@ -151,3 +151,24 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                  check=check
                 )
 end
+
+########################################################################
+# Maximal extensions from SimpleGlueings                               #
+########################################################################
+
+function maximal_extension(G::SimpleGlueing)
+  # We first check, whether this glueing already is maximal.
+  # If it is not, we pass it on to the more complicated methods.
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  X, Y = patches(G)
+  x = gens(OO(X))
+  y = gens(OO(Y))
+  pbx = pullback(g).(x)
+  pby = pullback(f).(y)
+  U2, ext_y = maximal_extension(X, fraction.(pby))
+  V2, ext_x = maximal_extension(Y, fraction.(pbx))
+  issubset(U2, U) && issubset(V2, V) && return G
+  return maximal_extension(Glueing(G))
+end
+
