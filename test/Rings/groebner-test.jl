@@ -48,6 +48,14 @@
     @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
     @test is_standard_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_standard_basis(I.gens, ordering=neglex(R)) == false
+	R, (x1, x2, x3, x4) = PolynomialRing(QQ, ["x1", "x2", "x3", "x4"])
+	J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
+       x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
+       2*x1*x2+2*x2*x3+2*x3*x4-x2,
+       x2^2+2*x1*x3+2*x2*x4-x3])
+	standard_basis(J, ordering=neglex(R))
+	groebner_assure(J, true, true)
+	@test J.gb[degrevlex(R)].isReduced == true 
 end
 
 @testset "groebner leading ideal" begin

@@ -5,7 +5,7 @@ export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
-    groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
+    groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
     groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
@@ -35,15 +35,22 @@ with respect to the ordering
 degrevlex([x, y])
 ```
 """
-function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false)
-    if isempty(I.gb)
-        drl = default_ordering(base_ring(I))
-        I.gb[drl] = groebner_assure(I, drl, complete_reduction)
-        G = I.gb[drl]
-    else
-        G = first(values(I.gb))
-    end
-    return G
+function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
+	if !isempty(I.gb)
+		for G in values(I.gb)
+			need_global || return G
+			is_global(G.ord) || continue
+			complete_reduction || return G
+			if !G.isReduced
+				I.gb[G.ord] = _compute_standard_basis(G, G.ord, true)
+				return I.gb[G.ord]
+			end
+		end
+	end
+	ord = default_ordering(base_ring(I))
+	(need_global && is_global(ord)) || error("Monomial ordering must be global.")
+	I.gb[ord] = groebner_assure(I, ord, complete_reduction)
+	return I.gb[ord]
 end
 
 function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_reduction::Bool = false)
