@@ -149,7 +149,7 @@ end
 Return the blowup of ``W`` at the ideal ``I``; this is a `ProjectiveScheme` 
 with `base_scheme` ``W``.
 """
-function blow_up(W::AbsSpec, I::Ideal)
+function blow_up(W::AbsSpec, I::Ideal; var_name::String="s")
   error("method `blow_up` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
 end
 
@@ -157,7 +157,9 @@ end
 # Blowups of affine schemes                                            #
 ########################################################################
 
-function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal)
+function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
+    var_name::String="s"
+  )
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 #  if one(OO(W)) in I 
 #    error("blowing up along the unit ideal; this case should be caught earlier")
@@ -165,7 +167,7 @@ function blow_up(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal)
 #  end
   r = ngens(I) - 1
   g = gens(I)
-  IPW = projective_space(W, r)
+  IPW = projective_space(W, r, var_name=var_name)
   S = ambient_coordinate_ring(IPW)
   t = gens(S)
   if is_regular_sequence(gens(I))
@@ -199,7 +201,9 @@ function saturation(I::IdealType, J::IdealType) where {IdealType<:Union{MPolyQuo
   return ideal(A, A.(gens(K)))
 end
 
-function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal) where {RingType<:Union{MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}}
+function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
+    var_name::String="s"
+  ) where {RingType<:Union{MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}}
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
 
   # It follows the generic Proj construction
@@ -209,7 +213,7 @@ function blow_up(W::AbsSpec{<:Field, <:RingType}, I::Ideal) where {RingType<:Uni
   # Fancy way of adjoining a variable to R
   WxA1, pW, _ = product(W, A1) 
   r = ngens(I)
-  P = projective_space(W, r-1)
+  P = projective_space(W, r-1, var_name=var_name)
   S = ambient_coordinate_ring(P)
   # As usual we need to do actual computations on the affine cone
   CP = affine_cone(P)
@@ -395,11 +399,12 @@ function blow_up(
     I::IdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
+    var_name::String="s"
   )
   X = space(I)
   local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
   for U in affine_charts(X)
-    local_blowups[U] = blow_up(U, I(U))
+    local_blowups[U] = blow_up(U, I(U), var_name=var_name)
   end
   projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, ProjectiveGlueing}()
 
