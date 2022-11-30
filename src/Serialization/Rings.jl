@@ -125,10 +125,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MPolyElem},
                                    dict::Dict,
                                    parent_ring::MPolyRing)
-    # load parent in case serialized parent needs to be checked against given parent
-    # also to ensure neccessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:parent])
-
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     polynomial = MPolyBuildCtx(parent_ring)
@@ -175,11 +171,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: PolyElem},
                                    dict::Dict,
                                    parent_ring::PolyRing)
-    # cache parent inside serializer state in case parent needs
-    # to be checked against the passed parent
-    # also to ensure the neccessary backrefs are loaded 
-    _ = load_unknown_type(s, dict[:parent])
-
     coeff_ring = coefficient_ring(parent_ring)
     coeff_type = elem_type(coeff_ring)
     coeffs = load_type_dispatch(s, Vector{coeff_type}, dict[:coeffs]; parent=coeff_ring)
@@ -248,8 +239,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    ::Type{<: MatElem},
                                    dict::Dict,
                                    parent_ring::T) where T <: MatSpace
-    # to ensure neccessary backrefs are loaded
-    _ = load_unknown_type(s, dict[:base_ring])
     mat = load_type_dispatch(s, Matrix, dict[:matrix], parent=base_ring(parent_ring))
     return matrix(base_ring(parent_ring), mat)
 end

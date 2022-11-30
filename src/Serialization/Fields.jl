@@ -513,12 +513,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    parent::FlintPadicField)
     rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
     parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
-
-    # padic num precision is 1 higher than the field it lies in
-    if precision(parent_field) > precision(parent)
-        @warn("Precision Warning: given parent is less precise than serialized parent",
-              maxlog=1)
-    end
     
     return parent(rational_rep)
 end
