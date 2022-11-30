@@ -217,9 +217,7 @@ function matrices_over_field(gapmats::GapObj)
       # (This is more Oscar-like, but the reason why we use this field
       # is that subfields are not supported on the GAP side;
       # for example, already 'FieldOfMatrixList' would not work.)
-      _wholeField = GAP.evalstr("x -> x!.wholeField")
-#TODO: improve this, see https://github.com/oscar-system/GAP.jl/issues/771
-      gapF = _wholeField(GAP.Globals.FamilyObj(gapmats[1][1,1]))
+      gapF = GAP.getbangproperty(GAP.Globals.FamilyObj(gapmats[1][1,1]), :wholeField)
     else
       throw(ArgumentError("gapmats is not a GAP list of matrices over a finite field"))
     end

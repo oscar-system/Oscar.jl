@@ -16,4 +16,3 @@ include("intersection_numbers.jl")
 include("subvarieties.jl")
 include("algebraic_cycles.jl")
 include("morphism.jl")
-

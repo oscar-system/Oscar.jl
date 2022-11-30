@@ -2,6 +2,7 @@ module MatrixGroups
 
 using GAP
 using Oscar
+import Oscar:GAPWrap
 
 export _wrap_for_gap
   
@@ -82,17 +83,17 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
         
        gap_matrices_Fq = GAP.Obj([map_entries(hom, m) for m in matrices_Fq])
        G2 = GAP.Globals.Group(gap_matrices_Fq)
-       N = fmpz(GAP.Globals.Order(G2))
+       N = fmpz(GAPWrap.Order(G2))
        if !is_divisible_by(Hecke._minkowski_multiple(K, n), N)
           error("Group is not finite")
        end
 
        G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G2, gap_matrices_Fq)
-       F = GAP.Globals.Range(G_to_fin_pres)
-       rels = GAP.Globals.RelatorsOfFpGroup(F)
+       F = GAPWrap.Range(G_to_fin_pres)
+       rels = GAPWrap.RelatorsOfFpGroup(F)
 
-       gens_and_invsF = [ g for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ]
-       append!(gens_and_invsF, [ inv(g) for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ])
+       gens_and_invsF = [ g for g in GAPWrap.FreeGeneratorsOfFpGroup(F) ]
+       append!(gens_and_invsF, [ inv(g) for g in GAPWrap.FreeGeneratorsOfFpGroup(F) ])
        matrices_and_invs = copy(matrices)
        append!(matrices_and_invs, [ inv(M) for M in matrices ])
        for i = 1:length(rels)
@@ -105,7 +106,7 @@ function MatrixGroup(matrices::Vector{<:MatrixElem{T}}) where T <: Union{fmpz, f
        gapMatrices = GAP.Obj([Oscar.MatrixGroups._wrap_for_gap(m) for m in matrices])
        G = GAP.Globals.Group(gapMatrices)
        
-       JuliaGAPMap = GAP.Globals.GroupHomomorphismByImagesNC(G,G2,GAP.Globals.GeneratorsOfGroup(G2))
+       JuliaGAPMap = GAP.Globals.GroupHomomorphismByImagesNC(G,G2,GAPWrap.GeneratorsOfGroup(G2))
        
        GAP.Globals.SetNiceMonomorphism(G,JuliaGAPMap);
        GAP.Globals.SetIsHandledByNiceMonomorphism(G, true);

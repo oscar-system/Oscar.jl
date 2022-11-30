@@ -323,7 +323,6 @@ end
   return J
 end
 
-
 @doc Markdown.doc"""
     iszero(a::MPolyQuoIdeal)
 
@@ -788,7 +787,7 @@ function is_invertible_with_inverse(a::MPolyQuoElem)
     J = gens(I)
   end
   J = vcat(J, [a.f])
-  j, T = groebner_basis_with_transform(ideal(J))
+  j, T = _compute_standard_basis_with_transform(ideal(J))
   if 1 in j
     @assert nrows(T) == 1
     return true, Q(T[1, end])
@@ -1293,3 +1292,8 @@ function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where 
     return Union{}
   end
 end
+
+@attr function _is_integral_domain(A::MPolyQuo)
+  return is_prime(modulus(A))
+end
+

@@ -431,7 +431,7 @@ is not absolutely irreducible.
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_bilinear_form(G::MatrixGroup)
-   V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
    return preimage_matrix(G.ring_iso, B)
 end
@@ -449,7 +449,7 @@ of odd degree over the prime field.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
    isodd(degree(base_ring(G))) && throw(ArgumentError("group is defined over a field of odd degree"))
-   V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
    return preimage_matrix(G.ring_iso, B)
 end
@@ -466,7 +466,7 @@ is not absolutely irreducible.
 """
 function invariant_quadratic_form(G::MatrixGroup)
    if iseven(characteristic(base_ring(G)))
-      V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+      V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
       return _upper_triangular_version(preimage_matrix(G.ring_iso, B))
    else
@@ -542,7 +542,7 @@ is a finite field, return
 function orthogonal_sign(G::MatrixGroup)
     R = base_ring(G)
     R isa FinField || error("G must be a matrix group over a finite field")
-    M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X),
+    M = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X),
                                   codomain(iso_oscar_gap(R)))
     sign = GAP.Globals.MTX.OrthogonalSign(M)
     sign === GAP.Globals.fail && return nothing

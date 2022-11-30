@@ -6,8 +6,8 @@ export inclusion_morphism, identity_map, restrict, maximal_extension
 # to every affine patch
 function SpecOpenMor(U::SpecOpen, V::SpecOpen, f::Vector{<:RingElem}; check::Bool=true)
   Y = ambient_scheme(V)
-  maps = [SpecMor(W, Y, f) for W in affine_patches(U)]
-  return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in affine_patches(U)], check=check) 
+  maps = [SpecMor(W, Y, f, check=check) for W in affine_patches(U)]
+  return SpecOpenMor(U, V, [SpecMor(W, Y, f, check=check) for W in affine_patches(U)], check=check) 
 end
 
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}

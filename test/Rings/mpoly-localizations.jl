@@ -141,6 +141,7 @@ end
   @test W(1//x) == 1//W(x)
   I = ideal(W, x*y*(x+y))
   @test x+y in I
+  @test x+y in saturated_ideal(I)
   @test !(x+2*y in I)
   J = I + ideal(W, f)
   @test W(1) in J
@@ -313,7 +314,7 @@ end
   J = ideal(L,[y*(x^2+(y^2+1)^2)])
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat
-  @test_throws ErrorException("no transition matrix available using local orderings") saturated_ideal(L(J_sat); with_generator_transition=true)
+  @test_throws ErrorException("computation of the transition matrix for the generators is not supposed to happen for localizations at complements of prime ideals") saturated_ideal(L(J_sat); with_generator_transition=true)
   JJ = ideal(R,[y*(x^2+(y^2+1)^2)])
   @test saturated_ideal(JJ) == JJ
 end
@@ -365,4 +366,22 @@ end
 #  @test !is_zero_divisor(W(5))
 #  @test is_zero_divisor((x-y)*W(2))
 #  @test is_zero_divisor((x-y)*W(x))
+end
+
+@testset "saturated ideals II" begin
+  R, (x,y) = QQ["x", "y"]
+  L, _ = localization(R, powers_of_element(x))
+  I = ideal(R, [x^7*(y-1), (x^5)*(x-1)])
+  J = L(I)
+  @test (x-1) in J
+  c1 = coordinates(x-1, J)
+  @test x-1 in saturated_ideal(J)
+  c2 = coordinates(y-1, J)
+  @test y-1 == c2[1]*gens(J)[1] + c2[2]*gens(J)[2]
+  c3 = coordinates(x-y, J)
+  @test x-y == c3[1]*gens(J)[1] + c3[2]*gens(J)[2]
+  JJ = L(I)
+  @test x-1 in saturated_ideal(JJ, strategy=:single_saturation)
+  c2 = coordinates(y-1, JJ)
+  @test y-1 == c2[1]*gens(JJ)[1] + c2[2]*gens(JJ)[2]
 end

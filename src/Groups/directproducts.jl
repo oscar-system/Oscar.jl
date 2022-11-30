@@ -315,7 +315,7 @@ function projection(G::DirectProductGroup, j::Int)
    f=GAP.Globals.Projection(G.Xfull,j)
    j in 1:length(G.L) || throw(ArgumentError("index not valid"))
    H = G.L[j]
-   p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
+   p = GAPWrap.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(G,H,p)
 end
 
@@ -461,7 +461,7 @@ Return the projection of `G` into the second component of `G`.
 function projection(G::SemidirectProductGroup)
    f=GAP.Globals.Projection(G.Xfull)
    H = G.H
-   p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
+   p = GAPWrap.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(G,H,p)
 end
 
@@ -624,7 +624,7 @@ function projection(W::WreathProductGroup)
   # @assert W.isfull "Projection not defined for proper subgroups of wreath products"
    f=GAP.Globals.Projection(W.Xfull)
    H = W.H
-   p = GAP.Globals.GroupHomomorphismByFunction(W.X,H.X,y->GAPWrap.Image(f,y))
+   p = GAPWrap.GroupHomomorphismByFunction(W.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(W,H,p)
 end
 
