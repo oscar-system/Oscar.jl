@@ -142,7 +142,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 			I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
 		end
 	elseif algorithm == :fglm
-		_compute_groebner_basis_using_fglm(I, ordering, default_ordering(base_ring(I)))
+		_compute_groebner_basis_using_fglm(I, ordering)
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -1055,15 +1055,12 @@ function fglm(G::IdealGens; ordering::MonomialOrdering)
 end
 
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
-	destination_ordering::MonomialOrdering, start_ordering::MonomialOrdering = default_ordering(base_ring(I)))
+	destination_ordering::MonomialOrdering)
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
-	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination ordering must be global.")
-	if start_ordering == degrevlex(base_ring(I)) && typeof(coefficient_ring(base_ring(I))) == Nemo.GaloisField
-		standard_basis(I, ordering=start_ordering, complete_reduction=true, algorithm=:f4)
-	else
-		standard_basis(I, ordering=start_ordering, complete_reduction=true)
-	end
+	is_global(destination_ordering) || error("Destination ordering must be global.")
+	G = groebner_assure(I, true, true)
+	start_ordering = G.ord
 	dim(I) == 0 || error("Dimesion of ideal must be zero.")
-	I.gb[destination_ordering] = fglm(I.gb[start_ordering], ordering=destination_ordering)
+	I.gb[destination_ordering] = fglm(G, ordering=destination_ordering)
 end
 
