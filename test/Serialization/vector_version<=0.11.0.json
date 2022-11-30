@@ -1,0 +1,52 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      {
+        "build": [],
+        "major": 0,
+        "minor": 11,
+        "patch": 1,
+        "prerelease": []
+      }
+    ]
+  },
+  "data": {
+    "vector": [
+      {
+        "data": {
+          "den": {
+            "data": "2",
+            "id": "d67d667b-e692-43cd-9b54-1bcfa5076ad8",
+            "type": "fmpz"
+          },
+          "num": {
+            "data": "1",
+            "id": "317c6c7c-e2a1-4ce4-ac26-f32d7907b447",
+            "type": "fmpz"
+          }
+        },
+        "id": "7f9a6080-81ee-45c2-8706-02701089d88d",
+        "type": "fmpq"
+      },
+      {
+        "data": {
+          "den": {
+            "data": "9",
+            "id": "b8a34185-f5cf-4a51-a140-4e450795be74",
+            "type": "fmpz"
+          },
+          "num": {
+            "data": "7",
+            "id": "4c3bbfe8-8aea-4314-b90a-be8bf5043795",
+            "type": "fmpz"
+          }
+        },
+        "id": "4157bc2c-4d12-4590-a07a-e186fc3e051a",
+        "type": "fmpq"
+      }
+    ]
+  },
+  "id": "de1debff-b3c6-4fbd-9569-904923f225ca",
+  "type": "Vector"
+}
