@@ -54,8 +54,15 @@
        2*x1*x2+2*x2*x3+2*x3*x4-x2,
        x2^2+2*x1*x3+2*x2*x4-x3])
 	standard_basis(J, ordering=neglex(R))
-	groebner_assure(J, true, true)
+	Oscar.groebner_assure(J, true, true)
 	@test J.gb[degrevlex(R)].isReduced == true 
+	@test_throws ErrorException standard_basis(J, ordering=negdeglex(R), algorithm=:fglm)
+	standard_basis(J, ordering=lex(R), algorithm=:fglm)
+	H = fmpq_mpoly[128304*x4^8 - 93312*x4^7 + 15552*x4^6 + 3144*x4^5 - 1120*x4^4 + 36*x4^3 + 15*x4^2 - x4,
+		5913075*x3 + 371438283744*x4^7 - 237550027104*x4^6 + 22645939824*x4^5 + 11520686172*x4^4 - 2024910556*x4^3 - 132524276*x4^2 + 30947828*x4,
+		1971025*x2 - 97197721632*x4^7 + 73975630752*x4^6 - 12121915032*x4^5 - 2760941496*x4^4 + 814792828*x4^3 - 1678512*x4^2 - 9158924*x4,
+		5913075*x1 - 159690237696*x4^7 + 31246269696*x4^6 + 27439610544*x4^5 - 6475723368*x4^4 - 838935856*x4^3 + 275119624*x4^2 + 4884038*x4 - 5913075]
+	@test elements(J.gb[lex(R)]) == H
 end
 
 @testset "groebner leading ideal" begin
