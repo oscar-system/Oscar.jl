@@ -512,7 +512,6 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent::FlintPadicField)
     rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
-    parent_field = load_type_dispatch(s, FlintPadicField, dict[:parent])
     
     return parent(rational_rep)
 end
