@@ -215,11 +215,32 @@ end
 Return the full orthogonal group of this torsion quadratic module.
 """
 @attr AutomorphismGroup function orthogonal_group(T::TorQuadMod)
-  !is_degenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
+  if is_degenerate(T)
+    i = radical_quadratic(T)[2]
+    has_complement(i)[1] || error("The radical quadratic must split")
+    return _orthogonal_group_split_degenerate
+  end
   N, i = normal_form(T)
   j = inv(i)
   gensOT = _compute_gens(N)
-  gensOT = [hom(N, N, g) for g in gensOT]
-  gensOT = [compose(compose(i,g),j).map_ab.map for g in gensOT]
+  gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
+  gensOT = fmpz_mat[compose(compose(i,g),j).map_ab.map for g in gensOT]
   return _orthogonal_group(T, gensOT, check=false)
+end
+
+function _orthogonal_group_split_degenerate(T::TorQuadMod)
+  @assert has_complement(radical_quadratic(T)[2])[1]
+  gensOT = fmpz_mat[]
+  pd = sort(prime_divisors(order(T)))
+  blocks = TorQuadModMor[primary_part(T, pd[1])[2]]
+  popfirst!(pd)
+  while !isempty(pd)
+    f = blocks[end]
+    ok, j = has_complement(f)
+    @assert ok
+    _T = domain(j)
+    _f = primary_part(_T, pd[1])[2]
+    push!(blocks, compose(j, _f))
+    popfirst!(pd)
+  end
 end
