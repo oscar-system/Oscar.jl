@@ -545,7 +545,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
+compute_order(G::GAPGroup) = fmpz(GAPWrap.Size(G.X))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
   #=
@@ -561,9 +561,11 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return fmpz(GAPWrap.Order(G.X))
+    return fmpz(GAPWrap.Size(G.X))
   else
-    order(isomorphic_group_over_finite_field(G)[1])
+    n = order(isomorphic_group_over_finite_field(G)[1])
+    GAP.Globals.SetSize(G.X, GAP.Obj(n))
+    return n
   end
 end
 
