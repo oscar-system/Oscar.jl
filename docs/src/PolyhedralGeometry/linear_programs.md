@@ -130,8 +130,7 @@ where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]
    k=0
 
-julia> save("lp.poly", LP)
-1185
+julia> save("lp.poly", LP);
 
 julia> LP0 = load("lp.poly")
 The linear program
