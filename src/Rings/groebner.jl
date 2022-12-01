@@ -152,7 +152,7 @@ end
 @doc Markdown.doc"""
     groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :singular)
+      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
 `algorithm` can be set to `:buchberger` (Singular's Buchberger algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
