@@ -16,7 +16,7 @@ end
 
 function solve_mixed(as::Type{fmpz_mat}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
     LP = solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, b, C, d)
-    return transpose(matrix(ZZ, ncols(A), length(LP), hcat(LP...)))
+    return matrix(ZZ, LP)
 end
 
 
