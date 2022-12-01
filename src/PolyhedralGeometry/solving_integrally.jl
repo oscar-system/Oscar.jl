@@ -1,6 +1,25 @@
 export solve_non_negative, solve_mixed, solve_ineq
 
 
+function solve_mixed(as::Type{SubObjectIterator{PointVector{fmpz}}}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
+    ncols(A) == ncols(C) || throw(ArgumentError("solve_mixed(A,b,C,d): A and C must have the same number of columns."))
+    nrows(A) == nrows(b) || throw(ArgumentError("solve_mixed(A,b,C,d): A and b must have the same number of rows."))
+    nrows(C) == nrows(d) || throw(ArgumentError("solve_mixed(A,b,C,d): C and d must have the same number of rows."))
+    ncols(b) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): b must be a matrix with a single column."))
+    ncols(d) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): d must be a matrix with a single column."))
+    eq = (Matrix{BigInt}(A), vec(Matrix{BigInt}(b)))
+    ineq = (Matrix{BigInt}(-C), vec(Matrix{BigInt}(-d)))
+    P = Polyhedron(ineq, eq)
+    return lattice_points(P)
+end
+
+
+function solve_mixed(as::Type{fmpz_mat}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
+    LP = solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, b, C, d)
+    return transpose(matrix(ZZ, ncols(A), length(LP), hcat(LP...)))
+end
+
+
 @doc Markdown.doc"""
     solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
 
@@ -27,16 +46,7 @@ julia> sortslices(Matrix{BigInt}(solve_mixed(A, b, C, d)), dims=1)
 ```
 """
 function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
-    ncols(A) == ncols(C) || throw(ArgumentError("solve_mixed(A,b,C,d): A and C must have the same number of columns."))
-    nrows(A) == nrows(b) || throw(ArgumentError("solve_mixed(A,b,C,d): A and b must have the same number of rows."))
-    nrows(C) == nrows(d) || throw(ArgumentError("solve_mixed(A,b,C,d): C and d must have the same number of rows."))
-    ncols(b) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): b must be a matrix with a single column."))
-    ncols(d) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): d must be a matrix with a single column."))
-    eq = (Matrix{BigInt}(A), vec(Matrix{BigInt}(b)))
-    ineq = (Matrix{BigInt}(-C), vec(Matrix{BigInt}(-d)))
-    P = Polyhedron(ineq, eq)
-    LP = lattice_points(P)
-    return transpose(matrix(ZZ, ambient_dim(P), length(LP), hcat(LP...)))
+    return solve_mixed(fmpz_mat, A, b, C, d)
 end
 
 
