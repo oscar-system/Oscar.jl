@@ -48,7 +48,7 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_g
 		end
 	end
 	ord = default_ordering(base_ring(I))
-	(need_global && is_global(ord)) || error("Monomial ordering must be global.")
+	(need_global <= is_global(ord)) || error("Monomial ordering must be global.")
 	I.gb[ord] = groebner_assure(I, ord, complete_reduction)
 	return I.gb[ord]
 end
