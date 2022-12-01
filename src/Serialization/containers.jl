@@ -103,16 +103,6 @@ function load_internal(s::DeserializerState, ::Type{Matrix}, dict::Dict)
     return Matrix(y)
 end
 
-# deserialize with specific content type
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{Matrix{T}}, dict::Dict) where T
-    x = dict[:matrix]
-    y = reduce(vcat, [
-        permutedims(load_type_dispatch(s, Vector{T}, x[i], parent=parent)) for i in 1:length(x)
-            ])
-    return Matrix{T}(y)
-end
-
 # deserialize without specific content type
 function load_internal_with_parent(s::DeserializerState,
                                    ::Type{Matrix}, dict::Dict, parent)
