@@ -244,12 +244,12 @@ computed basis can be retrieved by using the `elements` function or and its alia
 ```@docs
 groebner_basis(I::MPolyIdeal;
 	ord::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false)
+	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 ```
 ```@docs
 standard_basis(I::MPolyIdeal;
 	ord::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false)
+	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 ```
 	
 ### Gröbner Bases with transformation matrix
@@ -265,8 +265,11 @@ standard_basis_with_transformation_matrix(I::MPolyIdeal;
 	complete_reduction::Bool=false)
 ```
 
-    fglm
+### Gröbner Basis Conversions
 
+```@docs
+fglm(G::IdealGens; ordering::MonomialOrdering)
+```
     Gröbner walks
 
     Hilbert-driven
