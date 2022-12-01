@@ -107,10 +107,10 @@ end
 @doc Markdown.doc"""
     standard_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :singular)
+      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 
 Return a standard basis of `I` with respect to `ordering`. 
-`algorithm` can be set to `:singular` (Singular's Buchberger algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
+`algorithm` can be set to `:singular` (Singular's Buchberger (resp. Mora) algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
 
 !!! note
     The returned standard basis is reduced if `ordering` is `global` and `complete_reduction = true`.
@@ -130,12 +130,12 @@ negdegrevlex([x, y])
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false, algorithm::Symbol = :singular)
+	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 	complete_reduction && @assert is_global(ordering)
 	if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
 		return I.gb[ordering]
 	end
-	if algorithm == :singular
+	if algorithm == :buchberger
 		if !haskey(I.gb, ordering)
 			I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
 		elseif complete_reduction == true
@@ -155,7 +155,7 @@ end
       complete_reduction::Bool = false, algorithm::Symbol = :singular)
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
-`algorithm` can be set to `:singular` (Singular's Buchberger algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
+`algorithm` can be set to `:buchberger` (Singular's Buchberger algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
 
 !!! note
     The returned Gröbner basis is reduced if `complete_reduction = true`.
@@ -208,7 +208,7 @@ wdegrevlex([x, y], [1, 3])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-	algorithm::Symbol = :singular)
+	algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
