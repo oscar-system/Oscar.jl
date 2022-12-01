@@ -940,38 +940,30 @@ function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=def
 end
 
 @doc Markdown.doc"""
-    normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
+    is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
 
-Compute the normal form of the elements of the array `A` w.r.t. a
-Groebner basis of `J` and the monomial ordering `o`.
-
-CAVEAT: This computation needs a Groebner basis of `J` and `o`. If this Groebner
-basis is not available, one is computed automatically. This may take some time.
+Tests if a given IdealGens `F` is a standard basis w.r.t. the given monomial ordering `ordering`.
 
 # Examples
 ```jldoctest
-julia> R,(a,b,c) = PolynomialRing(QQ,["a","b","c"])
-(Multivariate Polynomial Ring in a, b, c over Rational Field, fmpq_mpoly[a, b, c])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> A = [-1+c+b+a^3,-1+b+c*a+2*a^3,5+c*b+c^2*a]
-3-element Vector{fmpq_mpoly}:
- a^3 + b + c - 1
- 2*a^3 + a*c + b - 1
- a*c^2 + b*c + 5
+julia> I = ideal(R,[x^2+y,x*y-y])
+ideal(x^2 + y, x*y - y)
 
-julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
-ideal(b + c - 1, 2*a*b + a*c + b - 1)
+julia> is_standard_basis(I.gens, ordering=neglex(R))
+false
 
-julia> gens(groebner_basis(J))
-2-element Vector{fmpq_mpoly}:
- b + c - 1
- a*c - 2*a + c
+julia> standard_basis(I, ordering=neglex(R))
+Standard basis with elements
+1 -> y
+2 -> x^2
+with respect to the ordering
+neglex([x, y])
 
-julia> normal_form(A, J)
-3-element Vector{fmpq_mpoly}:
- a^3
- 2*a^3 + 2*a - 2*c
- 4*a - 2*c^2 - c + 5
+julia> is_standard_basis(I.gb[neglex(R)], ordering=neglex(R))
+true
 ```
 """
 function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
@@ -997,18 +989,46 @@ function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_orde
 	end
 end
 
+@doc Markdown.doc"""
+    is_groebner_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
+
+Tests if a given IdealGens `F` is a Groebner basis w.r.t. the given monomial ordering `ordering`.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal(R,[x^2+y,x*y-y])
+ideal(x^2 + y, x*y - y)
+
+julia> is_groebner_basis(I.gens, ordering=lex(R))
+false
+
+julia> groebner_basis(I, ordering=lex(R))
+Gröbner basis with elements
+1 -> y^2 + y
+2 -> x*y - y
+3 -> x^2 + y
+with respect to the ordering
+lex([x, y])
+
+julia> is_groebner_basis(I.gb[lex(R)], ordering=lex(R))
+true
+```
+"""
 function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(F)))
     is_global(ordering) || error("Ordering must be global")
 	return is_standard_basis(F, ordering=ordering)
 end
 
 @doc Markdown.doc"""
-    normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyElem }
+    fglm(G::IdealGens; ordering::MonomialOrdering)
 
 Converts a Groebner basis `G` w.r.t. a given global monomial ordering for `<G>`
 to a Groebner basis `H` w.r.t. another monomial ordering `ordering` for `<G>`.
 
-	**NOTE**: `fglm` assumes that `G` is a reduced Gröbner basis (i.e. w.r.t. a global monomial ordering) and that `ordering` is a global monomial ordering.
+**NOTE**: `fglm` assumes that `G` is a reduced Gröbner basis (i.e. w.r.t. a global monomial ordering) and that `ordering` is a global monomial ordering.
 
 # Examples
 ```jldoctest
@@ -1054,6 +1074,46 @@ function fglm(G::IdealGens; ordering::MonomialOrdering)
 	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
 end
 
+@doc Markdown.doc"""
+    _compute_groebner_basis_using_fglm(I::MPolyIdeal, destination_ordering::MonomialOrdering)
+
+Computes a reduced Gröbner basis for `I` w.r.t. `destination_ordering` using the FGLM algorithm.
+
+**Note**: Internal function, subject to change, do not use.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> I = ideal(R,[x^2+y,x*y-y])
+ideal(x^2 + y, x*y - y)
+
+julia> Oscar._compute_groebner_basis_using_fglm(I, lex(R))
+Gröbner basis with elements
+1 -> y^2 + y
+2 -> x*y - y
+3 -> x^2 + y
+with respect to the ordering
+lex([x, y])
+
+julia> I.gb[lex(R)]
+Gröbner basis with elements
+1 -> y^2 + y
+2 -> x*y - y
+3 -> x^2 + y
+with respect to the ordering
+lex([x, y])
+
+julia> I.gb[degrevlex(R)]
+Gröbner basis with elements
+1 -> y^2 + y
+2 -> x*y - y
+3 -> x^2 + y
+with respect to the ordering
+degrevlex([x, y])
+```
+"""
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	destination_ordering::MonomialOrdering)
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
