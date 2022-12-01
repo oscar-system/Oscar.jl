@@ -1,7 +1,5 @@
 
 function upgrade(s::DeserializerState, dict::Dict)
-    println("upgrading ...")
-
     if dict[:type] == string(backref_sym)
         backref = s.objs[UUID(dict[:id])]
         backref_type = decodeType(backref[:type])
