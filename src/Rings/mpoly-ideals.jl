@@ -1133,7 +1133,7 @@ function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
-  G = groebner_assure(I)
+  G = groebner_assure(I, false, true)
   singular_assure(G)
   I.dim = Singular.dimension(G.S)
   return I.dim
