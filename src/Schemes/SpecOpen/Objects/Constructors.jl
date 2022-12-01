@@ -24,6 +24,10 @@ function SpecOpen(X::AbsSpec, I::MPolyIdeal; check::Bool=true)
   return SpecOpen(X, [g for g in gens(I) if !iszero(OO(X)(g))], check=check)
 end
 
+function SpecOpen(X::AbsSpec, I::MPolyQuoIdeal; check::Bool=true)
+  return SpecOpen(X, [lift(g) for g in gens(I) if !iszero(OO(X)(g))], check=check)
+end
+
 ########################################################################
 # Constructors from closed subvarieties                                #
 ########################################################################
@@ -52,7 +56,7 @@ function complement(X::AbsSpec,
     check::Bool=true
   )
   check && (is_closed_embedding(Z, X) || error("not a closed embedding"))
-  return SpecOpen(Y, modulus(quotient_ring(OO(Z))))
+  return SpecOpen(Y, modulus(underlying_quotient(OO(Z))))
 end
 
 ########################################################################

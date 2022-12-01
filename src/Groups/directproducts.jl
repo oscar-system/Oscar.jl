@@ -315,7 +315,7 @@ function projection(G::DirectProductGroup, j::Int)
    f=GAP.Globals.Projection(G.Xfull,j)
    j in 1:length(G.L) || throw(ArgumentError("index not valid"))
    H = G.L[j]
-   p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
+   p = GAPWrap.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(G,H,p)
 end
 
@@ -342,7 +342,7 @@ function Base.show(io::IO, G::DirectProductGroup)
       print(io, "DirectProduct of ")
       for x in G.L print(io, "\n ", x) end
    else
-      print(io, String(GAP.Globals.StringViewObj(G.X)))
+      print(io, String(GAPWrap.StringViewObj(G.X)))
    end
 end
 
@@ -461,7 +461,7 @@ Return the projection of `G` into the second component of `G`.
 function projection(G::SemidirectProductGroup)
    f=GAP.Globals.Projection(G.Xfull)
    H = G.H
-   p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
+   p = GAPWrap.GroupHomomorphismByFunction(G.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(G,H,p)
 end
 
@@ -472,10 +472,10 @@ end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
    if x.isfull
-      print(io, "SemidirectProduct( ", String(GAP.Globals.StringViewObj(x.N.X)),
+      print(io, "SemidirectProduct( ", String(GAPWrap.StringViewObj(x.N.X)),
                 " , ", String(GAP.Globals.StringView(x.H.X))," )")
    else
-      print(io, String(GAP.Globals.StringViewObj(x.X)))
+      print(io, String(GAPWrap.StringViewObj(x.X)))
    end
 end
 
@@ -624,7 +624,7 @@ function projection(W::WreathProductGroup)
   # @assert W.isfull "Projection not defined for proper subgroups of wreath products"
    f=GAP.Globals.Projection(W.Xfull)
    H = W.H
-   p = GAP.Globals.GroupHomomorphismByFunction(W.X,H.X,y->GAPWrap.Image(f,y))
+   p = GAPWrap.GroupHomomorphismByFunction(W.X,H.X,y->GAPWrap.Image(f,y))
    return GAPGroupHomomorphism(W,H,p)
 end
 

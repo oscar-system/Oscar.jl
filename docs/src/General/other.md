@@ -28,7 +28,23 @@
 - Polyhedra and polyhedral complexes in OSCAR are represented inhomogeneously,
   i.e. without the leading `1` for vertices or `0` for rays. Hence constructors
   take points, rays, and lineality generators separately.
-- TODO: also talk about how to use it from OSCAR?
+
+- `user_method`s cannot be accessed via Julia's dot syntax, i.e. something like
+
+  ```julia
+  c = Polymake.polytope.cube(3)
+  c.AMBIENT_DIM
+  ```
+
+  will not work. Instead `user_method`s are attached as Julia functions in
+  their respective application. They are always written in lowercase. In the
+  example the following works:
+
+  ```julia
+  c = Polymake.polytope.cube(3)
+  Polymake.polytope.ambient_dim(c)
+  ```
+
 
 ## Notes for Magma users
 

@@ -32,25 +32,25 @@ end
 # Compute the isomorphism between the GAP domain `F`
 # and a corresponding Oscar object.
 function _iso_gap_oscar(F::GAP.GapObj)
-   if GAP.Globals.IsField(F)
+   if GAPWrap.IsField(F)
      if GAPWrap.IsFinite(F)
        return _iso_gap_oscar_field_finite(F)
      else
-       if GAP.Globals.IsRationals(F)
+       if GAPWrap.IsRationals(F)
          return _iso_gap_oscar_field_rationals(F)
-       elseif GAP.Globals.IsCyclotomicCollection(F)
-         if GAP.Globals.IsCyclotomicField(F)
+       elseif GAPWrap.IsCyclotomicCollection(F)
+         if GAPWrap.IsCyclotomicField(F)
            return _iso_gap_oscar_field_cyclotomic(F)
          elseif F === GAP.Globals.Cyclotomics
            return _iso_gap_oscar_abelian_closure(F)
          end
        end
      end
-   elseif GAP.Globals.IsZmodnZObjNonprimeCollection(F)
+   elseif GAPWrap.IsZmodnZObjNonprimeCollection(F)
      return _iso_gap_oscar_residue_ring(F)
-   elseif GAP.Globals.IsIntegers(F)
+   elseif GAPWrap.IsIntegers(F)
      return _iso_gap_oscar_ring_integers(F)
-   elseif GAP.Globals.IsUnivariatePolynomialRing(F)
+   elseif GAPWrap.IsUnivariatePolynomialRing(F)
      return _iso_gap_oscar_univariate_polynomial_ring(F)
    end
 
@@ -58,7 +58,7 @@ function _iso_gap_oscar(F::GAP.GapObj)
 end
 
 function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
-   n = GAP.Globals.Size(RG)
+   n = GAPWrap.Size(RG)
    if n isa GAP.GapObj
      n = fmpz(n)
    end

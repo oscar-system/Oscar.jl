@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -41,11 +44,20 @@ secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 
 Objects of type `Cone` can be saved to a file and loaded from a file in the
 following way:
-```@repl oscar
-C = positive_hull([1 0; 0 1])
-save("C.cone", C)
-CC = load("C.cone")
-collect(rays(CC))
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+A polyhedral cone in ambient dimension 2
+
+julia> save("C.cone", C)
+
+julia> CC = load("C.cone")
+A polyhedral cone in ambient dimension 2
+
+julia> collect(rays(CC))
+2-element Vector{RayVector{fmpq}}:
+ [1, 0]
+ [0, 1]
+
 ```
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by

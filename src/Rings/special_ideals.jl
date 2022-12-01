@@ -20,7 +20,7 @@ $u_m - \sum_{l=n}^n u_{l-m} u_l$, $1 - \sum_{l = -n}^n u_l$
 where $u_{-i} = u_i$, and $u_i = 0$ for $i > n$ and $m \in \{-n, \ldots, n\}$.
 Also note that indices have been shifted to start from 1.
 
-# Example
+# Examples
 ```jldoctest
 julia> katsura(2)
 ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
@@ -36,7 +36,7 @@ end
 
 Returns the Katsura ideal in the given polynomial ring `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, _ = QQ["x", "y", "z"]
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])

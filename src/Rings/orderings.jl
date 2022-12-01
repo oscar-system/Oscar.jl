@@ -1704,7 +1704,8 @@ end
 @doc Markdown.doc"""
     index_of_leading_term(f::MPolyElem, ord::MonomialOrdering)
 
-Return the index of the leading term of `f` with repsect to the order `ord`.
+Return the index of the leading term of `f` with repsect to the order `ord`. The
+returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyElem, ord::MonomialOrdering)
   n = length(f)

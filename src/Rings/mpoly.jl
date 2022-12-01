@@ -3,7 +3,9 @@
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
-       leading_coefficient, leading_exponent, leading_monomial, leading_term
+       leading_coefficient, leading_exponent, leading_monomial, leading_term,
+       tail,
+       rational_solutions
 
 ##############################################################################
 #
@@ -954,6 +956,7 @@ julia> collect(ans)
  (2, [1, 0])
  (4, [1, 1])
  (1, [2, 0])
+```
 """
 function coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return GeneralPermutedIterator{:coefficients_and_exponents}(f, permutation_of_terms(f, ordering))
@@ -1044,8 +1047,7 @@ respect to the order `ordering`.
 """
 function leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
-  i = permutation_of_terms(f, ordering)[1]
-  return AbstractAlgebraexponent_vector(f, index_of_leading_term())
+  return AbstractAlgebra.exponent_vector(f, index_of_leading_term(f, ordering))
 end
 
 @doc Markdown.doc"""
@@ -1064,6 +1066,24 @@ Return the leading term of `f` with respect to the order `ordering`.
 """
 function leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
   return term(f, index_of_leading_term(f, ordering))
+end
+
+@doc Markdown.doc"""
+    tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+
+Return the tail of `f` with respect to the order `ordering`.
+"""
+function tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+   # f - leading_term(f) is too easy and might have problems with inexact
+   i = index_of_leading_term(f, ordering)
+   z = MPolyBuildCtx(parent(f))
+   for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+      i -= 1
+      if i != 0
+         push_term!(z, c, e)
+      end
+   end
+   return finish(z)
 end
 
 ##############################################################################
@@ -1109,3 +1129,50 @@ end
 
 ################################################################################
 
+################################################################################
+#
+#  Rational solutions of zero-dimensional ideals
+#
+################################################################################
+
+"""
+    rational_solutions(I::MPolyIdeal) -> Vector{Vector}
+
+Given a zero-dimensional ideal, return all rational elements of the vanishing
+set.
+"""
+function rational_solutions(I::MPolyIdeal{<:MPolyElem})
+  gb = groebner_basis(I, ordering = lex(base_ring(I)))
+  R = base_ring(I)
+  if 1 in gb
+    return elem_type(base_ring(R))[]
+  end
+  @req dim(I) == 0 "Dimension must be zero"
+  @assert length(gb) == ngens(base_ring(I))
+  R = base_ring(I)
+  Qx, _ = PolynomialRing(base_ring(R), cached = false)
+  rts = [elem_type(Qx)[zero(Qx) for i = gens(R)]]
+  i = ngens(R)
+  for f in gb
+    sts = Vector{elem_type(Qx)}[]
+    for r in rts
+      r[i] = gen(Qx)
+      g = evaluate(f, r)
+      rt = roots(g)
+      for x in rt
+        r[i] = Qx(x)
+        push!(sts, copy(r))
+      end
+    end
+    rts = sts
+    i -= 1
+  end
+  #for technical reasons (evaluation) the points are actually at this
+  #point constant polynomials, hence:
+  return [[constant_coefficient(x) for x in r] for r in rts]
+end
+
+
+function _is_integral_domain(R::MPolyRing) 
+  return true
+end

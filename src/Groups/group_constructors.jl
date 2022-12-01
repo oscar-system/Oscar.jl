@@ -251,18 +251,18 @@ end
 # FIXME: a function `free_abelian_group` with the same signature is
 # already being defined by Hecke
 #function free_abelian_group(n::Int)
-#  return FPGroup(GAP.Globals.FreeAbelianGroup(n))
+#  return FPGroup(GAPWrap.FreeAbelianGroup(n))
 #end
 
 function free_abelian_group(::Type{FPGroup}, n::Int)
- return FPGroup(GAP.Globals.FreeAbelianGroup(n)::GapObj)
+ return FPGroup(GAPWrap.FreeAbelianGroup(n)::GapObj)
 end
 
 
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 
 function free_group(G::FPGroup)
-   return FPGroup(GAP.Globals.FreeGroupOfFpGroup(G.X)::GapObj)
+   return FPGroup(GAPWrap.FreeGroupOfFpGroup(G.X)::GapObj)
 end
 
 ################################################################################

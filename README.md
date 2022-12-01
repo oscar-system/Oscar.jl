@@ -26,7 +26,7 @@ instructions](https://oscar.computeralgebra.de/install/) on our website.
 
 ## Contributing to OSCAR
 
-Please read the [introduction for new developers](https://oscar-system.github.io/Oscar.jl/dev/DeveloperDocumentation/new_developers/)
+Please read the [introduction for new developers](https://docs.oscar-system.org/dev/DeveloperDocumentation/new_developers/)
 in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ## Examples of usage
@@ -42,7 +42,7 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -
 
 ...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 0.11.0 ...
+Version 0.11.2-DEV ...
 ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
 (c) 2019-2022 by The OSCAR Development Team
@@ -129,7 +129,7 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 0.11.0 The OSCAR Team, 2022. (https://oscar.computeralgebra.de)
+        OSCAR -- Open Source Computer Algebra Research system, Version 0.11.2-DEV The OSCAR Team, 2022. (https://oscar.computeralgebra.de)
     [OSCAR-book]
         Christian Eder, Wolfram Decker, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
 
@@ -139,13 +139,13 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 0.11.0},
+                      Version 0.11.2-DEV},
       year         = {2022},
       url          = {https://oscar.computeralgebra.de},
       }
 
     @Book{OSCAR-book,
-      editor = {Eder, Christian and Decker, Wolfram and Fieker, Claus and Horn, Max and Joswig, Michael},
+      editor = {Decker, Wolfram and Eder, Christian and Fieker, Claus and Horn, Max and Joswig, Michael},
       title = {The OSCAR book},
       year = {2024},
     }
@@ -157,16 +157,13 @@ Forschungsgemeinschaft DFG within the
 [Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://oscar-system.github.io/Oscar.jl/dev/
+[docs-dev-url]: https://docs.oscar-system.org/dev/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
+[docs-stable-url]: https://docs.oscar-system.org/stable/
 
 [ga-img]: https://github.com/oscar-system/Oscar.jl/workflows/Run%20tests/badge.svg
 [ga-url]: https://github.com/oscar-system/Oscar.jl/actions?query=workflow%3A%22Run+tests%22
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg?branch=master
 [codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
-
-[coveralls-img]: https://coveralls.io/repos/github/oscar-system/Oscar.jl/badge.svg?branch=master
-[coveralls-url]: https://coveralls.io/github/oscar-system/Oscar.jl?branch=master

@@ -1413,7 +1413,7 @@ end
 ### Further functionality
 function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
   L = base_ring(I)
-  parent(a) == L || return coordinates(L(a), I, check=check)
+  parent(a) === L || return coordinates(L(a), I, check=check)
   if check 
     a in I || error("the given element is not in the ideal")
   end
@@ -1433,6 +1433,24 @@ function coordinates(a::RingElem, I::MPolyLocalizedIdeal; check::Bool=true)
     extend_pre_saturated_ideal!(I, p, x, u, check=false)
     return result
   end
+end
+
+function coordinates(
+    a::RingElem, I::MPolyLocalizedIdeal{LRT}; check::Bool=true
+  ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  L = base_ring(I)
+  parent(a) === L || return coordinates(L(a), I, check=check)
+  if check 
+    a in I || error("the given element is not in the ideal")
+  end
+  saturated_ideal(I, with_generator_transition=true) # Computing the saturation first is cheaper than the generic Posur method
+  # Note that a call to saturated_ideal overwrites the cache for pre_saturated_ideal
+  J = pre_saturated_ideal(I)
+  R = base_ring(J)
+  p = numerator(a)
+  x = coordinates(p, J)
+  q = denominator(a)
+  return L(one(q), q, check=false)*change_base_ring(L, x)*pre_saturation_data(I)
 end
 
 generator_matrix(J::MPolyIdeal) = MatrixSpace(base_ring(J), ngens(J), 1)(gens(J))
@@ -1618,7 +1636,7 @@ function saturated_ideal(
     end
     I.saturated_ideal = result
     if with_generator_transition
-      error("no transition matrix available using local orderings")
+      error("computation of the transition matrix for the generators is not supposed to happen for localizations at complements of prime ideals")
     end
   end
   return I.saturated_ideal
@@ -1627,10 +1645,10 @@ end
 function saturated_ideal(
     I::MPolyLocalizedIdeal{LRT};
     strategy::Symbol=:iterative_saturation,
-    with_generator_transition::Bool=false
+    with_generator_transition::Bool=true
   ) where {LRT<:MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   if !isdefined(I, :saturated_ideal)
-    is_saturated(I) && return pre_saturated_ideal
+    is_saturated(I) && return pre_saturated_ideal(I)
     L = base_ring(I)
     R = base_ring(L)
     if strategy==:iterative_saturation
@@ -1640,6 +1658,8 @@ function saturated_ideal(
           Jsat = saturation(Jsat, ideal(R, d))
         end
         if with_generator_transition
+          # We completely overwrite the pre_saturated_ideal with the generators 
+          # of the saturated ideal
           cache = Vector()
           for g in gens(Jsat)
             (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
@@ -1648,13 +1668,22 @@ function saturated_ideal(
             end
           end
           if length(cache) > 0
-            extend_pre_saturated_ideal!(I, 
-                                        elem_type(R)[g for (g, x, u) in cache],
-                                        vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
-                                        [u for (g, x, u) in cache], 
-                                        check=false
-                                       )
+            A = zero(MatrixSpace(L, ngens(Jsat), ngens(I)))
+
+            for i in 1:length(cache)
+              (g, a, dttk) = cache[i]
+              A[i, :] = L(one(dttk), dttk, check=false)*change_base_ring(L, a)*pre_saturation_data(I)
+            end
+            I.pre_saturated_ideal = Jsat
+            I.pre_saturation_data = A
+#            extend_pre_saturated_ideal!(I, 
+#                                        elem_type(R)[g for (g, x, u) in cache],
+#                                        vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
+#                                        [u for (g, x, u) in cache], 
+#                                        check=false
+#                                       )
           end
+          I.is_saturated=true
         end
       end
       I.saturated_ideal = Jsat
@@ -1673,13 +1702,23 @@ function saturated_ideal(
           end
         end
         if length(cache) > 0
-          extend_pre_saturated_ideal!(I, 
-                                      elem_type(R)[g for (g, x, u) in cache],
-                                      vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
-                                      [u for (g, x, u) in cache], 
-                                      check=false
-                                     )
+          # We completely overwrite the pre_saturated_ideal with the generators 
+          # of the saturated ideal
+          A = zero(MatrixSpace(L, ngens(Jsat), ngens(I)))
+          for i in 1:length(cache)
+            (g, a, dttk) = cache[i]
+            A[i, :] = L(one(dttk), dttk, check=false)*change_base_ring(L, a)*pre_saturation_data(I)
+          end
+          I.pre_saturated_ideal = Jsat
+          I.pre_saturation_data = A
+         #extend_pre_saturated_ideal!(I, 
+         #                            elem_type(R)[g for (g, x, u) in cache],
+         #                            vcat(dense_matrix_type(R)[x for (g, x, u) in cache]),
+         #                            [u for (g, x, u) in cache], 
+         #                            check=false
+         #                           )
         end
+        I.is_saturated=true
       end
       I.saturated_ideal = Jsat
     else
@@ -2303,7 +2342,7 @@ function divides(a::MPolyLocalizedRingElem, b::MPolyLocalizedRingElem)
   return true, W(x[1])
 end
 
-# This had to be moved after behind the definition of the elements.
+# This had to be moved after the definition of the elements.
 function Localization(R::MPolyRing, f::MPolyElem)
   U = MPolyPowersOfElement(R, [f])
   L = MPolyLocalizedRing(R, U)
@@ -2321,3 +2360,30 @@ function Localization(R::MPolyRing, f::MPolyElem)
   return L, MapFromFunc(func, func_inv, R, L)
 end
 
+#############################################################################
+# Further functionality for elements of localized rings
+#############################################################################
+
+function derivative(f::MPolyLocalizedRingElem, i::Int)
+  num = derivative(numerator(f), i)*denominator(f) - derivative(denominator(f), i)*numerator(f)
+  den = denominator(f)^2
+  g = gcd(num, den)
+  return parent(f)(divexact(num, g), divexact(den, g), check=false)
+end
+
+function jacobi_matrix(f::MPolyLocalizedRingElem)
+  L = parent(f)
+  n = nvars(base_ring(L))
+  return matrix(L, n, 1, [derivative(f, i) for i=1:n])
+end
+
+function jacobi_matrix(g::Vector{<:MPolyLocalizedRingElem})
+  R = parent(g[1])
+  n = nvars(base_ring(R))
+  @assert all(x->parent(x) == R, g)
+  return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
+end
+
+function _is_integral_domain(R::MPolyLocalizedRing)
+  return true
+end

@@ -316,8 +316,30 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}) whe
     end
 
     # construct the weighted projective space
-    pmntv = Polymake.fulton.weighted_projective_space(w)
-    variety = NormalToricVariety(pmntv)
+    # pmntv = Polymake.fulton.weighted_projective_space(w)
+    # variety = NormalToricVariety(pmntv)
+    
+    # Workaround due to bug in polymake
+    #
+    # We follow the recipe of page 35-36 in
+    # William Fulton: Introduction to toric varieties
+    # Since we cannot deal with lattices that are finer than ZZ^n, we scale
+    # everything up by the corresponding lcms.
+    lcms = [lcm(w[1], w[i]) for i in 2:length(w)]
+    lattice_gens = fmpz_mat(length(w), length(w)-1)
+    ray_gens = fmpz_mat(length(w), length(w)-1)
+    lattice_gens[1,:] = [-div(i, w[1]) for i in lcms]
+    ray_gens[1,:] = -lcms
+    for i in 1:length(w)-1
+        lattice_gens[i+1,i] = div(lcms[i], w[i+1])
+        ray_gens[i+1,i] = lcms[i]
+    end
+    H = hnf(lattice_gens)
+    lattice_gens = transpose(H[1:length(w)-1, :])
+    tr,_ = pseudo_inv(lattice_gens)
+    ray_gens = ray_gens * transpose(tr)
+    mc = IncidenceMatrix(subsets(Vector{Int}(1:length(w)), length(w)-1))
+    variety = NormalToricVariety(PolyhedralFan(ray_gens, mc; non_redundant=true ))
 
     # set properties
     set_attribute!(variety, :has_torusfactor, false)

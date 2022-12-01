@@ -49,7 +49,7 @@ of a given polytope $P$.  The result is given as permutations of the vertices
 (or rather vertex indices) of $P$. This group contains the `linear_symmetries`
 as a subgroup.
 
-# Example
+# Examples
 The quadrangle one obtains from moving one vertex of the square out along the
 diagonal has eight combinatorial symmetries, but only two linear symmetries.
 ```jldoctest
@@ -59,13 +59,13 @@ A polyhedron in ambient dimension 2
 julia> G = combinatorial_symmetries(quad)
 Group([ (2,4), (1,2)(3,4) ])
 
-julia> length(elements(G))
+julia> order(G)
 8
 
 julia> G = linear_symmetries(quad)
 Group([ (2,4) ])
 
-julia> length(elements(G))
+julia> order(G)
 2
 ```
 """
@@ -90,7 +90,7 @@ A polyhedron in ambient dimension 3
 julia> G = linear_symmetries(c)
 Group([ (3,5)(4,6), (2,3)(6,7), (1,2)(3,4)(5,6)(7,8) ])
 
-julia> length(elements(G))
+julia> order(G)
 48
 ```
 
@@ -103,7 +103,7 @@ A polyhedron in ambient dimension 2
 julia> G = linear_symmetries(quad)
 Group([ (2,4) ])
 
-julia> length(elements(G))
+julia> order(G)
 2
 ```
 """

@@ -136,8 +136,8 @@ function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0)
     else
       G = symmetric_group(degree(K))
     end
-    GC.G = G
-    return G, GC
+    C.G = G
+    return G, C
   end
 
   G, F, si = starting_group(C, K)
@@ -213,4 +213,43 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{fm
   k = nf(zk)
   N = ceil(Int, degree(k)/2/log(norm(P))*(log(c1*c2) + 2*log(v)))
   return N
+end
+
+function galois_group(f::PolyElem{nf_elem}, ::FlintRationalField)
+  @assert isirreducible(f)
+
+  g = f
+  k = 0
+  
+  p = Hecke.p_start
+  F = GF(p)
+
+  Kx = parent(f)
+  K = base_ring(Kx)
+
+  Zx = Hecke.Globals.Zx
+  local N
+  @vtime :PolyFactor Np = Hecke.norm_mod(g, p, Zx)
+  while is_constant(Np) || !is_squarefree(map_coefficients(F, Np))
+    k = k + 1
+    g = compose(f, gen(Kx) - k*gen(K))
+    @vtime :PolyFactor 2 Np = Hecke.norm_mod(g, p, Zx)
+  end
+
+  @vprint :PolyFactor 2 "need to shift by $k, now the norm\n"
+  if any(x -> denominator(x) > 1, coefficients(g)) ||
+     !Hecke.is_defining_polynomial_nice(K)
+    @vtime :PolyFactor 2 N = Hecke.Globals.Qx(norm(g))
+  else
+    @vtime :PolyFactor 2 N = Hecke.norm_mod(g, Zx)
+    @hassert :PolyFactor 1 N == Zx(norm(g))
+  end
+
+  while is_constant(N) || !is_squarefree(N)
+    error("should not happen")
+  end
+
+  global last_N = N
+  @show N
+  return galois_group(N)
 end

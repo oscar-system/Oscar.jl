@@ -356,10 +356,6 @@ function test_module(x::AbstractString, new::Bool = true)
    end
 end
 
-function weights end
-
-function is_effective end
-
 include("printing.jl")
 include("fallbacks.jl")
 

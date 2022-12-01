@@ -304,6 +304,7 @@ function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     n = nrays(v)
     n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     mnf = _minimal_nonfaces(v)
+    Polymake.nrows(mnf) > 0 || return ideal([zero(R)])
     return ideal([ R([1], [Vector{Int}(mnf[i, :])]) for i in 1:Polymake.nrows(mnf) ])
 end
 
@@ -406,8 +407,8 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !(is_complete(v) && is_simplicial(v))
-        throw(ArgumentError("The variety must be both complete and simplicial for the computation of the ideal of linear relations"))
+    if !is_simplicial(v)
+        throw(ArgumentError("The ideal of linear relations is only supported for simplicial toric varieties"))
     end
     if ngens(R) != nrays(v)
         throw(ArgumentError("The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"))

@@ -2,7 +2,6 @@ export AbsSpecMor, SpecMor
 export OpenInclusion
 
 
-
 ########################################################################
 # Abstract morphisms of affine schemes                                 #
 ########################################################################
@@ -105,5 +104,4 @@ one ``X``.
     return new{typeof(U), typeof(X), pullback_type(f)}(f, I, Z)
   end
 end
-
 

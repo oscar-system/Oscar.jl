@@ -21,11 +21,11 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}) 
    end
 
    G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
-   F = GAP.Globals.Range(G_to_fin_pres)
-   rels = GAP.Globals.RelatorsOfFpGroup(F)
+   F = GAPWrap.Range(G_to_fin_pres)
+   rels = GAPWrap.RelatorsOfFpGroup(F)
 
-   gens_and_invsF = [ g for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ]
-   append!(gens_and_invsF, [ inv(g) for g in GAP.Globals.FreeGeneratorsOfFpGroup(F) ])
+   gens_and_invsF = [ g for g in GAPWrap.FreeGeneratorsOfFpGroup(F) ]
+   append!(gens_and_invsF, [ inv(g) for g in GAPWrap.FreeGeneratorsOfFpGroup(F) ])
    matrices_and_invs = copy(matrices)
    append!(matrices_and_invs, [ inv(M) for M in matrices ])
    for i = 1:length(rels)
@@ -82,8 +82,8 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
   gen = gens(G)
 
   preimg = function(y)
-    return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(Gp.ring_iso, y.elm))),
-                                  GAP.Globals.FreeGeneratorsOfFpGroup(F),
+    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(Gp.ring_iso, y.elm))),
+                                  GAPWrap.FreeGeneratorsOfFpGroup(F),
                                   GAP.GapObj(gen))
   end
 

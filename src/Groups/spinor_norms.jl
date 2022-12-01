@@ -177,10 +177,6 @@ function spin(gram_diag::MatElem, isometry::MatElem, check=true)
   return spinor_norm[1,1]
 end
 
-function valuation(A::fmpq_mat, p)
-  return minimum([a==0 ? PosInf() : valuation(a, p) for a in A])
-end
-
 @doc Markdown.doc"""
     det_spin(G::fmpq_mat, T::fmpq_mat, p, nu) -> Tuple{fmpq, fmpq}
 
@@ -318,12 +314,6 @@ function _det_spin_group(primes::Vector{fmpz}; infinity = true)
   diagonal_morphism = MapFromFunc(forwardmap, backwardmap, A, QQ)
   return D, inv(diagonal_morphism)*injD[end], projd, injd, maps_det
 end
-
-
-function inv(f::Hecke.LocMultGrpModSquMap)
-  return MapFromFunc(x -> preimage(f, x), codomain(f), domain(f))
-end
-
 
 @doc Markdown.doc"""
     det_spin_homomorphism(L::ZLat) -> GAPGroupHomomorphism
