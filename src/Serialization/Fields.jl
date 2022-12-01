@@ -496,6 +496,7 @@ end
 function save_internal(s::SerializerState, n::padic)
     return Dict(
         :rational_rep => save_type_dispatch(s, lift(QQ, n)),
+        :precision => save_type_dispatch(s, precision(n)),
         :parent => save_type_dispatch(s, parent(n))
     )
 end
@@ -512,6 +513,14 @@ function load_internal_with_parent(s::DeserializerState,
                                    dict::Dict,
                                    parent::FlintPadicField)
     rational_rep = load_type_dispatch(s, fmpq, dict[:rational_rep])
+    elem_precision = load_type_dispatch(s, Int64, dict[:precision])
+
+    # this test should be moved in future ideally higher in the tree and possibly
+    # for all types that have precision
+    if elem_precision + 1 > precision(parent)
+        @warn("Precision Warning: given parent is less precise than serialized parent",
+              maxlog=1)
+    end
     
     return parent(rational_rep)
 end
