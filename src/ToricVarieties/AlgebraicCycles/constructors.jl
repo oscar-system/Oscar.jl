@@ -66,7 +66,7 @@ A rational equivalence class on a normal toric variety represented by 6V(x3)
 """
 function RationalEquivalenceClass(d::ToricDivisor)
     v = toric_variety(d)
-    if istrivial(d)
+    if is_trivial(d)
         return RationalEquivalenceClass(v, zero(chow_ring(v)))
     end
     coeffs = coefficients(d)
