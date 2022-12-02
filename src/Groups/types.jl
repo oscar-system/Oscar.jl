@@ -216,7 +216,7 @@ _oscar_group(obj::GapObj, G::T) where T <: GAPGroup = T(obj)
 
 # `PermGroup`: set the degree of `G`
 function _oscar_group(obj::GapObj, G::PermGroup)
-  n = GAP.Globals.LargestMovedPoint(obj)
+  n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
   return PermGroup(obj, N)

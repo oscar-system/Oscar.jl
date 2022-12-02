@@ -137,6 +137,18 @@ end
    @test leading_monomial(f; ordering = lex(R)) == x*y
    @test leading_coefficient(f; ordering = lex(R)) == Fp(1)
    @test leading_term(f; ordering = lex(R)) == x*y
+   @test leading_exponent(f) == first(collect(exponents(f)))
+
+   f = f^3 + f
+   g = MPolyBuildCtx(R)
+   for (c, e) in coefficients_and_exponents(f)
+      push_term!(g, c, e)
+   end
+   @test f == finish(g)
+
+   @test f == leading_term(f) + tail(f)
+   @test f == leading_term(f; ordering = lex(R)) + tail(f; ordering = lex(R))
+   @test f == leading_term(f; ordering = neglex(R)) + tail(f; ordering = neglex(R))
 end
  
 @testset "Polynomial Orderings comparison" begin

@@ -20,7 +20,7 @@ base_ring(X::AbsCoveredScheme) = base_ring(underlying_scheme(X))
 
 Return the list of internally stored `Covering`s of ``X``.
 
-# Example
+# Examples
 ```jldoctest
 julia> P = projective_space(QQ, 2);
 

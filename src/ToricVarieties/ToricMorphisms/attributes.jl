@@ -114,7 +114,7 @@ export morphism_on_torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
-    morphism_on_cartier_divisor_group(tm::ToricMorphism)
+    morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
 
 For a given toric morphism `tm`, this method computes the corresponding
 map of the Cartier divisors.
@@ -124,7 +124,7 @@ map of the Cartier divisors.
 julia> F4 = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> morphism_on_cartier_divisor_group(ToricIdentityMorphism(F4))
+julia> morphism_on_torusinvariant_cartier_divisor_group(ToricIdentityMorphism(F4))
 Map with following data
 Domain:
 =======

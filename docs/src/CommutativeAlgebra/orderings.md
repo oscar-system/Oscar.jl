@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -37,13 +40,14 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 	   (global, local, mixed) monomial ordering on $\N^n$.
 
 !!! note
+    By a result of Robbiano, every monomial ordering can be realized as a matrix ordering.
+
+!!! note
     The lexicograpical monomial ordering specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
     The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering  and the degree reverse lexicographical
 	ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
-In this section, we show how to create monomial orderings in OSCAR. After recalling that all monomial orderings can be realized as matrix orderings,
-we present a list of orderings which are predefined in OSCAR. Then we discuss weight and block orderings (product orderings). Finally, we address
-elimination orderings.
+In this section, we show how to create monomial orderings in OSCAR. 
 
 !!! note
     For the convenient construction of block orderings on the set of monomials in the variables of a given multivariate polynomial ring,
@@ -53,22 +57,51 @@ Here are some illustrating examples:
 
 ##### Examples
 
-```@repl oscar
-S, (w, x) = PolynomialRing(QQ, ["w", "x"])
-o = lex([w, x])
-canonical_matrix(o)
-cmp(o, w^2*x, x^3)
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-o1 = degrevlex([w, x])
-is_global(o1)
-canonical_matrix(o1)
-o2 = neglex([y, z])
-is_local(o2)
-canonical_matrix(o2)
-o3 = o1*o2
-canonical_matrix(o3)
-is_mixed(o3)
-show(collect(terms((1+w+x+y+z)^2, o3)))
+```jldoctest
+julia> S, (w, x) = PolynomialRing(QQ, ["w", "x"])
+(Multivariate Polynomial Ring in w, x over Rational Field, fmpq_mpoly[w, x])
+
+julia> o = lex([w, x])
+lex([w, x])
+
+julia> canonical_matrix(o)
+[1   0]
+[0   1]
+
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o1 = degrevlex([w, x])
+degrevlex([w, x])
+
+julia> is_global(o1)
+true
+
+julia> canonical_matrix(o1)
+[1    1   0   0]
+[0   -1   0   0]
+
+julia> o2 = neglex([y, z])
+neglex([y, z])
+
+julia> is_local(o2)
+true
+
+julia> canonical_matrix(o2)
+[0   0   -1    0]
+[0   0    0   -1]
+
+julia> o3 = o1*o2
+degrevlex([w, x])*neglex([y, z])
+
+julia> canonical_matrix(o3)
+[1    1    0    0]
+[0   -1    0    0]
+[0    0   -1    0]
+[0    0    0   -1]
+
+julia> is_mixed(o3)
+true
 ```
 
 ## Monomial Comparisons
@@ -78,37 +111,6 @@ The `cmp` function should be used for comparing two monomials with regard to a m
 ```@docs
 cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 ```
-
-The terms of a multivariate polynomials may be queried in an arbitrary ordering.
-
-```@docs
-coefficients(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-coefficients_and_exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-exponents(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-monomials(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-terms(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-leading_coefficient(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-leading_monomial(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-leading_term(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-```
-
-!!! note
-    As the above functions take an arbitrary ordering, they are much slower than
-    the versions from AbstractAlgebra, which use the natural ordering in the
-    parent polynomial ring: `default_ordering(parent(f))` is not necessarily
-    this natural ordering. If this ordering of the parent is desired, or if the
-    ordering is not important, it is recommended to use the following.
-    - `AbstractAlgebra.coefficients(f)`
-    - `zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))`
-    - `AbstractAlgebra.exponent_vectors(f)`
-    - `AbstractAlgebra.monomials(f)`
-    - `AbstractAlgebra.terms(f)`
-    - `AbstractAlgebra.leading_coefficient(f)`
-    - `AbstractAlgebra.leading_exponent_vector(f)`
-    - `AbstractAlgebra.leading_monomial(f)`
-    - `AbstractAlgebra.leading_term(f)`
-
 
 ## Matrix Orderings
 
@@ -311,9 +313,13 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 
 ##### Examples
 
-```@repl oscar
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-o = degrevlex([w, x])*degrevlex([y, z])
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field, fmpq_mpoly[w, x, y, z])
+
+julia> o = degrevlex([w, x])*degrevlex([y, z])
+degrevlex([w, x])*degrevlex([y, z])
+
 ```
 
 ## Elimination Orderings
@@ -393,11 +399,18 @@ basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the
 
 ##### Examples
 
-```@repl oscar
-R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
-F = free_module(R, 3)
-o1 = degrevlex(R)*revlex(gens(F))
-o2 = revlex(gens(F))*degrevlex(R)
+```jldoctest
+julia> R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in w, x, y, z over Rational Field
+
+julia> o1 = degrevlex(R)*revlex(gens(F))
+degrevlex([w, x, y, z])*revlex([gen(1), gen(2), gen(3)])
+
+julia> o2 = revlex(gens(F))*degrevlex(R)
+revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+
 ```
 
 The induced ordering on the given polynomial ring is recovered as follows:

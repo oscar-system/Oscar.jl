@@ -79,7 +79,9 @@ function _groebner_data(F::AffAlgHom, ord::Symbol)
     (S, I, W, _) = _ring_helper(s, zero(s), _images(F))
     # Build auxiliary objects
     (T, inc, J) = _containment_helper(S, n, m, I, W, ord)
-    D = normal_form([gen(T, i) for i in 1:m], J)
+    # make sure to compute the NF with respect to the correct ordering  
+    D = normal_form([gen(T, i) for i in 1:m], J,
+                    ordering = first(collect(keys(J.gb))))
     A = [zero(r) for i in 1:m]
     B = [gen(r, i) for i in 1:n]
     pr = hom(T, r, vcat(A, B))
@@ -232,7 +234,7 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyElem, MPolyQuoElem})
 
   (S, _, _, g) = _ring_helper(s, f, [zero(s)])
   (T, inc, pr, J, o) = _groebner_data(F, :degrevlex)
-  D = normal_form([inc(g)], J)
+  D = normal_form([inc(g)], J, ordering = first(collect(keys(J.gb))))
   !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
   return (pr(D[1]), kernel(F))
 end
