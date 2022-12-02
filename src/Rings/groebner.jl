@@ -1074,6 +1074,35 @@ function _fglm(G::IdealGens, ordering::MonomialOrdering)
 	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
 end
 
+@doc Markdown.doc"""
+    fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
+
+Converts a Groebner basis for `I` w.r.t. a given global monomial ordering `start_ordering`
+to a Groebner basis for `I` w.r.t. another monomial ordering `destination_ordering`.
+
+
+# Examples
+```jldoctest
+julia> R, (x1, x2, x3, x4) = PolynomialRing(GF(101), ["x1", "x2", "x3", "x4"])
+(Multivariate Polynomial Ring in x1, x2, x3, x4 over Galois field with characteristic 101, gfp_mpoly[x1, x2, x3, x4])
+
+julia> J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
+       x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
+       2*x1*x2+2*x2*x3+2*x3*x4-x2,
+       x2^2+2*x1*x3+2*x2*x4-x3
+       ])
+ideal(x1 + 2*x2 + 2*x3 + 2*x4 + 100, x1^2 + 100*x1 + 2*x2^2 + 2*x3^2 + 2*x4^2, 2*x1*x2 + 2*x2*x3 + 100*x2 + 2*x3*x4, 2*x1*x3 + x2^2 + 2*x2*x4 + 100*x3)
+
+julia> fglm(J, destination_ordering=lex(R))
+Gröbner basis with elements
+1 -> x4^8 + 36*x4^7 + 95*x4^6 + 39*x4^5 + 74*x4^4 + 7*x4^3 + 45*x4^2 + 98*x4
+2 -> x3 + 53*x4^7 + 93*x4^6 + 74*x4^5 + 26*x4^4 + 56*x4^3 + 15*x4^2 + 88*x4
+3 -> x2 + 25*x4^7 + 57*x4^6 + 13*x4^5 + 16*x4^4 + 78*x4^3 + 31*x4^2 + 16*x4
+4 -> x1 + 46*x4^7 + 3*x4^6 + 28*x4^5 + 17*x4^4 + 35*x4^3 + 9*x4^2 + 97*x4 + 100
+with respect to the ordering
+lex([x1, x2, x3, x4])
+```
+"""
 function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
 	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
