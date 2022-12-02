@@ -52,6 +52,23 @@ is_two_sided(a::PBWAlgIdeal{D}) where D = (D == 0)
 
 ####
 
+function is_domain_type(a::Type{U}) where {T, U <: PBWAlgElem{T}}
+   return is_domain_type(T)
+end
+
+function is_exact_type(a::Type{U}) where {T, U <: PBWAlgElem{T}}
+   return is_exact_type(T)
+end
+
+elem_type(::PBWAlgRing{T, S}) where {T, S} = PBWAlgElem{T, S}
+
+elem_type(::Type{PBWAlgRing{T, S}}) where {T, S} = PBWAlgElem{T, S}
+
+parent_type(::PBWAlgElem{T, S}) where {T, S} = PBWAlgRing{T, S}
+
+parent_type(::Type{PBWAlgElem{T, S}}) where {T, S} = PBWAlgRing{T, S}
+
+
 elem_type(R::PBWAlgRing{T, S}) where {T, S} = PBWAlgElem{T, S}
 
 parent_type(a::PBWAlgElem{T, S}) where {T, S} = PBWAlgRing{T, S}
@@ -70,6 +87,10 @@ base_ring(a::PBWAlgElem) = base_ring(parent(a))
 
 function Base.deepcopy_internal(a::PBWAlgElem, dict::IdDict)
   return PBWAlgElem(parent(a), deepcopy_internal(a.sdata, dict))
+end
+
+function Base.hash(a::PBWAlgElem, h::UInt)
+  return hash(a.sdata, h)
 end
 
 function expressify(a::PBWAlgElem; context = nothing)
@@ -220,6 +241,8 @@ end
 
 ####
 
+
+
 function ngens(R::PBWAlgRing)
   return Singular.nvars(R.sring)
 end
@@ -238,6 +261,10 @@ end
 
 function var_index(a::PBWAlgElem)
   return Singular.var_index(a.sdata)
+end
+
+function is_unit(a::PBWAlgElem)
+  return Singular.is_unit(a.sdata)
 end
 
 function zero(R::PBWAlgRing)
@@ -272,9 +299,18 @@ function Base.:^(a::PBWAlgElem, b::Int)
   return PBWAlgElem(parent(a), a.sdata^b)
 end
 
+function divexact_left(a::PBWAlgElem, b::PBWAlgElem; check::Bool = true)
+  throw(NotImplementedError(:divexact_left, a, b))
+end
+
+function divexact_right(a::PBWAlgElem, b::PBWAlgElem; check::Bool = true)
+  throw(NotImplementedError(:divexact_right, a, b))
+end
+
+
 ####
 
-function AbstractAlgebra.promote_rule(::Type{PBWAlgElem{T, S}}, ::Type{PBWAlgElem{T}}) where {T, S}
+function AbstractAlgebra.promote_rule(::Type{PBWAlgElem{T, S}}, ::Type{PBWAlgElem{T, S}}) where {T, S}
   return PBWAlgElem{T, S}
 end
 
@@ -283,13 +319,17 @@ function AbstractAlgebra.promote_rule(::Type{PBWAlgElem{T, S}}, ::Type{U}) where
   return a == T ? PBWAlgElem{T, S} : Union{}
 end
 
+function (R::PBWAlgRing)()
+  return PBWAlgElem(R, R.sring())
+end
+
 function (R::PBWAlgRing{T, S})(c::T) where {T, S}
   c = coefficient_ring(R)(c)::T
   c = base_ring(R.sring)(c)::S
   return PBWAlgElem(R, R.sring(c))
 end
 
-function (R::PBWAlgRing{T, S})(c::Integer) where {T, S}
+function (R::PBWAlgRing{T, S})(c::IntegerUnion) where {T, S}
   c = base_ring(R.sring)(c)::S
   return PBWAlgElem(R, R.sring(c))
 end
@@ -303,6 +343,15 @@ function (R::PBWAlgRing)(cs::AbstractVector, es::AbstractVector{Vector{Int}})
   z = build_ctx(R)
   @assert length(cs) == length(es)
   for (c, e) in zip(cs, es)
+    push_term!(z, c, e)
+  end
+  return finish(z)
+end
+
+function (R::PBWAlgRing)(a::MPolyElem)
+  @assert parent(a) == R.poly_ring
+  z = build_ctx(R)
+  for (c, e) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
     push_term!(z, c, e)
   end
   return finish(z)
