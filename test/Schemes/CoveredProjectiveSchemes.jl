@@ -32,3 +32,28 @@ end
   @test is_smooth(covered_scheme(Blo))
 end
 
+@testset "winter school presentation" begin
+  P, (x,y,z) = QQ["x", "y", "z"]
+  IA3 = Spec(P)
+  f = x^2-y*z^2
+  I = ideal(P, f)
+  X = subscheme(IA3, I)
+  S, inc = singular_locus(X);
+  @test S isa AbsSpec
+  @test inc isa ClosedEmbedding
+  B1 = blow_up(X, ideal(OO(X), [x,y,z]))
+  @test B1 isa ProjectiveScheme
+  Y = covered_scheme(B1)
+  @test !is_smooth(Y)
+  S, inc = singular_locus(Y);
+  @test dim(S) == 1
+  U = affine_charts(S)
+  @test is_empty(U[1])
+  @test !is_empty(U[2])
+  @test dim(U[2]) == 1
+  @test dim(U[3]) == 0
+  B2 = blow_up(image_ideal(inc), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
+  Z = covered_scheme(B2)
+  @test is_smooth(Z)
+end
+
