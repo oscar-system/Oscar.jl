@@ -1,0 +1,95 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      {
+        "major": 0,
+        "minor": 11,
+        "patch": 0,
+        "prerelease": [],
+        "build": []
+      }
+    ]
+  },
+  "id": "ef17af44-cc75-4e55-a8fc-707afdff9f96",
+  "type": "fmpq_poly",
+  "data": {
+    "parent": {
+      "id": "4d26e2da-0298-4fbd-a874-7b9e18ad5e05",
+      "type": "FmpqPolyRing",
+      "data": {
+        "base_ring": {
+          "type": "FlintRationalField"
+        },
+        "symbols": {
+          "id": "73409241-b603-4251-8a53-ca83e76ed282",
+          "type": "Vector",
+          "data": {
+            "vector": [
+              {
+                "type": "Symbol",
+                "data": "x"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "coeffs": {
+      "id": "c91f5782-23a1-4d1f-9c89-9898795c52b4",
+      "type": "Vector",
+      "data": {
+        "vector": [
+          {
+            "id": "56de47c2-b830-4ac5-9d21-903712b29e31",
+            "type": "fmpq",
+            "data": {
+              "num": {
+                "id": "5873c259-580a-4700-8068-8f3f88ca995b",
+                "type": "fmpz",
+                "data": "1"
+              },
+              "den": {
+                "id": "bc8a2547-2046-492d-860b-7f9efd2b6606",
+                "type": "fmpz",
+                "data": "2"
+              }
+            }
+          },
+          {
+            "id": "32d1a525-cc03-4cff-99f8-ba7822b93375",
+            "type": "fmpq",
+            "data": {
+              "num": {
+                "id": "06ea2fd9-cbeb-4444-a422-f9e4a921ac31",
+                "type": "fmpz",
+                "data": "-1"
+              },
+              "den": {
+                "id": "89f3c65a-cb98-4c5c-b841-82f9fcab2a83",
+                "type": "fmpz",
+                "data": "1"
+              }
+            }
+          },
+          {
+            "id": "c09e3ab8-e992-4ed8-9b77-5fe9fd172628",
+            "type": "fmpq",
+            "data": {
+              "num": {
+                "id": "583a9645-c474-44df-9f40-bdc184198c3b",
+                "type": "fmpz",
+                "data": "1"
+              },
+              "den": {
+                "id": "9b06bf55-72c6-44f1-949d-948a355005d1",
+                "type": "fmpz",
+                "data": "1"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

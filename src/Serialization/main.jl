@@ -19,6 +19,8 @@ mutable struct SerializerState
     # io::IO
 end
 
+using RandomExtensions: check_interval
+using Pkg: upgrade_manifest
 function SerializerState()
     return SerializerState(IdDict{Any, UUID}(), 0)
 end
@@ -181,18 +183,7 @@ end
 
 function load_unknown_type(s::DeserializerState,
                            dict::Dict;
-                           parent=nothing,
-                           check_namespace=false)
-    if check_namespace
-        haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
-        _ns = dict[:_ns]
-        if haskey(_ns, :polymake)
-            # If this is a polymake file
-            return load_from_polymake(dict)
-        end
-        haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
-    end
-
+                           parent=nothing)
     if dict[:type] == string(backref_sym)
         return s.objs[UUID(dict[:id])]
     end
@@ -243,6 +234,37 @@ include("QuadForm.jl")
 # Include upgrade scripts
 
 include("upgrades/main.jl")
+
+################################################################################
+# Loading with upgrade checks on dict
+
+function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
+    upgraded_dict = dict
+    for upgrade_script in upgrade_scripts
+        script_version = version(upgrade_script)
+
+        if dict_version < script_version
+            println("upgrading serialized data to version $script_version")
+            s = DeserializerState()
+
+            upgraded_dict = upgrade_script(s, upgraded_dict)
+        end
+    end
+
+    upgraded_dict[:_ns] = get_version_info()
+    
+    return upgraded_dict
+end
+
+function get_file_version(dict::Dict{Symbol, Any})
+    ns = dict[:_ns]
+    version_dict = ns[:Oscar][2]
+    return get_version_number(version_dict)
+end
+
+function get_version_number(dict::Dict{Symbol, Any})
+    return VersionNumber(dict[:major], dict[:minor], dict[:patch])
+end
 
 ################################################################################
 # Interacting with IO streams and files
@@ -331,20 +353,38 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; parent::Any = nothing, type::Any = nothing)
+function load(io::IO; parent::Any = nothing,
+              type::Any = nothing,
+              check_namespace=false)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
 
+    if (check_namespace)
+        haskey(jsondict, :_ns) || throw(ArgumentError("Namespace is missing"))
+        _ns = jsondict[:_ns]
+        if haskey(_ns, :polymake)
+            # If this is a polymake file
+            return load_from_polymake(jsondict)
+        end
+        haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
+    end
+    
+    file_version = get_file_version(jsondict)
+
+    if file_version < VERSION_NUMBER
+        jsondict = upgrade(jsondict, file_version)
+    end
+
     if type !== nothing
         return load_type_dispatch(state, type, jsondict; parent=parent)
     end
-    return load_unknown_type(state, jsondict; parent=parent, check_namespace=true)
+    return load_unknown_type(state, jsondict; parent=parent)
 end
 
-function load(filename::String; parent::Any = nothing, type::Any =  nothing)
+function load(filename::String; parent::Any = nothing, type::Any = nothing)
     open(filename) do file
-        return load(file; parent=parent, type=type)
+        return load(file; parent=parent, type=type, check_namespace=true)
     end
 end
 
