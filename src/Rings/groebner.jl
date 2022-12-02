@@ -322,13 +322,13 @@ function f4(
     return I.gb[ord]
 end
 
-function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering;
-                                complete_reduction::Bool = false)
+function _standard_basis_with_hilbert(I::MPolyIdeal,
+                                      target_ordering::MonomialOrdering;
+                                      weights::Vector{E} = ones(ngens(base_ring(I))),
+                                      complete_reduction::Bool = false) where
   
   # TODO: better way to check homogeneity?
-  _is_homogeneous = p -> all(mon -> total_degree(mon) == total_degree(p),
-                             monomials(p))
-  @assert all(p -> _is_homogeneous(p), gens(I)) "Ideal must be given by homogeneous generators"
+  @assert all(p -> _is_homogeneous_weights(p, weights), gens(I)) "Ideal must be given by homogeneous generators"
   complete_reduction && @assert is_global(ordering)
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     # TODO: can do this with hecke?
@@ -351,6 +351,7 @@ function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering
       catch
         continue
       end
+    end
   else
     G = groebner_assure(I)
   end
@@ -361,6 +362,15 @@ function standard_basis_hilbert(I::MPolyIdeal, target_ordering::MonomialOrdering
   # return I.gb[target_ordering]
   return h
 end
+
+function _is_homogeneous_weights(f::MPoly{T},
+                                 weights::Vector{I}) where {I <: Integer}
+  
+  weight_deg = e -> sum([weights[i] * e[i] for i in eachindex(e)])
+  f_weight_deg = weight_deg(first(exponent_vectors(f)))
+  return all(e -> weight_deg(e) == f_weight_deg, exponent_vectors(f)[2:end])
+end
+  
 
 @doc Markdown.doc"""
     _compute_standard_basis_with_transform(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
