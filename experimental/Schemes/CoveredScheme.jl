@@ -1,14 +1,11 @@
 export morphism_type, morphisms
 export refinements
 
-
 ########################################################################
 # Methods for Covering                                                 #
 ########################################################################
 
-
 ### essential getters
-
 
 #function add_affine_refinement!(
 #    C::Covering, U::SpecOpen; 
@@ -222,10 +219,7 @@ end
 #morphism_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
 
 
-
 refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
-
-
 
 ########################################################################
 # Methods for CoveredScheme                                            #
@@ -253,7 +247,6 @@ refinements(X::CoveredScheme) = X.refinements
 #  X.default_covering = C
 #  return X
 #end
-
 
 
 _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [X[i] for i in p])
@@ -375,7 +368,6 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  add_edge!(refinement_graph(X), X[C_new], X[C0])
 #  return (C_new, f, g)
 #end
-
 
 
 ### Miscellaneous helper routines

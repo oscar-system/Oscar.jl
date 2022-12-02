@@ -22,7 +22,9 @@ Given glueings `X ↩ U ≅ V ↪  Y` and `Y ↩ V' ≅ W ↪ Z`, return the glu
 Use `maximal_extension` to extend the glueing.
 """
 function compose(G::AbsGlueing, H::AbsGlueing) 
-  error("method `compose` not implemented for glueings of type $(typeof(G)) and $(typeof(H))")
+  # In the default case, we rely on some conversion to the most complicated 
+  # glueing and rely on the implementation for composition there.
+  return compose(Glueing(G), Glueing(H))
 end
 
 function compose(G::Glueing, H::SimpleGlueing) 

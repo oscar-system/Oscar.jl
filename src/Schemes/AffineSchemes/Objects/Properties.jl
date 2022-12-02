@@ -653,3 +653,7 @@ end
 ## make is_smooth agnostic to quotient ring
 is_smooth(X::AbsSpec{<:Field, <:MPolyRing}) = true
 is_smooth(X::AbsSpec{<:Field, <:MPolyLocalizedRing}) = true
+
+@attr function is_integral(X::AbsSpec)
+  return Oscar._is_integral_domain(OO(X))
+end

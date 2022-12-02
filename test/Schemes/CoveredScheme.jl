@@ -126,3 +126,48 @@ end
   Csing, inc = singular_locus_reduced(Ccov)
   @test all(x -> (x[1] == x[2]), collect(zip(affine_charts(Csing), affine_charts(subscheme(image_ideal(inc))))))
 end
+
+
+@testset "is_integral" begin
+  P = projective_space(QQ, 2)
+
+  S = ambient_coordinate_ring(P)
+  u, v, w = gens(S)
+  I = ideal(S, [u*(v^2 + w^2 + u^2)])
+
+  X = subscheme(P, I)
+  Xcov = covered_scheme(X)
+  @test !is_integral(Xcov)
+  U = Xcov[1][1]
+  @test is_integral(U)
+  @test is_integral(hypersurface_complement(U, OO(U)[2]))
+
+  Y = subscheme(P, ideal(S, v^2 + w^2 + u^2))
+  Ycov = covered_scheme(Y)
+  @test is_integral(Ycov)
+
+  R = S.R 
+  A = Spec(R)
+  @test is_integral(A)
+  @test is_integral(hypersurface_complement(A, R[1]))
+
+  # The following produces a covered scheme consisting of three disjoint affine patches
+  Ysep = CoveredScheme(Covering(affine_charts(Ycov)))
+  @test !is_integral(Ysep)
+
+  # Two points, one reduced, the other not
+  J1 = ideal(S, [u^2, v])
+  J2 = ideal(S, [u-w, v-w])
+
+  Z = subscheme(P, J1*J2)
+  Zcov = covered_scheme(Z)
+  @test !is_integral(Zcov)
+
+  Z1 = subscheme(P, J1)
+  Z1cov = covered_scheme(Z1)
+  @test !is_integral(Z1cov)
+
+  Z2 = subscheme(P, J2)
+  Z2cov = covered_scheme(Z2)
+  @test is_integral(Z2cov)
+end
