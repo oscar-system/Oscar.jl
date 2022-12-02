@@ -576,8 +576,8 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   gb::Dict{MonomialOrdering, IdealGens{S}}
   dim::Int
 
-  function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
-    return MPolyIdeal(IdealGens(g, keep_ordering = false))
+  function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyElem}
+    return MPolyIdeal(IdealGens(R, g, keep_ordering = false))
   end
 
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
