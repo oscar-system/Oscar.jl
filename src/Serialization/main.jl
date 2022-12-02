@@ -34,6 +34,7 @@ end
 
 const backref_sym = Symbol("#backref")
 
+
 ################################################################################
 # Version info
 
@@ -224,6 +225,24 @@ function load_internal_generic(s::DeserializerState, ::Type{T}, dict::Dict) wher
     return T(fields...)
 end
 
+################################################################################
+# Include internal saves for specific types
+
+include("basic_types.jl")
+include("containers.jl")
+include("PolyhedralGeometry.jl")
+include("Combinatorics.jl")
+include("Fields.jl")
+include("ToricGeometry.jl")
+include("Rings.jl")
+include("polymake.jl")
+include("TropicalGeometry.jl")
+include("QuadForm.jl")
+
+################################################################################
+# Include upgrade scripts
+
+include("upgrades/main.jl")
 
 ################################################################################
 # Interacting with IO streams and files
@@ -326,14 +345,3 @@ function load(filename::String, T::Type; parent=nothing)
     end
 end
 
-include("basic_types.jl")
-include("containers.jl")
-include("PolyhedralGeometry.jl")
-include("Combinatorics.jl")
-include("Fields.jl")
-include("ToricGeometry.jl")
-include("Rings.jl")
-include("polymake.jl")
-include("TropicalGeometry.jl")
-include("QuadForm.jl")
-include("upgrades.jl")
