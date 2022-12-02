@@ -58,9 +58,9 @@ end
 @Markdown.doc """
     poly_to_homog(X::ProjectiveScheme)
 
-Return a map that converts an element of the `base_ring` of the
-ring of functions `OO` of the `affine_cone` of `X` into 
-an element of the `ambient_coordinate_ring` of `X`.
+Return a map that converts an element of the `ambient_coordinate_ring` 
+of the `affine_cone` `CX` of `X` to an element of the 
+`ambient_coordinate_ring` of `X`.
 """
 function poly_to_homog(P::AbsProjectiveScheme)
   return poly_to_homog(underlying_scheme(P))
@@ -275,11 +275,10 @@ end
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105
 Generic.ordering(S::MPolyRing_dec) = :degrevlex
 
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{MPolyRing, MPolyQuo, MPolyLocalizedRing, MPolyQuoLocalizedRing}, CRET, RT, RET}
   if !isdefined(X, :C)
-    A = base_ring(X)
-    Y = Spec(A)
-    X.Y = Y
+    Y = base_scheme(X)
+    A = OO(Y)
     kk = base_ring(A)
     F = affine_space(kk, symbols(ambient_coordinate_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
@@ -293,8 +292,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     # use the map to convert ideals:
     #I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
     I = help_map(defining_ideal(X))
-    CX = subscheme(C, pre_image_ideal(I))
-    set_attribute!(X, :affine_cone, CX)
+    CX = subscheme(C, I)
+    set_attribute!(X, :affine_cone, CX) # TODO: Why this doubling?
     X.C = get_attribute(X, :affine_cone)
     pr_base_res = restrict(pr_base, CX, Y, check=false)
     pr_fiber_res = restrict(pr_fiber, CX, F, check=false)
@@ -306,7 +305,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
                           [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
                        )
                   )
-    pth = hom(base_ring(OO(CX)), S, vcat(gens(S), S.(gens(A))))
+    pth = hom(ambient_coordinate_ring(CX), S, vcat(gens(S), S.(gens(A))))
     set_attribute!(X, :poly_to_homog, pth)
     set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_denominator(OO(CX)(f))))))
     X.projection_to_base = pr_base_res
@@ -486,7 +485,12 @@ end
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 pullback(phi::ProjectiveSchemeMor) = phi.pullback
-base_ring_morphism(phi::ProjectiveSchemeMor) = coefficient_map(pullback(phi))
+function base_ring_morphism(phi::ProjectiveSchemeMor) 
+  if isdefined(phi, :base_ring_morphism)
+    return phi.base_ring_morphism
+  end
+  return identity_map(base_ring(domain(phi)))
+end
 
 ### additional constructors
 function ProjectiveSchemeMor(
@@ -508,9 +512,25 @@ function base_map(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:MPolyQuoLocal
   return phi.map_on_base_schemes::SchemeMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}})
+function map_on_affine_cones(
+    phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyRing, <:MPolyQuo}}};
+    check::Bool=true
+  )
   if !isdefined(phi, :map_on_affine_cones)
-    Y = base_scheme(domain(phi))
+    # The diagram is 
+    #   P  →  Q
+    #   ↓     ↓
+    #   X  →  Y
+    # corresponding to a map of rings 
+    #
+    #   T  ←  S
+    #   ↑     ↑
+    #   B  ←  A
+    #
+    #
+    X = base_scheme(domain(phi))
+    B = OO(X)
+    Y = base_scheme(codomain(phi))
     A = OO(Y)
     S = ambient_coordinate_ring(codomain(phi))
     T = ambient_coordinate_ring(domain(phi))
@@ -518,9 +538,9 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:Union
     Q = codomain(phi)
     pb_P = pullback(projection_to_base(P))
     pb_Q = pullback(projection_to_base(Q))
-    imgs_base = pb_P.(gens(A))
+    imgs_base = pb_P.(base_ring_morphism(phi).(gens(A)))
     imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
+    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base), check=check)
   end
   return phi.map_on_affine_cones::AbsSpecMor
 end
@@ -696,18 +716,19 @@ covered scheme with 3 affine patches in its default covering
     return X
 end
 
-function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyQuo, <:MPolyRing}})
-  if !has_attribute(X, :covered_projection_to_base) 
+@attr function covered_projection_to_base(X::ProjectiveScheme{<:Union{<:MPolyQuoLocalizedRing, <:MPolyLocalizedRing, <:MPolyQuo, <:MPolyRing}})
+  if !has_attribute(X, :covering_projection_to_base) 
     C = standard_covering(X)
   end
-  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
+  covering_projection = get_attribute(X, :covering_projection_to_base)::CoveringMorphism
+  projection = CoveredSchemeMorphism(covered_scheme(X), CoveredScheme(codomain(covering_projection)), covering_projection)
 end
 
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
     i::Int
   ) where {
-    CRT<:Union{MPolyQuoLocalizedRing,MPolyRing, MPolyQuo}
+    CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = ambient_coordinate_ring(X)
@@ -718,7 +739,109 @@ function dehomogenize(
   return hom(S, OO(U), pullback(p[U]), s)
 end
 
-function getindex(X::ProjectiveScheme, U::Spec)
+function dehomogenize(
+    X::ProjectiveScheme{CRT}, 
+    U::AbsSpec
+  ) where {
+    CRT<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}
+  }
+  return dehomogenize(X, X[U][2]-1)
+end
+
+@doc Markdown.doc"""
+    homogenize(P::AbsProjectiveScheme, U::AbsSpec)
+
+Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 
+``P``, return a method ``h`` for the homogenization of elements 
+``a ∈ 𝒪(U)``. 
+
+That means ``h(a)`` returns a pair ``(p, q)`` representing a fraction 
+``p/q ∈ S`` of the `ambient_coordinate_ring` of ``P`` such 
+that ``a`` is the dehomogenization of ``p/q``.
+
+**Note:** For the time being, this only works for affine 
+charts which are of the standard form ``sᵢ ≠ 0`` for ``sᵢ∈ S``
+one of the homogeneous coordinates of ``P``.
+
+**Note:** Since this map returns representatives only, it 
+is not a mathematical morphism and, hence, in particular 
+not an instance of `Hecke.Map`.
+
+**Note:** Since `FractionField` relies on some implementation 
+of division for the elements, we can not return the fraction 
+directly. 
+"""
+function homogenize(P::AbsProjectiveScheme, U::AbsSpec)
+  # TODO: Ideally, one needs to provide this function 
+  # only once for every pair (P, U), so we should think of 
+  # some internal way for caching. The @attr macro is not 
+  # suitable for this, because it is not sensitive for 
+  # which U is put in. 
+
+  # Find the chart where a belongs to
+  X = covered_scheme(P)
+  i = findfirst(V->(U===V), affine_charts(X))
+  i == nothing && error("the given affine scheme is not one of the standard affine charts")
+  
+  # Determine those variables which come from the homogeneous 
+  # coordinates
+  S = ambient_coordinate_ring(P)
+  n = ngens(S)
+  R = ambient_coordinate_ring(U)
+  x = gens(R)
+  s = x[1:n-1]
+  x = x[n:end]
+  B = base_ring(P)
+  y = gens(B)
+  t = gens(S)
+
+  w = vcat([1 for j in 1:n-1], [0 for j in n:ngens(R)])
+  v = gens(S)
+  # prepare a vector of elements on which to evaluate the lifts
+  popat!(v, i)
+  v = vcat(v, S.(gens(B)))
+  function my_dehom(a::RingElem)
+    parent(a) === OO(U) || error("element does not belong to the correct ring")
+    p = lifted_numerator(a)
+    q = lifted_denominator(a)
+    deg_p = total_degree(p, w)
+    deg_q = total_degree(q, w)
+    deg_a = deg_p - deg_q
+    ss = S[i] # the homogenization variable
+    
+    # preliminary lifts, not yet homogenized!
+    pp = evaluate(p, v) 
+    qq = evaluate(q, v)
+
+    # homogenize numerator and denominator
+    pp = sum([c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(pp), monomials(pp))])
+    qq = sum([c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(qq), monomials(qq))])
+
+    if deg_a > 0
+      return (pp, qq*ss^deg_a)
+    elseif deg_a <0
+      return (pp * ss^(-deg_a), qq)
+    end
+    return (pp, qq)
+  end
+  return my_dehom
+end
+
+@doc Markdown.doc"""
+    total_degree(f::MPolyElem, w::Vector{Int})
+
+Given a multivariate polynomial `f` and a weight vector `w` 
+return the total degree of `f` with respect to the weights `w`.
+"""
+function total_degree(f::MPolyElem, w::Vector{Int})
+  x = gens(parent(f))
+  n = length(x)
+  n == length(w) || error("weight vector does not have the correct length")
+  vals = [sum([degree(m, j)*w[j] for j in 1:n]) for m in monomials(f)]
+  return maximum(vals)
+end
+
+function getindex(X::ProjectiveScheme, U::AbsSpec)
   Xcov = covered_scheme(X)
   for C in coverings(Xcov)
     for j in 1:npatches(C)

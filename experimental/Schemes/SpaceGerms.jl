@@ -296,6 +296,10 @@ end
 # note: singular_locus, is_smooth and is_regular are inherited from Spec
 ##############################################################################
 
+# We want the singular locus of a `SpaceGerm` to be a `SpaceGerm` again and 
+# not a plain `Spec`.
 function singular_locus(X::AbsSpaceGerm)
-  return SpaceGerm(singular_locus(underlying_scheme(X)))
+  S, inc = singular_locus(underlying_scheme(X))
+  Sgerm = SpaceGerm(S)
+  return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end

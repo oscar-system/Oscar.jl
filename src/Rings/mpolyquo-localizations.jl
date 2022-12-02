@@ -576,6 +576,7 @@ function convert(
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
+  one(R) in I && return zero(L)
   d = prod(denominators(inverted_set(W)))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I

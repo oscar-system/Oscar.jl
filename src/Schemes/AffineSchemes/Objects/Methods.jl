@@ -105,3 +105,14 @@ function sub(X::AbsSpec, I::Ideal)
   return domain(inc), inc
 end
 
+########################################################################
+# Further intersections                                                #
+########################################################################
+
+function intersect(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+  if !(ambient_scheme(U) === ambient_scheme(V))
+    return intersect(underlying_scheme(U), underlying_scheme(V))
+  end
+  return PrincipalOpenSubset(ambient_scheme(U), complement_equation(U)*complement_equation(V))
+end
+

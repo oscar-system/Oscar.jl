@@ -116,6 +116,18 @@ end
   @test base_ring(D) == base_ring(Ccov)
 end
 
+@testset "closed embeddings and singular loci" begin
+  IP2 = projective_space(QQ, ["x", "y", "z"])
+  S = ambient_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  f = x^2*z + y^3 - y^2*z
+  C = subscheme(IP2, ideal(S, f))
+  Ccov = covered_scheme(C)
+  Csing, inc = singular_locus_reduced(Ccov)
+  @test all(x -> (x[1] == x[2]), collect(zip(affine_charts(Csing), affine_charts(subscheme(image_ideal(inc))))))
+end
+
+
 @testset "is_integral" begin
   P = projective_space(QQ, 2)
 

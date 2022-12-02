@@ -157,5 +157,5 @@ end
   @test Y0 == intersect(X0,Y0)
   V0=intersect(W0,X0)
   @test V0 == SpaceGerm(V,[0,0,0])
-  @test SY0 == singular_locus(Y0)
+  @test SY0 == singular_locus(Y0)[1]
 end
