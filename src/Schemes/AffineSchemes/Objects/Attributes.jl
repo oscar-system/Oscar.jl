@@ -499,10 +499,30 @@ julia> X = Spec(R,I)
 Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
 
 julia> singular_locus(A3)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1)
+
+to
+
+	Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+with coordinates
+
+	0, 0, 0)
 
 julia> singular_locus(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, 2*x, -2*y, 2*z)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
+
+with coordinates
+
+	0, 0, 0)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
 complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
@@ -511,7 +531,17 @@ julia> Y = Spec(R,I,U)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
 
 julia> singular_locus(Y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, x^2 - y^2 + z^2, 2*x, -2*y, 2*z, x^2 - y^2 + z^2, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], morphism from
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+to
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+with coordinates
+
+	x//1, y//1, z//1)
 
 ```
 """
@@ -568,10 +598,30 @@ julia> X = Spec(R,I)
 Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 
 julia> singular_locus_reduced(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+
+with coordinates
+
+	0, 0, 0)
 
 julia> singular_locus(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, 4*x^3 - 4*x*y^2 + 4*x*z^2, -4*x^2*y + 4*y^3 - 4*y*z^2, 4*x^2*z - 4*y^2*z + 4*z^3)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+
+with coordinates
+
+	x, y, z)
 
 ```
 """
