@@ -268,7 +268,7 @@ standard_basis_with_transformation_matrix(I::MPolyIdeal;
 ### Gröbner Basis Conversions
 
 ```@docs
-fglm(G::IdealGens; ordering::MonomialOrdering)
+fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
 ```
     Gröbner walks
 
