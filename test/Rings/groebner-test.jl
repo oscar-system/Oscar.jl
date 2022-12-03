@@ -170,4 +170,8 @@ end
 	@test I.gb[degrevlex(R)].isReduced
 	@test haskey(I.gb, lex(R))
 	@test gens(I.gb[lex(R)]) == fmpq_mpoly[y^4 + 1, x + y^3]
+	R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
+	I = ideal(R, [x*y-1, x^2+y^2])
+	@test_throws ErrorException groebner_basis(I, algorithm=:fglm)
+	@test_throws ErrorException fglm(I, destination_ordering=lex(R))
 end
