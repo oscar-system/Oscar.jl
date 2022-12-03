@@ -1067,7 +1067,7 @@ lex([x1, x2, x3, x4])
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
 	(G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
 	singular_assure(G)
-	Singular.dimension(G.S) == 0 || error("Dimesion of corresponding ideal must be zero.")
+	Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
 	SR_destination, = Singular.PolynomialRing(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
 	ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
@@ -1163,7 +1163,7 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	is_global(destination_ordering) || error("Destination ordering must be global.")
 	G = groebner_assure(I, true, true)
 	start_ordering = G.ord
-	dim(I) == 0 || error("Dimesion of ideal must be zero.")
+	dim(I) == 0 || error("Dimension of ideal must be zero.")
 	I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end
 
