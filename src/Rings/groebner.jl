@@ -1156,6 +1156,7 @@ julia> leading_coefficient(G[8])
 ```
 """
 function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
+	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	if !haskey(I.gb, start_ordering)
@@ -1211,6 +1212,7 @@ degrevlex([x, y])
 """
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	destination_ordering::MonomialOrdering)
+	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	is_global(destination_ordering) || error("Destination ordering must be global.")
 	G = groebner_assure(I, true, true)
@@ -1218,4 +1220,3 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	dim(I) == 0 || error("Dimension of ideal must be zero.")
 	I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end
-
