@@ -1095,7 +1095,7 @@ Gröbner basis with elements
 with respect to the ordering
 degrevlex([x1, x2, x3, x4])
 
-julia> _fglm(J.gb[degrevlex(R)], lex(R))
+julia> Oscar._fglm(J.gb[degrevlex(R)], lex(R))
 Gröbner basis with elements
 1 -> x4^8 + 36*x4^7 + 95*x4^6 + 39*x4^5 + 74*x4^4 + 7*x4^3 + 45*x4^2 + 98*x4
 2 -> x3 + 53*x4^7 + 93*x4^6 + 74*x4^5 + 26*x4^4 + 56*x4^3 + 15*x4^2 + 88*x4
