@@ -1143,7 +1143,7 @@ julia> f5 = a*b*c*d*e-1;
 
 julia> I = ideal(R, [f1, f2, f3, f4, f5]);
 
-G = fglm(I, destination_ordering = lex(R));
+julia> G = fglm(I, destination_ordering = lex(R));
 
 julia> length(G)
 8
