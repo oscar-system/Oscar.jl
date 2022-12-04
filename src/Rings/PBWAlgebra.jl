@@ -499,7 +499,8 @@ function weyl_algebra(
 end
 
 @doc Markdown.doc"""
-    weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+    weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
+                                    AbstractVector{Symbol}, AbstractVector{Char}})
 
 Given a field `K` and a vector `xs` of,  say, $n$ Strings, Symbols, or Characters, return the $n$-th Weyl algebra over `K`.
 
