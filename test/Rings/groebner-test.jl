@@ -155,13 +155,23 @@ end
 @testset "fglm" begin
 	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 	A = Oscar.IdealGens(R, [x*y-1, x^2+y^2])
-	@test_throws ErrorException fglm(A, ordering = lex(R))
+	@test_throws ErrorException Oscar._fglm(A, lex(R))
 	I = ideal(R, gens(A))
 	groebner_basis(I)
-	@test_throws ErrorException fglm(I.gb[degrevlex([x, y])], ordering=lex(R))
+	@test_throws ErrorException Oscar._fglm(I.gb[degrevlex(R)], lex(R))
 	groebner_basis(I, complete_reduction=true)
-	G = fglm(I.gb[degrevlex([x, y])], ordering=lex(R))
+	G = Oscar._fglm(I.gb[degrevlex([x, y])], lex(R))
 	@test gens(G) == fmpq_mpoly[y^4 + 1, x + y^3]
 	J = ideal(R, [x])
 	@test_throws ErrorException groebner_basis(J, algorithm=:fglm)
+	J.gb = Dict()
+	fglm(I, destination_ordering=lex(R))
+	@test haskey(I.gb, degrevlex(R))
+	@test I.gb[degrevlex(R)].isReduced
+	@test haskey(I.gb, lex(R))
+	@test gens(I.gb[lex(R)]) == fmpq_mpoly[y^4 + 1, x + y^3]
+	R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
+	I = ideal(R, [x*y-1, x^2+y^2])
+	@test_throws ErrorException groebner_basis(I, algorithm=:fglm)
+	@test_throws ErrorException fglm(I, destination_ordering=lex(R))
 end

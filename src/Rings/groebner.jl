@@ -111,6 +111,13 @@ end
 
 Return a standard basis of `I` with respect to `ordering`. 
 `algorithm` can be set to `:singular` (Singular's Buchberger (resp. Mora) algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
+The keyword `algorithm` can be set to
+-  `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:fglm` (implementation of the FGLM algorithm in *Singular*), and
+- `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+
+!!! note
+    See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
 
 !!! note
     The returned standard basis is reduced if `ordering` is `global` and `complete_reduction = true`.
@@ -156,6 +163,13 @@ end
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
 `algorithm` can be set to `:buchberger` (Singular's Buchberger algorithm), `:fglm` (compute first via a "good" monomial ordering, then convert to the chosen ordering via the FGLM algorithm), `:f4` (msolve's implementation of Faugère's F4 algorithm).
+The keyword `algorithm` can be set to
+-  `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:fglm` (implementation of the FGLM algorithm in *Singular*), and
+- `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+
+!!! note
+    See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
 
 !!! note
     The returned Gröbner basis is reduced if `complete_reduction = true`.
@@ -205,6 +219,33 @@ Gröbner basis with elements
 4 -> y^4
 with respect to the ordering
 wdegrevlex([x, y], [1, 3])
+```
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> f1 = 3*x^3*y+x^3+x*y^3+y^2*z^2
+3*x^3*y + x^3 + x*y^3 + y^2*z^2
+
+julia> f2 = 2*x^3*z-x*y-x*z^3-y^4-z^2
+2*x^3*z - x*y - x*z^3 - y^4 - z^2
+
+julia> f3 = 2*x^2*y*z-2*x*y^2+x*z^2-y^4
+2*x^2*y*z - 2*x*y^2 + x*z^2 - y^4
+
+julia> I = ideal(R, [f1, f2, f3])
+ideal(3*x^3*y + x^3 + x*y^3 + y^2*z^2, 2*x^3*z - x*y - x*z^3 - y^4 - z^2, 2*x^2*y*z - 2*x*y^2 + x*z^2 - y^4)
+
+julia> G = groebner_basis(I, ordering = lex(R), algorithm = :fglm);
+
+julia> length(G)
+8
+
+julia> total_degree(G[8])
+34
+
+julia> leading_coefficient(G[8])
+-91230304237130414552564280286681870842473427917231798336639893796481988733936505735341479640589040146625319419037353645834346047404145021391726185993823650399589880820226804328750
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
@@ -1023,12 +1064,12 @@ function is_groebner_basis(F::IdealGens; ordering::MonomialOrdering = default_or
 end
 
 @doc Markdown.doc"""
-    fglm(G::IdealGens; ordering::MonomialOrdering)
+    _fglm(G::IdealGens; ordering::MonomialOrdering)
 
 Converts a Groebner basis `G` w.r.t. a given global monomial ordering for `<G>`
 to a Groebner basis `H` w.r.t. another monomial ordering `ordering` for `<G>`.
 
-**NOTE**: `fglm` assumes that `G` is a reduced Gröbner basis (i.e. w.r.t. a global monomial ordering) and that `ordering` is a global monomial ordering.
+**NOTE**: `_fglm` assumes that `G` is a reduced Gröbner basis (i.e. w.r.t. a global monomial ordering) and that `ordering` is a global monomial ordering.
 
 # Examples
 ```jldoctest
@@ -1054,7 +1095,7 @@ Gröbner basis with elements
 with respect to the ordering
 degrevlex([x1, x2, x3, x4])
 
-julia> fglm(J.gb[degrevlex(R)], ordering=lex(R))
+julia> Oscar._fglm(J.gb[degrevlex(R)], lex(R))
 Gröbner basis with elements
 1 -> x4^8 + 36*x4^7 + 95*x4^6 + 39*x4^5 + 74*x4^4 + 7*x4^3 + 45*x4^2 + 98*x4
 2 -> x3 + 53*x4^7 + 93*x4^6 + 74*x4^5 + 26*x4^4 + 56*x4^3 + 15*x4^2 + 88*x4
@@ -1064,14 +1105,69 @@ with respect to the ordering
 lex([x1, x2, x3, x4])
 ```
 """
-function fglm(G::IdealGens; ordering::MonomialOrdering)
+function _fglm(G::IdealGens, ordering::MonomialOrdering)
 	(G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
 	singular_assure(G)
-	Singular.dimension(G.S) == 0 || error("Dimesion of corresponding ideal must be zero.")
+	Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
 	SR_destination, = Singular.PolynomialRing(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
 	ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
 	return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
+end
+
+@doc Markdown.doc"""
+    fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                        destination_ordering::MonomialOrdering)
+
+Given a zero-dimensional ideal `I`, return a Groebner basis of `I` with respect to `destination_ordering`.
+
+!!! note
+    Both `start_ordering` and `destination_ordering` must be global and the base ring of `I` must be a polynomial ring over a field.
+
+!!! note
+    The function implements the Gröbner basis conversion algorithm by **F**augère, **G**ianni, **L**azard, and **M**ora. See [FGLM93](@cite) for more information.
+
+# Examples
+```jldoctest
+julia> R, (a, b, c, d, e) = PolynomialRing(QQ, ["a", "b", "c", "d", "e"]);
+
+julia> f1 = a+b+c+d+e;
+
+julia> f2 = a*b+b*c+c*d+a*e+d*e;
+
+julia> f3 = a*b*c+b*c*d+a*b*e+a*d*e+c*d*e;
+
+julia> f4 = b*c*d+a*b*c*e+a*b*d*e+a*c*d*e+b*c*d*e;
+
+julia> f5 = a*b*c*d*e-1;
+
+julia> I = ideal(R, [f1, f2, f3, f4, f5]);
+
+julia> G = fglm(I, destination_ordering = lex(R));
+
+julia> length(G)
+8
+
+julia> total_degree(G[8])
+60
+
+julia> leading_coefficient(G[8])
+83369589588385815165248207597941242098312973356252482872580035860533111990678631297423089011608753348453253671406641805924218003925165995322989635503951507226650115539638517111445927746874479234
+```
+"""
+function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
+	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
+	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
+	if !haskey(I.gb, start_ordering)
+		standard_basis(I, ordering=start_ordering, complete_reduction=true)
+	elseif I.gb[start_ordering].isReduced == false
+		I.gb[start_ordering] = _compute_standard_basis(I.gb[start_ordering], start_ordering, true)
+	end
+
+	I.gb[destination_ordering] = _fglm(I.gb[start_ordering], destination_ordering)
+
+	return I.gb[destination_ordering]
 end
 
 @doc Markdown.doc"""
@@ -1116,11 +1212,11 @@ degrevlex([x, y])
 """
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	destination_ordering::MonomialOrdering)
+	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	is_global(destination_ordering) || error("Destination ordering must be global.")
 	G = groebner_assure(I, true, true)
 	start_ordering = G.ord
-	dim(I) == 0 || error("Dimesion of ideal must be zero.")
-	I.gb[destination_ordering] = fglm(G, ordering=destination_ordering)
+	dim(I) == 0 || error("Dimension of ideal must be zero.")
+	I.gb[destination_ordering] = _fglm(G, destination_ordering)
 end
-
