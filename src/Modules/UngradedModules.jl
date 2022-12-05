@@ -228,6 +228,21 @@ end
     coordinatessv::AbstractFreeModElem)
 
 Return the entries (with respect to the standard basis) of `v` as a sparse row.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = FreeMod(R,3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> f = x*gen(F,1)+y*gen(F,3)
+x*e[1] + y*e[3]
+
+julia> coefficients(f)
+Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
+```
 """
 function coordinates(v::AbstractFreeModElem)
   return v.coords
