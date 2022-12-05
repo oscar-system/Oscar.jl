@@ -118,13 +118,15 @@ function right_action(R::MPolyRing{T}, p::PermGroupElem) where T
   return MapFromFunc(right_action_by_p, R, R)
 end
 
+right_action(f::MPolyElem, p::PermGroupElem) = right_action(parent(f), p)(f)
+
 ################################################################################
 #
 #  Reynolds operator
 #
 ################################################################################
 
-function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
+function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
   @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
@@ -141,7 +143,7 @@ function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {F
   end
 
   IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
-  return nothing
+  return IR.reynolds_operator
 end
 
 @doc Markdown.doc"""
@@ -236,7 +238,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
   @assert parent(f) === polynomial_ring(IR)
 
   if !isdefined(IR, :reynolds_operator)
-    _prepare_reynolds_operator(IR)
+    reynolds_operator(IR)
   end
   return IR.reynolds_operator(f)
 end
@@ -244,6 +246,93 @@ end
 function reynolds_operator(IR::InvRing, f::MPolyElem)
   @assert parent(f) === polynomial_ring(IR).R
   return reynolds_operator(IR, polynomial_ring(IR)(f))
+end
+
+function reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}, chi::GAPGroupClassFunction) where {FldT, GrpT, PolyElemT}
+# I expect that this also works in the non-modular case, but haven't found a reference.
+  # The only reference for this version of the reynolds operator appears to be [Gat96].
+  @assert is_zero(characteristic(coefficient_ring(IR)))
+  @assert is_irreducible(chi)
+
+  K = coefficient_ring(IR)
+
+  conjchi = conj(chi)
+
+  actions_and_values = [ (right_action(polynomial_ring(IR), g), K(conjchi(g).data)) for g in group(IR) ]
+
+  function reynolds(f::PolyElemT)
+    g = parent(f)()
+    for (action, val) in actions_and_values
+      g = addeq!(g, action(f)*val)
+    end
+    return g*base_ring(f)(1//order(group(IR)))
+  end
+
+  return MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+end
+
+@doc Markdown.doc"""
+     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
+       where {FldT, GrpT, T <: MPolyElem}
+
+In the case of characteristic zero, return the image of `f` under the twisted
+Reynolds operator projecting onto the isotypic component of the polynomial ring
+with respect to `chi`, that is, the semi-invariants (or relative invariants)
+with respect to `chi`, see [Sta79](@cite).
+It is assumed that `chi` is an irreducible character.
+
+In case `chi` is a linear character, the returned polynomial, say `h`, fulfils
+`h^g = chi(g)h` for all `g` in `group(IR)` (possibly `h` is zero).
+
+!!! note
+    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a");
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+
+julia> IR = invariant_ring(G);
+
+julia> R = polynomial_ring(IR);
+
+julia> x = gens(R);
+
+julia> f = x[1]^3
+x[1]^3
+
+julia> reynolds_operator(IR, f, trivial_character(G))
+1//3*x[1]^3 + 1//3*x[2]^3 + 1//3*x[3]^3
+
+julia> S2 = symmetric_group(2);
+
+julia> IR = invariant_ring(QQ, S2);
+
+julia> R = polynomial_ring(IR);
+
+julia> x = gens(R);
+
+julia> F = abelian_closure(QQ)[1];
+
+julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+
+julia> reynolds_operator(IR, x[1], chi)
+1//2*x[1] - 1//2*x[2]
+```
+"""
+function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyElem}
+  return reynolds_operator(IR, chi)(f)
+end
+
+function reynolds_operator(IR::InvRing, f::MPolyElem, chi::GAPGroupClassFunction)
+  @assert parent(f) === polynomial_ring(IR).R
+  return reynolds_operator(IR, polynomial_ring(IR)(f), chi)
 end
 
 ################################################################################
@@ -322,6 +411,57 @@ julia> basis(IR, 3)
 """
 basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
 
+@doc Markdown.doc"""
+    basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+
+Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
+return a basis for the semi-invariants (or relative invariants) in degree `d`
+with respect to `chi`.
+
+This function is only implemented in the case of characteristic zero.
+
+!!! note
+    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+
+See also [`iterate_basis`](@ref).
+
+# Examples
+```
+julia> K, a = CyclotomicField(3, "a");
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ]);
+
+julia> IR = invariant_ring(G);
+
+julia> basis(IR, 6, trivial_character(G))
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^2*x[2]^2*x[3]^2
+
+julia> S2 = symmetric_group(2);
+
+julia> R = invariant_ring(QQ, S2);
+
+julia> F = abelian_closure(QQ)[1];
+
+julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+
+julia> basis(R, 3, chi)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x[1]^3 - x[2]^3
+ x[1]^2*x[2] - x[1]*x[2]^2
+
+```
+"""
+basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(IR, d, chi))
+
 ################################################################################
 #
 #  Primary invariants
@@ -375,33 +515,47 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
   return num//den
 end
 
-function _molien_series_charp_nonmodular_via_gap(S::PolyRing, I::InvRing)
+function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+  @assert !is_modular(I)
   G = group(I)
   @assert G isa MatrixGroup || G isa PermGroup
   t = GAP.Globals.CharacterTable(G.X)
   if G isa MatrixGroup
-    chi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
-           for c in GAP.Globals.ConjugacyClasses(t)]
+    if is_zero(characteristic(coefficient_ring(I)))
+      psi = natural_character(G).values
+    else
+      psi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
+             for c in GAP.Globals.ConjugacyClasses(t)]
+    end
   else
     deg = GAP.Obj(degree(G))
-    chi = [deg - GAP.Globals.NrMovedPoints(GAP.Globals.Representative(c))
+    psi = [deg - GAP.Globals.NrMovedPoints(GAP.Globals.Representative(c))
            for c in GAP.Globals.ConjugacyClasses(t)]
   end
-  info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
-                                                               GAP.GapObj(chi)))
+  if chi === nothing
+    info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
+                                                                 GAP.GapObj(psi)))
+  else
+    info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
+                                                                 GAP.GapObj(psi), chi.values))
+  end
   num = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer))::Vector{fmpz})
   den = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.denom))::Vector{fmpz})
   return num//den
 end
 
 @doc Markdown.doc"""
-    molien_series([S::PolyRing], I::InvRing)
+    molien_series([S::PolyRing], I::InvRing, [chi::GAPGroupClassFunction])
 
 In the non-modular case, return the Molien series of `I` as a rational function.
 
 If a univariate polynomial ring with rational coefficients is specified by the
 optional argument `S::PolyRing`, then return the Molien series as an element
 of the fraction field of that ring.
+
+If a character `chi` is specified, the series relative to `chi` is returned.
+This is the Molien series of the module of semi-invariants (or relative invariants)
+with respect to `chi`, see [Sta79](@cite).
 
 # Examples
 ```jldoctest
@@ -420,10 +574,25 @@ julia> MS = molien_series(IR)
 
 julia> parent(MS)
 Fraction field of Univariate Polynomial Ring in t over Rational Field
+
+julia> S2 = symmetric_group(2);
+
+julia> IR = invariant_ring(QQ, S2);
+
+julia> F = abelian_closure(QQ)[1];
+
+julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+
+julia> molien_series(IR)
+1//(t^3 - t^2 - t + 1)
+
+julia> molien_series(IR, chi)
+t//(t^3 - t^2 - t + 1)
 ```
 """
-function molien_series(S::PolyRing, I::InvRing)
-  if isdefined(I, :molien_series)
+function molien_series(S::PolyRing, I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+  if isdefined(I, :molien_series) && chi === nothing
     if parent(I.molien_series) === S
       return I.molien_series
     end
@@ -432,11 +601,11 @@ function molien_series(S::PolyRing, I::InvRing)
     return num//den
   end
 
-  if characteristic(coefficient_ring(I)) == 0
+  if characteristic(coefficient_ring(I)) == 0 && chi === nothing
     return _molien_series_char0(S, I)
   else
     if !is_modular(I)
-      return _molien_series_charp_nonmodular_via_gap(S, I)
+      return _molien_series_nonmodular_via_gap(S, I, chi)
     else
       throw(Hecke.NotImplemented())
     end
@@ -449,6 +618,11 @@ function molien_series(I::InvRing)
     I.molien_series = molien_series(S, I)
   end
   return I.molien_series
+end
+
+function molien_series(I::InvRing, chi::GAPGroupClassFunction)
+  S, t = PolynomialRing(QQ, "t", cached = false)
+  return molien_series(S, I, chi)
 end
 
 # There are some situations where one needs to know whether one can ask for the

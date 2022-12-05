@@ -134,22 +134,28 @@ false
 
 ```@docs
 reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+
+reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyElem}
 ```
 
 ## Invariants of a Given Degree
 
 ```@docs
 basis(IR::InvRing, d::Int, algo::Symbol = :default)
+
+basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 ```
 
 ```@docs
 iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
+
+iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
 ```
 
 ## The Molien Series
 
 ```@docs
- molien_series([S::PolyRing], I::InvRing)
+ molien_series([S::PolyRing], I::InvRing, [chi::GAPGroupClassFunction])
 ```
 
 ## Primary Invariants
