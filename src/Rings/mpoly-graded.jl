@@ -821,7 +821,7 @@ function ideal(g::Vector{T}) where {T <: MPolyElem_dec}
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
      end
   end
-  return MPolyIdeal(g)
+  return MPolyIdeal(parent(g[1]), g)
 end
 
 function jacobi_matrix(f::MPolyElem_dec)
