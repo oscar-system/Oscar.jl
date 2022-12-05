@@ -275,6 +275,25 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGe
   return issubset(IY,modulus(OO(X)))
 end
 
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  point(X) == point(Y) || return false
+  return iszero(modulus(OO(Y)))
+end
+
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing})
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  return point(X) == point(Y)
+end
+
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing})
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  return point(X) == point(Y)
+end
+
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   Z = intersect(underlying_scheme(X),underlying_scheme(Y))
@@ -303,3 +322,14 @@ function singular_locus(X::AbsSpaceGerm)
   Sgerm = SpaceGerm(S)
   return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end
+
+function point(X::SpaceGerm{<:Field, <:AbsLocalizedRing{<:Ring, <:RingElem, <:MPolyComplementOfKPointIdeal}})
+  return point_coordinates(inverted_set(OO(X)))
+end
+
+function subscheme(X::SpaceGerm, I::Ideal)
+  base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
+  Y = subscheme(underlying_scheme(X), I)
+  return SpaceGerm(Y)
+end
+
