@@ -1,4 +1,4 @@
-export presentation, coords, coeffs, repres, cokernel, index_of_gen, sub,
+export presentation, coordinates, repres, cokernel, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       standard_basis, groebner_basis, reduced_groebner_basis, leading_module, 
       reduce, hom_tensor, hom_product, coordinates, 
@@ -225,47 +225,14 @@ function in(v::AbstractFreeModElem, M::SubQuo)
 end
 
 @doc Markdown.doc"""
-    coords(v::AbstractFreeModElem)
+    coordinatessv::AbstractFreeModElem)
 
 Return the entries (with respect to the standard basis) of `v` as a sparse row.
 """
-function coords(v::AbstractFreeModElem)
+function coordinates(v::AbstractFreeModElem)
   return v.coords
 end
 
-@doc Markdown.doc"""
-    coeffs(v::AbstractFreeModElem)
-
-Return the entries (with respect to the standard basis) of `v` as a sparse row.
-"""
-function coeffs(v::AbstractFreeModElem)
-  return coords(v)
-end
-
-#######################################################
-@doc Markdown.doc"""
-    coefficients(f::AbstractFreeModElem)
-
-Return the coefficients of `f` with respect to the basis of standard unit vectors. 
-
-The result is returned as a sparse row.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-
-julia> F = FreeMod(R,3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
-
-julia> f = x*gen(F,1)+y*gen(F,3)
-x*e[1] + y*e[3]
-
-julia> coefficients(f)
-Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
-```
-"""
-coefficients(f::AbstractFreeModElem) = coeffs(f)
 #########################################################
 
 @doc Markdown.doc"""
@@ -278,10 +245,10 @@ function repres(v::AbstractFreeModElem)
 end
 
 function getindex(v::AbstractFreeModElem, i::Int)
-  if isempty(coords(v))
+  if isempty(coordinates(v))
     return zero(base_ring(parent(v)))
   end
-  return coords(v)[i]
+  return coordinates(v)[i]
 end
 
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModElem{T}
@@ -306,7 +273,7 @@ end
 @doc Markdown.doc"""
     Vector(e::FreeModElem)
 
-Return the coefficients of `e` as a Vector.
+Return the coordinates of `e` as a Vector.
 """
 function Vector(e::FreeModElem)
    return [e[i] for i in 1:rank(parent(e))]
@@ -363,18 +330,18 @@ base_ring(F::FreeMod) = F.R
 #TODO: Parent - checks everywhere!!!
 
 # the negative of a free module element
--(a::AbstractFreeModElem) = FreeModElem(-coords(a), parent(a))
+-(a::AbstractFreeModElem) = FreeModElem(-coordinates(a), parent(a))
 
 # Addition of free module elements
 function +(a::AbstractFreeModElem, b::AbstractFreeModElem)
    check_parent(a, b)
-   return FreeModElem(coords(a)+coords(b), parent(a))
+   return FreeModElem(coordinates(a)+coordinates(b), parent(a))
 end
 
 # Subtraction of free module elements
 function -(a::AbstractFreeModElem, b::AbstractFreeModElem)
     check_parent(a,b)
-    return FreeModElem(coords(a)-coords(b), parent(a))
+    return FreeModElem(coordinates(a)-coordinates(b), parent(a))
 end
 
 # Equality of free module elements
@@ -386,7 +353,7 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  return hash(tuple(parent(a), coords(a)), h)
+  return hash(tuple(parent(a), coordinates(a)), h)
 end
 
 # scalar multiplication with polynomials, integers
@@ -394,23 +361,23 @@ function *(a::MPolyElem_dec, b::AbstractFreeModElem)
   if parent(a) !== base_ring(parent(b))
     error("elements not compatible")
   end
-  return FreeModElem(a*coords(b), parent(b))
+  return FreeModElem(a*coordinates(b), parent(b))
 end
 function *(a::MPolyElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return FreeModElem(a*coords(b), parent(b))
+  return FreeModElem(a*coordinates(b), parent(b))
 end
 function *(a::RingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return FreeModElem(a*coords(b), parent(b))
+  return FreeModElem(a*coordinates(b), parent(b))
 end
-*(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coords(b), parent(b))
-*(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coords(b), parent(b))
-*(a::fmpq, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coords(b), parent(b))
+*(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coordinates(b), parent(b))
+*(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
+*(a::fmpq, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coordinates(b), parent(b))
 
 @doc Markdown.doc"""
     zero(F::AbstractFreeMod)
@@ -431,7 +398,7 @@ parent(a::AbstractFreeModElem) = a.parent
 
 Return `true` if `f` is zero, `false` otherwise.
 """
-iszero(f::AbstractFreeModElem) = iszero(coords(f))
+iszero(f::AbstractFreeModElem) = iszero(coordinates(f))
 
 
 ###############################################################################
@@ -470,8 +437,8 @@ julia> cmp(lex(F)*lex(R), x*F[1], x*F[1])
 ```
 """
 function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
-  A = coeffs(a)
-  B = coeffs(b)
+  A = coordinates(a)
+  B = coordinates(b)
   @assert length(A.pos) == 1
   @assert length(B.pos) == 1
   av = A.values[1]
@@ -494,7 +461,7 @@ Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
 `ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
 """
 function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
-  ff = coeffs(f)
+  ff = coordinates(f)
   p = collect((i, j) for i in ff.pos for j in 1:length(f[i]))
   sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
                                              l[1], ff[l[1]], l[2], ord.o) > 0))
@@ -2417,24 +2384,15 @@ end
 Let $v \in M$ with $v = \sum_i a[i] \cdot M[i]$. Return $a[i]$
 """
 function getindex(v::SubQuoElem, i::Int)
-  if isempty(coeffs(v))
+  if isempty(coordinates(v))
     return zero(base_ring(v.parent))
   end
-  return coeffs(v)[i]
-end
-
-@doc Markdown.doc"""
-    coeffs(v::SubQuoElem)
-
-Let $v \in M$. Return an `SRow` `a` such that $\sum_i a[i] \cdot M[i] = v$.
-"""
-function coeffs(v::SubQuoElem)
-  return v.coeffs
+  return coordinates(v)[i]
 end
 
 #######################################################
 @doc Markdown.doc"""
-    coefficients(m::SubQuoElem)
+    coordinates(m::SubQuoElem)
 
 Given an element `m` of a subquotient $M$ over a ring $R$, say,
 return the coefficients of an $R$-linear combination of the generators of $M$
@@ -2467,7 +2425,7 @@ julia> coefficients(m)
 Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
 ```
 """
-coefficients(m::SubQuoElem) = coeffs(m)
+coordinates(m::SubQuoElem) = m.coeffs
 #########################################################
 
 @doc Markdown.doc"""
@@ -2673,9 +2631,9 @@ end
 Let $v \in G$ with $v$ the `i`th generator of $G$. Return `i`.
 """
 function index_of_gen(v::SubQuoElem)
-  @assert length(coeffs(v).pos) == 1
-  @assert isone(coeffs(v).values[1])
-  return coeffs(v).pos[1]
+  @assert length(coordinates(v).pos) == 1
+  @assert isone(coordinates(v).values[1])
+  return coordinates(v).pos[1]
 end
 
 # function to check whether a free module element is in a particular free module
@@ -2687,34 +2645,34 @@ end
 
 function +(a::SubQuoElem, b::SubQuoElem)
   check_parent(a,b)
-  return SubQuoElem(coeffs(a)+coeffs(b), a.parent)
+  return SubQuoElem(coordinates(a)+coordinates(b), a.parent)
 end
 function -(a::SubQuoElem, b::SubQuoElem) 
   check_parent(a,b)
-  return SubQuoElem(coeffs(a)-coeffs(b), a.parent)
+  return SubQuoElem(coordinates(a)-coordinates(b), a.parent)
 end
--(a::SubQuoElem) = SubQuoElem(-coeffs(a), a.parent)
+-(a::SubQuoElem) = SubQuoElem(-coordinates(a), a.parent)
 function *(a::MPolyElem_dec, b::SubQuoElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return SubQuoElem(a*coeffs(b), b.parent)
+  return SubQuoElem(a*coordinates(b), b.parent)
 end
 function *(a::MPolyElem, b::SubQuoElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return SubQuoElem(a*coeffs(b), b.parent)
+  return SubQuoElem(a*coordinates(b), b.parent)
 end
 function *(a::RingElem, b::SubQuoElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return SubQuoElem(a*coeffs(b), b.parent)
+  return SubQuoElem(a*coordinates(b), b.parent)
 end
-*(a::Int, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
-*(a::Integer, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
-*(a::fmpq, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
+*(a::Int, b::SubQuoElem) = SubQuoElem(a*coordinates(b), b.parent)
+*(a::Integer, b::SubQuoElem) = SubQuoElem(a*coordinates(b), b.parent)
+*(a::fmpq, b::SubQuoElem) = SubQuoElem(a*coordinates(b), b.parent)
 function (==)(a::SubQuoElem, b::SubQuoElem) 
   if parent(a) !== parent(b)
     return false
@@ -3243,7 +3201,7 @@ function presentation(SQ::SubQuo)
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
-      q = [FreeModElem(coords(g), F) for g in gens(SQ.quo)]
+      q = [FreeModElem(coordinates(g), F) for g in gens(SQ.quo)]
     end
   else
     s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
@@ -4015,7 +3973,7 @@ function image(f::SubQuoHom, a::SubQuoElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
   i = zero(codomain(f))
-  b = coeffs(a)
+  b = coordinates(a)
   for (p,v) = b
     i += v*f.im[p]
   end
@@ -5545,7 +5503,7 @@ function ambient_module(M::SubQuo, task = :none)
   if task == :none
     return SQ
   else
-    return SQ, hom(M,SQ,[SubQuoElem(coords(repres(v)), SQ) for v in gens(M)])
+    return SQ, hom(M,SQ,[SubQuoElem(coordinates(repres(v)), SQ) for v in gens(M)])
   end
 end
 
@@ -5568,7 +5526,7 @@ Return elements of the ambient free module of `M` which represent the generators
 """
 function ambient_representatives_generators(M::SubQuo)
   G = ambient_free_module(M)
-  return [FreeModElem(coords(repres(x)), G) for x in gens(M)]
+  return [FreeModElem(coordinates(repres(x)), G) for x in gens(M)]
 end
 
 
@@ -5651,7 +5609,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   
   function pure(tuple_elems::Union{SubQuoElem,FreeModElem}...)
-    coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coeffs(x) for x = tuple_elems))])
+    coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coordinates(x) for x = tuple_elems))])
     res = zero(s)
     for coeffs_tuple in coeffs_tuples
       indices = map(x -> x[1], coeffs_tuple)
@@ -6456,7 +6414,7 @@ isomorphisms. The ambient free module of `N` is the same as that of `M`.
 function simplify_with_same_ambient_free_module(M::SubQuo)
   _, to_M, from_M = simplify(M)
   N, N_to_M = image(to_M)
-  return N, N_to_M, hom(M, N, [N(coeffs(from_M(g))) for g in gens(M)])
+  return N, N_to_M, hom(M, N, [N(coordinates(from_M(g))) for g in gens(M)])
   #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
 end
 
