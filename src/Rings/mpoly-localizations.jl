@@ -1113,11 +1113,11 @@ end
     RingElemType, 
     MultSetType
   })(f::BaseRingElemType) where {
-    BaseRingType, 
-    BaseRingElemType, 
-    RingType, 
-    RingElemType, 
-    MultSetType
+    BaseRingType<:Ring, 
+    BaseRingElemType<:RingElem, 
+    RingType<:Ring, 
+    RingElemType<:RingElem, 
+    MultSetType<:AbsMultSet
   } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
 
 function (W::MPolyLocalizedRing{
@@ -1837,6 +1837,7 @@ function ideal(
     W::MPolyLocalizedRing,
     gens::Vector
   )
+  length(gens) == 0 && return MPolyLocalizedIdeal(W, elem_type(W)[])
   return MPolyLocalizedIdeal(W, W.(gens))
 end
 
@@ -2314,10 +2315,11 @@ end
 
 function compose(
     f::MPolyLocalizedRingHom, 
-    g::MPolyLocalizedRingHom
+    g::Hecke.Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
-  return MPolyLocalizedRingHom(domain(f), codomain(g), compose(restricted_map(f), g))
+  R = base_ring(domain(f))
+  return MPolyLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)]))
 end
 
 (f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
@@ -2386,4 +2388,9 @@ end
 
 function _is_integral_domain(R::MPolyLocalizedRing)
   return true
+end
+
+### Method compatible with `localized_ring`: This is the trivial lift to itself. 
+function lift(a::MPolyLocalizedRingElem)
+  return a
 end
