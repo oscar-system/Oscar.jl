@@ -2436,7 +2436,7 @@ julia> M = SubQuo(A, B);
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
 
-julia> coefficients(m)
+julia> coordinates(m)
 Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
 ```
 """
