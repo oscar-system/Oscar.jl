@@ -49,6 +49,9 @@ function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
     return solve_mixed(fmpz_mat, A, b, C, d)
 end
 
+function solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) where {T} # Ax == b && Cx >= 0
+    return solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
+end
 
 @doc Markdown.doc"""
     solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
@@ -75,9 +78,12 @@ julia> sortslices(Matrix{BigInt}(solve_mixed(A, b, C)), dims=1)
 ```
 """
 function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)  # Ax == b && Cx >= 0
-    return solve_mixed(A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
+    return solve_mixed(fmpz_mat, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
 end
 
+function solve_ineq(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
+    return solve_mixed(T, zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), -A, -b)
+end
 
 @doc Markdown.doc"""
     solve_ineq(A::fmpz_mat, b::fmpz_mat)
@@ -102,9 +108,13 @@ julia> sortslices(Matrix{BigInt}(solve_ineq(A, b)), dims=1)
 ```
 """
 function solve_ineq(A::fmpz_mat, b::fmpz_mat)
-    return solve_mixed(zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), -A, -b)
+    return solve_ineq(fmpz_mat, A, b)
 end
 
+
+function solve_non_negative(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
+  return solve_mixed(T, A, b, identity_matrix(FlintZZ, ncols(A)))
+end
 
 @doc Markdown.doc"""
     solve_non_negative(A::fmpz_mat, b::fmpz_mat)
@@ -129,7 +139,7 @@ julia> sortslices(Matrix{BigInt}(solve_non_negative(A, b)), dims=1)
 ```
 """
 function solve_non_negative(A::fmpz_mat, b::fmpz_mat)
-  return solve_mixed(A, b, identity_matrix(FlintZZ, ncols(A)))
+  return solve_non_negative(fmpz_mat, A, b)
 end
 
 
