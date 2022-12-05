@@ -323,10 +323,6 @@ function singular_locus(X::AbsSpaceGerm)
   return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end
 
-function point(X::SpaceGerm{<:Field, <:AbsLocalizedRing{<:Ring, <:RingElem, <:MPolyComplementOfKPointIdeal}})
-  return point_coordinates(inverted_set(OO(X)))
-end
-
 function subscheme(X::SpaceGerm, I::Ideal)
   base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
   Y = subscheme(underlying_scheme(X), I)
