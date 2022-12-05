@@ -407,6 +407,15 @@ function Base.show(io::IO, W::AbsLocalizedRing)
   print(io, inverted_set(W))
 end
 
+function Base.show(io::IO, a::AbsLocalizedRingElem) 
+  if isone(denominator(a))
+    print(io, numerator(a))
+  else
+    print(io, "$(numerator(a))//$(denominator(a))")
+  end
+  return
+end
+
 function zero!(a::AbsLocalizedRingElem) 
   a = zero(parent(a))
   return a
@@ -631,7 +640,7 @@ function kernel(f::AbsLocalizedRingHom)
 end
 
 function preimage(f::AbsLocalizedRingHom, I::Ideal)
-  base_ring(I) == codomain(f) || error("ideal must be in the codomain of f")
+  base_ring(I) === codomain(f) || error("ideal must be in the codomain of f")
   Q, proj = quo(codomain(f), I)
   return kernel(compose(f, proj))
 end
