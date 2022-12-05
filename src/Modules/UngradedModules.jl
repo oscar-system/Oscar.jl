@@ -225,7 +225,7 @@ function in(v::AbstractFreeModElem, M::SubQuo)
 end
 
 @doc Markdown.doc"""
-    coordinatessv::AbstractFreeModElem)
+    coordinates(v::AbstractFreeModElem)
 
 Return the entries (with respect to the standard basis) of `v` as a sparse row.
 
