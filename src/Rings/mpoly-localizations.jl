@@ -1120,6 +1120,21 @@ end
     MultSetType<:AbsMultSet
   } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
 
+# Remove ambiguities
+(W::MPolyLocalizedRing{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  })(f::BaseRingElemType) where {
+    BaseRingType<:Ring, 
+    BaseRingElemType<:fmpz, 
+    RingType<:Ring, 
+    RingElemType<:RingElem, 
+    MultSetType<:AbsMultSet
+  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
+
 function (W::MPolyLocalizedRing{
     BaseRingType, 
     BaseRingElemType, 
