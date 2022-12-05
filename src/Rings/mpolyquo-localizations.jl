@@ -177,7 +177,7 @@ function modulus(L::MPolyQuoLocalizedRing)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
-modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
+modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 
 
 @Markdown.doc """
@@ -239,7 +239,7 @@ function quo(
   S = inverted_set(W)
   J = ideal(R, numerator.(gens(I)))
   L = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
-  return L, hom(R, L, gens(L))
+  return L, hom(W, L, hom(R, L, gens(L)))
 end
 
 function quo(
@@ -952,7 +952,7 @@ end
 
 function compose(
     f::MPolyQuoLocalizedRingHom, 
-    g::MPolyQuoLocalizedRingHom
+    g::Hecke.Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
 
