@@ -32,7 +32,7 @@ $f \in \mathbb Z[x]_>$, the notions *leading term*, *leading monomial*, *leading
 ##### Examples
 
 ```jldoctest
-R, (x, y) = PolynomialRing(ZZ, ["x", "y"]);
+julia> R, (x, y) = PolynomialRing(ZZ, ["x", "y"]);
 
 julia> reduce(3*x, [2*x])
 x
