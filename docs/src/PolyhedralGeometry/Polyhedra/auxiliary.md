@@ -76,10 +76,10 @@ print_constraints(P::Polyhedron; trivial::Bool = false)
 regular_triangulations
 regular_triangulation
 secondary_polytope
-solve_ineq(A::fmpz_mat, b::fmpz_mat)
-solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
-solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
-solve_non_negative(A::fmpz_mat, b::fmpz_mat)
+solve_ineq(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
+solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat) where {T}
+solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) where {T}
+solve_non_negative(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
 support_function(P::Polyhedron{T}; convention::Symbol = :max) where T<:scalar_types
 volume(P::Polyhedron{T}) where T<:scalar_types
 ```

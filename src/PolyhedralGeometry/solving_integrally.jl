@@ -13,7 +13,6 @@ function solve_mixed(as::Type{SubObjectIterator{PointVector{fmpz}}}, A::fmpz_mat
     return lattice_points(P)
 end
 
-
 function solve_mixed(as::Type{fmpz_mat}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
     LP = solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, b, C, d)
     return matrix(ZZ, LP)
@@ -21,9 +20,13 @@ end
 
 
 @doc Markdown.doc"""
-    solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
+    solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat) where {T}
 
 Solve $Ax = b$ under $Cx >= d$, assumes a finite solution set.
+
+The output type may be specified in the variable `as`:
+- `fmpz_mat` (default) a matrix with integers is returned.
+- `SubObjectIterator{PointVector{fmpz}}` an iterator over integer points is returned.
 
 # Examples
 Find all $(x_1, x_2)\in\mathbb{Z}^2$ such that $x_1+x_2=7$, $x_1\ge 2$, and $x_2\ge 3$.
@@ -43,20 +46,29 @@ julia> sortslices(Matrix{BigInt}(solve_mixed(A, b, C, d)), dims=1)
  2  5
  3  4
  4  3
+
+julia> typeof(solve_mixed(A, b, C, d))
+fmpz_mat
+
+julia> typeof(solve_mixed(fmpz_mat, A, b, C, d))
+fmpz_mat
+
+julia> typeof(solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, b, C, d))
+SubObjectIterator{PointVector{fmpz}}
 ```
 """
-function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
-    return solve_mixed(fmpz_mat, A, b, C, d)
-end
+solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat) where {T} = solve_mixed(T, A, b, C, d)
+solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat) = solve_mixed(fmpz_mat, A, b, C, d)
 
-function solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) where {T} # Ax == b && Cx >= 0
-    return solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
-end
 
 @doc Markdown.doc"""
-    solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
+    solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) where {T}
 
 Solve $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
+
+The output type may be specified in the variable `as`:
+- `fmpz_mat` (default) a matrix with integers is returned.
+- `SubObjectIterator{PointVector{fmpz}}` an iterator over integer points is returned.
 
 # Examples
 Find all $(x_1, x_2)\in\mathbb{Z}^2_{\ge 0}$ such that $x_1+x_2=3$.
@@ -75,20 +87,30 @@ julia> sortslices(Matrix{BigInt}(solve_mixed(A, b, C)), dims=1)
  1  2
  2  1
  3  0
+
+julia> typeof(solve_mixed(A, b, C))
+fmpz_mat
+
+julia> typeof(solve_mixed(fmpz_mat, A, b, C))
+fmpz_mat
+
+julia> typeof(solve_mixed(SubObjectIterator{PointVector{fmpz}}, A, b, C))
+SubObjectIterator{PointVector{fmpz}}
 ```
 """
-function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)  # Ax == b && Cx >= 0
-    return solve_mixed(fmpz_mat, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
-end
+solve_mixed(as::Type{T}, A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) where {T} = solve_mixed(T, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
+solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat) = solve_mixed(fmpz_mat, A, b, C, zero_matrix(FlintZZ, nrows(C), 1))
 
-function solve_ineq(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
-    return solve_mixed(T, zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), -A, -b)
-end
+
 
 @doc Markdown.doc"""
-    solve_ineq(A::fmpz_mat, b::fmpz_mat)
+    solve_ineq(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
 
 Solve $Ax<=b$, assumes finite set of solutions.
+
+The output type may be specified in the variable `as`:
+- `fmpz_mat` (default) a matrix with integers is returned.
+- `SubObjectIterator{PointVector{fmpz}}` an iterator over integer points is returned.
 
 # Examples
 The following gives the vertices of the square.
@@ -105,21 +127,30 @@ julia> sortslices(Matrix{BigInt}(solve_ineq(A, b)), dims=1)
  0  1
  1  0
  1  1
+
+julia> typeof(solve_ineq(A,b))
+fmpz_mat
+
+julia> typeof(solve_ineq(fmpz_mat, A,b))
+fmpz_mat
+
+julia> typeof(solve_ineq(SubObjectIterator{PointVector{fmpz}}, A,b))
+SubObjectIterator{PointVector{fmpz}}
 ```
 """
-function solve_ineq(A::fmpz_mat, b::fmpz_mat)
-    return solve_ineq(fmpz_mat, A, b)
-end
+solve_ineq(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T} = solve_mixed(T, zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), -A, -b)
+solve_ineq(A::fmpz_mat, b::fmpz_mat) = solve_ineq(fmpz_mat, A, b)
 
 
-function solve_non_negative(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
-  return solve_mixed(T, A, b, identity_matrix(FlintZZ, ncols(A)))
-end
 
 @doc Markdown.doc"""
-    solve_non_negative(A::fmpz_mat, b::fmpz_mat)
+    solve_non_negative(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T}
 
 Find all solutions to $Ax = b$, $x>=0$. Assumes a finite set of solutions.
+
+The output type may be specified in the variable `as`:
+- `fmpz_mat` (default) a matrix with integers is returned.
+- `SubObjectIterator{PointVector{fmpz}}` an iterator over integer points is returned.
 
 # Examples
 Find all $(x_1, x_2)\in\mathbb{Z}^2_{\ge 0}$ such that $x_1+x_2=3$.
@@ -136,10 +167,18 @@ julia> sortslices(Matrix{BigInt}(solve_non_negative(A, b)), dims=1)
  1  2
  2  1
  3  0
+
+julia> typeof(solve_non_negative(A,b))
+fmpz_mat
+
+julia> typeof(solve_non_negative(fmpz_mat, A,b))
+fmpz_mat
+
+julia> typeof(solve_non_negative(SubObjectIterator{PointVector{fmpz}}, A,b))
+SubObjectIterator{PointVector{fmpz}}
 ```
 """
-function solve_non_negative(A::fmpz_mat, b::fmpz_mat)
-  return solve_non_negative(fmpz_mat, A, b)
-end
+solve_non_negative(as::Type{T}, A::fmpz_mat, b::fmpz_mat) where {T} = solve_mixed(T, A, b, identity_matrix(FlintZZ, ncols(A)))
+solve_non_negative(A::fmpz_mat, b::fmpz_mat) = solve_non_negative(fmpz_mat, A, b)
 
 
