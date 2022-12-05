@@ -240,7 +240,7 @@ Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Fi
 julia> f = x*gen(F,1)+y*gen(F,3)
 x*e[1] + y*e[3]
 
-julia> coefficients(f)
+julia> coordinates(f)
 Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
 ```
 """
