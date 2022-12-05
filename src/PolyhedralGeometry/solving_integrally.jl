@@ -7,9 +7,7 @@ function solve_mixed(as::Type{SubObjectIterator{PointVector{fmpz}}}, A::fmpz_mat
     nrows(C) == nrows(d) || throw(ArgumentError("solve_mixed(A,b,C,d): C and d must have the same number of rows."))
     ncols(b) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): b must be a matrix with a single column."))
     ncols(d) == 1 || throw(ArgumentError("solve_mixed(A,b,C,d): d must be a matrix with a single column."))
-    eq = (Matrix{BigInt}(A), vec(Matrix{BigInt}(b)))
-    ineq = (Matrix{BigInt}(-C), vec(Matrix{BigInt}(-d)))
-    P = Polyhedron(ineq, eq)
+    P = Polyhedron((-C, vec(-d)), (A, vec(b)))
     return lattice_points(P)
 end
 
