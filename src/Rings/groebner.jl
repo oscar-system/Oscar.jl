@@ -107,14 +107,18 @@ end
 @doc Markdown.doc"""
     standard_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+      complete_reduction::Bool = false, algorithm::Symbol = :buchberger,
+      weights::Vector{E} = ones(ngens(base_ring(I)))) where {E <: Integer}
 
-Return a standard basis of `I` with respect to `ordering`. 
+Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+
+`weights` is used only if `algorithm == :hilbert`.
 
 !!! note
     See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
@@ -137,7 +141,7 @@ negdegrevlex([x, y])
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+	complete_reduction::Bool = false, algorithm::Symbol = :buchberger, weights::Vector{E} = ones(Int32, ngens(base_ring(I)))) where {E <: Integer}
 	complete_reduction && @assert is_global(ordering)
 	if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
 		return I.gb[ordering]
@@ -150,6 +154,8 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 		end
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
+  elseif algorithm == :hilbert
+    I.gb[ordering] = _groebner_basis_with_hilbert(I, ordering, weights=weights, complete_reduction=complete_reduction)
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -322,54 +328,6 @@ function f4(
     return I.gb[ord]
 end
 
-function _standard_basis_with_hilbert(I::MPolyIdeal,
-                                      target_ordering::MonomialOrdering;
-                                      weights::Vector{E} = ones(ngens(base_ring(I))),
-                                      complete_reduction::Bool = false) where
-  
-  # TODO: better way to check homogeneity?
-  @assert all(p -> _is_homogeneous_weights(p, weights), gens(I)) "Ideal must be given by homogeneous generators"
-  complete_reduction && @assert is_global(ordering)
-  if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
-    # TODO: can do this with hecke?
-    while true
-      p = 0
-      while true
-        p = rand(2^15:2^16)
-        if isprime(p)
-          break
-        end
-      end
-        
-      base_field = GF(p)
-      ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
-      I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
-      try
-        I_mod_p_gens = [ModP(f) for f in gens(I)]
-        G = f4(ideal(ModP, I_mod_p_gens))
-        break
-      catch
-        continue
-      end
-    end
-  else
-    G = groebner_assure(I)
-  end
-
-  singular_assure(G)
-  h = Singular.hilbert_series(G.S, ones(Int32, ngens(base_ring(I))))
-  # TODO: insert call to singular std with hilbert here
-  # return I.gb[target_ordering]
-  return h
-end
-
-function _is_homogeneous_weights(f::MPoly{T},
-                                 weights::Vector{I}) where {I <: Integer}
-  
-  weight_deg = e -> sum([weights[i] * e[i] for i in eachindex(e)])
-  f_weight_deg = weight_deg(first(exponent_vectors(f)))
-  return all(e -> weight_deg(e) == f_weight_deg, exponent_vectors(f)[2:end])
-end
   
 
 @doc Markdown.doc"""
@@ -1270,4 +1228,77 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	start_ordering = G.ord
 	dim(I) == 0 || error("Dimension of ideal must be zero.")
 	I.gb[destination_ordering] = _fglm(G, destination_ordering)
+end
+
+
+# TODO: does the target ordering have to be global?
+@doc Markdown.doc"""
+    _groebner_basis_with_hilbert(I::MPolyIdeal,
+                                 destination_ordering::MonomialOrdering;
+                                 weights::Vector{E} = ones(ngens(base_ring(I))),
+                                 complete_reduction::Bool = false) where {E <: Integer}
+
+**Note**: Internal function, subject to change, do not use.
+
+Compute a Gröbner basis of `I` with respect to `destination_ordering`
+using a Hilbert Series driven method as follows: If a Gröbner basis
+for `I` is present, compute the Hilbert series of `I` and use it to
+optimize the Gröbner basis computation for `I`
+w.r.t. `destination_ordering`. If no Gröbner basis for `I` is present
+compute the Hilbert series for `I` if the base field of `I` has
+positive characteristic, otherwise compute the Hilbert series for `I`
+modulo a randomly chosen prime. Use the resulting Hilbert series to
+optimize the Gröbner basis computation for `I`
+w.r.t. `target_ordering`.
+
+`I` must be given by generators homogeneous w.r.t. `weights`.
+"""
+
+function _groebner_basis_with_hilbert(I::MPolyIdeal,
+                                      destination_ordering::MonomialOrdering;
+                                      weights::Vector{E} = ones(Int32, ngens(base_ring(I))),
+                                      complete_reduction::Bool = false) where {E <: Integer}
+  
+  all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
+	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
+	is_global(destination_ordering) || error("Destination ordering must be global.")
+  # TODO: this is not type stable I think
+  if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
+    while true
+      p = 0
+      while true
+        p = rand(2^15:2^16)
+        if isprime(p)
+          break
+        end
+      end
+        
+      base_field = GF(p)
+      ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
+      I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
+      try
+        I_mod_p_gens = [ModP(f) for f in gens(I)]
+        G = f4(ideal(ModP, I_mod_p_gens))
+        break
+      catch
+        continue
+      end
+    end
+  else
+    G = groebner_assure(I)
+  end
+
+  singular_assure(G)
+  h = Singular.hilbert_series(G.S, (Int32).(weights))
+  # TODO: insert call to singular std with hilbert here
+  return _compute_standard_basis(I.gens, destination_ordering, complete_reduction)
+end
+
+function _is_homogeneous_weights(f::MPolyElem,
+                                 weights::Vector{I}) where {I <: Integer}
+  
+  weight_deg = e -> sum([weights[i] * e[i] for i in eachindex(e)])
+  f_weight_deg = weight_deg(first(exponent_vectors(f)))
+  return all(e -> weight_deg(e) == f_weight_deg, collect(exponent_vectors(f))[2:end])
 end
