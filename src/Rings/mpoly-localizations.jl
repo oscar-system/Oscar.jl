@@ -1532,7 +1532,7 @@ function pre_saturated_ideal(I::MPolyLocalizedIdeal)
     W = base_ring(I)
     I.pre_saturated_ideal = ideal(base_ring(W), numerator.(gens(I)))
     r = length(gens(I))
-    A = sparse_matrix(W)
+    A = zero_matrix(SMat, W, 0, r)
     #A = zero(MatrixSpace(W, r, r))
     for i in 1:r
       push!(A, sparse_row(W, [(i, W(denominator(gens(I)[i])))]))
@@ -1564,7 +1564,7 @@ function extend_pre_saturated_ideal!(
   J_ext = ideal(R, vcat(gens(J), [f]))
   T = pre_saturation_data(I)
   y = mul(T, transpose(L(one(u), u, check=false)*change_base_ring(L, x)))
-  T_ext = sparse_matrix(L)
+  T_ext = zero_matrix(SMat, L, 0, ncols(T)+1)
   for i in 1:length(y)
     push!(T_ext, T[i] + sparse_row(L, [(ncols(T) + 1, y[i, 1])]))
   end
@@ -1597,11 +1597,13 @@ function extend_pre_saturated_ideal!(
   #y = T * transpose(L(one(u), u, check=false)*change_base_ring(L, x))
   y = mul(T, transpose(change_base_ring(L, x)))
   for i in 1:ncols(y)
-    y[i, 1] = y[i, 1]*L(one(u[i]), u[i], check=false) 
+    for j in 1:n
+      y[i, j] = y[i, j]*L(one(u[i]), u[i], check=false) 
+    end
   end
-  T_ext = sparse_matrix(L)
+  T_ext = zero_matrix(SMat, L, 0, ncols(T)+n)
   for i in 1:length(y)
-    push!(T_ext, T[i] + sparse_row(L, [(ncols(T) + 1, y[i, 1])]))
+    push!(T_ext, T[i] + sparse_row(L, [(ncols(T) + j, y[i, j]) for j in 1:n]))
   end
   I.pre_saturated_ideal = J_ext
   I.pre_saturation_data = T_ext
@@ -1735,9 +1737,10 @@ function saturated_ideal(
               (g, a, dttk) = cache[i]
               push!(cols, mul(pre_saturation_data(I), transpose(L(one(dttk), dttk, check=false)*change_base_ring(L, a))))
             end
-            A = sparse_matrix(L)
+            A = zero_matrix(SMat, L, 0, length(cache))
             for i in 1:ngens(I)
-              push!(A, sparse_row(L, [(j, cols[j][i, 1]) for j in 1:length(cols)]))
+              v = sparse_row(L, [(j, cols[j][i, 1]) for j in 1:length(cols)])
+              push!(A, v)
             end
             I.pre_saturated_ideal = ideal(R, gens(Jsat))
             I.pre_saturation_data = A
@@ -1762,9 +1765,9 @@ function saturated_ideal(
         cache = Vector()
         for g in gens(Jsat)
           (k, dttk) = Oscar._minimal_power_such_that(d, p->(p*g in pre_saturated_ideal(I)))
-          if k > 0
+          #if k > 0
             push!(cache, (g, coordinates(dttk*g, pre_saturated_ideal(I)), dttk))
-          end
+          #end
         end
         if length(cache) > 0
           # We completely overwrite the pre_saturated_ideal with the generators 
@@ -1779,7 +1782,7 @@ function saturated_ideal(
             (g, a, dttk) = cache[i]
             push!(cols, mul(pre_saturation_data(I), transpose(L(one(dttk), dttk, check=false)*change_base_ring(L, a))))
           end
-          A = sparse_matrix(L)
+          A = zero_matrix(SMat, L, 0, length(cache))
           for i in 1:ngens(I)
             push!(A, sparse_row(L, [(j, cols[j][i, 1]) for j in 1:length(cols)]))
           end

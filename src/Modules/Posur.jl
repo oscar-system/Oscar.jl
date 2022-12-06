@@ -19,7 +19,7 @@ function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, Matri
   n = ncols(A)
   S = base_ring(A)
   R = base_ring(S)
-  D = sparse_matrix(R)
+  D = zero_matrix(SMat, R, 0, m)
   #D = zero(MatrixSpace(R, m, m))
   B = zero(MatrixSpace(R, m, n))
   for i in 1:m
