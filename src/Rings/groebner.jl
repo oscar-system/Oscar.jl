@@ -1260,7 +1260,7 @@ function _groebner_basis_with_hilbert(I::MPolyIdeal,
                                       complete_reduction::Bool = false) where {E <: Integer}
   
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
-	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	is_global(destination_ordering) || error("Destination ordering must be global.")
   # TODO: this is not type stable I think
