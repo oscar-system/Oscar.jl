@@ -33,6 +33,7 @@ include("Experimental/MPolyRingSparse-test.jl")
 include("Experimental/MatrixGroups-test.jl")
 
 include("Modules/UngradedModules.jl")
+include("Modules/FreeModElem-orderings-test.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 

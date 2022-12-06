@@ -34,8 +34,8 @@ julia> cmp(lex(F)*lex(R), x*F[1], x*F[1])
 ```
 """
 function Base.cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
-  A = coeffs(a)
-  B = coeffs(b)
+  A = coordinates(a)
+  B = coordinates(b)
   @assert length(A.pos) == 1
   @assert length(B.pos) == 1
   av = A.values[1]
@@ -58,7 +58,7 @@ Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
 `ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
 """
 function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyElem}, ord::ModuleOrdering)
-  ff = coeffs(f)
+  ff = coordinates(f)
   p = collect((i, j) for i in ff.pos for j in 1:length(f[i]))
   sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
                                              l[1], ff[l[1]], l[2], ord.o) > 0))
