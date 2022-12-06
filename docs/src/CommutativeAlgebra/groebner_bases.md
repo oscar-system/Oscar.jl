@@ -139,16 +139,48 @@ julia> tail(f)
 2*x*y + 1
 ```
 
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = free_module(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> f = (5*x*y^2-y^10+3)*F[1]+(4*x^3+2*y) *F[2]+16*x*F[3]
+(5*x*y^2 - y^10 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]
+
+julia> default_ordering(F)
+degrevlex([x, y])*lex([gen(1), gen(2), gen(3)])
+
+julia> collect(terms(f))
+6-element Vector{FreeModElem{fmpq_mpoly}}:
+ -y^10*e[1]
+ 4*x^3*e[2]
+ 5*x*y^2*e[1]
+ 16*x*e[3]
+ 2*y*e[2]
+ 3*e[1]
+
+julia> collect(terms(f, ordering = lex(F)*lex(R)))
+6-element Vector{FreeModElem{fmpq_mpoly}}:
+ 5*x*y^2*e[1]
+ -y^10*e[1]
+ 3*e[1]
+ 4*x^3*e[2]
+ 2*y*e[2]
+ 16*x*e[3]
+```
+
 ## Division With Remainder
 
 The computation of Gröbner (standard) bases relies on multivariate division with remainder which is interesting
 in its own right. If a monomial ordering $>$ is given, the basic idea is to mimic Euclidean division with remainder,
 allowing more than one divisor: At each step of the resulting process, this amounts to removing the leading term of the
 intermediate dividend, using the leading term of *some* divisor by which it is divisible. In its basic form, the process
-works well if $>$ is global, but may not terminate, however, for local and mixed orderings. In the latter case, Mora's division
-algorithm, which relies on a restricted selection strategy for the divisors to be used, comes to our rescue.
+works well if $>$ is global, but may not terminate for local and mixed orderings. In the latter case, Mora's division
+algorithm, which relies on a more restricted selection strategy for the divisors to be used, comes to our rescue.
 
-We dicuss this in more detail:
+We discuss this in more detail:
 
 First suppose that $>$ is global and let polynomials $g\in K[x]$ and $f_1, \dots, f_r\in K[x]\setminus \{0\}$ be given.
 In this situation, multivariate division with remainder allows us to compute expressions
@@ -191,17 +223,17 @@ In the global case, they always return fully reduced remainders.
 
 ```@docs
 reduce(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
 ```
 
 ```@docs
 reduce_with_quotients(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
 ```
 		  
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
-	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where {T <: MPolyElem}
+	ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyElem
 ```
 
 ## Gröbner and Standard Bases
@@ -230,8 +262,8 @@ We call a standard basis $G = \{g_1,\dots, g_r\}\subset K[x]_>\setminus \{0\}$ *
 !!! note
     The standard bases returned by OSCAR are always minimal in the sense above.
 
-We call a standard basis $G = \{g_1,\dots, g_r\}$ with respect to a global monomial ordering *reduced* if it is minimal and no term of $g_i$ i
-s divisible by $\text{LM}_>(g_j)$, for $i\neq j$. Using power series expansions, we may extend this notion to local and mixed orderings.
+We call a standard basis $G = \{g_1,\dots, g_r\}$ with respect to a global monomial ordering *reduced* if it is minimal and no term of
+$g_i$ is divisible by $\text{LM}_>(g_j)$, for $i\neq j$. Using power series expansions, we may extend this notion to local and mixed orderings.
 However, while reduced standard bases can be computed in the global case, they may not be computable (in finitely many steps) in the other cases.
 
 !!! note
@@ -239,7 +271,7 @@ However, while reduced standard bases can be computed in the global case, they m
     the above notation and results extend naturally to submodules of $K[x]_>^p$.
 
 Here are the relevant OSCAR functions for computing Gröbner and standard bases. The elements of a
-computed basis can be retrieved by using the `elements` function or and its alias `gens`.
+computed basis can be retrieved by using the `elements` function or its alias `gens`.
 
 ```@docs
 groebner_basis(I::MPolyIdeal;
@@ -265,14 +297,33 @@ standard_basis_with_transformation_matrix(I::MPolyIdeal;
 	complete_reduction::Bool=false)
 ```
 
-### Gröbner Basis Conversions
+### Gröbner Basis Conversion Algorithms
+
+The performance of Buchberger's Gröbner basis algorithm is sensitive to the choice of monomial ordering.
+A Gröbner basis computation with respect to a less favorable ordering such as `lex` may easily run out of
+time or memory even in cases where a Gröbner basis computation with respect to a more efficient 
+ordering such as `degrevlex` is very well feasible. *Gröbner basis conversion algorithms*
+and the *Hilbert driven Buchberger algorithm*  discussed subsequently take their cue from this observation.
+
+Gröbner basis conversion algorithms proceed along the following lines:
+- Given an ideal $I$ of a multivariate polynomial ring over a field and a slow `destination_ordering`, compute a Gröbner basis for $I$ with respect to an appropriately chosen fast `start_ordering`.
+- Convert the result to a Gröbner basis with respect to the given slow `destination_ordering`.
+The algorithms differ in how they perform the conversion.
+
+
+#### The FGLM Algorithm
+
 
 ```@docs
-fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
+fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
+    destination_ordering::MonomialOrdering)
 ```
-    Gröbner walks
 
-    Hilbert-driven
+#### Gröbner Walk Algorithms
+
+### The Hilbert driven Buchberger Algorithm
+
+### Faugère's F4 Algorithm
 
 !!! warning "Expert function for computing Gröbner bases"
     With many adjustable keyword arguments, the following function provides low-level
@@ -287,8 +338,8 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 
 
 ```@docs
-leading_ideal(G::Vector{T}; ordering::MonomialOrdering) where { T <: MPolyElem }
-leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering)
+leading_ideal(G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(G[1])))  where T <: MPolyElem
+leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
 ```
 
 ## Normal Forms
@@ -300,8 +351,7 @@ $g$, $I$, and $>$ (and does not depend on the choice of Gröbner basis). We refe
 a remainder as the *normal form*  of $g$ mod $I$, with respect to $>$.
 
 ```@docs
-    normal_form(g::T, I::MPolyIdeal; 
-      ordering::MonomialOrdering = default_ordering(base_ring(I))) where { T <: MPolyElem }
+normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T <: MPolyElem
 ```
 
 ## Syzygies
