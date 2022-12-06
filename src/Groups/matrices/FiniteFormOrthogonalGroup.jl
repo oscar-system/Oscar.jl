@@ -798,38 +798,3 @@ function _compute_gens(T::TorQuadMod)
   return gensG
 end
 
-#=
-TODO
-function _compute_gens_degenerate_p(T::TorQuadMod, p)
-  invs = elementary_divisors(T)
-  p = invs[1]
-  (is_degenerate(T) && is_prime(p)) || error("")
-  n = length(invs)
-  q = gram_matrix_quadratic(N)
-  k = count(i -> q[:,i]==0, 1:n)
-  r = n - k
-  Idk = identity_matrix(ZZ, k)
-  Idr = identity_matrix(ZZ, r)
-  NR, i = sub(N, gens(N)[k:end])
-  gensG = fmpz_mat[]
-  for g in _compute_gens(NR)
-    push!(gensG, diagonal_matrix([Idk, g]))
-  end
-  if k > 0
-    for g in gens(GL(k,p))
-      push!(gensG, diagonal_matrix([matrix(g), Idr]))
-    end
-  end
-  if k>0 && r>0
-    h = identity_matrix(ZZ, n)
-    for i in 1:r
-      for j in 1:k
-        g = deepcopy(h)
-        g[k+i,j] = 1
-        push!(gensG, g)
-      end
-    end
-  end
-  return gensG
-end
-=#

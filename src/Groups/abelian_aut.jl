@@ -284,7 +284,7 @@ function _orthogonal_group_split_degenerate(T::TorQuadMod)
   # diagonally, we can generate its orthogonal group by taking some diagonal matrices
   # from taking the cartesian product on the generators of the blocks. We have nothing
   # to add since we can't map different primary parts to each others.
-  orth_blocks = _orthogonal_group_split_degenerate_elementary.(domain.(blocks))
+  orth_blocks = _orthogonal_group_split_degenerate_primary.(domain.(blocks))
   gensOTorth = fmpz_mat[]
   for x in Hecke.cartesian_product_iterator(gens.(orth_blocks), inplace=false)
     m = block_diagonal_matrix([matrix(f) for f in x])
@@ -302,13 +302,14 @@ function _orthogonal_group_split_degenerate_primary(T::TorQuadMod)
   if is_semi_regular(T)
     return orthogonal_group(T)
   end
+
   @assert is_prime_power_with_data(elementary_divisors(T)[end])[1]
   rd, i = radical_quadratic(T)
   ok, j = has_complement(i)
   @assert ok
   
   # N now is isometric to a the normal form of T, so it is in particular
-  # semi-regular. We can already compute generators of the generators of
+  # semi-regular. We can already compute generators of the orth group of
   # its normal form, we then bring them back to N
   N = domain(j)
   @assert is_semi_regular(N)
@@ -317,6 +318,7 @@ function _orthogonal_group_split_degenerate_primary(T::TorQuadMod)
   NNtoN = inv(NtoNN)
   gensONN = TorQuadModMor[hom(NN, NN, m) for m in _compute_gens(NN)]
   gensON = fmpz_mat[compose(compose(NtoNN, g), NNtoN).map_ab.map for g in gensONN]
+  n1 = nrows(gensON[1])
   
   # for the rd, since its quadratic form is trivial, automorphism are just
   # automorphism of the underlying abelian group.
@@ -325,6 +327,7 @@ function _orthogonal_group_split_degenerate_primary(T::TorQuadMod)
   for f in gens(OArd)
     push!(gensOrd, matrix(f))
   end
+  n2 = nrows(gensOrd[1])
 
   # finally, we have to consider automorphism which maps N into rd: these are well
   # defined because N and rd are orthogonal and the quadratic form on rd is trivial.
@@ -341,12 +344,15 @@ function _orthogonal_group_split_degenerate_primary(T::TorQuadMod)
   # Combining all of them together, we have generators (maybe the set is too big
   # compared to what is needed) for the orthogonal group of Torth, and so of T.
   gensOTorth = fmpz_mat[]
-  for x in Hecke.cartesian_product_iterator([gensOrd, gensON], inplace=false)
-    m = block_diagonal_matrix(x)
+  for x in gensOrd
+    m = block_diagonal_matrix([x, identity_matrix(ZZ, n1)])
+    push!(gensOTorth, m)
+  end
+  for x in gensON
+    m = block_diagonal_matrix([identity_matrix(ZZ, n2), x])
     push!(gensOTorth, m)
   end
   for m in Ntord
-    n1, n2 = size(m)
     M = identity_matrix(ZZ, n1+n2)
     M[(n2+1):end, 1:n2] = m
     push!(gensOTorth, M)
