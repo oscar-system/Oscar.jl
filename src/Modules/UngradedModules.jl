@@ -3088,7 +3088,7 @@ end
 
 @doc Markdown.doc"""
     presentation(M::SubQuo)
-ive
+
 Return a free presentation of `M`. 
 """
 function presentation(SQ::SubQuo)
