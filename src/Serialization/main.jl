@@ -19,8 +19,6 @@ mutable struct SerializerState
     # io::IO
 end
 
-using RandomExtensions: check_interval
-using Pkg: upgrade_manifest
 function SerializerState()
     return SerializerState(IdDict{Any, UUID}(), 0)
 end
