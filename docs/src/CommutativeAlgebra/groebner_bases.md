@@ -169,6 +169,15 @@ julia> collect(terms(f, ordering = lex(F)*lex(R)))
  4*x^3*e[2]
  2*y*e[2]
  16*x*e[3]
+
+julia> tail(f)
+(5*x*y^2 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]
+
+julia> leading_exponent(f)
+([0, 10], 1)
+
+julia> leading_exponent(f, ordering = lex(F)*lex(R))
+([1, 2], 1)
 ```
 
 ## Division With Remainder
