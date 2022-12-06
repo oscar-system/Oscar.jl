@@ -1289,6 +1289,10 @@ function _groebner_basis_with_hilbert(I::MPolyIdeal,
     G = groebner_assure(I)
   end
 
+  if characteristic(R) > 0 && destination_ordering == default_ordering(base_ring(I))
+    return G
+  end
+
   singular_assure(G)
   h = Singular.hilbert_series(G.S, (Int32).(weights))
   # TODO: insert call to singular std with hilbert here
