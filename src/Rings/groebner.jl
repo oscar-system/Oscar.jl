@@ -171,8 +171,11 @@ If `ordering` is global, return a Gröbner basis of `I` with respect to `orderin
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+
+`weights` is used only if `algorithm == :hilbert`.
 
 !!! note
     See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
@@ -255,9 +258,9 @@ julia> leading_coefficient(G[8])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-	algorithm::Symbol = :buchberger)
+	algorithm::Symbol = :buchberger, weights::Vector{E} = ones(Int32, ngens(base_ring(I)))) where {E <: Integer}
     is_global(ordering) || error("Ordering must be global")
-    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm, weights=weights)
 end
 
 @doc Markdown.doc"""
