@@ -805,7 +805,7 @@ function is_normal(A::MPolyQuo)
 end
 
 @doc Markdown.doc"""
-     is_Cohen_Macaulay(A::MPolyQuo) 
+     is_cohen_macaulay(A::MPolyQuo) 
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
