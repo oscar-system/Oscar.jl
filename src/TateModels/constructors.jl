@@ -109,7 +109,7 @@ false
 """
 function GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
     if length(ais) != 5
-        throw(ArgumentError("We require exactly 5 Tate section"))
+        throw(ArgumentError("We require exactly 5 Tate sections"))
     end
     if any(k -> parent(k) != cox_ring(base), ais)
         throw(ArgumentError("All Tate sections must reside in the Cox ring of the base toric variety"))
