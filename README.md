@@ -97,7 +97,7 @@ If you are interested in contributing, please feel free to reach out to us for m
 If `FTheoryTools` has been used in your research, please use the bibtex below or download it [here](https://github.com/Julia-meets-String-Theory/FTheoryTools.jl/blob/master/bibtex.bib):
 ```bibtex
 @Misc{FTheoryTools,
-  author       = "Bies, Martin and Andrew, P. Turner",
+  author       = "Bies, Martin and Turner, Andrew P.",
   howpublished = {\url{https://github.com/Julia-meets-String-Theory/FTheoryTools.jl}},
   title        = {FTheoryTools -- Julia tools for F-Theory compactifications},
   year         = "2022"
