@@ -6,7 +6,7 @@ The package FTheoryTools.jl aims to automate a number of recuring and (at least 
 * 4d F-theory compactifications,
 * defined by a global and singular Weierstrass model as codimension 1 locus of a toric ambient space $Y$,
 * which can be crepantly resolved.
-For possible future extensions, see below.
+Some of the techniques/algorithms extend naturally to more general settings. For example, it is not at all necessary to restrict to 4-dimensional settings (or alternatively, base spaces of dimension 3). Indeed, the current implementation does allow for *arbitrary* base dimension. For more extensions that we might address in the future, please take a look at the section "possibly future extensions" below.
 
 We aim for the following workflow:
 * User input:
