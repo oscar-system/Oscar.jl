@@ -571,7 +571,7 @@ integral_basis(f::MPolyElem, i::Int)
 ### Reducedness Test
 
 ```@docs
-is_reduced(Q::MPolyQuo)
+is_reduced(A::MPolyQuo)
 ```
 
 ### Normality Test
@@ -582,9 +582,9 @@ is_normal(A::MPolyQuo)
 
 ### Cohen-Macaulayness Test
 
-iscohenmacaulay(R)
-
-###### Examples
+```@docs
+is_cohen_macaulay(A::MPolyQuo)
+```
 
 ## Hilbert Series and Hilbert Polynomial
 
