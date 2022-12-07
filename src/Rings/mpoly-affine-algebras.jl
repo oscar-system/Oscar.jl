@@ -809,7 +809,7 @@ end
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
-return `true` if $A$ is Cohen-Macaulay, `false` otherwise.
+return `true` if $A$ is a Cohen-Macaulay ring, `false` otherwise.
 
 # Examples
 ```jldoctest
