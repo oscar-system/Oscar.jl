@@ -68,11 +68,6 @@ parent_type(::PBWAlgElem{T, S}) where {T, S} = PBWAlgRing{T, S}
 
 parent_type(::Type{PBWAlgElem{T, S}}) where {T, S} = PBWAlgRing{T, S}
 
-
-elem_type(R::PBWAlgRing{T, S}) where {T, S} = PBWAlgElem{T, S}
-
-parent_type(a::PBWAlgElem{T, S}) where {T, S} = PBWAlgRing{T, S}
-
 parent(a::PBWAlgElem) = a.parent
 
 symbols(a::PBWAlgRing) = symbols(a.sring)
