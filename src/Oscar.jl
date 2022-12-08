@@ -432,6 +432,7 @@ include("Modules/FreeModElem-orderings.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
+include("Modules/mpolyquo.jl")
 
 include("Geometry/basics.jl")
 include("Geometry/K3Auto.jl")
