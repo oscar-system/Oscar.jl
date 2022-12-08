@@ -52,12 +52,12 @@ end
 end
 
 ### type getters 
-scheme_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = S
-scheme_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = S
-coefficient_ring_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = U
-coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = U
-coefficient_type(D::WeilDivisor{S, U, V}) where{S, T, U, V} = V
-coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, T, U, V} = V
+scheme_type(D::WeilDivisor{S, U, V}) where{S, U, V} = S
+scheme_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = S
+coefficient_ring_type(D::WeilDivisor{S, U, V}) where{S, U, V} = U
+coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
+coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
+coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
 
 ### getter methods
 @Markdown.doc """

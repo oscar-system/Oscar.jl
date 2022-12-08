@@ -427,8 +427,6 @@ mutable struct GaloisCtx{T}
   end
 end
 
-Base.round(::Type{Int}, q::fmpq) = Int(round(fmpz, q))
-
 function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{qadic}}})
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
