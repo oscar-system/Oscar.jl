@@ -5,7 +5,7 @@ export is_reduced, subalgebra_membership, subalgebra_membership_homogeneous, min
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
 export is_surjective, is_injective, is_bijective, inverse, preimage, isfinite
 export multi_hilbert_series, multi_hilbert_series_reduced, multi_hilbert_function
-
+export is_cohen_macaulay
 ##############################################################################
 #
 # Data associated to affine algebras
