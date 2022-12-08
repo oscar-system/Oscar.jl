@@ -1,7 +1,7 @@
 @testset "mpoly-localizations" begin
-  R, var = ZZ["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = ZZ["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   f = x^2 + y^2 -1
   m = ideal(R, [x, y])
   I = ideal(R, f)
@@ -11,9 +11,9 @@
   W, _ = Localization(T)
   
   k = QQ
-  R, var = k["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = k["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   p = 123
   q = -49
   f = x^2 + y^2 - p^2 - q^2
@@ -116,18 +116,18 @@
 end
 
 @testset "mpoly-localizations PowersOfElements" begin
-  R, var = ZZ["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = ZZ["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   f = x^2 + y^2 -1
   S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   # 5 is not a unit in R
   @test !(5*f in S)
 
-  R, vars = QQ["x","y"]
-  x = vars[1]
-  y = vars[2]
+  R, variabs = QQ["x","y"]
+  x = variabs[1]
+  y = variabs[2]
   f = x^2 + y^4-120
   S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
@@ -148,9 +148,9 @@ end
 end
 
 @testset "mpoly-localization homomorphisms" begin
-  R, var = ZZ["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = ZZ["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   f = x^2 + y^2 -1
   S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
