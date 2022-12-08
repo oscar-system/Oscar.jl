@@ -34,7 +34,7 @@ end
   Fb = base_ring_module(F)
   A = S[x//(x+y); y//(x+y)^2]
   B, D = Oscar.clear_denominators(A)
-  @test D*A == B
+  @test mul(change_base_ring(S, D), A) == B
 
   b = MatrixSpace(S, 1, 1)((x+y)*x + 5*y//(x+y)^10)
   (success, v) = Oscar.has_solution(A, b)
