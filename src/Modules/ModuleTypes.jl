@@ -189,7 +189,7 @@ used by the end user.
 When computed, a standard basis (computed via `standard_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
-mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
+@attributes mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
   gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
