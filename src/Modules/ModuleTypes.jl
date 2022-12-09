@@ -49,12 +49,15 @@ abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 abstract type ModuleFPHomDummy end
 
 @doc Markdown.doc"""
-    ModuleFPHom{T1, T2}
+    ModuleFPHom{T1, T2, RingMapType}
 
 The abstract supertype for morphisms of finitely presented modules over multivariate polynomial rings .
 `T1` and `T2` are the types of domain and codomain respectively.
+`RingMapType` is a type for a homomorphism of rings ``f : R → S`` whenever the 
+`base_ring` ``R`` of the domain is different from the `base_ring` ``S`` of the codomain 
+and the codomain is considered as an ``R``-module via ``f``.
 """
-abstract type ModuleFPHom{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
+abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
 
 parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
@@ -317,7 +320,7 @@ mutable struct SubQuoHom{
     T1<:AbstractSubQuo, 
     T2<:ModuleFP, 
     RingMapType<:Any
-  } <: ModuleFPHom{T1, T2}
+  } <: ModuleFPHom{T1, T2, RingMapType}
   matrix::MatElem
   header::Hecke.MapHeader
   im::Vector
@@ -480,7 +483,7 @@ const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will b
 
 
 @doc Markdown.doc"""
-    FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2} 
+    FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2, RingMapType} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
 `T1` and `T2` are the types of domain and codomain respectively.
@@ -491,7 +494,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 @attributes mutable struct FreeModuleHom{
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleFPHom{T1, T2} 
+    RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
   header::MapHeader
   ring_map::RingMapType
   
@@ -589,7 +592,7 @@ end
 struct FreeModuleHom_dec{
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleFPHom{T1, T2}
+    RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType}
   f::FreeModuleHom{T1,T2, RingMapType}
   header::MapHeader
   # TODO degree and homogeneity
