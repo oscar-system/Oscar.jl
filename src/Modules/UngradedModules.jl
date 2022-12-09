@@ -6682,7 +6682,7 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = FreeMod(S, r)
+  FS = FreeMod(S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), MapFromFunc(x->S(x), R, S))
   return FS, map
 end
@@ -6691,7 +6691,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {Dom
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = FreeMod(S, r)
+  FS = FreeMod(S, F.S)
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end
