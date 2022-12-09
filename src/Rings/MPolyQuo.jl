@@ -777,6 +777,13 @@ zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
 function is_invertible_with_inverse(a::MPolyQuoElem)
+  # temporary fix
+  b = a.f
+  R = parent(b)
+  J = ideal(R, vcat([b], gens(modulus(parent(a)))))
+  one(R) in J || return false, zero(a)
+  return true, parent(a)(coordinates(one(R), J)[1])
+
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
