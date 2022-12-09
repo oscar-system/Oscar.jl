@@ -15,8 +15,13 @@
     @test res[2].param[1] == -1 * p1
     @test res[2].param[2] == -1 * p2
 
+    rat_sols = Vector{fmpq}[[1, 0, 0], [1//3, 0, 1//3]]
+    rat_res = rational_solutions(I)
+    @test rat_res == rat_sols
+
     I = ideal(R,[x1-1,x1-1])
     @test_throws ErrorException real_solutions(I)
+    @test_throws ErrorException rational_solutions(I)
     # Issue #1040
     Qx, (x,) = PolynomialRing(QQ, ["x"])
     I = ideal(Qx, [x^2 + 1])
