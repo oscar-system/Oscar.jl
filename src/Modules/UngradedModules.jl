@@ -718,12 +718,12 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr function base_ring_map(f::FreeModuleHom{<:Any, <:Any, Nothing})
-    return identity_map(base_ring(domain(f)))::Hecke.Map
+@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:Any, <:Any, Nothing})
+    return identity_map(base_ring(domain(f)))
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr function base_ring_map(f::SubQuoHom{<:Any, <:Any, Nothing})
-    return identity_map(base_ring(domain(f)))::Hecke.Map
+@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:Any, <:Any, Nothing})
+    return identity_map(base_ring(domain(f)))
 end
 
 @doc Markdown.doc"""
@@ -3895,7 +3895,7 @@ function image(f::SubQuoHom, a::SubQuoElem)
   return i
 end
 
-function image(f::SubQuoHom{T1, T2, Nothing}, a::SubQuoElem) where {T1, T2}
+function image(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, a::SubQuoElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
   i = zero(codomain(f))
@@ -3915,6 +3915,10 @@ function image(f::SubQuoHom, a::FreeModElem)
   return image(f, SubQuoElem(a, domain(f)))
 end
 
+function image(f::SubQuoHom{T1, T2, Nothing}, a::FreeModElem) where {T1, T2}
+  return image(f, SubQuoElem(a, domain(f)))
+end
+
 @doc Markdown.doc"""
     preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
 
@@ -3931,7 +3935,7 @@ function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
   return i
 end
 
-(f::SubQuoHom)(a::FreeModElem) = image(f, a)
+(f::SubQuoHom)(a::FreeModElem) = image(f, SubQuoElem(a, domain(f)))
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
