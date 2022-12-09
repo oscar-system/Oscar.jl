@@ -55,7 +55,8 @@ The abstract supertype for morphisms of finitely presented modules over multivar
 `T1` and `T2` are the types of domain and codomain respectively.
 `RingMapType` is a type for a homomorphism of rings ``f : R → S`` whenever the 
 `base_ring` ``R`` of the domain is different from the `base_ring` ``S`` of the codomain 
-and the codomain is considered as an ``R``-module via ``f``.
+and the codomain is considered as an ``R``-module via ``f``. 
+In case there is no base change, this parameter is set to `Nothing`.
 """
 abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
 
