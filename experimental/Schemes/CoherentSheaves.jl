@@ -223,8 +223,8 @@ function cotangent_sheaf(X::AbsCoveredScheme)
         (U, V) = patches(G)
         (UU, VV) = glueing_domains(G)
         (f, g) = glueing_morphisms(G)
-        MG[(U, V)] = jacobi_matrix(pullback(g).(gens(OO(UU))))
-        MG[(V, U)] = jacobi_matrix(pullback(f).(gens(OO(VV))))
+        MG[(U, V)] = transpose(jacobi_matrix(pullback(g).(gens(OO(UU)))))
+        MG[(V, U)] = transpose(jacobi_matrix(pullback(f).(gens(OO(VV)))))
     end
 
     
