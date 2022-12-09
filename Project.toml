@@ -26,7 +26,7 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 
 [compat]
 AbstractAlgebra = "0.27.7"
-AlgebraicSolving = "0.2.2"
+AlgebraicSolving = "0.3.0"
 DocStringExtensions = "0.8, 0.9"
 GAP = "0.9"
 Hecke = "0.16.2"
