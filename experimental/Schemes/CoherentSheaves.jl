@@ -183,31 +183,82 @@ end
 
 underlying_presheaf(M::SheafOfModules) = M.M
 
-function tautological_bundle(IP::ProjectiveScheme{<:Field})
+function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     X = covered_scheme(IP)
     MD = IdDict{AbsSpec, ModuleFP}()
-    for U in affine_charts(X)
-        MD[U] = FreeMod(OO(U), 1)
+    S = ambient_coordinate_ring(IP)
+    n = ngens(S)-1
+    for i in 1:n+1
+        U = affine_charts(X)[i]
+        MD[U] = FreeMod(OO(U), ["$(symbols(S)[i])^$d"])
     end
 
     MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
     C = default_covering(X)
-    @show typeof(C.glueings)
     for G in values(glueings(C))
-        @show G
         (U, V) = patches(G)
         (UU, VV) = glueing_domains(G)
         h_U = complement_equation(UU)
-        @show h_U
         h_V = complement_equation(VV)
-        @show h_V
-        @show inv(OO(VV)(h_V))*one(MatrixSpace(OO(VV), 1, 1))
-        @show inv(OO(UU)(h_U))*one(MatrixSpace(OO(UU), 1, 1))
-        MG[(U, V)] = inv(OO(VV)(h_V))*one(MatrixSpace(OO(VV), 1, 1))
-        MG[(V, U)] = inv(OO(UU)(h_U))*one(MatrixSpace(OO(UU), 1, 1))
+        MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(MatrixSpace(OO(VV), 1, 1))
+        MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(MatrixSpace(OO(UU), 1, 1))
     end
-    @show MG
 
     M = SheafOfModules(X, MD, MG)
+    return M
+end
+
+function tautological_bundle(IP::ProjectiveScheme{<:Field})
+    return twisting_sheaf(IP, -1)
+end
+
+function cotangent_sheaf(X::AbsCoveredScheme)
+    MD = IdDict{AbsSpec, ModuleFP}()
+    for U in affine_charts(X)
+        MD[U] = cotangent_module(U)
+    end
+    MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+    C = default_covering(X)
+    for G in values(glueings(C))
+        (U, V) = patches(G)
+        (UU, VV) = glueing_domains(G)
+        (f, g) = glueing_morphisms(G)
+        MG[(U, V)] = jacobi_matrix(pullback(g).(gens(OO(UU))))
+        MG[(V, U)] = jacobi_matrix(pullback(f).(gens(OO(VV))))
+    end
+
+    
+    M = SheafOfModules(X, MD, MG)
+    return M
+end
+
+function cotangent_module(X::AbsSpec{<:Field, <:MPolyRing})
+    R = OO(X)
+    F = FreeMod(R, ["d$(x)" for x in symbols(R)])
+    return F
+end
+
+function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
+    R = OO(X)
+    P = base_ring(R)
+    F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+    return F
+end
+
+function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
+    R = OO(X)
+    P = base_ring(R)
+    F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+    rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+    M, _ = quo(F, rels)
+    return M
+end
+
+function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+    R = OO(X)
+    P = base_ring(R)
+    F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+    rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+    M, _ = quo(F, rels)
     return M
 end
