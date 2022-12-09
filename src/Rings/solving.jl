@@ -1,4 +1,4 @@
-export rational_solutions, real_solutions
+export real_solutions
 
 @doc Markdown.doc"""
     real_solutions(I::MPolyIdeal, <keyword arguments>)
@@ -59,6 +59,9 @@ end
 Given an ideal `I` with a finite solution set over the complex numbers, return
 the rational roots of the ideal.
 
+**Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
+is greater than zero an empty array is returned.
+
 # Arguments
 - `Ì::MPolyIdeal`: input ideal.
 - `initial_hts::Int=17`: initial hash table size `log_2`.
@@ -76,7 +79,7 @@ julia> R,(x1,x2,x3) = PolynomialRing(QQ, ["x1","x2","x3"])
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
 ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
 
-julia> rat_sols = rational_solutions(I)
+julia> rat_sols = Oscar._rational_solutions(I)
 2-element Vector{Vector{fmpq}}:
  [1, 0, 0]
  [1//3, 0, 1//3]
@@ -87,7 +90,7 @@ julia> map(r->map(p->evaluate(p, r), I.gens), rat_sols)
  [0, 0, 0]
 ```
 """
-function rational_solutions(
+function _rational_solutions(
         I::MPolyIdeal;                        # input generators
         initial_hts::Int=17,                  # hash table size, default 2^17
         nr_thrds::Int=1,                      # number of threads
