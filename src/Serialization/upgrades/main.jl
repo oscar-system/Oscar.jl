@@ -1,3 +1,7 @@
+# Upgrade scripts are used to upgrade file formats from their current format
+# to the next chronological file format. I.e. to upgrade to the latest file format
+# a file will go through all possible upgrade scripts in succesive order until
+# it has been upgraded to the lastest format.
 struct UpgradeScript
     version::VersionNumber
     script::Function

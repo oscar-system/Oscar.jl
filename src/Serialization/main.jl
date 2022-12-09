@@ -1,12 +1,15 @@
 using JSON
 using UUIDs
 
+# type that doesn't serialize with backref
+# and stores type outside of vector entries
+# when serialized in a Vector{OscarBasictype}
 OscarBasicType = Union{
     fmpz,
     fmpq,
     Bool,
     Number,
-    Symbol
+    Symbol,
 }
 
 # struct which tracks state for (de)serialization
@@ -236,6 +239,8 @@ include("upgrades/main.jl")
 ################################################################################
 # Loading with upgrade checks on dict
 
+# Finds the first version where an upgrade can be applied and then incrementally
+# upgrades to the current version
 function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
     upgraded_dict = dict
     for upgrade_script in upgrade_scripts
