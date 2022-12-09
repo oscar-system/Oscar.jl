@@ -710,6 +710,13 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
+@attr function base_ring_map(f::FreeModuleHom{<:Any, <:Any, <:Nothing})
+    return identity_map(base_ring(domain(f)))
+end
+base_ring_map(f::SubQuoHom) = f.ring_map
+@attr function base_ring_map(f::SubQuoHom{<:Any, <:Any, <:Nothing})
+    return identity_map(base_ring(domain(f)))
+end
 
 @doc Markdown.doc"""
     matrix(f::FreeModuleHom)
@@ -4990,13 +4997,19 @@ end
 
 Return the composition `b` $\circ$ `a`.
 """
-function *(h::ModuleFPHom, g::ModuleFPHom)
+function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
 end
 
+function *(h::ModuleFPHom{T1, T2}, g::ModuleFPHom{T2, T3}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
+end
+
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
+# TODO: We need to also make all of the code below sensitive to base changes!
 -(h::ModuleFPHom) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
 function -(h::ModuleFPHom, g::ModuleFPHom)
   @assert domain(h) === domain(g)
