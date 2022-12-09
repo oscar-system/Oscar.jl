@@ -1,0 +1,40 @@
+name: Bibtool test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/master' || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  check-standard-refs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install bibtool
+        run: sudo apt-get install -y bibtool
+      - name: Execute bibtool and check for changes
+        run: |
+          bibtool docs/oscar_references.bib -o docs/oscar_references.bib
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "We employ bibtool to standardize the bibtex entries of our reference list."
+            echo "Your changes to the bibliography do not follow this standard."
+            echo "Please be encouraged to adjust your bibtex entries to this standard."
+            echo "To achieve this, please invoke the following command from the root directory of Oscar.jl:"
+            echo "bibtool docs/oscar_references.bib -o docs/oscar_references.bib"
+            echo "(Cf. https://docs.oscar-system.org/stable/DeveloperDocumentation/documentation/#Updating-the-bibliography)"
+            echo "This script will change the bibtex entries to match our standard."
+            echo "Note: The bibkeys change too, i.e. the strings that you use in the @cite commands of the documentation."
+            echo "Therefore, you will need to adjust your @cite commands in the OSCAR documentation as well."
+            exit 1
+          else
+            exit 0
+          fi
