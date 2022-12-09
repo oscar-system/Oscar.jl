@@ -22,3 +22,50 @@
   @test c[1] == R(y)
   @test c[2] == R(y^4)
 end
+
+@testset "Issues in #1806 part 1" begin
+    R, (x, y, z) = PolynomialRing(QQ, ["x$i" for i in 1:3])
+
+    M = R[x y; y-1 z]
+    f = det(M)
+    I = ideal(R, f)
+    A, _ = quo(R, I)
+    A2 = FreeMod(A, 2) 
+    MA = change_base_ring(A, M)
+    phi = FreeModuleHom(A2, A2, MA)
+    K, inc = kernel(phi)
+    @test iszero(kernel(inc)[1])
+
+    psi = FreeModuleHom(A2, A2, ambient_representatives_generators(K))
+    K2, inc2 = kernel(psi)
+    @test iszero(kernel(inc2)[1])
+
+    phi2 = hom(A2, A2, ambient_representatives_generators(K2))
+
+    K3, inc3 = kernel(phi2)
+
+    @test !(K3 == K2)
+end
+
+@testset "Issues in #1806 part 2" begin
+    R, (x,y) = QQ["x", "y"]
+    Q, phi = quo(R, ideal(R, x))
+    F = FreeMod(R, 1)
+    FF = FreeMod(Q, 1)
+    f = hom(F, FF, gens(FF), phi)
+    @test matrix(f) isa MatrixElem
+end
+
+@testset "Issues in #1806 part 3" begin
+    R, (x,y) = QQ["x", "y"]
+    Q, phi = quo(R, ideal(R, x^2))
+    F = FreeMod(R, 1)
+    FQ = FreeMod(Q, 1)
+    f = hom(F, FQ, gens(FQ), phi)
+    W, (t,) = PolynomialRing(QQ, ["t"])
+    psi = hom(Q, W, [zero(W), W[1]])
+    FW = FreeMod(W, 1)
+    g = hom(FQ, FW, gens(FW), psi)
+    h = compose(f, g) 
+    @test h(F[1]) == FW[1]
+end
