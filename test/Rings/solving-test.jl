@@ -26,4 +26,12 @@
     @test res[2].vars == Symbol[:x]
     @test res[2].elim == x^2+1
     @test res[2].denom == 2*x
+
+    # isssue 1743
+    R, (x1, x2) = PolynomialRing(QQ, ["x1", "x2"])
+    I = ideal(R, [x1 + fmpz(2)^100, x2 + fmpz(2)^100])
+    sols = Vector{fmpq}[[-1267650600228229401496703205376, -1267650600228229401496703205376]]
+    @test sols == real_solutions(I)[1]
+
+
 end
