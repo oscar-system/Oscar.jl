@@ -1,0 +1,213 @@
+export CoherentSheaf
+export tautological_bundle
+
+########################################################################
+# Coherent sheaves of modules on covered schemes                       #
+########################################################################
+@Markdown.doc """
+    SheafOfModules <: AbsPreSheaf
+
+A sheaf of modules ``ℳ`` on an `AbsCoveredScheme` ``X``.
+
+Note that due to technical reasons, the admissible open subsets are restricted
+to the following:
+ * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
+ * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
+
+One can call the restriction maps of ``ℳ`` across charts implicitly using the
+identifications given by the glueings in the `default_covering`.
+"""
+@attributes mutable struct SheafOfModules{SpaceType, OpenType, OutputType,
+                                      RestrictionType, ProductionFuncType,
+                                      RestrictionFuncType,
+                                      PreSheafType
+                                     } <: AbsPreSheaf{
+                                                      SpaceType, OpenType,
+                                                      OutputType, RestrictionType
+                                                     }
+  ID::IdDict{AbsSpec, ModuleFP} # the modules on the basic patches of the default covering
+  OOX::StructureSheafOfRings # the structure sheaf on X
+  M::PreSheafType # the underlying presheaf of modules for caching
+
+  ### Sheaves of modules on covered schemes
+  function SheafOfModules(X::AbsCoveredScheme, 
+      MD::IdDict{AbsSpec, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
+      MG::IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}; # A dictionary for pairs `(U, V)` of 
+                                                       # `affine_charts` of `X` such that 
+                                                       # A = MG[(U, V)] has entries aᵢⱼ with 
+                                                       # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the 
+                                                       # restrictions of the generators of M[U]
+                                                       # and fⱼ the restrictions of the generators 
+                                                       # of MD[V]. The aᵢⱼ are elements of 𝒪(U ∩ V)
+                                                       # represented as a subset of V.
+      check::Bool=true
+    )
+    OOX = StructureSheafOfRings(X)
+
+    ### Checks for open containment.
+    #
+    # We allow the following cases:
+    #
+    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
+    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
+    #    and U and V contained in the glueing domains of their ambient schemes
+    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
+    #  * U::AbsSpec ⊂ X for U in the basic charts
+    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
+    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+      C = default_covering(X)
+      A = ambient_scheme(U)
+      A in C || return false
+      B = ambient_scheme(V)
+      B in C || return false
+      if A === B
+        is_subset(U, V) || return false
+      else
+        G = C[A, B] # Get the glueing
+        f, g = glueing_morphisms(G)
+        is_subset(U, domain(f)) || return false
+        is_subset(V, domain(g)) || return false
+        gU = preimage(g, U)
+        is_subset(gU, V) || return false
+      end
+      return true
+    end
+    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+      return Y === X && ambient_scheme(U) in default_covering(X)
+    end
+    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+      return Y === X && U in default_covering(X)
+    end
+    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+      return X === Y === Z
+    end
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      U in default_covering(X) || return false
+      V in default_covering(X) || return false
+      G = default_covering(X)[U, V]
+      return issubset(U, glueing_domains(G)[1])
+    end
+    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient_scheme(U) === V && return true
+      W = ambient_scheme(U)
+      W in default_covering(X) || return false
+      G = default_covering(X)[W, V]
+      return is_subset(U, glueing_domains(G)[1])
+    end
+
+    ### Production of the modules on open sets; to be cached
+    function production_func(U::AbsSpec)
+      haskey(MD, U) && return MD[U]
+      error("module on $U was not found")
+    end
+    function production_func(U::PrincipalOpenSubset)
+      V = ambient_scheme(U)
+      MV = production_func(V)
+      rho = OOX(V, U)
+      MU, phi = change_base_ring(rho, MV) # TODO: Why discard phi?
+      return MU
+    end
+
+    ### Production of the restriction maps; to be cached
+#   function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+#     # This will only be called in case V and U are `affine_charts` of `X`.
+#     # In particular, we may assume that U is contained in the glueing 
+#     # overlap U ∩ V of U and V (by virtue of the is_open_func check).
+#     rho = OOX(V, U) 
+#     A = MG[(V, U)] # The transition matrix
+#     return hom(MV, MU, [sum([A[i, j] * MU[j] for j in 1:ngens(MU)]) for j in 1:ngens(MV)], rho)
+#   end
+#   function restriction_func(V::AbsSpec, MV::ModuleFP, U::PrincipalOpenSubset, MU::ModuleFP)
+#     # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
+#     # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
+#     # we need to find W (which equals V in the first case) and use the transition 
+#     # matrix for the changes between these two sets. 
+#     W = U
+#     while W isa PrincipalOpenSubset
+#       W = ambient(W)
+#     end
+#     rho = OOX(V, U) 
+#     A = MG[(V, W)] # The transition matrix
+#     return hom(MV, MU, [sum([A[i, j] * MU[j] for j in 1:ngens(MU)]) for j in 1:ngens(MV)], rho)
+#   end
+    function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+      # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
+      # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
+      # we need to find W (which equals V in the first case) and use the transition 
+      # matrix for the changes between these two sets. 
+      VV = V
+      while VV isa PrincipalOpenSubset
+          VV = ambient_scheme(VV)
+      end
+      UU = U
+      while UU isa PrincipalOpenSubset
+          UU = ambient_scheme(UU)
+      end
+      rho = OOX(V, U) 
+      A = MG[(VV, UU)] # The transition matrix
+      return hom(MV, MU, [sum([A[i, j] * MU[j] for j in 1:ngens(MU)]) for i in 1:ngens(MV)], rho)
+    end
+
+    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=is_open_func
+                     )
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
+               typeof(production_func), typeof(restriction_func),
+               typeof(Mpre)}(MD, OOX, Mpre)
+    if false
+      # Check that all sheaves of modules are compatible on the overlaps.
+      # TODO: eventually replace by a check that on every basic
+      # affine patch, the ideal sheaf can be inferred from what is
+      # given on one dense open subset.
+      C = default_covering(X)
+      for U in basic_patches(default_covering(X))
+        for V in basic_patches(default_covering(X))
+          G = C[U, V]
+          A, B = glueing_domains(G)
+          for i in 1:ngens(A)
+            I(A[i]) == ideal(OOX(A[i]), I(V, A[i]).(gens(I(V)))) || error("ideals do not coincide on overlap")
+          end
+          for i in 1:ngens(B)
+            I(B[i]) == ideal(OOX(B[i]), I(U, B[i]).(gens(I(U)))) || error("ideals do not coincide on overlap")
+          end
+        end
+      end
+    end
+    return M
+  end
+end
+
+underlying_presheaf(M::SheafOfModules) = M.M
+
+function tautological_bundle(IP::ProjectiveScheme{<:Field})
+    X = covered_scheme(IP)
+    MD = IdDict{AbsSpec, ModuleFP}()
+    for U in affine_charts(X)
+        MD[U] = FreeMod(OO(U), 1)
+    end
+
+    MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+    C = default_covering(X)
+    @show typeof(C.glueings)
+    for G in values(glueings(C))
+        @show G
+        (U, V) = patches(G)
+        (UU, VV) = glueing_domains(G)
+        h_U = complement_equation(UU)
+        @show h_U
+        h_V = complement_equation(VV)
+        @show h_V
+        @show inv(OO(VV)(h_V))*one(MatrixSpace(OO(VV), 1, 1))
+        @show inv(OO(UU)(h_U))*one(MatrixSpace(OO(UU), 1, 1))
+        MG[(U, V)] = inv(OO(VV)(h_V))*one(MatrixSpace(OO(VV), 1, 1))
+        MG[(V, U)] = inv(OO(UU)(h_U))*one(MatrixSpace(OO(UU), 1, 1))
+    end
+    @show MG
+
+    M = SheafOfModules(X, MD, MG)
+    return M
+end
