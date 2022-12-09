@@ -74,7 +74,7 @@ is greater than zero an empty array is returned.
 # Examples
 ```jldoctest
 julia> R,(x1,x2,x3) = PolynomialRing(QQ, ["x1","x2","x3"])
-(Multivariate Polynomial Ring in x1, x2, x3 over Rational Field, Nemo.fmpq_mpoly[x1, x2, x3])
+(Multivariate Polynomial Ring in x1, x2, x3 over Rational Field, fmpq_mpoly[x1, x2, x3])
 
 julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
 ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
