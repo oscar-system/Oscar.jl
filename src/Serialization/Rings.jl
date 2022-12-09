@@ -219,10 +219,9 @@ end
 @registerSerializationType(nmod_mat)
 
 function save_internal(s::SerializerState, m::MatrixElem)
-    m_base_ring = save_type_dispatch(s, base_ring(parent(m)))
     return Dict(
+        :base_ring => save_type_dispatch(s, base_ring(parent(m))),
         :matrix => save_type_dispatch(s, Array(m)),
-        :base_ring => m_base_ring
     )
 end
 
