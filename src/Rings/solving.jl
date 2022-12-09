@@ -54,7 +54,7 @@ function real_solutions(
 end
 
 @doc Markdown.doc"""
-    rational_solutions(I::Ideal{T} where T <: MPolyElem, <keyword arguments>)
+    _rational_solutions(I::Ideal{T} where T <: MPolyElem, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return
 the rational roots of the ideal.

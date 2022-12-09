@@ -20,6 +20,7 @@
     @test rat_res == rat_sols
 
     I = ideal(R,[x1-1,x1-1])
+    @test_throws ErrorException real_solutions(I)
     @test_throws ErrorException Oscar._rational_solutions(I)
     # Issue #1040
     Qx, (x,) = PolynomialRing(QQ, ["x"])
