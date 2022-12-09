@@ -44,6 +44,14 @@ function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TO
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
+function FreeMod(R::Ring, names::Vector{String}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
+end
+
+function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, names)
+end
+
 @doc Markdown.doc"""
     free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
 
@@ -3877,6 +3885,17 @@ end
 Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubQuoElem)
+  # TODO matrix vector multiplication
+  @assert a.parent === domain(f)
+  i = zero(codomain(f))
+  b = coordinates(a)
+  for (p,v) = b
+    i += base_ring_map(f)(v)*f.im[p]
+  end
+  return i
+end
+
+function image(f::SubQuoHom{T1, T2, Nothing}, a::SubQuoElem) where {T1, T2}
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
   i = zero(codomain(f))
