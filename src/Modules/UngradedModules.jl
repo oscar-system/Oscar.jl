@@ -712,11 +712,11 @@ img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
 
 @doc Markdown.doc"""
-    matrix(a::FreeModuleHom)
+    matrix(f::FreeModuleHom)
 
-Given a homomorphism `a` of type  `FreeModuleHom` with domain `F`
-and codomain `M`, return a matrix `A` with `rank(F)` rows and 
-`ngens(M)` columns such that `a == hom(F, M, A)`.
+Given a homomorphism `f : F → M` of type  `FreeModuleHom`, 
+return a matrix `A` over `base_ring(M)` with `rank(F)` rows and 
+`ngens(M)` columns such that `f(F[i]) = ∑ⱼ aᵢⱼ ⋅ M[j]`.
 
 # Examples
 ```jldoctest
@@ -739,21 +739,21 @@ julia> matrix(a)
 [0   z]
 ```
 """
-function matrix(a::FreeModuleHom)
-  if !isdefined(a, :matrix)
-    D = domain(a)
-    C = codomain(a)
-    R = base_ring(D)
+function matrix(f::FreeModuleHom)
+  if !isdefined(f, :matrix)
+    D = domain(f)
+    C = codomain(f)
+    R = base_ring(C)
     matrix = zero_matrix(R, rank(D), ngens(C))
     for i=1:rank(D)
-      image_of_gen = a(D[i])
+      image_of_gen = f(D[i])
       for j=1:ngens(C)
         matrix[i,j] = image_of_gen[j]
       end
     end
-    setfield!(a, :matrix, matrix)
+    setfield!(f, :matrix, matrix)
   end
-  return a.matrix
+  return f.matrix
 end
 
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
@@ -1261,9 +1261,10 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
     return false
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
-  M_mod_N = reduce(M, N)
-  N_mod_M = reduce(N, M)
-  return iszero(M_mod_N) && iszero(N_mod_M)
+  # If yes, this could also be incorporated in the `in`-function.
+  all(x->(x in N), gens(M)) || return false
+  all(x->(x in M), gens(N)) || return false 
+  return true
 end
 
 @doc Markdown.doc"""
