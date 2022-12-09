@@ -122,14 +122,6 @@ function cyclo_fixed_group_gens(a::nf_elem)
   return gn
 end
 
-function Hecke.preimage(h::GrpAbFinGenMap, u::GrpAbFinGen, L::Hecke.GrpAbLattice = Hecke.GroupLattice)
-
-  fl, f = is_subgroup(u, codomain(h))
-  @assert fl
-  k, mk = kernel(h)
-  return sub(domain(h), vcat(map(mk, gens(k)), [preimage(h, x) for x = map(f, gens(u))]))
-end
-
 function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
   if length(A) == 0
     return [(1,1)]
