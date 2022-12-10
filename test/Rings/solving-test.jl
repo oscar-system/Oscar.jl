@@ -17,7 +17,7 @@
 
     rat_sols = Vector{fmpq}[[1, 0, 0], [1//3, 0, 1//3]]
     rat_res = Oscar._rational_solutions(I)
-    @test rat_res == rat_sols
+    @test length(rat_res) == 2 && issetequal(rat_res, rat_sols)
 
     I = ideal(R,[x1-1,x1-1])
     @test_throws ErrorException real_solutions(I)
