@@ -36,7 +36,7 @@ end
 function syz(A::MatrixElem{<:MPolyQuoLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
-  return map_entries(base_ring(A), L[:,1:nrows(D)]*D)
+  return map_entries(base_ring(A), transpose(mul(transpose(D), transpose(L[:,1:nrows(D)]))))
 end
 
 function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocalizedRingElem, MatrixType<:MatrixElem{T}}
@@ -65,7 +65,8 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocalizedR
   # Now [y z]⋅B = v⋅c ⇔ [y z]⋅D ⋅Aext = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D ⋅ Aext = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D to be the solution x of x ⋅ Aext = b. 
   # Then for the first m components x' of x we have x' ⋅ A ≡ b mod I
-  x = S(one(R), v*u[1,1])*map_entries(S, y*D)
+  x = S(one(R), v*u[1,1])*map_entries(S, transpose(mul(transpose(D), transpose(y))))
+  #x = S(one(R), v*u[1,1])*map_entries(S, y*D)
   xpart = zero(MatrixSpace(S, 1, nrows(A)))
   for i in 1:nrows(A)
     xpart[1, i] = x[1, i]
@@ -83,7 +84,10 @@ function pre_saturated_module(M::SubQuo{T}) where {T<:MPolyQuoLocalizedRingElem}
     (B, E) = clear_denominators(relM)
     mod_mat = modulus_matrix(S, ncols(B))
     B = vcat(B, mod_mat)
-    E = vcat(E, zero(MatrixSpace(R, nrows(mod_mat), ncols(E))))
+    #E = vcat(E, zero(MatrixSpace(R, nrows(mod_mat), ncols(E))))
+    for i in 1:nrows(mod_mat)
+      push!(E, sparse_row(base_ring(E)))
+    end
     F = ambient_free_module(M)
     Fb = base_ring_module(F)
     Mb = SubQuo(Fb, A, B)

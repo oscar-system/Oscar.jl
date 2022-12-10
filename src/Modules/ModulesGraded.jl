@@ -241,7 +241,7 @@ Lift `v` to the decorated module `parent`.
 """
 function FreeModElem_dec(v::FreeModElem{T}, p::FreeMod_dec{T}) where T <: CRingElem_dec
   @assert forget_decoration(p) === parent(v)
-  return FreeModElem_dec(coords(v), p)
+  return FreeModElem_dec(coordinates(v), p)
 end
 
 
@@ -253,7 +253,7 @@ parent_type(::FreeModElem_dec{T}) where {T} = FreeMod_dec{T}
 @doc Markdown.doc"""
 """
 function forget_decoration(v::FreeModElem_dec)
-  return FreeModElem(coords(v),forget_decoration(parent(v)))
+  return FreeModElem(coordinates(v),forget_decoration(parent(v)))
 end
 
 
@@ -286,7 +286,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
   W = base_ring(F)
   ww = W.D[0]
   local w
-  for (p,v) in coords(u)
+  for (p,v) in coordinates(u)
     if !is_homogeneous(v)
       if is_graded(W)
         return nothing,false
@@ -334,7 +334,7 @@ having this element as its degree.
 function homogeneous_components(a::FreeModElem_dec)
   res = Dict{GrpAbFinGenElem, FreeModElem_dec}()
   F = parent(a)
-  for (p,v) in coords(a)
+  for (p,v) in coordinates(a)
     c = homogeneous_components(v)
     for (pp, vv) in c
       w = pp + F.d[p]
@@ -356,7 +356,7 @@ Return the homogeneous component of `a` which has degree `g`.
 function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
   F = parent(a)
   x = zero(F)
-  for (p,v) in coords(a)
+  for (p,v) in coordinates(a)
     x += homogeneous_component(v, g-F.d[p])*gen(F, p)
   end
   return x

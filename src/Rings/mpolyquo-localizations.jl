@@ -177,7 +177,7 @@ function modulus(L::MPolyQuoLocalizedRing)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
-modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
+modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 
 
 @Markdown.doc """
@@ -239,7 +239,7 @@ function quo(
   S = inverted_set(W)
   J = ideal(R, numerator.(gens(I)))
   L = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
-  return L, hom(R, L, gens(L))
+  return L, hom(W, L, hom(R, L, gens(L)))
 end
 
 function quo(
@@ -576,6 +576,7 @@ function convert(
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
+  one(R) in I && return zero(L)
   d = prod(denominators(inverted_set(W)))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
@@ -951,7 +952,7 @@ end
 
 function compose(
     f::MPolyQuoLocalizedRingHom, 
-    g::MPolyQuoLocalizedRingHom
+    g::Hecke.Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
 

@@ -48,10 +48,12 @@ julia> typeof(J)
 MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}
 ```
 """
-function ideal(g::Vector{T}) where {T <: MPolyElem}
-  @assert length(g) > 0
-  @assert all(x->parent(x) == parent(g[1]), g)
-  return MPolyIdeal(g)
+function ideal(R::MPolyRing, g::Vector)
+  h = elem_type(R)[R(f) for f = g]
+  #if isempty(g)
+  #  push!(h, R())
+  #end
+  return MPolyIdeal(R, h)
 end
 
 function ideal(I::IdealGens{T}) where {T <: MPolyElem}
@@ -60,17 +62,16 @@ end
 
 # TODO: Can we make this the default?
 # (Or maybe remove ideal(...) without a ring completely?)
-function ideal(R::MPolyRing, g::Vector)
-  h = elem_type(R)[R(f) for f = g]
-  if isempty(g)
-    push!(h, R())
-  end
-  return ideal(h)
-end
 
 function ideal(Qxy::MPolyRing{T}, x::MPolyElem{T}) where T <: RingElem
   return ideal(Qxy, [x])
 end
+
+function ideal(g::Vector{T}) where {T <: MPolyElem}
+  @req length(g) > 0 "List of elements must be non-empty"
+  return ideal(parent(g[1]), g)
+end
+
 
 
 # elementary operations #######################################################
@@ -83,18 +84,6 @@ function check_base_rings(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   if !isequal(base_ring(I), base_ring(J))
     error("Base rings must coincide.")
   end
-end
-
-@doc Markdown.doc"""
-    remove_zeroes!(I::MPolyIdeal)
-
-Removes zero generators from ideal `I` if `I` is not the zero ideal.
-"""
-function remove_zeroes!(I::MPolyIdeal{T}) where T
-    if !iszero(I)
-      filter!(!iszero, I.gens.O)
-    end
-    return I
 end
 
 @doc Markdown.doc"""
@@ -143,7 +132,8 @@ function Base.:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   oscar_assure(I)
   oscar_assure(J)
   check_base_rings(I, J)
-  return remove_zeroes!(MPolyIdeal(unique!(vcat(I.gens.O,J.gens.O))))
+  newgens = filter!(!iszero, unique!(vcat(I.gens.O,J.gens.O)))
+  return ideal(base_ring(I), newgens)
 end
 Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
@@ -171,7 +161,16 @@ function Base.:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   oscar_assure(I)
   oscar_assure(J)
   check_base_rings(I, J)
-  return remove_zeroes!(MPolyIdeal(unique!(vcat([broadcast(*, g, J.gens.O) for g in I.gens.O]...))))
+  newgens = elem_type(base_ring(I))[]
+  for g in I.gens.O
+    for h in J.gens.O
+      gh = g * h
+      if !iszero(gh)
+        push!(newgens, gh)
+      end
+    end
+  end
+  return ideal(base_ring(I), unique!(newgens))
 end
 
 #######################################################
@@ -1133,7 +1132,7 @@ function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
-  G = groebner_assure(I)
+  G = groebner_assure(I, false, true)
   singular_assure(G)
   I.dim = Singular.dimension(G.S)
   return I.dim

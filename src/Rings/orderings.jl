@@ -1397,6 +1397,8 @@ end
 @doc Markdown.doc"""
     cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)
 
+    cmp(ord::ModuleOrdering, a::FreeModElem{T}, b::FreeModElem{T}) where T <: MPolyElem
+
 Compare monomials `a` and `b` with regard to the ordering `ord`: Return `-1` for `a < b`
 and `1` for `a > b` and `0` for `a == b`. An error is thrown if `ord` is
 a partial ordering that does not distinguish `a` from `b`.
@@ -1413,6 +1415,12 @@ ErrorException("z and 1 are incomparable with respect to lex([x, y])")
 
 julia> cmp(lex([x,y,z]), z, one(R))
 1
+
+julia> F = free_module(R, 2)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> cmp(lex(R)*revlex(F), F[1], F[2])
+-1
 ```
 """
 function Base.cmp(ord::MonomialOrdering, a::MPolyElem, b::MPolyElem)

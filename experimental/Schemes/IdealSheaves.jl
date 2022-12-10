@@ -106,6 +106,33 @@ end
 
 ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
+@Markdown.doc """
+    IdealSheaf(Y::AbsCoveredScheme, 
+        phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+    )
+
+Internal method to create an ideal sheaf from a `CoveringMorphism` 
+of `ClosedEmbedding`s; return the ideal sheaf describing the images 
+of the local morphisms.
+"""
+function IdealSheaf(Y::AbsCoveredScheme, 
+    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+  )
+  maps = morphisms(phi)
+  V = [codomain(ff) for ff in values(maps)]
+  dict = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(Y)
+    if U in V
+      i = findall(x->(codomain(x) == U), maps)
+      dict[U] = image_ideal(maps[first(i)])
+    else
+      dict[U] = ideal(OO(U), one(OO(U)))
+    end
+  end
+  return IdealSheaf(Y, dict) # TODO: set check=false?
+end
+
+    
 # pullback of an ideal sheaf for internal use between coverings of the same scheme
 #function (F::CoveringMorphism)(I::IdealSheaf)
 #  X = scheme(I)

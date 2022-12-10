@@ -151,6 +151,17 @@ end
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()
+
+  # The case of ℙ⁰-bundles appears frequently in blowups when the 
+  # ideal sheaf is trivial on some affine open part. 
+  if r == 0
+    result = Covering(Y)
+    pU[Y] = identity_map(Y)
+    covered_projection = CoveringMorphism(result, result, pU)
+    set_attribute!(X, :covering_projection_to_base, covered_projection)
+    return result
+  end
+
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -191,7 +202,7 @@ end
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :covered_projection_to_base, covered_projection)
+  set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
 
@@ -368,3 +379,70 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  end
 #  return result
 #end
+
+########################################################################
+# Closed embeddings                                                    #
+########################################################################
+@attributes mutable struct CoveredClosedEmbedding{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 CoveredSchemeMorphism,
+                                 BaseMorphismType
+                                }
+  f::CoveredSchemeMorphism
+  I::IdealSheaf
+
+  function CoveredClosedEmbedding(
+      X::DomainType,
+      Y::CodomainType,
+      f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
+      check::Bool=true
+    ) where {
+             DomainType<:CoveredScheme,
+             CodomainType<:CoveredScheme,
+             MorphismType<:ClosedEmbedding,
+             BaseMorType
+            }
+    ff = CoveredSchemeMorphism(X, Y, f, check=check)
+    #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
+    I = IdealSheaf(Y, f)
+    return new{DomainType, CodomainType, BaseMorType}(ff, I)
+  end
+end
+
+### forwarding the essential getters
+underlying_morphism(phi::CoveredClosedEmbedding) = phi.f
+
+### additional functionality
+image_ideal(phi::CoveredClosedEmbedding) = phi.I
+
+### user facing constructors
+function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
+  space(I) == X || error("ideal sheaf is not defined on the correct scheme")
+  mor_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  rev_dict = IdDict{AbsSpec, AbsSpec}()
+  patch_list = Vector{AbsSpec}()
+  for U in affine_charts(X)
+    inc = ClosedEmbedding(U, I(U))
+    V = domain(inc)
+    mor_dict[V] = inc
+    push!(patch_list, V)
+    rev_dict[U] = V
+  end
+  glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  for (U, V) in keys(glueings(default_covering(X)))
+    G = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V])
+    glueing_dict[(rev_dict[U], rev_dict[V])] = G
+  end
+  cov = Covering(patch_list, glueing_dict)
+  Z = CoveredScheme(cov)
+  cov_inc = CoveringMorphism(cov, default_covering(X), mor_dict)
+  return CoveredClosedEmbedding(Z, X, cov_inc)
+end
+
+
+

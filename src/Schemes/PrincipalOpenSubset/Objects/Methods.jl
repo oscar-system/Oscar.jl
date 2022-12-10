@@ -9,7 +9,7 @@
 function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true) 
   if ambient_scheme(U) != codomain(f) 
     Z = preimage(f, ambient_scheme(U), check=check)
-    return PrincipalOpenSubset(Z, OO(Z)(pullback(f)(complement_equation(U)), check=false))
+    return PrincipalOpenSubset(Z, OO(Z)(pullback(f)(lifted_numerator(complement_equation(U))), check=false))
   end
   return PrincipalOpenSubset(domain(f), pullback(f)(complement_equation(U)))
 end

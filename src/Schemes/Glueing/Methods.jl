@@ -27,6 +27,14 @@ function compose(G::AbsGlueing, H::AbsGlueing)
   return compose(Glueing(G), Glueing(H))
 end
 
+function compose(G::Glueing, H::SimpleGlueing) 
+  return compose(G, Glueing(H))
+end
+
+function compose(G::SimpleGlueing, H::Glueing) 
+  return compose(Glueing(G), H)
+end
+
 function compose(G::Glueing, H::Glueing) 
   # make sure that Y is the second patch of the first glueing and 
   # the first patch of the second

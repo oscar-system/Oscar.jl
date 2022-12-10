@@ -35,6 +35,7 @@ include("Experimental/MatrixGroups-test.jl")
 include("Geometry/K3Auto.jl")
 
 include("Modules/UngradedModules.jl")
+include("Modules/FreeModElem-orderings-test.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 

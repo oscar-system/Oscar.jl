@@ -412,6 +412,7 @@ include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
 include("Rings/PBWAlgebra.jl")
+include("Rings/PBWAlgebraQuo.jl")
 include("Rings/FreeAssAlgIdeal.jl")
 
 include("GAP/customize.jl")
@@ -425,6 +426,8 @@ include("Groups/action.jl")  # needs some PolynomialRings functionality
 
 include("Modules/ModuleTypes.jl")
 include("Modules/UngradedModules.jl")
+include("Modules/homological-algebra.jl")
+include("Modules/FreeModElem-orderings.jl")
 #include("Modules/FreeModules-graded.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
