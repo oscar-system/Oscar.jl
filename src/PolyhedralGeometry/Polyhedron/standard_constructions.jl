@@ -98,6 +98,15 @@ function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:
    return Polyhedron{T}(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
 end
 
+@doc Markdown.doc"""
+    johnson_solid(i::Int)
+
+Construct the `i`-th proper Johnson solid.
+
+A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
+It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+"""
+johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
 
 
 @doc Markdown.doc"""
