@@ -718,11 +718,11 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:Any, <:Any, Nothing})
+@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:SubQuo, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:Any, <:Any, Nothing})
+@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
 end
 
@@ -3915,7 +3915,7 @@ function image(f::SubQuoHom, a::FreeModElem)
   return image(f, SubQuoElem(a, domain(f)))
 end
 
-function image(f::SubQuoHom{T1, T2, Nothing}, a::FreeModElem) where {T1, T2}
+function image(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, a::FreeModElem)
   return image(f, SubQuoElem(a, domain(f)))
 end
 
