@@ -194,6 +194,13 @@ cube(::Type{T}, d, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope
 cube(x...) = cube(fmpq, x...)
 
 @doc Markdown.doc"""
+    tetrahedron()
+
+Construct the regular tetrahedron, one of the Platonic solids.
+"""
+tetrahedron() = Polyhedron(Polymake.polytope.tetrahedron());
+
+@doc Markdown.doc"""
     dodecahedron()
 
 Construct the regular dodecahedron, one of the Platonic solids.
