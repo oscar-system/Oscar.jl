@@ -99,17 +99,6 @@ function bipyramid(P::Polyhedron{T}, z::Number=1, z_prime::Number=-z)  where T<:
 end
 
 @doc Markdown.doc"""
-    johnson_solid(i::Int)
-
-Construct the `i`-th proper Johnson solid.
-
-A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
-It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
-"""
-johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
-
-
-@doc Markdown.doc"""
     normal_cone(P::Polyhedron, i::Int64)
 
 Construct the normal cone to `P` at the `i`-th vertex of `P`.
@@ -204,6 +193,29 @@ cube(::Type{T}, d) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{
 cube(::Type{T}, d, l, u) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cube{scalar_type_to_polymake[T]}(d, u, l))
 cube(x...) = cube(fmpq, x...)
 
+@doc Markdown.doc"""
+    dodecahedron()
+
+Construct the regular dodecahedron, one of the Platonic solids.
+"""
+dodecahedron() = Polyhedron(Polymake.polytope.dodecahedron());
+
+@doc Markdown.doc"""
+    icosahedron()
+
+Construct the regular icosahedron, one of the Platonic solids.
+"""
+icosahedron() = Polyhedron(Polymake.polytope.icosahedron());
+
+@doc Markdown.doc"""
+    johnson_solid(i::Int)
+
+Construct the `i`-th proper Johnson solid.
+
+A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
+It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+"""
+johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
 
 
 """
