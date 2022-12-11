@@ -596,20 +596,29 @@ function separating_hyperplanes(gram::fmpq_mat, v::fmpq_mat, h::fmpq_mat, d)
 
   @vprint :K3Auto 5 Q
   LQ = Zlattice(gram=-Q*denominator(Q))
-  S_W = [x[1] for x in short_vectors(LQ,  abs(d*denominator(Q)))]
-  append!(S_W,[-x for x in S_W])
-  push!(S_W, 0*S_W[1])
-  #S_W = enumerate_quadratic_triple(Q, zero_matrix(QQ,n-1,1), d)
-  S_W = [matrix(ZZ,1,nrows(Q),x)*bW for x in S_W]
+
   S = fmpq_mat[]
-  h = change_base_ring(QQ,h)
-  for rp in S_W
+  h = change_base_ring(QQ, h)
+  rho = abs(d)*ch^-1
+  t,sqrtho = issquare_with_sqrt(rho)
+  if t
+    r = sqrtho*h
+    if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
+      push!(S,r)
+    end
+  end
+  for (x,_) in short_vectors_iterator(LQ,  abs(d*denominator(Q)))
+    rp = matrix(ZZ, 1, nrows(Q), x)*bW
     rho = abs(d - (rp*gram*transpose(rp))[1,1])*ch^-1
     t,rho = issquare_with_sqrt(rho)
     if !t
       continue
     end
     r = rho*h + rp
+    if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
+      push!(S,r)
+    end
+    r = rho*h - rp
     if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
       push!(S,r)
     end
@@ -1583,9 +1592,9 @@ function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_m
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
-  @vprint :K3Auto 2 "moving ample class\n"
+  @vprint :K3Auto 2 "moving weyl vector $weyl towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
-
+  @vprint :K3Auto "new weyl: $weyl \n"
   if is_S_nondegenerate(L,S,weyl)
     return weyl, u, ample
   end
