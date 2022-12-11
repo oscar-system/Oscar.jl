@@ -1562,14 +1562,10 @@ function span_in_S(L, S, weyl)
   prSDelta_w = [v*G*BS for v in Delta_w]
   @vprint :K3Auto 2 "Ddual given by $(length(prSDelta_w)) rays\n"
   i = zero_matrix(QQ, 0, rank(S))
-  Ddual = reduce(vcat, prSDelta_w, init=i)
-  Ddual = positive_hull(Ddual)
-  @vprint :K3Auto 3 "polarizing \n"
-  C = polarize(Ddual)
-  @vprint :K3Auto 3 "calculating rays\n"
-  gensN = [matrix(QQ, 1, rank(S), v) for v in vcat(rays(C),lineality_space(C))]
-  @vprint :K3Auto 3 "done\n"
-  gensN = reduce(vcat, gensN, init=i)
+  Cdual = reduce(vcat, prSDelta_w, init=i)
+
+  spanC = linear_span(Cdual) # linear span of the dual
+  gensN = matrix([c.a for a in spanC])
   r = Hecke.rref!(gensN)
   gensN = gensN[1:r,:]
   return gensN
