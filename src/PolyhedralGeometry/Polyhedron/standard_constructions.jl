@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 @doc Markdown.doc"""
-    birkhoff(n::Integer, even::Bool = false)
+    birkhoff_polytope(n::Integer, even::Bool = false)
 
 Construct the Birkhoff polytope of dimension $n^2$.
 
@@ -16,7 +16,7 @@ Use `even = true` to get the vertices only for the even permutation matrices.
 
 # Examples
 ```jldoctest
-julia> b = birkhoff(3)
+julia> b = birkhoff_polytope(3)
 A polyhedron in ambient dimension 9
 
 julia> vertices(b)
@@ -29,7 +29,7 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-birkhoff(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
+birkhoff_polytope(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
 
 
 
@@ -299,7 +299,7 @@ octagon:
 ```jldoctest
 julia> P = cube(2);
 
-julia> Q = cross(2);
+julia> Q = cross_polytope(2);
 
 julia> M = minkowski_sum(P, Q)
 A polyhedron in ambient dimension 2
@@ -401,7 +401,7 @@ octagon:
 ```jldoctest
 julia> P = cube(2);
 
-julia> Q = cross(2);
+julia> Q = cross_polytope(2);
 
 julia> M = minkowski_sum(P, Q)
 A polyhedron in ambient dimension 2
@@ -572,7 +572,7 @@ simplex(x...) = simplex(fmpq, x...)
 
 @doc Markdown.doc"""
 
-    cross([::Type{T} = fmpq,] d::Int [,n::Rational])
+    cross_polytope([::Type{T} = fmpq,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
 at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
@@ -581,7 +581,7 @@ at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
 Here we print the facets of a non-scaled and a scaled 3-dimensional cross
 polytope:
 ```jldoctest
-julia> C = cross(3)
+julia> C = cross_polytope(3)
 A polyhedron in ambient dimension 3
 
 julia> facets(C)
@@ -595,7 +595,7 @@ x₁ + x₂ - x₃ ≦ 1
 x₁ - x₂ - x₃ ≦ 1
 -x₁ - x₂ - x₃ ≦ 1
 
-julia> D = cross(3, 2)
+julia> D = cross_polytope(3, 2)
 A polyhedron in ambient dimension 3
 
 julia> facets(D)
@@ -610,9 +610,9 @@ x₁ - x₂ - x₃ ≦ 2
 -x₁ - x₂ - x₃ ≦ 2
 ```
 """
-cross(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
-cross(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
-cross(x...) = cross(fmpq, x...)
+cross_polytope(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
+cross_polytope(::Type{T}, d::Int64) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d))
+cross_polytope(x...) = cross_polytope(fmpq, x...)
 
 @doc Markdown.doc"""
 
@@ -818,12 +818,12 @@ project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.po
 
 @doc Markdown.doc"""
 
-    gelfand_tsetlin(lambda::AbstractVector)
+    gelfand_tsetlin_polytope(lambda::AbstractVector)
 
 Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
 ```jldoctest
-julia> P = gelfand_tsetlin([5,3,2])
+julia> P = gelfand_tsetlin_polytope([5,3,2])
 A polyhedron in ambient dimension 6
 
 julia> is_fulldimensional(P)
@@ -839,7 +839,7 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
 
 @doc Markdown.doc"""
     fano_simplex(d::Int)
