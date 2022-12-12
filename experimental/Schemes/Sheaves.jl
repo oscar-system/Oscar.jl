@@ -101,6 +101,10 @@ end
 
 underlying_presheaf(S::StructureSheafOfRings) = S.OO
 
+@attr StructureSheafOfRings function OO(X::AbsCoveredScheme)
+  return StructureSheafOfRings(X)
+end
+
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(
     a::Union{MPolyElem, MPolyQuoElem, 

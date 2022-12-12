@@ -1,5 +1,37 @@
 export CoherentSheaf
 export tautological_bundle
+export twisting_sheaf
+export cotangent_sheaf
+export tangent_sheaf
+export sheaf_of_rings
+
+abstract type AbsCoherentSheaf{
+                               SpaceType, OpenType,
+                               OutputType, RestrictionType
+                              } <: AbsPreSheaf{
+                                               SpaceType, OpenType,
+                                               OutputType, RestrictionType
+                                              } 
+end
+
+### Interface for coherent sheaves
+
+@Markdown.doc """
+    scheme(F::AbsCoherentSheaf)
+
+Return the scheme on which this sheaf is defined.
+"""
+scheme(F::AbsCoherentSheaf) = space(underlying_presheaf(F))
+
+@Markdown.doc """
+    sheaf_of_rings(F::AbsCoherentSheaf) 
+
+Return the sheaf of rings over which ``ℱ`` is defined.
+"""
+function sheaf_of_rings(F::AbsCoherentSheaf) 
+  error("method not implemented for coherent sheaves of type $(typeof(F))")
+end
+
 
 ########################################################################
 # Coherent sheaves of modules on covered schemes                       #
@@ -21,7 +53,7 @@ identifications given by the glueings in the `default_covering`.
                                       RestrictionType, ProductionFuncType,
                                       RestrictionFuncType,
                                       PreSheafType
-                                     } <: AbsPreSheaf{
+                                     } <: AbsCoherentSheaf{
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
@@ -42,7 +74,8 @@ identifications given by the glueings in the `default_covering`.
                                                        # represented as a subset of V.
       check::Bool=true
     )
-    OOX = StructureSheafOfRings(X)
+    OOX = OO(X)
+    #OOX = StructureSheafOfRings(X)
 
     ### Checks for open containment.
     #
@@ -182,6 +215,7 @@ identifications given by the glueings in the `default_covering`.
 end
 
 underlying_presheaf(M::SheafOfModules) = M.M
+sheaf_of_rings(M::SheafOfModules) = M.OOX
 
 function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
     X = covered_scheme(IP)
@@ -238,14 +272,14 @@ function cotangent_module(X::AbsSpec{<:Field, <:MPolyRing})
     return F
 end
 
-function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
+@attr SheafOfModules function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
     R = OO(X)
     P = base_ring(R)
     F = FreeMod(R, ["d$(x)" for x in symbols(P)])
     return F
 end
 
-function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
     R = OO(X)
     P = base_ring(R)
     F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -261,4 +295,138 @@ function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
     rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
     M, _ = quo(F, rels)
     return M
+end
+
+
+@attributes mutable struct HomSheaf{SpaceType, OpenType, OutputType,
+                                    RestrictionType, ProductionFuncType,
+                                    RestrictionFuncType,
+                                    PreSheafType
+                                   } <: AbsCoherentSheaf{
+                                                         SpaceType, OpenType,
+                                                         OutputType, RestrictionType
+                                                        }
+  domain::AbsCoherentSheaf{SpaceType, OpenType, OutputType, RestrictionType}
+  codomain::AbsCoherentSheaf{SpaceType, OpenType, OutputType, RestrictionType}
+  OOX::StructureSheafOfRings
+  M::PreSheafType
+
+  function HomSheaf(F::AbsCoherentSheaf, G::AbsCoherentSheaf)
+    X = scheme(F)
+    X === scheme(G) || error("sheaves must be defined over the same scheme")
+    OOX = sheaf_of_rings(F)
+    OOX === sheaf_of_rings(G) || error("sheaves must be defined over the same sheaves of rings")
+
+    ### Checks for open containment.
+    # Copy from the sheaves of Modules
+    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+      C = default_covering(X)
+      A = ambient_scheme(U)
+      A in C || return false
+      B = ambient_scheme(V)
+      B in C || return false
+      if A === B
+        is_subset(U, V) || return false
+      else
+        GG = C[A, B] # Get the glueing
+        f, g = glueing_morphisms(GG)
+        is_subset(U, domain(f)) || return false
+        is_subset(V, domain(g)) || return false
+        gU = preimage(g, U)
+        is_subset(gU, V) || return false
+      end
+      return true
+    end
+    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+      return Y === X && ambient_scheme(U) in default_covering(X)
+    end
+    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+      return Y === X && U in default_covering(X)
+    end
+    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+      return X === Y === Z
+    end
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      U in default_covering(X) || return false
+      V in default_covering(X) || return false
+      GG = default_covering(X)[U, V]
+      return issubset(U, glueing_domains(GG)[1])
+    end
+    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient_scheme(U) === V && return true
+      W = ambient_scheme(U)
+      W in default_covering(X) || return false
+      GG = default_covering(X)[W, V]
+      return is_subset(U, glueing_domains(GG)[1])
+    end
+
+    ### Production of the modules on open sets; to be cached
+    function production_func(U::AbsSpec)
+      return hom(F(U), G(U))[1]
+    end
+
+    function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+      dom_res = F(V, U)
+      cod_res = G(V, U)
+      f = gens(F(V))
+      rf = dom_res.(f)
+      # The following two lines will work, because a set of generators for ℱ(V) 
+      # always restricts to a set of generators for ℱ(U). Due to changes of 
+      # charts, this might be a non-trivial change of bases, however.
+      dom_sub, inc = sub(F(U), rf)
+      B = [coordinates(e, dom_sub) for e in ambient_representatives_generators(F(U))]
+      images = elem_type(MU)[]
+      for phi in gens(MV)
+        phi_map = element_to_homomorphism(phi)
+        images_f = [sum([B[i][j]*cod_res(phi_map(f[j])) for j in 1:length(f)]) for i in 1:length(B)]
+        psi = hom(F(U), G(U), images_f)
+        push!(images, homomorphism_to_element(MU, psi))
+      end
+
+      return hom(MV, MU, images, OOX(V, U)) # TODO: Set check=false?
+    end
+      
+    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=is_open_func
+                     )
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
+               typeof(production_func), typeof(restriction_func),
+               typeof(Mpre)}(F, G, OOX, Mpre)
+
+    return M
+  end
+end
+
+underlying_presheaf(M::HomSheaf) = M.M
+domain(M::HomSheaf) = M.domain
+codomain(M::HomSheaf) = M.codomain
+
+function free_module(R::StructureSheafOfRings, n::Int)
+  X = space(R)
+  MD = IdDict{AbsSpec, ModuleFP}()
+  for U in affine_charts(X)
+    MD[U] = FreeMod(OO(U), n)
+  end
+
+  MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+  C = default_covering(X)
+  for G in values(glueings(C))
+    (U, V) = patches(G)
+    (UU, VV) = glueing_domains(G)
+    MG[(U, V)] = one(MatrixSpace(OO(VV), 1, 1))
+    MG[(V, U)] = one(MatrixSpace(OO(UU), 1, 1))
+  end
+
+  M = SheafOfModules(X, MD, MG)
+  return M
+end
+
+function tangent_sheaf(X::AbsCoveredScheme)
+  M = cotangent_sheaf(X)
+  OOX = sheaf_of_rings(M)
+  F = free_module(OOX, 1)
+  return HomSheaf(M, F)
 end
