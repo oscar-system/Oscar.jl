@@ -1562,8 +1562,8 @@ function span_in_S(L, S, weyl)
   BS = transpose(basis_matrix(S))
   prSDelta_w = [v*G*BS for v in Delta_w]
   @vprint :K3Auto 2 "Ddual given by $(length(prSDelta_w)) rays\n"
-  i = zero_matrix(QQ, 0, rank(S))
 
+  i = zero_matrix(QQ, 0, rank(S))
   Cdual = positive_hull(reduce(vcat, prSDelta_w, init=i))
 
   spanC = linear_span(polarize(Cdual))
@@ -1572,7 +1572,7 @@ function span_in_S(L, S, weyl)
     M = zero_matrix(QQ, 0, rank(S))
   else
     spanC = reduce(vcat, [v.a for v in spanC])
-    M = matrix(QQ, N, rank(S), spanC)
+    M = matrix(QQ, spanC)
   end
   k, K = kernel(M)
   gensN = transpose(K)[1:k,:]
