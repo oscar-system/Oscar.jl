@@ -1561,7 +1561,6 @@ function span_in_S(L, S, weyl)
   G = gram_matrix(V)
   BS = transpose(basis_matrix(S))
   prSDelta_w = [v*G*BS for v in Delta_w]
-  @vprint :K3Auto 2 "Ddual given by $(length(prSDelta_w)) rays\n"
 
   i = zero_matrix(QQ, 0, rank(S))
   Cdual = positive_hull(reduce(vcat, prSDelta_w, init=i))
@@ -1571,7 +1570,7 @@ function span_in_S(L, S, weyl)
   if N==0
     M = zero_matrix(QQ, 0, rank(S))
   else
-    M = reduce(hcat, (matrix(QQ,1, rank(S), v.a) for v in spanC))
+    M = reduce(vcat, (matrix(QQ, 1, rank(S), v.a) for v in spanC))
   end
   k, K = kernel(M)
   gensN = transpose(K)[1:k,:]
@@ -1595,14 +1594,14 @@ function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_m
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
-  @vprint :K3Auto 2 "moving weyl vector $weyl towards the ample class\n"
+  @vprint :K3Auto 2 "moving weyl vector $(solve_left(basis_matrix(L),weyl)) towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
-  @vprint :K3Auto "new weyl: $weyl \n"
+  @vprint :K3Auto "new weyl: $(solve_left(basis_matrix(L),weyl)) \n"
   if is_S_nondegenerate(L,S,weyl)
     return weyl, u, ample
   end
   @vprint :K3Auto 2 "calculating QQDcapS\n"
-  QQDcapS = lattice(V, span_in_S(L,S,weyl)*basis_matrix(S))
+  QQDcapS = lattice(V, span_in_S(L, S, weyl)*basis_matrix(S))
 
   N = Hecke.orthogonal_submodule(L, QQDcapS)
   N = lll(N)
