@@ -1562,7 +1562,7 @@ function span_in_S(L, S, weyl)
   prSDelta_w = [v*G*BS for v in Delta_w]
   @vprint :K3Auto 2 "Ddual given by $(length(prSDelta_w)) rays\n"
   i = zero_matrix(QQ, 0, rank(S))
-  Cdual = reduce(vcat, prSDelta_w, init=i)
+  Cdual = positive_hull(reduce(vcat, prSDelta_w, init=i))
 
   spanC = linear_span(Cdual) # linear span of the dual
   gensN = matrix([c.a for a in spanC])
