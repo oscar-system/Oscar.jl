@@ -1222,7 +1222,7 @@ function inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
   return h
 end
 
-inner_point(C::K3Chamber) = inner_point(C.data.L, C.data.S, C.weyl_vector)
+inner_point(C::K3Chamber) = inner_point(C.data.L, C.data.S, change_base_ring(QQ,C.weyl_vector))
 
 
 @doc Markdown.doc"""
@@ -1562,12 +1562,19 @@ function span_in_S(L, S, weyl)
   prSDelta_w = [v*G*BS for v in Delta_w]
   @vprint :K3Auto 2 "Ddual given by $(length(prSDelta_w)) rays\n"
   i = zero_matrix(QQ, 0, rank(S))
+
   Cdual = positive_hull(reduce(vcat, prSDelta_w, init=i))
 
-  spanC = linear_span(Cdual) # linear span of the dual
-  gensN = matrix([c.a for a in spanC])
-  r = Hecke.rref!(gensN)
-  gensN = gensN[1:r,:]
+  spanC = linear_span(polarize(Cdual))
+  N = length(spanC)
+  if N==0
+    M = zero_matrix(QQ, 0, rank(S))
+  else
+    spanC = reduce(vcat, [v.a for v in spanC])
+    M = matrix(QQ, N, rank(S), spanC)
+  end
+  k, K = kernel(M)
+  gensN = transpose(K)[1:k,:]
   return gensN
 end
 
@@ -1864,7 +1871,7 @@ function ample_class(S::ZLat)
       # confirm that h is in the interior of a weyl chamber,
       # i.e. check that Q does not contain any -2 vector and h^2>0
       Q = rescale(Hecke.orthogonal_submodule(S, lattice(V, h)),-1)
-      @vprint :K3Auto 2 "testing ampleness $(inner_product(V,h,h)[1,1])\n"
+      @vprint :K3Auto 3 "testing ampleness $(inner_product(V,h,h)[1,1])\n"
       nt = nt+1
       if nt >10
         fudge = fudge+1
@@ -1875,7 +1882,7 @@ function ample_class(S::ZLat)
         @vprint :K3Auto 1 "found ample class $(h)\n"
         return h
       end
-      @vprint :K3Auto 1 "not ample\n"
+      @vprint :K3Auto 3 "not ample\n"
     end
   end
   G = gram_matrix(S)

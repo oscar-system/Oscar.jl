@@ -51,6 +51,15 @@ end
   @test length(chambers) == 1
   @test length(rational_mod_aut) == 3
 
+  C = chambers[1]
+  p = Oscar.inner_point(C)
+  @test all((p*C.data.gramS*transpose(v))[1,1]>0 for v in walls(C))
+  QQC = Oscar.span_in_S(C.data.L, C.data.S, change_base_ring(QQ, weyl_vector(C)))
+  @test rank(QQC)==rank(S)
+  wall1 = Oscar._walls_of_chamber(C.data,weyl_vector(C),:short)
+  wall2 = Oscar._walls_of_chamber(C.data,weyl_vector(C),:close)
+  @test Set(wall1)==Set(wall2)
+
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 18, compute_OR=true)
   @test order(matrix_group(k3aut))==2
   @test length(chambers) == 1
