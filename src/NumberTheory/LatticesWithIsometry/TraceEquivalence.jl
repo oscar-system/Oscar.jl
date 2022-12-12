@@ -72,6 +72,38 @@ function absolute_representation_matrix(b::Hecke.NfRelElem)
   return m
 end
 
+function _find_mult_action(f::fmpq_mat, mb::fmpq_mat)
+  A = f
+  B = mb
+  n = nrows(A)
+  m = nrows(B)
+  linind = transpose(LinearIndices((n,m)))
+  zz = zero_matrix(QQ, n*m, n*m)
+  for i in 1:m
+    for j in 1:n
+      for k in 1:n
+        zz[linind[i, j], linind[i, k]] += A[k,j]
+      end
+      for k in 1:m
+        zz[linind[i,j], linind[k, j]] -= B[i,k]
+      end
+    end
+  end
+  
+  r, K = right_kernel(zz)
+
+  res = fmpq_mat[]
+  for k in 1:ncols(K)
+    cartind = Hecke.cartesian_product_iterator([1:x for x in (n, m)], inplace=true)
+    M = zero_matrix(QQ, m, n)
+    for (l,v) in enumerate(cartind)
+      M[v[2], v[1]] = K[l, k]
+    end
+    push!(res, M)
+  end
+  return res
+end
+
 function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
                                                     n::Integer = -1,
                                                     check::Bool = true,
@@ -110,11 +142,11 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
  
   mb = absolute_representation_matrix(b)
   m = divexact(rank(L), euler_phi(n))
-  diag = [mb for i in 1:m]
-  mb = block_diagonal_matrix(diag)
-  bca = Hecke._basis_of_commutator_algebra(f, mb)
+  bca = _find_mult_action(f, mb)
   @assert !is_empty(bca)
-  l = inv(bca[1])
+  l = reduce(vcat, bca[1:m])
+  @assert det(l) != 0
+  l = inv(l)
   B = matrix(absolute_basis(E))
   gene = Vector{elem_type(E)}[]
   for i in 1:nrows(l)
@@ -127,6 +159,7 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
     push!(gene, vv)
   end
   # We choose as basis for the hermitian lattice Lh the identity matrix
+  mb = block_diagonal_matrix([mb for i in 1:m])
   gram = matrix(zeros(E, m, m))
   G = inv(l)*gram_matrix_of_rational_span(L)*inv(transpose(l))
   v = zero_matrix(QQ, 1, rank(L))
