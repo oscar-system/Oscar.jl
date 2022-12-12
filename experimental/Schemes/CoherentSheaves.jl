@@ -5,6 +5,7 @@ export cotangent_sheaf
 export tangent_sheaf
 export sheaf_of_rings
 export dual
+export LineBundle
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -459,3 +460,105 @@ end
 @attr HomSheaf function tangent_sheaf(X::AbsCoveredScheme)
   return dual(cotangent_sheaf(X))
 end
+
+@attributes mutable struct LineBundle{SpaceType, OpenType, OutputType,
+                                      RestrictionType, ProductionFuncType,
+                                      RestrictionFuncType,
+                                      PreSheafType
+                                     } <: AbsCoherentSheaf{
+                                                           SpaceType, OpenType,
+                                                           OutputType, RestrictionType
+                                                          }
+  OOX::StructureSheafOfRings # the structure sheaf on X
+  M::PreSheafType # the underlying presheaf of modules for caching
+  
+  function LineBundle(C::CartierDivisor;
+      check::Bool=true
+    )
+    X = variety(C) 
+    OOX = OO(X)
+    
+    # Copy from SheafOfModules
+    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+      C = default_covering(X)
+      A = ambient_scheme(U)
+      A in C || return false
+      B = ambient_scheme(V)
+      B in C || return false
+      if A === B
+        is_subset(U, V) || return false
+      else
+        G = C[A, B] # Get the glueing
+        f, g = glueing_morphisms(G)
+        is_subset(U, domain(f)) || return false
+        is_subset(V, domain(g)) || return false
+        gU = preimage(g, U)
+        is_subset(gU, V) || return false
+      end
+      return true
+    end
+    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+      return Y === X && ambient_scheme(U) in default_covering(X)
+    end
+    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+      return Y === X && U in default_covering(X)
+    end
+    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+      return X === Y === Z
+    end
+    function is_open_func(U::AbsSpec, V::AbsSpec)
+      U in default_covering(X) || return false
+      V in default_covering(X) || return false
+      G = default_covering(X)[U, V]
+      return issubset(U, glueing_domains(G)[1])
+    end
+    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+      V in default_covering(X) || return false
+      ambient_scheme(U) === V && return true
+      W = ambient_scheme(U)
+      W in default_covering(X) || return false
+      G = default_covering(X)[W, V]
+      return is_subset(U, glueing_domains(G)[1])
+    end
+
+    U = default_covering(X)[1]
+    ### Production of the modules on open sets; to be cached
+    function production_func(U::AbsSpec)
+        return FreeMod(OO(U), 1)
+    end
+    
+    function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+      # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
+      # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
+      # we need to find W (which equals V in the first case) and use the transition 
+      # matrix for the changes between these two sets. 
+      VV = V
+      while VV isa PrincipalOpenSubset
+          VV = ambient_scheme(VV)
+      end
+      UU = U
+      while UU isa PrincipalOpenSubset
+          UU = ambient_scheme(UU)
+      end
+      rho = OOX(V, U) 
+      VVtoV = OOX(VV, V)
+      UUtoU = OOX(UU, U)
+      cond, c = divides(rho(VVtoV(C(VV))), UUtoU(C(UU)))
+      cond || error("invalid transition")
+      return hom(MV, MU, [c*MU[1]], rho)
+    end
+
+    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=FreeMod,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=is_open_func
+                     )
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
+               typeof(production_func), typeof(restriction_func),
+               typeof(Mpre)}(OOX, Mpre)
+    return M
+  end
+end
+
+underlying_presheaf(L::LineBundle) = L.M
+sheaf_of_rings(L::LineBundle) = L.OOX

@@ -28,3 +28,5 @@ function (C::CartierDivisor)(U::AbsSpec)
     return gens(C.I(U))[1]
 end
 
+variety(C::CartierDivisor) = C.X
+scheme(C::CartierDivisor) = C.X
