@@ -1571,8 +1571,7 @@ function span_in_S(L, S, weyl)
   if N==0
     M = zero_matrix(QQ, 0, rank(S))
   else
-    spanC = reduce(vcat, [v.a for v in spanC])
-    M = matrix(QQ, spanC)
+    M = reduce(hcat, (matrix(QQ,1, rank(S), v.a) for v in spanC))
   end
   k, K = kernel(M)
   gensN = transpose(K)[1:k,:]
