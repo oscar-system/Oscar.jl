@@ -277,7 +277,10 @@ function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
 
-expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+function expressify(f::AbsLocalizedRingElem; context=nothing) 
+  isone(denominator(f)) && expressify(numerator(f), context=context)
+  return Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+end
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
 
@@ -631,7 +634,7 @@ function kernel(f::AbsLocalizedRingHom)
 end
 
 function preimage(f::AbsLocalizedRingHom, I::Ideal)
-  base_ring(I) == codomain(f) || error("ideal must be in the codomain of f")
+  base_ring(I) === codomain(f) || error("ideal must be in the codomain of f")
   Q, proj = quo(codomain(f), I)
   return kernel(compose(f, proj))
 end

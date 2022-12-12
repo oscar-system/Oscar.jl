@@ -440,17 +440,21 @@ Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y over Ra
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
   I = modulus(OO(X))
   J = radical(pre_saturated_ideal(I))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
+  return domain(inc), inc
   return Spec(base_ring(J), J, inverted_set(OO(X)))
 end
 
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuo})
   J = radical(modulus(OO(X)))
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(J))))
+  return domain(inc), inc
   return Spec(base_ring(J), J)
 end
 
 ## to make reduced_scheme agnostic for quotient ring
 @attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
-  return X
+  return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
 end
 
 function reduced_scheme(X::AbsSpec)
@@ -466,7 +470,7 @@ end
 ###       for covered schemes (using the workhorse here...).
  
 @doc Markdown.doc"""
-    singular_locus(X::Scheme{<:Field}) -> Scheme
+    singular_locus(X::Scheme{<:Field}) -> (Scheme, SchemeMor)
 
 Return the singular locus of `X`.
 
@@ -495,10 +499,30 @@ julia> X = Spec(R,I)
 Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
 
 julia> singular_locus(A3)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(1)
+
+to
+
+	Spec of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+with coordinates
+
+	0, 0, 0)
 
 julia> singular_locus(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, 2*x, -2*y, 2*z)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2)
+
+with coordinates
+
+	0, 0, 0)
 
 julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
 complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
@@ -507,7 +531,17 @@ julia> Y = Spec(R,I,U)
 Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
 
 julia> singular_locus(Y)
-Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, x^2 - y^2 + z^2, 2*x, -2*y, 2*z, x^2 - y^2 + z^2, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+(Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0], morphism from
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2, z, y, x, x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+to
+
+	Spec of Localization of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^2 - y^2 + z^2) at the multiplicative set complement of maximal ideal corresponding to point with coordinates fmpq[0, 0, 0]
+
+with coordinates
+
+	x//1, y//1, z//1)
 
 ```
 """
@@ -515,24 +549,30 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   comp = _singular_locus_with_decomposition(X,false)
   if length(comp) == 0
     set_attribute!(X, :is_smooth, true)
+    inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
+    return domain(inc), inc
     return subscheme(X, ideal(OO(X),one(OO(X))))
   end
   R = base_ring(OO(X))
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
+  I = radical(I)
   set_attribute!(X, :is_smooth, false)
-  return subscheme(X,I)
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
+  return domain(inc), inc
 end
 
 # make singular_locus agnostic to quotient
 function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
   set_attribute!(X, :is_smooth,true)
+  inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
+  return domain(inc), inc
   return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
 
 # TODO: Covered schemes, projective schemes
 
 @doc Markdown.doc"""
-    singular_locus_reduced(X::Scheme{<:Field}) -> Scheme
+    singular_locus_reduced(X::Scheme{<:Field}) -> (Scheme, SchemeMor)
 
 Return the singular locus of the reduced scheme ``X_{red}`` induced by `X`.
 
@@ -558,24 +598,50 @@ julia> X = Spec(R,I)
 Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
 
 julia> singular_locus_reduced(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, z, y, x)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+
+with coordinates
+
+	0, 0, 0)
 
 julia> singular_locus(X)
-Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, 4*x^3 - 4*x*y^2 + 4*x*z^2, -4*x^2*y + 4*y^3 - 4*y*z^2, 4*x^2*z - 4*y^2*z + 4*z^3)
+(Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2), morphism from
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4, x^2 - y^2 + z^2)
+
+to
+
+	Spec of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^4 - 2*x^2*y^2 + 2*x^2*z^2 + y^4 - 2*y^2*z^2 + z^4)
+
+with coordinates
+
+	x, y, z)
 
 ```
 """
 function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
   comp =  _singular_locus_with_decomposition(X, true)
-  I= ideal(base_ring(OO(X)),one(base_ring(OO(X))))
+  I= ideal(ambient_coordinate_ring(X),one(ambient_coordinate_ring(X)))
   for Z in comp
     I = intersect(I, modulus(underlying_quotient(OO(Z))))
-  end     
+    # TODO: Already compute intermediate radicals?
+  end
+  I = radical(I)
+  inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
+  return domain(inc), inc
   return subscheme(X,I)
 end
 
 # make singular_locus_reduced agnostic to quotient
 function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+  inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
+  return domain(inc), inc
   return subscheme(X,ideal(OO(X),[one(OO(X))]))
 end
 
@@ -621,7 +687,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     end
 # and singular loci of components
     for Y in components
-      result = vcat(result, singular_locus(Y))
+      result = vcat(result, singular_locus(Y)[1])
     end
   end
   return result

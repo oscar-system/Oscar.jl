@@ -118,7 +118,7 @@ true
 
 Given an element `f`  of a free module `F` over a multivariate polynomial ring with element type `T`,
 - `parent(f)` refers to `F`, and
-- `coefficients(f)` to the coordinate vector of `f`, returned as an object of type `SRow{T}`.
+- `coordinates(f)` to the coordinate vector of `f`, returned as an object of type `SRow{T}`.
 
 ##### Examples
 
@@ -135,7 +135,7 @@ x*e[1] + y*e[3]
 julia> parent(f)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> coefficients(f)
+julia> coordinates(f)
 Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
 
 ```

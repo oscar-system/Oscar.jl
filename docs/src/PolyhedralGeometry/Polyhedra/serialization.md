@@ -23,7 +23,6 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> save("square.poly", square)
-739
 
 julia> s = load("square.poly")
 A polyhedron in ambient dimension 2

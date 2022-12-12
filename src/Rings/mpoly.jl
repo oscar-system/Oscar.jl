@@ -3,8 +3,8 @@
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, is_primary, is_prime,
        coefficients, coefficients_and_exponents, exponents, monomials, terms,
-       leading_coefficient, leading_exponent, leading_monomial, leading_term,
-       tail,
+       leading_coefficient, leading_coefficient_and_exponent, leading_exponent,
+       leading_monomial, leading_term, tail,
        rational_solutions
 
 ##############################################################################
@@ -213,6 +213,7 @@ end
 mutable struct IdealGens{S}
   gens::BiPolyArray{S}
   isGB::Bool
+  isReduced::Bool
   ord::Orderings.MonomialOrdering
   keep_ordering::Bool
 
@@ -224,11 +225,12 @@ mutable struct IdealGens{S}
     return IdealGens(parent(O[1]), O, ordering; keep_ordering = keep_ordering, isGB)
   end
 
-  function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false) where {T <: NCRingElem}
+  function IdealGens(Ox::NCRing, O::Vector{T}, ordering::Orderings.MonomialOrdering; keep_ordering::Bool = true, isGB::Bool = false, isReduced::Bool = false) where {T <: NCRingElem}
     r = new{T}()
     r.gens = BiPolyArray(Ox, O)
     r.ord = ordering
     r.isGB = isGB
+	r.isReduced = isReduced
     r.keep_ordering = keep_ordering
     return r
   end
@@ -243,10 +245,11 @@ mutable struct IdealGens{S}
     return r
   end
 
-  function IdealGens(Ox::T, S::Singular.sideal) where {T <: NCRing}
+  function IdealGens(Ox::T, S::Singular.sideal, isReduced::Bool = false) where {T <: NCRing}
     r = new{elem_type(T)}()
-    r.gens = BiPolyArray(Ox, S)
-    r.isGB = S.isGB
+    r.gens		= BiPolyArray(Ox, S)
+    r.isGB		= S.isGB
+	r.isReduced = isReduced
     if T <: Union{MPolyRing, MPolyRingLoc, MPolyQuo}
       r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
     end
@@ -269,6 +272,8 @@ function Base.getproperty(idealgens::IdealGens, name::Symbol)
     return getfield(idealgens, name)
   elseif name == :isGB
     return getfield(idealgens, name)
+  elseif name == :isReduced
+    return getfield(idealgens, name)
   elseif name == :ord
     return getfield(idealgens, name)
   elseif name == :keep_ordering
@@ -281,7 +286,7 @@ end
 function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
   if name == :Ox || name == :O || name == :Sx || name == :S
     setfield!(idealgens.gens, name, x)
-  elseif name == :gens || name == :isGB || name == :ord || name == :keep_ordering
+  elseif name == :gens || name == :isGB || name == :isReduced|| name == :ord || name == :keep_ordering
     setfield!(idealgens, name, x)
   else
     error("undefined property: ", string(name))
@@ -571,8 +576,8 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   gb::Dict{MonomialOrdering, IdealGens{S}}
   dim::Int
 
-  function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
-    return MPolyIdeal(IdealGens(g, keep_ordering = false))
+  function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyElem}
+    return MPolyIdeal(IdealGens(R, g, keep_ordering = false))
   end
 
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
@@ -988,7 +993,7 @@ function Base.iterate(a::GeneralPermutedIterator{:exponents, <:MPolyElem}, state
   return exponent_vector(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyElem})
+function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyElem})
   return Vector{Int}
 end
 
@@ -1046,8 +1051,17 @@ Return the leading exponent vector (as `Vector{Int}`) of `f` with
 respect to the order `ordering`.
 """
 function leading_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-  iszero(f) && throw(ArgumentError("zero polynomial does not have a leading term"))
   return AbstractAlgebra.exponent_vector(f, index_of_leading_term(f, ordering))
+end
+
+@doc Markdown.doc"""
+    leading_coefficient_and_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+
+Return the leading coefficient of `f` with respect to the order `ordering`.
+"""
+function leading_coefficient_and_exponent(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
+  i = index_of_leading_term(f, ordering)
+  return (coeff(f, i), AbstractAlgebra.exponent_vector(f, i))
 end
 
 @doc Markdown.doc"""
@@ -1068,22 +1082,26 @@ function leading_term(f::MPolyElem; ordering::MonomialOrdering = default_orderin
   return term(f, index_of_leading_term(f, ordering))
 end
 
+function _delete_index(f::MPolyElem, i::Int)
+  z = MPolyBuildCtx(parent(f))
+  for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    i -= 1
+    if i != 0
+       push_term!(z, c, e)
+    end
+  end
+  return finish(z)
+end
+
 @doc Markdown.doc"""
     tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
 
 Return the tail of `f` with respect to the order `ordering`.
 """
 function tail(f::MPolyElem; ordering::MonomialOrdering = default_ordering(parent(f)))
-   # f - leading_term(f) is too easy and might have problems with inexact
-   i = index_of_leading_term(f, ordering)
-   z = MPolyBuildCtx(parent(f))
-   for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-      i -= 1
-      if i != 0
-         push_term!(z, c, e)
-      end
-   end
-   return finish(z)
+  # f - leading_term(f) is too easy and might have problems with inexact
+  i = index_of_leading_term(f, ordering)
+  return _delete_index(f, i)
 end
 
 ##############################################################################
