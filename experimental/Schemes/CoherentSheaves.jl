@@ -4,6 +4,7 @@ export twisting_sheaf
 export cotangent_sheaf
 export tangent_sheaf
 export sheaf_of_rings
+export dual
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -297,6 +298,22 @@ function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
     return M
 end
 
+########################################################################
+# Hom-Sheaves                                                          #
+########################################################################
+#= 
+  Hom sheaves ℋom(ℱ, 𝒢) are special. 
+
+  First of all, they can be made completely lazy, as their modules 
+  on U ⊂ X can be created from ℱ(U) and 𝒢(U) on the fly and the same
+  holds for their transition- and restriction functions.
+
+  Second, Hom sheaves come with a domain, a codomain, and an 
+  interpretation mapping of their sections as homomorphisms.
+
+  We realize hom sheaves in this way, taking only ℱ and 𝒢 as input 
+  in the constructor.
+=#
 
 @attributes mutable struct HomSheaf{SpaceType, OpenType, OutputType,
                                     RestrictionType, ProductionFuncType,
@@ -405,10 +422,19 @@ domain(M::HomSheaf) = M.domain
 codomain(M::HomSheaf) = M.codomain
 
 function free_module(R::StructureSheafOfRings, n::Int)
+  return free_module(R, ["e_$i" for i in 1:n])
+end
+
+function free_module(R::StructureSheafOfRings, gen_names::Vector{String})
+  return free_module(R, Symbol.(gen_names))
+end
+
+function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   X = space(R)
+  n = length(gen_names)
   MD = IdDict{AbsSpec, ModuleFP}()
   for U in affine_charts(X)
-    MD[U] = FreeMod(OO(U), n)
+    MD[U] = FreeMod(OO(U), gen_names)
   end
 
   MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
@@ -416,17 +442,20 @@ function free_module(R::StructureSheafOfRings, n::Int)
   for G in values(glueings(C))
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
-    MG[(U, V)] = one(MatrixSpace(OO(VV), 1, 1))
-    MG[(V, U)] = one(MatrixSpace(OO(UU), 1, 1))
+    MG[(U, V)] = one(MatrixSpace(OO(VV), n, n))
+    MG[(V, U)] = one(MatrixSpace(OO(UU), n, n))
   end
 
   M = SheafOfModules(X, MD, MG)
   return M
 end
 
-function tangent_sheaf(X::AbsCoveredScheme)
-  M = cotangent_sheaf(X)
+function dual(M::SheafOfModules)
   OOX = sheaf_of_rings(M)
-  F = free_module(OOX, 1)
+  F = free_module(OOX, ["1"])
   return HomSheaf(M, F)
+end
+
+@attr HomSheaf function tangent_sheaf(X::AbsCoveredScheme)
+  return dual(cotangent_sheaf(X))
 end
