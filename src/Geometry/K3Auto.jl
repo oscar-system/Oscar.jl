@@ -110,6 +110,7 @@ function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
   # carry S along
   S = lattice(V, basisSL1)
   R = lattice(V, basisRL1)
+  @req is_S_nondegenerate(L, S, change_base_ring(QQ,weyl)) "Weyl vector is S degenerate"
 
   SS = Zlattice(gram=gram_matrix(S))
 
