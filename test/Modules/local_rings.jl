@@ -20,7 +20,7 @@
   N, _ = quo(F, (ideal(L, [x,y,z])*F)[1])
   @test length(N) == 0
 
-  @test_throws "module does not have finite length" length(F)
+  @test_throws ErrorException length(F)
 
   A, _ = quo(R, ideal(R, [x^2, y, z]))
   W, _ = localization(A, complement_of_ideal(ideal(R, [x,y,z])))
