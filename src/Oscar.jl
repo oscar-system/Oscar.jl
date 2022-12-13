@@ -429,6 +429,7 @@ include("Modules/FreeModElem-orderings.jl")
 #include("Modules/FreeModules-graded.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
+include("Modules/local_rings.jl")
 
 include("Geometry/basics.jl")
 
