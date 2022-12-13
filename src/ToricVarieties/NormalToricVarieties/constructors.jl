@@ -608,7 +608,10 @@ Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 By default, we prepend an "x" to all homogeneous coordinate names of the first factor
 `v` and a "y" to all homogeneous coordinate names of the second factor `w`. This default
 can be overwritten by invoking `set_coordinate_names` after creating the variety
-(cf. [`set_coordinate_names`](@ref)).
+(cf. [`set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})`](@ref)).
+
+*Important*: Recall that the coordinate names can only be changed as long as the toric
+variety in question is not finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
 
 Crucially, the order of the homogeneous coordinates is not shuffled. To be more
 specific, assume that `v` has ``n_1`` and `w` has ``n_2`` homogeneous coordinates. Then
