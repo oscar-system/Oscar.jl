@@ -111,7 +111,8 @@ export is_finalized
 @doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
-Allows to set the names of the homogeneous coordinates.
+Allows to set the names of the homogeneous coordinates as long as the toric variety in
+question is not yet finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
 
 # Examples
 ```jldoctest
