@@ -1,5 +1,5 @@
 export weyl_vector, separating_hyperplanes, walls, K3_surface_automorphism_group,
-      adjacent_chamber, aut, has_zero_entropy, K3Chamber, chamber, borcherds_method
+      adjacent_chamber, aut, K3Chamber, chamber, borcherds_method
 
 
 ################################################################################
@@ -154,12 +154,11 @@ function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
 
   d = exponent(discriminant_group(S))
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual,-1), 2)
+  sv = short_vectors(rescale(Rdual,-1), 2, fmpz)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
-  T = typeof(sv).parameters[1].parameters[1].parameters[1]
-  push!(sv,(zeros(T, rank(Rdual)), QQ(0)))
+  push!(sv,(zeros(fmpz, rank(Rdual)), QQ(0)))
   rkR = rank(R)
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   gramL = change_base_ring(ZZ,gram_matrix(L))
@@ -177,7 +176,17 @@ end
 @doc Markdown.doc"""
     K3Chamber
 
-The chamber in `S` induced from a Weyl vector in `L`.
+The ``L|S`` chamber induced from a Weyl vector in `L`.
+
+Let ``L`` be an even, unimodular and hyperbolic lattice of rank ``10``, ``18``
+or ``26`` and ``S`` be a primitive sublattice.
+Any Weyl vector ``w`` of ``L`` defines a Weyl chamber ``C(w)`` in the positive
+cone of ``L``. The Weyl chamber is a fundamental domain for the action of
+the Weyl group on the positive cone.
+We say that ``S \otimes \RR \cap C(w)`` is the ``L|S``-chamber induced by ``w``.
+
+Note that two Weyl vectors induce the same chamber if and only if
+their orthogonal projections to ``S`` coincide.
 """
 mutable struct K3Chamber
   weyl_vector::fmpz_mat
@@ -207,7 +216,10 @@ export chamber, BorcherdsCtx
 @doc Markdown.doc"""
     chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, [parent_wall::fmpz_mat, walls::Vector{fmpz_mat}])
 
-Return the chamber with the given Weyl vector.
+Return the ``L|S``-chamber with the given Weyl vector.
+
+The lattices ``L`` and ``S`` are stored in `data`.
+Via the parent walls we can obtain a spanning tree of the chamber graph.
 """
 function chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, parent_wall::fmpz_mat=zero_matrix(ZZ, 0, 0))
   D = K3Chamber()
@@ -252,7 +264,8 @@ The corresponding half space of the wall defined by `v` in `walls(D)` is
 ```
 
 `v` is given with respect to the basis of `S` and is primitive in `S`.
-Note that Shimada follows a different convention and takes `v` primitive in `S^\vee`.
+Note that Shimada follows a different convention in [Shi15](@cite)
+and takes `v` primitive in `S^\vee`.
 """
 function walls(D::K3Chamber)
   if !isdefined(D, :walls)
@@ -262,12 +275,17 @@ function walls(D::K3Chamber)
   return D.walls
 end
 
+@doc Markdown.doc"""
+    weyl_vector(D::K3Chamber) -> fmpz_mat
+
+Return the Weyl vector defining this chamber.
+"""
 weyl_vector(D::K3Chamber) = D.weyl_vector
 
 @doc Markdown.doc"""
     rays(D::K3Chamber)
 
-Return the rays of the induced chamber `D`.
+Return the rays of the chamber `D`.
 
 They are represented as primitive row vectors with respect to the basis of `S`.
 """
@@ -516,7 +534,7 @@ The matrix version takes `S` with standard basis and the given gram matrix.
 
 The output is given in the ambient representation.
 
-The implementation is based on Algorithm 2.2 in [Shimada](@cite)
+The implementation is based on Algorithm 2.2 in [Shi15](@cite)
 """
 function short_vectors_affine(S::ZLat, v::MatrixElem, alpha, d)
   alpha = QQ(alpha)
@@ -685,7 +703,7 @@ Hecke.hom(D::K3Chamber, E::K3Chamber) = alg319(D, E)
 #alg319(gram_matrix(D.data.SS), D.B,D.gramB, walls(D), walls(E), D.data.membership_test)
 
 @doc Markdown.doc"""
-    aut(D::K3Chamber, E::K3Chamber) -> Vector{fmpz_mat}
+    aut(E::K3Chamber) -> Vector{fmpz_mat}
 
 Return the stabilizer of ``E`` in ``G``.
 
@@ -835,7 +853,7 @@ Compute Delta_w
 Tuples (r_S, r) where r is an element of Delta_w and r_S is the
 orthogonal projection of `r` to `S`.
 
-Correponds to Algorithm 5.8 in [Shimada](@cite)
+Correponds to Algorithm 5.8 in [Shi15](@cite)
 but this implementation is different.
 """
 # legacy function needed for precomputations
@@ -877,12 +895,11 @@ end
 
 function _alg58(L::ZLat, S::ZLat, R::ZLat, w::MatrixElem)
   Rdual = dual(R)
-  sv = short_vectors(rescale(Rdual, -1), 2)
+  sv = short_vectors(rescale(Rdual, -1), 2, fmpz)
   # not storing the following for efficiency
   # append!(sv,[(-v[1],v[2]) for v in sv])
   # but for convenience we include zero
-  T = typeof(sv).parameters[1].parameters[1].parameters[1]
-  push!(sv,(zeros(T, rank(Rdual)), QQ(0)))
+  push!(sv,(zeros(fmpz, rank(Rdual)), QQ(0)))
   rkR = rank(R)
   prRdelta = [(matrix(QQ, 1, rkR, v[1])*basis_matrix(Rdual),v[2]) for v in sv]
   return _alg58(L, S, R, prRdelta, w)
@@ -994,7 +1011,7 @@ end
 Return tuples (r_S, r) where r is an element of Delta_w and r_S is the
 orthogonal projection of `r` to `S^\vee` given in the basis of S.
 
-Corresponds to Algorithm 5.8 in [Shimada](@cite)
+Corresponds to Algorithm 5.8 in [Shi15](@cite)
 """
 function _alg58_close_vector(data::BorcherdsCtx, w::fmpz_mat)
   V = ambient_space(data.L)
@@ -1118,7 +1135,7 @@ end
 
 Return the walls of the L|S chamber induced by `weyl_vector`.
 
-Corresponds Algorithm 5.11 in [Shimada](@cite) and calls Polymake.
+Corresponds Algorithm 5.11 in [Shi15](@cite) and calls Polymake.
 """
 function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, alg=:short)
   if alg==:short
@@ -1231,7 +1248,7 @@ inner_point(C::K3Chamber) = inner_point(C.data.L, C.data.S, change_base_ring(QQ,
 
 Return the (-2)-walls of L containing $v^{perp_S}$ but not all of ``S``.
 
-Based on Algorithm 5.13 in [Shimada](@cite)
+Based on Algorithm 5.13 in [Shi15](@cite)
 
 # Arguments
 - `vS`: Given with respect to the basis of `S`.
