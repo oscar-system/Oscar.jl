@@ -680,7 +680,7 @@ function iszero(v::SubQuoElem{<:AbsLocalizedRingElem})
   iszero(Mb(u)) && return true
 
   B = relations_matrix(M)
-  success, y = has_solution(b, B)
+  success, y = has_solution(B, b)
   !success && return false
 
   # Cache the new relation in the pre_saturated_module
