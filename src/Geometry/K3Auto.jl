@@ -207,7 +207,7 @@ export chamber, BorcherdsCtx
 @doc Markdown.doc"""
     chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, [parent_wall::fmpz_mat, walls::Vector{fmpz_mat}])
 
-Return the chamber with the given weyl vector.
+Return the chamber with the given Weyl vector.
 """
 function chamber(data::BorcherdsCtx, weyl_vector::fmpz_mat, parent_wall::fmpz_mat=zero_matrix(ZZ, 0, 0))
   D = K3Chamber()
