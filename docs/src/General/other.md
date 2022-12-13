@@ -2,7 +2,7 @@
 
 ## General differences
 
-- TODO: ``2^{100}`` is evaluated to 0; write ``fmpz(2)^100`` to get
+- TODO: ``2^{100}`` is evaluated to 0; write ``fmpz(2)^{100}`` to get
   a long
 
 ## Notes for GAP users
