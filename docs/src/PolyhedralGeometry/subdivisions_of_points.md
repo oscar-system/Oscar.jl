@@ -10,7 +10,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["subdivision_of_points.md"]
+Pages = ["subdivisions_of_points.md"]
 ```
 
 # Subdivisions of Points
