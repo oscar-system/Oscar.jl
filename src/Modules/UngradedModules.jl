@@ -4645,7 +4645,11 @@ function Hecke.ring(I::MPolyIdeal)
   return parent(gen(I, 1))
 end
 
-function *(I::Ideal{T}, M::ModuleFP{T}) where {T<:RingElem}
+# We can not use the signature with T because the MPolyQuoIdeals are 
+# not parametrized by the element type of their ring.
+#function *(I::Ideal{T}, M::ModuleFP{T}) where {T<:RingElem}
+function *(I::Ideal, M::ModuleFP)
+  base_ring(I) === base_ring(M) || error("ideal and module are not defined over the same ring")
   return sub(M, [g*e for g in gens(I) for e in gens(M)])
 end
 
