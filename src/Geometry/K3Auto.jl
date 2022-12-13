@@ -1531,7 +1531,7 @@ function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{f
   #sort!(separating_walls, by=di)
   separating_walls0 = deepcopy(separating_walls)
   while length(separating_walls0)>0
-    _,i = findmax(di(r) for r in separating_walls0)
+    _,i = findmax([di(r) for r in separating_walls0])
     r = separating_walls0[i]
     deleteat!(separating_walls0,i)
     if inner_product(V,h2,r)[1,1]>0
