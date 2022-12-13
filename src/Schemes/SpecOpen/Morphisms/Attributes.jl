@@ -54,9 +54,6 @@ function pullback(f::SpecOpenMor)
       end
       push!(a, b)
     end
-    @show a
-    @show ngens(V)
-    @show ngens(U)
     pb_res = [[pullback(restrict(f[i], W[i][j], U[a[i][j]], check=false)) for j in 1:ngens(W[i])] for i in 1:ngens(V)]
     lift_maps = [restriction_map(W[i], V[i], one(ambient_coordinate_ring(V[i])), check=false) for i in 1:ngens(V)]
     function mymap(a::SpecOpenRingElem)
