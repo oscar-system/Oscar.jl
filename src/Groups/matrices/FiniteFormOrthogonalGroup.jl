@@ -827,6 +827,7 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
   gensOT = fmpz_mat[]
   pd = sort(prime_divisors(order(T)))
   blocks = TorQuadModMor[primary_part(T, pd[1])[2]]
+  ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
     f = blocks[end]
@@ -835,6 +836,7 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
     _T = domain(j)
     _f = primary_part(_T, pd[1])[2]
     push!(blocks, compose(_f, j))
+    push!(ni, ngens(domain(_f)))
     popfirst!(pd)
   end
   Torth, _, _ = Hecke._orthogonal_sum_with_injections_and_projections(domain.(blocks))
@@ -847,9 +849,13 @@ function _compute_gens_split_degenerate(T::TorQuadMod)
   # to add since we can't map different primary parts to each other.
   orth_blocks = _compute_gens_split_degenerate_primary.(domain.(blocks))
   gensOTorth = fmpz_mat[]
-  for x in Hecke.cartesian_product_iterator(orth_blocks, inplace=false)
-    m = block_diagonal_matrix([f for f in x])
-    push!(gensOTorth, m)
+  for i in 1:length(ni)
+    nb = sum(ni[1:i-1])
+    na = sum(ni[(i+1):end])
+    @assert na+nb+ni[i] == sum(ni)
+    Inb = identity_matrix(ZZ, nb)
+    Ina = identity_matrix(ZZ, na)
+    append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
 
   gensOTorth = TorQuadModMor[hom(Torth, Torth, g) for g in gensOTorth]
@@ -868,6 +874,12 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
     gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
     gensOT = fmpz_mat[compose(compose(i, g), j).map_ab.map for g in gensOT]
     return gensOT
+  end
+
+  # to avoid to have a trivial normal form, we take care of this earlier
+  if iszero(gram_matrix_quadratic(T))
+    gensOT = gens(automorphism_group(abelian_group(T)))
+    return matrix.(gensOT)
   end
 
   @assert is_prime_power_with_data(elementary_divisors(T)[end])[1]
@@ -896,7 +908,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
   end
   n2 = nrows(gensOrd[1])
 
-  # finally, we have to consider automorphism which maps N into rd: these are well
+  # finally, we have to consider automorphism which maps N into N+rd: these are well
   # defined because N and rd are orthogonal and the quadratic form on rd is trivial.
   R, psi = hom(abelian_group(N), abelian_group(rd), task = :map)
   Ntord = fmpz_mat[matrix(psi(f)) for f in gens(R)]
@@ -907,7 +919,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadMod)
   @assert ok
 
   # We have two kind of generators: block diagonal matrices coming from isometries
-  # of N and rd, and those acting identically on N and rd but which send N to rd.
+  # of N and rd, and those acting identically on N and rd but which send N to N+rd.
   # Combining all of them together, we have generators (maybe the set is too big
   # compared to what is needed) for the orthogonal group of Torth, and so of T.
   gensOTorth = fmpz_mat[]

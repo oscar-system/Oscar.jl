@@ -94,10 +94,17 @@ end
   @test order(orthogonal_group(TT)) == 62208
   @test orthogonal_group(TT) === orthogonal_group(TT)
   @test order(orthogonal_group(TT2)) == 2
-  @test order(orthogonal_group(r3)) == 48
+  @test order(orthogonal_group(r3)) == 48  # this is the order of GL_2(3)
 
   T = TorQuadMod(matrix(QQ, 1, 1, [1//27]))
   Tsub, _ = sub(T, 3*gens(T))
   @test_throws ArgumentError orthogonal_group(Tsub)
+
+  L = direct_sum(L, root_lattice(:A, 6))[1]
+  T = discriminant_group(L)
+  Tsub, _ = sub(T, [3*T[1], 3*T[2]])
+  @assert !is_semi_regular(Tsub)
+  @test order(orthogonal_group(Tsub)) == 24 # expected because for A_6, we have order 2
+                                            # and the discriminant group is 7-elementary
 end
 
