@@ -343,7 +343,7 @@ end
 
 
 """
-Compute the fingerprint of Plesken-Souvignier and change the basis
+Compute the fingerprint defined by Plesken-Souvignier and change the basis
 matrix and gram matrix accordingly.
 
 It is computed from the walls and the gram matrix of `S`.
