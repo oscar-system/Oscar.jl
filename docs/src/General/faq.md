@@ -16,7 +16,7 @@ You can find our installation instructions [here](https://oscar.computeralgebra.
 **Q: Why do some of your types have funny names like `fmpz` or `fmpq_mat`?**
 
 This has historical reasons. We plan to rename these types before OSCAR 1.0
-(the old names will still work indefinitely, though)
+(the old names will still work indefinitely, though).
 
 ---
 
@@ -24,11 +24,11 @@ This has historical reasons. We plan to rename these types before OSCAR 1.0
 
 Unfortunately, Julia's matrices and linear algebra cannot be made to work in
 our context due to two independent problems:
-  - in empty matrices (0 rows or columns) all that is known is the *type* of
+  - In empty matrices (0 rows or columns) all that is known is the *type* of
     the matrix entries, however for the complex types used in OSCAR, this
     information is not sufficient to create elements, hence `zero(T)` or
     friends cannot work.
-  - many functions (e.g. `det`) assume that all types used embed into the
+  - Many functions (e.g. `det`) assume that all types used embed into the
     real or complex numbers, in Julia `det(ones(Int, (1,1))) == 1.0`, so the
     fact that this is exactly the integer `1`  is lost. Furthermore, more
     general rings cannot be embedded into the reals at all.
@@ -38,8 +38,8 @@ our context due to two independent problems:
 **Q: Why can `zero(T)` for a type `T` not work?**
 
 At least two reasons:
-  - the type depends on data that is not a bit-type
-  - even if it could, it is not desirable. Typical example: computations in
+  - The type depends on data that is not a bit-type.
+  - Even if it could, it is not desirable. Typical example: computations in
     ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
     define a type `T` depending on ``n``. We actually did this, and tried to
     use this. It did not work well, for various reasons. E.g.:
