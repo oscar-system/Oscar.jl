@@ -348,7 +348,7 @@ matrix and gram matrix accordingly.
 
 It is computed from the walls and the gram matrix of `S`.
 
-a permutation per for the
+A permutation `per` for the
 order of the basis-vectors is chosen
 such that in every step the number of
 possible continuations is minimal,
