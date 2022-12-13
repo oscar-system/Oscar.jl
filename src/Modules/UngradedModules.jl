@@ -4645,7 +4645,7 @@ function Hecke.ring(I::MPolyIdeal)
   return parent(gen(I, 1))
 end
 
-function *(I::MPolyIdeal{T}, M::ModuleFP{T}) where {T<:RingElem}
+function *(I::Ideal{T}, M::ModuleFP{T}) where {T<:RingElem}
   return sub(M, [g*e for g in gens(I) for e in gens(M)])
 end
 
