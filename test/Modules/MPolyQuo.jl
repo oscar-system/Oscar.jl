@@ -69,3 +69,22 @@ end
     h = compose(f, g) 
     @test h(F[1]) == FW[1]
 end
+
+@testset "hom for modules over quotient rings" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  A, _ = quo(R, ideal(R, [x^2, y, z]))
+  F = FreeMod(A, 2)
+  N, _ = quo(F, (ideal(A, [x,y,z])*F)[1])
+  H, interp = hom(N, F)
+  @test !iszero(H)
+  @test ngens(H) == 4
+
+  R, (x,y,z) = QQ["x", "y", "z"]
+  A, _ = quo(R, ideal(R, [x^2, y, z]))
+  W, _ = localization(A, complement_of_ideal(ideal(R, [x,y,z])))
+  F = FreeMod(W, 2)
+  N, _ = quo(F, (ideal(W, [x,y,z])*F)[1])
+  H, interp = hom(N, F)
+  @test !iszero(H)
+  @test ngens(H) == 4
+end
