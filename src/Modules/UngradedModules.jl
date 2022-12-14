@@ -3658,7 +3658,7 @@ function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :a
     return sparse_row(base_ring(parent(a)))
   end
   if task == :auto
-    if base_ring(base_ring(parent(a))) isa Field
+    if coefficient_ring(base_ring(parent(a))) isa Field #base_ring(base_ring(...)) does not work for MPolyQuos
       task = :via_transform
     else
       task = :via_lift
