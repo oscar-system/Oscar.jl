@@ -40,6 +40,30 @@ function coordinates(
   return sparse_row(R, entries)
 end
 
+########################################################################
+# Methods which should not be necessary, but the stuff doesn't work,   #
+# unless we implement them.                                            #
+########################################################################
+@attr function kernel(
+    f::FreeModuleHom{DomainType, CodomainType}
+  ) where {
+           DomainType<:FreeMod{<:MPolyQuoElem},
+           CodomainType<:SubQuo{<:MPolyQuoElem}
+          }
+  R = base_ring(codomain(f))
+  P = base_ring(R)
+  F = _poly_module(domain(f))
+  M = _as_poly_module(codomain(f))
+  id = _iso_with_poly_module(codomain(f))
+  # Why does img_gens(f) return a list of SubQuoElems???
+  phi = _lifting_iso(codomain(f))
+  g = hom(F, M, phi.(f.(gens(domain(f)))))
+  K, inc = kernel(g)
+  tr =  compose(inc, _poly_module_restriction(domain(f)))
+  KK, inc2 = sub(domain(f), tr.(gens(K)))
+  return KK, inc2
+end
+
 function coordinates(
     v::FreeModElem{T}, 
     M::SubModuleOfFreeModule{T}, 
@@ -126,3 +150,28 @@ end
   return MP
 end
 
+@attr function _as_poly_module(M::SubQuo{T}) where {T<:MPolyQuoElem}
+  F = ambient_free_module(M) 
+  FP = _poly_module(F)
+  v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
+  w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
+  w_ext = vcat(w, [_lifting_map(F)(g) for g in relations(M)])
+  MP = SubQuo(FP, v, w_ext)
+  return MP
+end
+
+@attr function _iso_with_poly_module(F::SubQuo{T}) where {T<:MPolyQuoElem}
+  M = _as_poly_module(F)
+  return hom(M, F, gens(F), x->(base_ring(F)(x)))
+end
+
+@attr function _lifting_iso(F::SubQuo{T}) where {T<:MPolyQuoElem}
+  M = _as_poly_module(F)
+  function my_lift(v::SubQuoElem{T}) where {T<:MPolyQuoElem}
+    parent(v) === F || error("element does not have the right parent")
+    w = elem_type(M)[lift(a)*M[i] for (i, a) in coordinates(v)]
+    iszero(length(w)) && return zero(M)
+    return sum(w)
+  end
+  return my_lift
+end
