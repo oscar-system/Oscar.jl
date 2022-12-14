@@ -129,11 +129,17 @@ end
    @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
      G0 = matrix_group(mats)
      G, g = Oscar.isomorphic_group_over_finite_field(G0)
+
+     @test !has_order(G0)
+     order(G0)
+     @test has_order(G0)
+
      for i in 1:10
        x, y = rand(G), rand(G)
        @test (g\x) * (g\y) == g\(x * y)
        @test g(g\x) == x
      end
+
      H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive=true))
      f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
      @test GAP.Globals.IsBijective(f)
