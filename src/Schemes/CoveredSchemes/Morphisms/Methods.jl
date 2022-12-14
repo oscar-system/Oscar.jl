@@ -43,10 +43,11 @@ end
 
 function maps_with_given_codomain(f::AbsCoveredSchemeMorphism, V::AbsSpec)
   fcov = covering_morphism(f)
-  result = Vector{AbsSpec}()
+  result = Vector{AbsSpecMor}()
   for U in keys(morphisms(fcov))
-    codomain(morphisms(fcov))[U] === V || continue
-    push!(result, U)
+    floc = morphisms(fcov)[U]
+    codomain(floc) === V || continue
+    push!(result, floc)
   end
   return result
 end
