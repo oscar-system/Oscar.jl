@@ -6,6 +6,8 @@ export tangent_sheaf
 export sheaf_of_rings
 export dual
 export LineBundle
+export PushforwardSheaf
+export is_locally_free
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -33,6 +35,11 @@ Return the sheaf of rings over which ``ℱ`` is defined.
 function sheaf_of_rings(F::AbsCoherentSheaf) 
   error("method not implemented for coherent sheaves of type $(typeof(F))")
 end
+
+function Base.show(io::IO, M::AbsCoherentSheaf)
+  print(io, "sheaf of $(sheaf_of_rings(M))-modules on $(scheme(M))")
+end
+
 
 ### The following provides a function for the internal checks that 
 # a given set U is open in and admissible for sheaves of modules on X.
@@ -384,6 +391,10 @@ sheaf_of_rings(M::HomSheaf) = M.OOX
 domain(M::HomSheaf) = M.domain
 codomain(M::HomSheaf) = M.codomain
 
+function Base.show(io::IO, M::HomSheaf)
+  print(io, "sheaf of homomorphisms from $(domain(M)) to $(codomain(M))")
+end
+
 function free_module(R::StructureSheafOfRings, n::Int)
   return free_module(R, ["e_$i" for i in 1:n])
 end
@@ -574,7 +585,12 @@ end
 
 underlying_presheaf(M::PushforwardSheaf) = M.F
 sheaf_of_rings(M::PushforwardSheaf) = M.OOY
+original_sheaf(M::PushforwardSheaf) = M.M
+map(M::PushforwardSheaf) = M.inc
 
+function Base.show(io::IO, M::PushforwardSheaf)
+  print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
+end
 ########################################################################
 # pushforward of modules                                               #
 ########################################################################
@@ -614,6 +630,9 @@ function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
   return MR, ident
 end
 
+function is_locally_free(M::AbsCoherentSheaf)
+  return all(U->is_projective(M(U)), affine_charts(scheme(M)))
+end
 
       
 

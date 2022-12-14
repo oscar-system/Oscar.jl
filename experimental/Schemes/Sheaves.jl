@@ -105,6 +105,9 @@ underlying_presheaf(S::StructureSheafOfRings) = S.OO
   return StructureSheafOfRings(X)
 end
 
+function Base.show(io::IO, R::StructureSheafOfRings)
+  print(io, "𝒪_{$(space(R))}")
+end
 ### Missing methods for compatibility of SimpleGlueings with Glueings
 function restrict(
     a::Union{MPolyElem, MPolyQuoElem, 
