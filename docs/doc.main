@@ -184,6 +184,9 @@
      ],
      "Standard Constructions" => [
        "AlgebraicGeometry/StandardConstructions/standard_constructions.md",
+     ],
+     "Surfaces" => [
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md"
      ]
   ],
 
