@@ -107,17 +107,16 @@ to the following:
 One can call the restriction maps of ``ℳ`` across charts implicitly using the
 identifications given by the glueings in the `default_covering`.
 """
-@attributes mutable struct SheafOfModules{SpaceType, OpenType, OutputType,
-                                      RestrictionType, ProductionFuncType,
-                                      RestrictionFuncType,
-                                      PreSheafType
-                                     } <: AbsCoherentSheaf{
-                                                      SpaceType, OpenType,
-                                                      OutputType, RestrictionType
-                                                     }
+@attributes mutable struct SheafOfModules{SpaceType, OpenType, 
+                                          OutputType,
+                                          RestrictionType
+                                         } <: AbsCoherentSheaf{
+                                                               SpaceType, OpenType,
+                                                               OutputType, RestrictionType
+                                                              }
   ID::IdDict{AbsSpec, ModuleFP} # the modules on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
-  M::PreSheafType # the underlying presheaf of modules for caching
+  M::PreSheafOnScheme # the underlying presheaf of modules for caching
 
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme, 
@@ -198,9 +197,7 @@ identifications given by the glueings in the `default_covering`.
                       RestrictionType=Hecke.Map,
                       is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(Mpre)}(MD, OOX, Mpre)
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(MD, OOX, Mpre)
     if false
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
@@ -325,9 +322,7 @@ end
 =#
 
 @attributes mutable struct HomSheaf{SpaceType, OpenType, OutputType,
-                                    RestrictionType, ProductionFuncType,
-                                    RestrictionFuncType,
-                                    PreSheafType
+                                    RestrictionType
                                    } <: AbsCoherentSheaf{
                                                          SpaceType, OpenType,
                                                          OutputType, RestrictionType
@@ -335,7 +330,7 @@ end
   domain::AbsCoherentSheaf{SpaceType, OpenType, OutputType, RestrictionType}
   codomain::AbsCoherentSheaf{SpaceType, OpenType, OutputType, RestrictionType}
   OOX::StructureSheafOfRings
-  M::PreSheafType
+  M::PreSheafOnScheme
 
   function HomSheaf(F::AbsCoherentSheaf, G::AbsCoherentSheaf)
     X = scheme(F)
@@ -378,9 +373,7 @@ end
                       RestrictionType=Hecke.Map,
                       is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(Mpre)}(F, G, OOX, Mpre)
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(F, G, OOX, Mpre)
 
     return M
   end
@@ -431,15 +424,13 @@ end
 end
 
 @attributes mutable struct LineBundle{SpaceType, OpenType, OutputType,
-                                      RestrictionType, ProductionFuncType,
-                                      RestrictionFuncType,
-                                      PreSheafType
+                                      RestrictionType
                                      } <: AbsCoherentSheaf{
                                                            SpaceType, OpenType,
                                                            OutputType, RestrictionType
                                                           }
   OOX::StructureSheafOfRings # the structure sheaf on X
-  M::PreSheafType # the underlying presheaf of modules for caching
+  M::PreSheafOnScheme # the underlying presheaf of modules for caching
   
   function LineBundle(C::CartierDivisor;
       check::Bool=true
@@ -483,9 +474,7 @@ end
                       RestrictionType=Hecke.Map,
                       is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(Mpre)}(OOX, Mpre)
+    M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(OOX, Mpre)
     return M
   end
 end
@@ -512,9 +501,7 @@ sheaf_of_rings(L::LineBundle) = L.OOX
 #                                                                     =#
 
 @attributes mutable struct PushforwardSheaf{SpaceType, OpenType, OutputType,
-                                            RestrictionType, ProductionFuncType,
-                                            RestrictionFuncType,
-                                            PreSheafType
+                                            RestrictionType
                                            } <: AbsCoherentSheaf{
                                                                  SpaceType, OpenType,
                                                                  OutputType, RestrictionType
@@ -524,7 +511,7 @@ sheaf_of_rings(L::LineBundle) = L.OOX
   OOY::StructureSheafOfRings
   M::AbsCoherentSheaf
   ident::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the identifications
-  F::PreSheafType
+  F::PreSheafOnScheme
 
   function PushforwardSheaf(inc::CoveredClosedEmbedding, M::AbsCoherentSheaf)
     X = domain(inc)
@@ -580,9 +567,7 @@ sheaf_of_rings(L::LineBundle) = L.OOX
                       RestrictionType=Hecke.Map,
                       is_open_func=_is_open_for_modules(Y)
                      )
-    MY = new{typeof(Y), AbsSpec, ModuleFP, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(Blubber)}(inc, OOX, OOY, M, ident, Blubber)
+    MY = new{typeof(Y), AbsSpec, ModuleFP, Hecke.Map}(inc, OOX, OOY, M, ident, Blubber)
     return MY
   end
 end

@@ -262,8 +262,6 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
 """
 @attributes mutable struct PreSheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType,
-                                       IsOpenFuncType, ProductionFuncType,
-                                       RestrictionFuncType
                                       } <: AbsPreSheaf{
                                        SpaceType, OpenType,
                                        OutputType, RestrictionType
@@ -275,16 +273,15 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
   res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
 
   # production functions for new objects
-  is_open_func::IsOpenFuncType # To check whether one set is open in the other
-  production_func::ProductionFuncType # To produce ℱ(U) for U ⊂ X
-  restriction_func::RestrictionFuncType
+  is_open_func # To check whether one set is open in the other
+  production_func # To produce ℱ(U) for U ⊂ X
+  restriction_func # To produce the restriction maps ℱ(U) → ℱ(V) for V ⊂ U ⊂ X open
 
   function PreSheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
       OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
     return new{typeof(X), OpenType, OutputType, RestrictionType,
-               typeof(is_open_func), typeof(production_func), typeof(restriction_func)
               }(X, IdDict{OpenType, OutputType}(),
                 IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
                 is_open_func, production_func, restriction_func
@@ -311,14 +308,12 @@ One can call the restriction maps of ``𝒪`` across charts, implicitly using th
 identifications given by the glueings in the `default_covering`.
 """
 @attributes mutable struct StructureSheafOfRings{SpaceType, OpenType, OutputType,
-                                          RestrictionType, ProductionFuncType,
-                                          RestrictionFuncType,
-                                          PreSheafType
-                                         } <: AbsPreSheaf{
-                                          SpaceType, OpenType,
-                                          OutputType, RestrictionType
-                                         }
-  OO::PreSheafType
+                                                 RestrictionType
+                                                } <: AbsPreSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  OO::PreSheafOnScheme
 
   ### Structure sheaf on affine schemes
   function StructureSheafOfRings(X::AbsSpec)
@@ -338,9 +333,7 @@ identifications given by the glueings in the `default_covering`.
                     RestrictionType=Hecke.Map,
                     is_open_func=is_open_func
                    )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(R)}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
   end
 
   ### Structure sheaf on covered schemes
@@ -623,9 +616,7 @@ identifications given by the glueings in the `default_covering`.
                       RestrictionType=Hecke.Map,
                       is_open_func=is_open_func
                      )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(R)}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
   end
 end
 
@@ -646,16 +637,14 @@ One can call the restriction maps of ``ℐ`` across charts, implicitly using the
 identifications given by the glueings in the `default_covering`.
 """
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
-                                      RestrictionType, ProductionFuncType,
-                                      RestrictionFuncType,
-                                      PreSheafType
+                                      RestrictionType
                                      } <: AbsPreSheaf{
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
   ID::IdDict{AbsSpec, Ideal} # the ideals on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
-  I::PreSheafType # the underlying presheaf of ideals for caching
+  I::PreSheafOnScheme # the underlying presheaf of ideals for caching
 
   ### Ideal sheaves on covered schemes
   function IdealSheaf(X::AbsCoveredScheme, ID::IdDict{AbsSpec, Ideal};
@@ -761,9 +750,7 @@ identifications given by the glueings in the `default_covering`.
                       RestrictionType=Hecke.Map,
                       is_open_func=is_open_func
                      )
-    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(Ipre)}(ID, OOX, Ipre)
+    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
     if check
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
