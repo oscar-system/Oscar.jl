@@ -479,7 +479,7 @@ identifications given by the glueings in the `default_covering`.
         object_cache::IdDict, restriction_cache::IdDict
       )
       V === U || error("basic affine patches must be the same")
-      return identity_map(OV)
+      return identity_map(OO(V))
     end
     function restriction_func(V::AbsSpec, U::PrincipalOpenSubset, 
         object_cache::IdDict, restriction_cache::IdDict
