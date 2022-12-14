@@ -88,3 +88,14 @@ end
   @test !iszero(H)
   @test ngens(H) == 4
 end
+
+@testset "free resolutions" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I = ideal(R, x*(x-1)-y*z)
+  A, _ = quo(R, I)
+  A2 = FreeMod(A, 2)
+  v = [x*A2[1] + y*A2[2], z*A2[1] + (x-1)*A2[2]]
+  M, _ = quo(A2, v)
+  p = free_resolution(M)
+  @test !iszero(p[10])
+end
