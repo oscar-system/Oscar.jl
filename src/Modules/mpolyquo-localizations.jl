@@ -98,3 +98,28 @@ function pre_saturated_module(M::SubQuo{T}) where {T<:MPolyQuoLocalizedRingElem}
   return get_attribute(M, :pre_saturated_module)::SubQuo{base_ring_elem_type(T)}
 end
 
+# The kernel routine has to be overwritten since the base_ring_module of a
+# free module does not have the modulus of the affine algebra under the 
+# localization
+function kernel(
+    f::FreeModuleHom{DomType, CodType, Nothing}
+  ) where {
+    T<:MPolyQuoLocalizedRingElem, 
+    DomType<:FreeMod{T},
+    CodType<:FreeMod{T}
+  }
+  S = base_ring(domain(f))
+  A = representing_matrix(f)
+  B, D = clear_denominators(A)
+  Fb = base_ring_module(domain(f))
+  Gb = base_ring_module(codomain(f))
+  GGb, p = quo(Gb, [g*e for g in gens(modulus(underlying_quotient(S))) for e in gens(Gb)])
+  fb = hom(Fb, Gb, B)
+  ffb = compose(fb, p)
+  Kb, incb = kernel(ffb)
+  Cb = representing_matrix(incb)
+  C = change_base_ring(S, transpose(mul(transpose(D), transpose(Cb))))
+  #C = change_base_ring(S, Cb*D)
+  K, inc = sub(domain(f), C)
+  return K, inc
+end
