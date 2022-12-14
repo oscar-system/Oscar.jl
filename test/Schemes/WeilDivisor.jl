@@ -76,6 +76,7 @@
   ft = y^2 - (x^3 + 21*x + (28*t^7+18))
   I = IdealSheaf(X, Ut, [ft])
   adeK3 = subscheme(I)
+  @test dim(singular_locus(adeK3)[1]) == 0
 
   x,y,t = coordinates(adeK3[1][6])
   # ideal defining a section of the fibration

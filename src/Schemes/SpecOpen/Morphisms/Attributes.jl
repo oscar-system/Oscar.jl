@@ -35,8 +35,26 @@ function pullback(f::SpecOpenMor)
     end
 
     pbs_from_ambient = [pullback(g) for g in maps_on_patches(f)]
-    W = [SpecOpen(V[i], ideal(OO(V[i]), pullback(f[i]).(gens(U))), check=false) for i in 1:ngens(V)]
-    pb_res = [[pullback(restrict(f[i], W[i][j], U[j], check=false)) for j in 1:ngens(U)] for i in 1:ngens(V)]
+    d = [pullback(f[i]).(gens(U)) for i in 1:ngens(V)]
+    W = [SpecOpen(V[i], ideal(OO(V[i]), d[i]), check=false) for i in 1:ngens(V)]
+    # Not every element of d needs to be non-zero. But zero elements will be 
+    # discarded by the constructor for the SpecOpen! So we need to manually 
+    # relate them for the time being. This should only be a temporary fix, however.
+    a = Vector{Vector{Int}}()
+    for i in 1:length(d)
+      b = Vector{Int}()
+      j = 1
+      for g in d[i]
+        if iszero(g) 
+          j = j + 1
+        else
+          push!(b, j)
+          j = j + 1
+        end
+      end
+      push!(a, b)
+    end
+    pb_res = [[pullback(restrict(f[i], W[i][j], U[a[i][j]], check=false)) for j in 1:ngens(W[i])] for i in 1:ngens(V)]
     lift_maps = [restriction_map(W[i], V[i], one(ambient_coordinate_ring(V[i])), check=false) for i in 1:ngens(V)]
     function mymap(a::SpecOpenRingElem)
       b = [lift_maps[i](

@@ -10,9 +10,9 @@ A closed embedding ``f : X → Y`` of affine schemes ``X = Spec(S)``
 into ``Y = Spec(R)`` such that ``S ≅ R/I`` via ``f`` for some
 ideal ``I ⊂ R``.
 """
-@attributes mutable struct ClosedEmbedding{DomainType,
-                                           CodomainType,
-                                           PullbackType
+@attributes mutable struct ClosedEmbedding{DomainType<:AbsSpec,
+                                           CodomainType<:AbsSpec,
+                                           PullbackType<:Hecke.Map
                                           }<:AbsSpecMor{DomainType,
                                                         CodomainType,
                                                         PullbackType,

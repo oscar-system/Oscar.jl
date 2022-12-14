@@ -3,6 +3,7 @@
     target = hirzebruch_surface(2)
     tm1 = ToricMorphism(source, matrix(ZZ, [[0, 1]]), target)
     tm2 = ToricIdentityMorphism(target)
+    tm3 = ToricIdentityMorphism(hirzebruch_surface(4))
 
     @testset "Argument errors for toric morphisms" begin
         @test_throws ArgumentError tm1 * tm1
@@ -23,5 +24,7 @@
         @test morphism_on_torusinvariant_cartier_divisor_group(tm2).map == identity_matrix(ZZ, 4)
         @test grid_morphism(morphism_from_cox_variety(source)).map == matrix(ZZ, [[1], [-1]])
         @test is_affine(cox_variety(source)) == false
+        @test matrix(morphism_on_class_group(tm3)) == matrix(ZZ, [[1, 0], [0, 1]])
+        @test matrix(morphism_on_picard_group(tm3)) == matrix(ZZ, [[1, 0], [0, 1]])
     end
 end

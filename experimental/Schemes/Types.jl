@@ -87,7 +87,7 @@ If no morphism `A → B` of the base rings is specified, then
 both ``P`` and ``Q`` are assumed to be defined in relative projective
 space over the same ring with the identity on the base.
 """
-mutable struct ProjectiveSchemeMor{
+@attributes mutable struct ProjectiveSchemeMor{
     DomainType<:ProjectiveScheme,
     CodomainType<:ProjectiveScheme,
     PullbackType<:Hecke.Map,
@@ -99,6 +99,7 @@ mutable struct ProjectiveSchemeMor{
   domain::DomainType
   codomain::CodomainType
   pullback::PullbackType
+  base_ring_morphism::Hecke.Map
 
   #fields for caching
   map_on_base_schemes::SchemeMor
@@ -110,7 +111,10 @@ mutable struct ProjectiveSchemeMor{
       Q::CodomainType,
       f::PullbackType;
       check::Bool=true
-    ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
+    ) where {DomainType<:ProjectiveScheme, 
+             CodomainType<:ProjectiveScheme, 
+             PullbackType<:Map
+            }
     T = ambient_coordinate_ring(P)
     S = ambient_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
@@ -119,6 +123,26 @@ mutable struct ProjectiveSchemeMor{
     end
     return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
   end
+  
+  ### Morphisms with an underlying base change
+  function ProjectiveSchemeMor(
+      P::DomainType,
+      Q::CodomainType,
+      f::PullbackType;
+      check::Bool=true
+    ) where {DomainType<:ProjectiveScheme, 
+             CodomainType<:ProjectiveScheme, 
+             PullbackType<:MPolyAnyMap{<:Any, <:Any, <:Map}
+            }
+    T = ambient_coordinate_ring(P)
+    S = ambient_coordinate_ring(Q)
+    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
+    if check
+      #TODO: Check map on ideals (not available yet)
+    end
+    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f, coefficient_map(f))
+  end
+
 
   ### complicated morphisms over a non-trivial morphism of base schemes
   function ProjectiveSchemeMor(
@@ -142,7 +166,7 @@ mutable struct ProjectiveSchemeMor{
       T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) || error("maps not compatible")
       coefficient_map(f) == pbh || error("maps not compatible")
     end
-    return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, h)
+    return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, coefficient_map(f), h)
   end
 end
 
