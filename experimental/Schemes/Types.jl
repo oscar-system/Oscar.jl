@@ -717,7 +717,7 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
       haskey(ID, U) && return ID[U]
       # The ideal sheaf has to be provided on at one dense
       # open subset of every connected component.
@@ -737,16 +737,20 @@ identifications given by the glueings in the `default_covering`.
       end
       return ideal(OO(U), one(OO(U)))
     end
-    function production_func(U::PrincipalOpenSubset)
+    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
       V = ambient_scheme(U)
-      IV = production_func(V)
+      IV = production_func(V, object_cache, restriction_cache)
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
       return IU
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, IV::Ideal, U::AbsSpec, IU::Ideal)
+    function restriction_func(V::AbsSpec, U::AbsSpec, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      #IU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+      #IV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
       return OOX(V, U) # This does not check containment of the arguments
                        # in the ideal. But this is not a parent check and
                        # hence expensive, so we might want to not do that.
