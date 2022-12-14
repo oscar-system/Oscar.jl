@@ -1,9 +1,14 @@
 ################################################################################
 # Upgrade Summary
-# Defines an OscarBasictype, and any Vector{OscarBasictype} will not have
-# backrefs in any entry. Instead all entries of the array will have their
-# representative only and the entry_type is given for all entries once on
-# the save level as the :vector key
+# Instances of the types in this union are not serialized with backref,
+# and when serialized as entry of a `Vector{T} where T <: OscarBasicType` then
+# the type is not serialized in the entry, but only in the vector.
+# Other containers types are also affected by this upgrade, mainly
+# container types that use Vector serialization. 
+# Instances of the form `Tuple{T} where T <: OscarBasicType` are also no longer
+# serialized with backref, however these types were already storing there types
+# outside of the JSON array of entries
+
 upgrade_script = UpgradeScript(
     v"0.11.2",
     function (s::DeserializerState, dict::Dict) 
