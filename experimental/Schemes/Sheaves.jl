@@ -125,4 +125,105 @@ function restrict(
   return OO(U)(a, check=false)
 end
 
+########################################################################
+# Sections of sheaves                                                  #
+########################################################################
+
+abstract type AbsPreSheafSection{SpaceType, 
+                                 ParentType<:AbsPreSheaf, 
+                                 OpenType, 
+                                 ElemType
+                                } end
+
+@Markdown.doc """
+    (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
+
+For a section ``v`` in a presheaf ``ℱ`` on ``X`` and an admissible 
+open subset ``U ⊂ X`` return an element ``s ∈ ℱ(U)`` representing the section.
+"""
+function (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
+  error("method not implemented")
+end
+
+parent(v::AbsPreSheafSection) = parent(underlying_section(v))
+space(v::AbsPreSheafSection) = space(underlying_section(v))
+cache_dict(v::AbsPreSheafSection) = cache_dict(underlying_section(v))
+production_func(v::AbsPreSheafSection) = production_func(underlying_section(v))
+
+mutable struct PreSheafSection{SpaceType, 
+                               ParentType<:AbsPreSheaf, 
+                               OpenType,
+                               ElemType
+                              } <: AbsPreSheafSection{SpaceType, 
+                                                      ParentType, 
+                                                      OpenType,
+                                                      ElemType
+                                                     }
+  X::SpaceType
+  F::ParentType
+  D::IdDict{OpenType, ElemType}
+  production_func
+
+  function PreSheafSection(F::AbsPreSheaf, 
+      D::IdDict{OpenType, ElemType},
+      production_func
+    ) where {OpenType, ElemType}
+    X = space(F)
+    return new{typeof(X), typeof(F), OpenType, ElemType}(X, F, D)
+  end
+end
+
+parent(v::PreSheafSection) = v,F
+space(v::PreSheafSection) = v.X
+cache_dict(v::PreSheafSection) = v.D
+production_func(v::PreSheafSection) = v.production_func
+
+function (v::PreSheafSection{<:Any, <:AbsPreSheaf, OpenType, ElemType})(U::OpenType) where {OpenType, ElemType}
+  # First, look up whether this local representative has already been cached
+  haskey(cache_dict(v)) && return cache_dict(v)[U]
+  # If not, delegate to the production function.
+  # These can restrict from suitable bigger sets, assemble from compatible 
+  # sections on refinements, extend trivially from other patches...
+  s = production_func(v)(U, cache_dict(v)) 
+  cache_dict(v)[U] = s
+  return s::ElemType
+end
+
+function _production_func_for_coherent_sheaves(F::AbsCoherentSheaf)
+  X = scheme(F)
+  # We assume the following.
+  # The section is defined on all affine charts of X.
+  # Every admissible open subset is a PrincipalOpenSubset of 
+  # some affine chart.
+  function prod_func(U::AbsSpec, D::IdDict)
+    U in affine_charts(X) || error("open set is not an affine chart of the scheme")
+    error("section is not defined in this chart")
+  end
+  function prod_func(U::PrincipalOpenSubset, D::IdDict)
+    V = ambient_scheme(U)
+    t = haskey(D, V) ? D[V] : production_func(V, D)
+    # Per default we do not cache local sections 
+    return F(V, U)(t)
+  end
+end
+
+mutable struct CoherentSheafSection{SpaceType, ParentType<:AbsPreSheaf, 
+                                    OpenType, ElemType
+                                   } <: AbsPreSheafSection{SpaceType, ParentType, 
+                                                           OpenType, ElemType
+                                                          }
+  s::PreSheafSection{SpaceType, ParentType, OpenType, ElemType}
+
+  function CoherentSheafSection(
+      F::AbsCoherentSheaf,
+      D::Dict{AbsSpec, ModuleFPElem}
+    )
+    X = scheme(F)
+    all(U->haskey(D, U), affine_charts(X)) || error("section must be defined on all affine charts")
+    s = PreSheafSection(F, D, _production_func_for_coherent_sheaves(F))
+    return new{typeof(X), typeof(F), AbsSpec, ModuleFPElem}(s)
+  end
+end
+
+underlying_section(s::CoherentSheafSection) = s.s
 
