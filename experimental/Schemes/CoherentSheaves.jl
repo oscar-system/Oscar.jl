@@ -59,7 +59,6 @@ function _is_open_for_modules(X::AbsCoveredScheme)
       G = C[A, B] # Get the glueing
       f, g = glueing_morphisms(G)
       is_subset(U, domain(f)) || return false
-      is_subset(V, domain(g)) || return false
       gU = preimage(g, U)
       is_subset(gU, V) || return false
     end
@@ -388,6 +387,7 @@ end
 end
 
 underlying_presheaf(M::HomSheaf) = M.M
+sheaf_of_rings(M::HomSheaf) = M.OOX
 domain(M::HomSheaf) = M.domain
 codomain(M::HomSheaf) = M.codomain
 
@@ -522,16 +522,16 @@ sheaf_of_rings(L::LineBundle) = L.OOX
   inc::CoveredClosedEmbedding
   OOX::StructureSheafOfRings
   OOY::StructureSheafOfRings
-  M::SheafOfModules
+  M::AbsCoherentSheaf
   ident::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the identifications
   F::PreSheafType
 
-  function PushForwardSheaf(inc::CoveredClosedEmbedding, M::AbsCoherentSheaf)
+  function PushforwardSheaf(inc::CoveredClosedEmbedding, M::AbsCoherentSheaf)
     X = domain(inc)
     X === scheme(M) || error("sheaf must be defined over the domain of the embedding")
     OOX = sheaf_of_rings(M)
     Y = codomain(inc)
-    OOY = sheaf_of_rings(Y)
+    OOY = OO(Y)
 
     ### Production of the modules on open sets; to be cached
     function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
@@ -558,7 +558,7 @@ sheaf_of_rings(L::LineBundle) = L.OOX
         object_cache::IdDict, restriction_cache::IdDict
       )
       MYV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      MUY = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+      MYU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       incV_list = maps_with_given_codomain(inc, V)
       incU_list = maps_with_given_codomain(inc, U)
       # return the zero homomorphism in case one of the two sets has 
@@ -575,18 +575,20 @@ sheaf_of_rings(L::LineBundle) = L.OOX
     
     ident = IdDict{AbsSpec, Union{Hecke.Map, Nothing}}()
 
-    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+    Blubber = PreSheafOnScheme(Y, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=_is_open_for_modules(X)
+                      is_open_func=_is_open_for_modules(Y)
                      )
-    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
+    MY = new{typeof(Y), AbsSpec, ModuleFP, Hecke.Map,
                typeof(production_func), typeof(restriction_func),
-               typeof(Mpre)}(inc, OOX, OOY, M, ident, MPre)
+               typeof(Blubber)}(inc, OOX, OOY, M, ident, Blubber)
     return MY
   end
 end
 
+underlying_presheaf(M::PushforwardSheaf) = M.F
+sheaf_of_rings(M::PushforwardSheaf) = M.OOY
 
 ########################################################################
 # pushforward of modules                                               #
@@ -620,9 +622,9 @@ function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
   Mrels = relations(M)
   FR, identF = _pushforward(f, I, FS)
   MRgens = [preimage(identF, v) for v in ambient_representatives_generators(M)]
-  MRrels = [preimage(identF, w) for w in relations(M)]
-  MRrels_ext = vcat(MRrels, [g*e for g in gens(I) for e in gens(FR)])
-  MR = SubQuo(FR, MRgens, MRrels_ext)
+  MRrels = elem_type(FR)[preimage(identF, w) for w in relations(M)]
+  MRrels_ext = vcat(MRrels, elem_type(FR)[g*e for g in gens(I) for e in gens(FR)])
+  MR = quo(sub(FR, MRgens)[1], sub(FR, MRrels_ext)[1])[1]
   ident = hom(MR, M, gens(M), f)
   return MR, ident
 end

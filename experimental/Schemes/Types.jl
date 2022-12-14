@@ -325,6 +325,7 @@ identifications given by the glueings in the `default_covering`.
     function is_open_func(U::AbsSpec, V::AbsSpec)
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
     end
+
     function production_func(U::AbsSpec)
       return OO(U)
     end
@@ -362,14 +363,13 @@ identifications given by the glueings in the `default_covering`.
       A = ambient_scheme(U)
       A in C || return false
       B = ambient_scheme(V)
-      B in C || return false
+      B in affine_charts(X) || return false
       if A === B
         is_subset(U, V) || return false
       else
         G = C[A, B] # Get the glueing
         f, g = glueing_morphisms(G)
         is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
         gU = preimage(g, U)
         is_subset(gU, V) || return false
       end
