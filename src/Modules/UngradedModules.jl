@@ -4527,8 +4527,10 @@ function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sy
 end
 
 @doc Markdown.doc"""
-    free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres)
+    free_resolution(M::SubQuo{<:MPolyElem}; 
+        ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres
+      )
 
 Return a free resolution of `M`.
 
@@ -4588,8 +4590,10 @@ rank   | 0  2  6  6  2
 degree | 4  3  2  1  0
 ```
 """
-function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres)
+function free_resolution(M::SubQuo{<:MPolyElem}; 
+    ordering::ModuleOrdering = default_ordering(M),
+    length::Int=0, algorithm::Symbol=:fres
+  )
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -4649,6 +4653,27 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   cc.complete = cc_complete
 
   return FreeResolution(cc)
+end
+
+function free_resolution(M::SubQuo{T}) where {T<:RingElem}
+  # This generic code computes a free resolution in a lazy way.
+  # We start out with a presentation of M and implement 
+  # an iterative fill function to compute every higher term 
+  # on request.
+  R = base_ring(M)
+  p = presentation(M)
+  p.fill = function(C::Hecke.ChainComplex, k::Int)
+    # TODO: Use official getter and setter methods instead 
+    # of messing manually with the internals of the complex.
+    for i in first(range(C)):k-1
+      K, inc = kernel(map(C, i))
+      F = FreeMod(R, ngens(K))
+      phi = hom(F, C[i], inc.(gens(K)))
+      pushfirst!(C.maps, phi)
+    end
+    return first(C.maps)
+  end
+  return p
 end
 
 
