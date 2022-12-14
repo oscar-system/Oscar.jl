@@ -416,6 +416,7 @@ function kernel(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
+
   S = base_ring(domain(f))
   A = representing_matrix(f)
   B, D = clear_denominators(A)
