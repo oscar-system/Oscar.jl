@@ -72,6 +72,39 @@ function coordinates(
   return coordinates(v, M)
 end
 
+#function free_resolution(M::SubQuo{T}) where {T<:MPolyQuoElem}
+#  R = base_ring(M)
+#  p = presentation(M)
+#  K, inc = kernel(map(p, 1))
+#  i = 1
+#  while !iszero(K)
+#    F = FreeMod(R, ngens(K))
+#    phi = hom(F, p[i], inc.(gens(K)))
+#    p = Hecke.ChainComplex(ModuleFP, pushfirst!(ModuleFPHom[map(p, i) for i in collect(range(p))[1:end-1]], phi), check=false, seed = -2)
+#    i = i+1
+#    K, inc = kernel(phi)
+#  end
+#  #end_map = hom(FreeMod(R, 0), K, elem_type(K)[])
+#  p = Hecke.ChainComplex(ModuleFP, vcat(ModuleFPHom[inc], ModuleFPHom[map(p, i) for i in collect(range(p))[1:end-1]]), check=false, seed = -2)
+#  return p
+#end
+
+function free_resolution(M::SubQuo{T}; bound::Int=3) where {T<:MPolyQuoElem}
+  R = base_ring(M)
+  p = presentation(M)
+  p.fill = function(C::Hecke.ChainComplex, k::Int)
+    for i in first(range(C)):k-1
+      K, inc = kernel(map(C, i))
+      F = FreeMod(R, ngens(K))
+      phi = hom(F, C[i], inc.(gens(K)))
+      pushfirst!(C.maps, phi)
+    end
+    return first(C.maps)
+  end
+  return p
+end
+
+
 ########################################################################
 # Auxiliary helping functions to allow for the above                   #
 ########################################################################
