@@ -492,3 +492,142 @@ end
 
 underlying_presheaf(L::LineBundle) = L.M
 sheaf_of_rings(L::LineBundle) = L.OOX
+
+########################################################################
+# Pushforwards of sheaves for closed embeddings                        #
+########################################################################
+
+#=
+# Let f : X ↪ Y be a closed embedding with ideal sheaf ℐ on Y and ℳ 
+# a sheaf of modules on X. For an open set U ⊂ Y we have 
+# f_* ℳ (U) to be the 𝒪_X(f⁻¹(U))-module ℳ (f⁻¹(U)), but seen as 
+# an 𝒪_Y(U)-module via the natural restriction of functions. 
+#
+# Mathematically, this is almost an implicit operation. But since we 
+# do not have natural bi-module structures, we need to set up a new 
+# sheaf of modules on Y, together with canonical identifications 
+# with the modules on X. 
+#
+# It is clear that this can and should be made lazy.
+#                                                                     =#
+
+@attributes mutable struct PushforwardSheaf{SpaceType, OpenType, OutputType,
+                                            RestrictionType, ProductionFuncType,
+                                            RestrictionFuncType,
+                                            PreSheafType
+                                           } <: AbsCoherentSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  inc::CoveredClosedEmbedding
+  OOX::StructureSheafOfRings
+  OOY::StructureSheafOfRings
+  M::SheafOfModules
+  ident::IdDict{AbsSpec, Union{Hecke.Map, Nothing}} # a dictionary caching the identifications
+  F::PreSheafType
+
+  function PushForwardSheaf(inc::CoveredClosedEmbedding, M::AbsCoherentSheaf)
+    X = domain(inc)
+    X === scheme(M) || error("sheaf must be defined over the domain of the embedding")
+    OOX = sheaf_of_rings(M)
+    Y = codomain(inc)
+    OOY = sheaf_of_rings(Y)
+
+    ### Production of the modules on open sets; to be cached
+    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+      # In case X was empty, return the zero module and store nothing in the identifications.
+      if isempty(X) 
+        ident[U] = nothing
+        return FreeMod(OOY(U), 0)
+      end
+
+      # Check whether U ⊂ Y has a nontrivial preimage in X
+      f = maps_with_given_codomain(inc, U) # there should be at most one!
+      if iszero(length(f))
+        ident[U] = nothing
+        return FreeMod(OOY(U), 0)
+      end
+      ff = first(f)
+      UX = domain(ff)
+      MU, ident_map = _pushforward(pullback(ff), image_ideal(ff), M(UX))
+      ident[U] = ident_map
+      return MU
+    end
+
+    function restriction_func(V::AbsSpec, U::AbsSpec, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      MYV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      MUY = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+      incV_list = maps_with_given_codomain(inc, V)
+      incU_list = maps_with_given_codomain(inc, U)
+      # return the zero homomorphism in case one of the two sets has 
+      # empty preimage.
+      if iszero(length(incV_list)) || iszero(length(incU_list)) 
+        return hom(MYV, MYU, elem_type(MYU)[zero(MYU) for i in 1:ngens(MYV)], OOY(V, U))
+      end
+      incV = first(incV_list)
+      incU = first(incU_list)
+      res_orig = M(domain(incV), domain(incU))
+      img_gens = res_orig.(gens(M(domain(incV))))
+      return hom(MYV, MYU, (x->preimage(ident[U], x)).(img_gens), OOY(V, U))
+    end
+    
+    ident = IdDict{AbsSpec, Union{Hecke.Map, Nothing}}()
+
+    Mpre = PreSheafOnScheme(X, production_func, restriction_func,
+                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      RestrictionType=Hecke.Map,
+                      is_open_func=_is_open_for_modules(X)
+                     )
+    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
+               typeof(production_func), typeof(restriction_func),
+               typeof(Mpre)}(inc, OOX, OOY, M, ident, MPre)
+    return MY
+  end
+end
+
+
+########################################################################
+# pushforward of modules                                               #
+########################################################################
+#
+# It is assumed that f : R → S is a map of rings such that S ≅ R/I and 
+# M is an S-module. We transform M into an R-module by adding the 
+# necessary relations. The return value is that new module M', together 
+# with its identification map M' → M. Note that we can not give the 
+# inverse of this map, since there is no well-defined underlying ring 
+# homomorphism.
+function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::FreeMod)
+  R = domain(f)
+  S = codomain(f)
+  base_ring(I) === R || error("ideal is not defined over the correct ring")
+  base_ring(M) === S || error("module is not defined over the correct ring")
+  FR = FreeMod(R, M.S) # M.S are the symbols of M
+  #FRtoM = hom(FR, M, gens(M), f)
+  MR, res = quo(FR, (I*FR)[1])
+  ident = hom(MR, M, gens(M), f)
+  return MR, ident
+end
+
+function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
+  R = domain(f)
+  S = codomain(f)
+  base_ring(I) === R || error("ideal is not defined over the correct ring")
+  base_ring(M) === S || error("module is not defined over the correct ring")
+  FS = ambient_free_module(M)
+  Mgens = ambient_representatives_generators(M)
+  Mrels = relations(M)
+  FR, identF = _pushforward(f, I, FS)
+  MRgens = [preimage(identF, v) for v in ambient_representatives_generators(M)]
+  MRrels = [preimage(identF, w) for w in relations(M)]
+  MRrels_ext = vcat(MRrels, [g*e for g in gens(I) for e in gens(FR)])
+  MR = SubQuo(FR, MRgens, MRrels_ext)
+  ident = hom(MR, M, gens(M), f)
+  return MR, ident
+end
+
+
+      
+
+
