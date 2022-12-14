@@ -45,6 +45,8 @@ end
   TC1 = TC(U[1])
   U21 = PrincipalOpenSubset(U[2], gens(OO(C)(U[2]))[1])
   U321 = PrincipalOpenSubset(U[3], gens(OO(C)(U[3]))[1]*gens(OO(U[3]))[2])
+  @test !iszero(TC(U321))
+  @test !iszero(TC(U21))
   @test TC(U[1], U321)(TC1[1]) == TC(U21, U321)(TC(U[1], U21)(TC1[1]))
   incTC = Oscar.PushforwardSheaf(inc, TC)
   U = affine_charts(X)

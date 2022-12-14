@@ -72,25 +72,25 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     return true
   end
   function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-    return Y === X && ambient_scheme(U) in default_covering(X)
+    return Y === X && ambient_scheme(U) in affine_charts(X)
   end
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-    return Y === X && U in default_covering(X)
+    return Y === X && U in affine_charts(X)
   end
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
   function is_open_func(U::AbsSpec, V::AbsSpec)
-    U in default_covering(X) || return false
-    V in default_covering(X) || return false
-    G = default_covering(X)[U, V]
+    U in affine_charts(X) || return false
+    V in affine_charts(X) || return false
+    G = affine_charts(X)[U, V]
     return issubset(U, glueing_domains(G)[1])
   end
   function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-    V in default_covering(X) || return false
+    V in affine_charts(X) || return false
     ambient_scheme(U) === V && return true
     W = ambient_scheme(U)
-    W in default_covering(X) || return false
+    W in affine_charts(X) || return false
     G = default_covering(X)[W, V]
     return is_subset(U, glueing_domains(G)[1])
   end
@@ -551,6 +551,32 @@ sheaf_of_rings(L::LineBundle) = L.OOX
       ident[U] = ident_map
       return MU
     end
+    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
+      # In case X was empty, return the zero module and store nothing in the identifications.
+      if isempty(X) 
+        ident[U] = nothing
+        return FreeMod(OOY(U), 0)
+      end
+
+      # Check whether U ⊂ Y has a nontrivial preimage in X
+      f = maps_with_given_codomain(inc, U) # there should be at most one!
+      if !iszero(length(f))
+        # in this case, we can produce directly from the source
+        ff = first(f)
+        UX = domain(ff)
+        MU, ident_map = _pushforward(pullback(ff), image_ideal(ff), M(UX))
+        ident[U] = ident_map
+        return MU
+      end
+
+      # We need to restrict from the parent
+      W = ambient_scheme(U)
+      MW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
+      MU, res = change_base_ring(OOY(W, U), MW)
+      restriction_cache[(W, U)] = res
+      return MU
+    end
+
 
     function restriction_func(V::AbsSpec, U::AbsSpec, 
         object_cache::IdDict, restriction_cache::IdDict
