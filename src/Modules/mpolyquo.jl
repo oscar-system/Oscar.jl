@@ -89,21 +89,6 @@ end
 #  return p
 #end
 
-function free_resolution(M::SubQuo{T}; bound::Int=3) where {T<:MPolyQuoElem}
-  R = base_ring(M)
-  p = presentation(M)
-  p.fill = function(C::Hecke.ChainComplex, k::Int)
-    for i in first(range(C)):k-1
-      K, inc = kernel(map(C, i))
-      F = FreeMod(R, ngens(K))
-      phi = hom(F, C[i], inc.(gens(K)))
-      pushfirst!(C.maps, phi)
-    end
-    return first(C.maps)
-  end
-  return p
-end
-
 
 ########################################################################
 # Auxiliary helping functions to allow for the above                   #
