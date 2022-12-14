@@ -34,6 +34,63 @@ function sheaf_of_rings(F::AbsCoherentSheaf)
   error("method not implemented for coherent sheaves of type $(typeof(F))")
 end
 
+### The following provides a function for the internal checks that 
+# a given set U is open in and admissible for sheaves of modules on X.
+#
+# We allow the following cases:
+#
+#  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
+#  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
+#  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
+#    and U and V contained in the glueing domains of their ambient schemes
+#  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
+#  * U::AbsSpec ⊂ X for U in the basic charts
+#  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
+function _is_open_for_modules(X::AbsCoveredScheme)
+  function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+    C = default_covering(X)
+    A = ambient_scheme(U)
+    A in C || return false
+    B = ambient_scheme(V)
+    B in C || return false
+    if A === B
+      is_subset(U, V) || return false
+    else
+      G = C[A, B] # Get the glueing
+      f, g = glueing_morphisms(G)
+      is_subset(U, domain(f)) || return false
+      is_subset(V, domain(g)) || return false
+      gU = preimage(g, U)
+      is_subset(gU, V) || return false
+    end
+    return true
+  end
+  function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
+    return Y === X && ambient_scheme(U) in default_covering(X)
+  end
+  function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+    return Y === X && U in default_covering(X)
+  end
+  function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+    return X === Y === Z
+  end
+  function is_open_func(U::AbsSpec, V::AbsSpec)
+    U in default_covering(X) || return false
+    V in default_covering(X) || return false
+    G = default_covering(X)[U, V]
+    return issubset(U, glueing_domains(G)[1])
+  end
+  function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
+    V in default_covering(X) || return false
+    ambient_scheme(U) === V && return true
+    W = ambient_scheme(U)
+    W in default_covering(X) || return false
+    G = default_covering(X)[W, V]
+    return is_subset(U, glueing_domains(G)[1])
+  end
+  return is_open_func
+end
+
 
 ########################################################################
 # Coherent sheaves of modules on covered schemes                       #
@@ -79,69 +136,17 @@ identifications given by the glueings in the `default_covering`.
     OOX = OO(X)
     #OOX = StructureSheafOfRings(X)
 
-    ### Checks for open containment.
-    #
-    # We allow the following cases:
-    #
-    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-    #    and U and V contained in the glueing domains of their ambient schemes
-    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
-    #  * U::AbsSpec ⊂ X for U in the basic charts
-    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
-    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-      C = default_covering(X)
-      A = ambient_scheme(U)
-      A in C || return false
-      B = ambient_scheme(V)
-      B in C || return false
-      if A === B
-        is_subset(U, V) || return false
-      else
-        G = C[A, B] # Get the glueing
-        f, g = glueing_morphisms(G)
-        is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
-        gU = preimage(g, U)
-        is_subset(gU, V) || return false
-      end
-      return true
-    end
-    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(U) in default_covering(X)
-    end
-    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && U in default_covering(X)
-    end
-    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
-      return X === Y === Z
-    end
-    function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in default_covering(X) || return false
-      V in default_covering(X) || return false
-      G = default_covering(X)[U, V]
-      return issubset(U, glueing_domains(G)[1])
-    end
-    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(U) === V && return true
-      W = ambient_scheme(U)
-      W in default_covering(X) || return false
-      G = default_covering(X)[W, V]
-      return is_subset(U, glueing_domains(G)[1])
-    end
-
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
       haskey(MD, U) && return MD[U]
       error("module on $U was not found")
     end
-    function production_func(U::PrincipalOpenSubset)
+    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
       V = ambient_scheme(U)
-      MV = production_func(V)
+      MV = production_func(V, object_cache, restriction_cache)
       rho = OOX(V, U)
-      MU, phi = change_base_ring(rho, MV) # TODO: Why discard phi?
+      MU, phi = change_base_ring(rho, MV)
+      restriction_cache[(V, U)] = phi # Also cache the restriction map
       return MU
     end
 
@@ -167,7 +172,11 @@ identifications given by the glueings in the `default_covering`.
 #     A = MG[(V, W)] # The transition matrix
 #     return hom(MV, MU, [sum([A[i, j] * MU[j] for j in 1:ngens(MU)]) for j in 1:ngens(MV)], rho)
 #   end
-    function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+    function restriction_func(V::AbsSpec, U::AbsSpec, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      MV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      MU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
       # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
       # we need to find W (which equals V in the first case) and use the transition 
@@ -188,7 +197,7 @@ identifications given by the glueings in the `default_covering`.
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=is_open_func
+                      is_open_func=_is_open_for_modules(X)
                      )
     M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
                typeof(production_func), typeof(restriction_func),
@@ -335,56 +344,16 @@ end
     OOX = sheaf_of_rings(F)
     OOX === sheaf_of_rings(G) || error("sheaves must be defined over the same sheaves of rings")
 
-    ### Checks for open containment.
-    # Copy from the sheaves of Modules
-    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-      C = default_covering(X)
-      A = ambient_scheme(U)
-      A in C || return false
-      B = ambient_scheme(V)
-      B in C || return false
-      if A === B
-        is_subset(U, V) || return false
-      else
-        GG = C[A, B] # Get the glueing
-        f, g = glueing_morphisms(GG)
-        is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
-        gU = preimage(g, U)
-        is_subset(gU, V) || return false
-      end
-      return true
-    end
-    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(U) in default_covering(X)
-    end
-    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && U in default_covering(X)
-    end
-    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
-      return X === Y === Z
-    end
-    function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in default_covering(X) || return false
-      V in default_covering(X) || return false
-      GG = default_covering(X)[U, V]
-      return issubset(U, glueing_domains(GG)[1])
-    end
-    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(U) === V && return true
-      W = ambient_scheme(U)
-      W in default_covering(X) || return false
-      GG = default_covering(X)[W, V]
-      return is_subset(U, glueing_domains(GG)[1])
-    end
-
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
       return hom(F(U), G(U))[1]
     end
 
-    function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+    function restriction_func(V::AbsSpec, U::AbsSpec,
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      MV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      MU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       dom_res = F(V, U)
       cod_res = G(V, U)
       f = gens(F(V))
@@ -408,7 +377,7 @@ end
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=is_open_func
+                      is_open_func=_is_open_for_modules(X)
                      )
     M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
                typeof(production_func), typeof(restriction_func),
@@ -477,57 +446,18 @@ end
     )
     X = variety(C) 
     OOX = OO(X)
-    
-    # Copy from SheafOfModules
-    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-      C = default_covering(X)
-      A = ambient_scheme(U)
-      A in C || return false
-      B = ambient_scheme(V)
-      B in C || return false
-      if A === B
-        is_subset(U, V) || return false
-      else
-        G = C[A, B] # Get the glueing
-        f, g = glueing_morphisms(G)
-        is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
-        gU = preimage(g, U)
-        is_subset(gU, V) || return false
-      end
-      return true
-    end
-    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(U) in default_covering(X)
-    end
-    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && U in default_covering(X)
-    end
-    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
-      return X === Y === Z
-    end
-    function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in default_covering(X) || return false
-      V in default_covering(X) || return false
-      G = default_covering(X)[U, V]
-      return issubset(U, glueing_domains(G)[1])
-    end
-    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(U) === V && return true
-      W = ambient_scheme(U)
-      W in default_covering(X) || return false
-      G = default_covering(X)[W, V]
-      return is_subset(U, glueing_domains(G)[1])
-    end
 
     U = default_covering(X)[1]
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
         return FreeMod(OO(U), 1)
     end
     
-    function restriction_func(V::AbsSpec, MV::ModuleFP, U::AbsSpec, MU::ModuleFP)
+    function restriction_func(V::AbsSpec, U::AbsSpec, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      MV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      MU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
       # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
       # we need to find W (which equals V in the first case) and use the transition 
@@ -551,7 +481,7 @@ end
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=FreeMod,
                       RestrictionType=Hecke.Map,
-                      is_open_func=is_open_func
+                      is_open_func=_is_open_for_modules(X)
                      )
     M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map,
                typeof(production_func), typeof(restriction_func),
