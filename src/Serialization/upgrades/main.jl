@@ -21,5 +21,6 @@ end
 const upgrade_scripts = Vector{UpgradeScript}()
 
 include("0.11.2.jl")
+include("0.11.3.jl")
 
 sort!(upgrade_scripts; by=version)
