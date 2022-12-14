@@ -48,10 +48,9 @@ end
   S, inc = singular_locus(Y);
   @test dim(S) == 1
   U = affine_charts(S)
-  @test is_empty(U[1])
-  @test !is_empty(U[2])
-  @test dim(U[2]) == 1
-  @test dim(U[3]) == 0
+  @test !is_empty(U[1])
+  @test dim(U[1]) == 1
+  @test dim(U[2]) == 0
   B2 = blow_up(image_ideal(inc), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
   Z = covered_scheme(B2)
   @test is_smooth(Z)
