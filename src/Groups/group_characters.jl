@@ -1339,7 +1339,7 @@ class functions (see [`scalar_product`](@ref).
 For Brauer characters there is no generic method for checking irreducibility.
 """
 function is_irreducible(chi::GAPGroupClassFunction)
-    return GAPWrap.IsIrreducibleCharacter(chi.table, chi.values)
+    return GAPWrap.IsIrreducibleCharacter(chi.values)
 end
 
 # Apply a class function to a group element.
