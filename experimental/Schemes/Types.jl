@@ -474,19 +474,25 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
       return OO(U)
     end
-    function production_func(U::SpecOpen)
+    function production_func(U::SpecOpen, object_cache::IdDict, restriction_cache::IdDict)
       return OO(U)
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, OV::Ring, U::AbsSpec, OU::Ring)
+    function restriction_func(V::AbsSpec, U::AbsSpec, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
       V === U || error("basic affine patches must be the same")
       return identity_map(OV)
     end
-    function restriction_func(V::AbsSpec, OV::Ring, U::PrincipalOpenSubset, OU::Ring)
+    function restriction_func(V::AbsSpec, U::PrincipalOpenSubset, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      OU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       if ambient_scheme(U) === V
         return hom(OV, OU, gens(OU), check=false)
       else
@@ -502,7 +508,11 @@ identifications given by the glueings in the `default_covering`.
       end
       error("arguments are not valid")
     end
-    function restriction_func(V::PrincipalOpenSubset, OV::Ring, U::AbsSpec, OU::Ring)
+    function restriction_func(V::PrincipalOpenSubset, U::AbsSpec, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      OU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       if ambient_scheme(V) === U
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -522,7 +532,11 @@ identifications given by the glueings in the `default_covering`.
         return hom(OV, OU, rho_func2.(gens(OV)), check=false)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, OV::Ring, U::PrincipalOpenSubset, OU::Ring)
+    function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      OU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
       A = ambient_scheme(V)
       if A === ambient_scheme(U)
         return hom(OV, OU, gens(OU), check=false)
@@ -539,7 +553,11 @@ identifications given by the glueings in the `default_covering`.
       end
       error("arguments are invalid")
     end
-    function restriction_func(V::AbsSpec, OV::Ring, W::SpecOpen, OW::Ring)
+    function restriction_func(V::AbsSpec, W::SpecOpen,
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      OW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
       V in default_covering(X) || return false
       ambient_scheme(W) in default_covering(X) || return false
       if V === ambient_scheme(W)
@@ -554,7 +572,11 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(rho_func, OV, OW)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, OV::Ring, W::SpecOpen, OW::Ring)
+    function restriction_func(V::PrincipalOpenSubset, W::SpecOpen,
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      OW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
       if ambient_scheme(V) === ambient_scheme(W)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -575,7 +597,11 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(rho_func2, OV, OW)
       end
     end
-    function restriction_func(V::SpecOpen, OV::Ring, W::SpecOpen, OW::Ring)
+    function restriction_func(V::SpecOpen, W::SpecOpen, 
+        object_cache::IdDict, restriction_cache::IdDict
+      )
+      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+      OW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
       if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OV, OW)

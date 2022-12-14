@@ -77,7 +77,7 @@ function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=t
 
   # Testing openness might be expensive, so it can be skipped
   check && is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
-  G = production_func(F)(U)
+  G = production_func(F)(U, object_cache(F), restriction_cache(F))
   cached && (object_cache(F)[U] = G)
   return G::OutputType
 end
@@ -90,7 +90,7 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   is_open_func(F)(V, U) || error("the second argument is not open in the first")
   FV = F(V)
   FU = F(U)
-  rho = restriction_func(F)(U, FU, V, FV)
+  rho = restriction_func(F)(U, V, object_cache(F), restriction_cache(F))
   restriction_cache(F)[(U, V)] = rho
   return rho::RestrictionType
 end

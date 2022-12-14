@@ -4,11 +4,11 @@
 
   is_open_func(U::AbsSpec, V::AbsSpec) = is_open_embedding(U, V)
 
-  function production_func(U::AbsSpec)
+  function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
     return ZZ
   end
 
-  function restriction_func(V::AbsSpec, RV::Any, U::AbsSpec, RU::Any)
+  function restriction_func(V::AbsSpec, U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
     return identity_map(ZZ)
   end
 
