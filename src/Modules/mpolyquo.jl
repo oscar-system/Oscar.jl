@@ -40,6 +40,14 @@ function coordinates(
   return sparse_row(R, entries)
 end
 
+function coordinates(
+    v::FreeModElem{T}, 
+    M::SubModuleOfFreeModule{T}, 
+    task::Symbol
+  ) where {T<:MPolyQuoElem}
+  return coordinates(v, M)
+end
+
 ########################################################################
 # Auxiliary helping functions to allow for the above                   #
 ########################################################################
