@@ -29,3 +29,29 @@
   @test rho(g) in HomM1M1(U21)
   @test element_to_homomorphism(rho(g))(domain(HomM1M1)(U21)[1]) in codomain(HomM1M1)(U21)
 end
+
+@testset "Pushforward of modules" begin
+  IP = projective_space(QQ, ["x", "y", "z"])
+  S = ambient_coordinate_ring(IP)
+  (x,y,z) = gens(S)
+  f = z^2 - x*y
+  I = ideal(S, f)
+  II = IdealSheaf(IP, I)
+  X = covered_scheme(IP)
+  inc = Oscar.CoveredClosedEmbedding(X, II)
+  C = domain(inc)
+  TC = tangent_sheaf(C)
+  U = affine_charts(C)
+  TC1 = TC(U[1])
+  U21 = PrincipalOpenSubset(U[2], gens(OO(C)(U[2]))[1])
+  U321 = PrincipalOpenSubset(U[3], gens(OO(C)(U[3]))[1]*gens(OO(U[3]))[2])
+  @test TC(U[1], U321)(TC1[1]) == TC(U21, U321)(TC(U[1], U21)(TC1[1]))
+  incTC = Oscar.PushforwardSheaf(inc, TC)
+  U = affine_charts(X)
+  TC1 = incTC(U[1])
+  @test TC1 === incTC(U[1])
+  @test incTC(U[1]) isa SubQuo
+  U21 = PrincipalOpenSubset(U[2], dehomogenize(IP, 1)(x))
+  U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
+  @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
+end
