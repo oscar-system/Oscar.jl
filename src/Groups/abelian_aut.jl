@@ -8,7 +8,8 @@ AbTorElem = Union{GrpAbFinGenElem,TorQuadModElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   iso = isomorphism(T, A)
-  return codomain(iso), iso, inv(iso)
+  iso2 = inv(iso)
+  return codomain(iso), iso, iso2
 end
 
 """
@@ -215,11 +216,27 @@ end
 Return the full orthogonal group of this torsion quadratic module.
 """
 @attr AutomorphismGroup function orthogonal_group(T::TorQuadMod)
-  !is_degenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
-  N, i = normal_form(T)
-  j = inv(i)
-  gensOT = _compute_gens(N)
-  gensOT = [hom(N, N, g) for g in gensOT]
-  gensOT = [compose(compose(i,g),j).map_ab.map for g in gensOT]
+  if is_semi_regular(T)
+    # if T is semi-regular, it is isometric to its normal form for which
+    # we know how to compute the isometries.
+    N, i = normal_form(T)
+    j = inv(i)
+    gensOT = _compute_gens(N)
+    gensOT = TorQuadModMor[hom(N, N, g) for g in gensOT]
+    gensOT = fmpz_mat[compose(compose(i,g),j).map_ab.map for g in gensOT]
+  elseif iszero(gram_matrix_quadratic(T))
+    # in that case, we don't have any conditions regarding the
+    # quadratic form, so we have all automorphisms coming
+    # from the underlying abelian group
+    gensOT = [matrix(g) for g in gens(automorphism_group(abelian_group(T)))]
+  else
+    # if T is not semi-regular, we want to be able to split its radical
+    # quadratic. If it is not the case, we return an error since we don't
+    # support this particular case.
+    i = radical_quadratic(T)[2]
+    @req has_complement(i)[1] "The radical quadratic must split"
+    gensOT = _compute_gens_split_degenerate(T)
+  end
   return _orthogonal_group(T, gensOT, check=false)
 end
+

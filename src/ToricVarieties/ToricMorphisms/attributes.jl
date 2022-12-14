@@ -137,8 +137,73 @@ Abelian group with structure: Z^4
 @attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
-    source_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
-    morphism_of_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
-    return restrict_codomain(source_embedding * morphism_of_weil_divisors)
+    domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
+    morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
+    codomain_post_inverse = postinverse(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(codomain_variety))
+    return domain_embedding * morphism_on_weil_divisors * codomain_post_inverse
 end
 export morphism_on_torusinvariant_cartier_divisor_group
+
+
+@doc Markdown.doc"""
+    morphism_on_class_group(tm::ToricMorphism)
+
+For a given toric morphism `tm`, this method computes the corresponding
+map of the Class groups.
+
+# Examples
+```jldoctest
+julia> F4 = hirzebruch_surface(4)
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+
+julia> morphism_on_class_group(ToricIdentityMorphism(F4))
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^2
+Codomain:
+=========
+Abelian group with structure: Z^2
+```
+"""
+@attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
+    domain_variety = domain(tm)
+    codomain_variety = codomain(tm)
+    domain_preinverse = preinverse(map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety))
+    morphism_on_weil_divisors = morphism_on_torusinvariant_weil_divisor_group(tm)
+    codomain_projection = map_from_torusinvariant_weil_divisor_group_to_class_group(codomain_variety)
+    return domain_preinverse * morphism_on_weil_divisors * codomain_projection
+end
+export morphism_on_class_group
+
+
+@doc Markdown.doc"""
+    morphism_on_picard_group(tm::ToricMorphism)
+
+For a given toric morphism `tm`, this method computes the corresponding
+map of the Picard groups.
+
+# Examples
+```jldoctest
+julia> F4 = hirzebruch_surface(4)
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+
+julia> morphism_on_picard_group(ToricIdentityMorphism(F4))
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^2
+Codomain:
+=========
+Abelian group with structure: Z^2
+```
+"""
+@attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)
+    domain_variety = domain(tm)
+    codomain_variety = codomain(tm)
+    domain_preinverse = preinverse(map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety))
+    morphism_on_cartier_divisors = morphism_on_torusinvariant_cartier_divisor_group(tm)
+    codomain_projection = map_from_torusinvariant_cartier_divisor_group_to_picard_group(codomain_variety)
+    return domain_preinverse * morphism_on_cartier_divisors * codomain_projection
+end
+export morphism_on_picard_group

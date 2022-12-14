@@ -171,6 +171,8 @@ function __init__()
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()
+    add_verbose_scope(:K3Auto)
+    add_assert_scope(:K3Auto)
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -432,6 +434,7 @@ include("Modules/module-localizations.jl")
 include("Modules/mpolyquo.jl")
 
 include("Geometry/basics.jl")
+include("Geometry/K3Auto.jl")
 
 include("NumberTheory/NmbThy.jl")
 

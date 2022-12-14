@@ -111,7 +111,8 @@ export is_finalized
 @doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
-Allows to set the names of the homogeneous coordinates.
+Allows to set the names of the homogeneous coordinates as long as the toric variety in
+question is not yet finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
 
 # Examples
 ```jldoctest
@@ -783,11 +784,13 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(p2)
-Identity map with
-
+Map with following data
 Domain:
 =======
-GrpAb: Z^3
+Abelian group with structure: Z^3
+Codomain:
+=========
+Abelian group with structure: Z^3
 ```
 """
 @attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
