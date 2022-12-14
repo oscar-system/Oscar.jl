@@ -725,14 +725,7 @@ MPolyQuo{MPolyElem_dec{fmpq, fmpq_mpoly}}
 """
 function quo(R::MPolyRing, I::MPolyIdeal) 
   q = MPolyQuo(R, I)
-  function im(a::MPolyElem)
-    parent(a) !== R && error("Element not in the domain of the map")
-    return MPolyQuoElem(a, q)
-  end
-  function pr(a::MPolyQuoElem)
-    return a.f
-  end
-  return q, MapFromFunc(im, pr, R, q)
+  return q, hom(R, q, gens(q))
 end
 function quo(R::MPolyRing, I::Vector{<:MPolyElem})
   return quo(R, ideal(I))

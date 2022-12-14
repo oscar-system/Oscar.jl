@@ -3924,7 +3924,21 @@ end
 
 Compute a preimage of `a` under `f`.
 """
-function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
+function preimage(f::SubQuoHom{<:SubQuo, <:ModuleFP}, a::Union{SubQuoElem,FreeModElem})
+  @assert parent(a) === codomain(f)
+  phi = base_ring_map(f)
+  D = domain(f)
+  i = zero(D)
+  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  bb = map_entries(x->(preimage(phi, x)), b)
+  for (p,v) = bb
+    i += v*gen(D, p)
+  end
+  return i
+end
+
+function preimage(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, 
+        a::Union{SubQuoElem,FreeModElem})
   @assert parent(a) === codomain(f)
   D = domain(f)
   i = zero(D)
