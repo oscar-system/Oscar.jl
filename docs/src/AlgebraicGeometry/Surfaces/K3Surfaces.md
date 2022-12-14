@@ -13,13 +13,14 @@ Pages = ["K3Surfaces.md"]
 
 ## K3 surfaces
 
-A complex K3 surface is a compact complex surface $S$
-with vanishing irregularity $h^1(S, \mathcal{O}_S)=0$
-and trivial canonical bundle $\mathcal{O}_S\cong \omega_S$.
+A complex K3 surface is a compact complex surface $X$
+with vanishing irregularity $h^1(X, \mathcal{O}_X)=0$
+and trivial canonical bundle $\mathcal{O}_X\cong \omega_X$.
 
 Much of the theory of (complex) K3 surfaces is governed by
 its Hodge structure and the $\mathbb{Z}$-lattices
 $NS(X) \subseteq H^2(X, \mathbb{Z})$.
+
 See [Huy16](@cite) for the theory of K3 surfaces.
 
 ### Automorphisms
@@ -35,7 +36,7 @@ inner_point(::K3Chamber)
 rays(::K3Chamber)
 aut(::K3Chamber)
 hom(::K3Chamber,::K3Chamber)
-adjacent_chamber(D::K3Chamber, v)
+adjacent_chamber(D::K3Chamber, v::fmpz_mat)
 separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
 has_zero_entropy
 ```

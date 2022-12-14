@@ -77,17 +77,17 @@ function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
   r = rank(L)
   lw = (weyl*gram_matrix(L)*transpose(weyl))[1,1]
   if  r == 26
-    @req lw == 0 "not a weyl vector"
+    @req lw == 0 "not a Weyl vector"
   end
   if  r == 18
-    @req lw == 620 "not a weyl vector"
+    @req lw == 620 "not a Weyl vector"
   end
   if  r == 10
-    @req lw == 1240 "not a weyl vector"
+    @req lw == 1240 "not a Weyl vector"
   end
   # transform L to have the standard basis
   # we assume that the basis of L is obtained by completing a basis of R
-  # hence we can throw away the R coordinates of a weyl vector when projecting to S
+  # hence we can throw away the R coordinates of a Weyl vector when projecting to S
   R = lll(Hecke.orthogonal_submodule(L, S))
 
   # the following completes the basis of R to a basis of L
@@ -98,7 +98,7 @@ function BorcherdsCtx(L::ZLat, S::ZLat, weyl, compute_OR::Bool=true)
   T = reduce(vcat, [j(i).coeff for i in gens(A)])
   basisL1 = vcat(T, basisRL)*basis_matrix(L)
 
-  # carry the weyl vector along
+  # carry the Weyl vector along
   L1 = lattice(ambient_space(L), basisL1)
   weyl = change_base_ring(ZZ, solve_left(basisL1, weyl*basis_matrix(L)))
   basisSL1 = solve_left(basis_matrix(L1), basis_matrix(S))
@@ -180,10 +180,20 @@ The ``L|S`` chamber induced from a Weyl vector in `L`.
 
 Let ``L`` be an even, unimodular and hyperbolic lattice of rank ``10``, ``18``
 or ``26`` and ``S`` be a primitive sublattice.
-Any Weyl vector ``w`` of ``L`` defines a Weyl chamber ``C(w)`` in the positive
-cone of ``L``. The Weyl chamber is a fundamental domain for the action of
+Any Weyl vector ``w`` of ``L`` defines a Weyl chamber ``C(w)``
+in the positive cone of ``L``.
+The Weyl chamber is a rational locally polyhedral cone with infinitely many
+facets, i.e. walls. It is the intersection of the positive half-spaces defined by
+$\Delta_L(w) = \{r \in L | r^2=-2, r.w = 1\}$.
+We have
+
+```math
+C(w)=\{x \in \mathcal{P}_L | \forall r \in \Delta_L(w):  x.r \geq 0\}
+```
+
+The Weyl chamber is a fundamental domain for the action of
 the Weyl group on the positive cone.
-We say that ``S \otimes \RR \cap C(w)`` is the ``L|S``-chamber induced by ``w``.
+We say that $S \otimes \mathbb{R} \cap C(w)$ is the ``L|S``-chamber induced by ``w``.
 
 Note that two Weyl vectors induce the same chamber if and only if
 their orthogonal projections to ``S`` coincide.
@@ -259,12 +269,13 @@ Return the walls of the chamber `D`, i.e. its facets.
 
 The corresponding half space of the wall defined by `v` in `walls(D)` is
 
-```Math
+```math
 \{x \in S \otimes \mathbb{R} |  \langle x,v \rangle  \geq 0\}.
 ```
 
 `v` is given with respect to the basis of `S` and is primitive in `S`.
-Note that Shimada follows a different convention in [Shi15](@cite)
+
+Note that [Shi15](@cite) follows a different convention
 and takes `v` primitive in `S^\vee`.
 """
 function walls(D::K3Chamber)
@@ -523,7 +534,7 @@ end
 
 Return the vectors of squared length `d` in the given affine hyperplane.
 
-```Math
+```math
 \{x \in S : x^2=d, x.v=\alpha \}.
 ```
 The matrix version takes `S` with standard basis and the given gram matrix.
@@ -581,7 +592,7 @@ end
 @doc Markdown.doc"""
     separating_hyperplanes(S::ZLat, v::fmpq_mat, h::fmpq_mat, d)
 
-Return $\{x in S : x^2=d, x.v>0, x.h<0\}$.
+Return $\{x \in S | x^2=d, x.v>0, x.h<0\}$.
 
 # Arguments
 - `S`:  a hyperbolic lattice
@@ -695,9 +706,9 @@ end
 @doc Markdown.doc"""
     hom(D::K3Chamber, E::K3Chamber) -> Vector{fmpz_mat}
 
-Return the set ``Hom_G(D, E)`` of elements of `G` mapping `D` to `E`.
+Return the set ``\mathrm{Hom}_G(D, E)`` of elements of ``G`` mapping `D` to `E`.
 
-The elements are represented with respect to the basis of `S`.
+The elements are represented with respect to the basis of ``S``.
 """
 Hecke.hom(D::K3Chamber, E::K3Chamber) = alg319(D, E)
 #alg319(gram_matrix(D.data.SS), D.B,D.gramB, walls(D), walls(E), D.data.membership_test)
@@ -705,9 +716,9 @@ Hecke.hom(D::K3Chamber, E::K3Chamber) = alg319(D, E)
 @doc Markdown.doc"""
     aut(E::K3Chamber) -> Vector{fmpz_mat}
 
-Return the stabilizer of ``E`` in ``G``.
+Return the stabilizer ``\mathrm{Aut}_G(E)`` of ``E`` in ``G``.
 
-The elements are represented with respect to the basis of `S`.
+The elements are represented with respect to the basis of ``S``.
 """
 aut(D::K3Chamber) = hom(D, D)
 
@@ -1198,12 +1209,6 @@ function is_S_nondegenerate(L::ZLat, S::ZLat, w::fmpq_mat)
   return ispointed(P)
 end
 
-@doc Markdown.doc"""
-    inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
-    inner_point(C::K3Chamber)
-
-Return a reasonably small integer inner point of the given L|S chamber.
-"""
 function inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
   R = Hecke.orthogonal_submodule(L, S)
   Delta_w = _alg58(L, S, R, w)
@@ -1240,6 +1245,12 @@ function inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
   return h
 end
 
+@doc Markdown.doc"""
+    inner_point(L::ZLat, S::ZLat, w::fmpq_mat)
+    inner_point(C::K3Chamber)
+
+Return a reasonably small integer inner point of the given L|S chamber.
+"""
 inner_point(C::K3Chamber) = inner_point(C.data.L, C.data.S, change_base_ring(QQ,C.weyl_vector))
 
 
@@ -1287,11 +1298,11 @@ function unproject_wall(data::BorcherdsCtx, vS::fmpz_mat)
 end
 
 @doc Markdown.doc"""
-    adjacent_chamber(D::K3Chamber, v) -> K3Chamber
+    adjacent_chamber(D::K3Chamber, v::fmpz_mat) -> K3Chamber
 
-Return return the L|S chamber adjacent to `D` via the wall defined by `v`.
+Return return the ``L|S`` chamber adjacent to `D` via the wall defined by `v`.
 """
-function adjacent_chamber(D::K3Chamber, v)
+function adjacent_chamber(D::K3Chamber, v::fmpz_mat)
   gramL = D.data.gramL
   dualDeltaR = D.data.dualDeltaR
   deltaR = D.data.deltaR
@@ -1350,7 +1361,7 @@ function adjacent_chamber(D::K3Chamber, v)
       addmul!(w,r, z[1,1])
     end
   end
-  # both weyl vectors should lie in the positive cone.
+  # both Weyl vectors should lie in the positive cone.
   @assert ((D.weyl_vector)*D.data.gramL*transpose(w))[1,1]>0 "$(D.weyl_vector)    $v\n"
   return chamber(D.data, w, v)
 end
@@ -1362,17 +1373,18 @@ end
 
 Compute the automorphism group of a very-general $S$-polarized K3 surface.
 
-Further return representatives of the `Aut(X)`-orbits of (-2)-curves on `X` and
-a fundamental domain for the action of Aut(X) on the set of nef L|S chambers.
-This is almost a fundamental domain for Aut(X) on the nef cone.
+Further return representatives of the ``\mathrm{Aut}(X)``-orbits of (-2)-curves on `X` and
+a fundamental domain for the action of ``\mathrm{Aut}(X)`` on the set of nef L|S chambers.
+This is almost a fundamental domain for ``\mathrm{Aut}(X)`` on the nef cone.
 
-Here very general means that `Num(X)` is isomorphic to `S` and the image of
-$Aut(X) \to H^0(X,\Omega^2_X)$ is $ \pm 1$.
+Here very general means that ``Num(X)`` is isomorphic to `S` and the image of
+$\mathrm{Aut}(X) \to H^0(X,\Omega^2_X)$ is $ \pm 1$.
 
 The function returns generators for the image of
 
-\[f: Aut(X) \to O(Num(X)) \]
-
+```math
+f\colon \mathrm{Aut}(X) \to O(Num(X))
+```
 The output is represented with respect to  the basis of `S`.
 
 Note that under our genericity assumptions the kernel of $f$ is of order at most $2$
@@ -1410,7 +1422,7 @@ end
     borcherds_method(S::ZLat, n::Integer; compute_OR=true, entropy_abort=false, max_nchambers=-1)
     borcherds_method(L::ZLat, S::ZLat, w::fmpq_mat; compute_OR=true, entropy_abort=false, max_nchambers=-1)
 
-Compute the symmetry group of a weyl chamber up to finite index.
+Compute the symmetry group of a Weyl chamber up to finite index.
 
 # Arguments
 - `w`:  initial Weyl row vector represented with respect to the basis of `L`;
@@ -1484,7 +1496,7 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers
     push!(chambers[fp], D)
     push!(explored, D)
     nchambers = nchambers+1
-    @vprint :K3Auto 3 "new weyl vector $(D.weyl_vector)\n"
+    @vprint :K3Auto 3 "new Weyl vector $(D.weyl_vector)\n"
     @vprint :K3Auto 3 "$D\n"
 
     autD = aut(D)
@@ -1600,7 +1612,7 @@ end
 Return an `S`-nondegenerate Weyl vector of `L`.
 
 - u0: inner point of the chamber `C(weyl)` of `L`.
-- ample0: an ample class... the weyl vector and u0 are moved to the same chamber first
+- ample0: an ample class... the Weyl vector and u0 are moved to the same chamber first
 - perturbation_factor: used to get a random point close to the ample vector. If it is (too) big, computations become harder.
 """
 function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_mat,
@@ -1611,7 +1623,7 @@ function weyl_vector_non_degenerate(L::ZLat, S::ZLat, u0::fmpq_mat, weyl::fmpq_m
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
-  @vprint :K3Auto 2 "moving weyl vector $(solve_left(basis_matrix(L),weyl)) towards the ample class\n"
+  @vprint :K3Auto 2 "moving Weyl vector $(solve_left(basis_matrix(L),weyl)) towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
   @vprint :K3Auto "new weyl: $(solve_left(basis_matrix(L),weyl)) \n"
   if is_S_nondegenerate(L,S,weyl)
@@ -1793,7 +1805,7 @@ end
 Return an embedding of `S` into an even unimodular, hyperbolic lattice `L` of
 rank `n=10, 18, 26` as well as an `S`-nondegenerate Weyl-vector.
 
-The weyl vector is represented with respect to the basis of `L`.
+The Weyl vector is represented with respect to the basis of `L`.
 """
 function borcherds_method_preprocessing(S::ZLat, n::Integer; ample=nothing)
   @req n in [10,18,26] "n must be one of 10, 18 or 26"
@@ -2064,8 +2076,20 @@ function _common_invariant(Gamma)
   return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
 end
 
+@doc Markdown.doc"""
+    has_zero_entropy(S::ZLat; rank_unimod=26) ->
 
-function has_zero_entropy(S; rank_unimod=26)
+Compute if the symmetry group of a Weyl chamber is elliptic, parabolic or hyperbolic.
+
+# Output
+- `1` - elliptic -- the symmetry group is finite
+- `0` - parabolic -- there is a unique cusp with infinite stabilizer
+- `-1` - hyperbolic -- positive entropy
+
+This calls `borcherds_method` and breaks the computation as soon
+as a symmetry of a Weyl chamber with positive entrop is found.
+"""
+function has_zero_entropy(S::ZLat; rank_unimod=26)
   L, S, weyl = borcherds_method_preprocessing(S, rank_unimod)
   @vprint :K3Auto 1 "Weyl vector: $(weyl)\n"
   data, K3Autgrp, chambers, rational_curves, _ = borcherds_method(L, S, weyl, entropy_abort=true)
