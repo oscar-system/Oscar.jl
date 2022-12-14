@@ -18,6 +18,7 @@ end
 (u_s::UpgradeScript)(s::DeserializerState,
                      dict::Dict{Symbol, Any}) = script(u_s)(s, dict)
 
+# The list of all available upgrade scripts
 const upgrade_scripts = Vector{UpgradeScript}()
 
 include("0.11.2.jl")

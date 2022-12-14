@@ -12,6 +12,9 @@ OscarBasicType = Union{
     Symbol,
 }
 
+is_basic_serialization_type(::Type) = false
+is_basic_serialization_type(::Type{T}) where T <: OscarBasicType = isconcretetype(T)
+
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
     # dict to track already serialized objects
@@ -34,9 +37,7 @@ function DeserializerState()
     return DeserializerState(Dict{UUID, Any}())
 end
 
-
 const backref_sym = Symbol("#backref")
-
 
 ################################################################################
 # Version info
@@ -98,11 +99,10 @@ end
 
 
 
-
 ################################################################################
 # High level
 function save_type_dispatch(s::SerializerState, obj::T) where T
-    if T <: OscarBasicType && s.depth != 0
+    if is_basic_serialization_type(T) && s.depth != 0
         return save_internal(s, obj)
     end
         
@@ -356,7 +356,6 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-
 function load(io::IO; parent::Any = nothing,
               type::Any = nothing,
               check_namespace=false)

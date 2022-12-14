@@ -9,7 +9,7 @@
 # serialized with backref, however these types were already storing there types
 # outside of the JSON array of entries
 
-upgrade_script = UpgradeScript(
+push!(upgrade_scripts, UpgradeScript(
     v"0.11.2",
     function (s::DeserializerState, dict::Dict) 
         if haskey(dict, :_ns)
@@ -67,7 +67,7 @@ upgrade_script = UpgradeScript(
 
         U = decodeType(dict[:type])
 
-        if U <: OscarBasicType
+        if is_basic_serialization_type(U)
             if U == fmpq
                 num = dict[:data][:num][:data]
                 den = dict[:data][:den][:data]
@@ -85,7 +85,5 @@ upgrade_script = UpgradeScript(
             :id => dict[:id]
         )
     end
-)
-
-push!(upgrade_scripts, upgrade_script)
+))
 
