@@ -155,7 +155,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    I.gb[ordering] = _groebner_basis_with_hilbert(I, ordering, weights=weights, complete_reduction=complete_reduction)
+    I.gb[ordering] = _standard_basis_with_hilbert(I, ordering, weights=weights, complete_reduction=complete_reduction)
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -1255,9 +1255,24 @@ optimize the Gröbner basis computation for `I`
 w.r.t. `target_ordering`.
 
 `I` must be given by generators homogeneous w.r.t. `weights`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
+
+julia> Oscar._standard_basis_with_hilbert(I, lex(R), complete_reduction = true)
+Gröbner basis with elements
+1 -> y^2*z + y*z^2
+2 -> x*y - y*z
+3 -> x^2 + y*z
+with respect to the ordering
+lex([x, y, z])
+```
 """
 
-function _groebner_basis_with_hilbert(I::MPolyIdeal,
+function _standard_basis_with_hilbert(I::MPolyIdeal,
                                       destination_ordering::MonomialOrdering;
                                       weights::Vector{E} = ones(Int32, ngens(base_ring(I))),
                                       complete_reduction::Bool = false) where {E <: Integer}
@@ -1265,8 +1280,6 @@ function _groebner_basis_with_hilbert(I::MPolyIdeal,
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
-	is_global(destination_ordering) || error("Destination ordering must be global.")
-  # TODO: this is not type stable I think
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     while true
       p = 0
@@ -1292,19 +1305,30 @@ function _groebner_basis_with_hilbert(I::MPolyIdeal,
     G = groebner_assure(I)
   end
 
-  if characteristic(R) > 0 && destination_ordering == default_ordering(base_ring(I))
+  if characteristic(base_ring(I)) > 0 && destination_ordering == default_ordering(base_ring(I))
     return G
   end
 
   singular_assure(G)
   h = Singular.hilbert_series(G.S, (Int32).(weights))
-  # TODO: insert call to singular std with hilbert here
-  return _compute_standard_basis(I.gens, destination_ordering, complete_reduction)
+	singular_assure(I.gens, destination_ordering)
+	R = I.gens.Sx
+	J  = Singular.Ideal(R, gens(I.gens.S)...)
+	i  = Singular.std_hilbert(J, h, (Int32).(weights),
+                            complete_reduction = complete_reduction)
+	GB = IdealGens(I.gens.Ox, i, complete_reduction)
+	GB.isGB = true
+	GB.ord = destination_ordering
+  if isdefined(GB, :S)
+	   GB.S.isGB  = true
+	end
+	return GB
 end
 
 function _is_homogeneous_weights(f::MPolyElem,
                                  weights::Vector{I}) where {I <: Integer}
   
+  iszero(f) && return true
   weight_deg = e -> sum([weights[i] * e[i] for i in eachindex(e)])
   f_weight_deg = weight_deg(first(exponent_vectors(f)))
   return all(e -> weight_deg(e) == f_weight_deg, collect(exponent_vectors(f))[2:end])
