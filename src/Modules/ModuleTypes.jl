@@ -540,7 +540,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       end
       return b
     end
-    r.header = MapHeader{typeof(F), T2}(F, G, im_func)
+    function pr_func(x)
+      @assert parent(x) === G
+      c = coordinates(repres(x), sub(G, a, :module))
+      cc = map_entries(x->preimage(h, x), c)
+      return FreeModElem(cc, F)
+    end
+    r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
     return r
   end
