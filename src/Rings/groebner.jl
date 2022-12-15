@@ -155,7 +155,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    I.gb[ordering] = _standard_basis_with_hilbert(I, ordering, weights=weights, complete_reduction=complete_reduction)
+    I.gb[ordering] = _groebner_basis_with_hilbert(I, ordering, weights=weights, complete_reduction=complete_reduction)
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -1238,7 +1238,7 @@ end
 @doc Markdown.doc"""
     _groebner_basis_with_hilbert(I::MPolyIdeal,
                                  destination_ordering::MonomialOrdering;
-                                 weights::Vector{E} = ones(ngens(base_ring(I))),
+                                 weights::Vector{E} = ones(Int, ngens(base_ring(I))),
                                  complete_reduction::Bool = false) where {E <: Integer}
 
 **Note**: Internal function, subject to change, do not use.
@@ -1272,23 +1272,19 @@ lex([x, y, z])
 ```
 """
 
-function _standard_basis_with_hilbert(I::MPolyIdeal,
+function _groebner_basis_with_hilbert(I::MPolyIdeal,
                                       destination_ordering::MonomialOrdering;
-                                      weights::Vector{E} = ones(Int32, ngens(base_ring(I))),
+                                      weights::Vector{E} = ones(Int, ngens(base_ring(I))),
                                       complete_reduction::Bool = false) where {E <: Integer}
   
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
+  (is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     while true
-      p = 0
-      while true
-        p = rand(2^15:2^16)
-        if isprime(p)
-          break
-        end
-      end
+      r = rand(2^15:2^16)
+      p = Hecke.next_prime(r)
         
       base_field = GF(p)
       ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
