@@ -1237,12 +1237,11 @@ end
 
 # TODO: does the target ordering have to be global?
 @doc Markdown.doc"""
-    _groebner_basis_with_hilbert(I::MPolyIdeal,
-                                 destination_ordering::MonomialOrdering;
-                                 weights::Vector{E} = ones(Int, ngens(base_ring(I))),
-                                 complete_reduction::Bool = false) where {E <: Integer}
+    groebner_basis_hilbert_driven(I::MPolyIdeal,
+                                  destination_ordering::MonomialOrdering;
+                                  weights::Vector{E} = ones(Int, ngens(base_ring(I))),
+                                  complete_reduction::Bool = false) where {E <: Integer}
 
-**Note**: Internal function, subject to change, do not use.
 
 Compute a Gröbner basis of `I` with respect to `destination_ordering`
 using a Hilbert Series driven method as follows: If a Gröbner basis
@@ -1263,7 +1262,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
 
-julia> Oscar._standard_basis_with_hilbert(I, lex(R), complete_reduction = true)
+julia> groebner_basis_hilbert_driven(I, lex(R), complete_reduction = true)
 Gröbner basis with elements
 1 -> y^2*z + y*z^2
 2 -> x*y - y*z
