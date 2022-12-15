@@ -99,3 +99,14 @@ end
   p = free_resolution(M)
   @test !iszero(p[10])
 end
+
+@testset "free resolutions II" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  I = ideal(R, x)
+  A, _ = quo(R, I)
+  A1 = FreeMod(A, 1)
+  M, _ = quo(A1, [y*A1[1], z*A1[1]])
+  p = free_resolution(M)
+  @test iszero(p[10])
+end
+
