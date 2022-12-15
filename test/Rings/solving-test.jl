@@ -37,6 +37,34 @@
     I = ideal(R, [x1 + fmpz(2)^100, x2 + fmpz(2)^100])
     sols = Vector{fmpq}[[-1267650600228229401496703205376, -1267650600228229401496703205376]]
     @test sols == real_solutions(I)[1]
+end
 
+@testset "Rational solutions" begin
+  R, (x, y) = QQ["x", "y"]
+  I = ideal([x - 1, y - 1])
+  J = ideal([x - 2, y - 3])
+  pts = rational_solutions(I * J)
+  @test length(pts) == 2
+  @test issetequal(pts, Vector{fmpq}[[1, 1], [2, 3]])
 
+  k, a = quadratic_field(-1)
+  R, (x, y) = k["x", "y"]
+  I = ideal([x^2 + 1, y^3 - 1])
+  pts = rational_solutions(I)
+  @test length(pts) == 2
+  @test issetequal(pts, Vector{elem_type(k)}[k.([a, 1]), k.([-a, 1])])
+
+  k = GF(5)
+  a = k(2)
+  R, (x, y) = k["x", "y"]
+  I = ideal([x^2 + 1, y^3 - 1])
+  pts = rational_solutions(I)
+  @test length(pts) == 2
+  @test issetequal(pts, Vector{elem_type(k)}[k.([a, 1]), k.([-a, 1])])
+end
+
+@testset "Rational solutions for homogenous ideals" begin
+  Q, x = proj_space(QQ, 2)
+  i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
+  @test length(rational_solutions(i)) == 1
 end
