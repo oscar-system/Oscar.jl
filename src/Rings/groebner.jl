@@ -1291,8 +1291,12 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
         I_mod_p_gens = [ModP(f) for f in gens(I)]
         G = f4(ideal(ModP, I_mod_p_gens))
         break
-      catch
-        continue
+      catch e
+        if e == ErrorException("Unable to coerce") 
+          continue
+        else
+          throw(e)
+        end
       end
     end
   else
