@@ -170,7 +170,6 @@ false
 """
 is_finiteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
-@deprecate is_finite_order(x::GAPGroupElem) is_finiteorder(x)
 
 """
     order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
@@ -552,7 +551,6 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
    return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj)
 end
 
-@deprecate elements(C::GroupConjClass) collect(C)
 
 """
     number_conjugacy_classes(G::GAPGroup)
@@ -762,7 +760,6 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 # This function was never exported but may have been used somewhere.
 # (The name is confusing because it is not clear *of which group* the result
 # shall be a subgroup.)
-@deprecate conjugate_subgroup(G::GAPGroup, x::GAPGroupElem) conjugate_group(G, x)
 
 """
     is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
