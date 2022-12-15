@@ -1295,7 +1295,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
         if e == ErrorException("Unable to coerce") 
           continue
         else
-          throw(e)
+          rethrow(e)
         end
       end
     end
