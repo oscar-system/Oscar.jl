@@ -61,7 +61,7 @@ function is_open_func(F::AbsPreSheaf)
 end
 
 ########################################################################
-# Implementation of PreSheafOnScheme                                      #
+# Implementation of PreSheafOnScheme                                   #
 ########################################################################
 
 ### implementing the essential functionality
@@ -135,6 +135,9 @@ abstract type AbsPreSheafSection{SpaceType,
                                  ElemType
                                 } end
 
+### The interface for sections in presheaves
+
+# Calling for a representative of the section on some open subset
 @Markdown.doc """
     (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
 
@@ -142,14 +145,45 @@ For a section ``v`` in a presheaf ``ℱ`` on ``X`` and an admissible
 open subset ``U ⊂ X`` return an element ``s ∈ ℱ(U)`` representing the section.
 """
 function (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
-  error("method not implemented")
+  return (underlying_section(v))(U)
 end
 
+### Further functionality
+
+# The sheaf in which this is a section
 parent(v::AbsPreSheafSection) = parent(underlying_section(v))
+
+# The space on which the section is defined 
 space(v::AbsPreSheafSection) = space(underlying_section(v))
+
+# The dictionary with cached representatives of that section;
+# for internal use only!
 cache_dict(v::AbsPreSheafSection) = cache_dict(underlying_section(v))
+
+# A function to produce a representative of that section on an 
+# admissible open subset which is not yet cached; 
+# for internal use only!
+#
+# The signature of this function should be 
+#
+#   production_func(w::PreSheafSection, U::OpenType) where {OpenType}
+# 
+# where OpenType is any admissible type for the open sets considered. 
+# In the internal calls, the first argument w will always be the internal 
+# representative of the section v itself. 
+#
+# This function should then take care of producing a representative 
+# of v on U from the data already provided by w.
+# 
 production_func(v::AbsPreSheafSection) = production_func(underlying_section(v))
 
+
+########################################################################
+# Minimal concrete type for sections in presheaves                     #
+########################################################################
+
+# This type is for internal use in the user-facing concrete instances 
+# of AbsPreSheafSection; to be returned via underlying_section().
 mutable struct PreSheafSection{SpaceType, 
                                ParentType<:AbsPreSheaf, 
                                OpenType,
@@ -169,61 +203,23 @@ mutable struct PreSheafSection{SpaceType,
       production_func
     ) where {OpenType, ElemType}
     X = space(F)
-    return new{typeof(X), typeof(F), OpenType, ElemType}(X, F, D)
+    return new{typeof(X), typeof(F), OpenType, ElemType}(X, F, D, production_func)
   end
 end
 
-parent(v::PreSheafSection) = v,F
+parent(v::PreSheafSection) = v.F
 space(v::PreSheafSection) = v.X
 cache_dict(v::PreSheafSection) = v.D
 production_func(v::PreSheafSection) = v.production_func
 
 function (v::PreSheafSection{<:Any, <:AbsPreSheaf, OpenType, ElemType})(U::OpenType) where {OpenType, ElemType}
   # First, look up whether this local representative has already been cached
-  haskey(cache_dict(v)) && return cache_dict(v)[U]
+  haskey(cache_dict(v), U) && return cache_dict(v)[U]
   # If not, delegate to the production function.
   # These can restrict from suitable bigger sets, assemble from compatible 
   # sections on refinements, extend trivially from other patches...
-  s = production_func(v)(U, cache_dict(v)) 
-  cache_dict(v)[U] = s
+  s = production_func(v)(v, U)
+  #cache_dict(v)[U] = s #TODO: Really cache all local representatives?
   return s::ElemType
 end
-
-function _production_func_for_coherent_sheaves(F::AbsCoherentSheaf)
-  X = scheme(F)
-  # We assume the following.
-  # The section is defined on all affine charts of X.
-  # Every admissible open subset is a PrincipalOpenSubset of 
-  # some affine chart.
-  function prod_func(U::AbsSpec, D::IdDict)
-    U in affine_charts(X) || error("open set is not an affine chart of the scheme")
-    error("section is not defined in this chart")
-  end
-  function prod_func(U::PrincipalOpenSubset, D::IdDict)
-    V = ambient_scheme(U)
-    t = haskey(D, V) ? D[V] : production_func(V, D)
-    # Per default we do not cache local sections 
-    return F(V, U)(t)
-  end
-end
-
-mutable struct CoherentSheafSection{SpaceType, ParentType<:AbsPreSheaf, 
-                                    OpenType, ElemType
-                                   } <: AbsPreSheafSection{SpaceType, ParentType, 
-                                                           OpenType, ElemType
-                                                          }
-  s::PreSheafSection{SpaceType, ParentType, OpenType, ElemType}
-
-  function CoherentSheafSection(
-      F::AbsCoherentSheaf,
-      D::Dict{AbsSpec, ModuleFPElem}
-    )
-    X = scheme(F)
-    all(U->haskey(D, U), affine_charts(X)) || error("section must be defined on all affine charts")
-    s = PreSheafSection(F, D, _production_func_for_coherent_sheaves(F))
-    return new{typeof(X), typeof(F), AbsSpec, ModuleFPElem}(s)
-  end
-end
-
-underlying_section(s::CoherentSheafSection) = s.s
 

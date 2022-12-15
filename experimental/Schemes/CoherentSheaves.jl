@@ -232,83 +232,92 @@ underlying_presheaf(M::SheafOfModules) = M.M
 sheaf_of_rings(M::SheafOfModules) = M.OOX
 
 function twisting_sheaf(IP::ProjectiveScheme{<:Field}, d::Int)
-    X = covered_scheme(IP)
-    MD = IdDict{AbsSpec, ModuleFP}()
-    S = ambient_coordinate_ring(IP)
-    n = ngens(S)-1
-    for i in 1:n+1
-        U = affine_charts(X)[i]
-        MD[U] = FreeMod(OO(U), ["$(symbols(S)[i])^$d"])
-    end
+  # First, look up whether this sheaf has already been computed:
+  if !has_attribute(IP, :twisting_sheaves)
+    set_attribute!(IP, :twisting_sheaves, Dict{Int, SheafOfModules}())
+  end
+  twisting_sheaves = get_attribute(IP, :twisting_sheaves)
+  haskey(twisting_sheaves, d) && return twisting_sheaves[d]
 
-    MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
-    C = default_covering(X)
-    for G in values(glueings(C))
-        (U, V) = patches(G)
-        (UU, VV) = glueing_domains(G)
-        h_U = complement_equation(UU)
-        h_V = complement_equation(VV)
-        MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(MatrixSpace(OO(VV), 1, 1))
-        MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(MatrixSpace(OO(UU), 1, 1))
-    end
+  X = covered_scheme(IP)
+  MD = IdDict{AbsSpec, ModuleFP}()
+  S = ambient_coordinate_ring(IP)
+  n = ngens(S)-1
+  for i in 1:n+1
+    U = affine_charts(X)[i]
+    MD[U] = FreeMod(OO(U), ["$(symbols(S)[i])^$d"])
+  end
 
-    M = SheafOfModules(X, MD, MG)
-    return M
+  MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+  C = default_covering(X)
+  for G in values(glueings(C))
+    (U, V) = patches(G)
+    (UU, VV) = glueing_domains(G)
+    h_U = complement_equation(UU)
+    h_V = complement_equation(VV)
+    MG[(U, V)] = (d>= 0 ? OO(VV)(h_V^d) : (inv(OO(VV)(h_V))^(-d)))*one(MatrixSpace(OO(VV), 1, 1))
+    MG[(V, U)] = (d>= 0 ? OO(UU)(h_U^d) : (inv(OO(UU)(h_U))^(-d)))*one(MatrixSpace(OO(UU), 1, 1))
+  end
+
+  M = SheafOfModules(X, MD, MG)
+  # Cache the result for the next usage
+  twisting_sheaves[d] = M
+  return M
 end
 
 function tautological_bundle(IP::ProjectiveScheme{<:Field})
     return twisting_sheaf(IP, -1)
 end
 
-function cotangent_sheaf(X::AbsCoveredScheme)
-    MD = IdDict{AbsSpec, ModuleFP}()
-    for U in affine_charts(X)
-        MD[U] = cotangent_module(U)
-    end
-    MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
-    C = default_covering(X)
-    for G in values(glueings(C))
-        (U, V) = patches(G)
-        (UU, VV) = glueing_domains(G)
-        (f, g) = glueing_morphisms(G)
-        MG[(U, V)] = transpose(jacobi_matrix(pullback(g).(gens(OO(UU)))))
-        MG[(V, U)] = transpose(jacobi_matrix(pullback(f).(gens(OO(VV)))))
-    end
+@attr SheafOfModules function cotangent_sheaf(X::AbsCoveredScheme)
+  MD = IdDict{AbsSpec, ModuleFP}()
+  for U in affine_charts(X)
+    MD[U] = cotangent_module(U)
+  end
+  MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+  C = default_covering(X)
+  for G in values(glueings(C))
+    (U, V) = patches(G)
+    (UU, VV) = glueing_domains(G)
+    (f, g) = glueing_morphisms(G)
+    MG[(U, V)] = transpose(jacobi_matrix(pullback(g).(gens(OO(UU)))))
+    MG[(V, U)] = transpose(jacobi_matrix(pullback(f).(gens(OO(VV)))))
+  end
 
-    
-    M = SheafOfModules(X, MD, MG)
-    return M
+
+  M = SheafOfModules(X, MD, MG)
+  return M
 end
 
-function cotangent_module(X::AbsSpec{<:Field, <:MPolyRing})
-    R = OO(X)
-    F = FreeMod(R, ["d$(x)" for x in symbols(R)])
-    return F
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyRing})
+  R = OO(X)
+  F = FreeMod(R, ["d$(x)" for x in symbols(R)])
+  return F
 end
 
-@attr SheafOfModules function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
-    R = OO(X)
-    P = base_ring(R)
-    F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-    return F
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocalizedRing})
+  R = OO(X)
+  P = base_ring(R)
+  F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+  return F
 end
 
 @attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuo})
-    R = OO(X)
-    P = base_ring(R)
-    F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-    rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
-    M, _ = quo(F, rels)
-    return M
+  R = OO(X)
+  P = base_ring(R)
+  F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+  M, _ = quo(F, rels)
+  return M
 end
 
-function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
-    R = OO(X)
-    P = base_ring(R)
-    F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-    rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
-    M, _ = quo(F, rels)
-    return M
+@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocalizedRing})
+  R = OO(X)
+  P = base_ring(R)
+  F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(gens(modulus(R))))))
+  M, _ = quo(F, rels)
+  return M
 end
 
 ########################################################################
@@ -424,7 +433,7 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   return M
 end
 
-function dual(M::SheafOfModules)
+@attr function dual(M::SheafOfModules)
   OOX = sheaf_of_rings(M)
   F = free_module(OOX, ["1"])
   return HomSheaf(M, F)
@@ -660,6 +669,91 @@ function is_locally_free(M::AbsCoherentSheaf)
   return all(U->is_projective(M(U)), affine_charts(scheme(M)))
 end
 
-      
 
+########################################################################      
+# Sections in coherent sheaves                                         #
+########################################################################      
 
+function _production_func_for_coherent_sheaves(F::AbsCoherentSheaf)
+  X = scheme(F)
+  # We assume the following simple setup:
+  # The section is defined on all `affine_charts` of X.
+  # Every admissible open subset is a `PrincipalOpenSubset` of 
+  # some affine chart.
+  function prod_func(w::PreSheafSection, U::AbsSpec)
+    U in affine_charts(X) || error("open set is not an affine chart of the scheme")
+    error("section is not defined in this chart")
+  end
+  function prod_func(w::PreSheafSection, U::PrincipalOpenSubset)
+    F = parent(w)
+    D = cache_dict(w)
+    V = ambient_scheme(U)
+    t = haskey(D, V) ? D[V] : production_func(V, D)
+    return F(V, U)(t) # Call for the restriction function and restrict
+    # Per default we do not cache local sections 
+  end
+  return prod_func
+end
+
+mutable struct CoherentSheafSection{SpaceType, ParentType<:AbsPreSheaf, 
+                                    OpenType, ElemType
+                                   } <: AbsPreSheafSection{SpaceType, ParentType, 
+                                                           OpenType, ElemType
+                                                          }
+  s::PreSheafSection{SpaceType, ParentType, OpenType, ElemType}
+
+  function CoherentSheafSection(
+      F::AbsCoherentSheaf,
+      D::IdDict{AbsSpec, ModuleFPElem};
+      check::Bool=true
+    )
+    X = scheme(F)
+    
+    # the trivial checks
+    all(U->haskey(D, U), affine_charts(X)) || error("section must be defined on all affine charts")
+    # create the section container
+    s = PreSheafSection(F, D, _production_func_for_coherent_sheaves(F))
+
+    # the expensive checks
+    if check
+      all(U->haskey(D, U), affine_charts(X)) || error("section must be defined on all affine charts")
+      for (U, V) in keys(glueings(default_covering(X)))
+        (A, B) = glueing_domains(default_covering(X)[U, V])
+        F(U, B)(s(U)) == s(B) || error("local sections do not agree on the overlaps")
+        F(V, A)(s(V)) == s(A) || error("local sections do not agree on the overlaps")
+      end
+    end
+    return new{typeof(X), typeof(F), AbsSpec, ModuleFPElem}(s)
+  end
+end
+
+underlying_section(s::CoherentSheafSection) = s.s
+
+function restrictions_of_global_sections_of_twisting_sheaf(P::AbsProjectiveScheme, d::Int)
+  OOd = twisting_sheaf(P, d)
+  S = ambient_coordinate_ring(P)
+  x = gens(S)
+  n = length(x)-1
+  X = covered_scheme(P)
+  U = affine_charts(X)
+  result = CoherentSheafSection[]
+  pow_x = oscar.all_monomials(S, d)
+  dehom = [dehomogenize(P, i) for i in 0:n]
+  for y in pow_x
+    D = IdDict{AbsSpec, ModuleFPElem}()
+    for i in 1:length(U)
+      D[U[i]] = dehom[i](y)*(OOd(U[i]))[1] 
+    end
+    push!(result, CoherentSheafSection(OOd, D, check=false))
+  end
+  return result
+end
+
+function Base.show(io::IO, v::CoherentSheafSection)
+  print(io, "global section in $(parent(v))")
+end
+
+function ==(v::CoherentSheafSection, w::CoherentSheafSection)
+  parent(v) === parent(w) || error("sections must have the same parent")
+  return all(U->(v(U) == w(U)), affine_charts(scheme(parent(v))))
+end

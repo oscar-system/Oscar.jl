@@ -57,3 +57,24 @@ end
   U321 = PrincipalOpenSubset(U[3], dehomogenize(IP, 2)(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
 end
+
+@testset "sections in coherent sheaves" begin
+  IP = projective_space(QQ, ["x", "y", "z"])
+
+  S = ambient_coordinate_ring(IP)
+
+  X = covered_scheme(IP)
+
+  OO2 = twisting_sheaf(IP, 2)
+
+  v = oscar.restrictions_of_global_sections_of_twisting_sheaf(IP, 10)
+
+  U = affine_charts(X)
+
+  @test v[1](U[1]) != v[2](U[1])
+
+  w = oscar.restrictions_of_global_sections_of_twisting_sheaf(IP, 10)
+
+  @test w[1](U[1]) !== v[1](U[1]) # No caching of sections
+  @test w[1](U[1]) == v[1](U[1])  # But reliably the same results
+end
