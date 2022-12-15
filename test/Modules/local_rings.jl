@@ -14,8 +14,8 @@
   M, _ = quo(F, (I*F)[1])
 
   @test length(M) == 2
-  decomp = decomposition_series(M)
-  @test all(x->(parent(x) === M), decomp)
+  comp = composition_series(M)
+  @test all(x->(parent(x) === M), comp)
 
   N, _ = quo(F, (ideal(L, [x,y,z])*F)[1])
   @test length(N) == 0
