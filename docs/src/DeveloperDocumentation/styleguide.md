@@ -209,6 +209,12 @@ The comment about the version number is only necessary if you are the first one
 adding to `Deprecations.jl` after a release, otherwise please add to the
 existing block.
 
+!!! note
+    Please make sure to change to the new function everywhere in the existing
+    OSCAR code base. Even if you think, you were the only one using the
+    function, run a quick `grep` to make sure. When you are done,
+    `Deprecations.jl` should be the only place mentioning `old_function`.
+
 ## Documentation
 
  - In general we try to follow the list of recommendations in the
