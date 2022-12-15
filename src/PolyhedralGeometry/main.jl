@@ -172,7 +172,6 @@ include("Visualization.jl")
 include("solving_integrally.jl")
 include("triangulations.jl")
 
-@deprecate bounded(Obj::Polyhedron) is_bounded(Obj)
 
 # Some temporary aliases to avoid breaking all current PRs
 pm_cone(C::Cone) = pm_object(C)

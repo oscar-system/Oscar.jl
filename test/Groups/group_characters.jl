@@ -683,6 +683,7 @@ end
   @test -1 in chi
   chi = filter(x -> x[1] == 2, collect(t))[1]
   @test [chi(representative(c)) for c in conjugacy_classes(g)] == values(chi)
+  @test all(is_irreducible, t)
 
   scp = scalar_product(t[1], t[1])
   @test scp == 1
