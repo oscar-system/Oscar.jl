@@ -184,6 +184,31 @@ end
 
 However, as always, rules sometimes should be broken.
 
+
+## Deprecating functions
+
+Sometimes it is necessary to rename a function or otherwise change it. To allow
+for backwards compatibility, please then introduce a new line in the file
+`src/Deprecations.jl`. The syntax is as follows:
+```
+# Deprecated after CURRENT_RELEASE_VERSION
+@deprecate old_function(args) new_function(args)
+```
+It is possible to transform the `args` too, if the syntax has changed. If this
+process needs an auxiliary function, which otherwise is unnecessary, please add
+it above:
+```
+# Deprecated after CURRENT_RELEASE_VERSION
+function transform_args_for_new_function(args)
+    # Do something
+    return new_args
+end
+@deprecate old_function(args) new_function(transform_args_for_new_function(args))
+```
+The comment about the version number is only necessary if you are the first one
+adding to `Deprecations.jl` after a release, otherwise please add to the
+existing block.
+
 ## Documentation
 
  - In general we try to follow the list of recommendations in the

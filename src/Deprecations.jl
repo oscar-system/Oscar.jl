@@ -16,7 +16,6 @@
 @deprecate torusinvariant_divisor_group(v::AbstractNormalToricVariety) torusinvariant_weil_divisor_group(v)
 @deprecate StructureSheaf(v::AbstractNormalToricVariety) structure_sheaf
 @deprecate morphism_on_cartier_divisor_group(tm::ToricMorphism) morphism_on_torusinvariant_cartier_divisor_group(tm)
-Binary file .Deprecations.jl.swp matches
 @deprecate bounded(Obj::Polyhedron) is_bounded(Obj)
 @deprecate vf_group(P::Polyhedron) automorphism_group(P; action = :on_facets)
 @deprecate automorphisms(x::Graph) automorphism_group_generators(x)
