@@ -4666,9 +4666,19 @@ function free_resolution(M::SubQuo{T}) where {T<:RingElem}
     # TODO: Use official getter and setter methods instead 
     # of messing manually with the internals of the complex.
     for i in first(range(C)):k-1
+      N = domain(map(C, i))
+
+      if iszero(N) # Fill up with zero maps
+        phi = hom(N, N, elem_type(N)[])
+        pushfirst!(C.maps, phi)
+        continue
+      end
+
       K, inc = kernel(map(C, i))
-      F = FreeMod(R, ngens(K))
-      phi = hom(F, C[i], inc.(gens(K)))
+      nz = findall(x->!iszero(x), gens(K))
+      F = FreeMod(R, length(nz))
+      iszero(length(nz)) && set_attribute!(F, :name => "0")
+      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]))
       pushfirst!(C.maps, phi)
     end
     return first(C.maps)
