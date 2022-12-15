@@ -1233,7 +1233,6 @@ function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 end
 
 
-# TODO: does the target ordering have to be global?
 @doc Markdown.doc"""
     groebner_basis_hilbert_driven(I::MPolyIdeal,
                                   destination_ordering::MonomialOrdering;
