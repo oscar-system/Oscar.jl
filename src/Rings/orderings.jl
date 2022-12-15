@@ -92,6 +92,7 @@ function _canonical_matrix(w)
       ww = vcat(ww, nw)
     end
   end
+  @assert nrows(ww) <= ncols(ww)
   return ww
 end
 
@@ -152,6 +153,12 @@ Orderings actually applied to polynomial rings (as opposed to variable indices)
 mutable struct MonomialOrdering{S}
   R::S
   o::AbsGenOrdering
+  is_total::Bool
+  is_total_is_known::Bool
+end
+
+function MonomialOrdering(R::S, o::AbsGenOrdering) where S
+   return MonomialOrdering{S}(R, o, false, false)
 end
 
 base_ring(a::MonomialOrdering) = a.R
@@ -1400,8 +1407,12 @@ end
 Return `true` if `ord` is total ordering, `false` otherwise.
 """
 function is_total(ord::MonomialOrdering)
-  m = canonical_matrix(ord)
-  return nrows(m) >= ncols(m)
+  if !ord.is_total_is_known
+    m = canonical_matrix(ord)
+    ord.is_total = nrows(m) == ncols(m)
+    ord.is_total_is_known = true
+  end
+  return ord.is_total
 end
 
 @doc Markdown.doc"""
