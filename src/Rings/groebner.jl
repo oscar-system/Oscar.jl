@@ -1,7 +1,8 @@
 export  reduce, reduce_with_quotients, reduce_with_quotients_and_unit, f4, fglm,
 		standard_basis, groebner_basis, standard_basis_with_transformation_matrix,
 		groebner_basis_with_transformation_matrix,
-		leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis
+	leading_ideal, syzygy_generators, is_standard_basis, is_groebner_basis,
+  groebner_basis_hilbert_driven
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
@@ -155,7 +156,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    I.gb[ordering] = _groebner_basis_with_hilbert(I, ordering, weights=weights, complete_reduction=complete_reduction)
+    I.gb[ordering] = groebner_basis_hilbert_driven(I, ordering, weights=weights, complete_reduction=complete_reduction)
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -1272,10 +1273,10 @@ lex([x, y, z])
 ```
 """
 
-function _groebner_basis_with_hilbert(I::MPolyIdeal,
-                                      destination_ordering::MonomialOrdering;
-                                      weights::Vector{E} = ones(Int, ngens(base_ring(I))),
-                                      complete_reduction::Bool = false) where {E <: Integer}
+function groebner_basis_hilbert_driven(I::MPolyIdeal,
+                                       destination_ordering::MonomialOrdering;
+                                       weights::Vector{E} = ones(Int, ngens(base_ring(I))),
+                                       complete_reduction::Bool = false) where {E <: Integer}
   
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
