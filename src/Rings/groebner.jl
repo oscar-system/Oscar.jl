@@ -119,8 +119,6 @@ The keyword `algorithm` can be set to
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
 
-`weights` is used only if `algorithm == :hilbert`.
-
 !!! note
     See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
 
@@ -142,7 +140,7 @@ negdegrevlex([x, y])
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-	complete_reduction::Bool = false, algorithm::Symbol = :buchberger, weights::Vector{E} = ones(Int32, ngens(base_ring(I)))) where {E <: Integer}
+                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
 	complete_reduction && @assert is_global(ordering)
 	if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
 		return I.gb[ordering]
@@ -156,7 +154,9 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    I.gb[ordering] = groebner_basis_hilbert_driven(I, ordering, weights=weights, complete_reduction=complete_reduction)
+    I.gb[ordering] = groebner_basis_hilbert_driven(I, ordering,
+                                                   weights=_extract_weights(base_ring(I)),
+                                                   complete_reduction=complete_reduction)
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -175,8 +175,6 @@ The keyword `algorithm` can be set to
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
-
-`weights` is used only if `algorithm == :hilbert`.
 
 !!! note
     See the description of the functions `fglm` and `f4` for restrictions on the input data when using these versions of the Gröbner basis algorithm.
@@ -259,9 +257,9 @@ julia> leading_coefficient(G[8])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-	algorithm::Symbol = :buchberger, weights::Vector{E} = ones(Int32, ngens(base_ring(I)))) where {E <: Integer}
+                        algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
-    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm, weights=weights)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
 
 @doc Markdown.doc"""
