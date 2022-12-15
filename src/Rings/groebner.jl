@@ -1322,6 +1322,19 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
 	return GB
 end
 
+# Helper functions for groebner_basis_with_hilbert
+
+function _extract_weights(T::MPolyRing)
+  if typeof(T) <: MPolyRing_dec
+    if !is_z_graded(T)
+      error("Ring must be graded by the Integers.")
+    end
+    return [Int(first(gr_elem.coeff)) for gr_elem in T.d]
+  else
+    return ones(Int, nvars(T))
+  end
+end
+
 function _is_homogeneous_weights(f::MPolyElem,
                                  weights::Vector{I}) where {I <: Integer}
   
