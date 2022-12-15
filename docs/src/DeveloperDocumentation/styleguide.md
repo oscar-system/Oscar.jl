@@ -213,7 +213,9 @@ existing block.
     Please make sure to change to the new function everywhere in the existing
     OSCAR code base. Even if you think, you were the only one using the
     function, run a quick `grep` to make sure. When you are done,
-    `Deprecations.jl` should be the only place mentioning `old_function`.
+    `Deprecations.jl` should be the only place mentioning `old_function`. To
+    make sure, you can start Julia with `--depwarn=yes` or even
+    `--depwarn=error` and then run the tests.
 
 ## Documentation
 
