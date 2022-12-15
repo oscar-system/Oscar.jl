@@ -25,6 +25,6 @@
   A, _ = quo(R, ideal(R, [x^2, y, z]))
   W, _ = localization(A, complement_of_ideal(ideal(R, [x,y,z])))
   F = FreeMod(W, 2)
-  @test_broken length(F) == 4 # See #1806
+  @test length(F) == 4 
 end
 
