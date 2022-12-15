@@ -38,9 +38,6 @@ function _pm_arr_arr_to_group_generators(M)
 end
 
 
-@deprecate vf_group(P::Polyhedron) automorphism_group(P; action = :on_facets)
-
-
 @doc Markdown.doc"""
     combinatorial_symmetries(P::Polyhedron)
 
