@@ -1276,7 +1276,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
   
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
-  (is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
+  is_global(destination_ordering)) || error("Destination ordering must be global.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     while true
