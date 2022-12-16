@@ -2391,6 +2391,10 @@ true
 ```
 """
 ambient_representative(m::SubQuoElem) = repres(m)
+
+# another method for compatibility in generic code
+ambient_representative(a::FreeModElem) = a
+
 #######################################################
 
 @doc Markdown.doc"""
@@ -3990,13 +3994,17 @@ julia> iszero(x*M[1])
 true
 ```
 """
-function iszero(m::SubQuoElem)
+function iszero(m::SubQuoElem{<:MPolyElem})
   C = parent(m)
   if !isdefined(C, :quo)
     return iszero(repres(m))
   end
   x = reduce(repres(m), C.quo)
   return iszero(x)
+end
+
+function iszero(m::SubQuoElem)
+  return (ambient_representative(m) in parent(m).quo)
 end
 
 @doc Markdown.doc"""
