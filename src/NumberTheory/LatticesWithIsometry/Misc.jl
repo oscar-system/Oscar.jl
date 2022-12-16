@@ -44,12 +44,11 @@ end
 function _is_invariant(f::TorQuadModMor, i::TorQuadModMor)
   fab = f.map_ab
   V = domain(i)
-  bool = true
   for a in gens(V)
     b = f(i(a))
-    bool &= haspreimage(fab, data(b))[1]
+    haspreimage(fab, data(b))[1] || return false
   end
-  return bool
+  return true
 end
 
 function _is_invariant(f::AutomorphismGroupElem{TorQuadMod}, i::TorQuadModMor)

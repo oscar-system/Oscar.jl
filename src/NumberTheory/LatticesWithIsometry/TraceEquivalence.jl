@@ -1,7 +1,9 @@
 export trace_lattice
 
 @doc Markdown.doc"""
-    trace_lattice(L::Hecke.AbsLat{T}; order::Integer = 2) where T -> LatticeWithIsometry
+    trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
+                                      beta::FieldElem = gen(base_field(L)),
+                                      order::Integer = 2) where T -> LatticeWithIsometry
 
 Given a lattice `L` which is either a $\mathbb Z$-lattice or a hermitian lattice
 over the $E/K$ with `E` a cyclotomic field and `K` a maximal real subfield of
@@ -14,6 +16,18 @@ of `L` and the underlying map `f` is:
 
 Note that the optional argument `order` has no effect if `L` is not a
 $\mathbb Z$-lattice.
+
+The choice of `alpha` corresponds to the choice of a "twist" for the trace construction
+using `restrict_scalars`.
+
+The choice of `beta` corresponds to the choice of a primitive root of unity in the
+base field of `L`, in the hermitian case, used to construct the isometry `f`. If `beta`
+is not a primitive root of the unity, but its normalisation is, i.e. $\beta/(s\beta)$
+where `s` is the non trivial involution of the base algebra of `L`, then its 
+normalisation is automatically used by default.
+
+Note that the isometry `f` computed is given by its action on the ambient space of the
+trace lattice of `L`.
 """
 function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L)),
                                            beta::FieldElem = gen(base_field(L)),
@@ -41,7 +55,7 @@ function trace_lattice(L::Hecke.AbsLat{T}; alpha::FieldElem = one(base_field(L))
   end
   
   bool, m = Hecke.is_cyclotomic_type(E)
-  @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "beta must be a $m-primitive root of 1"
+  @req !bool || findfirst(i -> isone(beta^i), 1:m) == m "The normalisation of beta must be a $m-primitive root of 1"
 
   Lres, f = restrict_scalars_with_map(L, QQ, alpha)
   iso = zero_matrix(QQ, 0, degree(Lres))
@@ -70,38 +84,6 @@ function absolute_representation_matrix(b::Hecke.NfRelElem)
     m[i,:] = transpose(matrix(v))
   end
   return m
-end
-
-function _find_mult_action(f::fmpq_mat, mb::fmpq_mat)
-  A = f
-  B = mb
-  n = nrows(A)
-  m = nrows(B)
-  linind = transpose(LinearIndices((n,m)))
-  zz = zero_matrix(QQ, n*m, n*m)
-  for i in 1:m
-    for j in 1:n
-      for k in 1:n
-        zz[linind[i, j], linind[i, k]] += A[k,j]
-      end
-      for k in 1:m
-        zz[linind[i,j], linind[k, j]] -= B[i,k]
-      end
-    end
-  end
-  
-  r, K = right_kernel(zz)
-
-  res = fmpq_mat[]
-  for k in 1:ncols(K)
-    cartind = Hecke.cartesian_product_iterator([1:x for x in (n, m)], inplace=true)
-    M = zero_matrix(QQ, m, n)
-    for (l,v) in enumerate(cartind)
-      M[v[2], v[1]] = K[l, k]
-    end
-    push!(res, M)
-  end
-  return res
 end
 
 function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
@@ -142,7 +124,7 @@ function _hermitian_structure(L::ZLat, f::fmpq_mat; E = nothing,
  
   mb = absolute_representation_matrix(b)
   m = divexact(rank(L), euler_phi(n))
-  bca = _find_mult_action(f, mb)
+  bca = Hecke._basis_of_integral_commutator_algebra(f, mb)
   @assert !is_empty(bca)
   l = reduce(vcat, bca[1:m])
   @assert det(l) != 0

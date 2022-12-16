@@ -398,8 +398,8 @@ function _is_type(t::Dict)
   Set(divisors(n)) == Set(ke) || return false
 
   for i in ke
-   t[i][2] isa ZGenus || return false
-   typeof(t[i][1]) <: Union{ZGenus, Hecke.GenusHerm} || return false
+    t[i][2] isa ZGenus || return false
+    typeof(t[i][1]) <: Union{ZGenus, Hecke.GenusHerm} || return false
   end
   rank(t[n][2]) == rank(t[n][1])*euler_phi(n) || return false
   return true

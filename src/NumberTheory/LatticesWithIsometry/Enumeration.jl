@@ -49,7 +49,7 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d, s::fmpz, l::fmpz, p::Int, even = true)
+function _find_L(r::Int, d::RationalUnion, s::fmpz, l::fmpz, p::Int, even = true)
   L = ZGenus[]
   for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
     gen = genera((s1,s2), d, even=even)
