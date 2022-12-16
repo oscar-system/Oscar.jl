@@ -1122,7 +1122,7 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
 julia> f = p(y^2-x^2+x*y*z+z^4)
-y^2*z + z^4
+-x^2 + x*y*z + y^2 + z^4
 
 julia> homogeneous_components(f)
 Dict{GrpAbFinGenElem, MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}} with 2 entries:
@@ -1281,7 +1281,7 @@ julia> J = ideal(A, [p(x) for x in V]);
 
 julia> minimal_generating_set(J)
 2-element Vector{MPolyQuoElem{MPolyElem_dec{fmpq, fmpq_mpoly}}}:
- y
+ x
  z^2
 ```
 """
