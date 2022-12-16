@@ -757,3 +757,101 @@ function ==(v::CoherentSheafSection, w::CoherentSheafSection)
   parent(v) === parent(w) || error("sections must have the same parent")
   return all(U->(v(U) == w(U)), affine_charts(scheme(parent(v))))
 end
+
+### 
+# Check whether for some k ∈ ℕ  hᵏ ⋅ v extends as a partial section in F from U to the 
+# ambient_scheme Y of U where h is the `complement_equation` for U in Y.
+#
+# Returns a triple (w::ModuleFPElem, b::MPolyLocalizedRingElem, k::Int)
+# where w in F(Y) is a preimage of v, 1//b * w is equal to v, and b = hᵏ.
+function _extends(v::ModuleFPElem, F::AbsCoherentSheaf, U::PrincipalOpenSubset)
+  parent(v) === F(U) || error("partial section does not belong to the given sheaf")
+  h = complement_equation(U)
+  a = lifted_numerator(h) # This is the relevant part of the localization!
+  Y = ambient_scheme(U)
+  res = F(Y, U) # the restriction map
+  MU = parent(v)
+  MY = F(Y)
+  iszero(MY) && return (zero(OO(Y)), one(OO(Y)), 0) # this is the only possibility
+  MUsub = MU
+  # If the restriction map is non-trivial, we need some extra preparations:
+  if (!(ngens(MU) == ngens(MY))) || !all(i->(MU[i] == res(MY[i])), 1:ngens(MU))
+    MUsub, _ = sub(MU, res.(gens(MY)))
+  end
+  c = coordinates(ambient_representative(v), MUsub)
+  # A dirty conversion because we did not yet agree on the return type of 
+  # coordinates. c might be an SRow
+  if c isa SRow
+    v = [zero(base_ring(MUsub)) for i in 1:ngens(MUsub)]
+    for (i, ent) in c
+      v[i] = ent
+    end
+    c = v 
+  end
+  cc, poa, k = _pull_from_denominator(c, a) # The output is (cc, a^k, k), see below
+  w = lifted_denominator(h)^k * sum(OO(Y)(cc[i][1], cc[i][2], check=false) * MY[i] for i in 1:ngens(MY))
+  b = h^k
+  return w, b, k
+end
+
+function _pull_from_denominator(c::Vector{<:MPolyLocalizedRingElem}, a::MPolyElem)
+  comp = [pull_from_denominator(d, a) for d in c]
+  k = maximum([e[4] for e in comp]) # the maximal exponent with which a power of a occurs
+  d = [(e[1]*d^(k-e[4]), o) for e in comp]
+  return d, a^k, k
+end
+
+function _pull_from_denominator(c::Vector{<:MPolyQuoLocalizedRingElem}, a::MPolyElem)
+  comp = [pull_from_denominator(d, a) for d in c]
+  k = maximum([e[4] for e in comp]) # the maximal exponent with which a power of a occurs
+  d = [(e[1]*a^(k-e[4]), e[2]) for e in comp]
+  return d, a^k, k
+end
+
+### For compatibility
+function coordinates(v::FreeModElem, F::FreeMod)
+  parent(v) === F || error("element is not in the module")
+  return [v[i] for i in 1:ngens(F)]
+end
+
+function lifted_denominator(a::MPolyQuoElem)
+  return one(base_ring(parent(a)))
+end
+
+@Markdown.doc """
+    graded_resolution(M::AbsCoherentSheaf, L::LineBundle)
+
+For a coherent sheaf ``ℳ`` on an `AbsCoveredScheme` ``X`` and a `LineBundle` ``ℒ``, 
+try to compute a free resolution
+
+``0 ← ℳ  ← ⊕ ᵢℒ ⁿ⁽ⁱ⁾ ←  ⊕ ⱼ ℒ ᵐ⁽ʲ⁾ ← …``
+
+of ``ℳ`` via direct sums of twists of ``ℒ``.
+
+**Note:** This may fail if ``ℒ`` is not sufficiently ample.
+"""
+function graded_resolution(M::AbsCoherentSheaf, L::LineBundle)
+  X = scheme(M)
+  X === scheme(L) || error("sheaves must be defined over the same scheme")
+  for U in affine_charts(X)
+    e = L(U)[1] # the unit generator of the line bundle
+    for g in gens(M(U))
+      for V in affine_charts(X)
+        if !haskey(glueings(default_covering(X)), (U, V))
+          continue
+        end
+        G = default_covering(X)(U, V)::SimpleGlueing
+        UV, VU = glueing_domains(G)
+        g_trans = M(U, VU)(g)
+        e_trans = L(U, VU)(e)
+        (gg, d, k) = _extends(g_trans, M, VU)
+        # Now d is the denominator of the translated section that has to 
+        # be canceled by a sufficiently high twist of L. 
+        e_trans
+      end
+    end
+  end
+end
+
+  
+end
