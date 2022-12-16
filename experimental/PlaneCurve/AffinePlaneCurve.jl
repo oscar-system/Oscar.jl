@@ -140,7 +140,7 @@ julia> D = Oscar.AffinePlaneCurve((x-y)*(x-2))
 Affine plane curve defined by x^2 - x*y - 2*x + 2*y
 
 julia> Oscar.curve_intersect(C, D)
-2-element Vector{Vector}:
+2-element Vector{Vector{T} where T}:
  AffinePlaneCurve[]
  Point{fmpq}[Point with coordinates fmpq[0, 0], Point with coordinates fmpq[2, -2]]
 ```
@@ -230,7 +230,7 @@ julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 julia> Oscar.curve_singular_locus(C)
-2-element Vector{Vector}:
+2-element Vector{Vector{T} where T}:
  AffinePlaneCurve[Affine plane curve defined by x]
  Point[Point with coordinates fmpq[-1, 1], Point with coordinates fmpq[0, 0]]
 ```
