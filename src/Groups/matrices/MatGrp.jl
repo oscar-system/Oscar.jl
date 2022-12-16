@@ -595,7 +595,7 @@ end
 
 Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
 
-Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+Currently, this function only supports fields of type `FqNmodFiniteField`.
 
 # Examples
 ```jldoctest
@@ -631,7 +631,7 @@ Return the special linear group of dimension `n` either over the field `F` or th
 
 Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
 
-#Examples
+# Examples
 ```jldoctest
 julia> F = GF(7,1)
 Finite field of degree 1 over F_7
