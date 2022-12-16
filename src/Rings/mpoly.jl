@@ -158,7 +158,7 @@ end
 using .Orderings
 export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
        negdegrevlex, wdeglex, wdegrevlex, negwdeglex, negwdegrevlex,
-       matrix_ordering, MonomialOrdering, singular,
+       matrix_ordering, MonomialOrdering, singular, is_total,
        is_global, is_local, is_mixed, monomial_ordering, opposite_ordering,
        permutation_of_terms, index_of_leading_term, weight_ordering,
        canonical_matrix, is_elimination_ordering, induced_ring_ordering
