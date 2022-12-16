@@ -1168,7 +1168,7 @@ end
 
 Return a vector of representatives of the conjugacy classes of complements
 of the normal subgroup `N` in `G`.
-This function may throws an error exception if both `N` and `G/N` are
+This function may throw an error exception if both `N` and `G/N` are
 nonsolvable.
 
 A complement is a subgroup of `G` which intersects trivially with `N` and
