@@ -86,14 +86,20 @@ julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
 ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
 
 julia> rat_sols = Oscar._rational_solutions(I)
-2-element Vector{Vector{fmpq}}:
- [1, 0, 0]
- [1//3, 0, 1//3]
+ERROR: UndefVarError: rational_solutions not defined
+Stacktrace:
+ [1] _rational_solutions(I::MPolyIdeal{fmpq_mpoly}; initial_hts::Int64, nr_thrds::Int64, max_nr_pairs::Int64, la_option::Int64, info_level::Int64, precision::Int64)
+   @ Oscar ~/Oscar.jl/src/Rings/solving.jl:105
+ [2] _rational_solutions(I::MPolyIdeal{fmpq_mpoly})
+   @ Oscar ~/Oscar.jl/src/Rings/solving.jl:93
+ [3] top-level scope
+   @ none:1
 
 julia> map(r->map(p->evaluate(p, r), I.gens), rat_sols)
-2-element Vector{Vector{fmpq}}:
- [0, 0, 0]
- [0, 0, 0]
+ERROR: UndefVarError: rat_sols not defined
+Stacktrace:
+ [1] top-level scope
+   @ none:1
 ```
 """
 function _rational_solutions(
