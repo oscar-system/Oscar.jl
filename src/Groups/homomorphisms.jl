@@ -616,6 +616,26 @@ function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
    end::AbstractAlgebra.Generic.IdentityMap{GrpAbFinGen}
 end
 
+# We need not find independent generators in order to create
+# a presentation of a fin. gen. abelian group.
+function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   return get!(isos, FPGroup) do
+      G = free_group(ngens(A))
+      R = rels(A)
+      s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
+           elem_type(G)[reduce(*, [gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
+      F, mF = quo(G, s)
+      @assert is_finite(A) == is_finite(F)
+      is_finite(A) && @assert order(A) == order(F)
+      return MapFromFunc(
+        y->mF(reduce(*, [gen(G, i)^y[i] for i=1:ngens(A)], init = one(G))),
+        x->reduce(+, [sign(w)*gen(A, abs(w)) for w = word(x)], init = zero(A)),
+        A, F)
+   end::MapFromFunc{GrpAbFinGen, FPGroup}
+end
+
 """
     FPGroup(G::T) where T <: Union{GAPGroup, GrpAbFinGen}
     GrpAbFinGen(G::T) where T <: GAPGroup

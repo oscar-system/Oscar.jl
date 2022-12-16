@@ -244,6 +244,21 @@ end
       end
    end
 
+   @testset "Infinite GrpAbFinGen to GAPGroup" begin
+      Agens = matrix(ZZ, 2, 2, [2, 3, 0, 0])
+      A = abelian_group(Agens)
+      for T in [FPGroup]
+         iso = @inferred isomorphism(T, A)
+         for x in gens(A)
+            for y in gens(A)
+               z = x+y
+               @test iso(x) * iso(y) == iso(z)
+               @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+            end
+         end
+      end
+   end
+
    @testset "GrpAbFinGen to GrpAbFinGen" begin
       A = abelian_group([2, 3, 4])
       iso = @inferred isomorphism(GrpAbFinGen, A)
