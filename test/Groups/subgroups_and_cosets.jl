@@ -327,6 +327,32 @@ end
    
 end
 
+@testset "Complement classes" begin
+   # solvable group
+   G = symmetric_group(4)
+   N = pcore(G, 2)[1]
+   @test length(complement_class_reps(G, N)) == 1
+
+   # nonsolvable factor group
+   G = special_linear_group(2, 5)
+   N = center(G)[1]
+   @test length(complement_class_reps(G, N)) == 0
+
+   # nonsolvable normal subgroup
+   G = symmetric_group(6)
+   N = derived_subgroup(G)[1]
+   @test length(complement_class_reps(G, N)) == 2
+
+   # both normal subgroup and factor group nonsolvable:
+   # check that GAP throws an error
+   # (if not then perhaps a statement in the documentation of
+   # `complement_class_reps` can be changed)
+   G = alternating_group(5)
+   W = wreath_product(G, G)
+   N = kernel(projection(W))[1]
+   @test_throws ErrorException complement_class_reps(W, N)
+end
+
 @testset "Some specific subgroups" begin
    G = GL(2,3)
    S = symmetric_group(4)
