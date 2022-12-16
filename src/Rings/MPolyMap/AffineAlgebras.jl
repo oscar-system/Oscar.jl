@@ -181,13 +181,8 @@ If `F` is bijective, return its inverse.
 julia> D1, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3])
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map with following data
-Domain:
-=======
-Multivariate Polynomial Ring in x, y, z over Rational Field
-Codomain:
-=========
-Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
 
 julia> C, (t,) = PolynomialRing(QQ, ["t"]);
 
