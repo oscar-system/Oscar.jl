@@ -590,12 +590,12 @@ end
 
 """
     general_linear_group(n::Int, q::Int)
-    general_linear_group(n::Int, F::Ring)
+    general_linear_group(n::Int, R::Ring)
     GL = general_linear_group
 
-Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+Return the general linear group of dimension `n` either over the ring `R` or the ring `GF(q)`.
 
-Currently, this function only supports fields of type `FqNmodFiniteField`.
+Currently, this function only supports rings of type `FqNmodFiniteField`.
 
 # Examples
 ```jldoctest
@@ -612,8 +612,8 @@ julia> gens(H)
 
 ```
 """
-function general_linear_group(n::Int, F::Ring)
-   G = MatrixGroup(n,F)
+function general_linear_group(n::Int, R::Ring)
+   G = MatrixGroup(n,R)
    G.descr = :GL
    return G
 end
@@ -624,12 +624,12 @@ end
 
 """
     special_linear_group(n::Int, q::Int)
-    special_linear_group(n::Int, F::Ring)
+    special_linear_group(n::Int, R::Ring)
     SL = special_linear_group
 
-Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+Return the special linear group of dimension `n` either over the ring `R` or the ring `GF(q)`.
 
-Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+Currently, this function only supports rings of type `FqNmodFiniteField`.
 
 # Examples
 ```jldoctest
@@ -646,8 +646,8 @@ julia> gens(H)
 
 ```
 """
-function special_linear_group(n::Int, F::Ring)
-   G = MatrixGroup(n,F)
+function special_linear_group(n::Int, R::Ring)
+   G = MatrixGroup(n,R)
    G.descr = :SL
    return G
 end
@@ -658,13 +658,13 @@ end
 
 """
     symplectic_group(n::Int, q::Int)
-    symplectic_group(n::Int, F::Ring)
+    symplectic_group(n::Int, R::Ring)
     Sp = symplectic_group
 
-Return the symplectic group of dimension `n` either over the field `F` or the
-field `GF(q)`. The dimension `n` must be even.
+Return the symplectic group of dimension `n` either over the ring `R` or the
+ring `GF(q)`. The dimension `n` must be even.
 
-Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+Currently, this function only supports rings of type `FqNmodFiniteField`.
 
 #Examples
 ```jldoctest
@@ -681,9 +681,9 @@ julia> gens(H)
 
 ```
 """
-function symplectic_group(n::Int, F::Ring)
+function symplectic_group(n::Int, R::Ring)
    iseven(n) || throw(ArgumentError("The dimension must be even"))
-   G = MatrixGroup(n,F)
+   G = MatrixGroup(n,R)
    G.descr = :Sp
    return G
 end
@@ -693,15 +693,15 @@ function symplectic_group(n::Int, q::Int)
 end
 
 """
-    orthogonal_group(e::Int, n::Int, F::Ring)
+    orthogonal_group(e::Int, n::Int, R::Ring)
     orthogonal_group(e::Int, n::Int, q::Int)
     GO = orthogonal_group
 
-Return the orthogonal group of dimension `n` either over the field `F` or the
-field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
+Return the orthogonal group of dimension `n` either over the ring `R` or the
+ring `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+Currently, this function only supports rings of type `FqNmodFiniteField`.
 
 #Examples
 ```jldoctest
@@ -718,18 +718,18 @@ julia> gens(H)
 
 ```
 """
-function orthogonal_group(e::Int, n::Int, F::Ring)
+function orthogonal_group(e::Int, n::Int, R::Ring)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("GO+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("GO-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = :GO
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -741,11 +741,11 @@ function orthogonal_group(e::Int, n::Int, q::Int)
    return orthogonal_group(e, n, _field_from_q(q))
 end
 
-orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
+orthogonal_group(n::Int, R::Ring) = orthogonal_group(0,n,R)
 orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
 
 """
-    special_orthogonal_group(e::Int, n::Int, F::Ring)
+    special_orthogonal_group(e::Int, n::Int, R::Ring)
     special_orthogonal_group(e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
 
@@ -753,7 +753,7 @@ Return the special orthogonal group of dimension `n` either over the field `F`
 or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+Currently, this function only supports rings of type `FqNmodFiniteField`.
 
 #Examples
 ```jldoctest
@@ -771,19 +771,19 @@ julia> gens(H)
 
 ```
 """
-function special_orthogonal_group(e::Int, n::Int, F::Ring)
+function special_orthogonal_group(e::Int, n::Int, R::Ring)
    iseven(order(F)) && return GO(e,n,F)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("SO+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("SO-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = :SO
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -795,18 +795,18 @@ function special_orthogonal_group(e::Int, n::Int, q::Int)
    return special_orthogonal_group(e, n, _field_from_q(q))
 end
 
-special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
+special_orthogonal_group(n::Int, R::Ring) = special_orthogonal_group(0,n,R)
 special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
 
 """
-    omega_group(e::Int, n::Int, F::Ring)
+    omega_group(e::Int, n::Int, R::Ring)
     omega_group(e::Int, n::Int, q::Int)
 
-Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
+Return the Omega group of dimension `n` over the ring `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
 
-Currently, this function only supports fields of type FqNmodFiniteField, however it will eventually support any ring.
+Currently, this function only supports rings of type `FqNmodFiniteField`.
 
 #Examples
 ```jldoctest
@@ -822,19 +822,19 @@ julia> gens(H)
 
 ```
 """
-function omega_group(e::Int, n::Int, F::Ring)
+function omega_group(e::Int, n::Int, R::Ring)
    n==1 && return SO(e,n,F)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("Omega+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("Omega-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = :Omega
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -847,13 +847,13 @@ function omega_group(e::Int, n::Int, q::Int)
 end
 
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
-omega_group(n::Int, F::Ring) = omega_group(0,n,F)
+omega_group(n::Int, R::Ring) = omega_group(0,n,R)
 
 """
     unitary_group(n::Int, q::Int)
     GU = unitary_group
 
-Return the unitary group of dimension `n` over the field `GF(q^2)`.
+Return the unitary group of dimension `n` over the ring `GF(q^2)`.
 
 #Examples
 ```jldoctest
@@ -879,7 +879,7 @@ end
     special_unitary_group(n::Int, q::Int)
     SU = special_unitary_group
 
-Return the special unitary group of dimension `n` over the field `GF(q^2)`.
+Return the special unitary group of dimension `n` over the ring `GF(q^2)`.
 
 #Examples
 ```jldoctest
