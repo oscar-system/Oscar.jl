@@ -212,8 +212,8 @@ julia> on_sets_sets(((1,2), (3,4)), g[1])
 
 julia> on_sets_sets(Set([[1, 2], [3, 4]]), g[1])
 Set{Vector{Int64}} with 2 elements:
-  [1, 4]
   [2, 3]
+  [1, 4]
 
 julia> setset = Set([BitSet([1, 2]), BitSet([3, 4])]);
 

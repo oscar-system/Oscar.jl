@@ -599,14 +599,14 @@ julia> R, (x,) = PolynomialRing(QQ, ["x"]);
 
 julia> A, p = quo(R, ideal(R, [x^4]));
 
-julia> f = p(x-x^6)
+julia> f = p(-x^6 + x-x^6)
 -x^6 + x
 
 julia> simplify(f)
 x
 
 julia> f
--x^6 + x
+x
 
 julia> simplify!(f)
 x
@@ -727,6 +727,7 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   q = MPolyQuo(R, I)
   return q, hom(R, q, gens(q))
 end
+
 function quo(R::MPolyRing, I::Vector{<:MPolyElem})
   return quo(R, ideal(I))
 end
