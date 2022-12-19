@@ -23,7 +23,7 @@ The OSCAR type for ideals in multivariate polynomial rings is of parametrized fo
 ## Constructors
 
 ```@docs
-ideal(g::Vector{T}) where {T <: MPolyElem}
+ideal(R::MPolyRing, g::Vector)
 ```
 
 ## Data Associated to Ideals

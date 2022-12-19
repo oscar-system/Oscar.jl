@@ -100,4 +100,8 @@ by invoking it as follows from the root directory of the Oscar.jl repository:
 
     bibtool docs/oscar_references.bib -o docs/oscar_references.bib
 
-
+For every pull request on github, the CI checks if running `bibtool` leads to
+changes in the bibliography. If so, this test fails and indicates that the
+(recently) added bibliography entries are not standardized. For a merge, it
+is not required that this test is passed. Still, please feel encouraged to fix
+this failure by running `bibtool` locally as explained above.

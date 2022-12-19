@@ -111,7 +111,8 @@ export is_finalized
 @doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
-Allows to set the names of the homogeneous coordinates.
+Allows to set the names of the homogeneous coordinates as long as the toric variety in
+question is not yet finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
 
 # Examples
 ```jldoctest
@@ -304,6 +305,7 @@ function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     n = nrays(v)
     n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     mnf = _minimal_nonfaces(v)
+    Polymake.nrows(mnf) > 0 || return ideal([zero(R)])
     return ideal([ R([1], [Vector{Int}(mnf[i, :])]) for i in 1:Polymake.nrows(mnf) ])
 end
 
@@ -406,8 +408,8 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 ```
 """
 function ideal_of_linear_relations(R::MPolyRing, v::AbstractNormalToricVariety)
-    if !(is_complete(v) && is_simplicial(v))
-        throw(ArgumentError("The variety must be both complete and simplicial for the computation of the ideal of linear relations"))
+    if !is_simplicial(v)
+        throw(ArgumentError("The ideal of linear relations is only supported for simplicial toric varieties"))
     end
     if ngens(R) != nrays(v)
         throw(ArgumentError("The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"))
@@ -782,11 +784,13 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(p2)
-Identity map with
-
+Map with following data
 Domain:
 =======
-GrpAb: Z^3
+Abelian group with structure: Z^3
+Codomain:
+=========
+Abelian group with structure: Z^3
 ```
 """
 @attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)

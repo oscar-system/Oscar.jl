@@ -129,8 +129,8 @@ parent of the generators.
 function fp_group(g::Vector{<:Oscar.GAPGroupElem})
   G = parent(g[1])
   @assert all(x->parent(x) == G, g)
-  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
-  F = FPGroup(GAP.Globals.Range(X))
+  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
+  F = FPGroup(GAPWrap.Range(X))
   return F, GAPGroupHomomorphism(F, G, GAP.Globals.InverseGeneralMapping(X))
 end
 
@@ -154,7 +154,7 @@ function Oscar.relations(F::FPGroup)
 end
 
 function Oscar.relations(G::Oscar.GAPGroup)
-   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
+   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
    f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
@@ -257,6 +257,7 @@ end
 Oscar.Nemo.elem_type(::AllCoChains{N,G,M}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.parent_type(::CoChain{N,G,M})  where {N,G,M}= AllCoChains{N,G,M}
+Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
 
 """
 Evaluate a 0-cochain
@@ -276,7 +277,7 @@ function (C::CoChain{1})(g::Oscar.BasicGAPGroupElem)
   G = parent(g)
   @assert G == group(C.C)
   @assert ngens(F) == ngens(G)
-  @assert all(x->mF(gen(F, i)) == gen(G, i), 1:ngens(G))
+  @assert all(i->mF(gen(F, i)) == gen(G, i), 1:ngens(G))
   w = word(preimage(mF, g))
   t = zero(Module(C.C))
   ac = action(C.C)
@@ -371,7 +372,8 @@ Or, kern(B) are the 1-co-chains, image(A) the 1-co-boundaries.
 If M is a free abelian group (Z^n), then this is used in the solvable
 quotient to compute the H^1 of Q^n/Z^n via duality.
 """
-function H_one_maps(C::GModule)
+function H_one_maps(C::GModule; task::Symbol = :maps)
+  @assert task in [:maps, :all]
   #= idea, after Holt:
   H^1 = crossed homs. due to action on the right
   f(ab) = f(a)^b + f(b)
@@ -389,8 +391,11 @@ function H_one_maps(C::GModule)
   D, pro, inj = direct_product([M for i=1:n]..., task = :both)
 
   F, mF = fp_group(C)
+  @assert ngens(F) == ngens(G)
+  @assert all(i->mF(gen(F, i)) == gen(G, i), 1:ngens(G))
+
   R = relators(F)
-  @assert G == F
+#  @assert G == F
 
   K = D
   ac = action(C)
@@ -430,7 +435,11 @@ function H_one_maps(C::GModule)
   #TODO: cache the expensive objects!!!
 
   g = sum((ac[i] - idM)*inj[i] for i=1:n)
-  return g, gg
+  if task == :all
+    return g, gg, pro, inj, mF
+  else
+    return g, gg
+  end
 end
 
 """
@@ -446,11 +455,12 @@ function H_one(C::GModule)
     return domain(z), z
   end
 
-  g, gg = H_one_maps(C)
+  g, gg, pro, inj, mF = H_one_maps(C, task = :all)
 
   K = kernel(gg)[1]
   D = domain(gg)
-  lf, lft = is_subgroup(D, K)
+  lf, lft = is_subgroup(K, D)
+  @assert lf
 
   Q, mQ = quo(K, image(g)[1])
 
@@ -458,7 +468,7 @@ function H_one(C::GModule)
   G = group(C)
 
   z = MapFromFunc(
-    x->CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => pro[i](lft(preimage(mQ, x))) for i=1:ngens(G)])), 
+    x->CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => pro[i](lft(preimage(mQ, x))) for i=1:ngens(G)])),
     y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))), Q, AllCoChains{1, elem_type(G), elem_type(M)}())
 
   set_attribute!(C, :H_one => z)
@@ -479,7 +489,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   #be adjusted to those words. I do not know if a RWS (Confluent) can
   #just be changed...
   k = C.monhom #[2] #hopefully the monhom entry in 4.12 it will be the name
-  M = GAP.Globals.Range(k)
+  M = GAPWrap.Range(k)
   g = [GAP.Globals.PreImageElm(k, x) for x = GAP.Globals.GeneratorsOfMonoid(M)]
   g = map(GAPWrap.UnderlyingElement, g)
   g = map(GAP.Globals.LetterRepAssocWord, g)
@@ -495,7 +505,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
 
   #now to express the new gens as words in the old ones:
   
-  Fp = FPGroup(GAP.Globals.Range(C.fphom))
+  Fp = FPGroup(GAPWrap.Range(C.fphom))
   return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
 
@@ -1524,6 +1534,35 @@ function gmodule(H::PermGroup, mR::MapRayClassGrp)
 
   ac = Hecke.induce_action(mR, [image(mG, G(g)) for g = gens(H)])
   return GModule(H, ac)
+end
+
+"""
+The natural `ZZ[G]` module where `G`, the
+  automorphism group, acts on the ideal group defining the class field.
+"""
+function gmodule(R::ClassField)
+  k = base_field(R)
+  G, mG = automorphism_group(PermGroup, k)
+  mR = R.rayclassgroupmap
+  mq = R.quotientmap
+
+  ac = Hecke.induce_action(mR, [image(mG, g) for g = gens(G)], mq)
+  return GModule(G, ac)
+end
+
+"""
+The natural `ZZ[H]` module where `H`, a subgroup of the 
+  automorphism group, acts on the ideal group defining the class field.
+"""
+function gmodule(H::PermGroup, R::ClassField)
+  k = base_field(R)
+  G, mG = automorphism_group(PermGroup, k)
+  mR = R.rayclassgroupmap
+  mq = R.quotientmap
+
+  ac = Hecke.induce_action(mR, [image(mG, G(g)) for g = gens(H)], mq)
+  #TODO: think about adding a restriction map?
+  return GModule(G, ac)
 end
 
 """

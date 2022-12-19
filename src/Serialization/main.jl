@@ -231,6 +231,7 @@ function save(io::IO, obj::Any)
     jsoncompatible = save_type_dispatch(state, obj)
     jsonstr = json(jsoncompatible)
     write(io, jsonstr)
+    return nothing
 end
 
 function save(filename::String, obj::Any)
@@ -240,12 +241,19 @@ function save(filename::String, obj::Any)
 end
 
 """
-    load(io::IO)
-    load(filename::String)
+    load(io::IO; parent::Any = nothing, type::Any = nothing)
+    load(filename::String; parent::Any = nothing, type::Any = nothing)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
 
+If `parent` is specified, then the root object of the loaded data
+either will have this as its parent, or it is a container such as
+`Vector` and `Tuple`, then the parent of the entries will be set to `parent`.
+
+If a type `T` is given then attempt to load the root object of the data
+being loaded with this type; if this fails, an error is thrown.
+
 See [`save`](@ref).
 
 # Examples
@@ -255,54 +263,49 @@ julia> save("/tmp/fourtitwo.json", 42);
 
 julia> load("/tmp/fourtitwo.json")
 42
+
+julia> load("/tmp/fourtitwo.json"; type=Int64)
+42
+
+julia> R, x = QQ["x"]
+(Univariate Polynomial Ring in x over Rational Field, x)
+
+julia> p = x^2 - x + 1
+x^2 - x + 1
+
+julia> save("/tmp/p.json", p)
+
+julia> p_loaded = load("/tmp/p.json", parent=R)
+x^2 - x + 1
+
+julia> parent(p_loaded) === R
+true
+
+julia> save("/tmp/p_v.json", [p, p])
+
+julia> loaded_p_v = load("/tmp/p_v.json", parent=R)
+2-element Vector{fmpq_poly}:
+ x^2 - x + 1
+ x^2 - x + 1
+
+julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
+true
 ```
 """
-function load(io::IO; parent::Any = nothing)
+function load(io::IO; parent::Any = nothing, type::Any = nothing)
     state = DeserializerState()
     # Check for type of file somewhere here?
     jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
+
+    if type !== nothing
+        return load_type_dispatch(state, type, jsondict; parent=parent)
+    end
     return load_unknown_type(state, jsondict; parent=parent, check_namespace=true)
 end
 
-function load(filename::String; parent::Any = nothing)
+function load(filename::String; parent::Any = nothing, type::Any =  nothing)
     open(filename) do file
-        return load(file; parent=parent)
-    end
-end
-
-"""
-    load(io::IO, ::Type)
-    load(filename::String, T::Type)
-
-Load the object of the given type stored in the given io stream
-respectively in the file `filename`.
-
-This guarantees that the end result has the given type.
-
-See [`save`](@ref).
-
-# Examples
-
-```jldoctest
-julia> save("/tmp/fourtitwo.json", 42);
-
-julia> load("/tmp/fourtitwo.json")
-42
-
-julia> load("/tmp/fourtitwo.json", String)
-ERROR: Type in file doesn't match target type: Base.Int not a subtype of String
-```
-"""
-function load(io::IO, T::Type; parent=nothing)
-    state = DeserializerState()
-    # Check for type of file somewhere here?
-    jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
-    return load_type_dispatch(state, T, jsondict; parent=parent)
-end
-
-function load(filename::String, T::Type; parent=nothing)
-    open(filename) do file
-        return load(file, T; parent=parent)
+        return load(file; parent=parent, type=type)
     end
 end
 

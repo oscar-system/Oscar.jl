@@ -44,6 +44,8 @@ by refinement. Use `default_covering(X)` to obtain one covering of ``X``.
   function CoveredScheme(kk::Ring)
     res = new{typeof(kk)}()
     res.kk = kk
+    res.default_covering = empty_covering(kk)
+    res.coverings = [res.default_covering]
     return res
   end
 end

@@ -1,14 +1,11 @@
 export morphism_type, morphisms
 export refinements
 
-
 ########################################################################
 # Methods for Covering                                                 #
 ########################################################################
 
-
 ### essential getters
-
 
 #function add_affine_refinement!(
 #    C::Covering, U::SpecOpen; 
@@ -154,6 +151,17 @@ end
   r = fiber_dimension(X)
   U = Vector{AbsSpec}()
   pU = IdDict{AbsSpec, AbsSpecMor}()
+
+  # The case of ℙ⁰-bundles appears frequently in blowups when the 
+  # ideal sheaf is trivial on some affine open part. 
+  if r == 0
+    result = Covering(Y)
+    pU[Y] = identity_map(Y)
+    covered_projection = CoveringMorphism(result, result, pU)
+    set_attribute!(X, :covering_projection_to_base, covered_projection)
+    return result
+  end
+
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -172,8 +180,9 @@ end
     for j in i+1:r+1
       x = gens(base_ring(OO(U[i])))
       y = gens(base_ring(OO(U[j])))
-      f = SpecOpenMor(U[i], x[j-1], 
-                      U[j], y[i],
+      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
+      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+      f = SpecMor(Ui, Uj,
                       vcat([x[k]//x[j-1] for k in 1:i-1],
                            [1//x[j-1]],
                            [x[k-1]//x[j-1] for k in i+1:j-1],
@@ -181,8 +190,7 @@ end
                            x[r+1:end]),
                       check=false
                      )
-      g = SpecOpenMor(U[j], y[i],
-                      U[i], x[j-1],
+      g = SpecMor(Uj, Ui,
                       vcat([y[k]//y[i] for k in 1:i-1],
                            [y[k+1]//y[i] for k in i:j-2],
                            [1//y[i]],
@@ -190,11 +198,11 @@ end
                            y[r+1:end]),
                       check=false
                      )
-      add_glueing!(result, Glueing(U[i], U[j], f, g, check=false))
+      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
-  set_attribute!(X, :covered_projection_to_base, covered_projection)
+  set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
 
@@ -211,10 +219,7 @@ end
 #morphism_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
 
 
-
 refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
-
-
 
 ########################################################################
 # Methods for CoveredScheme                                            #
@@ -242,7 +247,6 @@ refinements(X::CoveredScheme) = X.refinements
 #  X.default_covering = C
 #  return X
 #end
-
 
 
 _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [X[i] for i in p])
@@ -366,7 +370,6 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #end
 
 
-
 ### Miscellaneous helper routines
 #function as_vector(v::SRow{T}, n::Int) where {T<:RingElem}
 #  R = base_ring(v)
@@ -376,3 +379,75 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #  end
 #  return result
 #end
+
+########################################################################
+# Closed embeddings                                                    #
+########################################################################
+@attributes mutable struct CoveredClosedEmbedding{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 CoveredSchemeMorphism,
+                                 BaseMorphismType
+                                }
+  f::CoveredSchemeMorphism
+  I::IdealSheaf
+
+  function CoveredClosedEmbedding(
+      X::DomainType,
+      Y::CodomainType,
+      f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
+      check::Bool=true
+    ) where {
+             DomainType<:CoveredScheme,
+             CodomainType<:CoveredScheme,
+             MorphismType<:ClosedEmbedding,
+             BaseMorType
+            }
+    ff = CoveredSchemeMorphism(X, Y, f, check=check)
+    #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
+    I = IdealSheaf(Y, f)
+    return new{DomainType, CodomainType, BaseMorType}(ff, I)
+  end
+end
+
+### forwarding the essential getters
+underlying_morphism(phi::CoveredClosedEmbedding) = phi.f
+
+### additional functionality
+image_ideal(phi::CoveredClosedEmbedding) = phi.I
+
+### user facing constructors
+function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
+  space(I) == X || error("ideal sheaf is not defined on the correct scheme")
+  mor_dict = IdDict{AbsSpec, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
+  rev_dict = IdDict{AbsSpec, AbsSpec}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.
+  patch_list = Vector{AbsSpec}()
+  for U in affine_charts(X)
+    inc = ClosedEmbedding(U, I(U))
+    V = domain(inc)
+    if !isempty(V)
+      mor_dict[V] = inc
+      push!(patch_list, V)
+      rev_dict[U] = V
+    end
+  end
+  glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  for (U, V) in keys(glueings(default_covering(X)))
+    G = default_covering(X)[U, V]
+    (U in keys(rev_dict) && V in keys(rev_dict)) || continue # No need to glue empty sets
+    (isempty(intersect(rev_dict[U], glueing_domains(G)[1])) || isempty(intersect(rev_dict[V], glueing_domains(G)[2]))) && continue # No need to glue stuff trivially
+    GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V])
+    glueing_dict[(rev_dict[U], rev_dict[V])] = GG
+  end
+  cov = Covering(patch_list, glueing_dict)
+  Z = CoveredScheme(cov)
+  cov_inc = CoveringMorphism(cov, default_covering(X), mor_dict)
+  return CoveredClosedEmbedding(Z, X, cov_inc)
+end
+
+
+

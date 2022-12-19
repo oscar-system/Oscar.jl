@@ -271,7 +271,7 @@ grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
 
-### Tests on Graded Rings
+## Tests on Graded Rings
 
 ```@docs
 is_standard_graded(R::MPolyRing_dec)

@@ -6,7 +6,7 @@ export maximal_extension
 
 function OO(U::SpecOpen) 
   if !isdefined(U, :ring_of_functions) 
-    U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U)
+    U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U, check=false)
   end
   return U.ring_of_functions::SpecOpenRing
   #return U.ring_of_functions::SpecOpenRing{affine_patch_type(U), typeof(U)}

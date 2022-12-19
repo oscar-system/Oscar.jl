@@ -210,7 +210,7 @@ function assign_from_description(G::MatrixGroup)
       L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1, G.deg, F))
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
-            _ranks = [GAP.Globals.Rank(u) for u in GAP.Globals.GeneratorsOfGroup(y)]
+            _ranks = [GAP.Globals.Rank(u) for u in GAPWrap.GeneratorsOfGroup(y)]
             if all(r->iseven(r),_ranks)
                G.X=y
                break
@@ -283,9 +283,9 @@ end
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 function Base.iterate(G::MatrixGroup)
-  L=GAP.Globals.Iterator(G.X)::GapObj
+  L=GAPWrap.Iterator(G.X)::GapObj
   @assert ! GAPWrap.IsDoneIterator(L)
-  i = GAPWrap.NextIterator(L)
+  i = GAPWrap.NextIterator(L)::GapObj
   return MatrixGroupElem(G, i), L
 end
 
@@ -293,7 +293,7 @@ function Base.iterate(G::MatrixGroup, state::GapObj)
   if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAPWrap.NextIterator(state)
+  i = GAPWrap.NextIterator(state)::GapObj
   return MatrixGroupElem(G, i), state
 end
 
@@ -534,7 +534,7 @@ end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
-      L = GAP.Globals.GeneratorsOfGroup(G.X)::GapObj
+      L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
       G.gens = [MatrixGroupElem(G, a) for a in L]
    end
    return G.gens
@@ -545,7 +545,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
+compute_order(G::GAPGroup) = fmpz(GAPWrap.Size(G.X))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
   #=
@@ -561,9 +561,11 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return fmpz(GAPWrap.Order(G.X))
+    return fmpz(GAPWrap.Size(G.X))
   else
-    order(isomorphic_group_over_finite_field(G)[1])
+    n = order(isomorphic_group_over_finite_field(G)[1])
+    GAP.Globals.SetSize(G.X, GAP.Obj(n))
+    return n
   end
 end
 

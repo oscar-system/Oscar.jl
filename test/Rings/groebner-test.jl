@@ -1,7 +1,15 @@
 @testset "groebner" begin
     R, (x, y) = PolynomialRing(QQ, ["x", "y"])
     I = ideal(R,[x*y^2 - x, x^3 - 2*y^5])
+    groebner_basis(I, ordering=lex(R), algorithm=:fglm)
+    @test gens(I.gb[lex(R)]) == fmpq_mpoly[y^7 - y^5, x*y^2 - x, x^3 - 2*y^5]
+    groebner_basis(I, ordering=degrevlex(R))
+    @test gens(I.gb[degrevlex(R)]) == fmpq_mpoly[x*y^2 - x, x^4 - 2*x*y, -x^3 + 2*y^5]
+    @test_throws ErrorException groebner_basis(I, ordering=neglex(R))
+    standard_basis(I, ordering=neglex(R))
+    @test gens(I.gb[neglex(R)]) == fmpq_mpoly[-x^3 + 2*y^5, x]
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
+    @test leading_ideal(I) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
     R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
     I = ideal(R, [x])
@@ -13,7 +21,7 @@
     J = ideal(R, x*y^2)
     matrix, res = reduce_with_quotients(J.gens, G)
     @test matrix * gens(G) + res == gens(J)
-    quots, res, units = reduce_with_quotients_and_units(J.gens, G)
+    units, quots, res = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
@@ -24,15 +32,15 @@
 	@test q * F + [r] == [f]
 	q, r = reduce_with_quotients([f], F)
 	@test q * F + r == [f]
-	q, r, u = reduce_with_quotients_and_units(f, F)
+	u, q, r = reduce_with_quotients_and_unit(f, F)
 	@test q * F + [r] == u * [f]
-	q, r, u = reduce_with_quotients_and_units([f], F)
+	u, q, r = reduce_with_quotients_and_unit([f], F)
 	@test q * F + r == u * [f]
 	f = x
 	F = [1-x]
 	q, r = reduce_with_quotients(f, F, ordering=neglex(R))
 	@test q * F + [r] != [f]
-	q, r, u = reduce_with_quotients_and_units(f, F, ordering=neglex(R))
+	u, q, r = reduce_with_quotients_and_unit(f, F, ordering=neglex(R))
 	@test q * F + [r] == u * [f]
 	I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
@@ -40,6 +48,21 @@
     @test_throws ErrorException is_groebner_basis(I.gens, ordering=neglex(R))
     @test is_standard_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_standard_basis(I.gens, ordering=neglex(R)) == false
+	R, (x1, x2, x3, x4) = PolynomialRing(QQ, ["x1", "x2", "x3", "x4"])
+	J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
+       x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
+       2*x1*x2+2*x2*x3+2*x3*x4-x2,
+       x2^2+2*x1*x3+2*x2*x4-x3])
+	standard_basis(J, ordering=neglex(R))
+	Oscar.groebner_assure(J, true, true)
+	@test J.gb[degrevlex(R)].isReduced == true 
+	@test_throws ErrorException standard_basis(J, ordering=negdeglex(R), algorithm=:fglm)
+	standard_basis(J, ordering=lex(R), algorithm=:fglm)
+	H = fmpq_mpoly[128304*x4^8 - 93312*x4^7 + 15552*x4^6 + 3144*x4^5 - 1120*x4^4 + 36*x4^3 + 15*x4^2 - x4,
+		5913075*x3 + 371438283744*x4^7 - 237550027104*x4^6 + 22645939824*x4^5 + 11520686172*x4^4 - 2024910556*x4^3 - 132524276*x4^2 + 30947828*x4,
+		1971025*x2 - 97197721632*x4^7 + 73975630752*x4^6 - 12121915032*x4^5 - 2760941496*x4^4 + 814792828*x4^3 - 1678512*x4^2 - 9158924*x4,
+		5913075*x1 - 159690237696*x4^7 + 31246269696*x4^6 + 27439610544*x4^5 - 6475723368*x4^4 - 838935856*x4^3 + 275119624*x4^2 + 4884038*x4 - 5913075]
+	@test elements(J.gb[lex(R)]) == H
 end
 
 @testset "groebner leading ideal" begin
@@ -70,11 +93,24 @@ end
    @test_throws ErrorException groebner_basis(I, ordering = negdeglex([x, y, z]))
    @test gens(standard_basis(I, ordering=negdeglex([x, y, z]))) == [ x + y + z, 2*y^2 + 2*y*z + z^3 + z^2 ]
 
-   @test groebner_basis_with_transformation_matrix(I, ordering=lex([x])*lex([y,z])) == groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
-   @test groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z])) == groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([x])*lex([y,z]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([x, y]))
+   @test gens(G) == gens(H) && U == V
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([x, y, z]))
+   H ,V = groebner_basis_with_transformation_matrix(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
+   @test gens(G) == gens(H) && U == V
+   @test_throws ErrorException groebner_basis_with_transformation_matrix(I, ordering = negdeglex([x, y, z]))
+   G, M = standard_basis_with_transformation_matrix(I, ordering = negdeglex([x, y, z]))
+   @test gens(I) * M == gens(G)
 end
 
 @testset "non-global orderings" begin
@@ -84,7 +120,7 @@ end
   G = standard_basis(I, ordering=o)
   @test normal_form(x^5-5, I, ordering=o) == -5
   J = ideal(R, [x^5-5])
-  matr, res, units = reduce_with_quotients_and_units(J.gens, G)
+  units, matr, res = reduce_with_quotients_and_unit(J.gens, G)
   @test matr * gens(G) + res == units * gens(J)
   u = negdegrevlex([x])*negdegrevlex([y])
   @test ideal_membership(x^4, I, ordering=u)
@@ -114,4 +150,28 @@ end
                   x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
     @test elements(H) == G
     @test I.gb[degrevlex(gens(base_ring(I))[3:end])].O == G
+end
+
+@testset "fglm" begin
+	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+	A = Oscar.IdealGens(R, [x*y-1, x^2+y^2])
+	@test_throws ErrorException Oscar._fglm(A, lex(R))
+	I = ideal(R, gens(A))
+	groebner_basis(I)
+	@test_throws ErrorException Oscar._fglm(I.gb[degrevlex(R)], lex(R))
+	groebner_basis(I, complete_reduction=true)
+	G = Oscar._fglm(I.gb[degrevlex([x, y])], lex(R))
+	@test gens(G) == fmpq_mpoly[y^4 + 1, x + y^3]
+	J = ideal(R, [x])
+	@test_throws ErrorException groebner_basis(J, algorithm=:fglm)
+	J.gb = Dict()
+	fglm(I, destination_ordering=lex(R))
+	@test haskey(I.gb, degrevlex(R))
+	@test I.gb[degrevlex(R)].isReduced
+	@test haskey(I.gb, lex(R))
+	@test gens(I.gb[lex(R)]) == fmpq_mpoly[y^4 + 1, x + y^3]
+	R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
+	I = ideal(R, [x*y-1, x^2+y^2])
+	@test_throws ErrorException groebner_basis(I, algorithm=:fglm)
+	@test_throws ErrorException fglm(I, destination_ordering=lex(R))
 end

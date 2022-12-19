@@ -11,3 +11,6 @@ include("SpaceGerms.jl")
 include("SpecialTypes.jl")
 include("Sheaves.jl")
 include("IdealSheaves.jl")
+include("WeilDivisor.jl")
+include("CoveredProjectiveSchemes.jl")
+

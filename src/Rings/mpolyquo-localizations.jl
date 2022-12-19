@@ -177,7 +177,7 @@ function modulus(L::MPolyQuoLocalizedRing)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
-modulus(R::MPAnyNonQuoRing)=ideal(R,[zero(R)])
+modulus(R::MPAnyNonQuoRing)=ideal(R, elem_type(R)[])
 
 
 @Markdown.doc """
@@ -239,7 +239,7 @@ function quo(
   S = inverted_set(W)
   J = ideal(R, numerator.(gens(I)))
   L = MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
-  return L, hom(R, L, gens(L))
+  return L, hom(W, L, hom(R, L, gens(L)))
 end
 
 function quo(
@@ -576,6 +576,7 @@ function convert(
   W = localized_ring(L)
   R = base_ring(L)
   I = saturated_ideal(modulus(L))
+  one(R) in I && return zero(L)
   d = prod(denominators(inverted_set(W)))
   powers_of_d = [d]
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
@@ -606,6 +607,22 @@ function convert(
   return L(lift(coefficient), upper)
 end
 
+function _is_regular_fraction(R::RingType, p::MPolyElem, q::MPolyElem) where {RingType<:Union{MPolyQuoLocalizedRing, MPolyLocalizedRing, MPolyRing, MPolyQuo}}
+  return divides(R(p), R(q))[1]
+end
+
+### Extensions for coherence
+#function _is_regular_fraction(R::MPolyLocalizedRing, p::MPolyElem, q::MPolyElem)
+#  return divides(R(p), R(q))[1]
+#end
+#
+#function _is_regular_fraction(R::MPolyRing, p::MPolyElem, q::MPolyElem)
+#  return divides(p, q)[1]
+#end
+#
+#function _is_regular_fraction(R::MPolyQuo, p::MPolyElem, q::MPolyElem)
+#  return divides(R(p), R(q))[1]
+#end
 
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
@@ -935,7 +952,7 @@ end
 
 function compose(
     f::MPolyQuoLocalizedRingHom, 
-    g::MPolyQuoLocalizedRingHom
+    g::Hecke.Map{<:Ring, <:Ring}
   )
   codomain(f) === domain(g) || error("maps are not compatible")
 
@@ -948,7 +965,7 @@ function compose(
 #  end
   ### The fallback version. Careful: This might not carry over maps on the coefficient rings!
   R = base_ring(domain(f))
-  return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)]))
+  return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
 end
 
 (f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
@@ -1125,8 +1142,8 @@ function is_isomorphism(
   denoms = Vector{elem_type(B)}()
   for f in images(phi)
     J_ext = ideal(B, push!(gens(J), inc2(denominator(f))))
-    G, M = groebner_basis_with_transformation_matrix(J_ext)
-    G[1]==one(B) || error("the denominator is not a unit in the target ring")
+    G, M = standard_basis_with_transformation_matrix(J_ext)
+	gens(G)[1]==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, last(collect(M)))
   end
 
@@ -1140,8 +1157,8 @@ function is_isomorphism(
     p = lifted_numerator(phi_h)
     q = lifted_denominator(phi_h)
     J_ext = ideal(B, push!(gens(J), inc2(p)))
-    G, M = groebner_basis_with_transformation_matrix(J_ext)
-    G[1]==one(B) || error("the denominator is not a unit in the target ring")
+    G, M = standard_basis_with_transformation_matrix(J_ext)
+	gens(G)[1]==one(B) || error("the denominator is not a unit in the target ring")
     push!(denoms, inc2(q)*last(collect(M)))
   end
   pushfirst!(imagesB, prod(denoms))
@@ -1520,4 +1537,22 @@ function jacobi_matrix(g::Vector{<:MPolyQuoLocalizedRingElem})
   n = nvars(base_ring(L))
   @assert all(x->parent(x) == L, g)
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
+end
+
+@attr function is_prime(I::MPolyQuoLocalizedIdeal)
+  return is_prime(saturated_ideal(I))
+end
+
+@attr function _is_integral_domain(W::MPolyQuoLocalizedRing)
+  return is_prime(modulus(W))
+end
+
+@Markdown.doc """
+    is_integral_domain(R::Ring)
+
+Return whether or not `R` is an integral domain.
+"""
+function _is_integral_domain(R::Ring)
+  is_domain_type(typeof(R)) && return true
+  error("method not implemented for rings of type $(typeof(R))")
 end

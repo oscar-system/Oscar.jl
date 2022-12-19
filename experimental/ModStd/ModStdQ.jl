@@ -35,7 +35,7 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
     return collect(I.gb)
   end
   if Proof
-    return Oscar.groebner_basis_with_transform(I, ordering = ord)[1]
+    return Oscar.standard__basis_with_transform(I, ord)[1]
   end
 
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
@@ -148,7 +148,7 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
     R = GF(p)
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord, complete_reduction)
+    Gp, Tp = Oscar._compute_standard_basis_with_transform(Ip, ord, complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
@@ -217,7 +217,7 @@ end
  =    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
  = end
  =  =#
- function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
+ function Oscar._compute_standard_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering=default_ordering(base_ring(I)); complete_reduction::Bool = true, use_hilbert::Bool = false)
    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 

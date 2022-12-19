@@ -276,6 +276,17 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
   return gmodule(F, group(C), [hom(F, F, map_entries(x->K(x.data), mat(x))) for x = C.ac])
 end
 
+function gmodule(k::Nemo.GaloisField, C::GModule{PermGroup, GrpAbFinGen})
+  r = ngens(Oscar.GrpCoh.Module(C))
+  F = free_module(k, r)
+  return gmodule(F, group(C), [hom(F, F, map_entries(k, x.map)) for x = C.ac])
+end
+
+function gmodule(k::Nemo.GaloisField, mC::Hecke.MapClassGrp)
+  return gmodule(k, gmodule(ray_class_field(mC)))
+end
+
+
 import Base: ^
 function ^(C::GModule{<:Any, Generic.FreeModule{nf_elem}}, phi::Map{AnticNumberField, AnticNumberField})
   F = free_module(codomain(phi), dim(C))
@@ -759,6 +770,26 @@ function is_decomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}
   return !GAP.Globals.MTX.IsIndecomposable(G)
 end
 
+"""
+The composition factors of `C` with their frequency
+"""
+function composition_factors(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+  G = Gap(C)
+  z = GAP.Globals.MTX.CollectedFactors(G)
+  g = Group(C)
+  k = base_ring(C)
+
+  CF = []
+  for c = z
+    m = GAP.Globals.MTX.Generators(c[1])
+    mm = [matrix(k, x) for x = m]
+    F = free_module(k, nrows(mm[1]))
+    push!(CF, (gmodule(F, Group(C), [hom(F, F, x) for x = mm]), c[2]))
+  end
+  return CF
+end
+
+
 function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:FieldElem}}
   b = hom_base(C, D)
   H, mH = hom(C.M, D.M)
@@ -1123,7 +1154,8 @@ function Hecke.induce_rational_reconstruction(a::fmpz_mat, pg::fmpz)
 end
 
 
-export irreducible_modules, is_absolutely_irreducible, is_decomposable
+export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
+       composition_factors
 
 ## Fill in some stubs for Hecke
 
@@ -1169,7 +1201,8 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
-export irreducible_modules, is_absolutely_irreducible, is_decomposable
+export irreducible_modules, is_absolutely_irreducible, is_decomposable, 
+       composition_factors
 
 module RepPc
 using Oscar

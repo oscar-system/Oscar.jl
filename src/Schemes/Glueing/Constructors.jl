@@ -74,6 +74,11 @@ function Glueing(G::SimpleGlueing)
   return Glueing(X, Y, fo, go, check=false)
 end
 
+### For compatibility, return the glueing itself whenever it is of the right type
+function Glueing(G::Glueing)
+  return G
+end
+
 ########################################################################
 # Simplified constructor for common special case                       #
 ########################################################################
@@ -96,8 +101,8 @@ function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
     is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
     is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
   end
-  Ures = intersect(X, U)
-  Vres = intersect(Y, V)
+  Ures = intersect(X, U, check=false)
+  Vres = intersect(Y, V, check=false)
   return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
@@ -112,7 +117,7 @@ function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
   f_res = restrict(f, UX, VY, check=check)
   g_res = restrict(g, VY, UX, check=check)
-  return SimpleGlueing(X, Y, f_res, g_res)
+  return SimpleGlueing(X, Y, f_res, g_res, check=check)
 end
 
 ########################################################################
@@ -151,3 +156,24 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                  check=check
                 )
 end
+
+########################################################################
+# Maximal extensions from SimpleGlueings                               #
+########################################################################
+
+function maximal_extension(G::SimpleGlueing)
+  # We first check, whether this glueing already is maximal.
+  # If it is not, we pass it on to the more complicated methods.
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  X, Y = patches(G)
+  x = gens(OO(X))
+  y = gens(OO(Y))
+  pbx = pullback(g).(x)
+  pby = pullback(f).(y)
+  U2, ext_y = maximal_extension(X, fraction.(pby))
+  V2, ext_x = maximal_extension(Y, fraction.(pbx))
+  issubset(U2, U) && issubset(V2, V) && return G
+  return maximal_extension(Glueing(G))
+end
+

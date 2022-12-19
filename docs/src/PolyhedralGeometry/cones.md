@@ -40,30 +40,6 @@ positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar
 secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
-## Saving and loading
-
-Objects of type `Cone` can be saved to a file and loaded from a file in the
-following way:
-```jldoctest
-julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
-
-julia> save("C.cone", C)
-434
-
-julia> CC = load("C.cone")
-A polyhedral cone in ambient dimension 2
-
-julia> collect(rays(CC))
-2-element Vector{RayVector{fmpq}}:
- [1, 0]
- [0, 1]
-
-```
-The file is in JSON format and contains all previously gathered data belonging
-to the underlying polymake object. In particular, this file can now be read by
-both polymake and OSCAR.
-
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)

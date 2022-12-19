@@ -140,7 +140,6 @@ function _vdim_hack(I::MPolyIdeal)
   if one(R) in I 
     return 0,leer
   end
-  G=groebner_basis(I)
   M = ideal(R,gens(R))
   result=[R(1)]
   J = ideal(R,normal_form(gens(M),I))
@@ -275,6 +274,25 @@ function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGe
   return issubset(IY,modulus(OO(X)))
 end
 
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing})
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  point(X) == point(Y) || return false
+  return iszero(modulus(OO(Y)))
+end
+
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing})
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  return point(X) == point(Y)
+end
+
+function issubset(X::AbsSpaceGerm{<:Any, <:MPolyQuoLocalizedRing}, Y::AbsSpaceGerm{<:Any, <:MPolyLocalizedRing})
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || return false
+  return point(X) == point(Y)
+end
+
 function Base.intersect(X::AbsSpaceGerm, Y::AbsSpaceGerm)
   point(X) == point(Y) || error("not the same point of the germ")
   Z = intersect(underlying_scheme(X),underlying_scheme(Y))
@@ -296,6 +314,17 @@ end
 # note: singular_locus, is_smooth and is_regular are inherited from Spec
 ##############################################################################
 
+# We want the singular locus of a `SpaceGerm` to be a `SpaceGerm` again and 
+# not a plain `Spec`.
 function singular_locus(X::AbsSpaceGerm)
-  return SpaceGerm(singular_locus(underlying_scheme(X)))
+  S, inc = singular_locus(underlying_scheme(X))
+  Sgerm = SpaceGerm(S)
+  return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end
+
+function subscheme(X::SpaceGerm, I::Ideal)
+  base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
+  Y = subscheme(underlying_scheme(X), I)
+  return SpaceGerm(Y)
+end
+

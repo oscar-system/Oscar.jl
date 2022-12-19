@@ -86,7 +86,8 @@ by Submodule with 1 generator
 shift(C::ChainComplex{T}, d::Int) where T
 ```
 
-Return the complex obtained from `C` by shifting the homological degrees `d` steps.
+Return the complex obtained from `C` by shifting the homological degrees `d` steps,
+with maps multiplied by $(-1)^d$.
 
 ##### Examples
 
@@ -110,13 +111,16 @@ julia> range(C)
 
 julia> D = Hecke.shift(C, 3);
 
-
 julia> range(D)
 8:-1:6
 ```
 
 ```@docs
 hom(C::ChainComplex{ModuleFP}, M::ModuleFP)
+```
+
+```@docs
+hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
 ```
 
 ```@docs
@@ -133,8 +137,22 @@ tensor_product(M::ModuleFP, C::ChainComplex{ModuleFP})
 
 ## Tests on Chain Complexes
 
+```@julia
+is_chain_complex
+```
+
+```@julia
+is_cochain_complex
+```
+
+```@julia
+is_exact
+```
+
 ## Maps of Chain Complexes
 
 ### Types
 
 ### Constructors
+
+

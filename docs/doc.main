@@ -109,7 +109,6 @@
        "PolyhedralGeometry/Polyhedra/constructions.md",
        "PolyhedralGeometry/Polyhedra/polymake.md",
        "PolyhedralGeometry/Polyhedra/auxiliary.md",
-       "PolyhedralGeometry/Polyhedra/serialization.md",
        "PolyhedralGeometry/Polyhedra/visualization.md",
      ],
       "PolyhedralGeometry/cones.md",
@@ -131,9 +130,10 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
-	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
 	"CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/homological_algebra.md",
      ],
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
@@ -184,6 +184,9 @@
      ],
      "Standard Constructions" => [
        "AlgebraicGeometry/StandardConstructions/standard_constructions.md",
+     ],
+     "Surfaces" => [
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md"
      ]
   ],
 
