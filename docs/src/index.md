@@ -55,6 +55,28 @@ We base this project on [OSCAR](https://oscar.computeralgebra.de/) for general f
     Pkg.develop(path="path/to/your/FTheoryTools.jl")
     Pkg.build("FTheoryTools")
 ```
+5. To use your `FTheoryTools` installation, you finally want to invoke
+```julia
+    using("Oscar")
+    using("FTheoryTools")
+```
+
+Note that due to the modularity of the `Julia` programing language, access to the `Oscar`
+functionality is not available in the REPL unless you issue `using("Oscar")` explicitly.
+This is the reason for why this command appears in the examples of our documentation.
+
+You can instruct `Julia` to automatically conduct the above steps upon starting, so that you
+immediately have access to `FTheoryTools` (and `Oscar`). To this end perform the following steps:
+1. Navigate to the *hidden* `julia` folder in your home directory (e.g. via `cd .julia/` in the terminal).
+2. In this folder, create (if not already existing) the folder `config`.
+3. In the `config` folder create (unless existing) the file `startup.jl`.
+4. Add the following lines to the file `startup.jl`:
+```julia
+using Pkg
+using Oscar
+Pkg.develop(path="path/to/your/FTheoryTools.jl")
+using FTheoryTools
+```
 
 
 ## Documentation
