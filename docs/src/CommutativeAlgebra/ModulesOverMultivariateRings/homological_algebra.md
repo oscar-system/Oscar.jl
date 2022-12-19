@@ -29,8 +29,10 @@ presentation(M::ModuleFP)
 ## Syzygies and Free Resolutions
 
 ```@docs
-free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-    length::Int=0, algorithm::Symbol=:fres)
+free_resolution(M::SubQuo{<:MPolyElem}; 
+    ordering::ModuleOrdering = default_ordering(M),
+    length::Int=0, algorithm::Symbol=:fres
+  )
 ```
 
 ## Homology
