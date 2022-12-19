@@ -113,7 +113,7 @@ julia> galois_group(F)
 (Group([ (1,3,4)(2,5,6), (1,2)(3,6)(4,5) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
 
 julia> G, C, k = galois_group(F, overC = true)
-(Group([ (1,4,3)(2,6,5) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field over Rational Field with defining polynomial x^2 + 12*x + 24336)
+(Group([ (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field over Rational Field with defining polynomial x^2 + 12*x + 24336)
 
 ```
 So, while the splitting field over `Q(t)` has degree `6`, the galois group there
