@@ -154,9 +154,26 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 	elseif algorithm == :fglm
 		_compute_groebner_basis_using_fglm(I, ordering)
   elseif algorithm == :hilbert
-    I.gb[ordering] = groebner_basis_hilbert_driven(I, ordering,
-                                                   weights=_extract_weights(base_ring(I)),
-                                                   complete_reduction=complete_reduction)
+    if typeof(base_ring(I)) <: MPolyRing_dec
+      J, target_ordering  = I, ordering
+    else
+      if !all(p -> _is_homogeneous_weights(p, ones(Int, ngens(base_ring(I)))), gens(I))
+        gens_hom = homogenization(gens(I), "w")
+        J = ideal(parent(first(gens_hom)), gens_hom)
+        target_ordering = _extend_mon_order(ordering, base_ring(J))
+      else
+        J, target_ordering = I, ordering
+      end 
+    end
+    GB = groebner_basis_hilbert_driven(J, target_ordering,
+                                       weights=_extract_weights(base_ring(J)),
+                                       complete_reduction=complete_reduction)
+    if base_ring(I) == base_ring(J)
+      I.gb[ordering] = GB
+    else
+      GB_dehom_gens = dehomogenization(GB.gens, base_ring(I), 1)
+      I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
+    end
 	elseif algorithm == :f4
 		f4(I, complete_reduction=complete_reduction)
 	end
@@ -1277,7 +1294,6 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
   is_global(destination_ordering) || error("Destination ordering must be global.")
-  typeof(destination_ordering) <: MatrixOrdering && error("Hilbert driven Gröbner basis computation not implemented for general matrix orderings.") 
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     while true
