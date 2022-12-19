@@ -4738,13 +4738,6 @@ function *(I::Ideal, M::ModuleFP)
   return sub(M, [g*e for g in gens(I) for e in gens(M)])
 end
 
-function *(I::Ideal, M::ModuleFP)
-  R = base_ring(I)
-  R === base_ring(M) || error("ideal and module must be defined over the same ring")
-  return sub(M, [g*e for g in gens(I) for e in gens(M)])
-end
-    
-
 @doc Markdown.doc"""
     ideal_to_module(I::MPolyIdeal{T}, F::FreeMod{T})
 
