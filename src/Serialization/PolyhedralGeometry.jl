@@ -46,6 +46,41 @@ function load_internal(s::DeserializerState, ::Type{LinearProgram{T}}, dict::Dic
     return LinearProgram{T}(fr, lp, Symbol(conv))
 end
 
+##############################################################################
+@registerSerializationType(MixedIntegerLinearProgram{fmpq})
+
+function save_internal(s::SerializerState, milp::MixedIntegerLinearProgram)
+    milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
+    coeffs_serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, milp_coeffs)
+    coeffs_jsonstr = Polymake.call_function(:common, :encode_json, coeffs_serialized)
+
+    return Dict(
+        :feasible_region => save_type_dispatch(s, milp.feasible_region),
+        :convention => milp.convention,
+        :milp_coeffs => JSON.parse(coeffs_jsonstr)
+    )
+end
+
+function load_internal(s::DeserializerState, ::Type{MixedIntegerLinearProgram{T}}, dict::Dict) where T
+    fr = load_type_dispatch(s, Polyhedron{T}, dict[:feasible_region])
+    conv = dict[:convention]
+    milp_coeffs = Polymake.call_function(
+        :common,
+        :deserialize_json_string,
+        json(dict[:milp_coeffs])
+    )
+    all = Polymake._lookup_multi(pm_object(fr), "MILP")
+    index = 0
+    for i in 1:length(all)
+        if all[i].LINEAR_OBJECTIVE == milp_coeffs
+            index = i
+            break
+        end
+    end
+    lp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
+    return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv))
+end
+
 # use generic serialization for the other types:
 @registerSerializationType(Cone{fmpq})
 save_internal(s::SerializerState, obj::Cone) = save_internal_generic(s, obj)
