@@ -4589,6 +4589,9 @@ rank   | 0  2  6  6  2
 -------|---------------
 degree | 4  3  2  1  0
 ```
+
+**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+iterative kernel computation.
 """
 function free_resolution(M::SubQuo{<:MPolyElem}; 
     ordering::ModuleOrdering = default_ordering(M),
@@ -4665,10 +4668,12 @@ function free_resolution(M::SubQuo{T}) where {T<:RingElem}
   p.fill = function(C::Hecke.ChainComplex, k::Int)
     # TODO: Use official getter and setter methods instead 
     # of messing manually with the internals of the complex.
+
     for i in first(range(C)):k-1
       N = domain(map(C, i))
 
       if iszero(N) # Fill up with zero maps
+        C.complete = true
         phi = hom(N, N, elem_type(N)[])
         pushfirst!(C.maps, phi)
         continue
