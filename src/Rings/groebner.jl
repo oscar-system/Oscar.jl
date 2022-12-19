@@ -1344,3 +1344,14 @@ function _is_homogeneous_weights(f::MPolyElem,
   f_weight_deg = weight_deg(first(exponent_vectors(f)))
   return all(e -> weight_deg(e) == f_weight_deg, collect(exponent_vectors(f))[2:end])
 end
+
+function _extend_mon_order(ordering::MonomialOrdering,
+                           homogenized_ring::MPolyRing_dec)
+
+  nvars = ngens(ordering.R)
+  m = canonical_matrix(ordering)
+  m_hom = similar(m, nvars + 1, nvars + 1)
+  m_hom[1, :] = ones(Int, nvars + 1)
+  m_hom[2:end, 2:end] = m
+  return matrix_ordering(homogenized_ring, m_hom)
+end
