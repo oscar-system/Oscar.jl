@@ -1,7 +1,7 @@
 export
     matroid_stratum_matrix_coordinates, matroid_realization_space
 
-@doc Markdown.doc"""
+@Markdown.doc"""
     matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring = ZZ)
 
 Return the data of the coordinate ring of the matroid stratum of M in the Grassmannian with respect to matrix coordinates. Here, ```B``` is a basis of ```M``` and the submatrix with columns indexed by ```B''' is the identity. This function returns a pair ```(SinvR, I)``` where the coordinate ring is isomorphic to ```SinvR / I```.
@@ -24,8 +24,8 @@ function matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int},
 end
 
 
-@doc Markdown.doc"""
-   matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
+@Markdown.doc"""
+    matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
 
 Returns the data of the coordinate ring of the realization space of
 the matroid `M` using matrix coordinates. The matroid `M` should be
@@ -159,12 +159,16 @@ end
 
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
-function bases_determinants(d::Int, n::Int, Bs::Vector{Vector{Int}},
-                            MC::Vector{Vector{Int}},
-                            B::Vector{Int}, R::MPolyRing, x::Vector{T},
-                            xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
+
+function bases_determinants(X::Matrix{T}, Bs::Vector{Vector{Int}})  where {T<:MPolyElem}
+
+    #d::Int, n::Int, Bs::Vector{Vector{Int}},
+    #MC::Vector{Vector{Int}},
+    #B::Vector{Int}, R::MPolyRing, x::Vector{T},
+    #xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
-    X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
+    #X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
+    
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
@@ -212,10 +216,15 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
     NBs = nonbases(M)
     MC = bases_matrix_coordinates(Bs,B)
 
+    
+    X =  make_coordinate_matrix(d, n, MC, B, R, x, xdict)                        
+    basesX = bases_determinants(X, Bs)
 
-    S = localizing_semigroup(d, n, Bs, MC, B, R, x, xdict)
+    #S = localizing_semigroup(d, n, Bs, MC, B, R, x, xdict)
+    
+    S = MPolyPowersOfElement(R , basesX)
     SinvR , iota = Localization(R, S)
-    X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
+    # X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
 
     Igens = unique!([det(X[:, nb]) for nb in NBs ])
     Iloc = ideal(SinvR, Igens)

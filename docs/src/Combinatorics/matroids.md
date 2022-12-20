@@ -144,7 +144,7 @@ matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int64}, F::AbstractAlge
 ```
 
 When the matroid ``M`` is connected, the diagonal torus of ``\mathsf{PGL}(n)`` acts freely on 
-``\mathsf{Gr}(M)`` and its quotient is the *realization space* ``R(M)`` of ``M``. There are two main differences between the coordinate rings ``K[Gr(M)]`` and ``K[R(M)]``.
+``\mathsf{Gr}(M)`` and its quotient is the *realization space* ``R(M)`` of ``M``. There are two main differences between the coordinate rings ``K[\mathsf{Gr}(M)]`` and ``K[R(M)]``.
  
  - To comupte ``K[R(M)]``, we may assume that ``d+1`` columns ``A = \{a_1,\ldots,a_{d+1}\}``  of the reference matrix ``X`` are the unit vectors ``e_1,\ldots,e_n`` and ``e_1+ \cdots + e_n``. Note that every ``d`` element subset of ``A`` must be a basis of ``M``, and the existence of such a ``A`` follows from the connectedness hypothesis on ``M``. 
  - The columns of the reference matrix ``X`` may be treated as projective coordiantes.
