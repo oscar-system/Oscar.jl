@@ -4004,6 +4004,8 @@ function iszero(m::SubQuoElem{<:MPolyElem})
 end
 
 function iszero(m::SubQuoElem)
+  is_zero(ambient_representative(m)) && return true
+  isdefined(parent(m), :quo) || return false
   return (ambient_representative(m) in parent(m).quo)
 end
 
