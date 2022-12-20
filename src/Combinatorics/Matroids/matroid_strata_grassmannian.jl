@@ -2,7 +2,7 @@ export
     matroid_stratum_matrix_coordinates, matroid_realization_space
 
 @doc Markdown.doc"""
-    matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int64}, F::AbstractAlgebra.Ring = ZZ)
+    matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring = ZZ)
 
 Return the data of the coordinate ring of the matroid stratum of M in the Grassmannian with respect to matrix coordinates. Here, ```B``` is a basis of ```M``` and the submatrix with columns indexed by ```B''' is the identity. This function returns a pair ```(SinvR, I)``` where the coordinate ring is isomorphic to ```SinvR / I```.
 
@@ -14,7 +14,7 @@ julia> A # The coordinate matrix with entries in the polynomial ring `R`.
 julia> W # The coordinate ring of the stratum; in general a localized quotient ring `(R/I)[S⁻¹]`.
 ```
 """
-function matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int64},
+function matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int},
                                             F::AbstractAlgebra.Ring = ZZ)
     d = rank(M)
     n = length(matroid_groundset(M))
@@ -25,7 +25,7 @@ end
 
 
 @doc Markdown.doc"""
-   matroid_realization_space(M::Matroid, A::Vector{Int64}, F::AbstractAlgebra.Ring=ZZ)
+   matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
 
 Returns the data of the coordinate ring of the realization space of
 the matroid `M` using matrix coordinates. The matroid `M` should be
@@ -45,7 +45,7 @@ julia> X # The coordinate matrix.
 julia> W # The coordinate ring of the stratum.
 ```
 """
-function matroid_realization_space(M::Matroid, A::Vector{Int64}, F::AbstractAlgebra.Ring=ZZ)
+function matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
     d = rank(M)
     n = length(matroid_groundset(M))
 
@@ -60,22 +60,30 @@ end
 # These correspond to all elements A of Bs such that the symmetric difference
 # with B has exactly 2 elements. 
 
-function bases_matrix_coordinates(Bs::Vector{Vector{Int64}}, B::Vector{Int64})
+function bases_matrix_coordinates(Bs::Vector{Vector{Int}}, B::Vector{Int})
     
-    coordBases = [b for b in Bs if length(symdiff(B,b)) == 2]
+    coord_bases = [b for b in Bs if length(symdiff(B,b)) == 2]
     
-    newCoords = Vector{Vector{Int64}}([])
+    new_coords = Vector{Vector{Int}}([])
     
-    for b in coordBases
+    for b in coord_bases
         row_b = setdiff(B,b)[1]
-        row_b = length([a for a in B if a < row_b]) + 1
+        row_b = count(a->(a<row_b), B) + 1
+        # count(f, v) does what?
+        # - iterate through the elements a in v
+        # - compute f(a) 
+        # - if that is true, increment the counting variable by 1
+        # - otherwise, continue
+        # - return the value of the internal counter.
+        # Similar with all(a->(a<row_b), B), for instance.
+        #row_b = length([a for a in B if a < row_b]) + 1
         
         col_b = setdiff(b,B)[1]
         col_b = col_b - length([a for a in B if a ≤ col_b]) 
         
-        push!(newCoords, [row_b,col_b])
+        push!(new_coords, [row_b,col_b])
     end
-    return sort!(newCoords, by = x -> (x[2], x[1]))    
+    return sort!(new_coords, by = x -> (x[2], x[1]))    
 end
 
 
@@ -85,12 +93,12 @@ end
 # determined by the function basis_matrix_coordinates. This function also
 # returns (as the 3rd element of a triple) a dictionary (i,j) => xij.
 
-function make_polynomial_ring(Bs::Vector{Vector{Int64}}, B::Vector{Int64},
+function make_polynomial_ring(Bs::Vector{Vector{Int}}, B::Vector{Int},
                               F::AbstractAlgebra.Ring)
     
     MC = bases_matrix_coordinates(Bs, B)
     R, x = PolynomialRing(F, :"x"=>MC)
-    xdict = Dict{Vector{Int64}, MPolyElem}([MC[i] => x[i] for i in 1:length(MC)])
+    xdict = Dict{Vector{Int}, MPolyElem}([MC[i] => x[i] for i in 1:length(MC)])
     return R, x, xdict
 end
 
@@ -99,10 +107,10 @@ end
 # created by make_polynomial_ring. The entries are xij, except where the
 # value is 0, as determined by the nonbases. 
 
-function make_coordinate_matrix_no_identity(d::Int64, n::Int64,
-                                            MC::Vector{Vector{Int64}},
+function make_coordinate_matrix_no_identity(d::Int, n::Int,
+                                            MC::Vector{Vector{Int}},
                                             R::MPolyRing, x::Vector{T},
-                                            xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+                                            xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     S = MatrixSpace(R, d, n-d)
     X = S()
@@ -118,7 +126,7 @@ end
 
 
 # M and N have same number of rows, and M has #B columns, both have entries in ring R
-function interlace_columns(M, N, B::Vector{Int64},
+function interlace_columns(M, N, B::Vector{Int},
                            R::MPolyRing, x::Vector{T}) where T <: MPolyElem 
     
     M_nrows, M_ncols = size(M)
@@ -138,10 +146,10 @@ end
 # This makes the matrix X from which we compute the coordinate ring of the matroid
 # stratum. It has the identity matrix at columns indexed by B, 0's at locations
 # determined by the nonbases of X. 
-function make_coordinate_matrix(d::Int64, n::Int64, MC::Vector{Vector{Int64}},
-                                B::Vector{Int64},
+function make_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
+                                B::Vector{Int},
                                 R::MPolyRing, x::Vector{T},
-                                xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+                                xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     Id = identity_matrix(R,d)
     Xpre = make_coordinate_matrix_no_identity(d, n, MC, R, x, xdict)
@@ -151,10 +159,10 @@ end
 
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
-function bases_determinants(d::Int64, n::Int64, Bs::Vector{Vector{Int64}},
-                            MC::Vector{Vector{Int64}},
-                            B::Vector{Int64}, R::MPolyRing, x::Vector{T},
-                            xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+function bases_determinants(d::Int, n::Int, Bs::Vector{Vector{Int}},
+                            MC::Vector{Vector{Int}},
+                            B::Vector{Int}, R::MPolyRing, x::Vector{T},
+                            xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     X = make_coordinate_matrix(d, n, MC, B, R, x, xdict)
     return unique!([det(X[:, b]) for b in Bs ])
@@ -163,10 +171,10 @@ end
 
 # This forms the semigroup of the polynomial ring from make_polynomial_ring
 # generated by the determinants from bases_determinants.
-function localizing_semigroup(d::Int64, n::Int64, Bs::Vector{Vector{Int64}},
-                              MC::Vector{Vector{Int64}}, B::Vector{Int64},
+function localizing_semigroup(d::Int, n::Int, Bs::Vector{Vector{Int}},
+                              MC::Vector{Vector{Int}}, B::Vector{Int},
                               R::MPolyRing, x::Vector{T},
-                              xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+                              xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     basesX = bases_determinants(d, n, Bs, MC, B, R, x, xdict)
     
@@ -192,13 +200,13 @@ end
 # polynomial ring at the semigroup created by localizing_semigroup,
 # and Ipre is the ideal generated by the d x d determinants of nonbases.
 # Note that Ipre is not saturated. 
-function matroid_stratum_matrix_coordinates_given_ring(d::Int64, n::Int64,
+function matroid_stratum_matrix_coordinates_given_ring(d::Int, n::Int,
                                                        M::Matroid,
                                                        F::AbstractAlgebra.Ring,
-                                                       B::Vector{Int64},
+                                                       B::Vector{Int},
                                                        R::MPolyRing,
                                                        x::Vector{T},
-                                                       xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+                                                       xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     Bs = bases(M)
     NBs = nonbases(M)
@@ -221,59 +229,59 @@ function matroid_stratum_matrix_coordinates_given_ring(d::Int64, n::Int64,
 end
 
     
-function realization_bases_coordinates(Bs::Vector{Vector{Int64}}, A::Vector{Int64})
+function realization_bases_coordinates(Bs::Vector{Vector{Int}}, A::Vector{Int})
 
     d = length(Bs[1])
     B = A[1:d]
     c1 = A[d+1]
 
 
-    coordBases = [b for b in Bs if length(symdiff(B,b)) == 2]
+    coord_bases = [b for b in Bs if length(symdiff(B,b)) == 2]
     
-    newCoords = Vector{Vector{Int64}}([])
+    new_coords = Vector{Vector{Int}}()
     
-    for b in coordBases
+    for b in coord_bases
         if is_subset(b, A)
             continue
         end
         
         row_b = setdiff(B,b)[1]
-        row_b = length([a for a in B if a < row_b]) + 1
+        row_b = count(a->(a<row_b), B) + 1
         
         col_b = setdiff(b,B)[1]
         col_b = col_b - length([a for a in A if a <= col_b])
 
-        push!(newCoords, [row_b, col_b])
+        push!(new_coords, [row_b, col_b])
     end
     
-    return sort!(newCoords, by = x -> (x[2], x[1]))
+    return sort!(new_coords, by = x -> (x[2], x[1]))
 end
 
 
-function partial_matrix_max_rows(Vs::Vector{Vector{Int64}})
+function partial_matrix_max_rows(Vs::Vector{Vector{Int}})
     nr = maximum([x[1] for x in Vs])
     cols = unique!([x[2] for x in Vs])
-    first_nonzero_cols = Dict{Int64, Int64}([c => maximum([i for i in 1:nr if [i,c] in Vs]) for c in cols])
+    first_nonzero_cols = Dict{Int, Int}(c => maximum(i for i in 1:nr if [i,c] in Vs) for c in cols)
     return first_nonzero_cols 
 end
 
 
 
-function realization_polynomial_ring(Bs::Vector{Vector{Int64}}, A::Vector{Int64},
+function realization_polynomial_ring(Bs::Vector{Vector{Int}}, A::Vector{Int},
                                      F::AbstractAlgebra.Ring)
     
     MC = realization_bases_coordinates(Bs, A)
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
     R, x = PolynomialRing(F, :"x"=>MR)
-    xdict = Dict{Vector{Int64}, MPolyElem}([MR[i] => x[i] for i in 1:length(MR)])
+    xdict = Dict{Vector{Int}, MPolyElem}(MR[i] => x[i] for i in 1:length(MR))
     return R, x, xdict
 end
 
 
-function matrix_realization_small(d::Int64, n::Int64, MC::Vector{Vector{Int64}},
+function matrix_realization_small(d::Int, n::Int, MC::Vector{Vector{Int}},
                                   R::MPolyRing, x::Vector{T},
-                                  xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+                                  xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
 
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
@@ -291,11 +299,11 @@ function matrix_realization_small(d::Int64, n::Int64, MC::Vector{Vector{Int64}},
     return X
 end
 
-function projective_identity(d::Int64)
+function projective_identity(d::Int)
     if d == 1
         return [1]
     end 
-    X = zeros(Int64, d, d+1)
+    X = zeros(Int, d, d+1)
     for i in 1:d
         X[i,i] = 1
         X[i,d+1] = 1
@@ -303,9 +311,9 @@ function projective_identity(d::Int64)
     return X
 end
 
-function realization_coordinate_matrix(d::Int64, n::Int64, MC::Vector{Vector{Int64}},
-                                       A::Vector{Int64}, R::MPolyRing, x::Vector{T},
-                                       xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+function realization_coordinate_matrix(d::Int, n::Int, MC::Vector{Vector{Int}},
+                                       A::Vector{Int}, R::MPolyRing, x::Vector{T},
+                                       xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     Id = projective_identity(d) 
     Xpre = matrix_realization_small(d, n, MC, R, x, xdict)
@@ -331,10 +339,10 @@ function realization_localizing_semigroup(basesX::Vector{T}) where {T<:MPolyElem
 end
 
 
-function matroid_realization_space_given_ring(d::Int64, n::Int64, M::Matroid,
-                                              F::AbstractAlgebra.Ring, A::Vector{Int64},
+function matroid_realization_space_given_ring(d::Int, n::Int, M::Matroid,
+                                              F::AbstractAlgebra.Ring, A::Vector{Int},
                                               R::MPolyRing, x::Vector{T},
-                                              xdict::Dict{Vector{Int64}, MPolyElem}) where T <: MPolyElem
+                                              xdict::Dict{Vector{Int}, MPolyElem}) where T <: MPolyElem
     
     Bs = bases(M)
     NBs = nonbases(M)
