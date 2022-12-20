@@ -71,26 +71,20 @@ function embedding_orthogonal_group(i::TorQuadModMor)
   A = domain(i)
   B = domain(j)
   D = codomain(i)
-  gene = vcat(i.(gens(A)), j.(gens(B)))
-  n = ngens(A)
+  Dorth = direct_sum(A, B)[1]
+  ok, phi = is_isometric_with_isometry(Dorth, D)
+  @assert ok
   OD = orthogonal_group(D)
-  OA = is_degenerate(A) ? orthogonal_group_degenerate(A) : orthogonal_group(A)
+  OA = orthogonal_group(A)
 
-  geneOA = elem_type(OD)[]
+  geneOAinDorth = TorQuadModMor[]
   for f in gens(OA)
-    imgs = [i(f(a)) for a in gens(A)]
-    imgs = vcat(imgs, gene[n+1:end])
-    if can_solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs]))
-      _f = solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs]))
-      _f = hom(D.ab_grp, D.ab_grp, _f)
-    else
-      _f = solve(reduce(vcat, [data(a).coeff for a in imgs]), reduce(vcat, [data(a).coeff for a in gene]))
-      _f = inv(hom(D.ab_grp, D.ab_grp, _f))
-    end
-    f = TorQuadModMor(D, D, _f)
-    push!(geneOA, OD(f))
+    m = block_diagonal_matrix([matrix(f), identity_matrix(ZZ, ngens(B))])
+    m = hom(Dorth, Dorth, m)
+    push!(geneOAinDorth, m)
   end
-  OAtoOD = hom(OA, OD, gens(OA), geneOA)
+  geneOAinOD = [OD(compose(inv(phi), compose(g, phi)), check = false) for g in geneOAinDorth]
+  OAtoOD = hom(OA, OD, gens(OA), geneOAinOD, check = false)
   return OAtoOD::GAPGroupHomomorphism
 end
 
@@ -109,7 +103,7 @@ function embedding_orthogonal_group(i1, i2)
     _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
     _f = hom(D.ab_grp, D.ab_grp, _f)
     f = TorQuadModMor(D, D, _f)                                                                    
-    push!(geneOA, OD(f))
+    push!(geneOA, OD(f, check = false))
   end
   geneOB = elem_type(OD)[]
   for f in gens(OB)
@@ -118,13 +112,25 @@ function embedding_orthogonal_group(i1, i2)
     _f = map_entries(ZZ, solve(reduce(vcat, [data(a).coeff for a in gene]), reduce(vcat, [data(a).coeff for a in imgs])))
     _f = hom(D.ab_grp, D.ab_grp, _f)
     f = TorQuadModMor(D, D, _f)
-    push!(geneOB, OD(f))
+    push!(geneOB, OD(f, check = false))
   end
 
-  OAtoOD = hom(OA, OD, gens(OA), geneOA)
-  OBtoOD = hom(OB, OD, gens(OB), geneOB)
+  OAtoOD = hom(OA, OD, gens(OA), geneOA, check = false)
+  OBtoOD = hom(OB, OD, gens(OB), geneOB, check = false)
   return (OAtoOD, OBtoOD)::Tuple{GAPGroupHomomorphism, GAPGroupHomomorphism}
- end
+end
+
+#function _small_Fp_stabilizer(i::TorquadModMor)
+#  ok, j = has_complement(i)
+#  @assert ok
+#  A = domain(i)
+#  B = domain(j)
+#  C = codomain(i)
+#  Corth = direct_sum(A, B)[1]
+#  R, phi = hom(abelian_group(B), abelian_group(A))
+#  geneBtoA = filter(r -> matrix(phi(r))*Hecke.gram_matrix_quadratic(A)*transpose(matrix(phi(r))) == Hecke.gram_matrix_quadratic(B), R)
+  
+
 
 function _as_Fp_vector_space_quotient(HinV, p, f)
   i = HinV.map_ab
@@ -174,7 +180,7 @@ function _as_Fp_vector_space_quotient(HinV, p, f)
   return Qp, VtoVp, VptoQp, fQp
 end
 
-function _subgroups_representatives(Vinq::TorQuadModMor, G::AutomorphismGroup{TorQuadMod}, g::Int, f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = one(G), l::Union{Int, fmpz} = 0)
+function _subgroups_representatives(Vinq::TorQuadModMor, G::AutomorphismGroup{TorQuadMod}, g::Int, f::Union{TorQuadModMor, AutomorphismGroupElem{TorQuadMod}} = one(G), l::Hecke.IntegerUnion = 0)
   V = domain(Vinq)
   q = codomain(Vinq)
   p = elementary_divisors(V)[1]
@@ -191,16 +197,15 @@ function _subgroups_representatives(Vinq::TorQuadModMor, G::AutomorphismGroup{To
   end
 
   OV = orthogonal_group(V)
-  gene_GV = TorQuadModMor[OV(_restrict(g, Vinq)) for g in gens(G)]
+  gene_GV = elem_type(OV)[OV(_restrict(g, Vinq), check = false) for g in gens(G)]
   GV, _ = sub(OV, gene_GV)
-  @assert GV(f) in GV
-  GVinG = hom(GV, G, gens(GV), gens(G))
+  GVinG = hom(GV, G, gens(GV), gens(G), check = false)
 
   act_GV_Vp = gfp_fmpz_mat[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
   act_GV_Qp = gfp_fmpz_mat[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV_Vp]
   MGp = matrix_group(act_GV_Qp)
   @assert fQp in MGp
-  MGptoGV = hom(MGp, GV, gens(GV))
+  MGptoGV = hom(MGp, GV, gens(GV), check = false)
   MGptoG = compose(MGptoGV, GVinG)
 
   res = Tuple{TorQuadModMor, AutomorphismGroup{TorQuadMod}}[]

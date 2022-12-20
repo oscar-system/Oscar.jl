@@ -68,7 +68,7 @@ function hom(f::AutGrpAbTorElem)
 end
 
 
-function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check::Bool=true)
+function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor}; check::Bool=true)
   !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -100,7 +100,7 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{fmpq, fmpq_mat}; check::Bool=true
   end
   T = domain(aut)
   g = hom(T, T, elem_type(T)[T(lift(t)*matrix(g)) for t in gens(T)])
-  return aut(g)
+  return aut(g, check = check)
 end
 """
     matrix(f::AutomorphismGroupElem{GrpAbFinGen}) -> fmpz_mat

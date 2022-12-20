@@ -237,7 +237,7 @@ function discriminant_group(Lf::LatticeWithIsometry)
   @req is_integral(L) "Underlying lattice must be integral"
   q = discriminant_group(L)
   Oq = orthogonal_group(q)
-  return (q, Oq(gens(matrix_group(f))[1]))::Tuple{TorQuadMod, AutomorphismGroupElem{TorQuadMod}}
+  return (q, Oq(gens(matrix_group(f))[1], check = false))::Tuple{TorQuadMod, AutomorphismGroupElem{TorQuadMod}}
 end
 
 @attr AutomorphismGroup function image_centralizer_in_Oq(Lf::LatticeWithIsometry)
@@ -392,22 +392,8 @@ end
   return t
 end
 
-function _is_type(t::Dict)
-  ke = collect(keys(t))
-  n = maximum(ke)
-  Set(divisors(n)) == Set(ke) || return false
-
-  for i in ke
-    t[i][2] isa ZGenus || return false
-    typeof(t[i][1]) <: Union{ZGenus, Hecke.GenusHerm} || return false
-  end
-  rank(t[n][2]) == rank(t[n][1])*euler_phi(n) || return false
-  return true
-end
-
 function is_of_type(L::LatticeWithIsometry, t)
   @req is_finite(order_of_isometry(L)) "Type is defined only for finite order isometries"
-  @req _is_type(t) "t does not define a type for lattices with isometry"
   divs = sort(collect(keys(t)))
   x = gen(Hecke.Globals.Qx)
   for l in divs
@@ -436,7 +422,6 @@ function is_of_pure_type(L::LatticeWithIsometry)
 end
 
 function is_pure(t::Dict)
-  @req _is_type(t) "t does not define a type for lattices with isometry"
   ke = collect(keys(t))
   n = maximum(ke)
   return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, [i for i in ke if i != n])

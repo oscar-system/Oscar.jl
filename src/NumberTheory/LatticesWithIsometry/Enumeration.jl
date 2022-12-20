@@ -49,7 +49,7 @@ end
 # This is line 10 of Algorithm 1. We need the condition on the even-ness of
 # C since subgenera of an even genus are even too. r is the rank of
 # the subgenus, d its determinant, s and l the scale and level of C
-function _find_L(r::Int, d::RationalUnion, s::fmpz, l::fmpz, p::Int, even = true)
+function _find_L(r::Int, d::Hecke.RationalUnion, s::fmpz, l::fmpz, p::Int, even = true)
   L = ZGenus[]
   for (s1,s2) in [(s,t) for s=0:r for t=0:r if s+t==r]
     gen = genera((s1,s2), d, even=even)
@@ -115,7 +115,7 @@ function is_admissible_triple(A::ZGenus, B::ZGenus, C::ZGenus, p::Integer)
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   qA = discriminant_group(A)
   qB = discriminant_group(B)
-  if !divides(det(C), p)[1]
+  if !divides(numerator(det(C)), p)[1]
     return is_anti_isometric_with_anti_isometry(primary_part(qA, p)[1], primary_part(qB, p)[1])[1]
   end
 
@@ -287,7 +287,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
 
   @req is_admissible_triple(Afa, Bfb, Cfc, p) "(A, B, C) must be p-admissble"
   # we need to compare the type of the output with the one of Cfc
-  t = type(Cfc)
+  #t = type(Cfc)
 
   results = LatticeWithIsometry[]
   # this is the glue valuation: it is well-defined because the triple in input is admissible
@@ -330,12 +330,12 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
       C2 = orthogonal_sum(A, B)[1]
       fC2 = block_diagonal_matrix(fA, fB)
     end
-    if type(lattice_with_isometry(C2, fC2^p, ambient_representation = false)) == t
+    if is_of_type(lattice_with_isometry(C2, fC2^p, ambient_representation = false), t)
       C2fC2 = lattice_with_isometry(C2, fC2, ambient_representation=false)
       set_attribute!(C2fC2, :image_centralizer_in_Oq, GC2)
       push!(results, C2fC2)
-      return results
     end
+    return results
   end
 
   # these are GA|GB-invariant, fA|fB-stable, and should contain the kernels of any glue map
@@ -355,8 +355,8 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # contained lqA|lqB. This is done by computing orbits and stabilisers of VA/lqA (resp VB/lqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
   # are fA-stable (resp. fB-stable)
-  subsA = _subgroups_representatives(VAinqA, GA, g, fVA, l)
-  subsB = _subgroups_representatives(VBinqB, GB, g, fVB, l)
+  subsA = _subgroups_representatives(VAinqA, GA, g, fVA, ZZ(l))
+  subsB = _subgroups_representatives(VBinqB, GB, g, fVB, ZZ(l))
 
   # once we have the potential kernels, we create pairs of anti-isometric groups since glue
   # maps are anti-isometry
@@ -370,6 +370,7 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
   # now, for each pair of anti-isometric potential kernels, we need to see whether
   # it is (fA,fB)-equivariant, up to conjugacy. For each working pair, we compute the
   # corresponding overlattice and check whether it satisfies the type condition
+  return R
   for (H1, H2, phi) in R
     SAinqA, stabA = H1
     SA = domain(SAinqA)
@@ -401,10 +402,11 @@ function primitive_extensions(Afa::LatticeWithIsometry, Bfb::LatticeWithIsometry
     # under the action of O(SB, rho_{l+1}(qB), fB)
     rBinqB = _rho_functor(qB, p, valuation(l, p)+1)
     @assert Oscar._is_invariant(stabB, rBinqB)
-    rBinSB = hom(domain(rBinqB), SB, [SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
-    @assert is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
+    rBinSB = hom(domain(rBinqB), SB, TorQuadModElem[SBinqB\(rBinqB(k)) for k in gens(domain(rBinqB))])
+    @assert is_trivial(domain(rBinSB).ab_grp) || is_injective(rBinSB) # we indeed have rho_{l+1}(qB) which is a subgroup of SB
 
     # We compute the generators of O(SB, rho_l(qB))
+    return rBinSB
     OrBinOSB = embedding_orthogonal_group(rBinSB)
     OSBrB, _ = image(OrBinOSB)
     @assert fSB in OSBrB
