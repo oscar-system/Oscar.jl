@@ -124,3 +124,10 @@ is_minor(M::Matroid, N::Matroid)
 chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=false)
 augmented_chow_ring(M::Matroid)
 ```
+
+## Matroid strata and -realization spaces
+
+```@docs
+matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int64}, F::AbstractAlgebra.Ring = ZZ)
+matroid_realization_space(M::Matroid, A::Vector{Int64}, F::AbstractAlgebra.Ring=ZZ)
+```
