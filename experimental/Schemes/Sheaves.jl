@@ -66,33 +66,98 @@ end
 
 ### implementing the essential functionality
 space(F::PreSheafOnScheme) = F.X
-object_cache(F::PreSheafOnScheme) = F.obj_cache
-restriction_cache(F::PreSheafOnScheme) = F.res_cache
+object_cache(F::PreSheafOnScheme) = F.obj_cache # an IdDict caching the values of F on open subsets
+#restriction_cache(F::PreSheafOnScheme) = F.res_cache # Caching is now done via attributes in the objects
 is_open_func(F::PreSheafOnScheme) = F.is_open_func
 production_func(F::PreSheafOnScheme) = F.production_func
 restriction_func(F::PreSheafOnScheme) = F.restriction_func
 
+### Production and caching of the values of F on admissible open sets
 function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=true) where {OpenType, OutputType, T<:OpenType}
-  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType #We can always look whether or not the asked for result has been computed before
+  #First look whether or not the asked for result has been computed before
+  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType 
 
   # Testing openness might be expensive, so it can be skipped
   check && is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
-  G = production_func(F)(U, object_cache(F), restriction_cache(F))
+  G = production_func(F)(F, U)
   cached && (object_cache(F)[U] = G)
   return G::OutputType
 end
 
+### Production and caching of the restriction maps
+@Markdown.doc """
+    restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
+        U::Type1, V::Type2
+      ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
+
+For a `F` produce (and cache) the restriction map `F(U) → F(V)`.
+"""
 function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
     U::Type1, V::Type2
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
-  haskey(restriction_cache(F), (U, V)) && return (restriction_cache(F)[(U, V)])::RestrictionType
+  # First, look up whether this restriction had already been asked for previously.
+  inc = incoming_restrictions(F, F(V)) 
+  !(inc == nothing) && haskey(inc, U) && return (inc[U])::RestrictionType
 
+  # Check whether the given pair is even admissible.
   is_open_func(F)(V, U) || error("the second argument is not open in the first")
-  FV = F(V)
-  FU = F(U)
-  rho = restriction_func(F)(U, V, object_cache(F), restriction_cache(F))
-  restriction_cache(F)[(U, V)] = rho
+
+  # Hand the production of the restriction over to the internal method 
+  rho = restriction_func(F)(F, U, V)
+
+  # Cache the result in the attributes of F(V)
+  inc isa IdDict{<:OpenType, <:RestrictionType} && (inc[U] = rho) # It is the restriction coming from U.
   return rho::RestrictionType
+end
+
+@Markdown.doc """
+  add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
+    U::OpenType,
+    V::OpenType,
+    rho::RestrictionType
+  ) where {OpenType, RestrictionType}
+
+**Note:** This is a method for internal use! 
+
+For an `AbsPreSheaf` `F`, a pair of open sets ``U ⊃ V`` and a manually computed 
+morphism ``ρ : F(U) → F(V)``, this method stores the map `rho` in the internal caching system as 
+the restriction map for `F` from `U` to `V`.
+"""
+function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
+    U::OpenType,
+    V::OpenType,
+    rho::RestrictionType
+  ) where {OpenType, RestrictionType}
+  # First, look up the incoming restriction maps for F(V).
+  # This will create the dictionary, if necessary.
+  incoming_res = incoming_restrictions(F(V))
+  incoming_res == nothing && return F # This indicates that no 
+  incoming_res::IdDict{<:OpenType, <:RestrictionType}
+  incoming_res[U] = rho
+  return F
+end
+
+@Markdown.doc """
+    incoming_restrictions(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType, M::OutputType) 
+
+Supposing `M` is the value `M = F(U)` of some `AbsPreSheaf` `F` on an admissible open 
+set `U`, return an `IdDict` whose keys `V` are those admissible open sets for `F` 
+for which a restriction map `ρ : F(V) → F(U)` has already been computed and cached. 
+The values of the dictionary are precisely those restriction maps for the respective keys.
+
+**Note:** This 
+"""
+function incoming_restrictions(
+    F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
+    M::OutputType
+  ) where {OpenType, OutputType, RestrictionType}
+  hasfield(typeof(M), :__attrs) || return nothing # M has to be attributable to allow for caching!
+  if !has_attribute(M, :incoming_restrictions)
+    D = IdDict{OpenType, RestrictionType}()
+    set_attribute!(M, :incoming_restrictions, D)
+    return D
+  end
+  return get_attribute(M, :incoming_restrictions)::IdDict{OpenType, RestrictionType}
 end
 
 ########################################################################

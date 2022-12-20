@@ -2,6 +2,7 @@ export EmptyScheme
 export AbsProjectiveScheme, ProjectiveScheme
 export ProjectiveSchemeMor
 export VarietyFunctionField, VarietyFunctionFieldElem
+export AbsPreSheaf
 export IdealSheaf
 
 
@@ -270,12 +271,12 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
 
   # caches
   obj_cache::IdDict{<:OpenType, <:OutputType} # To cache values that have already been computed
-  res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
+  #res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
 
   # production functions for new objects
-  is_open_func # To check whether one set is open in the other
-  production_func # To produce ℱ(U) for U ⊂ X
-  restriction_func # To produce the restriction maps ℱ(U) → ℱ(V) for V ⊂ U ⊂ X open
+  is_open_func::Function # To check whether one set is open in the other
+  production_func::Function # To produce ℱ(U) for U ⊂ X
+  restriction_func::Function # To produce the restriction maps ℱ(U) → ℱ(V) for V ⊂ U ⊂ X open
 
   function PreSheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
       OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
@@ -283,7 +284,7 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
     )
     return new{typeof(X), OpenType, OutputType, RestrictionType,
               }(X, IdDict{OpenType, OutputType}(),
-                IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
+                #IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
                 is_open_func, production_func, restriction_func
                )
   end
@@ -321,10 +322,12 @@ identifications given by the glueings in the `default_covering`.
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
     end
 
-    function production_func(U::AbsSpec)
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
       return OO(U)
     end
-    function restriction_func(V::AbsSpec, OV::Ring, U::AbsSpec, OU::Ring)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      OU = F(U) # assumed to be previously cached
+      OV = F(V) # same as above
       return hom(OV, OU, gens(OU), check=false) # check=false assures quicker computation
     end
 
@@ -467,25 +470,21 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
       return OO(U)
     end
-    function production_func(U::SpecOpen, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(F::AbsPreSheaf, U::SpecOpen)
       return OO(U)
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
       V === U || error("basic affine patches must be the same")
       return identity_map(OO(V))
     end
-    function restriction_func(V::AbsSpec, U::PrincipalOpenSubset, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      OU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::PrincipalOpenSubset)
+      OV = F(V) # Assumed to be cached or produced on the fly.
+      OU = F(U) # Same as above.
       if ambient_scheme(U) === V
         return hom(OV, OU, gens(OU), check=false)
       else
@@ -501,11 +500,10 @@ identifications given by the glueings in the `default_covering`.
       end
       error("arguments are not valid")
     end
-    function restriction_func(V::PrincipalOpenSubset, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      OU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::AbsSpec)
+      OV = F(V)
+      OU = F(U) 
       if ambient_scheme(V) === U
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -525,11 +523,9 @@ identifications given by the glueings in the `default_covering`.
         return hom(OV, OU, rho_func2.(gens(OV)), check=false)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, U::PrincipalOpenSubset, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      OU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+      OV = F(V)
+      OU = F(U)
       A = ambient_scheme(V)
       if A === ambient_scheme(U)
         return hom(OV, OU, gens(OU), check=false)
@@ -546,11 +542,10 @@ identifications given by the glueings in the `default_covering`.
       end
       error("arguments are invalid")
     end
-    function restriction_func(V::AbsSpec, W::SpecOpen,
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      OW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
+
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, W::SpecOpen)
+      OV = F(V)
+      OW = F(W)
       V in default_covering(X) || return false
       ambient_scheme(W) in default_covering(X) || return false
       if V === ambient_scheme(W)
@@ -565,11 +560,10 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(rho_func, OV, OW)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, W::SpecOpen,
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      OW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
+
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, W::SpecOpen)
+      OV = F(V)
+      OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -590,11 +584,9 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(rho_func2, OV, OW)
       end
     end
-    function restriction_func(V::SpecOpen, W::SpecOpen, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      OV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      OW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::SpecOpen, W::SpecOpen)
+      OV = F(V)
+      OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OV, OW)

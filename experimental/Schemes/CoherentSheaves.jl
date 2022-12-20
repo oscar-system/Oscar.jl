@@ -143,16 +143,18 @@ identifications given by the glueings in the `default_covering`.
     #OOX = StructureSheafOfRings(X)
 
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(U::AbsSpec, F::AbsPreSheaf)
+      MD = object_cache(F)::IdDict
       haskey(MD, U) && return MD[U]
       error("module on $U was not found")
     end
-    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(U::PrincipalOpenSubset, F::AbsPreSheaf)
+      object_cache = object_cache(F)::IdDict
       V = ambient_scheme(U)
-      MV = production_func(V, object_cache, restriction_cache)
+      MV = production_func(V, F)
       rho = OOX(V, U)
       MU, phi = change_base_ring(rho, MV)
-      restriction_cache[(V, U)] = phi # Also cache the restriction map
+      add_incoming_restriction!(F, V, U, phi)
       return MU
     end
 
