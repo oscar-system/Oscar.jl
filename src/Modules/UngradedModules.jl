@@ -4597,6 +4597,9 @@ rank   | 0  2  6  6  2
 -------|---------------
 degree | 4  3  2  1  0
 ```
+
+**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+iterative kernel computation.
 """
 function free_resolution(M::SubQuo{<:MPolyElem}; 
     ordering::ModuleOrdering = default_ordering(M),
@@ -4677,6 +4680,7 @@ function free_resolution(M::SubQuo{T}) where {T<:RingElem}
       N = domain(map(C, i))
 
       if iszero(N) # Fill up with zero maps
+        C.complete = true
         phi = hom(N, N, elem_type(N)[])
         pushfirst!(C.maps, phi)
         continue

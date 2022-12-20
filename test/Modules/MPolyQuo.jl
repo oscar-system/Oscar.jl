@@ -110,3 +110,18 @@ end
   @test iszero(p[10])
 end
 
+@testset "kernels of FreeMod -> SubQuo" begin
+  # kernels of homomorphisms 
+  R, (x,y,z) = QQ["x", "y", "z"]
+  A, _ = quo(R, ideal(R, [z]))
+  F2 = FreeMod(A, 2)
+  F1 = FreeMod(A, 1)
+  f = x^2 + y^2 + z^2
+  M, _ = quo(F1, (ideal(A, [f])*F1)[1])
+  phi = hom(F2, M, [x*M[1], y*M[1]])
+  K, inc = kernel(phi)
+
+  @test y*F2[1]- x*F2[2] in K
+  @test (f*F2[1]) in K
+  @test (f*F2[2]) in K
+end

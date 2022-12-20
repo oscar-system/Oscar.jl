@@ -173,7 +173,7 @@ end
   FP = _poly_module(F)
   v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
   w = [f*e for e in gens(FP) for f in gens(modulus(base_ring(M)))]
-  w_ext = vcat(w, [_lifting_map(F)(g) for g in relations(M)])
+  w_ext = vcat(w, elem_type(FP)[_lifting_map(F)(g) for g in relations(M)])
   MP = SubQuo(FP, v, w_ext)
   return MP
 end
