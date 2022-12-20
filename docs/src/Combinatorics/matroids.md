@@ -125,9 +125,33 @@ chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=fal
 augmented_chow_ring(M::Matroid)
 ```
 
-## Matroid strata and -realization spaces
+## Matroid strata and realization spaces
+
+For a matroid ``M``, of rank ``d`` on ``\{1,\ldots,n\}`` realizable over a ring ``K``, 
+its *matroid realization space* ``\mathsf{Gr}(M)`` is the locally closed subscheme of the Grassmannian
+``\mathsf{Gr}(d,K^n)`` of ``d``-dimensional subspaces of ``K^n`` realizing ``M``. Precisely, 
+
+\begin{equation}
+    \mathsf{Gr}(M) = \{F \in \mathsf{Gr}(d,K^n) \, : \, p_{I}(F) \neq 0 \text{ iff } I \in \mathcal(B)(M)\}
+\end{equation}
+
+where ``\mathcal{B}(M)`` denotes the set of bases of ``M`` and  ``p_{I}(F)`` denotes the ``I``th Pl\"ucker 
+coordinate of the linear subspace ``F \subset K^n``. The coordinate ring of ``\mathsf{Gr}(M)`` can be computed
+using matrix coordinates, see Construction 2.2 of [Cor21](@cite). The following function computes this ring. 
 
 ```@docs
 matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int64}, F::AbstractAlgebra.Ring = ZZ)
+```
+
+When the matroid ``M`` is connected, the diagonal torus of ``\mathsf{PGL}(n)`` acts freely on 
+``\mathsf{Gr}(M)`` and its quotient is the *realization space* ``R(M)`` of ``M``. There are two main differences between the coordinate rings ``K[Gr(M)]`` and ``K[R(M)]``.
+ <ul>
+  <li>To comupte ``K[R(M)]``, we may assume that ``d+1`` columns ``A = \{a_1,\ldots,a_{d+1}\}``  of the reference matrix ``X`` are the unit vectors ``e_1,\ldots,e_n`` and ``e_1+ \cdots + e_n``. Note that every ``d`` element subset of ``A`` must be a basis of ``M``, and the existence of such a ``A`` follows from the connectedness hypothesis on ``M``.   </li>
+  <li>The columns of the reference matrix ``X`` may be treated as projective coordiantes. </li>
+</ul> 
+The coordinate ring of ``R(M)`` is computed in the following function. 
+
+
+```@docs
 matroid_realization_space(M::Matroid, A::Vector{Int64}, F::AbstractAlgebra.Ring=ZZ)
 ```
