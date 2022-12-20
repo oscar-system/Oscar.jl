@@ -8,6 +8,7 @@ export dual
 export LineBundle
 export PushforwardSheaf
 export is_locally_free
+#export PullbackSheaf
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,
@@ -882,6 +883,8 @@ end
 #
 # Again, it is clear that this can and should be made lazy.
 #                                                                     =#
+#
+# TODO: PullbackSheaf is currently broken!!!
 
 @attributes mutable struct PullbackSheaf{SpaceType, OpenType, OutputType,
                                          RestrictionType
@@ -910,7 +913,16 @@ end
 
     ### Production of the modules on open sets; to be cached
     function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
-      # There was no module cached for U. We may assume that U is not a PrincipalOpenSubset 
+      # Gather all affine patches on which f is defined
+      if U in keys(morphisms(fcov))
+        floc = morphisms(fcov)[U]
+        MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
+        #TODO: Cache the map.
+        return MU
+      end
+
+      # There was no module cached for U and it can also not be produced directly from f. 
+      # We may assume that U is not a PrincipalOpenSubset 
       # since these are caught by another method. 
       #
       # **Assumption:** All refinements of the `default_covering` of X are set up using 
@@ -919,8 +931,7 @@ end
       # Hence U must be such an affine_chart.
 
       # First collect all cached refinement patches. 
-      W = collect(keys(morphisms(fcov)))::Vector{<:AbsSpec} # All affine patches on which f is defined
-
+      W = collect(keys(morphisms(fcov)))::Vector{<:AbsSpec} 
       # Look up all those affine patches V on which f is defined such that 
       # V ⊂ U is a PrincipalOpenSubset
       filter!(D->((D isa PrincipalOpenSubset) && (ambient_scheme(D) === U)), W)
@@ -939,20 +950,24 @@ end
 
       # Assemble a prototype for the common module. 
       # The relations are still missing!
-      M, inclusions = direct_sum([A[1] for A in Ms_with_maps]...)
-      projections = [hom(M, Ms_with_maps[i][1], 
-                         vcat([k == i ? 
-                               gens(Ms_with_maps[i][1]) : 
-                               [zero(Ms_with_maps[i][1]) 
-                                for j in 1:ngens(Ms_with_maps[k][1])
-                               ] 
-                               for k in 1:length(Ms_with_maps)
-                              ])
-                        ) 
-                     for i in 1:length(Ms_with_maps)
-                    ]
+      M, inclusions, projections = direct_sum((ModuleFP[A[1] for A in Ms_with_maps])..., task=:both)
+    # projections = [hom(M, Ms_with_maps[i][1], 
+    #                    vcat([k == i ? 
+    #                          gens(Ms_with_maps[i][1]) : 
+    #                          [zero(Ms_with_maps[i][1]) 
+    #                           for j in 1:ngens(Ms_with_maps[k][1])
+    #                          ] 
+    #                          for k in 1:length(Ms_with_maps)
+    #                         ])
+    #                   ) 
+    #                for i in 1:length(Ms_with_maps)
+    #               ]
                          
 
+      # To also get the relations, we construct the pairs of restrictions to 
+      # the overlaps fᵢ, gᵢ and compute the common kernel of all maps fᵢ- gᵢ.
+      # By construction, the quotient by this kernel will be the module 
+      # of global sections on U.
       overlaps = [intersect(A, B) for A in W, B in W]
       M_on_overlaps = [production_func(C) for C in overlaps] # Assumed to fill the restriction_cache
       first_restr = [restriction_cache(W[i], overlaps[i, j]) for i in 1:length(W), j in 1:length(W)]
@@ -1046,22 +1061,53 @@ end
                       RestrictionType=Hecke.Map,
                       is_open_func=_is_open_for_modules(X)
                      )
-    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(inc, OOX, OOY, M, ident, Blubber)
+    MY = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(f, OOX, OOY, M, ident, Blubber)
     return MY
   end
 end
 
-underlying_presheaf(M::PushforwardSheaf) = M.F
-sheaf_of_rings(M::PushforwardSheaf) = M.OOY
-original_sheaf(M::PushforwardSheaf) = M.M
-map(M::PushforwardSheaf) = M.inc
+underlying_presheaf(M::PullbackSheaf) = M.F
+sheaf_of_rings(M::PullbackSheaf) = M.OOX
+original_sheaf(M::PullbackSheaf) = M.M
+map(M::PullbackSheaf) = M.f
 
 function Base.show(io::IO, M::PushforwardSheaf)
   print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
 end
 
-function _find_patches_in_affine_open(f::CoveringMorphism, V::AbsSpec)
-  W = collect(keys(morphisms(fcov)))::Vector{<:AbsSpec} # All affine patches on which f is defined
-  filter!(U->((U isa PrincipalOpenSubset) && (ambient_scheme(U) === V)), W)
-  
+#=
+# For an 𝒪(U)-module M this constructs an 𝒪(V)-module N where V is 
+# the `ambient_scheme` of U, together with a map ϕ : N → M 
+# over the canonical map 𝒪(V) → 𝒪(U) such that M ≅ image(ϕ).        =#
+
+function _lift_module(M::SubQuo, U::PrincipalOpenSubset)
+  V = ambient_scheme(U)
+  base_ring(M) === OO(U) || error("module not defined over the correct ring")
+  R = base_ring(OO(U))
+  F = ambient_free_module(M)
+  FR = base_ring_module(F)
+  FV, FRtoFV = change_base_ring(FR, OO(V))
+  gens_lift = [clear_denominators(g) for g in ambient_representatives_gens(M)]
+  rels_lift = [clear_denominators(g) for g in relations(M)]
+  MV = SubQuo(FV, [FRtoFV(g[1]) for g in gens_lift], [FRtoFV(g[1]) for g in rels_lift])
+  MVtoM = hom(MV, M, [OO(U)(one(R), gens_lift[i][2], check=false)*MV[i] for i in 1:ngens(MV)],
+              MapFromFunc(
+                          x->OO(U)(lifted_numerator(x), lifted_denominator(x), check=false),
+                          OO(V), OO(U)
+                         )
+             )
+  return MV, MVtoM
+end
+
+function _lift_module(F::FreeMod, U::PrincipalOpenSubset)
+  V = ambient_scheme(U)
+  base_ring(M) === OO(U) || error("module not defined over the correct ring")
+  FV = FreeMod(OO(V), ngens(F))
+  FVtoF = hom(FV, F, gens(F), 
+              MapFromFunc(x->OO(U)(lifted_numerator(x), lifted_denominator(x), check=false),
+                          OO(V), OO(U)
+                         )
+             )
+  return FV, FVtoF
+end
 

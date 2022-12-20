@@ -78,3 +78,20 @@ end
   @test w[1](U[1]) !== v[1](U[1]) # No caching of sections
   @test w[1](U[1]) == v[1](U[1])  # But reliably the same results
 end
+
+@testset "pullbacks of modules" begin
+  # Note: The PullbackSheafs are not yet fully functional!!!
+  IP = projective_space(QQ, 2)
+  S = ambient_coordinate_ring(IP)
+  X = covered_scheme(IP)
+  (x,y,z) = gens(S)
+  f = x^3 + y^3 + z^3
+  I = ideal(S, f)
+  II = IdealSheaf(IP, I)
+  inc = oscar.CoveredClosedEmbedding(X, II)
+  C = domain(inc)
+  L = twisting_sheaf(IP, 2)
+  LC = PullbackSheaf(inc, L)
+  U = affine_charts(C)
+  @test LC(U[1]) isa FreeMod
+end
