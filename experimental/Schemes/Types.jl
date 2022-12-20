@@ -699,6 +699,8 @@ identifications given by the glueings in the `default_covering`.
 
     ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
+      # If U is an affine chart on which the ideal has already been described, take that.
+      haskey(ID, U) && return ID[U]
       # The ideal sheaf has to be provided on at least one dense
       # open subset of every connected component.
       # Otherwise, the ideal sheaf is given by the unit
