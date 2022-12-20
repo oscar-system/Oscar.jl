@@ -167,8 +167,8 @@
 
     
     @testset "matroid_stratum_matrix_coordinates_given_ring" begin
-        @test length(gens(MS1[3])) == 1 
-        @test length(gens(MS2[3])) == 5
+      @test MS1[2] isa MPolyLocalizedRing
+      @test length(gens(modulus(MS2[2]::MPolyQuoLocalizedRing))) == 5
     end
 
 
@@ -291,10 +291,10 @@ rbd4b = Oscar.realization_bases_determinants(X4b, bases(mb4))
     
 end
 
-SG1 = Oscar.realization_localizing_semigroup(rbd1)
-SG2 = Oscar.realization_localizing_semigroup(rbd2)
-SG4a = Oscar.realization_localizing_semigroup(rbd4a)
-SG4b = Oscar.realization_localizing_semigroup(rbd4b)
+SG1 = MPolyPowersOfElement(R1, rbd1)
+SG2 = MPolyPowersOfElement(R2, rbd2)
+SG4a = MPolyPowersOfElement(R4a, rbd4a)
+SG4b = MPolyPowersOfElement(R4b, rbd4b)
 
 
 @testset "realization_localizing_semigroup" begin
@@ -312,10 +312,10 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
    
     
     @testset "matroid_realization_space_given_ring" begin
-        @test length(gens(MS1[3])) == 1 
-        @test length(unique!(gens(MS2[3]))) == 5   
-        @test length(gens(MS4a[3])) == 1
-        @test length(gens(MS4b[3])) == 1
+      @test MS1[2] isa MPolyLocalizedRing 
+      @test length(unique!(gens(modulus(MS2[2]::MPolyQuoLocalizedRing)))) == 5   
+      @test MS4a[2] isa MPolyLocalizedRing 
+      @test MS4b[2] isa MPolyLocalizedRing 
     end
 
 
