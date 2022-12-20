@@ -91,7 +91,7 @@ end
   inc = oscar.CoveredClosedEmbedding(X, II)
   C = domain(inc)
   L = twisting_sheaf(IP, 2)
-  LC = PullbackSheaf(inc, L)
+  LC = oscar.PullbackSheaf(inc, L)
   U = affine_charts(C)
   @test LC(U[1]) isa FreeMod
 end

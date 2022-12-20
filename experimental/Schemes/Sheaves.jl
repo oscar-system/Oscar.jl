@@ -123,14 +123,14 @@ For an `AbsPreSheaf` `F`, a pair of open sets ``U ⊃ V`` and a manually compute
 morphism ``ρ : F(U) → F(V)``, this method stores the map `rho` in the internal caching system as 
 the restriction map for `F` from `U` to `V`.
 """
-function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
+function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType}, 
     U::OpenType,
-    V::OpenType,
+    M::OutputType,
     rho::RestrictionType
-  ) where {OpenType, RestrictionType}
+  ) where {OpenType, OutputType, RestrictionType}
   # First, look up the incoming restriction maps for F(V).
   # This will create the dictionary, if necessary.
-  incoming_res = incoming_restrictions(F(V))
+  incoming_res = incoming_restrictions(F, M)
   incoming_res == nothing && return F # This indicates that no 
   incoming_res::IdDict{<:OpenType, <:RestrictionType}
   incoming_res[U] = rho

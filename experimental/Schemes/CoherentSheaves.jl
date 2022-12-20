@@ -143,18 +143,22 @@ identifications given by the glueings in the `default_covering`.
     #OOX = StructureSheafOfRings(X)
 
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec, F::AbsPreSheaf)
-      MD = object_cache(F)::IdDict
+    function production_func(
+        F::AbsPreSheaf,
+        U::AbsSpec
+      )
       haskey(MD, U) && return MD[U]
       error("module on $U was not found")
     end
-    function production_func(U::PrincipalOpenSubset, F::AbsPreSheaf)
-      object_cache = object_cache(F)::IdDict
+    function production_func(
+        F::AbsPreSheaf,
+        U::PrincipalOpenSubset
+      )
       V = ambient_scheme(U)
-      MV = production_func(V, F)
+      MV = F(V)
       rho = OOX(V, U)
       MU, phi = change_base_ring(rho, MV)
-      add_incoming_restriction!(F, V, U, phi)
+      add_incoming_restriction!(F, V, MU, phi)
       return MU
     end
 
@@ -180,11 +184,9 @@ identifications given by the glueings in the `default_covering`.
 #     A = MG[(V, W)] # The transition matrix
 #     return hom(MV, MU, [sum([A[i, j] * MU[j] for j in 1:ngens(MU)]) for j in 1:ngens(MV)], rho)
 #   end
-    function restriction_func(V::AbsSpec, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      MV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      MU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MV = F(V)
+      MU = F(U)
       # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
       # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
       # we need to find W (which equals V in the first case) and use the transition 
@@ -358,15 +360,13 @@ end
     OOX === sheaf_of_rings(G) || error("sheaves must be defined over the same sheaves of rings")
 
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
       return hom(F(U), G(U))[1]
     end
 
-    function restriction_func(V::AbsSpec, U::AbsSpec,
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      MV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      MU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MV = FF(V)
+      MU = FF(U)
       dom_res = F(V, U)
       cod_res = G(V, U)
       f = gens(F(V))
@@ -463,15 +463,13 @@ end
 
     U = default_covering(X)[1]
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
         return FreeMod(OO(U), 1)
     end
     
-    function restriction_func(V::AbsSpec, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      MV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      MU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MV = F(V)
+      MU = F(U)
       # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
       # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
       # we need to find W (which equals V in the first case) and use the transition 
@@ -544,7 +542,7 @@ sheaf_of_rings(L::LineBundle) = L.OOX
     OOY = OO(Y)
 
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
       # In case X was empty, return the zero module and store nothing in the identifications.
       if isempty(X) 
         ident[U] = nothing
@@ -563,7 +561,7 @@ sheaf_of_rings(L::LineBundle) = L.OOX
       ident[U] = ident_map
       return MU
     end
-    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(FF::AbsPreSheaf, U::PrincipalOpenSubset)
       # In case X was empty, return the zero module and store nothing in the identifications.
       if isempty(X) 
         ident[U] = nothing
@@ -583,18 +581,16 @@ sheaf_of_rings(L::LineBundle) = L.OOX
 
       # We need to restrict from the parent
       W = ambient_scheme(U)
-      MW = haskey(object_cache, W) ? object_cache[W] : production_func(W, object_cache, restriction_cache)
+      MW = FF(W)
       MU, res = change_base_ring(OOY(W, U), MW)
-      restriction_cache[(W, U)] = res
+      add_incoming_restriction!(FF, W, MU, res)
       return MU
     end
 
 
-    function restriction_func(V::AbsSpec, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      MYV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      MYU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MYV = FF(V)
+      MYU = FF(U)
       incV_list = maps_with_given_codomain(inc, V)
       incU_list = maps_with_given_codomain(inc, U)
       # return the zero homomorphism in case one of the two sets has 
@@ -914,7 +910,7 @@ end
     CY = codomain(fcov)::Covering
 
     ### Production of the modules on open sets; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(FF::AbsPreSheaf, U::AbsSpec)
       # Gather all affine patches on which f is defined
       if U in keys(morphisms(fcov))
         floc = morphisms(fcov)[U]
@@ -1010,7 +1006,7 @@ end
       return result
     end
 
-    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(FF::AbsPreSheaf, U::PrincipalOpenSubset)
       # In case X was empty, return the zero module and store nothing in the identifications.
       if isempty(X) 
         ident[U] = nothing
@@ -1037,11 +1033,9 @@ end
     end
 
 
-    function restriction_func(V::AbsSpec, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      MYV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
-      MYU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      MYV = FF(V)
+      MYU = FF(U)
       incV_list = maps_with_given_codomain(inc, V)
       incU_list = maps_with_given_codomain(inc, U)
       # return the zero homomorphism in case one of the two sets has 
