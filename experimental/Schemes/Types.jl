@@ -698,17 +698,16 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(U::AbsSpec, object_cache::IdDict, restriction_cache::IdDict)
-      haskey(ID, U) && return ID[U]
-      # The ideal sheaf has to be provided on at one dense
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
+      # The ideal sheaf has to be provided on at least one dense
       # open subset of every connected component.
       # Otherwise, the ideal sheaf is given by the unit
       # ideals.
-      for G in glueings(default_covering(X))
+      for G in values(glueings(default_covering(space(F))))
         A, B = patches(G)
         Asub, Bsub = glueing_domains(G)
         if A === U && haskey(ID, B) && is_dense(Asub)
-          Z = subscheme(B, ID[B])
+          Z = intersect(subscheme(B, ID[B]), Bsub)
           f, _ = glueing_morphisms(G)
           pZ = preimage(f, Z)
           ZU = closure(pZ, U)
@@ -718,20 +717,16 @@ identifications given by the glueings in the `default_covering`.
       end
       return ideal(OO(U), one(OO(U)))
     end
-    function production_func(U::PrincipalOpenSubset, object_cache::IdDict, restriction_cache::IdDict)
+    function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
       V = ambient_scheme(U)
-      IV = production_func(V, object_cache, restriction_cache)
+      IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
       return IU
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, U::AbsSpec, 
-        object_cache::IdDict, restriction_cache::IdDict
-      )
-      #IU = haskey(object_cache, U) ? object_cache[U] : production_func(U, object_cache, restriction_cache)
-      #IV = haskey(object_cache, V) ? object_cache[V] : production_func(V, object_cache, restriction_cache)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
       return OOX(V, U) # This does not check containment of the arguments
                        # in the ideal. But this is not a parent check and
                        # hence expensive, so we might want to not do that.
