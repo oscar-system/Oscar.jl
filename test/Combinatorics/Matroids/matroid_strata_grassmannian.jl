@@ -149,60 +149,26 @@
     @testset "bases_determinants" begin
 
         @test D1 == [R1(1), xd1[[2,1]], xd1[[2,2]], xd1[[2,3]], -xd1[[1,1]], -xd1[[1,2]], -xd1[[1,3]], xd1[[1,1]] * xd1[[2,2]] - xd1[[2,1]] * xd1[[1,2]], xd1[[1,1]] * xd1[[2,3]] - xd1[[2,1]] * xd1[[1,3]],  xd1[[1,2]] * xd1[[2,3]] - xd1[[2,2]] * xd1[[1,3]]]
-
-        @test D2 == [xd2[[3, 3]]*xd2[[1, 4]], xd2[[1, 1]]*xd2[[2, 3]]*xd2[[3, 4]] + xd2[[1, 1]]*xd2[[3, 3]]*xd2[[2, 4]] + xd2[[2, 1]]*xd2[[3, 3]]*xd2[[1, 4]], xd2[[2, 3]]*xd2[[1, 4]], xd2[[1, 2]]*xd2[[2, 3]]*xd2[[3, 4]] + xd2[[1, 2]]*xd2[[3, 3]]*xd2[[2, 4]] + xd2[[3, 2]]*xd2[[2, 3]]*xd2[[1, 4]], xd2[[3, 2]]*xd2[[2, 4]], xd2[[1, 1]]*xd2[[3, 2]]*xd2[[2, 4]] + xd2[[2, 1]]*xd2[[1, 2]]*xd2[[3, 4]] + xd2[[2, 1]]*xd2[[3, 2]]*xd2[[1, 4]], xd2[[1, 2]]*xd2[[2, 4]], xd2[[2, 4]], xd2[[1, 4]], xd2[[2, 1]]*xd2[[3, 4]], xd2[[1, 1]]*xd2[[3, 4]], xd2[[3, 4]], xd2[[3, 2]]*xd2[[2, 3]], xd2[[1, 2]]*xd2[[3, 3]], xd2[[1, 2]]*xd2[[2, 3]], xd2[[2, 3]], xd2[[1, 1]]*xd2[[2, 3]], xd2[[2, 1]]*xd2[[3, 3]], xd2[[1, 1]]*xd2[[3, 3]], xd2[[3, 3]], xd2[[1, 2]], xd2[[2, 1]]*xd2[[1, 2]], xd2[[2, 1]]*xd2[[3, 2]], xd2[[1, 1]]*xd2[[3, 2]], xd2[[3, 2]], xd2[[2, 1]], xd2[[1, 1]], R2(1)]
-
-        @test D3a ==  [R3a(1), xd3a[[3, 1]],  xd3a[[3, 2]],  xd3a[[3, 4]],  xd3a[[3, 5]],  -xd3a[[2, 1]],  -xd3a[[2, 2]],  -xd3a[[2, 3]],  -xd3a[[2, 4]],  -xd3a[[2, 5]],  -xd3a[[3, 1]]*xd3a[[2, 3]],  xd3a[[2, 1]]*xd3a[[3, 4]] - xd3a[[3, 1]]*xd3a[[2, 4]],  xd3a[[2, 1]]*xd3a[[3, 5]] - xd3a[[3, 1]]*xd3a[[2, 5]],  -xd3a[[3, 2]]*xd3a[[2, 3]],  xd3a[[2, 2]]*xd3a[[3, 4]] - xd3a[[3, 2]]*xd3a[[2, 4]],  xd3a[[2, 2]]*xd3a[[3, 5]] - xd3a[[3, 2]]*xd3a[[2, 5]],  xd3a[[2, 3]]*xd3a[[3, 4]],  xd3a[[2, 3]]*xd3a[[3, 5]],  xd3a[[1, 1]],  xd3a[[1, 3]],  xd3a[[1, 4]],  xd3a[[1, 5]],  -xd3a[[1, 1]]*xd3a[[3, 2]],  xd3a[[3, 1]]*xd3a[[1, 3]],  -xd3a[[1, 1]]*xd3a[[3, 4]] + xd3a[[3, 1]]*xd3a[[1, 4]],  xd3a[[3, 2]]*xd3a[[1, 3]],  xd3a[[3, 2]]*xd3a[[1, 4]],  xd3a[[3, 2]]*xd3a[[1, 5]],  -xd3a[[1, 3]]*xd3a[[3, 4]],  -xd3a[[1, 3]]*xd3a[[3, 5]],  -xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[3, 4]]*xd3a[[1, 5]],  xd3a[[1, 1]]*xd3a[[2, 2]],  xd3a[[1, 1]]*xd3a[[2, 3]] - xd3a[[2, 1]]*xd3a[[1, 3]],  xd3a[[1, 1]]*xd3a[[2, 5]] - xd3a[[2, 1]]*xd3a[[1, 5]],  -xd3a[[2, 2]]*xd3a[[1, 3]],  -xd3a[[2, 2]]*xd3a[[1, 4]],  -xd3a[[2, 2]]*xd3a[[1, 5]],  xd3a[[1, 3]]*xd3a[[2, 4]] - xd3a[[2, 3]]*xd3a[[1, 4]],  xd3a[[1, 4]]*xd3a[[2, 5]] - xd3a[[2, 4]]*xd3a[[1, 5]],  -xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 3]] + xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[1, 3]] - xd3a[[3, 1]]*xd3a[[2, 2]]*xd3a[[1, 3]],  xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[3, 4]] - xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 4]] + xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[1, 4]] - xd3a[[3, 1]]*xd3a[[2, 2]]*xd3a[[1, 4]],  xd3a[[1, 1]]*xd3a[[2, 2]]*xd3a[[3, 5]] - xd3a[[1, 1]]*xd3a[[3, 2]]*xd3a[[2, 5]] + xd3a[[2, 1]]*xd3a[[3, 2]]*xd3a[[1, 5]] - xd3a[[3, 1]]*xd3a[[2, 2]]*xd3a[[1, 5]],  xd3a[[1, 1]]*xd3a[[2, 3]]*xd3a[[3, 4]] - xd3a[[2, 1]]*xd3a[[1, 3]]*xd3a[[3, 4]] + xd3a[[3, 1]]*xd3a[[1, 3]]*xd3a[[2, 4]] - xd3a[[3, 1]]*xd3a[[2, 3]]*xd3a[[1, 4]],  xd3a[[1, 1]]*xd3a[[2, 3]]*xd3a[[3, 5]] - xd3a[[2, 1]]*xd3a[[1, 3]]*xd3a[[3, 5]] + xd3a[[3, 1]]*xd3a[[1, 3]]*xd3a[[2, 5]] - xd3a[[3, 1]]*xd3a[[2, 3]]*xd3a[[1, 5]],  xd3a[[1, 1]]*xd3a[[2, 4]]*xd3a[[3, 5]] - xd3a[[1, 1]]*xd3a[[3, 4]]*xd3a[[2, 5]] - xd3a[[2, 1]]*xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[2, 1]]*xd3a[[3, 4]]*xd3a[[1, 5]] + xd3a[[3, 1]]*xd3a[[1, 4]]*xd3a[[2, 5]] - xd3a[[3, 1]]*xd3a[[2, 4]]*xd3a[[1, 5]],  -xd3a[[2, 2]]*xd3a[[1, 3]]*xd3a[[3, 5]] + xd3a[[3, 2]]*xd3a[[1, 3]]*xd3a[[2, 5]] - xd3a[[3, 2]]*xd3a[[2, 3]]*xd3a[[1, 5]],  -xd3a[[2, 2]]*xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[2, 2]]*xd3a[[3, 4]]*xd3a[[1, 5]] + xd3a[[3, 2]]*xd3a[[1, 4]]*xd3a[[2, 5]] - xd3a[[3, 2]]*xd3a[[2, 4]]*xd3a[[1, 5]],  xd3a[[1, 3]]*xd3a[[2, 4]]*xd3a[[3, 5]] - xd3a[[1, 3]]*xd3a[[3, 4]]*xd3a[[2, 5]] - xd3a[[2, 3]]*xd3a[[1, 4]]*xd3a[[3, 5]] + xd3a[[2, 3]]*xd3a[[3, 4]]*xd3a[[1, 5]]]
-
-        @test D3b == [xd3b[[3, 1]], R3b(1), xd3b[[3, 2]], xd3b[[3, 4]], xd3b[[3, 5]], xd3b[[2, 1]], xd3b[[2, 1]]*xd3b[[3, 2]], -xd3b[[3, 1]]*xd3b[[2, 3]], xd3b[[2, 1]]*xd3b[[3, 4]] - xd3b[[3, 1]]*xd3b[[2, 4]], xd3b[[2, 1]]*xd3b[[3, 5]] - xd3b[[3, 1]]*xd3b[[2, 5]], -xd3b[[2, 3]], -xd3b[[2, 4]], -xd3b[[2, 5]], -xd3b[[3, 2]]*xd3b[[2, 3]], -xd3b[[3, 2]]*xd3b[[2, 4]], -xd3b[[3, 2]]*xd3b[[2, 5]], xd3b[[2, 3]]*xd3b[[3, 4]], xd3b[[2, 3]]*xd3b[[3, 5]], -xd3b[[1, 1]], xd3b[[3, 1]]*xd3b[[1, 3]], -xd3b[[1, 1]]*xd3b[[3, 4]] + xd3b[[3, 1]]*xd3b[[1, 4]], -xd3b[[1, 1]]*xd3b[[3, 5]], xd3b[[1, 2]], xd3b[[1, 3]], xd3b[[1, 4]], xd3b[[3, 2]]*xd3b[[1, 3]], -xd3b[[1, 2]]*xd3b[[3, 4]] + xd3b[[3, 2]]*xd3b[[1, 4]], -xd3b[[1, 2]]*xd3b[[3, 5]], -xd3b[[1, 3]]*xd3b[[3, 4]], -xd3b[[1, 3]]*xd3b[[3, 5]], -xd3b[[1, 4]]*xd3b[[3, 5]], xd3b[[2, 1]]*xd3b[[1, 2]], -xd3b[[1, 1]]*xd3b[[2, 3]] + xd3b[[2, 1]]*xd3b[[1, 3]], -xd3b[[1, 1]]*xd3b[[2, 5]], -xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[2, 3]] + xd3b[[2, 1]]*xd3b[[3, 2]]*xd3b[[1, 3]] + xd3b[[3, 1]]*xd3b[[1, 2]]*xd3b[[2, 3]], -xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[2, 4]] - xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[3, 4]] + xd3b[[2, 1]]*xd3b[[3, 2]]*xd3b[[1, 4]] + xd3b[[3, 1]]*xd3b[[1, 2]]*xd3b[[2, 4]], -xd3b[[1, 1]]*xd3b[[3, 2]]*xd3b[[2, 5]] - xd3b[[2, 1]]*xd3b[[1, 2]]*xd3b[[3, 5]] + xd3b[[3, 1]]*xd3b[[1, 2]]*xd3b[[2, 5]], xd3b[[1, 1]]*xd3b[[2, 3]]*xd3b[[3, 4]] - xd3b[[2, 1]]*xd3b[[1, 3]]*xd3b[[3, 4]] + xd3b[[3, 1]]*xd3b[[1, 3]]*xd3b[[2, 4]] - xd3b[[3, 1]]*xd3b[[2, 3]]*xd3b[[1, 4]], xd3b[[1, 1]]*xd3b[[2, 4]]*xd3b[[3, 5]] - xd3b[[1, 1]]*xd3b[[3, 4]]*xd3b[[2, 5]] - xd3b[[2, 1]]*xd3b[[1, 4]]*xd3b[[3, 5]] + xd3b[[3, 1]]*xd3b[[1, 4]]*xd3b[[2, 5]], xd3b[[1, 2]]*xd3b[[2, 3]], xd3b[[1, 2]]*xd3b[[2, 4]], xd3b[[1, 2]]*xd3b[[2, 5]], xd3b[[1, 3]]*xd3b[[2, 4]] - xd3b[[2, 3]]*xd3b[[1, 4]], xd3b[[1, 3]]*xd3b[[2, 5]], xd3b[[1, 4]]*xd3b[[2, 5]], xd3b[[1, 2]]*xd3b[[2, 3]]*xd3b[[3, 5]] + xd3b[[3, 2]]*xd3b[[1, 3]]*xd3b[[2, 5]], xd3b[[1, 2]]*xd3b[[2, 4]]*xd3b[[3, 5]] - xd3b[[1, 2]]*xd3b[[3, 4]]*xd3b[[2, 5]] + xd3b[[3, 2]]*xd3b[[1, 4]]*xd3b[[2, 5]], xd3b[[1, 3]]*xd3b[[2, 4]]*xd3b[[3, 5]] - xd3b[[1, 3]]*xd3b[[3, 4]]*xd3b[[2, 5]] - xd3b[[2, 3]]*xd3b[[1, 4]]*xd3b[[3, 5]]]
-
-        @test D4a == [R4a(1), xd4a[[5, 2]], xd4a[[4, 1]], xd4a[[4, 1]]*xd4a[[5, 2]], 2*xd4a[[4, 2]], 2*xd4a[[3, 1]], 2*xd4a[[3, 1]]*xd4a[[5, 2]], xd4a[[3, 2]], 2*xd4a[[3, 1]]*xd4a[[4, 2]] + xd4a[[4, 1]]*xd4a[[3, 2]], xd4a[[2, 1]], xd4a[[2, 1]]*xd4a[[5, 2]], 2*xd4a[[2, 2]], xd4a[[2, 1]]*xd4a[[4, 2]] + 2*xd4a[[4, 1]]*xd4a[[2, 2]], 2*xd4a[[2, 1]]*xd4a[[3, 2]] + xd4a[[3, 1]]*xd4a[[2, 2]], 2*xd4a[[1, 1]], 2*xd4a[[1, 1]]*xd4a[[5, 2]], xd4a[[1, 2]], 2*xd4a[[1, 1]]*xd4a[[4, 2]] + xd4a[[4, 1]]*xd4a[[1, 2]], xd4a[[1, 1]]*xd4a[[3, 2]] + 2*xd4a[[3, 1]]*xd4a[[1, 2]], 2*xd4a[[1, 1]]*xd4a[[2, 2]] + xd4a[[2, 1]]*xd4a[[1, 2]] ]
-
-        @test D4b == [-xd4b[[5, 1]], xd4b[[4, 1]], -xd4b[[5, 2]], xd4b[[4, 2]], R4b(1), -xd4b[[3, 1]]*xd4b[[5, 2]] + xd4b[[5, 1]]*xd4b[[3, 2]], xd4b[[3, 1]]*xd4b[[4, 2]] - xd4b[[4, 1]]*xd4b[[3, 2]], xd4b[[3, 1]], xd4b[[3, 2]], xd4b[[2, 1]]*xd4b[[5, 2]] - xd4b[[5, 1]]*xd4b[[2, 2]], -xd4b[[2, 1]]*xd4b[[4, 2]] + xd4b[[4, 1]]*xd4b[[2, 2]], -xd4b[[2, 1]], -xd4b[[2, 2]], xd4b[[2, 1]]*xd4b[[3, 2]] - xd4b[[3, 1]]*xd4b[[2, 2]], -xd4b[[1, 1]]*xd4b[[5, 2]] + xd4b[[5, 1]]*xd4b[[1, 2]], xd4b[[1, 1]]*xd4b[[4, 2]] - xd4b[[4, 1]]*xd4b[[1, 2]], xd4b[[1, 1]], xd4b[[1, 2]], -xd4b[[1, 1]]*xd4b[[3, 2]] + xd4b[[3, 1]]*xd4b[[1, 2]], xd4b[[1, 1]]*xd4b[[2, 2]] - xd4b[[2, 1]]*xd4b[[1, 2]]]
-
-        @test D5 == [xd5[[1, 1]]*xd5[[2, 3]] - xd5[[2, 1]]*xd5[[1, 3]], xd5[[1, 1]]*xd5[[2, 4]] - xd5[[2, 1]]*xd5[[1, 4]], -xd5[[2, 1]], -xd5[[2, 1]]*xd5[[1, 5]], xd5[[1, 1]], xd5[[1, 1]]*xd5[[2, 7]], xd5[[1, 2]]*xd5[[2, 3]] - xd5[[2, 2]]*xd5[[1, 3]], xd5[[1, 2]]*xd5[[2, 4]] - xd5[[2, 2]]*xd5[[1, 4]], -xd5[[2, 2]], -xd5[[2, 2]]*xd5[[1, 5]], xd5[[1, 2]], xd5[[1, 2]]*xd5[[2, 7]], -xd5[[2, 3]], -xd5[[2, 3]]*xd5[[1, 5]], xd5[[1, 3]], xd5[[1, 3]]*xd5[[2, 7]], -xd5[[2, 4]], -xd5[[2, 4]]*xd5[[1, 5]], xd5[[1, 4]], xd5[[1, 4]]*xd5[[2, 7]], 1, xd5[[2, 7]], xd5[[1, 5]], xd5[[1, 5]]*xd5[[2, 7]] ]
  
     end
 
 
     SG1 = Oscar.localizing_semigroup(2, 5, bases(mb1), bmc1, [1,2], R1, x1, xd1)
-    SG2 = Oscar.localizing_semigroup(3, 7, bases(mb2), bmc2, [1,2,4], R2, x2, xd2)
-    SG3a = Oscar.localizing_semigroup(3, 8, bases(mb3), bmc3a, [1,2,3], R3a, x3a, xd3a)
-    SG3b = Oscar.localizing_semigroup(3, 8, bases(mb3), bmc3b, [1,2,4], R3b, x3b, xd3b)
-    SG4a = Oscar.localizing_semigroup(5, 7, bases(mb4), bmc4a, [1,2,3,4,6], R4a, x4a, xd4a)
-    SG4b = Oscar.localizing_semigroup(5, 7, bases(mb4), bmc4b, [1,2,3,6,7], R4b, x4b, xd4b)
-    SG5 = Oscar.localizing_semigroup(2, 10, bases(mb5), bmc5, [5,8], R5, x5, xd5)
     
     
     @testset "localizing_semigroup" begin
         
         @test all(a in SG1 for a in D1)
-        @test all(a in SG2 for a in D2)
-        @test all(a in SG3a for a in D3a)
-        @test all(a in SG3b for a in D3b)
-        @test all(a in SG4a for a in D4a)
-        @test all(a in SG4b for a in D4b)
-        @test all(a in SG5 for a in D5)
         
     end
 
     MS1 = Oscar.matroid_stratum_matrix_coordinates_given_ring(2,5,mb1,ZZ,[1,2],R1,x1,xd1)
     MS2 = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,7,mb2,GF(2),[1,2,4],R2,x2,xd2)
-    MS3a = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,8,mb3,QQ,[1,2,3],R3a,x3a,xd3a)
-    MS3b = Oscar.matroid_stratum_matrix_coordinates_given_ring(3,8,mb3,QT1,[1,2,4],R3b,x3b,xd3b)
-    MS4a = Oscar.matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,QT2,[1,2,3,4,6],R4a,x4a,xd4a)
-    MS4b = Oscar.matroid_stratum_matrix_coordinates_given_ring(5,7,mb4,K,[1,2,3,6,7],R4b,x4b,xd4b)
-    MS5 = Oscar.matroid_stratum_matrix_coordinates_given_ring(2,10,mb5,ZZ,[5,8],R5,x5,xd5)
 
     
     @testset "matroid_stratum_matrix_coordinates_given_ring" begin
         @test length(gens(MS1[3])) == 1 
-        @test length(gens(MS2[3])) == 5   
-        @test length(gens(MS3a[3])) == 7
-        @test length(gens(MS3b[3])) == 6
-        @test length(gens(MS4a[3])) == 1
-        @test length(gens(MS4b[3])) == 1
-        @test length(gens(MS5[3])) == 3
+        @test length(gens(MS2[3])) == 5
     end
 
 
@@ -318,8 +284,6 @@ rbd4b = Oscar.realization_bases_determinants(X4b, bases(mb4))
 @testset "realization_bases_determinants" begin
     @test rbd1 == [R1(1), R1(-1), -x1[1], -x1[2], -x1[1]+1, -x1[2]+1, x1[1] - x1[2]]
     @test rbd2 == [1, x2[1]*x2[3] + x2[1] + 1, x2[3], x2[2]*x2[3] + x2[2] + x2[3], x2[1] + x2[2] + 1, x2[2], x2[1], x2[2]*x2[3], x2[1]*x2[3]]
-    @test rbd3a == [1, -x3a[2], -x3a[3], -1, -x3a[6], x3a[2] - x3a[6], x3a[2] - 1, x3a[3] - x3a[6], x3a[3] - 1, x3a[1], x3a[4], x3a[5], -x3a[1], -x3a[1] + x3a[5], -x3a[4], -x3a[5] + 1, x3a[1]*x3a[3], x3a[1] - x3a[2]*x3a[4], x3a[1] - x3a[2], -x3a[3]*x3a[4], -x3a[3]*x3a[5], x3a[4]*x3a[6] - x3a[5], x3a[5] - x3a[6], -x3a[1] + x3a[2]*x3a[4] - x3a[3]*x3a[4], x3a[1]*x3a[3] - x3a[1]*x3a[6] + x3a[2]*x3a[5] - x3a[3]*x3a[5], x3a[1]*x3a[3] - x3a[1] + x3a[2] - x3a[3], x3a[1] - x3a[2]*x3a[4] + x3a[4]*x3a[6] - x3a[5], x3a[1] - x3a[2]*x3a[4] + x3a[4] - 1, x3a[1]*x3a[6] - x3a[1] - x3a[2]*x3a[5] + x3a[2] + x3a[5] - x3a[6], -x3a[3]*x3a[4] + x3a[4] - 1, -x3a[3]*x3a[5] + x3a[3] + x3a[5] - x3a[6], x3a[4]*x3a[6] - x3a[4] - x3a[5] + 1]
-    @test rbd3b == [-x3b[1], 1, -x3b[1] + x3b[4], x3b[2], -x3b[1]*x3b[2], -x3b[1]*x3b[2] + x3b[1] + x3b[2], -x3b[1]*x3b[2] + x3b[1]*x3b[3] + x3b[2]*x3b[4], x3b[1]*x3b[5] + x3b[2], -1, -x3b[3], -x3b[5], x3b[1], x3b[1]*x3b[3], x3b[1]*x3b[5], x3b[1]*x3b[3] - x3b[1] - x3b[3] + x3b[4], x3b[1]*x3b[5] - x3b[5] + 1, -x3b[4], -x3b[4] + 1, x3b[2] - 1, -x3b[2], -x3b[2]*x3b[4], -x3b[2]*x3b[4] + x3b[2] - x3b[3] + x3b[4], -x3b[2] + x3b[3] - x3b[4]*x3b[5], x3b[3], x3b[5], x3b[3] - 1, -x3b[5] + 1, x3b[3] - x3b[4]*x3b[5], x3b[3] - x3b[4]*x3b[5] + x3b[5] - 1]
 
     @test rbd4a == [2, x4a[3], 2*x4a[3] + 1, 2*x4a[2], x4a[2] + 2, 2*x4a[2] + x4a[3], x4a[1], 2*x4a[1] + 1, x4a[1] + 2*x4a[3], 2*x4a[1] + x4a[2], 1]
 
@@ -329,8 +293,6 @@ end
 
 SG1 = Oscar.realization_localizing_semigroup(rbd1)
 SG2 = Oscar.realization_localizing_semigroup(rbd2)
-SG3a = Oscar.realization_localizing_semigroup(rbd3a)
-SG3b = Oscar.realization_localizing_semigroup(rbd3b)
 SG4a = Oscar.realization_localizing_semigroup(rbd4a)
 SG4b = Oscar.realization_localizing_semigroup(rbd4b)
 
@@ -338,8 +300,6 @@ SG4b = Oscar.realization_localizing_semigroup(rbd4b)
 @testset "realization_localizing_semigroup" begin
     @test all(a in SG1 for a in rbd1)
     @test all(a in SG2 for a in rbd2)
-    @test all(a in SG3a for a in rbd3a)
-    @test all(a in SG3b for a in rbd3b)
     @test all(a in SG4a for a in rbd4a)
     @test all(a in SG4b for a in rbd4b)
 end
@@ -347,8 +307,6 @@ end
 
 MS1 = Oscar.matroid_realization_space_given_ring(2,5,mb1,ZZ,[1,2,3],R1,x1,xd1)
 MS2 = Oscar.matroid_realization_space_given_ring(3,7,mb2,GF(2),[1,2,4,7],R2,x2,xd2)
-MS3a = Oscar.matroid_realization_space_given_ring(3,8,mb3,QQ,[1,2,3,8],R3a,x3a,xd3a)
-MS3b = Oscar.matroid_realization_space_given_ring(3,8,mb3,QT1,[2,4,5,6],R3b,x3b,xd3b)
 MS4a = Oscar.matroid_realization_space_given_ring(5,7,mb4,QT2,[2,3,4,5,6,7],R4a,x4a,xd4a)
 MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4b,xd4b)
    
@@ -356,8 +314,6 @@ MS4b = Oscar.matroid_realization_space_given_ring(5,7,mb4,K,[1,3,4,5,6,7],R4b,x4
     @testset "matroid_realization_space_given_ring" begin
         @test length(gens(MS1[3])) == 1 
         @test length(unique!(gens(MS2[3]))) == 5   
-        @test length(unique!(gens(MS3a[3]))) == 7
-        @test length(unique!(gens(MS3b[3]))) == 6
         @test length(gens(MS4a[3])) == 1
         @test length(gens(MS4b[3])) == 1
     end
