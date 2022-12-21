@@ -110,16 +110,16 @@ true
 
 ```@docs
 archimedean_solid
-birkhoff
+birkhoff_polytope
 catalan_solid
-cross
+cross_polytope
 cube
 cyclic_polytope
 del_pezzo_polytope
 fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope
-gelfand_tsetlin
+gelfand_tsetlin_polytope
 simplex
 ```
 
