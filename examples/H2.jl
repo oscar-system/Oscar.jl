@@ -38,7 +38,6 @@ function H2_G_QmodZ_kern_restriction(G::T, U::Vector{T}) where T <: Oscar.GAPGro
       push!(im_gen, g)
     end
   end
-  #this works:
   return quo(k, im_gen)
 end  
 
