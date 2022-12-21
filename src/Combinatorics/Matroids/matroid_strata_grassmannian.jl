@@ -1,7 +1,7 @@
 export
     matroid_stratum_matrix_coordinates, matroid_realization_space
 
-@Markdown.doc"""
+@doc Markdown.doc"""
     matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int}, F::AbstractAlgebra.Ring = ZZ)
 
 Return the data of the coordinate ring of the matroid stratum of M in the Grassmannian with respect to matrix coordinates. Here, ```B``` is a basis of ```M``` and the submatrix with columns indexed by ```B''' is the identity. This function returns a pair ```(SinvR, I)``` where the coordinate ring is isomorphic to ```SinvR / I```.
@@ -24,7 +24,7 @@ function matroid_stratum_matrix_coordinates(M::Matroid, B::Vector{Int},
 end
 
 
-@Markdown.doc"""
+@doc Markdown.doc"""
     matroid_realization_space(M::Matroid, A::Vector{Int}, F::AbstractAlgebra.Ring=ZZ)
 
 Returns the data of the coordinate ring of the realization space of
