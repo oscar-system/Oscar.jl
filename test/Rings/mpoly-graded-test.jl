@@ -248,12 +248,6 @@ begin
   @assert parent(t) == R
 end
 
-@testset "Rational solutions" begin
-  Q, x = proj_space(QQ, 2)
-  i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
-  @test length(rational_solutions(i)) == 1
-end
-
 @testset "Hilbert series" begin
   n = 5
 

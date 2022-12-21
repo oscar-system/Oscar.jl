@@ -109,6 +109,37 @@
    @test 3 == length(support(deglex([x,y])*wdeglex([y,z], [1,2])))
 end
 
+@testset "Polynomial Orderings is_total" begin
+   R, (x, y, z, t) = PolynomialRing(QQ, 4)
+
+   a = lex([x, t])*deglex([y, z])
+   @test is_total(a) && is_total(a)
+
+   a = degrevlex([x, z, t])*revlex([y, t])
+   @test is_total(a) && is_total(a)
+
+   a = neglex([y, z, t])
+   @test !is_total(a) && !is_total(a)
+
+   a = negdegrevlex([x])*negrevlex([y, z, t])
+   @test is_total(a) && is_total(a)
+
+   a = negdeglex([x, t, z])
+   @test !is_total(a) && !is_total(a)
+
+   a = wdeglex([x, t], [2, 3])*wdegrevlex([z, t], [2, 3])
+   @test !is_total(a) && !is_total(a)
+
+   a = negwdeglex([x, t, z], [2, 3, 4])*negwdegrevlex([y, t], [2, 3])
+   @test is_total(a) && is_total(a)
+
+   a = matrix_ordering([x, y], [1 2; 1 2]; check = false)*weight_ordering([1, 2], deglex([z, t]))
+   @test !is_total(a) && !is_total(a)
+
+   a = matrix_ordering([x, y], [1 2; 1 2]; check = false)*weight_ordering([1, 2, 3, 4], deglex(R))
+   @test is_total(a) && is_total(a)
+end
+
 @testset "Polynomial Orderings printing" begin
    R, (x, y, z) = PolynomialRing(QQ, 3)
    f = x*y + 5*z^3 + 2

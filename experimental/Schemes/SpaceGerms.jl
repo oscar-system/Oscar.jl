@@ -140,7 +140,6 @@ function _vdim_hack(I::MPolyIdeal)
   if one(R) in I 
     return 0,leer
   end
-  G=groebner_basis(I)
   M = ideal(R,gens(R))
   result=[R(1)]
   J = ideal(R,normal_form(gens(M),I))
