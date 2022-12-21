@@ -161,7 +161,7 @@ function __init__()
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
-        (GAP.Globals.IsFpGroup, FPGroup),
+        (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest

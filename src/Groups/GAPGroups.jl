@@ -1842,6 +1842,11 @@ function describe(G::FPGroup)
       r == 0 && return "1"
    end
 
+   if !GAP.Globals.IsFpGroup(G.X)
+     # `G` is a subgroup of an f.p. group
+     G = FPGroup(GAPWrap.Range(GAP.Globals.IsomorphismFpGroup(G.X)))
+   end
+
    # check for free groups in disguise
    isempty(relators(G)) && return describe(free_group(G))
 
