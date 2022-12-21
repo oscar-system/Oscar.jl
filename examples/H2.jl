@@ -1,6 +1,14 @@
 module H2_G_QmodZ_mod
 using Oscar
 
+function schur_cover(G::Oscar.GAPGroup)
+  f = GAP.Globals.EpimorphismSchurCover(G.X)
+  k = GAP.Globals.Source(f)
+  S = FPGroup(k)
+  return S, GAPGroupHomomorphism(S, G, f)
+end
+  
+
 #from https://sites.google.com/view/andre-macedo/code?pli=1
 """
 Should compute
@@ -9,9 +17,8 @@ for "any" Gap-group G. For abelian (GrpAbFinGen), there is a more
 direct implementation in Hecke.
 """
 function H2_G_QmodZ(G::Oscar.GAPGroup)
-  f = GAP.Globals.EpimorphismSchurCover(G.X)
-  k = GAP.Globals.Kernel(f)
-  return FPGroup(k)
+  _, f = schur_cover(G)
+  return kernel(f)[1]
 end
 
 """
@@ -22,16 +29,25 @@ Where the "->" is the restriction from H^2(G) -> H^2(U).
 Useful(?) is U is a family of decomposition groups.
 """
 function H2_G_QmodZ_kern_restriction(G::T, U::Vector{T}) where T <: Oscar.GAPGroup
-  f = GAP.Globals.EpimorphismSchurCover(G.X)
-  k = GAP.Globals.Kernel(f)
-  im_gen = []
+  _, f = schur_cover(G)
+  k = kernel(f)[1]
+  im_gen = elem_type(k)[]
   for D = U
-    gp = GAP.Globals.Intersection(k,GAP.Globals.DerivedSubgroup(GAP.Globals.PreImagesSet(f, D.X)))
-    for g = GAP.Globals.GeneratorsOfGroup(gp)
+    gp = intersect(k, derived_subgroup(preimage(f, D)[1])[1])[1]
+    for g = gens(gp)
       push!(im_gen, g)
     end
   end
-  return FPGroup(k/GAP.Globals.Subgroup(k, GAP.GapObj(im_gen)))
+  #this works:
+  return FPGroup(k.X/GAP.Globals.Subgroup(k.X, GAP.GapObj(im_gen)))
+  #this doesn't:
+  #= example input
+  A = abelian_group(PermGroup, [2,2])
+  B = [sub(A, [A[1]])[1], sub(A, [A[2]])[1]]
+  H2_G_QmodZ_kern_restriction(A, B)
+  =#
+
+  return quo(k, im_gen)
 end  
 
 
