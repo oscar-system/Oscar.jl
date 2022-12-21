@@ -175,12 +175,17 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
 
 julia> min_weights(SOP)
-pm::Vector<long>
-0 0 0 0 0 0
+6-element Vector{Int64}:
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
 ```
 """
-function min_weights(SOP::SubdivisionOfPoints)
-   pm_object(SOP).MIN_WEIGHTS
+function min_weights(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
+   Vector{Int}(pm_object(SOP).MIN_WEIGHTS)
 end
 
 
