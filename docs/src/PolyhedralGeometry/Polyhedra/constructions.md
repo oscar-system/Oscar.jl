@@ -113,7 +113,7 @@ In addition there are two exceptional regular 3-polytopes (dodecahedron and icos
 
 The regular 3-polytopes are also known as the Platonic solids.
 Here we also list the Archimedean, Catalan and Johnson solids, which form various generalizations of the Platonic solids.
-However, here we implement "strict inclusions", i.e., the Archimedean solids in our sense exclude the Platonic solids; similarly, the Johnson solids in our sense exclude the Archmidean solids.
+However, here we implement "disjoint families", i.e., the proper Archimedean solids exclude the Platonic solids; similarly, the proper Johnson solids exclude the Archmidean solids.
 ```@docs
 simplex
 cross_polytope
