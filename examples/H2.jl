@@ -39,7 +39,7 @@ function H2_G_QmodZ_kern_restriction(G::T, U::Vector{T}) where T <: Oscar.GAPGro
     end
   end
   #this works:
-  return FPGroup(k.X/GAP.Globals.Subgroup(k.X, GAP.GapObj(im_gen)))
+#  return FPGroup(k.X/GAP.Globals.Subgroup(k.X, GAP.GapObj(im_gen)))
   #this doesn't:
   #= example input
   A = abelian_group(PermGroup, [2,2])
