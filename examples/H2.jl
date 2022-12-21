@@ -19,6 +19,9 @@ direct implementation in Hecke.
 function H2_G_QmodZ(G::Oscar.GAPGroup)
   _, f = schur_cover(G)
   return kernel(f)[1]
+  f = GAP.Globals.EpimorphismSchurCover(G.X)
+  k = GAP.Globals.Kernel(f)
+  return FPGroup(k)
 end
 
 """
