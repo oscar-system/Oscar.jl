@@ -19,12 +19,6 @@ direct implementation in Hecke.
 function H2_G_QmodZ(G::Oscar.GAPGroup)
   _, f = schur_cover(G)
   return kernel(f)[1]
-<<<<<<< HEAD
-  f = GAP.Globals.EpimorphismSchurCover(G.X)
-  k = GAP.Globals.Kernel(f)
-  return FPGroup(k)
-=======
->>>>>>> 23ff1bf984 (now Oscarified...)
 end
 
 """
@@ -45,11 +39,8 @@ function H2_G_QmodZ_kern_restriction(G::T, U::Vector{T}) where T <: Oscar.GAPGro
     end
   end
   #this works:
-<<<<<<< HEAD
 #  return FPGroup(k.X/GAP.Globals.Subgroup(k.X, GAP.GapObj(im_gen)))
-=======
   return FPGroup(k.X/GAP.Globals.Subgroup(k.X, GAP.GapObj(im_gen)))
->>>>>>> 23ff1bf984 (now Oscarified...)
   #this doesn't:
   #= example input
   A = abelian_group(PermGroup, [2,2])
