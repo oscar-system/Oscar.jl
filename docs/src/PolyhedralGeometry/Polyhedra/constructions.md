@@ -106,21 +106,39 @@ julia> P == Q2
 true
 ```
 
-## Named polyhedra
+## Regular polytopes
+A polytope is regular, in the strict sense, if it admits a flag-transtive group of (linear) automorphisms.
+There are three infinite families of regular polytopes which exist in each dimension: the (regular) simplices, cubes and cross polytopes.
+In addition there are two exceptional regular 3-polytopes (dodecahedron and icosahedron) plus three exceptional regular 4-polytopes (24-cell, 120-cell and 600-cell).
 
+The regular 3-polytopes are also known as the Platonic solids.
+Here we also list the Archimedean, Catalan and Johnson solids, which form various generalizations of the Platonic solids.
+However, here we implement "strict inclusions", i.e., the Archimedean solids in our sense exclude the Platonic solids; similarly, the Johnson solids in our sense exclude the Archmidean solids.
 ```@docs
-archimedean_solid
-birkhoff_polytope
-catalan_solid
+simplex
 cross_polytope
 cube
+tetrahedron
+dodecahedron
+icosahedron
+archimedean_solid
+johnson_solid
+catalan_solid
+regular_24_cell
+regular_120_cell
+regular_600_cell
+```
+
+## Other named polyhedra
+
+```@docs
+birkhoff_polytope
 cyclic_polytope
 del_pezzo_polytope
 fano_simplex
 fractional_cut_polytope
 fractional_matching_polytope
 gelfand_tsetlin_polytope
-simplex
 ```
 
 ## Operations on polyhedra

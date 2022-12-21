@@ -203,14 +203,14 @@ tetrahedron() = Polyhedron(Polymake.polytope.tetrahedron());
 @doc Markdown.doc"""
     dodecahedron()
 
-Construct the regular dodecahedron, one of the Platonic solids.
+Construct the regular dodecahedron, one out of two Platonic solids.
 """
 dodecahedron() = Polyhedron(Polymake.polytope.dodecahedron());
 
 @doc Markdown.doc"""
     icosahedron()
 
-Construct the regular icosahedron, one of the Platonic solids.
+Construct the regular icosahedron, one out of two exceptional Platonic solids.
 """
 icosahedron() = Polyhedron(Polymake.polytope.icosahedron());
 
@@ -224,6 +224,26 @@ It is proper if it is not an Archimedean solid.  Up to scaling there are exactly
 """
 johnson_solid(index::Int) = Polyhedron(Polymake.polytope.johnson_solid(index));
 
+@doc Markdown.doc"""
+    regular_24_cell()
+
+Construct the regular 24-cell, one out of three exceptional regular 4-polytopes.
+"""
+regular_24_cell() = Polyhedron(Polymake.polytope.regular_24_cell());
+
+@doc Markdown.doc"""
+    regular_120_cell()
+
+Construct the regular 120-cell, one out of three exceptional regular 4-polytopes.
+"""
+regular_120_cell() = Polyhedron(Polymake.polytope.regular_120_cell());
+
+@doc Markdown.doc"""
+    regular_600_cell()
+
+Construct the regular 600-cell, one out of three exceptional regular 4-polytopes.
+"""
+regular_600_cell() = Polyhedron(Polymake.polytope.regular_600_cell());
 
 """
     newton_polytope(poly::Polynomial)
