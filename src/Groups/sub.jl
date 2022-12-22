@@ -336,7 +336,7 @@ function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   else
     # Currently GAP's `\/' does not support a list of group elements
     # as the second argument,
-    # but forming the quotient modulo a normal subgroup works.
+    # but forming the quotient modulo a normal subgroup may work.
     return quo(G, normal_closure(G, sub(G, elements)[1])[1])
   end
 end
