@@ -113,15 +113,11 @@ end
 
    CCx = centralizer(G,Cx)[1]
    CCy = centralizer(G,Cy)[1]
-   @testset for i in 1:ngens(Cx)
-      for j in 1:ngens(CCx)
-         @test Cx[i]*CCx[j] == CCx[j]*Cx[i]
-      end
+   @testset for i in 1:ngens(Cx), j in 1:ngens(CCx)
+      @test Cx[i]*CCx[j] == CCx[j]*Cx[i]
    end
-   @testset for i in 1:ngens(Cy)
-      for j in 1:ngens(CCy)
-         @test Cy[i]*CCy[j] == CCy[j]*Cy[i]
-      end
+   @testset for i in 1:ngens(Cy), j in 1:ngens(CCy)
+      @test Cy[i]*CCy[j] == CCy[j]*Cy[i]
    end
    notx = setdiff(G,CCx)
    noty = setdiff(G,CCy)
