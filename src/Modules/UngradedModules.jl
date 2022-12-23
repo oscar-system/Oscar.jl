@@ -3994,6 +3994,12 @@ julia> iszero(x*M[1])
 true
 ```
 """
+function iszero(m::SubQuoElem)
+  is_zero(ambient_representative(m)) && return true
+  isdefined(parent(m), :quo) || return false
+  return (ambient_representative(m) in parent(m).quo)
+end
+
 function iszero(m::SubQuoElem{<:MPolyElem})
   C = parent(m)
   if !isdefined(C, :quo)
@@ -4001,12 +4007,6 @@ function iszero(m::SubQuoElem{<:MPolyElem})
   end
   x = reduce(repres(m), C.quo)
   return iszero(x)
-end
-
-function iszero(m::SubQuoElem)
-  is_zero(ambient_representative(m)) && return true
-  isdefined(parent(m), :quo) || return false
-  return (ambient_representative(m) in parent(m).quo)
 end
 
 @doc Markdown.doc"""
