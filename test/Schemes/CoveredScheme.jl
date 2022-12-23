@@ -27,8 +27,8 @@ end
   C = standard_covering(X)
   D, i, j = simplify(C) 
   @test all( x->(ngens(ambient_coordinate_ring(x)) == 2), collect(D))
-  @test_broken transition_graph(Pc[1])
-  @test_broken transition_graph(C)
+  @test transition_graph(Pc[1]) isa Graph
+  @test transition_graph(C) isa Graph
 end
 
 @testset "standard_covering" begin
