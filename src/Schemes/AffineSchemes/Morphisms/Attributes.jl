@@ -149,8 +149,8 @@ function preimage(
   a = denominators(inverted_set(OO(Z)))
   R = ambient_coordinate_ring(X)
   f = pullback(phi)
-  new_units = [lifted_numerator(f(d)) for d in a]
-  new_gens = lifted_numerator.(f.(gens(IZ)))
+  new_units = elem_type(R)[lifted_numerator(f(d)) for d in a]
+  new_gens = Vector{elem_type(R)}(lifted_numerator.(f.(gens(IZ))))
   return hypersurface_complement(subscheme(X, new_gens), new_units)
 end
 
