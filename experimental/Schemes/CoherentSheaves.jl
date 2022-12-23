@@ -442,7 +442,7 @@ end
     dual(M::SheafOfModules)
 
 For a `SheafOfModules` ``ℳ`` on an `AbsCoveredScheme` ``X``, return 
-the ``𝒪_X``-dual of ``ℳ``.
+the ``𝒪_X``-dual ``ℋ om_{𝒪_X}(ℳ , 𝒪_X)`` of ``ℳ``.
 """
 @attr function dual(M::SheafOfModules)
   OOX = sheaf_of_rings(M)
@@ -450,6 +450,11 @@ the ``𝒪_X``-dual of ``ℳ``.
   return HomSheaf(M, F)
 end
 
+@Markdown.doc """
+    tangent_sheaf(X::AbsCoveredScheme)
+
+Return the tangent sheaf ``T_X`` of `X`, constructed as ``ℋ om_{𝒪_X}(Ω¹_X, 𝒪_X)``.
+"""
 @attr HomSheaf function tangent_sheaf(X::AbsCoveredScheme)
   return dual(cotangent_sheaf(X))
 end
