@@ -2,6 +2,7 @@ export EmptyScheme
 export AbsProjectiveScheme, ProjectiveScheme
 export ProjectiveSchemeMor
 export VarietyFunctionField, VarietyFunctionFieldElem
+export AbsPreSheaf
 export IdealSheaf
 
 
@@ -262,8 +263,6 @@ abstract type AbsPreSheaf{SpaceType, OpenType, OutputType, RestrictionType} end
 A basic minimal implementation of the interface for `AbsPreSheaf`; to be used internally.
 """
 @attributes mutable struct PreSheafOnScheme{SpaceType, OpenType, OutputType, RestrictionType,
-                                       IsOpenFuncType, ProductionFuncType,
-                                       RestrictionFuncType
                                       } <: AbsPreSheaf{
                                        SpaceType, OpenType,
                                        OutputType, RestrictionType
@@ -272,21 +271,20 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
 
   # caches
   obj_cache::IdDict{<:OpenType, <:OutputType} # To cache values that have already been computed
-  res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
+  #res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
 
   # production functions for new objects
-  is_open_func::IsOpenFuncType # To check whether one set is open in the other
-  production_func::ProductionFuncType # To produce ℱ(U) for U ⊂ X
-  restriction_func::RestrictionFuncType
+  is_open_func::Function # To check whether one set is open in the other
+  production_func::Function # To produce ℱ(U) for U ⊂ X
+  restriction_func::Function # To produce the restriction maps ℱ(U) → ℱ(V) for V ⊂ U ⊂ X open
 
   function PreSheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
       OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
     return new{typeof(X), OpenType, OutputType, RestrictionType,
-               typeof(is_open_func), typeof(production_func), typeof(restriction_func)
               }(X, IdDict{OpenType, OutputType}(),
-                IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
+                #IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
                 is_open_func, production_func, restriction_func
                )
   end
@@ -311,24 +309,25 @@ One can call the restriction maps of ``𝒪`` across charts, implicitly using th
 identifications given by the glueings in the `default_covering`.
 """
 @attributes mutable struct StructureSheafOfRings{SpaceType, OpenType, OutputType,
-                                          RestrictionType, ProductionFuncType,
-                                          RestrictionFuncType,
-                                          PreSheafType
-                                         } <: AbsPreSheaf{
-                                          SpaceType, OpenType,
-                                          OutputType, RestrictionType
-                                         }
-  OO::PreSheafType
+                                                 RestrictionType
+                                                } <: AbsPreSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+  OO::PreSheafOnScheme
 
   ### Structure sheaf on affine schemes
   function StructureSheafOfRings(X::AbsSpec)
     function is_open_func(U::AbsSpec, V::AbsSpec)
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
     end
-    function production_func(U::AbsSpec)
+
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
       return OO(U)
     end
-    function restriction_func(V::AbsSpec, OV::Ring, U::AbsSpec, OU::Ring)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+      OU = F(U) # assumed to be previously cached
+      OV = F(V) # same as above
       return hom(OV, OU, gens(OU), check=false) # check=false assures quicker computation
     end
 
@@ -337,9 +336,7 @@ identifications given by the glueings in the `default_covering`.
                     RestrictionType=Hecke.Map,
                     is_open_func=is_open_func
                    )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(R)}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
   end
 
   ### Structure sheaf on covered schemes
@@ -362,14 +359,13 @@ identifications given by the glueings in the `default_covering`.
       A = ambient_scheme(U)
       A in C || return false
       B = ambient_scheme(V)
-      B in C || return false
+      B in affine_charts(X) || return false
       if A === B
         is_subset(U, V) || return false
       else
         G = C[A, B] # Get the glueing
         f, g = glueing_morphisms(G)
         is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
         gU = preimage(g, U)
         is_subset(gU, V) || return false
       end
@@ -474,19 +470,21 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
       return OO(U)
     end
-    function production_func(U::SpecOpen)
+    function production_func(F::AbsPreSheaf, U::SpecOpen)
       return OO(U)
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, OV::Ring, U::AbsSpec, OU::Ring)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
       V === U || error("basic affine patches must be the same")
-      return identity_map(OV)
+      return identity_map(OO(V))
     end
-    function restriction_func(V::AbsSpec, OV::Ring, U::PrincipalOpenSubset, OU::Ring)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::PrincipalOpenSubset)
+      OV = F(V) # Assumed to be cached or produced on the fly.
+      OU = F(U) # Same as above.
       if ambient_scheme(U) === V
         return hom(OV, OU, gens(OU), check=false)
       else
@@ -495,14 +493,17 @@ identifications given by the glueings in the `default_covering`.
         f, g = glueing_morphisms(G)
         pbg = pullback(g)
         function rho_func(x::RingElem)
-          parent(x) == OV || error("element does not belong to the correct domain")
+          parent(x) === OV || error("element does not belong to the correct domain")
           return restrict(pbg(domain(pbg)(x)), U) # should probably be tuned to avoid checks.
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
       error("arguments are not valid")
     end
-    function restriction_func(V::PrincipalOpenSubset, OV::Ring, U::AbsSpec, OU::Ring)
+
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::AbsSpec)
+      OV = F(V)
+      OU = F(U) 
       if ambient_scheme(V) === U
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -522,7 +523,9 @@ identifications given by the glueings in the `default_covering`.
         return hom(OV, OU, rho_func2.(gens(OV)), check=false)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, OV::Ring, U::PrincipalOpenSubset, OU::Ring)
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+      OV = F(V)
+      OU = F(U)
       A = ambient_scheme(V)
       if A === ambient_scheme(U)
         return hom(OV, OU, gens(OU), check=false)
@@ -539,7 +542,10 @@ identifications given by the glueings in the `default_covering`.
       end
       error("arguments are invalid")
     end
-    function restriction_func(V::AbsSpec, OV::Ring, W::SpecOpen, OW::Ring)
+
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, W::SpecOpen)
+      OV = F(V)
+      OW = F(W)
       V in default_covering(X) || return false
       ambient_scheme(W) in default_covering(X) || return false
       if V === ambient_scheme(W)
@@ -554,7 +560,10 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(rho_func, OV, OW)
       end
     end
-    function restriction_func(V::PrincipalOpenSubset, OV::Ring, W::SpecOpen, OW::Ring)
+
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, W::SpecOpen)
+      OV = F(V)
+      OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -575,7 +584,9 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(rho_func2, OV, OW)
       end
     end
-    function restriction_func(V::SpecOpen, OV::Ring, W::SpecOpen, OW::Ring)
+    function restriction_func(F::AbsPreSheaf, V::SpecOpen, W::SpecOpen)
+      OV = F(V)
+      OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
         inc = inclusion_morphism(W, V)
         return MapFromFunc(pullback(inc), OV, OW)
@@ -597,9 +608,7 @@ identifications given by the glueings in the `default_covering`.
                       RestrictionType=Hecke.Map,
                       is_open_func=is_open_func
                      )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(R)}(R)
+    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
   end
 end
 
@@ -620,16 +629,14 @@ One can call the restriction maps of ``ℐ`` across charts, implicitly using the
 identifications given by the glueings in the `default_covering`.
 """
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
-                                      RestrictionType, ProductionFuncType,
-                                      RestrictionFuncType,
-                                      PreSheafType
+                                      RestrictionType
                                      } <: AbsPreSheaf{
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
   ID::IdDict{AbsSpec, Ideal} # the ideals on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
-  I::PreSheafType # the underlying presheaf of ideals for caching
+  I::PreSheafOnScheme # the underlying presheaf of ideals for caching
 
   ### Ideal sheaves on covered schemes
   function IdealSheaf(X::AbsCoveredScheme, ID::IdDict{AbsSpec, Ideal};
@@ -691,17 +698,18 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(U::AbsSpec)
+    function production_func(F::AbsPreSheaf, U::AbsSpec)
+      # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
-      # The ideal sheaf has to be provided on at one dense
+      # The ideal sheaf has to be provided on at least one dense
       # open subset of every connected component.
       # Otherwise, the ideal sheaf is given by the unit
       # ideals.
-      for G in glueings(default_covering(X))
+      for G in values(glueings(default_covering(space(F))))
         A, B = patches(G)
         Asub, Bsub = glueing_domains(G)
         if A === U && haskey(ID, B) && is_dense(Asub)
-          Z = subscheme(B, ID[B])
+          Z = intersect(subscheme(B, ID[B]), Bsub)
           f, _ = glueing_morphisms(G)
           pZ = preimage(f, Z)
           ZU = closure(pZ, U)
@@ -711,16 +719,16 @@ identifications given by the glueings in the `default_covering`.
       end
       return ideal(OO(U), one(OO(U)))
     end
-    function production_func(U::PrincipalOpenSubset)
+    function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
       V = ambient_scheme(U)
-      IV = production_func(V)
+      IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
       return IU
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(V::AbsSpec, IV::Ideal, U::AbsSpec, IU::Ideal)
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
       return OOX(V, U) # This does not check containment of the arguments
                        # in the ideal. But this is not a parent check and
                        # hence expensive, so we might want to not do that.
@@ -731,9 +739,7 @@ identifications given by the glueings in the `default_covering`.
                       RestrictionType=Hecke.Map,
                       is_open_func=is_open_func
                      )
-    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map,
-               typeof(production_func), typeof(restriction_func),
-               typeof(Ipre)}(ID, OOX, Ipre)
+    I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
     if check
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic

@@ -98,7 +98,7 @@ function preimage(f::SpecOpenMor, V::SpecOpen)
   R = ambient_coordinate_ring(X)
   I = ideal(R, one(R))
   for i in 1:npatches(U)
-    I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
+    I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(gens(V))))))
   end
   return intersect(U, SpecOpen(X, I))
 end
