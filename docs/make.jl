@@ -2,7 +2,7 @@ push!(LOAD_PATH,"../src/")
 using Documenter, DocumenterCitations, FTheoryTools, DocumenterMarkdown, Oscar
 
 # ensure FTheoryTools is loaded for the doc tests
-DocMeta.setdocmeta!(FTheoryTools, :DocTestSetup, :(using FTheoryTools, Random; using FTheoryTools.Oscar); recursive = true)
+DocMeta.setdocmeta!(FTheoryTools, :DocTestSetup, :(using FTheoryTools, Random); recursive = true)
 
 # read the bibliography
 bib = CitationBibliography(joinpath(FTheoryTools.ftheorytoolsdir, "docs", "references.bib"), sorting = :nyt)

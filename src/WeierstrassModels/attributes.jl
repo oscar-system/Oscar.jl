@@ -141,8 +141,7 @@ export cy_hypersurface
 # 5: Turn global Weierstrass model into Tate model
 #####################################################
 
-# TODO: To come
-# TODO: To come
+# Currently no plan to include
 
 
 #######################################
@@ -170,11 +169,12 @@ export discriminant
 @doc Markdown.doc"""
     singular_loci(w::GlobalWeierstrassModel)
 
-Return the primary decomposition of the discriminant of the global Tate model.
+Return the singular loci of the global Weierstrass model, along with the order of
+vanishing of ``(f, g, \Delta)`` at each locus.
 
-For the time being, we either explicitly or implicitly focuse on toric varieties
-as base spaces. Explicitly, in case the user provides such a variety as base space.
-And implicitly, in case we work over a not-fully specified base. This has the
+For the time being, we either explicitly or implicitly focus on toric varieties
+as base spaces. Explicitly, in case the user provides such a variety as base space,
+and implicitly, in case we work over a non-fully specified base. This has the
 advantage that we can "filter out" trivial singular loci.
 
 Specifically, recall that every closed subvariety of a simplicial toric variety is
@@ -187,27 +187,28 @@ By treating a not-fully specified base space implicitly as toric space, we can e
 result straightforwardly to this situation also. This is the reason for constructing this
 auxiliary base space.
 
-Let us demonstrate the functionality by computing the example around equ. (4.50) in
-[Wei18](@cite). In this example, one considers a global Tate model over a fully-specified based.
-The Tate sections as factored as follows:
-- ``a_1``,
+Let us demonstrate the functionality by computing the singular loci of a Type ``III`` Tate model
+[KMSS11](@cite). In this case, we  will consider a global Tate model over a non-fully specified base.
+The Tate sections are factored as follows:
+- ``a_1 = a_{11} w^1``,
 - ``a_2 = a_{21} w^1``,
 - ``a_3 = a_{31} w^1``,
 - ``a_4 = a_{41} w^1``,
 - ``a_6 = a_{62} w^2``.
-For this factorization we expect a singularity of Kodaira type ``I_2`` over the divisor
-``W = {w = 0}``. So this should be one irreducible component of the discriminant. Even more,
-we should find that the discriminant vanishes to order 2 on ``W = {w = 0}``.
+For this factorization, we expect a singularity of Kodaira type ``III`` over the divisor
+``W = {w = 0}``, as desired. So this should be one irreducible component of the discriminant. Moreover,
+we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, while the Weierstrass
+sections ``f`` and ``g`` vanish to orders 1 and 2, respectively.
 
 Let us verify this by turning this global Tate model into a Weierstrass model and then
-studying the primary decomposition of the discriminant of this Weierstrass model.
+computing the singular loci of the discriminant of this Weierstrass model.
 
 ```jldoctest
 julia> using Oscar
 
-julia> auxiliary_base_ring, (a10, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a11", "a21", "a31", "a41", "a62", "w"];
 
-julia> a1 = a10;
+julia> a1 = a11 * w;
 
 julia> a2 = a21 * w;
 
@@ -217,7 +218,9 @@ julia> a4 = a41 * w;
 
 julia> a6 = a62 * w^2;
 
-julia> t = GlobalTateModel([a1, a2, a3, a4, a6], auxiliary_base_ring, 3)
+julia> ais = [a1, a2, a3, a4, a6];
+
+julia> t = GlobalTateModel(ais, auxiliary_base_ring, 3)
 A global Tate model over a not fully specified base
 
 julia> weier = global_weierstrass_model(t)
@@ -230,18 +233,35 @@ julia> length(singular_loci(weier))
 2
 
 julia> singular_loci(weier)[2]
-(ideal(w^2), ideal(w))
+(ideal(w), (1, 2, 3))
 ```
 """
-@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}}} function singular_loci(w::GlobalWeierstrassModel)
+@attr Vector{Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}}} function singular_loci(w::GlobalWeierstrassModel)
     B = irrelevant_ideal(toric_base_space(w))
-    primes = primary_decomposition(ideal([discriminant(w)]))
-    nontrivial_primes = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}}[]
-    for k in 1:length(primes)
-        if !(is_one(primes[k][2]) || is_one(saturation(primes[k][2], B)))
-            push!(nontrivial_primes, primes[k])
+
+    d_primes = primary_decomposition(ideal([discriminant(w)]))
+    nontrivial_d_primes = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}}[]
+    for k in 1:length(d_primes)
+        if !(is_one(d_primes[k][2]) || is_one(saturation(d_primes[k][2], B)))
+            push!(nontrivial_d_primes, d_primes[k])
         end
     end
-    return nontrivial_primes
+
+    f_primes = primary_decomposition(ideal([w.poly_f]))
+    g_primes = primary_decomposition(ideal([w.poly_g]))
+
+    kodaira_types = Tuple{MPolyIdeal{MPolyElem_dec{fmpq, fmpq_mpoly}}, Tuple{Int64, Int64, Int64}}[]
+    for d_prime in nontrivial_d_primes
+        f_index = findfirst(fp -> fp[2] == d_prime[2], f_primes)
+        g_index = findfirst(gp -> gp[2] == d_prime[2], g_primes)
+
+        f_order = !isnothing(f_index) ? saturation_with_index(f_primes[f_index][1], d_prime[2])[2] : 0
+        g_order = !isnothing(g_index) ? saturation_with_index(g_primes[g_index][1], d_prime[2])[2] : 0
+        d_order = saturation_with_index(d_prime[1], d_prime[2])[2]
+
+        push!(kodaira_types, (d_prime[2], (f_order, g_order, d_order)))
+    end
+    
+    return kodaira_types
 end
 export singular_loci

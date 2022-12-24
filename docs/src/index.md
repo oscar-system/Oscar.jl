@@ -7,20 +7,20 @@ as described in large detail in [Wei18](@cite). Specifically, we focus on the fo
 * 4d F-theory compactifications,
 * defined by a global and singular Weierstrass model as codimension 1 locus of a toric ambient space $Y$,
 * which can be crepantly resolved.
-Some of the techniques/algorithms extend naturally to more general settings. For example, it is not at all necessary to restrict to 4-dimensional settings (or alternatively, base spaces of dimension 3). Indeed, the current implementation does allow for *arbitrary* base dimension. For more extensions that we might address in the future, please take a look at the section "possibly future extensions" below.
+Some of the techniques/algorithms extend naturally to more general settings. For example, it is not at all necessary to restrict to 4-dimensional settings (or alternatively, base spaces of dimension 3). Indeed, the current implementation does allow for *arbitrary* base dimension. For more extensions that we might address in the future, please take a look at the section "possible future extensions" below.
 
 We aim for the following workflow:
 * User input:
     * Weierstrass polynomial $P_W$,
     * Data defining the toric ambient space $Y$ (if applicable),
     * Choice of resolved phase (if applicable),
-    * Generating sections (for $U(1)$ symmetries).
+    * Generating sections (for $\operatorname{U}(1)$ symmetries).
 * Output:
-    * Singular loci in codimension 1, 2 and 3.
-    * Defining data of resolved geometry.
-    * (Pictures of) fibre diagrams of resolved fibre over the originally singular loci, including intersections of $U(1)$-sections.
-    * Gauge group.
-    * Topological data (e.g. Euler number).
+    * Singular loci in codimension 1, 2, and 3,
+    * Defining data of resolved geometry,
+    * (Pictures of) fibre diagrams of resolved fibre over the originally singular loci, including intersections of $\operatorname{U}(1)$-sections,
+    * Gauge group,
+    * Topological data (e.g., Euler number).
 
 ## Status
 
@@ -29,9 +29,9 @@ This project just began. We hope to have a first working version by the end of t
 ## Possible future extensions
 
 Future extensions include, but are not necessarily limited to, the following:
-* Specify a $G_4$-flux and work-out the chiral spectra.
-* Specify a gauge potential and work out (candidates for) the line bundles whose cohomologies encode the vector-like spectra.
-* Other singularity types (non-minimal, terminal, etc.)
+* Specify a $G_4$-flux and work out the chiral spectra,
+* Specify a gauge potential and work out (candidates for) the line bundles whose cohomologies encode the vector-like spectra,
+* Other singularity types (non-minimal, terminal, etc.,
 * Base blowups for singularity resolution.
 
 

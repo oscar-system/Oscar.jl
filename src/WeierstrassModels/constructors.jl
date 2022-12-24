@@ -29,8 +29,8 @@ export GlobalWeierstrassModel
     GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)
 
 This method constructs a global Weierstrass model over a given toric base
-3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)
-random coefficients.
+3-fold. The Weierstrass sections ``f`` and ``g`` are taken with (pseudo)random
+coefficients.
 
 # Examples
 ```jldoctest
@@ -76,7 +76,7 @@ export GlobalWeierstrassModelOverProjectiveSpace
 @doc Markdown.doc"""
     GlobalWeierstrassModel(f::MPolyElem{fmpq}, g::MPolyElem{fmpq}, base::Oscar.AbstractNormalToricVariety)
 
-This method operates analogously to `GenericGlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)`.
+This method operates analogously to `GlobalWeierstrassModel(base::Oscar.AbstractNormalToricVariety)`.
 The only difference is that the Weierstrass sections ``f`` and ``g`` can be specified with non-generic values.
 
 # Examples
@@ -156,7 +156,7 @@ function GlobalWeierstrassModel(poly_f::MPolyElem{fmpq}, poly_g::MPolyElem{fmpq}
         throw(ArgumentError("We expect at least as many base variables as the desired base dimension"))
     end
 
-    # convert Tate sections into polynomials of the auxiliary base
+    # convert Weierstrass sections into polynomials of the auxiliary base
     auxiliary_base_space = _auxiliary_base_space([string(k) for k in gens(auxiliary_base_ring)], d)
     S = cox_ring(auxiliary_base_space)
     ring_map = hom(auxiliary_base_ring, S, [gens(S)[i] for i in 1:length(gens(S))])

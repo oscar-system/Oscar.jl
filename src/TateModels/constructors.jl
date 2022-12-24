@@ -80,7 +80,7 @@ export GlobalTateModelOverProjectiveSpace
 @doc Markdown.doc"""
     GlobalTateModel(ais::Vector{T}, base::Oscar.AbstractNormalToricVariety) where {T<:MPolyElem{fmpq}}
 
-This method operates analogously to `GenericGlobalTateModel(base::Oscar.AbstractNormalToricVariety)`.
+This method operates analogously to `GlobalTateModel(base::Oscar.AbstractNormalToricVariety)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
 
 # Examples

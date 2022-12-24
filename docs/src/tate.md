@@ -6,7 +6,7 @@ CurrentModule = FTheoryTools
 Pages = ["Tate.md"]
 ```
 
-# Global Tate models...
+# Global Tate models
 
 ## ... over concrete bases
 
