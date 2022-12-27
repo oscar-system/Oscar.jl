@@ -147,8 +147,8 @@ InstallOtherMethod(\<, [IsJuliaMatrixRep, IsJuliaMatrixRep], function( m1, m2 )
 
 InstallOtherMethod(MinimalPolynomial, [IsJuliaMatrixRep], m -> Julia.Oscar.minpoly(m!.m));
 InstallOtherMethod(CharacteristicPolynomial, [IsJuliaMatrixRep], m -> Julia.Oscar.charpoly(m!.m));
-InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], m -> Julia.Oscar.is_symmetric(m!.m));
-InstallOtherMethod(IsMonomial, [IsJuliaMatrixRep], m -> Julia.Oscar.is_monomial(m!.m));
+#InstallOtherMethod(IsSymmetric, [IsJuliaMatrixRep], m -> Julia.Oscar.is_symmetric(m!.m));
+InstallOtherMethod(IsMonomialMatrix, [IsJuliaMatrixRep], m -> Julia.Oscar.is_monomial(m!.m));
 InstallOtherMethod(RankMat, [IsJuliaMatrixRep], m -> Julia.Oscar.rank(m!.m));
 InstallOtherMethod(TraceMat, [IsJuliaMatrixRep], m -> Julia.Oscar.tr(m!.m));
 
