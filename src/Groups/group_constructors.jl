@@ -385,7 +385,7 @@ quaternion_group(n::IntegerUnion) = quaternion_group(PcGroup, n)
 function quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
   # FIXME: resolve naming: dicyclic vs (generalized) quaternion: only the
   # former should be for any n divisible by 4; the latter only for powers of 2.
-  # see also debate on the GAP side (gap-system/gap/issues/2725)
+  # see also debate on the GAP side (https://github.com/gap-system/gap/issues/2725)
   @assert iszero(mod(n, 4))
   return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
 end

@@ -1,5 +1,6 @@
 export collector,
        pc_group,
+       set_commutator!,
        set_conjugate!,
        set_power!,
        set_relative_order!,
@@ -13,10 +14,12 @@ export collector,
 # - the union of `IsPcGroup` and `IsPcpGroup`.
 # This must be done at runtime.
 function __init_PcGroups()
-  GAP.evalstr("DeclareFilter(\"IsPcElementOrPcpElement\")");
-  GAP.evalstr("InstallTrueMethod(IsPcElementOrPcpElement, IsMultiplicativeElementWithInverseByPolycyclicCollector)");
-  GAP.evalstr("InstallTrueMethod(IsPcElementOrPcpElement, IsPcpElement)");
-  GAP.evalstr("BindGlobal(\"IsPcGroupOrPcpGroup\", IsGroup and CategoryCollections(IsPcElementOrPcpElement))");
+  GAP.evalstr("""
+      DeclareFilter("IsPcElementOrPcpElement");
+      InstallTrueMethod(IsPcElementOrPcpElement, IsMultiplicativeElementWithInverseByPolycyclicCollector);
+      InstallTrueMethod(IsPcElementOrPcpElement, IsPcpElement);
+      BindGlobal("IsPcGroupOrPcpGroup", IsGroup and CategoryCollections(IsPcElementOrPcpElement));
+      """)
 end
 
 ############################################################################
@@ -107,6 +110,7 @@ function set_relative_order!(c::Collector{T}, i::Int, relord::T) where T <: Inte
     c.powers[i] = Pair{Int, T}[]
   end
 
+  # If the GAP collector has already been created then update it.
   if isdefined(c, :X)
     if GAP.Globals.IsSingleCollectorRep(c.X)
       error("cannot change stored relative orders of $(c.X)")
@@ -137,6 +141,7 @@ function set_relative_orders!(c::Collector{T}, relords::Vector{T}) where T <: In
   length(relords) == c.ngens || throw(ArgumentError("the collector has $(c.ngens) generators not $(length(relords))"))
   c.relorders = copy(relords)
 
+  # If the GAP collector has already been created then update it.
   if isdefined(c, :X)
     if GAP.Globals.IsSingleCollectorRep(c.X)
       error("cannot change stored relative orders of $(c.X)")
@@ -171,6 +176,7 @@ function set_power!(c::Collector{T}, i::Int, rhs::Vector{Pair{Int, T}}) where T 
   (0 < i && i <= c.ngens) || throw(ArgumentError("the collector has only $(c.ngens) generators not $i"))
   c.powers[i] = copy(rhs)
 
+  # If the GAP collector has already been created then update it.
   if isdefined(c, :X)
     if GAP.Globals.IsSingleCollectorRep(c.X)
       G = c.F
@@ -204,6 +210,7 @@ function set_conjugate!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T
   i < j || throw(ArgumentError("only for i < j, but i = $i, j = $j"))
   c.conjugates[i,j] = copy(rhs)
 
+  # If the GAP collector has already been created then update it.
   if isdefined(c, :X)
     if GAP.Globals.IsSingleCollectorRep(c.X)
       G = c.F
@@ -216,6 +223,39 @@ function set_conjugate!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T
   end
 end
 
+"""
+    set_commutator!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
+
+Set the value of the commutator of the `i`-th and the `j`-th generator of `c`,
+for `i < j`, to the group element described by `rhs`.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> set_relative_orders!(c, [2, 3])
+
+julia> set_commutator!(c, 2, 1, [2 => 1])
+```
+"""
+function set_commutator!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
+  (0 < i && i <= c.ngens) || throw(ArgumentError("the collector has only $(c.ngens) generators not $i"))
+  i < j || throw(ArgumentError("only for i < j, but i = $i, j = $j"))
+  if length(rhs) > 0 && rhs[1].first == j
+    # freely reduce
+    e = rhs[1].second + 1
+    if e != 0
+      rhs = deepcopy(rhs)
+      rhs[1] = j => e
+    else
+      rhs = rhs[2:end]
+    end
+  else
+    rhs = vcat([j => 1], rhs)
+  end
+  set_conjugate!(c, j, i, rhs)
+end
+
 # Create a collector independent of `c`.
 function Base.deepcopy_internal(c::GAP_Collector{T}, dict::IdDict) where T <: IntegerUnion
   cc = GAP_Collector{T}(c.ngens,
@@ -223,15 +263,16 @@ function Base.deepcopy_internal(c::GAP_Collector{T}, dict::IdDict) where T <: In
          deepcopy_internal(c.powers, dict::IdDict), 
          deepcopy_internal(c.conjugates, dict::IdDict))
 
+  # If the GAP collector has already been created then copy it.
   if isdefined(c, :X)
     if GAP.Globals.IsSingleCollectorRep(c.X)
       # For this type of collectors, `GAP.Globals.ShallowCopy`
       # returns an independent copy.
-      cc.X = GAP.Globals.ShallowCopy(c.X)
+      cc.X = GAP.Globals.ShallowCopy(c.X)::GapObj
     elseif GAP.Globals.IsFromTheLeftCollectorRep(c.X)
       # Currently there is no `GAP.Globals.ShallowCopy` method for `c.X`.
       # Create the GAP object anew.
-      cc.X = _GAP_collector_from_the_left(c)
+      cc.X = _GAP_collector_from_the_left(c)::GapObj
     else
       error("unknown GAP collector")
     end
@@ -243,7 +284,6 @@ end
 # Create a new GAP collector using `GAP.Globals.SingleCollector`.
 function _GAP_single_collector(c::GAP_Collector)
   G = free_group(c.ngens; eltype = :syllable)
-
   cGAP = GAP.Globals.SingleCollector(G.X, GapObj(c.relorders, recursive = true))::GapObj
   for i in 1:c.ngens
     GAP.Globals.SetPower(cGAP, i, G(c.powers[i]).X)
@@ -262,11 +302,10 @@ function _GAP_single_collector(c::GAP_Collector)
   return cGAP, G
 end
 
-
 # Create a new GAP collector using `GAP.Globals.FromTheLeftCollector`
 # (from GAP's Polycyclic package).
 function _GAP_collector_from_the_left(c::GAP_Collector)
-  cGAP = GAP.Globals.FromTheLeftCollector(c.ngens)
+  cGAP = GAP.Globals.FromTheLeftCollector(c.ngens)::GapObj
   for i in 1:c.ngens
     if c.relorders[i] != 0
       # We are not allowed to set relative orders to zero.
@@ -289,14 +328,15 @@ function _GAP_collector_from_the_left(c::GAP_Collector)
   end
   GAP.Globals.UpdatePolycyclicCollector(cGAP)
   
-  return cGAP
+  return cGAP::GapObj
 end
 
 
 # Create the collector on the GAP side on demand
-function Base.getproperty(c::GAP_Collector, sym::Symbol)
-  isdefined(c, sym) && return getfield(c, sym)
-  if sym === :X
+function underlying_gap_object(c::GAP_Collector)
+  if ! isdefined(c, :X)
+    # We have to decide which type of GAP collector we create.
+#TODO: Here we could specify the desired collector type.
     if 0 in c.relorders
       # create a collector from the Polycyclic package.
       cGAP = _GAP_collector_from_the_left(c)
@@ -307,7 +347,7 @@ function Base.getproperty(c::GAP_Collector, sym::Symbol)
     end
     c.X = cGAP
   end
-  return getfield(c, sym)
+  return c.X
 end
 
 """
@@ -331,15 +371,21 @@ julia> describe(gg)
 ```
 """
 function pc_group(c::GAP_Collector)
-  if 0 in c.relorders
+  # Create the GAP collector if necessary.
+  cGAP = underlying_gap_object(c)::GapObj
+
+  if GAP.Globals.IsFromTheLeftCollectorRep(cGAP)
     # Create an independent collector object on the GAP side,
     # such that later changes to `c` do not affect the collector
     # that is stored in the group object on the GAP side.
-    return PcGroup(GAP.Globals.PcpGroupByCollector(c.X))
-  else
+    cGAP = _GAP_collector_from_the_left(c)
+    return PcGroup(GAP.Globals.PcpGroupByCollector(cGAP)::GapObj)
+  elseif GAP.Globals.IsSingleCollectorRep(cGAP)
     # `GAP.Globals.GroupByRws` makes the group independent of the
     # collector data.
-    return PcGroup(GAP.Globals.GroupByRws(c.X))
+    return PcGroup(GAP.Globals.GroupByRws(cGAP)::GapObj)
+  else
+    error("unknown collector type")
   end
 end
 

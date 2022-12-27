@@ -151,8 +151,6 @@ false
 """
 @gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
 
-# Base.isfinite(G::PcGroup) = true
-
 """
     is_finiteorder(g::GAPGroupElem) -> Bool
 
@@ -1702,34 +1700,34 @@ end
 
 
 """
-    (G::FPGroup)(l::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+    (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
 
-Return the element `x` of `G` that is described by `l`
+Return the element `x` of `G` that is described by `pairs`
 in the sense that `x` is the product of the powers `gen(G, i_j) ^ e_j`
-where the `l[j]` is equal to `i_j => e_j`.
-If the `i_j` in adjacent entries of `l` are different and the `e_j` are
-nonzero then `l` is the vector of syllables of `x`, see [`syllables`](@ref).
+where the `pairs[j]` is equal to `i_j => e_j`.
+If the `i_j` in adjacent entries of `pairs` are different and the `e_j` are
+nonzero then `pairs` is the vector of syllables of `x`, see [`syllables`](@ref).
 
 # Examples
 ```jldoctest
-julia> G = free_group(2);  l = [1 => 3, 2 => -1];
+julia> G = free_group(2);  pairs = [1 => 3, 2 => -1];
 
-julia> x = G(l)
+julia> x = G(pairs)
 f1^3*f2^-1
 
-julia> syllables(x) == l
+julia> syllables(x) == pairs
 true
 ```
 """
-function (G::FPGroup)(l::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
    n = ngens(G)
-   ll = S[]
-   for p in l
+   ll = GAP.Obj[]
+   for p in pairs
      0 < p.first && p.first <= n || throw(ArgumentError("generator number is at most $n"))
-     push!(ll, p.first)
-     push!(ll, p.second)
+     push!(ll, GAP.Obj(p.first))
+     push!(ll, GAP.Obj(p.second))
    end
-   w = GAPWrap.ObjByExtRep(GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X)), GapObj(ll; recursive = true))
+   w = GAPWrap.ObjByExtRep(GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X)), GapObj(ll))::GapObj
 
    return FPGroupElem(G, w)
 end
