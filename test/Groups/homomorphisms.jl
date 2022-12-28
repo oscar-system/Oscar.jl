@@ -221,16 +221,14 @@ end
    end
 
    @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
-      for invs in [[1], [2, 3, 4], [6, 8, 9, 15]]
-         for T in [PermGroup, PcGroup, FPGroup]
-            G = abelian_group(T, invs)
-            iso = @inferred isomorphism(GrpAbFinGen, G)
-            A = codomain(iso)
-            @test order(G) == order(A)
-            for x in gens(G)
-               y = image(iso, x)
-               @test preimage(iso, y) == x
-            end
+      for invs in [[1], [2, 3, 4], [6, 8, 9, 15]], T in [PermGroup, PcGroup, FPGroup]
+         G = abelian_group(T, invs)
+         iso = @inferred isomorphism(GrpAbFinGen, G)
+         A = codomain(iso)
+         @test order(G) == order(A)
+         for x in gens(G)
+            y = image(iso, x)
+            @test preimage(iso, y) == x
          end
       end
    end
@@ -241,13 +239,24 @@ end
          A = abelian_group(Agens)
          for T in [FPGroup, PcGroup, PermGroup]
             iso = @inferred isomorphism(T, A)
-            for x in gens(A)
-               for y in gens(A)
-                  z = x+y
-                  @test iso(x) * iso(y) == iso(z)
-                  @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
-               end
+            for x in gens(A), y in gens(A)
+               z = x+y
+               @test iso(x) * iso(y) == iso(z)
+               @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
             end
+         end
+      end
+   end
+
+   @testset "Infinite GrpAbFinGen to GAPGroup" begin
+      Agens = matrix(ZZ, 2, 2, [2, 3, 0, 0])
+      A = abelian_group(Agens)
+      for T in [FPGroup]
+         iso = @inferred isomorphism(T, A)
+         for x in gens(A), y in gens(A)
+            z = x+y
+            @test iso(x) * iso(y) == iso(z)
+            @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
          end
       end
    end
