@@ -384,10 +384,11 @@ julia> independent_sets(uniform_matroid(2, 3))
 """
 function independent_sets(M::Matroid)
     pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
-    n = length(M.groundset)
-    gs = M.groundset
-    sets = Vector{typeof(matroid_groundset(M))}()
-    push!(sets,[])
+    gs = matroid_groundset(M)
+    elt = eltype(gs)
+    n = length(gs)
+    sets = Vector{Vector{elt}}()
+    push!(sets,elt[])
     for k in 1:rank(M)
         for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
             for B in pm_bases
