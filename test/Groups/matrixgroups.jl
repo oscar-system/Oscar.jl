@@ -38,11 +38,9 @@
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
-   @testset for a in F
-      for b in F
-         @test G.ring_iso(a*b)==G.ring_iso(a)*G.ring_iso(b)
-         @test G.ring_iso(a-b)==G.ring_iso(a)-G.ring_iso(b)
-      end
+   @testset for a in F, b in F
+      @test G.ring_iso(a*b)==G.ring_iso(a)*G.ring_iso(b)
+      @test G.ring_iso(a-b)==G.ring_iso(a)-G.ring_iso(b)
    end
    @test Z in codomain(G.ring_iso)
    @test preimage(G.ring_iso, Z)==z
@@ -80,11 +78,9 @@ end
       mats = [matrix(F, [0 z 0; 0 0 1; 1 0 0]),
               matrix(F, [0 1 0; 1 0 0; 0 0 1])]
       G.gens = [MatrixGroupElem(G, m) for m in mats]
-      for a in map(matrix, gens(G))
-         for b in map(matrix, gens(G))
-            @test g(a * b) == g(a) * g(b)
-            @test g(a - b) == g(a) - g(b)
-         end
+      for a in map(matrix, gens(G)), b in map(matrix, gens(G))
+         @test g(a * b) == g(a) * g(b)
+         @test g(a - b) == g(a) - g(b)
       end
       @test G.ring_iso(z) isa GAP.Obj
       @test G.X isa GAP.GapObj
@@ -244,57 +240,49 @@ end
 
 
 @testset "Constructors" begin
-   @testset for n in 4:5
-      @testset for F in [GF(2, 2), GF(3, 1)]
-         q = Int(order(F))
-         G = GL(n,F)
-         S = SL(n,F)
-         @test G==GL(n,q)
-         @test G==general_linear_group(n,F)
-         @test G==general_linear_group(n,q)
-         @test S==SL(n,q)
-         @test S==special_linear_group(n,F)
-         @test S==special_linear_group(n,q)
-         @test order(S)==prod(BigInt[q^n-q^i for i in 0:(n-1)])÷(q-1)
-         @test index(G,S)==q-1
-      end
+   @testset for n in 4:5, F in [GF(2, 2), GF(3, 1)]
+      q = Int(order(F))
+      G = GL(n,F)
+      S = SL(n,F)
+      @test G==GL(n,q)
+      @test G==general_linear_group(n,F)
+      @test G==general_linear_group(n,q)
+      @test S==SL(n,q)
+      @test S==special_linear_group(n,F)
+      @test S==special_linear_group(n,q)
+      @test order(S)==prod(BigInt[q^n-q^i for i in 0:(n-1)])÷(q-1)
+      @test index(G,S)==q-1
    end
 
-   @testset for n in 1:3
-      @testset for q in [2,3,4]
-         @test unitary_group(n,q)==GU(n,q)
-         @test special_unitary_group(n,q)==SU(n,q)
-         @test index(GU(n,q),SU(n,q))==q+1
-      end
+   @testset for n in 1:3, q in [2,3,4]
+      @test unitary_group(n,q)==GU(n,q)
+      @test special_unitary_group(n,q)==SU(n,q)
+      @test index(GU(n,q),SU(n,q))==q+1
    end
 
-   @testset for n in [4,6]
-      @testset for F in [GF(2, 2), GF(3, 1)]
-         q = Int(order(F))
-         G = Sp(n,F)
-         @test G==Sp(n,q)
-         @test G==symplectic_group(n,F)
-         @test G==symplectic_group(n,q)
-      end
+   @testset for n in [4,6], F in [GF(2, 2), GF(3, 1)]
+      q = Int(order(F))
+      G = Sp(n,F)
+      @test G==Sp(n,q)
+      @test G==symplectic_group(n,F)
+      @test G==symplectic_group(n,q)
    end
 
    @testset for F in [GF(3, 1), GF(2, 2), GF(5, 1)]
       q = Int(order(F))
-      @testset for n in [4,6]
-         @testset for e in [+1,-1]
-            G = GO(e,n,F)
-            S = SO(e,n,F)
-            O = omega_group(e,n,F)
-            @test G==GO(e,n,q)
-            @test G==orthogonal_group(e,n,F)
-            @test G==orthogonal_group(e,n,q)
-            @test S==SO(e,n,q)
-            @test S==special_orthogonal_group(e,n,F)
-            @test S==special_orthogonal_group(e,n,q)
-            @test O==omega_group(e,n,q)
-            @test index(S,O)==2
-            @test index(G,S) == gcd(2, q-1)
-         end
+      @testset for n in [4,6], e in [+1,-1]
+         G = GO(e,n,F)
+         S = SO(e,n,F)
+         O = omega_group(e,n,F)
+         @test G==GO(e,n,q)
+         @test G==orthogonal_group(e,n,F)
+         @test G==orthogonal_group(e,n,q)
+         @test S==SO(e,n,q)
+         @test S==special_orthogonal_group(e,n,F)
+         @test S==special_orthogonal_group(e,n,q)
+         @test O==omega_group(e,n,q)
+         @test index(S,O)==2
+         @test index(G,S) == gcd(2, q-1)
       end
       @testset for n in [3,5]
          G = GO(n,F)
