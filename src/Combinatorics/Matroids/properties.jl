@@ -225,7 +225,7 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc Markdown.doc"""
     closure(M::Matroid, set::GroundsetType)
@@ -547,7 +547,7 @@ function is_regular(M::Matroid)
     if rank(M)==length(M)
         return true
     end
-    return M.pm_matroid.REGULAR
+    return M.pm_matroid.REGULAR::Bool
 end
 
 @doc Markdown.doc"""
@@ -565,7 +565,7 @@ julia> is_binary(fano_matroid())
 true
 ```
 """
-is_binary(M::Matroid) = M.pm_matroid.BINARY
+is_binary(M::Matroid) = M.pm_matroid.BINARY::Bool
 
 @doc Markdown.doc"""
     is_ternary(M::Matroid)
@@ -587,7 +587,7 @@ function is_ternary(M::Matroid)
     if rank(M)==length(M)
         return true
     end
-    return M.pm_matroid.TERNARY
+    return M.pm_matroid.TERNARY::Bool
 end
 
 @doc Markdown.doc"""
@@ -643,7 +643,7 @@ julia> is_connected(uniform_matroid(3, 3))
 false
 ```
 """
-is_connected(M::Matroid) = M.pm_matroid.CONNECTED
+is_connected(M::Matroid) = M.pm_matroid.CONNECTED::Bool
 
 @doc Markdown.doc"""
     loops(M::Matroid)
@@ -731,7 +731,7 @@ julia> is_simple(fano_matroid())
 true
 ```
 """
-is_simple(M::Matroid) = M.pm_matroid.SIMPLE
+is_simple(M::Matroid) = M.pm_matroid.SIMPLE::Bool
 
 @doc Markdown.doc"""
     direct_sum_components(M::Matroid)
@@ -1038,7 +1038,7 @@ function is_isomorphic(M1::Matroid, M2::Matroid)
     if length(M1) != length(M2)
         return false
     end
-    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)
+    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)::Bool
 end
 
 @doc Markdown.doc"""
