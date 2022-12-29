@@ -48,7 +48,6 @@ Return the upper triangular matrix whose entries on and above the diagonal are t
 
 An exception is thrown whenever the length of `L` is not equal to $n(n+1)/2$,
 for some integer $n$.
-
 """
 function upper_triangular_matrix(L)
    T = eltype(L)
