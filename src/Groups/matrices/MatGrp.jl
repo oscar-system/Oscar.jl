@@ -593,7 +593,7 @@ end
     general_linear_group(n::Int, R::Ring)
     GL = general_linear_group
 
-Return the general linear group of dimension `n` either over the ring `R` or the field `GF(q)`.
+Return the general linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
 Currently, this function only supports rings of type `FqNmodFiniteField`.
 
@@ -627,7 +627,7 @@ end
     special_linear_group(n::Int, R::Ring)
     SL = special_linear_group
 
-Return the special linear group of dimension `n` either over the ring `R` or the field `GF(q)`.
+Return the special linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
 Currently, this function only supports rings of type `FqNmodFiniteField`.
 
@@ -661,7 +661,7 @@ end
     symplectic_group(n::Int, R::Ring)
     Sp = symplectic_group
 
-Return the symplectic group of dimension `n` either over the ring `R` or the
+Return the symplectic group of dimension `n` over the ring `R` respectively the
 field `GF(q)`. The dimension `n` must be even.
 
 Currently, this function only supports rings of type `FqNmodFiniteField`.
@@ -697,8 +697,8 @@ end
     orthogonal_group(e::Int, n::Int, q::Int)
     GO = orthogonal_group
 
-Return the orthogonal group of dimension `n` either over the ring `R` or the
-field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
+Return the orthogonal group of dimension `n` over the ring `R` respectively the
+field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
 
 Currently, this function only supports rings of type `FqNmodFiniteField`.
@@ -713,8 +713,8 @@ Sp(2,7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
-   [3 0; 0 5]
-   [6 1; 6 0]
+ [3 0; 0 5]
+ [6 1; 6 0]
 
 ```
 """
@@ -749,8 +749,8 @@ orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
     special_orthogonal_group(e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
 
-Return the special orthogonal group of dimension `n` either over the field `F`
-or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and
+Return the special orthogonal group of dimension `n` over the ring `R` respectively
+the field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 
 Currently, this function only supports rings of type `FqNmodFiniteField`.
