@@ -1,4 +1,5 @@
-export secondary_invariants, irreducible_secondary_invariants
+export secondary_invariants, irreducible_secondary_invariants,
+semi_invariants, relative_invariants
 
 function add_invariant!(C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}) where T
   push!(C.invars, f)
@@ -384,3 +385,101 @@ function irreducible_secondary_invariants(IR::InvRing)
   end
   return is_invars
 end
+
+################################################################################
+#
+#  Semi-invariants / relative invariants
+#
+################################################################################
+
+# Gat96, Algorithim 3.16 and DK15, Algorithm 3.7.2
+@doc Markdown.doc"""
+    semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+    relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+
+Given an irreducible character `chi` of the underlying group, return a system of
+semi-invariants (or relative invariants) with respect to `chi`.
+By this, we mean a set of free generators of the isotypic component of the of the
+polynomial ring with respect to `chi` as a module over the algebra generated
+by primary invariants for `IR`.
+See also [Gat96](@cite) and [Sta79](@cite).
+
+!!! note
+    It is implicitly assumed that `coefficient_ring(IR)` contains all character values of `chi`.
+
+This function is so far only implemented in the case of characteristic zero.
+
+# Examples
+```jldoctest
+julia> S2 = symmetric_group(2);
+
+julia> RS2 = invariant_ring(S2);
+
+julia> F = abelian_closure(QQ)[1];
+
+julia> chi = Oscar.group_class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+group_class_function(character_table(Sym( [ 1 .. 2 ] )), QQAbElem{nf_elem}[1, -1])
+
+julia> semi_invariants(RS2, chi)
+1-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x[1] - x[2]
+
+```
+"""
+function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
+  @assert is_zero(characteristic(coefficient_ring(RG)))
+  @assert is_irreducible(chi)
+
+  p_invars = primary_invariants(RG)
+  I = ideal_of_primary_invariants(RG)
+  LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
+
+  h = reduce_hilbert_series_by_primary_degrees(RG, chi)
+
+  Rgraded = polynomial_ring(RG)
+  R = Rgraded.R
+
+  B = BasisOfPolynomials(R, elem_type(R)[])
+
+  semi_invars = elem_type(Rgraded)[]
+
+  rey_op = reynolds_operator(RG, chi)
+
+  for d = 0:degree(h)
+    k = coeff(h, d) # number of invariants we need in degree d
+    if iszero(k)
+      continue
+    end
+    invars_found = 0
+
+    mons = all_monomials(Rgraded, d)
+    for m in mons
+
+      # Can exclude some monomials, see DK15, Remark 3.7.3 (b)
+      skip = false
+      for g in gens(LI)
+        if mod(m.f, g.f) == 0
+          skip = true
+          break
+        end
+      end
+      skip && continue
+
+      f = rey_op(m).f
+      if iszero(f)
+        continue
+      end
+      nf = normal_form(f, I).f
+      if add_to_basis!(B, nf)
+        f = inv(AbstractAlgebra.leading_coefficient(f))*f
+        push!(semi_invars, Rgraded(f))
+        invars_found += 1
+        invars_found == k && break
+      end
+    end
+  end
+
+  return semi_invars
+end
+
+relative_invariants(RG::InvRing, chi::GAPGroupClassFunction) = semi_invariants(RG, chi)

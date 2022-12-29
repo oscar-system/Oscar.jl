@@ -124,6 +124,30 @@
     @test haskey(exps, m)
     @test set_exponent_vector!(one(R), 1, exps[m]) == m
   end
+
+  chi = trivial_character(group(RG0))
+  semi_invars = semi_invariants(RG0, chi)
+  m = molien_series(RG0, chi)
+  S = base_ring(parent(m))
+  t = gen(S)
+  n = S()
+  for f in semi_invars
+    @test reynolds_operator(RG0, f, chi) == f
+    n += t^total_degree(f.f)
+  end
+  d = prod( 1 - t^total_degree(f.f) for f in primary_invariants(RG0) )
+  @test m == n//d
+
+  # The semi-invariants have to be a module basis. Let's test this for
+  # the degree 9 homogeneous component.
+  R = polynomial_ring(RG0).R
+  C = Oscar.PowerProductCache(R, [ f.f for f in primary_invariants(RG0) ])
+  b1, _ = Oscar.generators_for_given_degree!(C, [ f.f for f in semi_invars ], 9, false)
+  b2 = [ f.f for f in basis(RG0, 9, chi) ]
+  B = Oscar.BasisOfPolynomials(R, b1)
+  for f in b2
+    @test !Oscar.add_to_basis!(B, f)
+  end
 end
 
 @testset "Secondary invariants (for permutation groups)" begin

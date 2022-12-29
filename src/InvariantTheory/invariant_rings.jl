@@ -612,17 +612,17 @@ function molien_series(S::PolyRing, I::InvRing, chi::Union{GAPGroupClassFunction
   end
 end
 
-function molien_series(I::InvRing)
-  if !isdefined(I, :molien_series)
+function molien_series(I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+  if chi === nothing
+    if !isdefined(I, :molien_series)
+      S, t = PolynomialRing(QQ, "t", cached = false)
+      I.molien_series = molien_series(S, I)
+    end
+    return I.molien_series
+  else
     S, t = PolynomialRing(QQ, "t", cached = false)
-    I.molien_series = molien_series(S, I)
+    return molien_series(S, I, chi)
   end
-  return I.molien_series
-end
-
-function molien_series(I::InvRing, chi::GAPGroupClassFunction)
-  S, t = PolynomialRing(QQ, "t", cached = false)
-  return molien_series(S, I, chi)
 end
 
 # There are some situations where one needs to know whether one can ask for the

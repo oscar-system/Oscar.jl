@@ -87,11 +87,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
   end
 
   Qt, t = PowerSeriesRing(QQ, d + 1, "t")
-  if chi !== nothing
-    F = molien_series(R, chi)
-  else
-    F = molien_series(R)
-  end
+  F = molien_series(R, chi)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
   @assert is_integral(k)
   return T(numerator(k))::T

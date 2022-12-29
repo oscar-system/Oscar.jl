@@ -185,3 +185,8 @@ fundamental_invariants(IR::InvRing, algo::Symbol = :default; beta::Int = 0)
 ```@docs
 affine_algebra(IR::InvRing)
 ```
+
+## Semi-invariants / relative invariants
+```@docs
+semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+```
