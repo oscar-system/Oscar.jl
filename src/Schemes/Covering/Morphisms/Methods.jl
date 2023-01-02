@@ -32,7 +32,10 @@ function simplify(C::Covering)
     Ysimp = new_patches[C[Y]]
     iY, jY = identification_maps(Ysimp)
     G = GD[(X, Y)]
-    new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
+    #new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
+    new_glueings[(Xsimp, Ysimp)] = LazyGlueing(Xsimp, Ysimp, _compute_restriction, 
+                                               RestrictionDataIsomorphism(G, jX, jY)
+                                              )
   end
   iDict = IdDict{AbsSpec, AbsSpecMor}()
   jDict = IdDict{AbsSpec, AbsSpecMor}()
