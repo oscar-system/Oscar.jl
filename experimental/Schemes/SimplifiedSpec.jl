@@ -113,3 +113,23 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   return compose(f, h), d
 end
 
+#=
+# This follows U in its ancestor tree up to the point 
+# where a patch W in C is found. Then it recreates U as a 
+# PrincipalOpenSubset UU of W and returns the identification 
+# with UU.
+=#
+function _flatten_open_subscheme(U::AbsSpec, C::Covering)
+  any(W->(W === U), patches(C)) || error("patch not found")
+  UU = PrincipalOpenSubset(U, one(OO(U)))
+  f = inclusion_morphism(UU, U)
+  finv = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false))
+  set_attribute!(f, :inverse, finv)
+  set_attribute!(finv, :inverse, f)
+  return f
+end
+
+function _flatten_open_subscheme(U::PrincipalOpenSubset, C::Covering)
+  some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
+  # TODO: finish implementation
+end
