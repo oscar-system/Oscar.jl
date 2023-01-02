@@ -355,44 +355,50 @@ identifications given by the glueings in the `default_covering`.
     #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
     #  * W::SpecOpen ⊂ X with ambient_scheme(U) in the basic charts of X
     function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-      C = default_covering(X)
-      A = ambient_scheme(U)
-      A in C || return false
-      B = ambient_scheme(V)
-      B in affine_charts(X) || return false
+      some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U) || return false
+      some_ancestor(W->any(WW->(WW===W), affine_charts(X)), V) || return false
+      incU, dU = _find_chart(U, default_covering(X))
+      incV, dU = _find_chart(V, default_covering(X))
+      A = codomain(incU)
+      B = codomain(incV)
+      Udirect = (ambient_scheme(U) === A ? U : PrincipalOpenSubset(codomain(incU), dU))
+      Vdirect = (ambient_scheme(V) === B ? V : PrincipalOpenSubset(codomain(incV), dV))
+
       if A === B
-        is_subset(U, V) || return false
+        is_subset(Udirect, Vdirect) || return false
       else
-        G = C[A, B] # Get the glueing
+        G = default_covering(X)[A, B] # Get the glueing
         f, g = glueing_morphisms(G)
-        is_subset(U, domain(f)) || return false
-        gU = preimage(g, U)
-        is_subset(gU, V) || return false
+        is_subset(Udirect, domain(f)) || return false
+        gU = preimage(g, Udirect)
+        is_subset(gU, Vdirect) || return false
       end
       return true
     end
     function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(U) in default_covering(X)
+      return Y === X && some_ancestor(W->(W in affine_charts(X)), U)
     end
     function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && U in default_covering(X)
+      return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
     end
     function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
       return X === Y === Z
     end
     function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in default_covering(X) || return false
-      V in default_covering(X) || return false
+      U in affine_charts(X) || return false
+      V in affine_charts(X) || return false
       G = default_covering(X)[U, V]
       return issubset(U, glueing_domains(G)[1])
     end
     function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(U) === V && return true
-      W = ambient_scheme(U)
-      W in default_covering(X) || return false
+      V in affine_charts(X) || return false
+      some_ancestor(W->(W===V), U) && return true
+      incU, dU = _find_chart(U, default_covering(X))
+      W = codomain(incU)
+      haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
       G = default_covering(X)[W, V]
-      return is_subset(U, glueing_domains(G)[1])
+      Udirect = (ambient_scheme(U) === W ? U : PrincipalOpenSubset(W, dU))
+      return is_subset(Udirect, glueing_domains(G)[1])
     end
 #    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
 #      ambient_scheme(V) in default_covering(X) || return false
@@ -406,6 +412,9 @@ identifications given by the glueings in the `default_covering`.
     function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
       return Y === X && ambient_scheme(W) in default_covering(X)
     end
+
+    ### cleaned up until here ###
+
     function is_open_func(W::SpecOpen, V::AbsSpec)
       V in default_covering(X) || return false
       ambient_scheme(W) === V && return true

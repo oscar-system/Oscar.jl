@@ -74,3 +74,42 @@ case it is a `PrincipalOpenSubset`, or a `SimplifiedSpec`.
 function some_ancestor(P::Function, X::AbsSpec)
   return P(X) # This case will only be called when we reached the root.
 end
+
+#=
+# This crawls up the tree of charts until hitting one of the patches of C.
+# Then it returns a pair (f, d) where f is the inclusion morphism 
+# of U into the patch V of C and d is a Vector of elements of OO(V)
+# which have to be inverted to arrive at U. That is: f induces an 
+# isomorphism on the complement of d. 
+=#
+function _find_chart(U::AbsSpec, C::Covering;
+    complement_equations::Vector{T}=elem_type(OO(U))[]
+  ) where {T<:RingElem}
+  any(W->(W === U), patches(C)) || error("patch not found")
+  return identity_map(U), complement_equations
+end
+
+function _find_chart(U::PrincipalOpenSubset, C::Covering;
+    complement_equations::Vector{T}=elem_type(OO(U))[]
+  ) where {T<:RingElem}
+  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  V = ambient_scheme(U)
+  ceq = push!(
+              OO(V).(lifted_numerator.(complement_equations)),
+              OO(V)(lifted_numerator(complement_equation(U)))
+             )
+  (f, d) = _find_chart(V, C, complement_equations=ceq)
+  return compose(inclusion_morphism(U), f), d
+end
+
+function _find_chart(U::SimplifiedSpec, C::Covering;
+    complement_equations::Vector{T}=elem_type(OO(U))[]
+  ) where {T<:RingElem}
+  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  V = original(U)
+  f, g = identification_maps(U)
+  ceq = pullback(g).(complement_equations)
+  h, d = _find_chart(V, C, complement_equations=ceq)
+  return compose(f, h), d
+end
+
