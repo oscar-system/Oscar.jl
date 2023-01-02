@@ -88,35 +88,6 @@ function product(X::StdSpec, Y::StdSpec;
 end
 
 
-
-###########################################################
-# (3) Simplify an affine scheme
-###########################################################
-
-@Markdown.doc """
-    simplify(X::AbsSpec{<:Field})
-
-Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I`` 
-(or a localization thereof), use `Singular`'s `elimpart` to try 
-to eliminate variables ``xᵢ`` to arrive at a simpler presentation 
-``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return 
-the triple ``(Y, f, g)`` where ``Y = Spec(R')`` and ``f : Y ↔ X : g``
-are the identifying isomorphisms. 
-
-***Note:*** The `ambient_coordinate_ring` of the output `Y` will be different
-from the one of `X` and hence the two schemes will not compare using `==`.
-"""
-function simplify(X::AbsSpec{<:Field})
-  L, f, g = simplify(OO(X))
-  Y = Spec(L)
-  YtoX = SpecMor(Y, X, f)
-  XtoY = SpecMor(X, Y, g)
-  set_attribute!(YtoX, :inverse, XtoY)
-  set_attribute!(XtoY, :inverse, YtoX)
-  return Y, YtoX, XtoY
-end
-
-
 ########################################
 # (4) Equality
 ########################################

@@ -27,18 +27,20 @@ function simplify(C::Covering)
   GD = glueings(C)
   new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (X, Y) in keys(GD)
-    Xsimp, iX, jX = new_patches[C[X]]
-    Ysimp, iY, jY = new_patches[C[Y]]
+    Xsimp = new_patches[C[X]]
+    iX, jX = identification_maps(Xsimp)
+    Ysimp = new_patches[C[Y]]
+    iY, jY = identification_maps(Ysimp)
     G = GD[(X, Y)]
     new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
   end
   iDict = IdDict{AbsSpec, AbsSpecMor}()
   jDict = IdDict{AbsSpec, AbsSpecMor}()
   for i in 1:length(new_patches)
-    iDict[new_patches[i][1]] = new_patches[i][2]
-    jDict[C[i]] = new_patches[i][3]
+    iDict[new_patches[i]] = identification_maps(new_patches[i])[1]
+    jDict[C[i]] = identification_maps(new_patches[i])[2]
   end
-  Cnew = Covering([ U for (U, _, _) in new_patches], new_glueings, check=false)
+  Cnew = Covering([ U for U in new_patches], new_glueings, check=false)
   i_cov_mor = CoveringMorphism(Cnew, C, iDict)
   j_cov_mor = CoveringMorphism(C, Cnew, jDict)
   return Cnew, i_cov_mor, j_cov_mor
