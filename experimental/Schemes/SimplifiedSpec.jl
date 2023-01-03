@@ -95,8 +95,14 @@ end
 =#
 function _flatten_open_subscheme(
     U::PrincipalOpenSubset, C::Covering;
-    iso::AbsSpecMor=identity_morphism(U) # The identification of an original set V with 
-                                         # a principal open subset of U
+    iso::AbsSpecMor=begin
+      UU = PrincipalOpenSubset(U, one(OO(U)))
+      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      set_attribute!(f, :inverse, f_inv)
+      set_attribute!(f_inv, :inverse, f)
+      f
+    end
   )
   some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
   W = ambient_scheme(U)
@@ -107,17 +113,24 @@ function _flatten_open_subscheme(
   WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
   ident = SpecMor(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
   new_iso =  compose(iso, ident)
+  new_iso_inv = compose(inverse(ident), inverse(iso))
+  set_attribute!(new_iso, :inverse, new_iso_inv)
+  set_attribute!(new_iso_inv, :inverse, new_iso)
   if any(WW->(WW===W), patches(C)) 
     return new_iso
   end
-  return _flatten_open_subscheme(W, C, new_iso)
+  return _flatten_open_subscheme(W, C, iso=new_iso)
 end
 
 function _flatten_open_subscheme(
     U::SimplifiedSpec, C::Covering;
     iso::AbsSpecMor=begin 
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      set_attribute!(f, :inverse, f_inv)
+      set_attribute!(f_inv, :inverse, f)
+      f
     end
   )
   some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
@@ -129,13 +142,18 @@ function _flatten_open_subscheme(
   hVW = pullback(g)(hV)
   WV = PrincipalOpenSubset(W, hVW)
   ident = SpecMor(UV, WV, 
-                  hom(OO(WV), OO(UV), pullback(f).(gens(ambient_ring(UV))), check=false), 
+                  hom(OO(WV), OO(UV), 
+                      OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
+                      check=false), 
                   check=false)
   new_iso =  compose(iso, ident)
+  new_iso_inv = compose(inverse(ident), inverse(iso))
+  set_attribute!(new_iso, :inverse, new_iso_inv)
+  set_attribute!(new_iso_inv, :inverse, new_iso)
   if any(WW->(WW===W), patches(C)) 
     return new_iso
   end
-  return _flatten_open_subscheme(W, C, new_iso)
+  return _flatten_open_subscheme(W, C, iso=new_iso)
 end
 
  

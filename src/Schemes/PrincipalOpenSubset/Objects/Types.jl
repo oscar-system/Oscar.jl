@@ -18,7 +18,7 @@ export PrincipalOpenSubset
   function PrincipalOpenSubset(X::AbsSpec, f::Vector{<:RingElem})
     all(x->(parent(x) == OO(X)), f) || return PrincipalOpenSubset(X, OO(X).(f))
     U = hypersurface_complement(X, f)
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, prod(f))
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, (length(f)>0 ? prod(f) : one(OO(X))))
   end
 end
 

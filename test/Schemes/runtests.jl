@@ -14,4 +14,5 @@ include("IdealSheaves.jl")
 include("WeilDivisor.jl")
 include("CoveredProjectiveSchemes.jl")
 include("CoherentSheaves.jl")
+include("SimplifiedSpec.jl")
 

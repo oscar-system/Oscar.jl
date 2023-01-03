@@ -375,153 +375,6 @@ identifications given by the glueings in the `default_covering`.
   ### Structure sheaf on covered schemes
   function StructureSheafOfRings(X::AbsCoveredScheme)
 
-    ### Checks for open containment.
-    #
-    # We allow the following cases:
-    #
-    #  * U::PrincipalOpenSubset with one ancestor W in the basic charts of X
-    #  * U::SimplifiedSpec with one ancestor W in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-    #    and U and V contained in the glueing domains of their ambient schemes
-    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
-    #  * U::AbsSpec ⊂ X for U in the basic charts
-    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
-    #  * W::SpecOpen ⊂ X with ambient_scheme(U) in the basic charts of X
-    function is_open_func(
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
-        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
-    )
-      some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U) || return false
-      some_ancestor(W->any(WW->(WW===W), affine_charts(X)), V) || return false
-      incU, dU = _find_chart(U, default_covering(X))
-      incV, dU = _find_chart(V, default_covering(X))
-      A = codomain(incU)
-      B = codomain(incV)
-      Udirect = (ambient_scheme(U) === A ? U : PrincipalOpenSubset(codomain(incU), dU))
-      Vdirect = (ambient_scheme(V) === B ? V : PrincipalOpenSubset(codomain(incV), dV))
-
-      if A === B
-        is_subset(Udirect, Vdirect) || return false
-      else
-        G = default_covering(X)[A, B] # Get the glueing
-        f, g = glueing_morphisms(G)
-        is_subset(Udirect, domain(f)) || return false
-        gU = preimage(g, Udirect)
-        is_subset(gU, Vdirect) || return false
-      end
-      return true
-    end
-    function is_open_func(
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
-        Y::AbsCoveredScheme
-      )
-      return Y === X && some_ancestor(W->(W in affine_charts(X)), U)
-    end
-    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
-    end
-    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
-      return X === Y === Z
-    end
-    function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in affine_charts(X) || return false
-      V in affine_charts(X) || return false
-      G = default_covering(X)[U, V]
-      return issubset(U, glueing_domains(G)[1])
-    end
-    function is_open_func(
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
-        V::AbsSpec
-      )
-      V in affine_charts(X) || return false
-      some_ancestor(W->(W===V), U) && return true
-      incU, dU = _find_chart(U, default_covering(X))
-      W = codomain(incU)
-      haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
-      G = default_covering(X)[W, V]
-      Udirect = (ambient_scheme(U) === W ? U : PrincipalOpenSubset(W, dU))
-      return is_subset(Udirect, glueing_domains(G)[1])
-    end
-    function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(W) in default_covering(X)
-    end
-
-    function is_open_func(W::SpecOpen, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(W) === V && return true
-      U = ambient_scheme(W)
-      U in default_covering(X) || return false
-      G = default_covering(X)[U, V]
-      return is_subset(W, glueing_domains(G)[1])
-    end
-    function is_open_func(
-        W::SpecOpen, 
-        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
-      )
-      PW = ambient_scheme(W)
-      incV, dV = _find_chart(V, default_covering(X))
-      Vdirect = PrincipalOpenSubset(codomain(incV), dV)
-      PV = codomain(incV)
-      PW in default_covering(X) || return false
-      PV in default_covering(X) || return false
-      if PW === PV
-        return issubset(W, V)
-        #return all(x->(issubset(x, V)), affine_patches(W))
-      else
-        haskey(glueings(default_covering(X)), (PW, PV)) || return false
-        G = default_covering(X)[PW, PV]
-        preV = preimage(glueing_morphisms(G)[1], Vdirect)
-        return issubset(W, preV)
-      end
-    end
-    function is_open_func(W::SpecOpen, V::SpecOpen)
-      PW = ambient_scheme(W)
-      PV = ambient_scheme(V)
-      PW in default_covering(X) || return false
-      PV in default_covering(X) || return false
-      if PW === PV
-        return issubset(W, V)
-        #return all(x->(issubset(x, V)), affine_patches(W))
-      else
-        G = default_covering(X)[PW, PV]
-        preV = preimage(glueing_morphisms(G)[1], V)
-        return issubset(W, preV)
-      end
-    end
-    function is_open_func(U::AbsSpec, W::SpecOpen)
-      U in default_covering(X) || return false
-      if U === ambient_scheme(W)
-        # in this case W must be equal to U
-        return issubset(W, U)
-        #return one(OO(U)) in complement_ideal(W)
-      else
-        G = default_covering(X)[ambient_scheme(W), U]
-        issubset(U, glueing_domains(G)[2]) || return false
-        preU = preimage(glueing_morphisms(G)[1], U)
-        return issubset(preU, W)
-      end
-    end
-    function is_open_func(
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
-        W::SpecOpen
-      )
-      some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
-      incU, dU = _find_chart(U, default_covering(X))
-      U_direct = PrincipalOpenSubset(codomain(incU), dU)
-      ambient_scheme(U) in default_covering(X) || return false
-      if codomain(incU) === ambient_scheme(W)
-        # in this case W must be equal to U
-        return issubset(W, U_direct)
-        #return one(OO(U)) in complement_ideal(W)
-      else
-        G = default_covering(X)[ambient_scheme(W), codomain(incU)]
-        issubset(U, glueing_domains(G)[2]) || return false
-        preU = preimage(glueing_morphisms(G)[1], U_direct)
-        return issubset(preU, W)
-      end
-    end
-
     ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       return OO(U)
@@ -542,19 +395,19 @@ identifications given by the glueings in the `default_covering`.
       )
       OV = F(V) # Assumed to be cached or produced on the fly.
       OU = F(U) # Same as above.
-      incU, dU = _find_chart(U, default_covering(X))
-      W = codomain(incU)
-      Udirect = PrincipalOpenSubset(W, dU)
-      incU_res = restrict(incU, U, Udirect)
+      incU = _flatten_open_subscheme(U, default_covering(X))
+      #incU, dU = _find_chart(U, default_covering(X))
+      U_flat = codomain(incU)
+      W = ambient_scheme(U_flat)
       if W === V
-        return pullback(incU)
+        return pullback(compose(incU, inclusion_morphism(U_flat)))
       else
         G = default_covering(X)[V, W]
         f, g = glueing_morphisms(G)
         pbg = pullback(g)
         function rho_func(x::RingElem)
           parent(x) === OV || error("element does not belong to the correct domain")
-          return pullback(incU_res)(restrict(pbg(domain(pbg)(x)), Udirect)) # should probably be tuned to avoid checks.
+          return pullback(incU)(restrict(pbg(domain(pbg)(x)), U_flat)) # should probably be tuned to avoid checks.
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
@@ -595,33 +448,39 @@ identifications given by the glueings in the `default_covering`.
         return hom(OV, OU, rho_func2.(gens(OV)), check=false)
       end
     end
-    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+    function restriction_func(F::AbsPreSheaf, 
+        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
+        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      )
       OV = F(V)
       OU = F(U)
-      incV, dV = _find_chart(V, default_covering(X))
-      incU, dU = _find_chart(U, default_covering(X))
-      A = codomain(incV)
-      B = codomain(incU)
-      V_direct = PrincipalOpenSubset(A, dV)
-      incV_res = restrict(incV, V, V_direct)
-      U_direct = PrincipalOpenSubset(B, dU)
-      incU_res = restrict(incU, U, U_direct)
+      inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
+      inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
+      A = ambient_scheme(codomain(inc_U_flat))
+      B = ambient_scheme(codomain(inc_V_flat))
+      U_flat = codomain(inc_U_flat)
+      V_flat = codomain(inc_V_flat)
+      # incV, dV = _find_chart(V, default_covering(X))
+      # incU, dU = _find_chart(U, default_covering(X))
+      # A = codomain(incV)
+      # B = codomain(incU)
+      # V_direct = PrincipalOpenSubset(A, dV)
+      # incV_res = restrict(incV, V, V_direct)
+      # U_direct = PrincipalOpenSubset(B, dU)
+      # incU_res = restrict(incU, U, U_direct)
 
       if A === B
-        return pullback(compose(
-                                compose(incU_res, inclusion_morphism(U_direct, V_direct)),
-                                inverse(incV_res)
-                               )
-                       )
-        return hom(OV, OU, gens(OU), check=false)
+        return hom(OV, OU, 
+                   pullback(inc_U_flat).(pullback(inclusion_morphism(U_flat, V_flat)).(pullback(inverse(inc_V_flat)).(gens(OV)))), check=false
+                  )
       else
         G = default_covering(X)[A, B]
         f, g = glueing_morphisms(G)
-        incV_res_inv = inverse(incV_res)
+        inc_V_flat_inv = inverse(inc_V_flat)
         function rho_func(x::RingElem)
           parent(x) === OV || error("input not valid")
-          y = pullback(g)(OO(codomain(g))(pullback(incV_res_inv)(x)))
-          return pullback(incU_res)(restrict(pullback(g)(OO(codomain(g))(x)), U_direct))
+          y = pullback(g)(OO(codomain(g))(pullback(inc_V_flat_inv)(x)))
+          return pullback(inc_U_flat)(restrict(pullback(g)(OO(codomain(g))(x)), U_flat))
         end
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       end
@@ -694,7 +553,7 @@ identifications given by the glueings in the `default_covering`.
     R = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=Union{AbsSpec, SpecOpen}, OutputType=Ring,
                       RestrictionType=Hecke.Map,
-                      is_open_func=is_open_func
+                      is_open_func=_is_open_func_for_schemes(X)
                      )
     return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Hecke.Map}(R)
   end
