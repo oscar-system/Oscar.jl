@@ -355,7 +355,7 @@ function restrict(
              MPolyLocalizedRingElem, MPolyQuoLocalizedRingElem}, 
     U::SpecOpen)
   parent(a) == OO(ambient_scheme(U)) || return OO(U)(a)
-  return OO(U)(a, check=false)
+  return OO(U)(a)
 end
 
 ########################################################################
