@@ -1,32 +1,6 @@
-@attributes mutable struct SimplifiedSpec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType} 
-  X::AbsSpec
-  Y::AbsSpec
-  f::AbsSpecMor
-  g::AbsSpecMor
-
-  function SimplifiedSpec(X::AbsSpec, Y::AbsSpec, f::AbsSpecMor, g::AbsSpecMor;
-      check::Bool=true
-    )
-    domain(f) === X || error("map is not compatible")
-    codomain(f) === Y || error("map is not compatible")
-    domain(g) === Y || error("map is not compatible")
-    codomain(g) === X || error("map is not compatible")
-
-    if check
-      is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
-    end
-
-    result = new{typeof(base_ring(X)), typeof(OO(X))}(X, Y)
-    # We need to rewrap the identification maps so that the (co-)domains match
-    fwrap = SpecMor(result, Y, pullback(f))
-    gwrap = SpecMor(Y, result, pullback(g))
-    set_attribute!(fwrap, :inverse, gwrap)
-    set_attribute!(gwrap, :inverse, fwrap)
-    result.f = fwrap
-    result.g = gwrap
-    return result 
-  end
-end
+########################################################################
+# Simplified Spectra                                                   #
+########################################################################
 
 ### essential getters
 underlying_scheme(X::SimplifiedSpec) = X.X
@@ -119,17 +93,49 @@ end
 # PrincipalOpenSubset UU of W and returns the identification 
 # with UU.
 =#
-function _flatten_open_subscheme(U::AbsSpec, C::Covering)
-  any(W->(W === U), patches(C)) || error("patch not found")
-  UU = PrincipalOpenSubset(U, one(OO(U)))
-  f = inclusion_morphism(UU, U)
-  finv = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false))
-  set_attribute!(f, :inverse, finv)
-  set_attribute!(finv, :inverse, f)
-  return f
+function _flatten_open_subscheme(
+    U::PrincipalOpenSubset, C::Covering;
+    iso::AbsSpecMor=identity_morphism(U) # The identification of an original set V with 
+                                         # a principal open subset of U
+  )
+  some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
+  W = ambient_scheme(U)
+  V = domain(iso)
+  UV = codomain(iso)
+  hV = complement_equation(UV)
+  hU = complement_equation(U)
+  WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
+  ident = SpecMor(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
+  new_iso =  compose(iso, ident)
+  if any(WW->(WW===W), patches(C)) 
+    return new_iso
+  end
+  return _flatten_open_subscheme(W, C, new_iso)
 end
 
-function _flatten_open_subscheme(U::PrincipalOpenSubset, C::Covering)
+function _flatten_open_subscheme(
+    U::SimplifiedSpec, C::Covering;
+    iso::AbsSpecMor=begin 
+      UU = PrincipalOpenSubset(U, one(OO(U)))
+      SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+    end
+  )
   some_ancestor(W->any(WW->(WW === W), patches(C)), U) || error("patch not found")
-  # TODO: finish implementation
+  W = original(U)
+  V = domain(iso)
+  UV = codomain(iso)::PrincipalOpenSubset
+  hV = complement_equation(UV)
+  f, g = identification_maps(U)
+  hVW = pullback(g)(hV)
+  WV = PrincipalOpenSubset(W, hVW)
+  ident = SpecMor(UV, WV, 
+                  hom(OO(WV), OO(UV), pullback(f).(gens(ambient_ring(UV))), check=false), 
+                  check=false)
+  new_iso =  compose(iso, ident)
+  if any(WW->(WW===W), patches(C)) 
+    return new_iso
+  end
+  return _flatten_open_subscheme(W, C, new_iso)
 end
+
+ 

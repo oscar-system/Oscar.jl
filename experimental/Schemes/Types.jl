@@ -291,6 +291,39 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
 end
 
 ########################################################################
+# Simplified Spectra                                                   #
+########################################################################
+@attributes mutable struct SimplifiedSpec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType} 
+  X::AbsSpec
+  Y::AbsSpec
+  f::AbsSpecMor
+  g::AbsSpecMor
+
+  function SimplifiedSpec(X::AbsSpec, Y::AbsSpec, f::AbsSpecMor, g::AbsSpecMor;
+      check::Bool=true
+    )
+    domain(f) === X || error("map is not compatible")
+    codomain(f) === Y || error("map is not compatible")
+    domain(g) === Y || error("map is not compatible")
+    codomain(g) === X || error("map is not compatible")
+
+    if check
+      is_identity_map(compose(f, g)) && is_identity_map(compose(g, f)) || error("maps are not inverse to each other")
+    end
+
+    result = new{typeof(base_ring(X)), typeof(OO(X))}(X, Y)
+    # We need to rewrap the identification maps so that the (co-)domains match
+    fwrap = SpecMor(result, Y, pullback(f))
+    gwrap = SpecMor(Y, result, pullback(g))
+    set_attribute!(fwrap, :inverse, gwrap)
+    set_attribute!(gwrap, :inverse, fwrap)
+    result.f = fwrap
+    result.g = gwrap
+    return result 
+  end
+end
+
+########################################################################
 # The structure sheaf of affine and covered schemes                    #
 ########################################################################
 @Markdown.doc """
