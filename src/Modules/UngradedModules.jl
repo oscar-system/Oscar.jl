@@ -5835,6 +5835,9 @@ end
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 
+If `C` is a chain complex, return a cochain complex.
+If `C` is a cochain complex, return a chain complex.
+
 # Examples
 ```jldoctest
 julia> R, (x,) = PolynomialRing(QQ, ["x"]);
@@ -5883,7 +5886,10 @@ end
 
 @doc Markdown.doc"""
     hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
-Apply $\text{Hom}(-,$ `M`$)$ to `C`. If `C` is a chain complex, return a chain complex.
+
+Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
+
+If `C` is a chain complex, return a chain complex.
 If `C` is a cochain complex, return a cochain complex.
 
 # Examples
