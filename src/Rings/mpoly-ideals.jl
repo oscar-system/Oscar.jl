@@ -444,6 +444,9 @@ is used by default (`alg = :GTZ`). Alternatively, the algorithm by Shimoyama and
 by specifying `alg = :SY`.  For polynomial rings over the integers, the algorithm proceeds as suggested by
 Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cite).
 
+!!! warning
+    The algorithm of Gianni, Trager, and Zacharias may not terminate over a small finite field. If it terminates, the result is correct.
+
 # Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])

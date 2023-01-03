@@ -17,8 +17,8 @@ Pages = ["rings.md"]
 
 In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
 while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
-rings with (multi)gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
-and their elements, we refer to the chapters on rings and fields. 
+rings with gradings by finitely presented groups. For more details on multivariate polynomial rings, their
+coefficient rings (fields), and their elements, we refer to the chapters on rings and fields. 
 
 ## Types
 

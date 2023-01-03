@@ -63,14 +63,14 @@ abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, Mo
 parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
 @doc Markdown.doc"""
-    FreeMod{T <: RingElem} <: ModuleFP{T}
+    FreeMod{T <: RingElem} <: AbstractFreeMod{T}
 
 The type of free modules.
 Free modules are determined by their base ring, the rank and the names of 
 the (standard) generators.
 Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
-`FreeMod{T}` is a subtype of `ModuleFP{T}`.
+`FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
 @attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
   R::Ring
