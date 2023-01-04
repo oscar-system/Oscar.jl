@@ -154,6 +154,8 @@ end
 	M = SubQuo(A, B)
 	free_res = free_resolution(M, length=1)
     @test is_complete(free_res) == false
+    free_res[2]
+    @test length(free_res.C.maps) == 4
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
     @test is_complete(free_res) == true

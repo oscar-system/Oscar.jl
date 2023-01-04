@@ -4503,7 +4503,7 @@ function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sy
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
   singular_kernel_entry.isGB = true
 
-  len = len_missing + 2 #??
+  len = len_missing + 1
   if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
   elseif algorithm == :sres
