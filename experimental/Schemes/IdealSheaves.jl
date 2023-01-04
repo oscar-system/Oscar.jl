@@ -237,8 +237,12 @@ function subscheme(I::IdealSheaf)
     Unew = new_patches[i]
     Vnew = new_patches[j]
     G = C[U, V]
-    new_glueings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
-    new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
+    #new_glueings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
+    new_glueings[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+                                             RestrictionDataClosedEmbedding(C[U, V], Unew, Vnew)
+                                            )
+    #new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
+    new_glueings[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, new_glueings[(Unew, Vnew)])
   end
   Cnew = Covering(new_patches, new_glueings, check=false)
   return CoveredScheme(Cnew)

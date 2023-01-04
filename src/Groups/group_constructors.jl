@@ -27,7 +27,7 @@ export
 
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
 _gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
-_gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
+_gap_filter(::Type{FPGroup}) = GAP.Globals.IsSubgroupFpGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field

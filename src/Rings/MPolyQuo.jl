@@ -599,14 +599,14 @@ julia> R, (x,) = PolynomialRing(QQ, ["x"]);
 
 julia> A, p = quo(R, ideal(R, [x^4]));
 
-julia> f = p(x-x^6)
--x^6 + x
+julia> f = p(-2*x^6 + x^6 + x-x^6)
+-2*x^6 + x
 
 julia> simplify(f)
 x
 
 julia> f
--x^6 + x
+-2*x^6 + x
 
 julia> simplify!(f)
 x
@@ -734,6 +734,7 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   end
   return q, MapFromFunc(im, pr, R, q)
 end
+
 function quo(R::MPolyRing, I::Vector{<:MPolyElem})
   return quo(R, ideal(I))
 end
@@ -777,6 +778,13 @@ zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
 function is_invertible_with_inverse(a::MPolyQuoElem)
+ # TODO:
+ # Eventually, the code below should be replaced 
+ # by a call to `coordinates` over the ring `parent(a)`. 
+ # This should then use relative groebner bases and 
+ # make use of the caching of previously computed GBs 
+ # of the modulus of `parent(a)`. 
+
   Q = parent(a)
   I = Q.I
   if !isempty(I.gb)
@@ -787,10 +795,10 @@ function is_invertible_with_inverse(a::MPolyQuoElem)
     J = gens(I)
   end
   J = vcat(J, [a.f])
-  j, T = _compute_standard_basis_with_transform(ideal(J))
-  if 1 in j
-    @assert nrows(T) == 1
-    return true, Q(T[1, end])
+  j, T = standard_basis_with_transformation_matrix(ideal(J))
+  if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
+    @assert ncols(T) == 1
+    return true, inv(first(coefficients(j[1])))*Q(T[end, 1])
   end
   return false, a
 end

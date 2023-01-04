@@ -423,24 +423,28 @@ image_ideal(phi::CoveredClosedEmbedding) = phi.I
 ### user facing constructors
 function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
   space(I) == X || error("ideal sheaf is not defined on the correct scheme")
-  mor_dict = IdDict{AbsSpec, ClosedEmbedding}()
-  rev_dict = IdDict{AbsSpec, AbsSpec}()
+  mor_dict = IdDict{AbsSpec, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
+  rev_dict = IdDict{AbsSpec, AbsSpec}() # Stores an inverse list to also go back from Vᵢ to Uᵢ for those Vᵢ which are actually hit.
   patch_list = Vector{AbsSpec}()
   for U in affine_charts(X)
     inc = ClosedEmbedding(U, I(U))
     V = domain(inc)
-    mor_dict[V] = inc
-    push!(patch_list, V)
-    rev_dict[U] = V
+    if !isempty(V)
+      mor_dict[V] = inc
+      push!(patch_list, V)
+      rev_dict[U] = V
+    end
   end
   glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
   for (U, V) in keys(glueings(default_covering(X)))
-    G = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V])
-    glueing_dict[(rev_dict[U], rev_dict[V])] = G
+    G = default_covering(X)[U, V]
+    (U in keys(rev_dict) && V in keys(rev_dict)) || continue # No need to glue empty sets
+    (isempty(intersect(rev_dict[U], glueing_domains(G)[1])) || isempty(intersect(rev_dict[V], glueing_domains(G)[2]))) && continue # No need to glue stuff trivially
+    GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V])
+    glueing_dict[(rev_dict[U], rev_dict[V])] = GG
   end
-  cov = Covering(patch_list, glueing_dict)
-  Z = CoveredScheme(cov)
-  cov_inc = CoveringMorphism(cov, default_covering(X), mor_dict)
+  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict))
+  cov_inc = CoveringMorphism(default_covering(Z), default_covering(X), mor_dict)
   return CoveredClosedEmbedding(Z, X, cov_inc)
 end
 

@@ -27,8 +27,8 @@ end
   C = standard_covering(X)
   D, i, j = simplify(C) 
   @test all( x->(ngens(ambient_coordinate_ring(x)) == 2), collect(D))
-  @test_broken transition_graph(Pc[1])
-  @test_broken transition_graph(C)
+  @test transition_graph(Pc[1]) isa Graph
+  @test transition_graph(C) isa Graph
 end
 
 @testset "standard_covering" begin
@@ -124,7 +124,10 @@ end
   C = subscheme(IP2, ideal(S, f))
   Ccov = covered_scheme(C)
   Csing, inc = singular_locus_reduced(Ccov)
-  @test all(x -> (x[1] == x[2]), collect(zip(affine_charts(Csing), affine_charts(subscheme(image_ideal(inc))))))
+  for V in affine_charts(Csing)
+    U = codomain(inc[V])
+    @test V == subscheme(U, image_ideal(inc)(U))
+  end
 end
 
 

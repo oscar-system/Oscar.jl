@@ -153,3 +153,11 @@ git fetch oscar-system
 git rebase oscar-system/master
 ```
 Adding the remote only has to be executed once.
+
+### Useful Julia functions
+
+- [methods](https://docs.julialang.org/en/v1/base/base/#Base.methods),
+- [methodswith](https://docs.julialang.org/en/v1/stdlib/InteractiveUtils/#InteractiveUtils.methodswith),
+- [@which](https://docs.julialang.org/en/v1/stdlib/InteractiveUtils/#InteractiveUtils.@which),
+- [@less](https://docs.julialang.org/en/v1/stdlib/InteractiveUtils/#InteractiveUtils.@less),
+- [@edit](https://docs.julialang.org/en/v1/stdlib/InteractiveUtils/#InteractiveUtils.@edit).

@@ -94,6 +94,10 @@ end
 ########################################################################
 # Restrictions of Glueings to closed subschemes                        #
 ########################################################################
+function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+  return restrict(underlying_glueing(G), X, Y)
+end
+
 function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)

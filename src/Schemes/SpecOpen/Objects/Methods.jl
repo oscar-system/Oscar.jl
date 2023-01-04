@@ -18,7 +18,7 @@ function intersect(
   if check && !issubset(Y, X)
     Y = intersect(Y, X)
   end
-  return SpecOpen(Y, gens(U), check=check)
+  return SpecOpen(Y, [g for g in gens(U) if !iszero(OO(Y)(g))], check=check)
 end
 
 intersect(U::SpecOpen, Y::AbsSpec) = intersect(Y, U)

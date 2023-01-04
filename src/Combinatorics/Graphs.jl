@@ -14,13 +14,19 @@ export
     all_neighbors,
     complete_graph,
     complete_bipartite_graph,
+    connected_components,
+    diameter,
     dst,
     dualgraph,
     edgegraph,
     edges,
     has_edge,
     has_vertex,
+    incidence_matrix,
     inneighbors,
+    is_connected,
+    is_strongly_connected,
+    is_weakly_connected,
     ne,
     neighbors,
     nv,
@@ -29,7 +35,10 @@ export
     rem_vertex!,
     reverse,
     shortest_path_dijkstra,
-    src
+    signed_incidence_matrix,
+    src,
+    strongly_connected_components,
+    weakly_connected_components
 
 ################################################################################
 ################################################################################
@@ -526,6 +535,51 @@ function all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undire
     return [x+1 for x in result]
 end
 
+@doc Markdown.doc"""
+    incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return an unsigned (boolean) incidence matrix representing a graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(5);
+
+julia> add_edge!(g, 1, 3);
+
+julia> add_edge!(g, 3, 4);
+
+julia> incidence_matrix(g)
+5×2 IncidenceMatrix
+[1]
+[]
+[1, 2]
+[2]
+[]
+```
+"""
+incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}} = IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
+
+@doc Markdown.doc"""
+    signed_incidence_matrix(g::Graph{Directed})
+
+Return a signed incidence matrix representing a directed graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(5);
+
+julia> add_edge!(g,1,2); add_edge!(g,2,3); add_edge!(g,3,4); add_edge!(g,4,5); add_edge!(g,5,1);
+
+julia> signed_incidence_matrix(g)
+5×5 Matrix{Int64}:
+ -1   0   0   0   1
+  1  -1   0   0   0
+  0   1  -1   0   0
+  0   0   1  -1   0
+  0   0   0   1  -1
+```
+"""
+signed_incidence_matrix(g::Graph{Directed}) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
 
 ################################################################################
 ################################################################################
@@ -618,6 +672,158 @@ function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=f
     return Polymake.to_one_based_indexing(result)
 end
 
+@doc Markdown.doc"""
+    is_connected(g::Graph{Undirected})
+
+Checks if the undirected graph `g` is connected.
+
+# Examples
+```jldoctest
+julia> g = Graph{Undirected}(3);
+
+julia> is_connected(g)
+false
+
+julia> add_edge!(g, 1, 2);
+
+julia> add_edge!(g, 2, 3);
+
+julia> is_connected(g)
+true
+```
+"""
+is_connected(g::Graph{Undirected}) = Polymake.call_function(:graph, :is_connected, pm_object(g))::Bool
+
+function connected_components(g::Graph{Undirected})
+    im = Polymake.call_function(:graph, :connected_components, pm_object(g))::IncidenceMatrix
+    return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
+end
+
+@doc Markdown.doc"""
+    is_strongly_connected(g::Graph{Directed})
+
+Checks if the directed graph `g` is strongly connected.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> is_strongly_connected(g)
+false
+
+julia> add_edge!(g, 2, 1);
+
+julia> is_strongly_connected(g)
+true
+```
+"""
+is_strongly_connected(g::Graph{Directed}) = Polymake.call_function(:graph, :is_strongly_connected, pm_object(g))::Bool
+
+@doc Markdown.doc"""
+    strongly_connected_components(g::Graph{Directed})
+
+Return the strongly connected components of a directed graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> length(strongly_connected_components(g))
+2
+
+julia> add_edge!(g, 2, 1);
+
+julia> strongly_connected_components(g)
+1-element Vector{Vector{Int64}}:
+ [1, 2]
+```
+"""
+function strongly_connected_components(g::Graph{Directed})
+    im = Polymake.call_function(:graph, :strong_components, pm_object(g))::IncidenceMatrix
+    return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
+end
+
+@doc Markdown.doc"""
+    is_weakly_connected(g::Graph{Directed})
+
+Checks if the directed graph `g` is weakly connected.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> is_weakly_connected(g)
+true
+```
+"""
+is_weakly_connected(g::Graph{Directed}) = Polymake.call_function(:graph, :is_weakly_connected, pm_object(g))::Bool
+
+@doc Markdown.doc"""
+    weakly_connected_components(g::Graph{Directed})
+
+Return the weakly connected components of a directed graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> weakly_connected_components(g)
+1-element Vector{Vector{Int64}}:
+ [1, 2]
+```
+"""
+function weakly_connected_components(g::Graph{Directed})
+    im = Polymake.call_function(:graph, :weakly_connected_components, pm_object(g))::IncidenceMatrix
+    return [Vector(Polymake.row(im,i)) for i in 1:Polymake.nrows(im)]
+end
+
+@doc Markdown.doc"""
+    diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return the diameter of a (strongly) connected (di-)graph `g`.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(2);
+
+julia> add_edge!(g, 1, 2);
+
+julia> weakly_connected_components(g)
+1-element Vector{Vector{Int64}}:
+ [1, 2]
+```
+"""
+function diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    if T == Directed && !is_strongly_connected(g) ||
+       T == Undirected && !is_connected(g)
+        throw(ArgumentError("The (di-)graph must be (strongly) connected!"))
+    end
+    return Polymake.call_function(:graph, :diameter, pm_object(g))::Int
+end
+
+@doc Markdown.doc"""
+    is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Checks if the graph `g1` is isomorphic to the graph `g2`.
+
+# Examples
+```jldoctest
+julia> is_isomorphic(edgegraph(simplex(3)), dualgraph(simplex(3)))
+true
+
+julia> is_isomorphic(edgegraph(cube(3)), dualgraph(cube(3)))
+false
+```
+"""
+is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}} = Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
 
 ################################################################################
 ################################################################################

@@ -545,7 +545,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAPWrap.Order(G.X))
+compute_order(G::GAPGroup) = fmpz(GAPWrap.Size(G.X))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
   #=
@@ -561,9 +561,11 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}}
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return fmpz(GAPWrap.Order(G.X))
+    return fmpz(GAPWrap.Size(G.X))
   else
-    order(isomorphic_group_over_finite_field(G)[1])
+    n = order(isomorphic_group_over_finite_field(G)[1])
+    GAP.Globals.SetSize(G.X, GAP.Obj(n))
+    return n
   end
 end
 
@@ -588,13 +590,30 @@ end
 
 """
     general_linear_group(n::Int, q::Int)
-    general_linear_group(n::Int, F::FqNmodFiniteField)
+    general_linear_group(n::Int, R::Ring)
     GL = general_linear_group
 
-Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+Return the general linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
+
+Currently, this function only supports rings of type `FqNmodFiniteField`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = general_linear_group(2,F)
+GL(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 1]
+ [6 1; 6 0]
+
+```
 """
-function general_linear_group(n::Int, F::Ring)
-   G = MatrixGroup(n,F)
+function general_linear_group(n::Int, R::Ring)
+   G = MatrixGroup(n,R)
    G.descr = :GL
    return G
 end
@@ -605,13 +624,30 @@ end
 
 """
     special_linear_group(n::Int, q::Int)
-    special_linear_group(n::Int, F::FqNmodFiniteField)
+    special_linear_group(n::Int, R::Ring)
     SL = special_linear_group
 
-Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+Return the special linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
+
+Currently, this function only supports rings of type `FqNmodFiniteField`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = special_linear_group(2,F)
+SL(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [6 1; 6 0]
+
+```
 """
-function special_linear_group(n::Int, F::Ring)
-   G = MatrixGroup(n,F)
+function special_linear_group(n::Int, R::Ring)
+   G = MatrixGroup(n,R)
    G.descr = :SL
    return G
 end
@@ -622,15 +658,32 @@ end
 
 """
     symplectic_group(n::Int, q::Int)
-    symplectic_group(n::Int, F::FqNmodFiniteField)
+    symplectic_group(n::Int, R::Ring)
     Sp = symplectic_group
 
-Return the symplectic group of dimension `n` either over the field `F` or the
+Return the symplectic group of dimension `n` over the ring `R` respectively the
 field `GF(q)`. The dimension `n` must be even.
+
+Currently, this function only supports rings of type `FqNmodFiniteField`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = symplectic_group(2,F)
+Sp(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [6 1; 6 0]
+
+```
 """
-function symplectic_group(n::Int, F::Ring)
+function symplectic_group(n::Int, R::Ring)
    iseven(n) || throw(ArgumentError("The dimension must be even"))
-   G = MatrixGroup(n,F)
+   G = MatrixGroup(n,R)
    G.descr = :Sp
    return G
 end
@@ -640,26 +693,43 @@ function symplectic_group(n::Int, q::Int)
 end
 
 """
-    orthogonal_group(e::Int, n::Int, F::Ring)
+    orthogonal_group(e::Int, n::Int, R::Ring)
     orthogonal_group(e::Int, n::Int, q::Int)
     GO = orthogonal_group
 
-Return the orthogonal group of dimension `n` either over the field `F` or the
-field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
+Return the orthogonal group of dimension `n` over the ring `R` respectively the
+field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
+
+Currently, this function only supports rings of type `FqNmodFiniteField`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = symplectic_group(2,F)
+Sp(2,7)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [6 1; 6 0]
+
+```
 """
-function orthogonal_group(e::Int, n::Int, F::Ring)
+function orthogonal_group(e::Int, n::Int, R::Ring)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("GO+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("GO-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = :GO
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -671,31 +741,49 @@ function orthogonal_group(e::Int, n::Int, q::Int)
    return orthogonal_group(e, n, _field_from_q(q))
 end
 
-orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
+orthogonal_group(n::Int, R::Ring) = orthogonal_group(0,n,R)
 orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
 
 """
-    special_orthogonal_group(e::Int, n::Int, F::Ring)
+    special_orthogonal_group(e::Int, n::Int, R::Ring)
     special_orthogonal_group(e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
 
-Return the special orthogonal group of dimension `n` either over the field `F`
-or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and
+Return the special orthogonal group of dimension `n` over the ring `R` respectively
+the field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+
+Currently, this function only supports rings of type `FqNmodFiniteField`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = special_orthogonal_group(1,2,F)
+SO+(2,7)
+
+julia> gens(H)
+3-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [3 0; 0 5]
+ [5 0; 0 3]
+ [1 0; 0 1]
+
+```
 """
-function special_orthogonal_group(e::Int, n::Int, F::Ring)
-   iseven(order(F)) && return GO(e,n,F)
+function special_orthogonal_group(e::Int, n::Int, R::Ring)
+   characteristic(R) == 2 && return GO(e,n,R)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("SO+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("SO-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = :SO
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -707,30 +795,46 @@ function special_orthogonal_group(e::Int, n::Int, q::Int)
    return special_orthogonal_group(e, n, _field_from_q(q))
 end
 
-special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
+special_orthogonal_group(n::Int, R::Ring) = special_orthogonal_group(0,n,R)
 special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
 
 """
-    omega_group(e::Int, n::Int, F::Ring)
+    omega_group(e::Int, n::Int, R::Ring)
     omega_group(e::Int, n::Int, q::Int)
 
 Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
+
+Currently, this function only supports rings of type `FqNmodFiniteField`.
+
+# Examples
+```jldoctest
+julia> F = GF(7,1)
+Finite field of degree 1 over F_7
+
+julia> H = omega_group(1,2,F)
+Omega+(2,7)
+
+julia> gens(H)
+1-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [2 0; 0 4]
+
+```
 """
-function omega_group(e::Int, n::Int, F::Ring)
-   n==1 && return SO(e,n,F)
+function omega_group(e::Int, n::Int, R::Ring)
+   n==1 && return SO(e,n,R)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("Omega+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = Symbol("Omega-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,F)
+      G = MatrixGroup(n,R)
       G.descr = :Omega
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -743,13 +847,25 @@ function omega_group(e::Int, n::Int, q::Int)
 end
 
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
-omega_group(n::Int, F::Ring) = omega_group(0,n,F)
+omega_group(n::Int, R::Ring) = omega_group(0,n,R)
 
 """
     unitary_group(n::Int, q::Int)
     GU = unitary_group
 
 Return the unitary group of dimension `n` over the field `GF(q^2)`.
+
+# Examples
+```jldoctest
+julia> H = unitary_group(2,3)
+GU(2,3)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [o 0; 0 2*o]
+ [2 2*o+2; 2*o+2 0]
+
+```
 """
 function unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)
@@ -764,6 +880,19 @@ end
     SU = special_unitary_group
 
 Return the special unitary group of dimension `n` over the field `GF(q^2)`.
+
+# Examples
+```jldoctest
+julia> H = special_unitary_group(2,3)
+SU(2,3)
+
+julia> gens(H)
+2-element Vector{MatrixGroupElem{fq_nmod, fq_nmod_mat}}:
+ [1 2*o+2; 0 1]
+ [0 2*o+2; 2*o+2 0]
+
+```
+
 """
 function special_unitary_group(n::Int, q::Int)
    (a,b) = is_power(q)

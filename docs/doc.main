@@ -109,7 +109,6 @@
        "PolyhedralGeometry/Polyhedra/constructions.md",
        "PolyhedralGeometry/Polyhedra/polymake.md",
        "PolyhedralGeometry/Polyhedra/auxiliary.md",
-       "PolyhedralGeometry/Polyhedra/serialization.md",
        "PolyhedralGeometry/Polyhedra/visualization.md",
      ],
       "PolyhedralGeometry/cones.md",
@@ -185,6 +184,9 @@
      ],
      "Standard Constructions" => [
        "AlgebraicGeometry/StandardConstructions/standard_constructions.md",
+     ],
+     "Surfaces" => [
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md"
      ]
   ],
 

@@ -605,17 +605,57 @@ export blowup_on_ith_minimal_torus_orbit
 
 Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
+By default, we prepend an "x" to all homogeneous coordinate names of the first factor
+`v` and a "y" to all homogeneous coordinate names of the second factor `w`. This default
+can be overwritten by invoking `set_coordinate_names` after creating the variety
+(cf. [`set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})`](@ref)).
+
+*Important*: Recall that the coordinate names can only be changed as long as the toric
+variety in question is not finalized (cf. [`is_finalized(v::AbstractNormalToricVariety)`](@ref)).
+
+Crucially, the order of the homogeneous coordinates is not shuffled. To be more
+specific, assume that `v` has ``n_1`` and `w` has ``n_2`` homogeneous coordinates. Then
+`v * w` has ``n_1 + n_2`` homogeneous coordinates. The first ``n_1`` of these coordinates
+are those of `v` and appear in the very same order as they do for `v`. The remaining
+``n_2`` homogeneous coordinates are those of `w` and appear in the very same order as they
+do for `w`.
+
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> P2 * P2
+julia> v1 = P2 * P2
 A normal toric variety
+
+julia> cox_ring(v1)
+Multivariate Polynomial Ring in 6 variables xx1, xx2, xx3, yx1, ..., yx3 over Rational Field graded by
+  xx1 -> [1 0]
+  xx2 -> [1 0]
+  xx3 -> [1 0]
+  yx1 -> [0 1]
+  yx2 -> [0 1]
+  yx3 -> [0 1]
+
+julia> v2 = P2 * P2
+A normal toric variety
+
+julia> set_coordinate_names(v2, ["x1", "x2", "x3", "y1", "y2", "y3"])
+
+julia> cox_ring(v2)
+Multivariate Polynomial Ring in 6 variables x1, x2, x3, y1, ..., y3 over Rational Field graded by
+  x1 -> [1 0]
+  x2 -> [1 0]
+  x3 -> [1 0]
+  y1 -> [0 1]
+  y2 -> [0 1]
+  y3 -> [0 1]
 ```
 """
 function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
-    return NormalToricVariety(fan(v)*fan(w))
+    product = NormalToricVariety(fan(v)*fan(w))
+    set_coordinate_names(product, vcat(["x$(i)" for i in coordinate_names(v)], ["y$(i)" for i in coordinate_names(w)]))
+    return product
 end
 
 

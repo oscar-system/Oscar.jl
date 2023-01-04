@@ -204,7 +204,6 @@ julia> representative(gH)
 """
 representative(C::GroupCoset) = C.repr
 
-@deprecate elements(C::GroupCoset) collect(C)
 
 """
     is_bicoset(C::GroupCoset)
@@ -480,7 +479,6 @@ function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
    #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
 end
 
-@deprecate elements(C::GroupDoubleCoset) collect(C)
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})

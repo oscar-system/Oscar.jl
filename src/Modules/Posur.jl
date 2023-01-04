@@ -416,6 +416,7 @@ function kernel(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
+
   S = base_ring(domain(f))
   A = representing_matrix(f)
   B, D = clear_denominators(A)
@@ -488,8 +489,8 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   # `pre_saturated_module(M)` and w' as a new relation of it. 
   y = x[1, 1:r]
   z = x[1, r+1:r+s]
-  v = x*A
-  w = y*B
+  v = y*A
+  w = z*B
   (v_clear, d_v) = clear_denominators(v)
   (w_clear, d_w) = clear_denominators(w)
 
@@ -507,12 +508,12 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   # need to extend this matrix by one more row given by d_v ⋅ y.
   set_attribute!(M, :pre_saturation_data_gens, 
                  #vcat(Tr, d_v*y)
-                 push!(Tr, sparse_row(d_v*y))
+                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(y), d_v), y)))
                 )
   Tr = pre_saturation_data_rels(M)
   set_attribute!(M, :pre_saturation_data_rels, 
                  #vcat(Tr, d_w*z)
-                 push!(Tr, sparse_row(d_w*z))
+                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(z), d_w), z)))
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
   # finally, return the computed coordinates
@@ -680,7 +681,7 @@ function iszero(v::SubQuoElem{<:AbsLocalizedRingElem})
   iszero(Mb(u)) && return true
 
   B = relations_matrix(M)
-  success, y = has_solution(b, B)
+  success, y = has_solution(B, b)
   !success && return false
 
   # Cache the new relation in the pre_saturated_module

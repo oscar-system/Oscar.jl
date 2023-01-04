@@ -159,3 +159,12 @@ end
   @test z in saturated_ideal(J)
 end
 
+@testset "issue 1794" begin
+  kk, _ = cyclotomic_field(5)
+  R, (x, y) = kk["x", "y"]
+  I = ideal(R, [x^2, y^2])
+  A, _ = quo(R, I)
+  a = inv(A(1-x*y))
+  @test isone(a*(1-x*y))
+end
+

@@ -1266,10 +1266,9 @@ end
     noether_normalization(A::MPolyQuo)
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
-$V$ is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and
-such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; $F: A=R/I \rightarrow B = R/\phi(I)$ 
-is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the
-$l_i$ to the the last $d$ variables of $R$; and $G = F^{-1}$.
+- ``V`` is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; 
+- ``F: A=R/I \rightarrow B = R/\phi(I)`` is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
+- ``G = F^{-1}.``
 
 !!! warning
     The algorithm may not terminate over a small finite field. If it terminates, the result is correct.
@@ -1311,7 +1310,7 @@ end
 @doc Markdown.doc"""
     integral_basis(f::MPolyElem, i::Int; alg = :normal_local)
 
-Given a polynomial $f$ in two variables with coefficients in a field $K$, and
+Given a polynomial $f$ in two variables with coefficients in a perfect field $K$, and
 given an integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
 and monic in the specified variable: Say, $f\in\mathbb K[x,y]$ is monic in $y$.
 Then the normalization of $A = K[x,y]/\langle f \rangle$, that is, the

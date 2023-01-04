@@ -28,7 +28,7 @@
 @alias isfano is_fano
 @alias isfeasible is_feasible
 @alias isfiltered is_filtered
-@alias isfinite_order is_finite_order
+@alias isfinite_order is_finiteorder
 @alias isfinitelygenerated is_finitelygenerated
 @alias isfull_direct_product is_full_direct_product
 @alias isfull_semidirect_product is_full_semidirect_product

@@ -113,15 +113,11 @@ end
 
    CCx = centralizer(G,Cx)[1]
    CCy = centralizer(G,Cy)[1]
-   @testset for i in 1:ngens(Cx)
-      for j in 1:ngens(CCx)
-         @test Cx[i]*CCx[j] == CCx[j]*Cx[i]
-      end
+   @testset for i in 1:ngens(Cx), j in 1:ngens(CCx)
+      @test Cx[i]*CCx[j] == CCx[j]*Cx[i]
    end
-   @testset for i in 1:ngens(Cy)
-      for j in 1:ngens(CCy)
-         @test Cy[i]*CCy[j] == CCy[j]*Cy[i]
-      end
+   @testset for i in 1:ngens(Cy), j in 1:ngens(CCy)
+      @test Cy[i]*CCy[j] == CCy[j]*Cy[i]
    end
    notx = setdiff(G,CCx)
    noty = setdiff(G,CCy)
@@ -325,6 +321,32 @@ end
    @test Set(order(H) for H in L)==Set(fmpz[1,3,8,24])
    @test_throws ArgumentError hall_system(symmetric_group(5))
    
+end
+
+@testset "Complement classes" begin
+   # solvable group
+   G = symmetric_group(4)
+   N = pcore(G, 2)[1]
+   @test length(complement_class_reps(G, N)) == 1
+
+   # nonsolvable factor group
+   G = special_linear_group(2, 5)
+   N = center(G)[1]
+   @test length(complement_class_reps(G, N)) == 0
+
+   # nonsolvable normal subgroup
+   G = symmetric_group(6)
+   N = derived_subgroup(G)[1]
+   @test length(complement_class_reps(G, N)) == 2
+
+   # both normal subgroup and factor group nonsolvable:
+   # check that GAP throws an error
+   # (if not then perhaps a statement in the documentation of
+   # `complement_class_reps` can be changed)
+   G = alternating_group(5)
+   W = wreath_product(G, G)
+   N = kernel(projection(W))[1]
+   @test_throws ErrorException complement_class_reps(W, N)
 end
 
 @testset "Some specific subgroups" begin
