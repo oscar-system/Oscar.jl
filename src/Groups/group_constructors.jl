@@ -182,7 +182,7 @@ function abelian_group(::Type{PcGroup}, v::Vector{T}) where T <: IntegerUnion
   if 0 in v
     return PcGroup(GAP.Globals.AbelianPcpGroup(length(v), GAP.GapObj(v, recursive=true)))
   else
-    return PcGroup(GAP.Globals.AbelianGroup(GAP.Globals.PcGroup, GAP.GapObj(v, recursive=true)))
+    return PcGroup(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GAP.GapObj(v, recursive=true)))
   end
 end
 
