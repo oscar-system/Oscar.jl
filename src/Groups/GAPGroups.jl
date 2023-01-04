@@ -69,6 +69,7 @@ export
     right_cosets ,
     right_transversal,
     short_right_transversal,
+    small_generating_set, has_small_generating_set, set_small_generating_set,
     socle, has_socle, set_socle,
     subgroup_reps,
     syllables,
@@ -445,6 +446,30 @@ Return the length of the vector [`gens`](@ref)`(G)`.
     this is *NOT*, in general, the minimum number of generators for G.
 """
 ngens(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(G.X))
+
+"""
+    small_generating_set(G::GAPGroup)
+
+Return a reasonably short vector of elements in `G` that generate `G`;
+in general the length of this vector is not minimal.
+
+# Examples
+```jldoctest
+julia> length(small_generating_set(abelian_group(PcGroup, [2,3,4])))
+2
+
+julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
+3
+```
+"""
+@gapattribute function small_generating_set(G::GAPGroup)
+   L = GAP.Globals.SmallGeneratingSet(G.X)::GapObj
+   res = Vector{elem_type(G)}(undef, length(L))
+   for i = 1:length(res)
+     res[i] = group_element(G, L[i]::GapObj)
+   end
+   return res
+end
 
 
 ################################################################################
