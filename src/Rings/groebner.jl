@@ -171,7 +171,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     if base_ring(I) == base_ring(J)
       I.gb[ordering] = GB
     else
-      GB_dehom_gens = dehomogenization(GB.gens, base_ring(I), 1)
+      GB_dehom_gens = [dehomogenization(p, base_ring(I), 1) for p in gens(GB)]
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
 	elseif algorithm == :f4
@@ -1266,7 +1266,7 @@ compute the Hilbert series for `I` if the base field of `I` has
 positive characteristic, otherwise compute the Hilbert series for `I`
 modulo a randomly chosen prime. Use the resulting Hilbert series to
 optimize the Gröbner basis computation for `I`
-w.r.t. `target_ordering`.
+w.r.t. `destination_ordering`.
 
 `I` must be given by generators homogeneous w.r.t. `weights`.
 
@@ -1304,7 +1304,15 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
       ModP, _ = PolynomialRing(base_field, "x" => 1:ngens(base_ring(I)))
       I_mod_p_gens = Vector{elem_type(ModP)}(undef, length(gens(I))) 
       try
-        I_mod_p_gens = [ModP(f) for f in gens(I)]
+        # we have to coerce to ModP like this because the base ring of `I` might be
+        # graded
+        ctx = MPolyBuildCtx(ModP)
+        for (i, f) in enumerate(gens(I))
+          for (c, m) in zip(coefficients(f), exponents(f))
+            push_term!(ctx, base_field(c), m)
+          end
+          I_mod_p_gens[i] = finish(ctx)
+        end
         G = f4(ideal(ModP, I_mod_p_gens))
         break
       catch e
