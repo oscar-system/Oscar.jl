@@ -141,6 +141,7 @@ GAP.@wrap NrRows(x::GapObj)::Int
 GAP.@wrap NumberColumns(x::GapObj)::Int
 GAP.@wrap NumberRows(x::GapObj)::Int
 GAP.@wrap NumeratorRat(x::Any)::GapInt
+GAP.@wrap ObjByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap One(x::Any)::GAP.Obj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap PrimePGroup(x::GapObj)::GapInt

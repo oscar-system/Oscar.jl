@@ -151,8 +151,6 @@ false
 """
 @gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
 
-Base.isfinite(G::PcGroup) = true
-
 """
     is_finiteorder(g::GAPGroupElem) -> Bool
 
@@ -194,7 +192,7 @@ end
 order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 @gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)::Bool
-@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
+@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GAP.Obj(val))
 
 
 @gapattribute is_trivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
@@ -1695,6 +1693,40 @@ function length(g::FPGroupElem)
   gX = g.X
   GAPWrap.IsAssocWord(gX) || throw(ArgumentError("the element does not lie in a free group"))
   return length(gX)
+end
+
+
+"""
+    (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+
+Return the element `x` of `G` that is described by `pairs`
+in the sense that `x` is the product of the powers `gen(G, i_j) ^ e_j`
+where the `pairs[j]` is equal to `i_j => e_j`.
+If the `i_j` in adjacent entries of `pairs` are different and the `e_j` are
+nonzero then `pairs` is the vector of syllables of `x`, see [`syllables`](@ref).
+
+# Examples
+```jldoctest
+julia> G = free_group(2);  pairs = [1 => 3, 2 => -1];
+
+julia> x = G(pairs)
+f1^3*f2^-1
+
+julia> syllables(x) == pairs
+true
+```
+"""
+function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+   n = ngens(G)
+   ll = GAP.Obj[]
+   for p in pairs
+     0 < p.first && p.first <= n || throw(ArgumentError("generator number is at most $n"))
+     push!(ll, GAP.Obj(p.first))
+     push!(ll, GAP.Obj(p.second))
+   end
+   w = GAPWrap.ObjByExtRep(GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X)), GapObj(ll))::GapObj
+
+   return FPGroupElem(G, w)
 end
 
 

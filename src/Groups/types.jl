@@ -74,7 +74,7 @@ Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
     PermGroup
 
 Groups of permutations.
-Every group of this type is the subgroup of Sym(n) for some n.
+Every group of this type is a subgroup of Sym(n) for some n.
 
 # Examples
 - `symmetric_group(n::Int)`: the symmetric group Sym(n)
@@ -84,7 +84,7 @@ Every group of this type is the subgroup of Sym(n) for some n.
   the dihedral group of order `n` as a group of permutations.
   Same holds replacing `dihedral_group` by `quaternion_group`
 
-If `G` is a group and `x` is a permutation,
+If `G` is a permutation group and `x` is a permutation,
 `G(x)` returns a permutation `x` with parent `G`;
 an exception is thrown if `x` does not embed into `G`.
 ```jldoctest
@@ -104,7 +104,7 @@ julia> parent(y)
 Sym( [ 1 .. 5 ] )
 ```
 
-If `G` is a group and `L` is a vector of integers,
+If `G` is a permutation group and `L` is a vector of integers,
 `G(x)` returns a [`PermGroupElem`](@ref) with parent `G`;
 an exception is thrown if the element does not embed into `G`.
 
@@ -158,7 +158,11 @@ const PermGroupElem = BasicGAPGroupElem{PermGroup}
 """
     PcGroup
 
-Polycyclic group
+Polycyclic group, a group that is defined by a finite presentation
+of a special kind, a so-called polycyclic presentation.
+Contrary to arbitrary finitely presented groups
+(see [Finitely presented groups](@ref)),
+this presentation allows for efficient computations with the group elements.
 
 # Examples
 - `cyclic_group(n::Int)`: cyclic group of order `n`
@@ -170,7 +174,7 @@ Polycyclic group
   X::GapObj
 
   function PcGroup(G::GapObj)
-    @assert GAPWrap.IsPcGroup(G)
+    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)
     z = new(G)
     return z
   end
@@ -180,6 +184,27 @@ end
     PcGroupElem
 
 Element of a polycyclic group.
+
+The generators of a polycyclic group are displayed as `f1`, `f2`, `f3`, etc.,
+and every element of a polycyclic group is displayed as product of the
+generators.
+
+# Examples
+
+```jldoctest
+julia> G = abelian_group(PcGroup, [2, 4]);
+
+julia> G[1], G[2]
+(f1, f2)
+
+julia> G[2]*G[1]
+f1*f2
+```
+
+Note that this does not define Julia variables named `f1`, `f2`, etc.!
+To get the generators of the group `G`, use `gens(G)`;
+for convenience they can also be accessed as `G[1]`, `G[2]`,
+as shown in Section [Elements of groups](@ref elements_of_groups).
 """
 const PcGroupElem = BasicGAPGroupElem{PcGroup}
 
