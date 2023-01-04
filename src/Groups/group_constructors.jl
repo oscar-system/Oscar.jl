@@ -390,6 +390,12 @@ function quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
   return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n)::GapObj)
 end
 
+# Delegating to the GAP constructor via `_gap_filter` does not work here.
+function quaternion_group(::Type{PcGroup}, n::IntegerUnion)
+  @assert iszero(mod(n, 4))
+  return PcGroup(GAP.Globals.QuaternionGroup(GAP.Globals.IsPcGroup, n)::GapObj)
+end
+
 @doc Markdown.doc"""
     is_quaternion_group(G::GAPGroup)
 

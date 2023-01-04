@@ -97,12 +97,12 @@ end
   g = cyclic_group(PosInf())
   @test is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
 
   g = dihedral_group(PosInf())
   @test !is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(g)
+  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
 
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
