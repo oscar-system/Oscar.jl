@@ -835,23 +835,20 @@ false
 ```
 """
 function is_cohen_macaulay(A::MPolyQuo)
-  I = A.I
-  R = base_ring(I)
-  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring must be a field."))
-  end
-  if !((R isa Oscar.MPolyRing_dec) && is_standard_graded(R))
-     throw(ArgumentError("The base ring must be standard ZZ-graded."))
-  end
-  # for Dan: please implement these steps:
-  # create Singular ring RRR which "coincides" with R, but is equipped with `ds`
-  # create Singular ideal III in RRR which "coincides" with I
-  # call `isCM(I);`  from `homolog.lib`
-  # return `true` if answer is 1, `false` otherwise.
-  # the following dummy stuff has to be removed: it just produces the correct answers for the selected examples
-  if ngens(R) == 4 return true end
-  return false
+ I = A.I
+ R = base_ring(I)
+ if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+    throw(ArgumentError("The coefficient ring must be a field."))
+ end
+ if !((R isa Oscar.MPolyRing_dec) && is_standard_graded(R))
+    throw(ArgumentError("The base ring must be standard ZZ-graded."))
+ end
+ singular_assure(I, negdegrevlex(gens(R)))
+ res = Singular.LibHomolog.isCM(I.gens.gens.S)
+ if res == 1 return true end
+ return false
 end
+
 ##############################################################################
 #
 # Algebra Containment
