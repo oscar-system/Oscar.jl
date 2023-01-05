@@ -593,59 +593,6 @@ identifications given by the glueings in the `default_covering`.
     )
     OOX = StructureSheafOfRings(X)
 
-    ### Checks for open containment.
-    #
-    # We allow the following cases:
-    #
-    #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
-    #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-    #    and U and V contained in the glueing domains of their ambient schemes
-    #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
-    #  * U::AbsSpec ⊂ X for U in the basic charts
-    #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
-    function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
-      C = default_covering(X)
-      A = ambient_scheme(U)
-      A in C || return false
-      B = ambient_scheme(V)
-      B in C || return false
-      if A === B
-        is_subset(U, V) || return false
-      else
-        G = C[A, B] # Get the glueing
-        f, g = glueing_morphisms(G)
-        is_subset(U, domain(f)) || return false
-        is_subset(V, domain(g)) || return false
-        gU = preimage(g, U)
-        is_subset(gU, V) || return false
-      end
-      return true
-    end
-    function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
-      return Y === X && ambient_scheme(U) in default_covering(X)
-    end
-    function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
-      return Y === X && U in default_covering(X)
-    end
-    function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
-      return X === Y === Z
-    end
-    function is_open_func(U::AbsSpec, V::AbsSpec)
-      U in default_covering(X) || return false
-      V in default_covering(X) || return false
-      G = default_covering(X)[U, V]
-      return issubset(U, glueing_domains(G)[1])
-    end
-    function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-      V in default_covering(X) || return false
-      ambient_scheme(U) === V && return true
-      W = ambient_scheme(U)
-      W in default_covering(X) || return false
-      G = default_covering(X)[W, V]
-      return is_subset(U, glueing_domains(G)[1])
-    end
-
     ### Production of the rings of regular functions; to be cached
     function production_func(F::AbsPreSheaf, U::AbsSpec)
       # If U is an affine chart on which the ideal has already been described, take that.
@@ -669,7 +616,16 @@ identifications given by the glueings in the `default_covering`.
       return ideal(OO(U), one(OO(U)))
     end
     function production_func(F::AbsPreSheaf, U::PrincipalOpenSubset)
+      haskey(ID, U) && return ID[U]
       V = ambient_scheme(U)
+      IV = F(V)::Ideal
+      rho = OOX(V, U)
+      IU = ideal(OO(U), rho.(gens(IV)))
+      return IU
+    end
+    function production_func(F::AbsPreSheaf, U::SimplifiedSpec)
+      haskey(ID, U) && return ID[U]
+      V = original(U)
       IV = F(V)::Ideal
       rho = OOX(V, U)
       IU = ideal(OO(U), rho.(gens(IV)))
@@ -686,7 +642,7 @@ identifications given by the glueings in the `default_covering`.
     Ipre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=Ideal,
                       RestrictionType=Hecke.Map,
-                      is_open_func=is_open_func
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
     I = new{typeof(X), AbsSpec, Ideal, Hecke.Map}(ID, OOX, Ipre)
     if check
