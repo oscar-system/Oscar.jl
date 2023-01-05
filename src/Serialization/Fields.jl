@@ -285,7 +285,7 @@ function load_internal(s::DeserializerState,
                        ::Type{<: AbstractAlgebra.Generic.RationalFunctionField},
                        dict::Dict)
     R = load_unknown_type(s, dict[:base_ring])
-    symbols = load_type_dispatch(s, Symbol, dict[:symbols])
+    symbols = load_unknown_type(s, dict[:symbols])
 
     return RationalFunctionField(R, symbols, cached=false)[1]
 end
