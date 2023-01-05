@@ -165,7 +165,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
         J, target_ordering = I, ordering
       end 
     end
-    GB = groebner_basis_hilbert_driven(J, target_ordering,
+    GB = groebner_basis_hilbert_driven(J, ordering = target_ordering,
                                        weights=_extract_weights(base_ring(J)),
                                        complete_reduction=complete_reduction)
     if base_ring(I) == base_ring(J)
@@ -1251,22 +1251,21 @@ end
 
 
 @doc Markdown.doc"""
-    groebner_basis_hilbert_driven(I::MPolyIdeal,
-                                  destination_ordering::MonomialOrdering;
+    groebner_basis_hilbert_driven(I::MPolyIdeal;
+                                  ordering::MonomialOrdering,
                                   weights::Vector{E} = ones(Int, ngens(base_ring(I))),
                                   complete_reduction::Bool = false) where {E <: Integer}
 
 
-Compute a Gröbner basis of `I` with respect to `destination_ordering`
-using a Hilbert Series driven method as follows: If a Gröbner basis
-for `I` is present, compute the Hilbert series of `I` and use it to
-optimize the Gröbner basis computation for `I`
-w.r.t. `destination_ordering`. If no Gröbner basis for `I` is present
-compute the Hilbert series for `I` if the base field of `I` has
-positive characteristic, otherwise compute the Hilbert series for `I`
-modulo a randomly chosen prime. Use the resulting Hilbert series to
-optimize the Gröbner basis computation for `I`
-w.r.t. `destination_ordering`.
+Compute a Gröbner basis of `I` with respect to `ordering` using a
+Hilbert Series driven method as follows: If a Gröbner basis for `I` is
+present, compute the Hilbert series of `I` and use it to optimize the
+Gröbner basis computation for `I` w.r.t. `ordering`. If no Gröbner
+basis for `I` is present compute the Hilbert series for `I` if the
+base field of `I` has positive characteristic, otherwise compute the
+Hilbert series for `I` modulo a randomly chosen prime. Use the
+resulting Hilbert series to optimize the Gröbner basis computation for
+`I` w.r.t. `ordering`.
 
 `I` must be given by generators homogeneous w.r.t. `weights`.
 
@@ -1276,7 +1275,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [x^2 + y*z, x*y - y*z]);
 
-julia> groebner_basis_hilbert_driven(I, lex(R), complete_reduction = true)
+julia> groebner_basis_hilbert_driven(I, ordering = lex(R), complete_reduction = true)
 Gröbner basis with elements
 1 -> y^2*z + y*z^2
 2 -> x*y - y*z
@@ -1286,15 +1285,15 @@ lex([x, y, z])
 ```
 """
 
-function groebner_basis_hilbert_driven(I::MPolyIdeal,
-                                       destination_ordering::MonomialOrdering;
+function groebner_basis_hilbert_driven(I::MPolyIdeal;
+                                       ordering::MonomialOrdering,
                                        weights::Vector{E} = ones(Int, ngens(base_ring(I))),
                                        complete_reduction::Bool = false) where {E <: Integer}
   
   all(p -> _is_homogeneous_weights(p, weights), gens(I)) || error("I must be given by generators homogeneous with respect to given weights.")
 	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
-  is_global(destination_ordering) || error("Destination ordering must be global.")
-	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
+  is_global(ordering) || error("Destination ordering must be global.")
+	haskey(I.gb, ordering) && return I.gb[ordering]
   if isempty(I.gb) && iszero(characteristic(base_ring(I)))  
     while true
       r = rand(2^15:2^16)
@@ -1327,20 +1326,20 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal,
     G = groebner_assure(I)
   end
 
-  if characteristic(base_ring(I)) > 0 && destination_ordering == default_ordering(base_ring(I))
+  if characteristic(base_ring(I)) > 0 && ordering == default_ordering(base_ring(I))
     return G
   end
 
   singular_assure(G)
   h = Singular.hilbert_series(G.S, (Int32).(weights))
-	singular_assure(I.gens, destination_ordering)
+	singular_assure(I.gens, ordering)
 	R = I.gens.Sx
 	J  = Singular.Ideal(R, gens(I.gens.S)...)
 	i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
 	GB = IdealGens(I.gens.Ox, i, complete_reduction)
 	GB.isGB = true
-	GB.ord = destination_ordering
+	GB.ord = ordering
   if isdefined(GB, :S)
 	   GB.S.isGB  = true
 	end

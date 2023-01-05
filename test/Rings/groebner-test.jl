@@ -180,7 +180,7 @@ end
 @testset "groebner hilbert driven" begin
 	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
   I = ideal([x*(x+1), x^2 - y^2 + (x-2) * y])
-  @test_throws ErrorException groebner_basis_hilbert_driven(I, lex(R))
+  @test_throws ErrorException groebner_basis_hilbert_driven(I, ordering = lex(R))
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
   S, (x, y) = grade(R)
