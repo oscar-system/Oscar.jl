@@ -87,6 +87,21 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   return compose(f, h), d
 end
 
+function __find_chart(U::AbsSpec, C::Covering) 
+  any(W->(W === U), patches(C)) || error("patch not found")
+  return U
+end
+
+function __find_chart(U::PrincipalOpenSubset, C::Covering)
+  any(W->(W === U), patches(C)) && return U
+  return __find_chart(ambient_scheme(U), C)
+end
+
+function __find_chart(U::SimplifiedSpec, C::Covering)
+  any(W->(W === U), patches(C)) && return U
+  return __find_chart(original(U), C)
+end
+
 #=
 # This follows U in its ancestor tree up to the point 
 # where a patch W in C is found. Then it recreates U as a 
@@ -156,4 +171,77 @@ function _flatten_open_subscheme(
   return _flatten_open_subscheme(W, C, iso=new_iso)
 end
 
- 
+########################################################################
+# Lookup of common ancestors                                           #
+#                                                                      #
+# This returns the node in the natural tree structure which is closest #
+# to the two input schemes.                                            #
+########################################################################
+function _have_common_ancestor(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
+  U === V && return true
+  if ambient_scheme(U) === V
+    return true, V
+  elseif ambient_scheme(V) === U
+    return true, U
+  elseif ambient_scheme(V) === ambient_scheme(U)
+    return true, ambient_scheme(V)
+  end
+  return _have_common_ancestor(ambient_scheme(U), ambient_scheme(V))
+end
+
+function _have_common_ancestor(U::AbsSpec, V::PrincipalOpenSubset)
+  return _have_common_ancestor(U, ambient_scheme(V))
+end
+
+function _have_common_ancestor(
+    V::PrincipalOpenSubset,
+    U::AbsSpec
+  )
+  return _have_common_ancestor(U, ambient_scheme(V))
+end
+
+function _have_common_ancestor(U::AbsSpec, V::AbsSpec)
+  return U===V, U
+end
+
+function _have_common_ancestor(U::AbsSpec, V::SimplifiedSpec)
+  return _have_common_ancestor(U, original(V))
+end
+
+function _have_common_ancestor(
+    V::SimplifiedSpec,
+    U::AbsSpec
+  )
+  return _have_common_ancestor(U, original(V))
+end
+
+function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedSpec)
+  U === V && return true
+  if ambient_scheme(U) === V
+    return true, V
+  elseif original(V) === U
+    return true, U
+  elseif original(V) === ambient_scheme(U)
+    return true, original(V)
+  end
+  return _have_common_ancestor(ambient_scheme(U), original(V))
+end
+
+function _have_common_ancestor(
+    V::SimplifiedSpec,
+    U::PrincipalOpenSubset
+  )
+  return _have_common_ancestor(U, V)
+end
+
+function _have_common_ancestor(U::SimplifiedSpec, V::SimplifiedSpec)
+  U === V && return true
+  if original(U) === V
+    return true, V
+  elseif original(V) === U
+    return true, U
+  elseif original(V) === original(U)
+    return true, original(V)
+  end
+  return _have_common_ancestor(original(U), original(V))
+end

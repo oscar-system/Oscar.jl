@@ -23,6 +23,12 @@
   @test g in T(U21)
   @test element_to_homomorphism(g)(domain(T)(U21)[1]) in codomain(T)(U21)
 
+  simplify!(X)
+  CC = coverings(X)[2]
+  for U in patches(CC)
+    @test_broken !iszero(T(U))
+  end
+
   HomM1M1 = oscar.HomSheaf(M1, M1)
   rho = HomM1M1(U[1], U21)
   g = HomM1M1(U[1])[1]

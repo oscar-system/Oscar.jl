@@ -164,23 +164,162 @@ identifications given by the glueings in the `default_covering`.
 
     ### Production of the restriction maps; to be cached
     function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
-      MV = F(V)
-      MU = F(U)
-      # There are two cases: Either U is a PrincipalOpenSubset of V, or U 
-      # is a PrincipalOpenSubset of another affine_chart W. In both cases, 
-      # we need to find W (which equals V in the first case) and use the transition 
-      # matrix for the changes between these two sets. 
-      VV = V
-      while VV isa PrincipalOpenSubset
-          VV = ambient_scheme(VV)
+      if any(W->(W === U), affine_charts(X)) && any(W->(W === V), affine_charts(X))
+        MV = F(V)
+        MU = F(U)
+        A = MG[(V, U)] # The transition matrix
+        UU, _ = glueing_domains(default_covering(X)[U, V])
+        psi = OOX(UU, U) # Needs to exist by the checks of is_open_func, even though 
+        # in general UU ⊂ U!
+        return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)]) for i in 1:ngens(MV)], rho)
+      else
+        error("invalid input")
       end
-      UU = U
-      while UU isa PrincipalOpenSubset
-          UU = ambient_scheme(UU)
+    end
+
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::PrincipalOpenSubset)
+      # If V was not an affine_chart of X, some other function would have 
+      # been triggered. 
+
+      # First the easy case: Inheritance from an ancestor in the tree.
+      if ambient_scheme(U) === V
+        # If the restriction was more complicated than what follows, then 
+        # it would have been cached earlier and this call would not have happened
+        # This is the end of the recursion induced in the next elseif below.
+        W = ambient_scheme(U)
+        res = hom(F(W), F(U), gens(MU), OOX(W, U))
+        return res
+      elseif some_ancestor(W->(W === V), U)
+        W = ambient_scheme(U)
+        return compose(F(V, W), F(W, U))
       end
-      rho = OOX(V, U) 
-      A = MG[(VV, UU)] # The transition matrix
-      return hom(MV, MU, [sum([A[i, j] * MU[j] for j in 1:ngens(MU)]) for i in 1:ngens(MV)], rho)
+
+      # Now we know we have a transition across charts
+      W = __find_chart(U, default_covering(X))
+      A = MG[(V, W)] # The transition matrix
+      WW, _ = glueing_domains(default_covering(X)[W, V])
+      # From W to U (and hence also from WW to U) the generators of the modules 
+      # in F might have changed. Thus, we have to expect a non-trivial transition 
+      # from the top-level down to U. The transition matrix A is only given with 
+      # respect to the generators of F(W), so we have to map them manually down.
+      # The call to F(W, U) will be handled by the above if-clauses.
+      return hom(F(V), F(U), 
+                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))]) 
+                  for i in 1:ngens(F(V))], 
+                 OOX(V, U)
+                )
+    end
+
+    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::SimplifiedSpec)
+      # If V was not an affine_chart of X, some other function would have 
+      # been triggered. 
+
+      # First the easy case: Inheritance from an ancestor in the tree.
+      if original(U) === V
+        # If the restriction was more complicated than what follows, then 
+        # it would have been cached earlier and this call would not have happened
+        # This is the end of the recursion induced in the next elseif below.
+        W = original(U)
+        res = hom(F(W), F(U), gens(MU), OOX(W, U))
+        return res
+      elseif some_ancestor(W->(W === V), U)
+        W = original(U)
+        return compose(F(V, W), F(W, U))
+      end
+
+      # Now we know we have a transition across charts
+      W = __find_chart(U, default_covering(X))
+      A = MG[(V, W)] # The transition matrix
+      WW, _ = glueing_domains(default_covering(X)[W, V])
+      # From W to U (and hence also from WW to U) the generators of the modules 
+      # in F might have changed. Thus, we have to expect a non-trivial transition 
+      # from the top-level down to U. The transition matrix A is only given with 
+      # respect to the generators of F(W), so we have to map them manually down.
+      # The call to F(W, U) will be handled by the above if-clauses.
+      return hom(F(V), F(U), 
+                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))]) 
+                  for i in 1:ngens(F(V))], 
+                 OOX(V, U)
+                )
+    end
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::AbsSpec)
+      # Problem: We can assume that we know how to pass from generators 
+      # of W = __find_chart(V, default_covering(X)) to those on V, but we do not 
+      # know the inverse to this. But the transition matrix to U is given 
+      # with respect to the generators on W.
+      error("case not implemented")
+    end
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::PrincipalOpenSubset)
+      V === U && return identity_map(F(U))
+
+      if V === ambient_scheme(U)
+        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
+      elseif some_ancestor(W->W===V, U)
+        W = ambient_scheme(U)
+        return compose(F(V, W), F(W, U))
+      end
+
+      # Below follow the more complicated cases. 
+      success, _ = _have_common_ancestor(U, V)
+      if success
+        W = __find_chart(U, default_covering(X))
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_V = F(W, V).(gens(F(W)))
+        sub_V, inc = sub(F(V), gens_V)
+        img_gens = elem_type(F(U))[]
+        for v in gens(F(V))
+          w = preimage(inc, v) # We know that inc is actually an isomorphism
+          c = coordinates(w)
+          w = sum(OOX(V, U)(c[i])*gens_U[i] 
+                  for i in 1:length(gens_U)
+                 )
+          push!(img_gens, w)
+        end
+        return hom(F(V), F(U), img_gens, OOX(V, U))
+      end
+
+      # Now we know we have a transition between different charts.
+      inc_U = _flatten_open_subscheme(U, default_covering(X))
+      inc_V = _flatten_open_subscheme(V, default_covering(X))
+      U_flat = codomain(inc_U)
+      V_flat = codomain(inc_V)
+      WU = ambient_scheme(U_flat)
+      WV = ambient_scheme(V_flat)
+      WU = __find_chart(U, default_covering(X))
+      WV = __find_chart(V, default_covering(X))
+      # The problem is: The generators of F(WU) may be different from 
+      # those of F(U) and similarly for V. But the transition matrices 
+      # are only described for those on WU and WV. Thus we need to 
+      # implicitly do a base change. This is done by forwarding the generators 
+      # of F(WU) to F(U) and expressing it in terms of the generators there. 
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_V = F(WV, V).(gens(F(WV)))
+      sub_V, inc = sub(F(V), gens_V)
+      img_gens = elem_type(F(U))[]
+      A = MG[(WV, WU)] # The transition matrix
+      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      for v in gens(F(V))
+        w = preimage(inc, v) # We know that inc is actually an isomorphism
+        c = coordinates(w)
+        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j] 
+                    for i in 1:length(gens_V)) 
+                for j in 1:length(gens_U)
+               )
+        push!(img_gens, w)
+      end
+      return hom(F(V), F(U), img_gens, OOX(V, U))
+    end
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedSpec)
+      error("case not implemented")
+    end
+    function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::AbsSpec)
+      error("case not implemented")
+    end
+    function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::PrincipalOpenSubset)
+      error("case not implemented")
+    end
+    function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::SimplifiedSpec)
+      error("case not implemented")
     end
 
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
