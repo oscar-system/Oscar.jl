@@ -11,10 +11,9 @@ is_basic_serialization_type(::Type{Symbol}) = true
 is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
 
 function save_internal(s::SerializerState, vec::Vector{T}) where T
-    d = Dict(
+    d = Dict{Symbol, Any}(
         :vector => [save_type_dispatch(s, x) for x in vec]
     )
-
     if is_basic_serialization_type(T)
         d[:entry_type] = encodeType(T)
     end

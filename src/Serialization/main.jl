@@ -126,7 +126,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_type_dispatch(s::DeserializerState, ::Type{T}, str::String; parent=nothing)
+function load_type_dispatch(s::DeserializerState,
+                            ::Type{T}, str::String; parent=nothing) where T
     @assert is_basic_serialization_type(T)
     if parent !== nothing
         load_internal_with_parent(s, T, str, parent)
