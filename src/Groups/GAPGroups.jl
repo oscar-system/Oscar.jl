@@ -37,6 +37,7 @@ export
     isfinite, has_is_finite, set_is_finite,
     is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
     is_finiteorder,
+    is_full_fp_group,
     is_perfect, has_is_perfect, set_is_perfect,
     is_pgroup, has_is_pgroup, set_is_pgroup,
     is_pgroup_with_prime,
@@ -1485,13 +1486,56 @@ false
 
 
 @doc Markdown.doc"""
+    is_full_fp_group(G::FPGroup)
+
+Return `true` if `G` has been constructed as a free group or
+a quotient of a free group, and `false` otherwise.
+
+Note that also subgroups of groups of type `FPGroup` have the type `FPGroup`,
+and functions such as [`relators`](@ref) do not make sense for proper
+subgroups.
+
+# Examples
+```jldoctest
+julia> f = free_group(2);  is_full_fp_group(f)
+true
+
+julia> s = sub(f, gens(f))[1];  is_full_fp_group(s)
+false
+
+julia> q = quo(f, [gen(f,1)^2])[1];  is_full_fp_group(q)
+true
+
+julia> u = sub(q, gens(q))[1];  is_full_fp_group(u)
+false
+```
+"""
+is_full_fp_group(G::FPGroup) = GAPWrap.IsFpGroup(G.X)
+
+
+@doc Markdown.doc"""
     relators(G::FPGroup)
 
-Return a vector of relators for the finitely presented group, i.e.,
+Return a vector of relators for the full finitely presented group `G`, i.e.,
 elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
 `G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
+
+An exception is thrown if `G` has been constructed only as a subgroup of a
+full finitely presented group, see [`is_full_fp_group`](@ref).
+
+# Examples
+```jldoctest
+julia> f = free_group(2);  (x, y) = gens(f);
+
+julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
+3-element Vector{FPGroupElem}:
+ f1^2
+ f2^2
+ f1^-1*f2^-1*f1*f2
+```
 """
 function relators(G::FPGroup)
+  is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
   L = GAPWrap.RelatorsOfFpGroup(G.X)::GapObj
   F = free_group(G)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
@@ -1724,8 +1768,9 @@ end
 """
     (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
 
-Return the element `x` of `G` that is described by `pairs`
-in the sense that `x` is the product of the powers `gen(G, i_j) ^ e_j`
+Return the element `x` of the full finitely presented group `G`
+that is described by `pairs` in the sense that `x` is the product
+of the powers `gen(G, i_j) ^ e_j`
 where the `pairs[j]` is equal to `i_j => e_j`.
 If the `i_j` in adjacent entries of `pairs` are different and the `e_j` are
 nonzero then `pairs` is the vector of syllables of `x`, see [`syllables`](@ref).
@@ -1742,18 +1787,29 @@ true
 ```
 """
 function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+   is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
    n = ngens(G)
    ll = GAP.Obj[]
    for p in pairs
      0 < p.first && p.first <= n || throw(ArgumentError("generator number is at most $n"))
-     push!(ll, GAP.Obj(p.first))
-     push!(ll, GAP.Obj(p.second))
+     if p.second != 0
+       push!(ll, GAP.Obj(p.first))
+       push!(ll, GAP.Obj(p.second))
+     end
    end
-   w = GAPWrap.ObjByExtRep(GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X)), GapObj(ll))::GapObj
+   famG = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X))
+   if GAP.Globals.IsFreeGroup(G.X)
+     w = GAPWrap.ObjByExtRep(famG, GapObj(ll))::GapObj
+   else
+     # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
+     F = GAP.getbangproperty(famG, :freeGroup)
+     famF = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(F))
+     w = GAPWrap.ObjByExtRep(famF, GapObj(ll))::GapObj
+     w = GAP.Globals.ElementOfFpGroup(famG, w)::GapObj
+   end
 
    return FPGroupElem(G, w)
 end
-
 
 @doc Markdown.doc"""
     nilpotency_class(G::GAPGroup) -> Int

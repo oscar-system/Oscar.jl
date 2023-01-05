@@ -229,12 +229,16 @@ end
 ################################################################################
 
 """
-    free_group(n::Int, s::Union{String, Symbol} = "f") -> FPGroup
+    free_group(n::Int, s::Union{String, Symbol} = "f"; eltype::Symbol = :letter) -> FPGroup
     free_group(L::Vector{<:Union{String, Symbol}}) -> FPGroup
     free_group(L::Union{String, Symbol}...) -> FPGroup
 
 The first form returns the free group of rank `n`, where the generators are
 printed as `s1`, `s2`, ..., the default being `f1`, `f2`, ...
+If `eltype` has the value `:syllable` then each element in the free group is
+internally represented by a vector of syllables,
+whereas a representation by a vector of integers is chosen in the default case
+of `eltype == :letter`.
 
 The second form, if `L` has length `n`, returns the free group of rank `n`,
 where the `i`-th generator is printed as `L[i]`.
