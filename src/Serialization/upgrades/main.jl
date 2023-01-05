@@ -5,7 +5,7 @@
 # been upgraded to the lastest format.
 
 struct UpgradeScript
-    version::VersionNumber
+    version::VersionNumber # version to be upgraded to
     script::Function
 end
 
