@@ -1,7 +1,8 @@
-# Upgrade scripts are used to upgrade file formats from their current format
-# to the next chronological file format. I.e. to upgrade to the latest file format
-# a file will go through all possible upgrade scripts in succesive order until
-# it has been upgraded to the lastest format.
+# Upgrade scripts contain code to upgrade serialization files from their
+# current format to the next file format version. Thus to upgrade a file to
+# the latest format, one needs to apply all possible upgrade scripts in
+# successive order as determined by their version until finally the file has
+# been upgraded to the lastest format.
 struct UpgradeScript
     version::VersionNumber
     script::Function
