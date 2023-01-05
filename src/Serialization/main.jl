@@ -1,19 +1,6 @@
 using JSON
 using UUIDs
 
-# type that doesn't serialize with backref
-# and stores type outside of vector entries
-# when serialized in a Vector{OscarBasictype}
-OscarBasicType = Union{
-    fmpz,
-    fmpq,
-    Bool,
-    Number,
-    Symbol,
-}
-
-is_basic_serialization_type(::Type) = false
-is_basic_serialization_type(::Type{T}) where T <: OscarBasicType = isconcretetype(T)
 
 # struct which tracks state for (de)serialization
 mutable struct SerializerState
@@ -139,8 +126,8 @@ function save_type_dispatch(s::SerializerState, obj::T) where T
     return result
 end
 
-function load_type_dispatch(s::DeserializerState,
-                            ::Type{T}, str::String; parent=nothing) where T <: OscarBasicType
+function load_type_dispatch(s::DeserializerState, ::Type{T}, str::String; parent=nothing)
+    @assert is_basic_serialization_type(T)
     if parent !== nothing
         load_internal_with_parent(s, T, str, parent)
     end

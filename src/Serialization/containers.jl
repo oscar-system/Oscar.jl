@@ -3,17 +3,22 @@
 
 @registerSerializationType(Vector)
 
-function save_internal(s::SerializerState, vec::Vector)
-    return Dict(
+is_basic_serialization_type(::Type) = false
+is_basic_serialization_type(::Type{fmpz}) = true
+is_basic_serialization_type(::Type{fmpq}) = true
+is_basic_serialization_type(::Type{Bool}) = true
+is_basic_serialization_type(::Type{Symbol}) = true
+is_basic_serialization_type(::Type{T}) where T <: Number = isconcretetype(T)
+
+function save_internal(s::SerializerState, vec::Vector{T}) where T
+    d = Dict(
         :vector => [save_type_dispatch(s, x) for x in vec]
     )
-end
 
-function save_internal(s::SerializerState, vec::Vector{T}) where T <: OscarBasicType
-    return Dict(
-        :vector => [save_type_dispatch(s, x) for x in vec],
-        :entry_type => encodeType(T)
-    )
+    if is_basic_serialization_type(T)
+        d[:entry_type] = encodeType(T)
+    end
+    return d
 end
 
 # deserialize with specific content type
