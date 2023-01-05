@@ -425,7 +425,9 @@ identifications given by the glueings in the `default_covering`.
       V_direct = PrincipalOpenSubset(W, dV)
       if W === U
         return pullback(inverse(incV))
-        ### deprecated code below
+        ### deprecated code below;
+        # kept for the moment because of possible incompatibilities with glueings 
+        # along SpecOpens.
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           # We may assume that all denominators admissible in V are
@@ -440,7 +442,7 @@ identifications given by the glueings in the `default_covering`.
         g_res = restrict(g, U, V_direct)
         inc_res = restrict(incV, V, V_direct, check=false)
         return pullback(compose(g_res, inverse(inc_res)))
-        ### deprecated code below
+        ### deprecated code below; see comment above
         function rho_func2(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(W1)(a)), U)
@@ -460,14 +462,6 @@ identifications given by the glueings in the `default_covering`.
       B = ambient_scheme(codomain(inc_V_flat))
       U_flat = codomain(inc_U_flat)
       V_flat = codomain(inc_V_flat)
-      # incV, dV = _find_chart(V, default_covering(X))
-      # incU, dU = _find_chart(U, default_covering(X))
-      # A = codomain(incV)
-      # B = codomain(incU)
-      # V_direct = PrincipalOpenSubset(A, dV)
-      # incV_res = restrict(incV, V, V_direct)
-      # U_direct = PrincipalOpenSubset(B, dU)
-      # incU_res = restrict(incU, U, U_direct)
 
       if A === B
         return hom(OV, OU, 
@@ -512,6 +506,8 @@ identifications given by the glueings in the `default_covering`.
     end
 
     ### cleaned up until here ###
+    # We do not make SpecOpen compatible with the tree structures, yet. 
+    # All SpecOpen's are hence required to have an ambient_scheme on the top level. 
 
     function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, W::SpecOpen)
       error("method not implemented at the moment")
