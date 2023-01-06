@@ -1,1 +1,51 @@
-{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl",{"major":0,"minor":11,"patch":3,"prerelease":["DEV"],"build":[]}]},"id":"f1e0cf98-0eee-4d94-a0bc-a976e0979017","type":"fmpq_poly","data":{"parent":{"id":"7844882b-c41d-4dbe-a1c9-f846e8a2133a","type":"FmpqPolyRing","data":{"base_ring":{"type":"FlintRationalField"},"symbols":{"id":"4aa28ad7-0617-429d-9606-99999cb04fae","type":"Vector","data":{"vector":["x"],"entry_type":"Symbol"}}}},"coeffs":{"id":"829ec1f3-b2f4-425e-819b-83e21243d0c3","type":"Vector","data":{"vector":["1//2","-1","1"],"entry_type":"fmpq"}}}}
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      {
+        "major": 0,
+        "minor": 11,
+        "patch": 3,
+        "prerelease": [
+          "DEV"
+        ],
+        "build": []
+      }
+    ]
+  },
+  "id": "f1e0cf98-0eee-4d94-a0bc-a976e0979017",
+  "type": "fmpq_poly",
+  "data": {
+    "parent": {
+      "id": "7844882b-c41d-4dbe-a1c9-f846e8a2133a",
+      "type": "FmpqPolyRing",
+      "data": {
+        "base_ring": {
+          "type": "FlintRationalField"
+        },
+        "symbols": {
+          "id": "4aa28ad7-0617-429d-9606-99999cb04fae",
+          "type": "Vector",
+          "data": {
+            "vector": [
+              "x"
+            ],
+            "entry_type": "Symbol"
+          }
+        }
+      }
+    },
+    "coeffs": {
+      "id": "829ec1f3-b2f4-425e-819b-83e21243d0c3",
+      "type": "Vector",
+      "data": {
+        "vector": [
+          "1//2",
+          "-1",
+          "1"
+        ],
+        "entry_type": "fmpq"
+      }
+    }
+  }
+}
