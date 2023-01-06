@@ -150,11 +150,24 @@ identifications given by the glueings in the `default_covering`.
       haskey(MD, U) && return MD[U]
       error("module on $U was not found")
     end
+
     function production_func(
         F::AbsPreSheaf,
         U::PrincipalOpenSubset
       )
       V = ambient_scheme(U)
+      MV = F(V)
+      rho = OOX(V, U)
+      MU, phi = change_base_ring(rho, MV)
+      add_incoming_restriction!(F, V, MU, phi)
+      return MU
+    end
+
+    function production_func(
+        F::AbsPreSheaf,
+        U::SimplifiedSpec
+      )
+      V = original(U)
       MV = F(V)
       rho = OOX(V, U)
       MU, phi = change_base_ring(rho, MV)
@@ -243,6 +256,29 @@ identifications given by the glueings in the `default_covering`.
                 )
     end
     function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::AbsSpec)
+      # We know that V can not be an ancestor of U, but U must be an affine chart.
+      # Probably even an ancestor of V itself. 
+      W = __find_chart(V, default_covering(X))
+      if W === U
+        # U and V must actually be isomorphic, but the modules of F might be 
+        # represented in different ways. We have to construct the inverse of 
+        # the restriction map from U to V.
+        gens_U = F(U, V).(gens(F(U)))
+        M, inc = sub(F(V), gens_U)
+        img_gens = elem_type(F(U))[]
+        for v in gens(F(V))
+          w = preimage(inc, v)
+          c = coordinates(w)
+          push!(img_gens,
+                sum(OOX(V, U)(c[i])*gens(F(U), i) for i in 1:ngens(F(U)))
+               )
+        end
+        return hom(F(V), F(U), img_gens, OOX(V, U))
+      else
+        # U must be properly contained in the glueing domains of the 
+        # glueing of the affine chart of V with U.
+        error("case not implemented")
+      end
       # Problem: We can assume that we know how to pass from generators 
       # of W = __find_chart(V, default_covering(X)) to those on V, but we do not 
       # know the inverse to this. But the transition matrix to U is given 
@@ -325,7 +361,8 @@ identifications given by the glueings in the `default_covering`.
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=_is_open_for_modules(X)
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                      #is_open_func=_is_open_for_modules(X)
                      )
     M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(MD, OOX, Mpre)
     if check
@@ -524,7 +561,7 @@ end
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=_is_open_for_modules(X)
+                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
                      )
     M = new{typeof(X), AbsSpec, ModuleFP, Hecke.Map}(F, G, OOX, Mpre)
 
@@ -705,7 +742,8 @@ end
     Blubber = PreSheafOnScheme(Y, production_func, restriction_func,
                       OpenType=AbsSpec, OutputType=ModuleFP,
                       RestrictionType=Hecke.Map,
-                      is_open_func=_is_open_for_modules(Y)
+                      is_open_func=_is_open_func_for_schemes_without_specopen(Y)
+                      #is_open_func=_is_open_for_modules(Y)
                      )
     MY = new{typeof(Y), AbsSpec, ModuleFP, Hecke.Map}(inc, OOX, OOY, M, ident, Blubber)
     return MY

@@ -26,7 +26,7 @@
   simplify!(X)
   CC = coverings(X)[2]
   for U in patches(CC)
-    @test_broken !iszero(T(U))
+    @test !iszero(T(U))
   end
 
   HomM1M1 = oscar.HomSheaf(M1, M1)
