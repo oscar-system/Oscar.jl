@@ -13,6 +13,11 @@
   rr = L(U[1], W)
   rrr = L(U21, W)
   @test rr == compose(rho, rrr)
+  WW = simplify(W)
+  @test WW isa Oscar.SimplifiedSpec
+  rrWW = L(U[1], WW)
+  rrrWW = L(U21, WW)
+  @test rrWW == compose(rho, rrrWW)
 
   M1 = oscar.cotangent_sheaf(X)
   rho = M1(U[1], U21)
@@ -28,6 +33,8 @@
   for U in patches(CC)
     @test !iszero(T(U))
   end
+  W = PrincipalOpenSubset(U[1], one(OO(U[1])))
+  @test !iszero(T(W))
 
   HomM1M1 = oscar.HomSheaf(M1, M1)
   rho = HomM1M1(U[1], U21)

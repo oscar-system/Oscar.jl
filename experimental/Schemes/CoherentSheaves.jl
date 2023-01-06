@@ -255,7 +255,10 @@ identifications given by the glueings in the `default_covering`.
                  OOX(V, U)
                 )
     end
-    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::AbsSpec)
+    function restriction_func(F::AbsPreSheaf, 
+        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+        U::AbsSpec
+      )
       # We know that V can not be an ancestor of U, but U must be an affine chart.
       # Probably even an ancestor of V itself. 
       W = __find_chart(V, default_covering(X))
@@ -346,16 +349,180 @@ identifications given by the glueings in the `default_covering`.
       return hom(F(V), F(U), img_gens, OOX(V, U))
     end
     function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedSpec)
-      error("case not implemented")
-    end
-    function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::AbsSpec)
-      error("case not implemented")
+      if V === original(U)
+        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
+      elseif some_ancestor(W->W===V, U)
+        W = original(U)
+        return compose(F(V, W), F(W, U))
+      end
+
+      # Below follow the more complicated cases. 
+      success, _ = _have_common_ancestor(U, V)
+      if success
+        W = __find_chart(U, default_covering(X))
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_V = F(W, V).(gens(F(W)))
+        sub_V, inc = sub(F(V), gens_V)
+        img_gens = elem_type(F(U))[]
+        for v in gens(F(V))
+          w = preimage(inc, v) # We know that inc is actually an isomorphism
+          c = coordinates(w)
+          w = sum(OOX(V, U)(c[i])*gens_U[i] 
+                  for i in 1:length(gens_U)
+                 )
+          push!(img_gens, w)
+        end
+        return hom(F(V), F(U), img_gens, OOX(V, U))
+      end
+
+      # Now we know we have a transition between different charts.
+      inc_U = _flatten_open_subscheme(U, default_covering(X))
+      inc_V = _flatten_open_subscheme(V, default_covering(X))
+      U_flat = codomain(inc_U)
+      V_flat = codomain(inc_V)
+      WU = ambient_scheme(U_flat)
+      WV = ambient_scheme(V_flat)
+      WU = __find_chart(U, default_covering(X))
+      WV = __find_chart(V, default_covering(X))
+      # The problem is: The generators of F(WU) may be different from 
+      # those of F(U) and similarly for V. But the transition matrices 
+      # are only described for those on WU and WV. Thus we need to 
+      # implicitly do a base change. This is done by forwarding the generators 
+      # of F(WU) to F(U) and expressing it in terms of the generators there. 
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_V = F(WV, V).(gens(F(WV)))
+      sub_V, inc = sub(F(V), gens_V)
+      img_gens = elem_type(F(U))[]
+      A = MG[(WV, WU)] # The transition matrix
+      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      for v in gens(F(V))
+        w = preimage(inc, v) # We know that inc is actually an isomorphism
+        c = coordinates(w)
+        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j] 
+                    for i in 1:length(gens_V)) 
+                for j in 1:length(gens_U)
+               )
+        push!(img_gens, w)
+      end
+      return hom(F(V), F(U), img_gens, OOX(V, U))
     end
     function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::PrincipalOpenSubset)
-      error("case not implemented")
+      if V === ambient_scheme(U)
+        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
+      elseif some_ancestor(W->W===V, U)
+        W = ambient_scheme(U)
+        return compose(F(V, W), F(W, U))
+      end
+
+      # Below follow the more complicated cases. 
+      success, _ = _have_common_ancestor(U, V)
+      if success
+        W = __find_chart(U, default_covering(X))
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_V = F(W, V).(gens(F(W)))
+        sub_V, inc = sub(F(V), gens_V)
+        img_gens = elem_type(F(U))[]
+        for v in gens(F(V))
+          w = preimage(inc, v) # We know that inc is actually an isomorphism
+          c = coordinates(w)
+          w = sum(OOX(V, U)(c[i])*gens_U[i] 
+                  for i in 1:length(gens_U)
+                 )
+          push!(img_gens, w)
+        end
+        return hom(F(V), F(U), img_gens, OOX(V, U))
+      end
+
+      # Now we know we have a transition between different charts.
+      inc_U = _flatten_open_subscheme(U, default_covering(X))
+      inc_V = _flatten_open_subscheme(V, default_covering(X))
+      U_flat = codomain(inc_U)
+      V_flat = codomain(inc_V)
+      WU = ambient_scheme(U_flat)
+      WV = ambient_scheme(V_flat)
+      WU = __find_chart(U, default_covering(X))
+      WV = __find_chart(V, default_covering(X))
+      # The problem is: The generators of F(WU) may be different from 
+      # those of F(U) and similarly for V. But the transition matrices 
+      # are only described for those on WU and WV. Thus we need to 
+      # implicitly do a base change. This is done by forwarding the generators 
+      # of F(WU) to F(U) and expressing it in terms of the generators there. 
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_V = F(WV, V).(gens(F(WV)))
+      sub_V, inc = sub(F(V), gens_V)
+      img_gens = elem_type(F(U))[]
+      A = MG[(WV, WU)] # The transition matrix
+      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      for v in gens(F(V))
+        w = preimage(inc, v) # We know that inc is actually an isomorphism
+        c = coordinates(w)
+        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j] 
+                    for i in 1:length(gens_V)) 
+                for j in 1:length(gens_U)
+               )
+        push!(img_gens, w)
+      end
+      return hom(F(V), F(U), img_gens, OOX(V, U))
     end
     function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::SimplifiedSpec)
-      error("case not implemented")
+      V === U && return identity_map(F(U))
+
+      if V === original(U)
+        return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
+      elseif some_ancestor(W->W===V, U)
+        W = original(U)
+        return compose(F(V, W), F(W, U))
+      end
+
+      # Below follow the more complicated cases. 
+      success, _ = _have_common_ancestor(U, V)
+      if success
+        W = __find_chart(U, default_covering(X))
+        gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceeding clauses
+        gens_V = F(W, V).(gens(F(W)))
+        sub_V, inc = sub(F(V), gens_V)
+        img_gens = elem_type(F(U))[]
+        for v in gens(F(V))
+          w = preimage(inc, v) # We know that inc is actually an isomorphism
+          c = coordinates(w)
+          w = sum(OOX(V, U)(c[i])*gens_U[i] 
+                  for i in 1:length(gens_U)
+                 )
+          push!(img_gens, w)
+        end
+        return hom(F(V), F(U), img_gens, OOX(V, U))
+      end
+
+      # Now we know we have a transition between different charts.
+      inc_U = _flatten_open_subscheme(U, default_covering(X))
+      inc_V = _flatten_open_subscheme(V, default_covering(X))
+      U_flat = codomain(inc_U)
+      V_flat = codomain(inc_V)
+      WU = ambient_scheme(U_flat)
+      WV = ambient_scheme(V_flat)
+      WU = __find_chart(U, default_covering(X))
+      WV = __find_chart(V, default_covering(X))
+      # The problem is: The generators of F(WU) may be different from 
+      # those of F(U) and similarly for V. But the transition matrices 
+      # are only described for those on WU and WV. Thus we need to 
+      # implicitly do a base change. This is done by forwarding the generators 
+      # of F(WU) to F(U) and expressing it in terms of the generators there. 
+      gens_U = F(WU, U).(gens(F(WU))) # This will be caught by the preceeding clauses
+      gens_V = F(WV, V).(gens(F(WV)))
+      sub_V, inc = sub(F(V), gens_V)
+      img_gens = elem_type(F(U))[]
+      A = MG[(WV, WU)] # The transition matrix
+      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      for v in gens(F(V))
+        w = preimage(inc, v) # We know that inc is actually an isomorphism
+        c = coordinates(w)
+        w = sum(sum(OOX(V, U)(c[i])*OOX(WW, U)(A[i, j])*gens_U[j] 
+                    for i in 1:length(gens_V)) 
+                for j in 1:length(gens_U)
+               )
+        push!(img_gens, w)
+      end
+      return hom(F(V), F(U), img_gens, OOX(V, U))
     end
 
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
