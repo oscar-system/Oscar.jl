@@ -6785,7 +6785,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, M::SubQuo) where {DomT
   S = codomain(f)
   F = ambient_free_module(M)
   R = base_ring(M)
-  FS, mapF = change_base_ring(S, F)
+  FS, mapF = change_base_ring(f, F)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubQuo(FS, mapF.(g), mapF.(rels))
