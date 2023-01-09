@@ -60,6 +60,10 @@ function is_open_func(F::AbsPreSheaf)
   return is_open_func(underlying_presheaf(F))
 end
 
+function object_cache(F::AbsPreSheaf)
+  return object_cache(underlying_presheaf(F))
+end
+
 ########################################################################
 # Implementation of PreSheafOnScheme                                   #
 ########################################################################
@@ -78,7 +82,7 @@ function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=t
   haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType 
 
   # Testing openness might be expensive, so it can be skipped
-  check && is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
+  check && (is_open_func(F)(U, space(F)) || error("the given set is not open or admissible"))
   G = production_func(F)(F, U)
   cached && (object_cache(F)[U] = G)
   return G::OutputType
@@ -93,17 +97,23 @@ end
 For a `F` produce (and cache) the restriction map `F(U) → F(V)`.
 """
 function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
-    U::Type1, V::Type2
+    U::Type1, V::Type2;
+    check::Bool=true
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   # First, look up whether this restriction had already been asked for previously.
   inc = incoming_restrictions(F, F(V)) 
   !(inc == nothing) && haskey(inc, U) && return (inc[U])::RestrictionType
 
   # Check whether the given pair is even admissible.
-  is_open_func(F)(V, U) || error("the second argument is not open in the first")
+  check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
 
   # Hand the production of the restriction over to the internal method 
   rho = restriction_func(F)(F, U, V)
+
+  # Sanity checks
+  # disabled for the moment because of the ideal sheaves: They use the ring maps.
+  #domain(rho) === F(U) || error("domain of the produced restrition is not correct")
+  #codomain(rho) === F(V) || error("codomain of the produced restrition is not correct")
 
   # Cache the result in the attributes of F(V)
   inc isa IdDict{<:OpenType, <:RestrictionType} && (inc[U] = rho) # It is the restriction coming from U.
@@ -113,7 +123,6 @@ end
 @Markdown.doc """
   add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
     U::OpenType,
-    V::OpenType,
     rho::RestrictionType
   ) where {OpenType, RestrictionType}
 
@@ -133,6 +142,9 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   incoming_res = incoming_restrictions(F, M)
   incoming_res == nothing && return F # This indicates that no 
   incoming_res::IdDict{<:OpenType, <:RestrictionType}
+  # sanity checks
+  domain(rho) === F(U) || error("domain is not correct")
+  codomain(rho) === M || error("codomain is not correct")
   incoming_res[U] = rho
   return F
 end
@@ -174,7 +186,7 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
   #    and U and V contained in the glueing domains of their ambient schemes
-  #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
+  #  * U::AbsSpec ⊂  V::AbsSpec in the basic charts of X
   #  * U::AbsSpec ⊂ X for U in the basic charts
   #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
   #  * W::SpecOpen ⊂ X with ambient_scheme(U) in the basic charts of X
@@ -188,14 +200,6 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     B = ambient_scheme(codomain(inc_V_flat))
     Udirect = codomain(inc_U_flat)
     Vdirect = codomain(inc_V_flat)
-   # some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U) || return false
-   # some_ancestor(W->any(WW->(WW===W), affine_charts(X)), V) || return false
-   # incU, dU = _find_chart(U, default_covering(X))
-   # incV, dU = _find_chart(V, default_covering(X))
-   # A = codomain(incU)
-   # B = codomain(incV)
-   # Udirect = (ambient_scheme(U) === A ? U : PrincipalOpenSubset(codomain(incU), dU))
-   # Vdirect = (ambient_scheme(V) === B ? V : PrincipalOpenSubset(codomain(incV), dV))
 
     if A === B
       is_subset(Udirect, Vdirect) || return false
@@ -212,35 +216,48 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       Y::AbsCoveredScheme
     )
-    return Y === X && some_ancestor(W->(W in affine_charts(X)), U)
+    return Y === X && some_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
     return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
+  # The following is implemented for the sake of completeness for boundary cases. 
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
   function is_open_func(U::AbsSpec, V::AbsSpec)
-    U in affine_charts(X) || return false
-    V in affine_charts(X) || return false
+    any(x->x===U, affine_charts(X)) || return false
+    any(x->x===U, affine_charts(X)) || return false
     G = default_covering(X)[U, V]
     return issubset(U, glueing_domains(G)[1])
+  end
+  function is_open_func(
+      U::AbsSpec,
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+    )
+    issubset(U, V) && return true
+    any(x->x===U, affine_charts(X)) || return false
+    inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
+    A = ambient_scheme(codomain(inc_V_flat))
+    Vdirect = codomain(inc_V_flat)
+    W = ambient_scheme(Vdirect)
+    haskey(glueings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
+    G = default_covering(X)[W, U]
+    f, g = glueing_morphisms(G)
+    pre_V = preimage(g, V)
+    return is_subset(U, pre_V)
   end
   function is_open_func(
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       V::AbsSpec
     )
-    V in affine_charts(X) || return false
+    any(x->x===V, affine_charts(X)) || return false
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
     A = ambient_scheme(codomain(inc_U_flat))
     Udirect = codomain(inc_U_flat)
     W = ambient_scheme(Udirect)
-    # some_ancestor(W->(W===V), U) && return true
-    # incU, dU = _find_chart(U, default_covering(X))
-    # W = codomain(incU)
     haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
     G = default_covering(X)[W, V]
-    #Udirect = (ambient_scheme(U) === W ? U : PrincipalOpenSubset(W, dU))
     return is_subset(Udirect, glueing_domains(G)[1])
   end
   function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
@@ -263,14 +280,10 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
     Vdirect = codomain(inc_V_flat)
     PV = ambient_scheme(Vdirect)
-    #incV, dV = _find_chart(V, default_covering(X))
-    #Vdirect = PrincipalOpenSubset(codomain(incV), dV)
-    #PV = codomain(incV)
     PW in default_covering(X) || return false
     PV in default_covering(X) || return false
     if PW === PV
       return issubset(W, V)
-      #return all(x->(issubset(x, V)), affine_patches(W))
     else
       haskey(glueings(default_covering(X)), (PW, PV)) || return false
       G = default_covering(X)[PW, PV]
@@ -285,7 +298,6 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     PV in default_covering(X) || return false
     if PW === PV
       return issubset(W, V)
-      #return all(x->(issubset(x, V)), affine_patches(W))
     else
       G = default_covering(X)[PW, PV]
       preV = preimage(glueing_morphisms(G)[1], V)
@@ -312,16 +324,11 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
     A = ambient_scheme(codomain(inc_U_flat))
     Udirect = codomain(inc_U_flat)
-    #some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
-    #incU, dU = _find_chart(U, default_covering(X))
-    #U_direct = PrincipalOpenSubset(codomain(incU), dU)
-    #ambient_scheme(U) in default_covering(X) || return false
     U_flat = codomain(inc_U_flat)
     PU = ambient_scheme(U_flat)
     if PU === ambient_scheme(W)
       # in this case W must be equal to U
       return issubset(W, U_flat)
-      #return one(OO(U)) in complement_ideal(W)
     else
       G = default_covering(X)[ambient_scheme(W), PU]
       issubset(U_flat, glueing_domains(G)[2]) || return false
@@ -330,6 +337,77 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     end
   end
 
+  return is_open_func
+end
+
+function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
+  ### Checks for open containment.
+  #
+  # We allow the following cases:
+  #
+  #  * U::PrincipalOpenSubset with one ancestor W in the basic charts of X
+  #  * U::SimplifiedSpec with one ancestor W in the basic charts of X
+  #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
+  #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
+  #    and U and V contained in the glueing domains of their ambient schemes
+  #  * U::AbsSpec ⊂  V::AbsSpec in the basic charts of X
+  #  * U::AbsSpec ⊂ X for U in the basic charts
+  #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
+  function is_open_func(
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+    )
+    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
+    inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
+    A = ambient_scheme(codomain(inc_U_flat))
+    B = ambient_scheme(codomain(inc_V_flat))
+    Udirect = codomain(inc_U_flat)
+    Vdirect = codomain(inc_V_flat)
+
+    if A === B
+      is_subset(Udirect, Vdirect) || return false
+    else
+      G = default_covering(X)[A, B] # Get the glueing
+      f, g = glueing_morphisms(G)
+      is_subset(Udirect, domain(f)) || return false
+      gU = preimage(g, Udirect)
+      is_subset(gU, Vdirect) || return false
+    end
+    return true
+  end
+  function is_open_func(
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      Y::AbsCoveredScheme
+    )
+    return Y === X && some_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
+  end
+  function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+    return Y === X && some_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
+  end
+  # The following is implemented for the sake of completeness for boundary cases. 
+  function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
+    return X === Y === Z
+  end
+  function is_open_func(U::AbsSpec, V::AbsSpec)
+    U in affine_charts(X) || return false
+    V in affine_charts(X) || return false
+    G = default_covering(X)[U, V]
+    return issubset(U, glueing_domains(G)[1])
+  end
+  function is_open_func(
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      V::AbsSpec
+    )
+    V in affine_charts(X) || return false
+    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
+    A = ambient_scheme(codomain(inc_U_flat))
+    Udirect = codomain(inc_U_flat)
+    W = ambient_scheme(Udirect)
+    haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
+    G = default_covering(X)[W, V]
+    return is_subset(Udirect, glueing_domains(G)[1])
+  end
+  return is_open_func
 end
 
 underlying_presheaf(S::StructureSheafOfRings) = S.OO
