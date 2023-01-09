@@ -1021,17 +1021,8 @@ For a fin. presented abelian group, return an isomorphic fp-group as well
 as the map between the 2 groups
 """
 function fp_group(M::GrpAbFinGen)
-  G = free_group(ngens(M))
-  R = rels(M)
-  s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j], 
-                  elem_type(G)[reduce(*, [gen(G, i)^R[j,i] for i=1:ngens(M) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
-  F, mF = quo(G, s)
-  @assert order(M) == order(F)
-  mp = MapFromFunc(
-    x->reduce(+, [sign(w)*gen(M, abs(w)) for w = word(x)], init = zero(M)),
-    y->mF(reduce(*, [gen(G, i)^y[i] for i=1:ngens(M)], init = one(G))),
-    F, M)
-  return F, mp
+  mp = inv(isomorphism(FPGroup, M))
+  return domain(mp), mp
 end
 
 

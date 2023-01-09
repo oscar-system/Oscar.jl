@@ -835,23 +835,20 @@ false
 ```
 """
 function is_cohen_macaulay(A::MPolyQuo)
-  I = A.I
-  R = base_ring(I)
-  if !(coefficient_ring(R) isa AbstractAlgebra.Field)
-     throw(ArgumentError("The coefficient ring must be a field."))
-  end
-  if !((R isa Oscar.MPolyRing_dec) && is_standard_graded(R))
-     throw(ArgumentError("The base ring must be standard ZZ-graded."))
-  end
-  # for Dan: please implement these steps:
-  # create Singular ring RRR which "coincides" with R, but is equipped with `ds`
-  # create Singular ideal III in RRR which "coincides" with I
-  # call `isCM(I);`  from `homolog.lib`
-  # return `true` if answer is 1, `false` otherwise.
-  # the following dummy stuff has to be removed: it just produces the correct answers for the selected examples
-  if ngens(R) == 4 return true end
-  return false
+ I = A.I
+ R = base_ring(I)
+ if !(coefficient_ring(R) isa AbstractAlgebra.Field)
+    throw(ArgumentError("The coefficient ring must be a field."))
+ end
+ if !((R isa Oscar.MPolyRing_dec) && is_standard_graded(R))
+    throw(ArgumentError("The base ring must be standard ZZ-graded."))
+ end
+ singular_assure(I, negdegrevlex(gens(R)))
+ res = Singular.LibHomolog.isCM(I.gens.gens.S)
+ if res == 1 return true end
+ return false
 end
+
 ##############################################################################
 #
 # Algebra Containment
@@ -1266,10 +1263,9 @@ end
     noether_normalization(A::MPolyQuo)
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
-$V$ is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and
-such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; $F: A=R/I \rightarrow B = R/\phi(I)$ 
-is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the
-$l_i$ to the the last $d$ variables of $R$; and $G = F^{-1}$.
+- ``V`` is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; 
+- ``F: A=R/I \rightarrow B = R/\phi(I)`` is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
+- ``G = F^{-1}.``
 
 !!! warning
     The algorithm may not terminate over a small finite field. If it terminates, the result is correct.
@@ -1311,7 +1307,7 @@ end
 @doc Markdown.doc"""
     integral_basis(f::MPolyElem, i::Int; alg = :normal_local)
 
-Given a polynomial $f$ in two variables with coefficients in a field $K$, and
+Given a polynomial $f$ in two variables with coefficients in a perfect field $K$, and
 given an integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
 and monic in the specified variable: Say, $f\in\mathbb K[x,y]$ is monic in $y$.
 Then the normalization of $A = K[x,y]/\langle f \rangle$, that is, the

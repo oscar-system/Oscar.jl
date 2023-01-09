@@ -76,6 +76,7 @@ GAP.@wrap IsField(x::Any)::Bool
 GAP.@wrap IsFinite(x::Any)::Bool
 GAP.@wrap IsFinitelyGeneratedGroup(x::Any)::Bool
 GAP.@wrap IsFreeGroup(x::Any)::Bool
+GAP.@wrap IsFpGroup(x::Any)::Bool
 GAP.@wrap IsGroupOfAutomorphisms(x::Any)::Bool
 GAP.@wrap IsHandledByNiceMonomorphism(x::Any)::Bool
 GAP.@wrap IsHermitianForm(x::Any)::Bool
@@ -141,6 +142,7 @@ GAP.@wrap NrRows(x::GapObj)::Int
 GAP.@wrap NumberColumns(x::GapObj)::Int
 GAP.@wrap NumberRows(x::GapObj)::Int
 GAP.@wrap NumeratorRat(x::Any)::GapInt
+GAP.@wrap ObjByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap One(x::Any)::GAP.Obj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap PrimePGroup(x::GapObj)::GapInt

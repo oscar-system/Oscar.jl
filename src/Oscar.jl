@@ -153,7 +153,7 @@ function __init__()
     print("... \n ... which comes with absolutely no warranty whatsoever")
     println()
     println("Type: '?Oscar' for more information")
-    println("(c) 2019-2022 by The OSCAR Development Team")
+    println("(c) 2019-2023 by The OSCAR Development Team")
   end
 
   append!(_gap_group_types,
@@ -161,7 +161,7 @@ function __init__()
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
-        (GAP.Globals.IsFpGroup, FPGroup),
+        (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
     __GAP_info_messages_off()
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
@@ -171,6 +171,7 @@ function __init__()
     __init_IsoGapOscar()
     __init_group_libraries()
     __init_JuliaData()
+    __init_PcGroups()
     add_verbose_scope(:K3Auto)
     add_assert_scope(:K3Auto)
 end
@@ -370,6 +371,7 @@ include("Groups/sub.jl")
 include("Groups/homomorphisms.jl")
 include("Groups/cosets.jl")
 include("Groups/GAPGroups.jl")
+include("Groups/pcgroup.jl")
 include("Groups/directproducts.jl")
 include("Groups/matrices/matrices.jl")
 include("Groups/matrices/FiniteFormOrthogonalGroup.jl")
@@ -432,6 +434,7 @@ include("Modules/FreeModElem-orderings.jl")
 include("Modules/ModulesGraded.jl")
 include("Modules/module-localizations.jl")
 include("Modules/local_rings.jl")
+include("Modules/mpolyquo.jl")
 
 include("Geometry/basics.jl")
 include("Geometry/K3Auto.jl")

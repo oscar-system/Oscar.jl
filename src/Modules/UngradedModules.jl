@@ -44,6 +44,14 @@ function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TO
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
+function FreeMod(R::Ring, names::Vector{String}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
+end
+
+function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, names)
+end
+
 @doc Markdown.doc"""
     free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
 
@@ -710,13 +718,20 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = gens(image(f)[1])
 base_ring_map(f::FreeModuleHom) = f.ring_map
+@attr Hecke.Map function base_ring_map(f::FreeModuleHom{<:SubQuo, <:ModuleFP, Nothing})
+    return identity_map(base_ring(domain(f)))
+end
+base_ring_map(f::SubQuoHom) = f.ring_map
+@attr Hecke.Map function base_ring_map(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing})
+    return identity_map(base_ring(domain(f)))
+end
 
 @doc Markdown.doc"""
-    matrix(a::FreeModuleHom)
+    matrix(f::FreeModuleHom)
 
-Given a homomorphism `a` of type  `FreeModuleHom` with domain `F`
-and codomain `M`, return a matrix `A` with `rank(F)` rows and 
-`ngens(M)` columns such that `a == hom(F, M, A)`.
+Given a homomorphism `f : F → M` of type  `FreeModuleHom`, 
+return a matrix `A` over `base_ring(M)` with `rank(F)` rows and 
+`ngens(M)` columns such that `f(F[i]) = ∑ⱼ aᵢⱼ ⋅ M[j]`.
 
 # Examples
 ```jldoctest
@@ -739,21 +754,21 @@ julia> matrix(a)
 [0   z]
 ```
 """
-function matrix(a::FreeModuleHom)
-  if !isdefined(a, :matrix)
-    D = domain(a)
-    C = codomain(a)
-    R = base_ring(D)
+function matrix(f::FreeModuleHom)
+  if !isdefined(f, :matrix)
+    D = domain(f)
+    C = codomain(f)
+    R = base_ring(C)
     matrix = zero_matrix(R, rank(D), ngens(C))
     for i=1:rank(D)
-      image_of_gen = a(D[i])
+      image_of_gen = f(D[i])
       for j=1:ngens(C)
         matrix[i,j] = image_of_gen[j]
       end
     end
-    setfield!(a, :matrix, matrix)
+    setfield!(f, :matrix, matrix)
   end
-  return a.matrix
+  return f.matrix
 end
 
 (h::FreeModuleHom)(a::AbstractFreeModElem) = image(h, a)
@@ -1261,9 +1276,10 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
     return false
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
-  M_mod_N = reduce(M, N)
-  N_mod_M = reduce(N, M)
-  return iszero(M_mod_N) && iszero(N_mod_M)
+  # If yes, this could also be incorporated in the `in`-function.
+  all(x->(x in N), gens(M)) || return false
+  all(x->(x in M), gens(N)) || return false 
+  return true
 end
 
 @doc Markdown.doc"""
@@ -2375,6 +2391,10 @@ true
 ```
 """
 ambient_representative(m::SubQuoElem) = repres(m)
+
+# another method for compatibility in generic code
+ambient_representative(a::FreeModElem) = a
+
 #######################################################
 
 @doc Markdown.doc"""
@@ -3642,7 +3662,7 @@ function coordinates(a::FreeModElem, M::SubModuleOfFreeModule, task::Symbol = :a
     return sparse_row(base_ring(parent(a)))
   end
   if task == :auto
-    if base_ring(base_ring(parent(a))) isa Field
+    if coefficient_ring(base_ring(parent(a))) isa Field #base_ring(base_ring(...)) does not work for MPolyQuos
       task = :via_transform
     else
       task = :via_lift
@@ -3874,6 +3894,17 @@ function image(f::SubQuoHom, a::SubQuoElem)
   i = zero(codomain(f))
   b = coordinates(a)
   for (p,v) = b
+    i += base_ring_map(f)(v)*f.im[p]
+  end
+  return i
+end
+
+function image(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, a::SubQuoElem)
+  # TODO matrix vector multiplication
+  @assert a.parent === domain(f)
+  i = zero(codomain(f))
+  b = coordinates(a)
+  for (p,v) = b
     i += v*f.im[p]
   end
   return i
@@ -3888,12 +3919,30 @@ function image(f::SubQuoHom, a::FreeModElem)
   return image(f, SubQuoElem(a, domain(f)))
 end
 
+function image(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, a::FreeModElem)
+  return image(f, SubQuoElem(a, domain(f)))
+end
+
 @doc Markdown.doc"""
     preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
 
 Compute a preimage of `a` under `f`.
 """
-function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
+function preimage(f::SubQuoHom{<:SubQuo, <:ModuleFP}, a::Union{SubQuoElem,FreeModElem})
+  @assert parent(a) === codomain(f)
+  phi = base_ring_map(f)
+  D = domain(f)
+  i = zero(D)
+  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  bb = map_entries(x->(preimage(phi, x)), b)
+  for (p,v) = bb
+    i += v*gen(D, p)
+  end
+  return i
+end
+
+function preimage(f::SubQuoHom{<:SubQuo, <:ModuleFP, Nothing}, 
+        a::Union{SubQuoElem,FreeModElem})
   @assert parent(a) === codomain(f)
   D = domain(f)
   i = zero(D)
@@ -3904,7 +3953,7 @@ function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
   return i
 end
 
-(f::SubQuoHom)(a::FreeModElem) = image(f, a)
+(f::SubQuoHom)(a::FreeModElem) = image(f, SubQuoElem(a, domain(f)))
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
@@ -3946,6 +3995,12 @@ true
 ```
 """
 function iszero(m::SubQuoElem)
+  is_zero(ambient_representative(m)) && return true
+  isdefined(parent(m), :quo) || return false
+  return (ambient_representative(m) in parent(m).quo)
+end
+
+function iszero(m::SubQuoElem{<:MPolyElem})
   C = parent(m)
   if !isdefined(C, :quo)
     return iszero(repres(m))
@@ -4448,7 +4503,7 @@ function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sy
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
   singular_kernel_entry.isGB = true
 
-  len = len_missing + 2 #??
+  len = len_missing + 1
   if algorithm == :fres
     res = Singular.fres(singular_kernel_entry, len, "complete")
   elseif algorithm == :sres
@@ -4482,8 +4537,10 @@ function _extend_free_resolution(cc::Hecke.ChainComplex, idx::Int; algorithm::Sy
 end
 
 @doc Markdown.doc"""
-    free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres)
+    free_resolution(M::SubQuo{<:MPolyElem}; 
+        ordering::ModuleOrdering = default_ordering(M),
+        length::Int=0, algorithm::Symbol=:fres
+      )
 
 Return a free resolution of `M`.
 
@@ -4542,9 +4599,14 @@ rank   | 0  2  6  6  2
 -------|---------------
 degree | 4  3  2  1  0
 ```
+
+**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+iterative kernel computation.
 """
-function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres)
+function free_resolution(M::SubQuo{<:MPolyElem}; 
+    ordering::ModuleOrdering = default_ordering(M),
+    length::Int=0, algorithm::Symbol=:fres
+  )
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
@@ -4604,6 +4666,38 @@ function free_resolution(M::SubQuo; ordering::ModuleOrdering = default_ordering(
   cc.complete = cc_complete
 
   return FreeResolution(cc)
+end
+
+function free_resolution(M::SubQuo{T}) where {T<:RingElem}
+  # This generic code computes a free resolution in a lazy way.
+  # We start out with a presentation of M and implement 
+  # an iterative fill function to compute every higher term 
+  # on request.
+  R = base_ring(M)
+  p = presentation(M)
+  p.fill = function(C::Hecke.ChainComplex, k::Int)
+    # TODO: Use official getter and setter methods instead 
+    # of messing manually with the internals of the complex.
+    for i in first(range(C)):k-1
+      N = domain(map(C, i))
+
+      if iszero(N) # Fill up with zero maps
+        C.complete = true
+        phi = hom(N, N, elem_type(N)[])
+        pushfirst!(C.maps, phi)
+        continue
+      end
+
+      K, inc = kernel(map(C, i))
+      nz = findall(x->!iszero(x), gens(K))
+      F = FreeMod(R, length(nz))
+      iszero(length(nz)) && set_attribute!(F, :name => "0")
+      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]))
+      pushfirst!(C.maps, phi)
+    end
+    return first(C.maps)
+  end
+  return p
 end
 
 
@@ -4989,13 +5083,30 @@ end
 
 Return the composition `b` $\circ$ `a`.
 """
-function *(h::ModuleFPHom, g::ModuleFPHom)
+function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
 end
 
+function *(h::ModuleFPHom{T1, T2, <:Hecke.Map}, g::ModuleFPHom{T2, T3, <:Hecke.Map}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
+end
+
+function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), 
+             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
+             Hecke.MapFromFunc(x->(base_ring_map(g)(base_ring_map(h)(x))), 
+                                   base_ring(domain(h)), 
+                                   base_ring(codomain(g)))
+            )
+
+end
+
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
+# TODO: We need to also make all of the code below sensitive to base changes!
 -(h::ModuleFPHom) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
 function -(h::ModuleFPHom, g::ModuleFPHom)
   @assert domain(h) === domain(g)
@@ -5724,6 +5835,9 @@ end
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 
+If `C` is a chain complex, return a cochain complex.
+If `C` is a cochain complex, return a chain complex.
+
 # Examples
 ```jldoctest
 julia> R, (x,) = PolynomialRing(QQ, ["x"]);
@@ -5772,7 +5886,10 @@ end
 
 @doc Markdown.doc"""
     hom_without_reversing_direction(C::ChainComplex{ModuleFP}, M::ModuleFP)
-Apply $\text{Hom}(-,$ `M`$)$ to `C`. If `C` is a chain complex, return a chain complex.
+
+Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
+
+If `C` is a chain complex, return a chain complex.
 If `C` is a cochain complex, return a cochain complex.
 
 # Examples
@@ -6638,7 +6755,7 @@ end
 function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
-  FS = FreeMod(S, r)
+  FS = FreeMod(S, F.S) # the symbols of F
   map = hom(F, FS, gens(FS), MapFromFunc(x->S(x), R, S))
   return FS, map
 end
@@ -6647,7 +6764,7 @@ function change_base_ring(f::Hecke.Map{DomType, CodType}, F::FreeMod) where {Dom
   domain(f) == base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = FreeMod(S, r)
+  FS = FreeMod(S, F.S)
   map = hom(F, FS, gens(FS), f)
   return FS, map
 end

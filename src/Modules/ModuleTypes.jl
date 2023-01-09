@@ -49,24 +49,28 @@ abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 abstract type ModuleFPHomDummy end
 
 @doc Markdown.doc"""
-    ModuleFPHom{T1, T2}
+    ModuleFPHom{T1, T2, RingMapType}
 
 The abstract supertype for morphisms of finitely presented modules over multivariate polynomial rings .
 `T1` and `T2` are the types of domain and codomain respectively.
+`RingMapType` is a type for a homomorphism of rings ``f : R → S`` whenever the 
+`base_ring` ``R`` of the domain is different from the `base_ring` ``S`` of the codomain 
+and the codomain is considered as an ``R``-module via ``f``. 
+In case there is no base change, this parameter is set to `Nothing`.
 """
-abstract type ModuleFPHom{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
+abstract type ModuleFPHom{T1, T2, RingMapType} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHomDummy} end
 
 parent(f::ModuleFPHom) = Hecke.MapParent(domain(f), codomain(f), "homomorphisms")
 
 @doc Markdown.doc"""
-    FreeMod{T <: RingElem} <: ModuleFP{T}
+    FreeMod{T <: RingElem} <: AbstractFreeMod{T}
 
 The type of free modules.
 Free modules are determined by their base ring, the rank and the names of 
 the (standard) generators.
 Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
-`FreeMod{T}` is a subtype of `ModuleFP{T}`.
+`FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
 @attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
   R::Ring
@@ -189,7 +193,7 @@ used by the end user.
 When computed, a standard basis (computed via `standard_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
-mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
+@attributes mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   F::FreeMod{T}
   gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
@@ -317,7 +321,7 @@ mutable struct SubQuoHom{
     T1<:AbstractSubQuo, 
     T2<:ModuleFP, 
     RingMapType<:Any
-  } <: ModuleFPHom{T1, T2}
+  } <: ModuleFPHom{T1, T2, RingMapType}
   matrix::MatElem
   header::Hecke.MapHeader
   im::Vector
@@ -480,7 +484,7 @@ const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will b
 
 
 @doc Markdown.doc"""
-    FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2} 
+    FreeModuleHom{T1, T2, RingMapType} <: ModuleFPHom{T1, T2, RingMapType} 
 
 Data structure for morphisms where the domain is a free module (`FreeMod`).
 `T1` and `T2` are the types of domain and codomain respectively.
@@ -491,7 +495,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 @attributes mutable struct FreeModuleHom{
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleFPHom{T1, T2} 
+    RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
   header::MapHeader
   ring_map::RingMapType
   
@@ -536,7 +540,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       end
       return b
     end
-    r.header = MapHeader{typeof(F), T2}(F, G, im_func)
+    function pr_func(x)
+      @assert parent(x) === G
+      c = coordinates(repres(x), sub(G, a, :module))
+      cc = map_entries(x->preimage(h, x), c)
+      return FreeModElem(cc, F)
+    end
+    r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
     return r
   end
@@ -589,7 +599,7 @@ end
 struct FreeModuleHom_dec{
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
-    RingMapType <: Any} <: ModuleFPHom{T1, T2}
+    RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType}
   f::FreeModuleHom{T1,T2, RingMapType}
   header::MapHeader
   # TODO degree and homogeneity

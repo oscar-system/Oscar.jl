@@ -324,19 +324,21 @@ i.e., `G` is finite and has a normal series with cyclic factors.
 
 function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   @assert elem_type(G) == S
-  # GAP cannot handle the case that `G.X` is not a *full* free or f.p. group.
-  # If `G.X` is a subgroup of a free group then GAP returns a quotient group
-  # but a later call to `Size` for this quotient runs into an error.
-  # If `G.X` is a subgroup of a f.p. group then already constructing the
-  # quotient group in GAP runs into an error.
-  # Thus we check here whether `G.X` knows to be a full free or f.p. group.
-  @assert GAP.Globals.HasIsWholeFamily(G.X) && GAPWrap.IsWholeFamily(G.X)
-  elems_in_gap = GapObj([x.X for x in elements])
-  Q=FPGroup((G.X)/elems_in_gap)
-  function proj(x::FPGroupElem)
-     return group_element(Q,GAP.Globals.MappedWord(x.X,GAPWrap.GeneratorsOfGroup(G.X), GAPWrap.GeneratorsOfGroup(Q.X)))
+  if GAP.Globals.HasIsWholeFamily(G.X) && GAPWrap.IsWholeFamily(G.X)
+    # For a *full* free or f.p. group, GAP can handle this via its `\/'.
+    elems_in_gap = GapObj([x.X for x in elements])
+    Q = FPGroup((G.X)/elems_in_gap)
+    function proj(x::FPGroupElem)
+      return group_element(Q,GAP.Globals.MappedWord(x.X,
+               GAPWrap.GeneratorsOfGroup(G.X), GAPWrap.GeneratorsOfGroup(Q.X)))
+    end
+    return Q, hom(G,Q,proj)
+  else
+    # Currently GAP's `\/' does not support a list of group elements
+    # as the second argument,
+    # but forming the quotient modulo a normal subgroup may work.
+    return quo(G, normal_closure(G, sub(G, elements)[1])[1])
   end
-  return Q, hom(G,Q,proj)
 end
 
 """

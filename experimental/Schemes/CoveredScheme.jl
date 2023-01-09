@@ -443,9 +443,8 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf)
     GG = restrict(default_covering(X)[U, V], rev_dict[U], rev_dict[V])
     glueing_dict[(rev_dict[U], rev_dict[V])] = GG
   end
-  cov = Covering(patch_list, glueing_dict)
-  Z = CoveredScheme(cov)
-  cov_inc = CoveringMorphism(cov, default_covering(X), mor_dict)
+  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict))
+  cov_inc = CoveringMorphism(default_covering(Z), default_covering(X), mor_dict)
   return CoveredClosedEmbedding(Z, X, cov_inc)
 end
 
