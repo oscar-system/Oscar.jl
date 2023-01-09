@@ -220,8 +220,7 @@ identifications given by the glueings in the `default_covering`.
         # If the restriction was more complicated than what follows, then 
         # it would have been cached earlier and this call would not have happened
         # This is the end of the recursion induced in the next elseif below.
-        W = ambient_scheme(U)
-        res = hom(F(W), F(U), gens(MU), OOX(W, U))
+        res = hom(F(V), F(U), gens(F(U)), OOX(W, U))
         return res
       elseif some_ancestor(W->(W === V), U)
         W = ambient_scheme(U)
@@ -1040,9 +1039,44 @@ end
 
         cod_UV, cod_res = change_base_ring(OOX(V, UV), codomain(M)(V))
         add_incoming_restriction!(codomain(M), V, cod_UV, cod_res)
-        add_incoming_restriction!(codomain(M), W, dom_UV, 
+        add_incoming_restriction!(codomain(M), W, cod_UV, 
                                   compose(codomain(M)(W, V), cod_res))
         object_cache(codomain(M))[UV] = cod_UV
+
+        MUV = M(UV) # This will be a free module; we need to prescribe the restrictions!
+        MW = M(W)
+        img_gens = elem_type(MUV)[]
+        # every generator g of MW is a homomorphism. It takes an element 
+        # v ∈ domain(M)(W) to w = ϕ_{g}(v) ∈ codomain(M)(W). 
+        # Where does g map to when restricting to MUV? 
+        #
+        for g in gens(MW)
+          phi = element_to_homomorphism(g)
+          img_gens_phi = cod_res.(codomain(M)(W, V).(phi.(gens(domain(M)(W)))))
+          sub_dom, inc_dom = sub(domain(M)(UV), 
+                                 domain(M)(W, UV).(gens(domain(M)(W))))
+                                 #dom_res.(domain(M)(W, U).(gens(domain(M)(W)))))
+          img_gens_psi = elem_type(codomain(M)(UV))[]
+          for v in gens(domain(M)(UV))
+            w = preimage(inc_dom, v)
+            c = coordinates(w) # These are the coordinates in the original set 
+                               # of generators in the domain
+            # We use this to compute the image of v
+            phi_v = sum([c[i]*img_gens_phi[i] for i in 1:length(img_gens_phi)], init=zero(codomain(M)(UV)))
+            # and push it to the list.
+            push!(img_gens_psi, phi_v)
+          end
+          # From that list, we can assemble what the restriction of phi 
+          # looks like as a homomorphism 
+          psi = hom(domain(M)(UV), codomain(M)(UV), img_gens_psi)
+          # and convert it to a module element.
+          img_g = homomorphism_to_element(MUV, psi)
+          push!(img_gens, img_g)
+        end
+
+        # Finally, this allows us to assemble the restriction map
+        res = hom(MW, MUV, img_gens, OOX(W, UV))
+        add_incoming_restriction!(M, W, MUV, res)
       end
     end
   end

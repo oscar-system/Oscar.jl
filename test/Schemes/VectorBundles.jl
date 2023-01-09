@@ -33,5 +33,32 @@
   @test !any(x->x===ambient_scheme(C[1]), affine_charts(X)) # codimension 2 means recursion depth >= 2.
   TX = tangent_sheaf(X)
   CC = oscar.trivializing_covering(TX)
+
+  # Testing transitions across charts while going down in the trees.
   @test all(x->TX(x) isa FreeMod, patches(CC))
+  A = PrincipalOpenSubset(CC[1], gens(OO(CC[1]))[1])
+  UU = simplify(A)
+  @test TX(CC[1], UU) isa ModuleFPHom
+  UUU = PrincipalOpenSubset(UU, one(OO(UU)))
+  @test TX(CC[1], UUU) isa ModuleFPHom
+  B = PrincipalOpenSubset(CC[2], one(OO(CC[2])))
+  @test oscar.is_open_func(TX)(A, B)
+  @test WX(B, A) isa ModuleFPHom
+  @test TX(B, A) isa ModuleFPHom
+  @test TX(B, UU) == compose(TX(B, A), TX(A, UU))
+  @test TX(B, UUU) == compose(TX(B, A), TX(A, UUU))
+  @test TX(B, UUU) == compose(TX(B, UU), TX(UU, UUU))
+  BU = simplify(B)
+  BUU = PrincipalOpenSubset(BU, one(OO(BU)))
+  @test WX(BU, A) isa ModuleFPHom
+  @test TX(BU, A) isa ModuleFPHom
+  @test TX(BU, UU) == compose(TX(BU, A), TX(A, UU))
+  @test TX(BU, UUU) == compose(TX(BU, A), TX(A, UUU))
+  @test TX(BU, UUU) == compose(TX(BU, UU), TX(UU, UUU))
+  @test WX(BUU, A) isa ModuleFPHom
+  @test TX(BUU, A) isa ModuleFPHom
+  @test TX(BUU, UU) == compose(TX(BUU, A), TX(A, UU))
+  @test TX(BUU, UUU) == compose(TX(BUU, A), TX(A, UUU))
+  @test TX(BUU, UUU) == compose(TX(BUU, UU), TX(UU, UUU))
+  @test !iszero(TX(BUU, UUU))
 end

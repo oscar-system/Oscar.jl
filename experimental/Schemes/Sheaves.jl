@@ -109,6 +109,10 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   # Hand the production of the restriction over to the internal method 
   rho = restriction_func(F)(F, U, V)
 
+  # Sanity checks
+  domain(rho) === F(U) || error("domain of the produced restrition is not correct")
+  codomain(rho) === F(V) || error("codomain of the produced restrition is not correct")
+
   # Cache the result in the attributes of F(V)
   inc isa IdDict{<:OpenType, <:RestrictionType} && (inc[U] = rho) # It is the restriction coming from U.
   return rho::RestrictionType
@@ -136,6 +140,9 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   incoming_res = incoming_restrictions(F, M)
   incoming_res == nothing && return F # This indicates that no 
   incoming_res::IdDict{<:OpenType, <:RestrictionType}
+  # sanity checks
+  domain(rho) === F(U) || error("domain is not correct")
+  codomain(rho) === M || error("codomain is not correct")
   incoming_res[U] = rho
   return F
 end
