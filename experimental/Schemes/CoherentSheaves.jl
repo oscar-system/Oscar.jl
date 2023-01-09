@@ -1200,20 +1200,3 @@ function fill_with_lazy_glueings!(C::Covering, X::AbsCoveredScheme)
   return C
 end
 
-function _common_refinement_list(C::Covering, D::Covering)
-  patch_list = AbsSpec[]
-  for U in patches(C)
-    for V in patches(D)
-      success, W = _have_common_ancestor(U, V)
-      if success
-        #TODO: Model the intersection of both U and V with an appropriate 
-        #place in the tree structure.
-        incU = _flatten_open_subscheme(U, W)
-        incV = _flatten_open_subscheme(V, W)
-        UV = intersect(codomain(incU), codomain(incV))
-        push!(patch_list, UV)
-      end
-    end
-  end
-  return patch_list
-end
