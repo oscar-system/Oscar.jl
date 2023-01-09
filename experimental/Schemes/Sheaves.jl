@@ -60,6 +60,10 @@ function is_open_func(F::AbsPreSheaf)
   return is_open_func(underlying_presheaf(F))
 end
 
+function object_cache(F::AbsPreSheaf)
+  return object_cache(underlying_presheaf(F))
+end
+
 ########################################################################
 # Implementation of PreSheafOnScheme                                   #
 ########################################################################
@@ -113,7 +117,6 @@ end
 @Markdown.doc """
   add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
     U::OpenType,
-    V::OpenType,
     rho::RestrictionType
   ) where {OpenType, RestrictionType}
 

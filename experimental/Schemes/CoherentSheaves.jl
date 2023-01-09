@@ -966,7 +966,172 @@ function _pushforward(f::Hecke.Map{<:Ring, <:Ring}, I::Ideal, M::SubQuo)
   return MR, ident
 end
 
-function is_locally_free(M::AbsCoherentSheaf)
-  return all(U->is_projective(M(U)), affine_charts(scheme(M)))
+@attr Bool function is_locally_free(M::AbsCoherentSheaf)
+  return all(U->is_projective(M(U))[1], affine_charts(scheme(M)))
 end
 
+#@attr Covering function trivializing_covering(M::AbsCoherentSheaf)
+@attr function trivializing_covering(M::AbsCoherentSheaf)
+  X = scheme(M)
+  OOX = OO(X)
+  patch_list = Vector{AbsSpec}()
+  for U in affine_charts(X)
+    patch_list = vcat(patch_list, _trivializing_covering(M, U))
+  end
+  C = Covering(patch_list)
+  fill_with_lazy_glueings!(C, X)
+  return C
+end
+
+@attr function trivializing_covering(M::HomSheaf)
+  error("method not implemented")
+  # The problem is that every module of a HomSheaf must know that it is 
+  # a hom-module. Hence, the way to go is to pass through a common 
+  # refinement of domain and codomain and recreate all the hom modules 
+  # as free modules on this covering. 
+  #
+  # But for this, it is not yet clear where to locate the patches of these 
+  # refinements in the tree and how to deal with the restriction maps in a 
+  # clean way. Say M = Hom(F, G) where F is trivialized on {Uᵢ} and G on 
+  # {Vⱼ}. Then W = Uᵢ∩ Vⱼ would have to be a PrincipalOpenSubset of both 
+  # Uᵢ and Vⱼ for the restrictions of F and G to induce the proper job 
+  # on restrictions to M(W) automatically. 
+  # Hence, we need to manually prescribe how to trivialize and restrict 
+  # M on the Ws.
+  dom_triv = trivializing_covering(domain(M))
+  cod_triv = trivializing_covering(codomain(M))
+  ref_list = _common_refinement_list(dom_triv, cod_triv)
+  C = Covering(ref_list)
+  fill_with_lazy_glueings!(C, scheme(M))
+  return C
+end
+
+function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
+  X = scheme(M)
+  OOX = OO(X)
+  MU = M(U)
+  MU isa FreeMod && return [U]
+  MU::SubQuo
+  A = _presentation_matrix(MU)
+  if iszero(A) 
+    # Trivial shortcut in the recursion. 
+    # We nevertheless need to recreate U as a PrincipalOpenSubset of itself 
+    # as we are not allowed to alter the values of the sheaf M on U directly.
+    V = PrincipalOpenSubset(U, one(OO(U)))
+    F = FreeMod(OO(V), ncols(A))
+    res = hom(MU, F, gens(F), OOX(U, V))
+    add_incoming_restriction(M, U, F, res)
+    object_cache(M)[V] = F
+    return [V]
+  end
+
+  # We do not need to go through all entries of A, but only those 
+  # necessary to generate the unit ideal.
+  I = ideal(OOX(U), [A[i, j] for i in 1:nrows(A) for j in 1:ncols(A)])
+  one(OOX(U)) in I || error("sheaf is not locally trivial")
+  # The non-zero coordinates provide us with a list of entries which 
+  # are sufficient to do so. This set can not assumed to be minimal, though.
+  a = coordinates(one(OOX(U)), I)
+  nonzero_entries = [ i for i in 1:ngens(I) if !iszero(a[i])]
+  return_patches = AbsSpec[]
+
+  for t in nonzero_entries
+    i = div(t-1, ncols(A)) + 1
+    j = mod(t-1, ncols(A)) + 1 # The matrix coordinates of the nonzero entry
+    # We invert the (i,j)-th entry of A. 
+    # Then we can reduce the presentation matrix so that we can throw away one 
+    # of the generators of the module. 
+    V = PrincipalOpenSubset(U, A[i, j])
+    Ares = map_entries(OOX(U, V), A)
+    uinv = inv(Ares[i, j])
+    multiply_row!(Ares, uinv, i)
+    for k in 1:i-1
+      #multiply_row!(Ares, u, k)
+      add_row!(Ares, -A[k, j], i, k)
+    end
+    for k in i+1:nrows(Ares)
+      #multiply_row!(Ares, u, k)
+      add_row!(Ares, -A[k, j], i, k)
+    end
+    Asub = Ares[[k for k in 1:nrows(Ares) if k != i], [k for k in 1:ncols(Ares) if k !=j]]
+
+    # Assemble the restriction map from the parent node
+    if iszero(Asub)
+      # End of recursion. 
+      # Create a free module and the corresponding restriction morphism.
+      F = FreeMod(OO(V), ncols(Asub))
+      img_gens = elem_type(F)[]
+      for k in 1:j-1
+        push!(img_gens, F[k])
+      end
+      push!(img_gens, 
+            -sum([Ares[i, k]*F[(k>j ? k-1 : k)] for k in 1:ncols(Ares) if k!=j], 
+                 init=zero(F))
+           )
+      for k in j+1:ncols(Ares)
+        push!(img_gens, F[k-1])
+      end
+      res = hom(MU, F, img_gens, OOX(U, V))
+
+      # Since we are messing with the internals of the sheaf, we need 
+      # to leave everything clean. This includes manual caching.
+      add_incoming_restriction!(M, U, F, res)
+      object_cache(M)[V] = F
+      set_attribute!(F, :_presentation_matrix, Asub)
+      push!(return_patches, V)
+    else
+      # Intermediate recursion step. 
+      # Recreate the restriction of the module to the open subset but with one generator 
+      # less and construct the restriction map.
+      F, amb_res = change_base_ring(OOX(U, V), ambient_free_module(MU))
+      v = ambient_representatives_generators(MU)
+      M_gens = amb_res.(v)
+      rest_gens = [M_gens[k] for k in 1:length(M_gens) if k!=j]
+      rels = [amb_res(w) for w in relations(MU)]
+      MV = SubQuo(F, rest_gens, rels)
+      img_gens = elem_type(F)[]
+      for k in 1:j-1
+        push!(img_gens, M_gens[k])
+      end
+      push!(img_gens, 
+            -sum([Ares[i, k]*M_gens[k] for k in 1:length(M_gens) if k!=j], 
+                 init=zero(F))
+           )
+      for k in j+1:length(M_gens)
+        push!(img_gens, M_gens[k])
+      end
+      res = hom(MU, MV, MV.(img_gens), OOX(U, V))
+      add_incoming_restriction!(M, U, MV, res)
+      object_cache(M)[V] = MV
+      set_attribute!(MV, :_presentation_matrix, Asub)
+      return_patches = vcat(return_patches, _trivializing_covering(M, V))
+    end
+  end
+  return return_patches
+end
+
+@attr MatrixElem function _presentation_matrix(M::ModuleFP)
+  return matrix(map(presentation(M), 1))
+end
+
+function fill_with_lazy_glueings!(C::Covering, X::AbsCoveredScheme)
+  # TODO: Fill in all the implicit and restricted glueings from X.
+  # We assume that all patches in C are in a tree structure eventually 
+  # leading to affine charts of X.
+  return C
+end
+
+function _common_refinement_list(C::Covering, D::Covering)
+  patch_list = AbsSpec[]
+  for U in patches(C)
+    for V in patches(D)
+      success, W = _have_common_ancestor(U, V)
+      if success
+        #TODO: Model the intersection of both U and V with an appropriate 
+        #place in the tree structure.
+        error("method not implemented")
+      end
+    end
+  end
+  return patch_list
+end
