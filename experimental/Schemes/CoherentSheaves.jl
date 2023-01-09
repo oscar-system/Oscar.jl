@@ -184,7 +184,7 @@ identifications given by the glueings in the `default_covering`.
         UU, _ = glueing_domains(default_covering(X)[U, V])
         psi = OOX(UU, U) # Needs to exist by the checks of is_open_func, even though 
         # in general UU ⊂ U!
-        return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)]) for i in 1:ngens(MV)], rho)
+        return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)]) for i in 1:ngens(MV), init=zero(MU)], rho)
       else
         error("invalid input")
       end
@@ -217,7 +217,7 @@ identifications given by the glueings in the `default_covering`.
       # respect to the generators of F(W), so we have to map them manually down.
       # The call to F(W, U) will be handled by the above if-clauses.
       return hom(F(V), F(U), 
-                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))]) 
+                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W)), init=zero(F(U))]) 
                   for i in 1:ngens(F(V))], 
                  OOX(V, U)
                 )
@@ -250,7 +250,7 @@ identifications given by the glueings in the `default_covering`.
       # respect to the generators of F(W), so we have to map them manually down.
       # The call to F(W, U) will be handled by the above if-clauses.
       return hom(F(V), F(U), 
-                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))]) 
+                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W)), init=zero(F(U))]) 
                   for i in 1:ngens(F(V))], 
                  OOX(V, U)
                 )
@@ -717,7 +717,7 @@ end
       images = elem_type(MU)[]
       for phi in gens(MV)
         phi_map = element_to_homomorphism(phi)
-        images_f = [sum([B[i][j]*cod_res(phi_map(f[j])) for j in 1:length(f)]) for i in 1:length(B)]
+        images_f = [sum([B[i][j]*cod_res(phi_map(f[j])) for j in 1:length(f), init=zero(G(U))]) for i in 1:length(B)]
         psi = hom(F(U), G(U), images_f)
         push!(images, homomorphism_to_element(MU, psi))
       end
