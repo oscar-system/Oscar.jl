@@ -82,7 +82,7 @@ function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=t
   haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType 
 
   # Testing openness might be expensive, so it can be skipped
-  check && is_open_func(F)(U, space(F)) || error("the given set is not open or admissible")
+  check && (is_open_func(F)(U, space(F)) || error("the given set is not open or admissible"))
   G = production_func(F)(F, U)
   cached && (object_cache(F)[U] = G)
   return G::OutputType
@@ -97,14 +97,15 @@ end
 For a `F` produce (and cache) the restriction map `F(U) → F(V)`.
 """
 function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, RestrictionType},
-    U::Type1, V::Type2
+    U::Type1, V::Type2;
+    check::Bool=true
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   # First, look up whether this restriction had already been asked for previously.
   inc = incoming_restrictions(F, F(V)) 
   !(inc == nothing) && haskey(inc, U) && return (inc[U])::RestrictionType
 
   # Check whether the given pair is even admissible.
-  is_open_func(F)(V, U) || error("the second argument is not open in the first")
+  check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
 
   # Hand the production of the restriction over to the internal method 
   rho = restriction_func(F)(F, U, V)
