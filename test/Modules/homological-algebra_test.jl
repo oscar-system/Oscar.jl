@@ -52,4 +52,9 @@ begin
  M = quo(F, U)[1]
  I = ideal(R, gens(R))
  @test depth(I, M) == 1
+
+ R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+ F = free_module(R, 1);
+ I = ideal(R, [x*z-z, x*y-y, x])
+ @test depth(I, F) == 3
 end
