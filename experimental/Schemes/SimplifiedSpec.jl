@@ -171,6 +171,84 @@ function _flatten_open_subscheme(
   return _flatten_open_subscheme(W, C, iso=new_iso)
 end
 
+function _flatten_open_subscheme(
+    U::PrincipalOpenSubset, P::AbsSpec;
+    iso::AbsSpecMor=begin
+      UU = PrincipalOpenSubset(U, one(OO(U)))
+      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      set_attribute!(f, :inverse, f_inv)
+      set_attribute!(f_inv, :inverse, f)
+      f
+    end
+  )
+  some_ancestor(W->W===P, U) || error("ancestor not found")
+  W = ambient_scheme(U)
+  V = domain(iso)
+  UV = codomain(iso)
+  hV = complement_equation(UV)
+  hU = complement_equation(U)
+  WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
+  ident = SpecMor(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
+  new_iso =  compose(iso, ident)
+  new_iso_inv = compose(inverse(ident), inverse(iso))
+  set_attribute!(new_iso, :inverse, new_iso_inv)
+  set_attribute!(new_iso_inv, :inverse, new_iso)
+  if W === P
+    return new_iso
+  end
+  return _flatten_open_subscheme(W, P, iso=new_iso)
+end
+
+function _flatten_open_subscheme(
+    U::SimplifiedSpec, P::AbsSpec;
+    iso::AbsSpecMor=begin 
+      UU = PrincipalOpenSubset(U, one(OO(U)))
+      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      set_attribute!(f, :inverse, f_inv)
+      set_attribute!(f_inv, :inverse, f)
+      f
+    end
+  )
+  some_ancestor(W->W===P, U) || error("ancestor not found")
+  W = original(U)
+  V = domain(iso)
+  UV = codomain(iso)::PrincipalOpenSubset
+  hV = complement_equation(UV)
+  f, g = identification_maps(U)
+  hVW = pullback(g)(hV)
+  WV = PrincipalOpenSubset(W, hVW)
+  ident = SpecMor(UV, WV, 
+                  hom(OO(WV), OO(UV), 
+                      OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
+                      check=false), 
+                  check=false)
+  new_iso =  compose(iso, ident)
+  new_iso_inv = compose(inverse(ident), inverse(iso))
+  set_attribute!(new_iso, :inverse, new_iso_inv)
+  set_attribute!(new_iso_inv, :inverse, new_iso)
+  if W === P
+    return new_iso
+  end
+  return _flatten_open_subscheme(W, P, iso=new_iso)
+end
+
+function _flatten_open_subscheme(
+    U::AbsSpec, P::AbsSpec;
+    iso::AbsSpecMor=begin
+      UU = PrincipalOpenSubset(U, one(OO(U)))
+      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      set_attribute!(f, :inverse, f_inv)
+      set_attribute!(f_inv, :inverse, f)
+      f
+    end
+  )
+  U === P || error("schemes have no valid relationship")
+  return iso
+end
+
 ########################################################################
 # Lookup of common ancestors                                           #
 #                                                                      #

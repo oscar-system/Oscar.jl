@@ -17,7 +17,7 @@
   @test coordinates(v)[1] == -inv(first(gens(OO(W))))^2
 
   TC = tangent_sheaf(C)
-  @test_broken oscar.trivializing_covering(TC) isa Covering
+  @test oscar.trivializing_covering(TC) isa Covering
 
   IP4 = projective_space(QQ, 4)
   S = ambient_coordinate_ring(IP4)
@@ -31,4 +31,7 @@
   C = oscar.trivializing_covering(WX)
   @test WX(C[1]) isa FreeMod
   @test !any(x->x===ambient_scheme(C[1]), affine_charts(X)) # codimension 2 means recursion depth >= 2.
+  TX = tangent_sheaf(X)
+  CC = oscar.trivializing_covering(TX)
+  @test all(x->TX(x) isa FreeMod, patches(CC))
 end

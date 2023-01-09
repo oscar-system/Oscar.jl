@@ -420,11 +420,14 @@ identifications given by the glueings in the `default_covering`.
       )
       OV = F(V)
       OU = F(U) 
-      incV, dV = _find_chart(V, default_covering(X))
-      W = codomain(incV)
-      V_direct = PrincipalOpenSubset(W, dV)
+      incV = _flatten_open_subscheme(V, default_covering(X))
+      W = ambient_scheme(codomain(incV))
+      V_direct = domain(incV)
       if W === U
-        return pullback(inverse(incV))
+        # By virtue of the checks in _is_open_func we must have V isomorphic to U.
+        phi = pullback(inverse(incV))
+        psi = hom(OO(V_direct), OU, gens(OU))
+        return hom(OV, OU, psi.(phi.(gens(OV))))
         ### deprecated code below;
         # kept for the moment because of possible incompatibilities with glueings 
         # along SpecOpens.
@@ -440,8 +443,7 @@ identifications given by the glueings in the `default_covering`.
         W1, W2 = glueing_domains(G)
         f, g = glueing_morphisms(G)
         g_res = restrict(g, U, V_direct)
-        inc_res = restrict(incV, V, V_direct, check=false)
-        return pullback(compose(g_res, inverse(inc_res)))
+        return pullback(compose(g_res, inverse(incV)))
         ### deprecated code below; see comment above
         function rho_func2(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")

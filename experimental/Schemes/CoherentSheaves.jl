@@ -82,18 +82,39 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     return X === Y === Z
   end
   function is_open_func(U::AbsSpec, V::AbsSpec)
-    U in affine_charts(X) || return false
-    V in affine_charts(X) || return false
-    G = affine_charts(X)[U, V]
+    any(x->x===U, affine_charts(X)) || return false
+    any(x->x===V, affine_charts(X)) || return false
+    G = default_covering(X)[U, V]
     return issubset(U, glueing_domains(G)[1])
   end
-  function is_open_func(U::PrincipalOpenSubset, V::AbsSpec)
-    V in affine_charts(X) || return false
-    ambient_scheme(U) === V && return true
-    W = ambient_scheme(U)
-    W in affine_charts(X) || return false
+  function is_open_func(
+      U::AbsSpec,
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+    )
+    issubset(U, V) && return true
+    any(x->x===U, affine_charts(X)) || return false
+    inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
+    A = ambient_scheme(codomain(inc_V_flat))
+    Vdirect = codomain(inc_V_flat)
+    W = ambient_scheme(Vdirect)
+    haskey(glueings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
+    G = default_covering(X)[W, U]
+    f, g = glueing_morphisms(G)
+    pre_V = preimage(g, V)
+    return is_subset(U, pre_V)
+  end
+  function is_open_func(
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      V::AbsSpec
+    )
+    any(x->x===V, affine_charts(X)) || return false
+    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
+    A = ambient_scheme(codomain(inc_U_flat))
+    Udirect = codomain(inc_U_flat)
+    W = ambient_scheme(Udirect)
+    haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
     G = default_covering(X)[W, V]
-    return is_subset(U, glueing_domains(G)[1])
+    return is_subset(Udirect, glueing_domains(G)[1])
   end
   return is_open_func
 end
@@ -184,7 +205,7 @@ identifications given by the glueings in the `default_covering`.
         UU, _ = glueing_domains(default_covering(X)[U, V])
         psi = OOX(UU, U) # Needs to exist by the checks of is_open_func, even though 
         # in general UU ⊂ U!
-        return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)]) for i in 1:ngens(MV), init=zero(MU)], rho)
+        return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)], init=zero(MU)) for i in 1:ngens(MV)], OOX(V, U))
       else
         error("invalid input")
       end
@@ -217,7 +238,7 @@ identifications given by the glueings in the `default_covering`.
       # respect to the generators of F(W), so we have to map them manually down.
       # The call to F(W, U) will be handled by the above if-clauses.
       return hom(F(V), F(U), 
-                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W)), init=zero(F(U))]) 
+                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))], init=zero(F(U))) 
                   for i in 1:ngens(F(V))], 
                  OOX(V, U)
                 )
@@ -250,7 +271,7 @@ identifications given by the glueings in the `default_covering`.
       # respect to the generators of F(W), so we have to map them manually down.
       # The call to F(W, U) will be handled by the above if-clauses.
       return hom(F(V), F(U), 
-                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W)), init=zero(F(U))]) 
+                 [sum([OOX(WW, U)(A[i, j])*F(W, U)(F(W)[j]) for j in 1:ngens(F(W))], init=zero(F(U)))
                   for i in 1:ngens(F(V))], 
                  OOX(V, U)
                 )
@@ -717,7 +738,7 @@ end
       images = elem_type(MU)[]
       for phi in gens(MV)
         phi_map = element_to_homomorphism(phi)
-        images_f = [sum([B[i][j]*cod_res(phi_map(f[j])) for j in 1:length(f), init=zero(G(U))]) for i in 1:length(B)]
+        images_f = [sum([B[i][j]*cod_res(phi_map(f[j])) for j in 1:length(f)], init=zero(G(U))) for i in 1:length(B)]
         psi = hom(F(U), G(U), images_f)
         push!(images, homomorphism_to_element(MU, psi))
       end
@@ -984,7 +1005,8 @@ end
 end
 
 @attr function trivializing_covering(M::HomSheaf)
-  error("method not implemented")
+  X = scheme(M)
+  OOX = OO(X)
   # The problem is that every module of a HomSheaf must know that it is 
   # a hom-module. Hence, the way to go is to pass through a common 
   # refinement of domain and codomain and recreate all the hom modules 
@@ -1000,8 +1022,31 @@ end
   # M on the Ws.
   dom_triv = trivializing_covering(domain(M))
   cod_triv = trivializing_covering(codomain(M))
-  ref_list = _common_refinement_list(dom_triv, cod_triv)
-  C = Covering(ref_list)
+  patch_list = AbsSpec[]
+  for U in patches(dom_triv)
+    for V in patches(cod_triv)
+      success, W = _have_common_ancestor(U, V)
+      if success
+        incU = _flatten_open_subscheme(U, W)
+        incV = _flatten_open_subscheme(V, W)
+        UV = intersect(codomain(incU), codomain(incV))::PrincipalOpenSubset
+        push!(patch_list, UV)
+
+        dom_UV, dom_res = change_base_ring(OOX(U, UV), domain(M)(U))
+        add_incoming_restriction!(domain(M), U, dom_UV, dom_res)
+        add_incoming_restriction!(domain(M), W, dom_UV, 
+                                  compose(domain(M)(W, U), dom_res))
+        object_cache(domain(M))[UV] = dom_UV
+
+        cod_UV, cod_res = change_base_ring(OOX(V, UV), codomain(M)(V))
+        add_incoming_restriction!(codomain(M), V, cod_UV, cod_res)
+        add_incoming_restriction!(codomain(M), W, dom_UV, 
+                                  compose(codomain(M)(W, V), cod_res))
+        object_cache(codomain(M))[UV] = cod_UV
+      end
+    end
+  end
+  C = Covering(patch_list)
   fill_with_lazy_glueings!(C, scheme(M))
   return C
 end
@@ -1129,7 +1174,10 @@ function _common_refinement_list(C::Covering, D::Covering)
       if success
         #TODO: Model the intersection of both U and V with an appropriate 
         #place in the tree structure.
-        error("method not implemented")
+        incU = _flatten_open_subscheme(U, W)
+        incV = _flatten_open_subscheme(V, W)
+        UV = intersect(codomain(incU), codomain(incV))
+        push!(patch_list, UV)
       end
     end
   end

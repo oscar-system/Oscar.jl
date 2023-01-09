@@ -217,16 +217,32 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     return X === Y === Z
   end
   function is_open_func(U::AbsSpec, V::AbsSpec)
-    U in affine_charts(X) || return false
-    V in affine_charts(X) || return false
+    any(x->x===U, affine_charts(X)) || return false
+    any(x->x===U, affine_charts(X)) || return false
     G = default_covering(X)[U, V]
     return issubset(U, glueing_domains(G)[1])
+  end
+  function is_open_func(
+      U::AbsSpec,
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+    )
+    issubset(U, V) && return true
+    any(x->x===U, affine_charts(X)) || return false
+    inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
+    A = ambient_scheme(codomain(inc_V_flat))
+    Vdirect = codomain(inc_V_flat)
+    W = ambient_scheme(Vdirect)
+    haskey(glueings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
+    G = default_covering(X)[W, U]
+    f, g = glueing_morphisms(G)
+    pre_V = preimage(g, V)
+    return is_subset(U, pre_V)
   end
   function is_open_func(
       U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
       V::AbsSpec
     )
-    V in affine_charts(X) || return false
+    any(x->x===V, affine_charts(X)) || return false
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
     A = ambient_scheme(codomain(inc_U_flat))
     Udirect = codomain(inc_U_flat)
