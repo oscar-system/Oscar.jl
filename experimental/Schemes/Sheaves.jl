@@ -111,8 +111,9 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   rho = restriction_func(F)(F, U, V)
 
   # Sanity checks
-  domain(rho) === F(U) || error("domain of the produced restrition is not correct")
-  codomain(rho) === F(V) || error("codomain of the produced restrition is not correct")
+  # disabled for the moment because of the ideal sheaves: They use the ring maps.
+  #domain(rho) === F(U) || error("domain of the produced restrition is not correct")
+  #codomain(rho) === F(V) || error("codomain of the produced restrition is not correct")
 
   # Cache the result in the attributes of F(V)
   inc isa IdDict{<:OpenType, <:RestrictionType} && (inc[U] = rho) # It is the restriction coming from U.
