@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 ```@setup oscar
@@ -67,7 +70,7 @@ f=\sum c_{\alpha}x^{\alpha}, \; \text{ with nonzero coefficients } \; c_{\alpha}
 We refer to this representation as the *standard representation* of $f$, with *coefficients* $c_{\alpha}$, and *exponents* $\alpha$.
 
 !!! note
-    PBW-algebras are also known as G-algebras or algebras of solvable type. See Remark 1 in [LS03](@cite) for a brief historical account.
+    PBW-algebras are also known as *G-algebras* or *algebras of solvable type*. See Remark 1 in [LS03](@cite) for a brief historical account.
  
 **Proposition.**  ``\;`` Let $A$ be a PBW-algebra. Then:
 - ``A`` is an integral domain,

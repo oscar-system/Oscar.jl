@@ -19,10 +19,16 @@ A closed subvariety of a normal toric variety
 
 julia> is_empty(c)
 false
+
+julia> c2 = ClosedSubvarietyOfToricVariety(f2, [x1,x2])
+A closed subvariety of a normal toric variety
+
+julia> is_empty(c2)
+true
 ```
 """
 @attr Bool function is_empty(c::ClosedSubvarietyOfToricVariety)
     B = irrelevant_ideal(toric_variety(c))
-    return intersect(radical(c), B) == B
+    return (is_one(defining_ideal(c)) || is_one(saturation(defining_ideal(c), B)))
 end
 export is_empty

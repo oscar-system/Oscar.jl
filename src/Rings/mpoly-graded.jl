@@ -821,7 +821,7 @@ function ideal(g::Vector{T}) where {T <: MPolyElem_dec}
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
      end
   end
-  return MPolyIdeal(g)
+  return MPolyIdeal(parent(g[1]), g)
 end
 
 function jacobi_matrix(f::MPolyElem_dec)
@@ -2439,4 +2439,37 @@ function AbstractAlgebra.promote_rule(::Type{MPolyElem_dec{S, T}}, ::Type{U}) wh
   else
     return Union{}
   end
+end
+
+################################################################################
+#
+#  Random homogenous polynomials
+#
+################################################################################
+
+#create homogenous polynomials in graded rings
+#TODO: make this work for non-standard gradings
+@doc Markdown.doc"""
+    rand(S::MPolyRing_dec, term_range, deg_range, v...)
+
+Create a random homogenous polynomial with a random number of
+terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
+and random coefficients via `v...`.
+"""
+function rand(S::MPolyRing_dec, term_range, deg_range, v...)
+  f = zero(S.R)
+  d = rand(deg_range)
+  for i=1:rand(term_range)
+    t = S.R(rand(base_ring(S), v...))
+    if iszero(t)
+      continue
+    end
+    for j=1:ngens(S.R)-1
+      t *= gen(S.R, j)^rand(0:(d-total_degree(t)))
+    end
+    #the last exponent is deterministic...
+    t *= gen(S.R, ngens(S.R))^(d-total_degree(t))
+    f += t
+  end
+  return S(f)
 end

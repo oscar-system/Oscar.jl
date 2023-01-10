@@ -2,14 +2,14 @@ module GaloisGrp
 
 using Oscar, Markdown
 import Base: ^, +, -, *, ==
-import Oscar: Hecke, AbstractAlgebra, GAP
+import Oscar: Hecke, AbstractAlgebra, GAP, extension_field
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
 export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal,
+       fixed_field, valuation_of_roots
 
 import Hecke: orbit, fixed_field, extension_field
-
 
 function __init__()
   GAP.Packages.load("ferret"; install=true)
@@ -426,8 +426,6 @@ mutable struct GaloisCtx{T}
     return r
   end
 end
-
-Base.round(::Type{Int}, q::fmpq) = Int(round(fmpz, q))
 
 function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{qadic}}})
   return prime(base_ring(base_ring(C.C.lf[1])))
@@ -1517,7 +1515,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
         # the re-ordering is easy: W^s for s = vcat(bs)
         bs = map(x->findall(isequal(x), d), r)
         @assert all(x->length(x) == length(bs[1]), bs)
-        W = isomorphic_perm_group(wreath_product(symmetric_group(length(bs[2])), g))[1]
+        W = PermGroup(wreath_product(symmetric_group(length(bs[2])), g))
         #should have the block system as above..
         W = W^symmetric_group(degree(W))(vcat(bs...))
         G = intersect(G, W)[1]
@@ -2259,14 +2257,14 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   return res
 end
 
-"""
+@doc Markdown.doc"""
     galois_quotient(C::GaloisCtx, d::Int)
 
 Finds all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"Group\(.*\]\)"
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-2);
@@ -2276,7 +2274,7 @@ julia> galois_quotient(C, 6)
  Number field over Rational Field with defining polynomial x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716
 
 julia> galois_group(ans[1])
-(Group([ (), (1,5)(2,4)(3,6), (1,2,3)(4,5,6) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
+(Group([ (1,2,3)(4,5,6), (1,4)(2,6)(3,5) ]), Galois Context for x^6 + 324*x^4 - 4*x^3 + 34992*x^2 + 1296*x + 1259716 and prime 13)
 
 julia> is_isomorphic(ans[1], G)
 true
@@ -2376,7 +2374,7 @@ functions and the coefficients of the polynomial.
 julia> Qx, x = QQ["x"];
 
 julia> i = galois_ideal(galois_group(x^4-2)[2])
-ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, -x1*x2 - x1*x3 - x2*x4 - x3*x4)
+ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x4 + x2*x3, x1^2*x4^2 + x2^2*x3^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
 
 julia> k, _ = number_field(i);
 
@@ -2386,6 +2384,7 @@ julia> length(roots(x^4-2, k))
 ```
 """
 function galois_ideal(C::GaloisCtx, extra::Int = 5)
+  #TODO if group is small, then factoring will be better...
   f = C.f
   id = gens(cauchy_ideal(f))
   R = parent(id[1])
@@ -2396,10 +2395,70 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   #or the 1st group in the descent chain (C.chn)...
   #TODO: the subfields use, implicitly, special invariants, so
   #      we should be able to avoid the chain
+  G = symmetric_group(n)
+  if C.start[1] == 1 # start with intersection of wreath products
+    _, g = slpoly_ring(ZZ, n)
+    for bs = C.start[2]
+      W = PermGroup(wreath_product(symmetric_group(length(bs[1])), symmetric_group(length(bs))))
+      W = W^symmetric_group(n)(vcat(bs...))
+      G = intersect(G, W)[1]
+      #each subfield causes, possibly, several invariants...
+      # (prod(g[b]) for b = bs)
+      # are the conjugates of a primitive element, need possibly a shift
+      # prod(g[b] .+ i) (acording to Klueners)
+      # so the elem. symm (or the power sums) of the above need to be in Z
+      # furthermore, all roots of this poly are in K, so beta = g(alpha)
+      # this gives more invariants... 
+      # all of them together basically prove the subfield, so they should
+      # be enough for the galois_ideal
+      # TODO: if the subfield has a smaller group, then this group
+      # could also be incorporated here...(use the galois_ideal of the 
+      # subfield and evaluate at the PE below)
+      # in general, if G is large, then there are few descents, hence this
+      # might work well
+      # if G is small, then iterated factoring (possibly using the SolveRadical
+      # stuff) is better. See galois_factor there
+      r = roots(C, 5)
+      k = 0
+      while true
+        pe = [prod(r[b] .+ k) for b = bs]
+        if length(Set(pe)) == length(bs)
+          break
+        end
+        k += 1
+      end
+      PE = [prod(g[b] .+ k) for b = bs]
+      B = upper_bound(C, power_sum, PE, length(PE))
+      rt = roots(C, bound_to_precision(C, B))
+      pe = [evaluate(I, rt) for I = PE]
+      po = pe
+      fl, v = isinteger(C, B, sum(pe))
+      push!(id, sum(evaluate(I, x) for I = PE) -v)
+      @assert fl
+      h = [QQ(v)]
+      while length(h) < length(PE)
+        po = po .* pe
+        fl, v = isinteger(C, B, sum(po))
+        @assert fl
+        push!(h, QQ(v))
+        push!(id, sum(evaluate(I^length(h), x) for I = PE) - v)
+      end
+      h = Hecke.power_sums_to_polynomial(h)
+      q = roots(h, number_field(C.f)[1])
+      @assert length(q) > 0
+      q = parent(defining_polynomial(parent(q[1])))(q[1])
+      #TODO: think h(q(y)) is probably boring, while q(y) == pe might be 
+      #      not....
+      for y = x
+        push!(id, h(q(y)))
+      end
+    end
+  end
+
   if length(C.chn) == 0
-    c = maximal_subgroup_chain(symmetric_group(n), C.G)
+    c = maximal_subgroup_chain(G, C.G)
   else
-    c = maximal_subgroup_chain(symmetric_group(n), C.chn[1][1])
+    c = maximal_subgroup_chain(G, C.chn[1][1])
   end
 
   r = roots(C, bound_to_precision(C, C.B))
@@ -2423,6 +2482,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
       end
     end
   end
+
   for (_, I, ts, T) = C.chn
     B = upper_bound(C, I, ts)
     r = roots(C, bound_to_precision(C, B, extra))
@@ -2594,8 +2654,9 @@ end
 
 using .GaloisGrp
 export galois_group, slpoly_ring, elementary_symmetric, galois_quotient,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, 
-       maximal_subgroup_reps, extension_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, 
+       fixed_field, maximal_subgroup_reps, extension_field, slope,
+       valuation_of_roots
        
 #=
        M12: 2-transitive, hence msum is a waste

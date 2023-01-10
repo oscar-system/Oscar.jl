@@ -184,6 +184,39 @@ end
 
 However, as always, rules sometimes should be broken.
 
+
+## Deprecating functions
+
+Sometimes it is necessary to rename a function or otherwise change it. To allow
+for backwards compatibility, please then introduce a new line in the file
+`src/Deprecations.jl`. The syntax is as follows:
+```
+# Deprecated after CURRENT_RELEASE_VERSION
+@deprecate old_function(args) new_function(args)
+```
+It is possible to transform the `args` too, if the syntax has changed. If this
+process needs an auxiliary function, which otherwise is unnecessary, please add
+it above:
+```
+# Deprecated after CURRENT_RELEASE_VERSION
+function transform_args_for_new_function(args)
+    # Do something
+    return new_args
+end
+@deprecate old_function(args) new_function(transform_args_for_new_function(args))
+```
+The comment about the version number is only necessary if you are the first one
+adding to `Deprecations.jl` after a release, otherwise please add to the
+existing block.
+
+!!! note
+    Please make sure to change to the new function everywhere in the existing
+    OSCAR code base. Even if you think, you were the only one using the
+    function, run a quick `grep` to make sure. When you are done,
+    `Deprecations.jl` should be the only place mentioning `old_function`. To
+    make sure, you can start Julia with `--depwarn=yes` or even
+    `--depwarn=error` and then run the tests.
+
 ## Documentation
 
  - In general we try to follow the list of recommendations in the

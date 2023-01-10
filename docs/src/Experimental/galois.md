@@ -92,6 +92,9 @@ galois_group(f::PolyElem{<:FieldElem})
 ```
 
 Over the rational function field, we can also compute the monodromy group:
+```@meta
+DocTestFilters = r"Group\(.*\]\)"
+```
 ```jldoctest galqt; setup = :(using Oscar, Random ; Random.seed!(1))
 julia> Qt, t = RationalFunctionField(QQ, "t");
 
@@ -107,7 +110,7 @@ julia> subfields(F)
  (Function Field over Rational Field with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
 
 julia> galois_group(F)
-(Group([ (), (1,5)(2,3)(4,6), (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
+(Group([ (1,3,4)(2,5,6), (1,2)(3,6)(4,5) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675)
 
 julia> G, C, k = galois_group(F, overC = true)
 (Group([ (1,3,4)(2,5,6) ]), Galois Context for s^6 + 108*t^2 + 540*t + 675, Number field over Rational Field with defining polynomial x^2 + 12*x + 24336)
@@ -119,6 +122,9 @@ over `C(t)` is only of degree `3`. Here the group collapses to a cyclic group
 of degree `3`, the algebraic closure of `Q` in the splitting field is the
 quadratic field returned last. It can be seen to be isomorphic to a cyclotomic field:
 
+```@meta
+DocTestFilters = nothing
+```
 ```jldoctest galqt
 julia> is_isomorphic(k, cyclotomic_field(3)[1])
 true

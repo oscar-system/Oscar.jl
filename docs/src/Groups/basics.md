@@ -30,6 +30,7 @@ gens(::GAPGroup)
 has_gens(::GAPGroup)
 ngens(G::GAPGroup)
 gen(::GAPGroup, i::Int)
+small_generating_set(G::GAPGroup)
 Base.rand(G::GAPGroup)
 rand_pseudo(G::GAPGroup)
 ```

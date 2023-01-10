@@ -665,10 +665,10 @@ end
 
 ##############################################################################
 #
-length(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
-Oscar.nrows(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
-Oscar.ncols(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
-number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)::Int
+length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
+Oscar.nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
+Oscar.ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
+number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(tbl.GAPTable)::Int
 
 @doc Markdown.doc"""
     order(::Type{T} = fmpz, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
@@ -685,7 +685,7 @@ julia> order(character_table(symmetric_group(4)))
 order(tbl::GAPGroupCharacterTable) = order(fmpz, tbl)
 
 function order(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
-  return T(GAP.Globals.Size(tbl.GAPTable)::GAP.Obj)
+  return T(GAPWrap.Size(tbl.GAPTable))
 end
 
 @doc Markdown.doc"""
@@ -941,14 +941,14 @@ end
 ##  character parameters, class parameters
 ##
 function _translate_parameter(para)
-    if GAP.Globals.IsChar(para)::Bool
+    if GAPWrap.IsChar(para)
       return Char(para)
-    elseif GAP.Globals.IsInt(para)::Bool
+    elseif GAPWrap.IsInt(para)
       return para
-    elseif GAP.Globals.IsCyc(para)::Bool
+    elseif GAPWrap.IsCyc(para)
       # happens for the `P:Q` table, only roots of unity occur
       return [x for x in GAP.Globals.DescriptionOfRootOfUnity(para)::GapObj]
-    elseif ! GAP.Globals.IsList(para)::Bool
+    elseif ! GAPWrap.IsList(para)
       # What can this parameter be?
       return GAP.gap_to_julia(para)
     elseif length(para) == 0
@@ -959,7 +959,7 @@ function _translate_parameter(para)
 end
 
 function _translate_parameter_list(paras)
-    if all(x -> GAP.Globals.IsList(x)::Bool && length(x) == 2 && x[1] == 1, paras)
+    if all(x -> GAPWrap.IsList(x) && length(x) == 2 && x[1] == 1, paras)
       # If all parameters are lists of length 2 with first entry `1` then
       # take the second entry.
       paras = [x[2] for x in paras]
@@ -1339,7 +1339,7 @@ class functions (see [`scalar_product`](@ref).
 For Brauer characters there is no generic method for checking irreducibility.
 """
 function is_irreducible(chi::GAPGroupClassFunction)
-    return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)::Bool
+    return GAPWrap.IsIrreducibleCharacter(chi.values)
 end
 
 # Apply a class function to a group element.
@@ -1406,7 +1406,7 @@ function character_field(chi::GAPGroupClassFunction)
     gapfield = GAP.Globals.Field(values)::GapObj
     N = GAPWrap.Conductor(gapfield)
     FF, = abelian_closure(QQ)
-    if GAP.Globals.IsCyclotomicField(gapfield)::Bool
+    if GAPWrap.IsCyclotomicField(gapfield)
       # In this case, the want to return a field that knows to be cyclotomic
       # (and the embedding is easy).
       F, z = Oscar.AbelianClosure.cyclotomic_field(FF, N)

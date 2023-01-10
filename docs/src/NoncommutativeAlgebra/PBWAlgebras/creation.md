@@ -17,8 +17,8 @@ Pages = ["creation.md"]
 
 ## Types
 
-PBW-algebras are modelled by objects of type `GAlgRing{T, S} <: NCRing`, their elements are objects of type
-`GAlgElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the PBW-algebra
+PBW-algebras are modelled by objects of type `PBWAlgRing{T, S} <: NCRing`, their elements are objects of type
+`PBWAlgElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the PBW-algebra
 is defined (the type `S` is added for internal use).
 
 ## Constructors
@@ -45,7 +45,8 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 The constructor below returns the algebras equipped with `degrevlex`.
 
 ```@docs
-weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, AbstractVector{Symbol}, AbstractVector{Char}})
+    weyl_algebra(K::Ring, xs::Union{AbstractVector{<:AbstractString}, 
+                                    AbstractVector{Symbol}, AbstractVector{Char}})
 ```
 
 ### Universal Enveloping Algebras of Finite Dimensional Lie Algebras

@@ -68,7 +68,7 @@ function GAP.julia_to_gap(
         GAP.Globals.Add(gapset, x)
     end
     GAP.Globals.Sort(gapset)
-    @assert GAP.Globals.IsSet(gapset)
+    @assert GAPWrap.IsSet(gapset)
 
     return gapset
 end

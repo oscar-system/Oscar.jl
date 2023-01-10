@@ -63,10 +63,8 @@ end
     @test on_indeterminates(img, p) == iso(f^p)
   end
 
-  for x in gens(g)
-    for y in gens(g)
-      @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
-    end
+  for x in gens(g), y in gens(g)
+    @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
   end
 
   I = ideal(R, [x1^2*x2, x2^2])
@@ -96,10 +94,8 @@ end
   m = g(matrix(base_ring(g), 3, 3, [3, 0, 2, 4, 0, 0, 0, 4, 0]))
   @test f^m == 2*x1^2 + x1*x2 + 3*x1*x3
 
-  for x in gens(g)
-    for y in gens(g)
-      @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
-    end
+  for x in gens(g), y in gens(g)
+    @test on_indeterminates(on_indeterminates(f, x), y) == on_indeterminates(f, x*y)
   end
 
   I = ideal(R, [x1^2*x2, x2^2])

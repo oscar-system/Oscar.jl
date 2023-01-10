@@ -17,9 +17,6 @@ export
     is_invertible,
     is_isomorphic,
     is_isomorphic_with_map,
-    isomorphic_fp_group,
-    isomorphic_pc_group,
-    isomorphic_perm_group,
     isomorphism,
     is_surjective,
     kernel,
@@ -102,7 +99,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
     img_el = img(el)
     return img_el.X
   end
-  mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun))
+  mp = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun))
   return GAPGroupHomomorphism(G, H, mp)
 end
 
@@ -122,9 +119,9 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known
   end
 
   if is_known_to_be_bijective
-    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), GAP.Obj(gap_pre_fun))
+    mp = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), GAP.Obj(gap_pre_fun))
   else
-    mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), false, GAP.Obj(gap_pre_fun))
+    mp = GAPWrap.GroupHomomorphismByFunction(G.X, H.X, GAP.Obj(gap_fun), false, GAP.Obj(gap_pre_fun))
   end
 
   return GAPGroupHomomorphism(G, H, mp)
@@ -508,7 +505,7 @@ true
 """
 function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, T) do
      fun = _get_iso_function(T)
      f = fun(G.X)::GapObj
@@ -527,7 +524,7 @@ An exception is thrown if `G` is not abelian or not finite.
 """
 function isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
      is_abelian(G) || throw(ArgumentError("the group is not abelian"))
      isfinite(G) || throw(ArgumentError("the group is not finite"))
@@ -560,7 +557,7 @@ An exception is thrown if no such isomorphism exists or if `A` is not finite.
 """
 function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
    return get!(isos, T) do
      # find independent generators
      if is_diagonal(rels(A))
@@ -575,18 +572,18 @@ function isomorphism(::Type{T}, A::GrpAbFinGen) where T <: GAPGroup
      end
      # the isomorphic gap group
      G = abelian_group(T, exponents)
-     # `GAP.Globals.GeneratorsOfGroup(G.X)` consists of independent elements
+     # `GAPWrap.GeneratorsOfGroup(G.X)` consists of independent elements
      # of the orders in `exponents`.
      # `GAP.Globals.IndependentGenerators(G.X)` chooses generators
      # that may differ from these generators,
      # and that belong to the exponent vectors returned by
      # `GAPWrap.IndependentGeneratorExponents(G.X, g)`.
-     # `GAP.Globals.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
+     # `GAPWrap.GeneratorsOfGroup(G.X)` corresponds to `gens(A2)`,
      # we let `hom` compute elements in `A2` that correspond to
      # `GAP.Globals.IndependentGenerators(G.X)`.
-     Ggens = Vector{GapObj}(GAP.Globals.GeneratorsOfGroup(G.X)::GapObj)
+     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(G.X)::GapObj)
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(G.X)::GapObj
-     Aindep = abelian_group(fmpz[GAP.Globals.Order(g) for g in gensindep])
+     Aindep = abelian_group(fmpz[GAPWrap.Order(g) for g in gensindep])
 
      imgs = [Vector{fmpz}(GAPWrap.IndependentGeneratorExponents(G.X, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
@@ -613,10 +610,30 @@ end
 
 function isomorphism(::Type{GrpAbFinGen}, A::GrpAbFinGen)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
    return get!(isos, GrpAbFinGen) do
      return identity_map(A)
    end::AbstractAlgebra.Generic.IdentityMap{GrpAbFinGen}
+end
+
+# We need not find independent generators in order to create
+# a presentation of a fin. gen. abelian group.
+function isomorphism(::Type{FPGroup}, A::GrpAbFinGen)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
+   return get!(isos, FPGroup) do
+      G = free_group(ngens(A); eltype = :syllable)
+      R = rels(A)
+      s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
+           elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
+      F, mF = quo(G, s)
+      @hassert is_finite(A) == is_finite(F)
+      is_finite(A) && @hassert order(A) == order(F)
+      return MapFromFunc(
+        y->F([i => y[i] for i=1:ngens(A)]),
+        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)),
+        A, F)
+   end::MapFromFunc{GrpAbFinGen, FPGroup}
 end
 
 """
@@ -645,7 +662,7 @@ end
 
 function isomorphism(::Type{T}, A::GrpGen) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)
+   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
    return get!(isos, T) do
      S = symmetric_group(order(A))
      gensA = gens(A)
@@ -695,38 +712,6 @@ end
 function (::Type{T})(G::GrpGen) where T <: GAPGroup
    return codomain(isomorphism(T, G))
 end
-
-################################################################################
-#
-# provide and deprecate the old syntax
-#
-function _isomorphic_perm_group(G::GAPGroup)
-   f = isomorphism(PermGroup, G)
-   return codomain(f), f
-end
-
-@deprecate isomorphic_perm_group(G::GAPGroup) _isomorphic_perm_group(G)
-
-function _isomorphic_pc_group(G::GAPGroup)
-   f = isomorphism(PcGroup, G)
-   return codomain(f), f
-end
-
-@deprecate isomorphic_pc_group(G::GAPGroup) _isomorphic_pc_group(G)
-
-function _isomorphic_fp_group(G::GAPGroup)
-   f = isomorphism(FPGroup, G)
-   return codomain(f), f
-end
-
-@deprecate isomorphic_fp_group(G::GAPGroup) _isomorphic_fp_group(G)
-
-function _isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
-  fmap = isomorphism(T, G)
-  return codomain(fmap), fmap
-end
-
-@deprecate isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup _isomorphic_group(T, G)
 
 
 """

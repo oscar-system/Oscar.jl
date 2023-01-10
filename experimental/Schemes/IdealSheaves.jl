@@ -1,11 +1,16 @@
-export IdealSheaf
+export IdealSheaf, ideal_sheaf
 
 export scheme, covering, subscheme, covered_patches, extend!, ideal_dict
 
 export ideal_sheaf_type
 
+export order_on_divisor
+
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
+
+# an alias for the user's convenience
+scheme(I::IdealSheaf) = space(I)
 
 @Markdown.doc """
     IdealSheaf(X::ProjectiveScheme, g::Vector{<:RingElem})
@@ -28,12 +33,16 @@ function IdealSheaf(X::ProjectiveScheme, I::MPolyIdeal)
   return IdealSheaf(X_covered, I, check=true)
 end
 
+ideal_sheaf(X::ProjectiveScheme, I::MPolyIdeal) = IdealSheaf(X, I)
+
 function IdealSheaf(
     X::ProjectiveScheme, 
     g::MPolyElem_dec
   )
   return IdealSheaf(X, [g])
 end
+
+ideal_sheaf(X::ProjectiveScheme, g::MPolyElem_dec) = IdealSheaf(X, g)
 
 function IdealSheaf(
     X::ProjectiveScheme, 
@@ -49,6 +58,9 @@ function IdealSheaf(
   return IdealSheaf(X_covered, I, check=false)
 end
 
+ideal_sheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec} = IdealSheaf(X, g)
+
+
 # this constructs the zero ideal sheaf
 function IdealSheaf(X::CoveredScheme) 
   C = default_covering(X)
@@ -58,6 +70,13 @@ function IdealSheaf(X::CoveredScheme)
   end
   return IdealSheaf(X, I, check=false)
 end
+
+@Markdown.doc """
+    ideal_sheaf(X::AbsCoveredScheme)
+
+See the documentation for `IdealSheaf`.
+"""
+ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 
 # set up an ideal sheaf by automatic extension 
 # from one prescribed set of generators on one affine patch
@@ -85,6 +104,35 @@ function IdealSheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:Ri
   return I
 end
 
+ideal_sheaf(X::CoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+
+@Markdown.doc """
+    IdealSheaf(Y::AbsCoveredScheme, 
+        phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+    )
+
+Internal method to create an ideal sheaf from a `CoveringMorphism` 
+of `ClosedEmbedding`s; return the ideal sheaf describing the images 
+of the local morphisms.
+"""
+function IdealSheaf(Y::AbsCoveredScheme, 
+    phi::CoveringMorphism{<:Any, <:Any, <:ClosedEmbedding}
+  )
+  maps = morphisms(phi)
+  V = [codomain(ff) for ff in values(maps)]
+  dict = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(Y)
+    if U in V
+      i = findall(x->(codomain(x) == U), maps)
+      dict[U] = image_ideal(maps[first(i)])
+    else
+      dict[U] = ideal(OO(U), one(OO(U)))
+    end
+  end
+  return IdealSheaf(Y, dict) # TODO: set check=false?
+end
+
+    
 # pullback of an ideal sheaf for internal use between coverings of the same scheme
 #function (F::CoveringMorphism)(I::IdealSheaf)
 #  X = scheme(I)
@@ -189,8 +237,12 @@ function subscheme(I::IdealSheaf)
     Unew = new_patches[i]
     Vnew = new_patches[j]
     G = C[U, V]
-    new_glueings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
-    new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
+    #new_glueings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
+    new_glueings[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+                                             RestrictionDataClosedEmbedding(C[U, V], Unew, Vnew)
+                                            )
+    #new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
+    new_glueings[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, new_glueings[(Unew, Vnew)])
   end
   Cnew = Covering(new_patches, new_glueings, check=false)
   return CoveredScheme(Cnew)
@@ -258,7 +310,7 @@ end
 
 function is_subset(I::IdealSheaf, J::IdealSheaf)
   X = space(I)
-  X == space(J) || return false
+  X === space(J) || return false
   for U in basic_patches(default_covering(X))
     is_subset(I(U), J(U)) || return false
   end
@@ -333,5 +385,99 @@ end
 
 function is_prime(I::IdealSheaf) 
   return all(U->is_prime(I(U)), basic_patches(default_covering(space(I))))
+end
+
+function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType}
+  whole_ring = ideal(base_ring(I), [one(base_ring(I))])
+  P(whole_ring) && return (0, whole_ring)
+  P(I) && return (1, I)
+  I_powers = [(1,I)]
+
+  while !P(last(I_powers)[2])
+    push!(I_powers, (last(I_powers)[1]*2, last(I_powers)[2]^2))
+  end
+  upper = pop!(I_powers)
+  lower = pop!(I_powers)
+  while upper[1]!=lower[1]+1
+    middle = pop!(I_powers)
+    middle = (lower[1]+middle[1], lower[2]*middle[2])
+    if P(middle[2])
+      upper = middle
+    else
+      lower = middle
+    end
+  end
+  return upper
+end
+
+@Markdown.doc """
+    order_on_divisor(f::VarietyFunctionFieldElem, I::IdealSheaf; check::Bool=true) -> Int
+
+Return the order of the rational function `f` on the prime divisor given by the ideal sheaf `I`.
+"""
+function order_on_divisor(
+    f::VarietyFunctionFieldElem, 
+    I::IdealSheaf;
+    check::Bool=true
+  )
+  if check
+    is_prime(I) || error("ideal sheaf must be a sheaf of prime ideals")
+  end
+  X = space(I)::AbsCoveredScheme
+  X == variety(parent(f)) || error("schemes not compatible")
+  
+  #order_dict = Dict{AbsSpec, Int}()
+
+  # Since X is integral and I is a sheaf of prime ideals, 
+  # it suffices to find one chart in which I is non-trivial.
+
+  # We look for the chart with the least complexity
+  V = first(affine_charts(X))
+  #complexity = Vector{Tuple{AbsSpec, Int}}()
+  complexity = inf
+  for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
+    U in default_covering(X) || continue
+    one(base_ring(I(U))) in I(U) && continue
+    tmp = sum([total_degree(lifted_numerator(g)) for g in gens(I(U)) if !iszero(g)]) # /ngens(Oscar.pre_image_ideal(I(U)))
+    if tmp < complexity 
+      complexity = tmp
+      V = U
+    end
+  end
+  if complexity == inf
+    error("divisor is empty")
+  end
+  R = ambient_coordinate_ring(V)
+  J = saturated_ideal(I(V))
+  floc = f[V]
+  aR = ideal(R, numerator(floc))
+  bR = ideal(R, denominator(floc))
+
+
+  # The following uses ArXiv:2103.15101, Lemma 2.18 (4):
+  num_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, aR), J)))[1]-1
+  den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x, bR), J)))[1]-1
+  return num_mult - den_mult
+#    # Deprecated code computing symbolic powers explicitly:
+#    L, map = Localization(OO(U), 
+#                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
+#                         )
+#    typeof(L)<:Union{MPolyLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#                                        <:MPolyComplementOfPrimeIdeal},
+#                     MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
+#                                           <:MPolyComplementOfPrimeIdeal}
+#                    } || error("localization was not successful")
+# 
+#    floc = f[U]
+#    a = numerator(floc)
+#    b = denominator(floc)
+#    # TODO: cache groebner bases in a reasonable way.
+#    P = L(prime_ideal(inverted_set(L)))
+#    if one(L) in P 
+#      continue # the multiplicity is -∞ in this case and does not count
+#    end
+#    upper = _minimal_power_such_that(P, x->!(L(a) in x))[1]-1
+#    lower = _minimal_power_such_that(P, x->!(L(b) in x))[1]-1
+#    order_dict[U] = upper-lower
 end
 

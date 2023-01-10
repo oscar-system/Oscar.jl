@@ -478,6 +478,6 @@ true
 function right_coset_action(G::T, U::T) where T <: GAPGroup
   mp = GAP.Globals.FactorCosetAction(G.X, U.X)
   mp == GAP.Globals.fail && throw(ArgumentError("Invalid input"))
-  H = PermGroup(GAP.Globals.Range(mp))
+  H = PermGroup(GAPWrap.Range(mp))
   return GAPGroupHomomorphism(G, H, mp)
 end

@@ -46,8 +46,9 @@ Return the glueing `H` with `patches`, `glueing_domains`,
 and `glueing_morphisms` in opposite order compared to `G`.
 """
 @attr function inverse(G::AbsGlueing)
-  Ginv = G(inverse(underlying_glueing(G)))
+  Ginv = inverse(underlying_glueing(G))
   set_attribute!(Ginv, :inverse, G)
+  set_attribute!(G, :inverse, Ginv)
   return Ginv
 end
 

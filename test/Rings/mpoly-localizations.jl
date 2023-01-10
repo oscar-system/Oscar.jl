@@ -1,7 +1,7 @@
 @testset "mpoly-localizations" begin
-  R, var = ZZ["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = ZZ["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   f = x^2 + y^2 -1
   m = ideal(R, [x, y])
   I = ideal(R, f)
@@ -11,9 +11,9 @@
   W, _ = Localization(T)
   
   k = QQ
-  R, var = k["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = k["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   p = 123
   q = -49
   f = x^2 + y^2 - p^2 - q^2
@@ -116,18 +116,18 @@
 end
 
 @testset "mpoly-localizations PowersOfElements" begin
-  R, var = ZZ["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = ZZ["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   f = x^2 + y^2 -1
   S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   # 5 is not a unit in R
   @test !(5*f in S)
 
-  R, vars = QQ["x","y"]
-  x = vars[1]
-  y = vars[2]
+  R, variabs = QQ["x","y"]
+  x = variabs[1]
+  y = variabs[2]
   f = x^2 + y^4-120
   S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
@@ -141,15 +141,16 @@ end
   @test W(1//x) == 1//W(x)
   I = ideal(W, x*y*(x+y))
   @test x+y in I
+  @test x+y in saturated_ideal(I)
   @test !(x+2*y in I)
   J = I + ideal(W, f)
   @test W(1) in J
 end
 
 @testset "mpoly-localization homomorphisms" begin
-  R, var = ZZ["x", "y"]
-  x = var[1]
-  y = var[2] 
+  R, variab = ZZ["x", "y"]
+  x = variab[1]
+  y = variab[2] 
   f = x^2 + y^2 -1
   S = MPolyPowersOfElement(R, [x, y, f])
   @test f in S
@@ -313,7 +314,7 @@ end
   J = ideal(L,[y*(x^2+(y^2+1)^2)])
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat
-  @test_throws ErrorException("no transition matrix available using local orderings") saturated_ideal(L(J_sat); with_generator_transition=true)
+  @test_throws ErrorException("computation of the transition matrix for the generators is not supposed to happen for localizations at complements of prime ideals") saturated_ideal(L(J_sat); with_generator_transition=true)
   JJ = ideal(R,[y*(x^2+(y^2+1)^2)])
   @test saturated_ideal(JJ) == JJ
 end
@@ -365,4 +366,22 @@ end
 #  @test !is_zero_divisor(W(5))
 #  @test is_zero_divisor((x-y)*W(2))
 #  @test is_zero_divisor((x-y)*W(x))
+end
+
+@testset "saturated ideals II" begin
+  R, (x,y) = QQ["x", "y"]
+  L, _ = localization(R, powers_of_element(x))
+  I = ideal(R, [x^7*(y-1), (x^5)*(x-1)])
+  J = L(I)
+  @test (x-1) in J
+  c1 = coordinates(x-1, J)
+  @test x-1 in saturated_ideal(J)
+  c2 = coordinates(y-1, J)
+  @test y-1 == c2[1]*gens(J)[1] + c2[2]*gens(J)[2]
+  c3 = coordinates(x-y, J)
+  @test x-y == c3[1]*gens(J)[1] + c3[2]*gens(J)[2]
+  JJ = L(I)
+  @test x-1 in saturated_ideal(JJ, strategy=:single_saturation)
+  c2 = coordinates(y-1, JJ)
+  @test y-1 == c2[1]*gens(JJ)[1] + c2[2]*gens(JJ)[2]
 end

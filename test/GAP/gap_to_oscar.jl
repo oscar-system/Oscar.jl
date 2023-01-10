@@ -210,6 +210,12 @@ end
     @test all(isone, [x^4 for x in omats])
     @test all(i -> omats[i] == matrix(F, gmats[i]), 1:length(gmats))
 
+    F, _ = CyclotomicField(4)
+    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(F, GAP.Globals.E(4))
+    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(F, GAP.evalstr("[]"))
+    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(F, GAP.evalstr("[ [ [ Z(2) ] ] ]"))
+    @test Oscar.matrices_over_cyclotomic_field(F, gmats) == (omats, F, z)
+
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.Globals.E(4))
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[]"))
     @test_throws MethodError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
@@ -232,4 +238,29 @@ end
 
     F, z = CyclotomicField(7)
     @test_throws ErrorException matrix(F, GAP.evalstr("[ [ E(5) ] ]"))
+end
+
+@testset "matrices over a field" begin
+    # internal finite field elements in GAP
+    mats = GAP.evalstr("[ [ [ Z(2) ] ], [ [ Z(4) ] ] ]")
+    omats, F, z = Oscar.matrices_over_cyclotomic_field(mats)
+    @test order(F) == 4
+    @test omats[1][1,1] == one(F)
+    @test omats[2][1,1] == gen(F)
+
+    # algebraic extension elements in GAP
+    oF = GF(2)
+    gF = Oscar.iso_oscar_gap(oF)
+    R, x = PolynomialRing(oF)
+    gpol = image(Oscar.iso_oscar_gap(R), x^2+x+1)
+    F = GAP.Globals.AlgebraicExtension(codomain(gF), gpol)
+    mats = GAP.GapObj([[[GAP.Globals.One(F)]], [GAP.Globals.GeneratorsOfField(F)]], recursive = true)
+    omats, F, z = Oscar.matrices_over_cyclotomic_field(mats)
+    @test order(F) == 4
+    @test omats[1][1,1] == one(F)
+    @test omats[2][1,1] == gen(F)
+
+    # not a collection in GAP
+    mats = GAP.evalstr("[ [ [ Z(2) ] ], [ [ Z(3) ] ] ]")
+    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(mats)
 end

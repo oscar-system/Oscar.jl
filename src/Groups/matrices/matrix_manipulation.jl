@@ -138,6 +138,18 @@ end
 
 Return the permutation matrix over the ring `R` corresponding to the sequence `Q` or to the permutation `p`.
 If `Q` is a sequence, then `Q` must contain exactly once every integer from 1 to some `n`.
+
+# Examples
+```jldoctest
+julia> s = perm([3,1,2])
+(1,3,2)
+
+julia> permutation_matrix(QQ,s)
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+```
 """
 function permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
    @assert Set(Q)==Set(1:length(Q)) "Invalid input"

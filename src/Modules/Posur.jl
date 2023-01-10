@@ -19,11 +19,13 @@ function clear_denominators(A::MatrixType) where {T<:AbsLocalizedRingElem, Matri
   n = ncols(A)
   S = base_ring(A)
   R = base_ring(S)
-  D = zero(MatrixSpace(R, m, m))
+  D = zero_matrix(SMat, R, 0, m)
+  #D = zero(MatrixSpace(R, m, m))
   B = zero(MatrixSpace(R, m, n))
   for i in 1:m
     d = lcm(vec(denominator.(A[i,:])))
-    D[i,i] = d
+    push!(D, sparse_row(R, [(i, d)]))
+    #D[i,i] = d
     for j in 1:n
       B[i, j] = numerator(A[i,j])*divexact(d, denominator(A[i,j]))
     end
@@ -96,7 +98,7 @@ free modules given by ``A``.
 function syz(A::MatrixElem{<:AbsLocalizedRingElem})
   B, D = clear_denominators(A)
   L = syz(B)
-  return L*D
+  return transpose(mul(transpose(D), transpose(L)))
 end
 
 # The annihilator of b as an element of a free module modulo the cokernel of A
@@ -179,7 +181,7 @@ function has_solution(
   # We have B = D⋅A and c = u ⋅ b as matrices. 
   # Now y⋅B = v⋅c ⇔ y⋅D ⋅A = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D ⋅ A = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ y ⋅ D to be the solution x of x ⋅ A = b.
-  return (success, S(one(R), v*u[1,1])*change_base_ring(S, y*D))
+  return (success, S(one(R), v*u[1,1])*change_base_ring(S, transpose(mul(transpose(D), transpose(y)))))
 end
 
 # This second version solves over the base ring and checks compatibility with 
@@ -279,7 +281,7 @@ function pre_saturation_data_gens(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(M, :pre_saturation_data_gens)
     pre_saturated_module(M)
   end
-  return get_attribute(M, :pre_saturation_data_gens)::dense_matrix_type(T)
+  return get_attribute(M, :pre_saturation_data_gens)::SMat{elem_type(base_ring(M))}
 end
 
 # For a SubQuo M over a localized ring S = R[U⁻¹] and its current 
@@ -292,7 +294,7 @@ function pre_saturation_data_rels(M::SubQuo{T}) where {T<:AbsLocalizedRingElem}
   if !has_attribute(M, :pre_saturation_data_rels)
     pre_saturated_module(M)
   end
-  return get_attribute(M, :pre_saturation_data_rels)::dense_matrix_type(T)
+  return get_attribute(M, :pre_saturation_data_rels)::SMat{elem_type(base_ring(M))}
 end
 
 base_ring_module_map_type(::Type{FreeMod{T}}) where {T<:AbsLocalizedRingElem} = morphism_type(base_ring_module_type(FreeMod{T}), FreeMod{T})
@@ -414,6 +416,7 @@ function kernel(
     DomType<:FreeMod{T},
     CodType<:FreeMod{T}
   }
+
   S = base_ring(domain(f))
   A = representing_matrix(f)
   B, D = clear_denominators(A)
@@ -422,7 +425,8 @@ function kernel(
   fb = hom(Fb, Gb, B)
   Kb, incb = kernel(fb)
   Cb = representing_matrix(incb)
-  C = change_base_ring(S, Cb*D)
+  C = change_base_ring(S, transpose(mul(transpose(D), transpose(Cb))))
+  #C = change_base_ring(S, Cb*D)
   K, inc = sub(domain(f), C)
   return K, inc
 end
@@ -457,13 +461,15 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   (u_clear, d_u) = clear_denominators(u)
   Mb = pre_saturated_module(M)
   if represents_element(u_clear, Mb)
-    yc = as_matrix(coordinates(u_clear, Mb), ngens(Mb))
-    Tr = pre_saturation_data_gens(M)
-    # We have yc ⋅ A' ≡ uc with A' = Tr ⋅ generator_matrix(M) and d_u ⋅ u = uc.
-    # Then (1//d_u) ⋅ yc ⋅ T are the coordinates of u in the original generators 
-    # generator_matrix(M).
-    result = S(one(R), d_u)*(yc*Tr) 
-    return sparse_row(result)
+    # yc = as_matrix(coordinates(u_clear, Mb), ngens(Mb))
+    # Tr = pre_saturation_data_gens(M)
+    # # We have yc ⋅ A' ≡ uc with A' = Tr ⋅ generator_matrix(M) and d_u ⋅ u = uc.
+    # # Then (1//d_u) ⋅ yc ⋅ T are the coordinates of u in the original generators 
+    # # generator_matrix(M).
+    # result = S(one(R), d_u)*(yc*Tr) 
+    # return sparse_row(result)
+    return S(one(R), d_u)*mul(change_base_ring(S, coordinates(u_clear, Mb)), 
+                                               pre_saturation_data_gens(M))
   end
 
   # If u_clear was not yet found in the presaturated module, do the full search.
@@ -483,8 +489,8 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   # `pre_saturated_module(M)` and w' as a new relation of it. 
   y = x[1, 1:r]
   z = x[1, r+1:r+s]
-  v = x*A
-  w = y*B
+  v = y*A
+  w = z*B
   (v_clear, d_v) = clear_denominators(v)
   (w_clear, d_w) = clear_denominators(w)
 
@@ -501,11 +507,13 @@ function coordinates(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocalizedRing
   # For the extended set of generators in the pre-saturation, we 
   # need to extend this matrix by one more row given by d_v ⋅ y.
   set_attribute!(M, :pre_saturation_data_gens, 
-                 vcat(Tr, d_v*y)
+                 #vcat(Tr, d_v*y)
+                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(y), d_v), y)))
                 )
   Tr = pre_saturation_data_rels(M)
   set_attribute!(M, :pre_saturation_data_rels, 
-                 vcat(Tr, d_w*z)
+                 #vcat(Tr, d_w*z)
+                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(z), d_w), z)))
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
   # finally, return the computed coordinates
@@ -587,11 +595,13 @@ function represents_element(u::FreeModElem{T}, M::SubQuo{T}) where {T<:AbsLocali
   # For the extended set of generators in the pre-saturation, we 
   # need to extend this matrix by one more row given by d_v ⋅ y.
   set_attribute!(M, :pre_saturation_data_gens, 
-                 vcat(Tr, d_v*y)
+                 #vcat(Tr, d_v*y)
+                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(M), d_v), y)))
                 )
   Tr = pre_saturation_data_rels(M)
   set_attribute!(M, :pre_saturation_data_rels, 
-                 vcat(Tr, d_w*z)
+                 #vcat(Tr, d_w*z)
+                 push!(Tr, sparse_row(mul(change_base_ring(base_ring(M), d_w), z)))
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
 
@@ -671,7 +681,7 @@ function iszero(v::SubQuoElem{<:AbsLocalizedRingElem})
   iszero(Mb(u)) && return true
 
   B = relations_matrix(M)
-  success, y = has_solution(b, B)
+  success, y = has_solution(B, b)
   !success && return false
 
   # Cache the new relation in the pre_saturated_module
@@ -688,7 +698,8 @@ function iszero(v::SubQuoElem{<:AbsLocalizedRingElem})
   # need to extend this matrix by one more row given by d ⋅ y.
   Tr = pre_saturation_data_rels(M)
   set_attribute!(M, :pre_saturation_data_rels, 
-                 vcat(Tr, d*y)
+                 #vcat(Tr, d*y)
+                 push!(Tr, sparse_row(d*y))
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
   return true

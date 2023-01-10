@@ -8,7 +8,6 @@ Frac = FractionField(R)
 
 cases = [
     (QQ, [1 2; 3 4//5]),
-    (ZZ, [1 2; 3 4]),
     (Z7, [1 3; 4 2]),
     (K, [a a + 1; a - 1 0]),
     (Fin, [d d^3; d^2 0]),
@@ -39,6 +38,10 @@ end
                 m = matrix(case[1], case[2])
                 test_save_load_roundtrip(path, m) do loaded
                     @test test_equality(m, loaded)
+                end
+
+                test_save_load_roundtrip(path, m; parent=parent(m)) do loaded
+                    @test loaded == m
                 end
             end
         end

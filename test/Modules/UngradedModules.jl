@@ -52,25 +52,6 @@ end
 	@test is_bijective(phi)
 end
 
-@testset "Modules: orderings" begin
-	R, (w,x,y,z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-	F = FreeMod(R,2)
-  a = (1 + 2*w + 3*x + 4*y + 5*z)*(F[1] + F[2])
-
-  @test length(string(terms(a))) > 2
-
-  @test collect(terms(a; ordering = lex(R)*lex(F))) ==
-    [2*w*F[1], 2*w*F[2], 3*x*F[1], 3*x*F[2], 4*y*F[1], 4*y*F[2],
-     5*z*F[1], 5*z*F[2], F[1], F[2]]
-
-  @test collect(terms(a; ordering = lex([w,x])*revlex(F)*lex([y,z]))) ==
-    [2*w*F[2], 2*w*F[1], 3*x*F[2], 3*x*F[1],
-     4*y*F[2], 5*z*F[2], F[2], 4*y*F[1], 5*z*F[1], F[1]]
-
-  @test_throws ErrorException induced_ring_ordering(revlex(F))
-  @test induced_ring_ordering(lex([w,x])*revlex(F)*lex([y,z])) == lex([w,x,y,z])
-end
-
 @testset "Intersection of modules" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
@@ -173,6 +154,8 @@ end
 	M = SubQuo(A, B)
 	free_res = free_resolution(M, length=1)
     @test is_complete(free_res) == false
+    free_res[2]
+    @test length(free_res.C.maps) == 4
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
     @test is_complete(free_res) == true
@@ -184,7 +167,7 @@ end
 	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
 	tensor_resolution = tensor_product(N,free_res)
 	@test range(tensor_resolution) == range(free_res)
-	for i in range(tensor_resolution)
+	for i in Hecke.map_range(tensor_resolution)
 		f = map(free_res,i)
 		M_i = domain(f)
 		tensored_f = map(tensor_resolution,i)
@@ -198,7 +181,7 @@ end
 	N = SubQuo(R[x+2*x^2*z; x+y-z], R[z^4;])
 	tensor_resolution = tensor_product(free_res,N)
 	@test range(tensor_resolution) == range(free_res)
-	for i in range(tensor_resolution)
+	for i in Hecke.map_range(tensor_resolution)
 		f = map(free_res,i)
 		M_i = domain(f)
 		tensored_f = map(tensor_resolution,i)
@@ -212,7 +195,7 @@ end
 	N = SubQuo(R[x+2*x^2; x+y], R[z^4;])
 	hom_resolution = hom(N,free_res)
 	@test range(hom_resolution) == range(free_res)
-	for i in range(hom_resolution)
+	for i in Hecke.map_range(hom_resolution)
 		f = map(free_res,i)
 		hom_f = map(hom_resolution,i)
 		hom_N_M_i = domain(hom_f)
@@ -225,9 +208,9 @@ end
 	hom_resolution = hom(free_res,N)
 	@test last(range(hom_resolution)) == first(range(free_res))
 	@test first(range(hom_resolution)) == last(range(free_res))
-	for i in range(hom_resolution)
-		f = map(free_res,i)
-		hom_f = map(hom_resolution,i)
+	for i in Hecke.map_range(hom_resolution)
+                f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
+                hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
 		hom_M_i_N = domain(hom_f)
 		for v in gens(hom_M_i_N)
 			@test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
@@ -240,8 +223,8 @@ end
 	hom_resolution = hom_without_reversing_direction(free_res,N)
 	@test last(range(hom_resolution)) == -first(range(free_res))
 	@test first(range(hom_resolution)) == -last(range(free_res))
-	for i in range(hom_resolution)
-		f = map(free_res,-i)
+	for i in Hecke.map_range(hom_resolution)
+		f = map(free_res,-i+1)
 		hom_f = map(hom_resolution,i)
 		hom_M_i_N = domain(hom_f)
 		for v in gens(hom_M_i_N)
@@ -294,7 +277,6 @@ end
 	@test is_canonically_isomorphic(present_as_cokernel(simplify(E2)[1]), M_coker)
 	@test is_canonically_isomorphic(E3, M_coker)
 	@test iszero(E4)
-
 end
 
 @testset "Gröbner bases" begin

@@ -37,12 +37,14 @@ export
     isfinite, has_is_finite, set_is_finite,
     is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated,
     is_finiteorder,
+    is_full_fp_group,
     is_perfect, has_is_perfect, set_is_perfect,
     is_pgroup, has_is_pgroup, set_is_pgroup,
     is_pgroup_with_prime,
     is_quasisimple, has_is_quasisimple, set_is_quasisimple,
     is_simple, has_is_simple, set_is_simple,
     is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple,
+    letters,
     low_index_subgroup_reps,
     map_word,
     maximal_subgroup_reps,
@@ -68,8 +70,10 @@ export
     right_cosets ,
     right_transversal,
     short_right_transversal,
+    small_generating_set, has_small_generating_set, set_small_generating_set,
     socle, has_socle, set_socle,
     subgroup_reps,
+    syllables,
     sylow_subgroup,
     sylow_system, has_sylow_system, set_sylow_system
 
@@ -112,13 +116,14 @@ check_parent(G::PermGroup, g::PermGroupElem) = (degree(G) == degree(parent(g)))
 # (This cannot be defined here because `MatrixGroup` is not yet defined.)
 
 
-function elements(G::T) where T <: GAPGroup
-  els = Vector{GapObj}(GAP.Globals.Elements(G.X)::GapObj)
-  elems = Vector{elem_type(G)}(undef, length(els))
-  for i in 1:length(els)
-    elems[i] = group_element(G, els[i])
-  end
-  return elems
+# TODO: ideally the `elements` method below would be turned into a method for
+# `collect`, as it is much faster than plain `collect`. Unfortunately, though,
+# for some groups (e.g. permutation groups) the order of elements computed
+# by this function may differ from that computed by an iterator over G. So
+# this is not an option right now.
+function elements(G::GAPGroup)
+  els = GAPWrap.AsList(G.X)
+  return [group_element(G, x::GapObj) for x in els]
 end
 
 function parent(x::GAPGroupElem)
@@ -148,8 +153,6 @@ false
 """
 @gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
 
-Base.isfinite(G::PcGroup) = true
-
 """
     is_finiteorder(g::GAPGroupElem) -> Bool
 
@@ -167,7 +170,6 @@ false
 """
 is_finiteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
-@deprecate is_finite_order(x::GAPGroupElem) is_finiteorder(x)
 
 """
     order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
@@ -191,8 +193,8 @@ end
 
 order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
-@gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)
-@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
+@gapwrap has_order(G::GAPGroup) = GAP.Globals.HasSize(G.X)::Bool
+@gapwrap set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GAP.Obj(val))
 
 
 @gapattribute is_trivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
@@ -205,9 +207,9 @@ Return the exponent of `G`, as an instance of `T`,
 i.e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """
-@gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
+@gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X)::GapInt)
 
-Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X))
+Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X)::GapInt)
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::Group)
@@ -217,7 +219,7 @@ Return a random element of `G`, using the random number generator `rng`.
 Base.rand(G::GAPGroup) = Base.rand(Random.GLOBAL_RNG, G)
 
 function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
-   s = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)
+   s = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)::GapObj
    return group_element(G, s)
 end
 
@@ -248,7 +250,7 @@ relatively quickly converges to a uniform distribution.
 
 """
 function rand_pseudo(G::GAPGroup; radius::Int = 10)
-  return group_element(G, GAP.Globals.PseudoRandom(G.X; radius = radius))
+  return group_element(G, GAP.Globals.PseudoRandom(G.X; radius = radius)::GapObj)
 end
 
 function _common_parent_group(x::T, y::T) where T <: GAPGroup
@@ -284,7 +286,7 @@ Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
 Return the identity of the group `G`.
 """
-Base.one(x::GAPGroup) = group_element(x, GAP.Globals.Identity(x.X))
+Base.one(x::GAPGroup) = group_element(x, GAP.Globals.Identity(x.X)::GapObj)
 
 """
     one(x::GAPGroupElem{T}) -> GAPGroupElem{T}
@@ -292,30 +294,36 @@ Base.one(x::GAPGroup) = group_element(x, GAP.Globals.Identity(x.X))
 Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
-one!(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAP.Globals.StringViewObj(x.X)))
-Base.show(io::IO, x::GAPGroup) = print(io, String(GAP.Globals.StringViewObj(x.X)))
+Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAPWrap.StringViewObj(x.X)))
+Base.show(io::IO, x::GAPGroup) = print(io, String(GAPWrap.StringViewObj(x.X)))
 
 Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(x.X)
 
-Base.inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
+Base.inv(x::GAPGroupElem) = group_element(parent(x), GAPWrap.Inverse(x.X))
 
-inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
-
-Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), x.X ^ y)
+Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 
 Base.:^(x::GAPGroupElem, y::fmpz) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
-Base.:/(x::GAPGroupElem, y::GAPGroupElem) = x*y^-1
+Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
+
+Base.:/(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)::GapObj)
+
+Base.:\(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
+
+
+# Compatibility with GroupsCore interface
+one!(x::GAPGroupElem) = one(parent(x))
+inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
 mul(x::GAPGroupElem, y::GAPGroupElem) = x*y
 mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y
 
-div_right(x::GAPGroupElem, y::GAPGroupElem) = x*inv(y)
-div_left(x::GAPGroupElem, y::GAPGroupElem) = inv(y)*x
-div_right!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*inv(y)
-div_left!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = inv(y)*x
+div_right(x::GAPGroupElem, y::GAPGroupElem) = x / y
+div_left(x::GAPGroupElem, y::GAPGroupElem) = y \ x
+div_right!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x / y
+div_left!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = y \ x
 
 Base.conj(x::GAPGroupElem, y::GAPGroupElem) = x^y
 Base.conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
@@ -334,8 +342,8 @@ Base.IteratorSize(::Type{<:GAPGroup}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
 function Base.iterate(G::GAPGroup)
-  L=GAP.Globals.Iterator(G.X)
-  i = GAPWrap.NextIterator(L)
+  L = GAPWrap.Iterator(G.X)::GapObj
+  i = GAPWrap.NextIterator(L)::GapObj
   return group_element(G, i), L
 end
 
@@ -343,7 +351,7 @@ function Base.iterate(G::GAPGroup, state)
   if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAPWrap.NextIterator(state)
+  i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G, i), state
 end
 
@@ -382,10 +390,10 @@ julia> g[2]
     The output of `gens(G)` is not, in general, the minimal list of generators for `G`.
 """
 function gens(G::GAPGroup)
-   L = GAP.Globals.GeneratorsOfGroup(G.X)
+   L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)
-     res[i] = group_element(G, L[i])
+     res[i] = group_element(G, L[i]::GapObj)
    end
    return res
 end
@@ -422,9 +430,9 @@ but may be more efficient than the latter.
 An exception is thrown if `i` is larger than the length of `gens(G)`.
 """
 function gen(G::GAPGroup, i::Int)
-   L = GAP.Globals.GeneratorsOfGroup(G.X)
+   L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
    @assert length(L) >= i "The number of generators is lower than the given index"
-   return group_element(G, L[i])
+   return group_element(G, L[i]::GapObj)
 end
 Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
@@ -436,7 +444,31 @@ Return the length of the vector [`gens`](@ref)`(G)`.
 !!! warning "WARNING:"
     this is *NOT*, in general, the minimum number of generators for G.
 """
-ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
+ngens(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(G.X))
+
+"""
+    small_generating_set(G::GAPGroup)
+
+Return a reasonably short vector of elements in `G` that generate `G`;
+in general the length of this vector is not minimal.
+
+# Examples
+```jldoctest
+julia> length(small_generating_set(abelian_group(PcGroup, [2,3,4])))
+2
+
+julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
+3
+```
+"""
+@gapattribute function small_generating_set(G::GAPGroup)
+   L = GAP.Globals.SmallGeneratingSet(G.X)::GapObj
+   res = Vector{elem_type(G)}(undef, length(L))
+   for i = 1:length(res)
+     res[i] = group_element(G, L[i]::GapObj)
+   end
+   return res
+end
 
 
 ################################################################################
@@ -468,9 +500,9 @@ Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
 Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
-  print(io, String(GAP.Globals.StringViewObj(x.repr.X)),
+  print(io, String(GAPWrap.StringViewObj(x.repr.X)),
             " ^ ",
-            String(GAP.Globals.StringViewObj(x.X.X)))
+            String(GAPWrap.StringViewObj(x.X.X)))
 end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC
@@ -543,7 +575,6 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
    return group_element(C.X, GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj)
 end
 
-@deprecate elements(C::GroupConjClass) collect(C)
 
 """
     number_conjugacy_classes(G::GAPGroup)
@@ -562,8 +593,6 @@ function conjugacy_classes(G::GAPGroup)
    L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X)::GapObj)
    return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)::GapObj),cc) for cc in L]
 end
-
-Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), x.X ^ y.X)
 
 @doc Markdown.doc"""
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
@@ -659,7 +688,7 @@ function subgroup_reps(G::GAPGroup; order::fmpz = fmpz(-1))
   C = GAP.Globals.ConjugacyClassesSubgroups(G.X)
   C = map(GAP.Globals.Representative, C)
   if order != -1
-    C = [x for x = C if GAP.Globals.Order(x) == order]
+    C = [x for x = C if GAPWrap.Order(x) == order]
   end
   return [Oscar._as_subgroup(G, x)[1] for x = C]
 end
@@ -755,7 +784,6 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 # This function was never exported but may have been used somewhere.
 # (The name is confusing because it is not clear *of which group* the result
 # shall be a subgroup.)
-@deprecate conjugate_subgroup(G::GAPGroup, x::GAPGroupElem) conjugate_group(G, x)
 
 """
     is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
@@ -928,13 +956,13 @@ end
 # START iterator
 Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 
-Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC)::GapObj)
+Base.iterate(cc::GroupConjClass) = iterate(cc, GAPWrap.Iterator(cc.CC))
 
 function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
   if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAPWrap.NextIterator(state)
+  i = GAPWrap.NextIterator(state)::GapObj
   if T <: GAPGroupElem
      return group_element(cc.X, i), state
   else
@@ -1083,7 +1111,7 @@ julia> s = sylow_subgroup(g, 3); order(s[1])
 """
 function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
    is_prime(p) || throw(ArgumentError("p is not a prime"))
-   return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p)))
+   return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p))::GapObj)
 end
 
 # no longer documented, better use `hall_subgroup_reps`
@@ -1091,7 +1119,7 @@ function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    all(is_prime, P) || throw(ArgumentError("The integers must be prime"))
    is_solvable(G) || throw(ArgumentError("The group is not solvable"))
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true)))
+   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true))::GapObj)
 end
 
 """
@@ -1164,7 +1192,7 @@ end
 
 Return a vector of representatives of the conjugacy classes of complements
 of the normal subgroup `N` in `G`.
-This function may throws an error exception if both `N` and `G/N` are
+This function may throw an error exception if both `N` and `G/N` are
 nonsolvable.
 
 A complement is a subgroup of `G` which intersects trivially with `N` and
@@ -1365,7 +1393,7 @@ julia> is_pgroup_with_prime(symmetric_group(3))
 function is_pgroup_with_prime(G::GAPGroup)
   is_trivial(G) && return true, nothing
   if is_pgroup(G)
-    p = GAP.Globals.PrimePGroup(G.X)::GapInt
+    p = GAPWrap.PrimePGroup(G.X)
     return true, fmpz(p)  # TODO: allow specifying the type used for the prime
   end
   return false, nothing
@@ -1382,7 +1410,7 @@ end
   if is_trivial(G) || !is_pgroup(G)
     error("only supported for non-trivial p-groups")
   end
-  return GAP.Globals.PrimePGroup(G.X)::GapInt
+  return GAP.Globals.PrimePGroup(G.X)
 end
 
 
@@ -1458,16 +1486,59 @@ false
 
 
 @doc Markdown.doc"""
+    is_full_fp_group(G::FPGroup)
+
+Return `true` if `G` has been constructed as a free group or
+a quotient of a free group, and `false` otherwise.
+
+Note that also subgroups of groups of type `FPGroup` have the type `FPGroup`,
+and functions such as [`relators`](@ref) do not make sense for proper
+subgroups.
+
+# Examples
+```jldoctest
+julia> f = free_group(2);  is_full_fp_group(f)
+true
+
+julia> s = sub(f, gens(f))[1];  is_full_fp_group(s)
+false
+
+julia> q = quo(f, [gen(f,1)^2])[1];  is_full_fp_group(q)
+true
+
+julia> u = sub(q, gens(q))[1];  is_full_fp_group(u)
+false
+```
+"""
+is_full_fp_group(G::FPGroup) = GAPWrap.IsFpGroup(G.X)
+
+
+@doc Markdown.doc"""
     relators(G::FPGroup)
 
-Return a vector of relators for the finitely presented group, i.e.,
+Return a vector of relators for the full finitely presented group `G`, i.e.,
 elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
 `G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
+
+An exception is thrown if `G` has been constructed only as a subgroup of a
+full finitely presented group, see [`is_full_fp_group`](@ref).
+
+# Examples
+```jldoctest
+julia> f = free_group(2);  (x, y) = gens(f);
+
+julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
+3-element Vector{FPGroupElem}:
+ f1^2
+ f2^2
+ f1^-1*f2^-1*f1*f2
+```
 """
 function relators(G::FPGroup)
-   L=GAP.Globals.RelatorsOfFpGroup(G.X)
-   F=free_group(G)
-   return [group_element(F,L[i]) for i in 1:length(L)]
+  is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
+  L = GAPWrap.RelatorsOfFpGroup(G.X)::GapObj
+  F = free_group(G)
+  return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
 end
 
 
@@ -1540,19 +1611,19 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
     return init
   end
   gX = g.X
-  if ! GAP.Globals.IsAssocWord(gX)
+  if ! GAPWrap.IsAssocWord(gX)
     # element of a f.p. group
-    gX = GAP.Globals.UnderlyingElement(gX)
+    gX = GAPWrap.UnderlyingElement(gX)
   end
   @assert length(GAP.getbangproperty(GAP.Globals.FamilyObj(gX), :names)) == length(genimgs)
-  @assert GAP.Globals.IsAssocWord(gX)
-  if GAP.Globals.IsLetterAssocWordRep(gX)
-    # `GAP.Globals.ExtRepOfObj` would create a syllable representation,
+  @assert GAPWrap.IsAssocWord(gX)
+  if GAPWrap.IsLetterAssocWordRep(gX)
+    # `GAPWrap.ExtRepOfObj` would create a syllable representation,
     # which is unnecessary.
-    ll = Vector{Int}(GAP.Globals.LetterRepAssocWord(gX)::GAP.GapObj)
-  elseif GAP.Globals.IsSyllableAssocWordRep(gX)
+    ll = Vector{Int}(GAP.Globals.LetterRepAssocWord(gX)::GapObj)
+  elseif GAPWrap.IsSyllableAssocWordRep(gX)
     # Here we take the available syllable representation.
-    l = GAP.Globals.ExtRepOfObj(gX)::GAP.GapObj
+    l = GAPWrap.ExtRepOfObj(gX)
     ll = Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
   else
     error("do not know the type of the element $gX")
@@ -1591,6 +1662,83 @@ end
 
 
 @doc Markdown.doc"""
+    syllables(g::FPGroupElem)
+
+Return the syllables of `g` as a list of pairs `gen => exp` where
+`gen` is the index of a generator and `exp` is an exponent.
+
+# Examples
+```jldoctest
+julia> F = free_group(2);  F1, F2 = gens(F);
+
+julia> syllables(F1^5*F2^-3)
+2-element Vector{Pair{Int64, Int64}}:
+ 1 => 5
+ 2 => -3
+
+julia> syllables(one(F))
+Pair{Int64, Int64}[]
+
+julia> G, epi = quo(F, [F1^10, F2^10]);
+
+julia> syllables(epi(F1^5*F2^-3))
+2-element Vector{Pair{Int64, Int64}}:
+ 1 => 5
+ 2 => -3
+```
+"""
+function syllables(g::FPGroupElem)
+  l = GAPWrap.ExtRepOfObj(g.X)
+  return Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+end
+
+
+@doc Markdown.doc"""
+    letters(g::FPGroupElem)
+
+Return the letters of `g` as a list of integers, each entry corresponding to
+a group generator. Inverses of the generators are represented by negative
+numbers.
+
+# Examples
+```jldoctest
+julia> F = free_group(2);  F1, F2 = gens(F);
+
+julia> letters(F1^5*F2^-3)
+8-element Vector{Int64}:
+  1
+  1
+  1
+  1
+  1
+ -2
+ -2
+ -2
+
+julia> letters(one(F))
+Int64[]
+
+julia> G, epi = quo(F, [F1^10, F2^10]);
+
+julia> letters(epi(F1^5*F2^-3))
+8-element Vector{Int64}:
+  1
+  1
+  1
+  1
+  1
+ -2
+ -2
+ -2
+```
+"""
+function letters(g::FPGroupElem)
+  w = GAPWrap.UnderlyingElement(g.X)::GapObj
+  return Vector{Int}(GAP.Globals.LetterRepAssocWord(w)::GapObj)
+end
+
+
+@doc Markdown.doc"""
     length(g::FPGroupElem)
 
 Return the length of `g` as a word in terms of the generators of its group
@@ -1612,10 +1760,56 @@ ERROR: ArgumentError: the element does not lie in a free group
 """
 function length(g::FPGroupElem)
   gX = g.X
-  GAP.Globals.IsAssocWord(gX) || throw(ArgumentError("the element does not lie in a free group"))
+  GAPWrap.IsAssocWord(gX) || throw(ArgumentError("the element does not lie in a free group"))
   return length(gX)
 end
 
+
+"""
+    (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+
+Return the element `x` of the full finitely presented group `G`
+that is described by `pairs` in the sense that `x` is the product
+of the powers `gen(G, i_j) ^ e_j`
+where the `pairs[j]` is equal to `i_j => e_j`.
+If the `i_j` in adjacent entries of `pairs` are different and the `e_j` are
+nonzero then `pairs` is the vector of syllables of `x`, see [`syllables`](@ref).
+
+# Examples
+```jldoctest
+julia> G = free_group(2);  pairs = [1 => 3, 2 => -1];
+
+julia> x = G(pairs)
+f1^3*f2^-1
+
+julia> syllables(x) == pairs
+true
+```
+"""
+function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
+   is_full_fp_group(G) || throw(ArgumentError("the group must be a full f. p. group"))
+   n = ngens(G)
+   ll = GAP.Obj[]
+   for p in pairs
+     0 < p.first && p.first <= n || throw(ArgumentError("generator number is at most $n"))
+     if p.second != 0
+       push!(ll, GAP.Obj(p.first))
+       push!(ll, GAP.Obj(p.second))
+     end
+   end
+   famG = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X))
+   if GAP.Globals.IsFreeGroup(G.X)
+     w = GAPWrap.ObjByExtRep(famG, GapObj(ll))::GapObj
+   else
+     # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
+     F = GAP.getbangproperty(famG, :freeGroup)
+     famF = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(F))
+     w = GAPWrap.ObjByExtRep(famF, GapObj(ll))::GapObj
+     w = GAP.Globals.ElementOfFpGroup(famG, w)::GapObj
+   end
+
+   return FPGroupElem(G, w)
+end
 
 @doc Markdown.doc"""
     nilpotency_class(G::GAPGroup) -> Int
@@ -1754,11 +1948,16 @@ function describe(G::FPGroup)
    # FPGroup instances
    is_finitelygenerated(G) || return "a non-finitely generated group"
 
-   if GAP.Globals.IsFreeGroup(G.X)::Bool
+   if GAPWrap.IsFreeGroup(G.X)
       r = GAP.Globals.RankOfFreeGroup(G.X)::GapInt
       r >= 2 && return "a free group of rank $(r)"
       r == 1 && return "Z"
       r == 0 && return "1"
+   end
+
+   if !GAP.Globals.IsFpGroup(G.X)
+     # `G` is a subgroup of an f.p. group
+     G = FPGroup(GAPWrap.Range(GAP.Globals.IsomorphismFpGroup(G.X)))
    end
 
    # check for free groups in disguise
@@ -1784,7 +1983,7 @@ function describe(G::FPGroup)
    if !has_is_finite(G)
       # try to obtain an isomorphic permutation group, but don't try too hard
       iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(G.X, 100000)::GapObj
-      iso != GAP.Globals.fail && return describe(PermGroup(GAP.Globals.Range(iso)))
+      iso != GAP.Globals.fail && return describe(PermGroup(GAPWrap.Range(iso)))
    elseif isfinite(G)
       return describe(PermGroup(G))
    else
